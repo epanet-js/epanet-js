@@ -29,6 +29,7 @@ import { computeAssetsStats } from "./asset-stats";
 import { computeAssetsStatsDeprecated } from "./asset-stats-deprecated";
 import { BATCH_EDITABLE_PROPERTIES } from "./batch-edit-property-config";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
+import { useRoughnessInferrer } from "src/hooks/use-roughness-inferrer";
 import { useUserTracking } from "src/infra/user-tracking";
 import { changeProperty } from "src/hydraulic-model/model-operations";
 import type { ChangeableProperty } from "src/hydraulic-model/model-operations/change-property";
@@ -62,6 +63,7 @@ export function MultiAssetPanel({
   const userTracking = useUserTracking();
   const showPumpLibrary = useShowPumpLibrary();
   const showPatternsLibrary = useShowPatternsLibrary();
+  const inferRoughness = useRoughnessInferrer();
   const { data: multiAssetData, counts: assetCounts } = useMemo(() => {
     return computeAssetsStats(
       selectedAssets,
@@ -70,6 +72,7 @@ export function MultiAssetPanel({
       hydraulicModel,
       simulationSettings,
       simulationResults,
+      inferRoughness,
     );
   }, [
     selectedAssets,
@@ -78,6 +81,7 @@ export function MultiAssetPanel({
     hydraulicModel,
     simulationResults,
     simulationSettings,
+    inferRoughness,
   ]);
 
   const assetIdsByType = useMemo(() => {
@@ -174,6 +178,7 @@ export function MultiAssetPanel({
         hydraulicModel,
         simulationSettings,
         simulationResults,
+        inferRoughness,
       );
       for (const stats of Object.values(data[assetType])) {
         const found = stats.find((s) => s.property === property);
@@ -188,6 +193,7 @@ export function MultiAssetPanel({
       hydraulicModel,
       simulationSettings,
       simulationResults,
+      inferRoughness,
     ],
   );
 

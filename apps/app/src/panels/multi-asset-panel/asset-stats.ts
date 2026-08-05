@@ -5,6 +5,7 @@ import {
 } from "src/lib/project-settings/quantities-spec";
 import type { ResultsReader } from "@epanet-js/simulation";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
+import type { RoughnessInferrer } from "src/hydraulic-model/pipe-materials";
 import {
   Asset,
   AssetId,
@@ -112,6 +113,7 @@ export const computeAssetsStats = (
   hydraulicModel: HydraulicModel,
   simulationSettings: SimulationSettings,
   simulationResults: ResultsReader | null,
+  inferRoughness: RoughnessInferrer,
 ): ComputedMultiAssetData => {
   const counts: AssetCounts = {
     junction: 0,
@@ -158,6 +160,7 @@ export const computeAssetsStats = (
           hydraulicModel.demands,
           hydraulicModel.patterns,
           simulationSettings,
+          inferRoughness,
           simulationResults,
         );
         break;
@@ -441,6 +444,7 @@ const appendPipeStats = (
   demands: Demands,
   patterns: Patterns,
   simulationSettings: SimulationSettings,
+  inferRoughness: RoughnessInferrer,
   simulationResults?: ResultsReader | null,
 ) => {
   const id = pipe.id;
@@ -475,7 +479,7 @@ const appendPipeStats = (
   updateQuantityStats(
     statsMap,
     "roughness",
-    pipe.roughness,
+    pipe.roughness ?? inferRoughness(pipe),
     units,
     formatting,
     id,

@@ -9,6 +9,7 @@ import type {
   PropertyStatsDeprecated,
 } from "./stats-deprecated";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { buildRoughnessInferrer } from "src/hydraulic-model/pipe-materials";
 import {
   presets,
   FormattingSpec,
@@ -78,6 +79,7 @@ describe("computeMultiAssetData", () => {
       hydraulicModel,
       defaultSimulationSettings,
       null,
+      inferRoughnessFor(hydraulicModel),
     );
 
     expect(result.data.junction).toBeDefined();
@@ -103,6 +105,7 @@ describe("computeMultiAssetData", () => {
       hydraulicModel,
       defaultSimulationSettings,
       null,
+      inferRoughnessFor(hydraulicModel),
     );
 
     const junctionData = result.data.junction;
@@ -141,6 +144,7 @@ describe("computeMultiAssetData", () => {
       hydraulicModel,
       defaultSimulationSettings,
       null,
+      inferRoughnessFor(hydraulicModel),
     );
 
     const simulationStats = result.data.junction.simulationResults;
@@ -168,6 +172,7 @@ describe("computeMultiAssetData", () => {
       hydraulicModel,
       defaultSimulationSettings,
       simulationResults,
+      inferRoughnessFor(hydraulicModel),
     );
 
     const simulationStats = result.data.junction.simulationResults;
@@ -208,6 +213,7 @@ describe("computeMultiAssetData", () => {
       hydraulicModel,
       defaultSimulationSettings,
       null,
+      inferRoughnessFor(hydraulicModel),
     );
 
     const pipeData = result.data.pipe;
@@ -247,6 +253,7 @@ describe("computeMultiAssetData", () => {
       hydraulicModel,
       defaultSimulationSettings,
       null,
+      inferRoughnessFor(hydraulicModel),
     );
 
     const materialStat = findCategoryStat(
@@ -286,6 +293,7 @@ describe("computeMultiAssetData", () => {
       hydraulicModel,
       defaultSimulationSettings,
       null,
+      inferRoughnessFor(hydraulicModel),
     );
 
     const materialStat = findCategoryStat(
@@ -316,6 +324,7 @@ describe("computeMultiAssetData", () => {
       hydraulicModel,
       defaultSimulationSettings,
       null,
+      inferRoughnessFor(hydraulicModel),
     );
 
     const minorLossStat = findQuantityStat(
@@ -356,6 +365,7 @@ describe("computeMultiAssetData", () => {
       hydraulicModel,
       defaultSimulationSettings,
       null,
+      inferRoughnessFor(hydraulicModel),
     );
 
     const yearStat = findQuantityStat(result.data.pipe.modelAttributes, "year");
@@ -397,6 +407,7 @@ describe("computeMultiAssetData", () => {
       hydraulicModel,
       defaultSimulationSettings,
       null,
+      inferRoughnessFor(hydraulicModel),
     );
 
     const roughnessStat = findQuantityStat(
@@ -438,6 +449,7 @@ describe("computeMultiAssetData", () => {
       hydraulicModel,
       defaultSimulationSettings,
       null,
+      inferRoughnessFor(hydraulicModel),
     );
 
     const lengthStat = findQuantityStat(
@@ -479,6 +491,7 @@ describe("computeMultiAssetData", () => {
       hydraulicModel,
       defaultSimulationSettings,
       null,
+      inferRoughnessFor(hydraulicModel),
     );
 
     const diameterStat = findQuantityStat(
@@ -515,6 +528,7 @@ describe("computeMultiAssetData", () => {
       hydraulicModel,
       defaultSimulationSettings,
       null,
+      inferRoughnessFor(hydraulicModel),
     );
 
     const roughnessStat = findQuantityStat(
@@ -542,6 +556,7 @@ describe("computeMultiAssetData", () => {
       hydraulicModel,
       defaultSimulationSettings,
       null,
+      inferRoughnessFor(hydraulicModel),
     );
 
     const materialStat = findCategoryStat(
@@ -571,6 +586,7 @@ describe("computeMultiAssetData", () => {
       hydraulicModel,
       defaultSimulationSettings,
       null,
+      inferRoughnessFor(hydraulicModel),
     );
 
     const typeStat = findCategoryStat(
@@ -616,6 +632,7 @@ describe("computeMultiAssetData", () => {
       hydraulicModel,
       defaultSimulationSettings,
       null,
+      inferRoughnessFor(hydraulicModel),
     );
 
     const bulkStat = findQuantityStat(
@@ -651,6 +668,7 @@ describe("computeMultiAssetData", () => {
       hydraulicModel,
       defaultSimulationSettings,
       null,
+      inferRoughnessFor(hydraulicModel),
     );
 
     const headPatternStat = findLiteralCategoryStat(
@@ -699,6 +717,7 @@ describe("computeMultiAssetData", () => {
       hydraulicModel,
       defaultSimulationSettings,
       null,
+      inferRoughnessFor(hydraulicModel),
     );
 
     const speedPatternStat = findLiteralCategoryStat(
@@ -749,6 +768,7 @@ describe("computeMultiAssetData", () => {
       hydraulicModel,
       defaultSimulationSettings,
       null,
+      inferRoughnessFor(hydraulicModel),
     );
 
     const speedStat = findQuantityStat(
@@ -781,6 +801,7 @@ describe("computeMultiAssetData", () => {
       hydraulicModel,
       defaultSimulationSettings,
       null,
+      inferRoughnessFor(hydraulicModel),
     );
 
     const speedPatternStat = findLiteralCategoryStat(
@@ -823,6 +844,7 @@ describe("computeMultiAssetData", () => {
       hydraulicModel,
       defaultSimulationSettings,
       null,
+      inferRoughnessFor(hydraulicModel),
     );
 
     const statusStat = findCategoryStat(
@@ -842,6 +864,7 @@ describe("computeMultiAssetData", () => {
       hydraulicModel,
       defaultSimulationSettings,
       null,
+      inferRoughnessFor(hydraulicModel),
     );
 
     expect(result.data.junction.modelAttributes).toEqual([]);
@@ -865,6 +888,7 @@ describe("computeMultiAssetData", () => {
       hydraulicModel,
       defaultSimulationSettings,
       null,
+      inferRoughnessFor(hydraulicModel),
     );
 
     expect(result.data.junction.modelAttributes.length).toBeGreaterThan(0);
@@ -893,6 +917,7 @@ describe("computeMultiAssetData", () => {
       hydraulicModel,
       defaultSimulationSettings,
       null,
+      inferRoughnessFor(hydraulicModel),
     );
 
     const pumpData = result.data.pump;
@@ -939,6 +964,7 @@ describe("computeMultiAssetData", () => {
       hydraulicModel,
       defaultSimulationSettings,
       null,
+      inferRoughnessFor(hydraulicModel),
     );
 
     const typeStat = findCategoryStat(
@@ -975,6 +1001,7 @@ describe("computeMultiAssetData", () => {
       hydraulicModel,
       defaultSimulationSettings,
       null,
+      inferRoughnessFor(hydraulicModel),
     );
 
     const typeStat = findCategoryStat(
@@ -1015,6 +1042,7 @@ describe("computeMultiAssetData", () => {
       hydraulicModel,
       defaultSimulationSettings,
       null,
+      inferRoughnessFor(hydraulicModel),
     );
 
     const curveStat = findLiteralCategoryStat(
@@ -1046,6 +1074,7 @@ describe("computeMultiAssetData", () => {
       hydraulicModel,
       defaultSimulationSettings,
       null,
+      inferRoughnessFor(hydraulicModel),
     );
 
     const nameStat = result.data.pump.modelAttributes.find(
@@ -1097,6 +1126,7 @@ describe("computeMultiAssetData", () => {
       hydraulicModel,
       defaultSimulationSettings,
       null,
+      inferRoughnessFor(hydraulicModel),
     );
 
     const curveStat = findLiteralCategoryStat(
@@ -1130,6 +1160,7 @@ describe("computeMultiAssetData", () => {
       hydraulicModel,
       defaultSimulationSettings,
       simulationResults,
+      inferRoughnessFor(hydraulicModel),
     );
 
     const simulationStats = result.data.junction.simulationResults;
@@ -1161,6 +1192,7 @@ describe("computeMultiAssetData", () => {
       hydraulicModel,
       defaultSimulationSettings,
       null,
+      inferRoughnessFor(hydraulicModel),
     );
 
     const valveData = result.data.valve;
@@ -1188,6 +1220,7 @@ describe("computeMultiAssetData", () => {
       hydraulicModel,
       defaultSimulationSettings,
       null,
+      inferRoughnessFor(hydraulicModel),
     );
 
     const tankData = result.data.tank;
@@ -1221,6 +1254,7 @@ describe("computeMultiAssetData", () => {
       hydraulicModel,
       defaultSimulationSettings,
       null,
+      inferRoughnessFor(hydraulicModel),
     );
 
     const curveStat = result.data.tank.modelAttributes.find(
@@ -1244,6 +1278,7 @@ describe("computeMultiAssetData", () => {
       hydraulicModel,
       defaultSimulationSettings,
       null,
+      inferRoughnessFor(hydraulicModel),
     );
 
     const reservoirData = result.data.reservoir;
@@ -1279,6 +1314,7 @@ describe("computeMultiAssetData", () => {
       hydraulicModel,
       defaultSimulationSettings,
       null,
+      inferRoughnessFor(hydraulicModel),
     );
 
     const isEnabledStat = findBooleanStat(
@@ -1307,6 +1343,7 @@ describe("computeMultiAssetData", () => {
         hydraulicModel,
         defaultSimulationSettings,
         null,
+        inferRoughnessFor(hydraulicModel),
       );
 
       const demandStat = findQuantityStat(
@@ -1336,6 +1373,7 @@ describe("computeMultiAssetData", () => {
         hydraulicModel,
         defaultSimulationSettings,
         null,
+        inferRoughnessFor(hydraulicModel),
       );
 
       const demandStat = findQuantityStat(
@@ -1364,6 +1402,7 @@ describe("computeMultiAssetData", () => {
         hydraulicModel,
         defaultSimulationSettings,
         null,
+        inferRoughnessFor(hydraulicModel),
       );
 
       const demandStat = findQuantityStat(
@@ -1394,6 +1433,7 @@ describe("computeMultiAssetData", () => {
         hydraulicModel,
         defaultSimulationSettings,
         null,
+        inferRoughnessFor(hydraulicModel),
       );
 
       const demandStat = findQuantityStat(
@@ -1418,6 +1458,7 @@ describe("computeMultiAssetData", () => {
         hydraulicModel,
         defaultSimulationSettings,
         null,
+        inferRoughnessFor(hydraulicModel),
       );
 
       const demandStat = findQuantityStat(
@@ -1443,6 +1484,7 @@ describe("computeMultiAssetData", () => {
         hydraulicModel,
         defaultSimulationSettings,
         null,
+        inferRoughnessFor(hydraulicModel),
       );
 
       const demandStat = findQuantityStat(
@@ -1474,6 +1516,7 @@ describe("computeMultiAssetData", () => {
         hydraulicModel,
         defaultSimulationSettings,
         null,
+        inferRoughnessFor(hydraulicModel),
       );
 
       const demandStat = findQuantityStat(
@@ -1500,6 +1543,7 @@ describe("computeMultiAssetData", () => {
         hydraulicModel,
         defaultSimulationSettings,
         null,
+        inferRoughnessFor(hydraulicModel),
       );
 
       const demandStat = findQuantityStat(
@@ -1526,6 +1570,7 @@ describe("computeMultiAssetData", () => {
         hydraulicModel,
         defaultSimulationSettings,
         null,
+        inferRoughnessFor(hydraulicModel),
       );
 
       const demandStat = findQuantityStat(
@@ -1563,6 +1608,7 @@ describe("computeMultiAssetData", () => {
         hydraulicModel,
         defaultSimulationSettings,
         null,
+        inferRoughnessFor(hydraulicModel),
       );
 
       const customerDemandStat = findQuantityStat(
@@ -1600,6 +1646,7 @@ describe("computeMultiAssetData", () => {
         hydraulicModel,
         defaultSimulationSettings,
         null,
+        inferRoughnessFor(hydraulicModel),
       );
 
       const customerDemandStat = findQuantityStat(
@@ -1637,6 +1684,7 @@ describe("computeMultiAssetData", () => {
         hydraulicModel,
         defaultSimulationSettings,
         null,
+        inferRoughnessFor(hydraulicModel),
       );
 
       const customerDemandStat = findQuantityStat(
@@ -1677,6 +1725,7 @@ describe("computeMultiAssetData", () => {
         hydraulicModel,
         defaultSimulationSettings,
         null,
+        inferRoughnessFor(hydraulicModel),
       );
 
       const customerDemandStat = findQuantityStat(
@@ -1713,6 +1762,7 @@ describe("computeMultiAssetData", () => {
         hydraulicModel,
         defaultSimulationSettings,
         null,
+        inferRoughnessFor(hydraulicModel),
       );
 
       const customerDemandStat = findQuantityStat(
@@ -1745,6 +1795,7 @@ describe("computeMultiAssetData", () => {
         hydraulicModel,
         defaultSimulationSettings,
         null,
+        inferRoughnessFor(hydraulicModel),
       );
 
       const customerDemandStat = findQuantityStat(
@@ -1777,6 +1828,7 @@ describe("computeMultiAssetData", () => {
         hydraulicModel,
         defaultSimulationSettings,
         null,
+        inferRoughnessFor(hydraulicModel),
       );
 
       const customerDemandStat = findQuantityStat(
@@ -1809,6 +1861,7 @@ describe("computeMultiAssetData", () => {
         hydraulicModel,
         defaultSimulationSettings,
         null,
+        inferRoughnessFor(hydraulicModel),
       );
 
       const diameterStat = findQuantityStat(
@@ -1820,3 +1873,7 @@ describe("computeMultiAssetData", () => {
     });
   });
 });
+
+const inferRoughnessFor = (
+  hydraulicModel: ReturnType<HydraulicModelBuilder["build"]>,
+) => buildRoughnessInferrer(hydraulicModel.pipeMaterials, { enabled: true });

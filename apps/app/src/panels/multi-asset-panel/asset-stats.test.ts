@@ -8,6 +8,7 @@ import type {
 } from "./summary-stats";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { buildRoughnessInferrer } from "src/hydraulic-model/pipe-materials";
 import {
   presets,
   FormattingSpec,
@@ -37,6 +38,7 @@ describe("computeAssetsStats (light summary)", () => {
       hydraulicModel,
       defaultSimulationSettings,
       null,
+      inferRoughnessFor(hydraulicModel),
     );
 
   it("groups assets by type and counts them", () => {
@@ -52,6 +54,47 @@ describe("computeAssetsStats (light summary)", () => {
     expect(result.counts.junction).toBe(2);
     expect(result.counts.pipe).toBe(1);
     expect(result.counts.pump).toBe(0);
+  });
+
+  describe("pipe roughness", () => {
+    const IDS = { P1: 1, P2: 2 } as const;
+
+    const modelWithMaterial = (roughness: number | null) =>
+      HydraulicModelBuilder.with()
+        .aPipe(IDS.P1, { roughness, material: "Cast Iron" })
+        .aPipeMaterial({
+          label: "Cast Iron",
+          entries: [{ age: 0, roughness: 120 }],
+        })
+        .build();
+
+    const roughnessStats = (
+      hydraulicModel: ReturnType<HydraulicModelBuilder["build"]>,
+    ) => find(compute(hydraulicModel).data.pipe.modelAttributes, "roughness");
+
+    it("reports the inferred value when the pipe has none", () => {
+      const stats = roughnessStats(modelWithMaterial(null)) as QuantityStats;
+
+      expect(stats.distinctCount).toBe(1);
+      expect(stats.singleValue).toBe(120);
+      expect(stats.emptyBucket).toBeUndefined();
+    });
+
+    it("prefers the value stored on the pipe", () => {
+      const stats = roughnessStats(modelWithMaterial(90)) as QuantityStats;
+
+      expect(stats.singleValue).toBe(90);
+    });
+
+    it("stays empty when nothing can be inferred", () => {
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aPipe(IDS.P1, { roughness: null, material: "PVC" })
+        .build();
+
+      const stats = roughnessStats(hydraulicModel) as QuantityStats;
+
+      expect(stats.emptyBucket).toMatchObject({ count: 1 });
+    });
   });
 
   it("reports a single distinct value when all assets share it", () => {
@@ -195,6 +238,7 @@ describe("computeAssetsStats (light summary)", () => {
       hydraulicModel,
       defaultSimulationSettings,
       simulationResults,
+      inferRoughnessFor(hydraulicModel),
     );
 
     const pressure = find(
@@ -225,3 +269,7 @@ describe("computeAssetsStats (light summary)", () => {
     expect(length.emptyBucket?.count).toBe(1);
   });
 });
+
+const inferRoughnessFor = (
+  hydraulicModel: ReturnType<HydraulicModelBuilder["build"]>,
+) => buildRoughnessInferrer(hydraulicModel.pipeMaterials, { enabled: true });
