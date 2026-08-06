@@ -35,7 +35,9 @@ Rationale: we used to keep selection in a dedicated source, but that source can 
 
 ### An overlay, not a hide-and-replace
 
-A selected-but-unedited asset stays rendered by the consolidated snapshot; the editions layers on top paint the selection over it. We don't hide it in the consolidated snapshot to redraw it selected: hiding takes effect immediately but the selected redraw is async (the data reprocess is async), so hide-then-redraw makes the asset vanish for a few frames — a selection flicker. Only genuinely **edited** assets are hidden in the consolidated snapshot, since only their geometry is stale.
+A selected-but-unedited asset stays rendered by the consolidated snapshot; the editions layers on top paint the selection over it. We don't hide it in the consolidated snapshot to redraw it selected: hiding takes effect immediately but the selected redraw is async (the data reprocess is async), so hide-then-redraw makes the asset vanish for a few frames — a selection flicker. Only genuinely **edited** assets are hidden in the consolidated snapshot, since only their geometry is stale. Hiding selected assets too has been tried since, and reverted: the flicker is bad enough to rule the approach out, so don't reach for it again.
+
+This makes an invariant of it: **both states must draw an asset in the same place**. That is free for anything positioned by its own geometry, but not for symbols mapbox positions *from* the geometry — link arrows ride `symbol-placement: line-center`, so where they land depends on how the source was tiled and clipped. Both backends tile, so a backend only has to clip at the same width mapbox uses for the geojson sources; the tiled one does, and its `AGENTS.md` records the constant. Break that and a selected pipe shows two arrows in different spots.
 
 ### Large selections fold into the consolidated snapshot
 
