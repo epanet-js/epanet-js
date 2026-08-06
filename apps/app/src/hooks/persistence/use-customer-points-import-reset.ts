@@ -2,7 +2,7 @@ import { useCallback } from "react";
 import { useAtomCallback } from "jotai/utils";
 import type { Getter, Setter } from "jotai";
 import * as db from "src/lib/db";
-import { captureError } from "src/infra/error-tracking";
+import { handleError } from "src/infra/errors";
 import type { HydraulicModel } from "src/hydraulic-model";
 import { mapSyncMomentAtom } from "src/state/map";
 import { initialSimulationState } from "src/state/simulation";
@@ -16,7 +16,7 @@ import { selectionAtom } from "src/state/selection";
 import { USelection } from "src/selection";
 import { modeAtom, Mode } from "src/state/mode";
 import { ephemeralStateAtom } from "src/state/drawing";
-import { OPFSStorage } from "src/infra/storage";
+import { OPFSStorage, opfsUnavailableErrors } from "src/infra/storage";
 import { getAppId } from "src/infra/app-instance";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { initializeWorktree } from "src/lib/worktree";
@@ -52,7 +52,13 @@ const loadModel = (
       hydraulicModel,
       simulationSettings: get(simulationSettingsDerivedAtom),
     })
-    .catch(captureError);
+    .catch((error) =>
+      handleError(error, {
+        as: "Customer points import reset: project import failed",
+        warn: opfsUnavailableErrors,
+        onUnexpected: "capture",
+      }),
+    );
   set(momentLogDerivedAtom, momentLog);
 
   set(worktreeAtom, initializeWorktree());

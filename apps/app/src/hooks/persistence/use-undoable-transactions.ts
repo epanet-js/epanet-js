@@ -14,6 +14,8 @@ import {
 import { applyMomentToDb, buildMomentPayload } from "src/lib/db";
 import type { ApplyMomentPayload } from "@epanet-js/ejsdb";
 import { captureError } from "src/infra/error-tracking";
+import { handleError } from "src/infra/errors";
+import { opfsUnavailableErrors } from "src/infra/storage";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { writeQueue } from "src/lib/persistence/write-queue";
 import { useWriteFailureHandler } from "src/hooks/persistence/use-write-failure-handler";
@@ -58,7 +60,13 @@ export const useUndoableTransactions = () => {
           if (isQueueOn) {
             writeQueue.enqueue(() => applyMomentToDb(payload), onWriteFailure);
           } else {
-            void applyMomentToDb(payload).catch(captureError);
+            void applyMomentToDb(payload).catch((error) =>
+              handleError(error, {
+                as: "Undoable transaction: db write failed",
+                warn: opfsUnavailableErrors,
+                onUnexpected: "capture",
+              }),
+            );
           }
         }
 

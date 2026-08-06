@@ -8,6 +8,8 @@ import {
   serializeSimulationSettings,
 } from "src/lib/db";
 import { captureError } from "src/infra/error-tracking";
+import { handleError } from "src/infra/errors";
+import { opfsUnavailableErrors } from "src/infra/storage";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { writeQueue } from "src/lib/persistence/write-queue";
 import { useWriteFailureHandler } from "src/hooks/persistence/use-write-failure-handler";
@@ -37,7 +39,13 @@ export const useSimulationSettingsTransaction = () => {
           onWriteFailure,
         );
       } else {
-        void setAllSimulationSettings(data).catch(captureError);
+        void setAllSimulationSettings(data).catch((error) =>
+          handleError(error, {
+            as: "Simulation settings transaction: db write failed",
+            warn: opfsUnavailableErrors,
+            onUnexpected: "capture",
+          }),
+        );
       }
 
       return true;

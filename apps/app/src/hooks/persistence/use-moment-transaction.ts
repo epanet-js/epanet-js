@@ -19,6 +19,8 @@ import {
 import { applyMomentToDb, buildMomentPayload } from "src/lib/db";
 import type { ApplyMomentPayload } from "@epanet-js/ejsdb";
 import { captureError, captureWarning } from "src/infra/error-tracking";
+import { handleError } from "src/infra/errors";
+import { opfsUnavailableErrors } from "src/infra/storage";
 import {
   findOrphanLinkConnections,
   findStoreInconsistencies,
@@ -108,7 +110,13 @@ export const useMomentTransaction = () => {
           if (isQueueOn) {
             writeQueue.enqueue(() => applyMomentToDb(payload), onWriteFailure);
           } else {
-            void applyMomentToDb(payload).catch(captureError);
+            void applyMomentToDb(payload).catch((error) =>
+              handleError(error, {
+                as: "Moment transaction: db write failed",
+                warn: opfsUnavailableErrors,
+                onUnexpected: "capture",
+              }),
+            );
           }
         }
 
