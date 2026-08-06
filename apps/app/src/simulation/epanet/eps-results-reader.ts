@@ -181,6 +181,10 @@ export class EPSResultsReader {
   private nodeMaxHead: Float32Array | null = null;
   private nodeMinPressure: Float32Array | null = null;
   private nodeMaxPressure: Float32Array | null = null;
+  // Diagnostic only: reported with read failures to tell a superseded run
+  // (disposed, its directory deleted) apart from results vanishing under a
+  // live one. Does not gate reads.
+  private wasDisposed = false;
 
   constructor(storage: IKeyBufferStore) {
     this.storage = storage;
@@ -235,6 +239,7 @@ export class EPSResultsReader {
   }
 
   async dispose(): Promise<void> {
+    this.wasDisposed = true;
     try {
       await this.storage.clearRun();
     } catch {
@@ -365,6 +370,7 @@ export class EPSResultsReader {
         as: "epsResultsReader: time series read failed",
         warn: opfsUnavailableErrors,
         onUnexpected: "capture",
+        contexts: { "simulation results": { wasDisposed: this.wasDisposed } },
       });
       return null;
     }
@@ -647,6 +653,7 @@ export class EPSResultsReader {
         as: "epsResultsReader: iterate time series read failed",
         warn: opfsUnavailableErrors,
         onUnexpected: "capture",
+        contexts: { "simulation results": { wasDisposed: this.wasDisposed } },
       });
     }
   }
@@ -1083,6 +1090,13 @@ export class EPSResultsReader {
           as: "epsResultsReader: timestep read failed",
           warn: opfsUnavailableErrors,
           onUnexpected: "capture",
+          contexts: {
+            "simulation results": {
+              wasDisposed: this.wasDisposed,
+              timestepIndex,
+              reportingStepsCount: simulationMetadata.reportingStepsCount,
+            },
+          },
         });
         return new NullResultsReader();
       }

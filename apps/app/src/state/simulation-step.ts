@@ -1,6 +1,17 @@
 import { atom } from "jotai";
-import { simulationStepAtom } from "src/state/simulation";
+import { simulationStepAtom, type SimulationState } from "src/state/simulation";
 import { simulationDerivedAtom } from "src/state/derived-branch-state";
+
+// Both writes land in one batch so simulationResultsAsyncDerivedAtom never
+// recomputes against the incoming step paired with the outgoing reader, which
+// would read from a run directory that is about to be deleted.
+export const commitSimulationResultAtom = atom(
+  null,
+  (_get, set, simulationState: SimulationState) => {
+    set(simulationDerivedAtom, simulationState);
+    set(simulationStepAtom, 0);
+  },
+);
 
 export const setTimestepAtom = atom(null, (get, set, timestepIndex: number) => {
   const simDerived = get(simulationDerivedAtom);

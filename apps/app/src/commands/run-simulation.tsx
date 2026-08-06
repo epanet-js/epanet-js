@@ -11,8 +11,8 @@ import {
 } from "src/state/derived-branch-state";
 import { branchStateAtom } from "src/state/branch-state";
 import { projectSettingsAtom } from "src/state/project-settings";
-import { simulationStepAtom } from "src/state/simulation";
 import { opfsAvailableAtom } from "src/state/opfs";
+import { commitSimulationResultAtom } from "src/state/simulation-step";
 import { clearQuickGraphPropertyAtom } from "src/state/quick-graph";
 import { clearSymbologyForPropertyAtom } from "src/state/map-symbology";
 import {
@@ -39,7 +39,6 @@ export const runSimulationShortcut = "shift+enter";
 export const useRunSimulation = () => {
   const setSimulationState = useSetAtom(simulationDerivedAtom);
   const setDialogState = useSetAtom(dialogAtom);
-  const setSimulationStep = useSetAtom(simulationStepAtom);
   const userTracking = useUserTracking();
   const toggleNetworkReview = useToggleNetworkReview();
   const isInferRoughnessOn = useFeatureFlag("FLAG_INFER_ROUGHNESS");
@@ -126,9 +125,6 @@ export const useRunSimulation = () => {
             const storage = new OPFSStorage(appId, scenarioKey, runId);
             epsReader = new EPSResultsReader(storage);
             await epsReader.initialize(metadata);
-            setSimulationStep(0);
-          } else {
-            setSimulationStep(0);
           }
 
           if (status === "success" || status === "warning") {
@@ -153,7 +149,7 @@ export const useRunSimulation = () => {
             settingsVersion: simulationSettings.version,
             epsResultsReader: epsReader,
           };
-          setSimulationState(simulationState);
+          set(commitSimulationResultAtom, simulationState);
           set(simulationSourceIdDerivedAtom, scenarioKey);
 
           if (
@@ -242,7 +238,6 @@ export const useRunSimulation = () => {
       [
         setSimulationState,
         setDialogState,
-        setSimulationStep,
         userTracking,
         toggleNetworkReview,
         isInferRoughnessOn,
