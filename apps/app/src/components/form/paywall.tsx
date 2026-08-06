@@ -1,8 +1,7 @@
 import { useCallback } from "react";
-import { useSetAtom } from "jotai";
 import * as Tooltip from "@radix-ui/react-tooltip";
-import { dialogAtom, type PaywallFeature } from "src/state/dialog";
-import { usePaywall } from "src/hooks/use-paywall";
+import { type PaywallFeature } from "src/state/dialog";
+import { usePaywall, useStartUpgrade } from "src/hooks/use-paywall";
 import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
 import { PaywallLockIcon } from "src/icons";
@@ -10,13 +9,13 @@ import { Button, TContent, StyledTooltipArrow } from "src/components/elements";
 
 export const useFeatureLock = (feature: PaywallFeature | undefined) => {
   const paywallDialog = usePaywall(feature);
-  const setDialog = useSetAtom(dialogAtom);
+  const startUpgrade = useStartUpgrade();
   const userTracking = useUserTracking();
   const openPaywall = useCallback(() => {
     if (!paywallDialog || !feature) return;
     userTracking.capture({ name: "paywallLock.clicked", feature });
-    setDialog(paywallDialog);
-  }, [paywallDialog, setDialog, userTracking, feature]);
+    startUpgrade(feature);
+  }, [paywallDialog, startUpgrade, userTracking, feature]);
   return { isLocked: paywallDialog !== null, openPaywall };
 };
 

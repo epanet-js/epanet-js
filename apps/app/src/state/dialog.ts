@@ -90,25 +90,12 @@ export type ProjectSavedInfoState = {
   onCancel?: () => void;
 };
 
-export type UpgradeSource =
-  | { kind: "priorityAccess"; featureName: string }
-  | { kind: "paywall"; feature: PaywallFeature }
-  | { kind: "menu" }
-  | { kind: "customLayers" }
-  | { kind: "modelBuilder" };
-
-export const getSourceFeature = (
-  source?: UpgradeSource,
-): string | undefined => {
-  if (!source) return undefined;
-  if (source.kind === "priorityAccess") return source.featureName;
-  if (source.kind === "paywall") return source.feature;
-  return undefined;
-};
+export type UpgradeOrigin = "paywall" | "upgrade" | "priorityAccess" | "menu";
 
 export type UpgradeDialogState = {
   type: "upgrade";
-  source?: UpgradeSource;
+  feature?: string;
+  source?: UpgradeOrigin;
 };
 
 export type ImportCustomerPointsWizardState = {
@@ -230,7 +217,8 @@ export type PaywallFeature =
   | "zones"
   | "pipeLibrary"
   | "customAttributes"
-  | "modelAttributesValidation";
+  | "modelAttributesValidation"
+  | "modelBuilder";
 
 export type FeaturePaywallDialogState = {
   type: "featurePaywall";

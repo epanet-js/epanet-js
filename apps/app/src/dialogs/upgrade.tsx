@@ -33,7 +33,7 @@ import {
 import { usePermissions } from "src/hooks/use-permissions";
 import { signUpUrl } from "src/global-config";
 import { CheckIcon, InfoIcon, CloseIcon } from "src/icons";
-import { type UpgradeSource, getSourceFeature } from "src/state/dialog";
+import type { UpgradeOrigin } from "src/state/dialog";
 
 type UsageOption = "commercial" | "non-commercial";
 
@@ -53,7 +53,10 @@ const prices = {
   },
 };
 
-export const UpgradeDialog = ({ source }: { source?: UpgradeSource } = {}) => {
+export const UpgradeDialog = ({
+  feature = "upgradeMenu",
+  source = "upgrade",
+}: { feature?: string; source?: UpgradeOrigin } = {}) => {
   const { isLoaded: isAuthLoaded, isSignedIn } = useAuth();
   const { isLoading: isLoadingCheckout, startCheckout } = useCheckout();
   const { canUpgrade } = usePermissions();
@@ -82,7 +85,7 @@ export const UpgradeDialog = ({ source }: { source?: UpgradeSource } = {}) => {
     }
   }
 
-  return <PlansDialog source={source} />;
+  return <PlansDialog feature={feature} source={source} />;
 };
 
 const ChangesFromSupportDialog = () => {
@@ -105,7 +108,13 @@ const ChangesFromSupportDialog = () => {
   );
 };
 
-const PlansDialog = ({ source }: { source?: UpgradeSource }) => {
+const PlansDialog = ({
+  feature,
+  source,
+}: {
+  feature: string;
+  source: UpgradeOrigin;
+}) => {
   const translate = useTranslate();
   const [usage, setUsage] = useState<UsageOption>("commercial");
   const [paymentType, setPaymentType] = useState<PaymentType>("yearly");
@@ -140,8 +149,8 @@ const PlansDialog = ({ source }: { source?: UpgradeSource }) => {
   const handleClose = () => {
     userTracking.capture({
       name: "upgradeDialog.dismissed",
-      source: source?.kind,
-      sourceFeature: getSourceFeature(source),
+      source,
+      sourceFeature: feature,
     });
     closeDialog();
   };
@@ -191,13 +200,25 @@ const PlansDialog = ({ source }: { source?: UpgradeSource }) => {
           <FreePlan paymentType={paymentType} />
           {usage === "commercial" && (
             <>
-              <ProPlan paymentType={paymentType} source={source} />
-              <TeamsPlan paymentType={paymentType} source={source} />
+              <ProPlan
+                paymentType={paymentType}
+                feature={feature}
+                source={source}
+              />
+              <TeamsPlan
+                paymentType={paymentType}
+                feature={feature}
+                source={source}
+              />
             </>
           )}
           {usage === "non-commercial" && (
             <>
-              <PersonalPlan paymentType={paymentType} source={source} />
+              <PersonalPlan
+                paymentType={paymentType}
+                feature={feature}
+                source={source}
+              />
               <EducationPlan paymentType={paymentType} />
             </>
           )}
@@ -270,10 +291,12 @@ const FreePlan = ({ paymentType }: { paymentType: PaymentType }) => {
 
 const PersonalPlan = ({
   paymentType,
+  feature,
   source,
 }: {
   paymentType: PaymentType;
-  source?: UpgradeSource;
+  feature: string;
+  source: UpgradeOrigin;
 }) => {
   const translate = useTranslate();
   const price = prices.personal.yearly;
@@ -354,6 +377,7 @@ const PersonalPlan = ({
         <CheckoutButton
           plan="personal"
           paymentType={paymentType}
+          feature={feature}
           source={source}
         >
           {translate("upgradeTo", "Personal")}
@@ -425,10 +449,12 @@ const EducationPlan = ({ paymentType }: { paymentType: PaymentType }) => {
 
 const ProPlan = ({
   paymentType,
+  feature,
   source,
 }: {
   paymentType: PaymentType;
-  source?: UpgradeSource;
+  feature: string;
+  source: UpgradeOrigin;
 }) => {
   const translate = useTranslate();
   const price = prices.pro[paymentType];
@@ -507,7 +533,12 @@ const ProPlan = ({
         </div>
       </div>
       <div className="p-4 w-full">
-        <CheckoutButton plan="pro" paymentType={paymentType} source={source}>
+        <CheckoutButton
+          plan="pro"
+          paymentType={paymentType}
+          feature={feature}
+          source={source}
+        >
           {translate("upgradeTo", "Pro")}
         </CheckoutButton>
       </div>
@@ -517,10 +548,12 @@ const ProPlan = ({
 
 const TeamsPlan = ({
   paymentType,
+  feature,
   source,
 }: {
   paymentType: PaymentType;
-  source?: UpgradeSource;
+  feature: string;
+  source: UpgradeOrigin;
 }) => {
   const translate = useTranslate();
   const userTracking = useUserTracking();
@@ -539,8 +572,8 @@ const TeamsPlan = ({
       name: "checkout.started",
       plan: "teams",
       paymentType,
-      source: source?.kind,
-      sourceFeature: getSourceFeature(source),
+      source,
+      sourceFeature: feature,
     });
     window.open(teamsPlanRequestFormUrl, "_blank", "noopener,noreferrer");
   };

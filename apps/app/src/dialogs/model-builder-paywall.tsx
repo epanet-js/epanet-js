@@ -3,6 +3,7 @@ import { BaseDialog } from "src/components/dialog";
 import { Button } from "src/components/elements";
 import { dialogAtom } from "src/state/dialog";
 import { useEarlyAccess } from "src/hooks/use-early-access";
+import { useStartUpgrade } from "src/hooks/use-paywall";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";
 import { CheckIcon, CloseIcon, WarningIcon } from "src/icons";
@@ -19,6 +20,7 @@ export const ModelBuilderPaywallDialog = ({
   const onlyEarlyAccess = useEarlyAccess();
   const userTracking = useUserTracking();
   const translate = useTranslate();
+  const startUpgrade = useStartUpgrade();
 
   const handleDismiss = () => {
     userTracking.capture({ name: "modelBuilder.paywall.dismissed", source });
@@ -41,7 +43,7 @@ export const ModelBuilderPaywallDialog = ({
       name: "modelBuilder.paywall.upgradeClicked",
       source,
     });
-    setDialog({ type: "upgrade", source: { kind: "modelBuilder" } });
+    startUpgrade("modelBuilder");
   };
 
   return (

@@ -116,7 +116,7 @@ describe("useFeatureLock", () => {
     });
     expect(store.get(dialogAtom)).toEqual({
       type: "upgrade",
-      source: { kind: "paywall", feature: "pipeAttributes" },
+      feature: "pipeAttributes",
     });
     expect(userTracking.capture).toHaveBeenCalledWith({
       name: "paywallLock.clicked",
@@ -164,7 +164,7 @@ describe("PaywallLockButton", () => {
     );
     expect(store.get(dialogAtom)).toEqual({
       type: "upgrade",
-      source: { kind: "paywall", feature: "pipeAttributes" },
+      feature: "pipeAttributes",
     });
   });
 });

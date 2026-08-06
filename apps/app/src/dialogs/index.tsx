@@ -139,13 +139,17 @@ export const Dialogs = memo(function Dialogs() {
         userTracking.capture({ name: "unexpectedError.seen" });
       }
       if (dialog.type === "featurePaywall") {
-        userTracking.capture({ name: "paywall.seen", feature: dialog.feature });
+        userTracking.capture({
+          name: "paywall.seen",
+          feature: dialog.feature,
+          type: "paywall",
+        });
       }
       if (dialog.type === "upgrade") {
         userTracking.capture({
           name: "upgradeDialog.seen",
-          source: dialog.source?.kind,
-          sourceFeature: dialogState.getSourceFeature(dialog.source),
+          source: dialog.source ?? "upgrade",
+          sourceFeature: dialog.feature ?? "upgradeMenu",
         });
       }
       if (dialog.type === "priorityAccess") {
@@ -291,7 +295,7 @@ export const Dialogs = memo(function Dialogs() {
   }
 
   if (dialog.type === "upgrade") {
-    return <UpgradeDialog source={dialog.source} />;
+    return <UpgradeDialog feature={dialog.feature} source={dialog.source} />;
   }
 
   if (dialog.type === "featurePaywall") {

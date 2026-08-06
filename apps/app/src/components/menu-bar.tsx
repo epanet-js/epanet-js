@@ -121,7 +121,8 @@ export const MenuBarPlay = memo(function MenuBar() {
                     });
                     setDialogState({
                       type: "upgrade",
-                      source: { kind: "menu" },
+                      feature: "upgradeMenu",
+                      source: "menu",
                     });
                   }}
                 />
@@ -384,7 +385,8 @@ export const SideMenu = () => {
                       setIsOpen(false);
                       setDialogState({
                         type: "upgrade",
-                        source: { kind: "menu" },
+                        feature: "upgradeMenu",
+                        source: "menu",
                       });
                     }}
                   />

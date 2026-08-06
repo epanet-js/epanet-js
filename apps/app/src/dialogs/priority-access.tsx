@@ -31,7 +31,8 @@ export const PriorityAccessDialog = ({
     });
     setDialog({
       type: "upgrade",
-      source: { kind: "priorityAccess", featureName },
+      feature: featureName,
+      source: "priorityAccess",
     });
   };
 

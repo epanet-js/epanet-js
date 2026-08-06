@@ -38,7 +38,7 @@ describe("ModelBuilderPaywallDialog", () => {
 
     expect(store.get(dialogAtom)).toEqual({
       type: "upgrade",
-      source: { kind: "modelBuilder" },
+      feature: "modelBuilder",
     });
   });
 });

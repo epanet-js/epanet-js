@@ -72,10 +72,7 @@ export const FeaturePaywall = ({
       name: "paywall.clickedChoosePlan",
       feature: config.feature,
     });
-    setDialog({
-      type: "upgrade",
-      source: { kind: "paywall", feature: config.feature },
-    });
+    setDialog({ type: "upgrade", feature: config.feature, source: "paywall" });
   };
 
   const handlePersonalCheckout = () => {
@@ -248,6 +245,8 @@ export const FeaturePaywall = ({
                       plan="personal"
                       paymentType="yearly"
                       variant="default"
+                      source="paywall"
+                      feature={config.feature}
                     >
                       {translate("paywall.nonCommercial.cta")}
                     </CheckoutButton>

@@ -58,7 +58,7 @@ describe("usePaywall", () => {
   it("returns the upgrade dialog for pipeAttributes when locked", () => {
     expect(captureDialog("pipeAttributes")).toEqual({
       type: "upgrade",
-      source: { kind: "paywall", feature: "pipeAttributes" },
+      feature: "pipeAttributes",
     });
   });
 

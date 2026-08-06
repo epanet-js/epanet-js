@@ -12,7 +12,11 @@ import { SimulationState } from "src/state/simulation";
 import { Presets } from "src/lib/project-settings/quantities-spec";
 import { EpanetUnitSystem } from "src/simulation/build-inp";
 import { User } from "src/auth-types";
-import type { PaywallFeature, SimulationSummaryState } from "src/state/dialog";
+import type {
+  PaywallFeature,
+  SimulationSummaryState,
+  UpgradeOrigin,
+} from "src/state/dialog";
 import type { PlaybackSpeed } from "src/state/simulation-playback";
 import { usePrivacySettings } from "src/hooks/use-privacy-settings";
 import type { QualitySimulationType } from "src/simulation/simulation-settings";
@@ -1529,7 +1533,7 @@ export type UserEvent =
       name: "checkout.started";
       plan: string;
       paymentType: string;
-      source?: string;
+      source?: UpgradeOrigin;
       sourceFeature?: string;
     }
   | { name: "studentLogin.clicked" }
@@ -1541,12 +1545,12 @@ export type UserEvent =
     }
   | {
       name: "upgradeDialog.seen";
-      source?: string;
+      source?: UpgradeOrigin;
       sourceFeature?: string;
     }
   | {
       name: "upgradeDialog.dismissed";
-      source?: string;
+      source?: UpgradeOrigin;
       sourceFeature?: string;
     }
   | { name: "simulationSettings.opened"; source: string }
@@ -1656,7 +1660,11 @@ export type UserEvent =
       rulesCount: number;
     }
   | { name: "paywallLock.clicked"; feature: PaywallFeature }
-  | { name: "paywall.seen"; feature: PaywallFeature }
+  | {
+      name: "paywall.seen";
+      feature: PaywallFeature;
+      type: "paywall" | "upgrade";
+    }
   | { name: "paywall.clickedChoosePlan"; feature: PaywallFeature }
   | { name: "paywall.clickedPersonal"; feature: PaywallFeature }
   | { name: "paywall.clickedTryDemo"; feature: PaywallFeature }

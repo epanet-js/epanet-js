@@ -1,7 +1,6 @@
 import debounce from "lodash/debounce";
 import * as T from "@radix-ui/react-tooltip";
 import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
-import { dialogAtom } from "src/state/dialog";
 import { layerConfigAtom } from "src/state/map";
 import * as E from "src/components/elements";
 import * as P from "@radix-ui/react-popover";
@@ -46,6 +45,7 @@ import {
 } from "src/map/layer-config";
 import { Selector } from "@epanet-js/ui-kit";
 import { useUserTracking } from "src/infra/user-tracking";
+import { useStartUpgrade } from "src/hooks/use-paywall";
 import { useTranslate } from "src/hooks/use-translate";
 import { usePermissions } from "src/hooks/use-permissions";
 import { zTileJSON } from "src/lib/tile-json";
@@ -446,7 +446,7 @@ function AddLayer({ onClose }: { onClose: () => void }) {
   const [isOpen, setOpen] = useState<boolean>(false);
   const [mode, setMode] = useAtom(layerModeAtom);
   const userTracking = useUserTracking();
-  const setDialogState = useSetAtom(dialogAtom);
+  const startUpgrade = useStartUpgrade();
   const { canAddCustomLayers } = usePermissions();
 
   const handleUpgrade = () => {
@@ -456,10 +456,7 @@ function AddLayer({ onClose }: { onClose: () => void }) {
     });
     setOpen(false);
     onClose();
-    setDialogState({
-      type: "upgrade",
-      source: { kind: "customLayers" },
-    });
+    startUpgrade("customLayers");
   };
 
   const handleModeChange = (mode: Mode, type: string) => {

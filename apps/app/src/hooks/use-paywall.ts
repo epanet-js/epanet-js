@@ -1,9 +1,16 @@
-import { type DialogState, type PaywallFeature } from "src/state/dialog";
+import { useCallback } from "react";
+import { useSetAtom } from "jotai";
+import {
+  dialogAtom,
+  type DialogState,
+  type PaywallFeature,
+} from "src/state/dialog";
 import { type Permissions, usePermissions } from "src/hooks/use-permissions";
+import { useUserTracking } from "src/infra/user-tracking";
 
 type FeatureConfig = {
   permission: keyof Permissions;
-  dialog: DialogState;
+  dialog: NonNullable<DialogState>;
 };
 
 const FEATURE_CONFIG: Record<PaywallFeature, FeatureConfig> = {
@@ -17,10 +24,7 @@ const FEATURE_CONFIG: Record<PaywallFeature, FeatureConfig> = {
   },
   refreshElevations: {
     permission: "canRefreshElevations",
-    dialog: {
-      type: "upgrade",
-      source: { kind: "paywall", feature: "refreshElevations" },
-    },
+    dialog: { type: "upgrade", feature: "refreshElevations" },
   },
   customLayers: {
     permission: "canAddCustomLayers",
@@ -28,10 +32,7 @@ const FEATURE_CONFIG: Record<PaywallFeature, FeatureConfig> = {
   },
   pipeAttributes: {
     permission: "canUsePipeAttributes",
-    dialog: {
-      type: "upgrade",
-      source: { kind: "paywall", feature: "pipeAttributes" },
-    },
+    dialog: { type: "upgrade", feature: "pipeAttributes" },
   },
   zones: {
     permission: "canUseZones",
@@ -47,12 +48,18 @@ const FEATURE_CONFIG: Record<PaywallFeature, FeatureConfig> = {
   },
   modelAttributesValidation: {
     permission: "canValidateModelAttributes",
-    dialog: {
-      type: "upgrade",
-      source: { kind: "paywall", feature: "modelAttributesValidation" },
-    },
+    dialog: { type: "upgrade", feature: "modelAttributesValidation" },
+  },
+  modelBuilder: {
+    permission: "canUseModelBuildV2",
+    dialog: { type: "upgrade", feature: "modelBuilder" },
   },
 };
+
+// Pure routing: the dialog that starts the upgrade flow for a feature,
+// independent of whether the user currently has access.
+const upgradeDialogFor = (feature: PaywallFeature): NonNullable<DialogState> =>
+  FEATURE_CONFIG[feature].dialog;
 
 export const usePaywall = (
   feature: PaywallFeature | undefined,
@@ -61,4 +68,26 @@ export const usePaywall = (
   if (!feature) return null;
   const config = FEATURE_CONFIG[feature];
   return permissions[config.permission] ? null : config.dialog;
+};
+
+// Single entry point to start the upgrade flow for a feature: opens the routed
+// dialog and emits paywall.seen when that entry is the upgrade dialog itself.
+// featurePaywall screens emit paywall.seen from their own dialog effect instead.
+export const useStartUpgrade = () => {
+  const setDialog = useSetAtom(dialogAtom);
+  const userTracking = useUserTracking();
+  return useCallback(
+    (feature: PaywallFeature) => {
+      const dialog = upgradeDialogFor(feature);
+      if (dialog.type === "upgrade") {
+        userTracking.capture({
+          name: "paywall.seen",
+          feature,
+          type: "upgrade",
+        });
+      }
+      setDialog(dialog);
+    },
+    [setDialog, userTracking],
+  );
 };

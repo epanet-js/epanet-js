@@ -9,19 +9,21 @@ import {
   buildCheckoutUrl,
   useCheckout,
 } from "src/hooks/use-checkout";
-import { type UpgradeSource, getSourceFeature } from "src/state/dialog";
+import type { UpgradeOrigin } from "src/state/dialog";
 
 export const CheckoutButton = ({
   variant = "primary",
   plan,
   paymentType,
-  source,
+  source = "menu",
+  feature = "upgradeMenu",
   children,
 }: {
   plan: Plan;
   paymentType: PaymentType;
   variant?: "primary" | "quiet" | "default";
-  source?: UpgradeSource;
+  source?: UpgradeOrigin;
+  feature?: string;
   children: ReactNode;
 }) => {
   const { startCheckout } = useCheckout();
@@ -33,8 +35,8 @@ export const CheckoutButton = ({
       name: "checkout.started",
       plan,
       paymentType,
-      source: source?.kind,
-      sourceFeature: getSourceFeature(source),
+      source,
+      sourceFeature: feature,
     });
   };
 
