@@ -3,6 +3,16 @@ import { Plan } from "src/lib/account-plans";
 
 const isDebugMode = (): boolean => process.env.NODE_ENV === "development";
 
+// A DOMException (e.g. NotFoundError from OPFS) is `instanceof Error` in
+// modern browsers, so it reaches captureError unwrapped. Sentry rebuilds such
+// events from just `name: message` and drops every stack frame, which collapses
+// every raw DOMException in the app into a single unattributable issue.
+// Wrapping restores a capture-site stack so they group by origin.
+const withCaptureSiteStack = (error: Error): Error =>
+  typeof DOMException !== "undefined" && error instanceof DOMException
+    ? new Error(`${error.name}: ${error.message}`, { cause: error })
+    : error;
+
 export const captureError = (
   error: Error,
   contexts?: Record<string, Record<string, unknown>>,
@@ -10,12 +20,14 @@ export const captureError = (
   // eslint-disable-next-line no-console
   if (isDebugMode()) console.error(error);
 
-  Sentry.captureException(error, contexts ? { contexts } : undefined);
+  Sentry.captureException(
+    withCaptureSiteStack(error),
+    contexts ? { contexts } : undefined,
+  );
 };
 
-// Describes any thrown value for Sentry's `extra`. A DOMException (e.g.
-// NotFoundError from OPFS) is not `instanceof Error` but still carries a
-// name/message, so match on shape rather than the Error prototype.
+// Describes any thrown value for Sentry's `extra`, matching on shape rather
+// than the Error prototype so non-Error throws still carry a name/message.
 const describeError = (error: unknown): Record<string, unknown> | undefined => {
   if (error == null) return undefined;
   if (error instanceof Error) {
