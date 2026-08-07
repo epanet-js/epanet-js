@@ -1,6 +1,6 @@
 import { Unit } from "@epanet-js/quantity";
 import type { LngLat } from "@epanet-js/elevations";
-import { prefetchElevationsTile } from "src/lib/elevations";
+import { getElevationEngine } from "src/lib/elevations";
 import { notify } from "src/components/notifications";
 import { useTranslate } from "src/hooks/use-translate";
 import { offlineAtom } from "src/state/offline";
@@ -10,10 +10,6 @@ import { useAtomValue } from "jotai";
 import throttle from "lodash/throttle";
 import { UnavailableIcon } from "src/icons";
 import { elevationSourcesAtom } from "src/state/elevation-sources";
-import {
-  fetchElevationFromSources,
-  fetchElevationsFromSources,
-} from "src/lib/elevations";
 
 export const useElevations = (unit: Unit) => {
   const translate = useTranslate();
@@ -27,7 +23,7 @@ export const useElevations = (unit: Unit) => {
 
       for (const source of sources) {
         if (source.type !== "tile-server" || !source.enabled) continue;
-        void prefetchElevationsTile(lngLat, source);
+        void getElevationEngine().prefetchTile(lngLat, source);
       }
     },
     [autoElevations, isOffline, sources],
@@ -50,7 +46,7 @@ export const useElevations = (unit: Unit) => {
         const availableSources = isOffline
           ? sources.filter((s) => s.type !== "tile-server")
           : sources;
-        const elevation = await fetchElevationFromSources(
+        const elevation = await getElevationEngine().fetchElevation(
           availableSources,
           lngLat.lng,
           lngLat.lat,
@@ -81,7 +77,7 @@ export const useElevations = (unit: Unit) => {
         const availableSources = isOffline
           ? sources.filter((s) => s.type !== "tile-server")
           : sources;
-        const elevations = await fetchElevationsFromSources(
+        const elevations = await getElevationEngine().fetchElevations(
           availableSources,
           lngLats.map((l) => ({ lng: l.lng, lat: l.lat })),
           unit,

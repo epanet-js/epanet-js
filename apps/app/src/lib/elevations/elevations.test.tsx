@@ -5,7 +5,7 @@ import {
   prefetchElevationsTile,
   queryClient,
   tileSize,
-} from "src/lib/elevations";
+} from "@epanet-js/elevations";
 import fs from "fs";
 import path from "path";
 import { createCanvas, loadImage } from "canvas";

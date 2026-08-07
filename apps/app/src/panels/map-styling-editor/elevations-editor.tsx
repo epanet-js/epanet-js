@@ -82,14 +82,8 @@ import {
   type ElevationSourceFailure,
   toElevationSourceFailure,
 } from "@epanet-js/elevations";
-import {
-  BoundaryResult,
-  computeTileBoundaries,
-  GeoTiffTile,
-  parseGeoTIFF,
-  tileCoverage,
-  tileResolution,
-} from "src/lib/elevations/geotiff";
+import { BoundaryResult, GeoTiffTile } from "src/lib/elevations/geotiff";
+import { getElevationEngine } from "src/lib/elevations";
 import type { LinearUnit } from "src/lib/elevations/geotiff/types";
 import { TextField } from "src/components/form/text-field";
 
@@ -123,6 +117,8 @@ export const ElevationsEditor = () => {
   };
 
   const [sections, setSections] = useAtom(mapStylingPanelSectionsExpandedAtom);
+
+  const canAddGeoTiffSources = getElevationEngine().supportsGeoTiff;
 
   return (
     <CollapsibleSection
@@ -167,7 +163,9 @@ export const ElevationsEditor = () => {
           </div>
         </SortableContext>
       </DndContext>
-      {!isPlaying && <AddElevationDataButton actions={actions} />}
+      {!isPlaying && canAddGeoTiffSources && (
+        <AddElevationDataButton actions={actions} />
+      )}
     </CollapsibleSection>
   );
 };
@@ -251,7 +249,10 @@ const GeoTiffElevationSourceRow = ({
   const { units } = useAtomValue(projectSettingsAtom);
   const elevationUnit = units.elevation;
   const resolutionDisplay = Math.round(
-    convertTo(tileResolution(source.tiles[0]), elevationUnit),
+    convertTo(
+      getElevationEngine().geoTiff.resolution(source.tiles[0]),
+      elevationUnit,
+    ),
   );
 
   const fileCount = source.tiles.length;
@@ -738,7 +739,10 @@ const useElevationSourceActions = (
     async (files: File[]) => {
       const results = await Promise.allSettled(
         files.map(async (file) => {
-          const metadata = await parseGeoTIFF(file, getProj4Def);
+          const metadata = await getElevationEngine().geoTiff.parse(
+            file,
+            getProj4Def,
+          );
           return { id: nanoid(), ...metadata } as GeoTiffTile;
         }),
       );
@@ -803,7 +807,10 @@ const useElevationSourceActions = (
     async (sourceId: string, files: File[]) => {
       const results = await Promise.allSettled(
         files.map(async (file) => {
-          const metadata = await parseGeoTIFF(file, getProj4Def);
+          const metadata = await getElevationEngine().geoTiff.parse(
+            file,
+            getProj4Def,
+          );
           return { id: nanoid(), ...metadata } as GeoTiffTile;
         }),
       );
@@ -956,6 +963,31 @@ const useElevationSourceActions = (
   };
 };
 
+const withCoveragePolygon = (
+  sources: ElevationSource[],
+  sourceId: string,
+  tileId: string,
+  polygon: GeoJSON.Geometry,
+): ElevationSource[] =>
+  sources.map((source) =>
+    source.id === sourceId && source.type === "geotiff"
+      ? {
+          ...source,
+          tiles: source.tiles.map((tile) =>
+            tile.id === tileId ? { ...tile, coveragePolygon: polygon } : tile,
+          ),
+        }
+      : source,
+  );
+
+const geoTiffTilesOf = (
+  sources: ElevationSource[],
+  sourceId: string,
+): GeoTiffTile[] | undefined => {
+  const source = sources.find((candidate) => candidate.id === sourceId);
+  return source?.type === "geotiff" ? source.tiles : undefined;
+};
+
 const useComputeTileBoundaries = (
   onSourceTilesUpdated?: OnSourceTilesUpdated,
 ) => {
@@ -966,50 +998,45 @@ const useComputeTileBoundaries = (
   const onSourceTilesUpdatedRef = useRef(onSourceTilesUpdated);
   onSourceTilesUpdatedRef.current = onSourceTilesUpdated;
 
+  const applyBoundaryResult = useCallback(
+    (sourceId: string, { tileId, polygon }: BoundaryResult) => {
+      if (!polygon) return;
+
+      let updatedTiles: GeoTiffTile[] | undefined;
+      setSources((previous: ElevationSource[]) => {
+        const next = withCoveragePolygon(previous, sourceId, tileId, polygon);
+        updatedTiles = geoTiffTilesOf(next, sourceId);
+        return next;
+      });
+
+      if (updatedTiles) {
+        onSourceTilesUpdatedRef.current?.(sourceId, updatedTiles);
+      }
+    },
+    [setSources],
+  );
+
   const startComputation = useCallback(
     (sourceId: string, tiles: GeoTiffTile[]) => {
       pendingJobsRef.current += 1;
-      void computeTileBoundaries(
-        tiles,
-        ({ tileId, polygon }: BoundaryResult) => {
-          if (!polygon) return;
-          let updatedTiles: GeoTiffTile[] | undefined;
-          setSources((prev: ElevationSource[]) => {
-            const next = prev.map((s) =>
-              s.id === sourceId && s.type === "geotiff"
-                ? {
-                    ...s,
-                    tiles: s.tiles.map((t) =>
-                      t.id === tileId ? { ...t, coveragePolygon: polygon } : t,
-                    ),
-                  }
-                : s,
-            );
-            const updated = next.find(
-              (s) => s.id === sourceId && s.type === "geotiff",
-            );
-            if (updated?.type === "geotiff") {
-              updatedTiles = updated.tiles;
-            }
-            return next;
-          });
-          if (updatedTiles) {
-            onSourceTilesUpdatedRef.current?.(sourceId, updatedTiles);
+      void getElevationEngine()
+        .geoTiff.computeBoundaries(
+          tiles,
+          (result) => applyBoundaryResult(sourceId, result),
+          (tileId: string) => cancelledTilesRef.current.has(tileId),
+        )
+        .then(() => {
+          pendingJobsRef.current -= 1;
+          if (pendingJobsRef.current === 0) {
+            notify({
+              variant: "success",
+              title: translate("elevations.tilesProcessed"),
+              duration: 2000,
+            });
           }
-        },
-        (tileId: string) => cancelledTilesRef.current.has(tileId),
-      ).then(() => {
-        pendingJobsRef.current -= 1;
-        if (pendingJobsRef.current === 0) {
-          notify({
-            variant: "success",
-            title: translate("elevations.tilesProcessed"),
-            duration: 2000,
-          });
-        }
-      });
+        });
     },
-    [setSources, translate],
+    [applyBoundaryResult, translate],
   );
 
   const cancelTiles = useCallback((tileIds: string[]) => {
@@ -1032,7 +1059,7 @@ const useElevationCoverageOverlay = () => {
       setCoverageFeatures(
         tiles.map((tile) => {
           const isHovered = tile.id === hoveredTileId;
-          return tileCoverage(tile, {
+          return getElevationEngine().geoTiff.coverage(tile, {
             isFilled: !isHovering,
             isDisabled: isHovering && !isHovered,
             showLabel: isHovered,

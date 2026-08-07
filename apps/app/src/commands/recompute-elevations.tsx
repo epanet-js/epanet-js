@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import throttle from "lodash/throttle";
 import { AssetId, NodeAsset, isNodeAsset } from "@epanet-js/hydraulic-model";
 import {
-  fetchElevationsFromSources,
+  getElevationEngine,
   type ElevationFetchStatus,
 } from "src/lib/elevations";
 import { createTimeSlicer } from "src/infra/yield-to-main";
@@ -139,7 +139,7 @@ export const useRecomputeElevations = () => {
         // A source failure keeps whatever resolved first (like stopping); the
         // fetch resolves with partial results instead of throwing.
         let fetchFailed = false;
-        const elevations = await fetchElevationsFromSources(
+        const elevations = await getElevationEngine().fetchElevations(
           availableSources,
           points,
           units.elevation,

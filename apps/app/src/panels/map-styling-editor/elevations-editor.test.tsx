@@ -14,6 +14,11 @@ import type {
   GeoTiffElevationSource,
   TileServerElevationSource,
 } from "src/lib/elevations";
+import { defaultElevationEngine } from "@epanet-js/elevations";
+import {
+  getElevationEngine,
+  registerElevationEngine,
+} from "src/lib/elevations";
 import type { GeoTIFFImage } from "geotiff";
 import { parseGeoTIFF } from "src/lib/elevations/geotiff";
 
@@ -91,6 +96,37 @@ describe("ElevationsEditor", () => {
 
     expect(screen.getByText("Mapbox default data")).toBeInTheDocument();
     expect(screen.getByText("GLOBAL DTM")).toBeInTheDocument();
+  });
+
+  describe("when the engine cannot read GeoTIFF sources", () => {
+    const registered = getElevationEngine();
+
+    beforeEach(() => {
+      registerElevationEngine(defaultElevationEngine);
+    });
+
+    afterEach(() => {
+      registerElevationEngine(registered);
+    });
+
+    it("still lists tile-server sources, which are only manageable here", () => {
+      const store = setInitialState({});
+      store.set(elevationSourcesAtom, [aMapboxSource]);
+      renderComponent(store);
+
+      expect(screen.getByText("Mapbox default data")).toBeInTheDocument();
+    });
+
+    // The counterpart to "renders the add new elevation data button" below.
+    it("does not render the add new elevation data button", () => {
+      const store = setInitialState({});
+      store.set(elevationSourcesAtom, [aMapboxSource]);
+      renderComponent(store);
+
+      expect(
+        screen.queryByRole("button", { name: /add new elevation data/i }),
+      ).toBeNull();
+    });
   });
 
   it("renders a GeoTiff source with its name", () => {
