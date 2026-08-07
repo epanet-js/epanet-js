@@ -1,7 +1,6 @@
 import { useEffect, useMemo } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { LngLat } from "mapbox-gl";
-import { useElevations } from "src/map/elevations/use-elevations";
+import { useElevations } from "src/hooks/use-elevations";
 import {
   hglProfileAtom,
   profilePathAtom,
@@ -541,7 +540,7 @@ function useFetchTerrainOnce({
     const start = performance.now();
 
     void fetchElevations(
-      samples.map((s) => new LngLat(s.coordinates[0], s.coordinates[1])),
+      samples.map((s) => ({ lng: s.coordinates[0], lat: s.coordinates[1] })),
     ).then((elevations) => {
       if (cancelled) return;
 

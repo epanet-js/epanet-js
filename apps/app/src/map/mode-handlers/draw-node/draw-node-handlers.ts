@@ -11,7 +11,7 @@ import { addNode, replaceNode } from "src/hydraulic-model/model-operations";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import throttle from "lodash/throttle";
 import { useUserTracking } from "src/infra/user-tracking";
-import { useElevations } from "../../elevations/use-elevations";
+import { useElevations } from "src/hooks/use-elevations";
 import { useSnapping } from "../hooks/use-snapping";
 import { useSelection } from "src/selection";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
@@ -134,7 +134,7 @@ export function useDrawNodeHandlers({
 
       const [lng, lat] = snappingCandidate.coordinates;
       startElevationFetch();
-      void fetchElevation({ lng, lat } as mapboxgl.LngLat)
+      void fetchElevation({ lng, lat })
         .then((elevation) =>
           submitNodeReplacement(snappingCandidate.id, elevation),
         )
@@ -147,7 +147,7 @@ export function useDrawNodeHandlers({
       ? (pipeToSplit.coordinates as [number, number])
       : mouseCoord;
     const lngLatForElevation = pipeToSplit
-      ? ({ lng: clickPosition[0], lat: clickPosition[1] } as mapboxgl.LngLat)
+      ? { lng: clickPosition[0], lat: clickPosition[1] }
       : e.lngLat;
 
     startElevationFetch();

@@ -1,5 +1,5 @@
 import { Unit } from "@epanet-js/quantity";
-import { LngLat } from "mapbox-gl";
+import type { LngLat } from "@epanet-js/elevations";
 import { prefetchElevationsTile } from "src/lib/elevations";
 import { notify } from "src/components/notifications";
 import { useTranslate } from "src/hooks/use-translate";

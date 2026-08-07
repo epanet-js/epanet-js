@@ -20,8 +20,8 @@ import { nextTick } from "process";
 import { Asset, AssetId, LinkAsset, NodeAsset } from "src/hydraulic-model";
 import { useUserTracking } from "src/infra/user-tracking";
 import { LinkType } from "src/hydraulic-model";
-import { useElevations } from "src/map/elevations/use-elevations";
-import { LngLat, MapMouseEvent, MapTouchEvent } from "mapbox-gl";
+import { useElevations } from "src/hooks/use-elevations";
+import { MapMouseEvent, MapTouchEvent } from "mapbox-gl";
 import { useSelection } from "src/selection";
 import { useFocusAssetPanel } from "src/hooks/use-focus-asset-panel";
 import { validateAsset } from "src/lib/model-attributes-validation";
@@ -410,7 +410,7 @@ export function useDrawLinkHandlers({
     const [lng, lat] = coordinates;
     return { lng, lat };
   };
-  const { fetchElevations, prefetchTileThrottled } = useElevations(
+  const { fetchElevation, prefetchTileThrottled } = useElevations(
     units.elevation,
   );
 
@@ -452,9 +452,9 @@ export function useDrawLinkHandlers({
     }
 
     startElevationFetch();
-    void fetchElevations(
-      pendingNodes.map(
-        (node) => coordinatesToLngLat(node.coordinates) as LngLat,
+    void Promise.all(
+      pendingNodes.map((node) =>
+        fetchElevation(coordinatesToLngLat(node.coordinates)),
       ),
     )
       .then((elevations) => {

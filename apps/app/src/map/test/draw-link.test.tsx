@@ -18,6 +18,14 @@ import mapboxgl from "mapbox-gl";
 import { act } from "react";
 import { waitFor } from "@testing-library/react";
 import { Asset, LinkAsset } from "src/hydraulic-model";
+import {
+  Junction,
+  LabelManager,
+  initializeModelFactories,
+} from "@epanet-js/hydraulic-model";
+import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
+import { modelFactoriesAtom } from "src/state/model-factories";
+import { getAssetsByType } from "src/__helpers__/asset-queries";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { buildFeatureId } from "../data-source/features";
 import type { ClickEvent } from "@epanet-js/map";
@@ -48,6 +56,20 @@ const clickEventAt = (
     preventDefault: () => {},
     defaultPrevented: false,
   }) as unknown as ClickEvent;
+
+// `modelFactoriesAtom` is built once at module load, so a single id generator is
+// shared by every test here and its counter only climbs. Tests below pin asset
+// ids (`IDS.J1 = 10`) and collide once enough ids have been handed out, so the
+// cases added later take their own generator and leave the shared one alone.
+const useOwnIdGenerator = (store: ReturnType<typeof setInitialState>) => {
+  store.set(
+    modelFactoriesAtom,
+    initializeModelFactories({
+      idGenerator: new ConsecutiveIdsGenerator(),
+      labelManager: new LabelManager(),
+    }),
+  );
+};
 
 describe("Drawing a pipe", () => {
   beforeEach(() => {
@@ -129,6 +151,85 @@ describe("Drawing a pipe", () => {
 
     await waitFor(() => {
       expect(getSourceFeatures(map, "ephemeral")).toHaveLength(0);
+    });
+  });
+
+  it("resolves an elevation for each junction it creates", async () => {
+    const startClick = { lng: 10, lat: 20 };
+    const endClick = { lng: 30, lat: 40 };
+    stubElevation(endClick, 150);
+
+    const store = setInitialState({ mode: Mode.DRAW_PIPE });
+    useOwnIdGenerator(store);
+    const map = await renderMap(store);
+
+    await fireMapClick(map, startClick);
+    await fireMapMove(map, endClick);
+    await fireDoubleClick(map, endClick);
+
+    await waitFor(() => {
+      const { assets } = store.get(stagingModelDerivedAtom);
+      const junctions = getAssetsByType<Junction>(assets, "junction");
+      expect(junctions).toHaveLength(2);
+
+      const byCoordinates = new Map(
+        junctions.map((junction) => [
+          junction.coordinates.join(","),
+          junction.elevation,
+        ]),
+      );
+      // Each junction is resolved against its own coordinates, not the link's:
+      // only the end point has a stubbed elevation, and the start stays
+      // unresolved rather than picking up the end's value.
+      expect(byCoordinates.get("30,40")).toBe(150);
+      expect(byCoordinates.get("10,20")).toBeNull();
+    });
+  });
+
+  it("resolves an elevation only for the new junction when starting from an existing node", async () => {
+    const IDS = { J1: 10 } as const;
+    const existingNodeCoords = [15, 25];
+    const nearbyClick = { lng: 15.001, lat: 25.001 };
+    const endClick = { lng: 50, lat: 60 };
+    stubElevation(endClick, 275);
+
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1, { coordinates: existingNodeCoords, elevation: 42 })
+      .build();
+    const junction = hydraulicModel.assets.get(IDS.J1) as Asset;
+
+    const store = setInitialState({ mode: Mode.DRAW_PIPE, hydraulicModel });
+    useOwnIdGenerator(store);
+    const map = await renderMap(store);
+
+    stubSnappingOnce(map, [buildFeatureId(junction.id)]);
+    await fireMapClick(map, nearbyClick);
+
+    // Let the opening click settle on the snapped node before moving on —
+    // firing the next event too early lets the move consume the snapping stub.
+    await waitFor(() => {
+      expect(getSourceFeatures(map, "ephemeral")).toEqual([
+        matchPoint({ coordinates: existingNodeCoords }),
+        matchLineString({
+          coordinates: [existingNodeCoords, existingNodeCoords],
+        }),
+      ]);
+    });
+
+    await fireMapMove(map, endClick);
+    await fireDoubleClick(map, endClick);
+
+    await waitFor(() => {
+      const { assets } = store.get(stagingModelDerivedAtom);
+      const junctions = getAssetsByType<Junction>(assets, "junction");
+      expect(junctions).toHaveLength(2);
+
+      const byCoordinates = new Map(
+        junctions.map((j) => [j.coordinates.join(","), j.elevation]),
+      );
+      expect(byCoordinates.get("50,60")).toBe(275);
+      // The existing node was never pending, so its elevation is left alone.
+      expect(byCoordinates.get("15,25")).toBe(42);
     });
   });
 

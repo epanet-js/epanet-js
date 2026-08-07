@@ -1,7 +1,7 @@
 import { Mock, vi } from "vitest";
-import * as useElevationsModule from "src/map/elevations/use-elevations";
+import * as useElevationsModule from "src/hooks/use-elevations";
 
-vi.mock("src/map/elevations/use-elevations", () => ({
+vi.mock("src/hooks/use-elevations", () => ({
   useElevations: vi.fn(),
 }));
 
@@ -19,7 +19,7 @@ export const stubElevation = (
       return elevation;
     }
 
-    return 0;
+    return null;
   };
 
   const mockImpl = () => ({

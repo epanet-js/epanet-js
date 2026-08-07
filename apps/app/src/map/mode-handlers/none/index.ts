@@ -20,7 +20,7 @@ import { nodesShareLink } from "@epanet-js/hydraulic-model";
 import { useMoveState } from "./move-state";
 import { useCustomerPointMoveState } from "./customer-point-move-state";
 import noop from "lodash/noop";
-import { useElevations } from "src/map/elevations/use-elevations";
+import { useElevations } from "src/hooks/use-elevations";
 import { CustomerPoint } from "@epanet-js/hydraulic-model";
 import { useSnapping } from "../hooks/use-snapping";
 import throttle from "lodash/throttle";
@@ -262,10 +262,7 @@ export function useNoneHandlers({
     startElevationFetch();
 
     const lngLatForElevation = pipeIdToSplit
-      ? ({
-          lng: newCoordinates[0],
-          lat: newCoordinates[1],
-        } as mapboxgl.LngLat)
+      ? { lng: newCoordinates[0], lat: newCoordinates[1] }
       : e.lngLat;
 
     fetchElevation(lngLatForElevation)
