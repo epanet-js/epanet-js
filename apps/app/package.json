@@ -49,6 +49,7 @@
     "@epanet-js/buffers": "workspace:*",
     "@epanet-js/ejsdb": "workspace:*",
     "@epanet-js/ejsdb-mappers": "workspace:*",
+    "@epanet-js/elevations": "workspace:*",
     "@epanet-js/geometry": "workspace:*",
     "@epanet-js/hydraulic-model": "workspace:*",
     "@epanet-js/i18n": "workspace:*",
