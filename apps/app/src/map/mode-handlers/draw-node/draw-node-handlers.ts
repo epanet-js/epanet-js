@@ -4,7 +4,7 @@ import { cursorStyleAtom } from "src/state/map";
 import { modeAtom, Mode } from "src/state/mode";
 import { selectionAtom } from "src/state/selection";
 import noop from "lodash/noop";
-import { useSetAtom, useAtom, useAtomValue } from "jotai";
+import { useSetAtom, useAtomValue } from "jotai";
 import { useRef } from "react";
 import { getMapCoord } from "../utils";
 import { addNode, replaceNode } from "src/hydraulic-model/model-operations";
@@ -18,6 +18,7 @@ import { useMomentTransaction } from "src/hooks/persistence/use-moment-transacti
 import { useFocusAssetPanel } from "src/hooks/use-focus-asset-panel";
 import { validateAsset } from "src/lib/model-attributes-validation";
 import { Asset } from "src/hydraulic-model";
+import { captureWarning } from "src/infra/error-tracking";
 
 type NodeType = "junction" | "reservoir" | "tank";
 
@@ -30,7 +31,7 @@ export function useDrawNodeHandlers({
 }: HandlerContext & { nodeType: NodeType }): Handlers {
   const isUpdatingRef = useRef(false);
   const setMode = useSetAtom(modeAtom);
-  const [ephemeralState, setEphemeralState] = useAtom(ephemeralStateAtom);
+  const setEphemeralState = useSetAtom(ephemeralStateAtom);
   const setCursor = useSetAtom(cursorStyleAtom);
   const selection = useAtomValue(selectionAtom);
   const { transact } = useMomentTransaction();
@@ -55,6 +56,14 @@ export function useDrawNodeHandlers({
     elevation: number | null,
     pipeIdToSplit?: number,
   ) => {
+    if (
+      pipeIdToSplit !== undefined &&
+      hydraulicModel.assets.get(pipeIdToSplit)?.type !== "pipe"
+    ) {
+      captureWarning("Pipe to split is no longer in the model");
+      return;
+    }
+
     const moment = addNode(hydraulicModel, {
       nodeType,
       coordinates,
@@ -133,26 +142,23 @@ export function useDrawNodeHandlers({
       return;
     }
 
-    const isPipeSplitting =
-      ephemeralState.type === "drawNode" &&
-      !!ephemeralState.pipeSnappingPosition;
-    const clickPosition = isPipeSplitting
-      ? (ephemeralState.pipeSnappingPosition as [number, number])
+    const pipeToSplit = snappingCandidate;
+    const clickPosition = pipeToSplit
+      ? (pipeToSplit.coordinates as [number, number])
       : mouseCoord;
-    const pipeIdToSplit = isPipeSplitting
-      ? (ephemeralState.pipeId ?? undefined)
-      : undefined;
-    const lngLatForElevation = isPipeSplitting
+    const lngLatForElevation = pipeToSplit
       ? ({ lng: clickPosition[0], lat: clickPosition[1] } as mapboxgl.LngLat)
       : e.lngLat;
 
     startElevationFetch();
     void fetchElevation(lngLatForElevation)
       .then((elevation) => {
-        submitNode(nodeType, clickPosition, elevation, pipeIdToSplit);
-        setEphemeralState({ type: "none" });
+        submitNode(nodeType, clickPosition, elevation, pipeToSplit?.id);
       })
-      .finally(finishElevationFetch);
+      .finally(() => {
+        setEphemeralState({ type: "none" });
+        finishElevationFetch();
+      });
   };
 
   return {
