@@ -67,7 +67,6 @@ import { notify } from "src/components/notifications";
 import { MapContext } from "src/map";
 import { ActionButton } from "src/components/action-button";
 import { usePermissions } from "src/hooks/use-permissions";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useFeatureLock } from "src/components/form/paywall";
 import {
   useElevationTargets,
@@ -95,7 +94,6 @@ import { TextField } from "src/components/form/text-field";
 
 export const ElevationsEditor = () => {
   const isPlaying = useAtomValue(isPlayingAtom);
-  const recomputeEnabled = useFeatureFlag("FLAG_RECOMPUTE_ELEVATIONS");
   const translate = useTranslate();
   const overlay = useElevationCoverageOverlay();
   const { getProj4Def } = useProj4Definitions();
@@ -134,11 +132,7 @@ export const ElevationsEditor = () => {
       }
       separator={false}
       variant="primary"
-      action={
-        recomputeEnabled && !isPlaying ? (
-          <RecomputeElevationsButton />
-        ) : undefined
-      }
+      action={!isPlaying ? <RecomputeElevationsButton /> : undefined}
     >
       <DndContext
         onDragEnd={handleDragEnd}
