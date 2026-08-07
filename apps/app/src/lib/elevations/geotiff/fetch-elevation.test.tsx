@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 
-import { GeoTiffTile } from ".";
+import { EngineTile } from "./types";
 import { parseGeoTIFF } from "./parse-geotiff";
 import {
   fetchGeoTiffTileElevation,
@@ -49,11 +49,11 @@ function elevationFixture() {
 }
 
 async function loadFixtureTile(
-  overrides?: Partial<GeoTiffTile>,
-): Promise<GeoTiffTile> {
+  overrides?: Partial<EngineTile>,
+): Promise<EngineTile> {
   const file = elevationFixture();
   const metadata = await parseGeoTIFF(file, fetchProj4DefFake);
-  return { id: "test", ...metadata, ...overrides };
+  return { id: "test", ...metadata, ...overrides } as EngineTile;
 }
 
 describe("fetchGeoTiffTileElevation", () => {
@@ -332,7 +332,7 @@ function aSyntheticTile(
   height = 2000,
   blockWidth = 256,
   blockHeight = 256,
-): GeoTiffTile {
+): EngineTile {
   return {
     id: "synth",
     file: new File([""], "synth.tif"),
@@ -359,7 +359,7 @@ function aSyntheticTile(
           ]);
         },
       ),
-    } as unknown as GeoTiffTile["image"],
+    } as unknown as EngineTile["image"],
   };
 }
 

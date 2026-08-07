@@ -3,24 +3,31 @@ import {
   fetchElevationFromSources,
   fetchElevationsFromSources,
 } from "./fetch-elevation";
-import {
-  fetchElevationForPoint,
-  fetchElevationsForPoints,
-} from "./tile-server-elevation";
+import { fetchElevationForPoint } from "@epanet-js/elevations";
+import { fetchElevationsForPoints } from "./tile-server-elevation";
 import type {
   ElevationSource,
   GeoTiffElevationSource,
   TileServerElevationSource,
 } from "./elevation-source-types";
+import type { GeoTiffTile } from "@epanet-js/elevations";
 import type { GeoTIFFImage } from "geotiff";
 
-vi.mock("./tile-server-elevation", () => ({
+vi.mock("@epanet-js/elevations", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@epanet-js/elevations")>()),
   fetchElevationForPoint: vi.fn(),
+}));
+
+vi.mock("./tile-server-elevation", () => ({
   fetchElevationsForPoints: vi.fn(),
 }));
 
 const mockFetchMapbox = vi.mocked(fetchElevationForPoint);
 const mockFetchMapboxBatch = vi.mocked(fetchElevationsForPoints);
+
+/** `GeoTiffTile.image` is opaque in the contract; these fixtures put a mock there. */
+const rastersOf = (tile: GeoTiffTile) =>
+  vi.mocked((tile.image as GeoTIFFImage).readRasters);
 
 const aTileServerSource = (
   overrides: Partial<TileServerElevationSource> = {},
@@ -140,7 +147,7 @@ describe("fetchElevationFromSources", () => {
   it("falls back to next source when geotiff returns nodata", async () => {
     mockFetchMapbox.mockResolvedValue(100);
     const geotiff = aGeotiffSource();
-    vi.mocked(geotiff.tiles[0].image.readRasters).mockResolvedValue([
+    rastersOf(geotiff.tiles[0]).mockResolvedValue([
       new Float32Array([-9999]),
     ] as any);
 
@@ -184,12 +191,12 @@ describe("fetchElevationFromSources", () => {
     mockFetchMapbox.mockResolvedValue(100);
     // Two geotiff sources with a tile-server in between
     const geotiff1 = aGeotiffSource({ id: "geo-1" });
-    vi.mocked(geotiff1.tiles[0].image.readRasters).mockResolvedValue([
+    rastersOf(geotiff1.tiles[0]).mockResolvedValue([
       new Float32Array([10]),
     ] as any);
 
     const geotiff2 = aGeotiffSource({ id: "geo-2" });
-    vi.mocked(geotiff2.tiles[0].image.readRasters).mockResolvedValue([
+    rastersOf(geotiff2.tiles[0]).mockResolvedValue([
       new Float32Array([20]),
     ] as any);
 
@@ -257,7 +264,7 @@ describe("fetchElevationsFromSources (batched)", () => {
       tiles: [aGeotiffTile({ id: "t", bbox: [-4, 55, -3, 56], value: 42.5 })],
       elevationOffsetM: 0,
     };
-    const readSpy = vi.mocked(source.tiles[0].image.readRasters);
+    const readSpy = rastersOf(source.tiles[0]);
 
     const result = await fetchElevationsFromSources(
       [source],
@@ -303,8 +310,8 @@ describe("fetchElevationsFromSources (batched)", () => {
     );
 
     expect(result).toEqual([10, 20, 10]);
-    expect(vi.mocked(tileWest.image.readRasters)).toHaveBeenCalledTimes(1);
-    expect(vi.mocked(tileEast.image.readRasters)).toHaveBeenCalledTimes(1);
+    expect(rastersOf(tileWest)).toHaveBeenCalledTimes(1);
+    expect(rastersOf(tileEast)).toHaveBeenCalledTimes(1);
   });
 
   it("returns null for points outside all tiles", async () => {
@@ -335,9 +342,7 @@ describe("fetchElevationsFromSources (batched)", () => {
       value: 10,
     });
     // Override to return nodata for any point in this tile
-    vi.mocked(tileNoData.image.readRasters).mockResolvedValue([
-      new Float32Array([-9999]),
-    ] as any);
+    rastersOf(tileNoData).mockResolvedValue([new Float32Array([-9999])] as any);
 
     const tileFallback = aGeotiffTile({
       id: "fallback",

@@ -2,7 +2,7 @@ import { fromArrayBuffer, type GeoTIFFImage } from "geotiff";
 import { buildPixelTransformers } from "./pixel-transformer";
 import { CRS_UNIT_TO_APP_UNIT } from "./spec";
 import { lngLatToCrs } from "./transform";
-import { CrsUnit, GeoTiffTile } from "./types";
+import { CrsUnit, GeoTiffTile, asEngineTile } from "./types";
 
 const IN_MEMORY_BLOCK_THRESHOLD = 8;
 const MAX_IN_MEMORY_FILE_BYTES = 64 * 1024 * 1024;
@@ -141,8 +141,9 @@ async function readImageFor(
   tile: GeoTiffTile,
   distinctBlocks: number,
 ): Promise<GeoTIFFImage> {
-  if (!shouldReadInMemory(tile, distinctBlocks)) return tile.image;
-  return (await loadImageInMemory(tile)) ?? tile.image;
+  const { image } = asEngineTile(tile);
+  if (!shouldReadInMemory(tile, distinctBlocks)) return image;
+  return (await loadImageInMemory(tile)) ?? image;
 }
 
 function shouldReadInMemory(
@@ -169,9 +170,10 @@ async function loadImageInMemory(
 
 function internalBlockSize(tile: GeoTiffTile): BlockSize {
   try {
+    const { image } = asEngineTile(tile);
     return {
-      width: tile.image.getTileWidth() || tile.width,
-      height: tile.image.getTileHeight() || tile.height,
+      width: image.getTileWidth() || tile.width,
+      height: image.getTileHeight() || tile.height,
     };
   } catch {
     return { width: tile.width, height: tile.height };

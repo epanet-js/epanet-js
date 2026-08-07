@@ -2,27 +2,24 @@ export type {
   GeoTiffElevationSource,
   TileServerElevationSource,
   ElevationSource,
-} from "./elevation-source-types";
+  ElevationFetchStatus,
+  FetchElevationsOptions,
+  LngLat,
+  CanvasSetupFn,
+  TileServerConfig,
+} from "@epanet-js/elevations";
+
+export {
+  fetchElevationForPoint,
+  prefetchElevationsTile,
+  queryClient,
+  tileSize,
+  tileZoom,
+} from "@epanet-js/elevations";
 
 export {
   fetchElevationFromSources,
   fetchElevationsFromSources,
 } from "./fetch-elevation";
-export type {
-  ElevationFetchStatus,
-  FetchElevationsOptions,
-} from "./fetch-elevation";
 
-export {
-  fetchElevationForPoint,
-  fetchElevationsForPoints,
-  prefetchElevationsTile,
-  queryClient,
-  tileSize,
-  tileZoom,
-} from "./tile-server-elevation";
-export type {
-  LngLat,
-  CanvasSetupFn,
-  TileServerConfig,
-} from "./tile-server-elevation";
+export { fetchElevationsForPoints } from "./tile-server-elevation";

@@ -1,35 +1,18 @@
 import { Unit, convertTo } from "@epanet-js/quantity";
 import {
-  fetchElevationForPoint,
-  fetchElevationsForPoints,
+  type ElevationFetchStatus,
+  type ElevationSource,
+  type FetchElevationsOptions,
   type LngLat,
-} from "./tile-server-elevation";
-import type { ElevationSource } from "./elevation-source-types";
+  fetchElevationForPoint,
+} from "@epanet-js/elevations";
+import { fetchElevationsForPoints } from "./tile-server-elevation";
 import {
   fetchGeoTiffTileElevation,
   fetchGeoTiffTileElevationsForPoints,
   isPointInBbox,
   type GeoTiffElevation,
 } from "./geotiff/fetch-elevation";
-
-/** What the fetch is working on right now, for a live status line. */
-export type ElevationFetchStatus =
-  | { kind: "tile-server"; completed: number; total: number }
-  | { kind: "geotiff"; fileName: string };
-
-export type FetchElevationsOptions = {
-  /** Cumulative resolved points against the total, as tiles/buckets complete. */
-  onProgress?: (resolved: number, total: number) => void;
-  /** The tile/file currently being processed, so a stall is legible. */
-  onStatus?: (status: ElevationFetchStatus) => void;
-  /** Aborts between tiles/buckets; already-resolved points are kept. */
-  signal?: AbortSignal;
-  /**
-   * Called if a source fails. The fetch resolves with whatever was already
-   * resolved (like an abort) rather than rejecting, so partial work is kept.
-   */
-  onError?: (error: unknown) => void;
-};
 
 /**
  * Iterates elevation sources in reverse order (last = highest priority)
