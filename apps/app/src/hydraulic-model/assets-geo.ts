@@ -179,6 +179,7 @@ export class AssetsGeoIndex implements AssetsGeoQueries {
     maxCount: number,
     maxDistance: number,
   ): AssetId[] {
+    if (this.assetIndex.nodeCount === 0) return [];
     if (!this.nodesSpatialIndex) {
       this.buildNodesSpatialIndex();
     }
@@ -482,6 +483,7 @@ export class AssetsGeoView implements AssetsGeoQueries {
   }
 
   searchNodes(bounds: BoundingBox, filterFn?: NodeFilterFn): AssetId[] {
+    if (this.assetIndex.nodeCount === 0) return [];
     return this.nodesSpatialIndex
       .search(...bounds, (index: number, ...bounds: BoundingBox) => {
         if (!filterFn) return true;
@@ -495,6 +497,7 @@ export class AssetsGeoView implements AssetsGeoQueries {
     bounds: BoundingBox,
     filterFn?: SegmentFilterFn,
   ): SegmentId[] {
+    if (this.segmentsCount === 0) return [];
     return this.segmentsSpatialIndex.search(
       ...bounds,
       (index: number, ...bounds: BoundingBox) =>
@@ -507,6 +510,7 @@ export class AssetsGeoView implements AssetsGeoQueries {
     maxCount: number,
     maxDistance: number,
   ): AssetId[] {
+    if (this.assetIndex.nodeCount === 0) return [];
     const nodeIndexes = this.nodesSpatialIndex.neighbors(
       pos[0],
       pos[1],

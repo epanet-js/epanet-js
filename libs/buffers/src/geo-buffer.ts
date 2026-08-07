@@ -4,6 +4,10 @@ import Flatbush from "flatbush";
 import { Position } from "geojson";
 import type { BinaryData } from "./buffers";
 
+export function addPlaceholderMatchingNoSearch(geoIndex: Flatbush): void {
+  geoIndex.add(Infinity, Infinity, -Infinity, -Infinity);
+}
+
 export class GeoIndexBuilder {
   private geoIndex: Flatbush;
 
@@ -23,7 +27,7 @@ export class GeoIndexBuilder {
 
   finalize(): BinaryData {
     if (this.size === 0) {
-      this.geoIndex.add(0, 0, 0, 0);
+      addPlaceholderMatchingNoSearch(this.geoIndex);
     }
     this.geoIndex.finish();
     return this.geoIndex.data;

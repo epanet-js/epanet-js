@@ -2,6 +2,7 @@ import { LineString, Feature, Position } from "@turf/helpers";
 import lineSegment from "@turf/line-segment";
 import bbox from "@turf/bbox";
 import Flatbush from "flatbush";
+import { addPlaceholderMatchingNoSearch } from "@epanet-js/buffers";
 import {
   AssetId,
   Pipe,
@@ -270,9 +271,8 @@ export const prepareWorkerData = (
   }
   customerPointsBuilder.updateCount(addedCustomerPoints);
 
-  // Add a placeholder segment if no real segments exist
   if (pipeSegmentsCount === 0) {
-    spatialIndex.add(0, 0, 0, 0);
+    addPlaceholderMatchingNoSearch(spatialIndex);
   }
 
   spatialIndex.finish();
