@@ -23,6 +23,16 @@ export type {
 export type { ElevationEngine, ElevationGeoTiffCapability } from "./engine";
 export { defaultElevationEngine } from "./engine";
 
+export type {
+  ElevationSourceErrorCode,
+  ElevationSourceFailure,
+} from "./errors";
+export {
+  ELEVATION_SOURCE_ERROR_NAME,
+  asElevationSourceErrorCode,
+  toElevationSourceFailure,
+} from "./errors";
+
 export type { Instrument } from "./tile-server";
 export {
   browserCanvasSetup,

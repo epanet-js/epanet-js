@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 
+import { toElevationSourceFailure } from "@epanet-js/elevations";
 import { GeoTiffError, parseGeoTIFF } from "./parse-geotiff";
 import { ProjectionError } from "./extract-projection";
 import { TransformError } from "./pixel-transformer";
@@ -413,6 +414,47 @@ describe("parseGeoTIFF", () => {
     });
   });
 });
+
+describe("reading a failure across the package boundary", () => {
+  it("exposes the inner code without relying on class identity", async () => {
+    const file = buildFixture({
+      tiepoint: [0, 0, 0, -4, 56, 0],
+      pixelScale: [0.25, 0.25, 0],
+      geoKeys: {
+        [GeoKey.GTModelType]: ModelType.Projected,
+        [GeoKey.ProjectedCSType]: 32630,
+      },
+    });
+    const rejection = await captureRejection(file, () => Promise.resolve(null));
+
+    expect(toElevationSourceFailure(rejection)).toEqual({
+      fileName: file.name,
+      code: "unknownProjectionCode",
+    });
+  });
+
+  it("falls back to unknown for a failure that carries no code", async () => {
+    const file = new File([new Uint8Array([0, 1, 2])], "garbage.tif");
+    const rejection = await captureRejection(file, fetchProj4DefFake);
+
+    expect(toElevationSourceFailure(rejection)).toEqual({
+      fileName: "garbage.tif",
+      code: "unknown",
+    });
+  });
+});
+
+async function captureRejection(
+  file: File,
+  fetchProj4Def: (code: number) => Promise<string | null>,
+): Promise<unknown> {
+  try {
+    await parseGeoTIFF(file, fetchProj4Def);
+    throw new Error("Expected parseGeoTIFF to throw");
+  } catch (e) {
+    return e;
+  }
+}
 
 /** Calls parseGeoTIFF and returns the inner error wrapped by GeoTiffError. */
 async function getInnerError(

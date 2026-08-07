@@ -79,13 +79,14 @@ import {
   TileServerElevationSource,
 } from "src/lib/elevations";
 import {
+  type ElevationSourceFailure,
+  toElevationSourceFailure,
+} from "@epanet-js/elevations";
+import {
   BoundaryResult,
   computeTileBoundaries,
-  GeoTiffError,
   GeoTiffTile,
   parseGeoTIFF,
-  ProjectionError,
-  TransformError,
   tileCoverage,
   tileResolution,
 } from "src/lib/elevations/geotiff";
@@ -703,24 +704,10 @@ const RecomputeElevationsButton = () => {
 
 function collectProcessingErrors(results: PromiseSettledResult<GeoTiffTile>[]) {
   return results
-    .filter(
-      (r): r is PromiseRejectedResult =>
-        r.status === "rejected" && r.reason instanceof GeoTiffError,
-    )
-    .map((r) => {
-      const e = r.reason as GeoTiffError;
-      return {
-        fileName: e.fileName,
-        error: geotiffErrorTranslationKey(e),
-      };
-    });
-}
-
-function geotiffErrorTranslationKey(error: GeoTiffError): string {
-  const inner = error.error;
-  if (inner instanceof ProjectionError) return inner.code as string;
-  if (inner instanceof TransformError) return inner.code as string;
-  return "unknown";
+    .filter((r): r is PromiseRejectedResult => r.status === "rejected")
+    .map((r) => toElevationSourceFailure(r.reason))
+    .filter((failure): failure is ElevationSourceFailure => failure !== null)
+    .map(({ fileName, code }) => ({ fileName, error: code }));
 }
 
 function uniqueIssues(errors: { error: string }[]): string[] {

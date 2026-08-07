@@ -1,4 +1,9 @@
 import { fromBlob, GeoTIFFImage } from "geotiff";
+import {
+  ELEVATION_SOURCE_ERROR_NAME,
+  asElevationSourceErrorCode,
+  type ElevationSourceErrorCode,
+} from "@epanet-js/elevations";
 import { extractElevationTransform } from "./extract-elevation-transform";
 import {
   extractProjection,
@@ -19,12 +24,16 @@ import {
 export class GeoTiffError extends Error {
   public readonly fileName: string;
   public readonly error: Error;
+  public readonly code: ElevationSourceErrorCode;
 
   constructor(fileName: string, error: Error) {
     super(`GeoTIFF Error ${fileName}: ${error.message}`);
-    this.name = "GeoTIFF Error";
+    // Named and coded so consumers across a package boundary can read the
+    // failure without depending on this class's identity.
+    this.name = ELEVATION_SOURCE_ERROR_NAME;
     this.fileName = fileName;
     this.error = error;
+    this.code = asElevationSourceErrorCode((error as { code?: unknown }).code);
   }
 }
 
