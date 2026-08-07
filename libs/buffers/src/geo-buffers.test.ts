@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import Flatbush from "flatbush";
 import { GeoIndexBuilder } from "./geo-buffer";
 
 describe("GeoIndexBuilder", () => {
@@ -16,6 +17,15 @@ describe("GeoIndexBuilder", () => {
     const builder = new GeoIndexBuilder(0);
     const geoIndex = builder.finalize();
     expect(geoIndex.byteLength).toBeGreaterThan(0);
+  });
+
+  it("never matches the placeholder used when empty", () => {
+    const builder = new GeoIndexBuilder(0);
+    const geoIndex = Flatbush.from(builder.finalize());
+
+    expect(geoIndex.search(-1, -1, 1, 1)).toEqual([]);
+    expect(geoIndex.search(-180, -90, 180, 90)).toEqual([]);
+    expect(geoIndex.neighbors(0, 0, 1, 1000)).toEqual([]);
   });
 
   it("handles single point", () => {
