@@ -120,10 +120,12 @@ const sentryConfig = {
   authToken: process.env.SENTRY_AUTH_TOKEN,
   silent: !process.env.CI,
   widenClientFileUpload: true,
-  hideSourceMaps: false,
   disableLogger: true,
   automaticVercelMonitors: true,
-  sourcemaps: { disable: !hasSentryAuthToken },
+  sourcemaps: {
+    disable: !hasSentryAuthToken,
+    deleteSourcemapsAfterUpload: true,
+  },
 };
 
 if (process.env.NEXT_PUBLIC_SENTRY_PROXY === "true") {
