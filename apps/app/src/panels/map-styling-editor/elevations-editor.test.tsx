@@ -23,7 +23,7 @@ import {
   registerElevationEngine,
 } from "src/lib/elevations";
 
-const mockImage = {};
+const mockRaster = {};
 
 const parseGeoTIFF = vi.fn();
 
@@ -47,30 +47,16 @@ const aGeoTiffSource: GeoTiffElevationSource = {
     {
       id: "tile-1",
       file: new File([""], "o41078a1.tif"),
-      width: 100,
-      height: 100,
       bbox: [-4.0, 55.0, -3.0, 56.0],
-      resolution: [1, 1] as [number, number],
-      crsUnit: "deg" as const,
       verticalUnit: "m" as const,
-      pixelToCrs: [0, 1, 0, 0, 0, 1],
-      crsToPixel: [0, 1, 0, 0, 0, 1],
-      noDataValue: -9999,
-      image: mockImage,
+      raster: mockRaster,
     },
     {
       id: "tile-2",
       file: new File([""], "o41078a2.tif"),
-      width: 100,
-      height: 100,
       bbox: [-3.0, 55.0, -2.0, 56.0],
-      resolution: [1, 1] as [number, number],
-      crsUnit: "deg" as const,
       verticalUnit: "m" as const,
-      pixelToCrs: [0, 1, 0, 0, 0, 1],
-      crsToPixel: [0, 1, 0, 0, 0, 1],
-      noDataValue: -9999,
-      image: mockImage,
+      raster: mockRaster,
     },
   ],
   elevationOffsetM: 0,
@@ -215,16 +201,9 @@ describe("ElevationsEditor", () => {
 
     parseGeoTIFF.mockResolvedValue({
       file: new File([""], "terrain.tif"),
-      width: 200,
-      height: 200,
       bbox: [-4.0, 55.0, -3.0, 56.0],
-      resolution: [1, 1] as [number, number],
-      crsUnit: "deg" as const,
       verticalUnit: "m" as const,
-      pixelToCrs: [0, 1, 0, 0, 0, 1],
-      crsToPixel: [0, 1, 0, 0, 0, 1],
-      noDataValue: -9999,
-      image: mockImage,
+      raster: mockRaster,
     });
 
     renderComponent(store);
@@ -259,29 +238,15 @@ describe("ElevationsEditor", () => {
     parseGeoTIFF
       .mockResolvedValueOnce({
         file: new File([""], "tile1.tif"),
-        width: 100,
-        height: 100,
         bbox: [-4.0, 55.0, -3.0, 56.0],
-        resolution: [1, 1] as [number, number],
-        crsUnit: "deg" as const,
         verticalUnit: "m" as const,
-        pixelToCrs: [0, 1, 0, 0, 0, 1],
-        crsToPixel: [0, 1, 0, 0, 0, 1],
-        noDataValue: null,
-        image: mockImage,
+        raster: mockRaster,
       })
       .mockResolvedValueOnce({
         file: new File([""], "tile2.tif"),
-        width: 100,
-        height: 100,
         bbox: [-3.0, 55.0, -2.0, 56.0],
-        resolution: [1, 1] as [number, number],
-        crsUnit: "deg" as const,
         verticalUnit: "m" as const,
-        pixelToCrs: [0, 1, 0, 0, 0, 1],
-        crsToPixel: [0, 1, 0, 0, 0, 1],
-        noDataValue: null,
-        image: mockImage,
+        raster: mockRaster,
       });
 
     renderComponent(store);
@@ -356,16 +321,9 @@ describe("ElevationsEditor", () => {
 
     parseGeoTIFF.mockResolvedValue({
       file: new File([""], "new-tile.tif"),
-      width: 100,
-      height: 100,
       bbox: [-2.0, 55.0, -1.0, 56.0],
-      resolution: [1, 1] as [number, number],
-      crsUnit: "deg" as const,
       verticalUnit: "m" as const,
-      pixelToCrs: [0, 1, 0, 0, 0, 1],
-      crsToPixel: [0, 1, 0, 0, 0, 1],
-      noDataValue: null,
-      image: mockImage,
+      raster: mockRaster,
     });
 
     renderComponent(store);
