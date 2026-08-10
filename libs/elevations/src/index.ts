@@ -43,6 +43,7 @@ export {
   prefetchElevationsTile,
   queryClient,
   readElevationFromPixels,
+  releaseTileImage,
   resolveTileServerConfig,
   setTileFetchInstrument,
   tileSize,

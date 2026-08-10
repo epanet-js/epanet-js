@@ -215,6 +215,17 @@ export const offscreenCanvasSetup: CanvasSetupFn = async (
   return { img, ctx: ctx as Raster2D };
 };
 
+/**
+ * `createImageBitmap` hands back a decoded copy of the tile — ~4 MB for a @2x
+ * 512 tile — that lives until it is closed or collected. A bulk run over
+ * thousands of tiles cannot wait for the collector, so every decode releases
+ * its image as soon as the pixels are read.
+ */
+export const releaseTileImage = (img: CanvasImageSource): void => {
+  const closable = img as { close?: () => void };
+  if (typeof closable.close === "function") closable.close();
+};
+
 export function readElevationFromPixels(
   pixels: Uint8ClampedArray,
   point: LngLat,
@@ -258,11 +269,15 @@ export async function fetchElevationForPoint(
   }
 
   const { ctx, img } = await setUpCanvas(tileBlob, config.tileSize);
-  ctx.drawImage(img, 0, 0, config.tileSize, config.tileSize);
-  const { x, y } = getPixelDescriptor(lat, lng, config);
-  const [r, g, b] = ctx.getImageData(x, y, 1, 1).data;
-  const elevationInMeters = parseFloat(decodeTerrainRGB(r, g, b).toFixed(2));
-  return convertTo({ value: elevationInMeters, unit: "m" }, unit);
+  try {
+    ctx.drawImage(img, 0, 0, config.tileSize, config.tileSize);
+    const { x, y } = getPixelDescriptor(lat, lng, config);
+    const [r, g, b] = ctx.getImageData(x, y, 1, 1).data;
+    const elevationInMeters = parseFloat(decodeTerrainRGB(r, g, b).toFixed(2));
+    return convertTo({ value: elevationInMeters, unit: "m" }, unit);
+  } finally {
+    releaseTileImage(img);
+  }
 }
 
 export async function prefetchElevationsTile(
