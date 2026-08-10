@@ -23,6 +23,12 @@ export type OrphanLinkConnection = {
   cause: "put-link" | "deleted-node";
 };
 
+export type TopologyConnectionMismatch = {
+  linkId: AssetId;
+  assetConnections: [AssetId, AssetId];
+  topologyConnections: [AssetId, AssetId];
+};
+
 export const findStoreInconsistencies = (
   model: HydraulicModel,
   moment: ModelMoment,
@@ -83,6 +89,38 @@ const classify = (
 
 const uniform = (values: boolean[]): boolean =>
   values.every((v) => v) || values.every((v) => !v);
+
+export const findTopologyConnectionMismatches = (
+  model: HydraulicModel,
+  moment: ModelMoment,
+): TopologyConnectionMismatch[] => {
+  const mismatches: TopologyConnectionMismatch[] = [];
+
+  for (const putAsset of moment.putAssets ?? []) {
+    if (!putAsset.isLink) continue;
+
+    const link = model.assets.get(putAsset.id) as LinkAsset | undefined;
+    if (!link?.isLink || !model.topology.hasLink(link.id)) continue;
+
+    const [startNodeId, endNodeId] = link.connections;
+    const [topologyStartNodeId, topologyEndNodeId] = model.topology.getNodes(
+      link.id,
+    );
+
+    if (
+      startNodeId !== topologyStartNodeId ||
+      endNodeId !== topologyEndNodeId
+    ) {
+      mismatches.push({
+        linkId: link.id,
+        assetConnections: [startNodeId, endNodeId],
+        topologyConnections: [topologyStartNodeId, topologyEndNodeId],
+      });
+    }
+  }
+
+  return mismatches;
+};
 
 export const findOrphanLinkConnections = (
   model: HydraulicModel,

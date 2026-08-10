@@ -24,10 +24,38 @@ import { opfsUnavailableErrors } from "src/infra/storage";
 import {
   findOrphanLinkConnections,
   findStoreInconsistencies,
+  findTopologyConnectionMismatches,
+  type OrphanLinkConnection,
 } from "src/hydraulic-model/validate-moment-integrity";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { writeQueue } from "src/lib/persistence/write-queue";
 import { useWriteFailureHandler } from "src/hooks/persistence/use-write-failure-handler";
+
+const maxReportedIds = 20;
+
+const buildOrphanReport = (
+  moment: Moment,
+  orphanLinks: OrphanLinkConnection[],
+) => {
+  const linkTypes = [...new Set(orphanLinks.map((o) => o.linkType))];
+  const causes = [...new Set(orphanLinks.map((o) => o.cause))];
+  const missingNodeIds = [
+    ...new Set(orphanLinks.flatMap((o) => o.missingNodeIds)),
+  ];
+  const deletedByMoment = new Set(moment.deleteAssets ?? []);
+
+  return {
+    note: moment.note,
+    linkType: linkTypes.length === 1 ? linkTypes[0] : linkTypes,
+    cause: causes.length === 1 ? causes[0] : causes,
+    orphanCount: orphanLinks.length,
+    linkIds: orphanLinks.slice(0, maxReportedIds).map((o) => o.linkId),
+    missingNodeIds: missingNodeIds.slice(0, maxReportedIds),
+    missingNodesDeletedByMoment: missingNodeIds
+      .filter((id) => deletedByMoment.has(id))
+      .slice(0, maxReportedIds),
+  };
+};
 
 export const useMomentTransaction = () => {
   const isQueueOn = useFeatureFlag("FLAG_TRANSACTIONS_QUEUE");
@@ -61,17 +89,13 @@ export const useMomentTransaction = () => {
           moment,
         );
         if (orphanLinks.length > 0) {
-          const linkTypes = [...new Set(orphanLinks.map((o) => o.linkType))];
-          const causes = [...new Set(orphanLinks.map((o) => o.cause))];
           captureWarning(
             `Model integrity (orphan link connection)`,
             undefined,
             {
               "model operation": {
-                note: moment.note,
+                ...buildOrphanReport(moment, orphanLinks),
                 mode: MODE_INFO[get(modeAtom).mode].name,
-                linkType: linkTypes.length === 1 ? linkTypes[0] : linkTypes,
-                cause: causes.length === 1 ? causes[0] : causes,
               },
             },
           );
@@ -101,6 +125,24 @@ export const useMomentTransaction = () => {
                     `id=${i.id} kind=${i.kind} ` +
                     `assets=${i.inAssets} index=${i.inAssetIndex} ` +
                     `topology=${i.inTopology}`,
+                )
+                .join("; "),
+          );
+        }
+
+        const connectionMismatches = findTopologyConnectionMismatches(
+          get(stagingModelDerivedAtom),
+          moment,
+        );
+        if (connectionMismatches.length > 0) {
+          captureWarning(
+            `Model integrity (topology desync) after "${moment.note}": ` +
+              connectionMismatches
+                .slice(0, maxReportedIds)
+                .map(
+                  (m) =>
+                    `id=${m.linkId} assets=${m.assetConnections.join(",")} ` +
+                    `topology=${m.topologyConnections.join(",")}`,
                 )
                 .join("; "),
           );
