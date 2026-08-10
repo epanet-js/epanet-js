@@ -33,7 +33,8 @@ export {
   toElevationSourceFailure,
 } from "./errors";
 
-export type { Instrument } from "./tile-server";
+export type { Instrument, TileFetchFailure } from "./tile-server";
+export { TileFetchError, tileFetchFailureOf } from "./tile-server";
 export {
   browserCanvasSetup,
   buildTileDescriptor,

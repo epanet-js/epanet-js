@@ -52,13 +52,37 @@ export type Instrument = (
   fn: (tileUrl: string) => Promise<Blob>,
 ) => (tileUrl: string) => Promise<Blob>;
 
+/**
+ * `uncovered` means the server has no tile there — a real answer, and terminal.
+ * `unavailable` is a transport failure, which may succeed on another attempt.
+ */
+export type TileFetchFailure = "uncovered" | "unavailable";
+
+export class TileFetchError extends Error {
+  public readonly failure: TileFetchFailure;
+
+  constructor(failure: TileFetchFailure, message: string) {
+    super(message);
+    this.name = "TileFetchError";
+    this.failure = failure;
+  }
+}
+
+export const tileFetchFailureOf = (error: unknown): TileFetchFailure | null => {
+  if (typeof error !== "object" || error === null) return null;
+  const candidate = error as { name?: unknown; failure?: unknown };
+  if (candidate.name !== "TileFetchError") return null;
+  return candidate.failure === "uncovered" ? "uncovered" : "unavailable";
+};
+
 const rawFetchTileFromUrl = async (tileUrl: string): Promise<Blob> => {
   const response = await fetch(tileUrl);
   if (!response.ok) {
+    // Messages are load-bearing: the app matches on them to choose a toast.
     if (response.status === 404) {
-      throw new Error("Tile not found");
+      throw new TileFetchError("uncovered", "Tile not found");
     }
-    throw new Error("Failed to fetch");
+    throw new TileFetchError("unavailable", "Failed to fetch");
   }
   return response.blob();
 };
@@ -69,8 +93,40 @@ export const setTileFetchInstrument = (instrument: Instrument): void => {
   instrumented = instrument(rawFetchTileFromUrl);
 };
 
-export const fetchTileFromUrl = (tileUrl: string): Promise<Blob> =>
-  instrumented(tileUrl);
+const RETRY_BASE_MS = 250;
+const RETRY_JITTER_MS = 500;
+
+const backoffDelay = (attempt: number) =>
+  RETRY_BASE_MS * 2 ** (attempt - 1) + Math.random() * RETRY_JITTER_MS;
+
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * Retries live here rather than in the query client's defaults: a default would
+ * also retry prefetches (fire-and-forget, one per throttled mousemove) and the
+ * interactive single-point path, where failing fast is what the UI wants. Only
+ * the batch path opts into more than one attempt. Because this runs inside the
+ * `queryFn`, a successful retry is what gets cached.
+ */
+export const fetchTileFromUrl = async (
+  tileUrl: string,
+  { attempts = 1 }: { attempts?: number } = {},
+): Promise<Blob> => {
+  let lastError: unknown;
+
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    try {
+      return await instrumented(tileUrl);
+    } catch (error) {
+      // No amount of retrying will make the server have this tile.
+      if (tileFetchFailureOf(error) === "uncovered") throw error;
+      lastError = error;
+      if (attempt < attempts) await wait(backoffDelay(attempt));
+    }
+  }
+
+  throw lastError;
+};
 
 export function lngLatToTile(lng: number, lat: number, zoom: number) {
   const scale = Math.pow(2, zoom);
