@@ -82,9 +82,12 @@ import {
   type ElevationSourceFailure,
   toElevationSourceFailure,
 } from "@epanet-js/elevations";
-import { BoundaryResult, GeoTiffTile } from "src/lib/elevations/geotiff";
-import { getElevationEngine } from "src/lib/elevations";
-import type { LinearUnit } from "src/lib/elevations/geotiff/types";
+import {
+  BoundaryResult,
+  GeoTiffTile,
+  getElevationEngine,
+  type LinearUnit,
+} from "src/lib/elevations";
 import { TextField } from "src/components/form/text-field";
 
 export const ElevationsEditor = () => {

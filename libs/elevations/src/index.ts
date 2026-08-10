@@ -52,3 +52,6 @@ export {
   tileSize,
   tileZoom,
 } from "./tile-server";
+
+export type { FakeElevationEngineOverrides } from "./testing";
+export { createFakeElevationEngine } from "./testing";

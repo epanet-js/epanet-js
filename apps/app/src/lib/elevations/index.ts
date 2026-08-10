@@ -1,8 +1,3 @@
-import { elevationEngine } from "./engine";
-import { registerElevationEngine } from "./registry";
-
-registerElevationEngine(elevationEngine);
-
 export type {
   GeoTiffElevationSource,
   TileServerElevationSource,
@@ -12,6 +7,9 @@ export type {
   LngLat,
   CanvasSetupFn,
   TileServerConfig,
+  GeoTiffTile,
+  BoundaryResult,
+  LinearUnit,
 } from "@epanet-js/elevations";
 
 export { queryClient, tileSize, tileZoom } from "@epanet-js/elevations";

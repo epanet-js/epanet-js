@@ -5,7 +5,7 @@ import {
   prefetchElevationsTile,
   queryClient,
   tileSize,
-} from "@epanet-js/elevations";
+} from "./index";
 import fs from "fs";
 import path from "path";
 import { createCanvas, loadImage } from "canvas";
@@ -143,16 +143,6 @@ const readFixtureAsBuffer = () => {
   return buffer;
 };
 
-function blobToBuffer(blob: Blob): Promise<Buffer> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = function (event) {
-      const buffer = Buffer.from(event.target!.result as ArrayBuffer);
-      resolve(buffer);
-    };
-    reader.onerror = function (error) {
-      reject(error);
-    };
-    reader.readAsArrayBuffer(blob);
-  });
+async function blobToBuffer(blob: Blob): Promise<Buffer> {
+  return Buffer.from(await blob.arrayBuffer());
 }

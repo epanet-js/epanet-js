@@ -14,25 +14,18 @@ import type {
   GeoTiffElevationSource,
   TileServerElevationSource,
 } from "src/lib/elevations";
-import { defaultElevationEngine } from "@epanet-js/elevations";
+import {
+  createFakeElevationEngine,
+  defaultElevationEngine,
+} from "@epanet-js/elevations";
 import {
   getElevationEngine,
   registerElevationEngine,
 } from "src/lib/elevations";
-import type { GeoTIFFImage } from "geotiff";
-import { parseGeoTIFF } from "src/lib/elevations/geotiff";
 
-const mockImage = {} as GeoTIFFImage;
+const mockImage = {};
 
-vi.mock("src/lib/elevations/geotiff", async (importOriginal) => {
-  const original =
-    await importOriginal<typeof import("src/lib/elevations/geotiff")>();
-  return {
-    ...original,
-    parseGeoTIFF: vi.fn(),
-    computeTileBoundaries: vi.fn().mockResolvedValue(undefined),
-  };
-});
+const parseGeoTIFF = vi.fn();
 
 const aMapboxSource: TileServerElevationSource = {
   type: "tile-server",
@@ -84,9 +77,21 @@ const aGeoTiffSource: GeoTiffElevationSource = {
 };
 
 describe("ElevationsEditor", () => {
+  const registered = getElevationEngine();
+
   beforeEach(() => {
     stubWindowSize("sm");
     localStorage.clear();
+    parseGeoTIFF.mockReset();
+    // The editor is exercised against a stand-in engine rather than the real
+    // one, so these tests never pull in a GeoTIFF reader.
+    registerElevationEngine(
+      createFakeElevationEngine({ geoTiff: { parse: parseGeoTIFF } }),
+    );
+  });
+
+  afterEach(() => {
+    registerElevationEngine(registered);
   });
 
   it("renders the default Mapbox source", () => {
@@ -208,7 +213,7 @@ describe("ElevationsEditor", () => {
     const store = setInitialState({});
     store.set(elevationSourcesAtom, [aMapboxSource]);
 
-    vi.mocked(parseGeoTIFF).mockResolvedValue({
+    parseGeoTIFF.mockResolvedValue({
       file: new File([""], "terrain.tif"),
       width: 200,
       height: 200,
@@ -251,7 +256,7 @@ describe("ElevationsEditor", () => {
     const store = setInitialState({});
     store.set(elevationSourcesAtom, [aMapboxSource]);
 
-    vi.mocked(parseGeoTIFF)
+    parseGeoTIFF
       .mockResolvedValueOnce({
         file: new File([""], "tile1.tif"),
         width: 100,
@@ -349,7 +354,7 @@ describe("ElevationsEditor", () => {
     const store = setInitialState({});
     store.set(elevationSourcesAtom, [aMapboxSource, aGeoTiffSource]);
 
-    vi.mocked(parseGeoTIFF).mockResolvedValue({
+    parseGeoTIFF.mockResolvedValue({
       file: new File([""], "new-tile.tif"),
       width: 100,
       height: 100,
