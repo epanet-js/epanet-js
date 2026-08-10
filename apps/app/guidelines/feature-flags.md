@@ -398,6 +398,20 @@ For each new feature flag, document:
 - **Rollback Plan**: How to disable if issues arise
 ```
 
+### Live Flags
+
+#### FLAG_REPORT_YES
+- **Purpose**: New projects default to `statusReport: "YES"` instead of `"FULL"`, so EPANET writes a status-changes-only report rather than a full one.
+- **Risk Level**: Low - a default value only. The setting stays user-editable in the simulation settings dialog, existing projects keep their stored value, and nothing about the persisted shape changes.
+- **Dependencies**: Applies to both new-project entry points in the app and to the model-build utility app, which receives the flag through the iframe URL (`buildIframeSrc`) or its own `?FLAG_REPORT_YES=true` param when standalone. INP import is deliberately unaffected.
+- **Rollback Plan**: Turn the flag off in PostHog. New projects go back to `"FULL"`; projects already created keep whatever was stamped on them.
+- **Cleanup** (once rolled out to 100%):
+  1. `src/simulation/simulation-settings.ts` - set `defaultReportValues.statusReport` to `"YES"` and delete `buildDefaultSimulationSettings`.
+  2. `src/hooks/persistence/use-start-new-project.ts` - drop the `useFeatureFlag` call and the `isDefaultSettings` branch from `useStartBlankProject` and `useSeedDefaultProjectDb`, going back to plain `defaultSimulationSettings`.
+  3. Model-build `create-ejsdb` - collapse `buildDefaultSimulationSettings` back to a `defaultSimulationSettings` const with `"YES"`, and drop the `isReportYesOn` option from `createEjsdb` and its two call sites in the build-progress step.
+  4. Replace the flag-on/flag-off test pairs with single assertions on the new default, and update the `Status\tFULL` expectations in `src/simulation/build-inp.test.ts` and `src/simulation/build-inp-for-export.test.ts` to `Status\tYES`.
+  5. Delete this entry.
+
 ### Flag Lifecycle Management
 1. **Introduction**: Add flag (default: off)
 2. **Development**: Enable via URL params for testing

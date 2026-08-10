@@ -121,3 +121,13 @@ export const defaultSimulationSettings: SimulationSettings = {
   ...defaultEnergyValues,
   ...defaultReportValues,
 };
+
+// FLAG_REPORT_YES - see guidelines/feature-flags.md for the cleanup checklist
+export const buildDefaultSimulationSettings = ({
+  isReportYesOn,
+}: {
+  isReportYesOn: boolean;
+}): SimulationSettings => ({
+  ...defaultSimulationSettings,
+  statusReport: isReportYesOn ? "YES" : defaultReportValues.statusReport,
+});

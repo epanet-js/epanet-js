@@ -11,7 +11,11 @@ import {
 import { inpFileInfoAtom, projectFileInfoAtom } from "src/state/file-system";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { Store } from "src/state";
-import { useStartBlankProject } from "./use-start-new-project";
+import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
+import {
+  useSeedDefaultProjectDb,
+  useStartBlankProject,
+} from "./use-start-new-project";
 
 const UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -20,6 +24,13 @@ const IDS = { J1: 1 } as const;
 
 const renderStartEmptyProject = (store: Store) =>
   renderHook(() => useStartBlankProject(), {
+    wrapper: ({ children }) => (
+      <JotaiProvider store={store}>{children}</JotaiProvider>
+    ),
+  });
+
+const renderSeedDefaultProjectDb = (store: Store) =>
+  renderHook(() => useSeedDefaultProjectDb(), {
     wrapper: ({ children }) => (
       <JotaiProvider store={store}>{children}</JotaiProvider>
     ),
@@ -62,5 +73,63 @@ describe("useStartBlankProject", () => {
     const uniqueId = store.get(projectSettingsAtom).uniqueId;
     expect(uniqueId).toMatch(UUID_REGEX);
     expect((await fetchProject()).projectSettings.uniqueId).toBe(uniqueId);
+  });
+
+  describe("status report default", () => {
+    it("defaults to FULL when FLAG_REPORT_YES is disabled", async () => {
+      stubFeatureOff("FLAG_REPORT_YES");
+      const store = setInitialState();
+
+      const { result } = renderStartEmptyProject(store);
+      await act(async () => {
+        await result.current();
+      });
+
+      expect((await fetchProject()).simulationSettings.statusReport).toBe(
+        "FULL",
+      );
+    });
+
+    it("defaults to YES when FLAG_REPORT_YES is enabled", async () => {
+      stubFeatureOn("FLAG_REPORT_YES");
+      const store = setInitialState();
+
+      const { result } = renderStartEmptyProject(store);
+      await act(async () => {
+        await result.current();
+      });
+
+      expect((await fetchProject()).simulationSettings.statusReport).toBe(
+        "YES",
+      );
+    });
+  });
+});
+
+describe("useSeedDefaultProjectDb", () => {
+  useInProcessDb();
+
+  it("seeds a FULL status report when FLAG_REPORT_YES is disabled", async () => {
+    stubFeatureOff("FLAG_REPORT_YES");
+    const store = setInitialState();
+
+    const { result } = renderSeedDefaultProjectDb(store);
+    await act(async () => {
+      await result.current();
+    });
+
+    expect((await fetchProject()).simulationSettings.statusReport).toBe("FULL");
+  });
+
+  it("seeds a YES status report when FLAG_REPORT_YES is enabled", async () => {
+    stubFeatureOn("FLAG_REPORT_YES");
+    const store = setInitialState();
+
+    const { result } = renderSeedDefaultProjectDb(store);
+    await act(async () => {
+      await result.current();
+    });
+
+    expect((await fetchProject()).simulationSettings.statusReport).toBe("YES");
   });
 });
