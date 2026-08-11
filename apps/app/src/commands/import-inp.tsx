@@ -5,7 +5,7 @@ import { dialogAtom } from "src/state/dialog";
 import { inpFileInfoAtom, projectFileInfoAtom } from "src/state/file-system";
 import { userSettingsAtom } from "src/state/user-settings";
 import { captureError } from "src/infra/error-tracking";
-import { handleError } from "src/infra/errors";
+import { errorName, handleError } from "src/infra/errors";
 import { FileWithHandle } from "browser-fs-access";
 import { useTranslate } from "src/hooks/use-translate";
 import {
@@ -31,6 +31,8 @@ import { useStartNewProject } from "src/hooks/persistence/use-start-new-project"
 import { useLabelMaxLength } from "src/hooks/use-label-max-length";
 
 export const inpExtension = ".inp";
+
+const fileReadErrorName = "NotReadableError";
 
 export const useImportInp = () => {
   const translate = useTranslate();
@@ -269,11 +271,15 @@ export const useImportInp = () => {
       } catch (error) {
         handleError(error, {
           as: "Import INP failed",
-          warn: ["NotReadableError"],
+          warn: [fileReadErrorName],
           onUnexpected: "capture",
           contexts: { "Import file": { name: file.name, size: file.size } },
         });
-        setDialogState({ type: "invalidFilesError" });
+        setDialogState(
+          errorName(error) === fileReadErrorName
+            ? { type: "fileReadError", fileName: file.name }
+            : { type: "invalidFilesError" },
+        );
       }
     },
     [

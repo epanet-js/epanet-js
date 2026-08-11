@@ -17,6 +17,7 @@ import { AppLoadFailedDialog } from "./app-load-failed";
 import { SimulationSettingsDialog } from "src/dialogs/simulation-settings";
 import { UpgradeDialog } from "src/dialogs/upgrade";
 import { InvalidFilesErrorDialog } from "src/dialogs/invalid-files-error";
+import { FileReadErrorDialog } from "src/dialogs/file-read-error";
 import {
   InpIssuesDialog,
   MissingCoordinatesDialog,
@@ -439,6 +440,9 @@ export const Dialogs = memo(function Dialogs() {
     ))
     .with({ type: "invalidFilesError" }, () => (
       <InvalidFilesErrorDialog onClose={onClose} />
+    ))
+    .with({ type: "fileReadError" }, ({ fileName }) => (
+      <FileReadErrorDialog fileName={fileName} onClose={onClose} />
     ))
     .with({ type: "cheatsheet" }, () => <CheatsheetDialog />)
     .with({ type: "inpIssues" }, ({ issues, onAfterClose }) => (

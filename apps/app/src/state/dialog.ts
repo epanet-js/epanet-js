@@ -11,6 +11,11 @@ export type InvalidFilesErrorDialogState = {
   type: "invalidFilesError";
 };
 
+export type FileReadErrorDialogState = {
+  type: "fileReadError";
+  fileName: string;
+};
+
 export type UnsavedChangesDialogState = {
   type: "unsavedChanges";
   onContinue: () => void;
@@ -322,6 +327,7 @@ export type RecomputeElevationsProgressDialogState = {
 
 export type DialogState =
   | InvalidFilesErrorDialogState
+  | FileReadErrorDialogState
   | {
       type: "cheatsheet";
     }

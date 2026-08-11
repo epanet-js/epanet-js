@@ -365,6 +365,8 @@
   "export.simulationResults": "Simulation results",
   "failedToOpenModel": "Failed to open model",
   "failedToOpenModelDetail": "Make sure to provide a valid INP file.",
+  "fileReadError": "Failed to read file",
+  "fileReadErrorDetail": "We couldn't read \"{{1}}\". Check the file is still available and try again.",
   "understood": "Understood",
   "importAsUnprojected": "Import as unprojected",
   "projection": "Projection",
