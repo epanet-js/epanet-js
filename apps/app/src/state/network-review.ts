@@ -1,7 +1,7 @@
 import { atom } from "jotai";
 import type { CheckType } from "src/panels/network-review/common";
+import type { AssetId } from "@epanet-js/hydraulic-model";
 import type { ValidationIssue } from "src/lib/model-attributes-validation";
-import type { OrphanAsset } from "src/lib/network-review/orphan-assets";
 import type { SubNetwork } from "src/lib/network-review/connectivity-trace";
 
 export type ReviewCheckEntry<T> = {
@@ -12,7 +12,7 @@ export type ReviewCheckEntry<T> = {
 
 export type ReviewResults = {
   [CheckType.modelAttributesValidation]?: ReviewCheckEntry<ValidationIssue[]>;
-  [CheckType.orphanAssets]?: ReviewCheckEntry<OrphanAsset[]>;
+  [CheckType.orphanAssets]?: ReviewCheckEntry<AssetId[]>;
   [CheckType.connectivityTrace]?: ReviewCheckEntry<SubNetwork[]>;
 };
 

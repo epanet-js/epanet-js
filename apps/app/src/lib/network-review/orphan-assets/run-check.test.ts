@@ -19,12 +19,7 @@ describe("runCheck", () => {
 
     const orphanAssets = await runCheck(model, undefined, "array", false);
 
-    expect(orphanAssets).toEqual([
-      expect.objectContaining({
-        assetId: IDS.Orphan,
-        type: "junction",
-      }),
-    ]);
+    expect(orphanAssets).toEqual([IDS.Orphan]);
   });
 
   it("identifies orphan assets in hydraulic model (worker run)", async () => {
@@ -37,11 +32,6 @@ describe("runCheck", () => {
 
     const orphanAssets = await runCheck(model, undefined, "array", true);
 
-    expect(orphanAssets).toEqual([
-      expect.objectContaining({
-        assetId: IDS.Orphan,
-        type: "junction",
-      }),
-    ]);
+    expect(orphanAssets).toEqual([IDS.Orphan]);
   });
 });

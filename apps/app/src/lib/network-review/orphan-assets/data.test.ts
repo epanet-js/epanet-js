@@ -2,6 +2,11 @@ import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { buildOrphanAssets, encodeData } from "./data";
 import { AssetIndexView } from "src/hydraulic-model/asset-index-transferable";
 import { TopologyView } from "src/hydraulic-model/topology/topology-transferable";
+import { AssetId } from "@epanet-js/hydraulic-model";
+import { HydraulicModel } from "src/hydraulic-model";
+
+const labelsOf = (model: HydraulicModel, assetIds: AssetId[]) =>
+  assetIds.map((assetId) => model.assets.get(assetId)?.label);
 
 describe("buildOrphanAssets", () => {
   it("returns results sorted by type and asset label", () => {
@@ -37,7 +42,7 @@ describe("buildOrphanAssets", () => {
 
     const orphanAssets = buildOrphanAssets(model, rawOrphanAssets);
 
-    expect(orphanAssets.map((asset) => asset.label)).toEqual([
+    expect(labelsOf(model, orphanAssets)).toEqual([
       "R1",
       "R2",
       "T1",
@@ -64,7 +69,7 @@ describe("buildOrphanAssets", () => {
       orphanLinks: [IDS.P1],
     });
 
-    expect(orphanAssets.map((asset) => asset.label)).toEqual(["P1"]);
+    expect(labelsOf(model, orphanAssets)).toEqual(["P1"]);
   });
 });
 

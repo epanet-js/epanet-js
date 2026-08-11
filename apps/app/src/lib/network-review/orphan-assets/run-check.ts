@@ -1,12 +1,8 @@
 import * as Comlink from "comlink";
 
+import { AssetId } from "@epanet-js/hydraulic-model";
 import { HydraulicModel } from "src/hydraulic-model";
-import {
-  OrphanAsset,
-  OrphanAssets,
-  buildOrphanAssets,
-  encodeData,
-} from "./data";
+import { OrphanAssets, buildOrphanAssets, encodeData } from "./data";
 import { topologyTransferables } from "src/hydraulic-model/topology/topology-transferable";
 import { assetIndexTransferables } from "src/hydraulic-model/asset-index-transferable";
 import { findOrphanAssets } from "./find-orphan-assets";
@@ -19,7 +15,7 @@ export const runCheck = async (
   signal: AbortSignal | undefined = undefined,
   bufferType: BufferType = "array",
   runInWorker: boolean = true,
-): Promise<OrphanAsset[]> => {
+): Promise<AssetId[]> => {
   if (signal?.aborted) {
     throw new DOMException("Operation cancelled", "AbortError");
   }
