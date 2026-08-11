@@ -103,17 +103,20 @@ export function EpanetApp() {
 
   useEffect(() => {
     if (isSignedIn && user && !hasIdentifiedRef.current) {
+      // Sentry's scope is in-memory and resets on every page load, unlike
+      // PostHog's persisted identity, so this must run outside that guard.
+      setUserContext({
+        id: user.id as string,
+        email: user.email,
+        plan: user.plan,
+      });
+
       if (!userTracking.isIdentified()) {
         enableAllTracking();
         userTracking.identify(user);
         userTracking.reloadFeatureFlags();
-        setUserContext({
-          id: user.id as string,
-          email: user.email,
-          plan: user.plan,
-        });
-        hasIdentifiedRef.current = true;
       }
+      hasIdentifiedRef.current = true;
     }
 
     if (!isSignedIn && hasIdentifiedRef.current) {
