@@ -52,7 +52,9 @@ export const SessionsRecovery = ({
     [sessions],
   );
   const selectedSession =
-    sortedSessions.find((session) => session.poolId === selectedPoolId) ?? null;
+    sortedSessions.find((session) => session.poolId === selectedPoolId) ??
+    sortedSessions[0] ??
+    null;
 
   return (
     <BaseDialog
@@ -94,7 +96,7 @@ export const SessionsRecovery = ({
             <SessionOption
               key={session.poolId}
               session={session}
-              isSelected={session.poolId === selectedPoolId}
+              isSelected={session.poolId === selectedSession?.poolId}
               onSelect={() => setSelectedPoolId(session.poolId)}
             />
           ))}
@@ -132,7 +134,7 @@ const SessionOption = ({
       <input
         type="radio"
         name="recoverableSession"
-        className="mt-1 h-4 w-4 shrink-0 text-accent-hover border-strong focus:ring-accent"
+        className="sr-only"
         value={session.poolId}
         checked={isSelected}
         onChange={onSelect}

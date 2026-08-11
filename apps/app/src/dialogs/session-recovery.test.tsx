@@ -30,7 +30,7 @@ describe("session recovery dialog", () => {
     expect(screen.getAllByRole("radio")).toHaveLength(1);
 
     fireEvent.click(screen.getByRole("radio", { name: /my-model/ }));
-    fireEvent.click(screen.getByRole("button", { name: "Recover" }));
+    fireEvent.click(screen.getByRole("button", { name: "Recover selected" }));
 
     expect(recoverSession).toHaveBeenCalledWith(
       expect.objectContaining({ poolId: "pool-1" }),
@@ -48,18 +48,31 @@ describe("session recovery dialog", () => {
     expect(screen.getAllByRole("radio")).toHaveLength(3);
   });
 
-  it("keeps recover disabled until a session is selected", () => {
+  it("preselects the most recently changed session", () => {
     renderDialog([
-      aSession({ poolId: "pool-1", projectName: "one" }),
-      aSession({ poolId: "pool-2", projectName: "two" }),
+      aSession({
+        poolId: "pool-1",
+        projectName: "older",
+        timestampLastModelChange: 1000,
+      }),
+      aSession({
+        poolId: "pool-2",
+        projectName: "newer",
+        timestampLastModelChange: 3000,
+      }),
     ]);
 
-    const recoverButton = screen.getByRole("button", { name: "Recover" });
-    expect(recoverButton).toBeDisabled();
+    expect(screen.getByRole("radio", { name: /newer/ })).toBeChecked();
+    expect(screen.getByRole("radio", { name: /older/ })).not.toBeChecked();
+    expect(
+      screen.getByRole("button", { name: "Recover selected" }),
+    ).toBeEnabled();
 
-    fireEvent.click(screen.getByRole("radio", { name: /two/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Recover selected" }));
 
-    expect(recoverButton).toBeEnabled();
+    expect(recoverSession).toHaveBeenCalledWith(
+      expect.objectContaining({ poolId: "pool-2" }),
+    );
   });
 
   it("recovers the selected session", () => {
@@ -69,7 +82,7 @@ describe("session recovery dialog", () => {
     ]);
 
     fireEvent.click(screen.getByRole("radio", { name: /two/ }));
-    fireEvent.click(screen.getByRole("button", { name: "Recover" }));
+    fireEvent.click(screen.getByRole("button", { name: "Recover selected" }));
 
     expect(recoverSession).toHaveBeenCalledWith(
       expect.objectContaining({ poolId: "pool-2" }),

@@ -498,7 +498,7 @@
   "restoreUnsavedWorkNeverSaved": "Unsaved",
   "restoreUnsavedWorkSessionsDescription_one": "1 session closed unexpectedly. We kept a copy of the unsaved work. Select the project to recover it now — if you skip it, it stays available to recover later.",
   "restoreUnsavedWorkSessionsDescription_other": "{{count}} sessions closed unexpectedly. We kept a copy of the unsaved work from each one. Select a project to recover now — anything you skip stays available to recover later.",
-  "restoreUnsavedWorkRecoverAction": "Recover",
+  "restoreUnsavedWorkRecoverAction": "Recover selected",
   "restoreUnsavedWorkLaterAction": "Later",
   "restoreUnsavedWorkDiscardAllAction": "Discard all",
   "recoverChangesAction": "Recover Changes",
