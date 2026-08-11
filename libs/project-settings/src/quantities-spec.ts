@@ -38,7 +38,8 @@ export type QuantityProperty =
   | "waterAge"
   | "waterTrace"
   | "chemicalConcentration"
-  | "mixingFraction";
+  | "mixingFraction"
+  | "status";
 
 export type UnitsSpec = Record<QuantityProperty, Unit>;
 export type DecimalsSpec = Partial<Record<keyof UnitsSpec, number>>;
@@ -105,6 +106,7 @@ const metricSpec: AssetQuantitiesSpec = {
     waterTrace: "%",
     chemicalConcentration: "mg/L",
     mixingFraction: null,
+    status: null,
   },
   decimals: {},
   defaults: {
@@ -162,6 +164,7 @@ const usCustomarySpec: AssetQuantitiesSpec = {
     waterTrace: "%",
     chemicalConcentration: "mg/L",
     mixingFraction: null,
+    status: null,
   },
   decimals: {
     elevation: 1,

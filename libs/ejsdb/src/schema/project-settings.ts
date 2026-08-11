@@ -128,6 +128,7 @@ const unitsSpecSchema = z.object({
   waterTrace: unitSchema,
   chemicalConcentration: unitSchema,
   mixingFraction: unitSchema,
+  status: unitSchema.default(null),
 });
 
 const quantityDefaultsSchema = z.record(z.string(), z.number());

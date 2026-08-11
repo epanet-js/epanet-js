@@ -225,6 +225,7 @@
   "pump.off": "Off",
   "pump.off.cannot-deliver-head": "Off - Cannot deliver head",
   "pump.on.cannot-deliver-flow": "On - Exceeds maximum flow",
+  "pump.relativeSpeedSetting": "Relative speed",
   "valve.open.cannot-deliver-pressure": "Open - Cannot deliver pressure",
   "valve.open.cannot-deliver-flow": "Open - Cannot deliver flow",
   "valve.open": "Open",

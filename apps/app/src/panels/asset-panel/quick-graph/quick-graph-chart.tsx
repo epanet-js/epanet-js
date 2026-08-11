@@ -15,6 +15,7 @@ interface QuickGraphChartProps {
   currentIntervalIndex: number;
   onIntevalClick: (intervalIndex: number) => void;
   scenarioName: string | null;
+  valueLabels?: Map<number, string> | null;
 }
 
 export const QuickGraphChart = memo(function QuickGraphChart(
@@ -33,8 +34,17 @@ function QuickGraphChartECharts({
   decimals,
   onIntevalClick,
   scenarioName,
+  valueLabels = null,
 }: QuickGraphChartProps) {
   const translate = useTranslate();
+
+  const formatValue = useCallback(
+    (value: number) =>
+      valueLabels
+        ? (valueLabels.get(value) ?? "")
+        : localizeDecimal(value, { decimals }),
+    [valueLabels, decimals],
+  );
 
   const showLegend = baseValues && baseValues.length > 0;
 
@@ -48,8 +58,11 @@ function QuickGraphChartECharts({
     [intervalsCount, intervalSeconds],
   );
   const yAxis: EChartsOption["yAxis"] = useMemo(
-    () => buildYAxis(allValues, decimals),
-    [allValues, decimals],
+    () =>
+      valueLabels
+        ? buildDiscreteYAxis(valueLabels)
+        : buildYAxis(allValues, decimals),
+    [valueLabels, allValues, decimals],
   );
 
   const series: EChartsOption["series"] = useMemo(() => {
@@ -148,7 +161,7 @@ function QuickGraphChartECharts({
           if (!Array.isArray(params) || params.length === 0) return "";
           const timeLabel = params[0]?.name ?? "";
           const lines = params.map((p: any) => {
-            const value = localizeDecimal(p.value, { decimals });
+            const value = formatValue(p.value);
             if (!isComparingScenarios) return value;
             const colorDot = `<span style="display:inline-block;width:8px;height:8px;background:${p.color};margin-right:4px;border-radius:50%;"></span>`;
             return `${colorDot}${p.seriesName ?? ""}: ${value}`;
@@ -157,7 +170,15 @@ function QuickGraphChartECharts({
         },
       },
     }),
-    [showLegend, legend, xAxis, yAxis, series, decimals, isComparingScenarios],
+    [
+      showLegend,
+      legend,
+      xAxis,
+      yAxis,
+      series,
+      formatValue,
+      isComparingScenarios,
+    ],
   );
 
   const chartRef = useRef<ReactECharts>(null);
@@ -336,6 +357,29 @@ const calculateXAxisStep = (
   );
 
   return Math.max(1, Math.round(step / intervalSeconds));
+};
+
+const buildDiscreteYAxis = (
+  valueLabels: Map<number, string>,
+): EChartsOption["yAxis"] => {
+  const steps = [...valueLabels.keys()].sort((a, b) => a - b);
+  return {
+    type: "value",
+    min: steps[0],
+    max: steps[steps.length - 1],
+    interval: 1,
+    splitLine: {
+      show: true,
+      lineStyle: { color: colors.gray300, type: "dashed" },
+    },
+    axisLine: { show: true, lineStyle: { color: colors.gray300 } },
+    axisTick: { show: true, lineStyle: { color: colors.gray300 } },
+    axisLabel: {
+      color: colors.gray500,
+      fontSize: 12,
+      formatter: (value: number) => valueLabels.get(value) ?? "",
+    },
+  };
 };
 
 const buildYAxis = (

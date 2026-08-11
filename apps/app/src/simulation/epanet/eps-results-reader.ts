@@ -86,6 +86,7 @@ export type PumpProperty =
   | "flow"
   | "head"
   | "status"
+  | "setting"
   | "waterAge"
   | "waterTrace"
   | "chemicalConcentration";

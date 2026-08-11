@@ -52,6 +52,12 @@ const QUICK_GRAPH_PROPERTIES: {
   pump: [
     { value: "flow", labelKey: "flow", quantityKey: "flow" },
     { value: "head", labelKey: "pumpHead", quantityKey: "head" },
+    {
+      value: "setting",
+      labelKey: "pump.relativeSpeedSetting",
+      quantityKey: "speed",
+    },
+    { value: "status", labelKey: "status", quantityKey: "status" },
   ],
   valve: [
     { value: "flow", labelKey: "flow", quantityKey: "flow" },
@@ -120,6 +126,9 @@ const getValveSettingQuantityKey = (valve: Valve): QuantityProperty | null => {
   return null;
 };
 
+const STATUS_OPEN = 1;
+const STATUS_CLOSED = 0;
+
 const QuickGraphSection = ({
   assetType,
   assetId,
@@ -152,8 +161,30 @@ const QuickGraphSection = ({
       (opt: { value: string; quantityKey: QuantityProperty }) =>
         opt.value === selectedProperty,
     );
+  const isStatusProperty = selectedProperty === "status";
+
+  const toStatusStep = (code: number) =>
+    code > 2 ? STATUS_OPEN : STATUS_CLOSED;
+
+  const valueLabels = useMemo(() => {
+    if (!isStatusProperty) return null;
+
+    if (assetType == "pump") {
+      return new Map([
+        [STATUS_OPEN, translate("pump.on")],
+        [STATUS_CLOSED, translate("pump.off")],
+      ]);
+    }
+
+    return new Map([
+      [STATUS_OPEN, translate("statusOpen")],
+      [STATUS_CLOSED, translate("statusClosed")],
+    ]);
+  }, [isStatusProperty, translate, assetType]);
+
   const decimals = useMemo(() => {
     if (!selectedOption) return 0;
+    if (isStatusProperty) return 0;
     let quantityKey = selectedOption.quantityKey;
     if (assetType === "valve" && selectedProperty === "setting") {
       const valve = hydraulicModel.assets.get(assetId) as Valve | undefined;
@@ -166,16 +197,23 @@ const QuickGraphSection = ({
     selectedOption,
     assetType,
     selectedProperty,
+    isStatusProperty,
     assetId,
     hydraulicModel,
     formatting,
   ]);
 
-  const values = useMemo(() => (data ? Array.from(data.values) : []), [data]);
-  const baseValues = useMemo(
-    () => (baseData ? Array.from(baseData.values) : null),
-    [baseData],
-  );
+  const values = useMemo(() => {
+    if (!data) return [];
+    const raw = Array.from(data.values);
+    return isStatusProperty ? raw.map(toStatusStep) : raw;
+  }, [data, isStatusProperty]);
+
+  const baseValues = useMemo(() => {
+    if (!baseData) return null;
+    const raw = Array.from(baseData.values);
+    return isStatusProperty ? raw.map(toStatusStep) : raw;
+  }, [baseData, isStatusProperty]);
   const timeStepIndex = simulationStep ?? 0;
 
   const propertyOptions = useMemo(() => {
@@ -322,6 +360,7 @@ const QuickGraphSection = ({
               intervalsCount={data.intervalsCount}
               currentIntervalIndex={timeStepIndex}
               decimals={decimals}
+              valueLabels={valueLabels}
               onIntevalClick={handleIntervalClick}
               scenarioName={scenarioName}
             />
