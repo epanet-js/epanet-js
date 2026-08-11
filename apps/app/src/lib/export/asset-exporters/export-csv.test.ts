@@ -28,9 +28,7 @@ describe("export-csv", () => {
     const roughnessOf = async (
       model: ReturnType<HydraulicModelBuilder["build"]>,
     ) => {
-      const files = exportCsv(model, WGS84, translate, {
-        inferRoughness: true,
-      });
+      const files = exportCsv(model, WGS84, translate);
       const lines = await readCsv(findFile(files, "pipes.csv"));
       return parseCsvRows(lines)[0].roughness;
     };
@@ -47,14 +45,6 @@ describe("export-csv", () => {
 
     it("leaves the cell empty when nothing can be inferred", async () => {
       expect(await roughnessOf(modelWithMaterial(null, "PVC"))).toBe("");
-    });
-
-    it("leaves the cell empty without an inferrer", async () => {
-      const model = modelWithMaterial(null, "Cast Iron");
-      const files = exportCsv(model, WGS84, translate);
-      const lines = await readCsv(findFile(files, "pipes.csv"));
-
-      expect(parseCsvRows(lines)[0].roughness).toBe("");
     });
   });
 

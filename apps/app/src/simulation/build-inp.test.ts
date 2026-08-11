@@ -212,38 +212,27 @@ describe("build inp", () => {
 
     const build = (
       hydraulicModel: ReturnType<HydraulicModelBuilder["build"]>,
-      inferRoughness: boolean,
     ) =>
       buildInp(hydraulicModel, {
         units: presets.LPS.units,
         simulationSettings: defaultSimulationSettings,
         headlossFormula: "H-W",
-        inferRoughness,
       });
 
     it("writes the inferred roughness instead of MISSING", () => {
-      const inp = build(modelWith({ material: "Cast Iron" }), true);
+      const inp = build(modelWith({ material: "Cast Iron" }));
 
       expect(inp).toContain("3\t1\t2\t10\t100\t120\n");
     });
 
     it("keeps the roughness stored on the pipe", () => {
-      const inp = build(
-        modelWith({ material: "Cast Iron", roughness: 90 }),
-        true,
-      );
+      const inp = build(modelWith({ material: "Cast Iron", roughness: 90 }));
 
       expect(inp).toContain("3\t1\t2\t10\t100\t90\n");
     });
 
     it("still writes MISSING when nothing can be inferred", () => {
-      const inp = build(modelWith({ material: "PVC" }), true);
-
-      expect(inp).toContain("3\t1\t2\t10\t100\tMISSING\n");
-    });
-
-    it("writes MISSING when inference is off", () => {
-      const inp = build(modelWith({ material: "Cast Iron" }), false);
+      const inp = build(modelWith({ material: "PVC" }));
 
       expect(inp).toContain("3\t1\t2\t10\t100\tMISSING\n");
     });

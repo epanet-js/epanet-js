@@ -8,7 +8,6 @@ import { useMomentTransaction } from "src/hooks/persistence/use-moment-transacti
 import { selectedMaterialLabelAtom } from "src/state/pipe-library";
 import { changeProperty } from "src/hydraulic-model/model-operations/change-property";
 import { changePipeMaterials } from "src/hydraulic-model/model-operations";
-import { roughnessAssignments } from "./apply-roughness";
 import { renameAssignments } from "./rename-materials";
 import {
   detectModelMaterials,
@@ -69,7 +68,6 @@ export const usePipeLibraryHandlers = () => {
       ),
     [draftMaterials],
   );
-  const hasValidationErrors = invalidMaterialLabels.size > 0;
 
   const handleSave = useCallback(() => {
     const renames = pendingRenamesRef.current;
@@ -189,39 +187,6 @@ export const usePipeLibraryHandlers = () => {
     },
     [selectedLabel],
   );
-
-  const handleApplyRoughness = useCallback(() => {
-    const patches = roughnessAssignments(
-      hydraulicModel,
-      draftMaterials,
-    ).flatMap(
-      ({ assetIds, roughness }) =>
-        changeProperty(hydraulicModel, {
-          assetIds,
-          property: "roughness",
-          value: roughness,
-        }).patchAssetsAttributes!,
-    );
-    if (patches.length === 0) {
-      setBanner({
-        description: translate("pipeLibrary.noAssetsChanged"),
-        variant: "default",
-      });
-      return;
-    }
-    transact({
-      note: "Apply roughness from pipe library",
-      patchAssetsAttributes: patches,
-    });
-    userTracking.capture({
-      name: "pipeLibrary.roughnessApplied",
-      pipesUpdated: patches.length,
-    });
-    setBanner({
-      description: translate("pipeLibrary.appliedRoughness", patches.length),
-      variant: "success",
-    });
-  }, [hydraulicModel, draftMaterials, transact, translate, userTracking]);
 
   const notifyImport = useCallback(
     (result: ImportPipeLibraryResult) => {
@@ -351,12 +316,10 @@ export const usePipeLibraryHandlers = () => {
     isEmpty,
     hasChanges,
     invalidMaterialLabels,
-    hasValidationErrors,
     sidebarWidth,
     setSidebarWidth,
     pendingImport,
     handleSave,
-    handleApplyRoughness,
     handleAddMaterial,
     handleRenameMaterial,
     handleDuplicateMaterial,

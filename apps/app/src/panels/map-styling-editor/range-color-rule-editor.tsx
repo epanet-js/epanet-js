@@ -540,7 +540,6 @@ const ModeSelector = ({
 
 const DebugHistogram = ({ colorRule }: { colorRule: RangeColorRule }) => {
   const isEnabled = useFeatureFlag("FLAG_DEBUG_HISTOGRAM");
-  const isInferRoughnessOn = useFeatureFlag("FLAG_INFER_ROUGHNESS");
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const simulationResults = useAtomValue(simulationResultsDerivedAtom);
 
@@ -550,17 +549,13 @@ const DebugHistogram = ({ colorRule }: { colorRule: RangeColorRule }) => {
         colorRule.property,
         hydraulicModel,
         simulationResults,
-        {
-          absValues: Boolean(colorRule.absValues),
-          inferRoughness: isInferRoughnessOn,
-        },
+        { absValues: Boolean(colorRule.absValues) },
       ),
     [
       colorRule.property,
       colorRule.absValues,
       hydraulicModel,
       simulationResults,
-      isInferRoughnessOn,
     ],
   );
 

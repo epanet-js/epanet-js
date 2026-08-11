@@ -3,7 +3,6 @@ import { useAtomValue } from "jotai";
 import isEqual from "lodash/isEqual";
 import { worktreeAtom } from "src/state/scenarios";
 import { baseModelDerivedAtom } from "src/state/derived-branch-state";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { buildRoughnessInferrer } from "src/hydraulic-model/pipe-materials";
 import type { Asset, Patterns, Pipe, Pump } from "src/hydraulic-model";
 import {
@@ -33,15 +32,11 @@ export type PumpCurveComparison = PropertyComparison<
 export function useAssetComparison(asset: Asset | undefined) {
   const worktree = useAtomValue(worktreeAtom);
   const baseModel = useAtomValue(baseModelDerivedAtom);
-  const isInferRoughnessOn = useFeatureFlag("FLAG_INFER_ROUGHNESS");
   const isInScenario = worktree.activeBranchId !== worktree.mainId;
 
   const inferBaseRoughness = useMemo(
-    () =>
-      buildRoughnessInferrer(baseModel.pipeMaterials, {
-        enabled: isInferRoughnessOn,
-      }),
-    [baseModel.pipeMaterials, isInferRoughnessOn],
+    () => buildRoughnessInferrer(baseModel.pipeMaterials),
+    [baseModel.pipeMaterials],
   );
 
   const baseAsset = useMemo(() => {

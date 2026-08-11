@@ -1,6 +1,6 @@
 export { validateModelAttributes, validateAsset } from "./run-check";
 export { groupIssues } from "./issues";
-export { RULES, RULES_WITH_INFERRED_ROUGHNESS } from "./rules";
+export { RULES } from "./rules";
 export { numericChecks } from "./checks";
 export {
   rulesFor,

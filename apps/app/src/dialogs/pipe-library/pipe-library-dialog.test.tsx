@@ -7,7 +7,6 @@ import type { PipeMaterial } from "@epanet-js/hydraulic-model";
 import { setInitialState } from "src/__helpers__/state";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
-import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
 import { selectedMaterialLabelAtom } from "src/state/pipe-library";
 import { Store } from "src/state";
 import { PipeLibraryDialog } from "./pipe-library-dialog";
@@ -17,16 +16,11 @@ vi.mock("src/hooks/persistence/use-moment-transaction", () => ({
   useMomentTransaction: () => ({ transact: mockTransact }),
 }));
 
-const { mockRoughnessAssignments, mockRenameAssignments, mockChangeProperty } =
-  vi.hoisted(() => ({
-    mockRoughnessAssignments: vi.fn(),
-    mockRenameAssignments: vi.fn(),
-    mockChangeProperty: vi.fn(),
-  }));
-
-vi.mock("src/dialogs/pipe-library/apply-roughness", () => ({
-  roughnessAssignments: mockRoughnessAssignments,
+const { mockRenameAssignments, mockChangeProperty } = vi.hoisted(() => ({
+  mockRenameAssignments: vi.fn(),
+  mockChangeProperty: vi.fn(),
 }));
+
 vi.mock("src/dialogs/pipe-library/rename-materials", () => ({
   renameAssignments: mockRenameAssignments,
 }));
@@ -74,7 +68,6 @@ describe("PipeLibraryDialog", () => {
   beforeEach(() => {
     stubUserTracking();
     vi.clearAllMocks();
-    mockRoughnessAssignments.mockReturnValue([]);
     mockRenameAssignments.mockReturnValue([]);
     mockChangeProperty.mockReturnValue({ patchAssetsAttributes: [] });
   });
@@ -304,75 +297,7 @@ describe("PipeLibraryDialog", () => {
     expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
   });
 
-  it("applies roughness to pipes to hydraulic model when apply button is clicked", async () => {
-    const user = setupUser();
-    const store = seededStore([
-      {
-        label: "Cast Iron",
-        entries: [
-          { age: 0, roughness: 100 },
-          { age: 10, roughness: 120 },
-        ],
-      },
-    ]);
-    renderDialog(store);
-
-    const patch = { id: 1, type: "pipe", properties: { roughness: 120 } };
-    mockRoughnessAssignments.mockReturnValue([
-      { assetIds: [1], roughness: 120 },
-    ]);
-    mockChangeProperty.mockReturnValue({ patchAssetsAttributes: [patch] });
-
-    await user.click(screen.getByRole("button", { name: /apply roughness/i }));
-
-    expect(mockRoughnessAssignments).toHaveBeenCalled();
-    expect(mockChangeProperty).toHaveBeenCalledWith(expect.anything(), {
-      assetIds: [1],
-      property: "roughness",
-      value: 120,
-    });
-    expect(mockTransact).toHaveBeenCalledWith({
-      note: "Apply roughness from pipe library",
-      patchAssetsAttributes: [patch],
-    });
-  });
-
-  describe("with roughness inferred from the library", () => {
-    afterEach(() => {
-      stubFeatureOff("FLAG_INFER_ROUGHNESS");
-    });
-
-    it("hides the apply roughness button", () => {
-      stubFeatureOn("FLAG_INFER_ROUGHNESS");
-      const store = seededStore([
-        { label: "Cast Iron", entries: [{ age: 0, roughness: 100 }] },
-      ]);
-
-      renderDialog(store);
-
-      expect(
-        screen.queryByRole("button", { name: /apply roughness/i }),
-      ).not.toBeInTheDocument();
-      expect(
-        screen.getByRole("button", { name: /import/i }),
-      ).toBeInTheDocument();
-    });
-
-    it("keeps the button while inference is off", () => {
-      stubFeatureOff("FLAG_INFER_ROUGHNESS");
-      const store = seededStore([
-        { label: "Cast Iron", entries: [{ age: 0, roughness: 100 }] },
-      ]);
-
-      renderDialog(store);
-
-      expect(
-        screen.getByRole("button", { name: /apply roughness/i }),
-      ).toBeInTheDocument();
-    });
-  });
-
-  it("highlights invalid cells and disables apply roughness until fixed", async () => {
+  it("highlights invalid cells and disables save until fixed", async () => {
     const user = setupUser();
     const store = seededStore(
       [
@@ -394,9 +319,7 @@ describe("PipeLibraryDialog", () => {
     expect(getCell(0, 1)).not.toHaveClass("bg-warning-subtle");
     expect(getCell(1, 0)).not.toHaveClass("bg-warning-subtle");
 
-    expect(
-      screen.getByRole("button", { name: /apply roughness/i }),
-    ).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
     expect(
       screen.getByText(/cast iron contains invalid values/i),
     ).toBeVisible();
@@ -404,10 +327,9 @@ describe("PipeLibraryDialog", () => {
     await editCell(user, 2, 1, "130", "tab");
 
     await waitFor(() => {
-      expect(
-        screen.getByRole("button", { name: /apply roughness/i }),
-      ).toBeEnabled();
+      expect(getCell(2, 1)).not.toHaveClass("bg-warning-subtle");
     });
+    expect(screen.getByRole("button", { name: "Save" })).toBeEnabled();
   });
 
   it("exports in csv and xlsx formats", async () => {

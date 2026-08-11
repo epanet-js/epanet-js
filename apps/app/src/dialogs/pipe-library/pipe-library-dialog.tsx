@@ -13,11 +13,9 @@ import { ChevronDownIcon, PipeLibraryIcon } from "src/icons";
 import { Button, DDContent, StyledItem } from "src/components/elements";
 import { validateMaterial } from "src/hydraulic-model/pipe-materials";
 import { usePipeLibraryHandlers } from "./use-pipe-library-handlers";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const PipeLibraryDialog = () => {
   const dialogActions = useRef<DialogActionsHandle>(null);
-  const isInferRoughnessOn = useFeatureFlag("FLAG_INFER_ROUGHNESS");
   const {
     translate,
     draftMaterials,
@@ -27,12 +25,10 @@ export const PipeLibraryDialog = () => {
     isEmpty,
     hasChanges,
     invalidMaterialLabels,
-    hasValidationErrors,
     sidebarWidth,
     setSidebarWidth,
     pendingImport,
     handleSave,
-    handleApplyRoughness,
     handleAddMaterial,
     handleRenameMaterial,
     handleDuplicateMaterial,
@@ -72,16 +68,6 @@ export const PipeLibraryDialog = () => {
       <div className="flex flex-col flex-1 min-h-0">
         {showMenuBar && (
           <div className="flex items-center px-4 py-2 border-b h-12">
-            {!isInferRoughnessOn && (
-              <Button
-                variant="default"
-                size="sm"
-                disabled={isEmpty || hasValidationErrors}
-                onClick={handleApplyRoughness}
-              >
-                {translate("pipeLibrary.applyRoughness")}
-              </Button>
-            )}
             <div className="flex items-center gap-2 ml-auto">
               <ExportSubmenu
                 handleExportCsv={handleExportCsv}

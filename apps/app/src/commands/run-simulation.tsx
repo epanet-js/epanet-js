@@ -29,9 +29,7 @@ import { useToggleNetworkReview } from "src/commands/toggle-network-review";
 import { validateModelAttributes } from "src/lib/model-attributes-validation";
 import { selectedReviewCheckAtom } from "src/state/network-review";
 import { CheckType } from "src/panels/network-review/common";
-import { useValidationRules } from "src/hooks/use-validation-rules";
 import { useCachedCheck } from "src/hooks/use-review-checks";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 export const runSimulationShortcut = "shift+enter";
 
 export const useRunSimulation = () => {
@@ -39,8 +37,6 @@ export const useRunSimulation = () => {
   const setDialogState = useSetAtom(dialogAtom);
   const userTracking = useUserTracking();
   const toggleNetworkReview = useToggleNetworkReview();
-  const isInferRoughnessOn = useFeatureFlag("FLAG_INFER_ROUGHNESS");
-  const rules = useValidationRules();
   const { read: readCachedIssues, write: writeCachedIssues } = useCachedCheck(
     CheckType.modelAttributesValidation,
   );
@@ -77,7 +73,6 @@ export const useRunSimulation = () => {
             units: projectSettings.units,
             headlossFormula: projectSettings.headlossFormula,
             excludeInactiveControls: true,
-            inferRoughness: isInferRoughnessOn,
           });
           const start = performance.now();
 
@@ -220,8 +215,7 @@ export const useRunSimulation = () => {
         const modelVersion = hydraulicModel.version;
         const cachedIssues = readCachedIssues();
         const issues =
-          cachedIssues ??
-          (await validateModelAttributes(hydraulicModel, { rules }));
+          cachedIssues ?? (await validateModelAttributes(hydraulicModel));
         if (!cachedIssues) {
           writeCachedIssues(issues, issues.length, modelVersion);
         }
@@ -248,8 +242,6 @@ export const useRunSimulation = () => {
         setDialogState,
         userTracking,
         toggleNetworkReview,
-        isInferRoughnessOn,
-        rules,
         readCachedIssues,
         writeCachedIssues,
       ],

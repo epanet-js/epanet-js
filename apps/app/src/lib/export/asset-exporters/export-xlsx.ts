@@ -42,9 +42,7 @@ export const exportXlsx = async (
   const selectedAssets = options?.assetIdsFilter ?? null;
   const selectedCustomerPoints = options?.customerPointIdFilter ?? null;
   const resultsReader = options?.resultsReader;
-  const defaults = buildExportDefaults(hydraulicModel, {
-    inferRoughness: options?.inferRoughness,
-  });
+  const defaults = buildExportDefaults(hydraulicModel);
 
   const assetTypeCounts = new Map<string, number>();
   hydraulicModel.assets.forEach((asset) => {

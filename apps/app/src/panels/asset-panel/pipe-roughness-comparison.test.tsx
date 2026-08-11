@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { describe, it, expect, afterEach } from "vitest";
+import { describe, it, expect } from "vitest";
 import { Provider as JotaiProvider, createStore } from "jotai";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
@@ -19,18 +19,12 @@ import { MomentLog } from "src/lib/persistence/moment-log";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { Persistence } from "src/lib/persistence/persistence";
 import { USelection } from "src/selection";
-import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
 import FeatureEditor from "../feature-editor";
 
 const IDS = { P1: 1 };
 
 describe("pipe roughness comparison against the base branch", () => {
-  afterEach(() => {
-    stubFeatureOff("FLAG_INFER_ROUGHNESS");
-  });
-
   it("highlights when only the pipe library differs between branches", () => {
-    stubFeatureOn("FLAG_INFER_ROUGHNESS");
     const store = setScenarioState({
       mainModel: buildModel(castIron(120)),
       scenarioModel: buildModel(castIron(90)),
@@ -43,7 +37,6 @@ describe("pipe roughness comparison against the base branch", () => {
   });
 
   it("does not highlight when both branches infer the same value", () => {
-    stubFeatureOn("FLAG_INFER_ROUGHNESS");
     const store = setScenarioState({
       mainModel: buildModel(castIron(120)),
       scenarioModel: buildModel(castIron(120)),
@@ -56,7 +49,6 @@ describe("pipe roughness comparison against the base branch", () => {
   });
 
   it("highlights when the scenario sets a roughness the base branch infers differently", () => {
-    stubFeatureOn("FLAG_INFER_ROUGHNESS");
     const scenarioModel = buildModel(castIron(120));
     scenarioModel.assets.get(IDS.P1)!.setProperty("roughness", 75);
     const store = setScenarioState({
@@ -68,18 +60,6 @@ describe("pipe roughness comparison against the base branch", () => {
 
     expect(roughnessField()).toHaveValue("75");
     expect(container.querySelector(".bg-accent")).toBeInTheDocument();
-  });
-
-  it("ignores the library difference when the flag is off", () => {
-    stubFeatureOff("FLAG_INFER_ROUGHNESS");
-    const store = setScenarioState({
-      mainModel: buildModel(castIron(120)),
-      scenarioModel: buildModel(castIron(90)),
-    });
-
-    const { container } = renderComponent(store);
-
-    expect(container.querySelector(".bg-accent")).not.toBeInTheDocument();
   });
 });
 

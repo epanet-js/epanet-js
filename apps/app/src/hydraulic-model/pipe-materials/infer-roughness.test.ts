@@ -232,20 +232,11 @@ describe("buildRoughnessInferrer", () => {
     { label: "Cast Iron", entries: [{ age: 0, roughness: 120 }] },
   ];
 
-  it("infers when enabled, ignoring the value stored on the pipe", () => {
-    const infer = buildRoughnessInferrer(materials, { enabled: true });
+  it("infers, ignoring the value stored on the pipe", () => {
+    const infer = buildRoughnessInferrer(materials);
 
     expect(infer(makePipe({ material: "Cast Iron" }))).toBe(120);
     expect(infer(makePipe({ material: "Cast Iron", roughness: 80 }))).toBe(120);
-  });
-
-  it("infers nothing when disabled", () => {
-    const infer = buildRoughnessInferrer(materials, { enabled: false });
-
-    expect(infer(makePipe({ material: "Cast Iron" }))).toBeNull();
-    expect(
-      infer(makePipe({ material: "Cast Iron", roughness: 80 })),
-    ).toBeNull();
   });
 });
 

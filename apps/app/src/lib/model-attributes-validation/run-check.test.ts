@@ -1,7 +1,7 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { validateModelAttributes } from "./run-check";
 import { groupIssues } from "./issues";
-import { RULES, RULES_WITH_INFERRED_ROUGHNESS } from "./rules";
+import { RULES } from "./rules";
 
 describe("validateModelAttributes", () => {
   describe("pipe roughness", () => {
@@ -836,8 +836,6 @@ describe("validateModelAttributes", () => {
 });
 
 describe("validateModelAttributes with inferred roughness", () => {
-  const rules = RULES_WITH_INFERRED_ROUGHNESS;
-
   const modelWith = ({
     material,
     roughness = null,
@@ -864,7 +862,7 @@ describe("validateModelAttributes with inferred roughness", () => {
   };
 
   const ruleIds = async (model: ReturnType<typeof modelWith>) =>
-    (await validateModelAttributes(model, { rules })).map(
+    (await validateModelAttributes(model, { rules: RULES })).map(
       (issue) => issue.ruleId,
     );
 
@@ -906,25 +904,11 @@ describe("validateModelAttributes with inferred roughness", () => {
 
       expect(await ruleIds(model)).toEqual(["pipe.roughness.positive"]);
     });
-
-    it("keeps requiring roughness under the default rule set", async () => {
-      const issues = await validateModelAttributes(
-        modelWith({ material: "Cast Iron" }),
-        { rules: RULES },
-      );
-
-      expect(issues.map((issue) => issue.ruleId)).toEqual([
-        "pipe.roughness.present",
-      ]);
-    });
   });
 
   describe("material in the library", () => {
-    const materialIssues = async (
-      model: ReturnType<typeof modelWith>,
-      ruleSet = rules,
-    ) =>
-      (await validateModelAttributes(model, { rules: ruleSet })).filter(
+    const materialIssues = async (model: ReturnType<typeof modelWith>) =>
+      (await validateModelAttributes(model, { rules: RULES })).filter(
         (issue) => issue.field === "material",
       );
 
@@ -962,12 +946,6 @@ describe("validateModelAttributes with inferred roughness", () => {
 
     it("stays quiet for a pipe without a material", async () => {
       expect(await materialIssues(modelWith({}))).toEqual([]);
-    });
-
-    it("is not reported by the default rule set", async () => {
-      expect(
-        await materialIssues(modelWith({ material: "PVC" }), RULES),
-      ).toEqual([]);
     });
 
     describe("a known material that yields no roughness", () => {

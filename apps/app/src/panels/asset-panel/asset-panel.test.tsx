@@ -32,7 +32,6 @@ import FeatureEditor from "../feature-editor";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { USelection } from "src/selection";
-import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("AssetPanel", () => {
   describe("with a pipe", () => {
@@ -198,12 +197,7 @@ describe("AssetPanel", () => {
       const roughnessField = () =>
         screen.getByRole("textbox", { name: /value for: roughness/i });
 
-      afterEach(() => {
-        stubFeatureOff("FLAG_INFER_ROUGHNESS");
-      });
-
       it("shows the inferred value as a placeholder without flagging it", () => {
-        stubFeatureOn("FLAG_INFER_ROUGHNESS");
         const store = setInitialState({
           hydraulicModel: modelWithLibraryMaterial(),
           selectedAssetId: IDS.PIPE1,
@@ -216,22 +210,7 @@ describe("AssetPanel", () => {
         expect(roughnessField()).not.toHaveAttribute("aria-invalid");
       });
 
-      it("keeps the field empty and flagged when the flag is off", () => {
-        stubFeatureOff("FLAG_INFER_ROUGHNESS");
-        const store = setInitialState({
-          hydraulicModel: modelWithLibraryMaterial(),
-          selectedAssetId: IDS.PIPE1,
-        });
-
-        renderComponent(store);
-
-        expect(roughnessField()).toHaveValue("");
-        expect(roughnessField()).toHaveAttribute("placeholder", "");
-        expect(roughnessField()).toHaveAttribute("aria-invalid", "true");
-      });
-
       it("falls back to the inferred value when an explicit one is cleared", async () => {
-        stubFeatureOn("FLAG_INFER_ROUGHNESS");
         const hydraulicModel = modelWithLibraryMaterial();
         (getPipe(hydraulicModel.assets, IDS.PIPE1) as Pipe).setRoughness(90);
         const store = setInitialState({
@@ -257,7 +236,6 @@ describe("AssetPanel", () => {
       });
 
       it("shows the library value as the placeholder while an explicit one is set", () => {
-        stubFeatureOn("FLAG_INFER_ROUGHNESS");
         const hydraulicModel = modelWithLibraryMaterial();
         (getPipe(hydraulicModel.assets, IDS.PIPE1) as Pipe).setRoughness(90);
         const store = setInitialState({

@@ -25,9 +25,7 @@ export const exportCsv = (
   const selectedAssets = options?.assetIdsFilter ?? null;
   const selectedCustomerPoints = options?.customerPointIdFilter ?? null;
   const resultsReader = options?.resultsReader;
-  const defaults = buildExportDefaults(hydraulicModel, {
-    inferRoughness: options?.inferRoughness,
-  });
+  const defaults = buildExportDefaults(hydraulicModel);
   const charsPerCol = 64;
   const numCols = 64;
   const numRows =

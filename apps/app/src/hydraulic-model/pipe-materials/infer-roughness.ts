@@ -27,11 +27,10 @@ export const effectiveRoughness = (
   materials: PipeMaterial[],
 ): number | null => pipe.roughness ?? inferredRoughness(pipe, materials);
 
-export const buildRoughnessInferrer = (
-  materials: PipeMaterial[],
-  { enabled }: { enabled: boolean },
-): RoughnessInferrer =>
-  enabled ? (pipe) => inferredRoughness(pipe, materials) : () => null;
+export const buildRoughnessInferrer =
+  (materials: PipeMaterial[]): RoughnessInferrer =>
+  (pipe) =>
+    inferredRoughness(pipe, materials);
 
 export const findRoughness = (
   entries: RoughnessEntry[],

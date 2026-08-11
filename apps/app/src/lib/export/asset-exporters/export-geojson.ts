@@ -54,9 +54,7 @@ export const exportGeoJson = (
   const selectedAssets = options?.assetIdsFilter ?? null;
   const selectedCustomerPoints = options?.customerPointIdFilter ?? null;
   const resultsReader = options?.resultsReader;
-  const defaults = buildExportDefaults(hydraulicModel, {
-    inferRoughness: options?.inferRoughness,
-  });
+  const defaults = buildExportDefaults(hydraulicModel);
   const resolvePropertyName = buildPropertyNameResolver(
     hydraulicModel.customAttributes,
     translate,

@@ -204,7 +204,7 @@ describe("pipe roughness default (inferred from the pipe library)", () => {
       undefined,
       undefined,
       undefined,
-      buildRoughnessInferrer(model.pipeMaterials, { enabled: true }),
+      buildRoughnessInferrer(model.pipeMaterials),
     ) as GridColumn<never>[];
 
     const column = columns.find(

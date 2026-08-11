@@ -21,7 +21,6 @@ import {
   ValidationGroup,
   ValidationIssue,
 } from "src/lib/model-attributes-validation";
-import { useValidationRules } from "src/hooks/use-validation-rules";
 import { useCachedCheck } from "src/hooks/use-review-checks";
 import {
   CheckType,
@@ -514,7 +513,6 @@ const useCheckModelAttributesValidation = () => {
   const [groups, setGroups] = useState<ValidationGroup[]>([]);
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const { read, write } = useCachedCheck(CheckType.modelAttributesValidation);
-  const rules = useValidationRules();
   const { startLoading, finishLoading, isLoading } = useLoadingStatus();
   const isReady = useRef(false);
 
@@ -536,7 +534,6 @@ const useCheckModelAttributesValidation = () => {
 
       try {
         const issues = await validateModelAttributes(hydraulicModel, {
-          rules,
           signal,
         });
 
@@ -554,7 +551,7 @@ const useCheckModelAttributesValidation = () => {
         throw error;
       }
     },
-    [hydraulicModel, rules, startLoading, finishLoading, read, write],
+    [hydraulicModel, startLoading, finishLoading, read, write],
   );
 
   return {

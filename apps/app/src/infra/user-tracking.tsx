@@ -1153,11 +1153,6 @@ type PipeLibraryRoughnessRowChanged = {
   action: "insertedAbove" | "insertedBelow" | "deleted";
 };
 
-type PipeLibraryRoughnessApplied = {
-  name: "pipeLibrary.roughnessApplied";
-  pipesUpdated: number;
-};
-
 type PipeLibraryImportedFromModel = {
   name: "pipeLibrary.importedFromModel";
   materialsDetected: number;
@@ -1701,7 +1696,6 @@ export type UserEvent =
   | PipeLibraryOpened
   | PipeLibraryMaterialChanged
   | PipeLibraryRoughnessRowChanged
-  | PipeLibraryRoughnessApplied
   | PipeLibraryImportedFromModel
   | PipeLibrarySaved
   | PipeLibraryExported

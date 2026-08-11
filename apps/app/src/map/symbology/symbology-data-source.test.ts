@@ -16,17 +16,9 @@ describe("getSortedDataForProperty", () => {
       .build();
 
   it("counts inferred values towards the breaks", () => {
-    const data = getSortedDataForProperty("roughness", model(), null, {
-      inferRoughness: true,
-    });
-
-    expect(data).toEqual([90, 120]);
-  });
-
-  it("reads only stored values when inference is off", () => {
     const data = getSortedDataForProperty("roughness", model(), null);
 
-    expect(data).toEqual([90]);
+    expect(data).toEqual([90, 120]);
   });
 
   it("leaves other properties alone", () => {
@@ -35,9 +27,7 @@ describe("getSortedDataForProperty", () => {
       .aPipe(IDS.P2, { diameter: 100 })
       .build();
 
-    const data = getSortedDataForProperty("diameter", hydraulicModel, null, {
-      inferRoughness: true,
-    });
+    const data = getSortedDataForProperty("diameter", hydraulicModel, null);
 
     expect(data).toEqual([100, 300]);
   });

@@ -1765,7 +1765,6 @@
   },
   "pipeLibrary": {
     "menuLabel": "Pipe library",
-    "applyRoughness": "Apply roughness to assets",
     "materials": "Pipe materials",
     "age": "Age",
     "roughness": "Roughness",
@@ -1773,8 +1772,6 @@
     "noSelection": "Select a material to view its roughness entries",
     "emptyTitle": "The pipe library is empty",
     "emptyDescription": "Add a pipe material to get started",
-    "appliedRoughness": "Updated {{count}} pipes",
-    "noAssetsChanged": "No assets changed",
     "export": "Export",
     "exportCsv": "Comma-Separated Values (.csv)",
     "exportXlsx": "Microsoft Excel Spreadsheet (.xlsx)",

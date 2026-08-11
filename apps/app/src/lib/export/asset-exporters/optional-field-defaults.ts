@@ -33,13 +33,8 @@ export const OPTIONAL_FIELD_DEFAULTS: ExportDefaults = {
 
 export const buildExportDefaults = (
   hydraulicModel: HydraulicModel,
-  { inferRoughness = false }: { inferRoughness?: boolean } = {},
 ): ExportDefaults => {
-  if (!inferRoughness) return OPTIONAL_FIELD_DEFAULTS;
-
-  const inferrer = buildRoughnessInferrer(hydraulicModel.pipeMaterials, {
-    enabled: true,
-  });
+  const inferrer = buildRoughnessInferrer(hydraulicModel.pipeMaterials);
 
   return {
     ...OPTIONAL_FIELD_DEFAULTS,

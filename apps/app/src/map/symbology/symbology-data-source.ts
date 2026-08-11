@@ -148,12 +148,12 @@ export const getSortedDataForProperty = (
   property: string,
   hydraulicModel: HydraulicModel,
   resultsReader: ResultsReader | null,
-  options?: { absValues?: boolean; inferRoughness?: boolean },
+  options?: { absValues?: boolean },
 ): number[] => {
   if (resultsReader && isSimulationProperty(property)) {
     return getSortedSimulationValues(resultsReader, property, options);
   }
-  if (property === "roughness" && options?.inferRoughness) {
+  if (property === "roughness") {
     return sortedEffectiveRoughness(hydraulicModel);
   }
   return getSortedValues(hydraulicModel.assets, property, options);

@@ -272,4 +272,4 @@ describe("computeAssetsStats (light summary)", () => {
 
 const inferRoughnessFor = (
   hydraulicModel: ReturnType<HydraulicModelBuilder["build"]>,
-) => buildRoughnessInferrer(hydraulicModel.pipeMaterials, { enabled: true });
+) => buildRoughnessInferrer(hydraulicModel.pipeMaterials);

@@ -18,7 +18,6 @@ const castIron = buildExportDefaults(
       entries: [{ age: 0, roughness: 120 }],
     })
     .build(),
-  { inferRoughness: true },
 );
 
 describe("optional-field-defaults", () => {
