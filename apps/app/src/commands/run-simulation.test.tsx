@@ -7,7 +7,8 @@ import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
 import { dialogAtom } from "src/state/dialog";
 import { splitsAtom } from "src/state/layout";
-import { modelAttributesValidationIssuesAtom } from "src/state/network-review";
+import { reviewResultsAtom } from "src/state/network-review";
+import { CheckType } from "src/panels/network-review/common";
 import userEvent from "@testing-library/user-event";
 import { useRunSimulation } from "./run-simulation";
 import { lib } from "src/lib/worker";
@@ -216,7 +217,10 @@ describe("Run simulation", () => {
           issueCount: 1,
         });
       });
-      expect(store.get(modelAttributesValidationIssuesAtom)).toHaveLength(1);
+      expect(
+        store.get(reviewResultsAtom)[CheckType.modelAttributesValidation]
+          ?.items,
+      ).toHaveLength(1);
       expect(lib.runSimulation).not.toHaveBeenCalled();
     });
 

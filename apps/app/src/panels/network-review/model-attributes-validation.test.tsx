@@ -12,7 +12,7 @@ import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
 import { Store } from "src/state";
 import {
-  modelAttributesValidationIssuesAtom,
+  reviewResultsAtom,
   selectedReviewCheckAtom,
 } from "src/state/network-review";
 import { selectionAtom } from "src/state/selection";
@@ -68,7 +68,9 @@ describe("ModelAttributesValidation panel", () => {
     await waitFor(() => {
       expect(screen.getByText(/1 issue found/i)).toBeInTheDocument();
     });
-    expect(store.get(modelAttributesValidationIssuesAtom)).toHaveLength(1);
+    expect(
+      store.get(reviewResultsAtom)[CheckType.modelAttributesValidation]?.items,
+    ).toHaveLength(1);
   });
 
   it("shows the empty state when the model has no issues", async () => {

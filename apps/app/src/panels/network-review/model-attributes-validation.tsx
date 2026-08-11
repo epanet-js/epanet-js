@@ -1,4 +1,4 @@
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronRight, Lock } from "lucide-react";
 import { Button } from "src/components/elements";
@@ -13,10 +13,7 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { USelection, useSelection } from "src/selection";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { selectionAtom } from "src/state/selection";
-import {
-  modelAttributesValidationIssuesAtom,
-  selectedReviewCheckAtom,
-} from "src/state/network-review";
+import { selectedReviewCheckAtom } from "src/state/network-review";
 import {
   EntityType,
   groupIssues,
@@ -25,6 +22,7 @@ import {
   ValidationIssue,
 } from "src/lib/model-attributes-validation";
 import { useValidationRules } from "src/hooks/use-validation-rules";
+import { useCachedCheck } from "src/hooks/use-review-checks";
 import {
   CheckType,
   EmptyState,
@@ -515,13 +513,22 @@ const deferToAllowRender = () =>
 const useCheckModelAttributesValidation = () => {
   const [groups, setGroups] = useState<ValidationGroup[]>([]);
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
-  const setIssues = useSetAtom(modelAttributesValidationIssuesAtom);
+  const { read, write } = useCachedCheck(CheckType.modelAttributesValidation);
   const rules = useValidationRules();
   const { startLoading, finishLoading, isLoading } = useLoadingStatus();
   const isReady = useRef(false);
 
   const checkModelAttributesValidation = useCallback(
     async (signal?: AbortSignal) => {
+      const cachedIssues = read();
+      if (cachedIssues) {
+        setGroups(groupIssues(cachedIssues));
+        finishLoading();
+        isReady.current = true;
+        return;
+      }
+
+      const modelVersion = hydraulicModel.version;
       startLoading();
       await deferToAllowRender();
 
@@ -534,7 +541,7 @@ const useCheckModelAttributesValidation = () => {
         });
 
         if (!signal?.aborted) {
-          setIssues(issues);
+          write(issues, issues.length, modelVersion);
           setGroups(groupIssues(issues));
           finishLoading();
           isReady.current = true;
@@ -547,7 +554,7 @@ const useCheckModelAttributesValidation = () => {
         throw error;
       }
     },
-    [hydraulicModel, rules, startLoading, finishLoading, setIssues],
+    [hydraulicModel, rules, startLoading, finishLoading, read, write],
   );
 
   return {

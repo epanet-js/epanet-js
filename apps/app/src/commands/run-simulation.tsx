@@ -27,12 +27,10 @@ import { nanoid } from "src/lib/id";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useToggleNetworkReview } from "src/commands/toggle-network-review";
 import { validateModelAttributes } from "src/lib/model-attributes-validation";
-import {
-  modelAttributesValidationIssuesAtom,
-  selectedReviewCheckAtom,
-} from "src/state/network-review";
+import { selectedReviewCheckAtom } from "src/state/network-review";
 import { CheckType } from "src/panels/network-review/common";
 import { useValidationRules } from "src/hooks/use-validation-rules";
+import { useCachedCheck } from "src/hooks/use-review-checks";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 export const runSimulationShortcut = "shift+enter";
 
@@ -43,6 +41,9 @@ export const useRunSimulation = () => {
   const toggleNetworkReview = useToggleNetworkReview();
   const isInferRoughnessOn = useFeatureFlag("FLAG_INFER_ROUGHNESS");
   const rules = useValidationRules();
+  const { read: readCachedIssues, write: writeCachedIssues } = useCachedCheck(
+    CheckType.modelAttributesValidation,
+  );
 
   const runSimulation = useAtomCallback(
     useCallback(
@@ -216,8 +217,15 @@ export const useRunSimulation = () => {
           toggleNetworkReview({ source: "auto", state: true });
         };
 
-        const issues = await validateModelAttributes(hydraulicModel, { rules });
-        set(modelAttributesValidationIssuesAtom, issues);
+        const modelVersion = hydraulicModel.version;
+        const cachedIssues = readCachedIssues();
+        const issues =
+          cachedIssues ??
+          (await validateModelAttributes(hydraulicModel, { rules }));
+        if (!cachedIssues) {
+          writeCachedIssues(issues, issues.length, modelVersion);
+        }
+
         if (issues.length > 0) {
           userTracking.capture({
             name: "simulation.validation.issuesFound",
@@ -242,6 +250,8 @@ export const useRunSimulation = () => {
         toggleNetworkReview,
         isInferRoughnessOn,
         rules,
+        readCachedIssues,
+        writeCachedIssues,
       ],
     ),
   );
