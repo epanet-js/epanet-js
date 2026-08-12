@@ -1,5 +1,8 @@
-export { validateModelAttributes, validateAsset } from "./run-check";
-export { groupIssues } from "./issues";
+export {
+  validateModelAttributes,
+  validateAsset,
+  countValidationIssues,
+} from "./run-check";
 export { RULES } from "./rules";
 export { numericChecks } from "./checks";
 export {
@@ -7,12 +10,12 @@ export {
   fieldGroupsFor,
   firstFailure,
   fieldValidator,
+  RULES_BY_ID,
 } from "./repository";
 export type {
   Severity,
   EntityType,
   ValidatableEntity,
-  ValidationIssue,
-  ValidationGroup,
+  ValidationIssues,
   Rule,
 } from "./types";

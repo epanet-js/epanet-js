@@ -12,24 +12,7 @@ export type EntityType = AssetType | "customerPoint";
 
 export type ValidatableEntity = Asset | CustomerPoint;
 
-export type ValidationIssue = {
-  ruleId: string;
-  entityType: EntityType;
-  entityId: AssetId;
-  label: string | null;
-  field: string | null;
-  severity: Severity;
-  message: string;
-};
-
-export type ValidationGroup = {
-  ruleId: string;
-  entityType: EntityType;
-  field: string | null;
-  severity: Severity;
-  message: string;
-  issues: ValidationIssue[];
-};
+export type ValidationIssues = [ruleId: string, entityIds: AssetId[]][];
 
 export type RuleType = "field" | "entity" | "model";
 

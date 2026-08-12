@@ -1,7 +1,16 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import { validateModelAttributes } from "./run-check";
-import { groupIssues } from "./issues";
+import { countValidationIssues, validateModelAttributes } from "./run-check";
+import { RULES_BY_ID } from "./repository";
 import { RULES } from "./rules";
+import { ValidationIssues } from "./types";
+
+const ruleIdsOf = (issues: ValidationIssues) =>
+  issues.map(([ruleId]) => ruleId);
+
+const entityIdsOf = (issues: ValidationIssues, ruleId: string) =>
+  issues.find(([id]) => id === ruleId)?.[1];
+
+const severityOf = (ruleId: string) => RULES_BY_ID.get(ruleId)?.severity;
 
 describe("validateModelAttributes", () => {
   describe("pipe roughness", () => {
@@ -12,17 +21,7 @@ describe("validateModelAttributes", () => {
 
       const issues = await validateModelAttributes(model);
 
-      expect(issues).toEqual([
-        {
-          ruleId: "pipe.roughness.present",
-          entityType: "pipe",
-          entityId: 1,
-          label: "P1",
-          field: "roughness",
-          severity: "error",
-          message: "required",
-        },
-      ]);
+      expect(issues).toEqual([["pipe.roughness.present", [1]]]);
     });
 
     it("flags a zero roughness as a positive error", async () => {
@@ -32,12 +31,7 @@ describe("validateModelAttributes", () => {
 
       const issues = await validateModelAttributes(model);
 
-      expect(issues).toHaveLength(1);
-      expect(issues[0]).toMatchObject({
-        ruleId: "pipe.roughness.positive",
-        severity: "error",
-        message: "mustBePositive",
-      });
+      expect(ruleIdsOf(issues)).toEqual(["pipe.roughness.positive"]);
     });
 
     it("flags a negative roughness as a positive error", async () => {
@@ -48,7 +42,7 @@ describe("validateModelAttributes", () => {
       const issues = await validateModelAttributes(model);
 
       expect(issues).toHaveLength(1);
-      expect(issues[0].ruleId).toBe("pipe.roughness.positive");
+      expect(ruleIdsOf(issues)).toEqual(["pipe.roughness.positive"]);
     });
 
     it("accepts a positive roughness", async () => {
@@ -67,7 +61,7 @@ describe("validateModelAttributes", () => {
       const issues = await validateModelAttributes(model);
 
       expect(issues).toHaveLength(1);
-      expect(issues[0].ruleId).toBe("pipe.roughness.present");
+      expect(ruleIdsOf(issues)).toEqual(["pipe.roughness.present"]);
     });
 
     it("validates every pipe across the model", async () => {
@@ -79,10 +73,8 @@ describe("validateModelAttributes", () => {
 
       const issues = await validateModelAttributes(model);
 
-      expect(issues).toHaveLength(25);
-      expect(
-        issues.every((issue) => issue.ruleId === "pipe.roughness.present"),
-      ).toBe(true);
+      expect(countValidationIssues(issues)).toBe(25);
+      expect(ruleIdsOf(issues)).toEqual(["pipe.roughness.present"]);
     });
   });
 
@@ -94,17 +86,7 @@ describe("validateModelAttributes", () => {
 
       const issues = await validateModelAttributes(model);
 
-      expect(issues).toEqual([
-        {
-          ruleId: "reservoir.head.present",
-          entityType: "reservoir",
-          entityId: 1,
-          label: "R1",
-          field: "head",
-          severity: "error",
-          message: "required",
-        },
-      ]);
+      expect(issues).toEqual([["reservoir.head.present", [1]]]);
     });
 
     it("flags a missing junction elevation", async () => {
@@ -114,17 +96,7 @@ describe("validateModelAttributes", () => {
 
       const issues = await validateModelAttributes(model);
 
-      expect(issues).toEqual([
-        {
-          ruleId: "node.elevation.present",
-          entityType: "junction",
-          entityId: 1,
-          label: "J1",
-          field: "elevation",
-          severity: "error",
-          message: "required",
-        },
-      ]);
+      expect(issues).toEqual([["node.elevation.present", [1]]]);
     });
 
     it("flags a missing tank elevation", async () => {
@@ -140,7 +112,7 @@ describe("validateModelAttributes", () => {
 
       const issues = await validateModelAttributes(model);
 
-      expect(issues.map((i) => i.ruleId)).toContain("node.elevation.present");
+      expect(ruleIdsOf(issues)).toContain("node.elevation.present");
     });
 
     it("does not require an elevation on a reservoir (it uses head)", async () => {
@@ -159,7 +131,7 @@ describe("validateModelAttributes", () => {
       const issues = await validateModelAttributes(model);
 
       expect(issues).toHaveLength(1);
-      expect(issues[0].ruleId).toBe("valve.diameter.present");
+      expect(ruleIdsOf(issues)).toEqual(["valve.diameter.present"]);
     });
 
     it("flags a zero valve diameter as a positive error", async () => {
@@ -170,7 +142,7 @@ describe("validateModelAttributes", () => {
       const issues = await validateModelAttributes(model);
 
       expect(issues).toHaveLength(1);
-      expect(issues[0].ruleId).toBe("valve.diameter.positive");
+      expect(ruleIdsOf(issues)).toEqual(["valve.diameter.positive"]);
     });
 
     it("flags a missing valve setting", async () => {
@@ -180,7 +152,7 @@ describe("validateModelAttributes", () => {
 
       const issues = await validateModelAttributes(model);
 
-      expect(issues.map((i) => i.ruleId)).toContain("valve.setting.present");
+      expect(ruleIdsOf(issues)).toContain("valve.setting.present");
     });
 
     it("does not require a setting for a gpv valve", async () => {
@@ -190,9 +162,7 @@ describe("validateModelAttributes", () => {
 
       const issues = await validateModelAttributes(model);
 
-      expect(issues.map((i) => i.ruleId)).not.toContain(
-        "valve.setting.present",
-      );
+      expect(ruleIdsOf(issues)).not.toContain("valve.setting.present");
     });
 
     it("requires a setting for a pcv valve", async () => {
@@ -202,7 +172,7 @@ describe("validateModelAttributes", () => {
 
       const issues = await validateModelAttributes(model);
 
-      expect(issues.map((i) => i.ruleId)).toContain("valve.setting.present");
+      expect(ruleIdsOf(issues)).toContain("valve.setting.present");
     });
 
     it("flags a missing tank diameter unless a volume curve is set", async () => {
@@ -215,9 +185,9 @@ describe("validateModelAttributes", () => {
           minLevel: 0,
         })
         .build();
-      expect(
-        (await validateModelAttributes(withoutCurve)).map((i) => i.ruleId),
-      ).toContain("tank.diameter.present");
+      expect(ruleIdsOf(await validateModelAttributes(withoutCurve))).toContain(
+        "tank.diameter.present",
+      );
 
       const withCurve = HydraulicModelBuilder.with()
         .aTank(2, {
@@ -227,9 +197,9 @@ describe("validateModelAttributes", () => {
           initialLevel: 5,
         })
         .build();
-      expect(
-        (await validateModelAttributes(withCurve)).map((i) => i.ruleId),
-      ).not.toContain("tank.diameter.present");
+      expect(ruleIdsOf(await validateModelAttributes(withCurve))).not.toContain(
+        "tank.diameter.present",
+      );
     });
 
     it("allows a zero tank initial level but flags a missing one", async () => {
@@ -242,9 +212,9 @@ describe("validateModelAttributes", () => {
           minLevel: 0,
         })
         .build();
-      expect(
-        (await validateModelAttributes(zero)).map((i) => i.ruleId),
-      ).not.toContain("tank.initialLevel.nonNegative");
+      expect(ruleIdsOf(await validateModelAttributes(zero))).not.toContain(
+        "tank.initialLevel.nonNegative",
+      );
 
       const missing = HydraulicModelBuilder.with()
         .aTank(2, {
@@ -255,18 +225,18 @@ describe("validateModelAttributes", () => {
           minLevel: 0,
         })
         .build();
-      expect(
-        (await validateModelAttributes(missing)).map((i) => i.ruleId),
-      ).toContain("tank.initialLevel.present");
+      expect(ruleIdsOf(await validateModelAttributes(missing))).toContain(
+        "tank.initialLevel.present",
+      );
     });
 
     it("flags a zero pipe length", async () => {
       const model = HydraulicModelBuilder.with()
         .aPipe(1, { length: 0, roughness: 100, diameter: 100 })
         .build();
-      expect(
-        (await validateModelAttributes(model)).map((i) => i.ruleId),
-      ).toContain("pipe.length.positive");
+      expect(ruleIdsOf(await validateModelAttributes(model))).toContain(
+        "pipe.length.positive",
+      );
     });
 
     it("flags pump power only for constant-power pumps", async () => {
@@ -280,9 +250,9 @@ describe("validateModelAttributes", () => {
           power: 0,
         })
         .build();
-      expect(
-        (await validateModelAttributes(powerPump)).map((i) => i.ruleId),
-      ).toContain("pump.power.positive");
+      expect(ruleIdsOf(await validateModelAttributes(powerPump))).toContain(
+        "pump.power.positive",
+      );
 
       const curvePump = HydraulicModelBuilder.with()
         .aJunction(4, { elevation: 50 })
@@ -294,9 +264,9 @@ describe("validateModelAttributes", () => {
           power: 0,
         })
         .build();
-      expect(
-        (await validateModelAttributes(curvePump)).map((i) => i.ruleId),
-      ).not.toContain("pump.power.positive");
+      expect(ruleIdsOf(await validateModelAttributes(curvePump))).not.toContain(
+        "pump.power.positive",
+      );
     });
 
     it("flags a missing power as a present error", async () => {
@@ -312,9 +282,9 @@ describe("validateModelAttributes", () => {
       // The standard factory fills a default power; clear it to model an
       // unmapped/empty power (as the null-values import factory produces).
       model.assets.get(1)!.setProperty("power", undefined);
-      expect(
-        (await validateModelAttributes(model)).map((i) => i.ruleId),
-      ).toContain("pump.power.present");
+      expect(ruleIdsOf(await validateModelAttributes(model))).toContain(
+        "pump.power.present",
+      );
     });
 
     it("flags a curve-based pump that has no curve", async () => {
@@ -328,9 +298,9 @@ describe("validateModelAttributes", () => {
           curve: [],
         })
         .build();
-      expect(
-        (await validateModelAttributes(model)).map((i) => i.ruleId),
-      ).toContain("pump.curve.present");
+      expect(ruleIdsOf(await validateModelAttributes(model))).toContain(
+        "pump.curve.present",
+      );
     });
 
     it("flags a curve-based pump with an invalid curve", async () => {
@@ -344,9 +314,7 @@ describe("validateModelAttributes", () => {
           curve: [{ x: 0, y: 100 }],
         })
         .build();
-      const ruleIds = (await validateModelAttributes(model)).map(
-        (i) => i.ruleId,
-      );
+      const ruleIds = ruleIdsOf(await validateModelAttributes(model));
       expect(ruleIds).toContain("pump.curve.valid");
       expect(ruleIds).not.toContain("pump.curve.present");
     });
@@ -361,9 +329,9 @@ describe("validateModelAttributes", () => {
           definitionType: "curveId",
         })
         .build();
-      expect(
-        (await validateModelAttributes(missing)).map((i) => i.ruleId),
-      ).toContain("pump.curveId.present");
+      expect(ruleIdsOf(await validateModelAttributes(missing))).toContain(
+        "pump.curveId.present",
+      );
 
       const withCurveId = HydraulicModelBuilder.with()
         .aJunction(4, { elevation: 50 })
@@ -382,9 +350,9 @@ describe("validateModelAttributes", () => {
           curveId: 9,
         })
         .build();
-      const withCurveIdRuleIds = (
-        await validateModelAttributes(withCurveId)
-      ).map((i) => i.ruleId);
+      const withCurveIdRuleIds = ruleIdsOf(
+        await validateModelAttributes(withCurveId),
+      );
       expect(withCurveIdRuleIds).not.toContain("pump.curveId.present");
       expect(withCurveIdRuleIds).not.toContain("pump.curveId.valid");
     });
@@ -400,9 +368,7 @@ describe("validateModelAttributes", () => {
           curveId: 9,
         })
         .build();
-      const ruleIds = (await validateModelAttributes(model)).map(
-        (i) => i.ruleId,
-      );
+      const ruleIds = ruleIdsOf(await validateModelAttributes(model));
       expect(ruleIds).toContain("pump.curveId.valid");
       expect(ruleIds).not.toContain("pump.curveId.present");
     });
@@ -425,9 +391,7 @@ describe("validateModelAttributes", () => {
           curveId: 9,
         })
         .build();
-      const ruleIds = (await validateModelAttributes(model)).map(
-        (i) => i.ruleId,
-      );
+      const ruleIds = ruleIdsOf(await validateModelAttributes(model));
       expect(ruleIds).toContain("pump.curveId.valid");
       expect(ruleIds).not.toContain("pump.curveId.present");
     });
@@ -442,9 +406,7 @@ describe("validateModelAttributes", () => {
           diameter: 100,
         })
         .build();
-      const ruleIds = (await validateModelAttributes(diameterTank)).map(
-        (i) => i.ruleId,
-      );
+      const ruleIds = ruleIdsOf(await validateModelAttributes(diameterTank));
       expect(ruleIds).toContain("tank.maxLevel.positive");
       expect(ruleIds).toContain("tank.minLevel.nonNegative");
 
@@ -457,9 +419,7 @@ describe("validateModelAttributes", () => {
           initialLevel: 5,
         })
         .build();
-      const curveRuleIds = (await validateModelAttributes(curveTank)).map(
-        (i) => i.ruleId,
-      );
+      const curveRuleIds = ruleIdsOf(await validateModelAttributes(curveTank));
       expect(curveRuleIds).not.toContain("tank.maxLevel.positive");
       expect(curveRuleIds).not.toContain("tank.minLevel.nonNegative");
     });
@@ -474,9 +434,7 @@ describe("validateModelAttributes", () => {
           diameter: 100,
         })
         .build();
-      const ruleIds = (await validateModelAttributes(model)).map(
-        (i) => i.ruleId,
-      );
+      const ruleIds = ruleIdsOf(await validateModelAttributes(model));
       expect(ruleIds).toContain("tank.minLevel.present");
       expect(ruleIds).toContain("tank.maxLevel.present");
     });
@@ -491,9 +449,9 @@ describe("validateModelAttributes", () => {
           diameter: 100,
         })
         .build();
-      expect(
-        (await validateModelAttributes(aboveMax)).map((i) => i.ruleId),
-      ).toContain("tank.initialLevel.withinLevelRange");
+      expect(ruleIdsOf(await validateModelAttributes(aboveMax))).toContain(
+        "tank.initialLevel.withinLevelRange",
+      );
 
       const belowMin = HydraulicModelBuilder.with()
         .aTank(2, {
@@ -504,9 +462,9 @@ describe("validateModelAttributes", () => {
           diameter: 100,
         })
         .build();
-      expect(
-        (await validateModelAttributes(belowMin)).map((i) => i.ruleId),
-      ).toContain("tank.initialLevel.withinLevelRange");
+      expect(ruleIdsOf(await validateModelAttributes(belowMin))).toContain(
+        "tank.initialLevel.withinLevelRange",
+      );
     });
 
     it("allows an initial level at the range boundaries", async () => {
@@ -519,9 +477,9 @@ describe("validateModelAttributes", () => {
           diameter: 100,
         })
         .build();
-      expect(
-        (await validateModelAttributes(model)).map((i) => i.ruleId),
-      ).not.toContain("tank.initialLevel.withinLevelRange");
+      expect(ruleIdsOf(await validateModelAttributes(model))).not.toContain(
+        "tank.initialLevel.withinLevelRange",
+      );
     });
 
     it("does not flag the level range for curve-based tanks", async () => {
@@ -534,9 +492,7 @@ describe("validateModelAttributes", () => {
           elevation: 50,
         })
         .build();
-      const ruleIds = (await validateModelAttributes(model)).map(
-        (i) => i.ruleId,
-      );
+      const ruleIds = ruleIdsOf(await validateModelAttributes(model));
       expect(ruleIds).not.toContain("tank.initialLevel.withinLevelRange");
     });
 
@@ -551,10 +507,11 @@ describe("validateModelAttributes", () => {
         })
         .build();
       const issues = await validateModelAttributes(model);
-      const aboveMin = issues.find(
-        (i) => i.ruleId === "tank.maxLevel.aboveMinLevel",
+      const aboveMin = ruleIdsOf(issues).includes(
+        "tank.maxLevel.aboveMinLevel",
       );
-      expect(aboveMin?.severity).toEqual("warning");
+      expect(aboveMin).toBe(true);
+      expect(severityOf("tank.maxLevel.aboveMinLevel")).toEqual("warning");
     });
   });
 
@@ -571,11 +528,7 @@ describe("validateModelAttributes", () => {
 
       const issues = await validateModelAttributes(model);
 
-      expect(issues).toHaveLength(1);
-      expect(issues[0]).toMatchObject({
-        ruleId: "pipe.minorLoss.nonNegative",
-        severity: "error",
-      });
+      expect(ruleIdsOf(issues)).toEqual(["pipe.minorLoss.nonNegative"]);
     });
 
     it("accepts a zero minor loss", async () => {
@@ -583,9 +536,9 @@ describe("validateModelAttributes", () => {
         .aPipe(1, { minorLoss: 0, diameter: 100, length: 100, roughness: 100 })
         .build();
 
-      expect(
-        (await validateModelAttributes(model)).map((i) => i.ruleId),
-      ).not.toContain("pipe.minorLoss.nonNegative");
+      expect(ruleIdsOf(await validateModelAttributes(model))).not.toContain(
+        "pipe.minorLoss.nonNegative",
+      );
     });
 
     it("flags a negative emitter coefficient as a warning (EPANET runs)", async () => {
@@ -595,11 +548,9 @@ describe("validateModelAttributes", () => {
 
       const issues = await validateModelAttributes(model);
 
-      expect(issues).toHaveLength(1);
-      expect(issues[0]).toMatchObject({
-        ruleId: "junction.emitterCoefficient.nonNegative",
-        severity: "warning",
-      });
+      expect(ruleIdsOf(issues)).toEqual([
+        "junction.emitterCoefficient.nonNegative",
+      ]);
     });
 
     it("warns on an out-of-range mixing fraction only for 2comp tanks", async () => {
@@ -614,9 +565,9 @@ describe("validateModelAttributes", () => {
           minLevel: 0,
         })
         .build();
-      expect(
-        (await validateModelAttributes(twoComp)).map((i) => i.ruleId),
-      ).toContain("tank.mixingFraction.unitRange");
+      expect(ruleIdsOf(await validateModelAttributes(twoComp))).toContain(
+        "tank.mixingFraction.unitRange",
+      );
 
       const mixed = HydraulicModelBuilder.with()
         .aTank(2, {
@@ -629,9 +580,9 @@ describe("validateModelAttributes", () => {
           minLevel: 0,
         })
         .build();
-      expect(
-        (await validateModelAttributes(mixed)).map((i) => i.ruleId),
-      ).not.toContain("tank.mixingFraction.unitRange");
+      expect(ruleIdsOf(await validateModelAttributes(mixed))).not.toContain(
+        "tank.mixingFraction.unitRange",
+      );
     });
 
     it("flags a negative energy price as an error (EPANET rejects it)", async () => {
@@ -642,10 +593,11 @@ describe("validateModelAttributes", () => {
         .build();
 
       const issues = await validateModelAttributes(model);
-      const energyPriceIssue = issues.find(
-        (i) => i.ruleId === "pump.energyPrice.nonNegative",
+      const energyPriceIssue = ruleIdsOf(issues).includes(
+        "pump.energyPrice.nonNegative",
       );
-      expect(energyPriceIssue?.severity).toBe("error");
+      expect(energyPriceIssue).toBe(true);
+      expect(severityOf("pump.energyPrice.nonNegative")).toBe("error");
     });
 
     it("warns on a negative source strength only when a source is active", async () => {
@@ -657,17 +609,20 @@ describe("validateModelAttributes", () => {
         })
         .build();
       const issues = await validateModelAttributes(withSource);
-      const strengthIssue = issues.find(
-        (i) => i.ruleId === "node.chemicalSourceStrength.nonNegative",
+      const strengthIssue = ruleIdsOf(issues).includes(
+        "node.chemicalSourceStrength.nonNegative",
       );
-      expect(strengthIssue?.severity).toBe("warning");
+      expect(strengthIssue).toBe(true);
+      expect(severityOf("node.chemicalSourceStrength.nonNegative")).toBe(
+        "warning",
+      );
 
       const noSource = HydraulicModelBuilder.with()
         .aJunction(2, { chemicalSourceStrength: -5, elevation: 50 })
         .build();
-      expect(
-        (await validateModelAttributes(noSource)).map((i) => i.ruleId),
-      ).not.toContain("node.chemicalSourceStrength.nonNegative");
+      expect(ruleIdsOf(await validateModelAttributes(noSource))).not.toContain(
+        "node.chemicalSourceStrength.nonNegative",
+      );
     });
 
     it("groups negative source strength across node types into one rule", async () => {
@@ -688,12 +643,11 @@ describe("validateModelAttributes", () => {
         })
         .build();
 
-      const groups = groupIssues(await validateModelAttributes(model));
-      const strengthGroups = groups.filter(
-        (g) => g.ruleId === "node.chemicalSourceStrength.nonNegative",
-      );
-      expect(strengthGroups).toHaveLength(1);
-      expect(strengthGroups[0].issues).toHaveLength(3);
+      const issues = await validateModelAttributes(model);
+
+      expect(
+        entityIdsOf(issues, "node.chemicalSourceStrength.nonNegative"),
+      ).toHaveLength(3);
     });
   });
 
@@ -720,17 +674,7 @@ describe("validateModelAttributes", () => {
 
       const issues = await validateModelAttributes(model);
 
-      expect(issues).toEqual([
-        {
-          ruleId: "pipe.year.valid",
-          entityType: "pipe",
-          entityId: 1,
-          label: "P1",
-          field: "year",
-          severity: "warning",
-          message: "invalidYear",
-        },
-      ]);
+      expect(issues).toEqual([["pipe.year.valid", [1]]]);
     });
 
     it("flags a non-integer year as a warning", async () => {
@@ -738,9 +682,9 @@ describe("validateModelAttributes", () => {
         .aPipe(1, { year: 1995.5, roughness: 100, diameter: 100, length: 100 })
         .build();
 
-      expect(
-        (await validateModelAttributes(model)).map((i) => i.ruleId),
-      ).toContain("pipe.year.valid");
+      expect(ruleIdsOf(await validateModelAttributes(model))).toContain(
+        "pipe.year.valid",
+      );
     });
 
     it("accepts a valid year and an empty year", async () => {
@@ -751,11 +695,11 @@ describe("validateModelAttributes", () => {
         .aPipe(2, { roughness: 100, diameter: 100, length: 100 })
         .build();
 
+      expect(ruleIdsOf(await validateModelAttributes(withYear))).not.toContain(
+        "pipe.year.valid",
+      );
       expect(
-        (await validateModelAttributes(withYear)).map((i) => i.ruleId),
-      ).not.toContain("pipe.year.valid");
-      expect(
-        (await validateModelAttributes(withoutYear)).map((i) => i.ruleId),
+        ruleIdsOf(await validateModelAttributes(withoutYear)),
       ).not.toContain("pipe.year.valid");
     });
   });
@@ -768,17 +712,7 @@ describe("validateModelAttributes", () => {
 
       const issues = await validateModelAttributes(model);
 
-      expect(issues).toEqual([
-        {
-          ruleId: "customerPoint.connected",
-          entityType: "customerPoint",
-          entityId: 1,
-          label: "CP1",
-          field: null,
-          severity: "warning",
-          message: "disconnected",
-        },
-      ]);
+      expect(issues).toEqual([["customerPoint.connected", [1]]]);
     });
 
     it("accepts a connected customer point", async () => {
@@ -812,11 +746,7 @@ describe("validateModelAttributes", () => {
 
       const issues = await validateModelAttributes(model, { rules: pipeRules });
 
-      expect(issues).toHaveLength(1);
-      expect(issues[0]).toMatchObject({
-        ruleId: "pipe.roughness.present",
-        entityType: "pipe",
-      });
+      expect(ruleIdsOf(issues)).toEqual(["pipe.roughness.present"]);
     });
   });
 
@@ -862,9 +792,7 @@ describe("validateModelAttributes with inferred roughness", () => {
   };
 
   const ruleIds = async (model: ReturnType<typeof modelWith>) =>
-    (await validateModelAttributes(model, { rules: RULES })).map(
-      (issue) => issue.ruleId,
-    );
+    ruleIdsOf(await validateModelAttributes(model, { rules: RULES }));
 
   describe("required roughness", () => {
     it("accepts a pipe whose roughness comes from the library", async () => {
@@ -908,21 +836,13 @@ describe("validateModelAttributes with inferred roughness", () => {
 
   describe("material in the library", () => {
     const materialIssues = async (model: ReturnType<typeof modelWith>) =>
-      (await validateModelAttributes(model, { rules: RULES })).filter(
-        (issue) => issue.field === "material",
+      ruleIdsOf(await validateModelAttributes(model, { rules: RULES })).filter(
+        (ruleId) => ruleId.startsWith("pipe.material."),
       );
 
     it("warns when the material has no library entry", async () => {
       expect(await materialIssues(modelWith({ material: "PVC" }))).toEqual([
-        {
-          ruleId: "pipe.material.inLibrary",
-          entityType: "pipe",
-          entityId: 1,
-          label: "P1",
-          field: "material",
-          severity: "warning",
-          message: "notInLibrary",
-        },
+        "pipe.material.inLibrary",
       ]);
     });
 
@@ -973,10 +893,8 @@ describe("validateModelAttributes with inferred roughness", () => {
       it("warns when the pipe has no installation year", async () => {
         const issues = await materialIssues(modelWithAgedMaterial());
 
-        expect(issues.map((issue) => issue.ruleId)).toEqual([
-          "pipe.material.providesRoughness",
-        ]);
-        expect(issues[0].severity).toBe("warning");
+        expect(issues).toEqual(["pipe.material.providesRoughness"]);
+        expect(severityOf("pipe.material.providesRoughness")).toBe("warning");
       });
 
       it("stays quiet once the pipe has a year", async () => {
@@ -998,7 +916,7 @@ describe("validateModelAttributes with inferred roughness", () => {
           })
           .build();
 
-        expect((await materialIssues(model)).map((i) => i.ruleId)).toEqual([
+        expect(await materialIssues(model)).toEqual([
           "pipe.material.providesRoughness",
         ]);
       });
@@ -1014,7 +932,7 @@ describe("validateModelAttributes with inferred roughness", () => {
           })
           .build();
 
-        expect((await materialIssues(model)).map((i) => i.ruleId)).toEqual([
+        expect(await materialIssues(model)).toEqual([
           "pipe.material.inLibrary",
         ]);
       });

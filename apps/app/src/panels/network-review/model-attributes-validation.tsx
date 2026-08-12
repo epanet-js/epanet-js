@@ -6,21 +6,21 @@ import { Action } from "src/components/action-button";
 import { useTranslate } from "src/hooks/use-translate";
 import { useZoomTo } from "src/hooks/use-zoom-to";
 import { ErrorIcon, PointerClickIcon, WarningIcon } from "src/icons";
-import { pluralize } from "src/lib/utils";
 import { usePermissions } from "src/hooks/use-permissions";
 import { PaywallFade, PaywallUpgradeBox } from "src/components/form/paywall";
 import { useUserTracking } from "src/infra/user-tracking";
 import { USelection, useSelection } from "src/selection";
+import { AssetId } from "@epanet-js/hydraulic-model";
+import { HydraulicModel } from "src/hydraulic-model";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { selectionAtom } from "src/state/selection";
 import { selectedReviewCheckAtom } from "src/state/network-review";
 import {
+  countValidationIssues,
   EntityType,
-  groupIssues,
   validateModelAttributes,
-  ValidationGroup,
-  ValidationIssue,
 } from "src/lib/model-attributes-validation";
+import { groupIssues, ValidationGroup } from "./validation-groups";
 import { useCachedCheck } from "src/hooks/use-review-checks";
 import {
   CheckType,
@@ -33,9 +33,6 @@ import {
   VirtualizedIssuesList,
 } from "./common";
 import { ruleLabelKey } from "./rule-labels";
-
-const countIssues = (groups: ValidationGroup[]): number =>
-  groups.reduce((total, group) => total + group.issues.length, 0);
 
 const SeverityIcon = ({ severity }: { severity: "error" | "warning" }) => (
   <span
@@ -71,7 +68,10 @@ export const ModelAttributesValidation = ({
     selectedReviewCheckAtom,
   );
 
-  const issuesCount = countIssues(groups);
+  const issuesCount = groups.reduce(
+    (total, group) => total + group.entityIds.length,
+    0,
+  );
   const lastIssuesCount = useRef(0);
 
   useEffect(
@@ -122,16 +122,13 @@ export const ModelAttributesValidation = ({
 
   const openGroup = useCallback(
     (group: ValidationGroup) => {
-      selectEntities(
-        group.entityType,
-        group.issues.map((issue) => issue.entityId),
-      );
+      selectEntities(group.entityType, group.entityIds);
       setDetailRuleId(group.ruleId);
       userTracking.capture({
         name: "networkReview.modelAttributesValidation.groupOpened",
         ruleId: group.ruleId,
         severity: group.severity,
-        count: group.issues.length,
+        count: group.entityIds.length,
       });
     },
     [selectEntities, userTracking],
@@ -182,18 +179,15 @@ export const ModelAttributesValidation = ({
       <ModelAttributesValidationDetail
         group={detailGroup}
         onGoBack={() => setDetailRuleId(null)}
-        onSelectIssue={(issue) =>
-          selectEntity(detailGroup.entityType, issue.entityId)
+        onSelectEntity={(entityId) =>
+          selectEntity(detailGroup.entityType, entityId)
         }
         onSelectAll={() => {
-          selectEntities(
-            detailGroup.entityType,
-            detailGroup.issues.map((issue) => issue.entityId),
-          );
+          selectEntities(detailGroup.entityType, detailGroup.entityIds);
           userTracking.capture({
             name: "networkReview.modelAttributesValidation.bulkSelected",
             ruleId: detailGroup.ruleId,
-            count: detailGroup.issues.length,
+            count: detailGroup.entityIds.length,
           });
         }}
       />
@@ -326,7 +320,7 @@ const ModelAttributesValidationGroupRow = ({
   const label = translate(ruleLabelKey(group.ruleId));
   const affectedText = translate(
     "networkReview.modelAttributesValidation.affectedCount",
-    group.issues.length,
+    group.entityIds.length,
   );
 
   return (
@@ -336,7 +330,7 @@ const ModelAttributesValidationGroupRow = ({
       aria-label={translate(
         "networkReview.modelAttributesValidation.issueLabel",
         label,
-        String(group.issues.length),
+        String(group.entityIds.length),
       )}
       aria-selected={isSelected}
       className="group w-full"
@@ -407,37 +401,33 @@ const ModelAttributesValidationLockedList = ({
 const ModelAttributesValidationDetail = ({
   group,
   onGoBack,
-  onSelectIssue,
+  onSelectEntity,
   onSelectAll,
 }: {
   group: ValidationGroup;
   onGoBack: () => void;
-  onSelectIssue: (issue: ValidationIssue) => void;
+  onSelectEntity: (entityId: AssetId) => void;
   onSelectAll: () => void;
 }) => {
   const translate = useTranslate();
+  const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const [selectedEntityId, setSelectedEntityId] = useState<number | null>(null);
 
-  const selectIssue = useCallback(
-    (issue: ValidationIssue | null) => {
-      if (!issue) {
+  const selectEntity = useCallback(
+    (entityId: AssetId | null) => {
+      if (entityId === null) {
         setSelectedEntityId(null);
         return;
       }
-      setSelectedEntityId(issue.entityId);
-      onSelectIssue(issue);
+      setSelectedEntityId(entityId);
+      onSelectEntity(entityId);
     },
-    [onSelectIssue],
+    [onSelectEntity],
   );
 
   const selectAllAction: Action = {
     icon: <PointerClickIcon />,
-    label: `${translate("select")} ${pluralize(
-      translate,
-      group.entityType,
-      group.issues.length,
-      false,
-    )}`,
+    label: translate("selectAll"),
     applicable: true,
     onSelect: () => {
       onSelectAll();
@@ -452,20 +442,21 @@ const ModelAttributesValidationDetail = ({
         title={translate(ruleLabelKey(group.ruleId))}
         summary={translate(
           "networkReview.modelAttributesValidation.affectedCount",
-          group.issues.length,
+          group.entityIds.length,
         )}
         actions={[selectAllAction]}
       />
       <div className="relative grow flex flex-col">
         <VirtualizedIssuesList
-          items={group.issues}
+          items={group.entityIds}
           selectedItemId={selectedEntityId}
-          onSelect={selectIssue}
-          getItemId={(issue) => issue.entityId}
-          renderItem={(_index, issue, selectedId, onClick) => (
+          onSelect={selectEntity}
+          getItemId={(entityId) => entityId}
+          renderItem={(_index, entityId, selectedId, onClick) => (
             <ModelAttributesValidationEntityRow
-              issue={issue}
-              isSelected={selectedId === issue.entityId}
+              entityId={entityId}
+              label={entityLabel(hydraulicModel, group.entityType, entityId)}
+              isSelected={selectedId === entityId}
               onClick={onClick}
             />
           )}
@@ -478,20 +469,33 @@ const ModelAttributesValidationDetail = ({
   );
 };
 
+const entityLabel = (
+  model: HydraulicModel,
+  entityType: EntityType,
+  entityId: AssetId,
+): string => {
+  const entity =
+    entityType === "customerPoint"
+      ? model.customerPoints.get(entityId)
+      : model.assets.get(entityId);
+
+  return entity?.label ?? String(entityId);
+};
+
 const ModelAttributesValidationEntityRow = ({
-  issue,
+  entityId,
+  label,
   isSelected,
   onClick,
 }: {
-  issue: ValidationIssue;
+  entityId: AssetId;
+  label: string;
   isSelected: boolean;
-  onClick: (issue: ValidationIssue) => void;
+  onClick: (entityId: AssetId) => void;
 }) => {
-  const label = issue.label ?? String(issue.entityId);
-
   return (
     <Button
-      onClick={() => onClick(issue)}
+      onClick={() => onClick(entityId)}
       onMouseDown={(e) => e.preventDefault()}
       variant={"quiet/list"}
       aria-label={label}
@@ -538,7 +542,7 @@ const useCheckModelAttributesValidation = () => {
         });
 
         if (!signal?.aborted) {
-          write(issues, issues.length, modelVersion);
+          write(issues, countValidationIssues(issues), modelVersion);
           setGroups(groupIssues(issues));
           finishLoading();
           isReady.current = true;

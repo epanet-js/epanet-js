@@ -28,6 +28,10 @@ export const indexRules = (rules: Rule[]): RulesIndex => {
 
 export const RULES_INDEX = indexRules(RULES);
 
+export const RULES_BY_ID: Map<string, Rule> = new Map(
+  RULES.map((rule) => [rule.id, rule]),
+);
+
 export const fieldGroupsFor = (entityType: EntityType): Rule[][] =>
   RULES_INDEX.get(entityType) ?? [];
 

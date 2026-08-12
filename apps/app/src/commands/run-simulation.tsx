@@ -26,7 +26,10 @@ import { worktreeAtom } from "src/state/scenarios";
 import { nanoid } from "src/lib/id";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useToggleNetworkReview } from "src/commands/toggle-network-review";
-import { validateModelAttributes } from "src/lib/model-attributes-validation";
+import {
+  countValidationIssues,
+  validateModelAttributes,
+} from "src/lib/model-attributes-validation";
 import { selectedReviewCheckAtom } from "src/state/network-review";
 import { CheckType } from "src/panels/network-review/common";
 import { useCachedCheck } from "src/hooks/use-review-checks";
@@ -216,19 +219,20 @@ export const useRunSimulation = () => {
         const cachedIssues = readCachedIssues();
         const issues =
           cachedIssues ?? (await validateModelAttributes(hydraulicModel));
+        const issueCount = countValidationIssues(issues);
         if (!cachedIssues) {
-          writeCachedIssues(issues, issues.length, modelVersion);
+          writeCachedIssues(issues, issueCount, modelVersion);
         }
 
-        if (issues.length > 0) {
+        if (issueCount > 0) {
           userTracking.capture({
             name: "simulation.validation.issuesFound",
-            issueCount: issues.length,
-            rules: [...new Set(issues.map((issue) => issue.ruleId))],
+            issueCount,
+            rules: issues.map(([ruleId]) => ruleId),
           });
           setDialogState({
             type: "modelAttributesValidation",
-            issueCount: issues.length,
+            issueCount,
             onFixFirst: reviewIssues,
             onRunAnyway: runWithIssues,
           });
