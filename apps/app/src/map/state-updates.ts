@@ -245,7 +245,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const customerPointsOverlayRef = useRef<CustomerPointsOverlay>([]);
   const ephemeralDeckLayersRef = useRef<CustomerPointsOverlay>([]);
   const gridRef = useRef<Grid | null>(null);
-  const scaleControlRef = useRef<mapboxgl.ScaleControl | null>(null);
+  const scaleControlRef = useRef<BoundScaleControl | null>(null);
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
   const mapOperations = useMapOperations();
@@ -982,6 +982,11 @@ const buildCustomerPointsEphemeralOverlay = (
   return [];
 };
 
+type BoundScaleControl = {
+  control: mapboxgl.ScaleControl;
+  map: mapboxgl.Map;
+};
+
 function updateGrid({
   map,
   isGridOn,
@@ -995,7 +1000,7 @@ function updateGrid({
   isPreview: boolean;
   lengthUnit: "ft" | "m";
   gridRef: MutableRefObject<Grid | null>;
-  scaleControlRef: MutableRefObject<mapboxgl.ScaleControl | null>;
+  scaleControlRef: MutableRefObject<BoundScaleControl | null>;
 }) {
   if (gridRef.current && !gridRef.current.isBoundTo(map.map)) {
     gridRef.current.detach();
@@ -1012,17 +1017,21 @@ function updateGrid({
     gridRef.current.detach();
     gridRef.current = null;
   }
+
+  if (scaleControlRef.current && scaleControlRef.current.map !== map.map) {
+    scaleControlRef.current = null;
+  }
+
   if (isGridOn && !isPreview) {
     const scaleUnit = lengthUnit === "ft" ? "imperial" : "metric";
     if (scaleControlRef.current) {
-      map.map.removeControl(scaleControlRef.current);
+      map.map.removeControl(scaleControlRef.current.control);
     }
-    scaleControlRef.current = new mapboxgl.ScaleControl({
-      unit: scaleUnit,
-    });
-    map.map.addControl(scaleControlRef.current, "bottom-left");
+    const control = new mapboxgl.ScaleControl({ unit: scaleUnit });
+    map.map.addControl(control, "bottom-left");
+    scaleControlRef.current = { control, map: map.map };
   } else if (scaleControlRef.current) {
-    map.map.removeControl(scaleControlRef.current);
+    map.map.removeControl(scaleControlRef.current.control);
     scaleControlRef.current = null;
   }
 }
