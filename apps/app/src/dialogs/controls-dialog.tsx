@@ -20,7 +20,6 @@ import {
 import { changeRawControls } from "src/hydraulic-model/model-operations";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { Message } from "@epanet-js/ui-kit";
 
 type Tab = "simple" | "ruleBased";
@@ -35,7 +34,6 @@ export const ControlsDialog = () => {
   const { closeDialog } = useDialogState();
   const [activeTab, setActiveTab] = useState<Tab>("simple");
   const isEditionBlocked = useIsEditionBlocked();
-  const isPumpControlsOn = useFeatureFlag("FLAG_PUMP_CONTROLS");
 
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const { transact } = useMomentTransaction();
@@ -84,9 +82,7 @@ export const ControlsDialog = () => {
     <Formik onSubmit={handleSubmit} initialValues={initialValues}>
       {({ submitForm, isSubmitting }) => (
         <BaseDialog
-          title={translate(
-            isPumpControlsOn ? "controls.epanetTitle" : "controls.title",
-          )}
+          title={translate("controls.epanetTitle")}
           size="lg"
           isOpen={true}
           onClose={closeDialog}
@@ -104,17 +100,15 @@ export const ControlsDialog = () => {
         >
           <Form>
             <div className="flex flex-col gap-4 p-4">
-              {isPumpControlsOn && (
-                <Message
-                  variant="info"
-                  title={translate("controls.nativeControlsInfoTitle")}
-                >
-                  <div className="space-y-2">
-                    <p>{translate("controls.nativeControlsInfoDescription")}</p>
-                    <p>{translate("controls.nativeControlsInfoNote")}</p>
-                  </div>
-                </Message>
-              )}
+              <Message
+                variant="info"
+                title={translate("controls.nativeControlsInfoTitle")}
+              >
+                <div className="space-y-2">
+                  <p>{translate("controls.nativeControlsInfoDescription")}</p>
+                  <p>{translate("controls.nativeControlsInfoNote")}</p>
+                </div>
+              </Message>
               <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
               <ControlsTextArea
                 name="simpleText"

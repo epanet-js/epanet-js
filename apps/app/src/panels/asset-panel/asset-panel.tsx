@@ -110,7 +110,6 @@ import type {
 import { DemandsEditor } from "./demands-editor";
 import { PumpControlsEditor } from "./pump-controls-editor";
 import { PumpDefinitionDetails } from "./pump-definition-details";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { getAttribute, isCustomProperty } from "@epanet-js/hydraulic-model";
 import { CustomAttributesSection } from "./custom-attributes-section";
 import { NumericTable } from "src/components/form/numeric-table";
@@ -2350,7 +2349,6 @@ const PumpEditor = ({
 }) => {
   const simulationSettings = useAtomValue(simulationSettingsDerivedAtom);
   const translate = useTranslate();
-  const isPumpControlsOn = useFeatureFlag("FLAG_PUMP_CONTROLS");
   const { footer } = useQuickGraph(pump.id, "pump");
   const {
     getComparison,
@@ -2514,21 +2512,19 @@ const PumpEditor = ({
         type="pump"
         onPropertyChange={onPropertyChange}
       />
-      {isPumpControlsOn && (
-        <SectionWrapper title={translate("controls.title")} section="controls">
-          <PumpControlsEditor
-            key={pump.id}
-            linkId={pump.id}
-            initialStatus={pump.initialStatus}
-            initialSpeed={pump.speed ?? 1}
-            control={pumpControl}
-            tanks={tanks}
-            onControlChange={handleControlChangeForPump}
-            hasRawControls={hasRawControls}
-            readOnly={readonly}
-          />
-        </SectionWrapper>
-      )}
+      <SectionWrapper title={translate("controls.title")} section="controls">
+        <PumpControlsEditor
+          key={pump.id}
+          linkId={pump.id}
+          initialStatus={pump.initialStatus}
+          initialSpeed={pump.speed ?? 1}
+          control={pumpControl}
+          tanks={tanks}
+          onControlChange={handleControlChangeForPump}
+          hasRawControls={hasRawControls}
+          readOnly={readonly}
+        />
+      </SectionWrapper>
       <SectionWrapper
         title={translate("energy")}
         section="energy"

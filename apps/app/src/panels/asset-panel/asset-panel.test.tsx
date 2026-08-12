@@ -1050,6 +1050,27 @@ describe("AssetPanel", () => {
         expect(updatedSelector).toHaveTextContent("On");
       });
     });
+
+    it("shows the controls section", () => {
+      const IDS = { PU1: 1, j1: 2, j2: 3 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.j1, { label: "J1" })
+        .aJunction(IDS.j2, { label: "J2" })
+        .aPump(IDS.PU1, {
+          label: "MY_PUMP",
+          connections: [IDS.j1, IDS.j2],
+          initialStatus: "on",
+        })
+        .build();
+      const store = setInitialState({
+        hydraulicModel,
+        selectedAssetId: IDS.PU1,
+      });
+
+      renderComponent(store);
+
+      expect(screen.getByText("Controls")).toBeInTheDocument();
+    });
   });
 
   describe("with a junction", () => {
