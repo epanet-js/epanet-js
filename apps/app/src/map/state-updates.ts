@@ -997,6 +997,11 @@ function updateGrid({
   gridRef: MutableRefObject<Grid | null>;
   scaleControlRef: MutableRefObject<mapboxgl.ScaleControl | null>;
 }) {
+  if (gridRef.current && !gridRef.current.isBoundTo(map.map)) {
+    gridRef.current.detach();
+    gridRef.current = null;
+  }
+
   if (isGridOn && !gridRef.current) {
     gridRef.current = new Grid(map.map, lengthUnit);
     gridRef.current.attach();

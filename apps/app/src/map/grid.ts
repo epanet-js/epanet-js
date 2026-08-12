@@ -42,6 +42,14 @@ export class Grid {
       lengthUnit === "ft" ? FEET_PER_DEGREE : METERS_PER_DEGREE;
   }
 
+  isBoundTo(map: mapboxgl.Map): boolean {
+    return this.map === map;
+  }
+
+  private get isMapAlive(): boolean {
+    return !!(this.map && (this.map as any).style);
+  }
+
   setLengthUnit(lengthUnit: LengthUnit) {
     const newUnitsPerDegree =
       lengthUnit === "ft" ? FEET_PER_DEGREE : METERS_PER_DEGREE;
@@ -89,7 +97,7 @@ export class Grid {
   }
 
   private updateFrame() {
-    if (!this.map || !this.map.getLayer(MINOR_LAYER_ID)) return;
+    if (!this.isMapAlive || !this.map.getLayer(MINOR_LAYER_ID)) return;
 
     const { bounds, stepUnits, fraction } = calcGridParams(
       this.map,
@@ -219,6 +227,8 @@ export class Grid {
   }
 
   private clearSource() {
+    if (!this.isMapAlive) return;
+
     const source = this.map.getSource("grid") as
       | mapboxgl.GeoJSONSource
       | undefined;
