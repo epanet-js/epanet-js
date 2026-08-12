@@ -18,6 +18,11 @@ export type EncodedSubNetwork = {
   bounds: [number, number, number, number];
 };
 
+export const unsuppliedSubNetworks = (
+  subNetworks: SubNetwork[],
+): SubNetwork[] =>
+  subNetworks.filter((subNetwork) => subNetwork.supplySourceCount === 0);
+
 export function decodeSubNetworks(
   nodeIdsLookup: number[],
   linkIdsLookup: number[],

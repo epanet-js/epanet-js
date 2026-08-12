@@ -7,7 +7,9 @@ import { useUserTracking } from "src/infra/user-tracking";
 import {
   findConnectivityTrace,
   SubNetwork,
+  unsuppliedSubNetworks,
 } from "src/lib/network-review/connectivity-trace";
+import { useCachedCheck } from "src/hooks/use-review-checks";
 import { USelection, useSelection } from "src/selection";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { selectionAtom } from "src/state/selection";
@@ -233,11 +235,21 @@ const deferToAllowRender = () =>
 const useCheckConnectivityTrace = () => {
   const [subnetworks, setSubnetworks] = useState<SubNetwork[]>([]);
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
+  const { read, write } = useCachedCheck(CheckType.connectivityTrace);
   const { startLoading, finishLoading, isLoading } = useLoadingStatus();
   const isReady = useRef(false);
 
   const checkConnectivityTrace = useCallback(
     async (signal?: AbortSignal) => {
+      const cached = read();
+      if (cached) {
+        setSubnetworks(cached);
+        finishLoading();
+        isReady.current = true;
+        return;
+      }
+
+      const modelVersion = hydraulicModel.version;
       startLoading();
       await deferToAllowRender();
 
@@ -251,6 +263,7 @@ const useCheckConnectivityTrace = () => {
         );
 
         if (!signal?.aborted) {
+          write(result, unsuppliedSubNetworks(result).length, modelVersion);
           setSubnetworks(result);
           finishLoading();
           isReady.current = true;
@@ -263,7 +276,7 @@ const useCheckConnectivityTrace = () => {
         throw error;
       }
     },
-    [hydraulicModel, startLoading, finishLoading],
+    [hydraulicModel, startLoading, finishLoading, read, write],
   );
 
   return {

@@ -15,6 +15,7 @@ import {
 } from "src/icons";
 import { useUserTracking } from "src/infra/user-tracking";
 import { findOrphanAssets } from "src/lib/network-review/orphan-assets";
+import { useCachedCheck } from "src/hooks/use-review-checks";
 import { useSelection } from "src/selection";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { selectionAtom } from "src/state/selection";
@@ -224,11 +225,21 @@ const deferToAllowRender = () =>
 const useCheckOrphanAssets = () => {
   const [orphanAssets, setOrphanAssets] = useState<AssetId[]>([]);
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
+  const { read, write } = useCachedCheck(CheckType.orphanAssets);
   const { startLoading, finishLoading, isLoading } = useLoadingStatus();
   const isReady = useRef(false);
 
   const checkOrphanAssets = useCallback(
     async (signal?: AbortSignal) => {
+      const cached = read();
+      if (cached) {
+        setOrphanAssets(cached);
+        finishLoading();
+        isReady.current = true;
+        return;
+      }
+
+      const modelVersion = hydraulicModel.version;
       startLoading();
       await deferToAllowRender();
 
@@ -238,6 +249,7 @@ const useCheckOrphanAssets = () => {
         const result = await findOrphanAssets(hydraulicModel, signal);
 
         if (!signal?.aborted) {
+          write(result, result.length, modelVersion);
           setOrphanAssets(result);
           finishLoading();
           isReady.current = true;
@@ -250,7 +262,7 @@ const useCheckOrphanAssets = () => {
         throw error;
       }
     },
-    [hydraulicModel, startLoading, finishLoading],
+    [hydraulicModel, startLoading, finishLoading, read, write],
   );
 
   return {
