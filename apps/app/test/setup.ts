@@ -276,7 +276,21 @@ if (
     }),
   };
 
-  // Mock getBoundingClientRect for virtualizer
+  // jsdom performs no layout, so offsetWidth/offsetHeight are always 0.
+  // @tanstack/virtual-core reads them to size the scroll viewport (it used
+  // getBoundingClientRect before v3.17), which would otherwise virtualize
+  // every row away. Keep these in sync with the rect mock below.
+  Object.defineProperty(window.HTMLElement.prototype, "offsetWidth", {
+    configurable: true,
+    get: () => 300,
+  });
+  Object.defineProperty(window.HTMLElement.prototype, "offsetHeight", {
+    configurable: true,
+    get: () => 128,
+  });
+
+  // Chart cursors, scroll-spy, the grid's scrollbar hit-test and Radix
+  // positioning all read this; jsdom would report zeros.
   Element.prototype.getBoundingClientRect = vi.fn(() => ({
     top: 0,
     left: 0,
