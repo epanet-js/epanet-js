@@ -21,13 +21,16 @@
     "@epanet-js/project-settings": "workspace:*",
     "@epanet-js/quantity": "workspace:*",
     "@epanet-js/simulation": "workspace:*",
-    "chroma-js": "^3.1.2",
-    "mapbox-gl": "3.4.0"
+    "chroma-js": "^3.1.2"
+  },
+  "peerDependencies": {
+    "mapbox-gl": "^3.4.0"
   },
   "devDependencies": {
     "@types/chroma-js": "^3.1.0",
     "@types/geojson": "^7946.0.14",
     "@types/mapbox-gl": "3.1.0",
+    "mapbox-gl": "3.4.0",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
     "eslint": "^8.57.0",
