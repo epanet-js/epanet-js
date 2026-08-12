@@ -76,6 +76,7 @@ import { RecalculateAllElevationsConfirmDialog } from "src/dialogs/recalculate-a
 import { RecomputeElevationsProgressDialog } from "src/dialogs/recompute-elevations-progress-dialog";
 import { AllocateCustomerPointsWarningDialog } from "src/dialogs/allocate-customer-points-warning";
 import { ModelAttributesValidationDialog } from "src/dialogs/model-attributes-validation";
+import { PreSimulationChecksDialog } from "src/dialogs/pre-simulation-checks";
 import { ImportZonesDialog } from "src/dialogs/import-zones-wizard";
 
 export const Dialogs = memo(function Dialogs() {
@@ -223,6 +224,9 @@ export const Dialogs = memo(function Dialogs() {
         onClose={onClose}
       />
     );
+  }
+  if (dialog.type === "preSimulationChecks") {
+    return <PreSimulationChecksDialog modal={dialog} onClose={onClose} />;
   }
   if (dialog.type === "modelBuilderIframe") {
     return <ModelBuilderIframeDialog onClose={onClose} />;

@@ -21,6 +21,11 @@ export const blockingChecks = [
 
 export type BlockingCheckType = (typeof blockingChecks)[number];
 
+export const topologyRuleIds: Partial<Record<BlockingCheckType, string>> = {
+  [CheckType.orphanAssets]: "asset.connected",
+  [CheckType.connectivityTrace]: "subNetwork.supplySource.present",
+};
+
 export type BlockingCheckResult =
   | {
       check: CheckType.modelAttributesValidation;

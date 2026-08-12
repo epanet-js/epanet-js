@@ -1300,6 +1300,15 @@
       "customerPointSelected": "{{1}} customer point"
     }
   },
+  "preSimulationChecks": {
+    "title": "Before running the simulation",
+    "running": "Checking your model…",
+    "body": "These checks found problems that can make the simulation fail or produce misleading results.",
+    "affectedCount_one": "1 affected",
+    "affectedCount_other": "{{count}} affected",
+    "review": "Review issues",
+    "runAnyway": "Run anyway"
+  },
   "networkReview": {
     "toggle": "Toggle Network Review",
     "title": "Network Review",

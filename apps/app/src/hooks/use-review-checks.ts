@@ -10,6 +10,8 @@ import {
   BlockingCheckType,
   runBlockingChecks,
 } from "src/lib/network-review/blocking-checks";
+import { countValidationIssues } from "src/lib/model-attributes-validation";
+import { unsuppliedSubNetworks } from "src/lib/network-review/connectivity-trace";
 
 export type CachedCheckType = keyof ReviewResults;
 type ItemsOf<K extends CachedCheckType> = NonNullable<
@@ -137,5 +139,63 @@ export const useReviewChecks = () => {
     [run],
   );
 
-  return { runAll };
+  const cachedResult = useCallback(
+    (check: BlockingCheckType): BlockingCheckResult | null => {
+      switch (check) {
+        case CheckType.modelAttributesValidation: {
+          const items = attributes.read();
+          return items === null
+            ? null
+            : {
+                check,
+                items,
+                issueCount: countValidationIssues(items),
+              };
+        }
+        case CheckType.orphanAssets: {
+          const items = orphans.read();
+          return items === null
+            ? null
+            : { check, items, issueCount: items.length };
+        }
+        case CheckType.connectivityTrace: {
+          const items = connectivity.read();
+          return items === null
+            ? null
+            : {
+                check,
+                items,
+                issueCount: unsuppliedSubNetworks(items).length,
+              };
+        }
+      }
+    },
+    [attributes, orphans, connectivity],
+  );
+
+  // Runs only what the cache cannot answer, so a review already done in the
+  // panel makes this return without touching a worker.
+  const ensureFresh = useCallback(
+    async (options?: {
+      signal?: AbortSignal;
+      onCheckDone?: (result: BlockingCheckResult) => void;
+    }): Promise<BlockingCheckResult[]> => {
+      const cached = blockingChecks
+        .map(cachedResult)
+        .filter((result): result is BlockingCheckResult => result !== null);
+
+      const stale = blockingChecks.filter(
+        (check) => !cached.some((result) => result.check === check),
+      );
+
+      cached.forEach((result) => options?.onCheckDone?.(result));
+      if (stale.length === 0) return cached;
+
+      const computed = await run(stale, options);
+      return [...cached, ...computed];
+    },
+    [cachedResult, run],
+  );
+
+  return { runAll, ensureFresh };
 };

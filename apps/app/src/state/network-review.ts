@@ -18,4 +18,6 @@ export type ReviewResults = {
 
 export const reviewResultsAtom = atom<ReviewResults>({});
 
-export const selectedReviewCheckAtom = atom<CheckType | null>(null);
+// "summary" forces the panel back to its check list, even when it was left
+// showing a section.
+export const selectedReviewCheckAtom = atom<CheckType | "summary" | null>(null);

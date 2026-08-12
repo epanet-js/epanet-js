@@ -32,8 +32,18 @@ import {
 } from "src/lib/model-attributes-validation";
 import { selectedReviewCheckAtom } from "src/state/network-review";
 import { CheckType } from "src/panels/network-review/common";
-import { useCachedCheck } from "src/hooks/use-review-checks";
+import { useCachedCheck, useReviewChecks } from "src/hooks/use-review-checks";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import {
+  blockingChecks,
+  topologyRuleIds,
+} from "src/lib/network-review/blocking-checks";
 export const runSimulationShortcut = "shift+enter";
+
+// Small models settle well inside this, so the dialog never flashes for them.
+const progressDialogDelayMs = 300;
+
+const aborted = Symbol("aborted");
 
 export const useRunSimulation = () => {
   const setSimulationState = useSetAtom(simulationDerivedAtom);
@@ -43,6 +53,8 @@ export const useRunSimulation = () => {
   const { read: readCachedIssues, write: writeCachedIssues } = useCachedCheck(
     CheckType.modelAttributesValidation,
   );
+  const { ensureFresh } = useReviewChecks();
+  const isPreSimulationChecksOn = useFeatureFlag("FLAG_PRE_SIMULATION_CHECKS");
 
   const runSimulation = useAtomCallback(
     useCallback(
@@ -205,15 +217,98 @@ export const useRunSimulation = () => {
           void run();
         };
 
-        const reviewIssues = () => {
+        const reviewChecks = (target: CheckType | "summary") => {
           setDialogState(null);
           userTracking.capture({
             name: "simulation.validation.resolved",
             choice: "fixFirst",
           });
-          set(selectedReviewCheckAtom, CheckType.modelAttributesValidation);
+          set(selectedReviewCheckAtom, target);
           toggleNetworkReview({ source: "auto", state: true });
         };
+
+        if (isPreSimulationChecksOn) {
+          const abortController = new AbortController();
+          let hasSettled = false;
+
+          const showProgress = setTimeout(() => {
+            if (hasSettled) return;
+            setDialogState({
+              type: "preSimulationChecks",
+              onReview: (check) => reviewChecks(check ?? "summary"),
+              onRunAnyway: runWithIssues,
+              onCancel: () => abortController.abort(),
+            });
+          }, progressDialogDelayMs);
+
+          // Cancelling terminates the check workers, and a terminated Comlink
+          // call never settles — so racing the signal is what actually ends the
+          // wait, not the rejection.
+          const cancelled = new Promise<typeof aborted>((resolve) => {
+            abortController.signal.addEventListener("abort", () =>
+              resolve(aborted),
+            );
+          });
+
+          let results;
+          try {
+            results = await Promise.race([
+              ensureFresh({ signal: abortController.signal }),
+              cancelled,
+            ]);
+          } catch (error) {
+            setDialogState(null);
+            if ((error as Error).name === "AbortError") return;
+            throw error;
+          } finally {
+            hasSettled = true;
+            clearTimeout(showProgress);
+          }
+
+          if (results === aborted) {
+            setDialogState(null);
+            return;
+          }
+
+          const counts = Object.fromEntries(
+            results.map((result) => [result.check, result.issueCount]),
+          ) as Partial<Record<CheckType, number>>;
+          const failing = blockingChecks.filter(
+            (check) => (counts[check] ?? 0) > 0,
+          );
+
+          if (failing.length > 0) {
+            const rules = results.flatMap((result) =>
+              result.issueCount === 0
+                ? []
+                : result.check === CheckType.modelAttributesValidation
+                  ? result.items.map(([ruleId]) => ruleId)
+                  : [topologyRuleIds[result.check] ?? result.check],
+            );
+            userTracking.capture({
+              name: "simulation.validation.issuesFound",
+              issueCount: failing.reduce(
+                (total, check) => total + (counts[check] ?? 0),
+                0,
+              ),
+              rules,
+            });
+            setDialogState({
+              type: "preSimulationChecks",
+              counts,
+              onReview: (check) =>
+                reviewChecks(
+                  check ?? (failing.length === 1 ? failing[0] : "summary"),
+                ),
+              onRunAnyway: runWithIssues,
+              onCancel: () => setDialogState(null),
+            });
+            return;
+          }
+
+          await run();
+          return;
+        }
 
         const modelVersion = hydraulicModel.version;
         const cachedIssues = readCachedIssues();
@@ -233,7 +328,7 @@ export const useRunSimulation = () => {
           setDialogState({
             type: "modelAttributesValidation",
             issueCount,
-            onFixFirst: reviewIssues,
+            onFixFirst: () => reviewChecks(CheckType.modelAttributesValidation),
             onRunAnyway: runWithIssues,
           });
           return;
@@ -248,6 +343,8 @@ export const useRunSimulation = () => {
         toggleNetworkReview,
         readCachedIssues,
         writeCachedIssues,
+        ensureFresh,
+        isPreSimulationChecksOn,
       ],
     ),
   );

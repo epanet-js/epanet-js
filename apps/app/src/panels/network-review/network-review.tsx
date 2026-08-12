@@ -40,17 +40,22 @@ export function NetworkReview() {
   const [selectedReviewCheck, setSelectedReviewCheck] = useAtom(
     selectedReviewCheckAtom,
   );
-  const [checkType, setCheckType] = useState<CheckType | null>(
-    () => selectedReviewCheck,
+  const [checkType, setCheckType] = useState<CheckType | null>(() =>
+    selectedReviewCheck === "summary" ? null : selectedReviewCheck,
   );
 
   useEffect(
     function deepLinkToSelectedCheck() {
+      if (selectedReviewCheck === "summary") {
+        setCheckType(null);
+        setSelectedReviewCheck(null);
+        return;
+      }
       if (selectedReviewCheck !== null) {
         setCheckType(selectedReviewCheck);
       }
     },
-    [selectedReviewCheck],
+    [selectedReviewCheck, setSelectedReviewCheck],
   );
 
   const goBackToSummary = useCallback(() => {
