@@ -412,17 +412,6 @@ For each new feature flag, document:
   4. Replace the flag-on/flag-off test pairs with single assertions on the new default, and update the `Status\tFULL` expectations in `src/simulation/build-inp.test.ts` and `src/simulation/build-inp-for-export.test.ts` to `Status\tYES`.
   5. Delete this entry.
 
-#### FLAG_BUILD_ZIP
-- **Purpose**: The model-build GIS-import dropzone accepts `.zip` archives and expands them client-side, so a zipped Shapefile (or a folder of layers) can be dropped as one file. Also swaps the dropzone placeholder to the ZIP-aware copy.
-- **Risk Level**: Low - additive on the import path. With the flag off the dropzone neither advertises nor accepts `.zip`, and the file list behaves exactly as before.
-- **Dependencies**: Model-build only (`components/model-builder/multi-file-dropzone.tsx` + `lib/gis-import/expand-zip-files.ts`). Reaches the utility app through the iframe URL or its own `?FLAG_BUILD_ZIP=true` param when standalone. Nested archives are expanded to a depth of `MAX_ZIP_DEPTH` (2 archive levels: an outer zip may contain zips, those may not).
-- **Rollback Plan**: Turn the flag off in PostHog. `.zip` stops being accepted; already-imported data is unaffected since expansion happens before parsing and nothing zip-specific is persisted.
-- **Cleanup** (once rolled out to 100%):
-  1. Model-build `components/model-builder/multi-file-dropzone.tsx` - drop the `useFeatureFlag("FLAG_BUILD_ZIP")` call, inline `acceptedExtensions` as the `.zip` variant, call `expandZipFiles(files)` unconditionally in the load handler (removing `isBuildZipOn` from its dependency array), and render `fileDropzone.dragAndDropWithZip` directly.
-  2. Model-build `public/locales/en/translation.json` - replace `fileDropzone.dragAndDrop` with the `dragAndDropWithZip` copy and delete the `dragAndDropWithZip` key, updating the render site to the single key.
-  3. `components/model-builder/__tests__/multi-file-dropzone-zip.test.tsx` - drop `enableBuildZip`/`search` stubbing and the flag-off halves of the accept-attribute and placeholder tests.
-  4. Delete this entry.
-
 ### Flag Lifecycle Management
 1. **Introduction**: Add flag (default: off)
 2. **Development**: Enable via URL params for testing
