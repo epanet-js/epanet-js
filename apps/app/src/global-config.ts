@@ -29,6 +29,8 @@ export const modelBuilderUrl =
   "https://utils.epanetjs.com/model-builder?embedded=true";
 export const modelBuilderV2Url =
   process.env.NEXT_PUBLIC_MODEL_BUILDER_V2_URL || modelBuilderUrl;
+export const billingUrl =
+  process.env.NEXT_PUBLIC_BILLING_URL || "https://billing.epanetjs.com";
 export const customerPointsImportVideoUrl =
   "https://www.youtube.com/watch?v=58BFdUokcd4";
 export const customerPointsImportGuide =

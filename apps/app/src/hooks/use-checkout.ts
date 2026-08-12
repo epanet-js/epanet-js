@@ -5,6 +5,8 @@ import { captureError } from "src/infra/error-tracking";
 import { useTranslate } from "src/hooks/use-translate";
 import { Plan } from "src/lib/account-plans";
 import { ErrorIcon } from "src/icons";
+import { billingUrl } from "src/global-config";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 // Loaded lazily on first checkout so js.stripe.com is not fetched on every page
 // load (it injects its script as a side effect).
@@ -19,10 +21,14 @@ export type PaymentType = "monthly" | "yearly";
 const checkoutLoadingAtom = atom<boolean>(false);
 
 export const useCheckout = () => {
+  const isBillingOn = useFeatureFlag("FLAG_BILLING");
   const translate = useTranslate();
   const [isLoading, setLoading] = useAtom(checkoutLoadingAtom);
 
-  const startCheckoutImpl = async (plan: Plan, paymentType: PaymentType) => {
+  const startCheckoutDeprecated = async (
+    plan: Plan,
+    paymentType: PaymentType,
+  ) => {
     clearCheckoutParams();
 
     setLoading(true);
@@ -40,7 +46,19 @@ export const useCheckout = () => {
     }
   };
 
-  return { startCheckout: startCheckoutImpl, isLoading };
+  const startCheckoutInBillingApp = (plan: Plan, paymentType: PaymentType) => {
+    clearCheckoutParams();
+
+    setLoading(true);
+    window.location.assign(buildBillingCheckoutUrl(plan, paymentType));
+  };
+
+  return {
+    startCheckout: isBillingOn
+      ? startCheckoutInBillingApp
+      : startCheckoutDeprecated,
+    isLoading,
+  };
 };
 
 export const startCheckout = async (plan: Plan, paymentType: PaymentType) => {
@@ -72,6 +90,17 @@ export const clearCheckoutParams = () => {
   url.searchParams.delete("startCheckout");
 
   window.history.replaceState({}, "", url);
+};
+
+export const buildBillingCheckoutUrl = (
+  plan: Plan,
+  paymentType: PaymentType,
+) => {
+  const url = new URL("/checkout", billingUrl);
+  url.searchParams.set("plan", plan);
+  url.searchParams.set("paymentType", paymentType);
+  url.searchParams.set("return", `${window.location.origin}/`);
+  return url.toString();
 };
 
 export const buildCheckoutUrl = (plan: Plan, paymentType: PaymentType) => {
