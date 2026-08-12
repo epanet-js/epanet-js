@@ -6,7 +6,7 @@ import { Action, ActionButton } from "src/components/action-button";
 import { useTranslate } from "src/hooks/use-translate";
 import { useZoom } from "src/hooks/use-zoom";
 import { useUserTracking } from "src/infra/user-tracking";
-import { NoIssuesIcon } from "src/icons";
+import { NoIssuesIcon, RefreshIcon, WarningIcon } from "src/icons";
 
 export const enum CheckType {
   connectivityTrace = "connectivityTrace",
@@ -113,6 +113,38 @@ export const useCheckHeader = (
     summary: translate(`networkReview.${checkType}.summary`, itemsCount),
     onGoBack: goBack,
   };
+};
+
+// Signals that a check found something, not how many — the count would tick
+// down while the user fixes issues one at a time, and the row only needs to say
+// "there is something to look at here". Only a check that ran against the
+// current model and found nothing shows no badge at all.
+export type CheckBadgeStatus = "none" | "outdated" | "withIssues";
+
+export const CheckBadge = ({ status }: { status: CheckBadgeStatus }) => {
+  const translate = useTranslate();
+
+  if (status === "none") return null;
+
+  if (status === "outdated") {
+    return (
+      <span
+        className="text-subtle"
+        aria-label={translate("networkReview.outdated")}
+      >
+        <RefreshIcon size={16} />
+      </span>
+    );
+  }
+
+  return (
+    <span
+      className="text-orange-500 dark:text-orange-400"
+      aria-label={translate("networkReview.issuesFound")}
+    >
+      <WarningIcon size={16} />
+    </span>
+  );
 };
 
 export const ToolDescription = ({ checkType }: { checkType: CheckType }) => {

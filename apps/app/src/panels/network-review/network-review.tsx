@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useAtom } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import { Button } from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
 import {
@@ -9,17 +9,32 @@ import {
   OrphanNodeIcon,
   PipesCrossinIcon,
   ProximityCheckIcon,
+  RefreshIcon,
+  SpinnerIcon,
 } from "src/icons";
 import { OrphanAssets } from "./orphan-assets";
 import { useUserTracking } from "src/infra/user-tracking";
-import { CheckType } from "./common";
+import { CheckBadge, CheckBadgeStatus, CheckType } from "./common";
 import { ProximityAnomalies } from "./proximity-anomalies";
 import { CrossingPipes } from "./crossing-pipes";
 import { ConnectivityTrace } from "./connectivity-trace";
 import { ModelAttributesValidation } from "./model-attributes-validation";
 import { EarlyAccessBadge } from "src/components/early-access-badge";
 import { useEarlyAccess } from "src/hooks/use-early-access";
-import { selectedReviewCheckAtom } from "src/state/network-review";
+import {
+  reviewResultsAtom,
+  selectedReviewCheckAtom,
+} from "src/state/network-review";
+import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { useRefreshNetworkReview } from "src/commands/refresh-network-review";
+import {
+  blockingChecks,
+  BlockingCheckType,
+} from "src/lib/network-review/blocking-checks";
+
+const isBlockingCheck = (check: CheckType): check is BlockingCheckType =>
+  (blockingChecks as readonly CheckType[]).includes(check);
 
 export function NetworkReview() {
   const [selectedReviewCheck, setSelectedReviewCheck] = useAtom(
@@ -77,6 +92,9 @@ function NetworkReviewSummary({
   onClick: (check: CheckType) => void;
 }) {
   const translate = useTranslate();
+  const isPreSimulationChecksOn = useFeatureFlag("FLAG_PRE_SIMULATION_CHECKS");
+  const { refreshNetworkReview, isRefreshing } = useRefreshNetworkReview();
+  const reviewResults = useAtomValue(reviewResultsAtom);
 
   const [selectedCheckType, setSelectedCheckType] = useState<CheckType | null>(
     null,
@@ -89,6 +107,18 @@ function NetworkReviewSummary({
     }, 100);
     return () => clearTimeout(timer);
   }, []);
+
+  const modelVersion = useAtomValue(stagingModelDerivedAtom).version;
+
+  const badgeStatus = (checkType: CheckType): CheckBadgeStatus => {
+    if (!isPreSimulationChecksOn) return "none";
+    if (!isBlockingCheck(checkType)) return "none";
+
+    const entry = reviewResults[checkType];
+    if (!entry || entry.modelVersion !== modelVersion) return "outdated";
+
+    return entry.issueCount > 0 ? "withIssues" : "none";
+  };
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -130,8 +160,23 @@ function NetworkReviewSummary({
       tabIndex={0}
       onKeyDown={handleKeyDown}
     >
-      <div className="py-3 px-4 text-size-base font-bold text-default border-b w-full">
+      <div className="py-3 px-4 text-size-base font-bold text-default border-b w-full flex items-center justify-between gap-2">
         <span>{translate("networkReview.title")}</span>
+        {isPreSimulationChecksOn && (
+          <Button
+            variant="quiet"
+            size="xxs"
+            aria-label={translate("networkReview.refresh")}
+            disabled={isRefreshing}
+            onClick={() => void refreshNetworkReview()}
+          >
+            {isRefreshing ? (
+              <SpinnerIcon size={16} />
+            ) : (
+              <RefreshIcon size={16} />
+            )}
+          </Button>
+        )}
       </div>
       <div className="px-4 pt-3">
         <EarlyAccessBadge />
@@ -146,6 +191,7 @@ function NetworkReviewSummary({
             checkType={checkType}
             onClick={onClick}
             isSelected={selectedCheckType === checkType}
+            badgeStatus={badgeStatus(checkType)}
             requiresEarlyAccess={
               checkType !== CheckType.modelAttributesValidation
             }
@@ -178,12 +224,14 @@ const ReviewCheck = ({
   checkType,
   isEnabled = true,
   isSelected,
+  badgeStatus,
   requiresEarlyAccess = true,
 }: {
   checkType: CheckType;
   onClick: (checkType: CheckType) => void;
   isEnabled?: boolean;
   isSelected: boolean;
+  badgeStatus: CheckBadgeStatus;
   requiresEarlyAccess?: boolean;
 }) => {
   const translate = useTranslate();
@@ -229,15 +277,18 @@ const ReviewCheck = ({
         <div className="flex flex-row gap-2 flex-wrap items-center">
           <div className="text-size-base font-bold text-left">{label}</div>
         </div>
-        {isEnabled && (
-          <div
-            className={`pt-[.125rem] transition-opacity ${
-              isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-            }`}
-          >
-            <ChevronRightIcon />
-          </div>
-        )}
+        <div className="flex items-start gap-0.5 pt-[.125rem]">
+          <CheckBadge status={badgeStatus} />
+          {isEnabled && (
+            <div
+              className={`transition-opacity ${
+                isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+              }`}
+            >
+              <ChevronRightIcon />
+            </div>
+          )}
+        </div>
       </div>
     </Button>
   );

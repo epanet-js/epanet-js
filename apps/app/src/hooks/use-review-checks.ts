@@ -4,6 +4,12 @@ import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { ReviewResults, reviewResultsAtom } from "src/state/network-review";
 import { CheckType } from "src/panels/network-review/common";
+import {
+  blockingChecks,
+  BlockingCheckResult,
+  BlockingCheckType,
+  runBlockingChecks,
+} from "src/lib/network-review/blocking-checks";
 
 export type CachedCheckType = keyof ReviewResults;
 type ItemsOf<K extends CachedCheckType> = NonNullable<
@@ -67,4 +73,69 @@ export const useCachedCheck = <K extends CachedCheckType>(check: K) => {
   );
 
   return { read, write };
+};
+
+export const useReviewChecks = () => {
+  const attributes = useCachedCheck(CheckType.modelAttributesValidation);
+  const orphans = useCachedCheck(CheckType.orphanAssets);
+  const connectivity = useCachedCheck(CheckType.connectivityTrace);
+
+  const cache = useCallback(
+    (result: BlockingCheckResult, modelVersion: string) => {
+      switch (result.check) {
+        case CheckType.modelAttributesValidation:
+          return attributes.write(
+            result.items,
+            result.issueCount,
+            modelVersion,
+          );
+        case CheckType.orphanAssets:
+          return orphans.write(result.items, result.issueCount, modelVersion);
+        case CheckType.connectivityTrace:
+          return connectivity.write(
+            result.items,
+            result.issueCount,
+            modelVersion,
+          );
+      }
+    },
+    [attributes, orphans, connectivity],
+  );
+
+  const run = useAtomCallback(
+    useCallback(
+      async (
+        get,
+        _set,
+        only: readonly BlockingCheckType[],
+        options: {
+          signal?: AbortSignal;
+          onCheckDone?: (result: BlockingCheckResult) => void;
+        } = {},
+      ) => {
+        const model = get(stagingModelDerivedAtom);
+        const modelVersion = model.version;
+
+        return runBlockingChecks(model, {
+          only,
+          signal: options.signal,
+          onCheckDone: (result) => {
+            cache(result, modelVersion);
+            options.onCheckDone?.(result);
+          },
+        });
+      },
+      [cache],
+    ),
+  );
+
+  const runAll = useCallback(
+    (options?: {
+      signal?: AbortSignal;
+      onCheckDone?: (result: BlockingCheckResult) => void;
+    }) => run(blockingChecks, options),
+    [run],
+  );
+
+  return { runAll };
 };

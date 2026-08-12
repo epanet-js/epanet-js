@@ -4,6 +4,8 @@ import { Button } from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
 import { useZoomTo } from "src/hooks/use-zoom-to";
 import { useUserTracking } from "src/infra/user-tracking";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { WarningIcon } from "src/icons";
 import {
   findConnectivityTrace,
   SubNetwork,
@@ -156,6 +158,8 @@ const SubNetworksList = ({
   selectedSubNetwork: number | null;
   onGoBack: () => void;
 }) => {
+  const isPreSimulationChecksOn = useFeatureFlag("FLAG_PRE_SIMULATION_CHECKS");
+
   return (
     <VirtualizedIssuesList
       items={subNetworks}
@@ -168,6 +172,9 @@ const SubNetworksList = ({
           subnetwork={subnetwork}
           selectedId={selectedId}
           onClick={onClick}
+          showWarning={
+            isPreSimulationChecksOn && subnetwork.supplySourceCount === 0
+          }
         />
       )}
       checkType={CheckType.connectivityTrace}
@@ -181,11 +188,13 @@ const SubnetworkItem = ({
   subnetwork,
   onClick,
   selectedId,
+  showWarning,
 }: {
   index: number;
   subnetwork: SubNetwork;
   onClick: (subnetwork: SubNetwork) => void;
   selectedId: number | null;
+  showWarning: boolean;
 }) => {
   const translate = useTranslate();
   const isSelected = selectedId === subnetwork.subnetworkId;
@@ -221,8 +230,15 @@ const SubnetworkItem = ({
             String(index),
           )}
         </div>
-        <div className="text-subtle truncate">
-          {supplySourceText} · {pipesText}
+        <div className="text-subtle flex items-center gap-1 w-full">
+          {showWarning && (
+            <span className="shrink-0 text-orange-500 dark:text-orange-400">
+              <WarningIcon size={12} />
+            </span>
+          )}
+          <span className="truncate">
+            {supplySourceText} · {pipesText}
+          </span>
         </div>
       </div>
     </Button>

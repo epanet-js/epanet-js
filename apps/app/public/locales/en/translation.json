@@ -1304,8 +1304,10 @@
     "toggle": "Toggle Network Review",
     "title": "Network Review",
     "description": "Run a series of checks to validate your network's topology and ensure data quality.",
-    "issuesFound": "{{1}} issues found",
+    "issuesFound": "Issues found",
     "noIssuesFound": "No issues found",
+    "refresh": "Refresh checks",
+    "outdated": "Not up to date — refresh to run this check",
     "connectivityTrace": {
       "title": "Connectivity trace",
       "description": "Identify disconnected sub-networks and verify each has a water supply source",
