@@ -118,10 +118,14 @@ export const CreateNew = () => {
       setIsSubmitting(true);
       setDialog({ type: "loading" });
       try {
-        await startBlankProject({
+        const started = await startBlankProject({
           projectSettings,
           autoElevations: projection.id !== "xy-grid",
         });
+        if (!started) {
+          closeDialog();
+          return;
+        }
       } catch (error) {
         captureError(error instanceof Error ? error : new Error(String(error)));
         setDialog({ type: "changeNotApplied" });

@@ -9,6 +9,7 @@ import {
   useOpenPersistedProject,
   type OpenPersistedProjectPhase,
 } from "src/hooks/persistence/use-open-persisted-project";
+import { withDatabaseBusy } from "src/hooks/persistence/use-start-new-project";
 import { useUserTracking } from "src/infra/user-tracking";
 import { chooseUnitSystem } from "src/simulation/build-inp";
 import type { Asset } from "src/hydraulic-model";
@@ -30,6 +31,12 @@ import { inpExtension, useImportInp } from "./import-inp";
 
 export const openProjectShortcut = "ctrl+o";
 
+type OpenProjectFileOptions = {
+  isUnsaved?: boolean;
+  lastSavedAt?: number;
+  isDemoNetwork?: boolean;
+};
+
 export const useOpenProjectFile = () => {
   const { openPersistedProject } = useOpenPersistedProject();
   const setInpFileInfo = useSetAtom(inpFileInfoAtom);
@@ -40,15 +47,11 @@ export const useOpenProjectFile = () => {
   const userTracking = useUserTracking();
   const { addRecent } = useRecentFiles();
 
-  return useCallback(
+  const openProjectFile = useCallback(
     async (
       file: FileWithHandle,
       source: string,
-      options: {
-        isUnsaved?: boolean;
-        lastSavedAt?: number;
-        isDemoNetwork?: boolean;
-      } = {},
+      options: OpenProjectFileOptions = {},
     ) => {
       try {
         setDialogState({ type: "openProjectProgress", phase: "opening" });
@@ -246,6 +249,17 @@ export const useOpenProjectFile = () => {
       userTracking,
       addRecent,
     ],
+  );
+
+  return useCallback(
+    async (
+      file: FileWithHandle,
+      source: string,
+      options: OpenProjectFileOptions = {},
+    ) => {
+      await withDatabaseBusy(() => openProjectFile(file, source, options));
+    },
+    [openProjectFile],
   );
 };
 

@@ -29,7 +29,9 @@ export const useOpenModelBuilder = () => {
             source,
           });
 
-          await startBlankProject();
+          const started = await startBlankProject();
+          if (!started) return;
+
           setDialogState({ type: "modelBuilderV2Iframe" });
         });
       }, "modelBuilderV2Iframe");

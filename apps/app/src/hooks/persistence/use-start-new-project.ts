@@ -164,27 +164,53 @@ export const clearSimulationStorage = async () => {
   await storage.clear();
 };
 
+let isDatabaseBusy = false;
+
+export const withDatabaseBusy = async <T>(
+  run: () => Promise<T>,
+): Promise<T | null> => {
+  if (isDatabaseBusy) return null;
+  isDatabaseBusy = true;
+  try {
+    return await run();
+  } finally {
+    isDatabaseBusy = false;
+  }
+};
+
 export const useStartNewProject = () => {
   const startNewProject = useAtomCallback(
-    useCallback(async (_get: Getter, set: Setter, input: ProjectLoadInput) => {
-      await clearSimulationStorage();
-      const mergedProjectSettings: ProjectSettings = {
-        ...input.projectSettings,
-        ...{ uniqueId: db.newUniqueId() },
-        units: {
-          ...input.projectSettings.units,
-          chemicalConcentration: input.simulationSettings.qualityMassUnit,
-        },
-      };
-      await db.importProject({
-        newDb: true,
-        projectSettings: mergedProjectSettings,
-        hydraulicModel: input.hydraulicModel,
-        simulationSettings: input.simulationSettings,
-      });
-      resetAppState(set);
-      loadModel(set, { ...input, projectSettings: mergedProjectSettings });
-    }, []),
+    useCallback(
+      async (
+        _get: Getter,
+        set: Setter,
+        input: ProjectLoadInput,
+      ): Promise<boolean> => {
+        const started = await withDatabaseBusy(async () => {
+          await clearSimulationStorage();
+          const mergedProjectSettings: ProjectSettings = {
+            ...input.projectSettings,
+            ...{ uniqueId: db.newUniqueId() },
+            units: {
+              ...input.projectSettings.units,
+              chemicalConcentration: input.simulationSettings.qualityMassUnit,
+            },
+          };
+          await db.importProject({
+            newDb: true,
+            projectSettings: mergedProjectSettings,
+            hydraulicModel: input.hydraulicModel,
+            simulationSettings: input.simulationSettings,
+          });
+          resetAppState(set);
+          loadModel(set, { ...input, projectSettings: mergedProjectSettings });
+          return true;
+        });
+
+        return started ?? false;
+      },
+      [],
+    ),
   );
 
   return { startNewProject };
@@ -202,22 +228,25 @@ export const useStartBlankProject = () => {
     }: {
       projectSettings?: ProjectSettings;
       autoElevations?: boolean;
-    } = {}) => {
+    } = {}): Promise<boolean> => {
       const idGenerator = new ConsecutiveIdsGenerator();
       const hydraulicModel = initializeHydraulicModel({ idGenerator });
       const factories = initializeModelFactories({
         idGenerator,
         labelManager: new LabelManager(),
       });
-      await startNewProject({
+      const started = await startNewProject({
         hydraulicModel,
         factories,
         projectSettings,
         simulationSettings: buildDefaultSimulationSettings({ isReportYesOn }),
         autoElevations,
       });
+      if (!started) return false;
+
       setInpFileInfo(null);
       setProjectFileInfo(null);
+      return true;
     },
     [startNewProject, setInpFileInfo, setProjectFileInfo, isReportYesOn],
   );

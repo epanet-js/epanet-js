@@ -15,6 +15,7 @@ import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
 import {
   useSeedDefaultProjectDb,
   useStartBlankProject,
+  withDatabaseBusy,
 } from "./use-start-new-project";
 
 const UUID_REGEX =
@@ -75,6 +76,33 @@ describe("useStartBlankProject", () => {
     expect((await fetchProject()).projectSettings.uniqueId).toBe(uniqueId);
   });
 
+  describe("overlapping swaps", () => {
+    it("drops a swap that starts while another one is running", async () => {
+      const store = setInitialState();
+      const { result } = renderStartEmptyProject(store);
+
+      let outcomes: boolean[] = [];
+      await act(async () => {
+        outcomes = await Promise.all([result.current(), result.current()]);
+      });
+
+      expect(outcomes).toEqual([true, false]);
+    });
+
+    it("accepts a swap once the previous one finished", async () => {
+      const store = setInitialState();
+      const { result } = renderStartEmptyProject(store);
+
+      let started = false;
+      await act(async () => {
+        await result.current();
+        started = await result.current();
+      });
+
+      expect(started).toBe(true);
+    });
+  });
+
   describe("status report default", () => {
     it("defaults to FULL when FLAG_REPORT_YES is disabled", async () => {
       stubFeatureOff("FLAG_REPORT_YES");
@@ -103,6 +131,32 @@ describe("useStartBlankProject", () => {
         "YES",
       );
     });
+  });
+});
+
+describe("withDatabaseBusy", () => {
+  it("drops a run that starts while another one is in flight", async () => {
+    let releaseFirst = () => {};
+    const first = withDatabaseBusy(
+      () =>
+        new Promise<string>(
+          (resolve) => (releaseFirst = () => resolve("first")),
+        ),
+    );
+
+    const dropped = await withDatabaseBusy(() => Promise.resolve("second"));
+    releaseFirst();
+
+    expect(dropped).toBeNull();
+    expect(await first).toBe("first");
+  });
+
+  it("releases the guard when the run fails", async () => {
+    await expect(
+      withDatabaseBusy(() => Promise.reject(new Error("boom"))),
+    ).rejects.toThrow("boom");
+
+    expect(await withDatabaseBusy(() => Promise.resolve("next"))).toBe("next");
   });
 });
 

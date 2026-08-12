@@ -17,7 +17,7 @@ vi.mock("src/hooks/use-permissions", () => ({
   usePermissions: () => ({ canUseModelBuildV2 }),
 }));
 
-const startBlankProject = vi.fn().mockResolvedValue(undefined);
+const startBlankProject = vi.fn().mockResolvedValue(true);
 vi.mock("src/hooks/persistence/use-start-new-project", () => ({
   useStartBlankProject: () => startBlankProject,
 }));
@@ -35,7 +35,8 @@ const renderOpen = (store: ReturnType<typeof createStore>) =>
 describe("useOpenModelBuilder", () => {
   beforeEach(() => {
     canUseModelBuildV2 = false;
-    startBlankProject.mockClear();
+    startBlankProject.mockReset();
+    startBlankProject.mockResolvedValue(true);
   });
 
   it("opens the v2 dialog when the user can use it", async () => {
@@ -56,7 +57,7 @@ describe("useOpenModelBuilder", () => {
     const store = createStore();
     startBlankProject.mockImplementation(() => {
       expect(store.get(dialogAtom)).toBeNull();
-      return Promise.resolve();
+      return Promise.resolve(true);
     });
 
     const { result } = renderOpen(store);
@@ -67,6 +68,20 @@ describe("useOpenModelBuilder", () => {
 
     expect(startBlankProject).toHaveBeenCalledTimes(1);
     expect(store.get(dialogAtom)).toEqual({ type: "modelBuilderV2Iframe" });
+  });
+
+  it("keeps the dialog closed when the project swap is dropped", async () => {
+    canUseModelBuildV2 = true;
+    const store = createStore();
+    startBlankProject.mockResolvedValue(false);
+
+    const { result } = renderOpen(store);
+    await act(async () => {
+      result.current({ source: "toolbar" });
+      await flushMicrotasks();
+    });
+
+    expect(store.get(dialogAtom)).toBeNull();
   });
 
   it("opens the paywall without clearing the project", async () => {

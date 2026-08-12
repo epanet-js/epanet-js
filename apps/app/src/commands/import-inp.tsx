@@ -83,13 +83,17 @@ export const useImportInp = () => {
       const projectName = file.name.replace(/\.[^.]+$/, "");
 
       try {
-        await startNewProject({
+        const started = await startNewProject({
           hydraulicModel,
           factories,
           projectSettings: { ...projectSettings, name: projectName },
           simulationSettings,
           autoElevations: options?.autoElevations,
         });
+        if (!started) {
+          setDialogState(null);
+          return;
+        }
       } catch (error) {
         captureError(error as Error);
         setDialogState(null);
