@@ -31,6 +31,7 @@ import {
   useCheckout,
 } from "src/hooks/use-checkout";
 import { usePermissions } from "src/hooks/use-permissions";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { signUpUrl } from "src/global-config";
 import { CheckIcon, InfoIcon, CloseIcon } from "src/icons";
 import type { UpgradeOrigin } from "src/state/dialog";
@@ -57,6 +58,7 @@ export const UpgradeDialog = ({
   feature = "upgradeMenu",
   source = "upgrade",
 }: { feature?: string; source?: UpgradeOrigin } = {}) => {
+  const isBillingOn = useFeatureFlag("FLAG_BILLING");
   const { isLoaded: isAuthLoaded, isSignedIn } = useAuth();
   const { isLoading: isLoadingCheckout, startCheckout } = useCheckout();
   const { canUpgrade } = usePermissions();
@@ -70,7 +72,7 @@ export const UpgradeDialog = ({
   }
 
   if (checkoutParams.enabled) {
-    if (isSignedIn) {
+    if (isBillingOn || isSignedIn) {
       void startCheckout(checkoutParams.plan, checkoutParams.paymentType);
       return null;
     } else {

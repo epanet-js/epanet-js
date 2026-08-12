@@ -4,6 +4,7 @@ import { Plan } from "src/lib/account-plans";
 import { useUserTracking } from "src/infra/user-tracking";
 import { SignInButton } from "src/components/auth/sign-in-button";
 import { useAuth } from "src/hooks/use-auth";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   PaymentType,
   buildCheckoutUrl,
@@ -26,6 +27,7 @@ export const CheckoutButton = ({
   feature?: string;
   children: ReactNode;
 }) => {
+  const isBillingOn = useFeatureFlag("FLAG_BILLING");
   const { startCheckout } = useCheckout();
   const userTracking = useUserTracking();
   const { isSignedIn } = useAuth();
@@ -40,7 +42,7 @@ export const CheckoutButton = ({
     });
   };
 
-  if (!isSignedIn) {
+  if (!isBillingOn && !isSignedIn) {
     return (
       <SignInButton forceRedirectUrl={buildCheckoutUrl(plan, paymentType)}>
         <Button

@@ -5,6 +5,7 @@ import * as Tooltip from "@radix-ui/react-tooltip";
 import { AuthMockProvider } from "src/__helpers__/auth-mock";
 import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
+import { billingUrl } from "src/global-config";
 import { UpgradeDialog } from "./upgrade";
 
 vi.mock("@stripe/stripe-js", () => ({
@@ -37,7 +38,7 @@ describe("upgrade dialog checkout", () => {
       await userEvent.click(upgradeButtonFor("Pro"));
 
       expect(assign).toHaveBeenCalledWith(
-        "https://billing.epanetjs.com/checkout?plan=pro&paymentType=yearly&return=http%3A%2F%2Flocalhost%3A3000%2F",
+        `${billingUrl}/checkout?plan=pro&paymentType=yearly&return=http%3A%2F%2Flocalhost%3A3000%2F`,
       );
     });
 
@@ -50,6 +51,17 @@ describe("upgrade dialog checkout", () => {
 
       expect(assign).toHaveBeenCalledWith(
         expect.stringContaining("plan=pro&paymentType=monthly"),
+      );
+    });
+
+    it("sends a signed-out user to the billing app without signing in first", async () => {
+      const assign = stubNavigation();
+      renderDialog({ isSignedIn: false });
+
+      await userEvent.click(upgradeButtonFor("Pro"));
+
+      expect(assign).toHaveBeenCalledWith(
+        expect.stringContaining("/checkout?plan=pro&paymentType=yearly"),
       );
     });
 
@@ -112,9 +124,9 @@ describe("upgrade dialog checkout", () => {
         new Response(JSON.stringify({ sessionId: "cs_test" })),
       );
 
-  const renderDialog = () =>
+  const renderDialog = ({ isSignedIn = true }: { isSignedIn?: boolean } = {}) =>
     render(
-      <AuthMockProvider>
+      <AuthMockProvider isSignedIn={isSignedIn}>
         <JotaiProvider store={createStore()}>
           <Tooltip.Provider>
             <UpgradeDialog />

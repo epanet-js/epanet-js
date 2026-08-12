@@ -416,14 +416,17 @@ For each new feature flag, document:
 - **Purpose**: The plan cards send the user to the billing app (`billing.epanetjs.com/checkout`) to pay, instead of calling the app's own `/api/stripe-checkout` and `stripe.redirectToCheckout`. Payment happens entirely in the billing app; this is the main-app half of slice 1 in `.claude/billing-spec.md`.
 - **Risk Level**: Low - one branch in `useCheckout`, implemented with function duplication (`startCheckoutInBillingApp` vs `startCheckoutDeprecated`). Flag off leaves the Stripe.js path byte-identical. Every plan card and paywall goes through that one hook, so there is no second code path to keep in sync.
 - **Dependencies**: `NEXT_PUBLIC_BILLING_URL` (defaults to `https://billing.epanetjs.com`). The URL contract - `?plan=&paymentType=&return=` - and the return-origin allowlist live in `private/apps/billing`; `return` is `${window.location.origin}/`, and its origin must be on that allowlist, so previews on `*.vercel.app` are rejected by design. Note the billing app does not post the Slack upgrade alert yet - that moves in spec slice 2, so flag-on upgrades are silent in Slack until then.
+- **No app-side auth check**: with the flag on, `checkout-button.tsx` and the `?startCheckout=true` resume path in `upgrade.tsx` stop gating on `isSignedIn`. Billing's middleware protects `/checkout(.*)` with `auth.protect()` and returns the visitor to the same checkout URL after signing in, and a user who already pays gets billing's 409 rather than a card they cannot buy. This is what lets a purchase start from the landing page, which has no app session - `https://epanetjs.com` is already on billing's return allowlist. Answers open question 3 in `.claude/billing-spec.md`.
 - **Rollback Plan**: Turn the flag off in PostHog. Checkout goes back through `/api/stripe-checkout`; nothing is persisted differently, so users mid-flow are unaffected.
 - **Cleanup** (once rolled out to 100%):
   1. `src/hooks/use-checkout.ts` - delete `startCheckoutDeprecated`, the module-level `startCheckout`, `getStripe`/`loadStripe`, and the `useFeatureFlag` branch, keeping only `buildBillingCheckoutUrl`.
   2. Delete `app/api/stripe-checkout/route.ts` and `app/api/stripe-callback/route.ts`.
   3. Drop `@stripe/stripe-js` from `package.json` and `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` from `.env.example` and Vercel.
   4. Keep `app/api/stripe-webhook/route.ts` - it moves in spec slice 2, not with this flag.
-  5. `src/dialogs/upgrade.test.tsx` - drop the `FLAG_BILLING disabled` block and the `@stripe/stripe-js` mock, keeping the billing-path assertions.
-  6. Delete this entry.
+  5. `src/components/checkout-button.tsx` - delete the `SignInButton` branch and the flag check, leaving only the plain button.
+  6. `src/dialogs/upgrade.tsx` - delete the `?startCheckout=true` resume branch and its `RedirectToSignIn`; then `buildCheckoutUrl` and `getCheckoutUrlParams` in `src/hooks/use-checkout.ts` are unused and go too.
+  7. `src/dialogs/upgrade.test.tsx` - drop the `FLAG_BILLING disabled` block and the `@stripe/stripe-js` mock, keeping the billing-path assertions.
+  8. Delete this entry.
 
 ### Flag Lifecycle Management
 1. **Introduction**: Add flag (default: off)
