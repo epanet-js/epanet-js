@@ -3,15 +3,15 @@ import { useAtomCallback } from "jotai/utils";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { ReviewResults, reviewResultsAtom } from "src/state/network-review";
-import { CheckType } from "src/panels/network-review/common";
 import {
+  CheckType,
   blockingChecks,
   BlockingCheckResult,
   BlockingCheckType,
   runBlockingChecks,
-} from "src/lib/network-review/blocking-checks";
+  unsuppliedSubNetworks,
+} from "src/lib/network-review";
 import { countValidationIssues } from "src/lib/model-attributes-validation";
-import { unsuppliedSubNetworks } from "src/lib/network-review/connectivity-trace";
 
 export type CachedCheckType = keyof ReviewResults;
 type ItemsOf<K extends CachedCheckType> = NonNullable<

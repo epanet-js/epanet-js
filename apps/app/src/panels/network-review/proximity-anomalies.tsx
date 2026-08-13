@@ -3,6 +3,10 @@ import { localizeDecimal } from "src/infra/i18n/numbers";
 
 import {
   CheckType,
+  ProximityAnomaly,
+  findProximityAnomalies,
+} from "src/lib/network-review";
+import {
   EmptyState,
   LoadingState,
   ToolDescription,
@@ -18,10 +22,6 @@ import { projectSettingsAtom } from "src/state/project-settings";
 import { selectionAtom } from "src/state/selection";
 import { useTranslate } from "src/hooks/use-translate";
 import { convertTo, Quantity } from "@epanet-js/quantity";
-import {
-  ProximityAnomaly,
-  findProximityAnomalies,
-} from "src/lib/network-review/proximity-anomalies";
 import { useSelection, USelection } from "src/selection";
 import { useZoomTo } from "src/hooks/use-zoom-to";
 import { useUserTracking } from "src/infra/user-tracking";

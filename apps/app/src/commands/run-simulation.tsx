@@ -31,10 +31,9 @@ import {
   validateModelAttributes,
 } from "src/lib/model-attributes-validation";
 import { selectedReviewCheckAtom } from "src/state/network-review";
-import { CheckType } from "src/panels/network-review/common";
+import { CheckType, failingRuleIds } from "src/lib/network-review";
 import { useCachedCheck, useReviewChecks } from "src/hooks/use-review-checks";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { failingRuleIds } from "src/lib/network-review/blocking-checks";
 export const runSimulationShortcut = "shift+enter";
 
 // Small models settle well inside this, so the dialog never flashes for them.

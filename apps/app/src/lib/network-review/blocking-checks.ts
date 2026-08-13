@@ -5,7 +5,7 @@ import {
   validateModelAttributes,
   ValidationIssues,
 } from "src/lib/model-attributes-validation";
-import { CheckType } from "src/panels/network-review/common";
+import { CheckType } from "./types";
 import { findOrphanAssets } from "./orphan-assets";
 import {
   findConnectivityTrace,
@@ -20,11 +20,6 @@ export const blockingChecks = [
 ] as const;
 
 export type BlockingCheckType = (typeof blockingChecks)[number];
-
-export const topologyRuleIds: Partial<Record<BlockingCheckType, string>> = {
-  [CheckType.orphanAssets]: "asset.connected",
-  [CheckType.connectivityTrace]: "subNetwork.supplySource.present",
-};
 
 export type BlockingCheckResult =
   | {
@@ -97,6 +92,11 @@ const reportOrder = [
   CheckType.connectivityTrace,
   CheckType.modelAttributesValidation,
 ] as const;
+
+const topologyRuleIds: Partial<Record<BlockingCheckType, string>> = {
+  [CheckType.orphanAssets]: "asset.connected",
+  [CheckType.connectivityTrace]: "subNetwork.supplySource.present",
+};
 
 export const failingRuleIds = (results: BlockingCheckResult[]): string[] =>
   reportOrder.flatMap((check) => {

@@ -1,8 +1,7 @@
 import { atom } from "jotai";
-import type { CheckType } from "src/panels/network-review/common";
+import type { CheckType, SubNetwork } from "src/lib/network-review";
 import type { AssetId } from "@epanet-js/hydraulic-model";
 import type { ValidationIssues } from "src/lib/model-attributes-validation";
-import type { SubNetwork } from "src/lib/network-review/connectivity-trace";
 
 export type ReviewCheckEntry<T> = {
   modelVersion: string;
@@ -18,6 +17,4 @@ export type ReviewResults = {
 
 export const reviewResultsAtom = atom<ReviewResults>({});
 
-// "summary" forces the panel back to its check list, even when it was left
-// showing a section.
 export const selectedReviewCheckAtom = atom<CheckType | "summary" | null>(null);

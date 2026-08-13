@@ -8,14 +8,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { useZoom } from "src/hooks/use-zoom";
 import { useUserTracking } from "src/infra/user-tracking";
 import { NoIssuesIcon } from "src/icons";
-
-export const enum CheckType {
-  connectivityTrace = "connectivityTrace",
-  orphanAssets = "orphanAssets",
-  proximityAnomalies = "proximityAnomalies",
-  crossingPipes = "crossingPipes",
-  modelAttributesValidation = "modelAttributesValidation",
-}
+import { CheckType } from "src/lib/network-review";
 
 export const ToolHeader = ({
   onGoBack,

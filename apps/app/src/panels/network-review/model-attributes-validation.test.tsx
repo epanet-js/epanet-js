@@ -18,7 +18,7 @@ import {
 import { selectionAtom } from "src/state/selection";
 import { dialogAtom } from "src/state/dialog";
 import { USelection } from "src/selection";
-import { CheckType } from "./common";
+import { CheckType } from "src/lib/network-review";
 import { ModelAttributesValidation } from "./model-attributes-validation";
 
 vi.mock("src/hooks/use-zoom-to", () => ({ useZoomTo: () => vi.fn() }));

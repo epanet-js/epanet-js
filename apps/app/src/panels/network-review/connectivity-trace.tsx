@@ -10,13 +10,13 @@ import {
   findConnectivityTrace,
   SubNetwork,
   unsuppliedSubNetworks,
-} from "src/lib/network-review/connectivity-trace";
+  CheckType,
+} from "src/lib/network-review";
 import { useCachedCheck } from "src/hooks/use-review-checks";
 import { USelection, useSelection } from "src/selection";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { selectionAtom } from "src/state/selection";
 import {
-  CheckType,
   EmptyState,
   LoadingState,
   ToolDescription,

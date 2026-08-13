@@ -13,7 +13,12 @@ import {
 } from "src/icons";
 import { OrphanAssets } from "./orphan-assets";
 import { useUserTracking } from "src/infra/user-tracking";
-import { CheckType, LoadingState } from "./common";
+import {
+  CheckType,
+  blockingChecks,
+  BlockingCheckType,
+} from "src/lib/network-review";
+import { LoadingState } from "./common";
 import { ProximityAnomalies } from "./proximity-anomalies";
 import { CrossingPipes } from "./crossing-pipes";
 import { ConnectivityTrace } from "./connectivity-trace";
@@ -27,10 +32,6 @@ import {
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useReviewChecks } from "src/hooks/use-review-checks";
-import {
-  blockingChecks,
-  BlockingCheckType,
-} from "src/lib/network-review/blocking-checks";
 
 const LOADING_OVERLAY_DELAY_MS = 300;
 const MIN_OVERLAY_VISIBLE_MS = 400;

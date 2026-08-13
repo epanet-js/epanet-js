@@ -1,5 +1,9 @@
 import {
   CheckType,
+  findCrossingPipes,
+  CrossingPipe,
+} from "src/lib/network-review";
+import {
   EmptyState,
   LoadingState,
   ToolDescription,
@@ -13,10 +17,6 @@ import { useAtomValue } from "jotai";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { selectionAtom } from "src/state/selection";
 import { useUserTracking } from "src/infra/user-tracking";
-import {
-  findCrossingPipes,
-  CrossingPipe,
-} from "src/lib/network-review/crossing-pipes";
 import { useSelection, USelection } from "src/selection";
 import { useZoomTo } from "src/hooks/use-zoom-to";
 import { Button } from "src/components/elements";

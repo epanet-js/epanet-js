@@ -22,8 +22,8 @@ import {
 } from "src/lib/model-attributes-validation";
 import { groupIssues, ValidationGroup } from "./validation-groups";
 import { useCachedCheck } from "src/hooks/use-review-checks";
+import { CheckType } from "src/lib/network-review";
 import {
-  CheckType,
   EmptyState,
   LoadingState,
   ToolDescription,

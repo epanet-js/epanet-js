@@ -8,7 +8,7 @@ import { setInitialState } from "src/__helpers__/state";
 import { dialogAtom } from "src/state/dialog";
 import { splitsAtom } from "src/state/layout";
 import { reviewResultsAtom } from "src/state/network-review";
-import { CheckType } from "src/panels/network-review/common";
+import { CheckType } from "src/lib/network-review";
 import userEvent from "@testing-library/user-event";
 import { useRunSimulation } from "./run-simulation";
 import { lib } from "src/lib/worker";

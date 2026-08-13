@@ -14,13 +14,12 @@ import {
   ValveIcon,
 } from "src/icons";
 import { useUserTracking } from "src/infra/user-tracking";
-import { findOrphanAssets } from "src/lib/network-review/orphan-assets";
+import { findOrphanAssets, CheckType } from "src/lib/network-review";
 import { useCachedCheck } from "src/hooks/use-review-checks";
 import { useSelection } from "src/selection";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { selectionAtom } from "src/state/selection";
 import {
-  CheckType,
   EmptyState,
   LoadingState,
   ToolDescription,
