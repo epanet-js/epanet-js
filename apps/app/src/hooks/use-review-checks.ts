@@ -126,14 +126,6 @@ export const useReviewChecks = () => {
     ),
   );
 
-  const runAll = useCallback(
-    (options?: {
-      signal?: AbortSignal;
-      onCheckDone?: (result: BlockingCheckResult) => void;
-    }) => run(blockingChecks, options),
-    [run],
-  );
-
   const cachedResult = useCallback(
     (check: BlockingCheckType): BlockingCheckResult | null => {
       switch (check) {
@@ -192,5 +184,5 @@ export const useReviewChecks = () => {
     [cachedResult, run],
   );
 
-  return { runAll, ensureFresh };
+  return { ensureFresh };
 };

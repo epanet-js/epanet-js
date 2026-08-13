@@ -7,7 +7,11 @@ import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
 import { dialogAtom } from "src/state/dialog";
 import { splitsAtom } from "src/state/layout";
-import { reviewResultsAtom } from "src/state/network-review";
+import {
+  reviewResultsAtom,
+  selectedReviewCheckAtom,
+} from "src/state/network-review";
+import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import { CheckType } from "src/lib/network-review";
 import userEvent from "@testing-library/user-event";
 import { useRunSimulation } from "./run-simulation";
@@ -389,6 +393,158 @@ describe("Run simulation", () => {
       .aReservoir(IDS.r1, { head: 100 })
       .build();
   };
+
+  describe("pre-simulation checks", () => {
+    beforeEach(() => {
+      canValidateModelAttributes = true;
+      stubFeatureOn("FLAG_PRE_SIMULATION_CHECKS");
+    });
+
+    const aModelWithAnOrphan = () => {
+      const IDS = { r1: 1, j1: 2, p1: 3, orphan: 4 } as const;
+      return HydraulicModelBuilder.with()
+        .aReservoir(IDS.r1, { head: 100 })
+        .aJunction(IDS.j1, { elevation: 0 })
+        .aJunctionDemand(IDS.j1, [{ baseDemand: 1 }])
+        .aPipe(IDS.p1, {
+          startNodeId: IDS.r1,
+          endNodeId: IDS.j1,
+          length: 100,
+          diameter: 100,
+          roughness: 100,
+        })
+        .aJunction(IDS.orphan, { elevation: 0 })
+        .build();
+    };
+
+    // An unconnected junction and a pipe with no roughness, so both the
+    // orphan-assets and the model-attributes checks report.
+    const aModelFailingTwoChecks = () => {
+      const IDS = { r1: 1, j1: 2, p1: 3, orphan: 4 } as const;
+      return HydraulicModelBuilder.with()
+        .aReservoir(IDS.r1, { head: 100 })
+        .aJunction(IDS.j1, { elevation: 0 })
+        .aPipe(IDS.p1, {
+          startNodeId: IDS.r1,
+          endNodeId: IDS.j1,
+          length: 100,
+          diameter: 100,
+          roughness: null,
+        })
+        .aJunction(IDS.orphan, { elevation: 0 })
+        .build();
+    };
+
+    it("blocks with the failing rules when a topology check fails", async () => {
+      const store = setInitialState({ hydraulicModel: aModelWithAnOrphan() });
+      renderComponent({ store });
+
+      await triggerRun();
+
+      await waitFor(() => {
+        expect(store.get(dialogAtom)).toMatchObject({
+          type: "preSimulationChecks",
+          failingRules: ["asset.connected"],
+        });
+      });
+      expect(lib.runSimulation).not.toHaveBeenCalled();
+    });
+
+    it("reports every failing check, not just the first", async () => {
+      const store = setInitialState({
+        hydraulicModel: aModelFailingTwoChecks(),
+      });
+      renderComponent({ store });
+
+      await triggerRun();
+
+      await waitFor(() => {
+        const dialog = store.get(dialogAtom) as {
+          type: string;
+          failingRules: string[];
+        };
+        expect(dialog.type).toEqual("preSimulationChecks");
+        // Topology problems lead, attribute rules follow.
+        expect(dialog.failingRules).toEqual([
+          "asset.connected",
+          "pipe.roughness.present",
+        ]);
+      });
+    });
+
+    it("runs the simulation when every check passes", async () => {
+      const store = setInitialState({ hydraulicModel: aSimulableModel() });
+      renderComponent({ store });
+
+      await triggerRun();
+
+      await waitFor(() => {
+        expect(lib.runSimulation).toHaveBeenCalled();
+      });
+    });
+
+    it("runs anyway when the user chooses to", async () => {
+      const store = setInitialState({ hydraulicModel: aModelWithAnOrphan() });
+      renderComponent({ store });
+      await triggerRun();
+      await waitFor(() => {
+        expect(store.get(dialogAtom)).toMatchObject({
+          type: "preSimulationChecks",
+        });
+      });
+
+      await userEvent.click(
+        screen.getByRole("button", { name: /run anyway/i }),
+      );
+
+      await waitFor(() => {
+        expect(lib.runSimulation).toHaveBeenCalled();
+      });
+    });
+
+    it("opens the failing section directly when only one check failed", async () => {
+      const store = setInitialState({ hydraulicModel: aModelWithAnOrphan() });
+      renderComponent({ store });
+      await triggerRun();
+      await waitFor(() => {
+        expect(store.get(dialogAtom)).toMatchObject({
+          type: "preSimulationChecks",
+        });
+      });
+
+      await userEvent.click(
+        screen.getByRole("button", { name: /review issues/i }),
+      );
+
+      await waitFor(() => {
+        expect(store.get(selectedReviewCheckAtom)).toEqual(
+          CheckType.orphanAssets,
+        );
+      });
+      expect(store.get(splitsAtom).leftOpen).toBe(true);
+    });
+
+    it("opens the summary when more than one check failed", async () => {
+      const store = setInitialState({
+        hydraulicModel: aModelFailingTwoChecks(),
+      });
+      renderComponent({ store });
+      await triggerRun();
+      await waitFor(() => {
+        expect(store.get(dialogAtom)).toMatchObject({
+          type: "preSimulationChecks",
+        });
+      });
+
+      await userEvent.click(
+        screen.getByRole("button", { name: /review issues/i }),
+      );
+
+      await waitFor(() => {
+        expect(store.get(selectedReviewCheckAtom)).toEqual("summary");
+      });
+    });
+  });
 
   const aModelWithEmptyRoughness = () => {
     const IDS = { r1: 1, j1: 2, p1: 3 } as const;
