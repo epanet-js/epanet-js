@@ -6,7 +6,7 @@ import { WarningIcon } from "src/icons";
 import { ruleLabelKey } from "src/panels/network-review/rule-labels";
 import { PreSimulationChecksDialogState } from "src/state/dialog";
 
-const maxListedRules = 2;
+const MAX_LISTED_RULES = 3;
 
 const RunningBody = () => {
   const translate = useTranslate();
@@ -28,7 +28,7 @@ const RunningBody = () => {
 
 const SummaryBody = ({ failingRules }: { failingRules: string[] }) => {
   const translate = useTranslate();
-  const listed = failingRules.slice(0, maxListedRules);
+  const listed = failingRules.slice(0, MAX_LISTED_RULES);
   const remaining = failingRules.length - listed.length;
 
   return (
@@ -41,7 +41,7 @@ const SummaryBody = ({ failingRules }: { failingRules: string[] }) => {
       />
       <div className="flex flex-col gap-2">
         <p>{translate("preSimulationChecks.body")}</p>
-        <ul className="list-disc pl-5 flex flex-col gap-1">
+        <ul className="list-disc pl-5 space-y-1">
           {listed.map((ruleId) => (
             <li key={ruleId}>{translate(ruleLabelKey(ruleId))}</li>
           ))}
