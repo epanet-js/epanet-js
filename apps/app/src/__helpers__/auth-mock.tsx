@@ -7,11 +7,13 @@ const AuthMockContext = createContext<{
   user: User;
   isSignedIn: boolean;
   signOut: () => Promise<void>;
+  reload: () => Promise<void>;
   isLoaded: boolean;
 }>({
   user: nullUser,
   isSignedIn: false,
   signOut: async () => {},
+  reload: async () => {},
   isLoaded: true,
 });
 
@@ -37,22 +39,27 @@ export const AuthMockProvider = ({
   isSignedIn = true,
   isLoaded = true,
   signOut = vi.fn().mockResolvedValue(undefined),
+  reload = vi.fn().mockResolvedValue(undefined),
 }: {
   children: React.ReactNode;
   user?: User;
   isSignedIn?: boolean;
   signOut?: () => Promise<void>;
+  reload?: () => Promise<void>;
   isLoaded?: boolean;
 }) => {
   return (
-    <AuthMockContext.Provider value={{ isLoaded, user, isSignedIn, signOut }}>
+    <AuthMockContext.Provider
+      value={{ isLoaded, user, isSignedIn, signOut, reload }}
+    >
       {children}
     </AuthMockContext.Provider>
   );
 };
 
 export const useAuthMock: UseAuthHook = () => {
-  const { isSignedIn, user, signOut, isLoaded } = useContext(AuthMockContext);
+  const { isSignedIn, user, signOut, reload, isLoaded } =
+    useContext(AuthMockContext);
 
   return {
     isSignedIn,
@@ -60,6 +67,6 @@ export const useAuthMock: UseAuthHook = () => {
     userId: user.id,
     signOut,
     isLoaded,
-    reload: async () => {},
+    reload,
   };
 };

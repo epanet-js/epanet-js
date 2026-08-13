@@ -268,6 +268,10 @@ export type ActivatingTrialDialogState = {
   type: "activatingTrial";
 };
 
+export type WaitingForPaymentDialogState = {
+  type: "waitingForPayment";
+};
+
 export type ExportAssetDataDialogState = {
   type: "exportAssetData";
 };
@@ -385,6 +389,7 @@ export type DialogState =
   | AlertScenariosNotSavedState
   | AlertNetworkRequiredState
   | ActivatingTrialDialogState
+  | WaitingForPaymentDialogState
   | ExportAssetDataDialogState
   | ExportTimeSeriesDialogState
   | NetworkProjectionDialogState

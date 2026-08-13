@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { notify } from "./notifications";
-import { useTranslate } from "src/hooks/use-translate";
+import { TranslateFn, useTranslate } from "src/hooks/use-translate";
 import { CheckIcon } from "src/icons";
 
 type NotificationData = {
@@ -13,17 +13,21 @@ type NotificationData = {
 
 type SupportedTypes = "checkoutSuccess";
 
+export const checkoutSuccessNotification = (
+  translate: TranslateFn,
+): NotificationData => ({
+  variant: "success",
+  title: translate("upgradeSuccessful"),
+  description: translate("upgradeSuccessfulExplain"),
+  Icon: CheckIcon,
+  size: "md",
+});
+
 export const NotificationFromUrl = () => {
   const translate = useTranslate();
 
   const notificationData: Record<SupportedTypes, NotificationData> = {
-    checkoutSuccess: {
-      variant: "success",
-      title: translate("upgradeSuccessful"),
-      description: translate("upgradeSuccessfulExplain"),
-      Icon: CheckIcon,
-      size: "md",
-    },
+    checkoutSuccess: checkoutSuccessNotification(translate),
   };
 
   useEffect(() => {

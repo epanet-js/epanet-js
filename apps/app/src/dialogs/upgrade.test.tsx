@@ -6,6 +6,7 @@ import { AuthMockProvider } from "src/__helpers__/auth-mock";
 import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { billingUrl } from "src/global-config";
+import { dialogAtom } from "src/state/dialog";
 import { UpgradeDialog } from "./upgrade";
 
 vi.mock("@stripe/stripe-js", () => ({
@@ -108,6 +109,31 @@ describe("upgrade dialog checkout", () => {
 
       expect(fetchSpy).not.toHaveBeenCalled();
     });
+
+    it("waits for the payment in the tab that stays open", async () => {
+      stubOpen();
+      stubNavigation();
+      const { store } = renderDialog();
+
+      await userEvent.click(upgradeButtonFor("Pro"));
+
+      expect(store.get(dialogAtom)).toEqual({ type: "waitingForPayment" });
+    });
+
+    it("resumes a checkout requested in the url only once", () => {
+      const open = stubOpen();
+      stubNavigation("?startCheckout=true&plan=pro&paymentType=yearly");
+
+      const { store } = renderDialog();
+
+      expect(open).toHaveBeenCalledTimes(1);
+      expect(open).toHaveBeenCalledWith(
+        `${billingUrl}/checkout?plan=pro&paymentType=yearly`,
+        "_blank",
+        "noopener,noreferrer",
+      );
+      expect(store.get(dialogAtom)).toEqual({ type: "waitingForPayment" });
+    });
   });
 
   describe("FLAG_BILLING disabled", () => {
@@ -118,7 +144,7 @@ describe("upgrade dialog checkout", () => {
     it("starts the checkout in the app", async () => {
       const fetchSpy = stubFetch();
       const assign = stubNavigation();
-      renderDialog();
+      const { store } = renderDialog();
 
       await userEvent.click(upgradeButtonFor("Pro"));
 
@@ -130,21 +156,22 @@ describe("upgrade dialog checkout", () => {
         }),
       );
       expect(assign).not.toHaveBeenCalled();
+      expect(store.get(dialogAtom)).toBeNull();
     });
   });
 
   const upgradeButtonFor = (plan: string) =>
     screen.getByRole("button", { name: `Upgrade to ${plan}` });
 
-  const stubNavigation = () => {
+  const stubNavigation = (search = "") => {
     const assign = vi.fn();
     Object.defineProperty(window, "location", {
       configurable: true,
       value: {
         origin: "http://localhost:3000",
-        href: "http://localhost:3000/",
+        href: `http://localhost:3000/${search}`,
         pathname: "/",
-        search: "",
+        search,
         assign,
       },
     });
@@ -161,14 +188,19 @@ describe("upgrade dialog checkout", () => {
         new Response(JSON.stringify({ sessionId: "cs_test" })),
       );
 
-  const renderDialog = ({ isSignedIn = true }: { isSignedIn?: boolean } = {}) =>
+  const renderDialog = ({
+    isSignedIn = true,
+  }: { isSignedIn?: boolean } = {}) => {
+    const store = createStore();
     render(
       <AuthMockProvider isSignedIn={isSignedIn}>
-        <JotaiProvider store={createStore()}>
+        <JotaiProvider store={store}>
           <Tooltip.Provider>
             <UpgradeDialog />
           </Tooltip.Provider>
         </JotaiProvider>
       </AuthMockProvider>,
     );
+    return { store };
+  };
 });

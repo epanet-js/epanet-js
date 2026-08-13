@@ -10,7 +10,9 @@ import { Button, StyledSwitch, StyledThumb } from "../components/elements";
 import {
   ForwardRefExoticComponent,
   RefAttributes,
+  useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { IconProps } from "@radix-ui/react-icons/dist/types";
@@ -62,8 +64,27 @@ export const UpgradeDialog = ({
   const { isLoaded: isAuthLoaded, isSignedIn } = useAuth();
   const { isLoading: isLoadingCheckout, startCheckout } = useCheckout();
   const { canUpgrade } = usePermissions();
+  const resumedRef = useRef(false);
 
   const checkoutParams = getCheckoutUrlParams();
+  const shouldResumeCheckout =
+    !isLoadingCheckout &&
+    isAuthLoaded &&
+    canUpgrade &&
+    checkoutParams.enabled &&
+    (isBillingOn || isSignedIn);
+
+  useEffect(() => {
+    if (!shouldResumeCheckout || resumedRef.current) return;
+
+    resumedRef.current = true;
+    void startCheckout(checkoutParams.plan, checkoutParams.paymentType);
+  }, [
+    shouldResumeCheckout,
+    startCheckout,
+    checkoutParams.plan,
+    checkoutParams.paymentType,
+  ]);
 
   if (isLoadingCheckout || !isAuthLoaded) return <LoadingDialog />;
 
@@ -73,7 +94,6 @@ export const UpgradeDialog = ({
 
   if (checkoutParams.enabled) {
     if (isBillingOn || isSignedIn) {
-      void startCheckout(checkoutParams.plan, checkoutParams.paymentType);
       return null;
     } else {
       return (

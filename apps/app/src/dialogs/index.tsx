@@ -65,6 +65,7 @@ import { CustomAttributesPaywallConnector } from "src/dialogs/paywall/custom-att
 import { ElevationTileErrorsDialog } from "src/dialogs/elevation-tile-errors";
 import { GisImportErrorsDialog } from "src/dialogs/gis-import-errors";
 import { ActivatingTrialDialog } from "src/dialogs/activating-trial";
+import { WaitingForPaymentDialog } from "src/dialogs/waiting-for-payment";
 import { ExportAssetDataDialog } from "src/dialogs/export-asset-data";
 import { ExportSimulationResultsDialog as ExportTimeSeriesDialog } from "src/dialogs/export-simulation-results";
 import { FirstScenarioDialog } from "src/dialogs/first-scenario";
@@ -344,6 +345,10 @@ export const Dialogs = memo(function Dialogs() {
 
   if (dialog.type === "activatingTrial") {
     return <ActivatingTrialDialog />;
+  }
+
+  if (dialog.type === "waitingForPayment") {
+    return <WaitingForPaymentDialog />;
   }
 
   if (dialog.type === "firstScenario") {

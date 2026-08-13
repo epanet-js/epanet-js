@@ -1,5 +1,6 @@
 import { loadStripe } from "@stripe/stripe-js";
-import { atom, useAtom } from "jotai";
+import { atom, useAtom, useSetAtom } from "jotai";
+import { dialogAtom } from "src/state/dialog";
 import { notify } from "src/components/notifications";
 import { captureError } from "src/infra/error-tracking";
 import { useTranslate } from "src/hooks/use-translate";
@@ -24,6 +25,7 @@ export const useCheckout = () => {
   const isBillingOn = useFeatureFlag("FLAG_BILLING");
   const translate = useTranslate();
   const [isLoading, setLoading] = useAtom(checkoutLoadingAtom);
+  const setDialogState = useSetAtom(dialogAtom);
 
   const startCheckoutDeprecated = async (
     plan: Plan,
@@ -54,6 +56,7 @@ export const useCheckout = () => {
       "_blank",
       "noopener,noreferrer",
     );
+    setDialogState({ type: "waitingForPayment" });
   };
 
   return {
