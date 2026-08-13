@@ -31,58 +31,76 @@ describe("upgrade dialog checkout", () => {
       stubFeatureOn("FLAG_BILLING");
     });
 
-    it("sends the user to the billing app", async () => {
-      const assign = stubNavigation();
+    it("opens the billing app in a new tab", async () => {
+      const open = stubOpen();
+      stubNavigation();
       renderDialog();
 
       await userEvent.click(upgradeButtonFor("Pro"));
 
-      expect(assign).toHaveBeenCalledWith(
-        `${billingUrl}/checkout?plan=pro&paymentType=yearly&successUrl=http%3A%2F%2Flocalhost%3A3000%2F%3Fnotification%3DcheckoutSuccess&cancelUrl=http%3A%2F%2Flocalhost%3A3000%2F%3Fdialog%3Dupgrade`,
+      expect(open).toHaveBeenCalledWith(
+        `${billingUrl}/checkout?plan=pro&paymentType=yearly`,
+        "_blank",
+        "noopener,noreferrer",
       );
     });
 
-    it("builds the success and cancel urls from the app origin", async () => {
+    it("keeps the current tab where it was", async () => {
+      const open = stubOpen();
       const assign = stubNavigation();
       renderDialog();
 
       await userEvent.click(upgradeButtonFor("Pro"));
 
-      const [target] = assign.mock.calls[0];
-      const params = new URL(target).searchParams;
-      expect(params.get("successUrl")).toBe(
-        `${window.location.origin}/?notification=checkoutSuccess`,
-      );
-      expect(params.get("cancelUrl")).toBe(
-        `${window.location.origin}/?dialog=upgrade`,
-      );
+      expect(open).toHaveBeenCalled();
+      expect(assign).not.toHaveBeenCalled();
+    });
+
+    it("lets billing own the outcome pages", async () => {
+      const open = stubOpen();
+      stubNavigation();
+      renderDialog();
+
+      await userEvent.click(upgradeButtonFor("Pro"));
+
+      const [target] = open.mock.calls[0];
+      const params = new URL(target as string).searchParams;
+      expect(params.get("successUrl")).toBeNull();
+      expect(params.get("cancelUrl")).toBeNull();
     });
 
     it("sends the payment type chosen on the cards", async () => {
-      const assign = stubNavigation();
+      const open = stubOpen();
+      stubNavigation();
       renderDialog();
 
       await userEvent.click(screen.getByRole("switch"));
       await userEvent.click(upgradeButtonFor("Pro"));
 
-      expect(assign).toHaveBeenCalledWith(
+      expect(open).toHaveBeenCalledWith(
         expect.stringContaining("plan=pro&paymentType=monthly"),
+        "_blank",
+        "noopener,noreferrer",
       );
     });
 
     it("sends a signed-out user to the billing app without signing in first", async () => {
-      const assign = stubNavigation();
+      const open = stubOpen();
+      stubNavigation();
       renderDialog({ isSignedIn: false });
 
       await userEvent.click(upgradeButtonFor("Pro"));
 
-      expect(assign).toHaveBeenCalledWith(
+      expect(open).toHaveBeenCalledWith(
         expect.stringContaining("/checkout?plan=pro&paymentType=yearly"),
+        "_blank",
+        "noopener,noreferrer",
       );
     });
 
     it("does not start a checkout in the app", async () => {
       const fetchSpy = stubFetch();
+      stubOpen();
       stubNavigation();
       renderDialog();
 
@@ -132,6 +150,9 @@ describe("upgrade dialog checkout", () => {
     });
     return assign;
   };
+
+  const stubOpen = () =>
+    vi.spyOn(window, "open").mockReturnValue(null as unknown as Window);
 
   const stubFetch = () =>
     vi
