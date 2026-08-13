@@ -36,6 +36,7 @@ import { dialogAtom } from "src/state/dialog";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { momentLogAtom } from "src/state/model-changes";
+import { reviewResultsAtom } from "src/state/network-review";
 import {
   simulationSettingsDerivedAtom,
   stagingModelDerivedAtom,
@@ -102,6 +103,7 @@ export const resetAppState = (set: Setter) => {
   set(resultsFetchDurationsAtom, []);
   set(simulationPlaybackAtom, initialPlaybackState);
   set(zonesAtom, initializeZones());
+  set(reviewResultsAtom, {});
 };
 
 export const loadModel = (
