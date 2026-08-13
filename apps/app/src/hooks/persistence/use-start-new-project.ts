@@ -38,9 +38,11 @@ import { projectSettingsAtom } from "src/state/project-settings";
 import { momentLogAtom } from "src/state/model-changes";
 import { reviewResultsAtom } from "src/state/network-review";
 import {
+  simulationDerivedAtom,
   simulationSettingsDerivedAtom,
   stagingModelDerivedAtom,
 } from "src/state/derived-branch-state";
+import { initialSimulationState } from "src/state/simulation";
 import { worktreeAtom } from "src/state/scenarios";
 import { splitsAtom, defaultSplits } from "src/state/layout";
 import { mapSyncMomentAtom } from "src/state/map";
@@ -189,6 +191,7 @@ export const useStartNewProject = () => {
         input: ProjectLoadInput,
       ): Promise<boolean> => {
         const started = await withDatabaseBusy(async () => {
+          set(simulationDerivedAtom, initialSimulationState);
           await clearSimulationStorage();
           const mergedProjectSettings: ProjectSettings = {
             ...input.projectSettings,

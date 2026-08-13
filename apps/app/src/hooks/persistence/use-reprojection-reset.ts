@@ -77,8 +77,8 @@ export const useReprojectionReset = () => {
   const reprojectionReset = useAtomCallback(
     useCallback(
       async (get: Getter, set: Setter, input: ReprojectionResetInput) => {
-        await clearSimulationStorage();
         resetAppState(set);
+        await clearSimulationStorage();
         loadModel(get, set, input);
       },
       [],

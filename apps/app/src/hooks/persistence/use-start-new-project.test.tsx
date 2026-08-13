@@ -1,12 +1,18 @@
 import { renderHook, act } from "@testing-library/react";
 import { Provider as JotaiProvider } from "jotai";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import { setInitialState } from "src/__helpers__/state";
+import {
+  createMockResultsReader,
+  setInitialState,
+} from "src/__helpers__/state";
 import { useInProcessDb } from "src/lib/db/__test-helpers__/in-process-db";
 import { fetchProject } from "src/lib/db";
+import { OPFSStorage } from "src/infra/storage";
+import type { SimulationState } from "src/state/simulation";
 import {
   stagingModelDerivedAtom,
   baseModelDerivedAtom,
+  simulationDerivedAtom,
 } from "src/state/derived-branch-state";
 import { inpFileInfoAtom, projectFileInfoAtom } from "src/state/file-system";
 import { projectSettingsAtom } from "src/state/project-settings";
@@ -100,6 +106,35 @@ describe("useStartBlankProject", () => {
       });
 
       expect(started).toBe(true);
+    });
+  });
+
+  describe("simulation storage teardown", () => {
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    it("drops the results reader from state before deleting simulation storage", async () => {
+      const store = setInitialState({
+        simulationResults: createMockResultsReader(),
+      });
+      expect(store.get(simulationDerivedAtom)).toHaveProperty(
+        "epsResultsReader",
+      );
+
+      const simulationWhenCleared: SimulationState[] = [];
+      vi.spyOn(OPFSStorage.prototype, "clear").mockImplementation(() => {
+        simulationWhenCleared.push(store.get(simulationDerivedAtom));
+        return Promise.resolve();
+      });
+
+      const { result } = renderStartEmptyProject(store);
+      await act(async () => {
+        await result.current();
+      });
+
+      expect(simulationWhenCleared).toHaveLength(1);
+      expect(simulationWhenCleared[0]).not.toHaveProperty("epsResultsReader");
     });
   });
 

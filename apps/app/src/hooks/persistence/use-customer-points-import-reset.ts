@@ -27,8 +27,8 @@ type CustomerPointsImportResetInput = {
 };
 
 const resetAppState = (set: Setter) => {
-  set(mapSyncMomentAtom, { pointer: -1, version: 0 });
   set(simulationDerivedAtom, initialSimulationState);
+  set(mapSyncMomentAtom, { pointer: -1, version: 0 });
   set(modeAtom, { mode: Mode.NONE });
   set(ephemeralStateAtom, { type: "none" });
   set(selectionAtom, USelection.none());
@@ -72,8 +72,8 @@ export const useCustomerPointsImportReset = () => {
         set: Setter,
         input: CustomerPointsImportResetInput,
       ) => {
-        await clearSimulationStorage();
         resetAppState(set);
+        await clearSimulationStorage();
         loadModel(get, set, input);
       },
       [],
