@@ -99,7 +99,14 @@ export const buildBillingCheckoutUrl = (
   const url = new URL("/checkout", billingUrl);
   url.searchParams.set("plan", plan);
   url.searchParams.set("paymentType", paymentType);
-  url.searchParams.set("return", `${window.location.origin}/`);
+  url.searchParams.set(
+    "successUrl",
+    `${window.location.origin}/?notification=checkoutSuccess`,
+  );
+  url.searchParams.set(
+    "cancelUrl",
+    `${window.location.origin}/?dialog=upgrade`,
+  );
   return url.toString();
 };
 

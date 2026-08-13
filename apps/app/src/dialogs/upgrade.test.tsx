@@ -38,7 +38,23 @@ describe("upgrade dialog checkout", () => {
       await userEvent.click(upgradeButtonFor("Pro"));
 
       expect(assign).toHaveBeenCalledWith(
-        `${billingUrl}/checkout?plan=pro&paymentType=yearly&return=http%3A%2F%2Flocalhost%3A3000%2F`,
+        `${billingUrl}/checkout?plan=pro&paymentType=yearly&successUrl=http%3A%2F%2Flocalhost%3A3000%2F%3Fnotification%3DcheckoutSuccess&cancelUrl=http%3A%2F%2Flocalhost%3A3000%2F%3Fdialog%3Dupgrade`,
+      );
+    });
+
+    it("builds the success and cancel urls from the app origin", async () => {
+      const assign = stubNavigation();
+      renderDialog();
+
+      await userEvent.click(upgradeButtonFor("Pro"));
+
+      const [target] = assign.mock.calls[0];
+      const params = new URL(target).searchParams;
+      expect(params.get("successUrl")).toBe(
+        `${window.location.origin}/?notification=checkoutSuccess`,
+      );
+      expect(params.get("cancelUrl")).toBe(
+        `${window.location.origin}/?dialog=upgrade`,
       );
     });
 
