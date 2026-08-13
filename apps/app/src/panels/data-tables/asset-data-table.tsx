@@ -660,7 +660,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
     <div className="flex-1 min-h-0 relative">
       {!gridReady ? (
         <div className="absolute inset-0 flex items-center justify-center">
-          <RingSpinner />
+          <RingSpinner size="lg" />
         </div>
       ) : (
         <DataGrid

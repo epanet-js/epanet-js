@@ -18,16 +18,6 @@ type ItemsOf<K extends CachedCheckType> = NonNullable<
   ReviewResults[K]
 >["items"];
 
-const withoutOtherVersions = (
-  results: ReviewResults,
-  modelVersion: string,
-): ReviewResults =>
-  Object.fromEntries(
-    Object.entries(results).filter(
-      ([, entry]) => entry.modelVersion === modelVersion,
-    ),
-  ) as ReviewResults;
-
 export const useCachedCheck = <K extends CachedCheckType>(check: K) => {
   const isPreSimulationChecksOn = useFeatureFlag("FLAG_PRE_SIMULATION_CHECKS");
   const isReviewCacheOn =
@@ -65,7 +55,7 @@ export const useCachedCheck = <K extends CachedCheckType>(check: K) => {
           reviewResultsAtom,
           (results) =>
             ({
-              ...withoutOtherVersions(results, modelVersion),
+              ...results,
               [check]: { modelVersion, issueCount, items },
             }) as ReviewResults,
         );
@@ -77,31 +67,36 @@ export const useCachedCheck = <K extends CachedCheckType>(check: K) => {
   return { read, write };
 };
 
+// The read/write pairs are destructured rather than held as objects because
+// useCachedCheck returns a fresh object each render; callers key effects off
+// ensureFresh, which would then change identity on every render.
 export const useReviewChecks = () => {
-  const attributes = useCachedCheck(CheckType.modelAttributesValidation);
-  const orphans = useCachedCheck(CheckType.orphanAssets);
-  const connectivity = useCachedCheck(CheckType.connectivityTrace);
+  const { read: readAttributes, write: writeAttributes } = useCachedCheck(
+    CheckType.modelAttributesValidation,
+  );
+  const { read: readOrphans, write: writeOrphans } = useCachedCheck(
+    CheckType.orphanAssets,
+  );
+  const { read: readConnectivity, write: writeConnectivity } = useCachedCheck(
+    CheckType.connectivityTrace,
+  );
 
   const cache = useCallback(
     (result: BlockingCheckResult, modelVersion: string) => {
       switch (result.check) {
         case CheckType.modelAttributesValidation:
-          return attributes.write(
-            result.items,
-            result.issueCount,
-            modelVersion,
-          );
+          return writeAttributes(result.items, result.issueCount, modelVersion);
         case CheckType.orphanAssets:
-          return orphans.write(result.items, result.issueCount, modelVersion);
+          return writeOrphans(result.items, result.issueCount, modelVersion);
         case CheckType.connectivityTrace:
-          return connectivity.write(
+          return writeConnectivity(
             result.items,
             result.issueCount,
             modelVersion,
           );
       }
     },
-    [attributes, orphans, connectivity],
+    [writeAttributes, writeOrphans, writeConnectivity],
   );
 
   const run = useAtomCallback(
@@ -143,7 +138,7 @@ export const useReviewChecks = () => {
     (check: BlockingCheckType): BlockingCheckResult | null => {
       switch (check) {
         case CheckType.modelAttributesValidation: {
-          const items = attributes.read();
+          const items = readAttributes();
           return items === null
             ? null
             : {
@@ -153,13 +148,13 @@ export const useReviewChecks = () => {
               };
         }
         case CheckType.orphanAssets: {
-          const items = orphans.read();
+          const items = readOrphans();
           return items === null
             ? null
             : { check, items, issueCount: items.length };
         }
         case CheckType.connectivityTrace: {
-          const items = connectivity.read();
+          const items = readConnectivity();
           return items === null
             ? null
             : {
@@ -170,7 +165,7 @@ export const useReviewChecks = () => {
         }
       }
     },
-    [attributes, orphans, connectivity],
+    [readAttributes, readOrphans, readConnectivity],
   );
 
   // Runs only what the cache cannot answer, so a review already done in the

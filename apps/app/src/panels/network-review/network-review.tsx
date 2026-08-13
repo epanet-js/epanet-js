@@ -9,12 +9,11 @@ import {
   OrphanNodeIcon,
   PipesCrossinIcon,
   ProximityCheckIcon,
-  RefreshIcon,
-  SpinnerIcon,
+  WarningIcon,
 } from "src/icons";
 import { OrphanAssets } from "./orphan-assets";
 import { useUserTracking } from "src/infra/user-tracking";
-import { CheckBadge, CheckBadgeStatus, CheckType } from "./common";
+import { CheckType, LoadingState } from "./common";
 import { ProximityAnomalies } from "./proximity-anomalies";
 import { CrossingPipes } from "./crossing-pipes";
 import { ConnectivityTrace } from "./connectivity-trace";
@@ -27,11 +26,77 @@ import {
 } from "src/state/network-review";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { useRefreshNetworkReview } from "src/commands/refresh-network-review";
+import { useReviewChecks } from "src/hooks/use-review-checks";
 import {
   blockingChecks,
   BlockingCheckType,
 } from "src/lib/network-review/blocking-checks";
+
+const LOADING_OVERLAY_DELAY_MS = 300;
+const MIN_OVERLAY_VISIBLE_MS = 400;
+
+// TEMPORARY: switch to compare row layouts, then keep the winner and delete
+// the other two branches along with this constant.
+//   growWhenIssues - the row only grows when a check has issues
+//   growAlways     - every row reserves the second line, so heights never change
+//   compact        - the row keeps its single-line height, content centred and
+//                    tightened when a second line is present
+type RowLayout = "growWhenIssues" | "growAlways" | "compact";
+const rowLayout = (): RowLayout => "growWhenIssues";
+const reservedDetailHeight = "h-5";
+const compactRowHeight = "h-12";
+
+const CheckRowDetail = ({
+  detail,
+  compact = false,
+}: {
+  detail: string;
+  compact?: boolean;
+}) => (
+  <div
+    className={`flex items-center gap-1 ${compact ? "mt-1 text-size-small leading-tight" : ""}`}
+  >
+    <span className="shrink-0 text-orange-500 dark:text-orange-400">
+      <WarningIcon size={12} />
+    </span>
+    <span className="text-subtle truncate">{detail}</span>
+  </div>
+);
+
+const CheckRowText = ({
+  label,
+  detail,
+}: {
+  label: string;
+  detail: string | null;
+}) => {
+  if (rowLayout() === "growAlways") {
+    return (
+      <div className="min-w-0 text-left">
+        <div className="text-size-base font-bold">{label}</div>
+        <div className={`flex items-center ${reservedDetailHeight}`}>
+          {detail !== null && <CheckRowDetail detail={detail} />}
+        </div>
+      </div>
+    );
+  }
+
+  if (rowLayout() === "compact") {
+    return (
+      <div className="min-w-0 text-left">
+        <div className="text-size-base font-bold leading-tight">{label}</div>
+        {detail !== null && <CheckRowDetail detail={detail} compact />}
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-w-0 text-left">
+      <div className="text-size-base font-bold">{label}</div>
+      {detail !== null && <CheckRowDetail detail={detail} />}
+    </div>
+  );
+};
 
 const isBlockingCheck = (check: CheckType): check is BlockingCheckType =>
   (blockingChecks as readonly CheckType[]).includes(check);
@@ -98,8 +163,9 @@ function NetworkReviewSummary({
 }) {
   const translate = useTranslate();
   const isPreSimulationChecksOn = useFeatureFlag("FLAG_PRE_SIMULATION_CHECKS");
-  const { refreshNetworkReview, isRefreshing } = useRefreshNetworkReview();
+  const { ensureFresh } = useReviewChecks();
   const reviewResults = useAtomValue(reviewResultsAtom);
+  const [isRunning, setIsRunning] = useState(false);
 
   const [selectedCheckType, setSelectedCheckType] = useState<CheckType | null>(
     null,
@@ -114,15 +180,62 @@ function NetworkReviewSummary({
   }, []);
 
   const modelVersion = useAtomValue(stagingModelDerivedAtom).version;
+  const overlayShownAt = useRef<number | null>(null);
 
-  const badgeStatus = (checkType: CheckType): CheckBadgeStatus => {
-    if (!isPreSimulationChecksOn) return "none";
-    if (!isBlockingCheck(checkType)) return "none";
+  useEffect(
+    function recomputeChecksWhenModelChanges() {
+      if (!isPreSimulationChecksOn) return;
 
-    const entry = reviewResults[checkType];
-    if (!entry || entry.modelVersion !== modelVersion) return "outdated";
+      const abortController = new AbortController();
+      let hideOverlay: ReturnType<typeof setTimeout> | undefined;
 
-    return entry.issueCount > 0 ? "withIssues" : "none";
+      const showOverlay = setTimeout(() => {
+        // Sticky across consecutive runs, so continuous editing measures the
+        // minimum from when the overlay first appeared rather than restarting.
+        if (overlayShownAt.current === null) {
+          overlayShownAt.current = Date.now();
+        }
+        setIsRunning(true);
+      }, LOADING_OVERLAY_DELAY_MS);
+
+      const hide = () => {
+        overlayShownAt.current = null;
+        setIsRunning(false);
+      };
+
+      void ensureFresh({ signal: abortController.signal })
+        .catch(() => {})
+        .finally(() => {
+          clearTimeout(showOverlay);
+          if (abortController.signal.aborted) return;
+
+          const shownAt = overlayShownAt.current;
+          if (shownAt === null) return hide();
+
+          const remaining = MIN_OVERLAY_VISIBLE_MS - (Date.now() - shownAt);
+          if (remaining <= 0) return hide();
+
+          hideOverlay = setTimeout(hide, remaining);
+        });
+
+      return () => {
+        abortController.abort();
+        clearTimeout(showOverlay);
+        clearTimeout(hideOverlay);
+      };
+    },
+    [isPreSimulationChecksOn, ensureFresh, modelVersion],
+  );
+
+  // Deliberately ignores the entry's model version: a recompute is already
+  // under way, and blanking the count until it lands reads as a flash. The
+  // last known count holds until the new one replaces it, and a new project
+  // clears the cache outright.
+  const issueCount = (checkType: CheckType): number => {
+    if (!isPreSimulationChecksOn) return 0;
+    if (!isBlockingCheck(checkType)) return 0;
+
+    return reviewResults[checkType]?.issueCount ?? 0;
   };
 
   const handleKeyDown = useCallback(
@@ -165,23 +278,8 @@ function NetworkReviewSummary({
       tabIndex={0}
       onKeyDown={handleKeyDown}
     >
-      <div className="py-3 px-4 text-size-base font-bold text-default border-b w-full flex items-center justify-between gap-2">
+      <div className="py-3 px-4 text-size-base font-bold text-default border-b w-full">
         <span>{translate("networkReview.title")}</span>
-        {isPreSimulationChecksOn && (
-          <Button
-            variant="quiet"
-            size="xxs"
-            aria-label={translate("networkReview.refresh")}
-            disabled={isRefreshing}
-            onClick={() => void refreshNetworkReview()}
-          >
-            {isRefreshing ? (
-              <SpinnerIcon size={16} />
-            ) : (
-              <RefreshIcon size={16} />
-            )}
-          </Button>
-        )}
       </div>
       <div className="px-4 pt-3">
         <EarlyAccessBadge />
@@ -189,19 +287,20 @@ function NetworkReviewSummary({
       <div className="px-4 py-2 text-size-base">
         {translate("networkReview.description")}
       </div>
-      <div className="flex-auto px-1">
+      <div className="relative flex-auto px-1">
         {allChecks.map((checkType) => (
           <ReviewCheck
             key={checkType}
             checkType={checkType}
             onClick={onClick}
             isSelected={selectedCheckType === checkType}
-            badgeStatus={badgeStatus(checkType)}
+            issueCount={issueCount(checkType)}
             requiresEarlyAccess={
               checkType !== CheckType.modelAttributesValidation
             }
           />
         ))}
+        {isRunning && <LoadingState overlay />}
       </div>
     </div>
   );
@@ -229,14 +328,14 @@ const ReviewCheck = ({
   checkType,
   isEnabled = true,
   isSelected,
-  badgeStatus,
+  issueCount,
   requiresEarlyAccess = true,
 }: {
   checkType: CheckType;
   onClick: (checkType: CheckType) => void;
   isEnabled?: boolean;
   isSelected: boolean;
-  badgeStatus: CheckBadgeStatus;
+  issueCount: number;
   requiresEarlyAccess?: boolean;
 }) => {
   const translate = useTranslate();
@@ -277,23 +376,31 @@ const ReviewCheck = ({
       className="group w-full"
       disabled={!isEnabled}
     >
-      <div className="grid grid-cols-[auto_1fr_auto] gap-x-2 items-start p-2 pr-0 text-size-base w-full">
+      <div
+        className={`grid grid-cols-[auto_1fr_auto] gap-x-2 items-start pr-0 text-size-base w-full ${
+          rowLayout() === "compact"
+            ? `px-2 content-center ${compactRowHeight}`
+            : "p-2"
+        }`}
+      >
         <div className="pt-[.125rem]">{iconsByCheckType[checkType]}</div>
-        <div className="flex flex-row gap-2 flex-wrap items-center">
-          <div className="text-size-base font-bold text-left">{label}</div>
-        </div>
-        <div className="flex items-start gap-0.5 pt-[.125rem]">
-          <CheckBadge status={badgeStatus} />
-          {isEnabled && (
-            <div
-              className={`transition-opacity ${
-                isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-              }`}
-            >
-              <ChevronRightIcon />
-            </div>
-          )}
-        </div>
+        <CheckRowText
+          label={label}
+          detail={
+            issueCount > 0
+              ? translate("networkReview.issuesFound", issueCount)
+              : null
+          }
+        />
+        {isEnabled && (
+          <div
+            className={`pt-[.125rem] transition-opacity ${
+              isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+            }`}
+          >
+            <ChevronRightIcon />
+          </div>
+        )}
       </div>
     </Button>
   );

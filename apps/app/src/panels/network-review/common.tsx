@@ -1,12 +1,13 @@
 import { ChevronLeftIcon } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { Button, Loading } from "src/components/elements";
+import { Button } from "src/components/elements";
+import { RingSpinner } from "src/components/ring-spinner";
 import { Action, ActionButton } from "src/components/action-button";
 import { useTranslate } from "src/hooks/use-translate";
 import { useZoom } from "src/hooks/use-zoom";
 import { useUserTracking } from "src/infra/user-tracking";
-import { NoIssuesIcon, RefreshIcon, WarningIcon } from "src/icons";
+import { NoIssuesIcon } from "src/icons";
 
 export const enum CheckType {
   connectivityTrace = "connectivityTrace",
@@ -115,38 +116,6 @@ export const useCheckHeader = (
   };
 };
 
-// Signals that a check found something, not how many — the count would tick
-// down while the user fixes issues one at a time, and the row only needs to say
-// "there is something to look at here". Only a check that ran against the
-// current model and found nothing shows no badge at all.
-export type CheckBadgeStatus = "none" | "outdated" | "withIssues";
-
-export const CheckBadge = ({ status }: { status: CheckBadgeStatus }) => {
-  const translate = useTranslate();
-
-  if (status === "none") return null;
-
-  if (status === "outdated") {
-    return (
-      <span
-        className="text-subtle"
-        aria-label={translate("networkReview.outdated")}
-      >
-        <RefreshIcon size={16} />
-      </span>
-    );
-  }
-
-  return (
-    <span
-      className="text-orange-500 dark:text-orange-400"
-      aria-label={translate("networkReview.issuesFound")}
-    >
-      <WarningIcon size={16} />
-    </span>
-  );
-};
-
 export const ToolDescription = ({ checkType }: { checkType: CheckType }) => {
   const translate = useTranslate();
   return (
@@ -187,14 +156,14 @@ export const LoadingState = ({ overlay = false }: { overlay?: boolean }) => {
   if (overlay) {
     return (
       <div className="absolute bottom-px inset-0 flex flex-col items-center justify-center bg-base/80/80 backdrop-blur-xs z-10">
-        <Loading />
+        <RingSpinner size="lg" />
       </div>
     );
   }
 
   return (
     <div className="grow flex flex-col items-center justify-center px-4 pb-4">
-      <Loading />
+      <RingSpinner size="lg" />
     </div>
   );
 };

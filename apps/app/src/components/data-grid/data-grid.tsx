@@ -522,7 +522,7 @@ export const DataGrid = forwardRef(function DataGrid<
               className="absolute inset-0 z-30 flex items-center justify-center bg-base/50"
               aria-hidden="true"
             >
-              <RingSpinner />
+              <RingSpinner size="lg" />
             </div>
           )}
         </div>

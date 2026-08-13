@@ -1313,10 +1313,8 @@
     "toggle": "Toggle Network Review",
     "title": "Network Review",
     "description": "Run a series of checks to validate your network's topology and ensure data quality.",
-    "issuesFound": "Issues found",
-    "noIssuesFound": "No issues found",
-    "refresh": "Refresh checks",
-    "outdated": "Not up to date — refresh to run this check",
+    "issuesFound_one": "1 issue",
+    "issuesFound_other": "{{count}} issues",
     "connectivityTrace": {
       "title": "Connectivity trace",
       "description": "Identify disconnected sub-networks and verify each has a water supply source",

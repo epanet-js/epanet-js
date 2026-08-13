@@ -998,11 +998,6 @@ type NetworkReviewClosed = {
   source: string;
 };
 
-type NetworkReviewRefreshed = {
-  name: "networkReview.refreshed";
-  withIssues: string[];
-};
-
 type NetworkReviewChecked = {
   name:
     | "networkReview.orphanAssets.opened"
@@ -1426,7 +1421,6 @@ export type UserEvent =
   | NetworkReviewOpened
   | NetworkReviewClosed
   | NetworkReviewChecked
-  | NetworkReviewRefreshed
   | NetworkReviewBack
   | NetworkReviewChanged
   | ModelAttributesValidationChanged
