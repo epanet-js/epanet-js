@@ -83,6 +83,16 @@ describe("waiting for payment dialog", () => {
     );
   });
 
+  it("keeps the success notification until the user dismisses it", () => {
+    const { completePayment } = renderDialog();
+
+    completePayment();
+
+    expect(notify).toHaveBeenCalledWith(
+      expect.objectContaining({ duration: Infinity }),
+    );
+  });
+
   it("stops polling when the user cancels", () => {
     const { store, reload } = renderDialog();
 

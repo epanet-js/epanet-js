@@ -9,6 +9,7 @@ type NotificationData = {
   description?: string;
   Icon?: React.ElementType;
   size?: "auto" | "sm" | "md";
+  duration?: number;
 };
 
 type SupportedTypes = "checkoutSuccess";
@@ -21,6 +22,7 @@ export const checkoutSuccessNotification = (
   description: translate("upgradeSuccessfulExplain"),
   Icon: CheckIcon,
   size: "md",
+  duration: Infinity,
 });
 
 export const NotificationFromUrl = () => {
