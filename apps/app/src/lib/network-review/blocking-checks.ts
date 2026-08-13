@@ -91,3 +91,19 @@ export const runBlockingChecks = async (
     }),
   );
 };
+
+const reportOrder = [
+  CheckType.orphanAssets,
+  CheckType.connectivityTrace,
+  CheckType.modelAttributesValidation,
+] as const;
+
+export const failingRuleIds = (results: BlockingCheckResult[]): string[] =>
+  reportOrder.flatMap((check) => {
+    const result = results.find((candidate) => candidate.check === check);
+    if (!result || result.issueCount === 0) return [];
+
+    return result.check === CheckType.modelAttributesValidation
+      ? result.items.map(([ruleId]) => ruleId)
+      : [topologyRuleIds[result.check] ?? result.check];
+  });

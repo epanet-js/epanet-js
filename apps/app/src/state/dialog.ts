@@ -6,7 +6,6 @@ import type { CustomAttributeAssetType } from "@epanet-js/hydraulic-model";
 import type { BBox, FeatureCollection } from "geojson";
 import type { Proj4Projection, Projection } from "src/lib/projections";
 import type { ElevationFetchStatus } from "src/lib/elevations";
-import type { CheckType } from "src/panels/network-review/common";
 
 export type InvalidFilesErrorDialogState = {
   type: "invalidFilesError";
@@ -122,9 +121,8 @@ export type ModelAttributesValidationDialogState = {
 
 export type PreSimulationChecksDialogState = {
   type: "preSimulationChecks";
-  // Absent while the checks are still running; set once they have all settled.
-  counts?: Partial<Record<CheckType, number>>;
-  onReview: (check?: CheckType) => void;
+  failingRules?: string[];
+  onReview: () => void;
   onRunAnyway: () => void;
   onCancel: () => void;
 };

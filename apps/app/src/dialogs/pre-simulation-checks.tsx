@@ -1,12 +1,12 @@
 import * as Progress from "@radix-ui/react-progress";
-import { ChevronRight } from "lucide-react";
 import { BaseDialog, SimpleDialogActions } from "src/components/dialog";
-import { Button } from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
+import { NotificationBanner } from "src/components/notifications";
 import { WarningIcon } from "src/icons";
-import { blockingChecks } from "src/lib/network-review/blocking-checks";
-import { CheckType } from "src/panels/network-review/common";
+import { ruleLabelKey } from "src/panels/network-review/rule-labels";
 import { PreSimulationChecksDialogState } from "src/state/dialog";
+
+const maxListedRules = 2;
 
 const RunningBody = () => {
   const translate = useTranslate();
@@ -26,63 +26,31 @@ const RunningBody = () => {
   );
 };
 
-const FailingCheckRow = ({
-  checkType,
-  count,
-  onClick,
-}: {
-  checkType: CheckType;
-  count: number;
-  onClick: () => void;
-}) => {
+const SummaryBody = ({ failingRules }: { failingRules: string[] }) => {
   const translate = useTranslate();
-  const label = translate(`networkReview.${checkType}.title`);
+  const listed = failingRules.slice(0, maxListedRules);
+  const remaining = failingRules.length - listed.length;
 
   return (
-    <Button
-      onClick={onClick}
-      variant={"quiet/list"}
-      aria-label={label}
-      className="group w-full"
-    >
-      <div className="grid grid-cols-[auto_1fr_auto] gap-x-2 items-center p-2 text-size-base w-full text-left">
-        <span className="text-orange-500 dark:text-orange-400">
-          <WarningIcon size={16} />
-        </span>
-        <div className="flex flex-col items-start">
-          <span className="font-bold">{label}</span>
-          <span className="text-subtle">
-            {translate("preSimulationChecks.affectedCount", count)}
-          </span>
-        </div>
-        <ChevronRight size={16} />
-      </div>
-    </Button>
-  );
-};
-
-const SummaryBody = ({
-  counts,
-  onReview,
-}: {
-  counts: Partial<Record<CheckType, number>>;
-  onReview: (check: CheckType) => void;
-}) => {
-  const translate = useTranslate();
-  const failing = blockingChecks.filter((check) => (counts[check] ?? 0) > 0);
-
-  return (
-    <div className="p-4 text-size-base flex flex-col gap-2">
-      <p>{translate("preSimulationChecks.body")}</p>
-      <div className="-mx-2">
-        {failing.map((check) => (
-          <FailingCheckRow
-            key={check}
-            checkType={check}
-            count={counts[check] ?? 0}
-            onClick={() => onReview(check)}
-          />
-        ))}
+    <div className="p-4 text-size-base flex flex-col gap-4">
+      <NotificationBanner
+        variant="warning"
+        Icon={WarningIcon}
+        description={translate("preSimulationChecks.warning")}
+        className="border rounded-md"
+      />
+      <div className="flex flex-col gap-2">
+        <p>{translate("preSimulationChecks.body")}</p>
+        <ul className="list-disc pl-5 flex flex-col gap-1">
+          {listed.map((ruleId) => (
+            <li key={ruleId}>{translate(ruleLabelKey(ruleId))}</li>
+          ))}
+        </ul>
+        {remaining > 0 && (
+          <p className="text-subtle">
+            {translate("preSimulationChecks.andMoreIssues", remaining)}
+          </p>
+        )}
       </div>
     </div>
   );
@@ -96,14 +64,14 @@ export const PreSimulationChecksDialog = ({
   onClose: () => void;
 }) => {
   const translate = useTranslate();
-  const { counts, onReview, onRunAnyway, onCancel } = modal;
+  const { failingRules, onReview, onRunAnyway, onCancel } = modal;
 
   const closeThen = (action: () => void) => () => {
     onClose();
     action();
   };
 
-  if (counts === undefined) {
+  if (failingRules === undefined) {
     return (
       <BaseDialog
         title={translate("preSimulationChecks.title")}
@@ -131,7 +99,7 @@ export const PreSimulationChecksDialog = ({
       footer={
         <SimpleDialogActions
           action={translate("preSimulationChecks.review")}
-          onAction={closeThen(() => onReview())}
+          onAction={closeThen(onReview)}
           secondary={{
             action: translate("preSimulationChecks.runAnyway"),
             onClick: closeThen(onRunAnyway),
@@ -139,10 +107,7 @@ export const PreSimulationChecksDialog = ({
         />
       }
     >
-      <SummaryBody
-        counts={counts}
-        onReview={(check) => closeThen(() => onReview(check))()}
-      />
+      <SummaryBody failingRules={failingRules} />
     </BaseDialog>
   );
 };

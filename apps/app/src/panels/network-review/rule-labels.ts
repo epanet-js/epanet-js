@@ -10,5 +10,11 @@ export const toRuleLabelToken = (ruleId: string) =>
     )
     .join("");
 
+const pseudoRuleLabelKeys: Record<string, string> = {
+  "asset.connected": "networkReview.orphanAssets.rule",
+  "subNetwork.supplySource.present": "networkReview.connectivityTrace.rule",
+};
+
 export const ruleLabelKey = (ruleId: string) =>
+  pseudoRuleLabelKeys[ruleId] ??
   `networkReview.modelAttributesValidation.rule.${toRuleLabelToken(ruleId)}`;

@@ -34,10 +34,7 @@ import { selectedReviewCheckAtom } from "src/state/network-review";
 import { CheckType } from "src/panels/network-review/common";
 import { useCachedCheck, useReviewChecks } from "src/hooks/use-review-checks";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import {
-  blockingChecks,
-  topologyRuleIds,
-} from "src/lib/network-review/blocking-checks";
+import { failingRuleIds } from "src/lib/network-review/blocking-checks";
 export const runSimulationShortcut = "shift+enter";
 
 // Small models settle well inside this, so the dialog never flashes for them.
@@ -235,7 +232,7 @@ export const useRunSimulation = () => {
             if (hasSettled) return;
             setDialogState({
               type: "preSimulationChecks",
-              onReview: (check) => reviewChecks(check ?? "summary"),
+              onReview: () => reviewChecks("summary"),
               onRunAnyway: runWithIssues,
               onCancel: () => abortController.abort(),
             });
@@ -270,36 +267,27 @@ export const useRunSimulation = () => {
             return;
           }
 
-          const counts = Object.fromEntries(
-            results.map((result) => [result.check, result.issueCount]),
-          ) as Partial<Record<CheckType, number>>;
-          const failing = blockingChecks.filter(
-            (check) => (counts[check] ?? 0) > 0,
-          );
+          const failingRules = failingRuleIds(results);
 
-          if (failing.length > 0) {
-            const rules = results.flatMap((result) =>
-              result.issueCount === 0
-                ? []
-                : result.check === CheckType.modelAttributesValidation
-                  ? result.items.map(([ruleId]) => ruleId)
-                  : [topologyRuleIds[result.check] ?? result.check],
-            );
+          if (failingRules.length > 0) {
+            const failingChecks = results
+              .filter((result) => result.issueCount > 0)
+              .map((result) => result.check);
+            const reviewTarget =
+              failingChecks.length === 1 ? failingChecks[0] : "summary";
+
             userTracking.capture({
               name: "simulation.validation.issuesFound",
-              issueCount: failing.reduce(
-                (total, check) => total + (counts[check] ?? 0),
+              issueCount: results.reduce(
+                (total, result) => total + result.issueCount,
                 0,
               ),
-              rules,
+              rules: failingRules,
             });
             setDialogState({
               type: "preSimulationChecks",
-              counts,
-              onReview: (check) =>
-                reviewChecks(
-                  check ?? (failing.length === 1 ? failing[0] : "summary"),
-                ),
+              failingRules,
+              onReview: () => reviewChecks(reviewTarget),
               onRunAnyway: runWithIssues,
               onCancel: () => setDialogState(null),
             });
