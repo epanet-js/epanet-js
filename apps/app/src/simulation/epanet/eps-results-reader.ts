@@ -243,8 +243,13 @@ export class EPSResultsReader {
     this.wasDisposed = true;
     try {
       await this.storage.clearRun();
-    } catch {
-      // Dispose is best-effort cleanup; swallow errors.
+    } catch (error) {
+      handleError(error, {
+        as: "epsResultsReader: dispose failed",
+        ignore: ["NotFoundError"],
+        warn: opfsUnavailableErrors,
+        onUnexpected: "capture",
+      });
     }
   }
 

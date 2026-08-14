@@ -115,19 +115,16 @@ export class OPFSStorage implements IKeyBufferStore {
     await clearApp(this.appId);
   }
 
+  // Failures propagate so the caller can tell an already-cleaned run (project
+  // init, cleanupStaleOPFS, a prior dispose) apart from a delete that failed.
   async clearRun(): Promise<void> {
     if (!this.runId) return;
-    try {
-      const root = await getRootDir();
-      const appDir = await root.getDirectoryHandle(this.appId);
-      const parentDir = this.scenarioKey
-        ? await appDir.getDirectoryHandle(this.scenarioKey)
-        : appDir;
-      await parentDir.removeEntry(this.runId, { recursive: true });
-    } catch {
-      // Run directory may not exist (already cleaned by project init,
-      // cleanupStaleOPFS, or a prior dispose). Safe to ignore.
-    }
+    const root = await getRootDir();
+    const appDir = await root.getDirectoryHandle(this.appId);
+    const parentDir = this.scenarioKey
+      ? await appDir.getDirectoryHandle(this.scenarioKey)
+      : appDir;
+    await parentDir.removeEntry(this.runId, { recursive: true });
   }
 
   private touchLastAccess(): void {

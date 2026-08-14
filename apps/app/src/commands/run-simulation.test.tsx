@@ -357,6 +357,40 @@ describe("Run simulation", () => {
     });
   });
 
+  describe("results reader disposal", () => {
+    type Reader = NonNullable<SimulationFinished["epsResultsReader"]>;
+
+    const readerOf = (store: Store) =>
+      (store.get(simulationDerivedAtom) as SimulationFinished).epsResultsReader;
+
+    const aStoreWithPreviousReader = (previousReader: Reader) => {
+      const store = setInitialState({
+        hydraulicModel: aSimulableModel(),
+        simulation: {
+          status: "success",
+          report: "",
+          modelVersion: "previous",
+          settingsVersion: "previous",
+          epsResultsReader: previousReader,
+        },
+      });
+      return store;
+    };
+
+    it("disposes the previous reader when no other branch holds it", async () => {
+      const previousReader = {
+        dispose: vi.fn().mockResolvedValue(undefined),
+      } as unknown as Reader;
+      const store = aStoreWithPreviousReader(previousReader);
+
+      renderComponent({ store });
+      await triggerRun();
+      await waitFor(() => expect(readerOf(store)).not.toBe(previousReader));
+
+      await waitFor(() => expect(previousReader.dispose).toHaveBeenCalled());
+    });
+  });
+
   const triggerRun = async () => {
     await userEvent.click(
       screen.getByRole("button", { name: "runSimulation" }),

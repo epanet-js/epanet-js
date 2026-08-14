@@ -247,17 +247,17 @@ describe("OPFSStorage", () => {
       });
     });
 
-    it("does not throw when run directory does not exist", async () => {
+    it("propagates failures so the caller can classify them", async () => {
       const mockScenarioDir = {
         getDirectoryHandle: vi.fn(),
-        removeEntry: vi.fn().mockRejectedValue(new Error("NotFoundError")),
+        removeEntry: vi.fn().mockRejectedValue(new Error("removeEntry failed")),
       };
       mockAppDir.getDirectoryHandle = vi
         .fn()
         .mockResolvedValue(mockScenarioDir);
 
       const storage = new OPFSStorage("test-app-id", "scenario-1", "run-abc");
-      await expect(storage.clearRun()).resolves.not.toThrow();
+      await expect(storage.clearRun()).rejects.toThrow("removeEntry failed");
     });
 
     it("is a no-op when no runId is set", async () => {

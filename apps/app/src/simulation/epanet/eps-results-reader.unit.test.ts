@@ -1,6 +1,14 @@
-import { describe, expect, it, beforeEach } from "vitest";
+import { describe, expect, it, beforeEach, vi } from "vitest";
 import { EPSResultsReader } from "./eps-results-reader";
 import { InMemoryStorage } from "src/infra/storage";
+
+const captureError = vi.fn<(error: unknown) => void>();
+const captureWarning = vi.fn<(message: string) => void>();
+vi.mock("src/infra/error-tracking", async (importActual) => ({
+  ...(await importActual<typeof import("src/infra/error-tracking")>()),
+  captureError: (error: unknown) => captureError(error),
+  captureWarning: (message: string) => captureWarning(message),
+}));
 import {
   PROLOG_SIZE,
   EPILOG_SIZE,
@@ -542,6 +550,60 @@ describe("EPSResultsReader (unit tests)", () => {
       expect(junction?.waterAge).toBeCloseTo(5.0, 5);
       expect(reservoir?.waterAge).toBeCloseTo(3.0, 5);
       expect(tank?.waterAge).toBeCloseTo(8.0, 5);
+    });
+  });
+
+  describe("dispose", () => {
+    beforeEach(() => {
+      captureError.mockClear();
+      captureWarning.mockClear();
+    });
+
+    const anErrorNamed = (name: string) =>
+      Object.assign(new Error(`${name} raised`), { name });
+
+    it("deletes the run directory", async () => {
+      const storage = new InMemoryStorage("test-dispose");
+      const clearRun = vi.spyOn(storage, "clearRun");
+
+      await new EPSResultsReader(storage).dispose();
+
+      expect(clearRun).toHaveBeenCalled();
+    });
+
+    it("reports when the run directory could not be deleted", async () => {
+      const storage = new InMemoryStorage("test-dispose-failure");
+      vi.spyOn(storage, "clearRun").mockRejectedValue(new Error("boom"));
+
+      await expect(
+        new EPSResultsReader(storage).dispose(),
+      ).resolves.toBeUndefined();
+
+      expect(captureError).toHaveBeenCalled();
+    });
+
+    it("warns when the delete failed for an environmental reason", async () => {
+      const storage = new InMemoryStorage("test-dispose-unavailable");
+      vi.spyOn(storage, "clearRun").mockRejectedValue(
+        anErrorNamed("NotReadableError"),
+      );
+
+      await new EPSResultsReader(storage).dispose();
+
+      expect(captureWarning).toHaveBeenCalled();
+      expect(captureError).not.toHaveBeenCalled();
+    });
+
+    it("stays silent when the run directory is already gone", async () => {
+      const storage = new InMemoryStorage("test-dispose-missing");
+      vi.spyOn(storage, "clearRun").mockRejectedValue(
+        anErrorNamed("NotFoundError"),
+      );
+
+      await new EPSResultsReader(storage).dispose();
+
+      expect(captureError).not.toHaveBeenCalled();
+      expect(captureWarning).not.toHaveBeenCalled();
     });
   });
 });
