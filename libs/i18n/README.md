@@ -34,6 +34,45 @@ The lib is generic. Each app supplies the app-specific pieces:
   `allSupportedLanguages`). Import from here in non-React / `node`-environment code
   (e.g. number formatting) so it does not pull react-i18next or the HTTP backend into
   its module graph.
+- `@epanet-js/i18n/server` — **react-free** subpath for server-rendered copy
+  (`createServerI18n`, `cdnLoadPath`, `ServerTranslateFn`). See below.
+
+## Server-side translation
+
+`createI18n` is for React apps: it calls `initReactI18next` and configures the
+module-level i18next singleton, which a server cannot safely share across concurrent
+requests. `createServerI18n` is the server counterpart — same resources and
+`loadPath` contract, no React.
+
+```ts
+const translator = createServerI18n({
+  enTranslations,
+  loadPath: cdnLoadPath("billing"), // …/locales/<lng>/billing.json
+});
+
+// once per request
+const t = await translator(locale);
+t("checkoutCompleted.title");
+```
+
+`cdnLoadPath(namespace)` holds the locales CDN origin so consumers name only their
+namespace file. The React entry point still takes a `loadPath` of its own, since its
+consumers predate this helper and bundle English under a different local path.
+
+Three properties are load-bearing; changing any of them reintroduces a bug the
+design exists to avoid:
+
+- **`i18next.createInstance()`, not the shared default export.** Two consumers in one
+  process get independent stores rather than clobbering each other's resources.
+- **`getFixedT(locale)`, never `changeLanguage(locale)`.** `changeLanguage` mutates
+  instance-wide state, so under concurrency one request's language leaks into
+  another's response. `getFixedT` binds the language to the returned function
+  instead.
+- **A failed load degrades to English rather than throwing.** `loadLanguages` is
+  wrapped in a `try/catch`, and `fallbackLng: "en"` with the bundled English
+  resources means a CDN outage — or a namespace that does not exist yet — renders
+  English instead of failing the page. Missing individual keys fall back the same
+  way, so a partially translated file is safe to publish.
 
 ## Public API
 

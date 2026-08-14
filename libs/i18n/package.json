@@ -8,7 +8,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./locale": "./locale.ts",
-    "./numbers": "./numbers.ts"
+    "./numbers": "./numbers.ts",
+    "./server": "./server.ts"
   },
   "scripts": {
     "lint": "eslint --cache --ext .ts,.tsx src",

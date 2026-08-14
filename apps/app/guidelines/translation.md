@@ -68,15 +68,22 @@ const NewFeatureComponent = () => {
 - **No manual updates needed** for non-English translations
 - CDN serves translations from: `https://epanet-js.github.io/epanet-js-locales/`
 
+Each app reads its own namespace file from that CDN, so a key only ships to the app
+that needs it: `translation.json` for this app, `model-build.json` for the model
+builder, `billing.json` for the billing app. A namespace that does not exist yet
+falls back to the app's bundled English, as does any individual key missing from a
+partially translated file.
+
 ## Translation System Integration
 
 The i18n machinery lives in the shared **`@epanet-js/i18n`** workspace lib
 (`createI18n`, `LocaleProvider` / `useLocale`, `useTranslate`, and the locale
 primitives via the react-free subpath `@epanet-js/i18n/locale`). This app consumes
 it through thin shims at `src/hooks/use-translate` and `src/hooks/use-locale`. The
-model-builder utility app is a second consumer with its own bundled English file
-(English only for now). Only the machinery is shared — each app keeps its own
-English translation file and backend load path.
+model-builder utility app is a second consumer, and the billing app is a third —
+billing renders on the server, so it uses `createServerI18n` from the react-free
+`@epanet-js/i18n/server` subpath rather than the React provider. Only the machinery
+is shared — each app keeps its own English translation file and backend load path.
 
 ### Core Hooks
 
