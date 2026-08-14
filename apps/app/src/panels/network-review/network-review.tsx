@@ -36,27 +36,8 @@ import { useReviewChecks } from "src/hooks/use-review-checks";
 const LOADING_OVERLAY_DELAY_MS = 300;
 const MIN_OVERLAY_VISIBLE_MS = 400;
 
-// TEMPORARY: switch to compare row layouts, then keep the winner and delete
-// the other two branches along with this constant.
-//   growWhenIssues - the row only grows when a check has issues
-//   growAlways     - every row reserves the second line, so heights never change
-//   compact        - the row keeps its single-line height, content centred and
-//                    tightened when a second line is present
-type RowLayout = "growWhenIssues" | "growAlways" | "compact";
-const rowLayout = (): RowLayout => "growWhenIssues";
-const reservedDetailHeight = "h-5";
-const compactRowHeight = "h-12";
-
-const CheckRowDetail = ({
-  detail,
-  compact = false,
-}: {
-  detail: string;
-  compact?: boolean;
-}) => (
-  <div
-    className={`flex items-center gap-1 ${compact ? "mt-1 text-size-small leading-tight" : ""}`}
-  >
+const CheckRowDetail = ({ detail }: { detail: string }) => (
+  <div className="flex items-center gap-1">
     <span className="shrink-0 text-orange-500 dark:text-orange-400">
       <WarningIcon size={12} />
     </span>
@@ -70,34 +51,12 @@ const CheckRowText = ({
 }: {
   label: string;
   detail: string | null;
-}) => {
-  if (rowLayout() === "growAlways") {
-    return (
-      <div className="min-w-0 text-left">
-        <div className="text-size-base font-bold">{label}</div>
-        <div className={`flex items-center ${reservedDetailHeight}`}>
-          {detail !== null && <CheckRowDetail detail={detail} />}
-        </div>
-      </div>
-    );
-  }
-
-  if (rowLayout() === "compact") {
-    return (
-      <div className="min-w-0 text-left">
-        <div className="text-size-base font-bold leading-tight">{label}</div>
-        {detail !== null && <CheckRowDetail detail={detail} compact />}
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-w-0 text-left">
-      <div className="text-size-base font-bold">{label}</div>
-      {detail !== null && <CheckRowDetail detail={detail} />}
-    </div>
-  );
-};
+}) => (
+  <div className="min-w-0 text-left">
+    <div className="text-size-base font-bold">{label}</div>
+    {detail !== null && <CheckRowDetail detail={detail} />}
+  </div>
+);
 
 const isBlockingCheck = (check: CheckType): check is BlockingCheckType =>
   (blockingChecks as readonly CheckType[]).includes(check);
@@ -377,13 +336,7 @@ const ReviewCheck = ({
       className="group w-full"
       disabled={!isEnabled}
     >
-      <div
-        className={`grid grid-cols-[auto_1fr_auto] gap-x-2 items-start pr-0 text-size-base w-full ${
-          rowLayout() === "compact"
-            ? `px-2 content-center ${compactRowHeight}`
-            : "p-2"
-        }`}
-      >
+      <div className="grid grid-cols-[auto_1fr_auto] gap-x-2 items-start p-2 pr-0 text-size-base w-full">
         <div className="pt-[.125rem]">{iconsByCheckType[checkType]}</div>
         <CheckRowText
           label={label}
