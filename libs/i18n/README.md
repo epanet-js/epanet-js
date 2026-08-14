@@ -74,6 +74,18 @@ design exists to avoid:
   English instead of failing the page. Missing individual keys fall back the same
   way, so a partially translated file is safe to publish.
 
+## The English file must be served, not just bundled
+
+Every consumer keeps its English at `public/locales/en/translation.json`, and that
+path does two jobs. The app **imports** it as its bundled English resource, and the
+external `epanet-js-locales` repo **reads** it over HTTP —
+`<host>/locales/en/translation.json` — to generate every other language from it.
+
+Serving it is not optional: a consumer whose English source is unreachable at that
+URL gets no translations generated at all, and the failure is silent, because the
+bundled copy still renders correctly in English. Keep it as one file; a second copy
+under `src/` drifts from the served one.
+
 ## Public API
 
 ```ts

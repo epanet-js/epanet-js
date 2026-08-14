@@ -33,7 +33,7 @@ const NewFeatureComponent = () => {
 When explicitly asked to apply translation keys, update the English translation file and replace hardcoded text:
 
 #### 1. Update English Translation File
-Add new keys to `/public/locales/en/translation.json`:
+Add new keys to this app's `public/locales/en/translation.json`:
 
 ```json
 {
@@ -68,30 +68,22 @@ const NewFeatureComponent = () => {
 - **No manual updates needed** for non-English translations
 - CDN serves translations from: `https://epanet-js.github.io/epanet-js-locales/`
 
-Each app reads its own namespace file from that CDN, so a key only ships to the app
-that needs it: `translation.json` for this app, `model-build.json` for the model
-builder, `billing.json` for the billing app. A namespace that does not exist yet
-falls back to the app's bundled English, as does any individual key missing from a
-partially translated file.
+This app's English file at `public/locales/en/translation.json` does two jobs: it is
+bundled as the English resource and fallback, and it is served at
+`app.epanetjs.com/locales/en/translation.json`, which is where the locales repo reads
+the source strings from to generate the other languages. Non-English is fetched back
+from the CDN's `translation.json` namespace.
 
-The flow runs both ways, which is why every app keeps its English file under
-`public/locales/en/translation.json`: the locales repo **reads** that path over HTTP
-(`app.epanetjs.com/locales/en/translation.json`,
-`billing.epanetjs.com/locales/en/translation.json`) to generate the other languages,
-and the app **imports** the same file as its bundled English fallback. Serving it is
-not optional — an app whose English source is not reachable at that URL gets no
-translations generated at all.
+See [`@epanet-js/i18n`](../../../libs/i18n/README.md) for the general contract —
+namespaces, load paths and fallback behaviour.
 
 ## Translation System Integration
 
 The i18n machinery lives in the shared **`@epanet-js/i18n`** workspace lib
 (`createI18n`, `LocaleProvider` / `useLocale`, `useTranslate`, and the locale
 primitives via the react-free subpath `@epanet-js/i18n/locale`). This app consumes
-it through thin shims at `src/hooks/use-translate` and `src/hooks/use-locale`. The
-model-builder utility app is a second consumer, and the billing app is a third —
-billing renders on the server, so it uses `createServerI18n` from the react-free
-`@epanet-js/i18n/server` subpath rather than the React provider. Only the machinery
-is shared — each app keeps its own English translation file and backend load path.
+it through thin shims at `src/hooks/use-translate` and `src/hooks/use-locale`, and
+supplies its own English file and backend load path — only the machinery is shared.
 
 ### Core Hooks
 
@@ -170,17 +162,11 @@ Not `"Map Attributes"` / `"Build Model"` / `"Data Preview"`. Note `"Junction"` a
 
 ### Locale-Specific Number Formatting
 
-Different locales use different decimal and group separators:
-
-```typescript
-// Defined in @epanet-js/i18n (import from "@epanet-js/i18n/locale")
-const symbols = {
-  es: { decimals: ",", groups: "." },  // 1.234,56
-  en: { decimals: ".", groups: "," },  // 1,234.56
-  pt: { decimals: ",", groups: "." },  // 1.234,56
-  fr: { decimals: ",", groups: "" },   // 1234,56
-};
-```
+Different locales use different decimal and group separators — `es` renders
+`1.234,56` where `en` renders `1,234.56`. The separators live in `symbols`, imported
+from `@epanet-js/i18n/locale`, which is also where the supported locale list is
+defined. Read them from there rather than copying the table here; an earlier inline
+copy went stale when the lib gained locales.
 
 ### Parsing Localized Numbers
 
@@ -382,7 +368,7 @@ const UserPreferenceComponent = () => {
 4. Focus on feature completeness
 
 ### Phase 2: Translation Key Application (When Explicitly Requested)
-1. Add translation keys to `/public/locales/en/translation.json`
+1. Add translation keys to this app's `public/locales/en/translation.json`
 2. Replace hardcoded text with `translate()` calls
 3. Test translation key resolution
 4. Verify other languages load automatically from CDN
