@@ -4,16 +4,13 @@ import { createStore, Provider as JotaiProvider } from "jotai";
 import { recoverableSessionsAtom } from "src/state/session-recovery";
 import type { RecoveryFingerprint } from "src/infra/session-recovery";
 import { SessionRecoveryDialog } from "./session-recovery";
-import { SessionRecoveryDialogDeprecated } from "./session-recovery-deprecated";
 
 const recoverSession = vi.fn();
-const recoverSessionDeprecated = vi.fn();
 const discardSessions = vi.fn();
 const ignoreSessions = vi.fn();
 
 vi.mock("src/commands/recover-session", () => ({
   useRecoverSession: () => recoverSession,
-  useRecoverSessionDeprecated: () => recoverSessionDeprecated,
   useDiscardRecoverableSession: () => discardSessions,
   useIgnoreRecoverableSessions: () => ignoreSessions,
 }));
@@ -101,32 +98,6 @@ describe("session recovery dialog", () => {
     fireEvent.click(screen.getByRole("button", { name: "Discard all" }));
     expect(discardSessions).toHaveBeenCalledTimes(1);
     expect(recoverSession).not.toHaveBeenCalled();
-  });
-
-  it("offers only the latest session in the deprecated dialog", () => {
-    const store = createStore();
-    store.set(recoverableSessionsAtom, [
-      aSession({
-        poolId: "pool-1",
-        projectName: "oldest",
-        timestampLastModelChange: 1000,
-      }),
-      aSession({
-        poolId: "pool-2",
-        projectName: "newest",
-        timestampLastModelChange: 3000,
-      }),
-    ]);
-
-    render(
-      <JotaiProvider store={store}>
-        <SessionRecoveryDialogDeprecated />
-      </JotaiProvider>,
-    );
-
-    expect(screen.getByText("newest")).toBeInTheDocument();
-    expect(screen.queryByText("oldest")).not.toBeInTheDocument();
-    expect(screen.queryByRole("radio")).not.toBeInTheDocument();
   });
 });
 

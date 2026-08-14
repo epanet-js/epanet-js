@@ -1,18 +1,13 @@
 import { memo, useCallback, useRef } from "react";
 import { useAtom, useAtomValue } from "jotai";
 import { dialogAtom } from "src/state/dialog";
-import {
-  recoverableSessionAtom,
-  recoverableSessionsAtom,
-} from "src/state/session-recovery";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { recoverableSessionsAtom } from "src/state/session-recovery";
 import { match } from "ts-pattern";
 import * as dialogState from "src/state/dialog";
 import { useUserTracking } from "src/infra/user-tracking";
 import { LoadingDialog } from "../components/dialog";
 import { WelcomeDialog } from "./welcome";
 import { SessionRecoveryDialog } from "./session-recovery";
-import { SessionRecoveryDialogDeprecated } from "./session-recovery-deprecated";
 import { AppLoadFailedDialog } from "./app-load-failed";
 import { SimulationSettingsDialog } from "src/dialogs/simulation-settings";
 import { UpgradeDialog } from "src/dialogs/upgrade";
@@ -82,12 +77,8 @@ import { ImportZonesDialog } from "src/dialogs/import-zones-wizard";
 
 export const Dialogs = memo(function Dialogs() {
   const [dialog, setDialogState] = useAtom(dialogAtom);
-  const isMultiRecoveryOn = useFeatureFlag("FLAG_MULTI_RECOVERY");
-  const recoverableSession = useAtomValue(recoverableSessionAtom);
   const recoverableSessions = useAtomValue(recoverableSessionsAtom);
-  const hasRecoverableSession = isMultiRecoveryOn
-    ? recoverableSessions.length > 0
-    : !!recoverableSession;
+  const hasRecoverableSession = recoverableSessions.length > 0;
   const userTracking = useUserTracking();
   const onClose = useCallback(() => {
     setDialogState(null);
@@ -249,11 +240,7 @@ export const Dialogs = memo(function Dialogs() {
   if (dialog.type === "welcome") {
     if (!hasRecoverableSession) return <WelcomeDialog />;
 
-    return isMultiRecoveryOn ? (
-      <SessionRecoveryDialog />
-    ) : (
-      <SessionRecoveryDialogDeprecated />
-    );
+    return <SessionRecoveryDialog />;
   }
   if (dialog.type === "loading") {
     return <LoadingDialog />;

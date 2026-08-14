@@ -6,7 +6,6 @@ import { recoverableSessionsAtom } from "src/state/session-recovery";
 import type { RecoveryFingerprint } from "src/infra/session-recovery";
 import {
   useRecoverSession,
-  useRecoverSessionDeprecated,
   useDiscardRecoverableSession,
   useIgnoreRecoverableSessions,
 } from "./recover-session";
@@ -109,24 +108,6 @@ describe("recover session", () => {
     expect(clearRecoveryFingerprints).toHaveBeenCalledWith(["pool-1"]);
     expect(store.get(dialogAtom)).toEqual({ type: "welcome" });
     expect(capture).toHaveBeenCalledWith({ name: "sessionRecovery.failed" });
-  });
-
-  it("clears every session in the deprecated command", async () => {
-    const store = storeWith([
-      aSession({ poolId: "pool-1", timestampLastModelChange: 1000 }),
-      aSession({ poolId: "pool-2", timestampLastModelChange: 3000 }),
-    ]);
-
-    const { result } = renderRecover(store, useRecoverSessionDeprecated);
-    await act(async () => {
-      await result.current();
-    });
-
-    expect(exportDbFromPool).toHaveBeenCalledWith("pool-2");
-    expect(clearRecoveryFingerprints).toHaveBeenCalledWith([
-      "pool-1",
-      "pool-2",
-    ]);
   });
 
   it("keeps every fingerprint when ignoring", () => {

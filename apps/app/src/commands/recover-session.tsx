@@ -5,10 +5,7 @@ import type { Getter } from "jotai";
 import { cleanupStaleDbPools } from "@epanet-js/ejsdb";
 import * as db from "src/lib/db";
 import { getAppId } from "src/infra/app-instance";
-import {
-  recoverableSessionAtom,
-  recoverableSessionsAtom,
-} from "src/state/session-recovery";
+import { recoverableSessionsAtom } from "src/state/session-recovery";
 import { dialogAtom } from "src/state/dialog";
 import {
   clearRecoveryFingerprints,
@@ -107,75 +104,6 @@ export const useIgnoreRecoverableSessions = () => {
         });
       },
       [setRecoverableSessions, userTracking],
-    ),
-  );
-};
-
-export const useRecoverSessionDeprecated = () => {
-  const openProjectFile = useOpenProjectFile();
-  const setRecoverableSessions = useSetAtom(recoverableSessionsAtom);
-  const setDialogState = useSetAtom(dialogAtom);
-  const userTracking = useUserTracking();
-  const translate = useTranslate();
-
-  return useAtomCallback(
-    useCallback(
-      async (get: Getter) => {
-        const fingerprint = get(recoverableSessionAtom);
-        if (!fingerprint) return;
-        const recoverablePoolIds = get(recoverableSessionsAtom).map(
-          (session) => session.poolId,
-        );
-
-        setRecoverableSessions([]);
-        setDialogState({ type: "loading" });
-
-        let recoveredBlob: Blob | null = null;
-        try {
-          recoveredBlob = await db.exportDbFromPool(fingerprint.poolId);
-        } catch (error) {
-          captureError(
-            new Error(
-              `sessionRecovery export failed: ${formatErrorDetails(error)}`,
-              { cause: error },
-            ),
-          );
-        }
-
-        if (!recoveredBlob) {
-          clearRecoveryFingerprints(recoverablePoolIds);
-          discardRecoverablePools();
-          setDialogState({ type: "welcome" });
-          notify({
-            variant: "warning",
-            size: "md",
-            title: translate("recoverUnsavedModelFailedTitle"),
-            description: translate("recoverUnsavedModelFailedDescription"),
-            Icon: WarningIcon,
-          });
-          userTracking.capture({ name: "sessionRecovery.failed" });
-          return;
-        }
-
-        const name = fingerprint.projectName ?? translate("recoveredModelName");
-        const file = new File([recoveredBlob], name);
-
-        await openProjectFile(file, "recovery", {
-          isUnsaved: true,
-          lastSavedAt: fingerprint.timestampLastSave,
-        });
-
-        clearRecoveryFingerprints(recoverablePoolIds);
-        discardRecoverablePools();
-        userTracking.capture({ name: "sessionRecovery.recovered" });
-      },
-      [
-        openProjectFile,
-        setRecoverableSessions,
-        setDialogState,
-        userTracking,
-        translate,
-      ],
     ),
   );
 };
