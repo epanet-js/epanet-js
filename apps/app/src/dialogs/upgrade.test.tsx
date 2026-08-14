@@ -4,6 +4,7 @@ import { Provider as JotaiProvider, createStore } from "jotai";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { AuthMockProvider } from "src/__helpers__/auth-mock";
 import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
+import { stubLocale } from "src/__helpers__/locale";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { billingUrl } from "src/global-config";
 import { dialogAtom } from "src/state/dialog";
@@ -30,6 +31,7 @@ describe("upgrade dialog checkout", () => {
   describe("FLAG_BILLING enabled", () => {
     beforeEach(() => {
       stubFeatureOn("FLAG_BILLING");
+      stubLocale("en");
     });
 
     it("opens the billing app in a new tab", async () => {
@@ -40,7 +42,7 @@ describe("upgrade dialog checkout", () => {
       await userEvent.click(upgradeButtonFor("Pro"));
 
       expect(open).toHaveBeenCalledWith(
-        `${billingUrl}/checkout?plan=pro&paymentType=yearly`,
+        `${billingUrl}/checkout?plan=pro&paymentType=yearly&locale=en`,
         "_blank",
         "noopener,noreferrer",
       );
@@ -68,6 +70,19 @@ describe("upgrade dialog checkout", () => {
       const params = new URL(target as string).searchParams;
       expect(params.get("successUrl")).toBeNull();
       expect(params.get("cancelUrl")).toBeNull();
+    });
+
+    it("sends the language the user reads the app in", async () => {
+      stubLocale("es");
+      const open = stubOpen();
+      stubNavigation();
+      renderDialog();
+
+      await userEvent.click(upgradeButtonFor("Pro"));
+
+      const [target] = open.mock.calls[0];
+      const params = new URL(target as string).searchParams;
+      expect(params.get("locale")).toBe("es");
     });
 
     it("sends the payment type chosen on the cards", async () => {
@@ -128,7 +143,7 @@ describe("upgrade dialog checkout", () => {
 
       expect(open).toHaveBeenCalledTimes(1);
       expect(open).toHaveBeenCalledWith(
-        `${billingUrl}/checkout?plan=pro&paymentType=yearly`,
+        `${billingUrl}/checkout?plan=pro&paymentType=yearly&locale=en`,
         "_blank",
         "noopener,noreferrer",
       );

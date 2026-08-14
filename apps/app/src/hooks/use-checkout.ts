@@ -1,8 +1,10 @@
+import type { Locale } from "@epanet-js/i18n/locale";
 import { loadStripe } from "@stripe/stripe-js";
 import { atom, useAtom, useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
 import { notify } from "src/components/notifications";
 import { captureError } from "src/infra/error-tracking";
+import { useLocale } from "src/hooks/use-locale";
 import { useTranslate } from "src/hooks/use-translate";
 import { Plan } from "src/lib/account-plans";
 import { ErrorIcon } from "src/icons";
@@ -24,6 +26,7 @@ const checkoutLoadingAtom = atom<boolean>(false);
 export const useCheckout = () => {
   const isBillingOn = useFeatureFlag("FLAG_BILLING");
   const translate = useTranslate();
+  const { locale } = useLocale();
   const [isLoading, setLoading] = useAtom(checkoutLoadingAtom);
   const setDialogState = useSetAtom(dialogAtom);
 
@@ -52,7 +55,7 @@ export const useCheckout = () => {
     clearCheckoutParams();
 
     window.open(
-      buildBillingCheckoutUrl(plan, paymentType),
+      buildBillingCheckoutUrl(plan, paymentType, locale),
       "_blank",
       "noopener,noreferrer",
     );
@@ -101,10 +104,12 @@ export const clearCheckoutParams = () => {
 export const buildBillingCheckoutUrl = (
   plan: Plan,
   paymentType: PaymentType,
+  locale: Locale,
 ) => {
   const url = new URL("/checkout", billingUrl);
   url.searchParams.set("plan", plan);
   url.searchParams.set("paymentType", paymentType);
+  url.searchParams.set("locale", locale);
   return url.toString();
 };
 
