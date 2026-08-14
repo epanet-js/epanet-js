@@ -4,7 +4,7 @@ import {
   EncodedHydraulicModel,
   HydraulicModelEncoder,
 } from "../hydraulic-model-buffers";
-import { decodeSubNetworks } from "./data";
+import { decodeSubNetworks, unsuppliedSubNetworks } from "./data";
 import { HydraulicModel } from "src/hydraulic-model";
 
 describe("findSubNetworks", () => {
@@ -238,5 +238,83 @@ describe("findSubNetworks", () => {
 
     expect(subnetworks).toHaveLength(1);
     expect(subnetworks[0].supplySourceCount).toBe(2);
+  });
+
+  describe("inactive assets", () => {
+    const trace = (model: HydraulicModel) => {
+      const { nodeIdsLookup, linkIdsLookup, ...data } = encodeData(model);
+      return decodeSubNetworks(
+        nodeIdsLookup,
+        linkIdsLookup,
+        findSubNetworks(data),
+      );
+    };
+
+    it("splits the network when a bridging pipe is disabled", () => {
+      const IDS = { R1: 1, J1: 2, J2: 3, J3: 4, P1: 5, P2: 6, P3: 7 } as const;
+      const model = HydraulicModelBuilder.with()
+        .aReservoir(IDS.R1)
+        .aNode(IDS.J1)
+        .aNode(IDS.J2)
+        .aNode(IDS.J3)
+        .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
+        .aPipe(IDS.P2, {
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
+          isActive: false,
+        })
+        .aPipe(IDS.P3, { startNodeId: IDS.J2, endNodeId: IDS.J3 })
+        .build();
+
+      const subnetworks = trace(model);
+
+      expect(subnetworks).toHaveLength(2);
+      expect(unsuppliedSubNetworks(subnetworks)).toHaveLength(1);
+      expect(unsuppliedSubNetworks(subnetworks)[0].nodeIds).toEqual([
+        IDS.J2,
+        IDS.J3,
+      ]);
+    });
+
+    it("does not trace through a disabled pipe", () => {
+      const IDS = { R1: 1, J1: 2, J2: 3, P1: 4, P2: 5 } as const;
+      const model = HydraulicModelBuilder.with()
+        .aReservoir(IDS.R1)
+        .aNode(IDS.J1)
+        .aNode(IDS.J2)
+        .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
+        .aPipe(IDS.P2, {
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
+          isActive: false,
+        })
+        .build();
+
+      const subnetworks = trace(model);
+
+      expect(subnetworks[0].linkIds).toEqual([IDS.P1]);
+    });
+
+    it("ignores a fully disabled island", () => {
+      const IDS = { R1: 1, J1: 2, P1: 3, J2: 4, J3: 5, P2: 6 } as const;
+      const model = HydraulicModelBuilder.with()
+        .aReservoir(IDS.R1)
+        .aNode(IDS.J1)
+        .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
+        .aJunction(IDS.J2, { isActive: false })
+        .aJunction(IDS.J3, { isActive: false })
+        .aPipe(IDS.P2, {
+          startNodeId: IDS.J2,
+          endNodeId: IDS.J3,
+          isActive: false,
+        })
+        .build();
+
+      const subnetworks = trace(model);
+
+      expect(subnetworks).toHaveLength(1);
+      expect(unsuppliedSubNetworks(subnetworks)).toHaveLength(0);
+      expect(subnetworks[0].nodeIds).toEqual([IDS.R1, IDS.J1]);
+    });
   });
 });

@@ -65,6 +65,8 @@ export type OrphanLinkConnectionDetails = {
   endExistsInAssets: boolean;
   startIsNode: boolean;
   endIsNode: boolean;
+  startIsActive: boolean;
+  endIsActive: boolean;
   assetCount: number;
   nodeMapperCount: number;
   linkMapperCount: number;
@@ -77,9 +79,10 @@ export class OrphanLinkConnectionError extends Error {
     super(
       `Orphan link connection: link ${details.linkId} (${details.linkType}) ` +
         `references node id(s) not in mapper [start=${details.startId} ` +
-        `(inAssets=${details.startExistsInAssets}, isNode=${details.startIsNode}), ` +
+        `(inAssets=${details.startExistsInAssets}, isNode=${details.startIsNode}, ` +
+        `isActive=${details.startIsActive}), ` +
         `end=${details.endId} (inAssets=${details.endExistsInAssets}, ` +
-        `isNode=${details.endIsNode})]`,
+        `isNode=${details.endIsNode}, isActive=${details.endIsActive})]`,
     );
     this.name = "OrphanLinkConnectionError";
     this.details = details;
@@ -184,6 +187,8 @@ export class HydraulicModelEncoder {
 
   private prepareMappings() {
     for (const [id, asset] of this.model.assets) {
+      if (!asset.isActive) continue;
+
       if (asset.isLink) {
         if (this.isOrphanLink(asset)) continue;
         this.linkIdMapper.getOrAssignIdx(id);
@@ -360,6 +365,8 @@ export class HydraulicModelEncoder {
         endExistsInAssets: endAsset !== undefined,
         startIsNode: startAsset?.isNode === true,
         endIsNode: endAsset?.isNode === true,
+        startIsActive: startAsset?.isActive === true,
+        endIsActive: endAsset?.isActive === true,
         assetCount: this.model.assets.size,
         nodeMapperCount: this.nodeIdMapper.count,
         linkMapperCount: this.linkIdMapper.count,

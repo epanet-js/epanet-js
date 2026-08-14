@@ -9,6 +9,10 @@ import {
   AssetIndexEncoder,
   AssetIndexBuffers,
 } from "src/hydraulic-model/asset-index-transferable";
+import {
+  ActiveAssetIndex,
+  ActiveTopology,
+} from "src/hydraulic-model/utilities/active-only-queries";
 
 export type OrphanAssets = {
   orphanNodes: number[];
@@ -24,12 +28,11 @@ export function encodeData(
   model: HydraulicModel,
   bufferType: BufferType = "array",
 ): RunData {
-  const assetIndexEncoder = new AssetIndexEncoder(model.assetIndex, bufferType);
-  const topologyEncoder = new TopologyEncoder(
-    model.topology,
-    model.assetIndex,
-    bufferType,
-  );
+  const assetIndex = new ActiveAssetIndex(model.assetIndex, model.assets);
+  const topology = new ActiveTopology(model.topology, model.assets);
+
+  const assetIndexEncoder = new AssetIndexEncoder(assetIndex, bufferType);
+  const topologyEncoder = new TopologyEncoder(topology, assetIndex, bufferType);
 
   return {
     topologyBuffers: topologyEncoder.encode(),

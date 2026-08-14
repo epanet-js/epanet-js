@@ -26,6 +26,38 @@
 - Implement proper error boundaries
 - Consider Web Workers for heavy computations
 
+### Workers and buffer encoding
+
+Heavy passes over the model (network review checks, area selection, trace) run in
+workers. Do not hand a worker the model itself — the assets are class instances
+wrapping GeoJSON, so a structured clone costs about as much as the work. Encode
+the slice you need into flat buffers with `@epanet-js/buffers` and **transfer**
+them, which moves ownership in O(1):
+
+```typescript
+await workerAPI.doWork(Comlink.transfer(data, transferablesOf(data)));
+```
+
+**Always encode as `ArrayBuffer`, never `SharedArrayBuffer`.** `SharedArrayBuffer`
+requires the page to be cross-origin isolated (`Cross-Origin-Opener-Policy:
+same-origin` plus `Cross-Origin-Embedder-Policy: require-corp`). The app
+deliberately sets neither, because isolation was found to break the Stripe
+payment embeds — not a trade worth making for worker throughput. Do not re-enable
+isolation to unlock shared memory without solving checkout first.
+
+Use `canUseWorker()` from `src/infra/worker.ts`. `canUseWorkers()` (plural)
+additionally requires `"shared"`, so it is always false under this rule.
+
+Checks that cannot be reduced to buffers — because they need live objects or rule
+closures — should stay on the main thread and yield with `createTimeSlicer()`
+from `src/infra/yield-to-main` rather than blocking it.
+
+Today each feature encodes its own buffers per run, and several encode
+overlapping data. The intent is to **cache encoded buffers and share them across
+consumers**, keyed by model version, rather than re-encoding per check and per
+feature. When adding an encoder, prefer a shape that could be reused over one
+shaped narrowly to a single caller.
+
 ### Test Performance Guidelines
 - **Tests are expensive** - avoid running full test suite unnecessarily
 - Do not run all tests unless explicitly requested

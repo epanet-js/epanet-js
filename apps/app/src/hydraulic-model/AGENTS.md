@@ -47,6 +47,29 @@ package holds the ngraph `Topology` class and its queries, while the `topology/`
 here holds only the worker-transferable encoding (`topologyEncoder`,
 `topologyView`, `topology-transferable`).
 
+## The transferable encoders are shared — wrap their inputs
+
+`AssetIndexEncoder` (`asset-index-transferable.ts`) and `TopologyEncoder`
+(`topology/topologyEncoder.ts`) are used by **orphan assets, area selection and
+trace**. Do not add feature-specific behaviour to them.
+
+When a consumer needs a different view of the model, wrap the **inputs** instead.
+Both encoders take `AssetIndexQueries` / `TopologyQueries`, so an adapter
+implementing those interfaces can hide or reshape assets without the encoders
+knowing. `utilities/active-only-queries.ts` does exactly that: `ActiveAssetIndex`
+and `ActiveTopology` present an active-only view, which is how the network review
+checks exclude inactive assets.
+
+Such an adapter **must renumber densely from zero**. `AssetIndexEncoder` writes
+positionally (`addAtIndex`) using the index yielded by `iterate*`, while
+`TopologyEncoder` writes sequentially (`add`); the two agree only when the
+yielded indices are dense and ascending. Preserving the underlying indices while
+skipping entries misaligns the buffers silently.
+
+Be aware that the live `AssetIndex` index is **ordinal, not stable** — it is
+derived as `i++` over a Set, so removing an asset renumbers everything after it.
+Never persist or cache one of these indices across a mutation.
+
 When changing the asset classes, factories, curves, patterns, label manager,
 custom attributes, or customer-point types, edit them in
 `public/libs/hydraulic-model/` — not here.

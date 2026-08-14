@@ -413,5 +413,25 @@ describe("runCheck", () => {
 
       expect(crossings).toEqual([]);
     });
+
+    it("ignores a crossing when one pipe is disabled", async () => {
+      const IDS = { J1: 1, J2: 2, P1: 3, J3: 4, J4: 5, P2: 6 } as const;
+      const model = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, { coordinates: [0, 0] })
+        .aJunction(IDS.J2, { coordinates: [0, 10] })
+        .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
+        .aJunction(IDS.J3, { coordinates: [-5, 5] })
+        .aJunction(IDS.J4, { coordinates: [5, 5] })
+        .aPipe(IDS.P2, {
+          startNodeId: IDS.J3,
+          endNodeId: IDS.J4,
+          isActive: false,
+        })
+        .build();
+
+      const crossings = await runCheck(model, 0.5);
+
+      expect(crossings).toEqual([]);
+    });
   });
 });

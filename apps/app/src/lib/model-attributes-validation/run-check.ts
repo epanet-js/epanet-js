@@ -88,6 +88,7 @@ export const validateModelAttributes = async (
   for (const [id, asset] of model.assets) {
     await yieldIfSliceElapsed();
     throwIfAborted(signal);
+    if (!asset.isActive) continue;
     collectInto(entityIdsByRule, asset.type, id, asset, model, index);
   }
 

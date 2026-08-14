@@ -938,4 +938,46 @@ describe("validateModelAttributes with inferred roughness", () => {
       });
     });
   });
+
+  describe("inactive assets", () => {
+    it("does not flag a disabled pipe with a missing roughness", async () => {
+      const IDS = { P1: 1 } as const;
+      const model = HydraulicModelBuilder.with()
+        .aPipe(IDS.P1, {
+          roughness: null,
+          diameter: 100,
+          length: 100,
+          isActive: false,
+        })
+        .build();
+
+      expect(await validateModelAttributes(model)).toEqual([]);
+    });
+
+    it("flags only the active one of two invalid pipes", async () => {
+      const IDS = { P1: 1, P2: 2 } as const;
+      const model = HydraulicModelBuilder.with()
+        .aPipe(IDS.P1, { roughness: null, diameter: 100, length: 100 })
+        .aPipe(IDS.P2, {
+          roughness: null,
+          diameter: 100,
+          length: 100,
+          isActive: false,
+        })
+        .build();
+
+      const issues = await validateModelAttributes(model);
+
+      expect(entityIdsOf(issues, "pipe.roughness.present")).toEqual([IDS.P1]);
+    });
+
+    it("does not flag a disabled junction with a missing elevation", async () => {
+      const IDS = { J1: 1 } as const;
+      const model = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, { elevation: null, isActive: false })
+        .build();
+
+      expect(await validateModelAttributes(model)).toEqual([]);
+    });
+  });
 });
