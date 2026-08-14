@@ -25,6 +25,7 @@ import { ConnectivityTrace } from "./connectivity-trace";
 import { ModelAttributesValidation } from "./model-attributes-validation";
 import { EarlyAccessBadge } from "src/components/early-access-badge";
 import { useEarlyAccess } from "src/hooks/use-early-access";
+import { useAuth } from "src/hooks/use-auth";
 import {
   reviewResultsAtom,
   selectedReviewCheckAtom,
@@ -126,6 +127,8 @@ function NetworkReviewSummary({
   const { ensureFresh } = useReviewChecks();
   const reviewResults = useAtomValue(reviewResultsAtom);
   const [isRunning, setIsRunning] = useState(false);
+  const { isSignedIn, isLoaded } = useAuth();
+  const showEarlyAccessBadge = isLoaded && !isSignedIn;
 
   const [selectedCheckType, setSelectedCheckType] = useState<CheckType | null>(
     null,
@@ -241,9 +244,11 @@ function NetworkReviewSummary({
       <div className="py-3 px-4 text-size-base font-bold text-default border-b w-full">
         <span>{translate("networkReview.title")}</span>
       </div>
-      <div className="px-4 pt-3">
-        <EarlyAccessBadge />
-      </div>
+      {showEarlyAccessBadge && (
+        <div className="px-4 pt-3">
+          <EarlyAccessBadge />
+        </div>
+      )}
       <div className="px-4 py-2 text-size-base">
         {translate("networkReview.description")}
       </div>
