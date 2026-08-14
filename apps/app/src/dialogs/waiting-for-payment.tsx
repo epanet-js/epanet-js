@@ -5,6 +5,7 @@ import { checkoutSuccessNotification } from "src/components/notification-from-ur
 import { notify } from "src/components/notifications";
 import { useTranslate } from "src/hooks/use-translate";
 import { useWaitForPayment } from "src/hooks/use-wait-for-payment";
+import { notifyUserChanged } from "src/infra/auth-sync";
 import { RefreshIcon } from "src/icons";
 
 export const WaitingForPaymentDialog = () => {
@@ -14,6 +15,7 @@ export const WaitingForPaymentDialog = () => {
   const onPaymentDetected = useCallback(() => {
     closeDialog();
     notify(checkoutSuccessNotification(translate));
+    notifyUserChanged();
   }, [closeDialog, translate]);
 
   useWaitForPayment(onPaymentDetected);

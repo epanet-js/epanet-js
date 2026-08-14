@@ -67,6 +67,7 @@ import { initStorage } from "src/infra/storage";
 import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
 import { useIsCustomerAllocationDisabled } from "src/hooks/use-is-customer-allocation-disabled";
 import { SessionRecoveryGuard } from "./session-recovery-guard";
+import { AuthSyncGuard } from "./auth-sync-guard";
 import { useDbStorageBootstrap } from "src/hooks/use-db-storage-bootstrap";
 
 type ResolvedLayout = "HORIZONTAL" | "VERTICAL" | "FLOATING";
@@ -230,6 +231,7 @@ export function EpanetApp() {
       </MapContext.Provider>
       <TabCloseGuard />
       <SessionRecoveryGuard />
+      <AuthSyncGuard />
       <OfflineGuard />
       <NotificationFromUrl />
       <PrivacyBanner />
