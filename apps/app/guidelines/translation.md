@@ -74,6 +74,14 @@ builder, `billing.json` for the billing app. A namespace that does not exist yet
 falls back to the app's bundled English, as does any individual key missing from a
 partially translated file.
 
+The flow runs both ways, which is why every app keeps its English file under
+`public/locales/en/translation.json`: the locales repo **reads** that path over HTTP
+(`app.epanetjs.com/locales/en/translation.json`,
+`billing.epanetjs.com/locales/en/translation.json`) to generate the other languages,
+and the app **imports** the same file as its bundled English fallback. Serving it is
+not optional — an app whose English source is not reachable at that URL gets no
+translations generated at all.
+
 ## Translation System Integration
 
 The i18n machinery lives in the shared **`@epanet-js/i18n`** workspace lib
