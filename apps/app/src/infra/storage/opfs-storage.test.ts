@@ -4,6 +4,7 @@ import {
   cleanupStaleOPFS,
   createTempFile,
   getAvailableStorageBytes,
+  isOPFSAvailable,
 } from "./opfs-storage";
 
 describe("OPFSStorage", () => {
@@ -405,6 +406,35 @@ describe("OPFSStorage", () => {
         recursive: true,
       });
     });
+  });
+});
+
+describe("isOPFSAvailable", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  const stubGetDirectory = (getDirectory: unknown) => {
+    vi.stubGlobal("navigator", { storage: { getDirectory } });
+  };
+
+  it("is available when the root dir opens", async () => {
+    stubGetDirectory(vi.fn().mockResolvedValue({}));
+
+    expect(await isOPFSAvailable()).toBe(true);
+  });
+
+  it("is unavailable when the root dir cannot be opened", async () => {
+    stubGetDirectory(vi.fn().mockRejectedValue(new Error("nope")));
+
+    expect(await isOPFSAvailable()).toBe(false);
+  });
+
+  it("is available without writable file streams", async () => {
+    stubGetDirectory(vi.fn().mockResolvedValue({}));
+    vi.stubGlobal("FileSystemFileHandle", class FileSystemFileHandle {});
+
+    expect(await isOPFSAvailable()).toBe(true);
   });
 });
 

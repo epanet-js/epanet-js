@@ -283,7 +283,7 @@
   "libraryCurve": "Library curve",
   "pumpHead": "Pump head",
   "simulate": "Simulate",
-  "simulateUnavailablePrivateBrowsing": "Simulation is not available in older browsers or private browsing mode. Try updating your browser or using another window.",
+  "simulateUnavailableNoBrowserStorage": "Simulation needs browser storage that this window cannot use. Private browsing blocks it, and older browsers do not support it. Try a normal window, or update your browser to the latest version.",
   "simulation": "Simulation",
   "simulationReport": "Simulation report",
   "simulationReadyToRun": "Ready to run",

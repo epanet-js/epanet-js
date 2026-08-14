@@ -1,9 +1,14 @@
 import { getAppId } from "src/infra/app-instance";
-import { createTempFile } from "./opfs-storage";
+import { createTempFile, isOPFSAvailable } from "./opfs-storage";
+import { createInMemoryFile } from "./in-memory-file";
 
 const openFileInOpfs = async (
   fileName: string,
 ): Promise<FileSystemFileHandle> => {
+  const canStreamToOpfs =
+    isWritableFileStreamSupported() && (await isOPFSAvailable());
+  if (!canStreamToOpfs) return createInMemoryFile(fileName);
+
   return await createTempFile(getAppId(), fileName);
 };
 
@@ -40,6 +45,10 @@ const fileSizeLimit = async () => {
   const { quota, usage } = await navigator.storage.estimate();
   return (quota ?? 0) - (usage ?? 0);
 };
+
+const isWritableFileStreamSupported = () =>
+  typeof FileSystemFileHandle !== "undefined" &&
+  "createWritable" in FileSystemFileHandle.prototype;
 
 export const FileSystemHelpers = {
   openFileInOpfs,

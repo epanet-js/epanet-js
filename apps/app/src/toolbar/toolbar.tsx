@@ -161,7 +161,7 @@ export const Toolbar = ({
       {!isOPFSAvailable ? (
         <DisabledMenuAction
           label={translate("simulate")}
-          reason={translate("simulateUnavailablePrivateBrowsing")}
+          reason={translate("simulateUnavailableNoBrowserStorage")}
         >
           <RunSimulationIcon className="stroke-yellow-600" />
         </DisabledMenuAction>

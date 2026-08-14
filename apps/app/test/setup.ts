@@ -37,7 +37,12 @@ vi.mock("src/infra/storage", async (importOriginal) => {
   };
 });
 
-vi.stubGlobal("FileSystemFileHandle", class FileSystemFileHandle {});
+vi.stubGlobal(
+  "FileSystemFileHandle",
+  class FileSystemFileHandle {
+    createWritable() {}
+  },
+);
 
 beforeEach(async () => {
   stubUserTracking();
