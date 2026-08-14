@@ -40,6 +40,18 @@ Sentry.init({
     );
     if (isAbortedRequest) return null;
 
+    // mapbox-gl cancels in-flight tile requests on every pan, zoom and style swap,
+    // and never catches the resulting AbortError, so it surfaces as an unhandled
+    // rejection. Scoped to mapbox frames so app-level aborts still report.
+    const isMapboxTileAbort = event.exception?.values?.some(
+      (value) =>
+        value.type === "AbortError" &&
+        value.stacktrace?.frames?.some((frame) =>
+          frame.filename?.includes("mapbox-gl"),
+        ),
+    );
+    if (isMapboxTileAbort) return null;
+
     if (
       error instanceof Error &&
       "details" in error &&
