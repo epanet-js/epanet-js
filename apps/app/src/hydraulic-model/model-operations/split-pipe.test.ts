@@ -199,6 +199,10 @@ describe("splitPipe", () => {
     originalPipe.setProperty("roughness", 0.1);
     originalPipe.setProperty("minorLoss", 0.5);
     originalPipe.setProperty("initialStatus", "open");
+    originalPipe.setProperty("material", "Cast Iron");
+    originalPipe.setProperty("year", 1985);
+    originalPipe.setProperty("bulkReactionCoeff", -0.3);
+    originalPipe.setProperty("wallReactionCoeff", -0.7);
 
     hydraulicModel.assets.set(originalPipe.id, originalPipe);
 
@@ -221,11 +225,19 @@ describe("splitPipe", () => {
     expect(pipe1.getProperty("roughness")).toBe(0.1);
     expect(pipe1.getProperty("minorLoss")).toBe(0.5);
     expect(pipe1.getProperty("initialStatus")).toBe("open");
+    expect(pipe1.getProperty("material")).toBe("Cast Iron");
+    expect(pipe1.getProperty("year")).toBe(1985);
+    expect(pipe1.getProperty("bulkReactionCoeff")).toBe(-0.3);
+    expect(pipe1.getProperty("wallReactionCoeff")).toBe(-0.7);
 
     expect(pipe2.getProperty("diameter")).toBe(200);
     expect(pipe2.getProperty("roughness")).toBe(0.1);
     expect(pipe2.getProperty("minorLoss")).toBe(0.5);
     expect(pipe2.getProperty("initialStatus")).toBe("open");
+    expect(pipe2.getProperty("material")).toBe("Cast Iron");
+    expect(pipe2.getProperty("year")).toBe(1985);
+    expect(pipe2.getProperty("bulkReactionCoeff")).toBe(-0.3);
+    expect(pipe2.getProperty("wallReactionCoeff")).toBe(-0.7);
   });
 
   it("copies custom attributes to both segments", () => {
@@ -522,6 +534,10 @@ describe("splitPipe", () => {
     originalPipe.setProperty("roughness", 0.15);
     originalPipe.setProperty("minorLoss", 0.8);
     originalPipe.setProperty("initialStatus", "closed");
+    originalPipe.setProperty("material", "PVC");
+    originalPipe.setProperty("year", 2001);
+    originalPipe.setProperty("bulkReactionCoeff", -0.5);
+    originalPipe.setProperty("wallReactionCoeff", -1.2);
 
     hydraulicModel.assets.set(originalPipe.id, originalPipe);
 
@@ -549,6 +565,10 @@ describe("splitPipe", () => {
       expect(pipe.getProperty("roughness")).toBe(0.15);
       expect(pipe.getProperty("minorLoss")).toBe(0.8);
       expect(pipe.getProperty("initialStatus")).toBe("closed");
+      expect(pipe.getProperty("material")).toBe("PVC");
+      expect(pipe.getProperty("year")).toBe(2001);
+      expect(pipe.getProperty("bulkReactionCoeff")).toBe(-0.5);
+      expect(pipe.getProperty("wallReactionCoeff")).toBe(-1.2);
       expect(pipe.length).toBeGreaterThan(0);
     });
   });

@@ -18,7 +18,14 @@ import { Unit } from "@epanet-js/quantity";
 
 type CopyablePipeProperties = Pick<
   PipeProperties,
-  "diameter" | "roughness" | "minorLoss" | "initialStatus"
+  | "diameter"
+  | "roughness"
+  | "minorLoss"
+  | "initialStatus"
+  | "material"
+  | "year"
+  | "bulkReactionCoeff"
+  | "wallReactionCoeff"
 >;
 type CopyablePipePropertyKeys = keyof CopyablePipeProperties;
 
@@ -332,6 +339,10 @@ const copyPipeProperties = (source: Pipe, target: Pipe) => {
     "roughness",
     "minorLoss",
     "initialStatus",
+    "material",
+    "year",
+    "bulkReactionCoeff",
+    "wallReactionCoeff",
   ];
 
   for (const property of propertiesToCopy) {
