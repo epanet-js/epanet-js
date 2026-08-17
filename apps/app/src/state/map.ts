@@ -54,6 +54,8 @@ export const mapSyncMomentAtom = atom<MomentPointer>({
   version: 0,
 });
 
+export const mapSyncSeqAtom = atom<number>(-1);
+
 export const mapLoadingAtom = atom<boolean>(false);
 
 export const mapBackendFallbackAtom = atom<boolean>(false);
@@ -115,6 +117,7 @@ export type MapState = {
   changeTrackerSeq: number;
   syncMomentPointer: number;
   syncMomentVersion: number;
+  syncSeq: number;
   stylesConfig: StylesConfig;
   selection: Sel;
   ephemeralState: EphemeralEditingState;
@@ -141,6 +144,7 @@ export const nullMapState: MapState = {
   changeTrackerSeq: -1,
   syncMomentPointer: -1,
   syncMomentVersion: 0,
+  syncSeq: -1,
   stylesConfig: {
     symbology: SYMBOLIZATION_NONE,
     previewProperty: null,
@@ -206,6 +210,7 @@ export const mapStateDerivedAtom = atom<MapState>((get) => {
     changeTrackerSeq: changeTracker.getSeq(),
     syncMomentPointer: mapSyncMoment.pointer,
     syncMomentVersion: mapSyncMoment.version,
+    syncSeq: get(mapSyncSeqAtom),
     stylesConfig,
     selection,
     ephemeralState,

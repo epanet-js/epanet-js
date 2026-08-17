@@ -121,6 +121,16 @@ This leans on two existing invariants — the transactional commit (a throw leav
 
 Each cycle diffs the new state against the last-applied state and produces one flag per independently-updatable concern (edits, selection, symbology, results, style, zoom, and so on); only the work whose flag fired runs. Every flag is an identity check — which is what makes coalescing correct, since diffing newest against last-applied equals the sum of skipped diffs only if each flag is an equality check. A flag needing deep comparison would break that.
 
+### Where "what changed" comes from
+
+The map learns about model changes from a **change tracker** (`src/lib/persistence/change-tracker.ts`), not from the undo/redo history. The tracker records *when* each asset last changed — an asset id to a monotonic sequence number — and the map keeps a watermark into it. Three things come from it: a fresh tracker `id` means the whole model was replaced (rebuild everything), a changed `seq` means the model changed at all, and the assets stamped after the watermark are exactly the editions set. The watermark advances only on consolidation, where the tracker is also trimmed, which bounds it to roughly the consolidation budget.
+
+Rationale: recording *when* rather than *what* keeps the editions set a pure function of (tracker, watermark), re-derived every cycle — which is what makes it safe under coalescing. An accumulating set of dirty ids that the map clears is **not** safe: the snapshot build is time-sliced and yields, so an edit can land mid-build, and a set cannot represent "this asset changed *again*, later than what the map is building" — the union is a no-op, so clearing after the build drops that edit. An ordinal per asset makes "before or after the snapshot I built" decidable. For the same reason the map commits the watermark it **read at the start of the cycle**, never the live value.
+
+The tracker is stamped in one place — `applyMoment` in `src/lib/persistence/transaction-helpers.ts` — which is why undo and redo need no special handling: they route their moment through the same call. **A model mutation that bypasses `applyMoment` without replacing the tracker will silently stop updating the map.** Whole-model replaces (import, new project, reprojection, customer-point reset) mint a fresh tracker instead, and each branch carries its own, so switching branches hands the map a different `id` and forces a rebuild with no obligation on the switching code.
+
+The consolidation budget is the map's own decision: past a fixed count of assets changed since the watermark, folding editions back into the snapshot is cheaper than keeping them separate, so the map consolidates. It is not requested from outside.
+
 ## Rules
 
 - Never mutate the map outside the updater; go through its change detection and scheduler so ordering and serialization hold.
@@ -131,6 +141,7 @@ Each cycle diffs the new state against the last-applied state and produces one f
 - Keep the two-state split intact for every data category (features, icons, selection); don't reintroduce a whole-model representation.
 - Bake per-feature styling (color, label) into the source at build time; don't push it into live per-frame expressions. Default colors and selection are the intended exceptions, carried as layer paint expressions.
 - Keep change-detection flags identity-based, and keep the heavy-update predicate in step with what actually triggers a full rebuild.
+- Learn what changed from the change tracker, never from the undo/redo history, and stamp it only in `applyMoment`. A new model-mutation path that skips that call — or replaces the model without minting a fresh tracker — leaves the map rendering stale geometry.
 - When a rendering backend can't run in the current browser, fall back to geojson rather than showing a blank map: gate selection on an environment check, and on a terminal runtime failure throw `MapBackendUnavailableError` so the updater reports once (as a warning) and re-applies through geojson. This path has no test coverage — verify by forcing the failure.
 - Never await anything after `resetMapState` that could have been awaited before it; the map is blank for the whole wait and stays blank if the apply then throws.
 
@@ -143,6 +154,7 @@ Integration tests in `src/map/test/` drive a simulated map engine through real u
 Grep the entry symbol to land in the right place:
 
 - Updater and change detection — the `useMapStateUpdates` hook and `detectChanges`, in `state-updates.ts`.
+- What changed and the editions set — `ChangeTracker` in `src/lib/persistence/change-tracker.ts`, stamped in `applyMoment` (`transaction-helpers.ts`), read through `changeTrackerDerivedAtom`; the map's watermark is `mapSyncSeqAtom` in `src/state/map.ts`.
 - Backend interface — the `MapOperations` interface and its default GeoJSON implementation, in `map-operations.ts`.
 - Backend availability + fallback — the support gate applied where an alternative backend is registered (`libs.private.ts`), and the `MapBackendUnavailableError` catch in `queueUpdate` (`state-updates.ts`) that latches `mapBackendFallbackAtom`, which `useMapOperations` reads to return geojson.
 - Style, sources, and layers — `build-style.ts`, `data-source/`, `layers/`.

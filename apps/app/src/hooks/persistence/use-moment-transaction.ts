@@ -166,14 +166,13 @@ export const useMomentTransaction = () => {
 
         momentLog.append(moment, reverseMoment, newStateId);
 
-        const newMapSyncMoment = computeSyncMoment(
-          mapSyncMoment,
-          momentLog,
-          isTruncatingHistory,
-        );
-
         set(momentLogDerivedAtom, momentLog);
-        set(mapSyncMomentAtom, newMapSyncMoment);
+        if (!isChangeTrackerOn) {
+          set(
+            mapSyncMomentAtom,
+            computeSyncMoment(mapSyncMoment, momentLog, isTruncatingHistory),
+          );
+        }
 
         return true;
       },

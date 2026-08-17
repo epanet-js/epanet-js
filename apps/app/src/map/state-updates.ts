@@ -7,13 +7,16 @@ import {
   assetsDerivedAtom,
   stagingModelDerivedAtom,
   momentLogDerivedAtom,
+  changeTrackerDerivedAtom,
 } from "src/state/derived-branch-state";
+import type { ChangeTracker } from "src/lib/persistence/change-tracker";
 import {
   type StylesConfig,
   type MapState,
   nullMapState,
   mapStateDerivedAtom,
   mapSyncMomentAtom,
+  mapSyncSeqAtom,
   mapLoadingAtom,
   mapBackendFallbackAtom,
 } from "src/state/map";
@@ -83,6 +86,9 @@ import {
 const SLOW_UPDATE_WARN_MS = 1000;
 const MAP_STATE_SYNC = "MAP_STATE:SYNC";
 
+// Editions above this many assets cost more to keep separate than to fold back in.
+const MAX_CHANGES_BEFORE_MAP_SYNC = 500;
+
 const getAssetIdsInMoments = (moments: ModelMoment[]): Set<AssetId> => {
   const assetIds = new Set<AssetId>();
   moments.forEach((moment) => {
@@ -108,9 +114,11 @@ const detectChanges = (
   prev: MapState,
   map: MapEngine,
   isChangeTrackerOn: boolean,
+  changeTracker: ChangeTracker,
 ): {
   hasNewImport: boolean;
   hasNewEditions: boolean;
+  hasExceededDeltaBudget: boolean;
   hasNewStyles: boolean;
   hasNewAssetsSelection: boolean;
   hasNewCustomerPointsSelection: boolean;
@@ -139,6 +147,10 @@ const detectChanges = (
     hasNewEditions: isChangeTrackerOn
       ? state.changeTrackerSeq !== prev.changeTrackerSeq
       : state.momentLogPointer !== prev.momentLogPointer,
+    hasExceededDeltaBudget:
+      isChangeTrackerOn &&
+      changeTracker.countChangedSince(state.syncSeq) >
+        MAX_CHANGES_BEFORE_MAP_SYNC,
     hasNewStyles:
       !map.isStyleLoaded() ||
       state.stylesConfig !== prev.stylesConfig ||
@@ -200,6 +212,7 @@ const isHeavyUpdate = (
 
   return (
     changes.hasSyncMomentChanged ||
+    changes.hasExceededDeltaBudget ||
     changes.hasNewImport ||
     changes.hasNewEditions ||
     changes.hasNewStyles ||
@@ -213,7 +226,10 @@ const isHeavyUpdate = (
 export const useMapStateUpdates = (map: MapEngine | null) => {
   const isChangeTrackerOn = useFeatureFlag("FLAG_CHANGE_TRACKER");
   const momentLog = useAtomValue(momentLogDerivedAtom);
+  const changeTracker = useAtomValue(changeTrackerDerivedAtom);
+  const setChangeTracker = useSetAtom(changeTrackerDerivedAtom);
   const setMapSyncMoment = useSetAtom(mapSyncMomentAtom);
+  const setMapSyncSeq = useSetAtom(mapSyncSeqAtom);
   const mapState = useAtomValue(mapStateDerivedAtom);
   const setMapLoading = useSetAtom(mapLoadingAtom);
   const appendSourceRebuildDuration = useSetAtom(
@@ -272,12 +288,14 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         previousMapState,
         map,
         isChangeTrackerOn,
+        changeTracker,
       );
       appliedChangesRef.current = changes;
       const {
         hasNewImport,
         hasNewStyles,
         hasNewEditions,
+        hasExceededDeltaBudget,
         hasNewAssetsSelection,
         hasNewCustomerPointsSelection,
         hasNewEphemeralState,
@@ -310,6 +328,32 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         selectedIds,
         defaultsResolvers,
       };
+
+      // The consolidated snapshot is built from the model as of this cycle's state, so the
+      // sync point it commits is the seq read here — never the live one, which a transaction
+      // landing mid-build would already have advanced.
+      const consolidatedSeq = mapState.changeTrackerSeq;
+
+      const editedFromTracker = () =>
+        changeTracker.assetsChangedSince(mapState.syncSeq);
+      const editedFromMomentLog = () =>
+        getAssetIdsInMoments(momentLog.getDeltas(mapState.syncMomentPointer));
+      const resolveEditedSinceConsolidation = isChangeTrackerOn
+        ? editedFromTracker
+        : editedFromMomentLog;
+
+      const commitSyncPointWithTracker = () => {
+        setChangeTracker((prev) => prev.trimUpTo(consolidatedSeq));
+        setMapSyncSeq(consolidatedSeq);
+      };
+      const commitSyncPointWithMomentLog = () => {
+        setMapSyncMoment((prev) => {
+          return { pointer: momentLog.getPointer(), version: prev.version };
+        });
+      };
+      const commitSyncPoint = isChangeTrackerOn
+        ? commitSyncPointWithTracker
+        : commitSyncPointWithMomentLog;
 
       if (isHeavyUpdate(changes, mapState)) {
         setMapLoading(true);
@@ -380,7 +424,10 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         selectionDiff.size > SELECTION_CONSOLIDATION_THRESHOLD;
 
       const rebuildFamily =
-        hasSyncMomentChanged || hasNewImport || hasNewStyles;
+        hasSyncMomentChanged ||
+        hasExceededDeltaBudget ||
+        hasNewImport ||
+        hasNewStyles;
       const propFamily =
         hasNewSymbologyRules ||
         (hasNewSimulation && mapState.simulation.status !== "running") ||
@@ -416,9 +463,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
 
         if (consolidated) {
           consolidatedSelectionRef.current = selectedIds;
-          setMapSyncMoment((prev) => {
-            return { pointer: momentLog.getPointer(), version: prev.version };
-          });
+          commitSyncPoint();
           hiddenInMainRef.current = new Set();
           pendingConsolidationFinalizeRef.current = true;
           pendingDeltaCleanupRef.current = true;
@@ -428,9 +473,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       const syncDelta =
         hasNewEditions || hasNewAssetsSelection || hasEphemeralTargetsChanged;
       if (!consolidated && (syncDelta || syncMain)) {
-        const editedSinceConsolidation = getAssetIdsInMoments(
-          momentLog.getDeltas(mapState.syncMomentPointer),
-        );
+        const editedSinceConsolidation = resolveEditedSinceConsolidation();
         const liveSetIds = new Set(editedSinceConsolidation);
         for (const id of selectionDiff) liveSetIds.add(id);
         for (const id of mapState.movedAssetIds) liveSetIds.delete(id);
@@ -604,6 +647,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         lastAppliedMapStateRef.current,
         map,
         isChangeTrackerOn,
+        changeTracker,
       ),
       freshMapStateRef.current,
     );

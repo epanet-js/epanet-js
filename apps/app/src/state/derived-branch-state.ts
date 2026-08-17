@@ -90,7 +90,15 @@ export const changeTrackerDerivedAtom = atom(
   (get): ChangeTracker => {
     return getActiveBranchState(get)?.changeTracker ?? nullChangeTracker;
   },
-  (get, set, value: ChangeTracker) => {
+  (
+    get,
+    set,
+    update: ChangeTracker | ((prev: ChangeTracker) => ChangeTracker),
+  ) => {
+    const value =
+      typeof update === "function"
+        ? update(getActiveBranchState(get)?.changeTracker ?? nullChangeTracker)
+        : update;
     updateActiveBranchState(get, set, { changeTracker: value });
   },
 );

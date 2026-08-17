@@ -74,13 +74,13 @@ export const useUndoableTransactions = () => {
 
         isUndo ? momentLog.undo() : momentLog.redo();
 
-        const newMapSyncMoment = computeSyncMoment(
-          currentMapSyncMoment,
-          momentLog,
-        );
-
         set(momentLogDerivedAtom, momentLog);
-        set(mapSyncMomentAtom, newMapSyncMoment);
+        if (!isChangeTrackerOn) {
+          set(
+            mapSyncMomentAtom,
+            computeSyncMoment(currentMapSyncMoment, momentLog),
+          );
+        }
       },
       [isQueueOn, isChangeTrackerOn, onWriteFailure],
     ),
