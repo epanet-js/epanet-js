@@ -170,7 +170,7 @@ export const ModelAttributesValidation = ({
 
   const headerProps = useCheckHeader(
     CheckType.modelAttributesValidation,
-    issuesCount,
+    groups.length,
     onGoBack,
   );
 

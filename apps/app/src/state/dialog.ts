@@ -121,11 +121,14 @@ export type ModelAttributesValidationDialogState = {
 
 export type PreSimulationChecksDialogState = {
   type: "preSimulationChecks";
-  failingRules?: string[];
   onReview: () => void;
   onRunAnyway: () => void;
   onCancel: () => void;
-};
+} & (
+  | { status: "running"; failingRules?: undefined }
+  | { status: "issuesFound"; failingRules: string[] }
+  | { status: "failed"; failingRules?: undefined }
+);
 
 export type UnexpectedErrorDialogState = {
   type: "unexpectedError";

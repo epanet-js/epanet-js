@@ -1304,8 +1304,12 @@
     "body": "These issues can make the simulation fail or produce misleading results.",
     "review": "Review issues",
     "runAnyway": "Run anyway",
-    "andMoreIssues_one": "and 1 more issue",
-    "andMoreIssues_other": "and {{count}} more issues"
+    "andMoreRules_one": "...and 1 more rule",
+    "andMoreRules_other": "...and {{count}} more rules",
+    "failed": {
+      "warning": "We couldn't finish checking your network",
+      "body": "The checks did not complete, so we can't tell whether your network has issues. You can review it yourself, or run the simulation anyway."
+    }
   },
   "networkReview": {
     "toggle": "Toggle Network Review",

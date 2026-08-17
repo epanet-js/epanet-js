@@ -1,6 +1,6 @@
 import { useSetAtom } from "jotai";
 import { useAtomCallback } from "jotai/utils";
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
 import { buildInp } from "src/simulation/build-inp";
 import { dialogAtom } from "src/state/dialog";
 import {
@@ -34,6 +34,7 @@ import { selectedReviewCheckAtom } from "src/state/network-review";
 import { CheckType, failingRuleIds } from "src/lib/network-review";
 import { useCachedCheck, useReviewChecks } from "src/hooks/use-review-checks";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { errorName, handleError } from "src/infra/errors";
 export const runSimulationShortcut = "shift+enter";
 
 // Small models settle well inside this, so the dialog never flashes for them.
@@ -51,6 +52,7 @@ export const useRunSimulation = () => {
   );
   const { ensureFresh } = useReviewChecks();
   const isPreSimulationChecksOn = useFeatureFlag("FLAG_PRE_SIMULATION_CHECKS");
+  const isCheckingRef = useRef(false);
 
   const runSimulation = useAtomCallback(
     useCallback(
@@ -224,16 +226,36 @@ export const useRunSimulation = () => {
         };
 
         if (isPreSimulationChecksOn) {
+          if (isCheckingRef.current) return;
+          isCheckingRef.current = true;
+
           const abortController = new AbortController();
           let hasSettled = false;
+
+          const cancelChecks = () => {
+            userTracking.capture({
+              name: "simulation.validation.cancelled",
+              at: "checking",
+            });
+            abortController.abort();
+          };
+
+          const dismiss = (at: "issuesFound" | "failed") => () => {
+            userTracking.capture({
+              name: "simulation.validation.cancelled",
+              at,
+            });
+            setDialogState(null);
+          };
 
           const showProgress = setTimeout(() => {
             if (hasSettled) return;
             setDialogState({
               type: "preSimulationChecks",
+              status: "running",
               onReview: () => reviewChecks("summary"),
               onRunAnyway: runWithIssues,
-              onCancel: () => abortController.abort(),
+              onCancel: cancelChecks,
             });
           }, progressDialogDelayMs);
 
@@ -253,12 +275,27 @@ export const useRunSimulation = () => {
               cancelled,
             ]);
           } catch (error) {
-            setDialogState(null);
-            if ((error as Error).name === "AbortError") return;
-            throw error;
+            if (errorName(error) === "AbortError") {
+              setDialogState(null);
+              return;
+            }
+
+            handleError(error, {
+              as: "pre-simulation checks failed",
+              onUnexpected: "capture",
+            });
+            setDialogState({
+              type: "preSimulationChecks",
+              status: "failed",
+              onReview: () => reviewChecks("summary"),
+              onRunAnyway: runWithIssues,
+              onCancel: dismiss("failed"),
+            });
+            return;
           } finally {
             hasSettled = true;
             clearTimeout(showProgress);
+            isCheckingRef.current = false;
           }
 
           if (results === aborted) {
@@ -285,10 +322,11 @@ export const useRunSimulation = () => {
             });
             setDialogState({
               type: "preSimulationChecks",
+              status: "issuesFound",
               failingRules,
               onReview: () => reviewChecks(reviewTarget),
               onRunAnyway: runWithIssues,
-              onCancel: () => setDialogState(null),
+              onCancel: dismiss("issuesFound"),
             });
             return;
           }

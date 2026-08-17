@@ -16,6 +16,12 @@ The model-review checks. Five of them, four living here and one next door in
 `blocking-checks.ts`, consumed by `run-simulation.tsx`. The other two are review
 tools only.
 
+The gate is **advisory**. Two of the three blocking checks run in workers, so
+they sit on the critical path of every Run and they can genuinely fail. When one
+throws, `run-simulation.tsx` reports it to Sentry and offers the same review /
+run-anyway choice it offers for real findings — it does not propagate. A broken
+check must never become the reason a model cannot be simulated.
+
 ---
 
 ## Execution model

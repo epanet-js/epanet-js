@@ -31,6 +31,20 @@ vi.mock("src/hooks/use-permissions", () => ({
   usePermissions: () => ({ canValidateModelAttributes }),
 }));
 
+type BlockingChecks = typeof import("src/lib/network-review").runBlockingChecks;
+let blockingChecksOverride: BlockingChecks | null = null;
+vi.mock("src/lib/network-review", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("src/lib/network-review")>();
+  return {
+    ...actual,
+    runBlockingChecks: ((...args) =>
+      (blockingChecksOverride ?? actual.runBlockingChecks)(
+        ...args,
+      )) as BlockingChecks,
+  };
+});
+
 describe("Run simulation", () => {
   beforeAll(() => patchEpanetLoader());
 
@@ -40,6 +54,7 @@ describe("Run simulation", () => {
   });
   afterEach(() => {
     vi.clearAllMocks();
+    blockingChecksOverride = null;
   });
 
   it("persists state the simulation when passes", async () => {
@@ -397,13 +412,33 @@ describe("Run simulation", () => {
     );
   };
 
+  // Both calls start in the same turn, which is what a double shortcut press
+  // does. Clicking the button twice would not: opfsAvailableAtom reads true
+  // only until its probe resolves, and under jsdom it resolves to false.
+  const triggerRunTwice = async () => {
+    await userEvent.click(
+      screen.getByRole("button", { name: "runSimulationTwice" }),
+    );
+  };
+
   const TestableComponent = () => {
     const runSimulation = useRunSimulation();
 
     return (
-      <button aria-label="runSimulation" onClick={() => runSimulation()}>
-        Run
-      </button>
+      <>
+        <button aria-label="runSimulation" onClick={() => runSimulation()}>
+          Run
+        </button>
+        <button
+          aria-label="runSimulationTwice"
+          onClick={() => {
+            void runSimulation();
+            void runSimulation();
+          }}
+        >
+          Run twice
+        </button>
+      </>
     );
   };
 
@@ -577,6 +612,117 @@ describe("Run simulation", () => {
       await waitFor(() => {
         expect(store.get(selectedReviewCheckAtom)).toEqual("summary");
       });
+    });
+
+    // The gate is advisory: a check that breaks must not become the reason a
+    // model cannot be simulated.
+    describe("when a check fails", () => {
+      beforeEach(() => {
+        blockingChecksOverride = () =>
+          Promise.reject(new Error("the worker exploded"));
+      });
+
+      it("reports the failure instead of running", async () => {
+        const store = setInitialState({ hydraulicModel: aSimulableModel() });
+        renderComponent({ store });
+
+        await triggerRun();
+
+        await waitFor(() => {
+          expect(store.get(dialogAtom)).toMatchObject({
+            type: "preSimulationChecks",
+            status: "failed",
+          });
+        });
+        expect(lib.runSimulation).not.toHaveBeenCalled();
+      });
+
+      it("still lets the user run anyway", async () => {
+        const store = setInitialState({ hydraulicModel: aSimulableModel() });
+        renderComponent({ store });
+        await triggerRun();
+        await waitFor(() => {
+          expect(store.get(dialogAtom)).toMatchObject({
+            type: "preSimulationChecks",
+            status: "failed",
+          });
+        });
+
+        await userEvent.click(
+          screen.getByRole("button", { name: /run anyway/i }),
+        );
+
+        await waitFor(() => {
+          expect(lib.runSimulation).toHaveBeenCalled();
+        });
+      });
+
+      it("still lets the user go and review the network", async () => {
+        const store = setInitialState({ hydraulicModel: aSimulableModel() });
+        renderComponent({ store });
+        await triggerRun();
+        await waitFor(() => {
+          expect(store.get(dialogAtom)).toMatchObject({
+            type: "preSimulationChecks",
+            status: "failed",
+          });
+        });
+
+        await userEvent.click(
+          screen.getByRole("button", { name: /review issues/i }),
+        );
+
+        await waitFor(() => {
+          expect(store.get(selectedReviewCheckAtom)).toEqual("summary");
+        });
+      });
+    });
+
+    describe("when the user cancels while the checks run", () => {
+      beforeEach(() => {
+        // Cancelling terminates the check workers, and a terminated Comlink
+        // call never settles — so the abort signal, not a rejection, is what
+        // ends the wait.
+        blockingChecksOverride = () => new Promise(() => {});
+      });
+
+      it("closes the dialog without running", async () => {
+        const store = setInitialState({ hydraulicModel: aSimulableModel() });
+        renderComponent({ store });
+        await triggerRun();
+        await waitFor(() => {
+          expect(store.get(dialogAtom)).toMatchObject({
+            type: "preSimulationChecks",
+            status: "running",
+          });
+        });
+
+        await userEvent.click(screen.getByRole("button", { name: /cancel/i }));
+
+        await waitFor(() => {
+          expect(store.get(dialogAtom)).toBeNull();
+        });
+        expect(lib.runSimulation).not.toHaveBeenCalled();
+      });
+    });
+
+    // Two runs in flight would spawn a duplicate set of workers, and cancelling
+    // the dialog on screen would only abort one of them.
+    it("ignores a second run while the checks are still going", async () => {
+      let started = 0;
+      blockingChecksOverride = () => {
+        started += 1;
+        return new Promise(() => {});
+      };
+      const store = setInitialState({ hydraulicModel: aSimulableModel() });
+      renderComponent({ store });
+
+      await triggerRunTwice();
+
+      await waitFor(() => {
+        expect(store.get(dialogAtom)).toMatchObject({ status: "running" });
+      });
+      expect(started).toEqual(1);
     });
   });
 

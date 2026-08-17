@@ -2,7 +2,7 @@ import * as Progress from "@radix-ui/react-progress";
 import { BaseDialog, SimpleDialogActions } from "src/components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
 import { NotificationBanner } from "src/components/notifications";
-import { WarningIcon } from "src/icons";
+import { ErrorIcon, WarningIcon } from "src/icons";
 import { ruleLabelKey } from "src/panels/network-review/rule-labels";
 import { PreSimulationChecksDialogState } from "src/state/dialog";
 
@@ -22,6 +22,22 @@ const RunningBody = () => {
       >
         <Progress.Indicator className="bg-accent h-full w-1/4 rounded-full progress-indeterminate" />
       </Progress.Root>
+    </div>
+  );
+};
+
+const FailedBody = () => {
+  const translate = useTranslate();
+
+  return (
+    <div className="p-4 text-size-base flex flex-col gap-4">
+      <NotificationBanner
+        variant="error"
+        Icon={ErrorIcon}
+        description={translate("preSimulationChecks.failed.warning")}
+        className="border rounded-md"
+      />
+      <p>{translate("preSimulationChecks.failed.body")}</p>
     </div>
   );
 };
@@ -47,8 +63,8 @@ const SummaryBody = ({ failingRules }: { failingRules: string[] }) => {
           ))}
         </ul>
         {remaining > 0 && (
-          <p className="text-subtle">
-            {translate("preSimulationChecks.andMoreIssues", remaining)}
+          <p className="text-default">
+            {translate("preSimulationChecks.andMoreRules", remaining)}
           </p>
         )}
       </div>
@@ -64,14 +80,14 @@ export const PreSimulationChecksDialog = ({
   onClose: () => void;
 }) => {
   const translate = useTranslate();
-  const { failingRules, onReview, onRunAnyway, onCancel } = modal;
+  const { onReview, onRunAnyway, onCancel } = modal;
 
   const closeThen = (action: () => void) => () => {
     onClose();
     action();
   };
 
-  if (failingRules === undefined) {
+  if (modal.status === "running") {
     return (
       <BaseDialog
         title={translate("preSimulationChecks.title")}
@@ -107,7 +123,11 @@ export const PreSimulationChecksDialog = ({
         />
       }
     >
-      <SummaryBody failingRules={failingRules} />
+      {modal.status === "failed" ? (
+        <FailedBody />
+      ) : (
+        <SummaryBody failingRules={modal.failingRules} />
+      )}
     </BaseDialog>
   );
 };

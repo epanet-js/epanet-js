@@ -326,6 +326,11 @@ type SimulationValidationResolved = {
   choice: "fixFirst" | "runAnyway";
 };
 
+type SimulationValidationCancelled = {
+  name: "simulation.validation.cancelled";
+  at: "checking" | "issuesFound" | "failed";
+};
+
 type SimulationTimestepChanged = {
   name: "simulation.timestep.changed";
   timestepIndex: number;
@@ -1296,6 +1301,7 @@ export type UserEvent =
   | SimulationExecuted
   | SimulationValidationIssuesFound
   | SimulationValidationResolved
+  | SimulationValidationCancelled
   | SimulationTimestepChanged
   | SimulationPlaybackStopped
   | SimulationPlaybackStarted

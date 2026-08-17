@@ -36,6 +36,18 @@ import { useReviewChecks } from "src/hooks/use-review-checks";
 
 const LOADING_OVERLAY_DELAY_MS = 300;
 const MIN_OVERLAY_VISIBLE_MS = 400;
+const RECHECK_DEBOUNCE_MS = 400;
+
+const useSettled = <T,>(value: T, delayMs: number): T => {
+  const [settled, setSettled] = useState(value);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setSettled(value), delayMs);
+    return () => clearTimeout(timer);
+  }, [value, delayMs]);
+
+  return settled;
+};
 
 const CheckRowDetail = ({ detail }: { detail: string }) => (
   <div className="flex items-center gap-1">
@@ -72,14 +84,12 @@ export function NetworkReview() {
 
   useEffect(
     function deepLinkToSelectedCheck() {
-      if (selectedReviewCheck === "summary") {
-        setCheckType(null);
-        setSelectedReviewCheck(null);
-        return;
-      }
-      if (selectedReviewCheck !== null) {
-        setCheckType(selectedReviewCheck);
-      }
+      if (selectedReviewCheck === null) return;
+
+      setCheckType(
+        selectedReviewCheck === "summary" ? null : selectedReviewCheck,
+      );
+      setSelectedReviewCheck(null);
     },
     [selectedReviewCheck, setSelectedReviewCheck],
   );
@@ -142,7 +152,10 @@ function NetworkReviewSummary({
     return () => clearTimeout(timer);
   }, []);
 
-  const modelVersion = useAtomValue(stagingModelDerivedAtom).version;
+  const modelVersion = useSettled(
+    useAtomValue(stagingModelDerivedAtom).version,
+    RECHECK_DEBOUNCE_MS,
+  );
   const overlayShownAt = useRef<number | null>(null);
 
   useEffect(
@@ -198,7 +211,15 @@ function NetworkReviewSummary({
     if (!isPreSimulationChecksOn) return 0;
     if (!isBlockingCheck(checkType)) return 0;
 
-    return reviewResults[checkType]?.issueCount ?? 0;
+    const entry = reviewResults[checkType];
+    if (!entry) return 0;
+
+    // Every row counts what the check's own page lists. Attribute validation
+    // lists one row per failing rule, each carrying its own affected-asset
+    // count, so its issueCount — a total across assets — would not match.
+    return checkType === CheckType.modelAttributesValidation
+      ? entry.items.length
+      : entry.issueCount;
   };
 
   const handleKeyDown = useCallback(
