@@ -17,6 +17,7 @@ import { nullSymbologySpec, defaultNodeSizeConfig } from "src/map/symbology";
 import { symbologyAtom, nodeSizeAtom } from "src/state/map-symbology";
 import {
   momentLogDerivedAtom,
+  changeTrackerDerivedAtom,
   simulationDerivedAtom,
   simulationResultsDerivedAtom,
   customerPointsDerivedAtom,
@@ -110,6 +111,8 @@ export type StylesConfig = {
 export type MapState = {
   momentLogId: string;
   momentLogPointer: number;
+  changeTrackerId: string;
+  changeTrackerSeq: number;
   syncMomentPointer: number;
   syncMomentVersion: number;
   stylesConfig: StylesConfig;
@@ -134,6 +137,8 @@ export type MapState = {
 export const nullMapState: MapState = {
   momentLogId: "",
   momentLogPointer: -1,
+  changeTrackerId: "",
+  changeTrackerSeq: -1,
   syncMomentPointer: -1,
   syncMomentVersion: 0,
   stylesConfig: {
@@ -173,6 +178,7 @@ export const stylesConfigAtom = atom<StylesConfig>((get) => {
 
 export const mapStateDerivedAtom = atom<MapState>((get) => {
   const momentLog = get(momentLogDerivedAtom);
+  const changeTracker = get(changeTrackerDerivedAtom);
   const mapSyncMoment = get(mapSyncMomentAtom);
   const stylesConfig = get(stylesConfigAtom);
   const selection = get(selectionAtom);
@@ -196,6 +202,8 @@ export const mapStateDerivedAtom = atom<MapState>((get) => {
   return {
     momentLogId: momentLog.id,
     momentLogPointer: momentLog.getPointer(),
+    changeTrackerId: changeTracker.id,
+    changeTrackerSeq: changeTracker.getSeq(),
     syncMomentPointer: mapSyncMoment.pointer,
     syncMomentVersion: mapSyncMoment.version,
     stylesConfig,

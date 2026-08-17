@@ -59,6 +59,7 @@ const buildOrphanReport = (
 
 export const useMomentTransaction = () => {
   const isQueueOn = useFeatureFlag("FLAG_TRANSACTIONS_QUEUE");
+  const isChangeTrackerOn = useFeatureFlag("FLAG_CHANGE_TRACKER");
   const onWriteFailure = useWriteFailureHandler();
 
   const transact = useAtomCallback(
@@ -110,6 +111,7 @@ export const useMomentTransaction = () => {
           newStateId,
           moment,
           stagingModelDerivedAtom,
+          isChangeTrackerOn,
         );
 
         const storeInconsistencies = findStoreInconsistencies(
@@ -175,7 +177,7 @@ export const useMomentTransaction = () => {
 
         return true;
       },
-      [isQueueOn, onWriteFailure],
+      [isQueueOn, isChangeTrackerOn, onWriteFailure],
     ),
   );
 

@@ -54,6 +54,7 @@ import { SymbologySpec } from "src/state/map-symbology";
 import type { ZoneSymbology, NodeSizeConfig } from "src/map/symbology";
 import { buildZoneColorExpression } from "src/map/layers/zones";
 
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { useRoughnessInferrer } from "src/hooks/use-roughness-inferrer";
@@ -106,6 +107,7 @@ const detectChanges = (
   state: MapState,
   prev: MapState,
   map: MapEngine,
+  isChangeTrackerOn: boolean,
 ): {
   hasNewImport: boolean;
   hasNewEditions: boolean;
@@ -131,8 +133,12 @@ const detectChanges = (
   hasNewNodeSize: boolean;
 } => {
   return {
-    hasNewImport: state.momentLogId !== prev.momentLogId,
-    hasNewEditions: state.momentLogPointer !== prev.momentLogPointer,
+    hasNewImport: isChangeTrackerOn
+      ? state.changeTrackerId !== prev.changeTrackerId
+      : state.momentLogId !== prev.momentLogId,
+    hasNewEditions: isChangeTrackerOn
+      ? state.changeTrackerSeq !== prev.changeTrackerSeq
+      : state.momentLogPointer !== prev.momentLogPointer,
     hasNewStyles:
       !map.isStyleLoaded() ||
       state.stylesConfig !== prev.stylesConfig ||
@@ -205,6 +211,7 @@ const isHeavyUpdate = (
 };
 
 export const useMapStateUpdates = (map: MapEngine | null) => {
+  const isChangeTrackerOn = useFeatureFlag("FLAG_CHANGE_TRACKER");
   const momentLog = useAtomValue(momentLogDerivedAtom);
   const setMapSyncMoment = useSetAtom(mapSyncMomentAtom);
   const mapState = useAtomValue(mapStateDerivedAtom);
@@ -260,7 +267,12 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       const previousMapState = lastAppliedMapStateRef.current;
       if (mapState === previousMapState) return;
 
-      const changes = detectChanges(mapState, previousMapState, map);
+      const changes = detectChanges(
+        mapState,
+        previousMapState,
+        map,
+        isChangeTrackerOn,
+      );
       appliedChangesRef.current = changes;
       const {
         hasNewImport,
@@ -591,6 +603,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         freshMapStateRef.current,
         lastAppliedMapStateRef.current,
         map,
+        isChangeTrackerOn,
       ),
       freshMapStateRef.current,
     );

@@ -2125,6 +2125,7 @@ describe("AssetPanel", () => {
         action.stateId,
         action.moment,
         stagingModelDerivedAtom,
+        false,
       );
 
       isUndo ? momentLog.undo() : momentLog.redo();

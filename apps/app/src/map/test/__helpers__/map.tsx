@@ -16,8 +16,11 @@ vi.mock("../../icons", async (importOriginal) => {
   return { ...actual, prepareIconsSprite: () => Promise.resolve([]) };
 });
 
-export const renderMap = async (store: Store): Promise<MapTestEngine> => {
-  stubFeaturesOn([]);
+export const renderMap = async (
+  store: Store,
+  enabledFlags: string[] = [],
+): Promise<MapTestEngine> => {
+  stubFeaturesOn(enabledFlags);
 
   let mapEngine: MapTestEngine | null = null;
   const persistence = new Persistence(store);

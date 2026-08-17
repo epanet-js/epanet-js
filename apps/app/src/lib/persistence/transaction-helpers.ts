@@ -9,6 +9,7 @@ import {
 } from "src/hydraulic-model";
 import { CustomerPoints } from "@epanet-js/hydraulic-model";
 import { modelFactoriesAtom } from "src/state/model-factories";
+import { changeTrackerDerivedAtom } from "src/state/derived-branch-state";
 import { type MomentPointer } from "src/state/map";
 import type { Moment } from "./moment";
 import type { MomentLog } from "./moment-log";
@@ -54,6 +55,7 @@ export function applyMoment(
   stateId: string,
   forwardMoment: Moment,
   modelAtom: WritableAtom<HydraulicModel, [HydraulicModel], void>,
+  isChangeTrackerOn: boolean,
 ): Moment {
   const hydraulicModel = get(modelAtom);
 
@@ -91,6 +93,13 @@ export function applyMoment(
     customerPoints: updatedCustomerPoints,
     curves: updatedCurves,
   });
+
+  if (isChangeTrackerOn) {
+    set(
+      changeTrackerDerivedAtom,
+      get(changeTrackerDerivedAtom).record(processedMoment),
+    );
+  }
 
   return reverseMoment;
 }

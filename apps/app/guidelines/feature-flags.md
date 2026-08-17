@@ -412,6 +412,55 @@ For each new feature flag, document:
   4. Replace the flag-on/flag-off test pairs with single assertions on the new default, and update the `Status\tFULL` expectations in `src/simulation/build-inp.test.ts` and `src/simulation/build-inp-for-export.test.ts` to `Status\tYES`.
   5. Delete this entry.
 
+#### FLAG_CHANGE_TRACKER
+- **Purpose**: The map stops reading the moment log to learn what changed, and reads a purpose-built
+  `ChangeTracker` (`src/lib/persistence/change-tracker.ts`) instead. This unblocks persisting the
+  moment log, which the map currently assumes is a cheap in-memory array.
+- **Risk Level**: High - it feeds the map's change detection, so it is rolled out in two slices.
+  Slice 2a (this one) switches only `hasNewImport` / `hasNewEditions` to the tracker's `id` / `seq`;
+  the editions ("delta") set, the sync watermark and the consolidation budget still come from the
+  moment log. Slice 2b switches those, using function duplication per the guidance above.
+- **What the map actually wanted from the log**: three unrelated signals - "the model was replaced"
+  (`momentLog.id`), "the model changed" (`getPointer()`), and "which assets differ from the
+  consolidated snapshot" (`getDeltas(syncPointer)`). The tracker records *when* each asset last
+  changed (`lastChangedAt: Map<AssetId, seq>`) rather than *what* changed, which is what keeps the
+  dirty set a pure function of (tracker, watermark) and therefore safe under the updater's
+  coalescing - see `src/map/AGENTS.md`.
+- **Why a per-asset stamp and not a set of dirty ids**: the snapshot build is time-sliced and
+  yields, so an edit can land mid-build. A `Set` cannot represent "this asset changed *again*, later
+  than what the map is building" - the union is a no-op - so clearing it after the build drops that
+  edit. An ordinal per asset makes "before or after the snapshot I built" decidable.
+- **Dependencies**: `applyMoment` (`src/lib/persistence/transaction-helpers.ts`) is the single
+  stamping site; both transaction hooks pass the flag through as `isChangeTrackerOn`, and undo/redo
+  are covered because they route the reverse moment through the same call. **Any new model mutation
+  that bypasses `applyMoment` without replacing the tracker will silently stop updating the map.**
+  Stamping is flag-gated rather than unconditional because `trimUpTo` only runs at consolidation
+  (slice 2b): until then `lastChangedAt` grows to every asset edited since load, and a select-all
+  property edit fills it in one action - a `Map` clone costs ~12ms at 100k entries, ~101ms at 500k.
+- **Rollback Plan**: Turn the flag off in PostHog. The map goes back to the moment log; the tracker
+  keeps being created but stops being stamped or read. Nothing is persisted differently, so users
+  mid-session are unaffected.
+- **Cleanup** (once rolled out to 100%):
+  1. `src/state/map.ts` - delete `mapSyncMomentAtom`, `MomentPointer`, `momentLogId`,
+     `momentLogPointer`, `syncMomentPointer`, `syncMomentVersion` and the `momentLogDerivedAtom`
+     import; drop `hasSyncMomentChanged` from `detectChanges`.
+  2. `src/lib/persistence/transaction-helpers.ts` - delete `computeSyncMoment`,
+     `exceedsMaxChangesSinceLastSync` and `MAX_CHANGES_BEFORE_MAP_SYNC`; drop `applyMoment`'s
+     `isChangeTrackerOn` parameter and stamp unconditionally, updating its three call sites.
+  3. `use-moment-transaction.ts` - delete `isTruncatingHistory` and the `mapSyncMomentAtom`
+     read/write; `use-undoable-transactions.ts` - the same. Both lose their `useFeatureFlag` call
+     for this flag.
+  4. `use-switch-branch.ts` - delete `syncMapMoment`; a branch switch already hands the map a
+     different tracker `id`.
+  5. `src/map/state-updates.ts` - delete `getAssetIdsInMoments`, the moment-log branch of the
+     dirty-set resolver and the `isChangeTrackerOn` parameter of `detectChanges`; then demote
+     `mapSyncSeqAtom` to a `useRef` beside `hiddenInMainRef`, since nothing outside the map reads it.
+  6. `src/panels/asset-panel/asset-panel.test.tsx` - drop the `mapSyncMomentAtom` half of the
+     transaction replica and the `false` argument it passes to `applyMoment`.
+  7. `src/map/test/model-changes.test.tsx` - collapse the `describe.each` flag pair into single
+     assertions.
+  8. Delete this entry.
+
 #### FLAG_BILLING
 - **Purpose**: The plan cards send the user to the billing app (`billing.epanetjs.com/checkout`) to pay, instead of calling the app's own `/api/stripe-checkout` and `stripe.redirectToCheckout`. Payment happens entirely in the billing app; this is the main-app half of the first billing slice.
 - **Risk Level**: Low - one branch in `useCheckout`, implemented with function duplication (`startCheckoutInBillingApp` vs `startCheckoutDeprecated`). Flag off leaves the Stripe.js path byte-identical. Every plan card and paywall goes through that one hook, so there is no second code path to keep in sync.

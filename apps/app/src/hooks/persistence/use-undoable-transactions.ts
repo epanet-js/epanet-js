@@ -22,6 +22,7 @@ import { useWriteFailureHandler } from "src/hooks/persistence/use-write-failure-
 
 export const useUndoableTransactions = () => {
   const isQueueOn = useFeatureFlag("FLAG_TRANSACTIONS_QUEUE");
+  const isChangeTrackerOn = useFeatureFlag("FLAG_CHANGE_TRACKER");
   const onWriteFailure = useWriteFailureHandler();
 
   const historyControl = useAtomCallback(
@@ -54,6 +55,7 @@ export const useUndoableTransactions = () => {
           action.stateId,
           action.moment,
           stagingModelDerivedAtom,
+          isChangeTrackerOn,
         );
 
         if (payload) {
@@ -80,7 +82,7 @@ export const useUndoableTransactions = () => {
         set(momentLogDerivedAtom, momentLog);
         set(mapSyncMomentAtom, newMapSyncMoment);
       },
-      [isQueueOn, onWriteFailure],
+      [isQueueOn, isChangeTrackerOn, onWriteFailure],
     ),
   );
 
