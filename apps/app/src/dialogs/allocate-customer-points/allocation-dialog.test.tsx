@@ -1,4 +1,5 @@
 import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { Provider as JotaiProvider } from "jotai";
 import { setInitialState, aMultiSelection } from "src/__helpers__/state";
 import {
@@ -70,6 +71,25 @@ describe("AllocationDialog", () => {
         ],
       }),
     );
+  });
+
+  it("adds new rules with the defaults of the project units", async () => {
+    const store = setupWithDisconnectedCPs(2);
+    store.set(projectSettingsAtom, {
+      ...store.get(projectSettingsAtom),
+      units: presets.GPM.units,
+    });
+    renderDialog(store);
+
+    await waitForAllocations();
+
+    await userEvent.click(screen.getByRole("button", { name: "Edit" }));
+    await userEvent.click(screen.getByRole("button", { name: /Add rule/ }));
+
+    const diameters = screen.getAllByLabelText("Value for: Max diameter");
+    const distances = screen.getAllByLabelText("Value for: Max distance");
+    expect(diameters[1]).toHaveValue("12");
+    expect(distances[1]).toHaveValue("320");
   });
 
   it("automatically runs initial allocation on mount", async () => {

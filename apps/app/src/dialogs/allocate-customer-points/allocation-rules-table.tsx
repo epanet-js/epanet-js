@@ -2,7 +2,7 @@ import React, { useCallback } from "react";
 import { numericChecks } from "src/lib/model-attributes-validation";
 import {
   CustomerPointAllocationRule,
-  defaultAllocationRules,
+  getDefaultAllocationRules,
 } from "@epanet-js/hydraulic-model";
 import { useAtomValue } from "jotai";
 
@@ -42,10 +42,10 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
 
   const handleAddRule = useCallback(() => {
     const newRule: CustomerPointAllocationRule = {
-      ...defaultAllocationRules[0],
+      ...getDefaultAllocationRules(units)[0],
     };
     onChange([...rules, newRule]);
-  }, [rules, onChange]);
+  }, [rules, onChange, units]);
 
   const handleRemoveRule = useCallback(
     (index: number) => {
