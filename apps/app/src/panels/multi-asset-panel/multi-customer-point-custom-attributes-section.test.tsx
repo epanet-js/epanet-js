@@ -13,6 +13,7 @@ import { branchStateAtom } from "src/state/branch-state";
 import { initialSimulationState } from "src/state/simulation";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { MomentLog } from "src/lib/persistence/moment-log";
+import { nullChangeTracker } from "src/lib/persistence/change-tracker";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { Persistence } from "src/lib/persistence/persistence";
 import { MultiCustomerPointCustomAttributesSection } from "./multi-customer-point-custom-attributes-section";
@@ -50,6 +51,7 @@ const setInitialState = (
           hydraulicModel,
           labelManager: new LabelManager(),
           momentLog: new MomentLog(),
+          changeTracker: nullChangeTracker,
           simulation: initialSimulationState,
           simulationSourceId: "main",
           simulationSettings: defaultSimulationSettings,

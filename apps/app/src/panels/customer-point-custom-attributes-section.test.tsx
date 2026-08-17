@@ -15,6 +15,7 @@ import type { Branch, Worktree } from "src/lib/worktree/types";
 import { initialSimulationState } from "src/state/simulation";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { MomentLog } from "src/lib/persistence/moment-log";
+import { nullChangeTracker } from "src/lib/persistence/change-tracker";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { Persistence } from "src/lib/persistence/persistence";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
@@ -42,6 +43,7 @@ const branchState = (hydraulicModel: HydraulicModel) => ({
   hydraulicModel,
   labelManager: new LabelManager(),
   momentLog: new MomentLog(),
+  changeTracker: nullChangeTracker,
   simulation: initialSimulationState,
   simulationSourceId: "main",
   simulationSettings: defaultSimulationSettings,

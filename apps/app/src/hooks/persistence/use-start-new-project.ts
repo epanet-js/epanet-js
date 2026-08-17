@@ -30,6 +30,7 @@ import type { SimulationSettings } from "src/simulation/simulation-settings";
 import { OPFSStorage } from "src/infra/storage";
 import { getAppId } from "src/infra/app-instance";
 import { MomentLog } from "src/lib/persistence/moment-log";
+import { ChangeTracker } from "src/lib/persistence/change-tracker";
 import { writeQueue } from "src/lib/persistence/write-queue";
 import { initializeWorktree } from "src/lib/worktree";
 import { dialogAtom } from "src/state/dialog";
@@ -151,6 +152,7 @@ export const loadModel = (
           hydraulicModel,
           labelManager: factories.labelManager,
           momentLog,
+          changeTracker: new ChangeTracker(),
           simulation: null,
           simulationSourceId: "main",
           simulationSettings,

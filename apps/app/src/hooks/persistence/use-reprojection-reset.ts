@@ -10,6 +10,7 @@ import { initialSimulationState } from "src/state/simulation";
 import {
   stagingModelDerivedAtom,
   momentLogDerivedAtom,
+  changeTrackerDerivedAtom,
   simulationDerivedAtom,
   simulationSettingsDerivedAtom,
 } from "src/state/derived-branch-state";
@@ -21,6 +22,7 @@ import { ephemeralStateAtom, autoElevationsAtom } from "src/state/drawing";
 import { OPFSStorage, opfsUnavailableErrors } from "src/infra/storage";
 import { getAppId } from "src/infra/app-instance";
 import { MomentLog } from "src/lib/persistence/moment-log";
+import { ChangeTracker } from "src/lib/persistence/change-tracker";
 import { initializeWorktree } from "src/lib/worktree";
 import { worktreeAtom } from "src/state/scenarios";
 
@@ -66,6 +68,7 @@ const loadModel = (
       }),
     );
   set(momentLogDerivedAtom, momentLog);
+  set(changeTrackerDerivedAtom, new ChangeTracker());
   if (autoElevations !== undefined) {
     set(autoElevationsAtom, autoElevations);
   }
