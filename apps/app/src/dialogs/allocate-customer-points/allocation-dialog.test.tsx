@@ -12,12 +12,18 @@ import { PersistenceContext } from "src/lib/persistence/context";
 import { vi } from "vitest";
 import { allocateCustomerPoints } from "src/lib/customer-points";
 import { Store } from "src/state";
+import { projectSettingsAtom } from "src/state/project-settings";
+import { presets } from "src/lib/project-settings/quantities-spec";
 
 vi.mock("src/lib/customer-points", () => ({
   allocateCustomerPoints: vi.fn(),
 }));
 
 describe("AllocationDialog", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it("renders dialog with diameter-based rules table", async () => {
     const store = setupWithDisconnectedCPs(2);
     renderDialog(store);
@@ -26,6 +32,44 @@ describe("AllocationDialog", () => {
 
     expect(screen.getByText("Max diameter (mm)")).toBeInTheDocument();
     expect(screen.getByText("Max distance (m)")).toBeInTheDocument();
+  });
+
+  it("allocates using max distance in meters", async () => {
+    const store = setupWithDisconnectedCPs(2);
+    renderDialog(store);
+
+    await waitForAllocations();
+
+    expect(allocateCustomerPoints).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        allocationRules: [{ maxDistance: 100, maxDiameter: 300 }],
+      }),
+    );
+  });
+
+  it("converts max distance to meters when displayed in feet", async () => {
+    const store = setupWithDisconnectedCPs(2);
+    store.set(projectSettingsAtom, {
+      ...store.get(projectSettingsAtom),
+      units: presets.GPM.units,
+    });
+    renderDialog(store);
+
+    await waitForAllocations();
+
+    expect(screen.getByText("Max distance (ft)")).toBeInTheDocument();
+    expect(screen.getByText("320")).toBeInTheDocument();
+    expect(allocateCustomerPoints).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        allocationRules: [
+          expect.objectContaining({
+            maxDistance: expect.closeTo(97.536, 3),
+          }),
+        ],
+      }),
+    );
   });
 
   it("automatically runs initial allocation on mount", async () => {

@@ -5,6 +5,7 @@ import {
   initializeCustomerPoints,
 } from "@epanet-js/hydraulic-model";
 import { Selector, SelectorListOption } from "@epanet-js/ui-kit";
+import { convertTo } from "@epanet-js/quantity";
 
 import { AllocationRulesTable } from "./allocation-rules-table";
 import { AllocateCustomerPointsState } from "./wizard-state";
@@ -21,6 +22,7 @@ import { zonesAtom } from "src/state/zones";
 import { selectionAtom } from "src/state/selection";
 import { USelection } from "src/selection";
 import { allocationRulesAtom } from "src/state/allocation-rules";
+import { projectSettingsAtom } from "src/state/project-settings";
 
 type AllocateCustomerPointsDialogProps = {
   state: AllocateCustomerPointsState;
@@ -35,6 +37,7 @@ export const AllocationDialog: React.FC<AllocateCustomerPointsDialogProps> = ({
   const zones = useAtomValue(zonesAtom);
   const selection = useAtomValue(selectionAtom);
   const saveAllocationRules = useSetAtom(allocationRulesAtom);
+  const { units } = useAtomValue(projectSettingsAtom);
 
   const {
     allocationRules,
@@ -155,7 +158,13 @@ export const AllocationDialog: React.FC<AllocateCustomerPointsDialogProps> = ({
         });
 
         const result = await allocateCustomerPoints(hydraulicModel, {
-          allocationRules: rules,
+          allocationRules: rules.map((rule) => ({
+            ...rule,
+            maxDistance: convertTo(
+              { value: rule.maxDistance, unit: units.length },
+              "m",
+            ),
+          })),
           customerPoints,
           options: { runOnWorker, selectedZone, selectedPipes },
         });
@@ -188,6 +197,7 @@ export const AllocationDialog: React.FC<AllocateCustomerPointsDialogProps> = ({
       setIsAllocating,
       setLastAllocatedRules,
       translate,
+      units.length,
       zones,
     ],
   );
