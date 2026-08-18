@@ -7,7 +7,7 @@ import { useInProcessDb } from "src/lib/db/__test-helpers__/in-process-db";
 import { buildInp } from "src/simulation/build-inp";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { presets } from "src/lib/project-settings/quantities-spec";
-import { WGS84 } from "src/lib/projections";
+import { WGS84 } from "@epanet-js/projections";
 import { Store } from "src/state";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { inpFileInfoAtom } from "src/state/file-system";

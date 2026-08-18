@@ -6,7 +6,7 @@ import {
   useDialogState,
 } from "src/components/dialog";
 import type { LocationData } from "src/components/form/location-search";
-import { isLikelyLatLng } from "src/lib/geojson-utils/coordinate-transform";
+import { isLikelyLatLng } from "@epanet-js/projections";
 import { MapPinnedIcon } from "src/icons";
 import { MapPreview } from "./map-preview";
 import { ProjectionSearch, type SearchMetadata } from "./projection-search";
@@ -19,12 +19,9 @@ import {
 } from "./filter-projection-candidates";
 import { projectGeoJson } from "./project-geojson";
 import { approximateToNullIsland } from "./approximate-to-null-island";
-import type { Proj4Projection, Projection } from "src/lib/projections";
+import type { Proj4Projection, Projection } from "@epanet-js/projections";
 import { getExtent } from "@epanet-js/geometry";
-import {
-  computeCentroid,
-  transformPoint,
-} from "src/lib/projections/xy-grid-transform";
+import { computeCentroid, transformPoint } from "@epanet-js/projections";
 import type { Bbox, ProjectionCandidate } from "./types";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";

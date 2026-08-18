@@ -7,7 +7,7 @@ import {
 } from "@epanet-js/ui-kit";
 import type { LocationData } from "src/components/form/location-search";
 import { GeocodingError, searchLocations } from "src/lib/geocoding";
-import type { Proj4Projection } from "src/lib/projections";
+import type { Proj4Projection } from "@epanet-js/projections";
 import { useTranslate } from "src/hooks/use-translate";
 import {
   matchesProjection,

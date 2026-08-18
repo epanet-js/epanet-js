@@ -18,7 +18,7 @@ import {
 } from "src/lib/project-settings/quantities-spec";
 import type { Unit } from "@epanet-js/quantity";
 import { defaultProjectName, ProjectSettings } from "src/lib/project-settings";
-import { type Projection, WGS84 } from "src/lib/projections";
+import { type Projection, WGS84 } from "@epanet-js/projections";
 import { HeadlossFormula, headlossFormulas } from "src/hydraulic-model";
 import { headlossFormulasFullNames } from "@epanet-js/hydraulic-model";
 import { useTranslate } from "src/hooks/use-translate";

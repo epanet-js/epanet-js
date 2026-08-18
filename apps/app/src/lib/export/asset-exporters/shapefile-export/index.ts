@@ -22,9 +22,9 @@ import {
   resolveExportProperties,
 } from "../optional-field-defaults";
 import { isExportableField } from "../excluded-fields";
-import { createProjectionMapper } from "src/lib/projections";
+import { createProjectionMapper } from "@epanet-js/projections";
 import { type Position } from "geojson";
-import { getEsriWktString } from "src/lib/projections";
+import { getEsriWktString } from "@epanet-js/projections";
 
 const CUSTOMER_POINT_FIELDS = [
   "label",

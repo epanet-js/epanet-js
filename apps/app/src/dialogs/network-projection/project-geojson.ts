@@ -1,4 +1,4 @@
-import { createProjectionTransformer } from "src/lib/geojson-utils/coordinate-transform";
+import { createProjectionTransformer } from "@epanet-js/projections";
 import type { FeatureCollection, Feature, Position } from "geojson";
 
 export const projectGeoJson = (

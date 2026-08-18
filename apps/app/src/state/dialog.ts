@@ -4,7 +4,7 @@ import type { QualitySimulationType } from "src/simulation/simulation-settings";
 import { CurveId } from "@epanet-js/hydraulic-model";
 import type { CustomAttributeAssetType } from "@epanet-js/hydraulic-model";
 import type { BBox, FeatureCollection } from "geojson";
-import type { Proj4Projection, Projection } from "src/lib/projections";
+import type { Proj4Projection, Projection } from "@epanet-js/projections";
 import type { ElevationFetchStatus } from "src/lib/elevations";
 
 export type InvalidFilesErrorDialogState = {

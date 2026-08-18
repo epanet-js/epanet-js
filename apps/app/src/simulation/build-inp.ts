@@ -37,7 +37,7 @@ import {
   type Projection,
   createProjectionMapper,
   getBackdropUnits,
-} from "src/lib/projections";
+} from "@epanet-js/projections";
 import { UnitsSpec } from "src/lib/project-settings/quantities-spec";
 import { Position } from "geojson";
 import { withDebugInstrumentation } from "src/infra/with-instrumentation";

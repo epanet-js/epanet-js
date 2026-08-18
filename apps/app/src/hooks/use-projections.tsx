@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { fetchProjections } from "src/lib/projections";
-import type { Proj4Projection } from "src/lib/projections";
+import { fetchProjections } from "@epanet-js/projections";
+import type { Proj4Projection } from "@epanet-js/projections";
 
 type ProjectionsState = {
   projections: Map<string, Proj4Projection> | null;

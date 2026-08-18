@@ -1,5 +1,5 @@
 import { parseGeoJson } from "./parse-geojson";
-import type { Proj4Projection } from "src/lib/projections";
+import type { Proj4Projection } from "@epanet-js/projections";
 
 describe("parseGeoJson", () => {
   it("parses valid FeatureCollection", () => {

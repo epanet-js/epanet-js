@@ -1,7 +1,7 @@
 // eslint-disable-next-line no-restricted-imports
 import proj4 from "proj4";
 import type { FeatureCollection, Position } from "geojson";
-import type { Proj4Projection } from "src/lib/projections";
+import type { Proj4Projection } from "@epanet-js/projections";
 import type { Bbox, ProjectionCandidate } from "./types";
 
 const CHUNK_SIZE = 1000;

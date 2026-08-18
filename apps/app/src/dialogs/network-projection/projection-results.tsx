@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from "react";
 import clsx from "clsx";
-import type { Proj4Projection } from "src/lib/projections";
+import type { Proj4Projection } from "@epanet-js/projections";
 import { useTranslate } from "src/hooks/use-translate";
 import { MapPinXInsideIcon } from "src/icons";
 

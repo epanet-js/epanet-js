@@ -1,7 +1,7 @@
 import { Mock, vi } from "vitest";
 
 import * as useProjections from "src/hooks/use-projections";
-import type { Proj4Projection } from "src/lib/projections";
+import type { Proj4Projection } from "@epanet-js/projections";
 
 vi.mock("src/hooks/use-projections", () => ({
   useProjections: vi.fn(),

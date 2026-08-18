@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { readZoneFeatures } from "./read-zone-features";
-import type { Proj4Projection } from "src/lib/projections";
+import type { Proj4Projection } from "@epanet-js/projections";
 
 describe("readZoneFeatures", () => {
   it("returns polygon features and unique properties", async () => {

@@ -3,7 +3,7 @@ import { ResultsReader } from "src/simulation";
 import { exportAssetData } from "./export-asset-data";
 import { AssetExporters } from "./asset-exporters";
 import { FileSystemHelpers } from "src/infra/storage";
-import { WGS84 } from "src/lib/projections";
+import { WGS84 } from "@epanet-js/projections";
 
 const mockHandle = {} as FileSystemFileHandle;
 const model = HydraulicModelBuilder.empty();

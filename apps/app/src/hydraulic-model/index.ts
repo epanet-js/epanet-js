@@ -1,5 +1,5 @@
 export type { HydraulicModel } from "./hydraulic-model";
-export type { Projection } from "src/lib/projections";
+export type { Projection } from "@epanet-js/projections";
 export {
   initializeHydraulicModel,
   updateHydraulicModelAssets,

@@ -10,11 +10,11 @@ import { Button } from "src/components/elements";
 import { CollapsibleSection } from "src/components/form/fields";
 import { mapStylingPanelSectionsExpandedAtom } from "src/state/layout";
 import { MapPinnedIcon } from "src/icons";
-import type { Projection } from "src/lib/projections/projection";
+import type { Projection } from "@epanet-js/projections";
 import {
   inverseProjectGeoJson,
   createProjectionMapper,
-} from "src/lib/projections";
+} from "@epanet-js/projections";
 import { transformCoordinates } from "src/hydraulic-model/mutations/transform-coordinates";
 import { chooseUnitSystem } from "src/simulation/build-inp";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";

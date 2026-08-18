@@ -1,5 +1,5 @@
 import type { Feature, Polygon, MultiPolygon } from "geojson";
-import type { Proj4Projection } from "src/lib/projections";
+import type { Proj4Projection } from "@epanet-js/projections";
 import type { GisFiles } from "src/components/gis-drop-zone";
 import {
   parseGeoJson,

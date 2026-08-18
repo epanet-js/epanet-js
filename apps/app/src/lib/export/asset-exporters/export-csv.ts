@@ -5,7 +5,7 @@ import { AssetExportOptions, ExportedAssetTypes, ExportedFile } from "../types";
 import { CustomerPoint } from "@epanet-js/hydraulic-model";
 import { FILE_NAMES } from "./constants";
 import { NUM_DECIMAL_PLACES, COORDINATE_DECIMAL_PLACES } from "../constants";
-import { createProjectionMapper } from "src/lib/projections";
+import { createProjectionMapper } from "@epanet-js/projections";
 import {
   buildExportDefaults,
   resolveExportValue,

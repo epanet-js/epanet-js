@@ -1,6 +1,6 @@
 import { FeatureCollection } from "geojson";
 import shp from "shpjs";
-import { isLikelyLatLng } from "src/lib/geojson-utils/coordinate-transform";
+import { isLikelyLatLng } from "@epanet-js/projections";
 import {
   GisParseError,
   type CoordinateConversion,

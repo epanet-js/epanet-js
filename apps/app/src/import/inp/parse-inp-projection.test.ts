@@ -3,8 +3,8 @@ import { buildInp } from "src/simulation/build-inp";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { presets } from "src/lib/project-settings/quantities-spec";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
-import { WGS84 } from "src/lib/projections";
-import type { Proj4Projection, XYGridProjection } from "src/lib/projections";
+import { WGS84 } from "@epanet-js/projections";
+import type { Proj4Projection, XYGridProjection } from "@epanet-js/projections";
 import { checksum } from "src/infra/checksum";
 
 const legacyAppMadeInp = (content: string, headerLines: string[] = []) => {

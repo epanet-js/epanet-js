@@ -1,7 +1,7 @@
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { isPlayingAtom } from "src/state/simulation-playback";
 import { useCallback, useContext, useRef, useState } from "react";
-import { fetchProjections } from "src/lib/projections";
+import { fetchProjections } from "@epanet-js/projections";
 
 import { LngLatBoundsLike } from "mapbox-gl";
 import { nanoid } from "nanoid";

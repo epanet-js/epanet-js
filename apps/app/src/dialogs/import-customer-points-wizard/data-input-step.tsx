@@ -7,7 +7,7 @@ import { GisDropZone, type GisFiles } from "src/components/gis-drop-zone";
 import { parseGeoJson } from "src/lib/geojson-utils/parse-geojson";
 import { parseShapefile } from "src/lib/gis-import/parse-shapefile";
 import { GisParseError } from "src/lib/gis-import/types";
-import type { Proj4Projection } from "src/lib/projections";
+import type { Proj4Projection } from "@epanet-js/projections";
 import {
   customerPointsImportGuide,
   customerPointsImportVideoUrl,

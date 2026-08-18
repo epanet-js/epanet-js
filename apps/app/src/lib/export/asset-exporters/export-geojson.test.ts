@@ -2,7 +2,7 @@ import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { ResultsReader } from "src/simulation";
 import { ExportedFile } from "../types";
 import { exportGeoJson } from "./export-geojson";
-import { WGS84 } from "src/lib/projections";
+import { WGS84 } from "@epanet-js/projections";
 import { COORDINATE_DECIMAL_PLACES, NUM_DECIMAL_PLACES } from "../constants";
 
 const translate = (key: string) => key;

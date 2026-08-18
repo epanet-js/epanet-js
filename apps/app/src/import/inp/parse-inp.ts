@@ -29,9 +29,9 @@ import {
   type Projection,
   WGS84,
   createProjectionMapper,
-} from "src/lib/projections";
-import { createProjectionTransformer } from "src/lib/geojson-utils/coordinate-transform";
-import { computeCentroid } from "src/lib/projections/xy-grid-transform";
+} from "@epanet-js/projections";
+import { createProjectionTransformer } from "@epanet-js/projections";
+import { computeCentroid } from "@epanet-js/projections";
 
 type SourceProjection = { id: string; name: string; code?: string };
 

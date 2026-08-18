@@ -1,6 +1,6 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { exportShapefiles } from "./index";
-import { setProjectionsBaseUrl, WGS84 } from "src/lib/projections";
+import { setProjectionsBaseUrl, WGS84 } from "@epanet-js/projections";
 import { vi, afterEach } from "vitest";
 
 const TEST_BASE_URL = "https://example.com/projections";

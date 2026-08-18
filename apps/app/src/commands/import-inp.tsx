@@ -25,7 +25,10 @@ import { chooseUnitSystem } from "src/simulation/build-inp";
 import { notify } from "src/components/notifications";
 import { WarningIcon } from "src/icons";
 import { useRecentFiles } from "src/hooks/use-recent-files";
-import { type Projection, createProjectionMapper } from "src/lib/projections";
+import {
+  type Projection,
+  createProjectionMapper,
+} from "@epanet-js/projections";
 import { transformCoordinates } from "src/hydraulic-model/mutations/transform-coordinates";
 import { useStartNewProject } from "src/hooks/persistence/use-start-new-project";
 import { useLabelMaxLength } from "src/hooks/use-label-max-length";
