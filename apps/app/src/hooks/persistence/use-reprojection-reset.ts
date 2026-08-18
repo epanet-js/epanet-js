@@ -5,7 +5,11 @@ import * as db from "src/lib/db";
 import { handleError } from "src/infra/errors";
 import type { HydraulicModel } from "src/hydraulic-model";
 import type { ProjectSettings } from "src/lib/project-settings";
-import { mapSyncMomentAtom } from "src/state/map";
+import {
+  INITIAL_MAP_SYNC_SEQ,
+  mapSyncMomentAtom,
+  mapSyncSeqAtom,
+} from "src/state/map";
 import { initialSimulationState } from "src/state/simulation";
 import {
   stagingModelDerivedAtom,
@@ -34,6 +38,7 @@ type ReprojectionResetInput = {
 
 const resetAppState = (set: Setter) => {
   set(mapSyncMomentAtom, { pointer: -1, version: 0 });
+  set(mapSyncSeqAtom, INITIAL_MAP_SYNC_SEQ);
   set(simulationDerivedAtom, initialSimulationState);
   set(modeAtom, { mode: Mode.NONE });
   set(ephemeralStateAtom, { type: "none" });

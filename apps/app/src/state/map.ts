@@ -54,7 +54,9 @@ export const mapSyncMomentAtom = atom<MomentPointer>({
   version: 0,
 });
 
-export const mapSyncSeqAtom = atom<number>(-1);
+export const INITIAL_MAP_SYNC_SEQ = -1;
+
+export const mapSyncSeqAtom = atom<number>(INITIAL_MAP_SYNC_SEQ);
 
 export const mapLoadingAtom = atom<boolean>(false);
 

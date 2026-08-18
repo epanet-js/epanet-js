@@ -4,7 +4,11 @@ import type { Getter, Setter } from "jotai";
 import * as db from "src/lib/db";
 import { handleError } from "src/infra/errors";
 import type { HydraulicModel } from "src/hydraulic-model";
-import { mapSyncMomentAtom } from "src/state/map";
+import {
+  INITIAL_MAP_SYNC_SEQ,
+  mapSyncMomentAtom,
+  mapSyncSeqAtom,
+} from "src/state/map";
 import { initialSimulationState } from "src/state/simulation";
 import {
   stagingModelDerivedAtom,
@@ -31,6 +35,7 @@ type CustomerPointsImportResetInput = {
 const resetAppState = (set: Setter) => {
   set(simulationDerivedAtom, initialSimulationState);
   set(mapSyncMomentAtom, { pointer: -1, version: 0 });
+  set(mapSyncSeqAtom, INITIAL_MAP_SYNC_SEQ);
   set(modeAtom, { mode: Mode.NONE });
   set(ephemeralStateAtom, { type: "none" });
   set(selectionAtom, USelection.none());

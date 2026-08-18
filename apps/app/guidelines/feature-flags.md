@@ -416,10 +416,12 @@ For each new feature flag, document:
 - **Purpose**: The map stops reading the moment log to learn what changed, and reads a purpose-built
   `ChangeTracker` (`src/lib/persistence/change-tracker.ts`) instead. This unblocks persisting the
   moment log, which the map currently assumes is a cheap in-memory array.
-- **Risk Level**: High - it feeds the map's change detection, so it is rolled out in two slices.
-  Slice 2a (this one) switches only `hasNewImport` / `hasNewEditions` to the tracker's `id` / `seq`;
-  the editions ("delta") set, the sync watermark and the consolidation budget still come from the
-  moment log. Slice 2b switches those, using function duplication per the guidance above.
+- **Risk Level**: High - it feeds the map's change detection, so every signal is switched behind
+  the flag using function duplication per the guidance above: `hasNewImport` / `hasNewEditions` read
+  the tracker's `id` / `seq`, the editions ("delta") set comes from `assetsChangedSince`, the sync
+  watermark is `mapSyncSeqAtom` and the consolidation budget is `countChangedSince`, decided by the
+  map rather than requested by the transaction. Flag off, all four go back to the moment log and
+  `mapSyncMomentAtom` untouched.
 - **What the map actually wanted from the log**: three unrelated signals - "the model was replaced"
   (`momentLog.id`), "the model changed" (`getPointer()`), and "which assets differ from the
   consolidated snapshot" (`getDeltas(syncPointer)`). The tracker records *when* each asset last
@@ -434,9 +436,13 @@ For each new feature flag, document:
   stamping site; both transaction hooks pass the flag through as `isChangeTrackerOn`, and undo/redo
   are covered because they route the reverse moment through the same call. **Any new model mutation
   that bypasses `applyMoment` without replacing the tracker will silently stop updating the map.**
-  Stamping is flag-gated rather than unconditional because `trimUpTo` only runs at consolidation
-  (slice 2b): until then `lastChangedAt` grows to every asset edited since load, and a select-all
-  property edit fills it in one action - a `Map` clone costs ~12ms at 100k entries, ~101ms at 500k.
+  Stamping is flag-gated rather than unconditional because flag off nothing reads the tracker, so
+  the `Map` clone `record` does per moment would be pure cost - a select-all property edit fills
+  `lastChangedAt` in one action, and a clone costs ~12ms at 100k entries, ~101ms at 500k.
+  The watermark has a second dependency: the three `resetAppState` helpers
+  (`use-start-new-project.ts`, `use-reprojection-reset.ts`, `use-customer-points-import-reset.ts`)
+  clear `mapSyncSeqAtom` to `INITIAL_MAP_SYNC_SEQ` next to `mapSyncMomentAtom`, so a from-scratch
+  load leaves it pointing below the fresh tracker rather than into the discarded one.
 - **Rollback Plan**: Turn the flag off in PostHog. The map goes back to the moment log; the tracker
   keeps being created but stops being stamped or read. Nothing is persisted differently, so users
   mid-session are unaffected.
@@ -453,8 +459,9 @@ For each new feature flag, document:
   4. `use-switch-branch.ts` - delete `syncMapMoment`; a branch switch already hands the map a
      different tracker `id`.
   5. `src/map/state-updates.ts` - delete `getAssetIdsInMoments`, the moment-log branch of the
-     dirty-set resolver and the `isChangeTrackerOn` parameter of `detectChanges`; then demote
-     `mapSyncSeqAtom` to a `useRef` beside `hiddenInMainRef`, since nothing outside the map reads it.
+     dirty-set resolver and the `isChangeTrackerOn` parameter of `detectChanges`. `mapSyncSeqAtom`
+     stays an atom: the three `resetAppState` helpers clear it alongside the rest of the
+     from-scratch state, so it cannot become a `useRef` inside the map.
   6. `src/panels/asset-panel/asset-panel.test.tsx` - drop the `mapSyncMomentAtom` half of the
      transaction replica and the `false` argument it passes to `applyMoment`.
   7. `src/map/test/model-changes.test.tsx` - collapse the `describe.each` flag pair into single

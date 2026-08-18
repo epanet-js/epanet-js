@@ -46,7 +46,11 @@ import {
 import { initialSimulationState } from "src/state/simulation";
 import { worktreeAtom } from "src/state/scenarios";
 import { splitsAtom, defaultSplits } from "src/state/layout";
-import { mapSyncMomentAtom } from "src/state/map";
+import {
+  INITIAL_MAP_SYNC_SEQ,
+  mapSyncMomentAtom,
+  mapSyncSeqAtom,
+} from "src/state/map";
 import {
   nodeSymbologyAtom,
   linkSymbologyAtom,
@@ -90,6 +94,7 @@ export const resetAppState = (set: Setter) => {
   set(splitsAtom, defaultSplits);
   set(selectionAtom, USelection.none());
   set(mapSyncMomentAtom, { pointer: -1, version: 0 });
+  set(mapSyncSeqAtom, INITIAL_MAP_SYNC_SEQ);
   set(nodeSymbologyAtom, nullSymbologySpec.node);
   set(linkSymbologyAtom, nullSymbologySpec.link);
   set(savedSymbologiesAtom, new Map());
