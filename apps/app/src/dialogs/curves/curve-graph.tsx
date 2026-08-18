@@ -15,7 +15,7 @@ import { getCurveTypeConfig } from "./curve-type-config";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { InlineField } from "src/components/form/fields";
-import type { UnitsSpec } from "src/lib/project-settings/quantities-spec";
+import type { UnitsSpec } from "@epanet-js/project-settings";
 
 interface CurveGraphProps {
   points: CurvePoint[];

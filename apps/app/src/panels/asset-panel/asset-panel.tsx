@@ -47,8 +47,8 @@ import {
   DEFAULT_SPEED,
   DEFAULT_INITIAL_QUALITY,
 } from "@epanet-js/hydraulic-model";
-import { UnitsSpec } from "src/lib/project-settings/quantities-spec";
-import { getMinorLossUnit } from "src/lib/project-settings";
+import { UnitsSpec } from "@epanet-js/project-settings";
+import { getMinorLossUnit } from "@epanet-js/project-settings";
 import { useTranslate } from "src/hooks/use-translate";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import { useUserTracking } from "src/infra/user-tracking";

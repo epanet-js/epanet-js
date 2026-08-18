@@ -16,10 +16,7 @@ import type {
   QuantityStats as QuantitySummary,
 } from "./summary-stats";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import {
-  presets,
-  FormattingSpec,
-} from "src/lib/project-settings/quantities-spec";
+import { presets, FormattingSpec } from "@epanet-js/project-settings";
 
 describe("computeCustomerPointData", () => {
   const units = presets.LPS.units;

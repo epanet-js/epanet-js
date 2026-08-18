@@ -22,7 +22,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { DeleteIcon, AddIcon } from "src/icons";
 import { getCurveTypeConfig } from "./curve-type-config";
-import type { UnitsSpec } from "src/lib/project-settings/quantities-spec";
+import type { UnitsSpec } from "@epanet-js/project-settings";
 
 type CurveRow = {
   x: number;

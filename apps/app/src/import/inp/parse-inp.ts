@@ -1,4 +1,7 @@
-import { defaultProjectName, ProjectSettings } from "src/lib/project-settings";
+import {
+  defaultProjectName,
+  ProjectSettings,
+} from "@epanet-js/project-settings";
 import { IssuesAccumulator, ParserIssues } from "./issues";
 import { readInpData } from "./read-inp-data";
 import { buildModel, isWgs84 } from "./build-model";

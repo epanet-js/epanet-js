@@ -1,4 +1,4 @@
-import { defaultProjectSettings } from "src/lib/project-settings";
+import { defaultProjectSettings } from "@epanet-js/project-settings";
 import { serializeProjectSettings } from "./to-rows";
 
 describe("serializeProjectSettings", () => {

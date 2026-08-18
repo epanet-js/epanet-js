@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import { defaultProjectSettings } from "src/lib/project-settings";
+import { defaultProjectSettings } from "@epanet-js/project-settings";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { ensureUniqueId } from "./ensure-unique-id";
 import { exportDb } from "./export-db";

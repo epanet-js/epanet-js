@@ -1,6 +1,6 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { buildInp } from "./build-inp";
-import { presets } from "src/lib/project-settings/quantities-spec";
+import { presets } from "@epanet-js/project-settings";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 
 describe("build inp with pumps and curves", () => {

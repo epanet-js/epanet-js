@@ -1,7 +1,7 @@
 import { parseInp } from "./parse-inp";
 import { buildInp } from "src/simulation/build-inp";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import { presets } from "src/lib/project-settings/quantities-spec";
+import { presets } from "@epanet-js/project-settings";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { WGS84 } from "@epanet-js/projections";
 import type { Proj4Projection, XYGridProjection } from "@epanet-js/projections";

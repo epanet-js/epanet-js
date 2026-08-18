@@ -10,10 +10,7 @@ import {
   updateCategoryStats,
   updateBooleanStats,
 } from "./summary-stats";
-import {
-  presets,
-  FormattingSpec,
-} from "src/lib/project-settings/quantities-spec";
+import { presets, FormattingSpec } from "@epanet-js/project-settings";
 
 describe("summary-stats accumulators", () => {
   const units = presets.LPS.units;

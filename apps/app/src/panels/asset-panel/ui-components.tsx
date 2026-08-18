@@ -15,7 +15,7 @@ import { useLabelMaxLength } from "src/hooks/use-label-max-length";
 import { Unit, convertTo } from "@epanet-js/quantity";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { useValueDisplay } from "src/hooks/use-value-display";
-import type { QuantityProperty } from "src/lib/project-settings/quantities-spec";
+import type { QuantityProperty } from "@epanet-js/project-settings";
 import { Selector, SelectorListOption } from "@epanet-js/ui-kit";
 import { NumericField } from "src/components/form/numeric-field";
 import { Checkbox } from "src/components/form/Checkbox";

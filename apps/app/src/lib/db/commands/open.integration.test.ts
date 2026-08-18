@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import { defaultProjectSettings } from "src/lib/project-settings";
+import { defaultProjectSettings } from "@epanet-js/project-settings";
 import {
   defaultSimulationSettings,
   type SimulationSettings,
 } from "src/simulation/simulation-settings";
-import type { ProjectSettings } from "src/lib/project-settings";
+import type { ProjectSettings } from "@epanet-js/project-settings";
 import {
   type Junction,
   type Reservoir,

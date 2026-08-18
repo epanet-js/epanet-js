@@ -1,10 +1,7 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { SymbologySpec, nullSymbologySpec } from "src/map/symbology";
 import { buildOptimizedAssetsSource } from "./features";
-import {
-  presets,
-  FormattingSpec,
-} from "src/lib/project-settings/quantities-spec";
+import { presets, FormattingSpec } from "@epanet-js/project-settings";
 import {
   aLinkSymbology,
   aNodeSymbology,

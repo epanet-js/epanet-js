@@ -1,6 +1,6 @@
 import { atom, useAtom } from "jotai";
 import { useAtomValue } from "jotai";
-import { UnitsSpec } from "src/lib/project-settings/quantities-spec";
+import { UnitsSpec } from "@epanet-js/project-settings";
 import { projectSettingsAtom } from "src/state/project-settings";
 import {
   WizardState,

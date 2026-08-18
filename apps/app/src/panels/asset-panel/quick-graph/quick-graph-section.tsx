@@ -19,8 +19,8 @@ import {
   type QuickGraphAssetType,
   type QuickGraphPropertyByAssetType,
 } from "src/state/quick-graph";
-import type { QuantityProperty } from "src/lib/project-settings/quantities-spec";
-import { getDecimals } from "src/lib/project-settings";
+import type { QuantityProperty } from "@epanet-js/project-settings";
+import { getDecimals } from "@epanet-js/project-settings";
 import type { TimeSeries } from "src/simulation/epanet/eps-results-reader";
 import { type AssetId, type Valve } from "@epanet-js/hydraulic-model";
 import { useTimeSeries } from "./use-time-series";

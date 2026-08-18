@@ -16,7 +16,7 @@ import {
   UnitsSpec,
   QuantityProperty,
   getDecimals,
-} from "src/lib/project-settings/quantities-spec";
+} from "@epanet-js/project-settings";
 import {
   type ResultsReader,
   type PipeSimulation,

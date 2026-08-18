@@ -9,7 +9,7 @@ import {
   getValveCurveErrors,
   getEfficiencyCurveErrors,
 } from "@epanet-js/hydraulic-model";
-import { QuantityProperty } from "src/lib/project-settings/quantities-spec";
+import { QuantityProperty } from "@epanet-js/project-settings";
 
 export interface CurveTypeConfig {
   xLabel: string;

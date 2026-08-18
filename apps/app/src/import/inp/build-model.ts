@@ -39,12 +39,12 @@ import {
   CurveData,
 } from "./inp-data";
 import { IssuesAccumulator } from "./issues";
-import { ProjectSettings } from "src/lib/project-settings";
+import { ProjectSettings } from "@epanet-js/project-settings";
 import {
   presets,
   withPressureUnit,
   withHeadlossDefaults,
-} from "src/lib/project-settings/quantities-spec";
+} from "@epanet-js/project-settings";
 import type { Unit } from "@epanet-js/quantity";
 import { Position } from "geojson";
 import { ParseInpOptions } from "./parse-inp";

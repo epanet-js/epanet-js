@@ -11,11 +11,8 @@
 import "src/__helpers__/locale";
 import { describe, expect, it } from "vitest";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import { presets } from "src/lib/project-settings/quantities-spec";
-import type {
-  FormattingSpec,
-  UnitsSpec,
-} from "src/lib/project-settings/quantities-spec";
+import { presets } from "@epanet-js/project-settings";
+import type { FormattingSpec, UnitsSpec } from "@epanet-js/project-settings";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import type { GridColumn } from "src/components/data-grid";
 import { buildColumns } from "./asset-data-table-columns";

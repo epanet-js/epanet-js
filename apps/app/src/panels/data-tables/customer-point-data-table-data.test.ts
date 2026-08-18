@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import { presets } from "src/lib/project-settings/quantities-spec";
+import { presets } from "@epanet-js/project-settings";
 import {
   buildCustomerPointModelRows,
   cpAccessor,

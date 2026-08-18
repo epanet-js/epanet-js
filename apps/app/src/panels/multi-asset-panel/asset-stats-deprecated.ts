@@ -1,8 +1,5 @@
 import { Unit } from "@epanet-js/quantity";
-import {
-  UnitsSpec,
-  FormattingSpec,
-} from "src/lib/project-settings/quantities-spec";
+import { UnitsSpec, FormattingSpec } from "@epanet-js/project-settings";
 import type { ResultsReader } from "@epanet-js/simulation";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
 import type { RoughnessInferrer } from "src/hydraulic-model/pipe-materials";

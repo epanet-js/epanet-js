@@ -31,7 +31,7 @@ import { projectSettingsAtom } from "src/state/project-settings";
 import {
   flowUnitTranslationKeys,
   pressureUnitTranslationKeys,
-} from "src/lib/project-settings/quantities-spec";
+} from "@epanet-js/project-settings";
 import {
   headlossFormulas,
   headlossFormulasFullNames,

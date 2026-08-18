@@ -1,5 +1,5 @@
 import type { HydraulicModel } from "src/hydraulic-model";
-import type { ProjectSettings } from "src/lib/project-settings";
+import type { ProjectSettings } from "@epanet-js/project-settings";
 import type { Zones } from "src/lib/zones";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
 import { getWorker, timed } from "@epanet-js/ejsdb";

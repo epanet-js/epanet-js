@@ -1,9 +1,6 @@
 import { Unit } from "@epanet-js/quantity";
-import {
-  UnitsSpec,
-  FormattingSpec,
-} from "src/lib/project-settings/quantities-spec";
-import { getDecimals } from "src/lib/project-settings";
+import { UnitsSpec, FormattingSpec } from "@epanet-js/project-settings";
+import { getDecimals } from "@epanet-js/project-settings";
 
 export type EmptyBucketDeprecated = {
   label: string;

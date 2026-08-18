@@ -1,4 +1,4 @@
-import type { UnitsSpec } from "src/lib/project-settings/quantities-spec";
+import type { UnitsSpec } from "@epanet-js/project-settings";
 import { initializeColorRule } from "./range-color-rule";
 import {
   NodeSymbology,

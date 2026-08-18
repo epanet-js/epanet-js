@@ -1,4 +1,4 @@
-import type { ProjectSettings } from "src/lib/project-settings";
+import type { ProjectSettings } from "@epanet-js/project-settings";
 import { getWorker, timed } from "@epanet-js/ejsdb";
 import { serializeProjectSettings } from "../mappers/project-settings/to-rows";
 

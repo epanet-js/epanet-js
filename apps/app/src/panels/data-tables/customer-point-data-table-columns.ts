@@ -13,11 +13,8 @@ import type { CustomAttribute } from "@epanet-js/hydraulic-model";
 import { convertTo } from "@epanet-js/quantity";
 import type { TranslateFn } from "src/hooks/use-translate";
 import type { useTranslateUnit } from "src/hooks/use-translate-unit";
-import { getDecimals } from "src/lib/project-settings";
-import type {
-  FormattingSpec,
-  UnitsSpec,
-} from "src/lib/project-settings/quantities-spec";
+import { getDecimals } from "@epanet-js/project-settings";
+import type { FormattingSpec, UnitsSpec } from "@epanet-js/project-settings";
 import {
   type CustomerPointRow,
   type CpAccessorCtx,

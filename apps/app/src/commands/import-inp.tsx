@@ -20,7 +20,7 @@ import { LngLatBoundsLike } from "mapbox-gl";
 import { MapContext, captureThumbnail } from "src/map";
 import { ImportInpCompleted, useUserTracking } from "src/infra/user-tracking";
 import { InpStats } from "src/import/inp/inp-data";
-import { ProjectSettings } from "src/lib/project-settings";
+import { ProjectSettings } from "@epanet-js/project-settings";
 import { chooseUnitSystem } from "src/simulation/build-inp";
 import { notify } from "src/components/notifications";
 import { WarningIcon } from "src/icons";

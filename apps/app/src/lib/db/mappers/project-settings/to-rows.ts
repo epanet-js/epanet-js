@@ -1,4 +1,4 @@
-import type { ProjectSettings } from "src/lib/project-settings";
+import type { ProjectSettings } from "@epanet-js/project-settings";
 import { projectSettingsSchema } from "@epanet-js/ejsdb";
 
 export const serializeProjectSettings = (settings: ProjectSettings): string => {

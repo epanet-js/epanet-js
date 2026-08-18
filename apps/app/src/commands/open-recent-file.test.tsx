@@ -6,7 +6,7 @@ import { CommandContainer } from "./__helpers__/command-container";
 import { useInProcessDb } from "src/lib/db/__test-helpers__/in-process-db";
 import { buildInp } from "src/simulation/build-inp";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
-import { presets } from "src/lib/project-settings/quantities-spec";
+import { presets } from "@epanet-js/project-settings";
 import { WGS84 } from "@epanet-js/projections";
 import { Store } from "src/state";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";

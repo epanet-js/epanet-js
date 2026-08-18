@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { useSetAtom } from "jotai";
-import type { ProjectSettings } from "src/lib/project-settings";
+import type { ProjectSettings } from "@epanet-js/project-settings";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { dialogAtom } from "src/state/dialog";
 import { saveProjectSettings, serializeProjectSettings } from "src/lib/db";

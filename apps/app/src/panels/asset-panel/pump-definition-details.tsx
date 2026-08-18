@@ -14,8 +14,8 @@ import {
   Pump,
   PumpDefinitionType,
 } from "@epanet-js/hydraulic-model";
-import { UnitsSpec } from "src/lib/project-settings/quantities-spec";
-import { getDecimals } from "src/lib/project-settings";
+import { UnitsSpec } from "@epanet-js/project-settings";
+import { getDecimals } from "@epanet-js/project-settings";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { SelectRow, LibrarySelectRow, QuantityRow } from "./ui-components";
 import {

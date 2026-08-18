@@ -2,10 +2,7 @@ import type {
   CustomAttribute,
   CustomAttributeValue,
 } from "@epanet-js/hydraulic-model";
-import {
-  UnitsSpec,
-  FormattingSpec,
-} from "src/lib/project-settings/quantities-spec";
+import { UnitsSpec, FormattingSpec } from "@epanet-js/project-settings";
 import {
   type PropertyStats,
   updateCategoryStats,

@@ -5,7 +5,7 @@ import {
   type HydraulicModel,
   type PatternId,
 } from "src/hydraulic-model";
-import type { UnitsSpec } from "src/lib/project-settings/quantities-spec";
+import type { UnitsSpec } from "@epanet-js/project-settings";
 
 export type CustomerPointRow = {
   id: CustomerPointId;

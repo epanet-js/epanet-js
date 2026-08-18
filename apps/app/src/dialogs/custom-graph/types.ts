@@ -1,4 +1,4 @@
-import { QuantityProperty } from "src/lib/project-settings/quantities-spec";
+import { QuantityProperty } from "@epanet-js/project-settings";
 import { TimeSeries } from "src/simulation/epanet/eps-results-reader";
 
 export type NodeProperty = "pressure" | "head";

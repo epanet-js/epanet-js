@@ -14,7 +14,7 @@ import { vi } from "vitest";
 import { allocateCustomerPoints } from "src/lib/customer-points";
 import { Store } from "src/state";
 import { projectSettingsAtom } from "src/state/project-settings";
-import { presets } from "src/lib/project-settings/quantities-spec";
+import { presets } from "@epanet-js/project-settings";
 
 vi.mock("src/lib/customer-points", () => ({
   allocateCustomerPoints: vi.fn(),

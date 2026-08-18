@@ -2,7 +2,7 @@ import { atom } from "jotai";
 import {
   type ProjectSettings,
   defaultProjectSettings,
-} from "src/lib/project-settings";
+} from "@epanet-js/project-settings";
 
 export const projectSettingsAtom = atom<ProjectSettings>(
   defaultProjectSettings,

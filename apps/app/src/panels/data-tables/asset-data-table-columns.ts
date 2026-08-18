@@ -36,14 +36,14 @@ import {
 } from "@epanet-js/hydraulic-model";
 import type { TranslateFn } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
-import { getDecimals } from "src/lib/project-settings";
+import { getDecimals } from "@epanet-js/project-settings";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
 import type {
   UnitsSpec,
   FormattingSpec,
   QuantityProperty,
-} from "src/lib/project-settings/quantities-spec";
+} from "@epanet-js/project-settings";
 import {
   type AssetRow,
   type AssetAccessorCtx,

@@ -3,10 +3,7 @@ import type {
   CustomAttribute,
   CustomAttributeValue,
 } from "@epanet-js/hydraulic-model";
-import {
-  presets,
-  FormattingSpec,
-} from "src/lib/project-settings/quantities-spec";
+import { presets, FormattingSpec } from "@epanet-js/project-settings";
 import {
   buildCustomAttributeStats,
   buildCustomAttributeSummary,

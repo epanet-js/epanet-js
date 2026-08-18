@@ -17,7 +17,7 @@ import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
 import {
   type ProjectSettings,
   defaultProjectSettings,
-} from "src/lib/project-settings";
+} from "@epanet-js/project-settings";
 import {
   buildDefaultSimulationSettings,
   defaultSimulationSettings,

@@ -28,7 +28,7 @@ import {
   ParsedDataSummary,
   InputData,
 } from "./types";
-import { UnitsSpec } from "src/lib/project-settings/quantities-spec";
+import { UnitsSpec } from "@epanet-js/project-settings";
 import { WizardActions as WizardActionsComponent } from "src/components/wizard";
 import { convertTo } from "@epanet-js/quantity";
 import { ChevronDownIcon, ChevronRightIcon } from "src/icons";

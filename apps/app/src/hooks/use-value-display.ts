@@ -1,9 +1,9 @@
 import { useAtomValue } from "jotai";
 import { useCallback } from "react";
 import { projectSettingsAtom } from "src/state/project-settings";
-import { getDecimals } from "src/lib/project-settings";
+import { getDecimals } from "@epanet-js/project-settings";
 import { localizeDecimal } from "src/infra/i18n/numbers";
-import type { QuantityProperty } from "src/lib/project-settings/quantities-spec";
+import type { QuantityProperty } from "@epanet-js/project-settings";
 
 export const useValueDisplay = () => {
   const { formatting } = useAtomValue(projectSettingsAtom);

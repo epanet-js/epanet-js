@@ -7,7 +7,7 @@ import { buildFileSystemHandleMock } from "src/__helpers__/browser-fs-mock";
 import { useInProcessDb } from "src/lib/db/__test-helpers__/in-process-db";
 import * as db from "src/lib/db";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
-import { defaultProjectSettings } from "src/lib/project-settings";
+import { defaultProjectSettings } from "@epanet-js/project-settings";
 import type { HydraulicModel } from "src/hydraulic-model";
 import { Store } from "src/state";
 import type { FileWithHandle } from "browser-fs-access";

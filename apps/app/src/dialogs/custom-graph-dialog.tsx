@@ -7,7 +7,7 @@ import { Button, DDContent, StyledItem } from "src/components/elements";
 import { Selector } from "@epanet-js/ui-kit";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
-import { getDecimals } from "src/lib/project-settings";
+import { getDecimals } from "@epanet-js/project-settings";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { useUserTracking } from "src/infra/user-tracking";
 import { ChevronDownIcon } from "src/icons";

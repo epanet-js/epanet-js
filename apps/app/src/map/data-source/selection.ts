@@ -11,7 +11,7 @@ import {
   appendPipeArrowProps,
 } from "./features";
 import type { ResultsReader } from "@epanet-js/simulation";
-import type { UnitsSpec } from "src/lib/project-settings/quantities-spec";
+import type { UnitsSpec } from "@epanet-js/project-settings";
 
 export const buildSelectionSource = (
   assets: AssetsMap,

@@ -12,7 +12,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { DeleteIcon, AddIcon } from "src/icons";
 import { PropertyComparison } from "src/hooks/use-asset-comparison";
 import { calculateAverageDemand, Demand } from "@epanet-js/hydraulic-model";
-import { UnitsSpec } from "src/lib/project-settings/quantities-spec";
+import { UnitsSpec } from "@epanet-js/project-settings";
 import { QuantityRow } from "./ui-components";
 import {
   NestedSection,

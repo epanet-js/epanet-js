@@ -10,10 +10,7 @@ import type {
 } from "./stats-deprecated";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { buildRoughnessInferrer } from "src/hydraulic-model/pipe-materials";
-import {
-  presets,
-  FormattingSpec,
-} from "src/lib/project-settings/quantities-spec";
+import { presets, FormattingSpec } from "@epanet-js/project-settings";
 import { createMockResultsReader } from "src/__helpers__/state";
 
 describe("computeMultiAssetData", () => {

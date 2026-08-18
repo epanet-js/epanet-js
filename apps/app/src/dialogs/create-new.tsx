@@ -15,9 +15,12 @@ import {
   withHeadlossDefaults,
   flowUnitTranslationKeys,
   pressureUnitTranslationKeys,
-} from "src/lib/project-settings/quantities-spec";
+} from "@epanet-js/project-settings";
 import type { Unit } from "@epanet-js/quantity";
-import { defaultProjectName, ProjectSettings } from "src/lib/project-settings";
+import {
+  defaultProjectName,
+  ProjectSettings,
+} from "@epanet-js/project-settings";
 import { type Projection, WGS84 } from "@epanet-js/projections";
 import { HeadlossFormula, headlossFormulas } from "src/hydraulic-model";
 import { headlossFormulasFullNames } from "@epanet-js/hydraulic-model";

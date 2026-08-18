@@ -3,7 +3,7 @@ import { useAtomCallback } from "jotai/utils";
 import type { Getter, Setter } from "jotai";
 import * as db from "src/lib/db";
 import type { HydraulicModel } from "src/hydraulic-model";
-import type { ProjectSettings } from "src/lib/project-settings";
+import type { ProjectSettings } from "@epanet-js/project-settings";
 import type { FetchProjectPhase } from "src/lib/db";
 import {
   clearSimulationStorage,

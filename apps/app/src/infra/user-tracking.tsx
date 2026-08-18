@@ -9,7 +9,7 @@ import type {
 import { isDebugOn } from "./debug-mode";
 import { MODE_INFO } from "src/state/mode";
 import { SimulationState } from "src/state/simulation";
-import { Presets } from "src/lib/project-settings/quantities-spec";
+import { Presets } from "@epanet-js/project-settings";
 import { EpanetUnitSystem } from "src/simulation/build-inp";
 import { User } from "src/auth-types";
 import type {

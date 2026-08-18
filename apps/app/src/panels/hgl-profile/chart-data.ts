@@ -16,7 +16,7 @@ import {
   simulationResultsDerivedAtom,
 } from "src/state/derived-branch-state";
 import { projectSettingsAtom } from "src/state/project-settings";
-import { getDecimals, ProjectSettings } from "src/lib/project-settings";
+import { getDecimals, ProjectSettings } from "@epanet-js/project-settings";
 import { AssetId, AssetsMap } from "src/hydraulic-model";
 import { ResultsReader } from "@epanet-js/simulation";
 import { Highlight } from "src/state/highlights";

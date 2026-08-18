@@ -6,7 +6,7 @@ import {
   buildPipe,
   buildReservoir,
 } from "src/__helpers__/hydraulic-model-builder";
-import { defaultProjectSettings } from "src/lib/project-settings";
+import { defaultProjectSettings } from "@epanet-js/project-settings";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import type { ModelMoment } from "src/hydraulic-model/model-operation";
 import { type Junction, type Pipe } from "@epanet-js/hydraulic-model";
