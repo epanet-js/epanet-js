@@ -79,6 +79,7 @@ export const SessionsRecovery = ({
           tertiary={{
             action: translate("restoreUnsavedWorkDiscardAllAction"),
             onClick: onDiscardAll,
+            variant: "danger",
           }}
         />
       }
@@ -90,7 +91,7 @@ export const SessionsRecovery = ({
         <div
           role="radiogroup"
           aria-label={translate("restoreUnsavedWorkTitle")}
-          className="flex flex-col border rounded-md max-h-72 overflow-y-auto"
+          className="flex flex-col p-1 border rounded-md max-h-72 overflow-y-auto"
         >
           {sortedSessions.map((session) => (
             <SessionOption
@@ -127,7 +128,7 @@ const SessionOption = ({
   return (
     <label
       className={clsx(
-        "flex items-start gap-x-3 px-3 py-2 border-b last:border-b-0 cursor-pointer transition-colors",
+        "flex items-start gap-x-3 px-3 py-2 rounded-sm cursor-pointer transition-colors",
         isSelected ? "bg-accent-tint" : "hover:bg-panel",
       )}
     >
@@ -140,7 +141,7 @@ const SessionOption = ({
         onChange={onSelect}
       />
       <span className="flex flex-col min-w-0 gap-y-0.5">
-        <span className="font-medium truncate" title={projectName}>
+        <span className="font-semibold truncate" title={projectName}>
           {projectName}
         </span>
         <span className="text-size-small text-subtle tabular-nums">

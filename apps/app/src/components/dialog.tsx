@@ -206,6 +206,7 @@ export function SimpleDialogActions({
   tertiary?: {
     action: string;
     onClick: () => void;
+    variant?: "default" | "danger";
   };
   isDisabled?: boolean;
   isSubmitting?: boolean;
@@ -247,7 +248,8 @@ export function SimpleDialogActions({
         <Button
           type="button"
           disabled={isSubmitting}
-          variant="default"
+          variant={tertiary.variant ?? "default"}
+          className={tertiary.variant === "danger" ? "sm:mr-auto" : undefined}
           onClick={tertiary.onClick}
         >
           {tertiary.action}
