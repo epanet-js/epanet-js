@@ -2,14 +2,7 @@ import { ReactNode } from "react";
 import { Button } from "./elements";
 import { Plan } from "src/lib/account-plans";
 import { useUserTracking } from "src/infra/user-tracking";
-import { SignInButton } from "src/components/auth/sign-in-button";
-import { useAuth } from "src/hooks/use-auth";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import {
-  PaymentType,
-  buildCheckoutUrl,
-  useCheckout,
-} from "src/hooks/use-checkout";
+import { PaymentType, useCheckout } from "src/hooks/use-checkout";
 import type { UpgradeOrigin } from "src/state/dialog";
 
 export const CheckoutButton = ({
@@ -27,10 +20,8 @@ export const CheckoutButton = ({
   feature?: string;
   children: ReactNode;
 }) => {
-  const isBillingOn = useFeatureFlag("FLAG_BILLING");
   const { startCheckout } = useCheckout();
   const userTracking = useUserTracking();
-  const { isSignedIn } = useAuth();
 
   const captureCheckoutStarted = () => {
     userTracking.capture({
@@ -42,25 +33,11 @@ export const CheckoutButton = ({
     });
   };
 
-  if (!isBillingOn && !isSignedIn) {
-    return (
-      <SignInButton forceRedirectUrl={buildCheckoutUrl(plan, paymentType)}>
-        <Button
-          onClick={captureCheckoutStarted}
-          variant={variant}
-          size="full-width"
-        >
-          {children}
-        </Button>
-      </SignInButton>
-    );
-  }
-
   return (
     <Button
       onClick={() => {
         captureCheckoutStarted();
-        void startCheckout(plan, paymentType);
+        startCheckout(plan, paymentType);
       }}
       variant={variant}
       size="full-width"

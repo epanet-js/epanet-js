@@ -41,9 +41,11 @@ await workerAPI.doWork(Comlink.transfer(data, transferablesOf(data)));
 **Always encode as `ArrayBuffer`, never `SharedArrayBuffer`.** `SharedArrayBuffer`
 requires the page to be cross-origin isolated (`Cross-Origin-Opener-Policy:
 same-origin` plus `Cross-Origin-Embedder-Policy: require-corp`). The app
-deliberately sets neither, because isolation was found to break the Stripe
-payment embeds — not a trade worth making for worker throughput. Do not re-enable
-isolation to unlock shared memory without solving checkout first.
+deliberately sets neither. Isolation was first ruled out because it broke the
+Stripe payment embeds, which have since moved to the billing app; what keeps it
+ruled out now is `require-corp`, which blocks every cross-origin frame and asset
+that does not opt in — the model-builder iframe among them. Do not re-enable
+isolation to unlock shared memory without checking each embed first.
 
 Use `canUseWorker()` from `src/infra/worker.ts`. `canUseWorkers()` (plural)
 additionally requires `"shared"`, so it is always false under this rule.

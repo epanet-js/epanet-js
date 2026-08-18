@@ -1,5 +1,4 @@
 import {
-  User,
   UserJSON,
   clerkClient as instanceClerkClient,
 } from "@clerk/nextjs/server";
@@ -28,26 +27,6 @@ export const assignEducationPlan = async (userId: string, email: string) => {
   return clerk.users.updateUserMetadata(userId, {
     publicMetadata: {
       userPlan: "education",
-    },
-  });
-};
-
-export const upgradeUser = async (
-  user: User,
-  customerId: string,
-  plan: string,
-  paymentType: string,
-) => {
-  logger.info(`Upgrading user ${getEmail(user)} to ${plan}`);
-
-  const clerk = await client();
-  return clerk.users.updateUserMetadata(user.id, {
-    publicMetadata: {
-      userPlan: plan,
-      paymentType,
-    },
-    privateMetadata: {
-      customerId,
     },
   });
 };
@@ -109,10 +88,6 @@ const fetchAllUsers = async () => {
   }
 
   return result;
-};
-
-const getEmail = (user: User): string => {
-  return user?.emailAddresses[0].emailAddress;
 };
 
 let instance: ClerkClient | null = null;

@@ -10,9 +10,7 @@ import { Button, StyledSwitch, StyledThumb } from "../components/elements";
 import {
   ForwardRefExoticComponent,
   RefAttributes,
-  useEffect,
   useMemo,
-  useRef,
   useState,
 } from "react";
 import { IconProps } from "@radix-ui/react-icons/dist/types";
@@ -25,15 +23,8 @@ import {
 } from "src/global-config";
 import { useUnsavedChangesCheck } from "src/commands/check-unsaved-changes";
 import { useAuth } from "src/hooks/use-auth";
-import { RedirectToSignIn } from "src/components/auth";
-import {
-  PaymentType,
-  buildCheckoutUrl,
-  getCheckoutUrlParams,
-  useCheckout,
-} from "src/hooks/use-checkout";
+import { PaymentType } from "src/hooks/use-checkout";
 import { usePermissions } from "src/hooks/use-permissions";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { signUpUrl } from "src/global-config";
 import { CheckIcon, InfoIcon, CloseIcon } from "src/icons";
 import type { UpgradeOrigin } from "src/state/dialog";
@@ -60,51 +51,13 @@ export const UpgradeDialog = ({
   feature = "upgradeMenu",
   source = "upgrade",
 }: { feature?: string; source?: UpgradeOrigin } = {}) => {
-  const isBillingOn = useFeatureFlag("FLAG_BILLING");
-  const { isLoaded: isAuthLoaded, isSignedIn } = useAuth();
-  const { isLoading: isLoadingCheckout, startCheckout } = useCheckout();
+  const { isLoaded: isAuthLoaded } = useAuth();
   const { canUpgrade } = usePermissions();
-  const resumedRef = useRef(false);
 
-  const checkoutParams = getCheckoutUrlParams();
-  const shouldResumeCheckout =
-    !isLoadingCheckout &&
-    isAuthLoaded &&
-    canUpgrade &&
-    checkoutParams.enabled &&
-    (isBillingOn || isSignedIn);
-
-  useEffect(() => {
-    if (!shouldResumeCheckout || resumedRef.current) return;
-
-    resumedRef.current = true;
-    void startCheckout(checkoutParams.plan, checkoutParams.paymentType);
-  }, [
-    shouldResumeCheckout,
-    startCheckout,
-    checkoutParams.plan,
-    checkoutParams.paymentType,
-  ]);
-
-  if (isLoadingCheckout || !isAuthLoaded) return <LoadingDialog />;
+  if (!isAuthLoaded) return <LoadingDialog />;
 
   if (!canUpgrade) {
     return <ChangesFromSupportDialog />;
-  }
-
-  if (checkoutParams.enabled) {
-    if (isBillingOn || isSignedIn) {
-      return null;
-    } else {
-      return (
-        <RedirectToSignIn
-          signInForceRedirectUrl={buildCheckoutUrl(
-            checkoutParams.plan,
-            checkoutParams.paymentType,
-          )}
-        />
-      );
-    }
   }
 
   return <PlansDialog feature={feature} source={source} />;

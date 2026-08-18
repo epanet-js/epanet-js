@@ -2,7 +2,6 @@ import { act, fireEvent, render, screen } from "@testing-library/react";
 import { useState } from "react";
 import { createStore, Provider as JotaiProvider } from "jotai";
 import { AuthMockProvider, aUser } from "src/__helpers__/auth-mock";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import { Plan } from "src/lib/account-plans";
 import { dialogAtom } from "src/state/dialog";
 
@@ -20,7 +19,6 @@ const POLL_WINDOW_MS = 5 * 60 * 1000;
 
 describe("waiting for payment dialog", () => {
   beforeEach(() => {
-    stubFeatureOn("FLAG_BILLING");
     vi.mocked(notify).mockClear();
     vi.useFakeTimers();
   });
