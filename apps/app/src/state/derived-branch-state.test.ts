@@ -7,7 +7,7 @@ import { branchStateAtom, type BranchState } from "src/state/branch-state";
 import {
   canRedoDerivedAtom,
   canUndoDerivedAtom,
-  nullHydraulicModel,
+  emptyHydraulicModel,
 } from "src/state/derived-branch-state";
 
 describe("canUndo/canRedo derived atoms", () => {
@@ -39,9 +39,10 @@ describe("canUndo/canRedo derived atoms", () => {
 
   const setInitialStore = (momentLog: MomentLog) => {
     const store = createStore();
+    const hydraulicModel = emptyHydraulicModel();
     const branchState: BranchState = {
-      version: nullHydraulicModel.version,
-      hydraulicModel: nullHydraulicModel,
+      version: hydraulicModel.version,
+      hydraulicModel,
       labelManager: new LabelManager(),
       momentLog,
       simulation: null,

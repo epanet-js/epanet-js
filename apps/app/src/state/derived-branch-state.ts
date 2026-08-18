@@ -8,6 +8,7 @@ import {
 import type { BranchState } from "src/state/branch-state";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { catchErrors } from "src/infra/errors";
+import { captureWarning } from "src/infra/error-tracking";
 import { USelection } from "src/selection";
 import { branchStateAtom } from "src/state/branch-state";
 import { selectionAtom } from "src/state/selection";
@@ -24,7 +25,8 @@ import {
   defaultSimulationSettings,
 } from "src/simulation/simulation-settings";
 
-export const nullHydraulicModel: HydraulicModel = initializeHydraulicModel({});
+export const emptyHydraulicModel = (): HydraulicModel =>
+  initializeHydraulicModel({});
 
 function getActiveBranchState(get: Getter): BranchState | undefined {
   const worktree = get(worktreeAtom);
@@ -39,7 +41,16 @@ function updateActiveBranchState(
   const worktree = get(worktreeAtom);
   const branchStates = get(branchStateAtom);
   const currentState = branchStates.get(worktree.activeBranchId);
-  if (!currentState) return;
+  if (!currentState) {
+    captureWarning("Branch state missing on active branch update", undefined, {
+      branchState: {
+        activeBranchId: worktree.activeBranchId,
+        mainId: worktree.mainId,
+        knownBranchIds: [...branchStates.keys()],
+      },
+    });
+    return;
+  }
   const updated = new Map(branchStates);
   updated.set(worktree.activeBranchId, { ...currentState, ...update });
   set(branchStateAtom, updated);
@@ -47,7 +58,7 @@ function updateActiveBranchState(
 
 export const stagingModelDerivedAtom = atom(
   (get): HydraulicModel => {
-    return getActiveBranchState(get)?.hydraulicModel ?? nullHydraulicModel;
+    return getActiveBranchState(get)?.hydraulicModel ?? emptyHydraulicModel();
   },
   (get, set, value: HydraulicModel) => {
     updateActiveBranchState(get, set, {
@@ -61,7 +72,7 @@ export const baseModelDerivedAtom = atom((get): HydraulicModel => {
   const worktree = get(worktreeAtom);
   const branchStates = get(branchStateAtom);
   return (
-    branchStates.get(worktree.mainId)?.hydraulicModel ?? nullHydraulicModel
+    branchStates.get(worktree.mainId)?.hydraulicModel ?? emptyHydraulicModel()
   );
 });
 

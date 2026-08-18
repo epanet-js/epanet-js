@@ -25,7 +25,7 @@ export {
 } from "src/state/file-system";
 
 // Hydraulic model
-export { nullHydraulicModel } from "src/state/derived-branch-state";
+export { emptyHydraulicModel } from "src/state/derived-branch-state";
 
 // Layout
 export type {
