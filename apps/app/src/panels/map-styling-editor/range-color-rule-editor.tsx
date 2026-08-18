@@ -4,7 +4,7 @@ import { ColorPopover } from "src/components/color-popover";
 import { Button, DDContent, StyledItem } from "src/components/elements";
 import { NumericField } from "src/components/form/numeric-field";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { localizeDecimal } from "src/infra/i18n/numbers";
+import { localizeDecimal } from "@epanet-js/i18n";
 import {
   RangeMode,
   appendBreak,

@@ -93,7 +93,7 @@ import {
   NestedSection,
   BlockComparisonField,
 } from "src/components/form/fields";
-import { localizeDecimal } from "src/infra/i18n/numbers";
+import { localizeDecimal } from "@epanet-js/i18n";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { useQuickGraph } from "./quick-graph";
 import {

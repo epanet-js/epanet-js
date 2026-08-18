@@ -9,7 +9,7 @@ import {
 } from "@epanet-js/hydraulic-model";
 import { useTranslate } from "src/hooks/use-translate";
 import { highlightsAtom } from "src/state/highlights";
-import { localizeDecimal } from "src/infra/i18n/numbers";
+import { localizeDecimal } from "@epanet-js/i18n";
 import { InlineField, NestedSection } from "src/components/form/fields";
 import { TextField } from "src/components/form/text-field";
 import { NumericTable, Cell } from "src/components/form/numeric-table";

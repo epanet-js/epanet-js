@@ -8,7 +8,7 @@ import { useAtomValue } from "jotai";
 
 import { NumericField } from "src/components/form/numeric-field";
 import { TextField } from "src/components/form/text-field";
-import { localizeDecimal } from "src/infra/i18n/numbers";
+import { localizeDecimal } from "@epanet-js/i18n";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { useTranslate } from "src/hooks/use-translate";
 import { projectSettingsAtom } from "src/state/project-settings";

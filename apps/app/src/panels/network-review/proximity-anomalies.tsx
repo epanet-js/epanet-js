@@ -1,5 +1,5 @@
 import { NumericField } from "src/components/form/numeric-field";
-import { localizeDecimal } from "src/infra/i18n/numbers";
+import { localizeDecimal } from "@epanet-js/i18n";
 
 import {
   CheckType,

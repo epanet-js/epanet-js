@@ -1,7 +1,7 @@
 import { useState, useRef, useMemo } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useTranslate } from "src/hooks/use-translate";
-import { localizeDecimal } from "src/infra/i18n/numbers";
+import { localizeDecimal } from "@epanet-js/i18n";
 import { NumericField } from "src/components/form/numeric-field";
 import { Selector, SelectorListOption } from "@epanet-js/ui-kit";
 import { TriStateCheckbox } from "src/components/form/Checkbox";

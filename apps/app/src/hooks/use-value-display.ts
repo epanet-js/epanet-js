@@ -2,7 +2,7 @@ import { useAtomValue } from "jotai";
 import { useCallback } from "react";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { getDecimals } from "@epanet-js/project-settings";
-import { localizeDecimal } from "src/infra/i18n/numbers";
+import { localizeDecimal } from "@epanet-js/i18n";
 import type { QuantityProperty } from "@epanet-js/project-settings";
 
 export const useValueDisplay = () => {

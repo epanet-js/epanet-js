@@ -22,7 +22,7 @@ import { useZoomTo } from "src/hooks/use-zoom-to";
 import { Button } from "src/components/elements";
 import { Pipe } from "src/hydraulic-model";
 import { useTranslate } from "src/hooks/use-translate";
-import { localizeDecimal } from "src/infra/i18n/numbers";
+import { localizeDecimal } from "@epanet-js/i18n";
 import { Maybe } from "purify-ts/Maybe";
 
 export const CrossingPipes = ({ onGoBack }: { onGoBack: () => void }) => {

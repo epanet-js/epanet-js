@@ -13,7 +13,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { useLabelMaxLength } from "src/hooks/use-label-max-length";
 import { Unit, convertTo } from "@epanet-js/quantity";
-import { localizeDecimal } from "src/infra/i18n/numbers";
+import { localizeDecimal } from "@epanet-js/i18n";
 import { useValueDisplay } from "src/hooks/use-value-display";
 import type { QuantityProperty } from "@epanet-js/project-settings";
 import { Selector, SelectorListOption } from "@epanet-js/ui-kit";

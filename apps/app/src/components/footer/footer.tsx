@@ -1,7 +1,7 @@
 import { useAtomValue } from "jotai";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { useTranslate } from "src/hooks/use-translate";
-import { localizeDecimal } from "src/infra/i18n/numbers";
+import { localizeDecimal } from "@epanet-js/i18n";
 
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { projectSettingsAtom } from "src/state/project-settings";

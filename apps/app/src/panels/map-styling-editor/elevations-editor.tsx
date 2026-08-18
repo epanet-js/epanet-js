@@ -55,7 +55,7 @@ import {
 } from "src/icons";
 import { NumericField } from "src/components/form/numeric-field";
 import { Selector } from "@epanet-js/ui-kit";
-import { localizeDecimal } from "src/infra/i18n/numbers";
+import { localizeDecimal } from "@epanet-js/i18n";
 import { useUserTracking } from "src/infra/user-tracking";
 import { convertTo } from "@epanet-js/quantity";
 import { offlineAtom } from "src/state/offline";

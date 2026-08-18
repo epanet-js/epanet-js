@@ -1,4 +1,4 @@
-import { localizeDecimal } from "src/infra/i18n/numbers";
+import { localizeDecimal } from "@epanet-js/i18n";
 import { NumericField } from "./numeric-field";
 
 export type Cell = {

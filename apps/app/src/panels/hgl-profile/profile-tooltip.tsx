@@ -1,6 +1,6 @@
 "use client";
 import { useLayoutEffect, useRef, type RefObject } from "react";
-import { localizeDecimal } from "src/infra/i18n/numbers";
+import { localizeDecimal } from "@epanet-js/i18n";
 import { VisibleTooltipContent } from "./tooltip-data";
 import { ChartCursorState } from "./use-chart-cursor";
 

@@ -1,5 +1,5 @@
 import type { EChartsOption, SeriesOption } from "echarts";
-import { localizeDecimal } from "src/infra/i18n/numbers";
+import { localizeDecimal } from "@epanet-js/i18n";
 import { roundToSignificantDigits } from "src/infra/rounding";
 
 export const STRIP_GRID_TOP = 8;

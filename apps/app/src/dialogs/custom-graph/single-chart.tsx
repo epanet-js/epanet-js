@@ -10,7 +10,7 @@ import {
 import ReactECharts from "echarts-for-react";
 import type { EChartsOption } from "echarts";
 import { useTranslate } from "src/hooks/use-translate";
-import { localizeDecimal } from "src/infra/i18n/numbers";
+import { localizeDecimal } from "@epanet-js/i18n";
 import { colors } from "src/lib/constants";
 import { SingleGraphChartProps, GraphDefaultOptions } from ".";
 import {

@@ -37,7 +37,7 @@ import {
 import type { TranslateFn } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { getDecimals } from "@epanet-js/project-settings";
-import { localizeDecimal } from "src/infra/i18n/numbers";
+import { localizeDecimal } from "@epanet-js/i18n";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
 import type {
   UnitsSpec,

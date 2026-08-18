@@ -4,7 +4,7 @@ import {
   normalizeNumericInput,
   parseNumericInput,
 } from "src/components/form/numeric-input-utils";
-import { localizeDecimal } from "src/infra/i18n/numbers";
+import { localizeDecimal } from "@epanet-js/i18n";
 import type { RowData } from "@tanstack/react-table";
 import { CellProps, GridColumn } from "../types";
 import { type ColumnKey, resolveColumnKey } from "./column-key";

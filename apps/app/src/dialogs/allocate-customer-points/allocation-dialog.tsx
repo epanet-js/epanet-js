@@ -12,7 +12,7 @@ import { AllocateCustomerPointsState } from "./wizard-state";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 
 import { allocateCustomerPoints } from "src/lib/customer-points";
-import { localizeDecimal } from "src/infra/i18n/numbers";
+import { localizeDecimal } from "@epanet-js/i18n";
 import { TranslateFn, useTranslate } from "src/hooks/use-translate";
 import { SuccessIcon, WarningIcon } from "src/icons";
 import { Button } from "src/components/elements";

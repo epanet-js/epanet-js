@@ -16,7 +16,7 @@ import {
 } from "@epanet-js/hydraulic-model";
 import { UnitsSpec } from "@epanet-js/project-settings";
 import { getDecimals } from "@epanet-js/project-settings";
-import { localizeDecimal } from "src/infra/i18n/numbers";
+import { localizeDecimal } from "@epanet-js/i18n";
 import { SelectRow, LibrarySelectRow, QuantityRow } from "./ui-components";
 import {
   fieldValidator,

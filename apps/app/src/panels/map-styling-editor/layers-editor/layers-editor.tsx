@@ -49,7 +49,7 @@ import {
 } from "src/map/layer-config";
 import { Selector } from "@epanet-js/ui-kit";
 import { useUserTracking } from "src/infra/user-tracking";
-import { localizeDecimal } from "src/infra/i18n/numbers";
+import { localizeDecimal } from "@epanet-js/i18n";
 import { useTranslate } from "src/hooks/use-translate";
 import { usePermissions } from "src/hooks/use-permissions";
 import { zTileJSON } from "src/lib/tile-json";

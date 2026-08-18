@@ -10,7 +10,7 @@ import { Feature } from "src/types";
 import { Asset, AssetId, Valve } from "@epanet-js/hydraulic-model";
 import { colorFor } from "src/map/symbology/range-color-rule";
 import { strokeColorFor } from "@epanet-js/map";
-import { localizeDecimal } from "src/infra/i18n/numbers";
+import { localizeDecimal } from "@epanet-js/i18n";
 import {
   FormattingSpec,
   UnitsSpec,
