@@ -1,21 +1,29 @@
 import { nanoid } from "nanoid";
 import type { AssetId } from "src/hydraulic-model";
-import type { Moment } from "./moment";
+import type { Moment } from "src/lib/persistence/moment";
 
 const INITIAL_SEQ = 0;
+const INITIAL_SYNC_SEQ = -1;
 
-export class ChangeTracker {
+// Distinct from any real tracker in both signals, so the first cycle reads as a new import
+// with new editions rather than as "nothing changed".
+const NULL_ID = "";
+const NULL_SEQ = -1;
+
+export class MapEditionsTracker {
   readonly id: string;
   private seq: number;
+  private syncSeq: number;
   private lastChangedAt: Map<AssetId, number>;
 
   constructor(id: string = nanoid()) {
     this.id = id;
     this.seq = INITIAL_SEQ;
+    this.syncSeq = INITIAL_SYNC_SEQ;
     this.lastChangedAt = new Map();
   }
 
-  record(moment: Moment): ChangeTracker {
+  record(moment: Moment): MapEditionsTracker {
     const next = this.clone();
     next.seq = this.seq + 1;
 
@@ -32,10 +40,13 @@ export class ChangeTracker {
     return next;
   }
 
-  trimUpTo(seq: number): ChangeTracker {
+  // Takes the seq the snapshot was built from, never the live one: the build yields, so a
+  // transaction landing mid-build has already advanced `seq` past what was rendered.
+  consolidate(atSeq: number): MapEditionsTracker {
     const next = this.clone();
+    next.syncSeq = atSeq;
     for (const [assetId, changedAt] of next.lastChangedAt) {
-      if (changedAt <= seq) next.lastChangedAt.delete(assetId);
+      if (changedAt <= atSeq) next.lastChangedAt.delete(assetId);
     }
     return next;
   }
@@ -44,28 +55,35 @@ export class ChangeTracker {
     return this.seq;
   }
 
-  assetsChangedSince(seq: number): Set<AssetId> {
+  editedAssetIds(): Set<AssetId> {
     const assetIds = new Set<AssetId>();
     for (const [assetId, changedAt] of this.lastChangedAt) {
-      if (changedAt > seq) assetIds.add(assetId);
+      if (changedAt > this.syncSeq) assetIds.add(assetId);
     }
     return assetIds;
   }
 
-  countChangedSince(seq: number): number {
+  editedCount(): number {
     let count = 0;
     for (const changedAt of this.lastChangedAt.values()) {
-      if (changedAt > seq) count++;
+      if (changedAt > this.syncSeq) count++;
     }
     return count;
   }
 
-  private clone(): ChangeTracker {
-    const next = new ChangeTracker(this.id);
+  static null(): MapEditionsTracker {
+    const tracker = new MapEditionsTracker(NULL_ID);
+    tracker.seq = NULL_SEQ;
+    return tracker;
+  }
+
+  private clone(): MapEditionsTracker {
+    const next = new MapEditionsTracker(this.id);
     next.seq = this.seq;
+    next.syncSeq = this.syncSeq;
     next.lastChangedAt = new Map(this.lastChangedAt);
     return next;
   }
 }
 
-export const nullChangeTracker = new ChangeTracker("null-change-tracker");
+export const nullMapEditionsTracker = MapEditionsTracker.null();

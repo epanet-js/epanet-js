@@ -7,16 +7,14 @@ import {
   assetsDerivedAtom,
   stagingModelDerivedAtom,
   momentLogDerivedAtom,
-  changeTrackerDerivedAtom,
 } from "src/state/derived-branch-state";
-import type { ChangeTracker } from "src/lib/persistence/change-tracker";
 import {
   type StylesConfig,
   type MapState,
   nullMapState,
   mapStateDerivedAtom,
   mapSyncMomentAtom,
-  mapSyncSeqAtom,
+  mapEditionsTrackerAtom,
   mapLoadingAtom,
   mapBackendFallbackAtom,
 } from "src/state/map";
@@ -114,7 +112,6 @@ const detectChanges = (
   prev: MapState,
   map: MapEngine,
   isChangeTrackerOn: boolean,
-  changeTracker: ChangeTracker,
 ): {
   hasNewImport: boolean;
   hasNewEditions: boolean;
@@ -142,15 +139,14 @@ const detectChanges = (
 } => {
   return {
     hasNewImport: isChangeTrackerOn
-      ? state.changeTrackerId !== prev.changeTrackerId
+      ? state.editionsTracker.id !== prev.editionsTracker.id
       : state.momentLogId !== prev.momentLogId,
     hasNewEditions: isChangeTrackerOn
-      ? state.changeTrackerSeq !== prev.changeTrackerSeq
+      ? state.editionsTracker.getSeq() !== prev.editionsTracker.getSeq()
       : state.momentLogPointer !== prev.momentLogPointer,
     hasExceededDeltaBudget:
       isChangeTrackerOn &&
-      changeTracker.countChangedSince(state.syncSeq) >
-        MAX_CHANGES_BEFORE_MAP_SYNC,
+      state.editionsTracker.editedCount() > MAX_CHANGES_BEFORE_MAP_SYNC,
     hasNewStyles:
       !map.isStyleLoaded() ||
       state.stylesConfig !== prev.stylesConfig ||
@@ -226,10 +222,8 @@ const isHeavyUpdate = (
 export const useMapStateUpdates = (map: MapEngine | null) => {
   const isChangeTrackerOn = useFeatureFlag("FLAG_CHANGE_TRACKER");
   const momentLog = useAtomValue(momentLogDerivedAtom);
-  const changeTracker = useAtomValue(changeTrackerDerivedAtom);
-  const setChangeTracker = useSetAtom(changeTrackerDerivedAtom);
+  const setEditionsTracker = useSetAtom(mapEditionsTrackerAtom);
   const setMapSyncMoment = useSetAtom(mapSyncMomentAtom);
-  const setMapSyncSeq = useSetAtom(mapSyncSeqAtom);
   const mapState = useAtomValue(mapStateDerivedAtom);
   const setMapLoading = useSetAtom(mapLoadingAtom);
   const appendSourceRebuildDuration = useSetAtom(
@@ -288,7 +282,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         previousMapState,
         map,
         isChangeTrackerOn,
-        changeTracker,
       );
       appliedChangesRef.current = changes;
       const {
@@ -332,10 +325,9 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       // The consolidated snapshot is built from the model as of this cycle's state, so the
       // sync point it commits is the seq read here — never the live one, which a transaction
       // landing mid-build would already have advanced.
-      const consolidatedSeq = mapState.changeTrackerSeq;
+      const consolidatedSeq = mapState.editionsTracker.getSeq();
 
-      const editedFromTracker = () =>
-        changeTracker.assetsChangedSince(mapState.syncSeq);
+      const editedFromTracker = () => mapState.editionsTracker.editedAssetIds();
       const editedFromMomentLog = () =>
         getAssetIdsInMoments(momentLog.getDeltas(mapState.syncMomentPointer));
       const resolveEditedSinceConsolidation = isChangeTrackerOn
@@ -343,8 +335,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         : editedFromMomentLog;
 
       const commitSyncPointWithTracker = () => {
-        setChangeTracker((prev) => prev.trimUpTo(consolidatedSeq));
-        setMapSyncSeq(consolidatedSeq);
+        setEditionsTracker((prev) => prev.consolidate(consolidatedSeq));
       };
       const commitSyncPointWithMomentLog = () => {
         setMapSyncMoment((prev) => {
@@ -647,7 +638,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         lastAppliedMapStateRef.current,
         map,
         isChangeTrackerOn,
-        changeTracker,
       ),
       freshMapStateRef.current,
     );

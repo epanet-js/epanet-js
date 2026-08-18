@@ -5,16 +5,11 @@ import * as db from "src/lib/db";
 import { handleError } from "src/infra/errors";
 import type { HydraulicModel } from "src/hydraulic-model";
 import type { ProjectSettings } from "src/lib/project-settings";
-import {
-  INITIAL_MAP_SYNC_SEQ,
-  mapSyncMomentAtom,
-  mapSyncSeqAtom,
-} from "src/state/map";
+import { mapEditionsTrackerAtom, mapSyncMomentAtom } from "src/state/map";
 import { initialSimulationState } from "src/state/simulation";
 import {
   stagingModelDerivedAtom,
   momentLogDerivedAtom,
-  changeTrackerDerivedAtom,
   simulationDerivedAtom,
   simulationSettingsDerivedAtom,
 } from "src/state/derived-branch-state";
@@ -26,7 +21,7 @@ import { ephemeralStateAtom, autoElevationsAtom } from "src/state/drawing";
 import { OPFSStorage, opfsUnavailableErrors } from "src/infra/storage";
 import { getAppId } from "src/infra/app-instance";
 import { MomentLog } from "src/lib/persistence/moment-log";
-import { ChangeTracker } from "src/lib/persistence/change-tracker";
+import { MapEditionsTracker } from "src/map/map-editions-tracker";
 import { initializeWorktree } from "src/lib/worktree";
 import { worktreeAtom } from "src/state/scenarios";
 
@@ -38,7 +33,7 @@ type ReprojectionResetInput = {
 
 const resetAppState = (set: Setter) => {
   set(mapSyncMomentAtom, { pointer: -1, version: 0 });
-  set(mapSyncSeqAtom, INITIAL_MAP_SYNC_SEQ);
+  set(mapEditionsTrackerAtom, new MapEditionsTracker());
   set(simulationDerivedAtom, initialSimulationState);
   set(modeAtom, { mode: Mode.NONE });
   set(ephemeralStateAtom, { type: "none" });
@@ -73,7 +68,6 @@ const loadModel = (
       }),
     );
   set(momentLogDerivedAtom, momentLog);
-  set(changeTrackerDerivedAtom, new ChangeTracker());
   if (autoElevations !== undefined) {
     set(autoElevationsAtom, autoElevations);
   }

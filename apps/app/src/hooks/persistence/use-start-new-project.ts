@@ -30,7 +30,7 @@ import type { SimulationSettings } from "src/simulation/simulation-settings";
 import { OPFSStorage } from "src/infra/storage";
 import { getAppId } from "src/infra/app-instance";
 import { MomentLog } from "src/lib/persistence/moment-log";
-import { ChangeTracker } from "src/lib/persistence/change-tracker";
+import { MapEditionsTracker } from "src/map/map-editions-tracker";
 import { writeQueue } from "src/lib/persistence/write-queue";
 import { initializeWorktree } from "src/lib/worktree";
 import { dialogAtom } from "src/state/dialog";
@@ -46,11 +46,7 @@ import {
 import { initialSimulationState } from "src/state/simulation";
 import { worktreeAtom } from "src/state/scenarios";
 import { splitsAtom, defaultSplits } from "src/state/layout";
-import {
-  INITIAL_MAP_SYNC_SEQ,
-  mapSyncMomentAtom,
-  mapSyncSeqAtom,
-} from "src/state/map";
+import { mapEditionsTrackerAtom, mapSyncMomentAtom } from "src/state/map";
 import {
   nodeSymbologyAtom,
   linkSymbologyAtom,
@@ -94,7 +90,7 @@ export const resetAppState = (set: Setter) => {
   set(splitsAtom, defaultSplits);
   set(selectionAtom, USelection.none());
   set(mapSyncMomentAtom, { pointer: -1, version: 0 });
-  set(mapSyncSeqAtom, INITIAL_MAP_SYNC_SEQ);
+  set(mapEditionsTrackerAtom, new MapEditionsTracker());
   set(nodeSymbologyAtom, nullSymbologySpec.node);
   set(linkSymbologyAtom, nullSymbologySpec.link);
   set(savedSymbologiesAtom, new Map());
@@ -157,7 +153,6 @@ export const loadModel = (
           hydraulicModel,
           labelManager: factories.labelManager,
           momentLog,
-          changeTracker: new ChangeTracker(),
           simulation: null,
           simulationSourceId: "main",
           simulationSettings,

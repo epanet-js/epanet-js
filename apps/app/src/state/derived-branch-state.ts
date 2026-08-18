@@ -7,10 +7,6 @@ import {
 } from "src/hydraulic-model";
 import type { BranchState } from "src/state/branch-state";
 import { MomentLog } from "src/lib/persistence/moment-log";
-import {
-  ChangeTracker,
-  nullChangeTracker,
-} from "src/lib/persistence/change-tracker";
 import { catchErrors } from "src/infra/errors";
 import { USelection } from "src/selection";
 import { branchStateAtom } from "src/state/branch-state";
@@ -83,23 +79,6 @@ export const momentLogDerivedAtom = atom(
   },
   (get, set, value: MomentLog) => {
     updateActiveBranchState(get, set, { momentLog: value });
-  },
-);
-
-export const changeTrackerDerivedAtom = atom(
-  (get): ChangeTracker => {
-    return getActiveBranchState(get)?.changeTracker ?? nullChangeTracker;
-  },
-  (
-    get,
-    set,
-    update: ChangeTracker | ((prev: ChangeTracker) => ChangeTracker),
-  ) => {
-    const value =
-      typeof update === "function"
-        ? update(getActiveBranchState(get)?.changeTracker ?? nullChangeTracker)
-        : update;
-    updateActiveBranchState(get, set, { changeTracker: value });
   },
 );
 

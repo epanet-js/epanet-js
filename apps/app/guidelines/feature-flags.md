@@ -414,20 +414,21 @@ For each new feature flag, document:
 
 #### FLAG_CHANGE_TRACKER
 - **Purpose**: The map stops reading the moment log to learn what changed, and reads a purpose-built
-  `ChangeTracker` (`src/lib/persistence/change-tracker.ts`) instead. This unblocks persisting the
-  moment log, which the map currently assumes is a cheap in-memory array.
+  `MapEditionsTracker` (`src/map/map-editions-tracker.ts`) instead. This unblocks persisting the
+  moment log, which the map currently assumes is a cheap in-memory array. The flag key still says
+  "change tracker" - the type was renamed after the rollout started, and re-keying a live PostHog
+  flag costs more than the name outliving it for a few weeks.
 - **Risk Level**: High - it feeds the map's change detection, so every signal is switched behind
   the flag using function duplication per the guidance above: `hasNewImport` / `hasNewEditions` read
-  the tracker's `id` / `seq`, the editions ("delta") set comes from `assetsChangedSince`, the sync
-  watermark is `mapSyncSeqAtom` and the consolidation budget is `countChangedSince`, decided by the
-  map rather than requested by the transaction. Flag off, all four go back to the moment log and
-  `mapSyncMomentAtom` untouched.
+  the tracker's `id` / `seq`, the editions ("delta") set comes from `editedAssetIds`, and the
+  consolidation budget from `editedCount` - decided by the map rather than requested by the
+  transaction. Flag off, all of them go back to the moment log and `mapSyncMomentAtom` untouched.
 - **What the map actually wanted from the log**: three unrelated signals - "the model was replaced"
   (`momentLog.id`), "the model changed" (`getPointer()`), and "which assets differ from the
   consolidated snapshot" (`getDeltas(syncPointer)`). The tracker records *when* each asset last
   changed (`lastChangedAt: Map<AssetId, seq>`) rather than *what* changed, which is what keeps the
-  dirty set a pure function of (tracker, watermark) and therefore safe under the updater's
-  coalescing - see `src/map/AGENTS.md`.
+  dirty set a pure function of the tracker and therefore safe under the updater's coalescing - see
+  `src/map/AGENTS.md`.
 - **Why a per-asset stamp and not a set of dirty ids**: the snapshot build is time-sliced and
   yields, so an edit can land mid-build. A `Set` cannot represent "this asset changed *again*, later
   than what the map is building" - the union is a no-op - so clearing it after the build drops that
@@ -439,10 +440,14 @@ For each new feature flag, document:
   Stamping is flag-gated rather than unconditional because flag off nothing reads the tracker, so
   the `Map` clone `record` does per moment would be pure cost - a select-all property edit fills
   `lastChangedAt` in one action, and a clone costs ~12ms at 100k entries, ~101ms at 500k.
-  The watermark has a second dependency: the three `resetAppState` helpers
-  (`use-start-new-project.ts`, `use-reprojection-reset.ts`, `use-customer-points-import-reset.ts`)
-  clear `mapSyncSeqAtom` to `INITIAL_MAP_SYNC_SEQ` next to `mapSyncMomentAtom`, so a from-scratch
-  load leaves it pointing below the fresh tracker rather than into the discarded one.
+  The tracker is owned by the map (`mapEditionsTrackerAtom` in `src/state/map.ts`), not by
+  `BranchState`, and it carries its own consolidation watermark - so "reset" is minting a fresh one
+  and there is no second thing to keep in step. Four sites do that: the three `resetAppState`
+  helpers (`use-start-new-project.ts`, `use-reprojection-reset.ts`,
+  `use-customer-points-import-reset.ts`) and `use-switch-branch.ts`. A branch switch needs it
+  because a single tracker is shared across branches; that is sound because the switch rebuilds the
+  whole map anyway, which discarded the outgoing branch's pending stamps even when each branch had
+  its own.
 - **Rollback Plan**: Turn the flag off in PostHog. The map goes back to the moment log; the tracker
   keeps being created but stops being stamped or read. Nothing is persisted differently, so users
   mid-session are unaffected.
@@ -456,12 +461,10 @@ For each new feature flag, document:
   3. `use-moment-transaction.ts` - delete `isTruncatingHistory` and the `mapSyncMomentAtom`
      read/write; `use-undoable-transactions.ts` - the same. Both lose their `useFeatureFlag` call
      for this flag.
-  4. `use-switch-branch.ts` - delete `syncMapMoment`; a branch switch already hands the map a
-     different tracker `id`.
+  4. `use-switch-branch.ts` - delete `syncMapMoment`. The `mapEditionsTrackerAtom` reset beside it
+     stays: it is what gives the map a different tracker `id` on a switch.
   5. `src/map/state-updates.ts` - delete `getAssetIdsInMoments`, the moment-log branch of the
-     dirty-set resolver and the `isChangeTrackerOn` parameter of `detectChanges`. `mapSyncSeqAtom`
-     stays an atom: the three `resetAppState` helpers clear it alongside the rest of the
-     from-scratch state, so it cannot become a `useRef` inside the map.
+     dirty-set resolver and the `isChangeTrackerOn` parameter of `detectChanges`.
   6. `src/panels/asset-panel/asset-panel.test.tsx` - drop the `mapSyncMomentAtom` half of the
      transaction replica and the `false` argument it passes to `applyMoment`.
   7. `src/map/test/model-changes.test.tsx` - collapse the `describe.each` flag pair into single

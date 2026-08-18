@@ -10,6 +10,10 @@ import {
 import { DEFAULT_CENTER, DEFAULT_ZOOM } from "@epanet-js/map";
 import type { InitialViewport } from "@epanet-js/map";
 import { basemaps } from "src/map/basemaps";
+import {
+  MapEditionsTracker,
+  nullMapEditionsTracker,
+} from "src/map/map-editions-tracker";
 import { showGridAtom } from "src/state/map-projection";
 import { memoryMetaAtom } from "src/state/map-symbology";
 import type { SymbologySpec, NodeSizeConfig } from "src/map/symbology";
@@ -17,7 +21,6 @@ import { nullSymbologySpec, defaultNodeSizeConfig } from "src/map/symbology";
 import { symbologyAtom, nodeSizeAtom } from "src/state/map-symbology";
 import {
   momentLogDerivedAtom,
-  changeTrackerDerivedAtom,
   simulationDerivedAtom,
   simulationResultsDerivedAtom,
   customerPointsDerivedAtom,
@@ -54,9 +57,9 @@ export const mapSyncMomentAtom = atom<MomentPointer>({
   version: 0,
 });
 
-export const INITIAL_MAP_SYNC_SEQ = -1;
-
-export const mapSyncSeqAtom = atom<number>(INITIAL_MAP_SYNC_SEQ);
+export const mapEditionsTrackerAtom = atom<MapEditionsTracker>(
+  new MapEditionsTracker(),
+);
 
 export const mapLoadingAtom = atom<boolean>(false);
 
@@ -115,11 +118,9 @@ export type StylesConfig = {
 export type MapState = {
   momentLogId: string;
   momentLogPointer: number;
-  changeTrackerId: string;
-  changeTrackerSeq: number;
+  editionsTracker: MapEditionsTracker;
   syncMomentPointer: number;
   syncMomentVersion: number;
-  syncSeq: number;
   stylesConfig: StylesConfig;
   selection: Sel;
   ephemeralState: EphemeralEditingState;
@@ -142,11 +143,9 @@ export type MapState = {
 export const nullMapState: MapState = {
   momentLogId: "",
   momentLogPointer: -1,
-  changeTrackerId: "",
-  changeTrackerSeq: -1,
+  editionsTracker: nullMapEditionsTracker,
   syncMomentPointer: -1,
   syncMomentVersion: 0,
-  syncSeq: -1,
   stylesConfig: {
     symbology: SYMBOLIZATION_NONE,
     previewProperty: null,
@@ -184,7 +183,7 @@ export const stylesConfigAtom = atom<StylesConfig>((get) => {
 
 export const mapStateDerivedAtom = atom<MapState>((get) => {
   const momentLog = get(momentLogDerivedAtom);
-  const changeTracker = get(changeTrackerDerivedAtom);
+  const editionsTracker = get(mapEditionsTrackerAtom);
   const mapSyncMoment = get(mapSyncMomentAtom);
   const stylesConfig = get(stylesConfigAtom);
   const selection = get(selectionAtom);
@@ -208,11 +207,9 @@ export const mapStateDerivedAtom = atom<MapState>((get) => {
   return {
     momentLogId: momentLog.id,
     momentLogPointer: momentLog.getPointer(),
-    changeTrackerId: changeTracker.id,
-    changeTrackerSeq: changeTracker.getSeq(),
+    editionsTracker,
     syncMomentPointer: mapSyncMoment.pointer,
     syncMomentVersion: mapSyncMoment.version,
-    syncSeq: get(mapSyncSeqAtom),
     stylesConfig,
     selection,
     ephemeralState,

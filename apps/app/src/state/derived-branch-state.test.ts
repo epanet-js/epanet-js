@@ -2,7 +2,6 @@ import { createStore } from "jotai";
 import { describe, expect, it } from "vitest";
 import { LabelManager } from "@epanet-js/hydraulic-model";
 import { MomentLog } from "src/lib/persistence/moment-log";
-import { nullChangeTracker } from "src/lib/persistence/change-tracker";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { branchStateAtom, type BranchState } from "src/state/branch-state";
 import {
@@ -45,7 +44,6 @@ describe("canUndo/canRedo derived atoms", () => {
       hydraulicModel: nullHydraulicModel,
       labelManager: new LabelManager(),
       momentLog,
-      changeTracker: nullChangeTracker,
       simulation: null,
       simulationSourceId: "main",
       simulationSettings: defaultSimulationSettings,

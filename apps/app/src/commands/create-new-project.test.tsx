@@ -5,7 +5,8 @@ import { inpFileInfoAtom } from "src/state/file-system";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { momentLogAtom } from "src/state/model-changes";
-import { INITIAL_MAP_SYNC_SEQ, mapSyncSeqAtom } from "src/state/map";
+import { mapEditionsTrackerAtom } from "src/state/map";
+import { MapEditionsTracker } from "src/map/map-editions-tracker";
 import { Store } from "src/state";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { useNewProject } from "./create-new-project";
@@ -69,7 +70,11 @@ describe("create new project", () => {
       momentLog: momentLogWithChanges,
       fileInfo: previousFileInfo,
     });
-    store.set(mapSyncSeqAtom, 42);
+    const previousEditions = new MapEditionsTracker().record({
+      note: "Edit",
+      deleteAssets: [IDS.J1],
+    });
+    store.set(mapEditionsTrackerAtom, previousEditions);
 
     renderComponent({ store });
 
@@ -89,7 +94,9 @@ describe("create new project", () => {
     const momentLog = store.get(momentLogAtom);
     expect(momentLog.getDeltas().length).toEqual(0);
 
-    expect(store.get(mapSyncSeqAtom)).toEqual(INITIAL_MAP_SYNC_SEQ);
+    const editionsTracker = store.get(mapEditionsTrackerAtom);
+    expect(editionsTracker.editedCount()).toEqual(0);
+    expect(editionsTracker.id).not.toEqual(previousEditions.id);
 
     const fileInfo = store.get(inpFileInfoAtom);
     expect(fileInfo).toBeNull();

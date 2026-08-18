@@ -1,7 +1,6 @@
 import { createStore } from "jotai";
 import { HydraulicModelBuilder } from "./hydraulic-model-builder";
 import { MomentLog } from "src/lib/persistence/moment-log";
-import { ChangeTracker } from "src/lib/persistence/change-tracker";
 import { selectionAtom } from "src/state/selection";
 import {
   FileInfo,
@@ -125,7 +124,6 @@ export const setInitialState = (
           hydraulicModel,
           labelManager: new LabelManager(),
           momentLog,
-          changeTracker: new ChangeTracker(),
           simulation: branchSimulation,
           simulationSourceId: "main",
           simulationSettings: simulationSettings ?? defaultSimulationSettings,

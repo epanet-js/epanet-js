@@ -8,7 +8,8 @@ import {
 } from "@epanet-js/hydraulic-model";
 import { branchStateAtom } from "src/state/branch-state";
 import { modelFactoriesAtom } from "src/state/model-factories";
-import { mapSyncMomentAtom } from "src/state/map";
+import { mapEditionsTrackerAtom, mapSyncMomentAtom } from "src/state/map";
+import { MapEditionsTracker } from "src/map/map-editions-tracker";
 import { selectionAtom } from "src/state/selection";
 import { USelection } from "src/selection";
 import type { MomentLog } from "src/lib/persistence/moment-log";
@@ -63,6 +64,7 @@ export const useSwitchBranch = () => {
 
       updateFactories(get, set, targetState.labelManager);
       syncMapMoment(get, set, targetState.momentLog);
+      set(mapEditionsTrackerAtom, new MapEditionsTracker());
       validateSelection(get, set, targetState.hydraulicModel);
     }, []),
   );
