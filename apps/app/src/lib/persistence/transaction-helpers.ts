@@ -129,3 +129,11 @@ export function computeSyncMoment(
   }
   return current;
 }
+
+export type HistoryAction = { moment: Moment; stateId: string };
+
+export function prepareHistoryAction(
+  action: HistoryAction,
+): Promise<HistoryAction> {
+  return Promise.resolve(action);
+}

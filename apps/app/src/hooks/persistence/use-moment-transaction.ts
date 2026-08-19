@@ -9,6 +9,7 @@ import {
   momentLogDerivedAtom,
 } from "src/state/derived-branch-state";
 import { worktreeAtom } from "src/state/scenarios";
+import { historyPendingAtom } from "src/state/transactions";
 import { dialogAtom } from "src/state/dialog";
 import { modeAtom, MODE_INFO } from "src/state/mode";
 import { trackMoment } from "src/lib/persistence/shared";
@@ -60,11 +61,19 @@ const buildOrphanReport = (
 export const useMomentTransaction = () => {
   const isQueueOn = useFeatureFlag("FLAG_TRANSACTIONS_QUEUE");
   const isChangeTrackerOn = useFeatureFlag("FLAG_CHANGE_TRACKER");
+  const isAsyncUndoOn = useFeatureFlag("FLAG_ASYNC_UNDO");
   const onWriteFailure = useWriteFailureHandler();
 
   const transact = useAtomCallback(
     useCallback(
       (get: Getter, set: Setter, moment: Moment) => {
+        if (isAsyncUndoOn && get(historyPendingAtom)) {
+          captureWarning(
+            `Edit "${moment.note}" rejected: a history action is pending`,
+          );
+          return false;
+        }
+
         const momentLog = get(momentLogDerivedAtom).copy();
         const mapSyncMoment = get(mapSyncMomentAtom);
         const isTruncatingHistory = momentLog.nextRedo() !== null;
@@ -176,7 +185,7 @@ export const useMomentTransaction = () => {
 
         return true;
       },
-      [isQueueOn, isChangeTrackerOn, onWriteFailure],
+      [isQueueOn, isChangeTrackerOn, isAsyncUndoOn, onWriteFailure],
     ),
   );
 

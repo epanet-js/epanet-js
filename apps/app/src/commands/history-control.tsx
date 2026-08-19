@@ -12,16 +12,16 @@ export const useHistoryControl = () => {
   const setEphemeralState = useSetAtom(ephemeralStateAtom);
   const setMode = useSetAtom(modeAtom);
 
-  const undo = useCallback(() => {
-    historyControl("undo");
+  const undo = useCallback(async () => {
     setEphemeralState({ type: "none" });
     setMode({ mode: Mode.NONE });
+    await historyControl("undo");
   }, [setEphemeralState, setMode, historyControl]);
 
-  const redo = useCallback(() => {
-    historyControl("redo");
+  const redo = useCallback(async () => {
     setEphemeralState({ type: "none" });
     setMode({ mode: Mode.NONE });
+    await historyControl("redo");
   }, [setEphemeralState, setMode, historyControl]);
 
   return { undo, redo };

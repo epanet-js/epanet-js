@@ -9,8 +9,6 @@ import {
   StyledItem,
   LogoIconAndWordmarkIcon,
 } from "./elements";
-import { DebugDropdown } from "./menu-bar/menu-bar-dropdown";
-import { isDebugOn } from "src/infra/debug-mode";
 import { useTranslate } from "src/hooks/use-translate";
 import {
   helpCenterUrl,
@@ -100,7 +98,6 @@ export const MenuBarPlay = memo(function MenuBar() {
                 {translate("openSource")}
               </Button>
             </a>
-            {isDebugOn && <DebugDropdown />}
             <HelpDot />
             <LanguageSelector />
             <Divider />
@@ -321,11 +318,6 @@ export const SideMenu = () => {
                   </Button>
                 </a>
               </li>
-              {isDebugOn && (
-                <li>
-                  <DebugDropdown />
-                </li>
-              )}
               <li>
                 <Button
                   variant="quiet"

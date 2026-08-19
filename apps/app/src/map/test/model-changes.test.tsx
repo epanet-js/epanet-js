@@ -171,7 +171,7 @@ const undo = (store: Store) => {
   );
 
   act(() => {
-    result.current.historyControl("undo");
+    void result.current.historyControl("undo");
   });
 };
 

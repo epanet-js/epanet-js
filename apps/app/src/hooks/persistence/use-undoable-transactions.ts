@@ -7,84 +7,162 @@ import {
   momentLogDerivedAtom,
 } from "src/state/derived-branch-state";
 import { worktreeAtom } from "src/state/scenarios";
+import { historyPendingAtom } from "src/state/transactions";
 import {
   applyMoment,
   computeSyncMoment,
+  prepareHistoryAction,
+  type HistoryAction,
 } from "src/lib/persistence/transaction-helpers";
+import type { MomentLog } from "src/lib/persistence/moment-log";
 import { applyMomentToDb, buildMomentPayload } from "src/lib/db";
 import type { ApplyMomentPayload } from "@epanet-js/ejsdb";
-import { captureError } from "src/infra/error-tracking";
+import { captureError, captureWarning } from "src/infra/error-tracking";
 import { handleError } from "src/infra/errors";
 import { opfsUnavailableErrors } from "src/infra/storage";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { writeQueue } from "src/lib/persistence/write-queue";
+import {
+  writeQueue,
+  type WriteFailureHandler,
+} from "src/lib/persistence/write-queue";
 import { useWriteFailureHandler } from "src/hooks/persistence/use-write-failure-handler";
+
+type CommitDeps = {
+  isQueueOn: boolean;
+  isChangeTrackerOn: boolean;
+  onWriteFailure: WriteFailureHandler;
+};
+
+const commitHistoryAction = (
+  get: Getter,
+  set: Setter,
+  direction: "undo" | "redo",
+  action: HistoryAction,
+  momentLog: MomentLog,
+  { isQueueOn, isChangeTrackerOn, onWriteFailure }: CommitDeps,
+) => {
+  const isUndo = direction === "undo";
+  const currentMapSyncMoment = get(mapSyncMomentAtom);
+
+  const worktree = get(worktreeAtom);
+  const willPersist = worktree.activeBranchId === worktree.mainId;
+
+  let payload: ApplyMomentPayload | null = null;
+  if (willPersist) {
+    try {
+      payload = buildMomentPayload(action.moment);
+    } catch (error) {
+      captureError(error instanceof Error ? error : new Error(String(error)));
+    }
+  }
+
+  applyMoment(
+    get,
+    set,
+    action.stateId,
+    action.moment,
+    stagingModelDerivedAtom,
+    isChangeTrackerOn,
+  );
+
+  if (payload) {
+    if (isQueueOn) {
+      writeQueue.enqueue(() => applyMomentToDb(payload), onWriteFailure);
+    } else {
+      void applyMomentToDb(payload).catch((error) =>
+        handleError(error, {
+          as: "Undoable transaction: db write failed",
+          warn: opfsUnavailableErrors,
+          onUnexpected: "capture",
+        }),
+      );
+    }
+  }
+
+  isUndo ? momentLog.undo() : momentLog.redo();
+
+  set(momentLogDerivedAtom, momentLog);
+  if (!isChangeTrackerOn) {
+    set(mapSyncMomentAtom, computeSyncMoment(currentMapSyncMoment, momentLog));
+  }
+};
+
+const nextAction = (
+  momentLog: MomentLog,
+  direction: "undo" | "redo",
+): HistoryAction | null =>
+  direction === "undo" ? momentLog.nextUndo() : momentLog.nextRedo();
 
 export const useUndoableTransactions = () => {
   const isQueueOn = useFeatureFlag("FLAG_TRANSACTIONS_QUEUE");
   const isChangeTrackerOn = useFeatureFlag("FLAG_CHANGE_TRACKER");
+  const isAsyncUndoOn = useFeatureFlag("FLAG_ASYNC_UNDO");
   const onWriteFailure = useWriteFailureHandler();
 
-  const historyControl = useAtomCallback(
+  const historyControlDeprecated = useAtomCallback(
     useCallback(
-      (get: Getter, set: Setter, direction: "undo" | "redo") => {
-        const isUndo = direction === "undo";
-
+      (
+        get: Getter,
+        set: Setter,
+        direction: "undo" | "redo",
+      ): Promise<boolean> => {
         const momentLog = get(momentLogDerivedAtom).copy();
-        const currentMapSyncMoment = get(mapSyncMomentAtom);
-        const action = isUndo ? momentLog.nextUndo() : momentLog.nextRedo();
-        if (!action) return;
+        const action = nextAction(momentLog, direction);
+        if (!action) return Promise.resolve(false);
 
-        const worktree = get(worktreeAtom);
-        const willPersist = worktree.activeBranchId === worktree.mainId;
-
-        let payload: ApplyMomentPayload | null = null;
-        if (willPersist) {
-          try {
-            payload = buildMomentPayload(action.moment);
-          } catch (error) {
-            captureError(
-              error instanceof Error ? error : new Error(String(error)),
-            );
-          }
-        }
-
-        applyMoment(
-          get,
-          set,
-          action.stateId,
-          action.moment,
-          stagingModelDerivedAtom,
+        commitHistoryAction(get, set, direction, action, momentLog, {
+          isQueueOn,
           isChangeTrackerOn,
-        );
+          onWriteFailure,
+        });
+        return Promise.resolve(true);
+      },
+      [isQueueOn, isChangeTrackerOn, onWriteFailure],
+    ),
+  );
 
-        if (payload) {
-          if (isQueueOn) {
-            writeQueue.enqueue(() => applyMomentToDb(payload), onWriteFailure);
-          } else {
-            void applyMomentToDb(payload).catch((error) =>
-              handleError(error, {
-                as: "Undoable transaction: db write failed",
-                warn: opfsUnavailableErrors,
-                onUnexpected: "capture",
-              }),
+  const historyControlAsync = useAtomCallback(
+    useCallback(
+      async (
+        get: Getter,
+        set: Setter,
+        direction: "undo" | "redo",
+      ): Promise<boolean> => {
+        if (get(historyPendingAtom)) return false;
+
+        const action = nextAction(get(momentLogDerivedAtom).copy(), direction);
+        if (!action) return false;
+
+        set(historyPendingAtom, true);
+        try {
+          const prepared = await prepareHistoryAction(action);
+
+          const momentLog = get(momentLogDerivedAtom).copy();
+          const pending = nextAction(momentLog, direction);
+          if (!pending || pending.stateId !== prepared.stateId) {
+            captureWarning(
+              `History ${direction} discarded: the moment log moved while preparing`,
             );
+            return false;
           }
-        }
 
-        isUndo ? momentLog.undo() : momentLog.redo();
-
-        set(momentLogDerivedAtom, momentLog);
-        if (!isChangeTrackerOn) {
-          set(
-            mapSyncMomentAtom,
-            computeSyncMoment(currentMapSyncMoment, momentLog),
-          );
+          commitHistoryAction(get, set, direction, prepared, momentLog, {
+            isQueueOn,
+            isChangeTrackerOn,
+            onWriteFailure,
+          });
+          return true;
+        } finally {
+          set(historyPendingAtom, false);
         }
       },
       [isQueueOn, isChangeTrackerOn, onWriteFailure],
     ),
   );
+
+  const historyControl = isAsyncUndoOn
+    ? historyControlAsync
+    : historyControlDeprecated;
 
   return { historyControl };
 };
