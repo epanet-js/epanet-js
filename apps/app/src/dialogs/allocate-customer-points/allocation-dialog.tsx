@@ -1,17 +1,24 @@
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import {
+  AssetId,
+  AssetsMap,
   CustomerPointAllocationRule,
+  Pipe,
   initializeCustomerPoints,
 } from "@epanet-js/hydraulic-model";
 import { Selector, SelectorListOption } from "@epanet-js/ui-kit";
+import { NotificationBanner } from "src/components/notifications";
 import { convertTo } from "@epanet-js/quantity";
 
 import { AllocationRulesTable } from "./allocation-rules-table";
 import { AllocateCustomerPointsState } from "./wizard-state";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 
-import { allocateCustomerPoints } from "src/lib/customer-points";
+import {
+  allocateCustomerPoints,
+  hasValidDiameter,
+} from "src/lib/customer-points";
 import { localizeDecimal } from "@epanet-js/i18n";
 import { TranslateFn, useTranslate } from "src/hooks/use-translate";
 import { SuccessIcon, WarningIcon } from "src/icons";
@@ -69,6 +76,12 @@ export const AllocationDialog: React.FC<AllocateCustomerPointsDialogProps> = ({
     );
     return new Set(pipeIds);
   }, [pipeAllocationMode, selection, hydraulicModel.assets]);
+
+  const excludedPipesCount = useMemo(
+    () =>
+      countExcludedPipes(hydraulicModel.assets, allocationRules, selectedPipes),
+    [hydraulicModel.assets, allocationRules, selectedPipes],
+  );
 
   const hasSelectedPipes = useMemo(
     () =>
@@ -376,6 +389,11 @@ export const AllocationDialog: React.FC<AllocateCustomerPointsDialogProps> = ({
           onChange={handleRulesChange}
         />
 
+        <ExcludedPipesWarning
+          count={excludedPipesCount}
+          translate={translate}
+        />
+
         <AllocationSummary
           totalAllocated={allocatedByAllRules}
           unallocatedCount={unallocatedCount}
@@ -453,6 +471,58 @@ const AllocationScope: React.FC<AllocationScopeProps> = ({
     </div>
   </div>
 );
+
+const countExcludedPipes = (
+  assets: AssetsMap,
+  allocationRules: CustomerPointAllocationRule[],
+  selectedPipes?: Set<AssetId>,
+): number => {
+  const maxRuleDiameter = allocationRules.reduce(
+    (max, rule) => Math.max(max, rule.maxDiameter),
+    -Infinity,
+  );
+
+  let count = 0;
+
+  for (const asset of assets.values()) {
+    if (!asset.isLink || asset.type !== "pipe") continue;
+
+    const pipe = asset as Pipe;
+    if (selectedPipes && !selectedPipes.has(pipe.id)) continue;
+
+    if (!hasValidDiameter(pipe)) {
+      count++;
+    } else if (!pipe.isActive && pipe.diameter <= maxRuleDiameter) {
+      count++;
+    }
+  }
+
+  return count;
+};
+
+const ExcludedPipesWarning = ({
+  count,
+  translate,
+}: {
+  count: number;
+  translate: TranslateFn;
+}) => {
+  if (count === 0) return null;
+
+  return (
+    <NotificationBanner
+      variant="warning"
+      Icon={WarningIcon}
+      title={translate("allocateCustomerPoints.dialog.excludedPipesTitle")}
+      description={translate(
+        "allocateCustomerPoints.dialog.excludedPipesDetail",
+        count,
+        localizeDecimal(count),
+      )}
+      className="border rounded-md"
+    />
+  );
+};
 
 const ErrorMessage = ({ error }: { error: string }) => (
   <div className="bg-error-subtle border border-red-200 rounded-md p-3">
@@ -536,7 +606,7 @@ const AllocationSummary: React.FC<AllocationSummaryProps> = ({
     return (
       <>
         <h3 className="text-md font-medium">
-          {translate("allocateCustomerPoints.dialog.summaryHeading")}
+          {translate("allocateCustomerPoints.dialog.allocationResults")}
         </h3>
         <div
           className="bg-panel border rounded-lg p-4 flex items-center justify-center"
@@ -560,7 +630,7 @@ const AllocationSummary: React.FC<AllocationSummaryProps> = ({
     return (
       <>
         <h3 className="text-md font-medium">
-          {translate("allocateCustomerPoints.dialog.summaryHeading")}
+          {translate("allocateCustomerPoints.dialog.allocationResults")}
         </h3>
         <div
           className="bg-panel border rounded-lg p-4"
@@ -583,7 +653,7 @@ const AllocationSummary: React.FC<AllocationSummaryProps> = ({
     return (
       <>
         <h3 className="text-md font-medium">
-          {translate("allocateCustomerPoints.dialog.summaryHeading")}
+          {translate("allocateCustomerPoints.dialog.allocationResults")}
         </h3>
         <div
           className="bg-panel border rounded-lg p-4 space-y-4"
@@ -655,7 +725,7 @@ const AllocationSummary: React.FC<AllocationSummaryProps> = ({
   return (
     <>
       <h3 className="text-md font-medium">
-        {translate("allocateCustomerPoints.dialog.summaryHeading")}
+        {translate("allocateCustomerPoints.dialog.allocationResults")}
       </h3>
       <div
         className="bg-panel border rounded-lg p-4"

@@ -1137,8 +1137,11 @@
       "networkCoverage": "Coverage across network",
       "scopeHeading": "Scope",
       "rulesHeading": "Rules",
-      "summaryHeading": "Summary",
-      "noChanges": "No customer points to allocate in this scope"
+      "allocationResults": "Allocation results",
+      "noChanges": "No customer points to allocate in this scope",
+      "excludedPipesTitle": "Some pipes are excluded",
+      "excludedPipesDetail_one": "{{1}} pipe is missing diameter data or is inactive and won't be allocated.",
+      "excludedPipesDetail_other": "{{1}} pipes are missing diameter data or are inactive and won't be allocated."
     }
   },
   "importCustomerPoints": {

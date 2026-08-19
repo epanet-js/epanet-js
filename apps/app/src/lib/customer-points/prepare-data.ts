@@ -571,7 +571,9 @@ const hasResolvableEndpoints = (pipe: Pipe, assets: AssetsMap): boolean =>
 const hasJunctionEndpoint = (pipe: Pipe, assets: AssetsMap): boolean =>
   pipe.connections.some((nodeId) => assets.get(nodeId)?.type === "junction");
 
-const hasValidDiameter = (pipe: Pipe): boolean =>
+export const hasValidDiameter = (
+  pipe: Pipe,
+): pipe is Pipe & { diameter: number } =>
   pipe.diameter !== null && pipe.diameter !== 0;
 
 const isAllocatablePipe = (

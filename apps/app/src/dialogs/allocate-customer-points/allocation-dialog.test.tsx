@@ -16,7 +16,8 @@ import { Store } from "src/state";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { presets } from "@epanet-js/project-settings";
 
-vi.mock("src/lib/customer-points", () => ({
+vi.mock("src/lib/customer-points", async (importActual) => ({
+  ...(await importActual<typeof import("src/lib/customer-points")>()),
   allocateCustomerPoints: vi.fn(),
 }));
 
@@ -215,6 +216,156 @@ describe("AllocationDialog", () => {
     expect(
       screen.getByText(/766 customer points remain unallocated \(76\.6%\)/),
     ).toBeInTheDocument();
+  });
+});
+
+describe("excluded pipes warning", () => {
+  const IDS = { J1: 1, J2: 2, OK: 10, INACTIVE: 11, NO_DIAMETER: 12 } as const;
+
+  const setupWithExcludablePipes = () => {
+    vi.mocked(allocateCustomerPoints).mockResolvedValue({
+      ruleMatches: [0],
+      allocatedCustomerPoints: new Map(),
+      disconnectedCustomerPoints: new Map(),
+      customerPointsMatchedToZone: 0,
+    });
+
+    return HydraulicModelBuilder.with()
+      .aCustomerPoint(1)
+      .aJunction(IDS.J1, { coordinates: [0, 0] })
+      .aJunction(IDS.J2, { coordinates: [10, 0] })
+      .aPipe(IDS.OK, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        diameter: 100,
+      })
+      .aPipe(IDS.INACTIVE, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        diameter: 100,
+        isActive: false,
+      })
+      .aPipe(IDS.NO_DIAMETER, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        diameter: null,
+      })
+      .build();
+  };
+
+  it("warns about pipes excluded across the whole network", async () => {
+    const store = setInitialState({
+      hydraulicModel: setupWithExcludablePipes(),
+    });
+    renderDialog(store);
+
+    await waitForAllocations();
+
+    expect(screen.getByText("Some pipes are excluded")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "2 pipes are missing diameter data or are inactive and won't be allocated.",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("ignores inactive pipes wider than the max diameter of the rules", async () => {
+    const WIDE_INACTIVE = 13;
+
+    vi.mocked(allocateCustomerPoints).mockResolvedValue({
+      ruleMatches: [0],
+      allocatedCustomerPoints: new Map(),
+      disconnectedCustomerPoints: new Map(),
+      customerPointsMatchedToZone: 0,
+    });
+
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aCustomerPoint(1)
+      .aJunction(IDS.J1, { coordinates: [0, 0] })
+      .aJunction(IDS.J2, { coordinates: [10, 0] })
+      .aPipe(IDS.OK, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        diameter: 100,
+      })
+      .aPipe(IDS.INACTIVE, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        diameter: 100,
+        isActive: false,
+      })
+      .aPipe(WIDE_INACTIVE, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        diameter: 500,
+        isActive: false,
+      })
+      .build();
+
+    renderDialog(setInitialState({ hydraulicModel }));
+
+    await waitForAllocations();
+
+    expect(
+      screen.getByText(
+        "1 pipe is missing diameter data or is inactive and won't be allocated.",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("does not warn when every pipe is allocatable", async () => {
+    vi.mocked(allocateCustomerPoints).mockResolvedValue({
+      ruleMatches: [0],
+      allocatedCustomerPoints: new Map(),
+      disconnectedCustomerPoints: new Map(),
+      customerPointsMatchedToZone: 0,
+    });
+
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aCustomerPoint(1)
+      .aJunction(IDS.J1, { coordinates: [0, 0] })
+      .aJunction(IDS.J2, { coordinates: [10, 0] })
+      .aPipe(IDS.OK, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        diameter: 100,
+      })
+      .build();
+
+    renderDialog(setInitialState({ hydraulicModel }));
+
+    await waitForAllocations();
+
+    expect(
+      screen.queryByText("Some pipes are excluded"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("re-evaluates against the selection when allocating over selected pipes", async () => {
+    const store = setInitialState({
+      hydraulicModel: setupWithExcludablePipes(),
+      selection: aMultiSelection({ ids: [IDS.OK, IDS.INACTIVE] }),
+    });
+    renderDialog(store);
+
+    await waitForAllocations();
+
+    expect(
+      screen.getByText(
+        "2 pipes are missing diameter data or are inactive and won't be allocated.",
+      ),
+    ).toBeInTheDocument();
+
+    await userEvent.click(screen.getByLabelText("Selected pipes only"));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(
+          "1 pipe is missing diameter data or is inactive and won't be allocated.",
+        ),
+      ).toBeInTheDocument();
+    });
+    expect(screen.getByText("Some pipes are excluded")).toBeInTheDocument();
   });
 });
 
