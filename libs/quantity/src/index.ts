@@ -1,36 +1,35 @@
 import Qty from "js-quantities";
 
-export type Unit =
-  | "m"
-  | "mm"
-  | "in"
-  | "ft"
+export type LengthUnit = "m" | "mm" | "in" | "ft" | "km";
+
+export type FlowUnit =
   | "l/s"
   | "l/min"
   | "l/h"
   | "l/d"
-  | "km"
-  | "m/km"
-  | "ft/kft"
   | "gal/min"
   | "gal/d"
-  | "mwc"
-  | "psi"
-  | "kPa"
-  | "bar"
-  | "fwc"
-  | "m/s"
-  | "ft/s"
-  | "ft^3"
-  | "ft^3/s"
-  | "ft^3/d"
-  | "m^3"
   | "m^3/h"
   | "m^3/d"
   | "Mgal/d"
   | "IMgal/d"
   | "Ml/d"
   | "acft/d"
+  | "ft^3/s"
+  | "ft^3/d";
+
+export type PressureUnit = "mwc" | "psi" | "kPa" | "bar" | "fwc";
+
+export type Unit =
+  | LengthUnit
+  | FlowUnit
+  | PressureUnit
+  | "m/km"
+  | "ft/kft"
+  | "m/s"
+  | "ft/s"
+  | "ft^3"
+  | "m^3"
   | "kW"
   | "hp"
   | "%"
