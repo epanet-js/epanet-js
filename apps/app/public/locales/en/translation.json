@@ -1137,7 +1137,7 @@
       "networkCoverage": "Coverage across network",
       "scopeHeading": "Scope",
       "rulesHeading": "Rules",
-      "allocationResults": "Allocation results",
+      "resultsPreview": "Results preview",
       "noChanges": "No customer points to allocate in this scope",
       "excludedPipesTitle": "Some pipes are excluded",
       "excludedPipesDetail_one": "{{1}} pipe is missing diameter data or is inactive and won't be allocated.",

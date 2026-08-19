@@ -389,12 +389,8 @@ export const AllocationDialog: React.FC<AllocateCustomerPointsDialogProps> = ({
           onChange={handleRulesChange}
         />
 
-        <ExcludedPipesWarning
-          count={excludedPipesCount}
-          translate={translate}
-        />
-
         <AllocationSummary
+          excludedPipesCount={excludedPipesCount}
           totalAllocated={allocatedByAllRules}
           unallocatedCount={unallocatedCount}
           isAllocating={isAllocating}
@@ -570,6 +566,7 @@ const RulesEditorButtons = ({
 );
 
 type AllocationSummaryProps = {
+  excludedPipesCount: number;
   totalAllocated: number;
   unallocatedCount: number;
   isAllocating: boolean;
@@ -584,10 +581,36 @@ const percentage = (numerator: number, denominator: number) =>
   denominator > 0 ? Math.round((numerator / denominator) * 10000) / 100 : 0;
 
 const AllocationSummary: React.FC<AllocationSummaryProps> = ({
+  excludedPipesCount,
+  isVisible,
+  ...summaryProps
+}) => {
+  const translate = useTranslate();
+
+  if (!isVisible) {
+    return null;
+  }
+
+  return (
+    <>
+      <h3 className="text-md font-medium">
+        {translate("allocateCustomerPoints.dialog.resultsPreview")}
+      </h3>
+      <ExcludedPipesWarning count={excludedPipesCount} translate={translate} />
+      <AllocationSummaryPanel {...summaryProps} />
+    </>
+  );
+};
+
+type AllocationSummaryPanelProps = Omit<
+  AllocationSummaryProps,
+  "excludedPipesCount" | "isVisible"
+>;
+
+const AllocationSummaryPanel: React.FC<AllocationSummaryPanelProps> = ({
   totalAllocated,
   unallocatedCount,
   isAllocating,
-  isVisible,
   totalCustomerPoints,
   totalUnallocatedCustomerPoints,
   zoneName,
@@ -598,28 +621,19 @@ const AllocationSummary: React.FC<AllocationSummaryProps> = ({
     zoneName != null && customerPointsInZone != null;
   const summaryHeight = isInZoneAllocationMode ? 180 : 88;
 
-  if (!isVisible) {
-    return null;
-  }
-
   if (isAllocating) {
     return (
-      <>
-        <h3 className="text-md font-medium">
-          {translate("allocateCustomerPoints.dialog.allocationResults")}
-        </h3>
-        <div
-          className="bg-panel border rounded-lg p-4 flex items-center justify-center"
-          style={{ height: summaryHeight }}
-        >
-          <div className="flex items-center">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-accent"></div>
-            <span className="ml-2 text-size-base text-subtle">
-              {translate("allocateCustomerPoints.dialog.computingMessage")}
-            </span>
-          </div>
+      <div
+        className="bg-panel border rounded-lg p-4 flex items-center justify-center"
+        style={{ height: summaryHeight }}
+      >
+        <div className="flex items-center">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-accent"></div>
+          <span className="ml-2 text-size-base text-subtle">
+            {translate("allocateCustomerPoints.dialog.computingMessage")}
+          </span>
         </div>
-      </>
+      </div>
     );
   }
 
@@ -628,22 +642,17 @@ const AllocationSummary: React.FC<AllocationSummaryProps> = ({
 
   if (nothingToAllocate) {
     return (
-      <>
-        <h3 className="text-md font-medium">
-          {translate("allocateCustomerPoints.dialog.allocationResults")}
-        </h3>
-        <div
-          className="bg-panel border rounded-lg p-4"
-          style={{ height: summaryHeight }}
-        >
-          <div className="flex items-center">
-            <SuccessIcon className="text-success mr-2" />
-            <span className="text-size-base text-default">
-              {translate("allocateCustomerPoints.dialog.noChanges")}
-            </span>
-          </div>
+      <div
+        className="bg-panel border rounded-lg p-4"
+        style={{ height: summaryHeight }}
+      >
+        <div className="flex items-center">
+          <SuccessIcon className="text-success mr-2" />
+          <span className="text-size-base text-default">
+            {translate("allocateCustomerPoints.dialog.noChanges")}
+          </span>
         </div>
-      </>
+      </div>
     );
   }
 
@@ -651,68 +660,60 @@ const AllocationSummary: React.FC<AllocationSummaryProps> = ({
     const zoneUnallocated = Math.max(0, customerPointsInZone - totalAllocated);
 
     return (
-      <>
-        <h3 className="text-md font-medium">
-          {translate("allocateCustomerPoints.dialog.allocationResults")}
-        </h3>
-        <div
-          className="bg-panel border rounded-lg p-4 space-y-4"
-          style={{ height: summaryHeight }}
-        >
-          <div>
-            <h4 className="text-size-base font-medium text-default mb-2">
-              {translate(
-                "allocateCustomerPoints.dialog.zoneCoverage",
-                zoneName,
-              )}
-            </h4>
-            <div className="space-y-2">
-              <div className="flex items-center">
-                <SuccessIcon className="text-success mr-2" />
-                <span className="text-size-base text-default">
-                  {translate(
-                    "allocateCustomerPoints.dialog.allocatedPoints",
-                    localizeDecimal(totalAllocated),
-                    percentage(totalAllocated, customerPointsInZone).toString(),
-                  )}
-                </span>
-              </div>
-              {zoneUnallocated > 0 && (
-                <div className="flex items-center">
-                  <WarningIcon className="text-warning mr-2" />
-                  <span className="text-size-base text-orange-700">
-                    {translate(
-                      "allocateCustomerPoints.dialog.unallocatedPoints",
-                      localizeDecimal(zoneUnallocated),
-                      percentage(
-                        zoneUnallocated,
-                        customerPointsInZone,
-                      ).toString(),
-                    )}
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
-          <div>
-            <h4 className="text-size-base font-medium text-default mb-2">
-              {translate("allocateCustomerPoints.dialog.networkCoverage")}
-            </h4>
+      <div
+        className="bg-panel border rounded-lg p-4 space-y-4"
+        style={{ height: summaryHeight }}
+      >
+        <div>
+          <h4 className="text-size-base font-medium text-default mb-2">
+            {translate("allocateCustomerPoints.dialog.zoneCoverage", zoneName)}
+          </h4>
+          <div className="space-y-2">
             <div className="flex items-center">
+              <SuccessIcon className="text-success mr-2" />
               <span className="text-size-base text-default">
                 {translate(
-                  "allocateCustomerPoints.dialog.unallocatedPoints",
-                  localizeDecimal(totalUnallocatedCustomerPoints),
-                  percentage(
-                    totalUnallocatedCustomerPoints,
-                    totalCustomerPoints,
-                  ).toString(),
+                  "allocateCustomerPoints.dialog.allocatedPoints",
+                  localizeDecimal(totalAllocated),
+                  percentage(totalAllocated, customerPointsInZone).toString(),
                 )}
               </span>
             </div>
+            {zoneUnallocated > 0 && (
+              <div className="flex items-center">
+                <WarningIcon className="text-warning mr-2" />
+                <span className="text-size-base text-orange-700">
+                  {translate(
+                    "allocateCustomerPoints.dialog.unallocatedPoints",
+                    localizeDecimal(zoneUnallocated),
+                    percentage(
+                      zoneUnallocated,
+                      customerPointsInZone,
+                    ).toString(),
+                  )}
+                </span>
+              </div>
+            )}
           </div>
         </div>
-      </>
+        <div>
+          <h4 className="text-size-base font-medium text-default mb-2">
+            {translate("allocateCustomerPoints.dialog.networkCoverage")}
+          </h4>
+          <div className="flex items-center">
+            <span className="text-size-base text-default">
+              {translate(
+                "allocateCustomerPoints.dialog.unallocatedPoints",
+                localizeDecimal(totalUnallocatedCustomerPoints),
+                percentage(
+                  totalUnallocatedCustomerPoints,
+                  totalCustomerPoints,
+                ).toString(),
+              )}
+            </span>
+          </div>
+        </div>
+      </div>
     );
   }
 
@@ -723,39 +724,34 @@ const AllocationSummary: React.FC<AllocationSummaryProps> = ({
   );
 
   return (
-    <>
-      <h3 className="text-md font-medium">
-        {translate("allocateCustomerPoints.dialog.allocationResults")}
-      </h3>
-      <div
-        className="bg-panel border rounded-lg p-4"
-        style={{ height: summaryHeight }}
-      >
-        <div className="space-y-2">
+    <div
+      className="bg-panel border rounded-lg p-4"
+      style={{ height: summaryHeight }}
+    >
+      <div className="space-y-2">
+        <div className="flex items-center">
+          <SuccessIcon className="text-success mr-2" />
+          <span className="text-size-base text-default">
+            {translate(
+              "allocateCustomerPoints.dialog.allocatedPoints",
+              localizeDecimal(totalAllocated),
+              allocatedPercentage.toString(),
+            )}
+          </span>
+        </div>
+        {unallocatedCount > 0 && (
           <div className="flex items-center">
-            <SuccessIcon className="text-success mr-2" />
-            <span className="text-size-base text-default">
+            <WarningIcon className="text-warning mr-2" />
+            <span className="text-size-base text-orange-700">
               {translate(
-                "allocateCustomerPoints.dialog.allocatedPoints",
-                localizeDecimal(totalAllocated),
-                allocatedPercentage.toString(),
+                "allocateCustomerPoints.dialog.unallocatedPoints",
+                localizeDecimal(unallocatedCount),
+                unallocatedPercentage.toString(),
               )}
             </span>
           </div>
-          {unallocatedCount > 0 && (
-            <div className="flex items-center">
-              <WarningIcon className="text-warning mr-2" />
-              <span className="text-size-base text-orange-700">
-                {translate(
-                  "allocateCustomerPoints.dialog.unallocatedPoints",
-                  localizeDecimal(unallocatedCount),
-                  unallocatedPercentage.toString(),
-                )}
-              </span>
-            </div>
-          )}
-        </div>
+        )}
       </div>
-    </>
+    </div>
   );
 };
