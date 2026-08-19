@@ -227,33 +227,31 @@ export const prepareWorkerData = (
     BufferConstructor,
   );
 
-  for (const asset of hydraulicModel.assets.values()) {
-    if (asset.isLink && asset.type === "pipe") {
-      const pipe = asset as Pipe;
-      if (!isAllocatablePipe(pipe, hydraulicModel.assets, selectedPipes))
-        continue;
-      const [startNodeId, endNodeId] = pipe.connections;
-      pipesBuilder.addPipe(pipe.id, pipe.diameter ?? 0, startNodeId, endNodeId);
+  for (const pipeId of pipesIndex.keys()) {
+    const pipe = hydraulicModel.assets.get(pipeId) as Pipe;
+    const [startNodeId, endNodeId] = pipe.connections;
+    pipesBuilder.addPipe(pipe.id, pipe.diameter ?? 0, startNodeId, endNodeId);
 
-      if (pipe.feature.geometry.type === "LineString") {
-        const pipeFeature = {
-          type: "Feature" as const,
-          geometry: pipe.feature.geometry as LineString,
-          properties: {},
-        };
-        const segments = lineSegment(pipeFeature);
-        for (const segment of segments.features) {
-          const coordinates = segment.geometry.coordinates;
-          segmentsBuilder.addSegment(coordinates, pipe.id);
+    if (pipe.feature.geometry.type === "LineString") {
+      const pipeFeature = {
+        type: "Feature" as const,
+        geometry: pipe.feature.geometry as LineString,
+        properties: {},
+      };
+      const segments = lineSegment(pipeFeature);
+      for (const segment of segments.features) {
+        const coordinates = segment.geometry.coordinates;
+        segmentsBuilder.addSegment(coordinates, pipe.id);
 
-          const [minX, minY, maxX, maxY] = bbox(segment);
-          spatialIndex.add(minX, minY, maxX, maxY);
-        }
+        const [minX, minY, maxX, maxY] = bbox(segment);
+        spatialIndex.add(minX, minY, maxX, maxY);
       }
-    } else if (asset.isNode) {
-      const node = asset as NodeAsset;
-      nodesBuilder.addNode(node.id, node.coordinates, node.type as NodeType);
     }
+  }
+
+  for (const nodeId of nodesIndex.keys()) {
+    const node = hydraulicModel.assets.get(nodeId) as NodeAsset;
+    nodesBuilder.addNode(node.id, node.coordinates, node.type as NodeType);
   }
 
   let addedCustomerPoints = 0;
@@ -567,8 +565,14 @@ export const deserializeZoneGeometry = (buffer: BinaryData): MultiPolygon => {
   };
 };
 
+const hasResolvableEndpoints = (pipe: Pipe, assets: AssetsMap): boolean =>
+  pipe.connections.every((nodeId) => assets.has(nodeId));
+
 const hasJunctionEndpoint = (pipe: Pipe, assets: AssetsMap): boolean =>
   pipe.connections.some((nodeId) => assets.get(nodeId)?.type === "junction");
+
+const hasValidDiameter = (pipe: Pipe): boolean =>
+  pipe.diameter !== null && pipe.diameter !== 0;
 
 const isAllocatablePipe = (
   pipe: Pipe,
@@ -576,6 +580,9 @@ const isAllocatablePipe = (
   selectedPipes?: Set<AssetId>,
 ): boolean =>
   (!selectedPipes || selectedPipes.has(pipe.id)) &&
+  pipe.isActive &&
+  hasValidDiameter(pipe) &&
+  hasResolvableEndpoints(pipe, assets) &&
   hasJunctionEndpoint(pipe, assets);
 
 const generateAssetIndexes = (
@@ -589,22 +596,30 @@ const generateAssetIndexes = (
   nodesCount: number;
 } => {
   const pipesIndex = new Map<number, number>();
-  const nodesIndex = new Map<number, number>();
+  const connectedNodeIds = new Set<AssetId>();
   let pipeIndex = 0;
-  let nodeIndex = 0;
   let pipeSegmentsCount = 0;
 
   for (const asset of assets.values()) {
-    if (asset.isLink && asset.type === "pipe") {
-      const pipe = asset as Pipe;
-      if (!isAllocatablePipe(pipe, assets, selectedPipes)) continue;
-      pipesIndex.set(pipe.id, pipeIndex);
-      pipeSegmentsCount += pipe.coordinates.length - 1;
-      pipeIndex++;
-    } else if (asset.isNode) {
-      nodesIndex.set(asset.id, nodeIndex);
-      nodeIndex++;
+    if (!asset.isLink || asset.type !== "pipe") continue;
+
+    const pipe = asset as Pipe;
+    if (!isAllocatablePipe(pipe, assets, selectedPipes)) continue;
+
+    pipesIndex.set(pipe.id, pipeIndex);
+    pipeSegmentsCount += pipe.coordinates.length - 1;
+    pipeIndex++;
+
+    for (const nodeId of pipe.connections) {
+      connectedNodeIds.add(nodeId);
     }
+  }
+
+  const nodesIndex = new Map<number, number>();
+  let nodeIndex = 0;
+  for (const nodeId of Array.from(connectedNodeIds).sort((a, b) => a - b)) {
+    nodesIndex.set(nodeId, nodeIndex);
+    nodeIndex++;
   }
 
   return {

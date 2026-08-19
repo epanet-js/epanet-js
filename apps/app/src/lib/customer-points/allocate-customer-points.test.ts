@@ -16,7 +16,10 @@ const PIPE_EAST_LONGITUDE = -95.39;
 const latitudeMetersNorth = (meters: number): number =>
   PIPE_LATITUDE + (meters * 180) / (Math.PI * TURF_EARTH_RADIUS_IN_METERS);
 
-const aPipeAlongLatitude = (IDS: { J1: number; J2: number; P1: number }) =>
+const aPipeAlongLatitude = (
+  IDS: { J1: number; J2: number; P1: number },
+  pipeData: { diameter?: number | null; isActive?: boolean } = {},
+) =>
   HydraulicModelBuilder.with()
     .aJunction(IDS.J1, { coordinates: [PIPE_WEST_LONGITUDE, PIPE_LATITUDE] })
     .aJunction(IDS.J2, { coordinates: [PIPE_EAST_LONGITUDE, PIPE_LATITUDE] })
@@ -28,6 +31,7 @@ const aPipeAlongLatitude = (IDS: { J1: number; J2: number; P1: number }) =>
         [PIPE_WEST_LONGITUDE, PIPE_LATITUDE],
         [PIPE_EAST_LONGITUDE, PIPE_LATITUDE],
       ],
+      ...pipeData,
     })
     .build();
 
@@ -842,6 +846,57 @@ describe("findNearestPipeConnectionWithWorkerData optimization", () => {
     expect(result.disconnectedCustomerPoints.size).toBe(0);
     const allocatedCP1 = result.allocatedCustomerPoints.get(IDS.CP1);
     expect(allocatedCP1?.connection?.pipeId).toBe(IDS.P1);
+  });
+});
+
+describe("pipes excluded from allocation", () => {
+  const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4 } as const;
+
+  const allocateAgainst = async (
+    hydraulicModel: ReturnType<typeof aPipeAlongLatitude>,
+  ) =>
+    allocateCustomerPoints(hydraulicModel, {
+      allocationRules: [{ maxDistance: 120, maxDiameter: 300 }],
+      customerPoints: new Map([
+        [IDS.CP1, aCustomerPointMetersFromPipe(IDS.CP1, 20)],
+      ]) as CustomerPoints,
+    });
+
+  it("excludes pipes without a diameter", async () => {
+    const result = await allocateAgainst(
+      aPipeAlongLatitude(IDS, { diameter: null }),
+    );
+
+    expect(result.allocatedCustomerPoints.size).toBe(0);
+    expect(result.disconnectedCustomerPoints.has(IDS.CP1)).toBe(true);
+    expect(result.ruleMatches).toEqual([0]);
+  });
+
+  it("excludes pipes with a zero diameter", async () => {
+    const result = await allocateAgainst(
+      aPipeAlongLatitude(IDS, { diameter: 0 }),
+    );
+
+    expect(result.allocatedCustomerPoints.size).toBe(0);
+    expect(result.disconnectedCustomerPoints.has(IDS.CP1)).toBe(true);
+    expect(result.ruleMatches).toEqual([0]);
+  });
+
+  it("excludes inactive pipes", async () => {
+    const result = await allocateAgainst(
+      aPipeAlongLatitude(IDS, { isActive: false }),
+    );
+
+    expect(result.allocatedCustomerPoints.size).toBe(0);
+    expect(result.disconnectedCustomerPoints.has(IDS.CP1)).toBe(true);
+    expect(result.ruleMatches).toEqual([0]);
+  });
+
+  it("allocates to an active pipe with a valid diameter", async () => {
+    const result = await allocateAgainst(aPipeAlongLatitude(IDS));
+
+    expect(result.allocatedCustomerPoints.has(IDS.CP1)).toBe(true);
+    expect(result.ruleMatches).toEqual([1]);
   });
 });
 

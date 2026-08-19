@@ -229,7 +229,7 @@ describe("prepareWorkerData", () => {
       });
 
       it("can get node types from binary data", () => {
-        const IDS = { J1: 1, R1: 2, T1: 3, P1: 4 };
+        const IDS = { J1: 1, R1: 2, T1: 3, P1: 4, P2: 5 };
         const hydraulicModel = HydraulicModelBuilder.with()
           .aJunction(IDS.J1, { coordinates: [0, 0] })
           .aReservoir(IDS.R1, { coordinates: [10, 0] })
@@ -241,6 +241,15 @@ describe("prepareWorkerData", () => {
             coordinates: [
               [0, 0],
               [10, 0],
+            ],
+          })
+          .aPipe(IDS.P2, {
+            startNodeId: IDS.J1,
+            endNodeId: IDS.T1,
+            diameter: 12,
+            coordinates: [
+              [0, 0],
+              [20, 0],
             ],
           })
           .build();
@@ -269,6 +278,7 @@ describe("prepareWorkerData", () => {
           T1: 3,
           J2: 4,
           P1: 5,
+          P2: 6,
         };
         const hydraulicModel = HydraulicModelBuilder.with()
           .aJunction(IDS.J1, { coordinates: [0, 0] })
@@ -282,6 +292,15 @@ describe("prepareWorkerData", () => {
             coordinates: [
               [0, 0],
               [10, 0],
+            ],
+          })
+          .aPipe(IDS.P2, {
+            startNodeId: IDS.J2,
+            endNodeId: IDS.T1,
+            diameter: 12,
+            coordinates: [
+              [30, 0],
+              [20, 0],
             ],
           })
           .build();
@@ -298,6 +317,84 @@ describe("prepareWorkerData", () => {
         expect(getNodeId(workerData.nodes, 1)).toBe(IDS.R1);
         expect(getNodeId(workerData.nodes, 2)).toBe(IDS.T1);
         expect(getNodeId(workerData.nodes, 3)).toBe(IDS.J2);
+      });
+
+      it("skips pipes with an endpoint missing from the model", () => {
+        const IDS = { J1: 1, J2: 2, J3: 3, J4: 4, P1: 5, P2: 6 };
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aJunction(IDS.J1, { coordinates: [0, 0] })
+          .aJunction(IDS.J2, { coordinates: [10, 0] })
+          .aJunction(IDS.J3, { coordinates: [20, 0] })
+          .aJunction(IDS.J4, { coordinates: [30, 0] })
+          .aPipe(IDS.P1, {
+            startNodeId: IDS.J1,
+            endNodeId: IDS.J2,
+            diameter: 12,
+            coordinates: [
+              [0, 0],
+              [10, 0],
+            ],
+          })
+          .aPipe(IDS.P2, {
+            startNodeId: IDS.J3,
+            endNodeId: IDS.J4,
+            diameter: 12,
+            coordinates: [
+              [20, 0],
+              [30, 0],
+            ],
+          })
+          .build();
+
+        hydraulicModel.assets.delete(IDS.J4);
+
+        const workerData = prepareWorkerData(
+          hydraulicModel,
+          [],
+          bufferTypeParam,
+        );
+
+        expect(workerData.nodes.byteLength).toBe(8 + 2 * 24);
+        expect(getNodeId(workerData.nodes, 0)).toBe(IDS.J1);
+        expect(getNodeId(workerData.nodes, 1)).toBe(IDS.J2);
+      });
+
+      it("only indexes nodes connected to an allocatable pipe", () => {
+        const IDS = { J1: 1, J2: 2, J3: 3, J4: 4, P1: 5, P2: 6 };
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aJunction(IDS.J1, { coordinates: [0, 0] })
+          .aJunction(IDS.J2, { coordinates: [10, 0] })
+          .aJunction(IDS.J3, { coordinates: [20, 0] })
+          .aJunction(IDS.J4, { coordinates: [30, 0] })
+          .aPipe(IDS.P1, {
+            startNodeId: IDS.J1,
+            endNodeId: IDS.J2,
+            diameter: 12,
+            coordinates: [
+              [0, 0],
+              [10, 0],
+            ],
+          })
+          .aPipe(IDS.P2, {
+            startNodeId: IDS.J3,
+            endNodeId: IDS.J4,
+            diameter: null,
+            coordinates: [
+              [20, 0],
+              [30, 0],
+            ],
+          })
+          .build();
+
+        const workerData = prepareWorkerData(
+          hydraulicModel,
+          [],
+          bufferTypeParam,
+        );
+
+        expect(workerData.nodes.byteLength).toBe(8 + 2 * 24);
+        expect(getNodeId(workerData.nodes, 0)).toBe(IDS.J1);
+        expect(getNodeId(workerData.nodes, 1)).toBe(IDS.J2);
       });
 
       it("can get customer point coordinates from binary data", () => {
