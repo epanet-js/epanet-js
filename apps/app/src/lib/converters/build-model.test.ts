@@ -96,6 +96,28 @@ describe("build model from network data", () => {
     expect(projectSettings.projection).toEqual(WGS84);
   });
 
+  it("reports the bounds of what it built, in wgs84", () => {
+    const { bounds } = buildModel(
+      aNetwork({
+        junctions: [
+          aJunction({ ref: "1", coordinates: [10, 20] }),
+          aJunction({ ref: "2", coordinates: [12, 24] }),
+        ],
+      }),
+      { projections: aCatalogue() },
+    );
+
+    expect(bounds.extract()).toEqual([10, 20, 12, 24]);
+  });
+
+  it("reports no bounds when the source had nothing to build", () => {
+    const { bounds } = buildModel(aNetwork(), {
+      projections: aCatalogue(),
+    });
+
+    expect(bounds.isNothing()).toBe(true);
+  });
+
   it("indexes every junction it builds", () => {
     const { hydraulicModel } = buildModel(
       aNetwork({ junctions: [aJunction({ ref: "1", label: "J1" })] }),

@@ -1,9 +1,7 @@
 import { useCallback, useContext } from "react";
 import { useSetAtom } from "jotai";
 import { FileWithHandle } from "browser-fs-access";
-import { FeatureCollection } from "geojson";
 import { LngLatBoundsLike } from "mapbox-gl";
-import { getExtent } from "@epanet-js/geometry";
 import { defaultProjectSettings } from "@epanet-js/project-settings";
 import { useUnsavedChangesCheck } from "./check-unsaved-changes";
 import { buildModel, getConverter } from "src/lib/converters";
@@ -50,10 +48,8 @@ export const useOpenSynergi = () => {
 
       try {
         const { network } = await parse({ files: [file] });
-        const { hydraulicModel, factories, projectSettings } = buildModel(
-          network,
-          { projections, labelMaxLength },
-        );
+        const { hydraulicModel, factories, projectSettings, bounds } =
+          buildModel(network, { projections, labelMaxLength });
 
         const started = await startNewProject({
           hydraulicModel,
@@ -70,11 +66,7 @@ export const useOpenSynergi = () => {
           return;
         }
 
-        const features: FeatureCollection = {
-          type: "FeatureCollection",
-          features: [...hydraulicModel.assets.values()].map((a) => a.feature),
-        };
-        getExtent(features).map((importedExtent) => {
+        bounds.map((importedExtent) => {
           map?.map.fitBounds(importedExtent as LngLatBoundsLike, {
             padding: 100,
             duration: 0,

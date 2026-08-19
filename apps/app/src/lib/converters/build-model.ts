@@ -32,6 +32,9 @@ import {
   type Projection,
 } from "@epanet-js/projections";
 import type { Position } from "geojson";
+import type { BBox } from "@turf/helpers";
+import type { Maybe } from "purify-ts/Maybe";
+import { getExtent } from "@epanet-js/geometry";
 
 export type BuildModelOptions = {
   projections: Map<string, Proj4Projection>;
@@ -42,6 +45,7 @@ export type BuildModelResult = {
   hydraulicModel: HydraulicModel;
   factories: ModelFactories;
   idGenerator: IdGenerator;
+  bounds: Maybe<BBox>;
   projectSettings: Pick<
     ProjectSettings,
     "units" | "defaults" | "headlossFormula" | "formatting" | "projection"
@@ -87,6 +91,9 @@ export const buildModel = (
     hydraulicModel,
     factories,
     idGenerator,
+    bounds: getExtent(
+      [...hydraulicModel.assets.values()].map((a) => a.feature),
+    ),
     projectSettings: {
       units: spec.units,
       defaults,
