@@ -72,3 +72,4 @@ Thumbs.db
 *.sw?
 .eslintcache
 *.patch
+specs/
