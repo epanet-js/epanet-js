@@ -7,8 +7,23 @@ no parsing.** Implementations live in their own packages and depend on this one.
 ## The interface every implementation satisfies
 
 ```ts
-parseNetworkData(input: ParserInput): Promise<ParserResult>
+type Converter = {
+  name: string;
+  extensions: string[];
+  parseNetworkData(input: ParserInput): Promise<ParserResult>;
+};
 ```
+
+- **A vendor ships one `Converter`, not a bare function.** What files the format
+  uses and what the format is called are vendor knowledge like any other, so they
+  travel with the parser instead of being restated by whichever surface offers the
+  import. A consumer picks a converter and then reads `converter.extensions`,
+  `converter.name` and `converter.parseNetworkData` off it without naming a vendor,
+  which is what lets one command serve every format. Expect this record to grow —
+  anything a consumer would otherwise hardcode per vendor belongs on it.
+- **`name` is the format as a person would say it** ("Synergi"), not an id and not
+  a sentence. It is a proper noun, so it is never translated; it is the one string
+  in this package for that reason.
 
 - **`ParserInput` carries files**, not a decoded database — `{ files: SourceFile[] }`.
   A browser `File` satisfies `SourceFile` structurally (`name` + `arrayBuffer()`),

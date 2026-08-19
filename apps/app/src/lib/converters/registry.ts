@@ -1,16 +1,15 @@
-import type { ParseNetworkData } from "@epanet-js/converters";
+import type { Converter } from "@epanet-js/converters";
 
 export type ConverterVendor = "synergi";
 
-const converters = new Map<ConverterVendor, ParseNetworkData>();
+const converters = new Map<ConverterVendor, Converter>();
 
 export const registerConverter = (
   vendor: ConverterVendor,
-  parse: ParseNetworkData,
+  converter: Converter,
 ): void => {
-  converters.set(vendor, parse);
+  converters.set(vendor, converter);
 };
 
-export const getConverter = (
-  vendor: ConverterVendor,
-): ParseNetworkData | null => converters.get(vendor) ?? null;
+export const getConverter = (vendor: ConverterVendor): Converter | null =>
+  converters.get(vendor) ?? null;

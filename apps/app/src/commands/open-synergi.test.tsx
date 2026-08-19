@@ -82,9 +82,11 @@ describe("openSynergi", () => {
 
   it("keeps the previous model and reports when the file cannot be read", async () => {
     stubFileOpen();
-    registerConverter("synergi", () =>
-      Promise.reject(new Error("cannot read")),
-    );
+    registerConverter("synergi", {
+      name: "Synergi",
+      extensions: [".mdb"],
+      parseNetworkData: () => Promise.reject(new Error("cannot read")),
+    });
     const previousModel = HydraulicModelBuilder.empty();
     const store = setInitialState({ hydraulicModel: previousModel });
 

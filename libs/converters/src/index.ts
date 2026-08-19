@@ -1,4 +1,5 @@
 export type { ParseNetworkData, ParserResult } from "./parser";
+export type { Converter } from "./converter";
 export type { ParserInput, SourceFile } from "./source-file";
 export type {
   JunctionData,

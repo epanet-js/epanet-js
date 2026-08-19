@@ -28,6 +28,7 @@ import { dialogAtom } from "src/state/dialog";
 import { useNewProject } from "src/commands/create-new-project";
 import { useOpenInpFromFs } from "src/commands/open-inp-from-fs";
 import { useOpenSynergi } from "src/commands/open-synergi";
+import { getConverter } from "src/lib/converters";
 import { useOpenProject } from "src/commands/open-project";
 import { useSaveInp } from "src/commands/save-inp";
 import { useSaveProject } from "src/commands/save-project";
@@ -128,6 +129,9 @@ export const FileDropdown = () => {
 
 const SynergiItem = () => {
   const openSynergi = useOpenSynergi();
+  const converter = getConverter("synergi");
+
+  if (!converter) return null;
 
   return (
     <StyledItem
@@ -136,7 +140,7 @@ const SynergiItem = () => {
       }}
     >
       <DatabaseIcon />
-      From Synergi
+      {`From ${converter.name}`}
     </StyledItem>
   );
 };

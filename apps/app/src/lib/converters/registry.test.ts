@@ -10,11 +10,17 @@ describe("converters registry", () => {
   });
 
   it("returns the registered converter", () => {
-    const parse = stubConverter("synergi", {
-      network: { junctions: [], units: {}, crs: { type: "unknown" } },
-      issues: [],
-    });
+    const converter = stubConverter(
+      "synergi",
+      {
+        network: { junctions: [], units: {}, crs: { type: "unknown" } },
+        issues: [],
+      },
+      { name: "Synergi", extensions: [".mdb"] },
+    );
 
-    expect(getConverter("synergi")).toBe(parse);
+    expect(getConverter("synergi")).toBe(converter);
+    expect(getConverter("synergi")!.name).toEqual("Synergi");
+    expect(getConverter("synergi")!.extensions).toEqual([".mdb"]);
   });
 });

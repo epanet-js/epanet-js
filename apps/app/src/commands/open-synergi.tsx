@@ -1,6 +1,7 @@
 import { useCallback, useContext } from "react";
 import { useSetAtom } from "jotai";
 import { FileWithHandle } from "browser-fs-access";
+import type { Converter } from "@epanet-js/converters";
 import { LngLatBoundsLike } from "mapbox-gl";
 import { defaultProjectSettings } from "@epanet-js/project-settings";
 import { useUnsavedChangesCheck } from "./check-unsaved-changes";
@@ -19,8 +20,6 @@ import { buildDefaultSimulationSettings } from "src/simulation/simulation-settin
 import { useStartNewProject } from "src/hooks/persistence/use-start-new-project";
 import { MapContext } from "src/map";
 
-export const synergiExtension = ".mdb";
-
 export const useOpenSynergi = () => {
   const checkUnsavedChanges = useUnsavedChangesCheck();
   const userTracking = useUserTracking();
@@ -36,9 +35,8 @@ export const useOpenSynergi = () => {
   const map = useContext(MapContext);
 
   const importSynergi = useCallback(
-    async (file: FileWithHandle, source: string) => {
-      const parse = getConverter("synergi");
-      if (!parse || !projections) {
+    async (converter: Converter, file: FileWithHandle, source: string) => {
+      if (!projections) {
         setDialogState({ type: "invalidFilesError" });
         userTracking.capture({ name: "invalidFilesError.seen" });
         return;
@@ -47,7 +45,7 @@ export const useOpenSynergi = () => {
       setDialogState({ type: "loading" });
 
       try {
-        const { network } = await parse({ files: [file] });
+        const { network } = await converter.parseNetworkData({ files: [file] });
         const { hydraulicModel, factories, projectSettings, bounds } =
           buildModel(network, { projections, labelMaxLength });
 
@@ -110,22 +108,29 @@ export const useOpenSynergi = () => {
     async ({ source }: { source: string }) => {
       userTracking.capture({ name: "importSynergi.started", source });
 
+      const converter = getConverter("synergi");
+      if (!converter) {
+        setDialogState({ type: "invalidFilesError" });
+        userTracking.capture({ name: "invalidFilesError.seen" });
+        return;
+      }
+
       if (!isReady) throw new Error("FS not ready");
       try {
         const file = await openFile({
           multiple: false,
-          extensions: [synergiExtension],
-          description: "Synergi database",
+          extensions: converter.extensions,
+          description: converter.name,
         });
 
         if (!file) return;
 
-        void importSynergi(file, source);
+        void importSynergi(converter, file, source);
       } catch (error) {
         captureError(error as Error);
       }
     },
-    [openFile, isReady, importSynergi, userTracking],
+    [openFile, isReady, importSynergi, setDialogState, userTracking],
   );
 
   return useCallback(
