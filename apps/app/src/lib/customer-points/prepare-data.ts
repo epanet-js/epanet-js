@@ -5,8 +5,8 @@ import Flatbush from "flatbush";
 import { addPlaceholderMatchingNoSearch } from "@epanet-js/buffers";
 import {
   AssetId,
+  AssetsMap,
   Pipe,
-  Asset,
   NodeAsset,
   NodeType,
   CustomerPoint,
@@ -190,10 +190,7 @@ export const prepareWorkerData = (
   selectedPipes?: Set<AssetId>,
 ): RunData => {
   const { pipesIndex, pipesCount, pipeSegmentsCount, nodesIndex, nodesCount } =
-    generateAssetIndexes(
-      Array.from(hydraulicModel.assets.values()),
-      selectedPipes,
-    );
+    generateAssetIndexes(hydraulicModel.assets, selectedPipes);
 
   const customerPointsCount = customerPoints.length;
 
@@ -232,8 +229,9 @@ export const prepareWorkerData = (
 
   for (const asset of hydraulicModel.assets.values()) {
     if (asset.isLink && asset.type === "pipe") {
-      if (selectedPipes && !selectedPipes.has(asset.id)) continue;
       const pipe = asset as Pipe;
+      if (!isAllocatablePipe(pipe, hydraulicModel.assets, selectedPipes))
+        continue;
       const [startNodeId, endNodeId] = pipe.connections;
       pipesBuilder.addPipe(pipe.id, pipe.diameter ?? 0, startNodeId, endNodeId);
 
@@ -569,8 +567,19 @@ export const deserializeZoneGeometry = (buffer: BinaryData): MultiPolygon => {
   };
 };
 
+const hasJunctionEndpoint = (pipe: Pipe, assets: AssetsMap): boolean =>
+  pipe.connections.some((nodeId) => assets.get(nodeId)?.type === "junction");
+
+const isAllocatablePipe = (
+  pipe: Pipe,
+  assets: AssetsMap,
+  selectedPipes?: Set<AssetId>,
+): boolean =>
+  (!selectedPipes || selectedPipes.has(pipe.id)) &&
+  hasJunctionEndpoint(pipe, assets);
+
 const generateAssetIndexes = (
-  assets: Asset[],
+  assets: AssetsMap,
   selectedPipes?: Set<AssetId>,
 ): {
   pipesIndex: Map<number, number>;
@@ -585,10 +594,10 @@ const generateAssetIndexes = (
   let nodeIndex = 0;
   let pipeSegmentsCount = 0;
 
-  for (const asset of assets) {
+  for (const asset of assets.values()) {
     if (asset.isLink && asset.type === "pipe") {
-      if (selectedPipes && !selectedPipes.has(asset.id)) continue;
       const pipe = asset as Pipe;
+      if (!isAllocatablePipe(pipe, assets, selectedPipes)) continue;
       pipesIndex.set(pipe.id, pipeIndex);
       pipeSegmentsCount += pipe.coordinates.length - 1;
       pipeIndex++;

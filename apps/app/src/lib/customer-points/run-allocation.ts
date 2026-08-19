@@ -130,6 +130,24 @@ const findFirstMatchingRule = (
   return { ruleIndex: -1, connection: null };
 };
 
+const buildBucketDistances = (maxDistance: number): number[] => {
+  const bucketDistances: number[] = [];
+
+  for (
+    let distance = bucketSize;
+    distance < maxDistance;
+    distance += bucketSize
+  ) {
+    bucketDistances.push(distance);
+  }
+
+  if (maxDistance > 0) {
+    bucketDistances.push(maxDistance);
+  }
+
+  return bucketDistances;
+};
+
 export function* generateSegmentCandidatesByDistance(
   customerPointFeature: Feature<Point>,
   maxDistance: number,
@@ -139,11 +157,7 @@ export function* generateSegmentCandidatesByDistance(
   void,
   unknown
 > {
-  for (
-    let bucketDistance = bucketSize;
-    bucketDistance <= maxDistance;
-    bucketDistance += bucketSize
-  ) {
+  for (const bucketDistance of buildBucketDistances(maxDistance)) {
     const searchBuffer = turfBuffer(customerPointFeature, bucketDistance, {
       units: "meters",
     });
@@ -161,10 +175,11 @@ const findNearestPipeConnection = (
   maxDiameter: number,
   { spatialIndex, workerData }: { spatialIndex: Flatbush; workerData: RunData },
 ): CustomerPointConnection | null => {
-  let closestMatch: { coordinates: Position; distance: number | null } | null =
-    null;
-  let closestDistance: number | null = null;
-  let closestSegmentIndex: number | null = null;
+  let closestMatch: {
+    coordinates: Position;
+    distance: number;
+    segmentIndex: number;
+  } | null = null;
 
   const processedSegmentIds = new Set<number>();
   const candidateGenerator = generateSegmentCandidatesByDistance(
@@ -208,38 +223,32 @@ const findNearestPipeConnection = (
         continue;
       }
 
-      if (
-        !closestMatch ||
-        (distance != null &&
-          (closestDistance == null || distance < closestDistance))
-      ) {
-        closestMatch = result;
-        closestDistance = distance;
-        closestSegmentIndex = segmentIndex;
-      }
       processedSegmentIds.add(segmentIndex);
-    }
 
-    if (closestMatch && closestSegmentIndex !== null) {
-      const snapPoint = closestMatch.coordinates;
-      const junctionId = findAssignedJunctionId(
-        closestSegmentIndex,
-        snapPoint,
-        workerData,
-      );
-
-      if (junctionId !== null) {
-        const pipeIndex = getSegmentPipeIndex(
-          workerData.segments,
-          closestSegmentIndex,
-        );
-        const pipeId = getPipeId(workerData.pipes, pipeIndex);
-        return {
-          pipeId,
-          snapPoint,
-          junctionId,
+      if (!closestMatch || distance < closestMatch.distance) {
+        closestMatch = {
+          coordinates: result.coordinates,
+          distance,
+          segmentIndex,
         };
       }
+    }
+
+    if (closestMatch) {
+      const junctionId = findAssignedJunctionId(
+        closestMatch.segmentIndex,
+        closestMatch.coordinates,
+        workerData,
+      );
+      const pipeIndex = getSegmentPipeIndex(
+        workerData.segments,
+        closestMatch.segmentIndex,
+      );
+      return {
+        pipeId: getPipeId(workerData.pipes, pipeIndex),
+        snapPoint: closestMatch.coordinates,
+        junctionId,
+      };
     }
   }
 
@@ -250,7 +259,7 @@ const findAssignedJunctionId = (
   segmentIndex: number,
   snapPoint: Position,
   workerData: RunData,
-): number | null => {
+): number => {
   const pipeIndex = getSegmentPipeIndex(workerData.segments, segmentIndex);
   const startNodeIndex = getPipeStartNodeIndex(workerData.pipes, pipeIndex);
   const endNodeIndex = getPipeEndNodeIndex(workerData.pipes, pipeIndex);
@@ -267,5 +276,17 @@ const findAssignedJunctionId = (
     coordinates: getNodeCoordinates(workerData.nodes, endNodeIndex),
   };
 
-  return findJunctionForCustomerPoint(startNode, endNode, snapPoint);
+  const junctionId = findJunctionForCustomerPoint(
+    startNode,
+    endNode,
+    snapPoint,
+  );
+
+  if (junctionId === null) {
+    throw new Error(
+      `Pipe ${getPipeId(workerData.pipes, pipeIndex)} has no junction endpoint and should not have been indexed for allocation`,
+    );
+  }
+
+  return junctionId;
 };
