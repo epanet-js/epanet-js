@@ -1,4 +1,4 @@
-import { screen, render, waitFor, act } from "@testing-library/react";
+import { screen, render, waitFor } from "@testing-library/react";
 import { CommandContainer } from "./__helpers__/command-container";
 import { SimulationFinished } from "src/state/simulation";
 import { simulationDerivedAtom } from "src/state/derived-branch-state";
@@ -7,11 +7,7 @@ import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
 import { dialogAtom } from "src/state/dialog";
 import { splitsAtom } from "src/state/layout";
-import {
-  reviewResultsAtom,
-  selectedReviewCheckAtom,
-} from "src/state/network-review";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
+import { selectedReviewCheckAtom } from "src/state/network-review";
 import { CheckType } from "src/lib/network-review";
 import userEvent from "@testing-library/user-event";
 import { useRunSimulation } from "./run-simulation";
@@ -87,6 +83,7 @@ describe("Run simulation", () => {
   });
 
   it("persists the state when the simulation fails", async () => {
+    passesEveryCheck();
     const hydraulicModel = aNonSimulableModel();
     const store = setInitialState({ hydraulicModel });
     renderComponent({ store });
@@ -102,6 +99,7 @@ describe("Run simulation", () => {
   });
 
   it("can show the report after a failure", async () => {
+    passesEveryCheck();
     const hydraulicModel = aNonSimulableModel();
     const store = setInitialState({ hydraulicModel });
     renderComponent({ store });
@@ -199,6 +197,7 @@ describe("Run simulation", () => {
   });
 
   it("by default opens report on enter when failure", async () => {
+    passesEveryCheck();
     const hydraulicModel = aNonSimulableModel();
     const store = setInitialState({ hydraulicModel });
     renderComponent({ store });
@@ -213,117 +212,6 @@ describe("Run simulation", () => {
 
     await waitFor(() => {
       expect(screen.getByText(/not enough/i)).toBeInTheDocument();
-    });
-  });
-
-  describe("model validation", () => {
-    const enableValidation = () => {
-      canValidateModelAttributes = true;
-    };
-
-    it("shows the validation dialog and does not run when there are issues", async () => {
-      enableValidation();
-      const store = setInitialState({
-        hydraulicModel: aModelWithEmptyRoughness(),
-      });
-      renderComponent({ store });
-
-      await triggerRun();
-
-      await waitFor(() => {
-        expect(store.get(dialogAtom)).toMatchObject({
-          type: "modelAttributesValidation",
-          issueCount: 1,
-        });
-      });
-      expect(
-        store.get(reviewResultsAtom)[CheckType.modelAttributesValidation]
-          ?.items,
-      ).toHaveLength(1);
-      expect(lib.runSimulation).not.toHaveBeenCalled();
-    });
-
-    it("shows the dialog even without the validation permission", async () => {
-      canValidateModelAttributes = false;
-      const store = setInitialState({
-        hydraulicModel: aModelWithEmptyRoughness(),
-      });
-      renderComponent({ store });
-
-      await triggerRun();
-
-      await waitFor(() => {
-        expect(store.get(dialogAtom)).toMatchObject({
-          type: "modelAttributesValidation",
-        });
-      });
-      expect(lib.runSimulation).not.toHaveBeenCalled();
-    });
-
-    it("runs the simulation when choosing run anyway", async () => {
-      enableValidation();
-      const store = setInitialState({
-        hydraulicModel: aModelWithEmptyRoughness(),
-      });
-      renderComponent({ store });
-
-      await triggerRun();
-      await waitFor(() => {
-        expect(store.get(dialogAtom)).toMatchObject({
-          type: "modelAttributesValidation",
-        });
-      });
-
-      const dialog = store.get(dialogAtom) as { onRunAnyway: () => void };
-      act(() => {
-        dialog.onRunAnyway();
-      });
-
-      await waitFor(() => {
-        expect(lib.runSimulation).toHaveBeenCalled();
-      });
-    });
-
-    it("opens the network review panel and does not run when choosing fix first", async () => {
-      enableValidation();
-      const store = setInitialState({
-        hydraulicModel: aModelWithEmptyRoughness(),
-      });
-      renderComponent({ store });
-
-      await triggerRun();
-      await waitFor(() => {
-        expect(store.get(dialogAtom)).toMatchObject({
-          type: "modelAttributesValidation",
-        });
-      });
-
-      const dialog = store.get(dialogAtom) as { onFixFirst: () => void };
-      act(() => {
-        dialog.onFixFirst();
-      });
-
-      expect(store.get(splitsAtom).leftOpen).toBe(true);
-      expect(store.get(dialogAtom)).toBeNull();
-      expect(lib.runSimulation).not.toHaveBeenCalled();
-    });
-
-    it("runs directly when the model has no issues", async () => {
-      enableValidation();
-      const store = setInitialState({ hydraulicModel: aSimulableModel() });
-      renderComponent({ store });
-
-      await triggerRun();
-
-      await waitFor(() => {
-        const simulation = store.get(
-          simulationDerivedAtom,
-        ) as SimulationFinished;
-        expect(simulation.status).toEqual("success");
-      });
-      expect(store.get(dialogAtom)).not.toMatchObject({
-        type: "modelAttributesValidation",
-      });
     });
   });
 
@@ -358,6 +246,7 @@ describe("Run simulation", () => {
     };
 
     it("excludes controls referencing inactive assets from the INP", async () => {
+      passesEveryCheck();
       const store = setInitialState({
         hydraulicModel: aModelWithControlOnInactiveAsset(),
       });
@@ -456,6 +345,12 @@ describe("Run simulation", () => {
     );
   };
 
+  // The gate runs before every simulation, so a model that is deliberately
+  // broken for the run itself would never reach it.
+  const passesEveryCheck = () => {
+    blockingChecksOverride = () => Promise.resolve([]);
+  };
+
   const aNonSimulableModel = () => {
     const IDS = { r1: 1 } as const;
     return HydraulicModelBuilder.with()
@@ -466,7 +361,6 @@ describe("Run simulation", () => {
   describe("pre-simulation checks", () => {
     beforeEach(() => {
       canValidateModelAttributes = true;
-      stubFeatureOn("FLAG_PRE_SIMULATION_CHECKS");
     });
 
     const aModelWithAnOrphan = () => {
@@ -539,6 +433,24 @@ describe("Run simulation", () => {
           "pipe.roughness.present",
         ]);
       });
+    });
+
+    it("blocks even without the validation permission", async () => {
+      canValidateModelAttributes = false;
+      const store = setInitialState({
+        hydraulicModel: aModelWithEmptyRoughness(),
+      });
+      renderComponent({ store });
+
+      await triggerRun();
+
+      await waitFor(() => {
+        expect(store.get(dialogAtom)).toMatchObject({
+          type: "preSimulationChecks",
+          failingRules: ["pipe.roughness.present"],
+        });
+      });
+      expect(lib.runSimulation).not.toHaveBeenCalled();
     });
 
     it("runs the simulation when every check passes", async () => {

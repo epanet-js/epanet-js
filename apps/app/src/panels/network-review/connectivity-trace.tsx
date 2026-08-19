@@ -4,7 +4,6 @@ import { Button } from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
 import { useZoomTo } from "src/hooks/use-zoom-to";
 import { useUserTracking } from "src/infra/user-tracking";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { WarningIcon } from "src/icons";
 import {
   findConnectivityTrace,
@@ -158,8 +157,6 @@ const SubNetworksList = ({
   selectedSubNetwork: number | null;
   onGoBack: () => void;
 }) => {
-  const isPreSimulationChecksOn = useFeatureFlag("FLAG_PRE_SIMULATION_CHECKS");
-
   return (
     <VirtualizedIssuesList
       items={subNetworks}
@@ -172,9 +169,7 @@ const SubNetworksList = ({
           subnetwork={subnetwork}
           selectedId={selectedId}
           onClick={onClick}
-          showWarning={
-            isPreSimulationChecksOn && subnetwork.supplySourceCount === 0
-          }
+          showWarning={subnetwork.supplySourceCount === 0}
         />
       )}
       checkType={CheckType.connectivityTrace}

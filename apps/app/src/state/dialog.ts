@@ -112,13 +112,6 @@ export type ImportCustomerPointsWarningDialogState = {
   onContinue: () => void;
 };
 
-export type ModelAttributesValidationDialogState = {
-  type: "modelAttributesValidation";
-  issueCount: number;
-  onFixFirst: () => void;
-  onRunAnyway: () => void;
-};
-
 export type PreSimulationChecksDialogState = {
   type: "preSimulationChecks";
   onReview: () => void;
@@ -364,7 +357,6 @@ export type DialogState =
   | UpgradeDialogState
   | ImportCustomerPointsWizardState
   | ImportCustomerPointsWarningDialogState
-  | ModelAttributesValidationDialogState
   | PreSimulationChecksDialogState
   | UnexpectedErrorDialogState
   | ChangeNotAppliedDialogState

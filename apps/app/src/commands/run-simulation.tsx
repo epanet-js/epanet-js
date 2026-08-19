@@ -26,14 +26,9 @@ import { worktreeAtom } from "src/state/scenarios";
 import { nanoid } from "src/lib/id";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useToggleNetworkReview } from "src/commands/toggle-network-review";
-import {
-  countValidationIssues,
-  validateModelAttributes,
-} from "src/lib/model-attributes-validation";
 import { selectedReviewCheckAtom } from "src/state/network-review";
 import { CheckType, failingRuleIds } from "src/lib/network-review";
-import { useCachedCheck, useReviewChecks } from "src/hooks/use-review-checks";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { useReviewChecks } from "src/hooks/use-review-checks";
 import { errorName, handleError } from "src/infra/errors";
 export const runSimulationShortcut = "shift+enter";
 
@@ -47,11 +42,7 @@ export const useRunSimulation = () => {
   const setDialogState = useSetAtom(dialogAtom);
   const userTracking = useUserTracking();
   const toggleNetworkReview = useToggleNetworkReview();
-  const { read: readCachedIssues, write: writeCachedIssues } = useCachedCheck(
-    CheckType.modelAttributesValidation,
-  );
   const { ensureFresh } = useReviewChecks();
-  const isPreSimulationChecksOn = useFeatureFlag("FLAG_PRE_SIMULATION_CHECKS");
   const isCheckingRef = useRef(false);
 
   const runSimulation = useAtomCallback(
@@ -225,136 +216,107 @@ export const useRunSimulation = () => {
           toggleNetworkReview({ source: "auto", state: true });
         };
 
-        if (isPreSimulationChecksOn) {
-          if (isCheckingRef.current) return;
-          isCheckingRef.current = true;
+        if (isCheckingRef.current) return;
+        isCheckingRef.current = true;
 
-          const abortController = new AbortController();
-          let hasSettled = false;
+        const abortController = new AbortController();
+        let hasSettled = false;
 
-          const cancelChecks = () => {
-            userTracking.capture({
-              name: "simulation.validation.cancelled",
-              at: "checking",
-            });
-            abortController.abort();
-          };
-
-          const dismiss = (at: "issuesFound" | "failed") => () => {
-            userTracking.capture({
-              name: "simulation.validation.cancelled",
-              at,
-            });
-            setDialogState(null);
-          };
-
-          const showProgress = setTimeout(() => {
-            if (hasSettled) return;
-            setDialogState({
-              type: "preSimulationChecks",
-              status: "running",
-              onReview: () => reviewChecks("summary"),
-              onRunAnyway: runWithIssues,
-              onCancel: cancelChecks,
-            });
-          }, progressDialogDelayMs);
-
-          // Cancelling terminates the check workers, and a terminated Comlink
-          // call never settles — so racing the signal is what actually ends the
-          // wait, not the rejection.
-          const cancelled = new Promise<typeof aborted>((resolve) => {
-            abortController.signal.addEventListener("abort", () =>
-              resolve(aborted),
-            );
+        const cancelChecks = () => {
+          userTracking.capture({
+            name: "simulation.validation.cancelled",
+            at: "checking",
           });
+          abortController.abort();
+        };
 
-          let results;
-          try {
-            results = await Promise.race([
-              ensureFresh({ signal: abortController.signal }),
-              cancelled,
-            ]);
-          } catch (error) {
-            if (errorName(error) === "AbortError") {
-              setDialogState(null);
-              return;
-            }
+        const dismiss = (at: "issuesFound" | "failed") => () => {
+          userTracking.capture({
+            name: "simulation.validation.cancelled",
+            at,
+          });
+          setDialogState(null);
+        };
 
-            handleError(error, {
-              as: "pre-simulation checks failed",
-              onUnexpected: "capture",
-            });
-            setDialogState({
-              type: "preSimulationChecks",
-              status: "failed",
-              onReview: () => reviewChecks("summary"),
-              onRunAnyway: runWithIssues,
-              onCancel: dismiss("failed"),
-            });
-            return;
-          } finally {
-            hasSettled = true;
-            clearTimeout(showProgress);
-            isCheckingRef.current = false;
-          }
+        const showProgress = setTimeout(() => {
+          if (hasSettled) return;
+          setDialogState({
+            type: "preSimulationChecks",
+            status: "running",
+            onReview: () => reviewChecks("summary"),
+            onRunAnyway: runWithIssues,
+            onCancel: cancelChecks,
+          });
+        }, progressDialogDelayMs);
 
-          if (results === aborted) {
+        // Cancelling terminates the check workers, and a terminated Comlink
+        // call never settles — so racing the signal is what actually ends the
+        // wait, not the rejection.
+        const cancelled = new Promise<typeof aborted>((resolve) => {
+          abortController.signal.addEventListener("abort", () =>
+            resolve(aborted),
+          );
+        });
+
+        let results;
+        try {
+          results = await Promise.race([
+            ensureFresh({ signal: abortController.signal }),
+            cancelled,
+          ]);
+        } catch (error) {
+          if (errorName(error) === "AbortError") {
             setDialogState(null);
             return;
           }
 
-          const failingRules = failingRuleIds(results);
+          handleError(error, {
+            as: "pre-simulation checks failed",
+            onUnexpected: "capture",
+          });
+          setDialogState({
+            type: "preSimulationChecks",
+            status: "failed",
+            onReview: () => reviewChecks("summary"),
+            onRunAnyway: runWithIssues,
+            onCancel: dismiss("failed"),
+          });
+          return;
+        } finally {
+          hasSettled = true;
+          clearTimeout(showProgress);
+          isCheckingRef.current = false;
+        }
 
-          if (failingRules.length > 0) {
-            const failingChecks = results
-              .filter((result) => result.issueCount > 0)
-              .map((result) => result.check);
-            const reviewTarget =
-              failingChecks.length === 1 ? failingChecks[0] : "summary";
-
-            userTracking.capture({
-              name: "simulation.validation.issuesFound",
-              issueCount: results.reduce(
-                (total, result) => total + result.issueCount,
-                0,
-              ),
-              rules: failingRules,
-            });
-            setDialogState({
-              type: "preSimulationChecks",
-              status: "issuesFound",
-              failingRules,
-              onReview: () => reviewChecks(reviewTarget),
-              onRunAnyway: runWithIssues,
-              onCancel: dismiss("issuesFound"),
-            });
-            return;
-          }
-
-          await run();
+        if (results === aborted) {
+          setDialogState(null);
           return;
         }
 
-        const modelVersion = hydraulicModel.version;
-        const cachedIssues = readCachedIssues();
-        const issues =
-          cachedIssues ?? (await validateModelAttributes(hydraulicModel));
-        const issueCount = countValidationIssues(issues);
-        if (!cachedIssues) {
-          writeCachedIssues(issues, issueCount, modelVersion);
-        }
+        const failingRules = failingRuleIds(results);
 
-        if (issueCount > 0) {
+        if (failingRules.length > 0) {
+          const failingChecks = results
+            .filter((result) => result.issueCount > 0)
+            .map((result) => result.check);
+          const reviewTarget =
+            failingChecks.length === 1 ? failingChecks[0] : "summary";
+
           userTracking.capture({
             name: "simulation.validation.issuesFound",
-            issueCount,
-            rules: issues.map(([ruleId]) => ruleId),
+            issueCount: results.reduce(
+              (total, result) => total + result.issueCount,
+              0,
+            ),
+            rules: failingRules,
           });
           setDialogState({
-            type: "modelAttributesValidation",
-            issueCount,
-            onFixFirst: () => reviewChecks(CheckType.modelAttributesValidation),
+            type: "preSimulationChecks",
+            status: "issuesFound",
+            failingRules,
+            onReview: () => reviewChecks(reviewTarget),
             onRunAnyway: runWithIssues,
+            onCancel: dismiss("issuesFound"),
           });
           return;
         }
@@ -366,10 +328,7 @@ export const useRunSimulation = () => {
         setDialogState,
         userTracking,
         toggleNetworkReview,
-        readCachedIssues,
-        writeCachedIssues,
         ensureFresh,
-        isPreSimulationChecksOn,
       ],
     ),
   );

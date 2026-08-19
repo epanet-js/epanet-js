@@ -2,14 +2,11 @@ import { render } from "@testing-library/react";
 import { Provider as JotaiProvider } from "jotai";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
-import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
 import { Store } from "src/state";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { reviewResultsAtom } from "src/state/network-review";
 import { CheckType } from "src/lib/network-review";
 import { useCachedCheck, useReviewChecks } from "./use-review-checks";
-
-const FLAG = "FLAG_PRE_SIMULATION_CHECKS";
 
 const renderCache = <K extends CheckType.orphanAssets>(
   store: Store,
@@ -46,8 +43,6 @@ const currentVersion = (store: Store) =>
   store.get(stagingModelDerivedAtom).version;
 
 describe("useCachedCheck", () => {
-  beforeEach(() => stubFeatureOn(FLAG));
-
   it("returns nothing when the check has not run", () => {
     const store = setInitialState({});
 
@@ -107,37 +102,9 @@ describe("useCachedCheck", () => {
 
     expect(store.get(reviewResultsAtom)[CheckType.orphanAssets]).toBeDefined();
   });
-
-  describe("when the feature flag is off", () => {
-    beforeEach(() => stubFeatureOff(FLAG));
-
-    it("does not cache the topology checks", () => {
-      const store = setInitialState({});
-      const cache = renderCache(store, CheckType.orphanAssets);
-
-      cache.write([1], 1, currentVersion(store));
-
-      expect(cache.read()).toBeNull();
-      expect(store.get(reviewResultsAtom)).toEqual({});
-    });
-
-    it("still caches model attributes, which shipped unflagged", () => {
-      const store = setInitialState({});
-      const cache = renderCache(
-        store,
-        CheckType.modelAttributesValidation as CheckType.orphanAssets,
-      );
-
-      cache.write([], 0, currentVersion(store));
-
-      expect(cache.read()).toEqual([]);
-    });
-  });
 });
 
 describe("useReviewChecks", () => {
-  beforeEach(() => stubFeatureOn(FLAG));
-
   const aModelWithAnOrphan = () =>
     HydraulicModelBuilder.with()
       .aReservoir(1, { head: 100 })

@@ -71,7 +71,6 @@ import { AllocateCustomerPointsDialog } from "src/dialogs/allocate-customer-poin
 import { RecalculateAllElevationsConfirmDialog } from "src/dialogs/recalculate-all-elevations-confirm-dialog";
 import { RecomputeElevationsProgressDialog } from "src/dialogs/recompute-elevations-progress-dialog";
 import { AllocateCustomerPointsWarningDialog } from "src/dialogs/allocate-customer-points-warning";
-import { ModelAttributesValidationDialog } from "src/dialogs/model-attributes-validation";
 import { PreSimulationChecksDialog } from "src/dialogs/pre-simulation-checks";
 import { ImportZonesDialog } from "src/dialogs/import-zones-wizard";
 
@@ -203,16 +202,6 @@ export const Dialogs = memo(function Dialogs() {
     return (
       <AllocateCustomerPointsWarningDialog
         onImport={dialog.onImport}
-        onClose={onClose}
-      />
-    );
-  }
-  if (dialog.type === "modelAttributesValidation") {
-    return (
-      <ModelAttributesValidationDialog
-        issueCount={dialog.issueCount}
-        onFixFirst={dialog.onFixFirst}
-        onRunAnyway={dialog.onRunAnyway}
         onClose={onClose}
       />
     );

@@ -31,7 +31,6 @@ import {
   selectedReviewCheckAtom,
 } from "src/state/network-review";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useReviewChecks } from "src/hooks/use-review-checks";
 
 const LOADING_OVERLAY_DELAY_MS = 300;
@@ -133,7 +132,6 @@ function NetworkReviewSummary({
   onClick: (check: CheckType) => void;
 }) {
   const translate = useTranslate();
-  const isPreSimulationChecksOn = useFeatureFlag("FLAG_PRE_SIMULATION_CHECKS");
   const { ensureFresh } = useReviewChecks();
   const reviewResults = useAtomValue(reviewResultsAtom);
   const [isRunning, setIsRunning] = useState(false);
@@ -160,8 +158,6 @@ function NetworkReviewSummary({
 
   useEffect(
     function recomputeChecksWhenModelChanges() {
-      if (!isPreSimulationChecksOn) return;
-
       const abortController = new AbortController();
       let hideOverlay: ReturnType<typeof setTimeout> | undefined;
 
@@ -200,7 +196,7 @@ function NetworkReviewSummary({
         clearTimeout(hideOverlay);
       };
     },
-    [isPreSimulationChecksOn, ensureFresh, modelVersion],
+    [ensureFresh, modelVersion],
   );
 
   // Deliberately ignores the entry's model version: a recompute is already
@@ -208,7 +204,6 @@ function NetworkReviewSummary({
   // last known count holds until the new one replaces it, and a new project
   // clears the cache outright.
   const issueCount = (checkType: CheckType): number => {
-    if (!isPreSimulationChecksOn) return 0;
     if (!isBlockingCheck(checkType)) return 0;
 
     const entry = reviewResults[checkType];
