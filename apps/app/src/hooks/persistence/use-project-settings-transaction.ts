@@ -1,7 +1,9 @@
 import { useCallback } from "react";
 import { useSetAtom } from "jotai";
+import { nanoid } from "nanoid";
 import type { ProjectSettings } from "@epanet-js/project-settings";
 import { projectSettingsAtom } from "src/state/project-settings";
+import { projectDataVersionAtom } from "src/state/project-revision";
 import { dialogAtom } from "src/state/dialog";
 import { saveProjectSettings, serializeProjectSettings } from "src/lib/db";
 import { captureError } from "src/infra/error-tracking";
@@ -11,6 +13,7 @@ import { useWriteFailureHandler } from "src/hooks/persistence/use-write-failure-
 
 export const useProjectSettingsTransaction = () => {
   const setProjectSettings = useSetAtom(projectSettingsAtom);
+  const setProjectDataVersion = useSetAtom(projectDataVersionAtom);
   const setDialog = useSetAtom(dialogAtom);
   const isQueueOn = useFeatureFlag("FLAG_TRANSACTIONS_QUEUE");
   const onWriteFailure = useWriteFailureHandler();
@@ -26,6 +29,7 @@ export const useProjectSettingsTransaction = () => {
       }
 
       setProjectSettings(next);
+      setProjectDataVersion(nanoid());
 
       if (isQueueOn) {
         writeQueue.enqueue(() => saveProjectSettings(next), onWriteFailure);
@@ -35,7 +39,13 @@ export const useProjectSettingsTransaction = () => {
 
       return true;
     },
-    [setProjectSettings, setDialog, isQueueOn, onWriteFailure],
+    [
+      setProjectSettings,
+      setProjectDataVersion,
+      setDialog,
+      isQueueOn,
+      onWriteFailure,
+    ],
   );
 
   return { transact };

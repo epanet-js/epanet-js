@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { projectFileInfoAtom } from "src/state/file-system";
+import { hasUnsavedChangesRevisionAtom } from "src/state/project-revision";
 import { Store } from "src/state";
 import userEvent from "@testing-library/user-event";
 import { useSaveProject } from "./save-project";
@@ -50,6 +51,21 @@ describe("save project", () => {
 
     expect(screen.getByText(/^saved$/i)).toBeInTheDocument();
     expect(store.get(projectFileInfoAtom)?.handle).toBe(newHandle);
+  });
+
+  it("records the project as saved", async () => {
+    stubFileSave({ fileName: "my-project.ejsdb" });
+    const hydraulicModel = HydraulicModelBuilder.with().aJunction(1).build();
+    const store = setInitialState({ hydraulicModel, isProjectSaved: false });
+    skipProjectSavedInfo(store);
+    await seedDb(hydraulicModel);
+
+    renderComponent({ store });
+    expect(store.get(hasUnsavedChangesRevisionAtom)).toBe(true);
+
+    await triggerSave();
+
+    expect(store.get(hasUnsavedChangesRevisionAtom)).toBe(false);
   });
 
   it("shows the cancel warning when the user dismisses the save dialog", async () => {

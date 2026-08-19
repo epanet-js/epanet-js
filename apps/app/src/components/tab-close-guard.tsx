@@ -1,9 +1,8 @@
-import { useAtomValue } from "jotai";
 import { useEffect } from "react";
-import { hasUnsavedChangesDerivedAtom } from "src/state/derived-branch-state";
+import { useHasUnsavedChanges } from "src/hooks/use-has-unsaved-changes";
 
 export const TabCloseGuard = () => {
-  const hasUnsavedChanges = useAtomValue(hasUnsavedChangesDerivedAtom);
+  const hasUnsavedChanges = useHasUnsavedChanges();
 
   useEffect(() => {
     if (!hasUnsavedChanges) return;

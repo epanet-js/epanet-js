@@ -42,6 +42,10 @@ import { LabelRule } from "src/map/symbology/symbology-types";
 import { Locale } from "@epanet-js/i18n/locale";
 import { localeAtom } from "src/state/locale";
 import { branchStateAtom } from "src/state/branch-state";
+import {
+  resetProjectRevision,
+  savedProjectRevisionAtom,
+} from "src/state/project-revision";
 import { LabelManager } from "@epanet-js/hydraulic-model";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 
@@ -61,12 +65,13 @@ export const setInitialState = (
     simulationStep?: number | null;
     simulationResults?: ResultsReader | null;
     simulationSettings?: SimulationSettings;
+    isProjectSaved?: boolean;
   } = {},
 ): Store => {
   const {
     store = createStore(),
     hydraulicModel = HydraulicModelBuilder.with().build(),
-    momentLog = new MomentLog(),
+    momentLog = new MomentLog(hydraulicModel.version),
     selection = USelection.none(),
     fileInfo = null,
     layerConfigs = new Map(),
@@ -78,6 +83,7 @@ export const setInitialState = (
     simulationStep = null,
     simulationResults = null,
     simulationSettings,
+    isProjectSaved = true,
   } = args;
   const simulationStepWasExplicit = "simulationStep" in args;
   const recentFilesKv = new InMemoryKeyValueStore();
@@ -113,6 +119,11 @@ export const setInitialState = (
           },
         } as unknown as SimulationState)
       : simulation;
+
+  resetProjectRevision(store.set, hydraulicModel.version);
+  if (!isProjectSaved) {
+    store.set(savedProjectRevisionAtom, null);
+  }
 
   store.set(
     branchStateAtom,

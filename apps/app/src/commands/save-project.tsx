@@ -8,6 +8,10 @@ import {
   isDemoNetworkAtom,
 } from "src/state/file-system";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
+import {
+  projectRevisionAtom,
+  savedProjectRevisionAtom,
+} from "src/state/project-revision";
 import { dialogAtom } from "src/state/dialog";
 import { userSettingsAtom } from "src/state/user-settings";
 import { projectSettingsAtom } from "src/state/project-settings";
@@ -91,6 +95,7 @@ export const useSaveProject = ({
               handle: newHandle,
               lastSavedAt: Date.now(),
             });
+            set(savedProjectRevisionAtom, get(projectRevisionAtom));
             if (!isDemo) {
               const thumbnail = map
                 ? (captureThumbnail(map) ?? undefined)

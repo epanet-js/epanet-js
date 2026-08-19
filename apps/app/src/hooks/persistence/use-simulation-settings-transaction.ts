@@ -1,7 +1,9 @@
 import { useCallback } from "react";
 import { useSetAtom } from "jotai";
+import { nanoid } from "nanoid";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
 import { simulationSettingsDerivedAtom } from "src/state/derived-branch-state";
+import { projectDataVersionAtom } from "src/state/project-revision";
 import { dialogAtom } from "src/state/dialog";
 import {
   setAllSimulationSettings,
@@ -16,6 +18,7 @@ import { useWriteFailureHandler } from "src/hooks/persistence/use-write-failure-
 
 export const useSimulationSettingsTransaction = () => {
   const setSettings = useSetAtom(simulationSettingsDerivedAtom);
+  const setProjectDataVersion = useSetAtom(projectDataVersionAtom);
   const setDialog = useSetAtom(dialogAtom);
   const isQueueOn = useFeatureFlag("FLAG_TRANSACTIONS_QUEUE");
   const onWriteFailure = useWriteFailureHandler();
@@ -32,6 +35,7 @@ export const useSimulationSettingsTransaction = () => {
       }
 
       setSettings(next);
+      setProjectDataVersion(nanoid());
 
       if (isQueueOn) {
         writeQueue.enqueue(
@@ -50,7 +54,7 @@ export const useSimulationSettingsTransaction = () => {
 
       return true;
     },
-    [setSettings, setDialog, isQueueOn, onWriteFailure],
+    [setSettings, setProjectDataVersion, setDialog, isQueueOn, onWriteFailure],
   );
 
   return { transact };

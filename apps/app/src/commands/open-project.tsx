@@ -23,6 +23,7 @@ import { useRecentFiles } from "src/hooks/use-recent-files";
 
 import { useSetAtom } from "jotai";
 import { inpFileInfoAtom, projectFileInfoAtom } from "src/state/file-system";
+import { savedProjectRevisionAtom } from "src/state/project-revision";
 import { dialogAtom } from "src/state/dialog";
 import { MapContext, captureThumbnail } from "src/map";
 import { getExtent } from "@epanet-js/geometry";
@@ -41,6 +42,7 @@ export const useOpenProjectFile = () => {
   const { openPersistedProject } = useOpenPersistedProject();
   const setInpFileInfo = useSetAtom(inpFileInfoAtom);
   const setProjectFileInfo = useSetAtom(projectFileInfoAtom);
+  const setSavedProjectRevision = useSetAtom(savedProjectRevisionAtom);
   const setDialogState = useSetAtom(dialogAtom);
   const map = useContext(MapContext);
   const translate = useTranslate();
@@ -164,6 +166,9 @@ export const useOpenProjectFile = () => {
             : file.lastModified,
         });
         setInpFileInfo(null);
+        if (options.isUnsaved) {
+          setSavedProjectRevision(null);
+        }
 
         const features: FeatureCollection = {
           type: "FeatureCollection",
@@ -243,6 +248,7 @@ export const useOpenProjectFile = () => {
       openPersistedProject,
       setInpFileInfo,
       setProjectFileInfo,
+      setSavedProjectRevision,
       setDialogState,
       map,
       translate,

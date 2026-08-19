@@ -1,11 +1,11 @@
-import { useAtomValue, useSetAtom } from "jotai";
+import { useSetAtom } from "jotai";
 import { useCallback } from "react";
 import { dialogAtom } from "src/state/dialog";
-import { hasUnsavedChangesDerivedAtom } from "src/state/derived-branch-state";
+import { useHasUnsavedChanges } from "src/hooks/use-has-unsaved-changes";
 
 export const useUnsavedChangesCheck = () => {
   const setDialogState = useSetAtom(dialogAtom);
-  const hasUnsavedChanges = useAtomValue(hasUnsavedChangesDerivedAtom);
+  const hasUnsavedChanges = useHasUnsavedChanges();
 
   return useCallback(
     (onContinue: () => void) => {

@@ -117,6 +117,11 @@ Queued today: the moment/undo writes (`applyMomentToDb`, in `use-moment-transact
 travel in the moment payload) and the four single-edit hooks (`use-zones-transaction`,
 `use-pipe-library-transaction`, `use-project-settings-transaction`, `use-simulation-settings-transaction`).
 
+**Marking the project as unsaved** is *not* done at this write boundary — undo and redo write here too,
+and marking on them would report unsaved changes after the user undid back to the saved state. A newly
+persisted data type either travels in a `Moment` (covered by the model's `version`) or stamps
+`projectDataVersionAtom` in its transaction hook; anything else silently never counts as an unsaved change.
+
 **Recover-or-throw** (`useWriteFailureHandler`), gated on `sessionRecoveryActiveAtom` (true only when 
 the DB resolved to an OPFS `sahpool` — i.e. a persisted pool exists):
 

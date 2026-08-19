@@ -1,5 +1,5 @@
 import { isDemoNetworkAtom, projectFileInfoAtom } from "src/state/file-system";
-import { hasUnsavedChangesDerivedAtom } from "src/state/derived-branch-state";
+import { useHasUnsavedChanges } from "src/hooks/use-has-unsaved-changes";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { useAtomValue } from "jotai";
 import { truncate } from "src/lib/utils";
@@ -11,7 +11,7 @@ export function FileInfo() {
   const translate = useTranslate();
   const projectName = useAtomValue(projectSettingsAtom).name;
   const isDemo = useAtomValue(isDemoNetworkAtom);
-  const hasUnsavedChanges = useAtomValue(hasUnsavedChangesDerivedAtom);
+  const hasUnsavedChanges = useHasUnsavedChanges();
   const projectFileInfo = useAtomValue(projectFileInfoAtom);
 
   const TypeIcon = FileBoxIcon;

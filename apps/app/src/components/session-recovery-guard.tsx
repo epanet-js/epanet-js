@@ -1,9 +1,7 @@
 import { useEffect } from "react";
 import { useAtomValue } from "jotai";
-import {
-  hasUnsavedChangesDerivedAtom,
-  stagingModelDerivedAtom,
-} from "src/state/derived-branch-state";
+import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
+import { useHasUnsavedChanges } from "src/hooks/use-has-unsaved-changes";
 import { projectFileInfoAtom } from "src/state/file-system";
 import { sessionRecoveryActiveAtom } from "src/state/session-recovery";
 import { getAppId } from "src/infra/app-instance";
@@ -14,7 +12,7 @@ import {
 
 export const SessionRecoveryGuard = () => {
   const isActive = useAtomValue(sessionRecoveryActiveAtom);
-  const hasUnsavedChanges = useAtomValue(hasUnsavedChangesDerivedAtom);
+  const hasUnsavedChanges = useHasUnsavedChanges();
   const modelVersion = useAtomValue(stagingModelDerivedAtom).version;
   const projectFileInfo = useAtomValue(projectFileInfoAtom);
   const projectName = projectFileInfo?.name ?? null;

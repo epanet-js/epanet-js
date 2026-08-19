@@ -3,6 +3,7 @@ import { useSetAtom } from "jotai";
 import { useAtomCallback } from "jotai/utils";
 import { dialogAtom } from "src/state/dialog";
 import { inpFileInfoAtom, projectFileInfoAtom } from "src/state/file-system";
+import { savedProjectRevisionAtom } from "src/state/project-revision";
 import { userSettingsAtom } from "src/state/user-settings";
 import { captureError } from "src/infra/error-tracking";
 import { errorName, handleError } from "src/infra/errors";
@@ -43,6 +44,7 @@ export const useImportInp = () => {
   const map = useContext(MapContext);
   const setInpFileInfo = useSetAtom(inpFileInfoAtom);
   const setProjectFileInfo = useSetAtom(projectFileInfoAtom);
+  const setSavedProjectRevision = useSetAtom(savedProjectRevisionAtom);
   const userTracking = useUserTracking();
   const { startNewProject } = useStartNewProject();
   const { addRecent } = useRecentFiles();
@@ -135,6 +137,7 @@ export const useImportInp = () => {
         options: { type: "inp" },
       });
       setProjectFileInfo(null);
+      setSavedProjectRevision(null);
       if (file.handle) {
         const handle = file.handle;
         const name = file.name;
@@ -155,6 +158,7 @@ export const useImportInp = () => {
       map,
       setInpFileInfo,
       setProjectFileInfo,
+      setSavedProjectRevision,
       handleImportComplete,
       setDialogState,
       translate,

@@ -1,7 +1,9 @@
 import { useCallback } from "react";
 import { useSetAtom } from "jotai";
+import { nanoid } from "nanoid";
 import type { Zones } from "src/lib/zones";
 import { zonesAtom } from "src/state/zones";
+import { projectDataVersionAtom } from "src/state/project-revision";
 import { dialogAtom } from "src/state/dialog";
 import { saveZones, serializeZones } from "src/lib/db";
 import { captureError } from "src/infra/error-tracking";
@@ -11,6 +13,7 @@ import { useWriteFailureHandler } from "src/hooks/persistence/use-write-failure-
 
 export const useZonesTransaction = () => {
   const setZones = useSetAtom(zonesAtom);
+  const setProjectDataVersion = useSetAtom(projectDataVersionAtom);
   const setDialog = useSetAtom(dialogAtom);
   const isQueueOn = useFeatureFlag("FLAG_TRANSACTIONS_QUEUE");
   const onWriteFailure = useWriteFailureHandler();
@@ -26,6 +29,7 @@ export const useZonesTransaction = () => {
       }
 
       setZones(next);
+      setProjectDataVersion(nanoid());
 
       if (isQueueOn) {
         writeQueue.enqueue(() => saveZones(next), onWriteFailure);
@@ -35,7 +39,7 @@ export const useZonesTransaction = () => {
 
       return true;
     },
-    [setZones, setDialog, isQueueOn, onWriteFailure],
+    [setZones, setProjectDataVersion, setDialog, isQueueOn, onWriteFailure],
   );
 
   return { transact };

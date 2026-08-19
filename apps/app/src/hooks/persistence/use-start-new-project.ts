@@ -37,6 +37,7 @@ import { dialogAtom } from "src/state/dialog";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { momentLogAtom } from "src/state/model-changes";
+import { resetProjectRevision } from "src/state/project-revision";
 import { reviewResultsAtom } from "src/state/network-review";
 import {
   simulationDerivedAtom,
@@ -124,6 +125,7 @@ export const loadModel = (
   } = input;
   const momentLog = new MomentLog(hydraulicModel.version);
 
+  resetProjectRevision(set, hydraulicModel.version);
   writeQueue.reset();
 
   set(modelFactoriesAtom, factories);
