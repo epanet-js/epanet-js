@@ -9,6 +9,7 @@ import {
   FileBoxIcon,
   FilePlusCornerIcon,
   FileSpreadsheetIcon,
+  DatabaseIcon,
   FolderIcon,
   FolderOpenIcon,
   GlobeIcon,
@@ -26,6 +27,7 @@ import { useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
 import { useNewProject } from "src/commands/create-new-project";
 import { useOpenInpFromFs } from "src/commands/open-inp-from-fs";
+import { useOpenSynergi } from "src/commands/open-synergi";
 import { useOpenProject } from "src/commands/open-project";
 import { useSaveInp } from "src/commands/save-inp";
 import { useSaveProject } from "src/commands/save-project";
@@ -38,6 +40,8 @@ import { useImportCustomerPoints } from "src/commands/import-customer-points";
 import { useOpenZonesImport } from "src/commands/open-zones-import";
 import { useImportZonesDisabled } from "src/hooks/use-import-zones-disabled";
 import { useRecentFiles } from "src/hooks/use-recent-files";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { usePermissions } from "src/hooks/use-permissions";
 import {
   Button,
   DDContent,
@@ -122,12 +126,29 @@ export const FileDropdown = () => {
   );
 };
 
+const SynergiItem = () => {
+  const openSynergi = useOpenSynergi();
+
+  return (
+    <StyledItem
+      onSelect={() => {
+        void openSynergi({ source: "toolbar" });
+      }}
+    >
+      <DatabaseIcon />
+      From Synergi
+    </StyledItem>
+  );
+};
+
 const NewProjectSubmenu = () => {
   const createNewProject = useNewProject();
   const openModelBuilder = useOpenModelBuilder();
   const openInpFromFs = useOpenInpFromFs();
   const userTracking = useUserTracking();
   const translate = useTranslate();
+  const isSynergiOn = useFeatureFlag("FLAG_SYNERGI");
+  const { canImportSynergi } = usePermissions();
 
   return (
     <DD.Sub>
@@ -173,6 +194,8 @@ const NewProjectSubmenu = () => {
             <FileSpreadsheetIcon />
             {translate("newProject.fromEpanetInp")}
           </StyledItem>
+
+          {isSynergiOn && canImportSynergi && <SynergiItem />}
         </DDSubContent>
       </DD.Portal>
     </DD.Sub>

@@ -375,6 +375,17 @@ export type RecentFileOpened = {
   kind: "inp" | "project";
 };
 
+export type ImportSynergiStarted = {
+  name: "importSynergi.started";
+  source: string;
+};
+
+export type ImportSynergiCompleted = {
+  name: "importSynergi.completed";
+  source: string;
+  counts: Record<string, number>;
+};
+
 export type ImportInpCompleted = {
   name: "importInp.completed";
   source: string;
@@ -1310,6 +1321,8 @@ export type UserEvent =
   | OpenInpStarted
   | RecentFileOpened
   | ImportInpCompleted
+  | ImportSynergiStarted
+  | ImportSynergiCompleted
   | FilesDropped
   | InvalidFilesErrorSeen
   | DownloadErrorSeen

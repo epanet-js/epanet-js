@@ -1,4 +1,8 @@
-import type { JunctionData, NetworkData } from "@epanet-js/converters";
+import type {
+  JunctionData,
+  NetworkData,
+  SourceCrs,
+} from "@epanet-js/converters";
 import {
   HydraulicModel,
   createEmptyDemands,
@@ -21,13 +25,16 @@ import {
 } from "@epanet-js/project-settings";
 import { convertTo, type FlowUnit, type Unit } from "@epanet-js/quantity";
 import {
+  WGS84,
   createProjectionMapper,
+  findProjectionByCode,
+  type Proj4Projection,
   type Projection,
 } from "@epanet-js/projections";
 import type { Position } from "geojson";
 
 export type BuildModelOptions = {
-  projection: Projection;
+  projections: Map<string, Proj4Projection>;
   labelMaxLength?: number;
 };
 
@@ -37,13 +44,13 @@ export type BuildModelResult = {
   idGenerator: IdGenerator;
   projectSettings: Pick<
     ProjectSettings,
-    "units" | "defaults" | "headlossFormula" | "formatting"
+    "units" | "defaults" | "headlossFormula" | "formatting" | "projection"
   >;
 };
 
 export const buildModel = (
   network: NetworkData,
-  { projection, labelMaxLength }: BuildModelOptions,
+  { projections, labelMaxLength }: BuildModelOptions,
 ): BuildModelResult => {
   const headlossFormula: HeadlossFormula = "H-W";
   const baseSpec = presets[chooseUnitSystem(network.units.flow)];
@@ -60,6 +67,7 @@ export const buildModel = (
   });
   const factories = initializeModelFactories({ idGenerator, labelManager });
 
+  const projection = resolveProjection(network.crs, projections);
   const { toWgs84 } = createProjectionMapper(projection);
   const toElevation = elevationConverter(
     network.units.elevation,
@@ -84,8 +92,18 @@ export const buildModel = (
       defaults,
       headlossFormula,
       formatting: { decimals: spec.decimals, defaultDecimals: 3 },
+      projection,
     },
   };
+};
+
+const resolveProjection = (
+  crs: SourceCrs,
+  projections: Map<string, Proj4Projection>,
+): Projection => {
+  if (crs.type !== "epsg") return WGS84;
+
+  return findProjectionByCode(String(crs.code), projections) ?? WGS84;
 };
 
 const addJunction = (

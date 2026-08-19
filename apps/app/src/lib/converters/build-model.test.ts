@@ -1,15 +1,17 @@
 import type { JunctionData, NetworkData } from "@epanet-js/converters";
-import { WGS84, type Projection } from "@epanet-js/projections";
+import { WGS84, type Proj4Projection } from "@epanet-js/projections";
 import { Junction } from "src/hydraulic-model";
 import { getByLabel } from "src/__helpers__/asset-queries";
 import { buildModel } from "./build-model";
 
-const webMercator: Projection = {
+const webMercator: Proj4Projection = {
   type: "proj4",
   id: "EPSG:3857",
   name: "WGS 84 / Pseudo-Mercator",
   code: "EPSG:3857",
 };
+
+const aCatalogue = () => new Map([[webMercator.id, webMercator]]);
 
 describe("build model from network data", () => {
   it("builds a junction with its label, coordinates and elevation", () => {
@@ -17,7 +19,7 @@ describe("build model from network data", () => {
       aNetwork({
         junctions: [aJunction({ ref: "1", label: "J1", elevation: 63 })],
       }),
-      { projection: WGS84 },
+      { projections: aCatalogue() },
     );
 
     const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
@@ -28,7 +30,7 @@ describe("build model from network data", () => {
   it("leaves the elevation null when the source did not state one", () => {
     const { hydraulicModel } = buildModel(
       aNetwork({ junctions: [aJunction({ ref: "1", label: "J1" })] }),
-      { projection: WGS84 },
+      { projections: aCatalogue() },
     );
 
     const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
@@ -38,7 +40,7 @@ describe("build model from network data", () => {
   it("names a junction after its source reference when the source gave no label", () => {
     const { hydraulicModel } = buildModel(
       aNetwork({ junctions: [aJunction({ ref: "7" })] }),
-      { projection: WGS84 },
+      { projections: aCatalogue() },
     );
 
     expect(getByLabel(hydraulicModel.assets, "7")).toBeDefined();
@@ -52,32 +54,52 @@ describe("build model from network data", () => {
           aJunction({ ref: "2", label: "DUPLICATE" }),
         ],
       }),
-      { projection: WGS84 },
+      { projections: aCatalogue() },
     );
 
     const labels = [...hydraulicModel.assets.values()].map((a) => a.label);
     expect(labels).toEqual(["DUPLICATE", "2"]);
   });
 
-  it("reprojects coordinates into wgs84", () => {
-    const { hydraulicModel } = buildModel(
+  it("reprojects coordinates with the projection the source coordinate system names", () => {
+    const { hydraulicModel, projectSettings } = buildModel(
       aNetwork({
         junctions: [
           aJunction({ ref: "1", label: "J1", coordinates: [1113194.9, 0] }),
         ],
+        crs: { type: "epsg", code: 3857 },
       }),
-      { projection: webMercator },
+      { projections: aCatalogue() },
     );
 
     const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
     expect(junction.coordinates[0]).toBeCloseTo(10, 5);
     expect(junction.coordinates[1]).toBeCloseTo(0, 5);
+    expect(projectSettings.projection).toEqual(webMercator);
+  });
+
+  it("keeps coordinates as they are when the source named no coordinate system", () => {
+    const { projectSettings } = buildModel(
+      aNetwork({ junctions: [aJunction({ ref: "1", label: "J1" })] }),
+      { projections: aCatalogue() },
+    );
+
+    expect(projectSettings.projection).toEqual(WGS84);
+  });
+
+  it("keeps coordinates as they are when the code is not in the catalogue", () => {
+    const { projectSettings } = buildModel(
+      aNetwork({ crs: { type: "epsg", code: 32129 } }),
+      { projections: aCatalogue() },
+    );
+
+    expect(projectSettings.projection).toEqual(WGS84);
   });
 
   it("indexes every junction it builds", () => {
     const { hydraulicModel } = buildModel(
       aNetwork({ junctions: [aJunction({ ref: "1", label: "J1" })] }),
-      { projection: WGS84 },
+      { projections: aCatalogue() },
     );
 
     const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
@@ -89,7 +111,7 @@ describe("build model unit system", () => {
   it("takes the unit system from the flow unit the source declared", () => {
     const { projectSettings } = buildModel(
       aNetwork({ units: { flow: "gal/min" } }),
-      { projection: WGS84 },
+      { projections: aCatalogue() },
     );
 
     expect(projectSettings.units.flow).toEqual("gal/min");
@@ -98,7 +120,7 @@ describe("build model unit system", () => {
 
   it("falls back to litres per second when the source declared no flow unit", () => {
     const { projectSettings } = buildModel(aNetwork({ units: {} }), {
-      projection: WGS84,
+      projections: aCatalogue(),
     });
 
     expect(projectSettings.units.flow).toEqual("l/s");
@@ -108,7 +130,7 @@ describe("build model unit system", () => {
   it("falls back to litres per second for a flow unit epanet cannot express", () => {
     const { projectSettings } = buildModel(
       aNetwork({ units: { flow: "l/d" } }),
-      { projection: WGS84 },
+      { projections: aCatalogue() },
     );
 
     expect(projectSettings.units.flow).toEqual("l/s");
@@ -117,7 +139,7 @@ describe("build model unit system", () => {
   it("keeps the pressure unit the source declared", () => {
     const { projectSettings } = buildModel(
       aNetwork({ units: { flow: "l/s", pressure: "bar" } }),
-      { projection: WGS84 },
+      { projections: aCatalogue() },
     );
 
     expect(projectSettings.units.pressure).toEqual("bar");
@@ -129,7 +151,7 @@ describe("build model unit system", () => {
         junctions: [aJunction({ ref: "1", label: "J1", elevation: 10 })],
         units: { flow: "l/s", elevation: "ft" },
       }),
-      { projection: WGS84 },
+      { projections: aCatalogue() },
     );
 
     const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
@@ -142,7 +164,7 @@ describe("build model unit system", () => {
         junctions: [aJunction({ ref: "1", label: "J1", elevation: 10 })],
         units: { flow: "l/s", elevation: "m" },
       }),
-      { projection: WGS84 },
+      { projections: aCatalogue() },
     );
 
     const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;

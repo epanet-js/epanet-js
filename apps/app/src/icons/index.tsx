@@ -32,6 +32,7 @@ import {
   FileCode,
   FilePlus,
   FilePlus2,
+  Database,
   FileSpreadsheet,
   FileText,
   Folder,
@@ -174,6 +175,7 @@ export const FileAddIcon = icon(FilePlus);
 export const FilePlusCornerIcon = icon(FilePlus2);
 export const FileTextIcon = icon(FileText);
 export const FileSpreadsheetIcon = icon(FileSpreadsheet);
+export const DatabaseIcon = icon(Database);
 export const FileBoxIcon = icon(FileBox);
 export const FolderIcon = icon(Folder);
 export const FolderOpenIcon = icon(FolderOpen);
