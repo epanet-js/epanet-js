@@ -81,6 +81,7 @@ export const useOpenSynergi = () => {
             junctions: network.junctions.length,
             reservoirs: network.reservoirs.length,
             tanks: network.tanks.length,
+            pipes: network.pipes.length,
           },
         });
       } catch (error) {

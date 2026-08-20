@@ -15,7 +15,7 @@ import { useInProcessDb } from "src/lib/db/__test-helpers__/in-process-db";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { Store } from "src/state";
-import { Junction, Reservoir, Tank } from "src/hydraulic-model";
+import { Junction, Pipe, Reservoir, Tank } from "src/hydraulic-model";
 import { CommandContainer } from "./__helpers__/command-container";
 import { useOpenSynergi } from "./open-synergi";
 
@@ -43,8 +43,17 @@ describe("openSynergi", () => {
             initialLevel: 10,
           },
         ],
+        pipes: [
+          {
+            ref: "10",
+            label: "P1",
+            startNodeRef: "1",
+            endNodeRef: "3",
+            length: 250,
+          },
+        ],
         crs: { type: "epsg", code: 3857 },
-        units: { flow: "l/s", elevation: "m", level: "m" },
+        units: { flow: "l/s", elevation: "m", level: "m", length: "m" },
       }),
       issues: [],
     });
@@ -67,6 +76,13 @@ describe("openSynergi", () => {
     const tank = getByLabel(hydraulicModel.assets, "T1") as Tank;
     expect(tank.elevation).toEqual(77);
     expect(tank.initialLevel).toEqual(10);
+
+    const pipe = getByLabel(hydraulicModel.assets, "P1") as Pipe;
+    expect(pipe.length).toEqual(250);
+    expect(hydraulicModel.topology.getNodes(pipe.id)).toEqual([
+      junction.id,
+      tank.id,
+    ]);
 
     const projectSettings = store.get(projectSettingsAtom);
     expect(projectSettings.name).toEqual("my-network");
@@ -93,7 +109,7 @@ describe("openSynergi", () => {
     expect(userTracking.capture).toHaveBeenCalledWith({
       name: "importSynergi.completed",
       source: "toolbar",
-      counts: { junctions: 0, reservoirs: 0, tanks: 0 },
+      counts: { junctions: 0, reservoirs: 0, tanks: 0, pipes: 0 },
     });
   });
 
@@ -130,6 +146,7 @@ const aNetwork = (data: Partial<NetworkData> = {}): NetworkData => ({
   junctions: [],
   reservoirs: [],
   tanks: [],
+  pipes: [],
   units: {},
   crs: { type: "unknown" },
   ...data,

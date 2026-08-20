@@ -1,11 +1,12 @@
 import type {
   JunctionData,
   NetworkData,
+  PipeData,
   ReservoirData,
   TankData,
 } from "@epanet-js/converters";
 import { WGS84, type Proj4Projection } from "@epanet-js/projections";
-import { Junction, Reservoir, Tank } from "src/hydraulic-model";
+import { Junction, Pipe, Reservoir, Tank } from "src/hydraulic-model";
 import { getByLabel } from "src/__helpers__/asset-queries";
 import { buildModel } from "./build-model";
 
@@ -199,6 +200,229 @@ describe("build model unit system", () => {
   });
 });
 
+describe("build pipes from network data", () => {
+  const twoJunctions = [
+    aJunction({ ref: "1", label: "J1", coordinates: [0, 0] }),
+    aJunction({ ref: "2", label: "J2", coordinates: [1, 0] }),
+  ];
+
+  it("connects a pipe to the nodes its refs name", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        junctions: twoJunctions,
+        pipes: [aPipe({ ref: "10", label: "P1" })],
+      }),
+      { projections: aCatalogue() },
+    );
+
+    const pipe = getByLabel(hydraulicModel.assets, "P1") as Pipe;
+    const start = getByLabel(hydraulicModel.assets, "J1") as Junction;
+    const end = getByLabel(hydraulicModel.assets, "J2") as Junction;
+
+    expect(pipe.connections).toEqual([start.id, end.id]);
+    expect(hydraulicModel.topology.getNodes(pipe.id)).toEqual([
+      start.id,
+      end.id,
+    ]);
+    expect(hydraulicModel.assetIndex.hasLink(pipe.id)).toEqual(true);
+  });
+
+  it("runs the polyline through the vertices", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        junctions: twoJunctions,
+        pipes: [
+          aPipe({
+            ref: "10",
+            label: "P1",
+            vertices: [
+              [0.4, 0.1],
+              [0.6, 0.1],
+            ],
+          }),
+        ],
+      }),
+      { projections: aCatalogue() },
+    );
+
+    const pipe = getByLabel(hydraulicModel.assets, "P1") as Pipe;
+    expect(pipe.coordinates).toEqual([
+      [0, 0],
+      [0.4, 0.1],
+      [0.6, 0.1],
+      [1, 0],
+    ]);
+  });
+
+  it("keeps the declared length", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        junctions: twoJunctions,
+        pipes: [aPipe({ ref: "10", label: "P1", length: 12.5 })],
+        units: { flow: "l/s", length: "m" },
+      }),
+      { projections: aCatalogue() },
+    );
+
+    const pipe = getByLabel(hydraulicModel.assets, "P1") as Pipe;
+    expect(pipe.length).toEqual(12.5);
+  });
+
+  it("measures the geometry when the source declared no length", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        junctions: twoJunctions,
+        pipes: [aPipe({ ref: "10", label: "P1" })],
+        units: { flow: "l/s", length: "m" },
+      }),
+      { projections: aCatalogue() },
+    );
+
+    const pipe = getByLabel(hydraulicModel.assets, "P1") as Pipe;
+    expect(pipe.length).toBeCloseTo(111195, 0);
+  });
+
+  it("converts the diameter into the project unit", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        junctions: twoJunctions,
+        pipes: [aPipe({ ref: "10", label: "P1", diameter: 300 })],
+        units: { flow: "gal/min", diameter: "mm" },
+      }),
+      { projections: aCatalogue() },
+    );
+
+    const pipe = getByLabel(hydraulicModel.assets, "P1") as Pipe;
+    expect(pipe.diameter).toBeCloseTo(11.811, 3);
+  });
+
+  it("keeps a stated zero diameter rather than inventing one", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        junctions: twoJunctions,
+        pipes: [aPipe({ ref: "10", label: "P1", diameter: 0 })],
+        units: { flow: "l/s", diameter: "mm" },
+      }),
+      { projections: aCatalogue() },
+    );
+
+    const pipe = getByLabel(hydraulicModel.assets, "P1") as Pipe;
+    expect(pipe.diameter).toEqual(0);
+  });
+
+  it("leaves the diameter blank when the source stated none", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        junctions: twoJunctions,
+        pipes: [aPipe({ ref: "10", label: "P1" })],
+        units: { flow: "l/s", diameter: "mm" },
+      }),
+      { projections: aCatalogue() },
+    );
+
+    const pipe = getByLabel(hydraulicModel.assets, "P1") as Pipe;
+    expect(pipe.diameter).toBeNull();
+  });
+
+  it("drops a pipe whose endpoint is not in the model", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        junctions: twoJunctions,
+        pipes: [aPipe({ ref: "10", label: "P1", endNodeRef: "404" })],
+      }),
+      { projections: aCatalogue() },
+    );
+
+    expect(hydraulicModel.assets.size).toEqual(2);
+  });
+
+  it("carries the inactive flag through", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        junctions: twoJunctions,
+        pipes: [aPipe({ ref: "10", label: "P1", isActive: false })],
+      }),
+      { projections: aCatalogue() },
+    );
+
+    const pipe = getByLabel(hydraulicModel.assets, "P1") as Pipe;
+    expect(pipe.isActive).toEqual(false);
+  });
+
+  it("lets a pipe and a node share a label", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        junctions: twoJunctions,
+        pipes: [aPipe({ ref: "10", label: "J1" })],
+      }),
+      { projections: aCatalogue() },
+    );
+
+    const labels = [...hydraulicModel.assets.values()].map((a) => a.label);
+    expect(labels).toEqual(["J1", "J2", "J1"]);
+  });
+});
+
+describe("headloss formula", () => {
+  const twoJunctions = [
+    aJunction({ ref: "1", label: "J1", coordinates: [0, 0] }),
+    aJunction({ ref: "2", label: "J2", coordinates: [1, 0] }),
+  ];
+
+  it("adopts the formula the network states", () => {
+    const { projectSettings } = buildModel(
+      aNetwork({ headlossFormula: "D-W" }),
+      { projections: aCatalogue() },
+    );
+
+    expect(projectSettings.headlossFormula).toEqual("D-W");
+    expect(projectSettings.defaults.pipe.roughness).toEqual(0.1);
+  });
+
+  it("falls back to hazen williams when the network states none", () => {
+    const { projectSettings } = buildModel(aNetwork(), {
+      projections: aCatalogue(),
+    });
+
+    expect(projectSettings.headlossFormula).toEqual("H-W");
+    expect(projectSettings.defaults.pipe.roughness).toEqual(130);
+  });
+
+  it("leaves the roughness blank when the source stated none", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        junctions: twoJunctions,
+        pipes: [aPipe({ ref: "10", label: "P1" })],
+        headlossFormula: "D-W",
+      }),
+      { projections: aCatalogue() },
+    );
+
+    const pipe = getByLabel(hydraulicModel.assets, "P1") as Pipe;
+    expect(pipe.roughness).toBeNull();
+  });
+
+  it("keeps a stated roughness", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        junctions: twoJunctions,
+        pipes: [aPipe({ ref: "10", label: "P1", roughness: 0.7 })],
+        headlossFormula: "D-W",
+      }),
+      { projections: aCatalogue() },
+    );
+
+    const pipe = getByLabel(hydraulicModel.assets, "P1") as Pipe;
+    expect(pipe.roughness).toEqual(0.7);
+  });
+});
+
+const aPipe = (data: Partial<PipeData> & { ref: string }): PipeData => ({
+  startNodeRef: "1",
+  endNodeRef: "2",
+  ...data,
+});
+
 const aReservoir = (
   data: Partial<ReservoirData> & { ref: string },
 ): ReservoirData => ({
@@ -228,7 +452,7 @@ describe("build reservoirs from network data", () => {
     expect(reservoir.head).toEqual(100);
   });
 
-  it("falls back to the preset head when the source did not state one", () => {
+  it("leaves the head blank when the source did not state one", () => {
     const { hydraulicModel } = buildModel(
       aNetwork({
         reservoirs: [aReservoir({ ref: "1", label: "R1", elevation: 50 })],
@@ -238,7 +462,7 @@ describe("build reservoirs from network data", () => {
     );
 
     const reservoir = getByLabel(hydraulicModel.assets, "R1") as Reservoir;
-    expect(reservoir.head).toEqual(60);
+    expect(reservoir.head).toBeNull();
   });
 
   it("converts the head into the project unit", () => {
@@ -294,7 +518,7 @@ describe("build tanks from network data", () => {
     expect(tank.diameter).toEqual(10);
   });
 
-  it("falls back to the preset levels the source did not state", () => {
+  it("leaves the levels blank when the source stated none", () => {
     const { hydraulicModel } = buildModel(
       aNetwork({
         tanks: [aTank({ ref: "1", label: "T1" })],
@@ -304,13 +528,13 @@ describe("build tanks from network data", () => {
     );
 
     const tank = getByLabel(hydraulicModel.assets, "T1") as Tank;
-    expect(tank.minLevel).toEqual(0);
-    expect(tank.initialLevel).toEqual(10);
-    expect(tank.maxLevel).toEqual(35);
-    expect(tank.diameter).toEqual(10);
+    expect(tank.minLevel).toBeNull();
+    expect(tank.initialLevel).toBeNull();
+    expect(tank.maxLevel).toBeNull();
+    expect(tank.diameter).toBeNull();
   });
 
-  it("treats a zero diameter as no diameter at all", () => {
+  it("keeps a stated zero diameter rather than inventing one", () => {
     const { hydraulicModel } = buildModel(
       aNetwork({
         tanks: [aTank({ ref: "1", label: "T1", diameter: 0 })],
@@ -320,10 +544,10 @@ describe("build tanks from network data", () => {
     );
 
     const tank = getByLabel(hydraulicModel.assets, "T1") as Tank;
-    expect(tank.diameter).toEqual(10);
+    expect(tank.diameter).toEqual(0);
   });
 
-  it("raises the max level so it can hold the initial level", () => {
+  it("keeps a stated initial level with no max level to hold it", () => {
     const { hydraulicModel } = buildModel(
       aNetwork({
         tanks: [aTank({ ref: "1", label: "T1", initialLevel: 60 })],
@@ -334,7 +558,7 @@ describe("build tanks from network data", () => {
 
     const tank = getByLabel(hydraulicModel.assets, "T1") as Tank;
     expect(tank.initialLevel).toEqual(60);
-    expect(tank.maxLevel).toEqual(60);
+    expect(tank.maxLevel).toBeNull();
   });
 
   it("indexes the tank as a node", () => {
@@ -375,6 +599,7 @@ const aNetwork = (data: Partial<NetworkData> = {}): NetworkData => ({
   junctions: [],
   reservoirs: [],
   tanks: [],
+  pipes: [],
   units: {},
   crs: { type: "unknown" },
   ...data,

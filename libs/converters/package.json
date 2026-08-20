@@ -16,6 +16,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@epanet-js/hydraulic-model": "workspace:^",
     "@epanet-js/quantity": "workspace:*"
   },
   "devDependencies": {

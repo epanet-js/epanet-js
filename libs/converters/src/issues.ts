@@ -12,6 +12,10 @@ export type IssueCode =
   | "nodeFixedHeadUnsupported"
   | "tankHydraulicsMissing"
   | "tankVolumeCurveUnsupported"
+  | "linkIdentifierMissing"
+  | "linkEndpointMissing"
+  | "linkHydraulicsMissing"
+  | "pipeHeadlossFormulaUnsupported"
   | "unitSystemMissing"
   | "unitSystemUnsupported"
   | "coordinateSystemMissing";

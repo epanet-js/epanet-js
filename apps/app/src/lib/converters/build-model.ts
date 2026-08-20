@@ -2,6 +2,7 @@ import type {
   JunctionData,
   NetworkData,
   NodeData,
+  PipeData,
   ReservoirData,
   SourceCrs,
   TankData,
@@ -13,8 +14,10 @@ import {
 } from "src/hydraulic-model";
 import {
   AssetFactory,
-  DefaultsSpec,
+  AssetId,
+  NodeAsset,
   HeadlossFormula,
+  computeLinkLength,
   LabelManager,
   LabelType,
   ModelFactories,
@@ -61,7 +64,7 @@ export const buildModel = (
   network: NetworkData,
   { projections, labelMaxLength }: BuildModelOptions,
 ): BuildModelResult => {
-  const headlossFormula: HeadlossFormula = "H-W";
+  const headlossFormula: HeadlossFormula = network.headlossFormula ?? "H-W";
   const baseSpec = presets[chooseUnitSystem(network.units.flow)];
   const spec = network.units.pressure
     ? withPressureUnit(baseSpec, network.units.pressure)
@@ -79,6 +82,7 @@ export const buildModel = (
   const projection = resolveProjection(network.crs, projections);
   const { toWgs84 } = createProjectionMapper(projection);
 
+  const nodeIdByRef = new Map<string, BuiltNode>();
   const context: NodeContext = {
     labelManager,
     labelMaxLength,
@@ -89,7 +93,7 @@ export const buildModel = (
       network.units.diameter,
       spec.units.tankDiameter,
     ),
-    defaults,
+    nodeIdByRef,
   };
 
   for (const junctionData of network.junctions) {
@@ -107,6 +111,17 @@ export const buildModel = (
 
   for (const tankData of network.tanks) {
     addTank(hydraulicModel, factories.assetFactory, tankData, context);
+  }
+
+  const linkContext: LinkContext = {
+    ...context,
+    lengthUnit: spec.units.length,
+    toLength: converterFor(network.units.length, spec.units.length),
+    toDiameter: converterFor(network.units.diameter, spec.units.diameter),
+  };
+
+  for (const pipeData of network.pipes) {
+    addPipe(hydraulicModel, factories.assetFactory, pipeData, linkContext);
   }
 
   return {
@@ -135,6 +150,8 @@ const resolveProjection = (
   return findProjectionByCode(String(crs.code), projections) ?? WGS84;
 };
 
+type BuiltNode = { id: AssetId; coordinates: Position };
+
 type NodeContext = {
   labelManager: LabelManager;
   labelMaxLength?: number;
@@ -142,7 +159,13 @@ type NodeContext = {
   toElevation: (value: number) => number;
   toLevel: (value: number) => number;
   toTankDiameter: (value: number) => number;
-  defaults: DefaultsSpec;
+  nodeIdByRef: Map<string, BuiltNode>;
+};
+
+type LinkContext = NodeContext & {
+  lengthUnit: Unit;
+  toLength: (value: number) => number;
+  toDiameter: (value: number) => number;
 };
 
 const addJunction = (
@@ -155,8 +178,7 @@ const addJunction = (
     ...nodeProperties(junctionData, "junction", context),
   });
 
-  hydraulicModel.assets.set(junction.id, junction);
-  hydraulicModel.assetIndex.addNode(junction.id);
+  registerNode(hydraulicModel, junction, junctionData.ref, context);
   hydraulicModel.demands.junctions.set(junction.id, []);
 };
 
@@ -169,13 +191,10 @@ const addReservoir = (
   const { head } = reservoirData;
   const reservoir = assetFactory.createReservoir({
     ...nodeProperties(reservoirData, "reservoir", context),
-    ...(head === undefined
-      ? { relativeHead: context.defaults.reservoir.relativeHead }
-      : { head: context.toElevation(head) }),
+    head: head === undefined ? undefined : context.toElevation(head),
   });
 
-  hydraulicModel.assets.set(reservoir.id, reservoir);
-  hydraulicModel.assetIndex.addNode(reservoir.id);
+  registerNode(hydraulicModel, reservoir, reservoirData.ref, context);
 };
 
 const addTank = (
@@ -184,32 +203,66 @@ const addTank = (
   tankData: TankData,
   context: NodeContext,
 ) => {
-  const { defaults, toLevel, toTankDiameter } = context;
-  const tankDefaults = defaults.tank;
-
-  const minLevel = convertOr(tankData.minLevel, toLevel, tankDefaults.minLevel);
-  const initialLevel = convertOr(
-    tankData.initialLevel,
-    toLevel,
-    tankDefaults.initialLevel,
-  );
-  const maxLevel = convertOr(tankData.maxLevel, toLevel, tankDefaults.maxLevel);
+  const { toLevel, toTankDiameter } = context;
 
   const tank = assetFactory.createTank({
     ...nodeProperties(tankData, "tank", context),
-    minLevel,
-    initialLevel,
-    maxLevel: coherentMaxLevel(maxLevel, initialLevel),
-    diameter: convertOr(
-      usable(tankData.diameter),
-      toTankDiameter,
-      tankDefaults.diameter,
-    ),
-    minVolume: convertOr(tankData.minVolume, toLevel, tankDefaults.minVolume),
+    minLevel: converted(tankData.minLevel, toLevel),
+    initialLevel: converted(tankData.initialLevel, toLevel),
+    maxLevel: converted(tankData.maxLevel, toLevel),
+    diameter: converted(tankData.diameter, toTankDiameter),
+    minVolume: tankData.minVolume,
   });
 
-  hydraulicModel.assets.set(tank.id, tank);
-  hydraulicModel.assetIndex.addNode(tank.id);
+  registerNode(hydraulicModel, tank, tankData.ref, context);
+};
+
+const registerNode = (
+  hydraulicModel: HydraulicModel,
+  node: NodeAsset,
+  ref: string,
+  { nodeIdByRef }: NodeContext,
+) => {
+  hydraulicModel.assets.set(node.id, node);
+  hydraulicModel.assetIndex.addNode(node.id);
+  nodeIdByRef.set(ref, { id: node.id, coordinates: node.coordinates });
+};
+
+const addPipe = (
+  hydraulicModel: HydraulicModel,
+  assetFactory: AssetFactory,
+  pipeData: PipeData,
+  context: LinkContext,
+) => {
+  const { nodeIdByRef, toWgs84, toLength, toDiameter, lengthUnit } = context;
+
+  const start = nodeIdByRef.get(pipeData.startNodeRef);
+  const end = nodeIdByRef.get(pipeData.endNodeRef);
+  if (start === undefined || end === undefined) return;
+
+  const vertices = (pipeData.vertices ?? []).map(toWgs84);
+  const pipe = assetFactory.createPipe({
+    label: resolveLabel(
+      context.labelManager,
+      pipeData,
+      "pipe",
+      context.labelMaxLength,
+    ),
+    coordinates: [start.coordinates, ...vertices, end.coordinates],
+    connections: [start.id, end.id],
+    length: converted(pipeData.length, toLength),
+    diameter: converted(pipeData.diameter, toDiameter),
+    roughness: pipeData.roughness,
+    isActive: pipeData.isActive,
+  });
+
+  if (pipe.length === null) {
+    pipe.setProperty("length", computeLinkLength(pipe, lengthUnit));
+  }
+
+  hydraulicModel.assets.set(pipe.id, pipe);
+  hydraulicModel.assetIndex.addLink(pipe.id);
+  hydraulicModel.topology.addLink(pipe.id, start.id, end.id);
 };
 
 const nodeProperties = (
@@ -225,27 +278,14 @@ const nodeProperties = (
       : toElevation(nodeData.elevation),
 });
 
-const coherentMaxLevel = (
-  maxLevel: number | undefined,
-  initialLevel: number | undefined,
-): number | undefined => {
-  if (maxLevel === undefined || initialLevel === undefined) return maxLevel;
-
-  return Math.max(maxLevel, initialLevel);
-};
-
-const usable = (value: number | undefined): number | undefined =>
-  value === 0 ? undefined : value;
-
-const convertOr = (
+const converted = (
   value: number | undefined,
   convert: (value: number) => number,
-  fallback: number | undefined,
-): number | undefined => (value === undefined ? fallback : convert(value));
+): number | undefined => (value === undefined ? undefined : convert(value));
 
 const resolveLabel = (
   labelManager: LabelManager,
-  { label, ref }: NodeData,
+  { label, ref }: { label?: string; ref: string },
   type: LabelType,
   labelMaxLength?: number,
 ): string | undefined => {

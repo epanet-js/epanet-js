@@ -49,6 +49,16 @@ namespaces, while its internal ids never do. Fusing them turns a naming collisio
 join bug — the consumer resolves `label ?? ref` against its own label rules and can always
 fall back to `ref`, which is guaranteed unique.
 
+`LinkData` (`ref`, `label?`, `startNodeRef`, `endNodeRef`, `vertices?`, `isActive?`) does the
+same for link kinds. **`vertices` are the intermediate points only** — the consumer composes
+the polyline from the resolved endpoints, so the geometry can never disagree with the
+topology, and a moved node cannot leave a stale coordinate behind.
+
+**`ref` is unique within its array, not across the model.** A source is free to number its
+nodes and its links independently, and Synergi does — a pipe and a junction in the same model
+are both `ref: "0"`. Links therefore name their endpoints with `startNodeRef`/`endNodeRef`
+resolved against the node arrays, and a consumer must never key one global map by `ref`.
+
 **A boundary node's head is a head, in `units.elevation`.** `ReservoirData.head` is the
 absolute head the source stated. A source that states a *pressure* instead has to say so
 in a field of its own rather than passing a pressure off as a head; nothing does yet.
@@ -77,6 +87,24 @@ model is parsed.
 A quantity is named for what it measures, not for the asset it sits on: `diameter` covers
 every diameter in the model, `level` every tank level. A vendor that states two diameters in
 two units is not a shape this has to serve until one exists.
+
+**Roughness deliberately has no entry.** The app carries roughness as a bare unitless number —
+both unit presets set it to `null`, and there is no per-formula unit anywhere — so a source
+unit here could never drive a conversion. What the number *means* is fixed by
+`headlossFormula`, not by a unit.
+
+## One headloss formula, chosen by the parser
+
+`headlossFormula` sits on `NetworkData`, not on the pipe. EPANET holds exactly one formula per
+model, and a roughness number is only interpretable against it — a Hazen-Williams C-factor and
+a Darcy-Weisbach roughness height differ by three orders of magnitude.
+
+A source that states the formula per pipe (Synergi does; it has no global setting) resolves
+the network's formula itself and reports every pipe that disagrees, emitting that pipe with
+**no `roughness`**. Absent then means what it always means, and the consumer's existing
+"apply the default" path produces a sane number instead of one in the wrong quantity. Nothing
+downstream has to know a reduction happened, and no roughness is ever converted between
+formulas.
 
 ## Issues carry structure, not sentences
 
