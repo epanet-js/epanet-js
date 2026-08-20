@@ -9,7 +9,8 @@ import {
 } from "@epanet-js/hydraulic-model";
 import { prepareWorkerData, RunData } from "./prepare-data";
 import { enrichWorkerError } from "src/infra/worker";
-import { runAllocation, AllocationResultItem } from "./run-allocation";
+import { runAllocation } from "./run-allocation";
+import { AllocationResultsView } from "./allocation-results";
 import type { AllocationWorkerAPI } from "./worker";
 import type { Zone } from "src/lib/zones";
 
@@ -66,18 +67,20 @@ export const allocateCustomerPoints = async (
         totalCustomerPoints,
         workerCount,
       )
-    : runAllocation(workerData, allocationRules, nullOffset);
+    : [runAllocation(workerData, allocationRules, nullOffset)];
 
   let customerPointsMatchedToZone = 0;
 
-  for (const result of allocationResults) {
-    if (result.inZone) customerPointsMatchedToZone++;
+  for (const buffer of allocationResults) {
+    for (const result of new AllocationResultsView(buffer).iter()) {
+      if (result.inZone) customerPointsMatchedToZone++;
 
-    const customerPointCopy = customerPoints
-      .get(result.customerPointId)
-      ?.copyDisconnected();
-    if (customerPointCopy) {
-      if (result.ruleIndex !== -1 && result.connection) {
+      const customerPointCopy = customerPoints
+        .get(result.customerPointId)
+        ?.copyDisconnected();
+      if (!customerPointCopy) continue;
+
+      if (result.connection) {
         customerPointCopy.connect(result.connection);
         allocatedCustomerPoints.set(result.customerPointId, customerPointCopy);
         ruleMatches[result.ruleIndex]++;
@@ -103,7 +106,7 @@ const runAllocationWithWorkers = async (
   allocationRules: CustomerPointAllocationRule[],
   totalCustomerPoints: number,
   workerCount: number,
-): Promise<AllocationResultItem[]> => {
+): Promise<ArrayBuffer[]> => {
   const pointsPerWorker = Math.ceil(totalCustomerPoints / workerCount);
   const workers: Worker[] = [];
   const workerAPIs: Comlink.Remote<AllocationWorkerAPI>[] = [];
@@ -123,7 +126,7 @@ const runAllocationWithWorkers = async (
       const count = Math.min(pointsPerWorker, totalCustomerPoints - offset);
 
       if (count <= 0) {
-        return Promise.resolve([]);
+        return Promise.resolve(null);
       }
 
       return workerAPI.runAllocation(
@@ -136,7 +139,7 @@ const runAllocationWithWorkers = async (
 
     const workerResults = await Promise.all(workerPromises);
 
-    return workerResults.flat();
+    return workerResults.filter((buffer): buffer is ArrayBuffer => !!buffer);
   } catch (e) {
     throw enrichWorkerError("customer-allocation", e);
   } finally {

@@ -1,7 +1,7 @@
 import * as Comlink from "comlink";
-import { CustomerPointAllocationRule } from "@epanet-js/hydraulic-model";
-import { runAllocation, AllocationResultItem } from "./run-allocation";
-import { RunData } from "./prepare-data";
+import type { CustomerPointAllocationRule } from "@epanet-js/hydraulic-model";
+import { runAllocation } from "./run-allocation";
+import type { RunData } from "./run-data";
 
 export interface AllocationWorkerAPI {
   runAllocation: (
@@ -9,11 +9,14 @@ export interface AllocationWorkerAPI {
     allocationRules: CustomerPointAllocationRule[],
     offset?: number,
     count?: number,
-  ) => AllocationResultItem[];
+  ) => ArrayBuffer;
 }
 
 const workerAPI: AllocationWorkerAPI = {
-  runAllocation,
+  runAllocation: (workerData, allocationRules, offset, count) => {
+    const results = runAllocation(workerData, allocationRules, offset, count);
+    return Comlink.transfer(results, [results]);
+  },
 };
 
 Comlink.expose(workerAPI);

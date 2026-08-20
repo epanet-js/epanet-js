@@ -1,18 +1,12 @@
 import { describe, it, expect, beforeEach } from "vitest";
+import { prepareWorkerData } from "./prepare-data";
 import {
-  prepareWorkerData,
-  getSegmentCoordinates,
-  getSegmentPipeIndex,
-  getPipeDiameter,
-  getPipeStartNodeIndex,
-  getPipeEndNodeIndex,
-  getNodeCoordinates,
-  getNodeType,
-  getNodeId,
-  getCustomerPointCoordinates,
-  getCustomerPointId,
+  PipeSegmentsView,
+  PipesView,
+  NodesView,
+  CustomerPointsView,
   deserializeZoneGeometry,
-} from "./prepare-data";
+} from "./run-data";
 import type { MultiPolygon } from "geojson";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import Flatbush from "flatbush";
@@ -64,7 +58,7 @@ describe("prepareWorkerData", () => {
         );
 
         expect(workerData.flatbushIndex).toBeInstanceOf(bufferType);
-        expect(workerData.segments).toBeInstanceOf(bufferType);
+        expect(workerData.pipeSegments).toBeInstanceOf(bufferType);
 
         const flatbush = Flatbush.from(workerData.flatbushIndex);
 
@@ -74,7 +68,7 @@ describe("prepareWorkerData", () => {
         expect(searchResults[0]).toBe(0);
       });
 
-      it("can read segment coordinates and pipe index from binary", () => {
+      it("can read pipeSegment coordinates and pipe index from binary", () => {
         const IDS = { J1: 1, J2: 2, P1: 3 };
         const hydraulicModel = HydraulicModelBuilder.with()
           .aJunction(IDS.J1, { coordinates: [0, 0] })
@@ -96,20 +90,18 @@ describe("prepareWorkerData", () => {
           bufferTypeParam,
         );
 
-        expect(workerData.segments).toBeInstanceOf(bufferType);
+        expect(workerData.pipeSegments).toBeInstanceOf(bufferType);
 
         const flatbush = Flatbush.from(workerData.flatbushIndex);
         const searchResults = flatbush.search(-1, -1, 11, 1);
-        const segmentIndex = searchResults[0];
+        const pipeSegmentIndex = searchResults[0];
 
-        const coordinates = getSegmentCoordinates(
-          workerData.segments,
-          segmentIndex,
-        );
-        const pipeIndex = getSegmentPipeIndex(
-          workerData.segments,
-          segmentIndex,
-        );
+        const coordinates = new PipeSegmentsView(
+          workerData.pipeSegments,
+        ).getCoordinates(pipeSegmentIndex);
+        const pipeIndex = new PipeSegmentsView(
+          workerData.pipeSegments,
+        ).getPipeIndex(pipeSegmentIndex);
 
         expect(coordinates).toEqual([
           [0, 0],
@@ -144,13 +136,12 @@ describe("prepareWorkerData", () => {
 
         const flatbush = Flatbush.from(workerData.flatbushIndex);
         const searchResults = flatbush.search(-1, -1, 11, 1);
-        const segmentIndex = searchResults[0];
+        const pipeSegmentIndex = searchResults[0];
 
-        const pipeIndex = getSegmentPipeIndex(
-          workerData.segments,
-          segmentIndex,
-        );
-        const diameter = getPipeDiameter(workerData.pipes, pipeIndex);
+        const pipeIndex = new PipeSegmentsView(
+          workerData.pipeSegments,
+        ).getPipeIndex(pipeSegmentIndex);
+        const diameter = new PipesView(workerData.pipes).getDiameter(pipeIndex);
 
         expect(diameter).toBe(12);
       });
@@ -181,17 +172,17 @@ describe("prepareWorkerData", () => {
 
         const flatbush = Flatbush.from(workerData.flatbushIndex);
         const searchResults = flatbush.search(-1, -1, 11, 1);
-        const segmentIndex = searchResults[0];
+        const pipeSegmentIndex = searchResults[0];
 
-        const pipeIndex = getSegmentPipeIndex(
-          workerData.segments,
-          segmentIndex,
-        );
-        const startNodeIndex = getPipeStartNodeIndex(
+        const pipeIndex = new PipeSegmentsView(
+          workerData.pipeSegments,
+        ).getPipeIndex(pipeSegmentIndex);
+        const startNodeIndex = new PipesView(
           workerData.pipes,
+        ).getStartNodeIndex(pipeIndex);
+        const endNodeIndex = new PipesView(workerData.pipes).getEndNodeIndex(
           pipeIndex,
         );
-        const endNodeIndex = getPipeEndNodeIndex(workerData.pipes, pipeIndex);
 
         expect(startNodeIndex).toBe(0);
         expect(endNodeIndex).toBe(1);
@@ -221,8 +212,12 @@ describe("prepareWorkerData", () => {
 
         expect(workerData.nodes).toBeInstanceOf(bufferType);
 
-        const node1Coordinates = getNodeCoordinates(workerData.nodes, 0);
-        const node2Coordinates = getNodeCoordinates(workerData.nodes, 1);
+        const node1Coordinates = new NodesView(workerData.nodes).getCoordinates(
+          0,
+        );
+        const node2Coordinates = new NodesView(workerData.nodes).getCoordinates(
+          1,
+        );
 
         expect(node1Coordinates).toEqual([5, 10]);
         expect(node2Coordinates).toEqual([15, 20]);
@@ -262,9 +257,9 @@ describe("prepareWorkerData", () => {
 
         expect(workerData.nodes).toBeInstanceOf(bufferType);
 
-        const junctionType = getNodeType(workerData.nodes, 0);
-        const reservoirType = getNodeType(workerData.nodes, 1);
-        const tankType = getNodeType(workerData.nodes, 2);
+        const junctionType = new NodesView(workerData.nodes).getType(0);
+        const reservoirType = new NodesView(workerData.nodes).getType(1);
+        const tankType = new NodesView(workerData.nodes).getType(2);
 
         expect(junctionType).toBe("junction");
         expect(reservoirType).toBe("reservoir");
@@ -313,10 +308,10 @@ describe("prepareWorkerData", () => {
 
         expect(workerData.nodes).toBeInstanceOf(bufferType);
 
-        expect(getNodeId(workerData.nodes, 0)).toBe(IDS.J1);
-        expect(getNodeId(workerData.nodes, 1)).toBe(IDS.R1);
-        expect(getNodeId(workerData.nodes, 2)).toBe(IDS.T1);
-        expect(getNodeId(workerData.nodes, 3)).toBe(IDS.J2);
+        expect(new NodesView(workerData.nodes).getId(0)).toBe(IDS.J1);
+        expect(new NodesView(workerData.nodes).getId(1)).toBe(IDS.R1);
+        expect(new NodesView(workerData.nodes).getId(2)).toBe(IDS.T1);
+        expect(new NodesView(workerData.nodes).getId(3)).toBe(IDS.J2);
       });
 
       it("skips pipes with an endpoint missing from the model", () => {
@@ -355,8 +350,8 @@ describe("prepareWorkerData", () => {
         );
 
         expect(workerData.nodes.byteLength).toBe(8 + 2 * 24);
-        expect(getNodeId(workerData.nodes, 0)).toBe(IDS.J1);
-        expect(getNodeId(workerData.nodes, 1)).toBe(IDS.J2);
+        expect(new NodesView(workerData.nodes).getId(0)).toBe(IDS.J1);
+        expect(new NodesView(workerData.nodes).getId(1)).toBe(IDS.J2);
       });
 
       it("only indexes nodes connected to an allocatable pipe", () => {
@@ -393,8 +388,8 @@ describe("prepareWorkerData", () => {
         );
 
         expect(workerData.nodes.byteLength).toBe(8 + 2 * 24);
-        expect(getNodeId(workerData.nodes, 0)).toBe(IDS.J1);
-        expect(getNodeId(workerData.nodes, 1)).toBe(IDS.J2);
+        expect(new NodesView(workerData.nodes).getId(0)).toBe(IDS.J1);
+        expect(new NodesView(workerData.nodes).getId(1)).toBe(IDS.J2);
       });
 
       it("can get customer point coordinates from binary data", () => {
@@ -430,14 +425,12 @@ describe("prepareWorkerData", () => {
 
         expect(workerData.customerPoints).toBeInstanceOf(bufferType);
 
-        const cp1Coordinates = getCustomerPointCoordinates(
+        const cp1Coordinates = new CustomerPointsView(
           workerData.customerPoints,
-          0,
-        );
-        const cp2Coordinates = getCustomerPointCoordinates(
+        ).getCoordinates(0);
+        const cp2Coordinates = new CustomerPointsView(
           workerData.customerPoints,
-          1,
-        );
+        ).getCoordinates(1);
 
         expect(cp1Coordinates).toEqual([5, 10]);
         expect(cp2Coordinates).toEqual([15, 20]);
@@ -494,10 +487,18 @@ describe("prepareWorkerData", () => {
 
         expect(workerData.customerPoints).toBeInstanceOf(bufferType);
 
-        expect(getCustomerPointId(workerData.customerPoints, 0)).toBe(IDS.CP1);
-        expect(getCustomerPointId(workerData.customerPoints, 1)).toBe(IDS.CP2);
-        expect(getCustomerPointId(workerData.customerPoints, 2)).toBe(IDS.CP3);
-        expect(getCustomerPointId(workerData.customerPoints, 3)).toBe(IDS.CP4);
+        expect(new CustomerPointsView(workerData.customerPoints).getId(0)).toBe(
+          IDS.CP1,
+        );
+        expect(new CustomerPointsView(workerData.customerPoints).getId(1)).toBe(
+          IDS.CP2,
+        );
+        expect(new CustomerPointsView(workerData.customerPoints).getId(2)).toBe(
+          IDS.CP3,
+        );
+        expect(new CustomerPointsView(workerData.customerPoints).getId(3)).toBe(
+          IDS.CP4,
+        );
       });
 
       it("handles hydraulic model with no customer points", () => {

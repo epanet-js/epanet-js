@@ -1,6 +1,6 @@
-import { Position } from "geojson";
+import type { Position } from "geojson";
 import turfDistance from "@turf/distance";
-import { AssetId } from "@epanet-js/hydraulic-model";
+import type { AssetId } from "@epanet-js/hydraulic-model";
 
 export type NodeForJunctionAssignment = {
   id: AssetId;

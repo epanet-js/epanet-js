@@ -13,174 +13,27 @@ import {
 } from "@epanet-js/hydraulic-model";
 import { HydraulicModel } from "../../hydraulic-model/hydraulic-model";
 import type { MultiPolygon } from "geojson";
+import {
+  BinaryData,
+  RunData,
+  NODE_TYPE_TO_ENUM,
+  BUFFER_HEADER_SIZE,
+  PIPE_SEGMENT_BINARY_SIZE,
+  PIPE_BINARY_SIZE,
+  NODE_BINARY_SIZE,
+  CUSTOMER_POINT_BINARY_SIZE,
+  UINT32_SIZE,
+  FLOAT64_SIZE,
+  FLATBUSH_NODE_SIZE,
+} from "./run-data";
+
+export * from "./run-data";
 
 export interface LinkSegmentProperties {
   linkId: number;
 }
 
 export type LinkSegment = Feature<LineString, LinkSegmentProperties>;
-
-const NODE_TYPE_TO_ENUM = {
-  junction: 0,
-  reservoir: 1,
-  tank: 2,
-} as const;
-
-const ENUM_TO_NODE_TYPE = {
-  0: "junction" as const,
-  1: "reservoir" as const,
-  2: "tank" as const,
-} as const;
-
-export type BinaryData = ArrayBuffer | SharedArrayBuffer;
-export interface RunData {
-  flatbushIndex: BinaryData;
-  segments: BinaryData;
-  pipes: BinaryData;
-  nodes: BinaryData;
-  customerPoints: BinaryData;
-  zoneGeometry?: BinaryData;
-}
-
-const BUFFER_HEADER_SIZE = 8;
-const SEGMENT_BINARY_SIZE = 36;
-const PIPE_BINARY_SIZE = 20;
-const NODE_BINARY_SIZE = 24;
-const CUSTOMER_POINT_BINARY_SIZE = 20;
-const UINT32_SIZE = 4;
-const FLOAT64_SIZE = 8;
-const FLATBUSH_NODE_SIZE = 16;
-const COORDINATES_PER_SEGMENT = 2;
-
-const getSegmentOffset = (index: number): number => {
-  return BUFFER_HEADER_SIZE + index * SEGMENT_BINARY_SIZE;
-};
-
-const getPipeIndexOffset = (index: number): number => {
-  return getSegmentOffset(index);
-};
-
-const getCoordinatesOffset = (index: number): number => {
-  return getSegmentOffset(index) + UINT32_SIZE;
-};
-
-export const getSegmentCoordinates = (
-  segments: BinaryData,
-  index: number,
-): Position[] => {
-  const view = new DataView(segments);
-  let offset = getCoordinatesOffset(index);
-
-  const coordinates: Position[] = [];
-  for (let i = 0; i < COORDINATES_PER_SEGMENT; i++) {
-    const lng = view.getFloat64(offset, true);
-    offset += FLOAT64_SIZE;
-    const lat = view.getFloat64(offset, true);
-    offset += FLOAT64_SIZE;
-    coordinates.push([lng, lat]);
-  }
-
-  return coordinates;
-};
-
-export const getSegmentPipeIndex = (
-  segments: BinaryData,
-  index: number,
-): number => {
-  const view = new DataView(segments);
-  const offset = getPipeIndexOffset(index);
-  return view.getUint32(offset, true);
-};
-
-export const getPipeId = (pipes: BinaryData, index: number): number => {
-  const view = new DataView(pipes);
-  const offset = BUFFER_HEADER_SIZE + index * PIPE_BINARY_SIZE;
-  return view.getUint32(offset, true);
-};
-
-export const getPipeDiameter = (pipes: BinaryData, index: number): number => {
-  const view = new DataView(pipes);
-  const offset = BUFFER_HEADER_SIZE + index * PIPE_BINARY_SIZE + UINT32_SIZE;
-  return view.getFloat64(offset, true);
-};
-
-export const getPipeStartNodeIndex = (
-  pipes: BinaryData,
-  index: number,
-): number => {
-  const view = new DataView(pipes);
-  const offset =
-    BUFFER_HEADER_SIZE + index * PIPE_BINARY_SIZE + UINT32_SIZE + FLOAT64_SIZE;
-  return view.getUint32(offset, true);
-};
-
-export const getPipeEndNodeIndex = (
-  pipes: BinaryData,
-  index: number,
-): number => {
-  const view = new DataView(pipes);
-  const offset =
-    BUFFER_HEADER_SIZE +
-    index * PIPE_BINARY_SIZE +
-    UINT32_SIZE +
-    FLOAT64_SIZE +
-    UINT32_SIZE;
-  return view.getUint32(offset, true);
-};
-
-export const getNodeCoordinates = (
-  nodes: BinaryData,
-  index: number,
-): Position => {
-  const view = new DataView(nodes);
-  const offset = BUFFER_HEADER_SIZE + index * NODE_BINARY_SIZE;
-
-  const lng = view.getFloat64(offset, true);
-  const lat = view.getFloat64(offset + FLOAT64_SIZE, true);
-
-  return [lng, lat];
-};
-
-export const getNodeType = (nodes: BinaryData, index: number): NodeType => {
-  const view = new DataView(nodes);
-  const offset =
-    BUFFER_HEADER_SIZE + index * NODE_BINARY_SIZE + 2 * FLOAT64_SIZE;
-  const enumValue = view.getUint32(offset, true);
-  return ENUM_TO_NODE_TYPE[enumValue as keyof typeof ENUM_TO_NODE_TYPE];
-};
-
-export const getNodeId = (nodes: BinaryData, index: number): number => {
-  const view = new DataView(nodes);
-  const offset =
-    BUFFER_HEADER_SIZE +
-    index * NODE_BINARY_SIZE +
-    2 * FLOAT64_SIZE +
-    UINT32_SIZE;
-  return view.getUint32(offset, true);
-};
-
-export const getCustomerPointCoordinates = (
-  customerPoints: BinaryData,
-  index: number,
-): Position => {
-  const view = new DataView(customerPoints);
-  const offset =
-    BUFFER_HEADER_SIZE + index * CUSTOMER_POINT_BINARY_SIZE + UINT32_SIZE;
-
-  const lng = view.getFloat64(offset, true);
-  const lat = view.getFloat64(offset + FLOAT64_SIZE, true);
-
-  return [lng, lat];
-};
-
-export const getCustomerPointId = (
-  customerPoints: BinaryData,
-  index: number,
-): number => {
-  const view = new DataView(customerPoints);
-  const offset = BUFFER_HEADER_SIZE + index * CUSTOMER_POINT_BINARY_SIZE;
-  return view.getUint32(offset, true);
-};
 
 export const prepareWorkerData = (
   hydraulicModel: HydraulicModel,
@@ -197,7 +50,7 @@ export const prepareWorkerData = (
   const BufferConstructor =
     bufferType === "shared" ? SharedArrayBuffer : ArrayBuffer;
 
-  const segmentsBuilder = new SegmentsBinaryBuilder(
+  const pipeSegmentsBuilder = new PipeSegmentsBinaryBuilder(
     pipeSegmentsCount,
     pipesIndex,
     bufferType,
@@ -218,10 +71,10 @@ export const prepareWorkerData = (
     bufferType,
   );
 
-  // Flatbush requires at least 1 item, so we use a placeholder when no segments exist
-  const segmentsForIndex = Math.max(pipeSegmentsCount, 1);
+  // Flatbush requires at least 1 item, so we use a placeholder when no pipe segments exist
+  const pipeSegmentsForIndex = Math.max(pipeSegmentsCount, 1);
   const spatialIndex = new Flatbush(
-    segmentsForIndex,
+    pipeSegmentsForIndex,
     FLATBUSH_NODE_SIZE,
     Float64Array,
     BufferConstructor,
@@ -238,12 +91,12 @@ export const prepareWorkerData = (
         geometry: pipe.feature.geometry as LineString,
         properties: {},
       };
-      const segments = lineSegment(pipeFeature);
-      for (const segment of segments.features) {
-        const coordinates = segment.geometry.coordinates;
-        segmentsBuilder.addSegment(coordinates, pipe.id);
+      const pipeSegments = lineSegment(pipeFeature);
+      for (const pipeSegment of pipeSegments.features) {
+        const coordinates = pipeSegment.geometry.coordinates;
+        pipeSegmentsBuilder.addPipeSegment(coordinates, pipe.id);
 
-        const [minX, minY, maxX, maxY] = bbox(segment);
+        const [minX, minY, maxX, maxY] = bbox(pipeSegment);
         spatialIndex.add(minX, minY, maxX, maxY);
       }
     }
@@ -284,7 +137,7 @@ export const prepareWorkerData = (
 
   return {
     flatbushIndex: spatialIndex.data as BinaryData,
-    segments: segmentsBuilder.build(),
+    pipeSegments: pipeSegmentsBuilder.build(),
     pipes: pipesBuilder.build(),
     nodes: nodesBuilder.build(),
     customerPoints: customerPointsBuilder.build(),
@@ -292,17 +145,18 @@ export const prepareWorkerData = (
   };
 };
 
-class SegmentsBinaryBuilder {
+class PipeSegmentsBinaryBuilder {
   private buffer: BinaryData;
   private view: DataView;
-  private segmentIndex: number = 0;
+  private pipeSegmentIndex: number = 0;
 
   constructor(
     segmentCount: number,
     private pipesIndex: Map<number, number>,
     private bufferType: "shared" | "array" = "array",
   ) {
-    const totalSize = BUFFER_HEADER_SIZE + segmentCount * SEGMENT_BINARY_SIZE;
+    const totalSize =
+      BUFFER_HEADER_SIZE + segmentCount * PIPE_SEGMENT_BINARY_SIZE;
     this.buffer =
       this.bufferType === "shared"
         ? new SharedArrayBuffer(totalSize)
@@ -315,9 +169,10 @@ class SegmentsBinaryBuilder {
     this.view.setUint32(offset, 0, true);
   }
 
-  addSegment(coordinates: Position[], pipeId: number): void {
+  addPipeSegment(coordinates: Position[], pipeId: number): void {
     const pipeIndex = this.pipesIndex.get(pipeId)!;
-    let offset = BUFFER_HEADER_SIZE + this.segmentIndex * SEGMENT_BINARY_SIZE;
+    let offset =
+      BUFFER_HEADER_SIZE + this.pipeSegmentIndex * PIPE_SEGMENT_BINARY_SIZE;
 
     this.view.setUint32(offset, pipeIndex, true);
     offset += UINT32_SIZE;
@@ -329,7 +184,7 @@ class SegmentsBinaryBuilder {
       offset += FLOAT64_SIZE;
     }
 
-    this.segmentIndex++;
+    this.pipeSegmentIndex++;
   }
 
   build(): BinaryData {
@@ -526,44 +381,6 @@ class ZoneGeometryBinaryBuilder {
     return this.buffer;
   }
 }
-
-export const deserializeZoneGeometry = (buffer: BinaryData): MultiPolygon => {
-  const view = new DataView(buffer);
-  let offset = 0;
-
-  const polygonCount = view.getUint32(offset, true);
-  offset += UINT32_SIZE;
-  offset += UINT32_SIZE;
-
-  const coordinates: Position[][][] = [];
-
-  for (let p = 0; p < polygonCount; p++) {
-    const ringCount = view.getUint32(offset, true);
-    offset += UINT32_SIZE;
-
-    const polygon: Position[][] = [];
-    for (let r = 0; r < ringCount; r++) {
-      const positionCount = view.getUint32(offset, true);
-      offset += UINT32_SIZE;
-
-      const ring: Position[] = [];
-      for (let n = 0; n < positionCount; n++) {
-        const lng = view.getFloat64(offset, true);
-        offset += FLOAT64_SIZE;
-        const lat = view.getFloat64(offset, true);
-        offset += FLOAT64_SIZE;
-        ring.push([lng, lat]);
-      }
-      polygon.push(ring);
-    }
-    coordinates.push(polygon);
-  }
-
-  return {
-    type: "MultiPolygon",
-    coordinates,
-  };
-};
 
 const hasResolvableEndpoints = (pipe: Pipe, assets: AssetsMap): boolean =>
   pipe.connections.every((nodeId) => assets.has(nodeId));
