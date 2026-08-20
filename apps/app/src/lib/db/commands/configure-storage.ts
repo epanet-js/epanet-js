@@ -1,4 +1,8 @@
-import { getWorker, cleanupStaleDbPools } from "@epanet-js/ejsdb";
+import {
+  getWorker,
+  cleanupStaleDbPools,
+  type SahpoolFailure,
+} from "@epanet-js/ejsdb";
 import { getAppId, resetAppId } from "src/infra/app-instance";
 import { isOPFSAvailable, getAvailableStorageBytes } from "src/infra/storage";
 import { readRecoveryFingerprints } from "src/infra/session-recovery";
@@ -65,13 +69,15 @@ export const configureDbStorage = async (): Promise<DbStorageMode> => {
   captureInfo("Effective DB storage mode", { mode, effective });
 
   if (effective !== mode) {
-    reportFallback("db-worker-fallback");
+    reportFallback("db-worker-fallback", await getWorker().sahpoolFailure());
   }
 
   return effective;
 };
 
-const reportFallback = (reason: string) =>
-  captureWarning(
-    `OPFS db storage requested but fell back to in-memory db: ${reason}`,
-  );
+const reportFallback = (reason: string, failure?: SahpoolFailure | null) => {
+  const message = `OPFS db storage requested but fell back to in-memory db: ${reason}`;
+  if (!failure) return captureWarning(message);
+
+  captureWarning(message, new Error(`${failure.name}: ${failure.message}`));
+};

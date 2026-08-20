@@ -1,6 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const configure = vi.fn();
+const sahpoolFailure = vi.fn<() => { name: string; message: string } | null>(
+  () => null,
+);
 const cleanupStaleDbPools = vi.fn<
   (
     appId: string,
@@ -10,7 +13,7 @@ const cleanupStaleDbPools = vi.fn<
 >(() => Promise.resolve());
 vi.mock("@epanet-js/ejsdb", async (importActual) => ({
   ...(await importActual<typeof import("@epanet-js/ejsdb")>()),
-  getWorker: () => ({ configure }),
+  getWorker: () => ({ configure, sahpoolFailure }),
   cleanupStaleDbPools: (
     appId: string,
     protectedIds: string[],
@@ -49,11 +52,11 @@ vi.mock("src/infra/app-instance", () => ({
   resetAppId: () => resetAppId(),
 }));
 
-const captureWarning = vi.fn<(message: string) => void>();
+const captureWarning = vi.fn<(...args: unknown[]) => void>();
 const captureInfo = vi.fn<(message: string) => void>();
 vi.mock("src/infra/error-tracking", async (importActual) => ({
   ...(await importActual<typeof import("src/infra/error-tracking")>()),
-  captureWarning: (message: string) => captureWarning(message),
+  captureWarning: (...args: unknown[]) => captureWarning(...args),
   captureInfo: (message: string) => captureInfo(message),
 }));
 
@@ -123,6 +126,24 @@ describe("configureDbStorage", () => {
       fallbackMessage("db-worker-fallback"),
     );
     expect(cleanupStaleDbPools).not.toHaveBeenCalled();
+  });
+
+  it("reports why the sahpool install failed when the worker knows", async () => {
+    isOPFSAvailable.mockResolvedValue(true);
+    configure.mockResolvedValue("memory");
+    sahpoolFailure.mockReturnValue({
+      name: "NotAllowedError",
+      message: "no access handle",
+    });
+
+    await configureDbStorage();
+
+    expect(captureWarning).toHaveBeenCalledWith(
+      fallbackMessage("db-worker-fallback"),
+      expect.objectContaining({
+        message: "NotAllowedError: no access handle",
+      }),
+    );
   });
 
   describe("storage quota", () => {

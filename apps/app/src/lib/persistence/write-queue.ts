@@ -9,15 +9,21 @@ export type WriteItem = {
 export class MemoryWriteQueue {
   private queue: WriteItem[] = [];
   private processing = false;
+  private succeeded = 0;
 
   enqueue(operation: WriteOperation, onFailure: WriteFailureHandler) {
     this.queue.push({ operation, onFailure });
     void this.process();
   }
 
+  succeededCount(): number {
+    return this.succeeded;
+  }
+
   reset() {
     this.queue = [];
     this.processing = false;
+    this.succeeded = 0;
   }
 
   private async process() {
@@ -29,6 +35,7 @@ export class MemoryWriteQueue {
         const item = this.queue[0];
         try {
           await item.operation();
+          this.succeeded++;
           this.queue.shift();
         } catch (error) {
           this.queue = [];

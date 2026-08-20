@@ -3,6 +3,7 @@ import type { SAHPoolUtil } from "@sqlite.org/sqlite-wasm";
 import { APP_VERSION, migrations } from "./migrations";
 import { setPerfLogging, timed } from "./perf-log";
 import { sahpoolDirectory, sahpoolPoolName } from "./sahpool-storage";
+import { normalizeError } from "./worker-api-errors";
 import type {
   AssetRows,
   JunctionRow,
@@ -78,6 +79,8 @@ type Sqlite3 = {
       flags: number,
     ) => number;
     sqlite3_js_db_export: (db: number, schema?: string) => Uint8Array;
+    sqlite3_extended_errcode: (db: number) => number;
+    sqlite3_errmsg: (db: number) => string;
     SQLITE_DESERIALIZE_FREEONCLOSE: number;
     SQLITE_DESERIALIZE_RESIZEABLE: number;
   };
@@ -98,6 +101,24 @@ let storageMode: StorageMode = "memory";
 let poolUtil: SAHPoolUtil | null = null;
 const SAHPOOL_DB_PATH = "/main.sqlite3";
 
+// Why the VFS install failed. Kept because the caller degrades to an in-memory db on a
+// bare `false`, which reports that storage was lost but never why — and the reason (quota,
+// a handle another tab holds, OPFS blocked) is the only thing that tells those apart.
+export type SahpoolFailure = { name: string; message: string };
+let sahpoolFailure: SahpoolFailure | null = null;
+
+export type DbStorageDiagnostics = {
+  storageMode: StorageMode;
+  dbOpen: boolean;
+  poolInstalled: boolean;
+  poolPaused: boolean | null;
+  poolCapacity: number | null;
+  poolFileCount: number | null;
+  extendedErrcode: number | null;
+  errmsg: string | null;
+  sahpoolFailure: SahpoolFailure | null;
+};
+
 const ensureSahpool = async (appId: string): Promise<boolean> => {
   if (poolUtil) return true;
   try {
@@ -106,8 +127,11 @@ const ensureSahpool = async (appId: string): Promise<boolean> => {
       directory: sahpoolDirectory(appId),
       initialCapacity: 6,
     });
+    sahpoolFailure = null;
     return true;
-  } catch {
+  } catch (error) {
+    const normalized = normalizeError(error);
+    sahpoolFailure = { name: normalized.name, message: normalized.message };
     return false;
   }
 };
@@ -952,6 +976,36 @@ export const api = {
     storageMode =
       mode !== "memory" && (await ensureSahpool(sahpoolId)) ? mode : "memory";
     return storageMode;
+  },
+
+  sahpoolFailure(): SahpoolFailure | null {
+    return sahpoolFailure;
+  },
+
+  // Everything here is best-effort and individually guarded: it is called precisely when
+  // the storage layer is misbehaving, so any one probe may itself throw.
+  storageDiagnostics(): DbStorageDiagnostics {
+    const attempt = <T>(fn: () => T): T | null => {
+      try {
+        return fn();
+      } catch {
+        return null;
+      }
+    };
+
+    return {
+      storageMode,
+      dbOpen: db !== null,
+      poolInstalled: poolUtil !== null,
+      poolPaused: attempt(() => poolUtil!.isPaused()),
+      poolCapacity: attempt(() => Number(poolUtil!.getCapacity())),
+      poolFileCount: attempt(() => Number(poolUtil!.getFileCount())),
+      extendedErrcode: attempt(() =>
+        sqlite3!.capi.sqlite3_extended_errcode(db!.pointer!),
+      ),
+      errmsg: attempt(() => sqlite3!.capi.sqlite3_errmsg(db!.pointer!)),
+      sahpoolFailure,
+    };
   },
 
   async newDb(): Promise<NewDbResult> {

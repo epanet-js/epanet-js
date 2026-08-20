@@ -134,6 +134,33 @@ the DB resolved to an OPFS `sahpool` — i.e. a persisted pool exists):
 Recovery re-derives the whole model from the DB (the single source of truth) rather than walking the moment
 log back — so it is independent of moment-log state and works for any queued write.
 
+### The `DB Storage` diagnostics context
+
+Both reports above carry a `DB Storage` context (`collectDbDiagnostics`, `src/lib/db/commands/collect-diagnostics.ts`).
+`SQLITE_IOERR: disk I/O error` names a symptom shared by a revoked access handle, an evicted origin, a full
+disk and a deleted backing file; the snapshot is what tells them apart. Read it in this order:
+
+| Field | Distinguishes |
+|---|---|
+| `writesSucceeded` | `0` = the DB never worked (look at bootstrap); `> 0` = it worked and died mid-session |
+| `poolDirExists` | `false` = something deleted the pool underneath us |
+| `storagePersisted` | `false` = the origin is evictable, so eviction is a legitimate explanation |
+| `quotaBytes` / `usageBytes` | a genuinely full disk vs nowhere near it |
+| `worker.extendedErrcode` | *which* file operation failed — read / write / fsync / truncate / delete |
+| `worker.poolPaused`, `poolCapacity`, `poolFileCount` | a paused VFS or exhausted pool capacity |
+| `worker.sahpoolFailure` | why the VFS install failed at bootstrap, if it did |
+
+`writesSucceeded` comes from a counter on `MemoryWriteQueue`; the queue reports failures but had no success
+signal, which is why "did this DB ever work?" was previously unanswerable from an error alone.
+
+The app has never called `navigator.storage.persist()`, so `storagePersisted` is expected to be `false` and
+the origin's storage is best-effort. If evicted-origin turns out to be the common cause, requesting
+persistence is the fix, and that field is how we would know.
+
+Collection is deferred a tick (the handler must stay synchronous for the queue) and every probe is
+individually guarded — a probe that throws must never cost us the report, so the capture still fires with no
+context rather than not at all.
+
 **Do NOT queue** whole-project / bulk writes or order-dependent writes:
 
 - `importProject` (new project, customer-points reset, reprojection reset), `openProject`, `newProject` —
