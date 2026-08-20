@@ -18,10 +18,10 @@ Keep the contract minimal and backend-neutral — nothing here may assume a part
 
 `MapEngine` (`map-engine.ts`) is a thin wrapper over a mapbox-gl `Map`, exposing the operations the app and backends use, grouped as:
 
-- **Style** — `setStyle`, `isStyleLoaded`, `addIcons`.
+- **Style** — `setStyle`, `isStyleLoaded`, `addIcons`, `isAlive`. `isAlive` is false once the underlying mapbox map has been removed: `Map.remove()` ends with `setStyle(null)`, which leaves `map.style` undefined, and every style-touching call then throws from inside mapbox. Every mutator that writes to the style checks it first, so a call arriving after the map is gone is a no-op rather than a bare `TypeError`. Callers that hold an engine across an await check it too — a silent no-op still lets them carry on as if the write had landed (see the app's `src/map/AGENTS.md`).
 - **Sources** — `setSource`, `removeSource`. `setSource` writes geojson data, so it throws `SourceTypeMismatchError` (`errors.ts`) when the name resolves to a source of another type. That means the style on the map came from a different backend than the one now driving it; only re-applying the style fixes it, so the engine refuses rather than writing. Kept typed because the mapbox failure is otherwise a bare `TypeError` naming neither the source nor the mismatch.
 - **Feature state** (hide/show individual features) — `hideFeature`/`showFeature` (+ bulk variants), `clearFeatureState`, `getFeatureState`, `isFeatureHidden`.
-- **Layers** — `addLayer`, `showLayers`/`hideLayers`, `setLayerFilter`, `setLayerPaintRule`, `setLayerMinZoom`.
+- **Layers** — `addLayer`, `showLayers`/`hideLayers`, `setLayerFilter`, `setLayerPaintRule`, `setLayerMinZoom`. All of them are `isAlive`-guarded; `addLayer`, `showLayers`, and `hideLayers` were not, and `hideLayers` on a removed map is what surfaced the gap in production.
 - **deck.gl overlay** — it holds one `MapboxOverlay` (`@deck.gl/mapbox`); `setOverlay(layers)` swaps the deck layers, `pickOverlayObjects` hit-tests them, and `suspend`/`resumeOverlayStyleReactions` guard the overlay across a style rebuild.
 - **View + query** — `getZoom`, `getPrecision`, `getBounds`/`setBounds`, `queryRenderedFeatures`, `searchNearbyRenderedFeatures`.
 - **`onNextIdle`** — the settle primitive (below).

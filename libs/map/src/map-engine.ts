@@ -279,16 +279,22 @@ export class MapEngine {
   }
 
   showLayers(layerIds: string[]) {
+    if (!this.isAlive()) return;
+
     for (const layerId of layerIds) {
       this.map.setLayoutProperty(layerId, "visibility", "visible");
     }
   }
 
   addLayer(layer: mapboxgl.AnyLayer, beforeId?: string) {
+    if (!this.isAlive()) return;
+
     this.map.addLayer(layer, beforeId);
   }
 
   hideLayers(layerIds: string[]) {
+    if (!this.isAlive()) return;
+
     for (const layerId of layerIds) {
       this.map.setLayoutProperty(layerId, "visibility", "none");
     }
@@ -388,11 +394,11 @@ export class MapEngine {
   }
 
   isStyleLoaded(): boolean {
-    return !!(
-      this.map &&
-      (this.map as any).style &&
-      this.map.getSource("delta-features")
-    );
+    return this.isAlive() && !!this.map.getSource("delta-features");
+  }
+
+  isAlive(): boolean {
+    return !!this.map && !!(this.map as any).style;
   }
 
   pickOverlayObjects({

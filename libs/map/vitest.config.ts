@@ -5,7 +5,8 @@ export default defineConfig({
     globals: true,
     environment: "jsdom",
     include: ["src/**/*.test.ts"],
-    // No tests yet (render primitives are exercised from the app's suite).
+    // Render primitives are mostly exercised from the app's suite; only the guards
+    // the app's engine double can't model are covered here.
     passWithNoTests: true,
   },
 });

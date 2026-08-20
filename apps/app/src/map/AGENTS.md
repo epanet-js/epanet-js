@@ -119,6 +119,15 @@ Rationale: awaiting over a torn-down map showed the user a blank page for the wh
 
 This leans on two existing invariants — the transactional commit (a throw leaves last-applied untouched, so the retry re-does the work) and the backend seam (swapping `useMapOperations`' return is enough to change *how* state reaches the map). Don't break either without revisiting this fallback.
 
+### The map itself can go away mid-cycle
+
+A cycle spans awaits — the style rebuild, the snapshot build, the editions sync — and the map can be torn down inside any of those gaps, either because the canvas unmounted or because a changed dependency re-ran its effect and re-created the engine. The engine object survives that: `remove()` only calls into mapbox, whose `Map.remove()` ends with `setStyle(null)` and leaves `map.style` undefined. Every style-touching call then throws from inside mapbox — a bare `TypeError` naming neither the call nor the map — and the cycle reports as a `MAP_STATE:SYNC` error. That shipped: opening a demo network re-created the engine while its cycle was still building sources, and the cycle went on to `hideLayers` on the dead map.
+
+Two things keep it out of the error stream, and one without the other isn't enough:
+
+- **`isAlive()` on the engine's mutators.** Every call that writes to the style skips when the style is gone. `addLayer`, `showLayers`, and `hideLayers` were the exceptions, which is why the crash landed there.
+- **A bail-out in the cycle, after every await.** Guards alone only make each write a silent no-op: the cycle still runs to completion writing into the void, then commits — claiming a removed map reflects the current state, which the *next* engine would inherit as its baseline. So the cycle checks `isAlive()` after each await and abandons instead, resetting last-applied to `nullMapState` so the next engine re-applies from a clean slate, and abandoning the settle so the loading indicator can't stick. `onSettled` runs out of band on map idle and checks the same thing before finalizing.
+
 ## Change detection
 
 Each cycle diffs the new state against the last-applied state and produces one flag per independently-updatable concern (edits, selection, symbology, results, style, zoom, and so on); only the work whose flag fired runs. Every flag is an identity check — which is what makes coalescing correct, since diffing newest against last-applied equals the sum of skipped diffs only if each flag is an equality check. A flag needing deep comparison would break that.
@@ -136,7 +145,8 @@ The consolidation budget is the map's own decision: past a fixed count of assets
 ## Rules
 
 - Never mutate the map outside the updater; go through its change detection and scheduler so ordering and serialization hold.
-- Inside a cycle's apply, never add an early return after the change diff: it skips the end-of-apply commit and would re-apply that state forever. The apply must run straight through to the commit.
+- Inside a cycle's apply, never add an early return after the change diff: it skips the end-of-apply commit and would re-apply that state forever. The apply must run straight through to the commit. The single exception is the map being removed mid-cycle — there is nothing left to apply to, and that bail-out resets last-applied to `nullMapState` rather than leaving it stale.
+- Check `map.isAlive()` after every await in a cycle and abandon when it is false. The map can be removed in any of those gaps, and what follows either throws from inside mapbox or writes into a dead engine and then commits as if it had landed.
 - Never block a cycle on the map finishing rendering (`idle`, `sourcedata`, per-source load state); it stalls the loop during continuous zoom or pan. The loading indicator and playback timing resolve out of band instead.
 - Reach the consolidated and editions states through the backend interface, not by touching Mapbox sources directly — that keeps the backend swappable.
 - Use Mapbox feature state only for small, bounded sets (e.g. hiding the few assets being edited), never for anything that scales with selection or network size.
@@ -150,7 +160,7 @@ The consolidation budget is the map's own decision: past a fixed count of assets
 
 ## Testing
 
-Integration tests in `src/map/test/` drive a simulated map engine through real user interactions and assert on the resulting state. Test whole workflows (interaction to resulting map state) rather than individual functions, and prefer the map test helpers over reaching into internals. Run with `pnpm test`.
+Integration tests in `src/map/test/` drive a simulated map engine through real user interactions and assert on the resulting state. The engine double stands in for the whole of `MapEngine`, so guards inside the real engine can't be covered from here — those few live in `libs/map`'s own suite; the double models only removal (`remove()` / `isAlive()`), which is what the updater branches on. Test whole workflows (interaction to resulting map state) rather than individual functions, and prefer the map test helpers over reaching into internals. Run with `pnpm test`.
 
 ## Where it lives
 

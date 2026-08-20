@@ -21,6 +21,7 @@ type FeatureState = Record<string, string | boolean | number>;
 
 class MapTestEngine {
   handlers: React.MutableRefObject<MapHandlers>;
+  private removed = false;
   private sources: Map<string, GeoJSONSourceRaw> = new Map();
   private features: Map<string, any[]> = new Map();
   private featureStates: Map<string, Map<string, FeatureState>> = new Map();
@@ -166,7 +167,10 @@ class MapTestEngine {
   hideFeatures() {}
   setOverlay() {}
   isStyleLoaded(): boolean {
-    return true;
+    return this.isAlive();
+  }
+  isAlive(): boolean {
+    return !this.removed;
   }
   clearFeatureState(sourceName: string): void {
     this.map.removeFeatureState({ source: sourceName });
@@ -198,7 +202,9 @@ class MapTestEngine {
     return this.queryRenderedFeatures(searchBox, { layers });
   }
 
-  remove() {}
+  remove() {
+    this.removed = true;
+  }
   selectFeature(sourceName: string, featureId: string) {
     this.map.setFeatureState(
       { source: sourceName, id: featureId },

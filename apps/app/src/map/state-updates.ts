@@ -275,9 +275,22 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     ? geojsonMapOperations
     : selectedMapOperations;
 
+  const abandonSettle = () => {
+    settleRef.current = null;
+    setMapLoading(false);
+  };
+
+  const hasMapBeenRemoved = (): boolean => {
+    if (!map || map.isAlive()) return false;
+
+    lastAppliedMapStateRef.current = nullMapState;
+    abandonSettle();
+    return true;
+  };
+
   syncMapStateRef.current = withDebugInstrumentation(
     async () => {
-      if (!map) return;
+      if (!map || hasMapBeenRemoved()) return;
       appliedChangesRef.current = null;
       const mapOperations = mapOperationsRef.current;
 
@@ -373,6 +386,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           gisData,
           iconsRef.current,
         );
+        if (hasMapBeenRemoved()) return;
       }
 
       if (hasNewImport || hasNewStyles) {
@@ -458,6 +472,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           },
           { name: "MAP_STATE:UPDATE_MAP_DATA", maxDurationMs: 10000 },
         )();
+        if (hasMapBeenRemoved()) return;
 
         if (consolidated) {
           consolidatedSelectionRef.current = selectedIds;
@@ -487,6 +502,8 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           hiddenInMainIds,
           hiddenInMainRef.current,
         );
+        if (hasMapBeenRemoved()) return;
+
         hiddenInMainRef.current = hiddenInMainIds;
         pendingDeltaCleanupRef.current = false;
       }
@@ -655,6 +672,8 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       return;
     }
 
+    if (hasMapBeenRemoved()) return;
+
     if (map && pendingConsolidationFinalizeRef.current) {
       mapOperationsRef.current.finalizeConsolidation(
         map,
@@ -681,11 +700,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     ) {
       appendSourceRebuildDuration(performance.now() - settle.startedAt);
     }
-  };
-
-  const abandonSettle = () => {
-    settleRef.current = null;
-    setMapLoading(false);
   };
 
   const queueUpdate = () => {
