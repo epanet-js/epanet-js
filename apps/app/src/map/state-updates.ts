@@ -32,6 +32,7 @@ import { Grid } from "./grid";
 import {
   useMapOperations,
   updateDeltaSource,
+  mapOperations as geojsonMapOperations,
   type RawData,
   type DefaultsResolvers,
   type MapOperations,
@@ -265,14 +266,20 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const scaleControlRef = useRef<BoundScaleControl | null>(null);
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
-  const mapOperations = useMapOperations();
+  const selectedMapOperations = useMapOperations();
   const setMapBackendFallback = useSetAtom(mapBackendFallbackAtom);
   const hasFallenBackRef = useRef(false);
+  // Switch to geojson engine if we need to fall back
+  const mapOperationsRef = useRef<MapOperations>(selectedMapOperations);
+  mapOperationsRef.current = hasFallenBackRef.current
+    ? geojsonMapOperations
+    : selectedMapOperations;
 
   syncMapStateRef.current = withDebugInstrumentation(
     async () => {
       if (!map) return;
       appliedChangesRef.current = null;
+      const mapOperations = mapOperationsRef.current;
 
       const previousMapState = lastAppliedMapStateRef.current;
       if (mapState === previousMapState) return;
@@ -649,7 +656,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     }
 
     if (map && pendingConsolidationFinalizeRef.current) {
-      mapOperations.finalizeConsolidation(
+      mapOperationsRef.current.finalizeConsolidation(
         map,
         hiddenInMainRef.current,
         pendingDeltaCleanupRef.current,
@@ -701,6 +708,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
             if (errorName(error) === "MapBackendUnavailableError") {
               if (!hasFallenBackRef.current) {
                 hasFallenBackRef.current = true;
+                mapOperationsRef.current = geojsonMapOperations;
                 captureWarning(
                   "Map backend unavailable; fell back to geojson",
                   error instanceof Error && error.cause ? error.cause : error,

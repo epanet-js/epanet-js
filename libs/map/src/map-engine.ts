@@ -12,6 +12,7 @@ import {
   FIT_TO_EXTENT_CONTROL,
   FIT_TO_EXTENT_ICON,
 } from "./custom-map-control";
+import { SourceTypeMismatchError } from "./errors";
 
 // Empty string resets the canvas cursor to the browser default (clears any inline
 // cursor style). Duplicated here so the engine doesn't depend on the app's constants.
@@ -210,10 +211,11 @@ export class MapEngine {
 
   setSource(name: string, sourceFeatures: Feature<Geometry | null>[]): void {
     if (!this.map || !(this.map as any).style) return;
-    const featuresSource = this.map.getSource(name) as
-      | mapboxgl.GeoJSONSource
-      | undefined;
+    const featuresSource = this.map.getSource(name);
     if (!featuresSource) return;
+    if (featuresSource.type !== "geojson") {
+      throw new SourceTypeMismatchError(name, featuresSource.type);
+    }
 
     featuresSource.setData({
       type: "FeatureCollection",

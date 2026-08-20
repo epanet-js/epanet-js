@@ -19,7 +19,7 @@ Keep the contract minimal and backend-neutral — nothing here may assume a part
 `MapEngine` (`map-engine.ts`) is a thin wrapper over a mapbox-gl `Map`, exposing the operations the app and backends use, grouped as:
 
 - **Style** — `setStyle`, `isStyleLoaded`, `addIcons`.
-- **Sources** — `setSource`, `removeSource`.
+- **Sources** — `setSource`, `removeSource`. `setSource` writes geojson data, so it throws `SourceTypeMismatchError` (`errors.ts`) when the name resolves to a source of another type. That means the style on the map came from a different backend than the one now driving it; only re-applying the style fixes it, so the engine refuses rather than writing. Kept typed because the mapbox failure is otherwise a bare `TypeError` naming neither the source nor the mismatch.
 - **Feature state** (hide/show individual features) — `hideFeature`/`showFeature` (+ bulk variants), `clearFeatureState`, `getFeatureState`, `isFeatureHidden`.
 - **Layers** — `addLayer`, `showLayers`/`hideLayers`, `setLayerFilter`, `setLayerPaintRule`, `setLayerMinZoom`.
 - **deck.gl overlay** — it holds one `MapboxOverlay` (`@deck.gl/mapbox`); `setOverlay(layers)` swaps the deck layers, `pickOverlayObjects` hit-tests them, and `suspend`/`resumeOverlayStyleReactions` guard the overlay across a style rebuild.
