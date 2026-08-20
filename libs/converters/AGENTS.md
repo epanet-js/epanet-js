@@ -93,6 +93,17 @@ both unit presets set it to `null`, and there is no per-formula unit anywhere �
 unit here could never drive a conversion. What the number *means* is fixed by
 `headlossFormula`, not by a unit.
 
+## A kind the source did not give is `"unknown"`, not a dropped record
+
+`ValveData.kind` is `ValveKind | "unknown"`. A vendor kind that maps to nothing in the domain
+still produces a record — with its `ref`, both endpoints, its geometry and whatever else was
+readable — because the link is real and carries flow. Dropping it would leave two nodes
+unconnected that the source says are connected, which is a worse lie than an imprecise kind.
+
+`"unknown"` describes the **source**, not the consumer's capability, the same way
+`SourceCrs = { type: "unknown" }` does. What to substitute is the consumer's call, and the
+parser raises an issue carrying the source's own code so nothing is lost.
+
 ## One headloss formula, chosen by the parser
 
 `headlossFormula` sits on `NetworkData`, not on the pipe. EPANET holds exactly one formula per

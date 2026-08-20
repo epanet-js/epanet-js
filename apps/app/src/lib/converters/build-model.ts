@@ -1,11 +1,14 @@
 import type {
   JunctionData,
+  LinkData,
   NetworkData,
   NodeData,
   PipeData,
+  PumpData,
   ReservoirData,
   SourceCrs,
   TankData,
+  ValveData,
 } from "@epanet-js/converters";
 import {
   HydraulicModel,
@@ -15,8 +18,11 @@ import {
 import {
   AssetFactory,
   AssetId,
+  LinkAsset,
+  LinkConnections,
   NodeAsset,
   HeadlossFormula,
+  ValveKind,
   computeLinkLength,
   LabelManager,
   LabelType,
@@ -118,10 +124,20 @@ export const buildModel = (
     lengthUnit: spec.units.length,
     toLength: converterFor(network.units.length, spec.units.length),
     toDiameter: converterFor(network.units.diameter, spec.units.diameter),
+    toPressure: converterFor(network.units.pressure, spec.units.pressure),
+    toFlow: converterFor(network.units.flow, spec.units.flow),
   };
 
   for (const pipeData of network.pipes) {
     addPipe(hydraulicModel, factories.assetFactory, pipeData, linkContext);
+  }
+
+  for (const pumpData of network.pumps) {
+    addPump(hydraulicModel, factories.assetFactory, pumpData, linkContext);
+  }
+
+  for (const valveData of network.valves) {
+    addValve(hydraulicModel, factories.assetFactory, valveData, linkContext);
   }
 
   return {
@@ -166,6 +182,13 @@ type LinkContext = NodeContext & {
   lengthUnit: Unit;
   toLength: (value: number) => number;
   toDiameter: (value: number) => number;
+  toPressure: (value: number) => number;
+  toFlow: (value: number) => number;
+};
+
+type LinkGeometry = {
+  coordinates: Position[];
+  connections: LinkConnections;
 };
 
 const addJunction = (
@@ -234,35 +257,114 @@ const addPipe = (
   pipeData: PipeData,
   context: LinkContext,
 ) => {
-  const { nodeIdByRef, toWgs84, toLength, toDiameter, lengthUnit } = context;
+  const geometry = linkGeometry(pipeData, context);
+  if (geometry === null) return;
 
-  const start = nodeIdByRef.get(pipeData.startNodeRef);
-  const end = nodeIdByRef.get(pipeData.endNodeRef);
-  if (start === undefined || end === undefined) return;
-
-  const vertices = (pipeData.vertices ?? []).map(toWgs84);
   const pipe = assetFactory.createPipe({
-    label: resolveLabel(
-      context.labelManager,
-      pipeData,
-      "pipe",
-      context.labelMaxLength,
-    ),
-    coordinates: [start.coordinates, ...vertices, end.coordinates],
-    connections: [start.id, end.id],
-    length: converted(pipeData.length, toLength),
-    diameter: converted(pipeData.diameter, toDiameter),
+    ...linkProperties(pipeData, "pipe", geometry, context),
+    length: converted(pipeData.length, context.toLength),
+    diameter: converted(pipeData.diameter, context.toDiameter),
     roughness: pipeData.roughness,
-    isActive: pipeData.isActive,
+    initialStatus: pipeData.initialStatus,
   });
 
   if (pipe.length === null) {
-    pipe.setProperty("length", computeLinkLength(pipe, lengthUnit));
+    pipe.setProperty("length", computeLinkLength(pipe, context.lengthUnit));
   }
 
-  hydraulicModel.assets.set(pipe.id, pipe);
-  hydraulicModel.assetIndex.addLink(pipe.id);
-  hydraulicModel.topology.addLink(pipe.id, start.id, end.id);
+  registerLink(hydraulicModel, pipe, geometry.connections);
+};
+
+const addPump = (
+  hydraulicModel: HydraulicModel,
+  assetFactory: AssetFactory,
+  pumpData: PumpData,
+  context: LinkContext,
+) => {
+  const geometry = linkGeometry(pumpData, context);
+  if (geometry === null) return;
+
+  const pump = assetFactory.createPump({
+    ...linkProperties(pumpData, "pump", geometry, context),
+    speed: pumpData.speed,
+    initialStatus: pumpData.initialStatus,
+  });
+
+  registerLink(hydraulicModel, pump, geometry.connections);
+};
+
+const addValve = (
+  hydraulicModel: HydraulicModel,
+  assetFactory: AssetFactory,
+  valveData: ValveData,
+  context: LinkContext,
+) => {
+  const geometry = linkGeometry(valveData, context);
+  if (geometry === null) return;
+
+  const kind = valveKindOf(valveData);
+  const valve = assetFactory.createValve({
+    ...linkProperties(valveData, "valve", geometry, context),
+    kind,
+    setting: converted(valveData.setting, settingConverterFor(kind, context)),
+    diameter: converted(valveData.diameter, context.toDiameter),
+    initialStatus: valveData.initialStatus,
+  });
+
+  registerLink(hydraulicModel, valve, geometry.connections);
+};
+
+const unknownValveFallback = "tcv" as const satisfies ValveKind;
+
+const valveKindOf = ({ kind }: ValveData): ValveKind =>
+  kind === "unknown" ? unknownValveFallback : kind;
+
+const settingConverterFor = (
+  kind: ValveKind,
+  { toPressure, toFlow }: LinkContext,
+): ((value: number) => number) => {
+  if (kind === "prv" || kind === "psv" || kind === "pbv") return toPressure;
+  if (kind === "fcv") return toFlow;
+
+  return (value) => value;
+};
+
+const linkGeometry = (
+  linkData: LinkData,
+  { nodeIdByRef, toWgs84 }: LinkContext,
+): LinkGeometry | null => {
+  const start = nodeIdByRef.get(linkData.startNodeRef);
+  const end = nodeIdByRef.get(linkData.endNodeRef);
+  if (start === undefined || end === undefined) return null;
+
+  const vertices = (linkData.vertices ?? []).map(toWgs84);
+
+  return {
+    coordinates: [start.coordinates, ...vertices, end.coordinates],
+    connections: [start.id, end.id],
+  };
+};
+
+const linkProperties = (
+  linkData: LinkData,
+  type: LabelType,
+  { coordinates, connections }: LinkGeometry,
+  { labelManager, labelMaxLength }: LinkContext,
+) => ({
+  label: resolveLabel(labelManager, linkData, type, labelMaxLength),
+  coordinates,
+  connections,
+  isActive: linkData.isActive,
+});
+
+const registerLink = (
+  hydraulicModel: HydraulicModel,
+  link: LinkAsset,
+  connections: LinkConnections,
+) => {
+  hydraulicModel.assets.set(link.id, link);
+  hydraulicModel.assetIndex.addLink(link.id);
+  hydraulicModel.topology.addLink(link.id, connections[0], connections[1]);
 };
 
 const nodeProperties = (

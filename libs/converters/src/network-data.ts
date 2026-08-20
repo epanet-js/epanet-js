@@ -1,5 +1,11 @@
 import type { Position } from "geojson";
-import type { HeadlossFormula } from "@epanet-js/hydraulic-model";
+import type {
+  HeadlossFormula,
+  PipeStatus,
+  PumpStatus,
+  ValveKind,
+  ValveStatus,
+} from "@epanet-js/hydraulic-model";
 import type { FlowUnit, LengthUnit, PressureUnit } from "@epanet-js/quantity";
 
 export type SourceUnits = {
@@ -47,6 +53,21 @@ export type PipeData = LinkData & {
   length?: number;
   diameter?: number;
   roughness?: number;
+  initialStatus?: PipeStatus;
+};
+
+export type SourceValveKind = ValveKind | "unknown";
+
+export type ValveData = LinkData & {
+  kind: SourceValveKind;
+  diameter?: number;
+  setting?: number;
+  initialStatus?: ValveStatus;
+};
+
+export type PumpData = LinkData & {
+  speed?: number;
+  initialStatus?: PumpStatus;
 };
 
 export type NetworkData = {
@@ -54,6 +75,8 @@ export type NetworkData = {
   reservoirs: ReservoirData[];
   tanks: TankData[];
   pipes: PipeData[];
+  pumps: PumpData[];
+  valves: ValveData[];
   headlossFormula?: HeadlossFormula;
   units: SourceUnits;
   crs: SourceCrs;
@@ -64,6 +87,8 @@ export const emptyNetworkData = (): NetworkData => ({
   reservoirs: [],
   tanks: [],
   pipes: [],
+  pumps: [],
+  valves: [],
   units: {},
   crs: { type: "unknown" },
 });

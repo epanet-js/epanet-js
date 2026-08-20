@@ -15,7 +15,7 @@ import { useInProcessDb } from "src/lib/db/__test-helpers__/in-process-db";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { Store } from "src/state";
-import { Junction, Pipe, Reservoir, Tank } from "src/hydraulic-model";
+import { Junction, Pipe, Reservoir, Tank, Valve } from "src/hydraulic-model";
 import { CommandContainer } from "./__helpers__/command-container";
 import { useOpenSynergi } from "./open-synergi";
 
@@ -52,6 +52,15 @@ describe("openSynergi", () => {
             length: 250,
           },
         ],
+        valves: [
+          {
+            ref: "11",
+            label: "V1",
+            startNodeRef: "1",
+            endNodeRef: "2",
+            kind: "unknown",
+          },
+        ],
         crs: { type: "epsg", code: 3857 },
         units: { flow: "l/s", elevation: "m", level: "m", length: "m" },
       }),
@@ -84,6 +93,13 @@ describe("openSynergi", () => {
       tank.id,
     ]);
 
+    const valve = getByLabel(hydraulicModel.assets, "V1") as Valve;
+    expect(valve.kind).toEqual("tcv");
+    expect(hydraulicModel.topology.getNodes(valve.id)).toEqual([
+      junction.id,
+      reservoir.id,
+    ]);
+
     const projectSettings = store.get(projectSettingsAtom);
     expect(projectSettings.name).toEqual("my-network");
     expect(projectSettings.projection.id).toEqual("EPSG:3857");
@@ -109,7 +125,14 @@ describe("openSynergi", () => {
     expect(userTracking.capture).toHaveBeenCalledWith({
       name: "importSynergi.completed",
       source: "toolbar",
-      counts: { junctions: 0, reservoirs: 0, tanks: 0, pipes: 0 },
+      counts: {
+        junctions: 0,
+        reservoirs: 0,
+        tanks: 0,
+        pipes: 0,
+        pumps: 0,
+        valves: 0,
+      },
     });
   });
 
@@ -147,6 +170,8 @@ const aNetwork = (data: Partial<NetworkData> = {}): NetworkData => ({
   reservoirs: [],
   tanks: [],
   pipes: [],
+  pumps: [],
+  valves: [],
   units: {},
   crs: { type: "unknown" },
   ...data,

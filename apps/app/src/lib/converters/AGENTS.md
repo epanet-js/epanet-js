@@ -36,6 +36,17 @@ Consequences to expect rather than treat as bugs:
 user gets when they *draw a new asset* in an imported project, so it stays correct for the
 model's headloss formula. Only the stamping of those defaults onto imported assets is gone.
 
+## Substituting for what the source could not say
+
+A valve whose kind the source did not give arrives as `"unknown"` and is built as a `tcv`.
+That is not a default in the sense above — the domain has no "unknown" valve, so *something*
+must be chosen for the asset to exist at all, and a link that exists imprecisely beats a link
+that silently disappears. `tcv` is the app's own established answer: the INP importer coerces
+an unrecognised valve type to `tcv` too, so both import paths behave alike.
+
+Its setting stays blank, because a number whose quantity we cannot name is worse than none —
+a valve setting is a pressure, a flow or a dimensionless coefficient depending on the kind.
+
 ## What the builder owns
 
 Everything a parser is forbidden to do, so it is written once instead of once per vendor:
@@ -48,7 +59,14 @@ Everything a parser is forbidden to do, so it is written once instead of once pe
   share one, pipe/pump/valve another — so a node and a link may legitimately share a label.
 - **Units.** Source quantities are converted into the project's unit spec. The source unit is
   per quantity, so each conversion is built from the pair, and a quantity the app holds as
-  unitless (`null`) converts to itself.
+  unitless (`null`) converts to itself. A valve's `setting` is converted by *kind* — a
+  pressure for prv/psv/pbv, a flow for fcv, unitless for the rest.
+
+  Note that the project largely *adopts* the source's units: the flow unit picks the unit
+  system, and a stated pressure unit overrides the preset. So most of these conversions are
+  identity in practice, and the ones that are not come from a source unit no EPANET unit
+  system can express (`l/h`, `l/d`, `gal/d`, `ft^3/d`), which fall back to LPS. Building the
+  converter from the pair anyway keeps that an implementation detail rather than an assumption.
 - **Geometry and topology.** Coordinates are reprojected out of the source CRS; a link's
   polyline is composed as `[start, ...vertices, end]` from the *resolved endpoints*, so the
   geometry cannot disagree with the topology. `assetIndex` and `topology` are populated inline.

@@ -2,11 +2,20 @@ import type {
   JunctionData,
   NetworkData,
   PipeData,
+  PumpData,
   ReservoirData,
   TankData,
+  ValveData,
 } from "@epanet-js/converters";
 import { WGS84, type Proj4Projection } from "@epanet-js/projections";
-import { Junction, Pipe, Reservoir, Tank } from "src/hydraulic-model";
+import {
+  Junction,
+  Pipe,
+  Pump,
+  Reservoir,
+  Tank,
+  Valve,
+} from "src/hydraulic-model";
 import { getByLabel } from "src/__helpers__/asset-queries";
 import { buildModel } from "./build-model";
 
@@ -423,6 +432,176 @@ const aPipe = (data: Partial<PipeData> & { ref: string }): PipeData => ({
   ...data,
 });
 
+describe("build pumps and valves from network data", () => {
+  const twoJunctions = [
+    aJunction({ ref: "1", label: "J1", coordinates: [0, 0] }),
+    aJunction({ ref: "2", label: "J2", coordinates: [1, 0] }),
+  ];
+
+  it("connects a pump into the network", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        junctions: twoJunctions,
+        pumps: [aPump({ ref: "10", label: "PU1", speed: 0.5 })],
+      }),
+      { projections: aCatalogue() },
+    );
+
+    const pump = getByLabel(hydraulicModel.assets, "PU1") as Pump;
+    const start = getByLabel(hydraulicModel.assets, "J1") as Junction;
+    const end = getByLabel(hydraulicModel.assets, "J2") as Junction;
+
+    expect(pump.type).toEqual("pump");
+    expect(pump.speed).toEqual(0.5);
+    expect(hydraulicModel.topology.getNodes(pump.id)).toEqual([
+      start.id,
+      end.id,
+    ]);
+    expect(hydraulicModel.assetIndex.hasLink(pump.id)).toEqual(true);
+  });
+
+  it("connects a valve into the network", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        junctions: twoJunctions,
+        valves: [aValve({ ref: "10", label: "V1", kind: "tcv" })],
+      }),
+      { projections: aCatalogue() },
+    );
+
+    const valve = getByLabel(hydraulicModel.assets, "V1") as Valve;
+    expect(valve.type).toEqual("valve");
+    expect(valve.kind).toEqual("tcv");
+    expect(hydraulicModel.assetIndex.hasLink(valve.id)).toEqual(true);
+  });
+
+  it("falls back to a throttle valve when the source kind is unknown", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        junctions: twoJunctions,
+        valves: [aValve({ ref: "10", label: "V1", kind: "unknown" })],
+      }),
+      { projections: aCatalogue() },
+    );
+
+    const valve = getByLabel(hydraulicModel.assets, "V1") as Valve;
+    expect(valve.kind).toEqual("tcv");
+  });
+
+  it("leaves a pump and a valve blank where the source said nothing", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        junctions: twoJunctions,
+        pumps: [aPump({ ref: "10", label: "PU1" })],
+        valves: [aValve({ ref: "11", label: "V1", kind: "tcv" })],
+      }),
+      { projections: aCatalogue() },
+    );
+
+    const pump = getByLabel(hydraulicModel.assets, "PU1") as Pump;
+    const valve = getByLabel(hydraulicModel.assets, "V1") as Valve;
+    expect(pump.power).toBeNull();
+    expect(valve.setting).toBeNull();
+    expect(valve.diameter).toBeNull();
+  });
+
+  it("runs a valve polyline through its vertices", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        junctions: twoJunctions,
+        valves: [
+          aValve({
+            ref: "10",
+            label: "V1",
+            kind: "tcv",
+            vertices: [[0.5, 0.2]],
+          }),
+        ],
+      }),
+      { projections: aCatalogue() },
+    );
+
+    const valve = getByLabel(hydraulicModel.assets, "V1") as Valve;
+    expect(valve.coordinates).toEqual([
+      [0, 0],
+      [0.5, 0.2],
+      [1, 0],
+    ]);
+  });
+
+  it("drops a valve whose endpoint is not in the model", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        junctions: twoJunctions,
+        valves: [
+          aValve({ ref: "10", label: "V1", kind: "tcv", endNodeRef: "404" }),
+        ],
+      }),
+      { projections: aCatalogue() },
+    );
+
+    expect(hydraulicModel.assets.size).toEqual(2);
+  });
+});
+
+describe("valve setting units", () => {
+  const twoJunctions = [
+    aJunction({ ref: "1", label: "J1", coordinates: [0, 0] }),
+    aJunction({ ref: "2", label: "J2", coordinates: [1, 0] }),
+  ];
+
+  const settingOf = (
+    kind: ValveData["kind"],
+    setting: number,
+    units: NetworkData["units"],
+  ) => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        junctions: twoJunctions,
+        valves: [aValve({ ref: "10", label: "V1", kind, setting })],
+        units,
+      }),
+      { projections: aCatalogue() },
+    );
+
+    return (getByLabel(hydraulicModel.assets, "V1") as Valve).setting;
+  };
+
+  it("keeps a pressure regulator setting in the source pressure unit", () => {
+    expect(settingOf("prv", 10, { flow: "gal/min", pressure: "mwc" })).toEqual(
+      10,
+    );
+  });
+
+  it("keeps a flow regulator setting in the source flow unit", () => {
+    expect(settingOf("fcv", 100, { flow: "gal/min" })).toEqual(100);
+  });
+
+  it("converts a flow regulator setting when the project cannot adopt the source flow unit", () => {
+    expect(settingOf("fcv", 100, { flow: "l/h" })).toBeCloseTo(0.0278, 4);
+  });
+
+  it("leaves a throttle valve setting unconverted", () => {
+    expect(
+      settingOf("tcv", 3600, { flow: "gal/min", pressure: "mwc" }),
+    ).toEqual(3600);
+  });
+});
+
+const aPump = (data: Partial<PumpData> & { ref: string }): PumpData => ({
+  startNodeRef: "1",
+  endNodeRef: "2",
+  ...data,
+});
+
+const aValve = (
+  data: Partial<ValveData> & { ref: string; kind: ValveData["kind"] },
+): ValveData => ({
+  startNodeRef: "1",
+  endNodeRef: "2",
+  ...data,
+});
+
 const aReservoir = (
   data: Partial<ReservoirData> & { ref: string },
 ): ReservoirData => ({
@@ -600,6 +779,8 @@ const aNetwork = (data: Partial<NetworkData> = {}): NetworkData => ({
   reservoirs: [],
   tanks: [],
   pipes: [],
+  pumps: [],
+  valves: [],
   units: {},
   crs: { type: "unknown" },
   ...data,
