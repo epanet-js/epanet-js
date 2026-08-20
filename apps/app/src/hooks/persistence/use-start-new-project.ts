@@ -18,11 +18,7 @@ import {
   type ProjectSettings,
   defaultProjectSettings,
 } from "@epanet-js/project-settings";
-import {
-  buildDefaultSimulationSettings,
-  defaultSimulationSettings,
-} from "src/simulation/simulation-settings";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { inpFileInfoAtom, projectFileInfoAtom } from "src/state/file-system";
 import type { Zones } from "src/lib/zones";
 import { initializeZones } from "src/lib/zones";
@@ -229,7 +225,6 @@ export const useStartBlankProject = () => {
   const { startNewProject } = useStartNewProject();
   const setInpFileInfo = useSetAtom(inpFileInfoAtom);
   const setProjectFileInfo = useSetAtom(projectFileInfoAtom);
-  const isReportYesOn = useFeatureFlag("FLAG_REPORT_YES");
   return useCallback(
     async ({
       projectSettings = defaultProjectSettings,
@@ -248,7 +243,7 @@ export const useStartBlankProject = () => {
         hydraulicModel,
         factories,
         projectSettings,
-        simulationSettings: buildDefaultSimulationSettings({ isReportYesOn }),
+        simulationSettings: defaultSimulationSettings,
         autoElevations,
       });
       if (!started) return false;
@@ -257,51 +252,43 @@ export const useStartBlankProject = () => {
       setProjectFileInfo(null);
       return true;
     },
-    [startNewProject, setInpFileInfo, setProjectFileInfo, isReportYesOn],
+    [startNewProject, setInpFileInfo, setProjectFileInfo],
   );
 };
 
 export const useSeedDefaultProjectDb = () => {
-  const isReportYesOn = useFeatureFlag("FLAG_REPORT_YES");
   return useAtomCallback(
-    useCallback(
-      (get: Getter, set: Setter): Promise<void> => {
-        const projectSettings: ProjectSettings = {
-          ...get(projectSettingsAtom),
-          ...{ uniqueId: db.newUniqueId() },
-        };
-        const hydraulicModel = get(stagingModelDerivedAtom);
-        const currentSettings = get(simulationSettingsDerivedAtom);
-        const isDefaultSettings = currentSettings === defaultSimulationSettings;
-        const simulationSettings = isDefaultSettings
-          ? buildDefaultSimulationSettings({ isReportYesOn })
-          : currentSettings;
+    useCallback((get: Getter, set: Setter): Promise<void> => {
+      const projectSettings: ProjectSettings = {
+        ...get(projectSettingsAtom),
+        ...{ uniqueId: db.newUniqueId() },
+      };
+      const hydraulicModel = get(stagingModelDerivedAtom);
+      const simulationSettings = get(simulationSettingsDerivedAtom);
 
-        resetAppState(set);
-        loadModel(set, {
-          hydraulicModel,
-          factories: get(modelFactoriesAtom),
+      resetAppState(set);
+      loadModel(set, {
+        hydraulicModel,
+        factories: get(modelFactoriesAtom),
+        projectSettings,
+        simulationSettings,
+      });
+
+      return db
+        .importProject({
+          newDb: true,
           projectSettings,
+          hydraulicModel,
           simulationSettings,
-        });
-
-        return db
-          .importProject({
-            newDb: true,
-            projectSettings,
-            hydraulicModel,
-            simulationSettings,
-          })
-          .catch((e: unknown) => {
-            const error = e instanceof Error ? e : new Error(String(e));
-            captureWarning("Failed to seed default project db", error);
-            set(dialogAtom, {
-              type: "appLoadFailed",
-              errorMessage: error.message,
-            });
+        })
+        .catch((e: unknown) => {
+          const error = e instanceof Error ? e : new Error(String(e));
+          captureWarning("Failed to seed default project db", error);
+          set(dialogAtom, {
+            type: "appLoadFailed",
+            errorMessage: error.message,
           });
-      },
-      [isReportYesOn],
-    ),
+        });
+    }, []),
   );
 };

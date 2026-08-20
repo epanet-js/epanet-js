@@ -114,7 +114,7 @@ describe("build inp export ", () => {
     expect(rowsFrom(inp)).toContain("Duration\t0");
 
     expect(rowsFrom(inp)).toContain("[REPORT]");
-    expect(rowsFrom(inp)).toContain("Status\tFULL");
+    expect(rowsFrom(inp)).toContain("Status\tYES");
     expect(rowsFrom(inp)).toContain("Summary\tNo");
     expect(rowsFrom(inp)).toContain("Page\t0");
 

@@ -599,7 +599,7 @@ describe("build inp", () => {
     expect(inp).toContain("Duration\t0");
 
     expect(inp).toContain("[REPORT]");
-    expect(inp).toContain("Status\tFULL");
+    expect(inp).toContain("Status\tYES");
     expect(inp).toContain("Summary\tNo");
     expect(inp).toContain("Page\t0");
 

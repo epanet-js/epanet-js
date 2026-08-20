@@ -17,7 +17,6 @@ import {
 import { inpFileInfoAtom, projectFileInfoAtom } from "src/state/file-system";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { Store } from "src/state";
-import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
 import {
   useSeedDefaultProjectDb,
   useStartBlankProject,
@@ -139,22 +138,7 @@ describe("useStartBlankProject", () => {
   });
 
   describe("status report default", () => {
-    it("defaults to FULL when FLAG_REPORT_YES is disabled", async () => {
-      stubFeatureOff("FLAG_REPORT_YES");
-      const store = setInitialState();
-
-      const { result } = renderStartEmptyProject(store);
-      await act(async () => {
-        await result.current();
-      });
-
-      expect((await fetchProject()).simulationSettings.statusReport).toBe(
-        "FULL",
-      );
-    });
-
-    it("defaults to YES when FLAG_REPORT_YES is enabled", async () => {
-      stubFeatureOn("FLAG_REPORT_YES");
+    it("defaults to YES", async () => {
       const store = setInitialState();
 
       const { result } = renderStartEmptyProject(store);
@@ -198,20 +182,7 @@ describe("withDatabaseBusy", () => {
 describe("useSeedDefaultProjectDb", () => {
   useInProcessDb();
 
-  it("seeds a FULL status report when FLAG_REPORT_YES is disabled", async () => {
-    stubFeatureOff("FLAG_REPORT_YES");
-    const store = setInitialState();
-
-    const { result } = renderSeedDefaultProjectDb(store);
-    await act(async () => {
-      await result.current();
-    });
-
-    expect((await fetchProject()).simulationSettings.statusReport).toBe("FULL");
-  });
-
-  it("seeds a YES status report when FLAG_REPORT_YES is enabled", async () => {
-    stubFeatureOn("FLAG_REPORT_YES");
+  it("seeds a YES status report", async () => {
     const store = setInitialState();
 
     const { result } = renderSeedDefaultProjectDb(store);

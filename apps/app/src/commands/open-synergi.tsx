@@ -15,8 +15,7 @@ import { ImportSynergiStarted, useUserTracking } from "src/infra/user-tracking";
 import { useFileOpen } from "src/hooks/use-file-open";
 import { useProjections } from "src/hooks/use-projections";
 import { useLabelMaxLength } from "src/hooks/use-label-max-length";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { buildDefaultSimulationSettings } from "src/simulation/simulation-settings";
+import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { useStartNewProject } from "src/hooks/persistence/use-start-new-project";
 import { MapContext } from "src/map";
 
@@ -26,7 +25,6 @@ export const useOpenSynergi = () => {
   const { openFile, isReady } = useFileOpen();
   const { projections } = useProjections();
   const labelMaxLength = useLabelMaxLength();
-  const isReportYesOn = useFeatureFlag("FLAG_REPORT_YES");
   const { startNewProject } = useStartNewProject();
   const setDialogState = useSetAtom(dialogAtom);
   const setInpFileInfo = useSetAtom(inpFileInfoAtom);
@@ -57,7 +55,7 @@ export const useOpenSynergi = () => {
             ...projectSettings,
             name: file.name.replace(/\.[^.]+$/, ""),
           },
-          simulationSettings: buildDefaultSimulationSettings({ isReportYesOn }),
+          simulationSettings: defaultSimulationSettings,
         });
         if (!started) {
           setDialogState(null);
@@ -93,7 +91,6 @@ export const useOpenSynergi = () => {
     [
       projections,
       labelMaxLength,
-      isReportYesOn,
       startNewProject,
       map,
       setDialogState,
