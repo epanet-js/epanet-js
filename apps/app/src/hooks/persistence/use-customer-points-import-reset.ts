@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import { useAtomCallback } from "jotai/utils";
 import type { Getter, Setter } from "jotai";
+import { nanoid } from "nanoid";
 import * as db from "src/lib/db";
 import { handleError } from "src/infra/errors";
 import type { HydraulicModel } from "src/hydraulic-model";
@@ -46,12 +47,13 @@ const loadModel = (
   set: Setter,
   { hydraulicModel }: CustomerPointsImportResetInput,
 ) => {
-  const momentLog = new MomentLog(hydraulicModel.version);
+  const importedModel = { ...hydraulicModel, version: nanoid() };
+  const momentLog = new MomentLog(importedModel.version);
 
-  set(stagingModelDerivedAtom, hydraulicModel);
+  set(stagingModelDerivedAtom, importedModel);
   void db
     .importProject({
-      hydraulicModel,
+      hydraulicModel: importedModel,
       simulationSettings: get(simulationSettingsDerivedAtom),
     })
     .catch((error) =>

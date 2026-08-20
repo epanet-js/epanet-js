@@ -8,6 +8,9 @@ import { useMomentTransaction } from "src/hooks/persistence/use-moment-transacti
 import { useUndoableTransactions } from "src/hooks/persistence/use-undoable-transactions";
 import { useProjectSettingsTransaction } from "src/hooks/persistence/use-project-settings-transaction";
 import { useScenarioOperations } from "src/hooks/use-scenario-operations";
+import { useCustomerPointsImportReset } from "src/hooks/persistence/use-customer-points-import-reset";
+import { addCustomerPoints } from "src/hydraulic-model/mutations/add-customer-points";
+import { buildCustomerPoint } from "src/__helpers__/hydraulic-model-builder";
 import { useHasUnsavedChanges } from "src/hooks/use-has-unsaved-changes";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
@@ -88,6 +91,20 @@ const createScenario = (store: Store) => {
   });
 };
 
+const importCustomerPoints = async (store: Store) => {
+  const { result } = renderHook(
+    () => useCustomerPointsImportReset(),
+    withStore(store),
+  );
+  const hydraulicModel = addCustomerPoints(store.get(stagingModelDerivedAtom), [
+    buildCustomerPoint(1, { coordinates: [10, 20] }),
+  ]);
+
+  await act(async () => {
+    await result.current.customerPointsImportReset({ hydraulicModel });
+  });
+};
+
 const hasUnsavedChanges = (store: Store): boolean => {
   const { result } = renderHook(() => useHasUnsavedChanges(), withStore(store));
   return result.current;
@@ -142,6 +159,14 @@ describe("unsaved changes with FLAG_DECOUPLE_UNSAVED enabled", () => {
 
     await renameProject(store, "Another name");
     undo(store);
+
+    expect(hasUnsavedChanges(store)).toBe(true);
+  });
+
+  it("reports unsaved after importing customer points", async () => {
+    const store = await aSavedProject();
+
+    await importCustomerPoints(store);
 
     expect(hasUnsavedChanges(store)).toBe(true);
   });
