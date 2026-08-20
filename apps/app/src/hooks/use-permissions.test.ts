@@ -67,12 +67,18 @@ describe("resolvePermissions", () => {
     expect(p.canManageOrganization).toBe(false);
   });
 
-  it("free plan on a demo network can use pipe attributes but no other paid features", () => {
+  it("free plan on a demo network can use the features the demo showcases", () => {
     const p = resolvePermissions("free", false, false, true);
     expect(p.canUsePipeAttributes).toBe(true);
+    expect(p.canUseZones).toBe(true);
+    expect(p.canUseControls).toBe(true);
+    expect(p.canUsePipeLibrary).toBe(true);
+    expect(p.canUseCustomAttributes).toBe(true);
     expect(p.canAddCustomLayers).toBe(false);
     expect(p.canUseScenarios).toBe(false);
     expect(p.canUseElevations).toBe(false);
+    expect(p.canValidateModelAttributes).toBe(false);
+    expect(p.canImportSynergi).toBe(false);
     expect(p.canUpgrade).toBe(true);
   });
 
