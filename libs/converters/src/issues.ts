@@ -10,6 +10,8 @@ export type IssueCode =
   | "nodeHydraulicsMissing"
   | "nodePressureStatusUnknown"
   | "nodeFixedHeadUnsupported"
+  | "tankHydraulicsMissing"
+  | "tankVolumeCurveUnsupported"
   | "unitSystemMissing"
   | "unitSystemUnsupported"
   | "coordinateSystemMissing";

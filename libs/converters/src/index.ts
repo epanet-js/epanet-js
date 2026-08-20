@@ -4,8 +4,11 @@ export type { ParserInput, SourceFile } from "./source-file";
 export type {
   JunctionData,
   NetworkData,
+  NodeData,
+  ReservoirData,
   SourceCrs,
   SourceUnits,
+  TankData,
 } from "./network-data";
 export { emptyNetworkData } from "./network-data";
 export type { IssueCode, IssueSeverity, ParserIssue } from "./issues";

@@ -1,3 +1,4 @@
+import { emptyNetworkData } from "@epanet-js/converters";
 import { getConverter } from "./registry";
 import { stubConverter } from "./__helpers__/stub-converter";
 
@@ -13,7 +14,7 @@ describe("converters registry", () => {
     const converter = stubConverter(
       "synergi",
       {
-        network: { junctions: [], units: {}, crs: { type: "unknown" } },
+        network: emptyNetworkData(),
         issues: [],
       },
       { name: "Synergi", extensions: [".mdb"] },

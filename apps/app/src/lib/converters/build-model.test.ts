@@ -1,6 +1,11 @@
-import type { JunctionData, NetworkData } from "@epanet-js/converters";
+import type {
+  JunctionData,
+  NetworkData,
+  ReservoirData,
+  TankData,
+} from "@epanet-js/converters";
 import { WGS84, type Proj4Projection } from "@epanet-js/projections";
-import { Junction } from "src/hydraulic-model";
+import { Junction, Reservoir, Tank } from "src/hydraulic-model";
 import { getByLabel } from "src/__helpers__/asset-queries";
 import { buildModel } from "./build-model";
 
@@ -194,6 +199,171 @@ describe("build model unit system", () => {
   });
 });
 
+const aReservoir = (
+  data: Partial<ReservoirData> & { ref: string },
+): ReservoirData => ({
+  coordinates: [10, 20],
+  ...data,
+});
+
+const aTank = (data: Partial<TankData> & { ref: string }): TankData => ({
+  coordinates: [10, 20],
+  ...data,
+});
+
+describe("build reservoirs from network data", () => {
+  it("builds a reservoir with its head and elevation", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        reservoirs: [
+          aReservoir({ ref: "1", label: "R1", elevation: 50, head: 100 }),
+        ],
+      }),
+      { projections: aCatalogue() },
+    );
+
+    const reservoir = getByLabel(hydraulicModel.assets, "R1") as Reservoir;
+    expect(reservoir.type).toEqual("reservoir");
+    expect(reservoir.elevation).toEqual(50);
+    expect(reservoir.head).toEqual(100);
+  });
+
+  it("falls back to the preset head when the source did not state one", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        reservoirs: [aReservoir({ ref: "1", label: "R1", elevation: 50 })],
+        units: { flow: "l/s" },
+      }),
+      { projections: aCatalogue() },
+    );
+
+    const reservoir = getByLabel(hydraulicModel.assets, "R1") as Reservoir;
+    expect(reservoir.head).toEqual(60);
+  });
+
+  it("converts the head into the project unit", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        reservoirs: [aReservoir({ ref: "1", label: "R1", head: 10 })],
+        units: { flow: "l/s", elevation: "ft" },
+      }),
+      { projections: aCatalogue() },
+    );
+
+    const reservoir = getByLabel(hydraulicModel.assets, "R1") as Reservoir;
+    expect(reservoir.head).toBeCloseTo(3.048, 3);
+  });
+
+  it("indexes the reservoir as a node", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({ reservoirs: [aReservoir({ ref: "1", label: "R1" })] }),
+      { projections: aCatalogue() },
+    );
+
+    const reservoir = getByLabel(hydraulicModel.assets, "R1") as Reservoir;
+    expect(hydraulicModel.assetIndex.hasNode(reservoir.id)).toEqual(true);
+  });
+});
+
+describe("build tanks from network data", () => {
+  it("builds a tank with its levels and diameter", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        tanks: [
+          aTank({
+            ref: "1",
+            label: "T1",
+            elevation: 77,
+            minLevel: 2,
+            initialLevel: 12,
+            maxLevel: 20,
+            diameter: 10000,
+          }),
+        ],
+        units: { flow: "l/s", elevation: "m", level: "m", diameter: "mm" },
+      }),
+      { projections: aCatalogue() },
+    );
+
+    const tank = getByLabel(hydraulicModel.assets, "T1") as Tank;
+    expect(tank.type).toEqual("tank");
+    expect(tank.elevation).toEqual(77);
+    expect(tank.minLevel).toEqual(2);
+    expect(tank.initialLevel).toEqual(12);
+    expect(tank.maxLevel).toEqual(20);
+    expect(tank.diameter).toEqual(10);
+  });
+
+  it("falls back to the preset levels the source did not state", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        tanks: [aTank({ ref: "1", label: "T1" })],
+        units: { flow: "l/s" },
+      }),
+      { projections: aCatalogue() },
+    );
+
+    const tank = getByLabel(hydraulicModel.assets, "T1") as Tank;
+    expect(tank.minLevel).toEqual(0);
+    expect(tank.initialLevel).toEqual(10);
+    expect(tank.maxLevel).toEqual(35);
+    expect(tank.diameter).toEqual(10);
+  });
+
+  it("treats a zero diameter as no diameter at all", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        tanks: [aTank({ ref: "1", label: "T1", diameter: 0 })],
+        units: { flow: "l/s", diameter: "mm" },
+      }),
+      { projections: aCatalogue() },
+    );
+
+    const tank = getByLabel(hydraulicModel.assets, "T1") as Tank;
+    expect(tank.diameter).toEqual(10);
+  });
+
+  it("raises the max level so it can hold the initial level", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        tanks: [aTank({ ref: "1", label: "T1", initialLevel: 60 })],
+        units: { flow: "l/s" },
+      }),
+      { projections: aCatalogue() },
+    );
+
+    const tank = getByLabel(hydraulicModel.assets, "T1") as Tank;
+    expect(tank.initialLevel).toEqual(60);
+    expect(tank.maxLevel).toEqual(60);
+  });
+
+  it("indexes the tank as a node", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({ tanks: [aTank({ ref: "1", label: "T1" })] }),
+      { projections: aCatalogue() },
+    );
+
+    const tank = getByLabel(hydraulicModel.assets, "T1") as Tank;
+    expect(hydraulicModel.assetIndex.hasNode(tank.id)).toEqual(true);
+  });
+});
+
+describe("labels across node kinds", () => {
+  it("keeps labels unique when kinds collide", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        junctions: [aJunction({ ref: "1", label: "SHARED" })],
+        reservoirs: [aReservoir({ ref: "2", label: "SHARED" })],
+        tanks: [aTank({ ref: "3", label: "SHARED" })],
+      }),
+      { projections: aCatalogue() },
+    );
+
+    const labels = [...hydraulicModel.assets.values()].map((a) => a.label);
+    expect(labels).toEqual(["SHARED", "2", "3"]);
+  });
+});
+
 const aJunction = (
   data: Partial<JunctionData> & { ref: string },
 ): JunctionData => ({
@@ -203,6 +373,8 @@ const aJunction = (
 
 const aNetwork = (data: Partial<NetworkData> = {}): NetworkData => ({
   junctions: [],
+  reservoirs: [],
+  tanks: [],
   units: {},
   crs: { type: "unknown" },
   ...data,

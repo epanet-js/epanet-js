@@ -37,6 +37,22 @@ type Converter = {
   unit conversion, no indexes. That is what lets a parse move to a worker without
   changing the contract, and what keeps every domain decision on the app side.
 
+## One array per asset kind, and a shared record per shape
+
+`NodeData` (`ref`, `label?`, `coordinates`, `elevation?`) is what every node kind is built
+on, so a consumer can treat the common part uniformly and branch only on what differs.
+`JunctionData` adds nothing — a junction is the plain case.
+
+**`ref` is the source's join key; `label` is what a person calls it.** They are separate
+because a vendor's display names are free to collide, be too long, or repeat across
+namespaces, while its internal ids never do. Fusing them turns a naming collision into a
+join bug — the consumer resolves `label ?? ref` against its own label rules and can always
+fall back to `ref`, which is guaranteed unique.
+
+**A boundary node's head is a head, in `units.elevation`.** `ReservoirData.head` is the
+absolute head the source stated. A source that states a *pressure* instead has to say so
+in a field of its own rather than passing a pressure off as a head; nothing does yet.
+
 ## Optionality is the contract
 
 `?:` on a record field means **the source did not say**, and the consumer decides
@@ -57,6 +73,10 @@ error where the conversion happens.
 It is deliberately not a unit-system preset: a source is free to state pressure
 in `psi` while flowing `l/s`, and the set of quantities grows as more of the
 model is parsed.
+
+A quantity is named for what it measures, not for the asset it sits on: `diameter` covers
+every diameter in the model, `level` every tank level. A vendor that states two diameters in
+two units is not a shape this has to serve until one exists.
 
 ## Issues carry structure, not sentences
 

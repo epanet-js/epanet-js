@@ -77,7 +77,11 @@ export const useOpenSynergi = () => {
         userTracking.capture({
           name: "importSynergi.completed",
           source,
-          counts: { junctions: network.junctions.length },
+          counts: {
+            junctions: network.junctions.length,
+            reservoirs: network.reservoirs.length,
+            tanks: network.tanks.length,
+          },
         });
       } catch (error) {
         handleError(error, {

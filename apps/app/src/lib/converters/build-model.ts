@@ -1,7 +1,10 @@
 import type {
   JunctionData,
   NetworkData,
+  NodeData,
+  ReservoirData,
   SourceCrs,
+  TankData,
 } from "@epanet-js/converters";
 import {
   HydraulicModel,
@@ -10,8 +13,10 @@ import {
 } from "src/hydraulic-model";
 import {
   AssetFactory,
+  DefaultsSpec,
   HeadlossFormula,
   LabelManager,
+  LabelType,
   ModelFactories,
   initializeModelFactories,
 } from "@epanet-js/hydraulic-model";
@@ -73,18 +78,35 @@ export const buildModel = (
 
   const projection = resolveProjection(network.crs, projections);
   const { toWgs84 } = createProjectionMapper(projection);
-  const toElevation = elevationConverter(
-    network.units.elevation,
-    spec.units.elevation,
-  );
+
+  const context: NodeContext = {
+    labelManager,
+    labelMaxLength,
+    toWgs84,
+    toElevation: converterFor(network.units.elevation, spec.units.elevation),
+    toLevel: converterFor(network.units.level, spec.units.initialLevel),
+    toTankDiameter: converterFor(
+      network.units.diameter,
+      spec.units.tankDiameter,
+    ),
+    defaults,
+  };
 
   for (const junctionData of network.junctions) {
-    addJunction(hydraulicModel, factories.assetFactory, junctionData, {
-      labelManager,
-      labelMaxLength,
-      toWgs84,
-      toElevation,
-    });
+    addJunction(hydraulicModel, factories.assetFactory, junctionData, context);
+  }
+
+  for (const reservoirData of network.reservoirs) {
+    addReservoir(
+      hydraulicModel,
+      factories.assetFactory,
+      reservoirData,
+      context,
+    );
+  }
+
+  for (const tankData of network.tanks) {
+    addTank(hydraulicModel, factories.assetFactory, tankData, context);
   }
 
   return {
@@ -113,29 +135,24 @@ const resolveProjection = (
   return findProjectionByCode(String(crs.code), projections) ?? WGS84;
 };
 
+type NodeContext = {
+  labelManager: LabelManager;
+  labelMaxLength?: number;
+  toWgs84: (coordinates: Position) => Position;
+  toElevation: (value: number) => number;
+  toLevel: (value: number) => number;
+  toTankDiameter: (value: number) => number;
+  defaults: DefaultsSpec;
+};
+
 const addJunction = (
   hydraulicModel: HydraulicModel,
   assetFactory: AssetFactory,
   junctionData: JunctionData,
-  {
-    labelManager,
-    labelMaxLength,
-    toWgs84,
-    toElevation,
-  }: {
-    labelManager: LabelManager;
-    labelMaxLength?: number;
-    toWgs84: (coordinates: Position) => Position;
-    toElevation: (value: number) => number;
-  },
+  context: NodeContext,
 ) => {
   const junction = assetFactory.createJunction({
-    label: resolveLabel(labelManager, junctionData, labelMaxLength),
-    coordinates: toWgs84(junctionData.coordinates),
-    elevation:
-      junctionData.elevation === undefined
-        ? undefined
-        : toElevation(junctionData.elevation),
+    ...nodeProperties(junctionData, "junction", context),
   });
 
   hydraulicModel.assets.set(junction.id, junction);
@@ -143,26 +160,114 @@ const addJunction = (
   hydraulicModel.demands.junctions.set(junction.id, []);
 };
 
+const addReservoir = (
+  hydraulicModel: HydraulicModel,
+  assetFactory: AssetFactory,
+  reservoirData: ReservoirData,
+  context: NodeContext,
+) => {
+  const { head } = reservoirData;
+  const reservoir = assetFactory.createReservoir({
+    ...nodeProperties(reservoirData, "reservoir", context),
+    ...(head === undefined
+      ? { relativeHead: context.defaults.reservoir.relativeHead }
+      : { head: context.toElevation(head) }),
+  });
+
+  hydraulicModel.assets.set(reservoir.id, reservoir);
+  hydraulicModel.assetIndex.addNode(reservoir.id);
+};
+
+const addTank = (
+  hydraulicModel: HydraulicModel,
+  assetFactory: AssetFactory,
+  tankData: TankData,
+  context: NodeContext,
+) => {
+  const { defaults, toLevel, toTankDiameter } = context;
+  const tankDefaults = defaults.tank;
+
+  const minLevel = convertOr(tankData.minLevel, toLevel, tankDefaults.minLevel);
+  const initialLevel = convertOr(
+    tankData.initialLevel,
+    toLevel,
+    tankDefaults.initialLevel,
+  );
+  const maxLevel = convertOr(tankData.maxLevel, toLevel, tankDefaults.maxLevel);
+
+  const tank = assetFactory.createTank({
+    ...nodeProperties(tankData, "tank", context),
+    minLevel,
+    initialLevel,
+    maxLevel: coherentMaxLevel(maxLevel, initialLevel),
+    diameter: convertOr(
+      usable(tankData.diameter),
+      toTankDiameter,
+      tankDefaults.diameter,
+    ),
+    minVolume: convertOr(tankData.minVolume, toLevel, tankDefaults.minVolume),
+  });
+
+  hydraulicModel.assets.set(tank.id, tank);
+  hydraulicModel.assetIndex.addNode(tank.id);
+};
+
+const nodeProperties = (
+  nodeData: NodeData,
+  type: LabelType,
+  { labelManager, labelMaxLength, toWgs84, toElevation }: NodeContext,
+) => ({
+  label: resolveLabel(labelManager, nodeData, type, labelMaxLength),
+  coordinates: toWgs84(nodeData.coordinates),
+  elevation:
+    nodeData.elevation === undefined
+      ? undefined
+      : toElevation(nodeData.elevation),
+});
+
+const coherentMaxLevel = (
+  maxLevel: number | undefined,
+  initialLevel: number | undefined,
+): number | undefined => {
+  if (maxLevel === undefined || initialLevel === undefined) return maxLevel;
+
+  return Math.max(maxLevel, initialLevel);
+};
+
+const usable = (value: number | undefined): number | undefined =>
+  value === 0 ? undefined : value;
+
+const convertOr = (
+  value: number | undefined,
+  convert: (value: number) => number,
+  fallback: number | undefined,
+): number | undefined => (value === undefined ? fallback : convert(value));
+
 const resolveLabel = (
   labelManager: LabelManager,
-  { label, ref }: JunctionData,
+  { label, ref }: NodeData,
+  type: LabelType,
   labelMaxLength?: number,
 ): string | undefined => {
-  const candidate = sanitize(label ?? ref, labelMaxLength);
-  if (labelManager.isLabelAvailable(candidate, "junction")) return candidate;
+  const candidate = sanitize(label ?? ref, type, labelMaxLength);
+  if (labelManager.isLabelAvailable(candidate, type)) return candidate;
 
-  const fallback = sanitize(ref, labelMaxLength);
-  if (labelManager.isLabelAvailable(fallback, "junction")) return fallback;
+  const fallback = sanitize(ref, type, labelMaxLength);
+  if (labelManager.isLabelAvailable(fallback, type)) return fallback;
 
   return undefined;
 };
 
-const sanitize = (label: string, labelMaxLength?: number): string =>
+const sanitize = (
+  label: string,
+  type: LabelType,
+  labelMaxLength?: number,
+): string =>
   labelMaxLength === undefined
     ? label
-    : LabelManager.sanitizeLabel(label, "junction", labelMaxLength);
+    : LabelManager.sanitizeLabel(label, type, labelMaxLength);
 
-const elevationConverter = (
+const converterFor = (
   sourceUnit: Unit | undefined,
   targetUnit: Unit,
 ): ((value: number) => number) => {
