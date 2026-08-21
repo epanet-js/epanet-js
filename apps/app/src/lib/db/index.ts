@@ -22,3 +22,5 @@ export {
   reportSessionHistoryFailure,
   restoreSessionHistory,
 } from "./commands/session-history";
+export { rebuildDbFromMemory } from "./commands/rebuild-from-memory";
+export type { RebuildPhase } from "./commands/rebuild-from-memory";

@@ -28,6 +28,12 @@ import { getAppId } from "src/infra/app-instance";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { MapEditionsTracker } from "src/map/map-editions-tracker";
 import { writeQueue } from "src/lib/persistence/write-queue";
+import {
+  dbAvailabilityAtom,
+  rebuildAttemptsAtom,
+  writesSucceededAtRebuildAtom,
+  opfsReinstallFailedAtom,
+} from "src/state/session-recovery";
 import { initializeWorktree } from "src/lib/worktree";
 import { dialogAtom } from "src/state/dialog";
 import { modelFactoriesAtom } from "src/state/model-factories";
@@ -122,6 +128,10 @@ export const loadModel = (
 
   resetProjectRevision(set, hydraulicModel.version);
   writeQueue.reset();
+  set(dbAvailabilityAtom, "available");
+  set(rebuildAttemptsAtom, 0);
+  set(writesSucceededAtRebuildAtom, 0);
+  set(opfsReinstallFailedAtom, false);
 
   set(modelFactoriesAtom, factories);
   const mergedProjectSettings: ProjectSettings = {

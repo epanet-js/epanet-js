@@ -4,7 +4,7 @@ import { Provider as JotaiProvider } from "jotai";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
 import { projectFileInfoAtom } from "src/state/file-system";
-import { sessionRecoveryActiveAtom } from "src/state/session-recovery";
+import { dbStorageModeAtom } from "src/state/session-recovery";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import * as sessionRecovery from "src/infra/session-recovery";
 import { SessionRecoveryGuard } from "./session-recovery-guard";
@@ -22,7 +22,7 @@ describe("session recovery guard", () => {
 
     const hydraulicModel = HydraulicModelBuilder.with().aJunction(1).build();
     const store = setInitialState({ hydraulicModel });
-    store.set(sessionRecoveryActiveAtom, true);
+    store.set(dbStorageModeAtom, "opfs");
     store.set(projectFileInfoAtom, {
       name: "my-project.ejsdb",
       modelVersion: hydraulicModel.version,
@@ -75,7 +75,7 @@ describe("session recovery guard", () => {
 
     const hydraulicModel = HydraulicModelBuilder.with().aJunction(1).build();
     const store = setInitialState({ hydraulicModel });
-    store.set(sessionRecoveryActiveAtom, true);
+    store.set(dbStorageModeAtom, "opfs");
     store.set(projectFileInfoAtom, {
       name: "my-project.ejsdb",
       modelVersion: "already-stale",

@@ -7,6 +7,7 @@ import type { CustomAttributeAssetType } from "@epanet-js/hydraulic-model";
 import type { BBox, FeatureCollection } from "geojson";
 import type { Proj4Projection, Projection } from "@epanet-js/projections";
 import type { ElevationFetchStatus } from "src/lib/elevations";
+import type { RebuildPhase } from "src/lib/db";
 
 export type InvalidFilesErrorDialogState = {
   type: "invalidFilesError";
@@ -300,6 +301,16 @@ export type AppLoadFailedDialogState = {
   errorMessage?: string;
 };
 
+export type RebuildStorageProgressDialogState = {
+  type: "rebuildStorageProgress";
+  phase: RebuildPhase;
+  outcome?: "memory";
+};
+
+export type DbUnavailableDialogState = {
+  type: "dbUnavailable";
+};
+
 export type PriorityAccessDialogState = {
   type: "priorityAccess";
   featureName: string;
@@ -404,6 +415,8 @@ export type DialogState =
   | ProfileNoPathDialogState
   | CustomGraphDialogState
   | AppLoadFailedDialogState
+  | RebuildStorageProgressDialogState
+  | DbUnavailableDialogState
   | PriorityAccessDialogState
   | ImportZonesDialogState
   | ImportZonesWarningDialogState

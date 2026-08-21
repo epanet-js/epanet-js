@@ -9,6 +9,8 @@ import { LoadingDialog } from "../components/dialog";
 import { WelcomeDialog } from "./welcome";
 import { SessionRecoveryDialog } from "./session-recovery";
 import { AppLoadFailedDialog } from "./app-load-failed";
+import { DbUnavailableDialog } from "./db-unavailable";
+import { RebuildStorageProgressDialog } from "./rebuild-storage-progress";
 import { SimulationSettingsDialog } from "src/dialogs/simulation-settings";
 import { UpgradeDialog } from "src/dialogs/upgrade";
 import { InvalidFilesErrorDialog } from "src/dialogs/invalid-files-error";
@@ -93,6 +95,10 @@ export const Dialogs = memo(function Dialogs() {
 
   if (dialog.type === "appLoadFailed") {
     return <AppLoadFailedDialog modal={dialog} />;
+  }
+
+  if (dialog.type === "dbUnavailable") {
+    return <DbUnavailableDialog />;
   }
 
   if (previousDialog.current !== dialog && !!dialog) {
@@ -249,6 +255,9 @@ export const Dialogs = memo(function Dialogs() {
   }
   if (dialog.type === "openProjectProgress") {
     return <OpenProjectProgressDialog modal={dialog} />;
+  }
+  if (dialog.type === "rebuildStorageProgress") {
+    return <RebuildStorageProgressDialog modal={dialog} onClose={onClose} />;
   }
   if (dialog.type === "controls") {
     return <ControlsDialog />;

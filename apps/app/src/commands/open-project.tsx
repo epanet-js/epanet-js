@@ -10,6 +10,7 @@ import {
   type OpenPersistedProjectPhase,
 } from "src/hooks/persistence/use-open-persisted-project";
 import { withDatabaseBusy } from "src/hooks/persistence/use-start-new-project";
+import { withProgressDialog } from "src/dialogs/progress-dialog";
 import { useUserTracking } from "src/infra/user-tracking";
 import { chooseUnitSystem } from "src/simulation/build-inp";
 import type { Asset } from "src/hydraulic-model";
@@ -56,16 +57,15 @@ export const useOpenProjectFile = () => {
       options: OpenProjectFileOptions = {},
     ) => {
       try {
-        setDialogState({ type: "openProjectProgress", phase: "opening" });
-
-        const reportProgress = (phase: OpenPersistedProjectPhase) => {
-          setDialogState({ type: "openProjectProgress", phase });
-        };
-
-        const result = await openPersistedProject({
-          file,
-          onProgress: reportProgress,
-        });
+        const { result } = await withProgressDialog(
+          setDialogState,
+          "opening" as OpenPersistedProjectPhase,
+          (phase: OpenPersistedProjectPhase) => ({
+            type: "openProjectProgress" as const,
+            phase,
+          }),
+          (onProgress) => openPersistedProject({ file, onProgress }),
+        );
 
         if (result.status !== "ok") {
           setDialogState(null);

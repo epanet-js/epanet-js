@@ -9,10 +9,12 @@
 - Use existing icon system from `src/components/icons/`
 
 ### Interaction Patterns
-- Keyboard shortcuts using existing hotkey system
+- Keyboard shortcuts using existing hotkey system (`useHotkeys`, `src/keyboard/hotkeys.ts`)
 - Context menus for right-click actions
 - Modal dialogs for complex operations
 - Inline editing for simple property changes
+
+**An open dialog disables every keyboard shortcut.** `useHotkeys` binds nothing while `dialogAtom` is non-null, so a modal already blocks keyboard commands app-wide — a dialog never needs to gate them itself, and no shortcut should be expected to work while one is up. It also ignores events that are already `defaultPrevented`, which is how components that handle their own keys (the data grid, for one) take precedence.
 
 ### Visual Consistency
 - Style with the semantic theme tokens documented in the `src/styles` module.

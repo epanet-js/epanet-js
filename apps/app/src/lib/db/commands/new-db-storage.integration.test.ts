@@ -68,6 +68,23 @@ describe("newDb storage errors", () => {
     ).rejects.toThrow("importProject storage error");
   });
 
+  it("releases the dead pool and falls back to memory when it cannot be reinstalled", async () => {
+    const removeVfs = vi.fn().mockResolvedValue(undefined);
+    setSahpoolForTest({ removeVfs } as unknown as Parameters<
+      typeof setSahpoolForTest
+    >[0]);
+
+    // No OPFS here, so the reinstall cannot succeed — which is the point: the caller still
+    // gets a usable db back, just an in-memory one.
+    const mode = await api.reinstallSahpool("tab-fresh");
+
+    expect(removeVfs).toHaveBeenCalledTimes(1);
+    expect(mode).toBe("memory");
+
+    // And a fresh db can be created on it, which is what makes the project saveable again.
+    expect(await api.newDb()).toEqual({ status: "ok" });
+  });
+
   it("does not touch the pool when importProject reuses the open db", async () => {
     const okResult = await api.newDb();
     expect(okResult).toEqual({ status: "ok" });

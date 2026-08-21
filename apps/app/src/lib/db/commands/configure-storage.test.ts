@@ -53,11 +53,9 @@ vi.mock("src/infra/app-instance", () => ({
 }));
 
 const captureWarning = vi.fn<(...args: unknown[]) => void>();
-const captureInfo = vi.fn<(message: string) => void>();
 vi.mock("src/infra/error-tracking", async (importActual) => ({
   ...(await importActual<typeof import("src/infra/error-tracking")>()),
   captureWarning: (...args: unknown[]) => captureWarning(...args),
-  captureInfo: (message: string) => captureInfo(message),
 }));
 
 import { configureDbStorage } from "./configure-storage";
@@ -220,13 +218,14 @@ describe("configureDbStorage", () => {
     });
   });
 
-  it("captures the effective mode", async () => {
+  it("stays silent when storage resolves as asked", async () => {
     isOPFSAvailable.mockResolvedValue(true);
     configure.mockResolvedValueOnce("sahpool");
 
     await configureDbStorage({ sessionHistory: false });
 
-    expect(captureInfo).toHaveBeenCalledTimes(1);
+    // A healthy boot is the overwhelming majority; only the fallbacks are reported.
+    expect(captureWarning).not.toHaveBeenCalled();
   });
 
   it("protects every recoverable pool from cleanup", async () => {

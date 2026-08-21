@@ -7,7 +7,7 @@ import { getAppId, resetAppId } from "src/infra/app-instance";
 import { isOPFSAvailable, getAvailableStorageBytes } from "src/infra/storage";
 import { readRecoveryFingerprints } from "src/infra/session-recovery";
 import { holdSessionLock, isSessionAlive } from "src/infra/session-lock";
-import { captureWarning, captureInfo } from "src/infra/error-tracking";
+import { captureWarning } from "src/infra/error-tracking";
 
 export type DbStorageMode = "memory" | "sahpool";
 
@@ -79,8 +79,6 @@ export const configureDbStorage = async ({
         captureWarning("Stale DB pool cleanup failed (bootstrap)", error),
     );
   }
-
-  captureInfo("Effective DB storage mode", { mode, effective });
 
   if (effective !== mode) {
     reportFallback("db-worker-fallback", await getWorker().sahpoolFailure());

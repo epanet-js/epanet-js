@@ -1135,6 +1135,21 @@ export const api = {
     return sahpoolFailure;
   },
 
+  async reinstallSahpool(appId: string): Promise<StorageMode> {
+    await ready;
+    closeExistingDb();
+    if (poolUtil) {
+      try {
+        await poolUtil.removeVfs();
+      } catch {
+        // The pool is already broken; failing to release it cleanly changes nothing.
+      }
+      poolUtil = null;
+    }
+    storageMode = (await ensureSahpool(appId)) ? "sahpool" : "memory";
+    return storageMode;
+  },
+
   // Everything here is best-effort and individually guarded: it is called precisely when
   // the storage layer is misbehaving, so any one probe may itself throw.
   storageDiagnostics(): DbStorageDiagnostics {
