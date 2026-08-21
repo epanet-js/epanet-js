@@ -503,6 +503,22 @@ describe("build pumps and valves from network data", () => {
     aJunction({ ref: "2", label: "J2", coordinates: [1, 0] }),
   ];
 
+  it("gives a pipe the material the source stated", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        junctions: [
+          aJunction({ ref: "1", label: "J1", coordinates: [0, 0] }),
+          aJunction({ ref: "2", label: "J2", coordinates: [1, 0] }),
+        ],
+        pipes: [aPipe({ ref: "10", label: "P1", material: "HPPE / PE100" })],
+      }),
+      { projections: aCatalogue() },
+    );
+
+    const pipe = getByLabel(hydraulicModel.assets, "P1") as Pipe;
+    expect(pipe.material).toEqual("HPPE / PE100");
+  });
+
   it("connects a pump into the network", () => {
     const { hydraulicModel } = buildModel(
       aNetwork({

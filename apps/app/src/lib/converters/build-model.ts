@@ -367,6 +367,7 @@ const addPipe = (
     length: converted(pipeData.length, context.toLength),
     diameter: converted(pipeData.diameter, context.toDiameter),
     roughness: pipeData.roughness,
+    material: pipeData.material,
     initialStatus: pipeData.initialStatus,
   });
 
