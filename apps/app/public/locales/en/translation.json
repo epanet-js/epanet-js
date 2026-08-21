@@ -41,6 +41,8 @@
       "valveKindUnknown_other": "{{count}} Valves have a type we do not support, and were imported as TCVs",
       "valveControlUnsupported_one": "1 Valve uses a time-varying control we do not support, and was imported as a TCV with no setting",
       "valveControlUnsupported_other": "{{count}} Valves use a time-varying control we do not support, and were imported as TCVs with no setting",
+      "valveOperatingRuleUnsupported_one": "1 Valve is opened and closed by a tank level rule, which is not imported yet, so it keeps its starting status",
+      "valveOperatingRuleUnsupported_other": "{{count}} Valves are opened and closed by tank level rules, which are not imported yet, so they keep their starting status",
       "pumpDefinitionUnsupported_one": "1 Pump names a flow and head curve with no points, so it was imported with no definition",
       "pumpDefinitionUnsupported_other": "{{count}} Pumps name a flow and head curve with no points, so they were imported with no definition",
       "pumpControlUnsupported_one": "1 Pump is switched by a tank level rule, which is not imported yet, so it keeps its starting status",
