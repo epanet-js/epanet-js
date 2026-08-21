@@ -62,6 +62,7 @@ import { useAppReady } from "src/hooks/use-app-ready";
 import { useFeatureFlagsReady } from "src/hooks/use-feature-flags";
 import { AppLoader } from "./app-loader";
 import { PrivacyBanner } from "./privacy-banner";
+import { SessionHistoryDebugPanel } from "./session-history-debug";
 import { usePrivacySettings } from "src/hooks/use-privacy-settings";
 import { initStorage } from "src/infra/storage";
 import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
@@ -235,6 +236,7 @@ export function EpanetApp() {
       <OfflineGuard />
       <NotificationFromUrl />
       <PrivacyBanner />
+      <SessionHistoryDebugPanel />
     </main>
   );
 }

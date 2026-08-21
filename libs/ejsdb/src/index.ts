@@ -21,4 +21,16 @@ export type {
   JunctionDemandUpdate,
 } from "./types";
 export { emptyAssetCustomAttributeUpdates } from "./types";
+export {
+  SESSION_VERSION,
+  MAX_ENTRY_BYTES,
+  MAX_TOTAL_BYTES,
+  emptySessionHistoryDiagnostics,
+} from "./session";
+export type {
+  HistoryCapture,
+  SessionHistoryEntry,
+  SessionHistoryDiagnostics,
+  SessionHistoryFailure,
+} from "./session";
 export * from "./schema";

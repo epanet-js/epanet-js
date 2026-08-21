@@ -17,6 +17,7 @@ import {
   type AssetCustomAttributeUpdates,
   type CustomAttributeValueUpdate,
   type CustomerPointDemandUpdate,
+  type HistoryCapture,
   type JunctionDemandUpdate,
 } from "@epanet-js/ejsdb";
 import {
@@ -209,9 +210,11 @@ export const buildMomentPayload = (moment: Moment): ApplyMomentPayload => {
 
 export const applyMomentToDb = async (
   payload: ApplyMomentPayload,
+  history: HistoryCapture | null = null,
 ): Promise<void> => {
   await timed("applyMomentToDb", async () => {
     if (
+      history === null &&
       payload.assetDeleteIds.length === 0 &&
       payload.assetUpserts.junctions.length === 0 &&
       payload.assetUpserts.reservoirs.length === 0 &&
@@ -243,6 +246,6 @@ export const applyMomentToDb = async (
     }
 
     const worker = getWorker();
-    await worker.applyMoment(payload);
+    await worker.applyMoment(payload, history);
   });
 };

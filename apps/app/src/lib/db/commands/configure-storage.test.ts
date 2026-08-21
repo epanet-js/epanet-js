@@ -78,17 +78,19 @@ describe("configureDbStorage", () => {
     isOPFSAvailable.mockResolvedValue(true);
     configure.mockResolvedValueOnce("memory").mockResolvedValueOnce("sahpool");
 
-    const result = await configureDbStorage();
+    const result = await configureDbStorage({ sessionHistory: false });
 
     expect(result).toBe("sahpool");
     expect(configure).toHaveBeenNthCalledWith(1, {
       mode: "sahpool",
       sahpoolId: "tab-a",
+      sessionHistory: false,
     });
     expect(resetAppId).toHaveBeenCalledTimes(1);
     expect(configure).toHaveBeenNthCalledWith(2, {
       mode: "sahpool",
       sahpoolId: "tab-a-fresh",
+      sessionHistory: false,
     });
     expect(cleanupStaleDbPools).toHaveBeenCalledWith(
       "tab-a-fresh",
@@ -102,7 +104,7 @@ describe("configureDbStorage", () => {
     isOPFSAvailable.mockResolvedValue(true);
     configure.mockResolvedValueOnce("sahpool");
 
-    await configureDbStorage();
+    await configureDbStorage({ sessionHistory: false });
 
     expect(configure).toHaveBeenCalledTimes(1);
     expect(resetAppId).not.toHaveBeenCalled();
@@ -117,7 +119,7 @@ describe("configureDbStorage", () => {
     isOPFSAvailable.mockResolvedValue(true);
     configure.mockResolvedValue("memory");
 
-    const result = await configureDbStorage();
+    const result = await configureDbStorage({ sessionHistory: false });
 
     expect(result).toBe("memory");
     expect(configure).toHaveBeenCalledTimes(2);
@@ -136,7 +138,7 @@ describe("configureDbStorage", () => {
       message: "no access handle",
     });
 
-    await configureDbStorage();
+    await configureDbStorage({ sessionHistory: false });
 
     expect(captureWarning).toHaveBeenCalledWith(
       fallbackMessage("db-worker-fallback"),
@@ -152,13 +154,14 @@ describe("configureDbStorage", () => {
       getAvailableStorageBytes.mockResolvedValue(256 * 1024 * 1024);
       configure.mockResolvedValue("memory");
 
-      const result = await configureDbStorage();
+      const result = await configureDbStorage({ sessionHistory: false });
 
       expect(result).toBe("memory");
       expect(configure).toHaveBeenCalledTimes(1);
       expect(configure).toHaveBeenCalledWith({
         mode: "memory",
         sahpoolId: "tab-a",
+        sessionHistory: false,
       });
       expect(captureWarning).toHaveBeenCalledTimes(1);
       expect(captureWarning).toHaveBeenCalledWith(
@@ -173,7 +176,7 @@ describe("configureDbStorage", () => {
       getAvailableStorageBytes.mockResolvedValue(512 * 1024 * 1024);
       configure.mockResolvedValueOnce("sahpool");
 
-      const result = await configureDbStorage();
+      const result = await configureDbStorage({ sessionHistory: false });
 
       expect(result).toBe("sahpool");
       expect(captureWarning).not.toHaveBeenCalled();
@@ -184,12 +187,13 @@ describe("configureDbStorage", () => {
       getAvailableStorageBytes.mockResolvedValue(0);
       configure.mockResolvedValue("memory");
 
-      const result = await configureDbStorage();
+      const result = await configureDbStorage({ sessionHistory: false });
 
       expect(result).toBe("memory");
       expect(configure).toHaveBeenCalledWith({
         mode: "memory",
         sahpoolId: "tab-a",
+        sessionHistory: false,
       });
       expect(captureWarning).toHaveBeenCalledWith(
         fallbackMessage("opfs-quota-exceeded"),
@@ -201,13 +205,14 @@ describe("configureDbStorage", () => {
       isOPFSAvailable.mockResolvedValue(false);
       configure.mockResolvedValue("memory");
 
-      const result = await configureDbStorage();
+      const result = await configureDbStorage({ sessionHistory: false });
 
       expect(result).toBe("memory");
       expect(getAvailableStorageBytes).not.toHaveBeenCalled();
       expect(configure).toHaveBeenCalledWith({
         mode: "memory",
         sahpoolId: "tab-a",
+        sessionHistory: false,
       });
       expect(captureWarning).toHaveBeenCalledWith(
         fallbackMessage("opfs-not-available"),
@@ -219,7 +224,7 @@ describe("configureDbStorage", () => {
     isOPFSAvailable.mockResolvedValue(true);
     configure.mockResolvedValueOnce("sahpool");
 
-    await configureDbStorage();
+    await configureDbStorage({ sessionHistory: false });
 
     expect(captureInfo).toHaveBeenCalledTimes(1);
   });
@@ -232,11 +237,12 @@ describe("configureDbStorage", () => {
       { poolId: "another-crashed-tab" },
     ]);
 
-    await configureDbStorage();
+    await configureDbStorage({ sessionHistory: false });
 
     expect(configure).toHaveBeenCalledWith({
       mode: "sahpool",
       sahpoolId: "tab-a",
+      sessionHistory: false,
     });
     expect(cleanupStaleDbPools).toHaveBeenCalledWith(
       "tab-a",
@@ -253,12 +259,13 @@ describe("configureDbStorage", () => {
       { poolId: "tab-a" },
     ]);
 
-    await configureDbStorage();
+    await configureDbStorage({ sessionHistory: false });
 
     expect(resetAppId).toHaveBeenCalledTimes(1);
     expect(configure).toHaveBeenCalledWith({
       mode: "sahpool",
       sahpoolId: "tab-a-fresh",
+      sessionHistory: false,
     });
     expect(cleanupStaleDbPools).toHaveBeenCalledWith(
       "tab-a-fresh",
@@ -272,7 +279,7 @@ describe("configureDbStorage", () => {
     isSessionAlive.mockResolvedValueOnce(true);
     configure.mockResolvedValueOnce("sahpool");
 
-    const result = await configureDbStorage();
+    const result = await configureDbStorage({ sessionHistory: false });
 
     expect(result).toBe("sahpool");
     expect(isSessionAlive).toHaveBeenCalledWith("tab-a");
@@ -281,6 +288,7 @@ describe("configureDbStorage", () => {
     expect(configure).toHaveBeenCalledWith({
       mode: "sahpool",
       sahpoolId: "tab-a-fresh",
+      sessionHistory: false,
     });
     expect(holdSessionLock).toHaveBeenCalledWith("tab-a-fresh");
   });
@@ -289,7 +297,7 @@ describe("configureDbStorage", () => {
     isOPFSAvailable.mockResolvedValue(true);
     configure.mockResolvedValueOnce("sahpool");
 
-    await configureDbStorage();
+    await configureDbStorage({ sessionHistory: false });
 
     expect(holdSessionLock).toHaveBeenCalledTimes(1);
     expect(holdSessionLock).toHaveBeenCalledWith("tab-a");
@@ -299,7 +307,7 @@ describe("configureDbStorage", () => {
     isOPFSAvailable.mockResolvedValue(true);
     configure.mockResolvedValue("memory");
 
-    await configureDbStorage();
+    await configureDbStorage({ sessionHistory: false });
 
     expect(holdSessionLock).not.toHaveBeenCalled();
   });
@@ -308,7 +316,7 @@ describe("configureDbStorage", () => {
     isOPFSAvailable.mockResolvedValue(false);
     configure.mockResolvedValueOnce("memory");
 
-    await configureDbStorage();
+    await configureDbStorage({ sessionHistory: false });
 
     expect(isSessionAlive).not.toHaveBeenCalled();
     expect(holdSessionLock).not.toHaveBeenCalled();

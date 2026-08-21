@@ -15,6 +15,7 @@ import {
   type RecoveryFingerprint,
 } from "src/infra/session-recovery";
 import { isSessionAlive } from "src/infra/session-lock";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const useDbStorageBootstrap = (isEnabled: boolean): boolean => {
   const [isDbReady, setIsDbReady] = useState(false);
@@ -22,6 +23,7 @@ export const useDbStorageBootstrap = (isEnabled: boolean): boolean => {
   const setSessionRecoveryActive = useSetAtom(sessionRecoveryActiveAtom);
   const setRecoverableSessions = useSetAtom(recoverableSessionsAtom);
   const userTracking = useUserTracking();
+  const isPersistHistoryOn = useFeatureFlag("FLAG_PERSIST_SESSION_HISTORY");
   const dbInitializedRef = useRef(false);
 
   useEffect(() => {
@@ -31,7 +33,9 @@ export const useDbStorageBootstrap = (isEnabled: boolean): boolean => {
 
     const bootstrap = async () => {
       try {
-        const effective = await configureDbStorage();
+        const effective = await configureDbStorage({
+          sessionHistory: isPersistHistoryOn,
+        });
         const recoveryActive = effective === "sahpool";
         setSessionRecoveryActive(recoveryActive);
 
@@ -69,6 +73,7 @@ export const useDbStorageBootstrap = (isEnabled: boolean): boolean => {
     });
   }, [
     isEnabled,
+    isPersistHistoryOn,
     seedDefaultProjectDb,
     setSessionRecoveryActive,
     setRecoverableSessions,

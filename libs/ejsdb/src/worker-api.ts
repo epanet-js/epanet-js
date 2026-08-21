@@ -32,6 +32,26 @@ import type {
   NewDbResult,
   OpenDbResult,
 } from "./types";
+import {
+  endCapture,
+  enforceTotalCap,
+  ensureSessionDb,
+  insertHistoryEntry,
+  markSessionDetached,
+  readChangeset,
+  readSessionDiagnostics,
+  resetSessionDb,
+  setHistoryPointer,
+  startCapture,
+  truncateHistoryFrom,
+} from "./session";
+import type {
+  CaptureSession,
+  HistoryCapture,
+  SessionCapi,
+  SessionHistoryDiagnostics,
+  SessionHistoryFailure,
+} from "./session";
 
 const formatErrorDetails = (e: unknown): string => {
   if (!(e instanceof Error)) return String(e);
@@ -66,10 +86,10 @@ type OoDb = {
 
 type Sqlite3 = {
   oo1: { DB: new (filename?: string, flags?: string) => OoDb };
-  wasm: {
+  wasm: SessionCapi["wasm"] & {
     allocFromTypedArray: (bytes: Uint8Array) => number;
   };
-  capi: {
+  capi: SessionCapi["capi"] & {
     sqlite3_deserialize: (
       db: number,
       schema: string,
@@ -100,6 +120,9 @@ type StorageMode = "memory" | "sahpool";
 let storageMode: StorageMode = "memory";
 let poolUtil: SAHPoolUtil | null = null;
 const SAHPOOL_DB_PATH = "/main.sqlite3";
+// main.sqlite3 + its journal, session.sqlite3 + its journal, and the super-journal a
+// transaction spanning both databases needs. Exhausting the pool is a hard CANTOPEN.
+const SAHPOOL_MIN_CAPACITY = 8;
 
 // Why the VFS install failed. Kept because the caller degrades to an in-memory db on a
 // bare `false`, which reports that storage was lost but never why — and the reason (quota,
@@ -107,8 +130,47 @@ const SAHPOOL_DB_PATH = "/main.sqlite3";
 export type SahpoolFailure = { name: string; message: string };
 let sahpoolFailure: SahpoolFailure | null = null;
 
+// Session history is a debug-flagged side channel: it must never cost the caller its project
+// write. A failure here disables capture for the rest of the process and is reported out of
+// band instead of thrown. See private/feature-flags.md for when that stops being true.
+let sessionHistoryEnabled = false;
+let sessionHistoryFailure: SessionHistoryFailure | null = null;
+
+const disableSessionHistory = (
+  stage: SessionHistoryFailure["stage"],
+  error: unknown,
+) => {
+  const normalized = normalizeError(error);
+  sessionHistoryEnabled = false;
+  sessionHistoryFailure = {
+    stage,
+    name: normalized.name,
+    message: normalized.message,
+  };
+};
+
+const initSessionDb = () => {
+  if (!sessionHistoryEnabled) {
+    resetSessionDb(db, poolUtil, storageMode);
+    return;
+  }
+  try {
+    resetSessionDb(db, poolUtil, storageMode);
+    ensureSessionDb(db!, poolUtil, storageMode, APP_VERSION);
+  } catch (error) {
+    disableSessionHistory("init", error);
+    try {
+      resetSessionDb(db, poolUtil, storageMode);
+    } catch {
+      // the session db is disposable; a failed cleanup must not mask the failure above
+    }
+  }
+};
+
 export type DbStorageDiagnostics = {
   storageMode: StorageMode;
+  sessionHistoryEnabled: boolean;
+  sessionHistoryFailure: SessionHistoryFailure | null;
   dbOpen: boolean;
   poolInstalled: boolean;
   poolPaused: boolean | null;
@@ -125,8 +187,11 @@ const ensureSahpool = async (appId: string): Promise<boolean> => {
     poolUtil = await sqlite3!.installOpfsSAHPoolVfs({
       name: sahpoolPoolName(appId),
       directory: sahpoolDirectory(appId),
-      initialCapacity: 6,
+      initialCapacity: SAHPOOL_MIN_CAPACITY,
     });
+    // initialCapacity only applies to a pool with no files yet, so a pool created
+    // by an earlier build stays at its original size unless we reserve explicitly.
+    await poolUtil.reserveMinimumCapacity(SAHPOOL_MIN_CAPACITY);
     sahpoolFailure = null;
     return true;
   } catch (error) {
@@ -188,6 +253,7 @@ const finalizeStmts = (cache: Map<string, Stmt>) => {
 };
 
 const closeExistingDb = () => {
+  markSessionDetached();
   if (db) {
     finalizeStmts(stmtCache);
     try {
@@ -231,6 +297,7 @@ const createNewDb = async (): Promise<NewDbResult> => {
 
   runMigrations();
   db.exec(`PRAGMA application_id = ${APP_VERSION}`);
+  initSessionDb();
 
   return { status: "ok" };
 };
@@ -273,24 +340,67 @@ const readAll = async (sql: string): Promise<unknown[]> => {
   }) as unknown[];
 };
 
+const recordHistory = (
+  openDb: OoDb,
+  history: HistoryCapture,
+  session: CaptureSession | null,
+) => {
+  if (history.kind === "edit" && session !== null) {
+    const changeset = readChangeset(sqlite3!, session);
+    truncateHistoryFrom(openDb, history.seq);
+    insertHistoryEntry(openDb, {
+      seq: history.seq,
+      stateId: history.stateId,
+      note: history.note,
+      changeset,
+    });
+    enforceTotalCap(openDb);
+  }
+  setHistoryPointer(openDb, history.seq);
+};
+
 const withTransaction = <T>(
   command: string,
   fn: (db: OoDb) => T,
   meta?: Record<string, unknown>,
+  history?: HistoryCapture | null,
 ): Promise<T> =>
   timed(
     command,
     async () => {
       await ready;
       if (!db) throw new Error(`[${command}] No database open`);
+
+      const capturing = Boolean(history) && sessionHistoryEnabled;
+
       db.exec("BEGIN IMMEDIATE");
+      // The session object must be created after the last await: one created before it
+      // could span another queued call's transaction.
+      let session: CaptureSession | null = null;
+      if (capturing && history!.kind === "edit") {
+        try {
+          session = startCapture(sqlite3!, db.pointer!);
+        } catch (error) {
+          disableSessionHistory("capture", error);
+        }
+      }
+
       let result: T;
       try {
         result = fn(db);
+        if (capturing && sessionHistoryEnabled) {
+          try {
+            recordHistory(db, history!, session);
+          } catch (error) {
+            disableSessionHistory("capture", error);
+          }
+        }
         db.exec("COMMIT");
       } catch (e) {
         db.exec("ROLLBACK");
         throw e;
+      } finally {
+        if (session !== null) endCapture(sqlite3!, session);
       }
       return result;
     },
@@ -968,14 +1078,22 @@ export const api = {
   async configure({
     mode,
     sahpoolId,
+    sessionHistory = false,
   }: {
     mode: StorageMode;
     sahpoolId: string;
+    sessionHistory?: boolean;
   }): Promise<StorageMode> {
     await ready;
+    sessionHistoryEnabled = sessionHistory;
+    sessionHistoryFailure = null;
     storageMode =
       mode !== "memory" && (await ensureSahpool(sahpoolId)) ? mode : "memory";
     return storageMode;
+  },
+
+  sessionHistoryFailure(): SessionHistoryFailure | null {
+    return sessionHistoryFailure;
   },
 
   sahpoolFailure(): SahpoolFailure | null {
@@ -995,6 +1113,8 @@ export const api = {
 
     return {
       storageMode,
+      sessionHistoryEnabled,
+      sessionHistoryFailure,
       dbOpen: db !== null,
       poolInstalled: poolUtil !== null,
       poolPaused: attempt(() => poolUtil!.isPaused()),
@@ -1056,6 +1176,8 @@ export const api = {
             closeExistingDb();
             return { status: "too-new", fileVersion, appVersion: APP_VERSION };
           }
+
+          let migrated = false;
           if (fileVersion < migrations.length) {
             try {
               runMigrations();
@@ -1068,11 +1190,18 @@ export const api = {
                 appVersion: APP_VERSION,
               };
             }
-
-            return { status: "migrated", fileVersion, appVersion: APP_VERSION };
+            migrated = true;
           }
 
-          return { status: "ok", fileVersion, appVersion: APP_VERSION };
+          // After the ladder, so the session db is only ever created against a project
+          // db at its final version — session_meta.app_version is then a true statement.
+          initSessionDb();
+
+          return {
+            status: migrated ? "migrated" : "ok",
+            fileVersion,
+            appVersion: APP_VERSION,
+          };
         } catch (e) {
           closeExistingDb();
           return { status: "internal", errorDetails: formatErrorDetails(e) };
@@ -1296,7 +1425,10 @@ export const api = {
     });
   },
 
-  async applyMoment(payload: ApplyMomentPayload): Promise<void> {
+  async applyMoment(
+    payload: ApplyMomentPayload,
+    history: HistoryCapture | null = null,
+  ): Promise<void> {
     return withTransaction(
       "applyMoment",
       (db) => {
@@ -1421,7 +1553,20 @@ export const api = {
         }
       },
       countApplyMoment(payload),
+      history,
     );
+  },
+
+  async sessionHistoryDiagnostics(
+    limit = 200,
+  ): Promise<SessionHistoryDiagnostics> {
+    await ready;
+    return readSessionDiagnostics(db, {
+      appVersion: APP_VERSION,
+      limit,
+      enabled: sessionHistoryEnabled,
+      failure: sessionHistoryFailure,
+    });
   },
 
   async importProject(payload: ImportProjectPayload): Promise<NewDbResult> {
@@ -1429,6 +1574,8 @@ export const api = {
     if (payload.newDb) {
       const result = await timed("importProject:newDb", createNewDb);
       if (result.status !== "ok") return result;
+    } else {
+      initSessionDb();
     }
     await withTransaction(
       "importProject",

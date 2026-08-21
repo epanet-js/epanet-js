@@ -17,3 +17,7 @@ export { ensureUniqueId, newUniqueId } from "./commands/ensure-unique-id";
 export { exportDb } from "./commands/export-db";
 export { exportDbFromPool } from "./commands/recover-db";
 export { configureDbStorage } from "./commands/configure-storage";
+export {
+  fetchSessionHistory,
+  reportSessionHistoryFailure,
+} from "./commands/session-history";
