@@ -9,11 +9,16 @@ export type WriteItem = {
 export class MemoryWriteQueue {
   private queue: WriteItem[] = [];
   private processing = false;
+  private idle: Promise<void> = Promise.resolve();
   private succeeded = 0;
 
   enqueue(operation: WriteOperation, onFailure: WriteFailureHandler) {
     this.queue.push({ operation, onFailure });
-    void this.process();
+    if (!this.processing) this.idle = this.process();
+  }
+
+  whenIdle(): Promise<void> {
+    return this.idle;
   }
 
   succeededCount(): number {
@@ -23,6 +28,7 @@ export class MemoryWriteQueue {
   reset() {
     this.queue = [];
     this.processing = false;
+    this.idle = Promise.resolve();
     this.succeeded = 0;
   }
 

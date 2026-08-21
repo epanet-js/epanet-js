@@ -10,9 +10,6 @@ import {
   serializeSimulationSettings,
 } from "src/lib/db";
 import { captureError } from "src/infra/error-tracking";
-import { handleError } from "src/infra/errors";
-import { opfsUnavailableErrors } from "src/infra/storage";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { writeQueue } from "src/lib/persistence/write-queue";
 import { useWriteFailureHandler } from "src/hooks/persistence/use-write-failure-handler";
 
@@ -20,7 +17,6 @@ export const useSimulationSettingsTransaction = () => {
   const setSettings = useSetAtom(simulationSettingsDerivedAtom);
   const setProjectDataVersion = useSetAtom(projectDataVersionAtom);
   const setDialog = useSetAtom(dialogAtom);
-  const isQueueOn = useFeatureFlag("FLAG_TRANSACTIONS_QUEUE");
   const onWriteFailure = useWriteFailureHandler();
 
   const transact = useCallback(
@@ -37,24 +33,11 @@ export const useSimulationSettingsTransaction = () => {
       setSettings(next);
       setProjectDataVersion(nanoid());
 
-      if (isQueueOn) {
-        writeQueue.enqueue(
-          () => setAllSimulationSettings(data),
-          onWriteFailure,
-        );
-      } else {
-        void setAllSimulationSettings(data).catch((error) =>
-          handleError(error, {
-            as: "Simulation settings transaction: db write failed",
-            warn: opfsUnavailableErrors,
-            onUnexpected: "capture",
-          }),
-        );
-      }
+      writeQueue.enqueue(() => setAllSimulationSettings(data), onWriteFailure);
 
       return true;
     },
-    [setSettings, setProjectDataVersion, setDialog, isQueueOn, onWriteFailure],
+    [setSettings, setProjectDataVersion, setDialog, onWriteFailure],
   );
 
   return { transact };

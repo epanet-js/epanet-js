@@ -7,7 +7,6 @@ import { projectDataVersionAtom } from "src/state/project-revision";
 import { dialogAtom } from "src/state/dialog";
 import { saveProjectSettings, serializeProjectSettings } from "src/lib/db";
 import { captureError } from "src/infra/error-tracking";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { writeQueue } from "src/lib/persistence/write-queue";
 import { useWriteFailureHandler } from "src/hooks/persistence/use-write-failure-handler";
 
@@ -15,37 +14,26 @@ export const useProjectSettingsTransaction = () => {
   const setProjectSettings = useSetAtom(projectSettingsAtom);
   const setProjectDataVersion = useSetAtom(projectDataVersionAtom);
   const setDialog = useSetAtom(dialogAtom);
-  const isQueueOn = useFeatureFlag("FLAG_TRANSACTIONS_QUEUE");
   const onWriteFailure = useWriteFailureHandler();
 
   const transact = useCallback(
-    async (next: ProjectSettings): Promise<boolean> => {
+    (next: ProjectSettings): Promise<boolean> => {
       try {
         serializeProjectSettings(next);
       } catch (error) {
         captureError(error instanceof Error ? error : new Error(String(error)));
         setDialog({ type: "changeNotApplied" });
-        return false;
+        return Promise.resolve(false);
       }
 
       setProjectSettings(next);
       setProjectDataVersion(nanoid());
 
-      if (isQueueOn) {
-        writeQueue.enqueue(() => saveProjectSettings(next), onWriteFailure);
-      } else {
-        await saveProjectSettings(next);
-      }
+      writeQueue.enqueue(() => saveProjectSettings(next), onWriteFailure);
 
-      return true;
+      return Promise.resolve(true);
     },
-    [
-      setProjectSettings,
-      setProjectDataVersion,
-      setDialog,
-      isQueueOn,
-      onWriteFailure,
-    ],
+    [setProjectSettings, setProjectDataVersion, setDialog, onWriteFailure],
   );
 
   return { transact };

@@ -20,8 +20,6 @@ import {
 import { applyMomentToDb, buildMomentPayload } from "src/lib/db";
 import type { ApplyMomentPayload } from "@epanet-js/ejsdb";
 import { captureError, captureWarning } from "src/infra/error-tracking";
-import { handleError } from "src/infra/errors";
-import { opfsUnavailableErrors } from "src/infra/storage";
 import {
   findOrphanLinkConnections,
   findStoreInconsistencies,
@@ -59,7 +57,6 @@ const buildOrphanReport = (
 };
 
 export const useMomentTransaction = () => {
-  const isQueueOn = useFeatureFlag("FLAG_TRANSACTIONS_QUEUE");
   const isChangeTrackerOn = useFeatureFlag("FLAG_CHANGE_TRACKER");
   const isAsyncUndoOn = useFeatureFlag("FLAG_ASYNC_UNDO");
   const onWriteFailure = useWriteFailureHandler();
@@ -160,17 +157,7 @@ export const useMomentTransaction = () => {
         }
 
         if (payload) {
-          if (isQueueOn) {
-            writeQueue.enqueue(() => applyMomentToDb(payload), onWriteFailure);
-          } else {
-            void applyMomentToDb(payload).catch((error) =>
-              handleError(error, {
-                as: "Moment transaction: db write failed",
-                warn: opfsUnavailableErrors,
-                onUnexpected: "capture",
-              }),
-            );
-          }
+          writeQueue.enqueue(() => applyMomentToDb(payload), onWriteFailure);
         }
 
         momentLog.append(moment, reverseMoment, newStateId);
@@ -185,7 +172,7 @@ export const useMomentTransaction = () => {
 
         return true;
       },
-      [isQueueOn, isChangeTrackerOn, isAsyncUndoOn, onWriteFailure],
+      [isChangeTrackerOn, isAsyncUndoOn, onWriteFailure],
     ),
   );
 

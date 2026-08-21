@@ -18,8 +18,6 @@ import type { MomentLog } from "src/lib/persistence/moment-log";
 import { applyMomentToDb, buildMomentPayload } from "src/lib/db";
 import type { ApplyMomentPayload } from "@epanet-js/ejsdb";
 import { captureError, captureWarning } from "src/infra/error-tracking";
-import { handleError } from "src/infra/errors";
-import { opfsUnavailableErrors } from "src/infra/storage";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   writeQueue,
@@ -28,7 +26,6 @@ import {
 import { useWriteFailureHandler } from "src/hooks/persistence/use-write-failure-handler";
 
 type CommitDeps = {
-  isQueueOn: boolean;
   isChangeTrackerOn: boolean;
   onWriteFailure: WriteFailureHandler;
 };
@@ -39,7 +36,7 @@ const commitHistoryAction = (
   direction: "undo" | "redo",
   action: HistoryAction,
   momentLog: MomentLog,
-  { isQueueOn, isChangeTrackerOn, onWriteFailure }: CommitDeps,
+  { isChangeTrackerOn, onWriteFailure }: CommitDeps,
 ) => {
   const isUndo = direction === "undo";
   const currentMapSyncMoment = get(mapSyncMomentAtom);
@@ -66,17 +63,7 @@ const commitHistoryAction = (
   );
 
   if (payload) {
-    if (isQueueOn) {
-      writeQueue.enqueue(() => applyMomentToDb(payload), onWriteFailure);
-    } else {
-      void applyMomentToDb(payload).catch((error) =>
-        handleError(error, {
-          as: "Undoable transaction: db write failed",
-          warn: opfsUnavailableErrors,
-          onUnexpected: "capture",
-        }),
-      );
-    }
+    writeQueue.enqueue(() => applyMomentToDb(payload), onWriteFailure);
   }
 
   isUndo ? momentLog.undo() : momentLog.redo();
@@ -94,7 +81,6 @@ const nextAction = (
   direction === "undo" ? momentLog.nextUndo() : momentLog.nextRedo();
 
 export const useUndoableTransactions = () => {
-  const isQueueOn = useFeatureFlag("FLAG_TRANSACTIONS_QUEUE");
   const isChangeTrackerOn = useFeatureFlag("FLAG_CHANGE_TRACKER");
   const isAsyncUndoOn = useFeatureFlag("FLAG_ASYNC_UNDO");
   const onWriteFailure = useWriteFailureHandler();
@@ -111,13 +97,12 @@ export const useUndoableTransactions = () => {
         if (!action) return Promise.resolve(false);
 
         commitHistoryAction(get, set, direction, action, momentLog, {
-          isQueueOn,
           isChangeTrackerOn,
           onWriteFailure,
         });
         return Promise.resolve(true);
       },
-      [isQueueOn, isChangeTrackerOn, onWriteFailure],
+      [isChangeTrackerOn, onWriteFailure],
     ),
   );
 
@@ -147,7 +132,6 @@ export const useUndoableTransactions = () => {
           }
 
           commitHistoryAction(get, set, direction, prepared, momentLog, {
-            isQueueOn,
             isChangeTrackerOn,
             onWriteFailure,
           });
@@ -156,7 +140,7 @@ export const useUndoableTransactions = () => {
           set(historyPendingAtom, false);
         }
       },
-      [isQueueOn, isChangeTrackerOn, onWriteFailure],
+      [isChangeTrackerOn, onWriteFailure],
     ),
   );
 

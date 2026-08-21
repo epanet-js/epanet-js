@@ -10,8 +10,10 @@ import { diff } from "jest-diff";
 import { Maybe } from "purify-ts/Maybe";
 import { expect } from "vitest";
 import "@testing-library/jest-dom";
+import { setWorkerForTest } from "@epanet-js/ejsdb";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { AuthMockProvider, useAuthMock } from "src/__helpers__/auth-mock";
+import { nullDbWorker } from "src/lib/db/__test-helpers__/null-db-worker";
 
 vi.mock("src/hooks/use-auth", () => ({
   useAuth: useAuthMock,
@@ -45,6 +47,7 @@ vi.stubGlobal(
 );
 
 beforeEach(async () => {
+  setWorkerForTest(nullDbWorker);
   stubUserTracking();
   // Reset shared in-memory storage between tests
   const { InMemoryStorage } = await import("src/infra/storage");

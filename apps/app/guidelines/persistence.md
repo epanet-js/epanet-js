@@ -91,11 +91,10 @@ it:
 Do not copy this "validate while saving" shape into interactive edit paths — those have a live atom to
 protect, so they must validate first.
 
-## The write queue & recovery (`FLAG_TRANSACTIONS_QUEUE`)
+## The write queue & recovery
 
 Interactive persistence writes are funnelled through a single serial queue so they apply in order and share
-one failure path. This is behind `FLAG_TRANSACTIONS_QUEUE`; each call site keeps its pre-flag behavior as
-the flag-off fallback.
+one failure path.
 
 | Piece | Where | Responsibility |
 |---|---|---|
@@ -105,11 +104,7 @@ the flag-off fallback.
 **Enqueue pattern** — inside a transaction hook, after the atom is set (validate-then-save still applies first):
 
 ```typescript
-if (isQueueOn) {
-  writeQueue.enqueue(() => saveX(next), onWriteFailure); // fire-and-forget; atom already set
-} else {
-  await saveX(next); // unchanged flag-off behavior
-}
+writeQueue.enqueue(() => saveX(next), onWriteFailure); // fire-and-forget; atom already set
 ```
 
 Queued today: the moment/undo writes (`applyMomentToDb`, in `use-moment-transaction.ts` /
@@ -169,6 +164,13 @@ context rather than not at all.
 - `save-project.tsx`'s `db.saveProjectSettings` — a step in the file-save sequence that must complete before
   the following `exportDb()`; fire-and-forget would export stale bytes, and reload-on-failure would wipe the
   model mid-save. (The interactive project-settings edit path *is* queued via its transaction hook.)
+
+### In tests
+
+Every test starts with a stub DB worker (`test/setup.ts`) whose write commands resolve and whose reads
+throw — so a queued write from an edit under test never fails for want of a database. A test that needs
+a real one calls `useInProcessDb()`, which drains the queue before closing the DB so a fire-and-forget
+write cannot outlive it.
 
 ## Adding a new persisted type
 
