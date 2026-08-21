@@ -44,6 +44,7 @@ export type JunctionData = NodeData & {
 
 export type ReservoirData = NodeData & {
   head?: number;
+  headPatternRef?: string;
 };
 
 export type TankData = NodeData & {

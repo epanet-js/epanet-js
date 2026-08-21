@@ -807,6 +807,38 @@ describe("build reservoirs from network data", () => {
     expect(reservoir.head).toBeCloseTo(3.048, 3);
   });
 
+  it("gives a reservoir the head pattern it names", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        reservoirs: [
+          aReservoir({
+            ref: "1",
+            label: "R1",
+            head: 1,
+            headPatternRef: "head:1",
+          }),
+        ],
+        patterns: [
+          { ref: "head:1", label: "SPWCOM1", multipliers: [70, 71, 72] },
+        ],
+      }),
+      { projections: aCatalogue() },
+    );
+
+    const reservoir = getByLabel(hydraulicModel.assets, "R1") as Reservoir;
+    const pattern = hydraulicModel.patterns.get(
+      reservoir.headPatternId as number,
+    );
+
+    expect(reservoir.head).toEqual(1);
+    expect(pattern).toEqual({
+      id: reservoir.headPatternId,
+      label: "SPWCOM1",
+      type: "reservoirHead",
+      multipliers: [70, 71, 72],
+    });
+  });
+
   it("indexes the reservoir as a node", () => {
     const { hydraulicModel } = buildModel(
       aNetwork({ reservoirs: [aReservoir({ ref: "1", label: "R1" })] }),

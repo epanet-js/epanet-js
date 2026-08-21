@@ -2,7 +2,6 @@ import type {
   CurvePointData,
   DemandData,
   JunctionData,
-  PatternData,
   LinkData,
   NetworkData,
   NodeData,
@@ -27,6 +26,7 @@ import {
   Demand,
   LinkAsset,
   PatternId,
+  PatternType,
   LinkConnections,
   NodeAsset,
   HeadlossFormula,
@@ -109,7 +109,7 @@ export const buildModel = (
     ),
     nodeIdByRef,
     toDemand: converterFor(network.units.flow, spec.units.flow),
-    patternIdByRef: addPatterns(hydraulicModel, network.patterns, {
+    patternIdByRef: addPatterns(hydraulicModel, network, {
       idGenerator,
       labelManager,
       labelMaxLength,
@@ -256,9 +256,10 @@ type PatternContext = {
 
 const addPatterns = (
   hydraulicModel: HydraulicModel,
-  patterns: PatternData[],
+  { patterns, reservoirs }: NetworkData,
   { idGenerator, labelManager, labelMaxLength }: PatternContext,
 ): Map<string, PatternId> => {
+  const typeByRef = patternTypesByRef(reservoirs);
   const patternIdByRef = new Map<string, PatternId>();
 
   for (const patternData of patterns) {
@@ -274,7 +275,7 @@ const addPatterns = (
     hydraulicModel.patterns.set(id, {
       id,
       label: stated ?? labelManager.generateFor("pattern", id),
-      type: "demand",
+      type: typeByRef.get(patternData.ref) ?? "demand",
       multipliers: patternData.multipliers,
     });
     patternIdByRef.set(patternData.ref, id);
@@ -283,16 +284,35 @@ const addPatterns = (
   return patternIdByRef;
 };
 
+const patternTypesByRef = (
+  reservoirs: ReservoirData[],
+): Map<string, PatternType> => {
+  const types = new Map<string, PatternType>();
+
+  for (const { headPatternRef } of reservoirs) {
+    if (headPatternRef !== undefined)
+      types.set(headPatternRef, "reservoirHead");
+  }
+
+  return types;
+};
+
 const addReservoir = (
   hydraulicModel: HydraulicModel,
   assetFactory: AssetFactory,
   reservoirData: ReservoirData,
   context: NodeContext,
 ) => {
-  const { head } = reservoirData;
+  const { head, headPatternRef } = reservoirData;
+  const headPatternId =
+    headPatternRef === undefined
+      ? undefined
+      : context.patternIdByRef.get(headPatternRef);
+
   const reservoir = assetFactory.createReservoir({
     ...nodeProperties(reservoirData, "reservoir", context),
     head: head === undefined ? undefined : context.toElevation(head),
+    headPatternId,
   });
 
   registerNode(hydraulicModel, reservoir, reservoirData.ref, context);

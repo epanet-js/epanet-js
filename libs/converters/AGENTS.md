@@ -60,8 +60,13 @@ are both `ref: "0"`. Links therefore name their endpoints with `startNodeRef`/`e
 resolved against the node arrays, and a consumer must never key one global map by `ref`.
 
 **A boundary node's head is a head, in `units.elevation`.** `ReservoirData.head` is the
-absolute head the source stated. A source that states a *pressure* instead has to say so
-in a field of its own rather than passing a pressure off as a head; nothing does yet.
+absolute head the source stated. A source that states a *pressure* instead has to convert it,
+or say it cannot; passing a pressure off as a head is not an option.
+
+**A head that varies over time is `head` × `headPatternRef`.** The pattern carries the heads and
+`head` is the multiplier that scales them, which is what EPANET means by the pair and what lets one
+field serve both a fixed and a varying boundary. A parser that has the series states it that way
+rather than reducing it to an average.
 
 ## Optionality is the contract
 
