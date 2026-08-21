@@ -9,12 +9,9 @@ import {
 } from "src/hydraulic-model";
 import { CustomerPoints } from "@epanet-js/hydraulic-model";
 import { modelFactoriesAtom } from "src/state/model-factories";
-import { mapEditionsTrackerAtom, type MomentPointer } from "src/state/map";
+import { mapEditionsTrackerAtom } from "src/state/map";
 import type { Moment } from "./moment";
-import type { MomentLog } from "./moment-log";
 import { getFreshAt } from "./shared";
-
-const MAX_CHANGES_BEFORE_MAP_SYNC = 500;
 
 export function ensureAtValues(
   features: Asset[] | undefined,
@@ -54,7 +51,6 @@ export function applyMoment(
   stateId: string,
   forwardMoment: Moment,
   modelAtom: WritableAtom<HydraulicModel, [HydraulicModel], void>,
-  isChangeTrackerOn: boolean,
 ): Moment {
   const hydraulicModel = get(modelAtom);
 
@@ -93,41 +89,9 @@ export function applyMoment(
     curves: updatedCurves,
   });
 
-  if (isChangeTrackerOn) {
-    set(mapEditionsTrackerAtom, (prev) => prev.record(processedMoment));
-  }
+  set(mapEditionsTrackerAtom, (prev) => prev.record(processedMoment));
 
   return reverseMoment;
-}
-
-export function exceedsMaxChangesSinceLastSync(
-  momentLog: MomentLog,
-  lastSyncPointer: number,
-): boolean {
-  const deltasSinceLastSync = momentLog.getDeltas(lastSyncPointer);
-  const editedAssetsCount = deltasSinceLastSync.reduce(
-    (count, moment) =>
-      count +
-      (moment.deleteAssets?.length ?? 0) +
-      (moment.putAssets?.length ?? 0) +
-      (moment.patchAssetsAttributes?.length ?? 0),
-    0,
-  );
-  return editedAssetsCount > MAX_CHANGES_BEFORE_MAP_SYNC;
-}
-
-export function computeSyncMoment(
-  current: MomentPointer,
-  momentLog: MomentLog,
-  force: boolean = false,
-): MomentPointer {
-  if (force || exceedsMaxChangesSinceLastSync(momentLog, current.pointer)) {
-    return {
-      pointer: momentLog.getPointer(),
-      version: current.version + 1,
-    };
-  }
-  return current;
 }
 
 export type HistoryAction = { moment: Moment; stateId: string };

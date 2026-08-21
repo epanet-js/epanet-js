@@ -3,7 +3,6 @@ import { useAtomCallback } from "jotai/utils";
 import type { Getter, Setter } from "jotai";
 import { nanoid } from "nanoid";
 import type { Moment } from "src/lib/persistence/moment";
-import { mapSyncMomentAtom } from "src/state/map";
 import {
   stagingModelDerivedAtom,
   momentLogDerivedAtom,
@@ -13,10 +12,7 @@ import { historyPendingAtom } from "src/state/transactions";
 import { dialogAtom } from "src/state/dialog";
 import { modeAtom, MODE_INFO } from "src/state/mode";
 import { trackMoment } from "src/lib/persistence/shared";
-import {
-  applyMoment,
-  computeSyncMoment,
-} from "src/lib/persistence/transaction-helpers";
+import { applyMoment } from "src/lib/persistence/transaction-helpers";
 import { applyMomentToDb, buildMomentPayload } from "src/lib/db";
 import type { ApplyMomentPayload } from "@epanet-js/ejsdb";
 import { captureError, captureWarning } from "src/infra/error-tracking";
@@ -57,7 +53,6 @@ const buildOrphanReport = (
 };
 
 export const useMomentTransaction = () => {
-  const isChangeTrackerOn = useFeatureFlag("FLAG_CHANGE_TRACKER");
   const isAsyncUndoOn = useFeatureFlag("FLAG_ASYNC_UNDO");
   const onWriteFailure = useWriteFailureHandler();
 
@@ -72,8 +67,6 @@ export const useMomentTransaction = () => {
         }
 
         const momentLog = get(momentLogDerivedAtom).copy();
-        const mapSyncMoment = get(mapSyncMomentAtom);
-        const isTruncatingHistory = momentLog.nextRedo() !== null;
 
         const worktree = get(worktreeAtom);
         const willPersist = worktree.activeBranchId === worktree.mainId;
@@ -117,7 +110,6 @@ export const useMomentTransaction = () => {
           newStateId,
           moment,
           stagingModelDerivedAtom,
-          isChangeTrackerOn,
         );
 
         const storeInconsistencies = findStoreInconsistencies(
@@ -163,16 +155,10 @@ export const useMomentTransaction = () => {
         momentLog.append(moment, reverseMoment, newStateId);
 
         set(momentLogDerivedAtom, momentLog);
-        if (!isChangeTrackerOn) {
-          set(
-            mapSyncMomentAtom,
-            computeSyncMoment(mapSyncMoment, momentLog, isTruncatingHistory),
-          );
-        }
 
         return true;
       },
-      [isChangeTrackerOn, isAsyncUndoOn, onWriteFailure],
+      [isAsyncUndoOn, onWriteFailure],
     ),
   );
 

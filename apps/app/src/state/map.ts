@@ -20,7 +20,6 @@ import type { SymbologySpec, NodeSizeConfig } from "src/map/symbology";
 import { nullSymbologySpec, defaultNodeSizeConfig } from "src/map/symbology";
 import { symbologyAtom, nodeSizeAtom } from "src/state/map-symbology";
 import {
-  momentLogDerivedAtom,
   simulationDerivedAtom,
   simulationResultsDerivedAtom,
   customerPointsDerivedAtom,
@@ -46,16 +45,6 @@ import type { AssetId } from "src/hydraulic-model";
 import { type CustomerPoints } from "@epanet-js/hydraulic-model";
 import type { PreviewProperty } from "src/state/map-symbology";
 import type { ResultsReader } from "@epanet-js/simulation";
-
-export type MomentPointer = {
-  pointer: number;
-  version: number;
-};
-
-export const mapSyncMomentAtom = atom<MomentPointer>({
-  pointer: -1,
-  version: 0,
-});
 
 export const mapEditionsTrackerAtom = atom<MapEditionsTracker>(
   new MapEditionsTracker(),
@@ -116,11 +105,7 @@ export type StylesConfig = {
 };
 
 export type MapState = {
-  momentLogId: string;
-  momentLogPointer: number;
   editionsTracker: MapEditionsTracker;
-  syncMomentPointer: number;
-  syncMomentVersion: number;
   stylesConfig: StylesConfig;
   selection: Sel;
   ephemeralState: EphemeralEditingState;
@@ -141,11 +126,7 @@ export type MapState = {
 };
 
 export const nullMapState: MapState = {
-  momentLogId: "",
-  momentLogPointer: -1,
   editionsTracker: nullMapEditionsTracker,
-  syncMomentPointer: -1,
-  syncMomentVersion: 0,
   stylesConfig: {
     symbology: SYMBOLIZATION_NONE,
     previewProperty: null,
@@ -182,9 +163,7 @@ export const stylesConfigAtom = atom<StylesConfig>((get) => {
 });
 
 export const mapStateDerivedAtom = atom<MapState>((get) => {
-  const momentLog = get(momentLogDerivedAtom);
   const editionsTracker = get(mapEditionsTrackerAtom);
-  const mapSyncMoment = get(mapSyncMomentAtom);
   const stylesConfig = get(stylesConfigAtom);
   const selection = get(selectionAtom);
   const ephemeralState = get(ephemeralStateAtom);
@@ -205,11 +184,7 @@ export const mapStateDerivedAtom = atom<MapState>((get) => {
   const nodeSize = get(nodeSizeAtom);
 
   return {
-    momentLogId: momentLog.id,
-    momentLogPointer: momentLog.getPointer(),
     editionsTracker,
-    syncMomentPointer: mapSyncMoment.pointer,
-    syncMomentVersion: mapSyncMoment.version,
     stylesConfig,
     selection,
     ephemeralState,

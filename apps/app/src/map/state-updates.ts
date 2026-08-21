@@ -1,19 +1,16 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import { type MutableRefObject, useMemo, useRef } from "react";
-import type { ModelMoment } from "src/hydraulic-model/model-operation";
 import { projectSettingsAtom } from "src/state/project-settings";
 import type { EphemeralEditingState } from "src/state/drawing";
 import {
   assetsDerivedAtom,
   stagingModelDerivedAtom,
-  momentLogDerivedAtom,
 } from "src/state/derived-branch-state";
 import {
   type StylesConfig,
   type MapState,
   nullMapState,
   mapStateDerivedAtom,
-  mapSyncMomentAtom,
   mapEditionsTrackerAtom,
   mapLoadingAtom,
   mapBackendFallbackAtom,
@@ -56,7 +53,6 @@ import { SymbologySpec } from "src/state/map-symbology";
 import type { ZoneSymbology, NodeSizeConfig } from "src/map/symbology";
 import { buildZoneColorExpression } from "src/map/layers/zones";
 
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { useRoughnessInferrer } from "src/hooks/use-roughness-inferrer";
@@ -88,20 +84,6 @@ const MAP_STATE_SYNC = "MAP_STATE:SYNC";
 // Editions above this many assets cost more to keep separate than to fold back in.
 const MAX_CHANGES_BEFORE_MAP_SYNC = 500;
 
-const getAssetIdsInMoments = (moments: ModelMoment[]): Set<AssetId> => {
-  const assetIds = new Set<AssetId>();
-  moments.forEach((moment) => {
-    (moment.deleteAssets || []).forEach((assetId) => {
-      assetIds.add(assetId);
-    });
-    (moment.putAssets || []).forEach((asset) => assetIds.add(asset.id));
-    (moment.patchAssetsAttributes || []).forEach((patch) =>
-      assetIds.add(patch.id),
-    );
-  });
-  return assetIds;
-};
-
 const sameSet = (a: Set<AssetId>, b: Set<AssetId>): boolean => {
   if (a.size !== b.size) return false;
   for (const id of a) if (!b.has(id)) return false;
@@ -112,7 +94,6 @@ const detectChanges = (
   state: MapState,
   prev: MapState,
   map: MapEngine,
-  isChangeTrackerOn: boolean,
 ): {
   hasNewImport: boolean;
   hasNewEditions: boolean;
@@ -132,21 +113,16 @@ const detectChanges = (
   hasNewZoneColorAssignments: boolean;
   hasNewCustomerPoints: boolean;
   hasNewZoom: boolean;
-  hasSyncMomentChanged: boolean;
   hasNewResults: boolean;
   hasNewMapOverlay: boolean;
   hasNewHighlights: boolean;
   hasNewNodeSize: boolean;
 } => {
   return {
-    hasNewImport: isChangeTrackerOn
-      ? state.editionsTracker.id !== prev.editionsTracker.id
-      : state.momentLogId !== prev.momentLogId,
-    hasNewEditions: isChangeTrackerOn
-      ? state.editionsTracker.getSeq() !== prev.editionsTracker.getSeq()
-      : state.momentLogPointer !== prev.momentLogPointer,
+    hasNewImport: state.editionsTracker.id !== prev.editionsTracker.id,
+    hasNewEditions:
+      state.editionsTracker.getSeq() !== prev.editionsTracker.getSeq(),
     hasExceededDeltaBudget:
-      isChangeTrackerOn &&
       state.editionsTracker.editedCount() > MAX_CHANGES_BEFORE_MAP_SYNC,
     hasNewStyles:
       !map.isStyleLoaded() ||
@@ -182,7 +158,6 @@ const detectChanges = (
     hasNewZoneSymbology: state.symbology.zone !== prev.symbology.zone,
     hasNewCustomerPoints: state.customerPoints !== prev.customerPoints,
     hasNewZoom: state.currentZoom !== prev.currentZoom,
-    hasSyncMomentChanged: state.syncMomentVersion !== prev.syncMomentVersion,
     hasNewResults: state.resultsReader !== prev.resultsReader,
     hasNewMapOverlay: state.mapOverlayFeatures !== prev.mapOverlayFeatures,
     hasNewZoneFeatures: state.zoneFeatures !== prev.zoneFeatures,
@@ -208,7 +183,6 @@ const isHeavyUpdate = (
     changes.hasNewAssetsSelection || changes.hasNewCustomerPointsSelection;
 
   return (
-    changes.hasSyncMomentChanged ||
     changes.hasExceededDeltaBudget ||
     changes.hasNewImport ||
     changes.hasNewEditions ||
@@ -221,10 +195,7 @@ const isHeavyUpdate = (
 };
 
 export const useMapStateUpdates = (map: MapEngine | null) => {
-  const isChangeTrackerOn = useFeatureFlag("FLAG_CHANGE_TRACKER");
-  const momentLog = useAtomValue(momentLogDerivedAtom);
   const setEditionsTracker = useSetAtom(mapEditionsTrackerAtom);
-  const setMapSyncMoment = useSetAtom(mapSyncMomentAtom);
   const mapState = useAtomValue(mapStateDerivedAtom);
   const setMapLoading = useSetAtom(mapLoadingAtom);
   const appendSourceRebuildDuration = useSetAtom(
@@ -297,12 +268,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       const previousMapState = lastAppliedMapStateRef.current;
       if (mapState === previousMapState) return;
 
-      const changes = detectChanges(
-        mapState,
-        previousMapState,
-        map,
-        isChangeTrackerOn,
-      );
+      const changes = detectChanges(mapState, previousMapState, map);
       appliedChangesRef.current = changes;
       const {
         hasNewImport,
@@ -323,7 +289,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         hasNewSimulation,
         hasNewCustomerPoints,
         hasNewZoom,
-        hasSyncMomentChanged,
         hasNewResults,
         hasNewMapOverlay,
         hasNewHighlights,
@@ -347,24 +312,12 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       // landing mid-build would already have advanced.
       const consolidatedSeq = mapState.editionsTracker.getSeq();
 
-      const editedFromTracker = () => mapState.editionsTracker.editedAssetIds();
-      const editedFromMomentLog = () =>
-        getAssetIdsInMoments(momentLog.getDeltas(mapState.syncMomentPointer));
-      const resolveEditedSinceConsolidation = isChangeTrackerOn
-        ? editedFromTracker
-        : editedFromMomentLog;
+      const resolveEditedSinceConsolidation = () =>
+        mapState.editionsTracker.editedAssetIds();
 
-      const commitSyncPointWithTracker = () => {
+      const commitSyncPoint = () => {
         setEditionsTracker((prev) => prev.consolidate(consolidatedSeq));
       };
-      const commitSyncPointWithMomentLog = () => {
-        setMapSyncMoment((prev) => {
-          return { pointer: momentLog.getPointer(), version: prev.version };
-        });
-      };
-      const commitSyncPoint = isChangeTrackerOn
-        ? commitSyncPointWithTracker
-        : commitSyncPointWithMomentLog;
 
       if (isHeavyUpdate(changes, mapState)) {
         setMapLoading(true);
@@ -436,10 +389,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         selectionDiff.size > SELECTION_CONSOLIDATION_THRESHOLD;
 
       const rebuildFamily =
-        hasSyncMomentChanged ||
-        hasExceededDeltaBudget ||
-        hasNewImport ||
-        hasNewStyles;
+        hasExceededDeltaBudget || hasNewImport || hasNewStyles;
       const propFamily =
         hasNewSymbologyRules ||
         (hasNewSimulation && mapState.simulation.status !== "running") ||
@@ -661,7 +611,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         freshMapStateRef.current,
         lastAppliedMapStateRef.current,
         map,
-        isChangeTrackerOn,
       ),
       freshMapStateRef.current,
     );

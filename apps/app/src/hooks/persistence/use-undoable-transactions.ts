@@ -1,7 +1,6 @@
 import { useCallback } from "react";
 import { useAtomCallback } from "jotai/utils";
 import type { Getter, Setter } from "jotai";
-import { mapSyncMomentAtom } from "src/state/map";
 import {
   stagingModelDerivedAtom,
   momentLogDerivedAtom,
@@ -10,7 +9,6 @@ import { worktreeAtom } from "src/state/scenarios";
 import { historyPendingAtom } from "src/state/transactions";
 import {
   applyMoment,
-  computeSyncMoment,
   prepareHistoryAction,
   type HistoryAction,
 } from "src/lib/persistence/transaction-helpers";
@@ -25,21 +23,15 @@ import {
 } from "src/lib/persistence/write-queue";
 import { useWriteFailureHandler } from "src/hooks/persistence/use-write-failure-handler";
 
-type CommitDeps = {
-  isChangeTrackerOn: boolean;
-  onWriteFailure: WriteFailureHandler;
-};
-
 const commitHistoryAction = (
   get: Getter,
   set: Setter,
   direction: "undo" | "redo",
   action: HistoryAction,
   momentLog: MomentLog,
-  { isChangeTrackerOn, onWriteFailure }: CommitDeps,
+  onWriteFailure: WriteFailureHandler,
 ) => {
   const isUndo = direction === "undo";
-  const currentMapSyncMoment = get(mapSyncMomentAtom);
 
   const worktree = get(worktreeAtom);
   const willPersist = worktree.activeBranchId === worktree.mainId;
@@ -53,14 +45,7 @@ const commitHistoryAction = (
     }
   }
 
-  applyMoment(
-    get,
-    set,
-    action.stateId,
-    action.moment,
-    stagingModelDerivedAtom,
-    isChangeTrackerOn,
-  );
+  applyMoment(get, set, action.stateId, action.moment, stagingModelDerivedAtom);
 
   if (payload) {
     writeQueue.enqueue(() => applyMomentToDb(payload), onWriteFailure);
@@ -69,9 +54,6 @@ const commitHistoryAction = (
   isUndo ? momentLog.undo() : momentLog.redo();
 
   set(momentLogDerivedAtom, momentLog);
-  if (!isChangeTrackerOn) {
-    set(mapSyncMomentAtom, computeSyncMoment(currentMapSyncMoment, momentLog));
-  }
 };
 
 const nextAction = (
@@ -81,7 +63,6 @@ const nextAction = (
   direction === "undo" ? momentLog.nextUndo() : momentLog.nextRedo();
 
 export const useUndoableTransactions = () => {
-  const isChangeTrackerOn = useFeatureFlag("FLAG_CHANGE_TRACKER");
   const isAsyncUndoOn = useFeatureFlag("FLAG_ASYNC_UNDO");
   const onWriteFailure = useWriteFailureHandler();
 
@@ -96,13 +77,17 @@ export const useUndoableTransactions = () => {
         const action = nextAction(momentLog, direction);
         if (!action) return Promise.resolve(false);
 
-        commitHistoryAction(get, set, direction, action, momentLog, {
-          isChangeTrackerOn,
+        commitHistoryAction(
+          get,
+          set,
+          direction,
+          action,
+          momentLog,
           onWriteFailure,
-        });
+        );
         return Promise.resolve(true);
       },
-      [isChangeTrackerOn, onWriteFailure],
+      [onWriteFailure],
     ),
   );
 
@@ -131,16 +116,20 @@ export const useUndoableTransactions = () => {
             return false;
           }
 
-          commitHistoryAction(get, set, direction, prepared, momentLog, {
-            isChangeTrackerOn,
+          commitHistoryAction(
+            get,
+            set,
+            direction,
+            prepared,
+            momentLog,
             onWriteFailure,
-          });
+          );
           return true;
         } finally {
           set(historyPendingAtom, false);
         }
       },
-      [isChangeTrackerOn, onWriteFailure],
+      [onWriteFailure],
     ),
   );
 

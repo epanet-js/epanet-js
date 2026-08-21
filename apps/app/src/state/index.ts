@@ -50,9 +50,8 @@ export {
 export { localeAtom } from "src/state/locale";
 
 // Map
-export type { MomentPointer, CursorValue, PartialLayer } from "src/state/map";
+export type { CursorValue, PartialLayer } from "src/state/map";
 export {
-  mapSyncMomentAtom,
   mapLoadingAtom,
   currentZoomAtom,
   layerConfigAtom,

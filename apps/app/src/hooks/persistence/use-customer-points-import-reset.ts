@@ -5,7 +5,7 @@ import { nanoid } from "nanoid";
 import * as db from "src/lib/db";
 import { handleError } from "src/infra/errors";
 import type { HydraulicModel } from "src/hydraulic-model";
-import { mapEditionsTrackerAtom, mapSyncMomentAtom } from "src/state/map";
+import { mapEditionsTrackerAtom } from "src/state/map";
 import { initialSimulationState } from "src/state/simulation";
 import {
   stagingModelDerivedAtom,
@@ -30,7 +30,6 @@ type CustomerPointsImportResetInput = {
 
 const resetAppState = (set: Setter) => {
   set(simulationDerivedAtom, initialSimulationState);
-  set(mapSyncMomentAtom, { pointer: -1, version: 0 });
   set(mapEditionsTrackerAtom, new MapEditionsTracker());
   set(modeAtom, { mode: Mode.NONE });
   set(ephemeralStateAtom, { type: "none" });

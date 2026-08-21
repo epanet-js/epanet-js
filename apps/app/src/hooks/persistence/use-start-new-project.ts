@@ -43,7 +43,7 @@ import {
 import { initialSimulationState } from "src/state/simulation";
 import { worktreeAtom } from "src/state/scenarios";
 import { splitsAtom, defaultSplits } from "src/state/layout";
-import { mapEditionsTrackerAtom, mapSyncMomentAtom } from "src/state/map";
+import { mapEditionsTrackerAtom } from "src/state/map";
 import {
   nodeSymbologyAtom,
   linkSymbologyAtom,
@@ -86,7 +86,6 @@ export type ProjectLoadInput = {
 export const resetAppState = (set: Setter) => {
   set(splitsAtom, defaultSplits);
   set(selectionAtom, USelection.none());
-  set(mapSyncMomentAtom, { pointer: -1, version: 0 });
   set(mapEditionsTrackerAtom, new MapEditionsTracker());
   set(nodeSymbologyAtom, nullSymbologySpec.node);
   set(linkSymbologyAtom, nullSymbologySpec.link);

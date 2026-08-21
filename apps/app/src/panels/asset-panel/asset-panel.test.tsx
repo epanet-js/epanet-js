@@ -21,11 +21,7 @@ import {
   stagingModelDerivedAtom,
   momentLogDerivedAtom,
 } from "src/state/derived-branch-state";
-import { mapSyncMomentAtom } from "src/state/map";
-import {
-  applyMoment,
-  computeSyncMoment,
-} from "src/lib/persistence/transaction-helpers";
+import { applyMoment } from "src/lib/persistence/transaction-helpers";
 import userEvent, { type UserEvent } from "@testing-library/user-event";
 import { AssetId, getLink, getPipe } from "@epanet-js/hydraulic-model";
 import FeatureEditor from "../feature-editor";
@@ -2113,7 +2109,6 @@ describe("AssetPanel", () => {
     const historyControl = (direction: "undo" | "redo") => {
       const isUndo = direction === "undo";
       const momentLog = store.get(momentLogDerivedAtom).copy();
-      const currentMapSyncMoment = store.get(mapSyncMomentAtom);
       const action = isUndo ? momentLog.nextUndo() : momentLog.nextRedo();
       if (!action) return;
 
@@ -2123,18 +2118,11 @@ describe("AssetPanel", () => {
         action.stateId,
         action.moment,
         stagingModelDerivedAtom,
-        false,
       );
 
       isUndo ? momentLog.undo() : momentLog.redo();
 
-      const newMapSyncMoment = computeSyncMoment(
-        currentMapSyncMoment,
-        momentLog,
-      );
-
       store.set(momentLogDerivedAtom, momentLog);
-      store.set(mapSyncMomentAtom, newMapSyncMoment);
     };
     return historyControl;
   };

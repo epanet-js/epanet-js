@@ -24,82 +24,72 @@ const FIRST = [1, 2];
 const SECOND = [10, 20];
 const MAX_CHANGES_BEFORE_MAP_SYNC = 500;
 
-describe.each([
-  { flagState: "enabled", enabledFlags: ["FLAG_CHANGE_TRACKER"] },
-  { flagState: "disabled", enabledFlags: [] },
-])(
-  "model changes reach the map — FLAG_CHANGE_TRACKER $flagState",
-  ({ enabledFlags }) => {
-    it("renders an added junction", async () => {
-      const { store, map } = await renderWarmMap(enabledFlags);
+describe("model changes reach the map", () => {
+  it("renders an added junction", async () => {
+    const { store, map } = await renderWarmMap();
 
-      addJunction(store, SECOND);
+    addJunction(store, SECOND);
 
-      await expectRendered(map, SECOND);
-    });
+    await expectRendered(map, SECOND);
+  });
 
-    it("moves an edited asset into editions and hides it in the snapshot", async () => {
-      const { store, map } = await renderWarmMap(enabledFlags);
-      const junctionId = junctionIds(store)[0];
+  it("moves an edited asset into editions and hides it in the snapshot", async () => {
+    const { store, map } = await renderWarmMap();
+    const junctionId = junctionIds(store)[0];
 
-      changeElevation(store, [junctionId]);
+    changeElevation(store, [junctionId]);
 
-      await waitFor(() => {
-        expect(getSourceFeatures(map, "delta-features")).toHaveLength(1);
-        expect(getFeatureState(map, "main-features", junctionId).hidden).toBe(
-          true,
-        );
-      });
-    });
-
-    it("consolidates once the editions budget is exceeded", async () => {
-      const { store, map } = await renderWarmMap(
-        enabledFlags,
-        aModelWithJunctions(MAX_CHANGES_BEFORE_MAP_SYNC + 1),
-      );
-      const snapshotBefore = getSourceFeatures(map, "main-features");
-
-      changeElevation(store, junctionIds(store));
-
-      // The snapshot is only re-encoded on a consolidation; the editions path leaves it
-      // untouched, so a new array is the signal that the budget forced one.
-      await waitFor(() => {
-        expect(getSourceFeatures(map, "main-features")).not.toBe(
-          snapshotBefore,
-        );
-      });
-      expect(getSourceFeatures(map, "delta-features")).toHaveLength(0);
-      expect(getSourceFeatures(map, "main-features").length).toBeGreaterThan(
-        MAX_CHANGES_BEFORE_MAP_SYNC,
+    await waitFor(() => {
+      expect(getSourceFeatures(map, "delta-features")).toHaveLength(1);
+      expect(getFeatureState(map, "main-features", junctionId).hidden).toBe(
+        true,
       );
     });
+  });
 
-    it("drops the junction again on undo", async () => {
-      const { store, map } = await renderWarmMap(enabledFlags);
-      addJunction(store, SECOND);
-      await expectRendered(map, SECOND);
+  it("consolidates once the editions budget is exceeded", async () => {
+    const { store, map } = await renderWarmMap(
+      aModelWithJunctions(MAX_CHANGES_BEFORE_MAP_SYNC + 1),
+    );
+    const snapshotBefore = getSourceFeatures(map, "main-features");
 
-      undo(store);
+    changeElevation(store, junctionIds(store));
 
-      await waitFor(() => {
-        expect(junctionIds(store)).toHaveLength(1);
-        expect(getSourceFeatures(map, "delta-features")).not.toContainEqual(
-          matchPoint({ coordinates: SECOND }),
-        );
-      });
+    // The snapshot is only re-encoded on a consolidation; the editions path leaves it
+    // untouched, so a new array is the signal that the budget forced one.
+    await waitFor(() => {
+      expect(getSourceFeatures(map, "main-features")).not.toBe(snapshotBefore);
     });
-  },
-);
+    expect(getSourceFeatures(map, "delta-features")).toHaveLength(0);
+    expect(getSourceFeatures(map, "main-features").length).toBeGreaterThan(
+      MAX_CHANGES_BEFORE_MAP_SYNC,
+    );
+  });
+
+  it("drops the junction again on undo", async () => {
+    const { store, map } = await renderWarmMap();
+    addJunction(store, SECOND);
+    await expectRendered(map, SECOND);
+
+    undo(store);
+
+    await waitFor(() => {
+      expect(junctionIds(store)).toHaveLength(1);
+      expect(getSourceFeatures(map, "delta-features")).not.toContainEqual(
+        matchPoint({ coordinates: SECOND }),
+      );
+    });
+  });
+});
 
 // The first apply coalesces with the initial style sync, so the map can consolidate it
 // into main rather than editions. Landing one edit first leaves the updater committed and
 // idle, so the edit under test is the only thing driving the next cycle.
 const renderWarmMap = async (
-  enabledFlags: string[],
   hydraulicModel: HydraulicModel = HydraulicModelBuilder.with().build(),
 ) => {
   const store = setInitialState({ hydraulicModel });
-  const map = await renderMap(store, enabledFlags);
+  const map = await renderMap(store);
 
   addJunction(store, FIRST);
   await expectRendered(map, FIRST);
