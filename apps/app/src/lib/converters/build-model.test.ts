@@ -765,10 +765,16 @@ describe("build tanks from network data", () => {
             minLevel: 2,
             initialLevel: 12,
             maxLevel: 20,
-            diameter: 10000,
+            diameter: 10,
           }),
         ],
-        units: { flow: "l/s", elevation: "m", level: "m", diameter: "mm" },
+        units: {
+          flow: "l/s",
+          elevation: "m",
+          level: "m",
+          diameter: "mm",
+          tankDiameter: "m",
+        },
       }),
       { projections: aCatalogue() },
     );
@@ -780,6 +786,69 @@ describe("build tanks from network data", () => {
     expect(tank.initialLevel).toEqual(12);
     expect(tank.maxLevel).toEqual(20);
     expect(tank.diameter).toEqual(10);
+  });
+
+  it("gives a tank the volume curve it names, in the project's units", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        tanks: [aTank({ ref: "1", label: "T1", volumeCurveRef: "51" })],
+        curves: [
+          {
+            ref: "51",
+            label: "TK_VOL",
+            points: [
+              { x: 0, y: 0 },
+              { x: 1140, y: 3 },
+            ],
+          },
+        ],
+        units: { volume: "m^3", level: "m" },
+      }),
+      { projections: aCatalogue() },
+    );
+
+    const tank = getByLabel(hydraulicModel.assets, "T1") as Tank;
+    const curve = hydraulicModel.curves.get(tank.volumeCurveId as number);
+
+    expect(curve).toEqual({
+      id: tank.volumeCurveId,
+      label: "TK_VOL",
+      type: "volume",
+      points: [
+        { x: 0, y: 0 },
+        { x: 1140, y: 3 },
+      ],
+    });
+  });
+
+  it("converts a volume curve through the volume and level units", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        tanks: [aTank({ ref: "1", label: "T1", volumeCurveRef: "51" })],
+        curves: [{ ref: "51", points: [{ x: 1, y: 1 }] }],
+        units: { volume: "ft^3", level: "ft" },
+      }),
+      { projections: aCatalogue() },
+    );
+
+    const tank = getByLabel(hydraulicModel.assets, "T1") as Tank;
+    const curve = hydraulicModel.curves.get(tank.volumeCurveId as number);
+
+    expect(curve?.points[0].x).toBeCloseTo(0.0283168, 6);
+    expect(curve?.points[0].y).toBeCloseTo(0.3048, 6);
+  });
+
+  it("reads a tank diameter in its own unit, not the one pipes are in", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        tanks: [aTank({ ref: "1", label: "T1", diameter: 100 })],
+        units: { diameter: "mm", tankDiameter: "ft" },
+      }),
+      { projections: aCatalogue() },
+    );
+
+    const tank = getByLabel(hydraulicModel.assets, "T1") as Tank;
+    expect(tank.diameter).toBeCloseTo(30.48, 6);
   });
 
   it("leaves the levels blank when the source stated none", () => {

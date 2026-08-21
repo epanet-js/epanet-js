@@ -84,9 +84,11 @@ It is deliberately not a unit-system preset: a source is free to state pressure
 in `psi` while flowing `l/s`, and the set of quantities grows as more of the
 model is parsed.
 
-A quantity is named for what it measures, not for the asset it sits on: `diameter` covers
-every diameter in the model, `level` every tank level. A vendor that states two diameters in
-two units is not a shape this has to serve until one exists.
+A quantity is named for what it measures, not for the asset it sits on: `level` covers every
+tank level whichever asset it sits on. The exception is `tankDiameter`, which exists because a
+vendor really does state two diameters in two units: Synergi holds pipe and valve diameters in
+`mm` and a tank's cylinder in `m`, the same split the app's own unit spec makes. A second entry
+appears when a source forces one, not before.
 
 **Roughness deliberately has no entry.** The app carries roughness as a bare unitless number —
 both unit presets set it to `null`, and there is no per-formula unit anywhere — so a source
@@ -95,16 +97,17 @@ unit here could never drive a conversion. What the number *means* is fixed by
 
 ## A curve is shared, so it is its own record
 
-`CurveData` (`ref`, `label?`, `points`) sits in `NetworkData.curves`, and a pump names one with
-`curveRef` — the same `ref`-resolved-against-an-array shape links use for their endpoints. Sources
-share one curve between several pumps (Synergi has one Q-H profile driving four), and a curve
-carries a name of its own that the source states. Inlining the points on each pump would duplicate
-them, lose that name, and leave a consumer guessing which duplicates were once the same curve.
+`CurveData` (`ref`, `label?`, `points`) sits in `NetworkData.curves`, and whatever uses one names it
+by ref — `PumpData.curveRef` for a head curve, `TankData.volumeCurveRef` for a volume curve — the
+same `ref`-resolved-against-an-array shape links use for their endpoints. Sources share one curve
+between several assets (Synergi has one Q-H profile driving four pumps), and a curve carries a name
+of its own that the source states. Inlining the points on each asset would duplicate them, lose that
+name, and leave a consumer guessing which duplicates were once the same curve.
 
 **Points are `{ x, y }`, not named for what they measure.** What a curve means comes from where it
 is referenced: a pump's curve is flow against head, so the consumer converts `x` with the flow unit
-and `y` with the head unit. The same record then serves a volume or an efficiency curve without a
-second shape.
+and `y` with the head unit; a tank's volume curve is volume against level and converts through those.
+The same record serves an efficiency or headloss curve without a second shape.
 
 Only curves something references belong in the array — a source is free to hold thousands of
 unrelated series in the same table.

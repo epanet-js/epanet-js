@@ -6,7 +6,12 @@ import type {
   ValveKind,
   ValveStatus,
 } from "@epanet-js/hydraulic-model";
-import type { FlowUnit, LengthUnit, PressureUnit } from "@epanet-js/quantity";
+import type {
+  FlowUnit,
+  LengthUnit,
+  PressureUnit,
+  VolumeUnit,
+} from "@epanet-js/quantity";
 
 export type SourceUnits = {
   flow?: FlowUnit;
@@ -14,7 +19,9 @@ export type SourceUnits = {
   elevation?: LengthUnit;
   level?: LengthUnit;
   diameter?: LengthUnit;
+  tankDiameter?: LengthUnit;
   length?: LengthUnit;
+  volume?: VolumeUnit;
 };
 
 export type SourceCrs = { type: "epsg"; code: number } | { type: "unknown" };
@@ -38,6 +45,7 @@ export type TankData = NodeData & {
   maxLevel?: number;
   diameter?: number;
   minVolume?: number;
+  volumeCurveRef?: string;
 };
 
 export type LinkData = {

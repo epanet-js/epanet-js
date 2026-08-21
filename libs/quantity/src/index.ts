@@ -20,16 +20,17 @@ export type FlowUnit =
 
 export type PressureUnit = "mwc" | "psi" | "kPa" | "bar" | "fwc";
 
+export type VolumeUnit = "m^3" | "ft^3";
+
 export type Unit =
   | LengthUnit
   | FlowUnit
   | PressureUnit
+  | VolumeUnit
   | "m/km"
   | "ft/kft"
   | "m/s"
   | "ft/s"
-  | "ft^3"
-  | "m^3"
   | "kW"
   | "hp"
   | "%"

@@ -1,4 +1,5 @@
 import type {
+  CurvePointData,
   JunctionData,
   LinkData,
   NetworkData,
@@ -19,6 +20,7 @@ import {
   AssetFactory,
   AssetId,
   CurveId,
+  CurvePoint,
   CurveType,
   LinkAsset,
   LinkConnections,
@@ -98,10 +100,19 @@ export const buildModel = (
     toElevation: converterFor(network.units.elevation, spec.units.elevation),
     toLevel: converterFor(network.units.level, spec.units.initialLevel),
     toTankDiameter: converterFor(
-      network.units.diameter,
+      network.units.tankDiameter,
       spec.units.tankDiameter,
     ),
     nodeIdByRef,
+    curveIdByRef: addCurves(hydraulicModel, network, {
+      idGenerator,
+      labelManager,
+      labelMaxLength,
+      toVolume: converterFor(network.units.volume, spec.units.volume),
+      toLevel: converterFor(network.units.level, spec.units.initialLevel),
+      toFlow: converterFor(network.units.flow, spec.units.flow),
+      toHead: converterFor(network.units.elevation, spec.units.head),
+    }),
   };
 
   for (const junctionData of network.junctions) {
@@ -128,13 +139,6 @@ export const buildModel = (
     toDiameter: converterFor(network.units.diameter, spec.units.diameter),
     toPressure: converterFor(network.units.pressure, spec.units.pressure),
     toFlow: converterFor(network.units.flow, spec.units.flow),
-    curveIdByRef: addCurves(hydraulicModel, network, {
-      idGenerator,
-      labelManager,
-      labelMaxLength,
-      toX: converterFor(network.units.flow, spec.units.flow),
-      toY: converterFor(network.units.elevation, spec.units.head),
-    }),
   };
 
   for (const pipeData of network.pipes) {
@@ -185,6 +189,7 @@ type NodeContext = {
   toLevel: (value: number) => number;
   toTankDiameter: (value: number) => number;
   nodeIdByRef: Map<string, BuiltNode>;
+  curveIdByRef: Map<string, CurveId>;
 };
 
 type LinkContext = NodeContext & {
@@ -193,7 +198,6 @@ type LinkContext = NodeContext & {
   toDiameter: (value: number) => number;
   toPressure: (value: number) => number;
   toFlow: (value: number) => number;
-  curveIdByRef: Map<string, CurveId>;
 };
 
 type LinkGeometry = {
@@ -245,6 +249,10 @@ const addTank = (
     maxLevel: converted(tankData.maxLevel, toLevel),
     diameter: converted(tankData.diameter, toTankDiameter),
     minVolume: tankData.minVolume,
+    volumeCurveId:
+      tankData.volumeCurveRef === undefined
+        ? undefined
+        : context.curveIdByRef.get(tankData.volumeCurveRef),
   });
 
   registerNode(hydraulicModel, tank, tankData.ref, context);
@@ -315,16 +323,19 @@ type CurveContext = {
   idGenerator: IdGenerator;
   labelManager: LabelManager;
   labelMaxLength?: number;
-  toX: (value: number) => number;
-  toY: (value: number) => number;
+  toVolume: (value: number) => number;
+  toLevel: (value: number) => number;
+  toFlow: (value: number) => number;
+  toHead: (value: number) => number;
 };
 
 const addCurves = (
   hydraulicModel: HydraulicModel,
-  { curves, pumps }: NetworkData,
-  { idGenerator, labelManager, labelMaxLength, toX, toY }: CurveContext,
+  { curves, pumps, tanks }: NetworkData,
+  context: CurveContext,
 ): Map<string, CurveId> => {
-  const typeByRef = curveTypesByRef(pumps);
+  const { idGenerator, labelManager, labelMaxLength } = context;
+  const typeByRef = curveTypesByRef(pumps, tanks);
   const curveIdByRef = new Map<string, CurveId>();
 
   for (const curveData of curves) {
@@ -343,7 +354,7 @@ const addCurves = (
       id,
       label: stated ?? labelManager.generateFor("curve", id),
       ...(type === undefined ? {} : { type }),
-      points: curveData.points.map(({ x, y }) => ({ x: toX(x), y: toY(y) })),
+      points: curvePoints(curveData.points, type, context),
     });
     curveIdByRef.set(curveData.ref, id);
   }
@@ -351,11 +362,27 @@ const addCurves = (
   return curveIdByRef;
 };
 
-const curveTypesByRef = (pumps: PumpData[]): Map<string, CurveType> => {
+const curvePoints = (
+  points: CurvePointData[],
+  type: CurveType | undefined,
+  { toVolume, toLevel, toFlow, toHead }: CurveContext,
+): CurvePoint[] => {
+  const [toX, toY] = type === "volume" ? [toVolume, toLevel] : [toFlow, toHead];
+
+  return points.map(({ x, y }) => ({ x: toX(x), y: toY(y) }));
+};
+
+const curveTypesByRef = (
+  pumps: PumpData[],
+  tanks: TankData[],
+): Map<string, CurveType> => {
   const types = new Map<string, CurveType>();
 
   for (const { curveRef } of pumps) {
     if (curveRef !== undefined) types.set(curveRef, "pump");
+  }
+  for (const { volumeCurveRef } of tanks) {
+    if (volumeCurveRef !== undefined) types.set(volumeCurveRef, "volume");
   }
 
   return types;
