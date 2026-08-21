@@ -256,10 +256,10 @@ type PatternContext = {
 
 const addPatterns = (
   hydraulicModel: HydraulicModel,
-  { patterns, reservoirs }: NetworkData,
+  { patterns, reservoirs, pumps }: NetworkData,
   { idGenerator, labelManager, labelMaxLength }: PatternContext,
 ): Map<string, PatternId> => {
-  const typeByRef = patternTypesByRef(reservoirs);
+  const typeByRef = patternTypesByRef(reservoirs, pumps);
   const patternIdByRef = new Map<string, PatternId>();
 
   for (const patternData of patterns) {
@@ -286,12 +286,16 @@ const addPatterns = (
 
 const patternTypesByRef = (
   reservoirs: ReservoirData[],
+  pumps: PumpData[],
 ): Map<string, PatternType> => {
   const types = new Map<string, PatternType>();
 
   for (const { headPatternRef } of reservoirs) {
     if (headPatternRef !== undefined)
       types.set(headPatternRef, "reservoirHead");
+  }
+  for (const { speedPatternRef } of pumps) {
+    if (speedPatternRef !== undefined) types.set(speedPatternRef, "pumpSpeed");
   }
 
   return types;
@@ -395,6 +399,10 @@ const addPump = (
   const pump = assetFactory.createPump({
     ...linkProperties(pumpData, "pump", geometry, context),
     speed: pumpData.speed,
+    speedPatternId:
+      pumpData.speedPatternRef === undefined
+        ? undefined
+        : context.patternIdByRef.get(pumpData.speedPatternRef),
     initialStatus: pumpData.initialStatus,
     ...(curveId === undefined
       ? {}

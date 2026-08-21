@@ -84,6 +84,7 @@ export type ValveData = LinkData & {
 
 export type PumpData = LinkData & {
   speed?: number;
+  speedPatternRef?: string;
   initialStatus?: PumpStatus;
   curveRef?: string;
 };

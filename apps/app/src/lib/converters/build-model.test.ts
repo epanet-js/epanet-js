@@ -620,6 +620,37 @@ describe("build pumps and valves from network data", () => {
     expect(curve?.label).toEqual("13");
   });
 
+  it("gives a pump the speed pattern it names", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        junctions: twoJunctions,
+        pumps: [
+          aPump({
+            ref: "10",
+            label: "PU1",
+            speed: 1,
+            speedPatternRef: "speed:10",
+          }),
+        ],
+        patterns: [
+          { ref: "speed:10", label: "BRANTWB_PS", multipliers: [0.73, 0.67] },
+        ],
+      }),
+      { projections: aCatalogue() },
+    );
+
+    const pump = getByLabel(hydraulicModel.assets, "PU1") as Pump;
+    const pattern = hydraulicModel.patterns.get(pump.speedPatternId as number);
+
+    expect(pump.speed).toEqual(1);
+    expect(pattern).toEqual({
+      id: pump.speedPatternId,
+      label: "BRANTWB_PS",
+      type: "pumpSpeed",
+      multipliers: [0.73, 0.67],
+    });
+  });
+
   it("shares one curve between the pumps that name it", () => {
     const { hydraulicModel } = buildModel(
       aNetwork({

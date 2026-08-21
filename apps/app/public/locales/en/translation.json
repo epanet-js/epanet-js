@@ -47,8 +47,6 @@
       "pumpDefinitionUnsupported_other": "{{count}} Pumps name a flow and head curve with no points, so they were imported with no definition",
       "pumpControlUnsupported_one": "1 Pump is switched by a tank level rule, which is not imported yet, so it keeps its starting status",
       "pumpControlUnsupported_other": "{{count}} Pumps are switched by tank level rules, which are not imported yet, so they keep their starting status",
-      "pumpSpeedPatternUnsupported_one": "1 Pump changes speed over time, which is not imported yet, so it keeps a constant speed",
-      "pumpSpeedPatternUnsupported_other": "{{count}} Pumps change speed over time, which is not imported yet, so they keep a constant speed",
       "pumpPressureControlUnsupported_one": "1 Pump holds a set pressure at another node, which is not imported yet, so it keeps only its speed",
       "pumpPressureControlUnsupported_other": "{{count}} Pumps hold a set pressure at another node, which is not imported yet, so they keep only their speed"
     }
