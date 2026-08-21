@@ -1251,14 +1251,10 @@ export const api = {
   async restoreSessionFromPool(poolId: string): Promise<boolean> {
     return timed("restoreSessionFromPool", async () => {
       await ready;
+      // Nothing to carry over is the normal case, not a failure: capture may be off, the
+      // db may be in-memory, or the recovered tab may never have recorded anything. Only a
+      // restore that actually goes wrong is worth reporting.
       if (!sessionHistoryEnabled || storageMode !== "sahpool" || !poolUtil) {
-        noteSessionHistoryFailure(
-          "restore",
-          new Error(
-            `skipped: enabled=${sessionHistoryEnabled} mode=${storageMode} pool=${Boolean(poolUtil)}`,
-          ),
-          { disable: false },
-        );
         return false;
       }
 
@@ -1273,15 +1269,7 @@ export const api = {
         // earlier in this recovery; unpausing reacquires its access handles.
         await deadPool.unpauseVfs();
 
-        const deadFiles = deadPool.getFileNames();
-        if (!deadFiles.includes(SESSION_DB_PATH)) {
-          noteSessionHistoryFailure(
-            "restore",
-            new Error(
-              `no ${SESSION_DB_PATH} in pool ${poolId}; it holds [${deadFiles.join(", ")}]`,
-            ),
-            { disable: false },
-          );
+        if (!deadPool.getFileNames().includes(SESSION_DB_PATH)) {
           return false;
         }
         const bytes = await deadPool.exportFile(SESSION_DB_PATH);

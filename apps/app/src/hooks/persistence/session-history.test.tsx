@@ -230,4 +230,13 @@ describe("session history when disabled at storage configuration", () => {
     expect(history.attached).toBe(false);
     expect(history.entryCount).toBe(0);
   });
+
+  it("reports nothing when a recovery has no history to carry over", async () => {
+    await aProject();
+
+    const restored = await db.restoreSessionHistory("some-dead-pool");
+
+    expect(restored).toBe(false);
+    expect(await getWorker().sessionHistoryFailure()).toBeNull();
+  });
 });
