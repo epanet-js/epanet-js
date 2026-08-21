@@ -4,8 +4,10 @@ export type { ParserInput, SourceFile } from "./source-file";
 export type {
   CurveData,
   CurvePointData,
+  DemandData,
   JunctionData,
   LinkData,
+  PatternData,
   NetworkData,
   NodeData,
   PipeData,
@@ -26,4 +28,4 @@ export type {
   ValveStatus,
 } from "@epanet-js/hydraulic-model";
 export type { IssueCode, IssueSeverity, ParserIssue } from "./issues";
-export { IssueCollector } from "./issues";
+export { IssueCollector, issueCodes } from "./issues";

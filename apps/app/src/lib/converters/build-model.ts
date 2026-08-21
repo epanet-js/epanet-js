@@ -1,6 +1,8 @@
 import type {
   CurvePointData,
+  DemandData,
   JunctionData,
+  PatternData,
   LinkData,
   NetworkData,
   NodeData,
@@ -22,7 +24,9 @@ import {
   CurveId,
   CurvePoint,
   CurveType,
+  Demand,
   LinkAsset,
+  PatternId,
   LinkConnections,
   NodeAsset,
   HeadlossFormula,
@@ -104,6 +108,12 @@ export const buildModel = (
       spec.units.tankDiameter,
     ),
     nodeIdByRef,
+    toDemand: converterFor(network.units.flow, spec.units.flow),
+    patternIdByRef: addPatterns(hydraulicModel, network.patterns, {
+      idGenerator,
+      labelManager,
+      labelMaxLength,
+    }),
     curveIdByRef: addCurves(hydraulicModel, network, {
       idGenerator,
       labelManager,
@@ -188,8 +198,10 @@ type NodeContext = {
   toElevation: (value: number) => number;
   toLevel: (value: number) => number;
   toTankDiameter: (value: number) => number;
+  toDemand: (value: number) => number;
   nodeIdByRef: Map<string, BuiltNode>;
   curveIdByRef: Map<string, CurveId>;
+  patternIdByRef: Map<string, PatternId>;
 };
 
 type LinkContext = NodeContext & {
@@ -216,7 +228,59 @@ const addJunction = (
   });
 
   registerNode(hydraulicModel, junction, junctionData.ref, context);
-  hydraulicModel.demands.junctions.set(junction.id, []);
+  hydraulicModel.demands.junctions.set(
+    junction.id,
+    demandsOf(junctionData.demands, context),
+  );
+};
+
+const demandsOf = (
+  demands: DemandData[] | undefined,
+  { toDemand, patternIdByRef }: NodeContext,
+): Demand[] =>
+  (demands ?? []).map(({ baseDemand, patternRef }) => {
+    const patternId =
+      patternRef === undefined ? undefined : patternIdByRef.get(patternRef);
+
+    return {
+      baseDemand: toDemand(baseDemand),
+      ...(patternId === undefined ? {} : { patternId }),
+    };
+  });
+
+type PatternContext = {
+  idGenerator: IdGenerator;
+  labelManager: LabelManager;
+  labelMaxLength?: number;
+};
+
+const addPatterns = (
+  hydraulicModel: HydraulicModel,
+  patterns: PatternData[],
+  { idGenerator, labelManager, labelMaxLength }: PatternContext,
+): Map<string, PatternId> => {
+  const patternIdByRef = new Map<string, PatternId>();
+
+  for (const patternData of patterns) {
+    const id = idGenerator.newId();
+    const stated = resolveLabel(
+      labelManager,
+      patternData,
+      "pattern",
+      labelMaxLength,
+    );
+    if (stated !== undefined) labelManager.register(stated, "pattern", id);
+
+    hydraulicModel.patterns.set(id, {
+      id,
+      label: stated ?? labelManager.generateFor("pattern", id),
+      type: "demand",
+      multipliers: patternData.multipliers,
+    });
+    patternIdByRef.set(patternData.ref, id);
+  }
+
+  return patternIdByRef;
 };
 
 const addReservoir = (

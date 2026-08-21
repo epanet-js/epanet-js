@@ -33,7 +33,14 @@ export type NodeData = {
   elevation?: number;
 };
 
-export type JunctionData = NodeData;
+export type DemandData = {
+  baseDemand: number;
+  patternRef?: string;
+};
+
+export type JunctionData = NodeData & {
+  demands?: DemandData[];
+};
 
 export type ReservoirData = NodeData & {
   head?: number;
@@ -87,6 +94,12 @@ export type CurveData = {
   points: CurvePointData[];
 };
 
+export type PatternData = {
+  ref: string;
+  label?: string;
+  multipliers: number[];
+};
+
 export type NetworkData = {
   junctions: JunctionData[];
   reservoirs: ReservoirData[];
@@ -95,6 +108,8 @@ export type NetworkData = {
   pumps: PumpData[];
   valves: ValveData[];
   curves: CurveData[];
+  patterns: PatternData[];
+  patternTimeStep?: number;
   headlossFormula?: HeadlossFormula;
   units: SourceUnits;
   crs: SourceCrs;
@@ -108,6 +123,7 @@ export const emptyNetworkData = (): NetworkData => ({
   pumps: [],
   valves: [],
   curves: [],
+  patterns: [],
   units: {},
   crs: { type: "unknown" },
 });

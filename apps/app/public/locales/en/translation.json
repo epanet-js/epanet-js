@@ -23,6 +23,8 @@
       "nodePressureStatusUnknown_other": "{{count}} nodes had a pressure status we do not recognise and were imported as Junctions",
       "nodeFixedHeadUnsupported_one": "1 node states a boundary condition we cannot express, so it was imported as a Reservoir with no head",
       "nodeFixedHeadUnsupported_other": "{{count}} nodes state a boundary condition we cannot express, so they were imported as Reservoirs with no head",
+      "junctionDemandPatternUnreadable_one": "1 Junction has a demand whose pattern could not be read, so the demand was not imported",
+      "junctionDemandPatternUnreadable_other": "{{count}} Junctions have demands whose patterns could not be read, so those demands were not imported",
       "tankHydraulicsMissing_one": "1 Tank had no hydraulic data, so its levels and diameter were left blank",
       "tankHydraulicsMissing_other": "{{count}} Tanks had no hydraulic data, so their levels and diameter were left blank",
       "tankVolumeCurveUnsupported_one": "1 Tank names a volume curve with no points, so it was imported without one",

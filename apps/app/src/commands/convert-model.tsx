@@ -21,7 +21,10 @@ import { ConvertModelStarted, useUserTracking } from "src/infra/user-tracking";
 import { useFileOpen } from "src/hooks/use-file-open";
 import { useProjections } from "src/hooks/use-projections";
 import { useLabelMaxLength } from "src/hooks/use-label-max-length";
-import { defaultSimulationSettings } from "src/simulation/simulation-settings";
+import {
+  defaultSimulationSettings,
+  type SimulationSettings,
+} from "src/simulation/simulation-settings";
 import { useStartNewProject } from "src/hooks/persistence/use-start-new-project";
 import { MapContext } from "src/map";
 
@@ -81,7 +84,10 @@ export const useConvertModel = () => {
             ...projectSettings,
             name: file.name.replace(/\.[^.]+$/, ""),
           },
-          simulationSettings: defaultSimulationSettings,
+          simulationSettings: withPatternTimestep(
+            defaultSimulationSettings,
+            network.patternTimeStep,
+          ),
         });
         if (!started) {
           setDialogState(null);
@@ -183,3 +189,14 @@ export const useConvertModel = () => {
     [pickAndConvert, checkUnsavedChanges],
   );
 };
+
+const withPatternTimestep = (
+  settings: SimulationSettings,
+  patternTimeStep: number | undefined,
+): SimulationSettings =>
+  patternTimeStep === undefined
+    ? settings
+    : {
+        ...settings,
+        timing: { ...settings.timing, patternTimestep: patternTimeStep },
+      };

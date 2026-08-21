@@ -41,7 +41,7 @@ type Converter = {
 
 `NodeData` (`ref`, `label?`, `coordinates`, `elevation?`) is what every node kind is built
 on, so a consumer can treat the common part uniformly and branch only on what differs.
-`JunctionData` adds nothing — a junction is the plain case.
+`JunctionData` adds only its demands.
 
 **`ref` is the source's join key; `label` is what a person calls it.** They are separate
 because a vendor's display names are free to collide, be too long, or repeat across
@@ -112,6 +112,26 @@ The same record serves an efficiency or headloss curve without a second shape.
 Only curves something references belong in the array — a source is free to hold thousands of
 unrelated series in the same table.
 
+## Demand is a list, and its pattern carries the magnitude
+
+`JunctionData.demands` is a `DemandData[]` — sources allocate demand in categories, and one
+junction routinely carries several. Each names its pattern with `patternRef`, resolved against
+`NetworkData.patterns`, the same way a pump names its curve.
+
+**A base demand is not the demand.** The value a source stores is only half of it: the other half
+is the pattern, and a vendor is free to put the magnitude there rather than in the base — Synergi
+does, with pattern multipliers around `0.0016`. A consumer that drops the pattern and keeps the base
+is not importing an approximation, it is importing a number three orders of magnitude wrong. A
+parser that cannot carry a demand's pattern must therefore leave the demand out and say so.
+
+**Patterns are multipliers on one step, not a time series.** `PatternData.multipliers` covers one
+cycle at `NetworkData.patternTimeStep` (seconds), because that is what the model downstream holds —
+one step for the whole model. A source that samples its profiles at several rates resolves them onto
+one step itself and states which, the same way it resolves one `headlossFormula` out of per-pipe
+ones. How a vendor reads its own profile between samples is vendor knowledge, and the alternative —
+handing every consumer a set of time series to interpolate — writes that knowledge once per
+consumer instead of once per vendor.
+
 ## A kind the source did not give is `"unknown"`, not a dropped record
 
 `ValveData.kind` is `ValveKind | "unknown"`. A vendor kind that maps to nothing in the domain
@@ -140,7 +160,9 @@ formulas.
 
 `ParserIssue` is `{ code, severity, ref?, context? }`. `code` is a short leaf id —
 the UI composes the i18n key and interpolates `context`, so no English lives
-here. `severity` says whether the import can proceed; that decision must not be
+here. **`issueCodes` is a runtime array and `IssueCode` is derived from it**, so a consumer can
+enumerate the vocabulary and prove it has a message for every code — the app does, and without it
+a code added here surfaces to the user as the raw i18n key. `severity` says whether the import can proceed; that decision must not be
 re-derived from the code list in the app.
 
 Issues raised by a parser are **source-level** only: this row is malformed, this

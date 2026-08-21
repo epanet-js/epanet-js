@@ -432,6 +432,71 @@ const aPipe = (data: Partial<PipeData> & { ref: string }): PipeData => ({
   ...data,
 });
 
+describe("build demands from network data", () => {
+  it("assigns a junction its demands, with the pattern each names", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        junctions: [
+          aJunction({
+            ref: "1",
+            label: "J1",
+            demands: [
+              { baseDemand: 24, patternRef: "7" },
+              { baseDemand: 0.07 },
+            ],
+          }),
+        ],
+        patterns: [{ ref: "7", label: "DOM1", multipliers: [1, 0.5] }],
+        units: { flow: "l/s" },
+      }),
+      { projections: aCatalogue() },
+    );
+
+    const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
+    const demands = hydraulicModel.demands.junctions.get(junction.id);
+    const [pattern] = [...hydraulicModel.patterns.values()];
+
+    expect(pattern).toEqual({
+      id: pattern.id,
+      label: "DOM1",
+      type: "demand",
+      multipliers: [1, 0.5],
+    });
+    expect(demands).toEqual([
+      { baseDemand: 24, patternId: pattern.id },
+      { baseDemand: 0.07 },
+    ]);
+  });
+
+  it("converts a base demand into the project's flow unit", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        junctions: [
+          aJunction({ ref: "1", label: "J1", demands: [{ baseDemand: 3600 }] }),
+        ],
+        units: { flow: "l/h" },
+      }),
+      { projections: aCatalogue() },
+    );
+
+    const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
+    expect(
+      hydraulicModel.demands.junctions.get(junction.id)?.[0].baseDemand,
+    ).toBeCloseTo(1, 9);
+  });
+
+  it("leaves a junction with no demands when the source stated none", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({ junctions: [aJunction({ ref: "1", label: "J1" })] }),
+      { projections: aCatalogue() },
+    );
+
+    const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
+    expect(hydraulicModel.demands.junctions.get(junction.id)).toEqual([]);
+    expect(hydraulicModel.patterns.size).toEqual(0);
+  });
+});
+
 describe("build pumps and valves from network data", () => {
   const twoJunctions = [
     aJunction({ ref: "1", label: "J1", coordinates: [0, 0] }),
@@ -936,6 +1001,7 @@ const aNetwork = (data: Partial<NetworkData> = {}): NetworkData => ({
   pumps: [],
   valves: [],
   curves: [],
+  patterns: [],
   units: {},
   crs: { type: "unknown" },
   ...data,

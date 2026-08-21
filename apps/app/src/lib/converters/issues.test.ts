@@ -1,5 +1,22 @@
-import type { ParserIssue } from "@epanet-js/converters";
+import {
+  issueCodes as allIssueCodes,
+  type ParserIssue,
+} from "@epanet-js/converters";
+import enTranslations from "../../../public/locales/en/translation.json";
 import { blockingIssues, groupIssues, issueCodes } from "./issues";
+
+describe("issue messages", () => {
+  it("has one for every code a parser can raise", () => {
+    const messages: Record<string, string> = enTranslations.convertModel.issue;
+
+    const missing = allIssueCodes.filter(
+      (code) =>
+        messages[code] === undefined && messages[`${code}_one`] === undefined,
+    );
+
+    expect(missing).toEqual([]);
+  });
+});
 
 describe("blockingIssues", () => {
   it("keeps only errors", () => {

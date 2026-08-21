@@ -1,31 +1,35 @@
 export type IssueSeverity = "error" | "warning";
 
-export type IssueCode =
-  | "modelFileMissing"
-  | "modelFileAmbiguous"
-  | "modelFileUnreadable"
-  | "tableMissing"
-  | "nodeIdentifierMissing"
-  | "nodeCoordinatesMissing"
-  | "nodeHydraulicsMissing"
-  | "nodePressureStatusUnknown"
-  | "nodeFixedHeadUnsupported"
-  | "tankHydraulicsMissing"
-  | "tankVolumeCurveUnsupported"
-  | "linkIdentifierMissing"
-  | "linkEndpointMissing"
-  | "linkHydraulicsMissing"
-  | "pipeHeadlossFormulaUnsupported"
-  | "pipeParallelCountUnsupported"
-  | "valveKindUnknown"
-  | "valveControlUnsupported"
-  | "pumpDefinitionUnsupported"
-  | "pumpControlUnsupported"
-  | "pumpSpeedPatternUnsupported"
-  | "pumpPressureControlUnsupported"
-  | "unitSystemMissing"
-  | "unitSystemUnsupported"
-  | "coordinateSystemMissing";
+export const issueCodes = [
+  "modelFileMissing",
+  "modelFileAmbiguous",
+  "modelFileUnreadable",
+  "tableMissing",
+  "nodeIdentifierMissing",
+  "nodeCoordinatesMissing",
+  "nodeHydraulicsMissing",
+  "nodePressureStatusUnknown",
+  "nodeFixedHeadUnsupported",
+  "junctionDemandPatternUnreadable",
+  "tankHydraulicsMissing",
+  "tankVolumeCurveUnsupported",
+  "linkIdentifierMissing",
+  "linkEndpointMissing",
+  "linkHydraulicsMissing",
+  "pipeHeadlossFormulaUnsupported",
+  "pipeParallelCountUnsupported",
+  "valveKindUnknown",
+  "valveControlUnsupported",
+  "pumpDefinitionUnsupported",
+  "pumpControlUnsupported",
+  "pumpSpeedPatternUnsupported",
+  "pumpPressureControlUnsupported",
+  "unitSystemMissing",
+  "unitSystemUnsupported",
+  "coordinateSystemMissing",
+] as const;
+
+export type IssueCode = (typeof issueCodes)[number];
 
 export type ParserIssue = {
   code: IssueCode;
