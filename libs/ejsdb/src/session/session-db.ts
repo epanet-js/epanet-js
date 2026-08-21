@@ -71,6 +71,18 @@ const detach = (
   }
 };
 
+const dropAllObjects = (db: SessionHostDb): void => {
+  const tables = rows(
+    db,
+    `SELECT name FROM ${SESSION_SCHEMA}.sqlite_master
+      WHERE type = 'table' AND name NOT LIKE 'sqlite_%'`,
+  ).map((row) => String(row[0]));
+  for (const table of tables) {
+    db.exec(`DROP TABLE ${SESSION_SCHEMA}."${table}"`);
+  }
+  db.exec(`PRAGMA ${SESSION_SCHEMA}.user_version = 0`);
+};
+
 const build = (db: SessionHostDb, appVersion: number): void => {
   for (const migration of sessionMigrations) {
     db.exec(migration);
@@ -106,17 +118,18 @@ const prepare = (db: SessionHostDb, appVersion: number): boolean => {
   return metaAppVersion !== null && metaAppVersion === appVersion;
 };
 
+// Rebuilds in place rather than deleting the file: the pool discards any file whose
+// header flags are not SQLITE_OPEN_MAIN_DB, and only importDb stamps those. A file
+// re-created by ATTACH would vanish the next time the pool is installed.
 export const ensureSessionDb = (
   db: SessionHostDb,
-  poolUtil: SessionPool | null,
   storageMode: SessionStorageMode,
   appVersion: number,
 ): void => {
   if (!attached) attach(db, storageMode);
   if (prepare(db, appVersion)) return;
 
-  detach(db, poolUtil, storageMode);
-  attach(db, storageMode);
+  dropAllObjects(db);
   build(db, appVersion);
 };
 
@@ -214,15 +227,23 @@ export const readSessionDiagnostics = (
     limit: number;
     enabled?: boolean;
     failure?: SessionHistoryFailure | null;
+    poolFiles?: string[];
   },
 ): SessionHistoryDiagnostics => {
-  const { appVersion, limit, enabled = false, failure = null } = options;
+  const {
+    appVersion,
+    limit,
+    enabled = false,
+    failure = null,
+    poolFiles = [],
+  } = options;
   if (!db || !attached) {
     return emptySessionHistoryDiagnostics(
       appVersion,
       SESSION_VERSION,
       enabled,
       failure,
+      poolFiles,
     );
   }
 
@@ -276,6 +297,7 @@ export const readSessionDiagnostics = (
     totalBytes: Number(totalBytes),
     droppedCount: Number(droppedCount),
     dbBytes: pageCount * pageSize,
+    poolFiles,
     entries,
   };
 };

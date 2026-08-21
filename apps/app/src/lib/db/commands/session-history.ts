@@ -8,6 +8,18 @@ export const fetchSessionHistory = async (
   return worker.sessionHistoryDiagnostics(limit);
 };
 
+// Best-effort: the history is a debug side channel, so a failed restore must never
+// interfere with recovering the project itself.
+export const restoreSessionHistory = async (
+  poolId: string,
+): Promise<boolean> => {
+  try {
+    return await getWorker().restoreSessionFromPool(poolId);
+  } catch {
+    return false;
+  }
+};
+
 // Session history never throws at its own call site: it is a flagged side channel that must
 // not cost the caller its project write. This is the only path that makes a failure visible,
 // so every command that opens or replaces the project db calls it.

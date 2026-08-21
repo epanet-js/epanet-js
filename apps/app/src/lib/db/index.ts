@@ -20,4 +20,5 @@ export { configureDbStorage } from "./commands/configure-storage";
 export {
   fetchSessionHistory,
   reportSessionHistoryFailure,
+  restoreSessionHistory,
 } from "./commands/session-history";

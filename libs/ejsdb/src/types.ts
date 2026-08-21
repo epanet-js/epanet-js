@@ -94,3 +94,38 @@ export type ApplyMomentPayload = {
   customAttributeValues: AssetCustomAttributeUpdates;
   customerPointCustomAttributeValues: CustomAttributeValueUpdate[];
 };
+
+export const isEmptyApplyMomentPayload = (
+  payload: ApplyMomentPayload,
+): boolean =>
+  payload.assetDeleteIds.length === 0 &&
+  payload.assetUpserts.junctions.length === 0 &&
+  payload.assetUpserts.reservoirs.length === 0 &&
+  payload.assetUpserts.tanks.length === 0 &&
+  payload.assetUpserts.pipes.length === 0 &&
+  payload.assetUpserts.pumps.length === 0 &&
+  payload.assetUpserts.valves.length === 0 &&
+  payload.assetPatches.junctions.length === 0 &&
+  payload.assetPatches.reservoirs.length === 0 &&
+  payload.assetPatches.tanks.length === 0 &&
+  payload.assetPatches.pipes.length === 0 &&
+  payload.assetPatches.pumps.length === 0 &&
+  payload.assetPatches.valves.length === 0 &&
+  payload.customerPointDeleteIds.length === 0 &&
+  payload.customerPointUpserts.length === 0 &&
+  payload.customerPointPatches.length === 0 &&
+  payload.customerPointDemandUpdates.length === 0 &&
+  payload.junctionDemandUpdates.length === 0 &&
+  payload.patternsReplacement === null &&
+  payload.curvesReplacement === null &&
+  payload.pipeLibraryReplacement === null &&
+  payload.rawControlsReplacement === null &&
+  payload.controlsReplacement === null &&
+  payload.customAttributesDefinition === null &&
+  payload.customAttributeValues.junctions.length === 0 &&
+  payload.customAttributeValues.reservoirs.length === 0 &&
+  payload.customAttributeValues.tanks.length === 0 &&
+  payload.customAttributeValues.pipes.length === 0 &&
+  payload.customAttributeValues.pumps.length === 0 &&
+  payload.customAttributeValues.valves.length === 0 &&
+  payload.customerPointCustomAttributeValues.length === 0;

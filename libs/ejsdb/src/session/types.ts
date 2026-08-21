@@ -12,7 +12,7 @@ export type SessionHistoryEntry = {
 };
 
 export type SessionHistoryFailure = {
-  stage: "init" | "capture";
+  stage: "init" | "capture" | "restore";
   name: string;
   message: string;
 };
@@ -30,6 +30,7 @@ export type SessionHistoryDiagnostics = {
   totalBytes: number;
   droppedCount: number;
   dbBytes: number;
+  poolFiles: string[];
   entries: SessionHistoryEntry[];
 };
 
@@ -38,6 +39,7 @@ export const emptySessionHistoryDiagnostics = (
   sessionVersion: number,
   enabled = false,
   failure: SessionHistoryFailure | null = null,
+  poolFiles: string[] = [],
 ): SessionHistoryDiagnostics => ({
   enabled,
   failure,
@@ -51,5 +53,6 @@ export const emptySessionHistoryDiagnostics = (
   totalBytes: 0,
   droppedCount: 0,
   dbBytes: 0,
+  poolFiles,
   entries: [],
 });

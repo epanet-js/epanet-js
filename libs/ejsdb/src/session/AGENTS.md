@@ -44,6 +44,36 @@ unrelated state.
 The `app_version` check is not decoration: after a project migration an old changeset applies as a
 silent no-op, or reintroduces pre-migration values. Wiping is the enforcement.
 
+## The file must be created by `importDb`, never by `ATTACH`
+
+The sahpool VFS stores each file's open-flags in its header, and on every pool install
+`getAssociatedPath` **silently discards** any file whose flags do not intersect
+`PERSISTENT_FILE_TYPES` (`SQLITE_OPEN_MAIN_DB | MAIN_JOURNAL | SUPER_JOURNAL | WAL`). A database
+created by `ATTACH` does not qualify, so it survives inside its own tab and then vanishes the moment
+another context installs that pool — which is exactly what session recovery does. The symptom is
+`File not found: /session.sqlite3` and a `Removing file with unexpected flags` console warning.
+
+So `initSessionDb()` seeds the file with `poolUtil.importDb(SESSION_DB_PATH, …)` — the only API that
+stamps `SQLITE_OPEN_MAIN_DB` — using a valid empty database, and `ATTACH` then opens the existing
+file. `xOpen` only writes the header when it *creates* a file, so the persistent flags stay put.
+
+The same rule is why `ensureSessionDb` rebuilds **in place** (`dropAllObjects` + `build`) instead of
+unlinking and re-attaching: deleting the file would send the next `ATTACH` back down the
+non-persistent path.
+
+## `removeVfs()` deletes the pool directory — use `pauseVfs()`
+
+Despite the name, `SAHPoolUtil.removeVfs()` does not merely unregister the VFS: it calls
+`removeEntry(vfsRootDir, { recursive: true })` and **destroys the pool's data**. Any code that
+temporarily installs another tab's pool — `exportDbFromPool`, `restoreSessionFromPool` — must finish
+with `pauseVfs()` instead, which unregisters and releases the access handles while leaving the files
+alone. `unpauseVfs()` reacquires them; the pool object is cached by VFS name, so a second install in
+the same session returns the paused instance rather than a fresh one.
+
+Reclaiming a dead tab's directory belongs to `cleanupStaleDbPools`, which knows which pools are still
+offered for recovery. A `removeVfs()` in a read path silently takes that decision away, and the
+symptom is a later read of the same pool reporting it as empty.
+
 ## Every DDL statement must be schema-qualified
 
 Migrations run through the `sess.` alias on the project connection, so an unqualified

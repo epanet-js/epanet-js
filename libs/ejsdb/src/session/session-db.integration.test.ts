@@ -29,7 +29,7 @@ const mainSchema = (db: OoDb) =>
   rows(db, "SELECT type, name, sql FROM main.sqlite_master ORDER BY name");
 
 const attachSession = (db: OoDb, appVersion: number = APP_VERSION) =>
-  ensureSessionDb(db, null, "memory", appVersion);
+  ensureSessionDb(db, "memory", appVersion);
 
 const addEntry = (db: OoDb, seq: number, note: string) =>
   insertHistoryEntry(db, {

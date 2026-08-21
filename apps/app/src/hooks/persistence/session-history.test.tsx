@@ -165,6 +165,22 @@ describe("session history when enabled at storage configuration", () => {
     );
   });
 
+  it("records a moment that persists nothing, so seq keeps tracking the log", async () => {
+    await aProject();
+
+    await db.applyMomentToDb(db.buildMomentPayload({ note: "no-op" }), {
+      kind: "edit",
+      seq: 0,
+      stateId: "state-no-op",
+      note: "no-op",
+    });
+
+    const history = await readHistory();
+    expect(history.entryCount).toBe(1);
+    expect(history.pointer).toBe(0);
+    expect(history.entries[0].stateId).toEqual("state-no-op");
+  });
+
   it("clears when another network is loaded", async () => {
     const store = await aProject();
     addJunction(store);

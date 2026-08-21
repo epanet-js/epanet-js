@@ -149,6 +149,10 @@ export const SessionHistoryDebugPanel = () => {
             <Stat label="Dropped" value={String(data.droppedCount)} />
           </div>
 
+          <div className="text-[10px] font-mono text-gray-500 break-all">
+            pool: [{data.poolFiles.join(", ") || "—"}]
+          </div>
+
           <div className="max-h-72 overflow-y-auto border border-gray-200 rounded">
             <table className="w-full text-[11px] font-mono">
               <thead className="sticky top-0 bg-gray-50 text-gray-500">

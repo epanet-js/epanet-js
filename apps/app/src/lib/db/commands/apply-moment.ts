@@ -104,16 +104,6 @@ const buildCustomerPointCustomAttributeValues = (
   return updates;
 };
 
-const isEmptyCustomAttributeValues = (
-  updates: AssetCustomAttributeUpdates,
-): boolean =>
-  updates.junctions.length === 0 &&
-  updates.reservoirs.length === 0 &&
-  updates.tanks.length === 0 &&
-  updates.pipes.length === 0 &&
-  updates.pumps.length === 0 &&
-  updates.valves.length === 0;
-
 export const buildMomentPayload = (moment: Moment): ApplyMomentPayload => {
   const upsertAssets: Asset[] = [];
   if (moment.putAssets) {
@@ -213,38 +203,6 @@ export const applyMomentToDb = async (
   history: HistoryCapture | null = null,
 ): Promise<void> => {
   await timed("applyMomentToDb", async () => {
-    if (
-      history === null &&
-      payload.assetDeleteIds.length === 0 &&
-      payload.assetUpserts.junctions.length === 0 &&
-      payload.assetUpserts.reservoirs.length === 0 &&
-      payload.assetUpserts.tanks.length === 0 &&
-      payload.assetUpserts.pipes.length === 0 &&
-      payload.assetUpserts.pumps.length === 0 &&
-      payload.assetUpserts.valves.length === 0 &&
-      payload.assetPatches.junctions.length === 0 &&
-      payload.assetPatches.reservoirs.length === 0 &&
-      payload.assetPatches.tanks.length === 0 &&
-      payload.assetPatches.pipes.length === 0 &&
-      payload.assetPatches.pumps.length === 0 &&
-      payload.assetPatches.valves.length === 0 &&
-      payload.customerPointDeleteIds.length === 0 &&
-      payload.customerPointUpserts.length === 0 &&
-      payload.customerPointPatches.length === 0 &&
-      payload.customerPointDemandUpdates.length === 0 &&
-      payload.junctionDemandUpdates.length === 0 &&
-      payload.patternsReplacement === null &&
-      payload.curvesReplacement === null &&
-      payload.pipeLibraryReplacement === null &&
-      payload.rawControlsReplacement === null &&
-      payload.controlsReplacement === null &&
-      payload.customAttributesDefinition === null &&
-      isEmptyCustomAttributeValues(payload.customAttributeValues) &&
-      payload.customerPointCustomAttributeValues.length === 0
-    ) {
-      return;
-    }
-
     const worker = getWorker();
     await worker.applyMoment(payload, history);
   });

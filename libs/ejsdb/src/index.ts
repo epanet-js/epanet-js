@@ -20,7 +20,10 @@ export type {
   CustomerPointDemandUpdate,
   JunctionDemandUpdate,
 } from "./types";
-export { emptyAssetCustomAttributeUpdates } from "./types";
+export {
+  emptyAssetCustomAttributeUpdates,
+  isEmptyApplyMomentPayload,
+} from "./types";
 export {
   SESSION_VERSION,
   MAX_ENTRY_BYTES,
