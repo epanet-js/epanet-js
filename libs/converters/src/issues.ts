@@ -17,6 +17,7 @@ export type IssueCode =
   | "linkHydraulicsMissing"
   | "pipeHeadlossFormulaUnsupported"
   | "valveKindUnknown"
+  | "valveControlUnsupported"
   | "pumpDefinitionUnsupported"
   | "unitSystemMissing"
   | "unitSystemUnsupported"
