@@ -27,8 +27,8 @@ import { useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
 import { useNewProject } from "src/commands/create-new-project";
 import { useOpenInpFromFs } from "src/commands/open-inp-from-fs";
-import { useOpenSynergi } from "src/commands/open-synergi";
-import { getConverter } from "src/lib/converters";
+import { useConvertModel } from "src/commands/convert-model";
+import { getConverter, type ConverterVendor } from "src/lib/converters";
 import { useOpenProject } from "src/commands/open-project";
 import { useSaveInp } from "src/commands/save-inp";
 import { useSaveProject } from "src/commands/save-project";
@@ -127,20 +127,21 @@ export const FileDropdown = () => {
   );
 };
 
-const SynergiItem = () => {
-  const openSynergi = useOpenSynergi();
-  const converter = getConverter("synergi");
+const ConverterItem = ({ vendor }: { vendor: ConverterVendor }) => {
+  const convertModel = useConvertModel();
+  const translate = useTranslate();
+  const converter = getConverter(vendor);
 
   if (!converter) return null;
 
   return (
     <StyledItem
       onSelect={() => {
-        void openSynergi({ source: "toolbar" });
+        void convertModel({ vendor, source: "toolbar" });
       }}
     >
       <DatabaseIcon />
-      {`From ${converter.name}`}
+      {translate("newProject.fromConverter", converter.name)}
     </StyledItem>
   );
 };
@@ -199,7 +200,9 @@ const NewProjectSubmenu = () => {
             {translate("newProject.fromEpanetInp")}
           </StyledItem>
 
-          {isSynergiOn && canImportSynergi && <SynergiItem />}
+          {isSynergiOn && canImportSynergi && (
+            <ConverterItem vendor="synergi" />
+          )}
         </DDSubContent>
       </DD.Portal>
     </DD.Sub>

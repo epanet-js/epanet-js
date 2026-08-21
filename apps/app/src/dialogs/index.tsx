@@ -18,6 +18,10 @@ import {
   MissingCoordinatesDialog,
   MalformedCoordinatesDialog,
 } from "src/dialogs/inp-issues";
+import {
+  ConvertModelFailedDialog,
+  ConvertModelIssuesDialog,
+} from "src/dialogs/convert-model-issues";
 import { NetworkProjectionDialog } from "src/dialogs/network-projection";
 import { CreateNew as CreateNewDialog } from "src/dialogs/create-new";
 import { SimulationReportDialog } from "src/dialogs/simulation-report";
@@ -113,6 +117,12 @@ export const Dialogs = memo(function Dialogs() {
       }
       if (dialog.type === "inpIssues") {
         userTracking.capture({ name: "inpIssues.seen" });
+      }
+      if (dialog.type === "convertModelFailed") {
+        userTracking.capture({ name: "convertModelFailed.seen" });
+      }
+      if (dialog.type === "convertModelIssues") {
+        userTracking.capture({ name: "convertModelIssues.seen" });
       }
       if (dialog.type === "simulationSummary") {
         userTracking.capture({
@@ -444,6 +454,12 @@ export const Dialogs = memo(function Dialogs() {
     ))
     .with({ type: "inpMalformedCoordinates" }, ({ issues }) => (
       <MalformedCoordinatesDialog issues={issues} onClose={onClose} />
+    ))
+    .with({ type: "convertModelFailed" }, ({ issues }) => (
+      <ConvertModelFailedDialog issues={issues} onClose={onClose} />
+    ))
+    .with({ type: "convertModelIssues" }, ({ issues }) => (
+      <ConvertModelIssuesDialog issues={issues} onClose={onClose} />
     ))
     .with(
       { type: "deleteScenarioConfirmation" },

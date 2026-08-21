@@ -18,6 +18,7 @@ import type {
   UpgradeOrigin,
 } from "src/state/dialog";
 import type { PlaybackSpeed } from "src/state/simulation-playback";
+import type { ConverterVendor } from "src/lib/converters";
 import { usePrivacySettings } from "src/hooks/use-privacy-settings";
 import type { QualitySimulationType } from "src/simulation/simulation-settings";
 
@@ -375,15 +376,25 @@ export type RecentFileOpened = {
   kind: "inp" | "project";
 };
 
-export type ImportSynergiStarted = {
-  name: "importSynergi.started";
+export type ConvertModelStarted = {
+  name: "convertModel.started";
   source: string;
+  vendor: ConverterVendor;
 };
 
-export type ImportSynergiCompleted = {
-  name: "importSynergi.completed";
+export type ConvertModelCompleted = {
+  name: "convertModel.completed";
   source: string;
+  vendor: ConverterVendor;
   counts: Record<string, number>;
+  issues: string[];
+};
+
+export type ConvertModelFailed = {
+  name: "convertModel.failed";
+  source: string;
+  vendor: ConverterVendor;
+  issues: string[];
 };
 
 export type ImportInpCompleted = {
@@ -529,6 +540,15 @@ type InpIssuesExpanded = {
 };
 type CoordinatesIssuesExpanded = {
   name: "coordinatesIssues.expanded";
+};
+type ConvertModelIssuesSeen = {
+  name: "convertModelIssues.seen";
+};
+type ConvertModelFailedSeen = {
+  name: "convertModelFailed.seen";
+};
+type ConvertModelIssuesExpanded = {
+  name: "convertModelIssues.expanded";
 };
 type NetworkProjectionSource = "import" | "map-panel";
 type NetworkProjectionSeen = {
@@ -1321,8 +1341,12 @@ export type UserEvent =
   | OpenInpStarted
   | RecentFileOpened
   | ImportInpCompleted
-  | ImportSynergiStarted
-  | ImportSynergiCompleted
+  | ConvertModelStarted
+  | ConvertModelCompleted
+  | ConvertModelFailed
+  | ConvertModelIssuesSeen
+  | ConvertModelFailedSeen
+  | ConvertModelIssuesExpanded
   | FilesDropped
   | InvalidFilesErrorSeen
   | DownloadErrorSeen

@@ -1,10 +1,11 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { NetworkData } from "@epanet-js/converters";
+import { emptyNetworkData, type NetworkData } from "@epanet-js/converters";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { aTestFile } from "src/__helpers__/file";
 import { setInitialState } from "src/__helpers__/state";
 import { stubFileOpen } from "src/__helpers__/browser-fs-mock";
+import { fileOpen } from "browser-fs-access";
 import { stubProjectionsReady } from "src/__helpers__/projections";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { getByLabel } from "src/__helpers__/asset-queries";
@@ -17,9 +18,9 @@ import { projectSettingsAtom } from "src/state/project-settings";
 import { Store } from "src/state";
 import { Junction, Pipe, Reservoir, Tank, Valve } from "src/hydraulic-model";
 import { CommandContainer } from "./__helpers__/command-container";
-import { useOpenSynergi } from "./open-synergi";
+import { useConvertModel } from "./convert-model";
 
-describe("openSynergi", () => {
+describe("convertModel", () => {
   useInProcessDb();
 
   beforeEach(() => {
@@ -119,12 +120,14 @@ describe("openSynergi", () => {
     await waitForNotLoading();
 
     expect(userTracking.capture).toHaveBeenCalledWith({
-      name: "importSynergi.started",
+      name: "convertModel.started",
       source: "toolbar",
+      vendor: "synergi",
     });
     expect(userTracking.capture).toHaveBeenCalledWith({
-      name: "importSynergi.completed",
+      name: "convertModel.completed",
       source: "toolbar",
+      vendor: "synergi",
       counts: {
         junctions: 0,
         reservoirs: 0,
@@ -133,7 +136,107 @@ describe("openSynergi", () => {
         pumps: 0,
         valves: 0,
       },
+      issues: [],
     });
+  });
+
+  it("does not import when the converter reports an error", async () => {
+    const userTracking = stubUserTracking();
+    stubFileOpen();
+    stubConverter("synergi", {
+      network: emptyNetworkData(),
+      issues: [{ code: "modelFileUnreadable", severity: "error" }],
+    });
+    const previousModel = HydraulicModelBuilder.empty();
+    const store = setInitialState({ hydraulicModel: previousModel });
+
+    renderComponent({ store });
+    await triggerCommand();
+    await doFileSelection(aTestFile({ filename: "my-network.mdb" }));
+
+    await waitForNotLoading();
+
+    expect(screen.getByText(/could not be opened/i)).toBeInTheDocument();
+    expect(store.get(stagingModelDerivedAtom)).toBe(previousModel);
+    expect(userTracking.capture).toHaveBeenCalledWith({
+      name: "convertModel.failed",
+      source: "toolbar",
+      vendor: "synergi",
+      issues: ["modelFileUnreadable"],
+    });
+    expect(userTracking.capture).not.toHaveBeenCalledWith(
+      expect.objectContaining({ name: "convertModel.completed" }),
+    );
+  });
+
+  it("imports and reports the warnings the converter found", async () => {
+    const userTracking = stubUserTracking();
+    stubFileOpen();
+    stubConverter("synergi", {
+      network: aNetwork({
+        junctions: [{ ref: "1", label: "J1", coordinates: [0, 0] }],
+      }),
+      issues: [
+        { code: "nodeCoordinatesMissing", severity: "warning", ref: "7" },
+        { code: "coordinateSystemMissing", severity: "warning" },
+      ],
+    });
+    const store = setInitialState();
+
+    renderComponent({ store });
+    await triggerCommand();
+    await doFileSelection(aTestFile({ filename: "my-network.mdb" }));
+
+    await waitForNotLoading();
+
+    expect(screen.getByText(/partially imported model/i)).toBeInTheDocument();
+
+    const hydraulicModel = store.get(stagingModelDerivedAtom);
+    expect(getByLabel(hydraulicModel.assets, "J1")).toBeDefined();
+
+    expect(userTracking.capture).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "convertModel.completed",
+        issues: ["nodeCoordinatesMissing", "coordinateSystemMissing"],
+      }),
+    );
+  });
+
+  it("shows no dialog when the converter reports nothing", async () => {
+    stubFileOpen();
+    stubConverter("synergi", { network: aNetwork(), issues: [] });
+    const store = setInitialState();
+
+    renderComponent({ store });
+    await triggerCommand();
+    await doFileSelection(aTestFile({ filename: "my-network.mdb" }));
+
+    await waitForNotLoading();
+
+    expect(screen.queryByText(/partially imported model/i)).toBeNull();
+  });
+
+  it("opens the file picker the converter asks for", async () => {
+    stubFileOpen();
+    stubConverter(
+      "synergi",
+      { network: aNetwork(), issues: [] },
+      { name: "Vendor X", extensions: [".vx"] },
+    );
+    const store = setInitialState();
+
+    renderComponent({ store });
+    await triggerCommand();
+    await doFileSelection(aTestFile({ filename: "my-network.vx" }));
+
+    await waitForNotLoading();
+
+    expect(fileOpen).toHaveBeenCalledWith(
+      expect.objectContaining({
+        extensions: [".vx"],
+        description: "Vendor X",
+      }),
+    );
   });
 
   it("keeps the previous model and reports when the file cannot be read", async () => {
@@ -158,7 +261,7 @@ describe("openSynergi", () => {
 });
 
 const triggerCommand = async () => {
-  await userEvent.click(screen.getByRole("button", { name: "openSynergi" }));
+  await userEvent.click(screen.getByRole("button", { name: "convertModel" }));
 };
 
 const doFileSelection = async (file: File) => {
@@ -178,14 +281,14 @@ const aNetwork = (data: Partial<NetworkData> = {}): NetworkData => ({
 });
 
 const TestableComponent = () => {
-  const openSynergi = useOpenSynergi();
+  const convertModel = useConvertModel();
 
   return (
     <button
-      aria-label="openSynergi"
-      onClick={() => openSynergi({ source: "toolbar" })}
+      aria-label="convertModel"
+      onClick={() => convertModel({ vendor: "synergi", source: "toolbar" })}
     >
-      Open Synergi
+      Convert model
     </button>
   );
 };

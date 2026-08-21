@@ -5,13 +5,19 @@ import type { Converter } from "@epanet-js/converters";
 import { LngLatBoundsLike } from "mapbox-gl";
 import { defaultProjectSettings } from "@epanet-js/project-settings";
 import { useUnsavedChangesCheck } from "./check-unsaved-changes";
-import { buildModel, getConverter } from "src/lib/converters";
+import {
+  blockingIssues,
+  buildModel,
+  getConverter,
+  issueCodes,
+  type ConverterVendor,
+} from "src/lib/converters";
 import { dialogAtom } from "src/state/dialog";
 import { inpFileInfoAtom, projectFileInfoAtom } from "src/state/file-system";
 import { savedProjectRevisionAtom } from "src/state/project-revision";
 import { captureError } from "src/infra/error-tracking";
 import { handleError } from "src/infra/errors";
-import { ImportSynergiStarted, useUserTracking } from "src/infra/user-tracking";
+import { ConvertModelStarted, useUserTracking } from "src/infra/user-tracking";
 import { useFileOpen } from "src/hooks/use-file-open";
 import { useProjections } from "src/hooks/use-projections";
 import { useLabelMaxLength } from "src/hooks/use-label-max-length";
@@ -19,7 +25,7 @@ import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { useStartNewProject } from "src/hooks/persistence/use-start-new-project";
 import { MapContext } from "src/map";
 
-export const useOpenSynergi = () => {
+export const useConvertModel = () => {
   const checkUnsavedChanges = useUnsavedChangesCheck();
   const userTracking = useUserTracking();
   const { openFile, isReady } = useFileOpen();
@@ -32,8 +38,13 @@ export const useOpenSynergi = () => {
   const setSavedProjectRevision = useSetAtom(savedProjectRevisionAtom);
   const map = useContext(MapContext);
 
-  const importSynergi = useCallback(
-    async (converter: Converter, file: FileWithHandle, source: string) => {
+  const convertFile = useCallback(
+    async (
+      converter: Converter,
+      vendor: ConverterVendor,
+      file: FileWithHandle,
+      source: string,
+    ) => {
       if (!projections) {
         setDialogState({ type: "invalidFilesError" });
         userTracking.capture({ name: "invalidFilesError.seen" });
@@ -43,7 +54,22 @@ export const useOpenSynergi = () => {
       setDialogState({ type: "loading" });
 
       try {
-        const { network } = await converter.parseNetworkData({ files: [file] });
+        const { network, issues } = await converter.parseNetworkData({
+          files: [file],
+        });
+
+        const blocking = blockingIssues(issues);
+        if (blocking.length > 0) {
+          userTracking.capture({
+            name: "convertModel.failed",
+            source,
+            vendor,
+            issues: issueCodes(blocking),
+          });
+          setDialogState({ type: "convertModelFailed", issues: blocking });
+          return;
+        }
+
         const { hydraulicModel, factories, projectSettings, bounds } =
           buildModel(network, { projections, labelMaxLength });
 
@@ -72,11 +98,11 @@ export const useOpenSynergi = () => {
         setInpFileInfo(null);
         setProjectFileInfo(null);
         setSavedProjectRevision(null);
-        setDialogState(null);
 
         userTracking.capture({
-          name: "importSynergi.completed",
+          name: "convertModel.completed",
           source,
+          vendor,
           counts: {
             junctions: network.junctions.length,
             reservoirs: network.reservoirs.length,
@@ -85,12 +111,19 @@ export const useOpenSynergi = () => {
             pumps: network.pumps.length,
             valves: network.valves.length,
           },
+          issues: issueCodes(issues),
         });
+
+        setDialogState(
+          issues.length > 0 ? { type: "convertModelIssues", issues } : null,
+        );
       } catch (error) {
         handleError(error, {
-          as: "Import Synergi failed",
+          as: "Convert model failed",
           onUnexpected: "capture",
-          contexts: { "Import file": { name: file.name, size: file.size } },
+          contexts: {
+            "Import file": { name: file.name, size: file.size, vendor },
+          },
         });
         setDialogState({ type: "invalidFilesError" });
       }
@@ -108,11 +141,11 @@ export const useOpenSynergi = () => {
     ],
   );
 
-  const openSynergi = useCallback(
-    async ({ source }: { source: string }) => {
-      userTracking.capture({ name: "importSynergi.started", source });
+  const pickAndConvert = useCallback(
+    async ({ vendor, source }: { vendor: ConverterVendor; source: string }) => {
+      userTracking.capture({ name: "convertModel.started", source, vendor });
 
-      const converter = getConverter("synergi");
+      const converter = getConverter(vendor);
       if (!converter) {
         setDialogState({ type: "invalidFilesError" });
         userTracking.capture({ name: "invalidFilesError.seen" });
@@ -129,18 +162,24 @@ export const useOpenSynergi = () => {
 
         if (!file) return;
 
-        void importSynergi(converter, file, source);
+        void convertFile(converter, vendor, file, source);
       } catch (error) {
         captureError(error as Error);
       }
     },
-    [openFile, isReady, importSynergi, setDialogState, userTracking],
+    [openFile, isReady, convertFile, setDialogState, userTracking],
   );
 
   return useCallback(
-    ({ source }: { source: ImportSynergiStarted["source"] }) => {
-      checkUnsavedChanges(() => openSynergi({ source }));
+    ({
+      vendor,
+      source,
+    }: {
+      vendor: ConverterVendor;
+      source: ConvertModelStarted["source"];
+    }) => {
+      checkUnsavedChanges(() => pickAndConvert({ vendor, source }));
     },
-    [openSynergi, checkUnsavedChanges],
+    [pickAndConvert, checkUnsavedChanges],
   );
 };
