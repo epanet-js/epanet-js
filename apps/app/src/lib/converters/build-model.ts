@@ -18,6 +18,8 @@ import {
 import {
   AssetFactory,
   AssetId,
+  CurveId,
+  CurveType,
   LinkAsset,
   LinkConnections,
   NodeAsset,
@@ -126,6 +128,13 @@ export const buildModel = (
     toDiameter: converterFor(network.units.diameter, spec.units.diameter),
     toPressure: converterFor(network.units.pressure, spec.units.pressure),
     toFlow: converterFor(network.units.flow, spec.units.flow),
+    curveIdByRef: addCurves(hydraulicModel, network, {
+      idGenerator,
+      labelManager,
+      labelMaxLength,
+      toX: converterFor(network.units.flow, spec.units.flow),
+      toY: converterFor(network.units.elevation, spec.units.head),
+    }),
   };
 
   for (const pipeData of network.pipes) {
@@ -184,6 +193,7 @@ type LinkContext = NodeContext & {
   toDiameter: (value: number) => number;
   toPressure: (value: number) => number;
   toFlow: (value: number) => number;
+  curveIdByRef: Map<string, CurveId>;
 };
 
 type LinkGeometry = {
@@ -284,13 +294,71 @@ const addPump = (
   const geometry = linkGeometry(pumpData, context);
   if (geometry === null) return;
 
+  const curveId =
+    pumpData.curveRef === undefined
+      ? undefined
+      : context.curveIdByRef.get(pumpData.curveRef);
+
   const pump = assetFactory.createPump({
     ...linkProperties(pumpData, "pump", geometry, context),
     speed: pumpData.speed,
     initialStatus: pumpData.initialStatus,
+    ...(curveId === undefined
+      ? {}
+      : { definitionType: "curveId" as const, curveId }),
   });
 
   registerLink(hydraulicModel, pump, geometry.connections);
+};
+
+type CurveContext = {
+  idGenerator: IdGenerator;
+  labelManager: LabelManager;
+  labelMaxLength?: number;
+  toX: (value: number) => number;
+  toY: (value: number) => number;
+};
+
+const addCurves = (
+  hydraulicModel: HydraulicModel,
+  { curves, pumps }: NetworkData,
+  { idGenerator, labelManager, labelMaxLength, toX, toY }: CurveContext,
+): Map<string, CurveId> => {
+  const typeByRef = curveTypesByRef(pumps);
+  const curveIdByRef = new Map<string, CurveId>();
+
+  for (const curveData of curves) {
+    const id = idGenerator.newId();
+    const stated = resolveLabel(
+      labelManager,
+      curveData,
+      "curve",
+      labelMaxLength,
+    );
+    if (stated !== undefined) labelManager.register(stated, "curve", id);
+
+    const type = typeByRef.get(curveData.ref);
+
+    hydraulicModel.curves.set(id, {
+      id,
+      label: stated ?? labelManager.generateFor("curve", id),
+      ...(type === undefined ? {} : { type }),
+      points: curveData.points.map(({ x, y }) => ({ x: toX(x), y: toY(y) })),
+    });
+    curveIdByRef.set(curveData.ref, id);
+  }
+
+  return curveIdByRef;
+};
+
+const curveTypesByRef = (pumps: PumpData[]): Map<string, CurveType> => {
+  const types = new Map<string, CurveType>();
+
+  for (const { curveRef } of pumps) {
+    if (curveRef !== undefined) types.set(curveRef, "pump");
+  }
+
+  return types;
 };
 
 const addValve = (

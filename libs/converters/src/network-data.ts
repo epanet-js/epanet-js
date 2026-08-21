@@ -68,6 +68,15 @@ export type ValveData = LinkData & {
 export type PumpData = LinkData & {
   speed?: number;
   initialStatus?: PumpStatus;
+  curveRef?: string;
+};
+
+export type CurvePointData = { x: number; y: number };
+
+export type CurveData = {
+  ref: string;
+  label?: string;
+  points: CurvePointData[];
 };
 
 export type NetworkData = {
@@ -77,6 +86,7 @@ export type NetworkData = {
   pipes: PipeData[];
   pumps: PumpData[];
   valves: ValveData[];
+  curves: CurveData[];
   headlossFormula?: HeadlossFormula;
   units: SourceUnits;
   crs: SourceCrs;
@@ -89,6 +99,7 @@ export const emptyNetworkData = (): NetworkData => ({
   pipes: [],
   pumps: [],
   valves: [],
+  curves: [],
   units: {},
   crs: { type: "unknown" },
 });

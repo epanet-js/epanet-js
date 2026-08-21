@@ -93,6 +93,22 @@ both unit presets set it to `null`, and there is no per-formula unit anywhere �
 unit here could never drive a conversion. What the number *means* is fixed by
 `headlossFormula`, not by a unit.
 
+## A curve is shared, so it is its own record
+
+`CurveData` (`ref`, `label?`, `points`) sits in `NetworkData.curves`, and a pump names one with
+`curveRef` — the same `ref`-resolved-against-an-array shape links use for their endpoints. Sources
+share one curve between several pumps (Synergi has one Q-H profile driving four), and a curve
+carries a name of its own that the source states. Inlining the points on each pump would duplicate
+them, lose that name, and leave a consumer guessing which duplicates were once the same curve.
+
+**Points are `{ x, y }`, not named for what they measure.** What a curve means comes from where it
+is referenced: a pump's curve is flow against head, so the consumer converts `x` with the flow unit
+and `y` with the head unit. The same record then serves a volume or an efficiency curve without a
+second shape.
+
+Only curves something references belong in the array — a source is free to hold thousands of
+unrelated series in the same table.
+
 ## A kind the source did not give is `"unknown"`, not a dropped record
 
 `ValveData.kind` is `ValveKind | "unknown"`. A vendor kind that maps to nothing in the domain

@@ -275,6 +275,7 @@ const aNetwork = (data: Partial<NetworkData> = {}): NetworkData => ({
   pipes: [],
   pumps: [],
   valves: [],
+  curves: [],
   units: {},
   crs: { type: "unknown" },
   ...data,

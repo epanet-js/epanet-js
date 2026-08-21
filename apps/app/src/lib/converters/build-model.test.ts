@@ -488,6 +488,91 @@ describe("build pumps and valves from network data", () => {
     expect(valve.kind).toEqual("tcv");
   });
 
+  it("gives a pump the curve it names, converted into the project's units", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        junctions: twoJunctions,
+        pumps: [aPump({ ref: "10", label: "PU1", curveRef: "13" })],
+        curves: [
+          {
+            ref: "13",
+            label: "PMPWGTE1",
+            points: [
+              { x: 10, y: 128 },
+              { x: 40, y: 126 },
+            ],
+          },
+        ],
+        units: { flow: "l/s", elevation: "m" },
+      }),
+      { projections: aCatalogue() },
+    );
+
+    const pump = getByLabel(hydraulicModel.assets, "PU1") as Pump;
+    const curve = hydraulicModel.curves.get(pump.curveId as number);
+
+    expect(pump.definitionType).toEqual("curveId");
+    expect(curve).toEqual({
+      id: pump.curveId,
+      label: "PMPWGTE1",
+      type: "pump",
+      points: [
+        { x: 10, y: 128 },
+        { x: 40, y: 126 },
+      ],
+    });
+  });
+
+  it("falls back to the curve's own ref when the source states no label", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        junctions: twoJunctions,
+        pumps: [aPump({ ref: "10", label: "PU1", curveRef: "13" })],
+        curves: [{ ref: "13", points: [{ x: 10, y: 128 }] }],
+      }),
+      { projections: aCatalogue() },
+    );
+
+    const pump = getByLabel(hydraulicModel.assets, "PU1") as Pump;
+    const curve = hydraulicModel.curves.get(pump.curveId as number);
+
+    expect(curve?.label).toEqual("13");
+  });
+
+  it("shares one curve between the pumps that name it", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        junctions: twoJunctions,
+        pumps: [
+          aPump({ ref: "10", label: "PU1", curveRef: "13" }),
+          aPump({ ref: "11", label: "PU2", curveRef: "13" }),
+        ],
+        curves: [{ ref: "13", points: [{ x: 10, y: 128 }] }],
+      }),
+      { projections: aCatalogue() },
+    );
+
+    const first = getByLabel(hydraulicModel.assets, "PU1") as Pump;
+    const second = getByLabel(hydraulicModel.assets, "PU2") as Pump;
+
+    expect(first.curveId).toEqual(second.curveId);
+    expect(hydraulicModel.curves.size).toEqual(1);
+  });
+
+  it("leaves a pump on its default definition when it names no curve", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        junctions: twoJunctions,
+        pumps: [aPump({ ref: "10", label: "PU1" })],
+      }),
+      { projections: aCatalogue() },
+    );
+
+    const pump = getByLabel(hydraulicModel.assets, "PU1") as Pump;
+    expect(pump.curveId).toBeNull();
+    expect(hydraulicModel.curves.size).toEqual(0);
+  });
+
   it("leaves a pump and a valve blank where the source said nothing", () => {
     const { hydraulicModel } = buildModel(
       aNetwork({
@@ -781,6 +866,7 @@ const aNetwork = (data: Partial<NetworkData> = {}): NetworkData => ({
   pipes: [],
   pumps: [],
   valves: [],
+  curves: [],
   units: {},
   crs: { type: "unknown" },
   ...data,
