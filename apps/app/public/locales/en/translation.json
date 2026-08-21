@@ -35,6 +35,8 @@
       "pipeHeadlossFormulaUnsupported_other": "{{count}} Pipes use a different headloss formula from the rest of the model, so their roughness was not imported",
       "valveKindUnknown_one": "1 Valve has a type we do not support, and was imported as a TCV",
       "valveKindUnknown_other": "{{count}} Valves have a type we do not support, and were imported as TCVs",
+      "valveControlUnsupported_one": "1 Valve uses a time-varying control we do not support, and was imported as a TCV with no setting",
+      "valveControlUnsupported_other": "{{count}} Valves use a time-varying control we do not support, and were imported as TCVs with no setting",
       "pumpDefinitionUnsupported_one": "1 Pump is defined by a flow and head curve, which is not imported yet",
       "pumpDefinitionUnsupported_other": "{{count}} Pumps are defined by a flow and head curve, which is not imported yet"
     }
