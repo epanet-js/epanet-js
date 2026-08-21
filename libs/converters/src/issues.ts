@@ -16,9 +16,13 @@ export type IssueCode =
   | "linkEndpointMissing"
   | "linkHydraulicsMissing"
   | "pipeHeadlossFormulaUnsupported"
+  | "pipeParallelCountUnsupported"
   | "valveKindUnknown"
   | "valveControlUnsupported"
   | "pumpDefinitionUnsupported"
+  | "pumpControlUnsupported"
+  | "pumpSpeedPatternUnsupported"
+  | "pumpPressureControlUnsupported"
   | "unitSystemMissing"
   | "unitSystemUnsupported"
   | "coordinateSystemMissing";

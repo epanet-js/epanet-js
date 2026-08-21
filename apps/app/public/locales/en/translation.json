@@ -33,12 +33,20 @@
       "linkHydraulicsMissing_other": "{{count}} links had no hydraulic data, so their attributes were left blank",
       "pipeHeadlossFormulaUnsupported_one": "1 Pipe uses a different headloss formula from the rest of the model, so its roughness was not imported",
       "pipeHeadlossFormulaUnsupported_other": "{{count}} Pipes use a different headloss formula from the rest of the model, so their roughness was not imported",
+      "pipeParallelCountUnsupported_one": "1 Pipe stands for several parallel pipes, so it was imported as a single pipe of the stated diameter",
+      "pipeParallelCountUnsupported_other": "{{count}} Pipes stand for several parallel pipes, so they were imported as single pipes of the stated diameter",
       "valveKindUnknown_one": "1 Valve has a type we do not support, and was imported as a TCV",
       "valveKindUnknown_other": "{{count}} Valves have a type we do not support, and were imported as TCVs",
       "valveControlUnsupported_one": "1 Valve uses a time-varying control we do not support, and was imported as a TCV with no setting",
       "valveControlUnsupported_other": "{{count}} Valves use a time-varying control we do not support, and were imported as TCVs with no setting",
       "pumpDefinitionUnsupported_one": "1 Pump names a flow and head curve with no points, so it was imported with no definition",
-      "pumpDefinitionUnsupported_other": "{{count}} Pumps name a flow and head curve with no points, so they were imported with no definition"
+      "pumpDefinitionUnsupported_other": "{{count}} Pumps name a flow and head curve with no points, so they were imported with no definition",
+      "pumpControlUnsupported_one": "1 Pump is switched by a tank level rule, which is not imported yet, so it keeps its starting status",
+      "pumpControlUnsupported_other": "{{count}} Pumps are switched by tank level rules, which are not imported yet, so they keep their starting status",
+      "pumpSpeedPatternUnsupported_one": "1 Pump changes speed over time, which is not imported yet, so it keeps a constant speed",
+      "pumpSpeedPatternUnsupported_other": "{{count}} Pumps change speed over time, which is not imported yet, so they keep a constant speed",
+      "pumpPressureControlUnsupported_one": "1 Pump holds a set pressure at another node, which is not imported yet, so it keeps only its speed",
+      "pumpPressureControlUnsupported_other": "{{count}} Pumps hold a set pressure at another node, which is not imported yet, so they keep only their speed"
     }
   },
   "assetSearch": {
