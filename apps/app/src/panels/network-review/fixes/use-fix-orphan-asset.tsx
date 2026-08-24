@@ -1,6 +1,7 @@
 import { useAtomValue } from "jotai";
 import { useCallback, useMemo } from "react";
 import { AssetId } from "@epanet-js/hydraulic-model";
+import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import { deactivateAssets } from "src/hydraulic-model/model-operations/deactivate-assets";
 import { deleteAssets } from "src/hydraulic-model/model-operations/delete-assets";
@@ -15,6 +16,7 @@ import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 export const useFixOrphanAsset = () => {
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const userTracking = useUserTracking();
+  const isEditionBlocked = useIsEditionBlocked();
   const { transact } = useMomentTransaction();
 
   const { topology, assetIndex } = useMemo(
@@ -39,6 +41,8 @@ export const useFixOrphanAsset = () => {
 
   const fix = useCallback(
     (assetId: AssetId) => {
+      if (isEditionBlocked) return;
+
       const kind = kindOf(assetId);
       const asset = hydraulicModel.assets.get(assetId);
       if (!kind || !asset) return;
@@ -60,7 +64,7 @@ export const useFixOrphanAsset = () => {
         type: asset.type,
       });
     },
-    [kindOf, hydraulicModel, transact, userTracking],
+    [kindOf, hydraulicModel, transact, userTracking, isEditionBlocked],
   );
 
   return { kindOf, fix };

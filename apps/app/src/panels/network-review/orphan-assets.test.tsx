@@ -7,6 +7,7 @@ import { setInitialState } from "src/__helpers__/state";
 import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
 import { Store } from "src/state";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
+import { historyPendingAtom } from "src/state/transactions";
 import { OrphanAssets } from "./orphan-assets";
 
 vi.mock("src/hooks/use-zoom-to", () => ({ useZoomTo: () => vi.fn() }));
@@ -132,6 +133,29 @@ describe("OrphanAssets panel fix action", () => {
       expect(model.assets.get(IDS.B)).toBeUndefined();
       expect(model.assets.get(IDS.C)).toBeUndefined();
     });
+  });
+
+  it("does not fix via Enter while edition is blocked", async () => {
+    stubFeatureOn("FLAG_FIX_ORPHAN_ASSET");
+    const { IDS, hydraulicModel } = aModelWithAnOrphanJunction();
+    const store = setInitialState({ hydraulicModel });
+    store.set(historyPendingAtom, true);
+    renderPanel(store);
+
+    await waitFor(() => {
+      expect(screen.getByText("ORPHAN")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText("ORPHAN"));
+    const list = screen.getByRole("list").parentElement!.parentElement!;
+    fireEvent.keyDown(list, { key: "Enter" });
+
+    await waitFor(() => {
+      expect(screen.getByText("ORPHAN")).toBeInTheDocument();
+    });
+    expect(
+      store.get(stagingModelDerivedAtom).assets.get(IDS.Orphan),
+    ).toBeDefined();
   });
 
   it("disconnects customer points when deleting a dangling pipe", async () => {

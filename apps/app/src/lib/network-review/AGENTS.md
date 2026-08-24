@@ -226,6 +226,15 @@ must therefore become part of the cache key, or the panel and the gate will
 disagree. This is a large part of why per-check options are expensive here, and
 why the active-topology rule is unconditional rather than a setting.
 
+## Fix actions
+
+Findings can offer a remedy applied from the panel.
+
+- No fix catalogue. Each check owns its handlers and calls the model operation inline; we rely on existing operations or commands.
+- A fix is always one undoable action. Per-row does not mean single-asset — one connectivity row deactivates a whole subnetwork.
+- Not all items have a suggested fix.
+- Guard `useIsEditionBlocked` in the fix hook, not only on the button. Enter on the selected row calls the hook directly.
+
 ## Adding a check
 
 1. Add it to `CheckType` in `types.ts` and export from the barrel.
