@@ -73,3 +73,16 @@ Everything a parser is forbidden to do, so it is written once instead of once pe
 - **Length from geometry.** A declared length wins. When the source is silent the polyline is
   measured, which is the one case where a value is computed rather than read — it is derived
   from the source's own coordinates, not invented.
+- **Active topology.** `LinkData.isActive` is the only thing a source states; a node's is derived
+  from it — a node stays active while any link into it is active, and a node with no links at all
+  stays active. That is not a default filling a silence, it is the app's own invariant, held
+  everywhere else by `deactivateAssets` and `inferNodeIsActive`
+  (`src/hydraulic-model/utilities/active-topology.ts`), which the builder reuses rather than
+  restating. A vendor cannot state it: Synergi has no node-level service state at all, so it too
+  derives node activity from its elements.
+
+  Without this an imported node whose every link is out of service arrives active with nothing
+  active attached, which the network review reports as an orphan the user cannot clear — node
+  activity is derived, never edited — and which `build-inp` writes into `[JUNCTIONS]` with no
+  incident pipe. Deactivating it takes its demand out of the simulation too, which is the point:
+  the whole assembly is out of service.

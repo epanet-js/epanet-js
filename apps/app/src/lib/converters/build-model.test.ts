@@ -11,6 +11,8 @@ import type {
 import { WGS84, type Proj4Projection } from "@epanet-js/projections";
 import type { LevelSettingControl } from "@epanet-js/hydraulic-model";
 import {
+  Asset,
+  AssetsMap,
   Junction,
   Pipe,
   Pump,
@@ -1048,6 +1050,115 @@ describe("build tanks from network data", () => {
 
     const tank = getByLabel(hydraulicModel.assets, "T1") as Tank;
     expect(hydraulicModel.assetIndex.hasNode(tank.id)).toEqual(true);
+  });
+});
+
+describe("node active topology from network data", () => {
+  const isActiveOf = (assets: AssetsMap, label: string) =>
+    (getByLabel(assets, label) as Asset).isActive;
+
+  const threeJunctions = [
+    aJunction({ ref: "1", label: "J1", coordinates: [0, 0] }),
+    aJunction({ ref: "2", label: "J2", coordinates: [1, 0] }),
+    aJunction({ ref: "3", label: "J3", coordinates: [2, 0] }),
+  ];
+
+  it("deactivates both ends of a link the source put out of service", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        junctions: threeJunctions.slice(0, 2),
+        pipes: [aPipe({ ref: "10", label: "P1", isActive: false })],
+      }),
+      { projections: aCatalogue() },
+    );
+
+    expect(isActiveOf(hydraulicModel.assets, "J1")).toEqual(false);
+    expect(isActiveOf(hydraulicModel.assets, "J2")).toEqual(false);
+  });
+
+  it("keeps a node any active link still reaches", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        junctions: threeJunctions,
+        pipes: [
+          aPipe({ ref: "10", label: "P1", isActive: false }),
+          aPipe({
+            ref: "11",
+            label: "P2",
+            startNodeRef: "2",
+            endNodeRef: "3",
+            isActive: true,
+          }),
+        ],
+      }),
+      { projections: aCatalogue() },
+    );
+
+    expect(isActiveOf(hydraulicModel.assets, "J1")).toEqual(false);
+    expect(isActiveOf(hydraulicModel.assets, "J2")).toEqual(true);
+    expect(isActiveOf(hydraulicModel.assets, "J3")).toEqual(true);
+  });
+
+  it("keeps a node no link reaches at all", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({ junctions: [aJunction({ ref: "1", label: "J1" })] }),
+      { projections: aCatalogue() },
+    );
+
+    expect(isActiveOf(hydraulicModel.assets, "J1")).toEqual(true);
+  });
+
+  it("deactivates a tank whose only connector is out of service", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        junctions: [aJunction({ ref: "1", label: "J1", coordinates: [0, 0] })],
+        tanks: [aTank({ ref: "2", label: "T1", coordinates: [1, 0] })],
+        pipes: [aPipe({ ref: "10", label: "P1", isActive: false })],
+      }),
+      { projections: aCatalogue() },
+    );
+
+    expect(isActiveOf(hydraulicModel.assets, "T1")).toEqual(false);
+  });
+
+  it("deactivates the ends of an inactive pump the same way", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        junctions: threeJunctions.slice(0, 2),
+        pumps: [aPump({ ref: "10", label: "PU1", isActive: false })],
+      }),
+      { projections: aCatalogue() },
+    );
+
+    expect(isActiveOf(hydraulicModel.assets, "J1")).toEqual(false);
+    expect(isActiveOf(hydraulicModel.assets, "PU1")).toEqual(false);
+  });
+
+  it("never leaves an active link reaching an inactive node", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        junctions: threeJunctions,
+        pipes: [
+          aPipe({ ref: "10", label: "P1", isActive: false }),
+          aPipe({
+            ref: "11",
+            label: "P2",
+            startNodeRef: "2",
+            endNodeRef: "3",
+            isActive: true,
+          }),
+        ],
+      }),
+      { projections: aCatalogue() },
+    );
+
+    for (const asset of hydraulicModel.assets.values()) {
+      if (!asset.isLink || !asset.isActive) continue;
+
+      for (const nodeId of hydraulicModel.topology.getNodes(asset.id)) {
+        expect(hydraulicModel.assets.get(nodeId)!.isActive).toEqual(true);
+      }
+    }
   });
 });
 

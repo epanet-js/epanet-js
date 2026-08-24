@@ -19,6 +19,7 @@ import {
   initializeHydraulicModel,
 } from "src/hydraulic-model";
 import {
+  Asset,
   AssetFactory,
   AssetId,
   CurveId,
@@ -43,6 +44,7 @@ import {
   initializeModelFactories,
 } from "@epanet-js/hydraulic-model";
 import { ConsecutiveIdsGenerator, IdGenerator } from "@epanet-js/id-generator";
+import { inferNodeIsActive } from "src/hydraulic-model/utilities/active-topology";
 import {
   EpanetUnitSystem,
   ProjectSettings,
@@ -169,6 +171,7 @@ export const buildModel = (
     addValve(hydraulicModel, factories.assetFactory, valveData, linkContext);
   }
 
+  deactivateStrandedNodes(hydraulicModel, network, linkContext);
   addControls(hydraulicModel, network, linkContext);
 
   return {
@@ -583,6 +586,35 @@ const registerLink = (
   hydraulicModel.assetIndex.addLink(link.id);
   hydraulicModel.topology.addLink(link.id, connections[0], connections[1]);
   linkIdByRef.set(ref, link.id);
+};
+
+const deactivateStrandedNodes = (
+  hydraulicModel: HydraulicModel,
+  network: NetworkData,
+  { nodeIdByRef }: LinkContext,
+): void => {
+  const { topology, assets } = hydraulicModel;
+  const candidates = new Set<AssetId>();
+
+  for (const link of [...network.pipes, ...network.pumps, ...network.valves]) {
+    if (link.isActive !== false) continue;
+
+    for (const ref of [link.startNodeRef, link.endNodeRef]) {
+      const built = nodeIdByRef.get(ref);
+      if (built !== undefined) candidates.add(built.id);
+    }
+  }
+
+  const noDeletions = new Set<AssetId>();
+  const noNewAssets: Asset[] = [];
+
+  for (const nodeId of candidates) {
+    const node = assets.get(nodeId) as NodeAsset;
+    if (inferNodeIsActive(node, noDeletions, noNewAssets, topology, assets))
+      continue;
+
+    node.setProperty("isActive", false);
+  }
 };
 
 const addControls = (
