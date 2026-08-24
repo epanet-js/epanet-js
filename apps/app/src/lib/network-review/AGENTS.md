@@ -4,13 +4,13 @@ The model-review checks. Five of them, four living here and one next door in
 `src/lib/model-attributes-validation/`. The panels that render them are in
 `src/panels/network-review/`.
 
-| Check | Blocking | Execution |
-|---|---|---|
-| `modelAttributesValidation` | yes | main thread, time-sliced |
-| `orphanAssets` | yes | worker, index + topology buffers |
-| `connectivityTrace` | yes | worker, model buffers |
-| `proximityAnomalies` | no | worker, model buffers |
-| `crossingPipes` | no | worker, model buffers |
+| Check                       | Blocking | Execution                        |
+| --------------------------- | -------- | -------------------------------- |
+| `modelAttributesValidation` | yes      | main thread, time-sliced         |
+| `orphanAssets`              | yes      | worker, index + topology buffers |
+| `connectivityTrace`         | yes      | worker, model buffers            |
+| `proximityAnomalies`        | no       | worker, model buffers            |
+| `crossingPipes`             | no       | worker, model buffers            |
 
 **Blocking** checks gate the simulation — `runBlockingChecks` in
 `blocking-checks.ts`, consumed by `run-simulation.tsx`. The other two are review
@@ -51,7 +51,7 @@ encoding layer exists — it is not premature optimisation, it is what makes the
 worker boundary affordable.
 
 Every call site uses the `"array"` default. Encoding as `SharedArrayBuffer` is
-ruled out app-wide — see the *Workers and buffer encoding* section of
+ruled out app-wide — see the _Workers and buffer encoding_ section of
 `guidelines/performance.md` for why.
 
 The buffers hold **dense indices**, not asset ids. `IdMapper` assigns each
@@ -114,13 +114,13 @@ name rather than surfacing it.
 `HydraulicModelEncoder` takes an `EncodingOptions` set per check and encodes only
 what was asked for. Unrequested buffers are sized zero, so they cost nothing.
 
-| Check | `nodes` | `links` |
-|---|---|---|
-| Connectivity trace | `types`, `connections` | `types`, `connections`, `bounds` |
-| Proximity anomalies | `bounds`, `connections` | `connections`, `geoIndex` |
-| Crossing pipes | `geoIndex` | `connections`, `bounds`, `geoIndex` |
+| Check               | `nodes`                 | `links`                             |
+| ------------------- | ----------------------- | ----------------------------------- |
+| Connectivity trace  | `types`, `connections`  | `types`, `connections`, `bounds`    |
+| Proximity anomalies | `bounds`, `connections` | `connections`, `geoIndex`           |
+| Crossing pipes      | `geoIndex`              | `connections`, `bounds`, `geoIndex` |
 
-⚠️ On **nodes**, `"bounds"` gates *position* encoding, not bounds — both
+⚠️ On **nodes**, `"bounds"` gates _position_ encoding, not bounds — both
 `buildEmptyBuffers` and `encodeNodePosition` key the positions buffer off
 `nodes.has("bounds")`. There is no separate node-positions flag. Rename with care;
 this trips people up.
@@ -145,11 +145,11 @@ would be a regression.
 
 ### Where the filtering happens
 
-| Check | Filtered in |
-|---|---|
-| Connectivity, proximity, crossing | `HydraulicModelEncoder.prepareMappings` |
-| Orphan assets | `ActiveAssetIndex` / `ActiveTopology` adapters wrapping the inputs |
-| Attribute validation | the asset loop in `model-attributes-validation/run-check.ts` |
+| Check                             | Filtered in                                                        |
+| --------------------------------- | ------------------------------------------------------------------ |
+| Connectivity, proximity, crossing | `HydraulicModelEncoder.prepareMappings`                            |
+| Orphan assets                     | `ActiveAssetIndex` / `ActiveTopology` adapters wrapping the inputs |
+| Attribute validation              | the asset loop in `model-attributes-validation/run-check.ts`       |
 
 `HydraulicModelEncoder` is used only by this module, so it filters
 unconditionally — no option flag is needed and none should be added.
@@ -157,7 +157,7 @@ unconditionally — no option flag is needed and none should be added.
 Orphan assets cannot filter inside its encoders, because `AssetIndexEncoder` and
 `TopologyEncoder` are shared with area selection and trace. It filters the
 **inputs** instead, via the `ActiveAssetIndex` / `ActiveTopology` adapters — see
-*The transferable encoders are shared* in `src/hydraulic-model/AGENTS.md` for the
+_The transferable encoders are shared_ in `src/hydraulic-model/AGENTS.md` for the
 pattern and its alignment constraints. The upshot here is that
 `findOrphanAssets` stays pure topology logic with no concept of activity, and the
 same adapters serve the inline fallback path.
@@ -178,7 +178,7 @@ through P2 yields one subnetwork with a supply source, so the check reports gree
 source. The check clears a model that cannot solve.
 
 `deactivateAssets` does not prevent this. Its cascade deactivates an endpoint
-node only when that node loses its *last* active link, so it fires for dead-end
+node only when that node loses its _last_ active link, so it fires for dead-end
 stubs and never for a bridging link with active links on both sides — precisely
 the case that breaks connectivity.
 

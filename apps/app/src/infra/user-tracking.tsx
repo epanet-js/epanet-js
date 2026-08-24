@@ -1058,6 +1058,13 @@ type NetworkReviewChanged =
       units: string;
     };
 
+type OrphanAssetFixed = {
+  name: "networkReview.orphanAssets.fixed";
+  kind: string;
+  assetId: number;
+  type: string;
+};
+
 type ModelAttributesValidationChanged = {
   name: "networkReview.modelAttributesValidation.changed";
   count: number;
@@ -1466,6 +1473,7 @@ export type UserEvent =
   | NetworkReviewChecked
   | NetworkReviewBack
   | NetworkReviewChanged
+  | OrphanAssetFixed
   | ModelAttributesValidationChanged
   | ModelAttributesValidationGroupOpened
   | ModelAttributesValidationBulkSelected

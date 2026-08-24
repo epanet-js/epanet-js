@@ -6,7 +6,6 @@ import { useZoomTo } from "src/hooks/use-zoom-to";
 import { AssetType, HydraulicModel } from "src/hydraulic-model";
 import { Asset, AssetId } from "@epanet-js/hydraulic-model";
 import {
-  DeleteIcon,
   JunctionIcon,
   PipeIcon,
   PumpIcon,
@@ -21,7 +20,8 @@ import { useSelection } from "src/selection";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { selectionAtom } from "src/state/selection";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { DummyFixButton } from "./fixes/dummy-fix-button";
+import { FixOrphanAssetButton } from "./fixes/fix-orphan-asset-button";
+import { useFixOrphanAsset } from "./fixes/use-fix-orphan-asset";
 import {
   EmptyState,
   LoadingState,
@@ -155,6 +155,7 @@ const OrphanAssetsList = ({
   hydraulicModel: HydraulicModel;
 }) => {
   const isFixOrphanAssetOn = useFeatureFlag("FLAG_FIX_ORPHAN_ASSET");
+  const { kindOf, fix } = useFixOrphanAsset();
 
   return (
     <VirtualizedIssuesList
@@ -176,13 +177,14 @@ const OrphanAssetsList = ({
       }}
       renderItemAction={
         isFixOrphanAssetOn
-          ? () => (
-              <DummyFixButton
-                label="Fix"
-                variant="danger-quiet"
-                icon={<DeleteIcon size="md" />}
-              />
-            )
+          ? (assetId) => {
+              const kind = kindOf(assetId);
+              if (!kind) return null;
+
+              return (
+                <FixOrphanAssetButton kind={kind} onFix={() => fix(assetId)} />
+              );
+            }
           : undefined
       }
       checkType={CheckType.orphanAssets}
