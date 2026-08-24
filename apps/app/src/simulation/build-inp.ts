@@ -389,7 +389,6 @@ type BuildOptions = {
   usedCurves?: boolean;
   includeQuality?: boolean;
   projection?: Projection;
-  excludeInactiveControls?: boolean;
 };
 
 export const buildInp = withDebugInstrumentation(
@@ -439,7 +438,6 @@ type ResolvedBuildOptions = BuildOptions &
       | "usedPatterns"
       | "usedCurves"
       | "includeQuality"
-      | "excludeInactiveControls"
     >
   >;
 
@@ -459,7 +457,6 @@ function* generateInp(
     usedPatterns: false,
     usedCurves: false,
     includeQuality: false,
-    excludeInactiveControls: false,
     ...options,
   };
   const idMap = new EpanetIds({
@@ -739,16 +736,8 @@ function* generateInp(
       { alwaysWrite: true },
     );
   }
-  yield* emitSection(
-    state,
-    ["[CONTROLS]"],
-    controlRows(hydraulicModel, idMap, opts.excludeInactiveControls),
-  );
-  yield* emitSection(
-    state,
-    ["[RULES]"],
-    ruleRows(hydraulicModel, idMap, opts.excludeInactiveControls),
-  );
+  yield* emitSection(state, ["[CONTROLS]"], controlRows(hydraulicModel, idMap));
+  yield* emitSection(state, ["[RULES]"], ruleRows(hydraulicModel, idMap));
   yield* emitSection(state, ["[END]"], [], { alwaysWrite: true });
 }
 
@@ -1388,7 +1377,6 @@ function* vertexRows(
 function* controlRows(
   hydraulicModel: HydraulicModel,
   idMap: EpanetIds,
-  excludeInactiveControls: boolean,
 ): Generator<string> {
   const idResolver: IdResolver = (assetId: AssetId) => {
     const asset = hydraulicModel.assets.get(assetId);
@@ -1408,40 +1396,21 @@ function* controlRows(
     );
 
   for (const control of hydraulicModel.rawControls.simple) {
-    if (
-      excludeInactiveControls &&
-      referencesInactiveAsset(control.assetReferences)
-    ) {
-      continue;
-    }
+    if (referencesInactiveAsset(control.assetReferences)) continue;
     yield formatSimpleControl(control, idResolver);
   }
 
-  yield* timedSettingControlRows(
-    hydraulicModel,
-    idMap,
-    excludeInactiveControls,
-  );
-  yield* levelSettingControlRows(
-    hydraulicModel,
-    idMap,
-    excludeInactiveControls,
-  );
+  yield* timedSettingControlRows(hydraulicModel, idMap);
+  yield* levelSettingControlRows(hydraulicModel, idMap);
 }
 
 function* timedSettingControlRows(
   hydraulicModel: HydraulicModel,
   idMap: EpanetIds,
-  excludeInactiveControls: boolean,
 ): Generator<string> {
   for (const control of hydraulicModel.controls) {
     if (control.type !== "timed-setting") continue;
-    if (
-      excludeInactiveControls &&
-      !isAssetInSimulation(hydraulicModel, control.linkId)
-    ) {
-      continue;
-    }
+    if (!isAssetInSimulation(hydraulicModel, control.linkId)) continue;
 
     const linkId = resolveLinkId(hydraulicModel, idMap, control.linkId);
     for (const step of control.steps) {
@@ -1456,14 +1425,12 @@ function* timedSettingControlRows(
 function* levelSettingControlRows(
   hydraulicModel: HydraulicModel,
   idMap: EpanetIds,
-  excludeInactiveControls: boolean,
 ): Generator<string> {
   for (const control of hydraulicModel.controls) {
     if (control.type !== "level-setting") continue;
     if (
-      excludeInactiveControls &&
-      (!isAssetInSimulation(hydraulicModel, control.linkId) ||
-        !isAssetInSimulation(hydraulicModel, control.tankId))
+      !isAssetInSimulation(hydraulicModel, control.linkId) ||
+      !isAssetInSimulation(hydraulicModel, control.tankId)
     ) {
       continue;
     }
@@ -1485,7 +1452,6 @@ function* levelSettingControlRows(
 function* ruleRows(
   hydraulicModel: HydraulicModel,
   idMap: EpanetIds,
-  excludeInactiveControls: boolean,
 ): Generator<string> {
   const idResolver: IdResolver = (assetId: AssetId) => {
     const asset = hydraulicModel.assets.get(assetId);
@@ -1505,12 +1471,7 @@ function* ruleRows(
     );
 
   for (const rule of hydraulicModel.rawControls.rules) {
-    if (
-      excludeInactiveControls &&
-      referencesInactiveAsset(rule.assetReferences)
-    ) {
-      continue;
-    }
+    if (referencesInactiveAsset(rule.assetReferences)) continue;
     yield formatRuleBasedControl(rule, idResolver);
   }
 }

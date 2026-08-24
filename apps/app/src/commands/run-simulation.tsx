@@ -76,7 +76,6 @@ export const useRunSimulation = () => {
             simulationSettings,
             units: projectSettings.units,
             headlossFormula: projectSettings.headlossFormula,
-            excludeInactiveControls: true,
           });
           const start = performance.now();
 

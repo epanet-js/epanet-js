@@ -1930,7 +1930,7 @@ describe("build inp", () => {
       });
     });
 
-    describe("excludeInactiveControls", () => {
+    describe("controls referencing inactive assets", () => {
       it("excludes a simple control referencing an inactive asset", () => {
         const IDS = { N1: 1, N2: 2, PU1: 3 } as const;
         const hydraulicModel = HydraulicModelBuilder.with()
@@ -1950,14 +1950,13 @@ describe("build inp", () => {
         const inp = buildInp(hydraulicModel, {
           units: presets.LPS.units,
           simulationSettings: defaultSimulationSettings,
-          excludeInactiveControls: true,
         });
 
         expect(inp).not.toContain("[CONTROLS]");
         expect(inp).not.toContain(`LINK ${IDS.PU1} OPEN AT TIME 6`);
       });
 
-      it("keeps the control when the flag is off (default)", () => {
+      it("excludes the control for callers that pass no options (export)", () => {
         const IDS = { N1: 1, N2: 2, PU1: 3 } as const;
         const hydraulicModel = HydraulicModelBuilder.with()
           .aNode(IDS.N1)
@@ -1978,11 +1977,11 @@ describe("build inp", () => {
           simulationSettings: defaultSimulationSettings,
         });
 
-        expect(inp).toContain("[CONTROLS]");
-        expect(inp).toContain(`LINK ${IDS.PU1} OPEN AT TIME 6`);
+        expect(inp).not.toContain("[CONTROLS]");
+        expect(inp).not.toContain(`LINK ${IDS.PU1} OPEN AT TIME 6`);
       });
 
-      it("keeps a control referencing only active assets when the flag is on", () => {
+      it("keeps a control referencing only active assets", () => {
         const IDS = { N1: 1, N2: 2, PU1: 3 } as const;
         const hydraulicModel = HydraulicModelBuilder.with()
           .aNode(IDS.N1)
@@ -1997,7 +1996,6 @@ describe("build inp", () => {
         const inp = buildInp(hydraulicModel, {
           units: presets.LPS.units,
           simulationSettings: defaultSimulationSettings,
-          excludeInactiveControls: true,
         });
 
         expect(inp).toContain(`LINK ${IDS.PU1} OPEN AT TIME 6`);
@@ -2025,7 +2023,6 @@ THEN LINK {{0}} STATUS IS OPEN`,
         const inp = buildInp(hydraulicModel, {
           units: presets.LPS.units,
           simulationSettings: defaultSimulationSettings,
-          excludeInactiveControls: true,
         });
 
         expect(inp).not.toContain("[RULES]");
@@ -2050,7 +2047,6 @@ THEN LINK {{0}} STATUS IS OPEN`,
         const inp = buildInp(hydraulicModel, {
           units: presets.LPS.units,
           simulationSettings: defaultSimulationSettings,
-          excludeInactiveControls: true,
         });
 
         expect(inp).not.toContain(`LINK ${IDS.PU1} OPEN AT TIME 1`);
@@ -2074,7 +2070,6 @@ THEN LINK {{0}} STATUS IS OPEN`,
         const inp = buildInp(hydraulicModel, {
           units: presets.LPS.units,
           simulationSettings: defaultSimulationSettings,
-          excludeInactiveControls: true,
         });
 
         expect(inp).not.toContain(
