@@ -1,4 +1,5 @@
 import type {
+  ControlData,
   JunctionData,
   NetworkData,
   PipeData,
@@ -8,6 +9,7 @@ import type {
   ValveData,
 } from "@epanet-js/converters";
 import { WGS84, type Proj4Projection } from "@epanet-js/projections";
+import type { LevelSettingControl } from "@epanet-js/hydraulic-model";
 import {
   Junction,
   Pipe,
@@ -1049,6 +1051,94 @@ describe("build tanks from network data", () => {
   });
 });
 
+describe("build controls from network data", () => {
+  const aPumpedTank = {
+    junctions: [aJunction({ ref: "1", label: "J1", coordinates: [0, 0] })],
+    tanks: [aTank({ ref: "2", label: "T1", coordinates: [1, 0] })],
+    pumps: [
+      aPump({ ref: "10", label: "PU1", startNodeRef: "1", endNodeRef: "2" }),
+    ],
+  };
+
+  it("gives the pump the tank level control the source stated", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({ ...aPumpedTank, controls: [aTankLevelControl()] }),
+      { projections: aCatalogue() },
+    );
+
+    const pump = getByLabel(hydraulicModel.assets, "PU1") as Pump;
+    const tank = getByLabel(hydraulicModel.assets, "T1") as Tank;
+    const [control] = hydraulicModel.controls as LevelSettingControl[];
+
+    expect(control.type).toEqual("level-setting");
+    expect(control.linkId).toEqual(pump.id);
+    expect(control.tankId).toEqual(tank.id);
+    expect(control.on).toEqual({ level: 7.12, setting: 0.8113 });
+    expect(control.off).toEqual({ level: 7.92 });
+  });
+
+  it("finds the control from both the pump and the tank", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({ ...aPumpedTank, controls: [aTankLevelControl()] }),
+      { projections: aCatalogue() },
+    );
+
+    const pump = getByLabel(hydraulicModel.assets, "PU1") as Pump;
+    const tank = getByLabel(hydraulicModel.assets, "T1") as Tank;
+
+    expect([...hydraulicModel.controlsLookup.getControls(pump.id)]).toEqual(
+      hydraulicModel.controls,
+    );
+    expect([...hydraulicModel.controlsLookup.getControls(tank.id)]).toEqual(
+      hydraulicModel.controls,
+    );
+  });
+
+  it("converts the levels into the project's units", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        ...aPumpedTank,
+        controls: [aTankLevelControl()],
+        units: { flow: "gal/min", level: "m" },
+      }),
+      { projections: aCatalogue() },
+    );
+
+    const [control] = hydraulicModel.controls as LevelSettingControl[];
+    expect(control.on.level).toBeCloseTo(23.3596, 3);
+    expect(control.off.level).toBeCloseTo(25.9843, 3);
+    expect(control.on.setting).toEqual(0.8113);
+  });
+
+  it("drops a control naming an asset that never arrived", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        ...aPumpedTank,
+        controls: [
+          aTankLevelControl({ linkRef: "404" }),
+          aTankLevelControl({ tankRef: "404" }),
+        ],
+      }),
+      { projections: aCatalogue() },
+    );
+
+    const pump = getByLabel(hydraulicModel.assets, "PU1") as Pump;
+    const tank = getByLabel(hydraulicModel.assets, "T1") as Tank;
+
+    expect(hydraulicModel.controls).toEqual([]);
+    expect(hydraulicModel.controlsLookup.hasControls(pump.id)).toEqual(false);
+    expect(hydraulicModel.controlsLookup.hasControls(tank.id)).toEqual(false);
+  });
+
+  it("leaves the controls empty when the source states none", () => {
+    const { hydraulicModel } = buildModel(aNetwork(aPumpedTank), {
+      projections: aCatalogue(),
+    });
+
+    expect(hydraulicModel.controls).toEqual([]);
+  });
+});
+
 describe("labels across node kinds", () => {
   it("keeps labels unique when kinds collide", () => {
     const { hydraulicModel } = buildModel(
@@ -1072,6 +1162,15 @@ const aJunction = (
   ...data,
 });
 
+const aTankLevelControl = (data: Partial<ControlData> = {}): ControlData => ({
+  type: "tankLevel",
+  linkRef: "10",
+  tankRef: "2",
+  on: { level: 7.12, setting: 0.8113 },
+  off: { level: 7.92 },
+  ...data,
+});
+
 const aNetwork = (data: Partial<NetworkData> = {}): NetworkData => ({
   junctions: [],
   reservoirs: [],
@@ -1081,6 +1180,7 @@ const aNetwork = (data: Partial<NetworkData> = {}): NetworkData => ({
   valves: [],
   curves: [],
   patterns: [],
+  controls: [],
   units: {},
   crs: { type: "unknown" },
   ...data,

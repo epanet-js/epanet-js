@@ -1,4 +1,5 @@
 import type {
+  ControlData,
   CurvePointData,
   DemandData,
   JunctionData,
@@ -35,6 +36,10 @@ import {
   LabelManager,
   LabelType,
   ModelFactories,
+  Controls,
+  LevelSettingControl,
+  buildControlsLookup,
+  createControlId,
   initializeModelFactories,
 } from "@epanet-js/hydraulic-model";
 import { ConsecutiveIdsGenerator, IdGenerator } from "@epanet-js/id-generator";
@@ -144,6 +149,7 @@ export const buildModel = (
 
   const linkContext: LinkContext = {
     ...context,
+    linkIdByRef: new Map<string, AssetId>(),
     lengthUnit: spec.units.length,
     toLength: converterFor(network.units.length, spec.units.length),
     toDiameter: converterFor(network.units.diameter, spec.units.diameter),
@@ -162,6 +168,8 @@ export const buildModel = (
   for (const valveData of network.valves) {
     addValve(hydraulicModel, factories.assetFactory, valveData, linkContext);
   }
+
+  addControls(hydraulicModel, network, linkContext);
 
   return {
     hydraulicModel,
@@ -205,6 +213,7 @@ type NodeContext = {
 };
 
 type LinkContext = NodeContext & {
+  linkIdByRef: Map<string, AssetId>;
   lengthUnit: Unit;
   toLength: (value: number) => number;
   toDiameter: (value: number) => number;
@@ -379,7 +388,13 @@ const addPipe = (
     pipe.setProperty("length", computeLinkLength(pipe, context.lengthUnit));
   }
 
-  registerLink(hydraulicModel, pipe, geometry.connections);
+  registerLink(
+    hydraulicModel,
+    pipe,
+    pipeData.ref,
+    geometry.connections,
+    context,
+  );
 };
 
 const addPump = (
@@ -409,7 +424,13 @@ const addPump = (
       : { definitionType: "curveId" as const, curveId }),
   });
 
-  registerLink(hydraulicModel, pump, geometry.connections);
+  registerLink(
+    hydraulicModel,
+    pump,
+    pumpData.ref,
+    geometry.connections,
+    context,
+  );
 };
 
 type CurveContext = {
@@ -499,7 +520,13 @@ const addValve = (
     initialStatus: valveData.initialStatus,
   });
 
-  registerLink(hydraulicModel, valve, geometry.connections);
+  registerLink(
+    hydraulicModel,
+    valve,
+    valveData.ref,
+    geometry.connections,
+    context,
+  );
 };
 
 const unknownValveFallback = "tcv" as const satisfies ValveKind;
@@ -548,11 +575,50 @@ const linkProperties = (
 const registerLink = (
   hydraulicModel: HydraulicModel,
   link: LinkAsset,
+  ref: string,
   connections: LinkConnections,
+  { linkIdByRef }: LinkContext,
 ) => {
   hydraulicModel.assets.set(link.id, link);
   hydraulicModel.assetIndex.addLink(link.id);
   hydraulicModel.topology.addLink(link.id, connections[0], connections[1]);
+  linkIdByRef.set(ref, link.id);
+};
+
+const addControls = (
+  hydraulicModel: HydraulicModel,
+  { controls }: NetworkData,
+  context: LinkContext,
+): void => {
+  const built: Controls = [];
+
+  for (const controlData of controls) {
+    const control = tankLevelControlOf(controlData, context);
+    if (control === undefined) continue;
+
+    built.push(control);
+  }
+
+  hydraulicModel.controls = built;
+  hydraulicModel.controlsLookup = buildControlsLookup(built);
+};
+
+const tankLevelControlOf = (
+  { linkRef, tankRef, on, off }: ControlData,
+  { linkIdByRef, nodeIdByRef, toLevel }: LinkContext,
+): LevelSettingControl | undefined => {
+  const linkId = linkIdByRef.get(linkRef);
+  const tank = nodeIdByRef.get(tankRef);
+  if (linkId === undefined || tank === undefined) return undefined;
+
+  return {
+    id: createControlId(),
+    type: "level-setting",
+    linkId,
+    tankId: tank.id,
+    on: { level: toLevel(on.level), setting: on.setting },
+    off: { level: toLevel(off.level) },
+  };
 };
 
 const nodeProperties = (

@@ -103,6 +103,16 @@ export type PatternData = {
   multipliers: number[];
 };
 
+export type TankLevelControlData = {
+  type: "tankLevel";
+  linkRef: string;
+  tankRef: string;
+  on: { level: number; setting: number };
+  off: { level: number };
+};
+
+export type ControlData = TankLevelControlData;
+
 export type NetworkData = {
   junctions: JunctionData[];
   reservoirs: ReservoirData[];
@@ -112,6 +122,7 @@ export type NetworkData = {
   valves: ValveData[];
   curves: CurveData[];
   patterns: PatternData[];
+  controls: ControlData[];
   patternTimeStep?: number;
   headlossFormula?: HeadlossFormula;
   units: SourceUnits;
@@ -127,6 +138,7 @@ export const emptyNetworkData = (): NetworkData => ({
   valves: [],
   curves: [],
   patterns: [],
+  controls: [],
   units: {},
   crs: { type: "unknown" },
 });

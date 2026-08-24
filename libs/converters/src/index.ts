@@ -2,6 +2,7 @@ export type { ParseNetworkData, ParserResult } from "./parser";
 export type { Converter } from "./converter";
 export type { ParserInput, SourceFile } from "./source-file";
 export type {
+  ControlData,
   CurveData,
   CurvePointData,
   DemandData,
@@ -17,6 +18,7 @@ export type {
   SourceCrs,
   SourceUnits,
   TankData,
+  TankLevelControlData,
   ValveData,
 } from "./network-data";
 export { emptyNetworkData } from "./network-data";

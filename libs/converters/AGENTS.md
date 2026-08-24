@@ -137,6 +137,27 @@ ones. How a vendor reads its own profile between samples is vendor knowledge, an
 handing every consumer a set of time series to interpolate — writes that knowledge once per
 consumer instead of once per vendor.
 
+## A control joins two assets, so it belongs to neither
+
+`NetworkData.controls` is its own array, the same way curves are, because a control names a link
+*and* a node and putting it on either one leaves the other end a dangling reference on a record
+that has no business holding it.
+
+`TankLevelControlData` is the shape a vendor states when a tank switches a pump: the pump runs at
+`on.setting` while the tank is below `on.level`, and shuts above `off.level`. `linkRef` resolves
+against `pumps`, `tankRef` against `tanks` — two refs rather than one, because `ref` is unique
+within its array and not across the model.
+
+**The off side carries no setting.** Every reference export writes a shut pump there, and the
+domain has no field for a second running speed, so a source that states one is stating something
+this record cannot hold — the parser leaves the control out and says so, rather than dropping the
+speed and passing the rest off as complete.
+
+`on.setting` is a speed relative to the pump's rated speed, which is the same quantity
+`PumpData.speed` carries; `on.level` and `off.level` are levels, in `units.level`, on the same
+datum as `TankData.minLevel`. `type` discriminates because the kinds of control a vendor can state
+are open-ended, and a consumer must be able to switch rather than guess from which fields are set.
+
 ## A kind the source did not give is `"unknown"`, not a dropped record
 
 `ValveData.kind` is `ValveKind | "unknown"`. A vendor kind that maps to nothing in the domain

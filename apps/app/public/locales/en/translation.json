@@ -45,8 +45,8 @@
       "valveOperatingRuleUnsupported_other": "{{count}} Valves are opened and closed by tank level rules, which are not imported yet, so they keep their starting status",
       "pumpDefinitionUnsupported_one": "1 Pump names a flow and head curve with no points, so it was imported with no definition",
       "pumpDefinitionUnsupported_other": "{{count}} Pumps name a flow and head curve with no points, so they were imported with no definition",
-      "pumpControlUnsupported_one": "1 Pump is switched by a tank level rule, which is not imported yet, so it keeps its starting status",
-      "pumpControlUnsupported_other": "{{count}} Pumps are switched by tank level rules, which are not imported yet, so they keep their starting status",
+      "pumpControlUnsupported_one": "1 Pump is switched by a rule that could not be imported, so it keeps its starting status",
+      "pumpControlUnsupported_other": "{{count}} Pumps are switched by rules that could not be imported, so they keep their starting status",
       "pumpPressureControlUnsupported_one": "1 Pump holds a set pressure at another node, which is not imported yet, so it keeps only its speed",
       "pumpPressureControlUnsupported_other": "{{count}} Pumps hold a set pressure at another node, which is not imported yet, so they keep only their speed"
     }
