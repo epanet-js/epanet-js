@@ -73,6 +73,14 @@ Everything a parser is forbidden to do, so it is written once instead of once pe
 - **Length from geometry.** A declared length wins. When the source is silent the polyline is
   measured, which is the one case where a value is computed rather than read — it is derived
   from the source's own coordinates, not invented.
+- **A default roughness for a link the source described no pipe for.** When a source states
+  neither a length nor a roughness it did not describe a pipe there — it described a device this
+  model has to spell as one, like Synergi's check valves, which EPANET can only express as a pipe
+  with status `CV`. Those take the measured length (below) and the headloss formula's default
+  roughness from `getDefaultRoughness`, the same number a newly drawn pipe gets. A pipe whose
+  length the source *did* state keeps a blank roughness, per the rule above: that is a real pipe
+  with a value missing, not a device. Nothing is lost by the default — the real loss on such a
+  fitting is its minor loss, which the source states and `PipeData.minorLoss` carries.
 - **Active topology.** `LinkData.isActive` is the only thing a source states; a node's is derived
   from it — a node stays active while any link into it is active, and a node with no links at all
   stays active. That is not a default filling a silence, it is the app's own invariant, held

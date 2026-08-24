@@ -405,7 +405,7 @@ describe("headloss formula", () => {
     const { hydraulicModel } = buildModel(
       aNetwork({
         junctions: twoJunctions,
-        pipes: [aPipe({ ref: "10", label: "P1" })],
+        pipes: [aPipe({ ref: "10", label: "P1", length: 120 })],
         headlossFormula: "D-W",
       }),
       { projections: aCatalogue() },
@@ -413,6 +413,52 @@ describe("headloss formula", () => {
 
     const pipe = getByLabel(hydraulicModel.assets, "P1") as Pipe;
     expect(pipe.roughness).toBeNull();
+  });
+
+  it("gives the formula default to a link the source described no pipe for", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        junctions: twoJunctions,
+        pipes: [aPipe({ ref: "10", label: "P1", initialStatus: "cv" })],
+        headlossFormula: "D-W",
+      }),
+      { projections: aCatalogue() },
+    );
+
+    const pipe = getByLabel(hydraulicModel.assets, "P1") as Pipe;
+    expect(pipe.roughness).toEqual(0.1);
+    expect(pipe.length).toBeGreaterThan(0);
+  });
+
+  it("takes the Hazen-Williams default when that is the formula", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        junctions: twoJunctions,
+        pipes: [aPipe({ ref: "10", label: "P1", initialStatus: "cv" })],
+        headlossFormula: "H-W",
+      }),
+      { projections: aCatalogue() },
+    );
+
+    expect((getByLabel(hydraulicModel.assets, "P1") as Pipe).roughness).toEqual(
+      130,
+    );
+  });
+
+  it("carries the minor loss the source stated", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        junctions: twoJunctions,
+        pipes: [
+          aPipe({ ref: "10", label: "P1", initialStatus: "cv", minorLoss: 5 }),
+        ],
+      }),
+      { projections: aCatalogue() },
+    );
+
+    expect((getByLabel(hydraulicModel.assets, "P1") as Pipe).minorLoss).toEqual(
+      5,
+    );
   });
 
   it("keeps a stated roughness", () => {

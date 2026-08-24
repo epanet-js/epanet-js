@@ -48,6 +48,7 @@ import { inferNodeIsActive } from "src/hydraulic-model/utilities/active-topology
 import {
   EpanetUnitSystem,
   ProjectSettings,
+  getDefaultRoughness,
   presets,
   withHeadlossDefaults,
   withPressureUnit,
@@ -153,6 +154,7 @@ export const buildModel = (
     ...context,
     linkIdByRef: new Map<string, AssetId>(),
     lengthUnit: spec.units.length,
+    defaultRoughness: getDefaultRoughness(headlossFormula),
     toLength: converterFor(network.units.length, spec.units.length),
     toDiameter: converterFor(network.units.diameter, spec.units.diameter),
     toPressure: converterFor(network.units.pressure, spec.units.pressure),
@@ -218,6 +220,7 @@ type NodeContext = {
 type LinkContext = NodeContext & {
   linkIdByRef: Map<string, AssetId>;
   lengthUnit: Unit;
+  defaultRoughness: number;
   toLength: (value: number) => number;
   toDiameter: (value: number) => number;
   toPressure: (value: number) => number;
@@ -383,12 +386,17 @@ const addPipe = (
     length: converted(pipeData.length, context.toLength),
     diameter: converted(pipeData.diameter, context.toDiameter),
     roughness: pipeData.roughness,
+    minorLoss: pipeData.minorLoss,
     material: pipeData.material,
     initialStatus: pipeData.initialStatus,
   });
 
   if (pipe.length === null) {
     pipe.setProperty("length", computeLinkLength(pipe, context.lengthUnit));
+
+    if (pipe.roughness === null) {
+      pipe.setProperty("roughness", context.defaultRoughness);
+    }
   }
 
   registerLink(

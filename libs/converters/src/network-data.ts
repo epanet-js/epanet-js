@@ -69,6 +69,7 @@ export type PipeData = LinkData & {
   length?: number;
   diameter?: number;
   roughness?: number;
+  minorLoss?: number;
   material?: string;
   initialStatus?: PipeStatus;
 };
