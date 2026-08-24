@@ -1779,12 +1779,12 @@
     "menuTitle": "Zones",
     "title": "Import zones",
     "dataInputStep": {
-      "title": "Data mapping",
+      "title": "Data input",
       "addFromFile": "Add from file",
       "noProjectionWarning": "The selected GeoJSON file does not contain projection data. Assuming {{1}} as default."
     },
     "dataMappingStep": {
-      "title": "Data input",
+      "title": "Data mapping",
       "description": "Choose a property to use as zone label, or auto-generate labels.",
       "none": "None (auto-generate labels)",
       "previewHeader": "Label",
