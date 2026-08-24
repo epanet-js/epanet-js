@@ -1804,5 +1804,148 @@ describe("addLink", () => {
       expect(nodeStart.isActive).toBe(true);
       expect(nodeEnd.isActive).toBe(true);
     });
+
+    it("activates the node splitting an inactive pipe when the other endpoint splits an active pipe", () => {
+      const IDS = {
+        J1: 1,
+        J2: 2,
+        J3: 3,
+        J4: 4,
+        P1: 5,
+        P2: 6,
+        start: 7,
+        end: 8,
+        pump: 9,
+      } as const;
+      const labelManager = new LabelManager();
+      const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
+        .aJunction(IDS.J1, { coordinates: [0, 0], isActive: false })
+        .aJunction(IDS.J2, { coordinates: [10, 0], isActive: false })
+        .aPipe(IDS.P1, {
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
+          coordinates: [
+            [0, 0],
+            [10, 0],
+          ],
+          isActive: false,
+        })
+        .aJunction(IDS.J3, { coordinates: [0, 10] })
+        .aJunction(IDS.J4, { coordinates: [10, 10] })
+        .aPipe(IDS.P2, {
+          startNodeId: IDS.J3,
+          endNodeId: IDS.J4,
+          coordinates: [
+            [0, 10],
+            [10, 10],
+          ],
+          isActive: true,
+        })
+        .build();
+      const { assetFactory } = createTestFactories(
+        hydraulicModel,
+        labelManager,
+      );
+
+      const startNode = assetFactory.createJunction({
+        coordinates: [5, 0],
+        id: IDS.start,
+      });
+      const endNode = assetFactory.createJunction({
+        coordinates: [5, 10],
+        id: IDS.end,
+      });
+      const link = assetFactory.createPump({
+        coordinates: [
+          [5, 0],
+          [5, 10],
+        ],
+        id: IDS.pump,
+        isActive: true,
+      });
+
+      const { putAssets } = addLink(hydraulicModel, {
+        lengthUnit: "m",
+        assetFactory,
+        labelManager,
+        startNode,
+        endNode,
+        link,
+        startPipeId: IDS.P1,
+        endPipeId: IDS.P2,
+      });
+
+      const [newPump, nodeStart, nodeEnd] = putAssets || [];
+      expect(newPump.isActive).toBe(true);
+      expect(nodeStart.isActive).toBe(true);
+      expect(nodeEnd.isActive).toBe(true);
+    });
+
+    it("activates the node splitting an inactive pipe when the other endpoint is an existing active node", () => {
+      const IDS = {
+        J1: 1,
+        J2: 2,
+        J3: 3,
+        J4: 4,
+        P1: 5,
+        P2: 6,
+        start: 7,
+        pump: 8,
+      } as const;
+      const labelManager = new LabelManager();
+      const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
+        .aJunction(IDS.J1, { coordinates: [0, 0], isActive: false })
+        .aJunction(IDS.J2, { coordinates: [10, 0], isActive: false })
+        .aPipe(IDS.P1, {
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
+          coordinates: [
+            [0, 0],
+            [10, 0],
+          ],
+          isActive: false,
+        })
+        .aJunction(IDS.J3, { coordinates: [5, 10], isActive: true })
+        .aJunction(IDS.J4, { coordinates: [5, 20], isActive: true })
+        .aPipe(IDS.P2, {
+          startNodeId: IDS.J3,
+          endNodeId: IDS.J4,
+          isActive: true,
+        })
+        .build();
+      const { assetFactory } = createTestFactories(
+        hydraulicModel,
+        labelManager,
+      );
+
+      const startNode = assetFactory.createJunction({
+        coordinates: [5, 0],
+        id: IDS.start,
+      });
+      const endNode = hydraulicModel.assets.get(IDS.J3)?.copy() as Junction;
+      const link = assetFactory.createPump({
+        coordinates: [
+          [5, 0],
+          [5, 10],
+        ],
+        id: IDS.pump,
+        isActive: true,
+      });
+
+      const { putAssets } = addLink(hydraulicModel, {
+        lengthUnit: "m",
+        assetFactory,
+        labelManager,
+        startNode,
+        endNode,
+        link,
+        startPipeId: IDS.P1,
+      });
+
+      const [newPump, nodeStart, nodeEnd] = putAssets || [];
+      expect(newPump.isActive).toBe(true);
+      expect(nodeStart.isActive).toBe(true);
+      expect(nodeEnd.isActive).toBe(true);
+    });
   });
 });

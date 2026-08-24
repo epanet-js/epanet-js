@@ -162,7 +162,7 @@ const inferNodeActiveTopologyStatus = (
     );
 
   const splitPipe = hydraulicModel.assets.get(splitPipeId);
-  return !!splitPipe && splitPipe.isActive;
+  return newLink.isActive || (!!splitPipe && splitPipe.isActive);
 };
 
 const addMissingLabels = (
