@@ -3,6 +3,10 @@ import {
   findCrossingPipes,
   CrossingPipe,
 } from "src/lib/network-review";
+import clsx from "clsx";
+import { ConnectIcon } from "src/icons";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { DummyFixButton } from "./fixes/dummy-fix-button";
 import {
   EmptyState,
   LoadingState,
@@ -162,6 +166,10 @@ const CrossingPipesList = ({
   selectedCrossingPipes: string | null;
   onGoBack: () => void;
 }) => {
+  const isConnectCrossingPipesOn = useFeatureFlag(
+    "FLAG_CONNECT_CROSSING_PIPES",
+  );
+
   return (
     <VirtualizedIssuesList
       items={crossingPipes}
@@ -175,6 +183,13 @@ const CrossingPipesList = ({
           onClick={onClick}
         />
       )}
+      renderItemAction={
+        isConnectCrossingPipesOn
+          ? () => (
+              <DummyFixButton label="Fix" icon={<ConnectIcon size="md" />} />
+            )
+          : undefined
+      }
       checkType={CheckType.crossingPipes}
       onGoBack={onGoBack}
     />
@@ -191,6 +206,9 @@ const CrossingPipeItem = ({
   selectedId: string | null;
 }) => {
   const translate = useTranslate();
+  const isConnectCrossingPipesOn = useFeatureFlag(
+    "FLAG_CONNECT_CROSSING_PIPES",
+  );
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const crossingId = `${crossing.pipe1Id}-${crossing.pipe2Id}`;
   const isSelected = selectedId === crossingId;
@@ -214,6 +232,11 @@ const CrossingPipeItem = ({
   const diameter2Formatted =
     pipe2.diameter === null ? "—" : localizeDecimal(pipe2.diameter);
 
+  const diameterClassName = clsx(
+    "whitespace-nowrap text-subtle",
+    isConnectCrossingPipesOn ? "text-left" : "text-right",
+  );
+
   return (
     <Button
       onClick={() => onClick(crossing)}
@@ -226,17 +249,20 @@ const CrossingPipeItem = ({
       )}
       aria-selected={isSelected}
       tabIndex={-1}
-      className="group w-full"
+      className="group w-full hover:bg-transparent dark:hover:bg-transparent aria-selected:bg-transparent! aria-selected:hover:bg-transparent!"
     >
-      <div className="grid grid-cols-[1fr_auto] w-full items-start">
+      <div
+        className={clsx(
+          "grid w-full items-start",
+          isConnectCrossingPipesOn
+            ? "grid-cols-[minmax(0,auto)_auto] gap-x-2 justify-start"
+            : "grid-cols-[1fr_auto]",
+        )}
+      >
         <div className="min-w-0 truncate text-left">{pipe1Asset.label}</div>
-        <span className="whitespace-nowrap text-subtle text-right">
-          ⌀ {diameter1Formatted}
-        </span>
+        <span className={diameterClassName}>⌀ {diameter1Formatted}</span>
         <div className="min-w-0 truncate text-left">{pipe2Asset.label}</div>
-        <span className="whitespace-nowrap text-subtle text-right">
-          ⌀ {diameter2Formatted}
-        </span>
+        <span className={diameterClassName}>⌀ {diameter2Formatted}</span>
       </div>
     </Button>
   );

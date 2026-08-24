@@ -6,6 +6,10 @@ import {
   ProximityAnomaly,
   findProximityAnomalies,
 } from "src/lib/network-review";
+import clsx from "clsx";
+import { ConnectIcon } from "src/icons";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { DummyFixButton } from "./fixes/dummy-fix-button";
 import {
   EmptyState,
   LoadingState,
@@ -293,6 +297,10 @@ const ProximityAnomaliesList = ({
   selectedAnomaly: string | null;
   onGoBack: () => void;
 }) => {
+  const isFixPipeOverUnderShotOn = useFeatureFlag(
+    "FLAG_FIX_PIPE_OVER_UNDER_SHOT",
+  );
+
   return (
     <VirtualizedIssuesList
       items={proximityAnomalies}
@@ -306,6 +314,13 @@ const ProximityAnomaliesList = ({
           onClick={onClick}
         />
       )}
+      renderItemAction={
+        isFixPipeOverUnderShotOn
+          ? () => (
+              <DummyFixButton label="Fix" icon={<ConnectIcon size="md" />} />
+            )
+          : undefined
+      }
       checkType={CheckType.proximityAnomalies}
       onGoBack={onGoBack}
     />
@@ -322,6 +337,9 @@ const ProximityAnomalyItem = ({
   selectedId: string | null;
 }) => {
   const translate = useTranslate();
+  const isFixPipeOverUnderShotOn = useFeatureFlag(
+    "FLAG_FIX_PIPE_OVER_UNDER_SHOT",
+  );
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const { units } = useAtomValue(projectSettingsAtom);
   const connectionId = `${anomaly.nodeId}-${anomaly.pipeId}`;
@@ -351,11 +369,23 @@ const ProximityAnomalyItem = ({
       )}
       aria-selected={isSelected}
       tabIndex={-1}
-      className="group w-full"
+      className="group w-full hover:bg-transparent dark:hover:bg-transparent aria-selected:bg-transparent! aria-selected:hover:bg-transparent!"
     >
-      <div className="grid grid-cols-[1fr_auto] gap-x-2 items-center p-1 pr-0 text-size-base w-full justify-between">
-        <div className="truncate text-left">{nodeAsset.label}</div>
-        <div className="text-subtle min-w-0">
+      <div
+        className={clsx(
+          "grid gap-x-2 items-center p-1 pr-0 text-size-base w-full",
+          isFixPipeOverUnderShotOn
+            ? "grid-cols-[minmax(0,auto)_auto] justify-start"
+            : "grid-cols-[1fr_auto] justify-between",
+        )}
+      >
+        <div className="min-w-0 truncate text-left">{nodeAsset.label}</div>
+        <div
+          className={clsx(
+            "text-subtle",
+            isFixPipeOverUnderShotOn ? "whitespace-nowrap" : "min-w-0",
+          )}
+        >
           {distanceFormatted} {lengthUnit}
         </div>
       </div>

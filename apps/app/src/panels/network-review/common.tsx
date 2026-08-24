@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import { ChevronLeftIcon } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
@@ -231,6 +232,7 @@ export const VirtualizedIssuesList = <T, I>({
   onSelect,
   getItemId: getIdFromIssue,
   renderItem,
+  renderItemAction,
   checkType,
   estimateSize = 35,
   autoFocus = true,
@@ -247,6 +249,7 @@ export const VirtualizedIssuesList = <T, I>({
     selectedId: I | null,
     onClick: (item: T) => void,
   ) => React.ReactNode;
+  renderItemAction?: (item: T, isSelected: boolean) => React.ReactNode;
   checkType: CheckType;
   estimateSize?: number;
   autoFocus?: boolean;
@@ -441,6 +444,15 @@ export const VirtualizedIssuesList = <T, I>({
               const handleClickWithIndex = (clickedIssue: T) =>
                 handleItemClick(clickedIssue, itemIndex);
 
+              const isItemSelected = getIdFromIssue(item) === selectedItemId;
+              const itemAction = renderItemAction?.(item, isItemSelected);
+              const itemContent = renderItem(
+                itemIndex,
+                item,
+                selectedItemId,
+                handleClickWithIndex,
+              );
+
               return (
                 <li
                   key={String(getIdFromIssue(item))}
@@ -448,11 +460,31 @@ export const VirtualizedIssuesList = <T, I>({
                   className="w-full px-1"
                   ref={rowVirtualizer.measureElement}
                 >
-                  {renderItem(
-                    itemIndex,
-                    item,
-                    selectedItemId,
-                    handleClickWithIndex,
+                  {renderItemAction ? (
+                    <div
+                      className={clsx(
+                        "group/item flex items-center w-full rounded-sm",
+                        isItemSelected
+                          ? "bg-accent-tint"
+                          : "hover:bg-base-hover",
+                      )}
+                    >
+                      <div className="min-w-0 flex-auto">{itemContent}</div>
+                      {itemAction ? (
+                        <div
+                          className={clsx(
+                            "flex-none self-stretch flex items-center pr-1",
+                            isItemSelected
+                              ? ""
+                              : "invisible group-hover/item:visible",
+                          )}
+                        >
+                          {itemAction}
+                        </div>
+                      ) : null}
+                    </div>
+                  ) : (
+                    itemContent
                   )}
                 </li>
               );

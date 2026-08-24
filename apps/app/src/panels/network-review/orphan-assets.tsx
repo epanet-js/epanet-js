@@ -6,6 +6,7 @@ import { useZoomTo } from "src/hooks/use-zoom-to";
 import { AssetType, HydraulicModel } from "src/hydraulic-model";
 import { Asset, AssetId } from "@epanet-js/hydraulic-model";
 import {
+  DeleteIcon,
   JunctionIcon,
   PipeIcon,
   PumpIcon,
@@ -19,6 +20,8 @@ import { useCachedCheck } from "src/hooks/use-review-checks";
 import { useSelection } from "src/selection";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { selectionAtom } from "src/state/selection";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { DummyFixButton } from "./fixes/dummy-fix-button";
 import {
   EmptyState,
   LoadingState,
@@ -151,6 +154,8 @@ const OrphanAssetsList = ({
   onGoBack: () => void;
   hydraulicModel: HydraulicModel;
 }) => {
+  const isFixOrphanAssetOn = useFeatureFlag("FLAG_FIX_ORPHAN_ASSET");
+
   return (
     <VirtualizedIssuesList
       items={orphanAssets}
@@ -169,6 +174,17 @@ const OrphanAssetsList = ({
           />
         );
       }}
+      renderItemAction={
+        isFixOrphanAssetOn
+          ? () => (
+              <DummyFixButton
+                label="Fix"
+                variant="danger-quiet"
+                icon={<DeleteIcon size="md" />}
+              />
+            )
+          : undefined
+      }
       checkType={CheckType.orphanAssets}
       onGoBack={onGoBack}
     />
@@ -208,7 +224,7 @@ const OrphanAssetItem = ({
       )}
       aria-selected={isSelected}
       tabIndex={-1}
-      className="group w-full"
+      className="group w-full hover:bg-transparent dark:hover:bg-transparent aria-selected:bg-transparent! aria-selected:hover:bg-transparent!"
     >
       <div className="grid grid-cols-[auto_1fr] gap-x-2 items-start p-1 pr-0 text-size-base w-full">
         <div className="pt-[.125rem]">{iconByAssetType[asset.type]}</div>

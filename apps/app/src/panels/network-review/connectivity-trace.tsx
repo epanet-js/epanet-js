@@ -4,7 +4,7 @@ import { Button } from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
 import { useZoomTo } from "src/hooks/use-zoom-to";
 import { useUserTracking } from "src/infra/user-tracking";
-import { WarningIcon } from "src/icons";
+import { ActiveTopologyEnableIcon, WarningIcon } from "src/icons";
 import {
   findConnectivityTrace,
   SubNetwork,
@@ -15,6 +15,8 @@ import { useCachedCheck } from "src/hooks/use-review-checks";
 import { USelection, useSelection } from "src/selection";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { selectionAtom } from "src/state/selection";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { DummyFixButton } from "./fixes/dummy-fix-button";
 import {
   EmptyState,
   LoadingState,
@@ -157,6 +159,8 @@ const SubNetworksList = ({
   selectedSubNetwork: number | null;
   onGoBack: () => void;
 }) => {
+  const isDisableSubnetworkOn = useFeatureFlag("FLAG_DISABLE_SUBNETWORK");
+
   return (
     <VirtualizedIssuesList
       items={subNetworks}
@@ -172,6 +176,16 @@ const SubNetworksList = ({
           showWarning={subnetwork.supplySourceCount === 0}
         />
       )}
+      renderItemAction={
+        isDisableSubnetworkOn
+          ? () => (
+              <DummyFixButton
+                label="Fix"
+                icon={<ActiveTopologyEnableIcon size="md" />}
+              />
+            )
+          : undefined
+      }
       checkType={CheckType.connectivityTrace}
       onGoBack={onGoBack}
     />
@@ -216,7 +230,7 @@ const SubnetworkItem = ({
       )}
       aria-selected={isSelected}
       tabIndex={-1}
-      className="group w-full"
+      className="group w-full hover:bg-transparent dark:hover:bg-transparent aria-selected:bg-transparent! aria-selected:hover:bg-transparent!"
     >
       <div className="flex flex-col items-start p-1 pr-0 text-size-base w-full text-left">
         <div className="truncate">
