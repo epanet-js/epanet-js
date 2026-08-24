@@ -441,6 +441,114 @@ describe("moveNode", () => {
     expect(updatedCP2).toBeDefined();
   });
 
+  describe("active topology", () => {
+    it("activates an inactive node when it splits an active pipe", () => {
+      const IDS = { J1: 1, J2: 2, J3: 3, J4: 4, P1: 5, P2: 6 };
+      const { assetFactory, labelManager } = buildTestFactories();
+      const hydraulicModel = HydraulicModelBuilder.with({
+        assetFactory,
+        labelManager,
+      })
+        .aJunction(IDS.J1, { coordinates: [0, 0] })
+        .aJunction(IDS.J2, { coordinates: [10, 0] })
+        .aJunction(IDS.J3, { coordinates: [0, 10], isActive: false })
+        .aJunction(IDS.J4, { coordinates: [5, 10], isActive: false })
+        .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
+        .aPipe(IDS.P2, {
+          startNodeId: IDS.J3,
+          endNodeId: IDS.J4,
+          isActive: false,
+        })
+        .build();
+
+      const { putAssets } = moveNode(hydraulicModel, {
+        assetFactory,
+        labelManager,
+        lengthUnit: "m",
+        nodeId: IDS.J4,
+        newCoordinates: [5, 0],
+        newElevation: 10,
+        pipeIdToSplit: IDS.P1,
+      });
+
+      const movedNode = putAssets!.find((asset) => asset.id === IDS.J4)!;
+      expect(movedNode.isActive).toBe(true);
+
+      const inactivePipe = putAssets!.find((asset) => asset.id === IDS.P2)!;
+      expect(inactivePipe.isActive).toBe(false);
+    });
+
+    it("keeps an active node active when it splits an inactive pipe", () => {
+      const IDS = { J1: 1, J2: 2, J3: 3, J4: 4, P1: 5, P2: 6 };
+      const { assetFactory, labelManager } = buildTestFactories();
+      const hydraulicModel = HydraulicModelBuilder.with({
+        assetFactory,
+        labelManager,
+      })
+        .aJunction(IDS.J1, { coordinates: [0, 0], isActive: false })
+        .aJunction(IDS.J2, { coordinates: [10, 0], isActive: false })
+        .aJunction(IDS.J3, { coordinates: [0, 10] })
+        .aJunction(IDS.J4, { coordinates: [5, 10] })
+        .aPipe(IDS.P1, {
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
+          isActive: false,
+        })
+        .aPipe(IDS.P2, { startNodeId: IDS.J3, endNodeId: IDS.J4 })
+        .build();
+
+      const { putAssets } = moveNode(hydraulicModel, {
+        assetFactory,
+        labelManager,
+        lengthUnit: "m",
+        nodeId: IDS.J4,
+        newCoordinates: [5, 0],
+        newElevation: 10,
+        pipeIdToSplit: IDS.P1,
+      });
+
+      const movedNode = putAssets!.find((asset) => asset.id === IDS.J4)!;
+      expect(movedNode.isActive).toBe(true);
+    });
+
+    it("deactivates a node when both its links and the split pipe are inactive", () => {
+      const IDS = { J1: 1, J2: 2, J3: 3, J4: 4, P1: 5, P2: 6 };
+      const { assetFactory, labelManager } = buildTestFactories();
+      const hydraulicModel = HydraulicModelBuilder.with({
+        assetFactory,
+        labelManager,
+      })
+        .aJunction(IDS.J1, { coordinates: [0, 0], isActive: false })
+        .aJunction(IDS.J2, { coordinates: [10, 0], isActive: false })
+        .aJunction(IDS.J3, { coordinates: [0, 10], isActive: false })
+        .aJunction(IDS.J4, { coordinates: [5, 10] })
+        .aPipe(IDS.P1, {
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
+          isActive: false,
+        })
+        .aPipe(IDS.P2, {
+          startNodeId: IDS.J3,
+          endNodeId: IDS.J4,
+          isActive: false,
+        })
+        .build();
+
+      const { putAssets } = moveNode(hydraulicModel, {
+        assetFactory,
+        labelManager,
+        lengthUnit: "m",
+        nodeId: IDS.J4,
+        newCoordinates: [5, 0],
+        newElevation: 10,
+        pipeIdToSplit: IDS.P1,
+      });
+
+      const movedNode = putAssets!.find((asset) => asset.id === IDS.J4)!;
+      expect(movedNode.isActive).toBe(false);
+    });
+  });
+
   it("throws error for invalid pipeIdToSplit", () => {
     const IDS = { J1: 1 };
     const { assetFactory, labelManager } = buildTestFactories();

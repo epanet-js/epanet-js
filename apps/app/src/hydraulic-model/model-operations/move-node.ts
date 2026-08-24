@@ -17,6 +17,7 @@ import { lineString, point } from "@turf/helpers";
 import { findNearestPointOnLine } from "@epanet-js/geometry";
 import { splitPipe } from "./split-pipe";
 import { HydraulicModel } from "../hydraulic-model";
+import { inferNodeIsActive } from "../utilities/active-topology";
 import { Unit } from "@epanet-js/quantity";
 
 type InputData = {
@@ -195,10 +196,23 @@ const moveNodeWithPipeSplitting = (
     labelManager,
   });
 
-  const allPutAssets = [
-    ...(moveResult.putAssets || []),
-    ...(splitResult.putAssets || []),
-  ];
+  const isActive = inferNodeIsActive(
+    updatedNode,
+    new Set(splitResult.deleteAssets || []),
+    splitResult.putAssets || [],
+    hydraulicModel.topology,
+    hydraulicModel.assets,
+  );
+
+  const movedAssets = (moveResult.putAssets || []).map((asset) => {
+    if (asset.id !== nodeId) return asset;
+
+    const nodeCopy = (asset as NodeAsset).copy();
+    nodeCopy.setProperty("isActive", isActive);
+    return nodeCopy;
+  });
+
+  const allPutAssets = [...movedAssets, ...(splitResult.putAssets || [])];
 
   const allPutCustomerPoints = [
     ...(moveResult.putCustomerPoints || []),
