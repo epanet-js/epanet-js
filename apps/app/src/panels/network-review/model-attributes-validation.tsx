@@ -501,7 +501,7 @@ const ModelAttributesValidationEntityRow = ({
       aria-label={label}
       aria-selected={isSelected}
       tabIndex={-1}
-      className="group w-full"
+      className="group w-full hover:bg-transparent dark:hover:bg-transparent aria-selected:bg-transparent! aria-selected:hover:bg-transparent!"
     >
       <div className="flex items-center p-1 pr-0 text-size-base w-full text-left">
         <span className="truncate">{label}</span>

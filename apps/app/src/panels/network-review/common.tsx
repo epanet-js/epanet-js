@@ -233,6 +233,7 @@ export const VirtualizedIssuesList = <T, I>({
   getItemId: getIdFromIssue,
   renderItem,
   renderItemAction,
+  onItemAction,
   checkType,
   estimateSize = 35,
   autoFocus = true,
@@ -250,6 +251,7 @@ export const VirtualizedIssuesList = <T, I>({
     onClick: (item: T) => void,
   ) => React.ReactNode;
   renderItemAction?: (item: T, isSelected: boolean) => React.ReactNode;
+  onItemAction?: (itemId: I) => void;
   checkType: CheckType;
   estimateSize?: number;
   autoFocus?: boolean;
@@ -370,6 +372,11 @@ export const VirtualizedIssuesList = <T, I>({
             onGoBack();
           }
           break;
+        case "Enter":
+          if (!onItemAction || selectedItemId === null) break;
+          e.preventDefault();
+          onItemAction(selectedItemId);
+          break;
         case "+":
         case "=":
           e.preventDefault();
@@ -393,6 +400,8 @@ export const VirtualizedIssuesList = <T, I>({
       onGoBack,
       zoomIn,
       zoomOut,
+      onItemAction,
+      selectedItemId,
     ],
   );
 
@@ -460,32 +469,26 @@ export const VirtualizedIssuesList = <T, I>({
                   className="w-full px-1"
                   ref={rowVirtualizer.measureElement}
                 >
-                  {renderItemAction ? (
-                    <div
-                      className={clsx(
-                        "group/item flex items-center w-full rounded-sm",
-                        isItemSelected
-                          ? "bg-accent-tint"
-                          : "hover:bg-base-hover",
-                      )}
-                    >
-                      <div className="min-w-0 flex-auto">{itemContent}</div>
-                      {itemAction ? (
-                        <div
-                          className={clsx(
-                            "flex-none self-stretch flex items-center pr-1",
-                            isItemSelected
-                              ? ""
-                              : "invisible group-hover/item:visible",
-                          )}
-                        >
-                          {itemAction}
-                        </div>
-                      ) : null}
-                    </div>
-                  ) : (
-                    itemContent
-                  )}
+                  <div
+                    className={clsx(
+                      "group/item flex items-center w-full rounded-sm",
+                      isItemSelected ? "bg-accent-tint" : "hover:bg-base-hover",
+                    )}
+                  >
+                    <div className="min-w-0 flex-auto">{itemContent}</div>
+                    {itemAction ? (
+                      <div
+                        className={clsx(
+                          "flex-none self-stretch flex items-center pr-1",
+                          isItemSelected
+                            ? ""
+                            : "invisible group-hover/item:visible",
+                        )}
+                      >
+                        {itemAction}
+                      </div>
+                    ) : null}
+                  </div>
                 </li>
               );
             })}

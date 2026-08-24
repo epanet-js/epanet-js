@@ -157,6 +157,17 @@ const OrphanAssetsList = ({
   const isFixOrphanAssetOn = useFeatureFlag("FLAG_FIX_ORPHAN_ASSET");
   const { kindOf, fix } = useFixOrphanAsset();
 
+  const fixAndSelectNext = useCallback(
+    (assetId: AssetId) => {
+      const index = orphanAssets.indexOf(assetId);
+      const next = orphanAssets[index + 1] ?? orphanAssets[index - 1] ?? null;
+
+      fix(assetId);
+      onClick(next);
+    },
+    [orphanAssets, fix, onClick],
+  );
+
   return (
     <VirtualizedIssuesList
       items={orphanAssets}
@@ -182,11 +193,15 @@ const OrphanAssetsList = ({
               if (!kind) return null;
 
               return (
-                <FixOrphanAssetButton kind={kind} onFix={() => fix(assetId)} />
+                <FixOrphanAssetButton
+                  kind={kind}
+                  onFix={() => fixAndSelectNext(assetId)}
+                />
               );
             }
           : undefined
       }
+      onItemAction={isFixOrphanAssetOn ? fixAndSelectNext : undefined}
       checkType={CheckType.orphanAssets}
       onGoBack={onGoBack}
     />
