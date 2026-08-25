@@ -992,7 +992,7 @@ describe("build tanks from network data", () => {
             label: "TK_VOL",
             points: [
               { x: 0, y: 0 },
-              { x: 1140, y: 3 },
+              { x: 3, y: 1140 },
             ],
           },
         ],
@@ -1010,7 +1010,7 @@ describe("build tanks from network data", () => {
       type: "volume",
       points: [
         { x: 0, y: 0 },
-        { x: 1140, y: 3 },
+        { x: 3, y: 1140 },
       ],
     });
   });
@@ -1028,8 +1028,8 @@ describe("build tanks from network data", () => {
     const tank = getByLabel(hydraulicModel.assets, "T1") as Tank;
     const curve = hydraulicModel.curves.get(tank.volumeCurveId as number);
 
-    expect(curve?.points[0].x).toBeCloseTo(0.0283168, 6);
-    expect(curve?.points[0].y).toBeCloseTo(0.3048, 6);
+    expect(curve?.points[0].x).toBeCloseTo(0.3048, 6);
+    expect(curve?.points[0].y).toBeCloseTo(0.0283168, 6);
   });
 
   it("reads a tank diameter in its own unit, not the one pipes are in", () => {

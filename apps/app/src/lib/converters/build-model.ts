@@ -492,7 +492,7 @@ const curvePoints = (
   type: CurveType | undefined,
   { toVolume, toLevel, toFlow, toHead }: CurveContext,
 ): CurvePoint[] => {
-  const [toX, toY] = type === "volume" ? [toVolume, toLevel] : [toFlow, toHead];
+  const [toX, toY] = type === "volume" ? [toLevel, toVolume] : [toFlow, toHead];
 
   return points.map(({ x, y }) => ({ x: toX(x), y: toY(y) }));
 };

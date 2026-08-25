@@ -111,8 +111,16 @@ name, and leave a consumer guessing which duplicates were once the same curve.
 
 **Points are `{ x, y }`, not named for what they measure.** What a curve means comes from where it
 is referenced: a pump's curve is flow against head, so the consumer converts `x` with the flow unit
-and `y` with the head unit; a tank's volume curve is volume against level and converts through those.
+and `y` with the head unit; a tank's volume curve is level against volume and converts through those.
 The same record serves an efficiency or headloss curve without a second shape.
+
+**Which quantity is on which axis is the contract's, not the vendor's.** A source is free to store
+its volume curve the other way round, or on a datum of its own — Synergi states volume against a
+depth measured from the tank's floor — and the parser that knows that turns it round on the way out.
+A tank's volume curve therefore arrives as level against volume, its levels on the same datum as
+`TankData.minLevel`. Leaving the source's own axes on the record would make every consumer hold a
+rule per vendor to read a shape that is supposed to be uniform, and a curve read on the wrong axis
+is not a wrong number, it is a tank of a different size.
 
 Only curves something references belong in the array — a source is free to hold thousands of
 unrelated series in the same table.
