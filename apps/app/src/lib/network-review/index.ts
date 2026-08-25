@@ -4,6 +4,7 @@ export {
   blockingChecks,
   runBlockingChecks,
   failingRuleIds,
+  simulationBlockers,
 } from "./blocking-checks";
 export type { BlockingCheckType, BlockingCheckResult } from "./blocking-checks";
 

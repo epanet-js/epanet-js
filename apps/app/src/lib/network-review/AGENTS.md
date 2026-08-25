@@ -16,6 +16,9 @@ The model-review checks. Five of them, four living here and one next door in
 `blocking-checks.ts`, consumed by `run-simulation.tsx`. The other two are review
 tools only.
 
+Findings a simulation tolerates are dropped at the gate, not in the check, so the
+panels keep reporting them — orphan tanks and reservoirs are the current case.
+
 The gate is **advisory**. Two of the three blocking checks run in workers, so
 they sit on the critical path of every Run and they can genuinely fail. When one
 throws, `run-simulation.tsx` reports it to Sentry and offers the same review /

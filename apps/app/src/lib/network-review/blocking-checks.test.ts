@@ -3,6 +3,7 @@ import {
   blockingChecks,
   failingRuleIds,
   runBlockingChecks,
+  simulationBlockers,
   type BlockingCheckResult,
 } from "./blocking-checks";
 import { CheckType } from "./types";
@@ -15,6 +16,8 @@ const IDS = {
   J3: 5,
   P2: 6,
   ORPHAN: 7,
+  ORPHAN_TANK: 8,
+  ORPHAN_RESERVOIR: 9,
 } as const;
 
 const aValidModel = () =>
@@ -105,6 +108,57 @@ describe("runBlockingChecks", () => {
     await expect(
       runBlockingChecks(aValidModel(), { signal: abortController.signal }),
     ).rejects.toThrow();
+  });
+});
+
+describe("simulationBlockers", () => {
+  const aModelWithOrphanSources = () =>
+    HydraulicModelBuilder.with()
+      .aReservoir(IDS.R1, { head: 100 })
+      .aJunction(IDS.J1, { elevation: 10 })
+      .aPipe(IDS.P1, {
+        startNodeId: IDS.R1,
+        endNodeId: IDS.J1,
+        length: 100,
+        diameter: 100,
+        roughness: 100,
+      })
+      .aTank(IDS.ORPHAN_TANK)
+      .aReservoir(IDS.ORPHAN_RESERVOIR, { head: 100 })
+      .build();
+
+  it("does not block on orphan tanks and reservoirs", async () => {
+    const model = aModelWithOrphanSources();
+    const results = await runBlockingChecks(model, {
+      only: [CheckType.orphanAssets],
+    });
+
+    expect(results[0].issueCount).toEqual(2);
+    expect(failingRuleIds(simulationBlockers(results, model))).toEqual([]);
+  });
+
+  it("keeps blocking on the other orphans", async () => {
+    const model = HydraulicModelBuilder.with()
+      .aReservoir(IDS.R1, { head: 100 })
+      .aJunction(IDS.J1, { elevation: 10 })
+      .aPipe(IDS.P1, {
+        startNodeId: IDS.R1,
+        endNodeId: IDS.J1,
+        length: 100,
+        diameter: 100,
+        roughness: 100,
+      })
+      .aTank(IDS.ORPHAN_TANK)
+      .aJunction(IDS.ORPHAN, { elevation: 10 })
+      .build();
+
+    const results = await runBlockingChecks(model, {
+      only: [CheckType.orphanAssets],
+    });
+    const [orphans] = simulationBlockers(results, model);
+
+    expect(orphans.items).toEqual([IDS.ORPHAN]);
+    expect(orphans.issueCount).toEqual(1);
   });
 });
 

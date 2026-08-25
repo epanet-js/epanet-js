@@ -87,6 +87,26 @@ export const runBlockingChecks = async (
   );
 };
 
+// EPANET solves a model with a disconnected tank or reservoir, so the review
+// still reports them but they must not gate a run.
+const blocksSimulation = (model: HydraulicModel, assetId: AssetId): boolean => {
+  const type = model.assets.get(assetId)?.type;
+  return type !== "tank" && type !== "reservoir";
+};
+
+export const simulationBlockers = (
+  results: BlockingCheckResult[],
+  model: HydraulicModel,
+): BlockingCheckResult[] =>
+  results.map((result) => {
+    if (result.check !== CheckType.orphanAssets) return result;
+
+    const items = result.items.filter((assetId) =>
+      blocksSimulation(model, assetId),
+    );
+    return { ...result, items, issueCount: items.length };
+  });
+
 const reportOrder = [
   CheckType.orphanAssets,
   CheckType.connectivityTrace,

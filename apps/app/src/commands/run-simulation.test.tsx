@@ -464,6 +464,41 @@ describe("Run simulation", () => {
       });
     });
 
+    it("does not block on a disconnected tank or reservoir", async () => {
+      const IDS = { r1: 1, j1: 2, p1: 3, tank: 4, r2: 5 } as const;
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aReservoir(IDS.r1, { head: 100 })
+        .aJunction(IDS.j1, { elevation: 0 })
+        .aJunctionDemand(IDS.j1, [{ baseDemand: 1 }])
+        .aPipe(IDS.p1, {
+          startNodeId: IDS.r1,
+          endNodeId: IDS.j1,
+          length: 100,
+          diameter: 100,
+          roughness: 100,
+        })
+        .aTank(IDS.tank, {
+          elevation: 10,
+          initialLevel: 5,
+          diameter: 10,
+          minLevel: 0,
+          maxLevel: 10,
+        })
+        .aReservoir(IDS.r2, { head: 100 })
+        .build();
+      const store = setInitialState({ hydraulicModel });
+      renderComponent({ store });
+
+      await triggerRun();
+
+      await waitFor(() => {
+        expect(lib.runSimulation).toHaveBeenCalled();
+      });
+      expect(store.get(dialogAtom)).not.toMatchObject({
+        type: "preSimulationChecks",
+      });
+    });
+
     it("runs anyway when the user chooses to", async () => {
       const store = setInitialState({ hydraulicModel: aModelWithAnOrphan() });
       renderComponent({ store });

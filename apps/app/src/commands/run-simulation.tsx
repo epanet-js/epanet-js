@@ -27,7 +27,11 @@ import { nanoid } from "src/lib/id";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useToggleNetworkReview } from "src/commands/toggle-network-review";
 import { selectedReviewCheckAtom } from "src/state/network-review";
-import { CheckType, failingRuleIds } from "src/lib/network-review";
+import {
+  CheckType,
+  failingRuleIds,
+  simulationBlockers,
+} from "src/lib/network-review";
 import { useReviewChecks } from "src/hooks/use-review-checks";
 import { errorName, handleError } from "src/infra/errors";
 export const runSimulationShortcut = "shift+enter";
@@ -292,10 +296,11 @@ export const useRunSimulation = () => {
           return;
         }
 
-        const failingRules = failingRuleIds(results);
+        const blockers = simulationBlockers(results, hydraulicModel);
+        const failingRules = failingRuleIds(blockers);
 
         if (failingRules.length > 0) {
-          const failingChecks = results
+          const failingChecks = blockers
             .filter((result) => result.issueCount > 0)
             .map((result) => result.check);
           const reviewTarget =
@@ -303,7 +308,7 @@ export const useRunSimulation = () => {
 
           userTracking.capture({
             name: "simulation.validation.issuesFound",
-            issueCount: results.reduce(
+            issueCount: blockers.reduce(
               (total, result) => total + result.issueCount,
               0,
             ),
