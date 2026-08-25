@@ -87,6 +87,16 @@ Everything a parser is forbidden to do, so it is written once instead of once pe
   Solving and reporting on the source's own step is what makes the result comparable against the
   vendor's own output; every reference INP writes the same value for all three. Absent, the defaults
   stand and the import stays a snapshot.
+- **A scheduled setting becomes raw EPANET controls.** `TimedSettingControlData` is written into
+  `rawControls.simple`, one `LINK {{0}} <setting> AT TIME <h:mm>` per step, with the setting
+  converted through the valve's own quantity. The domain's `TimedSettingControl` is the right home
+  for it, but its steps are typed and rendered as a pump's speed and its editor only appears on a
+  pump, so a valve's schedule would be silently mis-emitted (`pumpSettingFor` turns a setting of 1
+  into `OPEN`, which for a tcv means no loss at all rather than K=1). Raw controls carry it exactly
+  today — they are persisted, emitted, skipped when they name an inactive asset, and surfaced in the
+  panel as "raw controls detected" — at the cost of not being editable. The placeholder resolves
+  from the asset id at INP-build time, which is why this is the consumer's job and not the parser's:
+  nothing upstream knows what the app will call the valve.
 - **Active topology.** `LinkData.isActive` is the only thing a source states; a node's is derived
   from it — a node stays active while any link into it is active, and a node with no links at all
   stays active. That is not a default filling a silence, it is the app's own invariant, held

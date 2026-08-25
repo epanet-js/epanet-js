@@ -1,5 +1,6 @@
 import type {
-  ControlData,
+  TankLevelControlData,
+  TimedSettingControlData,
   CurvePointData,
   DemandData,
   JunctionData,
@@ -39,6 +40,8 @@ import {
   ModelFactories,
   Controls,
   LevelSettingControl,
+  SimpleControl,
+  Valve,
   buildControlsLookup,
   createControlId,
   initializeModelFactories,
@@ -633,6 +636,18 @@ const addControls = (
   const built: Controls = [];
 
   for (const controlData of controls) {
+    if (controlData.type === "timedSetting") {
+      const scheduled = scheduledSettingOf(
+        controlData,
+        hydraulicModel,
+        context,
+      );
+      if (scheduled !== undefined) {
+        hydraulicModel.rawControls.simple.push(...scheduled);
+      }
+      continue;
+    }
+
     const control = tankLevelControlOf(controlData, context);
     if (control === undefined) continue;
 
@@ -643,8 +658,36 @@ const addControls = (
   hydraulicModel.controlsLookup = buildControlsLookup(built);
 };
 
+// The domain's own timed control is a pump's; until it covers valves too, a
+// schedule the source states is written as the EPANET controls it would become.
+const scheduledSettingOf = (
+  { linkRef, steps }: TimedSettingControlData,
+  hydraulicModel: HydraulicModel,
+  context: LinkContext,
+): SimpleControl[] | undefined => {
+  const linkId = context.linkIdByRef.get(linkRef);
+  if (linkId === undefined) return undefined;
+
+  const valve = hydraulicModel.assets.get(linkId) as Valve | undefined;
+  if (valve === undefined || valve.type !== "valve") return undefined;
+
+  const convert = settingConverterFor(valve.kind, context);
+
+  return steps.map(({ time, setting }) => ({
+    template: `LINK {{0}} ${convert(setting)} AT TIME ${asClockTime(time)}`,
+    assetReferences: [{ assetId: linkId, isActionTarget: true }],
+  }));
+};
+
+const asClockTime = (seconds: number): string => {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+
+  return `${hours}:${String(minutes).padStart(2, "0")}`;
+};
+
 const tankLevelControlOf = (
-  { linkRef, tankRef, on, off }: ControlData,
+  { linkRef, tankRef, on, off }: TankLevelControlData,
   { linkIdByRef, nodeIdByRef, toLevel }: LinkContext,
 ): LevelSettingControl | undefined => {
   const linkId = linkIdByRef.get(linkRef);

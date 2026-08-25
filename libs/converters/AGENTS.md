@@ -172,6 +172,19 @@ speed and passing the rest off as complete.
 datum as `TankData.minLevel`. `type` discriminates because the kinds of control a vendor can state
 are open-ended, and a consumer must be able to switch rather than guess from which fields are set.
 
+**`TimedSettingControlData` is a setting the source schedules**: `steps` of `{ time, setting }`, time
+in seconds from the start of the run, the setting in whatever quantity the link it names carries — a
+pressure for a prv, a flow for an fcv, a speed for a pump. The steps are the source's own points, not
+a resampling onto `patternTimeStep`: a schedule states when it changes, and a consumer that wants a
+grid can build one, while a consumer handed a grid can never recover the instants.
+
+**`linkType` says which array `linkRef` resolves against**, because `ref` is unique within an array
+and not across the model — and because the two kinds of link are worth different things to a
+consumer, which may hold a schedule natively for one and not the other. A record carrying a schedule
+also means the link itself is free to state the value at t = 0 as its setting: that number is exact,
+not a moving setpoint flattened into one, precisely because the rest of the series travels beside
+it.
+
 ## A kind the source did not give is `"unknown"`, not a dropped record
 
 `ValveData.kind` is `ValveKind | "unknown"`. A vendor kind that maps to nothing in the domain

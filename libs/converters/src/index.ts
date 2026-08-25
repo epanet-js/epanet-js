@@ -19,6 +19,8 @@ export type {
   SourceUnits,
   TankData,
   TankLevelControlData,
+  TimedSettingControlData,
+  TimedSettingStepData,
   ValveData,
 } from "./network-data";
 export { emptyNetworkData } from "./network-data";

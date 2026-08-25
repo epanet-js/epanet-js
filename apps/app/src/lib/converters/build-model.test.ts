@@ -1,5 +1,5 @@
 import type {
-  ControlData,
+  TankLevelControlData,
   JunctionData,
   NetworkData,
   PipeData,
@@ -1310,6 +1310,73 @@ describe("labels across node kinds", () => {
     const labels = [...hydraulicModel.assets.values()].map((a) => a.label);
     expect(labels).toEqual(["SHARED", "2", "3"]);
   });
+
+  it("writes a valve's scheduled setting as epanet controls", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        junctions: [
+          aJunction({ ref: "1", label: "J1", coordinates: [0, 0] }),
+          aJunction({ ref: "2", label: "J2", coordinates: [1, 0] }),
+        ],
+        valves: [aValve({ ref: "10", label: "V1", kind: "fcv", setting: 70 })],
+        controls: [
+          {
+            type: "timedSetting",
+            linkType: "valve",
+            linkRef: "10",
+            steps: [
+              { time: 0, setting: 70 },
+              { time: 43200, setting: 55 },
+            ],
+          },
+        ],
+        units: { flow: "l/s" },
+      }),
+      { projections: aCatalogue() },
+    );
+
+    const valve = getByLabel(hydraulicModel.assets, "V1") as Valve;
+
+    expect(hydraulicModel.rawControls.simple).toEqual([
+      {
+        template: "LINK {{0}} 70 AT TIME 0:00",
+        assetReferences: [{ assetId: valve.id, isActionTarget: true }],
+      },
+      {
+        template: "LINK {{0}} 55 AT TIME 12:00",
+        assetReferences: [{ assetId: valve.id, isActionTarget: true }],
+      },
+    ]);
+    expect(hydraulicModel.controls).toEqual([]);
+  });
+
+  it("converts a scheduled setting through the valve's own quantity", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        junctions: [
+          aJunction({ ref: "1", label: "J1", coordinates: [0, 0] }),
+          aJunction({ ref: "2", label: "J2", coordinates: [1, 0] }),
+        ],
+        valves: [
+          aValve({ ref: "10", label: "V1", kind: "fcv", setting: 3600 }),
+        ],
+        controls: [
+          {
+            type: "timedSetting",
+            linkType: "valve",
+            linkRef: "10",
+            steps: [{ time: 3600, setting: 3600 }],
+          },
+        ],
+        units: { flow: "l/h" },
+      }),
+      { projections: aCatalogue() },
+    );
+
+    expect(hydraulicModel.rawControls.simple[0].template).toEqual(
+      "LINK {{0}} 1 AT TIME 1:00",
+    );
+  });
 });
 
 const aJunction = (
@@ -1319,7 +1386,9 @@ const aJunction = (
   ...data,
 });
 
-const aTankLevelControl = (data: Partial<ControlData> = {}): ControlData => ({
+const aTankLevelControl = (
+  data: Partial<TankLevelControlData> = {},
+): TankLevelControlData => ({
   type: "tankLevel",
   linkRef: "10",
   tankRef: "2",

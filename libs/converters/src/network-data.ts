@@ -112,7 +112,19 @@ export type TankLevelControlData = {
   off: { level: number };
 };
 
-export type ControlData = TankLevelControlData;
+export type TimedSettingStepData = {
+  time: number;
+  setting: number;
+};
+
+export type TimedSettingControlData = {
+  type: "timedSetting";
+  linkType: "valve";
+  linkRef: string;
+  steps: TimedSettingStepData[];
+};
+
+export type ControlData = TankLevelControlData | TimedSettingControlData;
 
 export type NetworkData = {
   junctions: JunctionData[];
