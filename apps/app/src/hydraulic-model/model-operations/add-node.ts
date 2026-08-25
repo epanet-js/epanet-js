@@ -17,7 +17,7 @@ type InputData = {
   nodeType: NodeType;
   coordinates: Position;
   elevation?: number | null;
-  pipeIdToSplit?: AssetId;
+  pipeIdsToSplit?: AssetId[];
   lengthUnit: Unit;
   assetFactory: AssetFactory;
   labelManager: LabelManager;
@@ -29,16 +29,18 @@ export const addNode: ModelOperation<InputData> = (
     nodeType,
     coordinates,
     elevation = 0,
-    pipeIdToSplit,
+    pipeIdsToSplit,
     lengthUnit,
     assetFactory,
     labelManager,
   },
 ) => {
-  const isActive = getInheritedActiveTopologyStatus(
-    hydraulicModel,
-    pipeIdToSplit,
-  );
+  // Deduplicated: splitting the same pipe twice would run two independent
+  // splits over the same base pipe, emitting duplicate segments that all
+  // connect to the new node.
+  const pipeIds = Array.from(new Set(pipeIdsToSplit ?? []));
+
+  const isActive = getInheritedActiveTopologyStatus(hydraulicModel, pipeIds);
 
   const node = createNode(
     assetFactory,
@@ -49,11 +51,11 @@ export const addNode: ModelOperation<InputData> = (
   );
   addMissingLabel(labelManager, node);
 
-  if (pipeIdToSplit) {
+  if (pipeIds.length > 0) {
     return addNodeWithPipeSplitting(
       hydraulicModel,
       node,
-      pipeIdToSplit,
+      pipeIds,
       lengthUnit,
       assetFactory,
       labelManager,
@@ -100,42 +102,51 @@ const createNode = (
 const addNodeWithPipeSplitting = (
   hydraulicModel: HydraulicModel,
   node: NodeAsset,
-  pipeIdToSplit: AssetId,
+  pipeIdsToSplit: AssetId[],
   lengthUnit: Unit,
   assetFactory: AssetFactory,
   labelManager: LabelManager,
 ) => {
-  const pipe = hydraulicModel.assets.get(pipeIdToSplit) as Pipe;
-  if (!pipe || pipe.type !== "pipe") {
-    throw new Error(`Invalid pipe ID: ${pipeIdToSplit}`);
-  }
+  const splitResults = pipeIdsToSplit.map((pipeId) => {
+    const pipe = hydraulicModel.assets.get(pipeId) as Pipe;
+    if (!pipe || pipe.type !== "pipe") {
+      throw new Error(`Invalid pipe ID: ${pipeId}`);
+    }
 
-  const splitResult = splitPipe(hydraulicModel, {
-    pipe,
-    splits: [node],
-    lengthUnit,
-    assetFactory,
-    labelManager,
+    return splitPipe(hydraulicModel, {
+      pipe,
+      splits: [node],
+      lengthUnit,
+      assetFactory,
+      labelManager,
+    });
   });
+
+  const customerPoints = splitResults.flatMap(
+    (result) => result.putCustomerPoints ?? [],
+  );
 
   return {
     note: `Add ${node.type} and split pipe`,
-    putAssets: [node, ...splitResult.putAssets!],
-    putCustomerPoints: splitResult.putCustomerPoints,
-    deleteAssets: splitResult.deleteAssets!,
+    putAssets: [node, ...splitResults.flatMap((result) => result.putAssets!)],
+    putCustomerPoints: customerPoints.length > 0 ? customerPoints : undefined,
+    deleteAssets: splitResults.flatMap((result) => result.deleteAssets!),
   };
 };
 
 const getInheritedActiveTopologyStatus = (
   hydraulicModel: HydraulicModel,
-  pipeIdToSplit?: AssetId,
+  pipeIdsToSplit: AssetId[],
 ): boolean => {
-  if (!pipeIdToSplit) return true;
-  const pipe = hydraulicModel.assets.get(pipeIdToSplit) as Pipe;
-  if (!pipe || pipe.type !== "pipe") {
-    return true;
-  }
-  return pipe.feature.properties.isActive;
+  if (pipeIdsToSplit.length === 0) return true;
+
+  return pipeIdsToSplit.some((pipeId) => {
+    const pipe = hydraulicModel.assets.get(pipeId) as Pipe;
+    if (!pipe || pipe.type !== "pipe") {
+      return true;
+    }
+    return pipe.feature.properties.isActive;
+  });
 };
 
 const addMissingLabel = (labelManager: LabelManager, node: NodeAsset) => {

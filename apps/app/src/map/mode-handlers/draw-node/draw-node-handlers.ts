@@ -68,7 +68,7 @@ export function useDrawNodeHandlers({
       nodeType,
       coordinates,
       elevation,
-      pipeIdToSplit,
+      pipeIdsToSplit: pipeIdToSplit !== undefined ? [pipeIdToSplit] : undefined,
       lengthUnit: units.length,
       assetFactory,
       labelManager,

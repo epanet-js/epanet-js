@@ -5,6 +5,7 @@ import {
   buildCustomerPoint,
 } from "src/__helpers__/hydraulic-model-builder";
 import { buildTestFactories } from "src/__helpers__/test-factories";
+import type { Pipe } from "@epanet-js/hydraulic-model";
 
 describe("addNode", () => {
   describe("without pipe splitting (backward compatibility)", () => {
@@ -107,7 +108,7 @@ describe("addNode", () => {
         nodeType: "junction",
         coordinates: [5, 0],
         elevation: 50,
-        pipeIdToSplit: IDS.P1,
+        pipeIdsToSplit: [IDS.P1],
       });
 
       expect(putAssets).toHaveLength(3);
@@ -158,7 +159,7 @@ describe("addNode", () => {
         nodeType: "junction",
         coordinates: nodeCoordinates,
         elevation: 50,
-        pipeIdToSplit: IDS.P1,
+        pipeIdsToSplit: [IDS.P1],
       });
 
       const [junction, pipe1, pipe2] = putAssets!;
@@ -192,7 +193,7 @@ describe("addNode", () => {
         lengthUnit: "m",
         nodeType: "junction",
         coordinates: [5, 0],
-        pipeIdToSplit: IDS.MainPipe,
+        pipeIdsToSplit: [IDS.MainPipe],
       });
 
       expect(putAssets).toHaveLength(3);
@@ -222,7 +223,7 @@ describe("addNode", () => {
           lengthUnit: "m",
           nodeType: "junction",
           coordinates: [5, 0],
-          pipeIdToSplit: NonExistentPipeId,
+          pipeIdsToSplit: [NonExistentPipeId],
         }),
       ).toThrow("Invalid pipe ID: 1");
     });
@@ -244,7 +245,7 @@ describe("addNode", () => {
           lengthUnit: "m",
           nodeType: "junction",
           coordinates: [5, 0],
-          pipeIdToSplit: IDS.J1,
+          pipeIdsToSplit: [IDS.J1],
         }),
       ).toThrow(`Invalid pipe ID: ${IDS.J1}`);
     });
@@ -271,7 +272,7 @@ describe("addNode", () => {
         lengthUnit: "m",
         nodeType: "junction",
         coordinates: [10, 0],
-        pipeIdToSplit: IDS.MainPipe,
+        pipeIdsToSplit: [IDS.MainPipe],
       });
 
       const [newJunction, firstSegment, secondSegment] = putAssets!;
@@ -316,7 +317,7 @@ describe("addNode", () => {
         lengthUnit: "m",
         nodeType: "junction",
         coordinates: [5, 0],
-        pipeIdToSplit: IDS.P1,
+        pipeIdsToSplit: [IDS.P1],
       });
 
       expect(putAssets).toHaveLength(3);
@@ -352,7 +353,7 @@ describe("addNode", () => {
         lengthUnit: "m",
         nodeType: "junction",
         coordinates: [5, 0],
-        pipeIdToSplit: IDS.P1,
+        pipeIdsToSplit: [IDS.P1],
       });
 
       const [newJunction] = putAssets!;
@@ -381,7 +382,7 @@ describe("addNode", () => {
         lengthUnit: "m",
         nodeType: "junction",
         coordinates: [5, 0],
-        pipeIdToSplit: IDS.P1,
+        pipeIdsToSplit: [IDS.P1],
       });
 
       const [newJunction] = putAssets!;
@@ -435,7 +436,7 @@ describe("addNode", () => {
       lengthUnit: "m",
       nodeType: "junction",
       coordinates: [5, 0],
-      pipeIdToSplit: IDS.P1,
+      pipeIdsToSplit: [IDS.P1],
     });
 
     const [, pipe1, pipe2] = putAssets!;
@@ -478,7 +479,7 @@ describe("addNode", () => {
       lengthUnit: "m",
       nodeType: "reservoir",
       coordinates: [10, 0],
-      pipeIdToSplit: IDS.P1,
+      pipeIdsToSplit: [IDS.P1],
     });
 
     const [reservoir, pipe1, pipe2] = putAssets!;
@@ -523,7 +524,7 @@ describe("addNode", () => {
       nodeType: "tank",
       coordinates: [5, 0],
       elevation: 100,
-      pipeIdToSplit: IDS.P1,
+      pipeIdsToSplit: [IDS.P1],
     });
 
     const [tank, pipe1, pipe2] = putAssets!;
@@ -537,5 +538,157 @@ describe("addNode", () => {
       [5, 0],
       [10, 0],
     ]);
+  });
+
+  describe("with multiple pipes to split", () => {
+    const buildCrossing = () => {
+      const IDS = {
+        A1: 1,
+        A2: 2,
+        PA: 3,
+        B1: 4,
+        B2: 5,
+        PB: 6,
+      } as const;
+      const { assetFactory, labelManager } = buildTestFactories();
+      const hydraulicModel = HydraulicModelBuilder.with({
+        assetFactory,
+        labelManager,
+      })
+        .aNode(IDS.A1, [0, 0])
+        .aNode(IDS.A2, [10, 0])
+        .aPipe(IDS.PA, { startNodeId: IDS.A1, endNodeId: IDS.A2 })
+        .aNode(IDS.B1, [5, -5])
+        .aNode(IDS.B2, [5, 5])
+        .aPipe(IDS.PB, { startNodeId: IDS.B1, endNodeId: IDS.B2 })
+        .build();
+
+      return { IDS, hydraulicModel, assetFactory, labelManager };
+    };
+
+    it("splits every pipe at the shared junction", () => {
+      const { IDS, hydraulicModel, assetFactory, labelManager } =
+        buildCrossing();
+
+      const { putAssets, deleteAssets } = addNode(hydraulicModel, {
+        assetFactory,
+        labelManager,
+        lengthUnit: "m",
+        nodeType: "junction",
+        coordinates: [5, 0],
+        elevation: 50,
+        pipeIdsToSplit: [IDS.PA, IDS.PB],
+      });
+
+      expect(deleteAssets).toEqual([IDS.PA, IDS.PB]);
+
+      const [junction, ...pipes] = putAssets!;
+      expect(junction.type).toBe("junction");
+      expect(pipes).toHaveLength(4);
+
+      for (const pipe of pipes) {
+        expect(pipe.type).toBe("pipe");
+        expect((pipe as Pipe).connections).toContain(junction.id);
+      }
+    });
+
+    it("keeps the junction active when any one split pipe is active", () => {
+      const IDS = { A1: 1, A2: 2, PA: 3, B1: 4, B2: 5, PB: 6 } as const;
+      const { assetFactory, labelManager } = buildTestFactories();
+      const hydraulicModel = HydraulicModelBuilder.with({
+        assetFactory,
+        labelManager,
+      })
+        .aNode(IDS.A1, [0, 0])
+        .aNode(IDS.A2, [10, 0])
+        .aPipe(IDS.PA, { startNodeId: IDS.A1, endNodeId: IDS.A2 })
+        .aNode(IDS.B1, [5, -5])
+        .aNode(IDS.B2, [5, 5])
+        .aPipe(IDS.PB, {
+          startNodeId: IDS.B1,
+          endNodeId: IDS.B2,
+          isActive: false,
+        })
+        .build();
+
+      const { putAssets } = addNode(hydraulicModel, {
+        assetFactory,
+        labelManager,
+        lengthUnit: "m",
+        nodeType: "junction",
+        coordinates: [5, 0],
+        pipeIdsToSplit: [IDS.PA, IDS.PB],
+      });
+
+      expect(putAssets![0].isActive).toBe(true);
+    });
+
+    it("makes the junction inactive when every split pipe is inactive", () => {
+      const IDS = { A1: 1, A2: 2, PA: 3, B1: 4, B2: 5, PB: 6 } as const;
+      const { assetFactory, labelManager } = buildTestFactories();
+      const hydraulicModel = HydraulicModelBuilder.with({
+        assetFactory,
+        labelManager,
+      })
+        .aNode(IDS.A1, [0, 0])
+        .aNode(IDS.A2, [10, 0])
+        .aPipe(IDS.PA, {
+          startNodeId: IDS.A1,
+          endNodeId: IDS.A2,
+          isActive: false,
+        })
+        .aNode(IDS.B1, [5, -5])
+        .aNode(IDS.B2, [5, 5])
+        .aPipe(IDS.PB, {
+          startNodeId: IDS.B1,
+          endNodeId: IDS.B2,
+          isActive: false,
+        })
+        .build();
+
+      const { putAssets } = addNode(hydraulicModel, {
+        assetFactory,
+        labelManager,
+        lengthUnit: "m",
+        nodeType: "junction",
+        coordinates: [5, 0],
+        pipeIdsToSplit: [IDS.PA, IDS.PB],
+      });
+
+      expect(putAssets![0].isActive).toBe(false);
+    });
+
+    it("splits a pipe once when the same id is given twice", () => {
+      const { IDS, hydraulicModel, assetFactory, labelManager } =
+        buildCrossing();
+
+      const { putAssets, deleteAssets } = addNode(hydraulicModel, {
+        assetFactory,
+        labelManager,
+        lengthUnit: "m",
+        nodeType: "junction",
+        coordinates: [5, 0],
+        pipeIdsToSplit: [IDS.PA, IDS.PA],
+      });
+
+      expect(deleteAssets).toEqual([IDS.PA]);
+      expect(putAssets).toHaveLength(3);
+    });
+
+    it("throws when any id is not a pipe", () => {
+      const { IDS, hydraulicModel, assetFactory, labelManager } =
+        buildCrossing();
+
+      expect(() =>
+        addNode(hydraulicModel, {
+          assetFactory,
+          labelManager,
+          lengthUnit: "m",
+          nodeType: "junction",
+          coordinates: [5, 0],
+          pipeIdsToSplit: [IDS.PA, IDS.A1],
+        }),
+      ).toThrow(/Invalid pipe ID/);
+    });
   });
 });

@@ -89,15 +89,15 @@ The hydraulic model follows a **composition-based architecture** where the `Hydr
 ```typescript
 type HydraulicModel = {
   version: string;
-  assets: AssetsMap;                       // Map of asset ID to asset instance
-  customerPoints: CustomerPoints;          // Map of customer point ID to instance
+  assets: AssetsMap; // Map of asset ID to asset instance
+  customerPoints: CustomerPoints; // Map of customer point ID to instance
   customerPointsLookup: CustomerPointsLookup; // Reverse lookup by asset ID
-  assetBuilder: AssetBuilder;              // Factory for creating new assets
-  topology: Topology;                      // Network connectivity graph
-  assetIndex: AssetIndex;                  // Index for node/link queries
-  units: UnitsSpec;                        // Unit system specification
-  demands: Demands;                        // Water demand data
-  labelManager: LabelManager;              // Auto-label generation
+  assetBuilder: AssetBuilder; // Factory for creating new assets
+  topology: Topology; // Network connectivity graph
+  assetIndex: AssetIndex; // Index for node/link queries
+  units: UnitsSpec; // Unit system specification
+  demands: Demands; // Water demand data
+  labelManager: LabelManager; // Auto-label generation
   headlossFormula: HeadlossFormula;
   curves: Curves;
   rawControls: RawControls;
@@ -107,6 +107,7 @@ type HydraulicModel = {
 ```
 
 **Key Characteristics:**
+
 - **GeoJSON foundation**: All assets are GeoJSON features with typed geometry and properties
 - **Immutable operations**: Model changes return descriptions rather than mutating state
 - **Type safety**: Strong typing throughout asset hierarchy and operations
@@ -122,7 +123,7 @@ All hydraulic assets inherit from `BaseAsset` with a clear separation between no
 BaseAsset<T>
 ├── Node (Point geometry)
 │   ├── Junction
-│   ├── Tank  
+│   ├── Tank
 │   └── Reservoir
 └── Link (LineString geometry)
     ├── Pipe
@@ -133,8 +134,9 @@ BaseAsset<T>
 ### Asset Structure
 
 Each asset is a GeoJSON feature with:
+
 - **ID**: Unique string identifier
-- **Geometry**: Point (nodes) or LineString (links) 
+- **Geometry**: Point (nodes) or LineString (links)
 - **Properties**: Type-specific properties + common AssetProperties
 - **Units**: Associated unit specifications
 
@@ -160,6 +162,7 @@ const junction = hydraulicModel.assetBuilder.buildJunction({
 ```
 
 **Builder Benefits:**
+
 - Applies default values from `DefaultQuantities`
 - Generates unique IDs if not provided
 - Auto-assigns labels using `LabelManager`
@@ -175,10 +178,10 @@ All model changes use the `ModelOperation` pattern - pure functions that return 
 type ModelOperation<T> = (model: HydraulicModel, data: T) => ModelMoment;
 
 type ModelMoment = {
-  note: string;           // Description of the change
+  note: string; // Description of the change
   deleteAssets?: AssetId[]; // Assets to remove
-  putAssets?: Asset[];      // Assets to add/update
-  putDemands?: Demands;     // Demand changes
+  putAssets?: Asset[]; // Assets to add/update
+  putDemands?: Demands; // Demand changes
 };
 ```
 
@@ -190,11 +193,15 @@ type ModelMoment = {
 4. **Composable**: Multiple operations can be combined
 
 Example operation:
+
 ```typescript
-export const addNode: ModelOperation<InputData> = (hydraulicModel, { node }) => {
+export const addNode: ModelOperation<InputData> = (
+  hydraulicModel,
+  { node },
+) => {
   const nodeCopy = node.copy();
   addMissingLabel(hydraulicModel.labelManager, nodeCopy);
-  
+
   return {
     note: `Add ${node.type}`,
     putAssets: [nodeCopy],
@@ -208,15 +215,16 @@ The `Topology` class manages network connectivity using the ngraph library:
 
 ```typescript
 class Topology {
-  addLink(linkId: string, startNodeId: string, endNodeId: string): void
-  getLinks(nodeId: string): string[]
-  removeNode(nodeId: string): void
-  removeLink(linkId: string): void
-  hasLink(linkId: string): boolean
+  addLink(linkId: string, startNodeId: string, endNodeId: string): void;
+  getLinks(nodeId: string): string[];
+  removeNode(nodeId: string): void;
+  removeLink(linkId: string): void;
+  hasLink(linkId: string): boolean;
 }
 ```
 
 **Key Points:**
+
 - Tracks which nodes connect to which other nodes through links
 - Provides validation for network connectivity
 - Maintains efficient lookup for connected assets
@@ -251,8 +259,9 @@ const customerPoints = customerPointsLookup.getByAssetId("J1");
 ```
 
 ### Benefits of Lookup Strategy
+
 - **No update cascades**: Connection changes don't trigger asset updates
-- **Performance**: Lookups scale better than asset reference updates  
+- **Performance**: Lookups scale better than asset reference updates
 - **Isolation**: Assets remain independent and focused
 - **Consistency**: Same pattern used throughout the system
 
@@ -275,7 +284,8 @@ const hasElevation = junction.hasProperty("elevation");
 ### Units Integration
 
 All quantities maintain associated units:
-- Units are specified in the `UnitsSpec` 
+
+- Units are specified in the `UnitsSpec`
 - Asset builders apply correct units to properties
 - Property values should always include unit context
 
@@ -286,18 +296,25 @@ All quantities maintain associated units:
 Use builder helpers for consistent test assets:
 
 ```typescript
-import { buildJunction, buildPipe } from "../../__helpers__/hydraulic-model-builder";
+import {
+  buildJunction,
+  buildPipe,
+} from "../../__helpers__/hydraulic-model-builder";
 
 // Preferred: Use builders with minimal data
 const junction = buildJunction({ id: "J1", coordinates: [1, 2] });
-const pipe = buildPipe({ id: "P1", connections: { startNodeId: "J1", endNodeId: "J2" } });
+const pipe = buildPipe({
+  id: "P1",
+  connections: { startNodeId: "J1", endNodeId: "J2" },
+});
 ```
 
 ### Labeling Conventions
 
 Use short, clear labels in tests:
+
 - **Junctions**: `J1`, `J2`, `J3` (not `J_1`, `junction-1`)
-- **Pipes**: `P1`, `P2`, `P3` 
+- **Pipes**: `P1`, `P2`, `P3`
 - **Reservoirs**: `R1`, `R2`, `R3`
 - **Tanks**: `T1`, `T2`, `T3`
 
@@ -317,7 +334,7 @@ describe("Junction", () => {
     const original = buildJunction({ elevation: 10 });
     const copy = original.copy();
     copy.setElevation(20);
-    
+
     expect(original.elevation).toEqual(10);
     expect(copy.elevation).toEqual(20);
   });
@@ -327,6 +344,7 @@ describe("Junction", () => {
 ### Immutability Testing
 
 Always verify that operations don't mutate original assets:
+
 - Test that `copy()` creates independent instances
 - Verify operations work on copies, not originals
 - Check that original state remains unchanged
@@ -336,6 +354,7 @@ Always verify that operations don't mutate original assets:
 ### Label Management
 
 The `LabelManager` provides auto-generation for asset labels:
+
 - Generates sequential labels per asset type (`J-1`, `J-2`, etc.)
 - Tracks used labels to avoid conflicts
 - Applied automatically by `AssetBuilder` when labels are missing
@@ -343,6 +362,7 @@ The `LabelManager` provides auto-generation for asset labels:
 ### ID Generation
 
 The `IdGenerator` interface (`src/lib/id-generator.ts`) provides unique numeric IDs for assets and customer points:
+
 - `ConsecutiveIdsGenerator` is the default implementation, producing sequential integers
 - Lives in `src/lib/` (not in `src/hydraulic-model/`) because it is generic infrastructure, not hydraulic logic
 - Integrated into `AssetBuilder` for assets and `CustomerPointFactory` for customer points
@@ -382,6 +402,7 @@ class CustomerPointFactory {
 #### Why factories are separate from HydraulicModel
 
 Factories hold **stateful creation concerns** (ID generation counters) that are not hydraulic logic. Keeping them out of `HydraulicModel`:
+
 - Prevents the model type from growing with non-hydraulic responsibilities
 - Allows independent initialization and lifecycle management
 - Follows the same separation principle as `ModelMetadata` and `SimulationSettings`
@@ -396,7 +417,13 @@ Factories are stored in `modelFactoriesAtom` (Jotai), initialized alongside the 
 
 ```typescript
 const factories = initializeModelFactories();
-transactImport(hydraulicModel, factories, modelMetadata, name, simulationSettings);
+transactImport(
+  hydraulicModel,
+  factories,
+  modelMetadata,
+  name,
+  simulationSettings,
+);
 ```
 
 #### Passing factories to model operations
@@ -414,6 +441,7 @@ const addCustomerPoint: ModelOperation<{
 ```
 
 This approach:
+
 - Avoids requiring all operation callers to subscribe to the factories atom
 - Allows gradual migration — only operations that need a factory receive one
 - Keeps operations that don't need factories unchanged
@@ -421,6 +449,7 @@ This approach:
 ### Error Handling
 
 Follow established error patterns:
+
 - Use `captureWarning()` for non-fatal issues
 - Throw descriptive errors for invalid operations
 - Include context (asset IDs, property names) in error messages
@@ -437,6 +466,7 @@ Follow established error patterns:
 ### With Map System
 
 Assets integrate with the map visualization through:
+
 - GeoJSON features for rendering
 - Property-based styling (status, type, etc.)
 - Coordinate updates for interactive editing
@@ -444,6 +474,7 @@ Assets integrate with the map visualization through:
 ### With Simulation
 
 The hydraulic model interfaces with simulation through:
+
 - Asset property extraction for solver input
 - Results application back to asset state
 - Demand integration for time-varying scenarios
@@ -451,6 +482,7 @@ The hydraulic model interfaces with simulation through:
 ### With Import/Export
 
 Model data flows through:
+
 - Asset serialization to/from external formats
 - Property mapping between EPANET and internal formats
 - Validation during import process
@@ -482,26 +514,28 @@ EPANET-JS uses **unidirectional references** with **lookup systems** to eliminat
 ## The Problem with Bidirectional References
 
 ### What We Avoided
+
 ```typescript
 // ANTI-PATTERN: Bidirectional references
 class Junction {
-  customerPoints: AssetId[];        // Junction → Customer Points
+  customerPoints: AssetId[]; // Junction → Customer Points
 }
 
 class CustomerPoint {
-  allocatedJunctionId: AssetId;     // Customer Point → Junction
+  allocatedJunctionId: AssetId; // Customer Point → Junction
 }
 
 // Result: Updates require modifying both entities
 const moveCustomerPoint = (cpId, newJunctionId) => {
   // Must update 3 entities for simple connection change
-  oldJunction.removeCustomerPoint(cpId);    // Update old junction
-  newJunction.addCustomerPoint(cpId);       // Update new junction  
+  oldJunction.removeCustomerPoint(cpId); // Update old junction
+  newJunction.addCustomerPoint(cpId); // Update new junction
   customerPoint.allocatedJunctionId = newJunctionId; // Update customer point
 };
 ```
 
 ### Problems Created
+
 - **Update cascades**: Simple changes require updating multiple assets
 - **Tight coupling**: Assets become interdependent
 - **Performance degradation**: Every connection change triggers asset updates
@@ -512,19 +546,20 @@ const moveCustomerPoint = (cpId, newJunctionId) => {
 ## The Solution: Lookup Systems
 
 ### Unidirectional Pattern
+
 ```typescript
 // CORRECT PATTERN: Unidirectional with lookup
 class CustomerPoint {
-  allocatedJunctionId: AssetId;     // Only customer point stores reference
+  allocatedJunctionId: AssetId; // Only customer point stores reference
 }
 
 class Junction {
-  baseDemand: number;               // No customer point references
+  baseDemand: number; // No customer point references
 }
 
 class CustomerPointsLookup {
   private assetToCustomerPoints = new Map<AssetId, AssetId[]>();
-  
+
   getByAssetId(assetId: AssetId): AssetId[] {
     return this.assetToCustomerPoints.get(assetId) || [];
   }
@@ -532,6 +567,7 @@ class CustomerPointsLookup {
 ```
 
 ### Benefits Achieved
+
 - **Isolated updates**: Only customer point + lookup change
 - **No coupling**: Assets remain independent
 - **Performance**: No asset updates for connection changes
@@ -542,35 +578,37 @@ class CustomerPointsLookup {
 ## Implementation Guidelines
 
 ### 1. Reference Direction Rules
+
 ```typescript
 // REQUIRED: Source stores target ID
-customerPoint.allocatedJunctionId = "J1";  // Customer point → Junction
-pipe.startNodeId = "J1";                   // Pipe → Start Node  
-pipe.endNodeId = "J2";                     // Pipe → End Node
+customerPoint.allocatedJunctionId = "J1"; // Customer point → Junction
+pipe.startNodeId = "J1"; // Pipe → Start Node
+pipe.endNodeId = "J2"; // Pipe → End Node
 
 // FORBIDDEN: Target stores source IDs
-junction.customerPoints = ["CP1"];         // Junction ← Customer Points
-node.connectedLinks = ["P1", "P2"];        // Node ← Connected Links
+junction.customerPoints = ["CP1"]; // Junction ← Customer Points
+node.connectedLinks = ["P1", "P2"]; // Node ← Connected Links
 ```
 
 ### 2. Lookup System Pattern
+
 ```typescript
 // Standard lookup implementation
 class AssociationLookup {
   private targetToSources = new Map<AssetId, AssetId[]>();
-  
+
   add(sourceId: AssetId, targetId: AssetId): void {
     const sources = this.targetToSources.get(targetId) || [];
     sources.push(sourceId);
     this.targetToSources.set(targetId, sources);
   }
-  
+
   remove(sourceId: AssetId, targetId: AssetId): void {
     const sources = this.targetToSources.get(targetId) || [];
-    const filtered = sources.filter(id => id !== sourceId);
+    const filtered = sources.filter((id) => id !== sourceId);
     this.targetToSources.set(targetId, filtered);
   }
-  
+
   getByTargetId(targetId: AssetId): AssetId[] {
     return this.targetToSources.get(targetId) || [];
   }
@@ -578,18 +616,23 @@ class AssociationLookup {
 ```
 
 ### 3. Model Operation Pattern
+
 ```typescript
 // CORRECT: Update lookup, not assets
 const moveCustomerPoint = (cpId: AssetId, newJunctionId: AssetId) => {
   const customerPoint = model.customerPoints.get(cpId);
   const oldJunctionId = customerPoint.allocatedJunctionId;
-  
+
   // 1. Update customer point only
   customerPoint.allocatedJunctionId = newJunctionId;
-  
-  // 2. Update lookup only  
-  model.customerPointsLookup.moveCustomerPoint(cpId, oldJunctionId, newJunctionId);
-  
+
+  // 2. Update lookup only
+  model.customerPointsLookup.moveCustomerPoint(
+    cpId,
+    oldJunctionId,
+    newJunctionId,
+  );
+
   // 3. Return single asset update
   return { putAssets: [customerPoint] }; // No junction updates
 };
@@ -599,12 +642,12 @@ const moveCustomerPointOld = (cpId: AssetId, newJunctionId: AssetId) => {
   const customerPoint = model.customerPoints.get(cpId);
   const oldJunction = model.assets.get(customerPoint.allocatedJunctionId);
   const newJunction = model.assets.get(newJunctionId);
-  
+
   // Multiple asset updates create complexity
   customerPoint.allocatedJunctionId = newJunctionId;
-  oldJunction.removeCustomerPoint(cpId);    // Asset update
-  newJunction.addCustomerPoint(cpId);       // Asset update
-  
+  oldJunction.removeCustomerPoint(cpId); // Asset update
+  newJunction.addCustomerPoint(cpId); // Asset update
+
   return { putAssets: [customerPoint, oldJunction, newJunction] }; // 3 updates
 };
 ```
@@ -612,6 +655,7 @@ const moveCustomerPointOld = (cpId: AssetId, newJunctionId: AssetId) => {
 ## Existing Lookup Systems
 
 ### Topology Index
+
 The topology system follows this pattern for node-link relationships:
 
 ```typescript
@@ -625,10 +669,11 @@ const connectedNodes = topology.getNodesForLink("P1");
 ```
 
 ### CustomerPointsLookup
+
 Customer points follow the same pattern:
 
 ```typescript
-// Customer points store junction references (unidirectional)  
+// Customer points store junction references (unidirectional)
 customerPoint.allocatedJunctionId = "J1";
 
 // Lookup provides reverse access
@@ -638,19 +683,21 @@ const customerPoints = customerPointsLookup.getByAssetId("J1");
 ## Implementation Rules
 
 ### 1. Asset Classes
+
 ```typescript
 // REQUIRED: Assets don't store reverse references
 class Junction extends Node {
-  baseDemand: number;  // No customerPoints property
+  baseDemand: number; // No customerPoints property
 }
 
 class Pipe extends Link {
-  startNodeId: AssetId;  // Forward reference only
-  endNodeId: AssetId;    // Forward reference only
+  startNodeId: AssetId; // Forward reference only
+  endNodeId: AssetId; // Forward reference only
 }
 ```
 
 ### 2. Access Patterns
+
 ```typescript
 // REQUIRED: Use lookups for reverse access
 const getCustomerPointsForJunction = (junctionId: AssetId) => {
@@ -669,14 +716,15 @@ const getCustomerPointsOld = (junctionId: AssetId) => {
 ```
 
 ### 3. Model Operations
+
 ```typescript
 // REQUIRED: Update lookups, not asset references
 const connectCustomerPoint = (cpId: AssetId, junctionId: AssetId) => {
   const customerPoint = customerPoints.get(cpId);
   customerPoint.allocatedJunctionId = junctionId;
-  
+
   customerPointsLookup.addCustomerPoint(cpId, junctionId); // Update lookup only
-  
+
   return { putAssets: [customerPoint] }; // Single update
 };
 
@@ -684,27 +732,30 @@ const connectCustomerPoint = (cpId: AssetId, junctionId: AssetId) => {
 const connectCustomerPointOld = (cpId: AssetId, junctionId: AssetId) => {
   const customerPoint = customerPoints.get(cpId);
   const junction = assets.get(junctionId);
-  
+
   customerPoint.allocatedJunctionId = junctionId;
-  junction.addCustomerPoint(cpId);                      // Asset modification
-  
-  return { putAssets: [customerPoint, junction] };      // Multiple updates
+  junction.addCustomerPoint(cpId); // Asset modification
+
+  return { putAssets: [customerPoint, junction] }; // Multiple updates
 };
 ```
 
 ## Benefits by Use Case
 
 ### Performance at Scale
+
 - **Customer points**: 1M+ customer points with no asset update overhead
 - **Network changes**: Topology changes don't cascade to dependent entities
 - **Memory efficiency**: No redundant reference storage in assets
 
-### Maintainability  
+### Maintainability
+
 - **Single responsibility**: Assets focus on their core properties
 - **Reduced complexity**: Model operations update single entities
 - **Error prevention**: No reference synchronization issues
 
 ### System Design
+
 - **Loose coupling**: Assets remain independent
 - **Consistent patterns**: All relationships use same unidirectional approach
 - **Extensibility**: Easy to add new relationship types with lookups
@@ -712,22 +763,24 @@ const connectCustomerPointOld = (cpId: AssetId, junctionId: AssetId) => {
 ## Migration from Bidirectional Systems
 
 ### Step 1: Identify Bidirectional References
+
 ```typescript
 // Find patterns like this
 class AssetA {
-  connectedBIds: AssetId[];  // A → B references
+  connectedBIds: AssetId[]; // A → B references
 }
 
 class AssetB {
-  connectedAId: AssetId;     // B → A reference
+  connectedAId: AssetId; // B → A reference
 }
 ```
 
 ### Step 2: Choose Reference Direction
+
 ```typescript
 // Keep the direction that makes logical sense
 class AssetB {
-  connectedAId: AssetId;     // B knows about A (keep)
+  connectedAId: AssetId; // B knows about A (keep)
 }
 
 class AssetA {
@@ -736,10 +789,11 @@ class AssetA {
 ```
 
 ### Step 3: Create Lookup System
+
 ```typescript
 class ABLookup {
   private aToB = new Map<AssetId, AssetId[]>();
-  
+
   getByAId(aId: AssetId): AssetId[] {
     return this.aToB.get(aId) || [];
   }
@@ -747,34 +801,37 @@ class ABLookup {
 ```
 
 ### Step 4: Update Operations
+
 ```typescript
 // Before: Update both assets
 const connectAB = (aId, bId) => {
-  assetA.connectedBIds.push(bId);  // Update A
-  assetB.connectedAId = aId;       // Update B
+  assetA.connectedBIds.push(bId); // Update A
+  assetB.connectedAId = aId; // Update B
   return { putAssets: [assetA, assetB] };
 };
 
 // After: Update lookup only
 const connectAB = (aId, bId) => {
-  assetB.connectedAId = aId;       // Update B only
-  abLookup.add(bId, aId);          // Update lookup
-  return { putAssets: [assetB] };  // Single update
+  assetB.connectedAId = aId; // Update B only
+  abLookup.add(bId, aId); // Update lookup
+  return { putAssets: [assetB] }; // Single update
 };
 ```
 
 ## Common Lookup Patterns
 
 ### One-to-Many Relationships
+
 ```typescript
 // One junction → Many customer points
 customerPointsLookup.getByAssetId(junctionId): AssetId[]
 
-// One node → Many links  
+// One node → Many links
 topology.getLinksForNode(nodeId): AssetId[]
 ```
 
-### Many-to-One Relationships  
+### Many-to-One Relationships
+
 ```typescript
 // Many customer points → One junction
 customerPoint.allocatedJunctionId: AssetId
@@ -785,27 +842,30 @@ pipe.endNodeId: AssetId
 ```
 
 ### Complex Queries
+
 ```typescript
 // Combine lookups for complex relationships
 const getCustomerPointsNearPipe = (pipeId: AssetId) => {
   const nodes = topology.getNodesForLink(pipeId);
-  const customerPointIds = nodes.flatMap(nodeId => 
-    customerPointsLookup.getByAssetId(nodeId)
+  const customerPointIds = nodes.flatMap((nodeId) =>
+    customerPointsLookup.getByAssetId(nodeId),
   );
-  return customerPointIds.map(id => customerPoints.get(id));
+  return customerPointIds.map((id) => customerPoints.get(id));
 };
 ```
 
 ## Rules Summary
 
 ### ✅ REQUIRED
+
 1. **Unidirectional references only** - source stores target ID
 2. **Use lookup systems** for reverse access
-3. **Update lookups, not asset references** in model operations  
+3. **Update lookups, not asset references** in model operations
 4. **Follow topology pattern** throughout the system
 5. **Cache lookup results** when accessed repeatedly
 
 ### ❌ FORBIDDEN
+
 1. **Bidirectional asset references** - creates coupling
 2. **Asset-to-asset reference storage** - use lookups instead
 3. **Model operations updating multiple assets** for simple connections
@@ -827,6 +887,7 @@ Customer points are **non-hydraulic objects** that exist purely for demand model
 ### Scale Considerations
 
 **Customer points vastly outnumber hydraulic assets** in real-world networks:
+
 - **Hydraulic assets**: Hundreds to thousands (junctions, pipes, pumps, valves)
 - **Customer points**: **10,000 to 1,000,000+** customers in large utility networks
 - **Ratio**: 100:1 to 10,000:1 customer points per junction
@@ -852,10 +913,10 @@ Customer points are a new asset type separate from the hydraulic model:
 ```typescript
 type CustomerPointProperties = {
   type: "customer-point";
-  demand: number;                    // Water demand value
-  connectedPipeId: AssetId;         // Pipe this point connects to
-  connectionPosition: Position;      // Exact point on pipe geometry
-  allocatedJunctionId: AssetId;     // Junction receiving the demand
+  demand: number; // Water demand value
+  connectedPipeId: AssetId; // Pipe this point connects to
+  connectionPosition: Position; // Exact point on pipe geometry
+  allocatedJunctionId: AssetId; // Junction receiving the demand
   label: string;
   visibility?: boolean;
 };
@@ -865,7 +926,7 @@ class CustomerPoint extends BaseAsset<CustomerPointProperties> {
   get connectedPipeId(): AssetId;
   get connectionPosition(): Position;
   get allocatedJunctionId(): AssetId;
-  
+
   updateDemand(demand: number): void;
   reallocate(pipeId: AssetId, position: Position, junctionId: AssetId): void;
 }
@@ -879,20 +940,30 @@ Customer points are accessed through a dedicated lookup system, eliminating bidi
 // Lookup system similar to topology
 class CustomerPointsLookup {
   private assetToCustomerPoints = new Map<AssetId, AssetId[]>();
-  
+
   getByAssetId(assetId: AssetId): AssetId[] {
     return this.assetToCustomerPoints.get(assetId) || [];
   }
-  
-  addCustomerPoint(customerPointId: AssetId, allocatedJunctionId: AssetId): void {
+
+  addCustomerPoint(
+    customerPointId: AssetId,
+    allocatedJunctionId: AssetId,
+  ): void {
     // Update lookup without modifying junction asset
   }
-  
-  removeCustomerPoint(customerPointId: AssetId, allocatedJunctionId: AssetId): void {
+
+  removeCustomerPoint(
+    customerPointId: AssetId,
+    allocatedJunctionId: AssetId,
+  ): void {
     // Update lookup without modifying junction asset
   }
-  
-  moveCustomerPoint(customerPointId: AssetId, oldJunctionId: AssetId, newJunctionId: AssetId): void {
+
+  moveCustomerPoint(
+    customerPointId: AssetId,
+    oldJunctionId: AssetId,
+    newJunctionId: AssetId,
+  ): void {
     // Update lookup without modifying junction assets
   }
 }
@@ -900,7 +971,7 @@ class CustomerPointsLookup {
 // Junctions remain unchanged - no customer point references
 type JunctionProperties = {
   type: "junction";
-  baseDemand: number;               // Only direct junction demand
+  baseDemand: number; // Only direct junction demand
 } & NodeProperties;
 
 class Junction extends Node<JunctionProperties> {
@@ -918,9 +989,9 @@ Customer points automatically snap to the nearest pipe using the existing search
 
 ```typescript
 const findNearestPipe = (
-  position: Position, 
+  position: Position,
   assetsMap: AssetsMap,
-  searchRadius: number = 50
+  searchRadius: number = 50,
 ): { pipeId: AssetId; connectionPoint: Position } | null => {
   // 1. Query rendered pipe features within search radius
   // 2. Calculate distance to each pipe's LineString geometry
@@ -936,15 +1007,23 @@ Determine which junction (upstream or downstream) receives the customer point's 
 const allocateToJunction = (
   customerPoint: CustomerPoint,
   pipe: LinkAsset,
-  hydraulicModel: HydraulicModel
+  hydraulicModel: HydraulicModel,
 ): AssetId => {
   const { startNodeId, endNodeId } = pipe.connections;
   const connectionPos = customerPoint.connectionPosition;
-  
+
   // Calculate distances along pipe geometry
-  const distanceFromStart = calculateDistanceAlongPipe(pipe.coordinates, connectionPos, 0);
-  const distanceFromEnd = calculateDistanceAlongPipe(pipe.coordinates, connectionPos, pipe.coordinates.length - 1);
-  
+  const distanceFromStart = calculateDistanceAlongPipe(
+    pipe.coordinates,
+    connectionPos,
+    0,
+  );
+  const distanceFromEnd = calculateDistanceAlongPipe(
+    pipe.coordinates,
+    connectionPos,
+    pipe.coordinates.length - 1,
+  );
+
   // Allocate to nearest junction
   return distanceFromStart < distanceFromEnd ? startNodeId : endNodeId;
 };
@@ -957,7 +1036,7 @@ Use geometric projection to find the exact connection point:
 ```typescript
 const projectPointOnPipe = (
   customerPosition: Position,
-  pipeCoordinates: Position[]
+  pipeCoordinates: Position[],
 ): { position: Position; segmentIndex: number; distanceRatio: number } => {
   // 1. Find closest segment on pipe LineString
   // 2. Project customer point onto that segment
@@ -978,16 +1057,16 @@ type AddCustomerPointData = {
 
 const addCustomerPoint: ModelOperation<AddCustomerPointData> = (
   hydraulicModel,
-  { position, demand, label }
+  { position, demand, label },
 ) => {
   // 1. Find nearest pipe and connection point
   const connection = findNearestPipe(position, hydraulicModel.assets);
   if (!connection) throw new Error("No nearby pipe found");
-  
+
   // 2. Determine allocation junction
   const pipe = hydraulicModel.assets.get(connection.pipeId);
   const junctionId = allocateToJunction(customerPoint, pipe, hydraulicModel);
-  
+
   // 3. Create customer point
   const customerPoint = hydraulicModel.assetBuilder.buildCustomerPoint({
     coordinates: position,
@@ -997,10 +1076,13 @@ const addCustomerPoint: ModelOperation<AddCustomerPointData> = (
     connectionPosition: connection.connectionPoint,
     allocatedJunctionId: junctionId,
   });
-  
+
   // 4. Update lookup only - no asset modifications
-  hydraulicModel.customerPointsLookup.addCustomerPoint(customerPoint.id, junctionId);
-  
+  hydraulicModel.customerPointsLookup.addCustomerPoint(
+    customerPoint.id,
+    junctionId,
+  );
+
   return {
     note: `Add customer point with demand ${demand}`,
     putAssets: [customerPoint], // Only customer point, no junction update
@@ -1011,31 +1093,37 @@ const addCustomerPoint: ModelOperation<AddCustomerPointData> = (
 ### Moving Customer Points
 
 ```typescript
-const moveCustomerPoint: ModelOperation<{ 
-  customerPointId: AssetId; 
-  newPosition: Position; 
+const moveCustomerPoint: ModelOperation<{
+  customerPointId: AssetId;
+  newPosition: Position;
 }> = (hydraulicModel, { customerPointId, newPosition }) => {
-  const customerPoint = hydraulicModel.customerPoints.get(customerPointId) as CustomerPoint;
+  const customerPoint = hydraulicModel.customerPoints.get(
+    customerPointId,
+  ) as CustomerPoint;
   const oldJunctionId = customerPoint.allocatedJunctionId;
-  
+
   // 1. Find new nearest pipe and allocation
   const connection = findNearestPipe(newPosition, hydraulicModel.assets);
   const pipe = hydraulicModel.assets.get(connection.pipeId);
   const newJunctionId = allocateToJunction(customerPoint, pipe, hydraulicModel);
-  
+
   // 2. Update customer point only
-  customerPoint.reallocate(connection.pipeId, connection.connectionPoint, newJunctionId);
+  customerPoint.reallocate(
+    connection.pipeId,
+    connection.connectionPoint,
+    newJunctionId,
+  );
   customerPoint.setProperty("coordinates", newPosition);
-  
+
   // 3. Update lookup only - no junction asset modifications
   if (oldJunctionId !== newJunctionId) {
     hydraulicModel.customerPointsLookup.moveCustomerPoint(
-      customerPointId, 
-      oldJunctionId, 
-      newJunctionId
+      customerPointId,
+      oldJunctionId,
+      newJunctionId,
     );
   }
-  
+
   return {
     note: `Move customer point ${customerPoint.label}`,
     putAssets: [customerPoint], // Only customer point, no junction updates
@@ -1048,14 +1136,19 @@ const moveCustomerPoint: ModelOperation<{
 ```typescript
 const deleteCustomerPoint: ModelOperation<{ customerPointId: AssetId }> = (
   hydraulicModel,
-  { customerPointId }
+  { customerPointId },
 ) => {
-  const customerPoint = hydraulicModel.customerPoints.get(customerPointId) as CustomerPoint;
+  const customerPoint = hydraulicModel.customerPoints.get(
+    customerPointId,
+  ) as CustomerPoint;
   const allocatedJunctionId = customerPoint.allocatedJunctionId;
-  
+
   // Update lookup only - no junction asset modification
-  hydraulicModel.customerPointsLookup.removeCustomerPoint(customerPointId, allocatedJunctionId);
-  
+  hydraulicModel.customerPointsLookup.removeCustomerPoint(
+    customerPointId,
+    allocatedJunctionId,
+  );
+
   return {
     note: `Delete customer point ${customerPoint.label}`,
     deleteAssets: [customerPointId],
@@ -1075,7 +1168,7 @@ type CustomerPointsMap = Map<AssetId, CustomerPoint>;
 
 type ExtendedHydraulicModel = HydraulicModel & {
   customerPoints: CustomerPointsMap;
-  customerPointsLookup: CustomerPointsLookup;  // Lookup system
+  customerPointsLookup: CustomerPointsLookup; // Lookup system
   // Note: CustomerPointFactory lives in modelFactoriesAtom, not on the model
 };
 ```
@@ -1087,17 +1180,19 @@ The lookup system provides efficient access without modifying asset structures:
 ```typescript
 // Access customer points for a junction
 const getCustomerPointsForJunction = (
-  junctionId: AssetId, 
-  model: ExtendedHydraulicModel
+  junctionId: AssetId,
+  model: ExtendedHydraulicModel,
 ): CustomerPoint[] => {
   const customerPointIds = model.customerPointsLookup.getByAssetId(junctionId);
-  return customerPointIds.map(id => model.customerPoints.get(id)).filter(Boolean);
+  return customerPointIds
+    .map((id) => model.customerPoints.get(id))
+    .filter(Boolean);
 };
 
 // Calculate total demand including customer points
 const calculateJunctionDemand = (
-  junction: Junction, 
-  model: ExtendedHydraulicModel
+  junction: Junction,
+  model: ExtendedHydraulicModel,
 ): number => {
   const customerPoints = getCustomerPointsForJunction(junction.id, model);
   const customerDemand = customerPoints.reduce((sum, cp) => sum + cp.demand, 0);
@@ -1153,7 +1248,7 @@ export const buildCustomerPointsOverlay = (
     data: connectionLines,
     getSourcePosition: (d: ConnectionLineData) => d.sourcePosition,
     getTargetPosition: (d: ConnectionLineData) => d.targetPosition,
-    
+
     widthUnits: "meters",
     getWidth: 0.8,
     getColor: connectionLineColor,
@@ -1166,7 +1261,7 @@ export const buildCustomerPointsOverlay = (
     beforeId: "ephemeral-junction-highlight",
     data: [...customerPoints.values()],
     getPosition: (d: CustomerPoint) => d.coordinates,
-    
+
     radiusUnits: "meters",
     getRadius: 1.5,
     getFillColor: fillColor,
@@ -1181,6 +1276,7 @@ export const buildCustomerPointsOverlay = (
 ### Performance-Optimized Rendering
 
 #### Zoom-based Visibility
+
 ```typescript
 // Only show customer points at zoom level 14 and above
 export const shouldShowOverlay = (zoom: number) => zoom >= 14;
@@ -1190,21 +1286,22 @@ export const updateCustomerPointsOverlayVisibility = (
   overlay: CustomerPointsOverlay,
   zoom: number,
 ) => {
-  return overlay.map(layer => 
-    layer.clone({ visible: shouldShowOverlay(zoom) })
+  return overlay.map((layer) =>
+    layer.clone({ visible: shouldShowOverlay(zoom) }),
   );
 };
 ```
 
 #### Layer Coordination with beforeId
+
 Customer points layers are positioned relative to Mapbox layers using `beforeId`:
 
 ```typescript
 // Position connection lines behind pipes
-beforeId: "imported-pipes"
+beforeId: "imported-pipes";
 
 // Position customer points above junctions but below ephemeral highlighting
-beforeId: "ephemeral-junction-highlight"
+beforeId: "ephemeral-junction-highlight";
 ```
 
 ### Ephemeral State Handling
@@ -1226,12 +1323,12 @@ export const buildCustomerPointsHighlightOverlay = (
   const haloLayer = new ScatterplotLayer({
     id: "customer-points-halo-layer",
     data: highlightedPoints,
-    getRadius: 3,              // Larger than main points
+    getRadius: 3, // Larger than main points
     getFillColor: haloFillColor, // Cyan with transparency
   });
 
   const highlightLayer = new ScatterplotLayer({
-    id: "customer-points-highlight-layer", 
+    id: "customer-points-highlight-layer",
     data: highlightedPoints,
     getFillColor: highlightFillColor, // Solid cyan
   });
@@ -1245,6 +1342,7 @@ export const buildCustomerPointsHighlightOverlay = (
 Customer points use two separate overlays for optimal performance:
 
 1. **Main Overlay** - Stable visualization of all customer points
+
    - Updated only when customer point data changes
    - Contains all customer points and their connection lines
    - Expensive to rebuild, so updated infrequently
@@ -1257,8 +1355,8 @@ Customer points use two separate overlays for optimal performance:
 ```typescript
 // Combined overlay system in state-updates.ts
 const combinedOverlay = [
-  ...customerPointsOverlayRef.current,     // Main overlay
-  ...ephemeralDeckLayersRef.current,       // Ephemeral highlights  
+  ...customerPointsOverlayRef.current, // Main overlay
+  ...ephemeralDeckLayersRef.current, // Ephemeral highlights
 ];
 map.setOverlay(combinedOverlay);
 ```
@@ -1279,7 +1377,10 @@ if (hasNewCustomerPoints) {
 }
 
 // Ephemeral state triggers highlight overlay updates
-if (hasNewEphemeralState && mapState.ephemeralState.type === "customerPointsHighlight") {
+if (
+  hasNewEphemeralState &&
+  mapState.ephemeralState.type === "customerPointsHighlight"
+) {
   const ephemeralOverlay = buildCustomerPointsHighlightOverlay(
     mapState.ephemeralState.customerPoints,
     zoom,
@@ -1296,15 +1397,15 @@ During simulation preparation, aggregate customer point demands:
 
 ```typescript
 const prepareDemandData = (
-  hydraulicModel: ExtendedHydraulicModel
+  hydraulicModel: ExtendedHydraulicModel,
 ): Map<AssetId, number> => {
   const demandMap = new Map<AssetId, number>();
-  
+
   hydraulicModel.assets.forEach((asset) => {
     if (asset.type === "junction") {
       const junction = asset as Junction;
       let totalDemand = junction.baseDemand;
-      
+
       // Add customer point demands
       junction.customerPoints.forEach((cpId) => {
         const customerPoint = hydraulicModel.customerPoints.get(cpId);
@@ -1312,11 +1413,11 @@ const prepareDemandData = (
           totalDemand += customerPoint.demand;
         }
       });
-      
+
       demandMap.set(junction.id, totalDemand);
     }
   });
-  
+
   return demandMap;
 };
 ```
@@ -1330,8 +1431,8 @@ const exportToEpanet = (hydraulicModel: ExtendedHydraulicModel): EpanetData => {
   // Export only hydraulic assets, customer points are pre-aggregated into junction demands
   return {
     junctions: hydraulicModel.assets
-      .filter(asset => asset.type === "junction")
-      .map(junction => ({
+      .filter((asset) => asset.type === "junction")
+      .map((junction) => ({
         ...junction.properties,
         baseDemand: junction.totalDemand, // Includes customer point demands
       })),
@@ -1339,7 +1440,9 @@ const exportToEpanet = (hydraulicModel: ExtendedHydraulicModel): EpanetData => {
   };
 };
 
-const exportToProject = (hydraulicModel: ExtendedHydraulicModel): ProjectData => {
+const exportToProject = (
+  hydraulicModel: ExtendedHydraulicModel,
+): ProjectData => {
   // Include both hydraulic assets and customer points for full project state
   return {
     hydraulicAssets: Array.from(hydraulicModel.assets.values()),
@@ -1361,18 +1464,18 @@ describe("CustomerPoint", () => {
     const cp = buildCustomerPoint({
       demand: 50,
       connectedPipeId: "P1",
-      allocatedJunctionId: "J1"
+      allocatedJunctionId: "J1",
     });
-    
+
     expect(cp.demand).toBe(50);
     expect(cp.connectedPipeId).toBe("P1");
     expect(cp.allocatedJunctionId).toBe("J1");
   });
-  
+
   it("updates allocation when moved", () => {
     const cp = buildCustomerPoint({ allocatedJunctionId: "J1" });
     cp.reallocate("P2", [1, 2], "J2");
-    
+
     expect(cp.allocatedJunctionId).toBe("J2");
     expect(cp.connectionPosition).toEqual([1, 2]);
   });
@@ -1388,30 +1491,38 @@ describe("Customer Point Operations", () => {
   it("adds customer point and updates lookup", () => {
     const model = buildHydraulicModel();
     const junction = buildJunction({ id: "J1" });
-    const pipe = buildPipe({ 
-      id: "P1", 
-      connections: { startNodeId: "J1", endNodeId: "J2" }
+    const pipe = buildPipe({
+      id: "P1",
+      connections: { startNodeId: "J1", endNodeId: "J2" },
     });
-    
+
     const moment = addCustomerPoint(model, {
       position: [0, 0],
-      demand: 100
+      demand: 100,
     });
-    
+
     expect(moment.putAssets).toHaveLength(1); // Only customer point
     const customerPointId = moment.putAssets[0].id;
-    expect(model.customerPointsLookup.getByAssetId("J1")).toContain(customerPointId);
+    expect(model.customerPointsLookup.getByAssetId("J1")).toContain(
+      customerPointId,
+    );
   });
-  
+
   it("aggregates demands correctly using lookup", () => {
     const model = buildHydraulicModel();
     const junction = buildJunction({ baseDemand: 50 });
-    const cp1 = buildCustomerPoint({ demand: 25, allocatedJunctionId: junction.id });
-    const cp2 = buildCustomerPoint({ demand: 30, allocatedJunctionId: junction.id });
-    
+    const cp1 = buildCustomerPoint({
+      demand: 25,
+      allocatedJunctionId: junction.id,
+    });
+    const cp2 = buildCustomerPoint({
+      demand: 30,
+      allocatedJunctionId: junction.id,
+    });
+
     model.customerPointsLookup.addCustomerPoint(cp1.id, junction.id);
     model.customerPointsLookup.addCustomerPoint(cp2.id, junction.id);
-    
+
     const totalDemand = calculateJunctionDemand(junction, model);
     expect(totalDemand).toBe(105); // 50 + 25 + 30
   });
@@ -1426,35 +1537,41 @@ Test geometric calculations:
 describe("Customer Point Snapping", () => {
   it("finds nearest pipe correctly", () => {
     const pipe = buildPipe({
-      coordinates: [[0, 0], [10, 0]]
+      coordinates: [
+        [0, 0],
+        [10, 0],
+      ],
     });
     const model = buildModelWithAssets([pipe]);
-    
+
     const result = findNearestPipe([5, 2], model.assets);
-    
+
     expect(result.pipeId).toBe(pipe.id);
     expect(result.connectionPoint).toBeCloseTo([5, 0]);
   });
-  
+
   it("allocates to closer junction", () => {
     const pipe = buildPipe({
-      coordinates: [[0, 0], [10, 0]],
-      connections: { startNodeId: "J1", endNodeId: "J2" }
+      coordinates: [
+        [0, 0],
+        [10, 0],
+      ],
+      connections: { startNodeId: "J1", endNodeId: "J2" },
     });
-    
+
     // Customer point closer to start (J1)
     const allocation1 = allocateToJunction(
       buildCustomerPoint({ connectionPosition: [2, 0] }),
       pipe,
-      model
+      model,
     );
     expect(allocation1).toBe("J1");
-    
-    // Customer point closer to end (J2) 
+
+    // Customer point closer to end (J2)
     const allocation2 = allocateToJunction(
       buildCustomerPoint({ connectionPosition: [8, 0] }),
       pipe,
-      model
+      model,
     );
     expect(allocation2).toBe("J2");
   });
@@ -1468,18 +1585,21 @@ describe("Customer Point Snapping", () => {
 Customer points can reach **1,000,000+ records** in large utility networks, requiring specialized performance strategies:
 
 #### Memory Management
+
 - Use efficient data structures (Map instead of Array for lookups)
 - Implement lazy loading and data pagination for large datasets
 - Consider memory pooling for frequent customer point operations
 - Monitor memory usage during bulk import operations
 
 #### Rendering Performance
+
 - **Viewport-based rendering**: Only render customer points in current map view
 - **Level-of-detail (LOD)**: Show clustered representations at low zoom levels
 - **Canvas rendering**: Consider HTML5 Canvas for high-density point rendering
 - **Zoom thresholds**: Hide customer points below minimum useful zoom level
 
 #### Data Processing
+
 - **Batch operations**: Process customer point updates in batches, not individually
 - **Background processing**: Use Web Workers for heavy spatial calculations
 - **Incremental updates**: Only recalculate affected areas during changes
@@ -1495,7 +1615,7 @@ class SpatialPipeIndex {
     // Build R-tree or similar spatial index for O(log n) queries
     // Essential for 10k+ customer points
   }
-  
+
   findNearestPipe(position: Position, maxDistance: number): LinkAsset | null {
     // Use spatial index for O(log n) nearest neighbor search
     // Avoid O(n) linear search with large customer point counts
@@ -1510,25 +1630,25 @@ Batch customer point updates to minimize junction recalculations:
 ```typescript
 const batchUpdateCustomerPoints = (
   updates: CustomerPointUpdate[],
-  hydraulicModel: ExtendedHydraulicModel
+  hydraulicModel: ExtendedHydraulicModel,
 ): ModelMoment => {
   const affectedJunctions = new Set<AssetId>();
   const updatedAssets: Asset[] = [];
-  
-  updates.forEach(update => {
+
+  updates.forEach((update) => {
     // Process customer point update
     // Track affected junctions
     affectedJunctions.add(oldJunctionId);
     affectedJunctions.add(newJunctionId);
   });
-  
+
   // Update all affected junctions once
-  affectedJunctions.forEach(junctionId => {
+  affectedJunctions.forEach((junctionId) => {
     const junction = hydraulicModel.assets.get(junctionId);
     // Recalculate customer points list
     updatedAssets.push(junction);
   });
-  
+
   return {
     note: `Batch update ${updates.length} customer points`,
     putAssets: updatedAssets,
@@ -1543,12 +1663,14 @@ The customer points system has been significantly enhanced with full EPANET inte
 ### EPANET Integration (Major Enhancement)
 
 #### Customer Demands in INP Export
+
 - **Extended `buildInp()` Function**: Added `customerDemands` option to control whether customer point demands are included in INP file generation
 - **Feature Flag Integration**: When `FLAG_CUSTOMER_POINT` is enabled, simulations automatically include customer demands in the EPANET INP file
 - **Demand Aggregation**: Customer point demands are now properly exported to the [DEMANDS] section of INP files
 - **Simulation vs Export**: Customer demands are included during simulation execution but excluded from manual INP exports
 
 #### Implementation Details
+
 ```typescript
 // buildInp() now supports customer demands
 const inp = buildInp(hydraulicModel, { customerDemands: true });
@@ -1561,6 +1683,7 @@ const inp = buildInp(hydraulicModel, { customerDemands: isCustomerPointOn });
 ### Code Architecture Improvements
 
 #### Options Object Refactoring
+
 - **Clean Options Pattern**: Refactored `buildInp()` to use a clean options object with defaults instead of destructuring
 - **Better Readability**: All options are now accessed as `opts.property` making the code more maintainable
 - **Default Options**: Centralized default options object for consistency
@@ -1576,6 +1699,7 @@ const opts = { ...defaultOptions, ...options };
 ```
 
 #### CustomerPoints Type System
+
 - **Type Encapsulation**: Created `CustomerPoints = Map<string, CustomerPoint>` type to hide implementation details
 - **Consistent Initialization**: Added `initializeCustomerPoints()` function for object creation
 - **Future-Proofing**: Can easily change underlying implementation without affecting consumers
@@ -1591,6 +1715,7 @@ export const initializeCustomerPoints = (): CustomerPoints => {
 ### Testing Infrastructure Enhancements
 
 #### HydraulicModelBuilder Enhancement
+
 - **Test-Friendly API**: Added `withCustomerPoint()` method for easy test setup
 - **Validation**: Ensures junctions exist before customer point assignment (throws clear error if not)
 - **Fluent Interface**: Maintains builder pattern for method chaining
@@ -1603,6 +1728,7 @@ const model = HydraulicModelBuilder.with()
 ```
 
 #### Comprehensive Test Coverage
+
 - **Customer Demands Tests**: Added tests for all scenarios including enabled/disabled states, zero demand handling, and multiple customer points
 - **Integration Tests**: Tests cover the complete workflow from customer point creation to INP export
 - **Edge Cases**: Proper handling of zero demands, multiple customer points per junction, and feature flag states
@@ -1610,18 +1736,22 @@ const model = HydraulicModelBuilder.with()
 ### Key Files Modified
 
 1. **`src/simulation/build-inp.ts`**
+
    - Core INP export functionality with customer demands support
    - Clean options object pattern with defaults
 
 2. **`src/commands/run-simulation.tsx`**
+
    - Feature flag integration for automatic customer demands inclusion
    - Proper dependency management in React hooks
 
 3. **`src/hydraulic-model/customer-points.ts`**
+
    - CustomerPoints type definition and initialization function
    - Centralized type management for better encapsulation
 
 4. **`src/__helpers__/hydraulic-model-builder.ts`**
+
    - Enhanced test builder with customer point support
    - Validation and error handling for test scenarios
 
@@ -1632,16 +1762,19 @@ const model = HydraulicModelBuilder.with()
 ### Benefits Achieved
 
 #### Complete EPANET Workflow
+
 - **Full Integration**: Customer points now seamlessly integrate with hydraulic simulations
 - **Automatic Inclusion**: Feature flag controls when customer demands are included in simulations
 - **Proper Aggregation**: Customer demands are correctly aggregated and exported to INP format
 
 #### Better Type Safety & Architecture
+
 - **Encapsulation**: `CustomerPoints` type hides implementation details from consumers
 - **Maintainability**: Can change underlying data structure without affecting dependent code
 - **Consistency**: Standardized initialization and type usage across the codebase
 
 #### Improved Developer Experience
+
 - **Easy Testing**: Simple builder pattern for setting up customer point test scenarios
 - **Clear APIs**: Well-defined interfaces with proper validation and error handling
 - **Future-Proof**: Architecture supports easy extension and modification
@@ -1660,24 +1793,28 @@ This implementation provides a robust foundation for customer point management w
 ## Best Practices
 
 ### Scale-First Design
+
 1. **Design for 1M+ records**: All algorithms and data structures must handle 10k-1M+ customer points
 2. **Avoid O(n) operations**: Use spatial indexing, efficient lookups, and batched processing
 3. **Memory-conscious**: Monitor memory usage, implement lazy loading, use efficient data structures
 4. **Progressive rendering**: Use viewport-based rendering and level-of-detail strategies
 
 ### System Integration
+
 5. **Separation of Concerns**: Keep customer points separate from hydraulic assets
 6. **Automatic Allocation**: Always auto-assign to nearest junction, don't require manual selection
 7. **Visual Feedback**: Show connection lines to make allocation clear to users
 8. **Demand Transparency**: Display aggregated demands clearly in junction properties
 
 ### Data Management
+
 9. **Validation**: Ensure customer points always connect to valid pipes and junctions
 10. **Performance**: Use spatial indexing for large numbers of customer points
 11. **Data Integrity**: Maintain consistency between customer points and junction lists
 12. **Export Clarity**: Clearly separate project data (includes customer points) from simulation data (excludes them)
 
 ### Implementation Guidelines
+
 13. **Batch operations**: Never process customer points individually in loops
 14. **Debounce updates**: Prevent excessive recalculations during user interactions
 15. **Background processing**: Use Web Workers for heavy spatial computations
@@ -1690,13 +1827,15 @@ This implementation provides a robust foundation for customer point management w
 The customer points system uses **unidirectional references** and **lookup systems** instead of bidirectional asset references for several critical reasons:
 
 #### Problems with Bidirectional References
+
 - **Update cascades**: Changing customer point connection requires updating 2-4 assets
-- **Coupling**: Assets become tightly coupled through direct references  
+- **Coupling**: Assets become tightly coupled through direct references
 - **Performance**: Every customer point change triggers junction/pipe updates
 - **Complexity**: Model operations must manage multiple asset updates
 - **Scale issues**: With 10k-1M+ customer points, asset updates become prohibitive
 
 #### Benefits of Lookup Strategy
+
 - **Isolation**: Customer point changes only update customer point + lookup
 - **Performance**: No asset updates when only connections change
 - **Consistency**: Similar to topology pattern (pipes know nodes, not vice versa)
@@ -1708,23 +1847,26 @@ The customer points system uses **unidirectional references** and **lookup syste
 ```typescript
 // Old bidirectional approach (AVOID)
 class Junction {
-  customerPoints: AssetId[];  // Junction tracks customer points
-  addCustomerPoint(id: AssetId) { /* Update asset */ }
+  customerPoints: AssetId[]; // Junction tracks customer points
+  addCustomerPoint(id: AssetId) {
+    /* Update asset */
+  }
 }
 
 // New unidirectional approach (REQUIRED)
 class Junction {
-  baseDemand: number;  // No customer point references
+  baseDemand: number; // No customer point references
 }
 
 class CustomerPointsLookup {
-  getByAssetId(assetId: AssetId): AssetId[];  // Lookup provides connection
+  getByAssetId(assetId: AssetId): AssetId[]; // Lookup provides connection
 }
 ```
 
 ### Key Rules
+
 1. **Assets never store references to customer points**
-2. **Customer points store asset IDs (unidirectional)**  
+2. **Customer points store asset IDs (unidirectional)**
 3. **Use customerPointsLookup for asset → customer points queries**
 4. **Model operations update lookup, not assets**
 5. **Follow topology pattern: source stores target ID, not vice versa**
