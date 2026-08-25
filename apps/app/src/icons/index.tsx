@@ -295,8 +295,6 @@ export { CustomPanelBottomActive as PanelBottomActiveIcon } from "./custom-icons
 export { CustomPanelLeftActive as PanelLeftActiveIcon } from "./custom-icons/panel-left-active";
 export { CustomPanelRightActive as PanelRightActiveIcon } from "./custom-icons/panel-right-active";
 export { CustomPolygonalSelection as PolygonalSelectionIcon } from "./custom-icons/polygonal-selection";
-export { CustomActiveTopologyEnableIcon as ActiveTopologyEnableIcon } from "./custom-icons/active-topology-enable";
-export { CustomActiveTopologyDisableIcon as ActiveTopologyDisableIcon } from "./custom-icons/active-topology-disable";
 export { CustomOperationalDataIcon as AdvancedSettingsIcon } from "./custom-icons/operational-data";
 export { CustomTableSelectAllIcon as TableSelectAllIcon } from "./custom-icons/table-select-all-icon";
 export { CustomUpstreamTraceIcon as UpstreamTraceIcon } from "./custom-icons/trace-upstream-icon";
