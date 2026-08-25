@@ -1272,7 +1272,7 @@ describe("build controls from network data", () => {
       aNetwork({
         ...aPumpedTank,
         controls: [
-          aTankLevelControl({ linkRef: "404" }),
+          aTankLevelControl({ link: { kind: "pump", ref: "404" } }),
           aTankLevelControl({ tankRef: "404" }),
         ],
       }),
@@ -1322,8 +1322,7 @@ describe("labels across node kinds", () => {
         controls: [
           {
             type: "timedSetting",
-            linkType: "valve",
-            linkRef: "10",
+            link: { kind: "valve", ref: "10" },
             steps: [
               { time: 0, setting: 70 },
               { time: 43200, setting: 55 },
@@ -1363,8 +1362,7 @@ describe("labels across node kinds", () => {
         controls: [
           {
             type: "timedSetting",
-            linkType: "valve",
-            linkRef: "10",
+            link: { kind: "valve", ref: "10" },
             steps: [{ time: 3600, setting: 3600 }],
           },
         ],
@@ -1390,7 +1388,7 @@ const aTankLevelControl = (
   data: Partial<TankLevelControlData> = {},
 ): TankLevelControlData => ({
   type: "tankLevel",
-  linkRef: "10",
+  link: { kind: "pump", ref: "10" },
   tankRef: "2",
   on: { level: 7.12, setting: 0.8113 },
   off: { level: 7.92 },

@@ -73,8 +73,14 @@ export const useConvertModel = () => {
           return;
         }
 
-        const { hydraulicModel, factories, projectSettings, bounds } =
-          buildModel(network, { projections, labelMaxLength });
+        const {
+          hydraulicModel,
+          factories,
+          projectSettings,
+          bounds,
+          issues: builderIssues,
+        } = buildModel(network, { projections, labelMaxLength });
+        const allIssues = [...issues, ...builderIssues];
 
         const started = await startNewProject({
           hydraulicModel,
@@ -117,11 +123,13 @@ export const useConvertModel = () => {
             pumps: network.pumps.length,
             valves: network.valves.length,
           },
-          issues: issueCodes(issues),
+          issues: issueCodes(allIssues),
         });
 
         setDialogState(
-          issues.length > 0 ? { type: "convertModelIssues", issues } : null,
+          allIssues.length > 0
+            ? { type: "convertModelIssues", issues: allIssues }
+            : null,
         );
       } catch (error) {
         handleError(error, {

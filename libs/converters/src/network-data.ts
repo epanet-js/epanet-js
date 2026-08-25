@@ -104,27 +104,57 @@ export type PatternData = {
   multipliers: number[];
 };
 
+export type ControlLinkKind = "pipe" | "pump" | "valve";
+export type ControlNodeKind = "junction" | "reservoir" | "tank";
+
+export type ControlLinkRef = { kind: ControlLinkKind; ref: string };
+export type ControlNodeRef = { kind: ControlNodeKind; ref: string };
+
+export type ControlAction = { setting: number } | { status: "open" | "closed" };
+
 export type TankLevelControlData = {
   type: "tankLevel";
-  linkRef: string;
+  link: ControlLinkRef;
   tankRef: string;
-  on: { level: number; setting: number };
+  on: { level: number } & ({ setting: number } | { status: "open" });
   off: { level: number };
 };
 
-export type TimedSettingStepData = {
-  time: number;
-  setting: number;
-};
+export type TimedSettingStepData = { time: number } & ControlAction;
 
 export type TimedSettingControlData = {
   type: "timedSetting";
-  linkType: "valve";
-  linkRef: string;
+  link: ControlLinkRef;
   steps: TimedSettingStepData[];
 };
 
-export type ControlData = TankLevelControlData | TimedSettingControlData;
+export type TankFloatControlData = {
+  type: "tankFloat";
+  link: ControlLinkRef;
+  tankRef: string;
+  reopenDrop: number;
+};
+
+export type RemotePressureControlData = {
+  type: "remotePressure";
+  link: ControlLinkRef;
+  node: ControlNodeRef;
+  pressure: number;
+};
+
+export type FlowModulatedSetpointControlData = {
+  type: "flowModulatedSetpoint";
+  link: ControlLinkRef;
+  source: ControlLinkRef;
+  curveRef: string;
+};
+
+export type ControlData =
+  | TankLevelControlData
+  | TimedSettingControlData
+  | TankFloatControlData
+  | RemotePressureControlData
+  | FlowModulatedSetpointControlData;
 
 export type NetworkData = {
   junctions: JunctionData[];

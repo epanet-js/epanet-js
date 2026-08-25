@@ -1,4 +1,7 @@
 import type {
+  ControlData,
+  IssueCode,
+  ParserIssue,
   TankLevelControlData,
   TimedSettingControlData,
   CurvePointData,
@@ -14,6 +17,7 @@ import type {
   TankData,
   ValveData,
 } from "@epanet-js/converters";
+import { IssueCollector } from "@epanet-js/converters";
 import {
   HydraulicModel,
   createEmptyDemands,
@@ -76,6 +80,7 @@ export type BuildModelOptions = {
 
 export type BuildModelResult = {
   hydraulicModel: HydraulicModel;
+  issues: ParserIssue[];
   factories: ModelFactories;
   idGenerator: IdGenerator;
   bounds: Maybe<BBox>;
@@ -104,6 +109,7 @@ export const buildModel = (
   });
   const factories = initializeModelFactories({ idGenerator, labelManager });
 
+  const issues = new IssueCollector();
   const projection = resolveProjection(network.crs, projections);
   const { toWgs84 } = createProjectionMapper(projection);
 
@@ -177,10 +183,11 @@ export const buildModel = (
   }
 
   deactivateStrandedNodes(hydraulicModel, network, linkContext);
-  addControls(hydraulicModel, network, linkContext);
+  addControls(hydraulicModel, network, linkContext, issues);
 
   return {
     hydraulicModel,
+    issues: issues.build(),
     factories,
     idGenerator,
     bounds: getExtent(
@@ -632,21 +639,18 @@ const addControls = (
   hydraulicModel: HydraulicModel,
   { controls }: NetworkData,
   context: LinkContext,
+  issues: IssueCollector,
 ): void => {
   const built: Controls = [];
 
   for (const controlData of controls) {
-    if (controlData.type === "timedSetting") {
-      const scheduled = scheduledSettingOf(
-        controlData,
-        hydraulicModel,
-        context,
-      );
-      if (scheduled !== undefined) {
-        hydraulicModel.rawControls.simple.push(...scheduled);
-      }
+    const raw = rawControlsFor(controlData, hydraulicModel, context, issues);
+    if (raw !== undefined) {
+      hydraulicModel.rawControls.simple.push(...raw);
       continue;
     }
+
+    if (controlData.type !== "tankLevel") continue;
 
     const control = tankLevelControlOf(controlData, context);
     if (control === undefined) continue;
@@ -658,25 +662,134 @@ const addControls = (
   hydraulicModel.controlsLookup = buildControlsLookup(built);
 };
 
-// The domain's own timed control is a pump's; until it covers valves too, a
-// schedule the source states is written as the EPANET controls it would become.
-const scheduledSettingOf = (
-  { linkRef, steps }: TimedSettingControlData,
+// A float modulates as the tank fills; EPANET can only shut a link or open it,
+// and a two-state stand-in reads as support for something we do not model. A
+// setpoint held at another node, or one following the flow, has no form at all.
+const unsupported: Record<string, IssueCode> = {
+  tankFloat: "tankFloatControlUnsupported",
+  remotePressure: "remotePressureControlUnsupported",
+  flowModulatedSetpoint: "flowModulatedSetpointUnsupported",
+};
+
+const rawControlsFor = (
+  controlData: ControlData,
   hydraulicModel: HydraulicModel,
   context: LinkContext,
+  issues: IssueCollector,
 ): SimpleControl[] | undefined => {
-  const linkId = context.linkIdByRef.get(linkRef);
-  if (linkId === undefined) return undefined;
+  const code = unsupported[controlData.type];
+  if (code !== undefined) {
+    issues.add({
+      code,
+      severity: "warning",
+      ref: controlData.link.ref,
+    });
+    return [];
+  }
 
-  const valve = hydraulicModel.assets.get(linkId) as Valve | undefined;
-  if (valve === undefined || valve.type !== "valve") return undefined;
+  const linkId = context.linkIdByRef.get(controlData.link.ref);
+  if (linkId === undefined) return [];
 
-  const convert = settingConverterFor(valve.kind, context);
+  switch (controlData.type) {
+    case "timedSetting":
+      return scheduleRows(controlData, linkId, hydraulicModel, context);
+    case "tankLevel":
+      return controlData.link.kind === "pump"
+        ? undefined
+        : levelRows(controlData, linkId, hydraulicModel, context);
+    default:
+      return [];
+  }
+};
 
-  return steps.map(({ time, setting }) => ({
-    template: `LINK {{0}} ${convert(setting)} AT TIME ${asClockTime(time)}`,
-    assetReferences: [{ assetId: linkId, isActionTarget: true }],
-  }));
+const linkRow = (
+  linkId: AssetId,
+  action: string,
+  condition?: { nodeId: AssetId; direction: "ABOVE" | "BELOW"; level: number },
+): SimpleControl =>
+  condition === undefined
+    ? {
+        template: `LINK {{0}} ${action}`,
+        assetReferences: [{ assetId: linkId, isActionTarget: true }],
+      }
+    : {
+        template: `LINK {{0}} ${action} IF NODE {{1}} ${condition.direction} ${condition.level}`,
+        assetReferences: [
+          { assetId: linkId, isActionTarget: true },
+          { assetId: condition.nodeId, isActionTarget: false },
+        ],
+      };
+
+const scheduleRows = (
+  { steps }: TimedSettingControlData,
+  linkId: AssetId,
+  hydraulicModel: HydraulicModel,
+  context: LinkContext,
+): SimpleControl[] => {
+  const convert = settingConverter(linkId, hydraulicModel, context);
+  if (convert === undefined) return [];
+
+  return steps.map((step) =>
+    linkRow(
+      linkId,
+      `${
+        "setting" in step
+          ? String(convert(step.setting))
+          : step.status.toUpperCase()
+      } AT TIME ${asClockTime(step.time)}`,
+    ),
+  );
+};
+
+const levelRows = (
+  { tankRef, on, off }: TankLevelControlData,
+  linkId: AssetId,
+  hydraulicModel: HydraulicModel,
+  context: LinkContext,
+): SimpleControl[] => {
+  const tank = context.nodeIdByRef.get(tankRef);
+  if (tank === undefined) return [];
+
+  const onAction =
+    "status" in on ? openAction(linkId, hydraulicModel) : String(on.setting);
+
+  return [
+    linkRow(linkId, onAction, {
+      nodeId: tank.id,
+      direction: "BELOW",
+      level: context.toLevel(on.level),
+    }),
+    linkRow(linkId, "CLOSED", {
+      nodeId: tank.id,
+      direction: "ABOVE",
+      level: context.toLevel(off.level),
+    }),
+  ];
+};
+
+// A valve reopens to the position the source gave it, not to no loss at all —
+// EPANET reads a bare OPEN on a throttle as "ignore the setting".
+const openAction = (
+  linkId: AssetId,
+  hydraulicModel: HydraulicModel,
+): string => {
+  const link = hydraulicModel.assets.get(linkId);
+  if (link === undefined || link.type !== "valve") return "OPEN";
+
+  const { setting } = link as Valve;
+  return setting == null ? "OPEN" : String(setting);
+};
+
+const settingConverter = (
+  linkId: AssetId,
+  hydraulicModel: HydraulicModel,
+  context: LinkContext,
+): ((value: number) => number) | undefined => {
+  const link = hydraulicModel.assets.get(linkId);
+  if (link === undefined) return undefined;
+  if (link.type !== "valve") return (value) => value;
+
+  return settingConverterFor((link as Valve).kind, context);
 };
 
 const asClockTime = (seconds: number): string => {
@@ -687,10 +800,10 @@ const asClockTime = (seconds: number): string => {
 };
 
 const tankLevelControlOf = (
-  { linkRef, tankRef, on, off }: TankLevelControlData,
+  { link, tankRef, on, off }: TankLevelControlData,
   { linkIdByRef, nodeIdByRef, toLevel }: LinkContext,
 ): LevelSettingControl | undefined => {
-  const linkId = linkIdByRef.get(linkRef);
+  const linkId = linkIdByRef.get(link.ref);
   const tank = nodeIdByRef.get(tankRef);
   if (linkId === undefined || tank === undefined) return undefined;
 
@@ -699,7 +812,7 @@ const tankLevelControlOf = (
     type: "level-setting",
     linkId,
     tankId: tank.id,
-    on: { level: toLevel(on.level), setting: on.setting },
+    on: { level: toLevel(on.level), setting: "status" in on ? 1 : on.setting },
     off: { level: toLevel(off.level) },
   };
 };

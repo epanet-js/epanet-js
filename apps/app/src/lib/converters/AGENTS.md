@@ -87,16 +87,38 @@ Everything a parser is forbidden to do, so it is written once instead of once pe
   Solving and reporting on the source's own step is what makes the result comparable against the
   vendor's own output; every reference INP writes the same value for all three. Absent, the defaults
   stand and the import stays a snapshot.
-- **A scheduled setting becomes raw EPANET controls.** `TimedSettingControlData` is written into
-  `rawControls.simple`, one `LINK {{0}} <setting> AT TIME <h:mm>` per step, with the setting
-  converted through the valve's own quantity. The domain's `TimedSettingControl` is the right home
-  for it, but its steps are typed and rendered as a pump's speed and its editor only appears on a
-  pump, so a valve's schedule would be silently mis-emitted (`pumpSettingFor` turns a setting of 1
-  into `OPEN`, which for a tcv means no loss at all rather than K=1). Raw controls carry it exactly
-  today — they are persisted, emitted, skipped when they name an inactive asset, and surfaced in the
-  panel as "raw controls detected" — at the cost of not being editable. The placeholder resolves
-  from the asset id at INP-build time, which is why this is the consumer's job and not the parser's:
-  nothing upstream knows what the app will call the valve.
+- **Controls it can express become raw EPANET controls; the rest become issues.** `buildModel`
+  returns `issues` alongside the model for exactly this: whether a stated behaviour can be built is
+  a property of this consumer, not of the file, so the parser carries the data and the decision is
+  made here.
+
+  | control | built as |
+  |---|---|
+  | `tankLevel`, a pump | a native `LevelSettingControl` |
+  | `tankLevel`, a valve | raw `LINK … OPEN/CLOSED IF NODE … BELOW/ABOVE`, the shape the reference exports write |
+  | `timedSetting` | raw `LINK … AT TIME`, the setting converted through the valve's own quantity |
+  | `tankFloat` | nothing — `tankFloatControlUnsupported` |
+  | `remotePressure` | nothing — `remotePressureControlUnsupported` |
+  | `flowModulatedSetpoint` | nothing — `flowModulatedSetpointUnsupported` |
+
+  **A float valve is carried but not built.** Its two states look expressible — shut above the
+  tank's `maxLevel`, open again `reopenDrop` below — which is exactly why it was worth measuring
+  rather than assuming: across Framingham's whole day those controls came out **bit-identical** to
+  having none, because the tanks never reach `closeAbove` and the open branch only re-states the
+  valve's own setting. A real float modulates as the tank fills, so a two-state stand-in earns
+  nothing and reads as support for something the engine cannot do. The issue says so instead.
+
+  The domain's `TimedSettingControl` is the right home for a schedule, but its steps are typed and
+  rendered as a pump's speed and its editor only appears on a pump, so a valve's schedule would be
+  silently mis-emitted — `pumpSettingFor` turns a setting of 1 into `OPEN`, which for a tcv means no
+  loss at all rather than K = 1. Raw controls carry it exactly today: persisted, emitted, skipped
+  when they name an inactive asset, and surfaced in the panel as "raw controls detected", at the
+  cost of not being editable. `link.kind` on the control is the switch that routes a pump to the
+  native shape once the domain covers both.
+
+  **The template placeholder is why this is the consumer's job.** `{{0}}` resolves from the asset id
+  at INP-build time, so nothing upstream needs to know what the app will end up calling the valve —
+  and nothing downstream inherits a label the label manager may still change.
 - **Active topology.** `LinkData.isActive` is the only thing a source states; a node's is derived
   from it — a node stays active while any link into it is active, and a node with no links at all
   stays active. That is not a default filling a silence, it is the app's own invariant, held

@@ -157,33 +157,78 @@ with it — which timestep to solve on, whether to report every step — is the 
 *and* a node and putting it on either one leaves the other end a dangling reference on a record
 that has no business holding it.
 
-`TankLevelControlData` is the shape a vendor states when a tank switches a pump: the pump runs at
-`on.setting` while the tank is below `on.level`, and shuts above `off.level`. `linkRef` resolves
-against `pumps`, `tankRef` against `tanks` — two refs rather than one, because `ref` is unique
-within its array and not across the model.
+**Each `type` is one recognised behaviour, not a condition-and-action language.** The tempting
+generalisation is `{ when, then }`; it is the same mistake as putting INP syntax on the record.
+An open-ended language means a consumer must interpret arbitrary combinations and can never know
+what it supports, while a named record lets it switch exhaustively and add one behaviour at a time.
+Five records today:
 
-**The off side carries no setting.** Every reference export writes a shut pump there, and the
-domain has no field for a second running speed, so a source that states one is stating something
-this record cannot hold — the parser leaves the control out and says so, rather than dropping the
-speed and passing the rest off as complete.
+| type | the source states | consumer |
+|---|---|---|
+| `tankLevel` | a tank switches a link between running and shut | `[CONTROLS]` |
+| `timedSetting` | the setting follows a schedule | `[CONTROLS] … AT TIME` |
+| `tankFloat` | a float shuts the link when the tank fills, reopening after a drop | `[CONTROLS]` |
+| `remotePressure` | a link holds a pressure at some *other* node | nothing EPANET can express |
+| `flowModulatedSetpoint` | the setting follows a curve of flow | nothing EPANET can express |
 
-`on.setting` is a speed relative to the pump's rated speed, which is the same quantity
-`PumpData.speed` carries; `on.level` and `off.level` are levels, in `units.level`, on the same
-datum as `TankData.minLevel`. `type` discriminates because the kinds of control a vendor can state
-are open-ended, and a consumer must be able to switch rather than guess from which fields are set.
+**A control the consumer cannot express is still carried.** Whether a behaviour can be built is a
+property of the consumer, not of the source — the same reasoning that makes `"unknown"` describe a
+vendor's valve kind rather than our capability. So the parser states what the file says and the
+*builder* reports what it could not use, which is also where the domain-policy line already sits:
+source-level problems are the parser's, what to do about them is not.
 
-**`TimedSettingControlData` is a setting the source schedules**: `steps` of `{ time, setting }`, time
-in seconds from the start of the run, the setting in whatever quantity the link it names carries — a
-pressure for a prv, a flow for an fcv, a speed for a pump. The steps are the source's own points, not
-a resampling onto `patternTimeStep`: a schedule states when it changes, and a consumer that wants a
-grid can build one, while a consumer handed a grid can never recover the instants.
+**Refs are typed only where more than one array can hold them.** `link` is
+`{ kind: "pipe" | "pump" | "valve"; ref }` because a control genuinely names any of them and `ref`
+is unique within an array, not across the model; `kind` is also how a consumer routes — holding a
+schedule natively for one link kind and not another. `tankRef` stays a bare string because nothing
+but a tank can be there.
 
-**`linkType` says which array `linkRef` resolves against**, because `ref` is unique within an array
-and not across the model — and because the two kinds of link are worth different things to a
-consumer, which may hold a schedule natively for one and not the other. A record carrying a schedule
-also means the link itself is free to state the value at t = 0 as its setting: that number is exact,
-not a moving setpoint flattened into one, precisely because the rest of the series travels beside
-it.
+**An action is a setting or a status, never a number standing in for one.** `ControlAction` is
+`{ setting }` or `{ status: "open" | "closed" }`, because `0` is a real setting whose meaning
+changes with the link: K = 0 on a throttle valve is *wide open*, zero flow on an fcv is shut, and
+zero speed on a pump is off. A vocabulary that encoded shut as a number would be wrong for the most
+common valve kind we read.
+
+### `tankLevel`
+
+The link runs at `on.setting` (or simply opens) while the tank is below `on.level`, and shuts above
+`off.level`. `on.level` and `off.level` are levels, in `units.level`, on the same datum as
+`TankData.minLevel`; a stated `on.setting` is in whatever quantity the link carries — a speed
+relative to rated for a pump, a valve setting for a valve.
+
+**The off side carries no setting**, and its type says so. Every reference export writes a shut
+link there, and the domain has no field for a second running state, so a source that states one is
+stating something this record cannot hold — the parser leaves the control out and says so. The on
+side is a `{ setting }` *or* `{ status: "open" }` for the same reason in reverse: an on/off rule on
+a valve means open, and `1` would mean K = 1.
+
+### `timedSetting`
+
+`steps` of `{ time }` plus an action, time in seconds from the start of the run. The steps are the
+source's own points, not a resampling onto `patternTimeStep`: a schedule states *when* it changes,
+and a consumer that wants a grid can build one, while a consumer handed a grid can never recover
+the instants.
+
+A record carrying a schedule also frees the link to state the value at t = 0 as its own setting:
+that number is exact, not a moving setpoint flattened into one, precisely because the rest of the
+series travels beside it.
+
+### `tankFloat`
+
+`reopenDrop` is how far the tank must fall below full before the float lets the link open again, in
+`units.level`. Only the drop, because only the drop is stated — the level it closes at is the tank's
+own full level, which the consumer holds. Computing it here would ship an inference dressed as
+source data.
+
+### `remotePressure` and `flowModulatedSetpoint`
+
+Both say "a controller adjusts this link to hold something measured elsewhere", which EPANET has no
+form for — its pump and its regulator control their own outlet. `remotePressure` covers a
+variable-speed pump holding a pressure at a node and a regulator sensing at a node that is neither
+of its endpoints: one behaviour, and a consumer branches on `link.kind` if it cares.
+`flowModulatedSetpoint` names the link whose flow drives the setting — often the link itself, sometimes
+another — and a `curveRef` into `NetworkData.curves` whose X is a flow and Y a pressure, because a
+curve is a curve wherever it is referenced.
 
 ## A kind the source did not give is `"unknown"`, not a dropped record
 
