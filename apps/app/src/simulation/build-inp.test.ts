@@ -650,6 +650,52 @@ describe("build inp", () => {
     });
   });
 
+  describe("a tank whose geometry is a volume curve", () => {
+    const tankWithVolumeCurve = (diameter: number | null) =>
+      HydraulicModelBuilder.with()
+        .aCurve({
+          id: 2,
+          label: "VOL1",
+          type: "volume",
+          points: [
+            { x: 5, y: 0 },
+            { x: 25, y: 272 },
+          ],
+        })
+        .aTank(1, {
+          elevation: 50,
+          initialLevel: 15,
+          minLevel: 5,
+          maxLevel: 25,
+          minVolume: 0,
+          diameter,
+          volumeCurveId: 2,
+        })
+        .build();
+
+    it("writes a non-zero diameter when the source stated none", () => {
+      const inp = buildInp(tankWithVolumeCurve(null), {
+        units: presets.LPS.units,
+        simulationSettings: SimulationSettingsBuilder.with()
+          .timing({ duration: 3600 })
+          .build(),
+      });
+
+      expect(inp).toContain("1\t50\t15\t5\t25\t1\t0\tVOL1");
+    });
+
+    it("keeps a stated diameter alongside the curve", () => {
+      const inp = buildInp(tankWithVolumeCurve(31), {
+        units: presets.LPS.units,
+        simulationSettings: SimulationSettingsBuilder.with()
+          .timing({ duration: 3600 })
+          .build(),
+      });
+
+      expect(inp).toContain("1\t50\t15\t5\t25\t31\t0\tVOL1");
+    });
+  });
+
   it("includes demand model DDA without pressure fields", () => {
     const hydraulicModel = HydraulicModelBuilder.with().build();
 

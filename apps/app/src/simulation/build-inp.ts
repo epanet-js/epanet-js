@@ -61,6 +61,7 @@ type SimulationValveStatus = "Open" | "Closed";
 type EpanetValveType = "TCV" | "PRV" | "PSV" | "PBV" | "FCV" | "GPV" | "PCV";
 
 const MISSING_VALUE = "MISSING";
+const CURVE_TANK_DIAMETER = 1;
 
 import type { EpanetUnitSystem } from "@epanet-js/project-settings";
 export type { EpanetUnitSystem };
@@ -933,8 +934,11 @@ function* tankRows(
       dimension(tank.initialLevel),
       dimension(tank.minLevel),
       dimension(tank.maxLevel),
-      // Diameter is required unless a volume curve defines the geometry.
-      tank.volumeCurveId ? (tank.diameter ?? 0) : dimension(tank.diameter),
+      // EPANET reads a zero-diameter tank as a fixed-head node, so a tank whose
+      // geometry is its volume curve still needs a non-zero number here.
+      tank.volumeCurveId
+        ? (tank.diameter ?? CURVE_TANK_DIAMETER)
+        : dimension(tank.diameter),
       optionalValue(tank.minVolume, DEFAULT_MIN_VOLUME),
       tank.volumeCurveId ? idMap.curveId(tank.volumeCurveId) : "*",
       tank.overflow ? "YES" : "NO",
