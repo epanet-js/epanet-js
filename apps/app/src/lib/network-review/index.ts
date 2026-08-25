@@ -19,5 +19,8 @@ export type { SubNetwork } from "./connectivity-trace";
 export { findCrossingPipes } from "./crossing-pipes";
 export type { CrossingPipe } from "./crossing-pipes";
 
-export { findProximityAnomalies } from "./proximity-anomalies";
+export {
+  findProximityAnomalies,
+  CONNECTED_JUNCTION_TOLERANCE_IN_METERS,
+} from "./proximity-anomalies";
 export type { ProximityAnomaly } from "./proximity-anomalies";

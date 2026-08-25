@@ -15,7 +15,7 @@ import { Position } from "geojson";
 export function findProximityAnomalies(
   buffers: HydraulicModelBuffers,
   distanceInMeters: number = 0.5,
-  connectedJunctionTolerance: number = 0.1,
+  connectedJunctionTolerance: number = CONNECTED_JUNCTION_TOLERANCE_IN_METERS,
 ): EncodedProximityAnomalies {
   const views = new HydraulicModelBuffersView(buffers);
 
@@ -82,6 +82,11 @@ function getConnectedNodes(
   return connectedNodes;
 }
 
+// Below this, a connection point and an existing node are the same place: the
+// check will not propose the connection, and the fix merges rather than adding
+// a node right on top of another.
+export const CONNECTED_JUNCTION_TOLERANCE_IN_METERS = 0.1;
+
 const LAT_DEGREE_IN_METERS_AT_EQUATOR = 111320;
 const MIN_SEARCH_RADIUS_IN_METERS = 0.1;
 
@@ -131,7 +136,7 @@ function findBestAlternativeConnection(
   alreadyConnectedLinks: number[],
   connectedNodes: number[],
   distanceInMeters: number,
-  connectedJunctionTolerance: number = 0.1,
+  connectedJunctionTolerance: number = CONNECTED_JUNCTION_TOLERANCE_IN_METERS,
 ) {
   const validCandidates: EncodedAlternativeConnection[] = [];
   const alreadyConnectedLinksSet = new Set(alreadyConnectedLinks);
@@ -173,7 +178,7 @@ function isTooCloseToConnectedJunctions(
   nearestPoint: Position,
   connectedNodeIds: number[],
   views: HydraulicModelBuffersView,
-  tolerance: number = 0.1,
+  tolerance: number = CONNECTED_JUNCTION_TOLERANCE_IN_METERS,
 ): boolean {
   for (const connectedNodeId of connectedNodeIds) {
     const connectedNodePosition = views.nodePositions.getById(connectedNodeId);

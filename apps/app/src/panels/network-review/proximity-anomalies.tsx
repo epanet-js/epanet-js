@@ -7,9 +7,9 @@ import {
   findProximityAnomalies,
 } from "src/lib/network-review";
 import clsx from "clsx";
-import { ConnectIcon } from "src/icons";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { DummyFixButton } from "./fixes/dummy-fix-button";
+import { FixProximityAnomalyButton } from "./fixes/fix-proximity-anomaly-button";
+import { useFixProximityAnomaly } from "./fixes/use-fix-proximity-anomaly";
 import {
   EmptyState,
   LoadingState,
@@ -300,6 +300,19 @@ const ProximityAnomaliesList = ({
   const isFixPipeOverUnderShotOn = useFeatureFlag(
     "FLAG_FIX_PIPE_OVER_UNDER_SHOT",
   );
+  const { fix } = useFixProximityAnomaly();
+
+  const fixAnomaly = useCallback(
+    (anomalyId: string) => {
+      const anomaly = proximityAnomalies.find(
+        (candidate) => `${candidate.nodeId}-${candidate.pipeId}` === anomalyId,
+      );
+      if (!anomaly) return;
+
+      fix(anomaly);
+    },
+    [proximityAnomalies, fix],
+  );
 
   return (
     <VirtualizedIssuesList
@@ -316,11 +329,14 @@ const ProximityAnomaliesList = ({
       )}
       renderItemAction={
         isFixPipeOverUnderShotOn
-          ? () => (
-              <DummyFixButton label="Fix" icon={<ConnectIcon size="md" />} />
+          ? (anomaly) => (
+              <FixProximityAnomalyButton
+                onFix={() => fixAnomaly(`${anomaly.nodeId}-${anomaly.pipeId}`)}
+              />
             )
           : undefined
       }
+      onItemAction={isFixPipeOverUnderShotOn ? fixAnomaly : undefined}
       checkType={CheckType.proximityAnomalies}
       onGoBack={onGoBack}
     />

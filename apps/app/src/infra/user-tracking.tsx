@@ -1076,6 +1076,13 @@ type CrossingPipesConnected = {
   pipeIds: number[];
 };
 
+type ProximityAnomalyConnected = {
+  name: "networkReview.proximityAnomalies.fixed";
+  nodeId: number;
+  pipeId: number;
+  distance: number;
+};
+
 type ModelAttributesValidationChanged = {
   name: "networkReview.modelAttributesValidation.changed";
   count: number;
@@ -1487,6 +1494,7 @@ export type UserEvent =
   | OrphanAssetFixed
   | SubnetworkDisabled
   | CrossingPipesConnected
+  | ProximityAnomalyConnected
   | ModelAttributesValidationChanged
   | ModelAttributesValidationGroupOpened
   | ModelAttributesValidationBulkSelected
