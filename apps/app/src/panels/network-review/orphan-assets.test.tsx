@@ -135,6 +135,60 @@ describe("OrphanAssets panel fix action", () => {
     });
   });
 
+  it("offers to disable a valve isolated on both ends", async () => {
+    stubFeatureOn("FLAG_FIX_ORPHAN_ASSET");
+    const IDS = { T1: 1, J1: 2, Valve: 3 } as const;
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aTank(IDS.T1)
+      .aJunction(IDS.J1)
+      .aValve(IDS.Valve, {
+        startNodeId: IDS.T1,
+        endNodeId: IDS.J1,
+        label: "VALVE",
+      })
+      .build();
+    const store = setInitialState({ hydraulicModel });
+    renderPanel(store);
+
+    await waitFor(() => {
+      expect(screen.getByText("VALVE")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /disable/i }));
+
+    await waitFor(() => {
+      expect(
+        store.get(stagingModelDerivedAtom).assets.get(IDS.Valve)?.isActive,
+      ).toBe(false);
+    });
+  });
+
+  it("does not offer a fix for a disconnected tank or reservoir", async () => {
+    stubFeatureOn("FLAG_FIX_ORPHAN_ASSET");
+    const IDS = { T1: 1, R1: 2 } as const;
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aTank(IDS.T1, { label: "TANK" })
+      .aReservoir(IDS.R1, { label: "RESERVOIR" })
+      .build();
+    const store = setInitialState({ hydraulicModel });
+    renderPanel(store);
+
+    await waitFor(() => {
+      expect(screen.getByText("TANK")).toBeInTheDocument();
+    });
+    expect(screen.getByText("RESERVOIR")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /delete/i })).toBeNull();
+
+    fireEvent.click(screen.getByText("TANK"));
+    const list = screen.getByRole("list").parentElement!.parentElement!;
+    fireEvent.keyDown(list, { key: "Enter" });
+
+    await waitFor(() => {
+      expect(screen.getByText("TANK")).toBeInTheDocument();
+    });
+    expect(store.get(stagingModelDerivedAtom).assets.get(IDS.T1)).toBeDefined();
+  });
+
   it("does not fix via Enter while edition is blocked", async () => {
     stubFeatureOn("FLAG_FIX_ORPHAN_ASSET");
     const { IDS, hydraulicModel } = aModelWithAnOrphanJunction();

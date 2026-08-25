@@ -7,8 +7,7 @@ export {
 } from "./blocking-checks";
 export type { BlockingCheckType, BlockingCheckResult } from "./blocking-checks";
 
-export { findOrphanAssets, classifyOrphan } from "./orphan-assets";
-export type { OrphanKind } from "./orphan-assets";
+export { findOrphanAssets } from "./orphan-assets";
 
 export {
   findConnectivityTrace,

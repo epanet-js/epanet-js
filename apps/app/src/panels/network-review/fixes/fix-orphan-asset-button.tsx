@@ -1,7 +1,7 @@
 import { useTranslate } from "src/hooks/use-translate";
 import { DeactivateTopologyIcon, DeleteIcon } from "src/icons";
-import { OrphanKind } from "src/lib/network-review";
 import { FixButton } from "./fix-button";
+import { OrphanKind } from "./use-fix-orphan-asset";
 
 export const FixOrphanAssetButton = ({
   kind,
