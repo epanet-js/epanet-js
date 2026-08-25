@@ -13,7 +13,10 @@ import { waitForNotLoading } from "src/__helpers__/ui-expects";
 import { stubConverter } from "src/lib/converters/__helpers__/stub-converter";
 import { registerConverter } from "src/lib/converters";
 import { useInProcessDb } from "src/lib/db/__test-helpers__/in-process-db";
-import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
+import {
+  simulationSettingsDerivedAtom,
+  stagingModelDerivedAtom,
+} from "src/state/derived-branch-state";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { Store } from "src/state";
 import { Junction, Pipe, Reservoir, Tank, Valve } from "src/hydraulic-model";
@@ -105,6 +108,39 @@ describe("convertModel", () => {
     expect(projectSettings.name).toEqual("my-network");
     expect(projectSettings.projection.id).toEqual("EPSG:3857");
     expect(projectSettings.units.flow).toEqual("l/s");
+  });
+
+  it("runs an extended period matching the source's own timing", async () => {
+    stubFileOpen();
+    stubConverter("synergi", {
+      network: aNetwork({ patternTimeStep: 900, simulationDuration: 86400 }),
+      issues: [],
+    });
+    const store = setInitialState();
+
+    renderComponent({ store });
+    await triggerCommand();
+    await doFileSelection(aTestFile({ filename: "my-network.mdb" }));
+    await waitForNotLoading();
+
+    const { timing } = store.get(simulationSettingsDerivedAtom);
+    expect(timing.duration).toEqual(86400);
+    expect(timing.patternTimestep).toEqual(900);
+    expect(timing.hydraulicTimestep).toEqual(900);
+    expect(timing.reportTimestep).toEqual(900);
+  });
+
+  it("stays on the defaults when the source states no timing", async () => {
+    stubFileOpen();
+    stubConverter("synergi", { network: aNetwork(), issues: [] });
+    const store = setInitialState();
+
+    renderComponent({ store });
+    await triggerCommand();
+    await doFileSelection(aTestFile({ filename: "my-network.mdb" }));
+    await waitForNotLoading();
+
+    expect(store.get(simulationSettingsDerivedAtom).timing.duration).toEqual(0);
   });
 
   it("captures user tracking events", async () => {

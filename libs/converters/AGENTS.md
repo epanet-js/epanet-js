@@ -137,6 +137,12 @@ ones. How a vendor reads its own profile between samples is vendor knowledge, an
 handing every consumer a set of time series to interpolate — writes that knowledge once per
 consumer instead of once per vendor.
 
+**`simulationDuration` is the cycle those multipliers cover**, in seconds — the same reduction seen
+from the other end. A parser that resolves its profiles onto one step knows how long one pass
+through them is, and stating it is what lets a consumer run the model over the period the source was
+authored for instead of a single snapshot. It is not a per-quantity setting: what a consumer does
+with it — which timestep to solve on, whether to report every step — is the consumer's call.
+
 ## A control joins two assets, so it belongs to neither
 
 `NetworkData.controls` is its own array, the same way curves are, because a control names a link

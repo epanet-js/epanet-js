@@ -81,6 +81,12 @@ Everything a parser is forbidden to do, so it is written once instead of once pe
   length the source *did* state keeps a blank roughness, per the rule above: that is a real pipe
   with a value missing, not a device. Nothing is lost by the default — the real loss on such a
   fitting is its minor loss, which the source states and `PipeData.minorLoss` carries.
+- **Simulation timing.** A stated `patternTimeStep` becomes the pattern, hydraulic *and* report
+  timestep, and `simulationDuration` becomes the duration — which is what flips an imported project
+  from a single snapshot into an extended-period run (`build-inp` treats `duration > 0` as EPS).
+  Solving and reporting on the source's own step is what makes the result comparable against the
+  vendor's own output; every reference INP writes the same value for all three. Absent, the defaults
+  stand and the import stays a snapshot.
 - **Active topology.** `LinkData.isActive` is the only thing a source states; a node's is derived
   from it — a node stays active while any link into it is active, and a node with no links at all
   stays active. That is not a default filling a silence, it is the app's own invariant, held

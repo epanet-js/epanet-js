@@ -1,7 +1,7 @@
 import { useCallback, useContext } from "react";
 import { useSetAtom } from "jotai";
 import { FileWithHandle } from "browser-fs-access";
-import type { Converter } from "@epanet-js/converters";
+import type { Converter, NetworkData } from "@epanet-js/converters";
 import { LngLatBoundsLike } from "mapbox-gl";
 import { defaultProjectSettings } from "@epanet-js/project-settings";
 import { useUnsavedChangesCheck } from "./check-unsaved-changes";
@@ -84,9 +84,9 @@ export const useConvertModel = () => {
             ...projectSettings,
             name: file.name.replace(/\.[^.]+$/, ""),
           },
-          simulationSettings: withPatternTimestep(
+          simulationSettings: withSourceTiming(
             defaultSimulationSettings,
-            network.patternTimeStep,
+            network,
           ),
         });
         if (!started) {
@@ -190,13 +190,23 @@ export const useConvertModel = () => {
   );
 };
 
-const withPatternTimestep = (
+const withSourceTiming = (
   settings: SimulationSettings,
-  patternTimeStep: number | undefined,
-): SimulationSettings =>
-  patternTimeStep === undefined
-    ? settings
-    : {
-        ...settings,
-        timing: { ...settings.timing, patternTimestep: patternTimeStep },
-      };
+  { patternTimeStep, simulationDuration }: NetworkData,
+): SimulationSettings => {
+  const timing = {
+    ...settings.timing,
+    ...(patternTimeStep === undefined
+      ? {}
+      : {
+          patternTimestep: patternTimeStep,
+          hydraulicTimestep: patternTimeStep,
+          reportTimestep: patternTimeStep,
+        }),
+    ...(simulationDuration === undefined
+      ? {}
+      : { duration: simulationDuration }),
+  };
+
+  return { ...settings, timing };
+};

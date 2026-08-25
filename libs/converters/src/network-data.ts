@@ -125,6 +125,7 @@ export type NetworkData = {
   patterns: PatternData[];
   controls: ControlData[];
   patternTimeStep?: number;
+  simulationDuration?: number;
   headlossFormula?: HeadlossFormula;
   units: SourceUnits;
   crs: SourceCrs;
