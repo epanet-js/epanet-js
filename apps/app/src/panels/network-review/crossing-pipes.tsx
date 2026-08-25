@@ -4,9 +4,9 @@ import {
   CrossingPipe,
 } from "src/lib/network-review";
 import clsx from "clsx";
-import { ConnectIcon } from "src/icons";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { DummyFixButton } from "./fixes/dummy-fix-button";
+import { FixCrossingPipesButton } from "./fixes/fix-crossing-pipes-button";
+import { useFixCrossingPipes } from "./fixes/use-fix-crossing-pipes";
 import {
   EmptyState,
   LoadingState,
@@ -166,8 +166,19 @@ const CrossingPipesList = ({
   selectedCrossingPipes: string | null;
   onGoBack: () => void;
 }) => {
-  const isConnectCrossingPipesOn = useFeatureFlag(
-    "FLAG_CONNECT_CROSSING_PIPES",
+  const isFixCrossingPipesOn = useFeatureFlag("FLAG_FIX_CROSSING_PIPES");
+  const { fix } = useFixCrossingPipes();
+
+  const fixCrossing = useCallback(
+    (crossingId: string) => {
+      const crossing = crossingPipes.find(
+        (candidate) => getCrossingId(candidate) === crossingId,
+      );
+      if (!crossing) return;
+
+      fix(crossing);
+    },
+    [crossingPipes, fix],
   );
 
   return (
@@ -184,12 +195,15 @@ const CrossingPipesList = ({
         />
       )}
       renderItemAction={
-        isConnectCrossingPipesOn
-          ? () => (
-              <DummyFixButton label="Fix" icon={<ConnectIcon size="md" />} />
+        isFixCrossingPipesOn
+          ? (crossing) => (
+              <FixCrossingPipesButton
+                onFix={() => fixCrossing(getCrossingId(crossing))}
+              />
             )
           : undefined
       }
+      onItemAction={isFixCrossingPipesOn ? fixCrossing : undefined}
       checkType={CheckType.crossingPipes}
       onGoBack={onGoBack}
     />
@@ -206,9 +220,7 @@ const CrossingPipeItem = ({
   selectedId: string | null;
 }) => {
   const translate = useTranslate();
-  const isConnectCrossingPipesOn = useFeatureFlag(
-    "FLAG_CONNECT_CROSSING_PIPES",
-  );
+  const isFixCrossingPipesOn = useFeatureFlag("FLAG_FIX_CROSSING_PIPES");
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const crossingId = `${crossing.pipe1Id}-${crossing.pipe2Id}`;
   const isSelected = selectedId === crossingId;
@@ -234,7 +246,7 @@ const CrossingPipeItem = ({
 
   const diameterClassName = clsx(
     "whitespace-nowrap text-subtle",
-    isConnectCrossingPipesOn ? "text-left" : "text-right",
+    isFixCrossingPipesOn ? "text-left" : "text-right",
   );
 
   return (
@@ -254,7 +266,7 @@ const CrossingPipeItem = ({
       <div
         className={clsx(
           "grid w-full items-start",
-          isConnectCrossingPipesOn
+          isFixCrossingPipesOn
             ? "grid-cols-[minmax(0,auto)_auto] gap-x-2 justify-start"
             : "grid-cols-[1fr_auto]",
         )}

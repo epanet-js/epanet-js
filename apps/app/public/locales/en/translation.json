@@ -398,6 +398,7 @@
   "globalDefault": "Global default",
   "empty": "Empty",
   "type": "Type",
+  "connect": "Connect",
   "delete": "Delete",
   "copy": "Copy",
   "paste": "Paste",

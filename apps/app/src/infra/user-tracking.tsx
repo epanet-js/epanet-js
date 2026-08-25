@@ -1071,6 +1071,11 @@ type SubnetworkDisabled = {
   nodeCount: number;
 };
 
+type CrossingPipesConnected = {
+  name: "networkReview.crossingPipes.fixed";
+  pipeIds: number[];
+};
+
 type ModelAttributesValidationChanged = {
   name: "networkReview.modelAttributesValidation.changed";
   count: number;
@@ -1481,6 +1486,7 @@ export type UserEvent =
   | NetworkReviewChanged
   | OrphanAssetFixed
   | SubnetworkDisabled
+  | CrossingPipesConnected
   | ModelAttributesValidationChanged
   | ModelAttributesValidationGroupOpened
   | ModelAttributesValidationBulkSelected
