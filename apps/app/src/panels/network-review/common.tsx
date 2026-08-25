@@ -372,11 +372,19 @@ export const VirtualizedIssuesList = <T, I>({
             onGoBack();
           }
           break;
-        case "Enter":
+        case "Enter": {
           if (!onItemAction || selectedItemId === null) break;
           e.preventDefault();
+
+          const actedIndex = items.findIndex(
+            (item) => getIdFromIssue(item) === selectedItemId,
+          );
+          const nextIssue = nextIssueToSelect(items, actedIndex);
+
           onItemAction(selectedItemId);
+          onSelect(nextIssue);
           break;
+        }
         case "+":
         case "=":
           e.preventDefault();
@@ -497,4 +505,10 @@ export const VirtualizedIssuesList = <T, I>({
       </div>
     </div>
   );
+};
+
+const nextIssueToSelect = <T,>(items: T[], index: number): T | null => {
+  if (index < 0 || items.length === 0) return null;
+
+  return items[(index + 1) % items.length] ?? null;
 };

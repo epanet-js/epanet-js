@@ -132,7 +132,7 @@ export const CrossingPipes = ({ onGoBack }: { onGoBack: () => void }) => {
             {crossingPipes.length > 0 ? (
               <CrossingPipesList
                 crossingPipes={crossingPipes}
-                onClick={selectCrossingPipes}
+                onSelect={selectCrossingPipes}
                 selectedCrossingPipes={selectedCrossingId}
                 onGoBack={onGoBack}
               />
@@ -157,12 +157,12 @@ export const CrossingPipes = ({ onGoBack }: { onGoBack: () => void }) => {
 
 const CrossingPipesList = ({
   crossingPipes,
-  onClick,
+  onSelect,
   selectedCrossingPipes,
   onGoBack,
 }: {
   crossingPipes: CrossingPipe[];
-  onClick: (issue: CrossingPipe | null) => void;
+  onSelect: (issue: CrossingPipe | null) => void;
   selectedCrossingPipes: string | null;
   onGoBack: () => void;
 }) => {
@@ -174,7 +174,7 @@ const CrossingPipesList = ({
     <VirtualizedIssuesList
       items={crossingPipes}
       selectedItemId={selectedCrossingPipes}
-      onSelect={onClick}
+      onSelect={onSelect}
       getItemId={getCrossingId}
       renderItem={(_index, crossing, selectedId, onClick) => (
         <CrossingPipeItem

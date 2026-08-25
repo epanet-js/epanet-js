@@ -117,7 +117,7 @@ export const OrphanAssets = ({ onGoBack }: { onGoBack: () => void }) => {
             {orphanAssets.length > 0 ? (
               <OrphanAssetsList
                 orphanAssets={orphanAssets}
-                onClick={selectOrphanAsset}
+                onSelect={selectOrphanAsset}
                 selectedOrphanAsset={selectedOrphanAssetId}
                 onGoBack={onGoBack}
                 hydraulicModel={hydraulicModel}
@@ -143,13 +143,13 @@ export const OrphanAssets = ({ onGoBack }: { onGoBack: () => void }) => {
 
 const OrphanAssetsList = ({
   orphanAssets,
-  onClick,
+  onSelect,
   selectedOrphanAsset,
   onGoBack,
   hydraulicModel,
 }: {
   orphanAssets: AssetId[];
-  onClick: (assetId: AssetId | null) => void;
+  onSelect: (assetId: AssetId | null) => void;
   selectedOrphanAsset: number | null;
   onGoBack: () => void;
   hydraulicModel: HydraulicModel;
@@ -157,22 +157,11 @@ const OrphanAssetsList = ({
   const isFixOrphanAssetOn = useFeatureFlag("FLAG_FIX_ORPHAN_ASSET");
   const { kindOf, fix } = useFixOrphanAsset();
 
-  const fixAndSelectNext = useCallback(
-    (assetId: AssetId) => {
-      const index = orphanAssets.indexOf(assetId);
-      const next = orphanAssets[index + 1] ?? orphanAssets[index - 1] ?? null;
-
-      fix(assetId);
-      onClick(next);
-    },
-    [orphanAssets, fix, onClick],
-  );
-
   return (
     <VirtualizedIssuesList
       items={orphanAssets}
       selectedItemId={selectedOrphanAsset}
-      onSelect={onClick}
+      onSelect={onSelect}
       getItemId={(assetId) => assetId}
       renderItem={(_index, assetId, selectedId, onClick) => {
         const asset = hydraulicModel.assets.get(assetId);
@@ -193,15 +182,12 @@ const OrphanAssetsList = ({
               if (!kind) return null;
 
               return (
-                <FixOrphanAssetButton
-                  kind={kind}
-                  onFix={() => fixAndSelectNext(assetId)}
-                />
+                <FixOrphanAssetButton kind={kind} onFix={() => fix(assetId)} />
               );
             }
           : undefined
       }
-      onItemAction={isFixOrphanAssetOn ? fixAndSelectNext : undefined}
+      onItemAction={isFixOrphanAssetOn ? fix : undefined}
       checkType={CheckType.orphanAssets}
       onGoBack={onGoBack}
     />

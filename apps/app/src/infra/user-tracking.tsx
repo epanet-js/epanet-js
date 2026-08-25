@@ -1065,6 +1065,12 @@ type OrphanAssetFixed = {
   type: string;
 };
 
+type SubnetworkDisabled = {
+  name: "networkReview.connectivityTrace.fixed";
+  linkCount: number;
+  nodeCount: number;
+};
+
 type ModelAttributesValidationChanged = {
   name: "networkReview.modelAttributesValidation.changed";
   count: number;
@@ -1474,6 +1480,7 @@ export type UserEvent =
   | NetworkReviewBack
   | NetworkReviewChanged
   | OrphanAssetFixed
+  | SubnetworkDisabled
   | ModelAttributesValidationChanged
   | ModelAttributesValidationGroupOpened
   | ModelAttributesValidationBulkSelected

@@ -154,7 +154,7 @@ export const ProximityAnomalies = ({ onGoBack }: { onGoBack: () => void }) => {
             {proximityAnomalies.length > 0 ? (
               <ProximityAnomaliesList
                 proximityAnomalies={proximityAnomalies}
-                onClick={selectProximityAnomaly}
+                onSelect={selectProximityAnomaly}
                 selectedAnomaly={selectedProximityAnomalyId}
                 onGoBack={onGoBack}
               />
@@ -288,12 +288,12 @@ const useCheckProximityAnomalies = () => {
 
 const ProximityAnomaliesList = ({
   proximityAnomalies,
-  onClick,
+  onSelect,
   selectedAnomaly,
   onGoBack,
 }: {
   proximityAnomalies: ProximityAnomaly[];
-  onClick: (issue: ProximityAnomaly | null) => void;
+  onSelect: (issue: ProximityAnomaly | null) => void;
   selectedAnomaly: string | null;
   onGoBack: () => void;
 }) => {
@@ -305,7 +305,7 @@ const ProximityAnomaliesList = ({
     <VirtualizedIssuesList
       items={proximityAnomalies}
       selectedItemId={selectedAnomaly}
-      onSelect={onClick}
+      onSelect={onSelect}
       getItemId={(issue) => `${issue.nodeId}-${issue.pipeId}`}
       renderItem={(_index, anomaly, selectedId, onClick) => (
         <ProximityAnomalyItem

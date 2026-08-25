@@ -4,7 +4,7 @@ import { Button } from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
 import { useZoomTo } from "src/hooks/use-zoom-to";
 import { useUserTracking } from "src/infra/user-tracking";
-import { ActiveTopologyEnableIcon, WarningIcon } from "src/icons";
+import { WarningIcon } from "src/icons";
 import {
   findConnectivityTrace,
   SubNetwork,
@@ -16,7 +16,11 @@ import { USelection, useSelection } from "src/selection";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { selectionAtom } from "src/state/selection";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { DummyFixButton } from "./fixes/dummy-fix-button";
+import { FixSubnetworkButton } from "./fixes/fix-subnetwork-button";
+import {
+  canDisableSubnetwork,
+  useFixSubnetwork,
+} from "./fixes/use-fix-subnetwork";
 import {
   EmptyState,
   LoadingState,
@@ -125,7 +129,7 @@ export const ConnectivityTrace = ({ onGoBack }: { onGoBack: () => void }) => {
             {subnetworks.length > 0 ? (
               <SubNetworksList
                 subNetworks={subnetworks}
-                onClick={selectSubnetwork}
+                onSelect={selectSubnetwork}
                 selectedSubNetwork={selectedSubnetworkId}
                 onGoBack={onGoBack}
               />
@@ -150,22 +154,37 @@ export const ConnectivityTrace = ({ onGoBack }: { onGoBack: () => void }) => {
 
 const SubNetworksList = ({
   subNetworks,
-  onClick,
+  onSelect,
   selectedSubNetwork,
   onGoBack,
 }: {
   subNetworks: SubNetwork[];
-  onClick: (issue: SubNetwork | null) => void;
+  onSelect: (issue: SubNetwork | null) => void;
   selectedSubNetwork: number | null;
   onGoBack: () => void;
 }) => {
-  const isDisableSubnetworkOn = useFeatureFlag("FLAG_DISABLE_SUBNETWORK");
+  const isDisableUnsuppliedSubnetworkOn = useFeatureFlag(
+    "FLAG_DISABLE_UNSUPPLIED_SUBNETWORK",
+  );
+  const { fix } = useFixSubnetwork();
+
+  const fixSubnetwork = useCallback(
+    (subnetworkId: number) => {
+      const index = subNetworks.findIndex(
+        (candidate) => candidate.subnetworkId === subnetworkId,
+      );
+      if (index === -1) return;
+
+      fix(subNetworks[index]);
+    },
+    [subNetworks, fix],
+  );
 
   return (
     <VirtualizedIssuesList
       items={subNetworks}
       selectedItemId={selectedSubNetwork}
-      onSelect={onClick}
+      onSelect={onSelect}
       getItemId={(issue) => issue.subnetworkId}
       renderItem={(index, subnetwork, selectedId, onClick) => (
         <SubnetworkItem
@@ -177,15 +196,16 @@ const SubNetworksList = ({
         />
       )}
       renderItemAction={
-        isDisableSubnetworkOn
-          ? () => (
-              <DummyFixButton
-                label="Fix"
-                icon={<ActiveTopologyEnableIcon size="md" />}
-              />
-            )
+        isDisableUnsuppliedSubnetworkOn
+          ? (subnetwork) =>
+              canDisableSubnetwork(subnetwork) ? (
+                <FixSubnetworkButton
+                  onFix={() => fixSubnetwork(subnetwork.subnetworkId)}
+                />
+              ) : null
           : undefined
       }
+      onItemAction={isDisableUnsuppliedSubnetworkOn ? fixSubnetwork : undefined}
       checkType={CheckType.connectivityTrace}
       onGoBack={onGoBack}
     />
