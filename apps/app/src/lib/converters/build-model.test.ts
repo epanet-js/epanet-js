@@ -1,4 +1,5 @@
 import type {
+  CustomAttributeData,
   TankLevelControlData,
   ZoneData,
   JunctionData,
@@ -11,6 +12,7 @@ import type {
 } from "@epanet-js/converters";
 import { WGS84, type Proj4Projection } from "@epanet-js/projections";
 import type { LevelSettingControl } from "@epanet-js/hydraulic-model";
+import { getAttributes } from "@epanet-js/hydraulic-model";
 import {
   Asset,
   AssetsMap,
@@ -1297,6 +1299,141 @@ describe("build controls from network data", () => {
   });
 });
 
+describe("build custom attributes from network data", () => {
+  it("defines an attribute on the kind that carries it", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        customAttributes: [anAttribute({ ref: "7", name: "MATERIAL" })],
+        junctions: [aJunction({ ref: "1" }), aJunction({ ref: "2" })],
+        pipes: [aPipe({ ref: "10", customAttributes: { "7": "HPPE/PE100" } })],
+      }),
+      { projections: aCatalogue() },
+    );
+
+    expect(getAttributes(hydraulicModel.customAttributes, "pipe")).toEqual([
+      { id: "custom-1", label: "MATERIAL", type: "text" },
+    ]);
+    expect(getAttributes(hydraulicModel.customAttributes, "junction")).toEqual(
+      [],
+    );
+
+    const pipe = getByLabel(hydraulicModel.assets, "10") as Pipe;
+    expect(pipe.getProperty("custom-1")).toEqual("HPPE/PE100");
+  });
+
+  it("keeps a number attribute a number", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        customAttributes: [
+          anAttribute({ ref: "7", name: "QUO_DIAM", type: "number" }),
+        ],
+        junctions: [
+          aJunction({ ref: "1", label: "J1", customAttributes: { "7": 125 } }),
+        ],
+      }),
+      { projections: aCatalogue() },
+    );
+
+    const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
+    expect(junction.getProperty("custom-1")).toEqual(125);
+  });
+
+  it("gives each kind its own attribute even when the name repeats", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        customAttributes: [
+          anAttribute({ ref: "11", name: "INT_DIAM", type: "number" }),
+          anAttribute({ ref: "13", name: "INT_DIAM" }),
+        ],
+        junctions: [
+          aJunction({ ref: "1", label: "J1", customAttributes: { "11": 90 } }),
+          aJunction({ ref: "2", label: "J2" }),
+        ],
+        pipes: [
+          aPipe({
+            ref: "10",
+            startNodeRef: "1",
+            endNodeRef: "2",
+            customAttributes: { "13": "INS" },
+          }),
+        ],
+      }),
+      { projections: aCatalogue() },
+    );
+
+    expect(getAttributes(hydraulicModel.customAttributes, "junction")).toEqual([
+      { id: "custom-1", label: "INT_DIAM", type: "number" },
+    ]);
+    expect(getAttributes(hydraulicModel.customAttributes, "pipe")).toEqual([
+      { id: "custom-2", label: "INT_DIAM", type: "text" },
+    ]);
+
+    const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
+    expect(junction.getProperty("custom-1")).toEqual(90);
+    const pipe = getByLabel(hydraulicModel.assets, "10") as Pipe;
+    expect(pipe.getProperty("custom-2")).toEqual("INS");
+  });
+
+  it("shares one attribute across the assets of a kind", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        customAttributes: [anAttribute({ ref: "7", name: "OWNERSHIP" })],
+        junctions: [
+          aJunction({
+            ref: "1",
+            label: "J1",
+            customAttributes: { "7": "AWS" },
+          }),
+          aJunction({
+            ref: "2",
+            label: "J2",
+            customAttributes: { "7": "PRV" },
+          }),
+        ],
+      }),
+      { projections: aCatalogue() },
+    );
+
+    expect(getAttributes(hydraulicModel.customAttributes, "junction")).toEqual([
+      { id: "custom-1", label: "OWNERSHIP", type: "text" },
+    ]);
+    expect(
+      (getByLabel(hydraulicModel.assets, "J2") as Junction).getProperty(
+        "custom-1",
+      ),
+    ).toEqual("PRV");
+  });
+
+  it("leaves an asset without the attribute untouched", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        customAttributes: [anAttribute({ ref: "7", name: "OWNERSHIP" })],
+        junctions: [
+          aJunction({
+            ref: "1",
+            label: "J1",
+            customAttributes: { "7": "AWS" },
+          }),
+          aJunction({ ref: "2", label: "J2" }),
+        ],
+      }),
+      { projections: aCatalogue() },
+    );
+
+    const junction = getByLabel(hydraulicModel.assets, "J2") as Junction;
+    expect(junction.getProperty("custom-1")).toBeUndefined();
+  });
+
+  it("defines nothing when the source states no attributes", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({ junctions: [aJunction({ ref: "1", label: "J1" })] }),
+      { projections: aCatalogue() },
+    );
+
+    expect(hydraulicModel.customAttributes.size).toEqual(0);
+  });
+});
+
 describe("build zones from network data", () => {
   it("builds a zone with its label and closed geometry", () => {
     const { zones } = buildModel(
@@ -1486,6 +1623,15 @@ const aTankLevelControl = (
   ...data,
 });
 
+const anAttribute = (
+  data: Partial<CustomAttributeData> = {},
+): CustomAttributeData => ({
+  ref: "7",
+  name: "MATERIAL",
+  type: "text",
+  ...data,
+});
+
 const aZone = (data: Partial<ZoneData> = {}): ZoneData => ({
   ref: "3",
   polygons: [
@@ -1511,6 +1657,7 @@ const aNetwork = (data: Partial<NetworkData> = {}): NetworkData => ({
   curves: [],
   patterns: [],
   controls: [],
+  customAttributes: [],
   zones: [],
   units: {},
   crs: { type: "unknown" },

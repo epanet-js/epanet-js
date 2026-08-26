@@ -26,11 +26,22 @@ export type SourceUnits = {
 
 export type SourceCrs = { type: "epsg"; code: number } | { type: "unknown" };
 
+export type CustomAttributeType = "text" | "number";
+
+export type CustomAttributeData = {
+  ref: string;
+  name: string;
+  type: CustomAttributeType;
+};
+
+export type CustomAttributeValues = Record<string, string | number>;
+
 export type NodeData = {
   ref: string;
   label?: string;
   coordinates: Position;
   elevation?: number;
+  customAttributes?: CustomAttributeValues;
 };
 
 export type DemandData = {
@@ -63,6 +74,7 @@ export type LinkData = {
   endNodeRef: string;
   vertices?: Position[];
   isActive?: boolean;
+  customAttributes?: CustomAttributeValues;
 };
 
 export type PipeData = LinkData & {
@@ -172,6 +184,7 @@ export type NetworkData = {
   curves: CurveData[];
   patterns: PatternData[];
   controls: ControlData[];
+  customAttributes: CustomAttributeData[];
   zones: ZoneData[];
   patternTimeStep?: number;
   simulationDuration?: number;
@@ -190,6 +203,7 @@ export const emptyNetworkData = (): NetworkData => ({
   curves: [],
   patterns: [],
   controls: [],
+  customAttributes: [],
   zones: [],
   units: {},
   crs: { type: "unknown" },

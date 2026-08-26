@@ -26,6 +26,7 @@ import {
   type SimulationSettings,
 } from "src/simulation/simulation-settings";
 import { useStartNewProject } from "src/hooks/persistence/use-start-new-project";
+import { saveCustomAttributes } from "src/lib/db";
 import { MapContext } from "src/map";
 
 export const useConvertModel = () => {
@@ -102,6 +103,10 @@ export const useConvertModel = () => {
           return;
         }
 
+        if (hydraulicModel.customAttributes.size > 0) {
+          await saveCustomAttributes(hydraulicModel.customAttributes);
+        }
+
         bounds.map((importedExtent) => {
           map?.map.fitBounds(importedExtent as LngLatBoundsLike, {
             padding: 100,
@@ -125,6 +130,7 @@ export const useConvertModel = () => {
             pumps: network.pumps.length,
             valves: network.valves.length,
             zones: zones.size,
+            customAttributes: network.customAttributes.length,
           },
           issues: issueCodes(allIssues),
         });

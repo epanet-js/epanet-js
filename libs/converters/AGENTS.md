@@ -230,6 +230,40 @@ of its endpoints: one behaviour, and a consumer branches on `link.kind` if it ca
 another — and a `curveRef` into `NetworkData.curves` whose X is a flow and Y a pressure, because a
 curve is a curve wherever it is referenced.
 
+## A custom attribute is declared once and valued per asset
+
+`NetworkData.customAttributes` is a `CustomAttributeData[]` — `ref`, `name`, `type` — and every
+asset record carries `customAttributes?: CustomAttributeValues`, a map keyed by that `ref`. It is
+the same shape a curve uses: the shared thing lives in its own array and whatever uses it names it
+by ref.
+
+**`ref` and `name` are both there, and they are not redundant.** A source is free to declare two
+attributes with the same name for different kinds of asset — Synergi's reference model declares
+`INT_DIAM` twice and `DIAM_UNIT` twice, each pair against a different object type — so the name is
+what a person reads and the `ref` is what identifies the column. A parser does not deduplicate by
+name, and the array may legitimately hold two entries that read alike.
+
+**`name` is required, unlike every `label?` elsewhere.** A curve falling back to its `ref` costs
+nothing because nobody reads a curve's name; a custom attribute's name is the heading of a column
+in the asset panel, so `7` at the top of one is useless. A source that names an attribute nothing
+leaves it out.
+
+**A value's runtime type matches its declared `type`** — every value of a `text` attribute is a
+string, every value of a `number` attribute is a number — so a consumer switches once on the
+declaration instead of on each value. Which of the two it is, is the parser's to decide: an
+attribute is a `number` only when *every* value it carries reads as a finite number, and anything
+else is `text`. Falling back rather than splitting is what keeps a column whole — one `INS` among a
+thousand diameters makes the attribute text instead of dropping that asset's value.
+
+**An attribute no asset carries is not in the array**, the same rule curves follow. It also means
+the array does not say which kinds an attribute applies to: that is answered by which assets carry
+a value. Vendors scope declarations to their own object classes, which rarely line up with asset
+kinds — a Synergi "element" is a pipe, a pump, a valve *and* a tank — so a declared scope would
+open empty columns on kinds the source never filled.
+
+**A key missing from the map means the source said nothing for that asset**, the same `?:` rule as
+everywhere else. That is why a value is `string | number` and never `null`.
+
 ## A zone is a named boundary, and nothing hydraulic hangs off it
 
 `NetworkData.zones` is a `ZoneData[]` — `ref`, `label?` and `polygons`, the same `ref`-as-join-key

@@ -119,6 +119,18 @@ Everything a parser is forbidden to do, so it is written once instead of once pe
   **The template placeholder is why this is the consumer's job.** `{{0}}` resolves from the asset id
   at INP-build time, so nothing upstream needs to know what the app will end up calling the valve —
   and nothing downstream inherits a label the label manager may still change.
+- **Custom attributes.** The contract declares an attribute once with a `ref`; the app scopes its
+  definition per asset kind. So the builder collects which kinds actually carry each `ref`, mints a
+  `custom-<n>` id per (kind, attribute), and passes the values into the asset factory's existing
+  `BuildData.customAttributes`. One source attribute valued on both junctions and pipes therefore
+  becomes two app attributes sharing a label, which is what the app's own model means by a custom
+  attribute.
+
+  The definition rides on the `HydraulicModel`; the values ride on the assets and persist with them
+  through `custom_attributes` on each row. The definition does **not** travel through
+  `importProject`, so `convert-model.tsx` writes it with `saveCustomAttributes` once the project
+  exists — without that the values are in the database with no column to show them under.
+
 - **Zones.** `ZoneData` becomes the app's own `Zones`, reprojected out of the source CRS like every
   other coordinate, through the same `importZoneFeatures` the GIS import runs — so a vendor import
   and a shapefile import produce zones that are identical in shape, labelling and merging, and a

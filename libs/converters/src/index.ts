@@ -3,6 +3,9 @@ export type { Converter } from "./converter";
 export type { ParserInput, SourceFile } from "./source-file";
 export type {
   ControlData,
+  CustomAttributeData,
+  CustomAttributeType,
+  CustomAttributeValues,
   CurveData,
   CurvePointData,
   DemandData,

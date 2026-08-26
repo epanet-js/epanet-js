@@ -26,6 +26,7 @@ export const issueCodes = [
   "remotePressureControlUnsupported",
   "flowModulatedSetpointUnsupported",
   "tankFloatControlUnsupported",
+  "customAttributeValueUnreadable",
   "zoneGeometryUnreadable",
   "unitSystemMissing",
   "unitSystemUnsupported",

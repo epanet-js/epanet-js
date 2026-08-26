@@ -22,6 +22,7 @@ import { projectSettingsAtom } from "src/state/project-settings";
 import { zonesAtom } from "src/state/zones";
 import { Store } from "src/state";
 import { Junction, Pipe, Reservoir, Tank, Valve } from "src/hydraulic-model";
+import { getAttributes } from "@epanet-js/hydraulic-model";
 import { CommandContainer } from "./__helpers__/command-container";
 import { useConvertModel } from "./convert-model";
 
@@ -153,6 +154,45 @@ describe("convertModel", () => {
     ]);
   });
 
+  it("opens the project with the custom attributes the converter parsed", async () => {
+    stubFileOpen();
+    stubConverter("synergi", {
+      network: aNetwork({
+        customAttributes: [{ ref: "7", name: "MATERIAL", type: "text" }],
+        junctions: [
+          {
+            ref: "1",
+            label: "J1",
+            coordinates: [0, 0],
+            customAttributes: { "7": "HPPE/PE100" },
+          },
+        ],
+      }),
+      issues: [],
+    });
+    const store = setInitialState();
+
+    renderComponent({ store });
+    await triggerCommand();
+    await doFileSelection(aTestFile({ filename: "my-network.mdb" }));
+
+    await waitForNotLoading();
+
+    const hydraulicModel = store.get(stagingModelDerivedAtom);
+    const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
+    expect(junction.getProperty("custom-1")).toEqual("HPPE/PE100");
+
+    const saved = await fetchProject();
+    expect(getAttributes(saved.customAttributes, "junction")).toEqual([
+      { id: "custom-1", label: "MATERIAL", type: "text" },
+    ]);
+    expect(
+      (getByLabel(saved.hydraulicModel.assets, "J1") as Junction).getProperty(
+        "custom-1",
+      ),
+    ).toEqual("HPPE/PE100");
+  });
+
   it("runs an extended period matching the source's own timing", async () => {
     stubFileOpen();
     stubConverter("synergi", {
@@ -215,6 +255,7 @@ describe("convertModel", () => {
         pumps: 0,
         valves: 0,
         zones: 0,
+        customAttributes: 0,
       },
       issues: [],
     });
@@ -358,6 +399,7 @@ const aNetwork = (data: Partial<NetworkData> = {}): NetworkData => ({
   curves: [],
   patterns: [],
   controls: [],
+  customAttributes: [],
   zones: [],
   units: {},
   crs: { type: "unknown" },

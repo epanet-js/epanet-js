@@ -1,5 +1,6 @@
 import type {
   ControlData,
+  CustomAttributeValues,
   IssueCode,
   ParserIssue,
   TankLevelControlData,
@@ -44,12 +45,19 @@ import {
   LabelType,
   ModelFactories,
   Controls,
+  AssetType,
+  CustomAttribute,
+  CustomAttributeId,
+  CustomAttributesDefinition,
   LevelSettingControl,
   SimpleControl,
   Valve,
   buildControlsLookup,
+  buildCustomAttributeId,
   createControlId,
+  emptyCustomAttributesDefinition,
   initializeModelFactories,
+  setAttributes,
 } from "@epanet-js/hydraulic-model";
 import { ConsecutiveIdsGenerator, IdGenerator } from "@epanet-js/id-generator";
 import { inferNodeIsActive } from "src/hydraulic-model/utilities/active-topology";
@@ -111,9 +119,11 @@ export const buildModel = (
 
   const idGenerator = new ConsecutiveIdsGenerator();
   const labelManager = new LabelManager();
+  const customAttributes = planCustomAttributes(network);
   const hydraulicModel = initializeHydraulicModel({
     demands: createEmptyDemands(),
     idGenerator,
+    customAttributes: customAttributes.definition,
   });
   const factories = initializeModelFactories({ idGenerator, labelManager });
 
@@ -125,6 +135,7 @@ export const buildModel = (
   const context: NodeContext = {
     labelManager,
     labelMaxLength,
+    customAttributeIds: customAttributes.ids,
     toWgs84,
     toElevation: converterFor(network.units.elevation, spec.units.elevation),
     toLevel: converterFor(network.units.level, spec.units.initialLevel),
@@ -212,6 +223,86 @@ export const buildModel = (
   };
 };
 
+type CustomAttributeIds = Map<AssetType, Map<string, CustomAttributeId>>;
+
+const customAttributeAssetTypes: AssetType[] = [
+  "junction",
+  "reservoir",
+  "tank",
+  "pipe",
+  "pump",
+  "valve",
+];
+
+const planCustomAttributes = (
+  network: NetworkData,
+): { definition: CustomAttributesDefinition; ids: CustomAttributeIds } => {
+  const carriedByType = new Map<AssetType, Set<string>>(
+    customAttributeAssetTypes.map((type) => [type, new Set<string>()]),
+  );
+
+  const collect = (
+    type: AssetType,
+    records: { customAttributes?: CustomAttributeValues }[],
+  ) => {
+    const carried = carriedByType.get(type) as Set<string>;
+    for (const record of records) {
+      for (const ref of Object.keys(record.customAttributes ?? {})) {
+        carried.add(ref);
+      }
+    }
+  };
+
+  collect("junction", network.junctions);
+  collect("reservoir", network.reservoirs);
+  collect("tank", network.tanks);
+  collect("pipe", network.pipes);
+  collect("pump", network.pumps);
+  collect("valve", network.valves);
+
+  let definition = emptyCustomAttributesDefinition();
+  const ids: CustomAttributeIds = new Map();
+  let seed = 1;
+
+  for (const type of customAttributeAssetTypes) {
+    const carried = carriedByType.get(type) as Set<string>;
+    const attributes: CustomAttribute[] = [];
+    const idByRef = new Map<string, CustomAttributeId>();
+
+    for (const { ref, name, type: valueType } of network.customAttributes) {
+      if (!carried.has(ref)) continue;
+
+      const id = buildCustomAttributeId(seed++);
+      idByRef.set(ref, id);
+      attributes.push({ id, label: name, type: valueType });
+    }
+
+    ids.set(type, idByRef);
+    if (attributes.length > 0) {
+      definition = setAttributes(definition, type, attributes);
+    }
+  }
+
+  return { definition, ids };
+};
+
+const resolveCustomAttributes = (
+  values: CustomAttributeValues | undefined,
+  idByRef: Map<string, CustomAttributeId> | undefined,
+): Record<string, string | number> | undefined => {
+  if (values === undefined || idByRef === undefined) return undefined;
+
+  const resolved: Record<string, string | number> = {};
+  for (const [ref, value] of Object.entries(values)) {
+    const id = idByRef.get(ref);
+    if (id === undefined) continue;
+
+    resolved[id] = value;
+  }
+
+  return resolved;
+};
+
 const zoneLabelProperty = "label";
 
 const buildZones = (
@@ -248,6 +339,7 @@ type BuiltNode = { id: AssetId; coordinates: Position };
 type NodeContext = {
   labelManager: LabelManager;
   labelMaxLength?: number;
+  customAttributeIds: CustomAttributeIds;
   toWgs84: (coordinates: Position) => Position;
   toElevation: (value: number) => number;
   toLevel: (value: number) => number;
@@ -614,14 +706,18 @@ const linkGeometry = (
 
 const linkProperties = (
   linkData: LinkData,
-  type: LabelType,
+  type: AssetType,
   { coordinates, connections }: LinkGeometry,
-  { labelManager, labelMaxLength }: LinkContext,
+  { labelManager, labelMaxLength, customAttributeIds }: LinkContext,
 ) => ({
   label: resolveLabel(labelManager, linkData, type, labelMaxLength),
   coordinates,
   connections,
   isActive: linkData.isActive,
+  customAttributes: resolveCustomAttributes(
+    linkData.customAttributes,
+    customAttributeIds.get(type),
+  ),
 });
 
 const registerLink = (
@@ -850,8 +946,14 @@ const tankLevelControlOf = (
 
 const nodeProperties = (
   nodeData: NodeData,
-  type: LabelType,
-  { labelManager, labelMaxLength, toWgs84, toElevation }: NodeContext,
+  type: AssetType,
+  {
+    labelManager,
+    labelMaxLength,
+    toWgs84,
+    toElevation,
+    customAttributeIds,
+  }: NodeContext,
 ) => ({
   label: resolveLabel(labelManager, nodeData, type, labelMaxLength),
   coordinates: toWgs84(nodeData.coordinates),
@@ -859,6 +961,10 @@ const nodeProperties = (
     nodeData.elevation === undefined
       ? undefined
       : toElevation(nodeData.elevation),
+  customAttributes: resolveCustomAttributes(
+    nodeData.customAttributes,
+    customAttributeIds.get(type),
+  ),
 });
 
 const converted = (
