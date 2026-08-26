@@ -19,7 +19,6 @@ import { useCachedCheck } from "src/hooks/use-review-checks";
 import { useSelection } from "src/selection";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { selectionAtom } from "src/state/selection";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { FixOrphanAssetButton } from "./fixes/fix-orphan-asset-button";
 import { useFixOrphanAsset } from "./fixes/use-fix-orphan-asset";
 import {
@@ -154,7 +153,6 @@ const OrphanAssetsList = ({
   onGoBack: () => void;
   hydraulicModel: HydraulicModel;
 }) => {
-  const isFixOrphanAssetOn = useFeatureFlag("FLAG_FIX_ORPHAN_ASSET");
   const { kindOf, fix } = useFixOrphanAsset();
 
   return (
@@ -175,19 +173,13 @@ const OrphanAssetsList = ({
           />
         );
       }}
-      renderItemAction={
-        isFixOrphanAssetOn
-          ? (assetId) => {
-              const kind = kindOf(assetId);
-              if (!kind) return null;
+      renderItemAction={(assetId) => {
+        const kind = kindOf(assetId);
+        if (!kind) return null;
 
-              return (
-                <FixOrphanAssetButton kind={kind} onFix={() => fix(assetId)} />
-              );
-            }
-          : undefined
-      }
-      onItemAction={isFixOrphanAssetOn ? fix : undefined}
+        return <FixOrphanAssetButton kind={kind} onFix={() => fix(assetId)} />;
+      }}
+      onItemAction={fix}
       checkType={CheckType.orphanAssets}
       onGoBack={onGoBack}
     />

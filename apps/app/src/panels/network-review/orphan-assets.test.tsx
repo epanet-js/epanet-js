@@ -4,7 +4,6 @@ import { Provider as JotaiProvider } from "jotai";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
-import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
 import { Store } from "src/state";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { historyPendingAtom } from "src/state/transactions";
@@ -48,19 +47,7 @@ const aModelWithAnOrphanJunction = () => {
 };
 
 describe("OrphanAssets panel fix action", () => {
-  it("does not render a fix action when the flag is off", async () => {
-    stubFeatureOff("FLAG_FIX_ORPHAN_ASSET");
-    const { hydraulicModel } = aModelWithAnOrphanJunction();
-    renderPanel(setInitialState({ hydraulicModel }));
-
-    await waitFor(() => {
-      expect(screen.getByText("ORPHAN")).toBeInTheDocument();
-    });
-    expect(screen.queryByRole("button", { name: /delete/i })).toBeNull();
-  });
-
   it("deletes the orphan when the fix button is clicked", async () => {
-    stubFeatureOn("FLAG_FIX_ORPHAN_ASSET");
     const { IDS, hydraulicModel } = aModelWithAnOrphanJunction();
     const store = setInitialState({ hydraulicModel });
     renderPanel(store);
@@ -79,7 +66,6 @@ describe("OrphanAssets panel fix action", () => {
   });
 
   it("deletes the selected orphan when pressing Enter on the list", async () => {
-    stubFeatureOn("FLAG_FIX_ORPHAN_ASSET");
     const { IDS, hydraulicModel } = aModelWithAnOrphanJunction();
     const store = setInitialState({ hydraulicModel });
     renderPanel(store);
@@ -100,7 +86,6 @@ describe("OrphanAssets panel fix action", () => {
   });
 
   it("selects the next issue so Enter can be pressed repeatedly", async () => {
-    stubFeatureOn("FLAG_FIX_ORPHAN_ASSET");
     const IDS = { J1: 1, J2: 2, P1: 3, A: 4, B: 5, C: 6 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction(IDS.J1)
@@ -136,7 +121,6 @@ describe("OrphanAssets panel fix action", () => {
   });
 
   it("offers to disable a valve isolated on both ends", async () => {
-    stubFeatureOn("FLAG_FIX_ORPHAN_ASSET");
     const IDS = { T1: 1, J1: 2, Valve: 3 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
       .aTank(IDS.T1)
@@ -164,7 +148,6 @@ describe("OrphanAssets panel fix action", () => {
   });
 
   it("does not offer a fix for a disconnected tank or reservoir", async () => {
-    stubFeatureOn("FLAG_FIX_ORPHAN_ASSET");
     const IDS = { T1: 1, R1: 2 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
       .aTank(IDS.T1, { label: "TANK" })
@@ -190,7 +173,6 @@ describe("OrphanAssets panel fix action", () => {
   });
 
   it("leaves Delete to the global asset-delete shortcut", async () => {
-    stubFeatureOn("FLAG_FIX_ORPHAN_ASSET");
     const { hydraulicModel } = aModelWithAnOrphanJunction();
     renderPanel(setInitialState({ hydraulicModel }));
 
@@ -207,7 +189,6 @@ describe("OrphanAssets panel fix action", () => {
   });
 
   it("does not fix via Enter while edition is blocked", async () => {
-    stubFeatureOn("FLAG_FIX_ORPHAN_ASSET");
     const { IDS, hydraulicModel } = aModelWithAnOrphanJunction();
     const store = setInitialState({ hydraulicModel });
     store.set(historyPendingAtom, true);
@@ -230,7 +211,6 @@ describe("OrphanAssets panel fix action", () => {
   });
 
   it("disconnects customer points when deleting a dangling pipe", async () => {
-    stubFeatureOn("FLAG_FIX_ORPHAN_ASSET");
     const IDS = { J1: 1, J2: 2, P1: 3, CP: 10 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction(IDS.J1)
