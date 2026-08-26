@@ -16,6 +16,7 @@ import type {
   SourceCrs,
   TankData,
   ValveData,
+  ZoneData,
 } from "@epanet-js/converters";
 import { IssueCollector } from "@epanet-js/converters";
 import {
@@ -53,6 +54,12 @@ import {
 import { ConsecutiveIdsGenerator, IdGenerator } from "@epanet-js/id-generator";
 import { inferNodeIsActive } from "src/hydraulic-model/utilities/active-topology";
 import {
+  importZoneFeatures,
+  initializeZones,
+  type ZoneFeature,
+  type Zones,
+} from "src/lib/zones";
+import {
   EpanetUnitSystem,
   ProjectSettings,
   getDefaultRoughness,
@@ -80,6 +87,7 @@ export type BuildModelOptions = {
 
 export type BuildModelResult = {
   hydraulicModel: HydraulicModel;
+  zones: Zones;
   issues: ParserIssue[];
   factories: ModelFactories;
   idGenerator: IdGenerator;
@@ -187,6 +195,7 @@ export const buildModel = (
 
   return {
     hydraulicModel,
+    zones: buildZones(network.zones, toWgs84),
     issues: issues.build(),
     factories,
     idGenerator,
@@ -201,6 +210,28 @@ export const buildModel = (
       projection,
     },
   };
+};
+
+const zoneLabelProperty = "label";
+
+const buildZones = (
+  zones: ZoneData[],
+  toWgs84: (coordinates: Position) => Position,
+): Zones => {
+  if (zones.length === 0) return initializeZones();
+
+  const features: ZoneFeature[] = zones.map(({ ref, label, polygons }) => ({
+    type: "Feature",
+    properties: { [zoneLabelProperty]: label ?? ref },
+    geometry: {
+      type: "MultiPolygon",
+      coordinates: polygons.map((polygon) =>
+        polygon.map((ring) => ring.map(toWgs84)),
+      ),
+    },
+  }));
+
+  return importZoneFeatures(features, zoneLabelProperty).zones;
 };
 
 const resolveProjection = (

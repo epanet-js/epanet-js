@@ -56,7 +56,9 @@
       "pumpControlUnsupported_one": "1 Pump is switched by a rule that could not be imported, so it keeps its starting status",
       "pumpControlUnsupported_other": "{{count}} Pumps are switched by rules that could not be imported, so they keep their starting status",
       "pumpPressureControlUnsupported_one": "1 Pump holds a set pressure at another node, which is not imported yet, so it keeps only its speed",
-      "pumpPressureControlUnsupported_other": "{{count}} Pumps hold a set pressure at another node, which is not imported yet, so they keep only their speed"
+      "pumpPressureControlUnsupported_other": "{{count}} Pumps hold a set pressure at another node, which is not imported yet, so they keep only their speed",
+      "zoneGeometryUnreadable_one": "1 Zone boundary has too few points to make a polygon, so it was not imported",
+      "zoneGeometryUnreadable_other": "{{count}} Zone boundaries have too few points to make polygons, so they were not imported"
     }
   },
   "assetSearch": {

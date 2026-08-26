@@ -75,6 +75,7 @@ export const useConvertModel = () => {
 
         const {
           hydraulicModel,
+          zones,
           factories,
           projectSettings,
           bounds,
@@ -84,6 +85,7 @@ export const useConvertModel = () => {
 
         const started = await startNewProject({
           hydraulicModel,
+          zones,
           factories,
           projectSettings: {
             ...defaultProjectSettings,
@@ -122,6 +124,7 @@ export const useConvertModel = () => {
             pipes: network.pipes.length,
             pumps: network.pumps.length,
             valves: network.valves.length,
+            zones: zones.size,
           },
           issues: issueCodes(allIssues),
         });

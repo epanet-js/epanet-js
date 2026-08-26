@@ -119,6 +119,18 @@ Everything a parser is forbidden to do, so it is written once instead of once pe
   **The template placeholder is why this is the consumer's job.** `{{0}}` resolves from the asset id
   at INP-build time, so nothing upstream needs to know what the app will end up calling the valve —
   and nothing downstream inherits a label the label manager may still change.
+- **Zones.** `ZoneData` becomes the app's own `Zones`, reprojected out of the source CRS like every
+  other coordinate, through the same `importZoneFeatures` the GIS import runs — so a vendor import
+  and a shapefile import produce zones that are identical in shape, labelling and merging, and a
+  change to either follows the other. The label is `label ?? ref`, per the rule above; boundaries
+  sharing one label merge into a single multi-part zone, which is what the source meant by naming
+  them the same thing.
+
+  **Zones are not part of the `HydraulicModel`.** They travel beside it, through
+  `startNewProject`, and reach the database via `importProject`; nothing in the model points at
+  one, and what falls inside a zone is answered by point-in-polygon where it is asked. So a zone
+  needs no id resolution, no label manager and no unit conversion — only the projection.
+
 - **Active topology.** `LinkData.isActive` is the only thing a source states; a node's is derived
   from it — a node stays active while any link into it is active, and a node with no links at all
   stays active. That is not a default filling a silence, it is the app's own invariant, held

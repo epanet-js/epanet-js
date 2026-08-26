@@ -230,6 +230,42 @@ of its endpoints: one behaviour, and a consumer branches on `link.kind` if it ca
 another — and a `curveRef` into `NetworkData.curves` whose X is a flow and Y a pressure, because a
 curve is a curve wherever it is referenced.
 
+## A zone is a named boundary, and nothing hydraulic hangs off it
+
+`NetworkData.zones` is a `ZoneData[]` — `ref`, `label?` and `polygons`, the same `ref`-as-join-key
+shape every other record uses. Nothing in the model points at a zone and a zone points at nothing:
+it is a boundary a person drew round part of the network, and what falls inside it is decided by
+geometry, not by a reference the source has to keep in step.
+
+**`polygons` is `[polygon][ring][position]`** — the outer ring first, holes after, rings closed, in
+the source CRS like every other coordinate here. It carries holes and several parts from the start
+because a zone that is a ring road round a reservoir, or a district in two pieces, is an ordinary
+thing for a source to hold, and a flatter field would make that a change to this file rather than a
+change to one parser. A source with a single simple boundary states `[[ring]]` and pays one pair of
+brackets for it.
+
+**Closing the ring is the contract's, not the vendor's.** A half-open ring is not a polygon, so a
+consumer handed one has to close it before it can do anything at all — which means every consumer
+writes the same line, or the first one that forgets draws a zone with a gap in it. A source that
+states its outline open closes it on the way out; a source whose rings already close passes them
+through.
+
+**Which polygons in the file are zones is the parser's call.** Vendors keep boundaries in the same
+table as every other polygon they draw — development sites, annotations, superseded outlines — and
+telling those apart is vendor knowledge like any other. A parser that emitted all of them would make
+every consumer hold a rule per vendor to filter a list that is supposed to be uniform, which is the
+same reasoning that puts a volume curve's axes here rather than downstream.
+
+There is deliberately no `kind` on the record. A vendor that really does state a classification the
+consumer can act on adds a `category?: string` carried verbatim, the way `PipeData.material` is; a
+`kind` guessed from the vendor's own layer names would be this package inventing a vocabulary
+nothing has asked for yet.
+
+**Membership is not carried.** A source that also states which assets belong to which zone — Synergi
+does — says nothing here, because a consumer that holds zones as geometry derives membership by
+point-in-polygon and a second, disagreeing answer helps nobody. If that changes, a `zoneRef` on the
+asset records is the additive way in.
+
 ## A kind the source did not give is `"unknown"`, not a dropped record
 
 `ValveData.kind` is `ValveKind | "unknown"`. A vendor kind that maps to nothing in the domain

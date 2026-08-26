@@ -1,5 +1,6 @@
 import type {
   TankLevelControlData,
+  ZoneData,
   JunctionData,
   NetworkData,
   PipeData,
@@ -1296,6 +1297,96 @@ describe("build controls from network data", () => {
   });
 });
 
+describe("build zones from network data", () => {
+  it("builds a zone with its label and closed geometry", () => {
+    const { zones } = buildModel(
+      aNetwork({ zones: [aZone({ ref: "3", label: "BLBULLMA" })] }),
+      { projections: aCatalogue() },
+    );
+
+    expect([...zones.values()]).toEqual([
+      {
+        id: 1,
+        label: "BLBULLMA",
+        geometry: {
+          type: "MultiPolygon",
+          coordinates: [
+            [
+              [
+                [0, 0],
+                [10, 0],
+                [10, 10],
+                [0, 0],
+              ],
+            ],
+          ],
+        },
+        bbox: [0, 0, 10, 10],
+      },
+    ]);
+  });
+
+  it("falls back to the ref when the source named no zone", () => {
+    const { zones } = buildModel(aNetwork({ zones: [aZone({ ref: "3" })] }), {
+      projections: aCatalogue(),
+    });
+
+    expect([...zones.values()].map((zone) => zone.label)).toEqual(["3"]);
+  });
+
+  it("reprojects zone boundaries out of the source coordinate system", () => {
+    const { zones } = buildModel(
+      aNetwork({
+        zones: [
+          aZone({
+            polygons: [
+              [
+                [
+                  [1113194.9, 0],
+                  [2226389.8, 0],
+                  [1113194.9, 1118889.9],
+                  [1113194.9, 0],
+                ],
+              ],
+            ],
+          }),
+        ],
+        crs: { type: "epsg", code: 3857 },
+      }),
+      { projections: aCatalogue() },
+    );
+
+    const [zone] = [...zones.values()];
+    const ring = zone.geometry.coordinates[0][0];
+    expect(ring[0][0]).toBeCloseTo(10, 5);
+    expect(ring[1][0]).toBeCloseTo(20, 5);
+    expect(ring[2][1]).toBeCloseTo(10, 5);
+  });
+
+  it("merges boundaries the source gave the same name into one zone", () => {
+    const { zones } = buildModel(
+      aNetwork({
+        zones: [
+          aZone({ ref: "3", label: "SHARED" }),
+          aZone({ ref: "4", label: "SHARED" }),
+        ],
+      }),
+      { projections: aCatalogue() },
+    );
+
+    expect(zones.size).toBe(1);
+    const [zone] = [...zones.values()];
+    expect(zone.label).toBe("SHARED");
+    expect(zone.geometry.coordinates).toHaveLength(2);
+  });
+
+  it("builds no zones when the source states none", () => {
+    const { zones } = buildModel(aNetwork(), { projections: aCatalogue() });
+
+    expect(zones.size).toBe(0);
+  });
+});
+
 describe("labels across node kinds", () => {
   it("keeps labels unique when kinds collide", () => {
     const { hydraulicModel } = buildModel(
@@ -1395,6 +1486,21 @@ const aTankLevelControl = (
   ...data,
 });
 
+const aZone = (data: Partial<ZoneData> = {}): ZoneData => ({
+  ref: "3",
+  polygons: [
+    [
+      [
+        [0, 0],
+        [10, 0],
+        [10, 10],
+        [0, 0],
+      ],
+    ],
+  ],
+  ...data,
+});
+
 const aNetwork = (data: Partial<NetworkData> = {}): NetworkData => ({
   junctions: [],
   reservoirs: [],
@@ -1405,6 +1511,7 @@ const aNetwork = (data: Partial<NetworkData> = {}): NetworkData => ({
   curves: [],
   patterns: [],
   controls: [],
+  zones: [],
   units: {},
   crs: { type: "unknown" },
   ...data,

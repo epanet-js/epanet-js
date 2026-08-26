@@ -104,6 +104,12 @@ export type PatternData = {
   multipliers: number[];
 };
 
+export type ZoneData = {
+  ref: string;
+  label?: string;
+  polygons: Position[][][];
+};
+
 export type ControlLinkKind = "pipe" | "pump" | "valve";
 export type ControlNodeKind = "junction" | "reservoir" | "tank";
 
@@ -166,6 +172,7 @@ export type NetworkData = {
   curves: CurveData[];
   patterns: PatternData[];
   controls: ControlData[];
+  zones: ZoneData[];
   patternTimeStep?: number;
   simulationDuration?: number;
   headlossFormula?: HeadlossFormula;
@@ -183,6 +190,7 @@ export const emptyNetworkData = (): NetworkData => ({
   curves: [],
   patterns: [],
   controls: [],
+  zones: [],
   units: {},
   crs: { type: "unknown" },
 });

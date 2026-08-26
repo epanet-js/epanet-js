@@ -30,6 +30,7 @@ export type {
   TimedSettingControlData,
   TimedSettingStepData,
   ValveData,
+  ZoneData,
 } from "./network-data";
 export { emptyNetworkData } from "./network-data";
 export type {

@@ -12,12 +12,14 @@ import { getByLabel } from "src/__helpers__/asset-queries";
 import { waitForNotLoading } from "src/__helpers__/ui-expects";
 import { stubConverter } from "src/lib/converters/__helpers__/stub-converter";
 import { registerConverter } from "src/lib/converters";
+import { fetchProject } from "src/lib/db";
 import { useInProcessDb } from "src/lib/db/__test-helpers__/in-process-db";
 import {
   simulationSettingsDerivedAtom,
   stagingModelDerivedAtom,
 } from "src/state/derived-branch-state";
 import { projectSettingsAtom } from "src/state/project-settings";
+import { zonesAtom } from "src/state/zones";
 import { Store } from "src/state";
 import { Junction, Pipe, Reservoir, Tank, Valve } from "src/hydraulic-model";
 import { CommandContainer } from "./__helpers__/command-container";
@@ -110,6 +112,47 @@ describe("convertModel", () => {
     expect(projectSettings.units.flow).toEqual("l/s");
   });
 
+  it("opens the project with the zones the converter parsed", async () => {
+    stubFileOpen();
+    stubConverter("synergi", {
+      network: aNetwork({
+        zones: [
+          {
+            ref: "3",
+            label: "BLBULLMA",
+            polygons: [
+              [
+                [
+                  [0, 0],
+                  [10, 0],
+                  [10, 10],
+                  [0, 0],
+                ],
+              ],
+            ],
+          },
+        ],
+      }),
+      issues: [],
+    });
+    const store = setInitialState();
+
+    renderComponent({ store });
+    await triggerCommand();
+    await doFileSelection(aTestFile({ filename: "my-network.mdb" }));
+
+    await waitForNotLoading();
+
+    const zones = [...store.get(zonesAtom).values()];
+    expect(zones.map((zone) => zone.label)).toEqual(["BLBULLMA"]);
+    expect(zones[0].geometry.type).toEqual("MultiPolygon");
+
+    const saved = await fetchProject();
+    expect([...saved.zones.values()].map((zone) => zone.label)).toEqual([
+      "BLBULLMA",
+    ]);
+  });
+
   it("runs an extended period matching the source's own timing", async () => {
     stubFileOpen();
     stubConverter("synergi", {
@@ -171,6 +214,7 @@ describe("convertModel", () => {
         pipes: 0,
         pumps: 0,
         valves: 0,
+        zones: 0,
       },
       issues: [],
     });
@@ -314,6 +358,7 @@ const aNetwork = (data: Partial<NetworkData> = {}): NetworkData => ({
   curves: [],
   patterns: [],
   controls: [],
+  zones: [],
   units: {},
   crs: { type: "unknown" },
   ...data,

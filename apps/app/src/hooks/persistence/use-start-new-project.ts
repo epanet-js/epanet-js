@@ -215,6 +215,7 @@ export const useStartNewProject = () => {
             projectSettings: mergedProjectSettings,
             hydraulicModel: input.hydraulicModel,
             simulationSettings: input.simulationSettings,
+            ...(input.zones === undefined ? {} : { zones: input.zones }),
           });
           resetAppState(set);
           loadModel(set, { ...input, projectSettings: mergedProjectSettings });
