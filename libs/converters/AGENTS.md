@@ -238,10 +238,11 @@ the same shape a curve uses: the shared thing lives in its own array and whateve
 by ref.
 
 **`ref` and `name` are both there, and they are not redundant.** A source is free to declare two
-attributes with the same name for different kinds of asset — Synergi's reference model declares
-`INT_DIAM` twice and `DIAM_UNIT` twice, each pair against a different object type — so the name is
-what a person reads and the `ref` is what identifies the column. A parser does not deduplicate by
-name, and the array may legitimately hold two entries that read alike.
+attributes with the same name against different kinds of asset, and one whose declarations are
+scoped to its own object classes routinely does — the same word means a different measurement on a
+pipe and on a valve. So the name is what a person reads and the `ref` is what identifies the
+column: a parser does not deduplicate by name, and the array may legitimately hold two entries that
+read alike.
 
 **`name` is required, unlike every `label?` elsewhere.** A curve falling back to its `ref` costs
 nothing because nobody reads a curve's name; a custom attribute's name is the heading of a column

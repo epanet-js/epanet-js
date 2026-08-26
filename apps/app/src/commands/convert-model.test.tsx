@@ -120,7 +120,7 @@ describe("convertModel", () => {
         zones: [
           {
             ref: "3",
-            label: "BLBULLMA",
+            label: "NORTH",
             polygons: [
               [
                 [
@@ -145,12 +145,12 @@ describe("convertModel", () => {
     await waitForNotLoading();
 
     const zones = [...store.get(zonesAtom).values()];
-    expect(zones.map((zone) => zone.label)).toEqual(["BLBULLMA"]);
+    expect(zones.map((zone) => zone.label)).toEqual(["NORTH"]);
     expect(zones[0].geometry.type).toEqual("MultiPolygon");
 
     const saved = await fetchProject();
     expect([...saved.zones.values()].map((zone) => zone.label)).toEqual([
-      "BLBULLMA",
+      "NORTH",
     ]);
   });
 

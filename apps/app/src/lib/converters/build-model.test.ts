@@ -630,7 +630,7 @@ describe("build pumps and valves from network data", () => {
         curves: [
           {
             ref: "13",
-            label: "PMPWGTE1",
+            label: "PUMP_CURVE",
             points: [
               { x: 10, y: 128 },
               { x: 40, y: 126 },
@@ -648,7 +648,7 @@ describe("build pumps and valves from network data", () => {
     expect(pump.definitionType).toEqual("curveId");
     expect(curve).toEqual({
       id: pump.curveId,
-      label: "PMPWGTE1",
+      label: "PUMP_CURVE",
       type: "pump",
       points: [
         { x: 10, y: 128 },
@@ -686,7 +686,11 @@ describe("build pumps and valves from network data", () => {
           }),
         ],
         patterns: [
-          { ref: "speed:10", label: "BRANTWB_PS", multipliers: [0.73, 0.67] },
+          {
+            ref: "speed:10",
+            label: "PUMP_SCHEDULE",
+            multipliers: [0.73, 0.67],
+          },
         ],
       }),
       { projections: aCatalogue() },
@@ -698,7 +702,7 @@ describe("build pumps and valves from network data", () => {
     expect(pump.speed).toEqual(1);
     expect(pattern).toEqual({
       id: pump.speedPatternId,
-      label: "BRANTWB_PS",
+      label: "PUMP_SCHEDULE",
       type: "pumpSpeed",
       multipliers: [0.73, 0.67],
     });
@@ -919,7 +923,7 @@ describe("build reservoirs from network data", () => {
           }),
         ],
         patterns: [
-          { ref: "head:1", label: "SPWCOM1", multipliers: [70, 71, 72] },
+          { ref: "head:1", label: "HEAD_PROFILE", multipliers: [70, 71, 72] },
         ],
       }),
       { projections: aCatalogue() },
@@ -933,7 +937,7 @@ describe("build reservoirs from network data", () => {
     expect(reservoir.head).toEqual(1);
     expect(pattern).toEqual({
       id: reservoir.headPatternId,
-      label: "SPWCOM1",
+      label: "HEAD_PROFILE",
       type: "reservoirHead",
       multipliers: [70, 71, 72],
     });
@@ -1325,7 +1329,7 @@ describe("build custom attributes from network data", () => {
     const { hydraulicModel } = buildModel(
       aNetwork({
         customAttributes: [
-          anAttribute({ ref: "7", name: "QUO_DIAM", type: "number" }),
+          anAttribute({ ref: "7", name: "DIAMETER", type: "number" }),
         ],
         junctions: [
           aJunction({ ref: "1", label: "J1", customAttributes: { "7": 125 } }),
@@ -1342,8 +1346,8 @@ describe("build custom attributes from network data", () => {
     const { hydraulicModel } = buildModel(
       aNetwork({
         customAttributes: [
-          anAttribute({ ref: "11", name: "INT_DIAM", type: "number" }),
-          anAttribute({ ref: "13", name: "INT_DIAM" }),
+          anAttribute({ ref: "11", name: "DIAMETER", type: "number" }),
+          anAttribute({ ref: "13", name: "DIAMETER" }),
         ],
         junctions: [
           aJunction({ ref: "1", label: "J1", customAttributes: { "11": 90 } }),
@@ -1362,10 +1366,10 @@ describe("build custom attributes from network data", () => {
     );
 
     expect(getAttributes(hydraulicModel.customAttributes, "junction")).toEqual([
-      { id: "custom-1", label: "INT_DIAM", type: "number" },
+      { id: "custom-1", label: "DIAMETER", type: "number" },
     ]);
     expect(getAttributes(hydraulicModel.customAttributes, "pipe")).toEqual([
-      { id: "custom-2", label: "INT_DIAM", type: "text" },
+      { id: "custom-2", label: "DIAMETER", type: "text" },
     ]);
 
     const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
@@ -1382,7 +1386,7 @@ describe("build custom attributes from network data", () => {
           aJunction({
             ref: "1",
             label: "J1",
-            customAttributes: { "7": "AWS" },
+            customAttributes: { "7": "OWNER_A" },
           }),
           aJunction({
             ref: "2",
@@ -1412,7 +1416,7 @@ describe("build custom attributes from network data", () => {
           aJunction({
             ref: "1",
             label: "J1",
-            customAttributes: { "7": "AWS" },
+            customAttributes: { "7": "OWNER_A" },
           }),
           aJunction({ ref: "2", label: "J2" }),
         ],
@@ -1437,14 +1441,14 @@ describe("build custom attributes from network data", () => {
 describe("build zones from network data", () => {
   it("builds a zone with its label and closed geometry", () => {
     const { zones } = buildModel(
-      aNetwork({ zones: [aZone({ ref: "3", label: "BLBULLMA" })] }),
+      aNetwork({ zones: [aZone({ ref: "3", label: "NORTH" })] }),
       { projections: aCatalogue() },
     );
 
     expect([...zones.values()]).toEqual([
       {
         id: 1,
-        label: "BLBULLMA",
+        label: "NORTH",
         geometry: {
           type: "MultiPolygon",
           coordinates: [

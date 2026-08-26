@@ -103,9 +103,9 @@ Everything a parser is forbidden to do, so it is written once instead of once pe
 
   **A float valve is carried but not built.** Its two states look expressible — shut above the
   tank's `maxLevel`, open again `reopenDrop` below — which is exactly why it was worth measuring
-  rather than assuming: across Framingham's whole day those controls came out **bit-identical** to
-  having none, because the tanks never reach `closeAbove` and the open branch only re-states the
-  valve's own setting. A real float modulates as the tank fills, so a two-state stand-in earns
+  rather than assuming: measured across a full day on a production model those controls came out
+  **bit-identical** to having none, because the tanks never reach `closeAbove` and the open branch
+  only re-states the valve's own setting. A real float modulates as the tank fills, so a two-state stand-in earns
   nothing and reads as support for something the engine cannot do. The issue says so instead.
 
   The domain's `TimedSettingControl` is the right home for a schedule, but its steps are typed and
