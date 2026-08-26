@@ -1585,6 +1585,8 @@
     "title": "Patterns",
     "addPattern": "Add {{1}} pattern",
     "patternName": "Pattern name",
+    "interval": "Interval",
+    "multipliers": "Multipliers",
     "emptyTitle": "Patterns are empty",
     "emptyDescription": "Add a pattern to get started.",
     "noSelection": "Select a pattern to view its details.",

@@ -26,6 +26,10 @@ import {
   NavigableList,
 } from "src/components/list";
 import type { NavItem, NavigableListHandle } from "src/components/list";
+import {
+  PATTERN_TYPES,
+  PATTERN_TYPE_TRANSLATION_KEYS,
+} from "./pattern-type-labels";
 
 type TypedPattern = Pattern & { type: PatternType };
 
@@ -36,21 +40,9 @@ type ActionState =
 
 type SectionType = PatternType | "uncategorized";
 
-const SECTION_TYPES: PatternType[] = [
-  "demand",
-  "reservoirHead",
-  "pumpSpeed",
-  "qualitySourceStrength",
-  "energyPrice",
-];
+const SECTION_TYPES = PATTERN_TYPES;
 
-const SECTION_TRANSLATION_KEYS: Record<PatternType, string> = {
-  demand: "patterns.demandPatterns",
-  reservoirHead: "patterns.reservoirHeadPatterns",
-  pumpSpeed: "patterns.pumpSpeedPatterns",
-  qualitySourceStrength: "patterns.qualitySourceStrengthPatterns",
-  energyPrice: "patterns.energyPricePatterns",
-};
+const SECTION_TRANSLATION_KEYS = PATTERN_TYPE_TRANSLATION_KEYS;
 
 type PatternSidebarProps = {
   width: number;

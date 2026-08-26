@@ -1220,6 +1220,12 @@ type PatternsUncategorized = {
   count: number;
 };
 
+type PatternsExported = {
+  name: "patterns.exported";
+  format: "csv" | "xlsx";
+  count: number;
+};
+
 type PipeLibraryOpened = {
   name: "pipeLibrary.opened";
   source: "toolbar";
@@ -1790,6 +1796,7 @@ export type UserEvent =
   | PatternsUpdated
   | PatternsDiscarded
   | PatternsUncategorized
+  | PatternsExported
   | PipeLibraryOpened
   | PipeLibraryMaterialChanged
   | PipeLibraryRoughnessRowChanged

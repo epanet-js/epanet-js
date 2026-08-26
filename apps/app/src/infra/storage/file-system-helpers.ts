@@ -39,6 +39,17 @@ const triggerDownload = async (
   URL.revokeObjectURL(url);
 };
 
+const downloadFile = async (
+  fileName: string,
+  contents: string | Uint8Array,
+): Promise<void> => {
+  const handle = await openFileInOpfs(fileName);
+  const writable = await handle.createWritable();
+  await writable.write(contents);
+  await writable.close();
+  await triggerDownload(fileName, handle);
+};
+
 const fileSizeLimit = async () => {
   if (isFileSystemAccessSupported()) return -1;
 
@@ -55,5 +66,6 @@ export const FileSystemHelpers = {
   openFileInFileSystem,
   isFileSystemAccessSupported,
   triggerDownload,
+  downloadFile,
   fileSizeLimit,
 };

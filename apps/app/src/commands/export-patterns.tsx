@@ -1,15 +1,16 @@
 import { useCallback, useMemo } from "react";
 import { useAtomValue } from "jotai";
-import type { PipeMaterial } from "@epanet-js/hydraulic-model";
+import type { Patterns } from "src/hydraulic-model";
 import { currentFileNameAtom } from "src/state/file-system";
 import { useUserTracking } from "src/infra/user-tracking";
 import { FileSystemHelpers } from "src/infra/storage";
 import {
-  serializeMaterialsToCsv,
-  serializeMaterialsToXlsx,
-} from "src/hydraulic-model/pipe-materials";
+  serializePatternsToCsv,
+  serializePatternsToXlsx,
+  type ExportPatternsOptions,
+} from "src/lib/operational-data-io/patterns/export-patterns";
 
-export const useExportPipeLibrary = () => {
+export const useExportPatterns = () => {
   const { capture } = useUserTracking();
   const fullNetworkName = useAtomValue(currentFileNameAtom) ?? "";
   const networkName = useMemo(() => {
@@ -18,23 +19,31 @@ export const useExportPipeLibrary = () => {
   }, [fullNetworkName]);
 
   const exportToCsv = useCallback(
-    async (materials: PipeMaterial[]) => {
+    async (patterns: Patterns, options: ExportPatternsOptions) => {
       await FileSystemHelpers.downloadFile(
-        `${networkName}-pipe-library.csv`,
-        serializeMaterialsToCsv(materials),
+        `${networkName}-patterns.csv`,
+        serializePatternsToCsv(patterns, options),
       );
-      capture({ name: "pipeLibrary.exported", format: "csv" });
+      capture({
+        name: "patterns.exported",
+        format: "csv",
+        count: patterns.size,
+      });
     },
     [networkName, capture],
   );
 
   const exportToXlsx = useCallback(
-    async (materials: PipeMaterial[]) => {
+    async (patterns: Patterns, options: ExportPatternsOptions) => {
       await FileSystemHelpers.downloadFile(
-        `${networkName}-pipe-library.xlsx`,
-        await serializeMaterialsToXlsx(materials),
+        `${networkName}-patterns.xlsx`,
+        await serializePatternsToXlsx(patterns, options),
       );
-      capture({ name: "pipeLibrary.exported", format: "xlsx" });
+      capture({
+        name: "patterns.exported",
+        format: "xlsx",
+        count: patterns.size,
+      });
     },
     [networkName, capture],
   );

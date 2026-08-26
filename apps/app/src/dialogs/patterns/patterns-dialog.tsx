@@ -28,6 +28,10 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { changePatterns } from "src/hydraulic-model/model-operations";
 import { VerticalResizer } from "../vertical-resizer";
 import { DialogActions, DialogActionsHandle } from "../dialog-actions-row";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { ImportExportToolbar } from "src/components/import-export-toolbar";
+import { useExportPatterns } from "src/commands/export-patterns";
+import { buildPatternTypeLabels } from "./pattern-type-labels";
 
 type PatternUpdate = Partial<Pick<Pattern, "label" | "multipliers" | "type">>;
 
@@ -189,6 +193,33 @@ export const PatternsDialog = ({
     [userTracking],
   );
 
+  const isImportExportOn = useFeatureFlag("FLAG_PATTERNS_IMPORT_EXPORT");
+  const { exportToCsv, exportToXlsx } = useExportPatterns();
+
+  const exportOptions = useMemo(
+    () => ({
+      typeLabels: buildPatternTypeLabels(translate),
+      intervalSeconds: patternTimestepSeconds,
+      headers: {
+        patternName: translate("patterns.patternName"),
+        type: translate("type"),
+        interval: translate("patterns.interval"),
+        multipliers: translate("patterns.multipliers"),
+      },
+    }),
+    [translate, patternTimestepSeconds],
+  );
+
+  const handleExportCsv = useCallback(
+    () => void exportToCsv(editedPatterns, exportOptions),
+    [exportToCsv, editedPatterns, exportOptions],
+  );
+
+  const handleExportXlsx = useCallback(
+    () => void exportToXlsx(editedPatterns, exportOptions),
+    [exportToXlsx, editedPatterns, exportOptions],
+  );
+
   return (
     <BaseDialog
       title={translate("patterns.title")}
@@ -206,46 +237,54 @@ export const PatternsDialog = ({
         />
       }
     >
-      <div className="flex-1 flex min-h-0">
-        <div className="shrink-0 flex">
-          <PatternSidebar
-            width={sidebarWidth}
-            patterns={editedPatterns}
-            selectedPatternId={selectedPatternId}
-            initialSection={initialSection}
-            minPatternSteps={minPatternSteps}
-            onSelectPattern={setSelectedPatternId}
-            onAddPattern={handleAddPattern}
-            onChangePattern={handlePatternChange}
-            onDeletePattern={handleDeletePattern}
-            readOnly={isEditionBlocked}
+      <div className="flex flex-col flex-1 min-h-0">
+        {isImportExportOn && (
+          <ImportExportToolbar
+            onExportCsv={handleExportCsv}
+            onExportXlsx={handleExportXlsx}
           />
-          <VerticalResizer
-            width={sidebarWidth}
-            onWidthChange={setSidebarWidth}
-          />
-        </div>
-        <div className="flex-1 flex flex-col min-h-0 w-full ml-1">
-          {selectedPatternId ? (
-            <PatternDetail
-              pattern={getPatternMultipliers(selectedPatternId)}
-              patternType={editedPatterns.get(selectedPatternId)?.type}
-              patternTimestepSeconds={patternTimestepSeconds}
-              totalDurationSeconds={totalDurationSeconds}
-              onChange={(multipliers) =>
-                handlePatternChange(selectedPatternId, { multipliers })
-              }
+        )}
+        <div className="flex-1 flex min-h-0">
+          <div className="shrink-0 flex">
+            <PatternSidebar
+              width={sidebarWidth}
+              patterns={editedPatterns}
+              selectedPatternId={selectedPatternId}
+              initialSection={initialSection}
+              minPatternSteps={minPatternSteps}
+              onSelectPattern={setSelectedPatternId}
+              onAddPattern={handleAddPattern}
+              onChangePattern={handlePatternChange}
+              onDeletePattern={handleDeletePattern}
               readOnly={isEditionBlocked}
             />
-          ) : hasPatterns ? (
-            <div className="flex-1 flex items-center justify-center p-2">
-              <NoSelectionState />
-            </div>
-          ) : (
-            <div className="flex-1 flex items-center justify-center p-2">
-              <EmptyState readOnly={isEditionBlocked} />
-            </div>
-          )}
+            <VerticalResizer
+              width={sidebarWidth}
+              onWidthChange={setSidebarWidth}
+            />
+          </div>
+          <div className="flex-1 flex flex-col min-h-0 w-full ml-1">
+            {selectedPatternId ? (
+              <PatternDetail
+                pattern={getPatternMultipliers(selectedPatternId)}
+                patternType={editedPatterns.get(selectedPatternId)?.type}
+                patternTimestepSeconds={patternTimestepSeconds}
+                totalDurationSeconds={totalDurationSeconds}
+                onChange={(multipliers) =>
+                  handlePatternChange(selectedPatternId, { multipliers })
+                }
+                readOnly={isEditionBlocked}
+              />
+            ) : hasPatterns ? (
+              <div className="flex-1 flex items-center justify-center p-2">
+                <NoSelectionState />
+              </div>
+            ) : (
+              <div className="flex-1 flex items-center justify-center p-2">
+                <EmptyState readOnly={isEditionBlocked} />
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </BaseDialog>

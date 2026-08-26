@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { FileSystemHelpers } from "./file-system-helpers";
 import { createTempFile, isOPFSAvailable } from "./opfs-storage";
 import { getAppId } from "src/infra/app-instance";
@@ -82,5 +83,60 @@ describe("openFileInOpfs", () => {
       const file = await handle.getFile();
       expect(file.size).toEqual(0);
     });
+  });
+});
+
+describe("downloadFile", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(getAppId).mockReturnValue("test-app-id");
+    vi.mocked(isOPFSAvailable).mockResolvedValue(false);
+    vi.stubGlobal(
+      "FileSystemFileHandle",
+      class FileSystemFileHandle {
+        createWritable() {}
+      },
+    );
+    vi.stubGlobal("URL", {
+      ...URL,
+      createObjectURL: vi.fn(() => "blob:fake"),
+      revokeObjectURL: vi.fn(),
+    });
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("writes the contents to the file and hands it to the browser", async () => {
+    const click = vi.spyOn(HTMLAnchorElement.prototype, "click");
+    click.mockImplementation(() => {});
+
+    await FileSystemHelpers.downloadFile("patterns.csv", "a,b\n1,2");
+
+    const blob = vi.mocked(URL.createObjectURL).mock.calls[0][0] as File;
+    expect(blob.name).toEqual("patterns.csv");
+    expect(await blob.text()).toEqual("a,b\n1,2");
+    expect(click).toHaveBeenCalled();
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:fake");
+
+    click.mockRestore();
+  });
+
+  it("writes binary contents unchanged", async () => {
+    const click = vi.spyOn(HTMLAnchorElement.prototype, "click");
+    click.mockImplementation(() => {});
+
+    await FileSystemHelpers.downloadFile(
+      "patterns.xlsx",
+      new Uint8Array([1, 2, 3]),
+    );
+
+    const blob = vi.mocked(URL.createObjectURL).mock.calls[0][0] as File;
+    expect(new Uint8Array(await blob.arrayBuffer())).toEqual(
+      new Uint8Array([1, 2, 3]),
+    );
+
+    click.mockRestore();
   });
 });

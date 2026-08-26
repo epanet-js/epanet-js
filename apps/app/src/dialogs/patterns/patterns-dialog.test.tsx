@@ -7,10 +7,29 @@ import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { Persistence } from "src/lib/persistence/persistence";
 import { PersistenceContext } from "src/lib/persistence/context";
-import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
+import {
+  stagingModelDerivedAtom,
+  simulationSettingsDerivedAtom,
+} from "src/state/derived-branch-state";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { Store } from "src/state";
+import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
+import type { ExportPatternsOptions } from "src/lib/operational-data-io/patterns/export-patterns";
+import type { Patterns } from "src/hydraulic-model";
 import { PatternsDialog } from "./patterns-dialog";
+
+const exportToCsv =
+  vi.fn<
+    (patterns: Patterns, options: ExportPatternsOptions) => Promise<void>
+  >();
+const exportToXlsx =
+  vi.fn<
+    (patterns: Patterns, options: ExportPatternsOptions) => Promise<void>
+  >();
+
+vi.mock("src/commands/export-patterns", () => ({
+  useExportPatterns: () => ({ exportToCsv, exportToXlsx }),
+}));
 
 const renderDialog = (store: Store) => {
   const persistence = new Persistence(store);
@@ -549,6 +568,85 @@ describe("PatternsDialog", () => {
 
       // Should show empty state
       expect(screen.getByText(/patterns are empty/i)).toBeInTheDocument();
+    });
+  });
+
+  describe("import/export menu bar", () => {
+    beforeEach(() => {
+      exportToCsv.mockClear();
+      exportToXlsx.mockClear();
+    });
+
+    it("is hidden when the flag is off", () => {
+      stubFeatureOff("FLAG_PATTERNS_IMPORT_EXPORT");
+      const store = setInitialState({
+        hydraulicModel: HydraulicModelBuilder.with()
+          .aDemandPattern(100, "Pattern1", [1.0, 0.8])
+          .build(),
+      });
+
+      renderDialog(store);
+
+      expect(
+        screen.queryByRole("button", { name: /export/i }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("exports the edited patterns as CSV", async () => {
+      stubFeatureOn("FLAG_PATTERNS_IMPORT_EXPORT");
+      const user = setupUser();
+      const store = setInitialState({
+        hydraulicModel: HydraulicModelBuilder.with()
+          .aDemandPattern(100, "Pattern1", [1.0, 0.8])
+          .build(),
+      });
+
+      renderDialog(store);
+
+      await user.click(screen.getByRole("button", { name: /export/i }));
+      await user.click(screen.getByRole("menuitem", { name: /\.csv/i }));
+
+      await waitFor(() => expect(exportToCsv).toHaveBeenCalled());
+      const [patterns] = exportToCsv.mock.calls[0];
+      expect([...patterns.values()].map((p) => p.label)).toEqual(["Pattern1"]);
+    });
+
+    it("exports the edited patterns as XLSX", async () => {
+      stubFeatureOn("FLAG_PATTERNS_IMPORT_EXPORT");
+      const user = setupUser();
+      const store = setInitialState({
+        hydraulicModel: HydraulicModelBuilder.with()
+          .aDemandPattern(100, "Pattern1", [1.0, 0.8])
+          .build(),
+      });
+
+      renderDialog(store);
+
+      await user.click(screen.getByRole("button", { name: /export/i }));
+      await user.click(screen.getByRole("menuitem", { name: /\.xlsx/i }));
+
+      await waitFor(() => expect(exportToXlsx).toHaveBeenCalled());
+    });
+
+    it("passes the model pattern timestep as the interval", async () => {
+      stubFeatureOn("FLAG_PATTERNS_IMPORT_EXPORT");
+      const user = setupUser();
+      const store = setInitialState({
+        hydraulicModel: HydraulicModelBuilder.with()
+          .aDemandPattern(100, "Pattern1", [1.0, 0.8])
+          .build(),
+      });
+
+      renderDialog(store);
+
+      await user.click(screen.getByRole("button", { name: /export/i }));
+      await user.click(screen.getByRole("menuitem", { name: /\.csv/i }));
+
+      await waitFor(() => expect(exportToCsv).toHaveBeenCalled());
+      const [, options] = exportToCsv.mock.calls[0];
+      expect(options.intervalSeconds).toEqual(
+        store.get(simulationSettingsDerivedAtom).timing.patternTimestep,
+      );
     });
   });
 });
