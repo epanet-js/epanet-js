@@ -15,7 +15,6 @@ import { useCachedCheck } from "src/hooks/use-review-checks";
 import { USelection, useSelection } from "src/selection";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { selectionAtom } from "src/state/selection";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { FixSubnetworkButton } from "./fixes/fix-subnetwork-button";
 import {
   canDisableSubnetwork,
@@ -165,9 +164,6 @@ const SubNetworksList = ({
   selectedSubNetwork: number | null;
   onGoBack: () => void;
 }) => {
-  const isDisableUnsuppliedSubnetworkOn = useFeatureFlag(
-    "FLAG_DISABLE_UNSUPPLIED_SUBNETWORK",
-  );
   const { fix } = useFixSubnetwork();
 
   const fixSubnetwork = useCallback(
@@ -197,17 +193,14 @@ const SubNetworksList = ({
           showWarning={subnetwork.supplySourceCount === 0}
         />
       )}
-      renderItemAction={
-        isDisableUnsuppliedSubnetworkOn
-          ? (subnetwork) =>
-              canDisableSubnetwork(subnetwork) ? (
-                <FixSubnetworkButton
-                  onFix={() => fixSubnetwork(subnetwork.subnetworkId)}
-                />
-              ) : null
-          : undefined
+      renderItemAction={(subnetwork) =>
+        canDisableSubnetwork(subnetwork) ? (
+          <FixSubnetworkButton
+            onFix={() => fixSubnetwork(subnetwork.subnetworkId)}
+          />
+        ) : null
       }
-      onItemAction={isDisableUnsuppliedSubnetworkOn ? fixSubnetwork : undefined}
+      onItemAction={fixSubnetwork}
       checkType={CheckType.connectivityTrace}
       onGoBack={onGoBack}
     />

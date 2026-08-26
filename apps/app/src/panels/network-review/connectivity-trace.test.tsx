@@ -4,7 +4,6 @@ import { Provider as JotaiProvider } from "jotai";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
-import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
 import { Store } from "src/state";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { historyPendingAtom } from "src/state/transactions";
@@ -53,19 +52,7 @@ const listElement = () =>
   screen.getByRole("list").parentElement!.parentElement!;
 
 describe("ConnectivityTrace panel fix action", () => {
-  it("does not render a fix action when the flag is off", async () => {
-    stubFeatureOff("FLAG_DISABLE_UNSUPPLIED_SUBNETWORK");
-    const hydraulicModel = aModelWithAnUnsuppliedSubnetwork();
-    renderPanel(setInitialState({ hydraulicModel }));
-
-    await waitFor(() => {
-      expect(screen.getAllByRole("listitem").length).toBeGreaterThan(0);
-    });
-    expect(screen.queryByRole("button", { name: /disable/i })).toBeNull();
-  });
-
   it("offers the fix only for the unsupplied subnetwork", async () => {
-    stubFeatureOn("FLAG_DISABLE_UNSUPPLIED_SUBNETWORK");
     const hydraulicModel = aModelWithAnUnsuppliedSubnetwork();
     renderPanel(setInitialState({ hydraulicModel }));
 
@@ -76,7 +63,6 @@ describe("ConnectivityTrace panel fix action", () => {
   });
 
   it("deactivates the unsupplied subnetwork's links", async () => {
-    stubFeatureOn("FLAG_DISABLE_UNSUPPLIED_SUBNETWORK");
     const hydraulicModel = aModelWithAnUnsuppliedSubnetwork();
     const store = setInitialState({ hydraulicModel });
     renderPanel(store);
@@ -95,7 +81,6 @@ describe("ConnectivityTrace panel fix action", () => {
   });
 
   it("deactivates the selected subnetwork when pressing Enter", async () => {
-    stubFeatureOn("FLAG_DISABLE_UNSUPPLIED_SUBNETWORK");
     const hydraulicModel = aModelWithAnUnsuppliedSubnetwork();
     const store = setInitialState({ hydraulicModel });
     renderPanel(store);
@@ -115,7 +100,6 @@ describe("ConnectivityTrace panel fix action", () => {
   });
 
   it("does not disable a supplied subnetwork via Enter", async () => {
-    stubFeatureOn("FLAG_DISABLE_UNSUPPLIED_SUBNETWORK");
     const hydraulicModel = aModelWithAnUnsuppliedSubnetwork();
     const store = setInitialState({ hydraulicModel });
     renderPanel(store);
@@ -135,7 +119,6 @@ describe("ConnectivityTrace panel fix action", () => {
   });
 
   it("advances on Enter even when the row has no fix", async () => {
-    stubFeatureOn("FLAG_DISABLE_UNSUPPLIED_SUBNETWORK");
     const hydraulicModel = aModelWithAnUnsuppliedSubnetwork();
     renderPanel(setInitialState({ hydraulicModel }));
 
@@ -155,7 +138,6 @@ describe("ConnectivityTrace panel fix action", () => {
   });
 
   it("does not fix via Enter while edition is blocked", async () => {
-    stubFeatureOn("FLAG_DISABLE_UNSUPPLIED_SUBNETWORK");
     const hydraulicModel = aModelWithAnUnsuppliedSubnetwork();
     const store = setInitialState({ hydraulicModel });
     store.set(historyPendingAtom, true);
