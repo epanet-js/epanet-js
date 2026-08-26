@@ -8,6 +8,7 @@ import {
 } from "src/lib/network-review";
 import clsx from "clsx";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { useIgnoredFindings } from "./use-ignored-findings";
 import { FixProximityAnomalyButton } from "./fixes/fix-proximity-anomaly-button";
 import { useFixProximityAnomaly } from "./fixes/use-fix-proximity-anomaly";
 import {
@@ -19,10 +20,12 @@ import {
   useLoadingStatus,
   VirtualizedIssuesList,
 } from "./common";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useAtomValue } from "jotai";
+import type { Ignoring } from "./common";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useAtom, useAtomValue } from "jotai";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { projectSettingsAtom } from "src/state/project-settings";
+import { proximityDistanceAtom } from "src/state/network-review";
 import { selectionAtom } from "src/state/selection";
 import { useTranslate } from "src/hooks/use-translate";
 import { convertTo, Quantity } from "@epanet-js/quantity";
@@ -75,7 +78,7 @@ export const ProximityAnomalies = ({ onGoBack }: { onGoBack: () => void }) => {
         setSelectedProximityAnomalyId(null);
         return;
       }
-      const connectionId = `${anomaly.nodeId}-${anomaly.pipeId}`;
+      const connectionId = proximityAnomalyId(anomaly);
       setSelectedProximityAnomalyId(connectionId);
       setSelection(USelection.fromAssetIds([anomaly.nodeId, anomaly.pipeId]));
 
@@ -96,7 +99,7 @@ export const ProximityAnomalies = ({ onGoBack }: { onGoBack: () => void }) => {
     if (!selectedAnomaly) {
       setSelectedProximityAnomalyId(null);
     } else {
-      const connectionId = `${selectedAnomaly.nodeId}-${selectedAnomaly.pipeId}`;
+      const connectionId = proximityAnomalyId(selectedAnomaly);
       setSelectedProximityAnomalyId((prev) =>
         prev === connectionId ? prev : connectionId,
       );
@@ -130,9 +133,25 @@ export const ProximityAnomalies = ({ onGoBack }: { onGoBack: () => void }) => {
     [proximityAnomalies.length],
   );
 
+  const isFixPipeOverUnderShotOn = useFeatureFlag(
+    "FLAG_FIX_PIPE_OVER_UNDER_SHOT",
+  );
+  const ignoring = useIgnoredFindings(CheckType.proximityAnomalies);
+  const { isIgnored } = ignoring;
+
+  const activeCount = useMemo(
+    () =>
+      isFixPipeOverUnderShotOn
+        ? proximityAnomalies.filter(
+            (item) => !isIgnored(proximityAnomalyId(item)),
+          ).length
+        : proximityAnomalies.length,
+    [proximityAnomalies, isIgnored, isFixPipeOverUnderShotOn],
+  );
+
   const headerProps = useCheckHeader(
     CheckType.proximityAnomalies,
-    proximityAnomalies.length,
+    activeCount,
     onGoBack,
   );
 
@@ -157,6 +176,7 @@ export const ProximityAnomalies = ({ onGoBack }: { onGoBack: () => void }) => {
                 onSelect={selectProximityAnomaly}
                 selectedAnomaly={selectedProximityAnomalyId}
                 onGoBack={onGoBack}
+                ignoring={isFixPipeOverUnderShotOn ? ignoring : undefined}
               />
             ) : (
               <>
@@ -176,6 +196,9 @@ export const ProximityAnomalies = ({ onGoBack }: { onGoBack: () => void }) => {
     </div>
   );
 };
+
+const proximityAnomalyId = (anomaly: ProximityAnomaly) =>
+  `${anomaly.nodeId}-${anomaly.pipeId}`;
 
 const DEFAULT_DISTANCE_FT = 1.5;
 const DEFAULT_DISTANCE_M = 0.5;
@@ -215,22 +238,39 @@ const DistanceInput = ({
 
 const useDistance = () => {
   const { units } = useAtomValue(projectSettingsAtom);
+  const userTracking = useUserTracking();
   const unit = units.length;
-  const [distance, setDistance] = useState<number>(() =>
-    unit === "ft" ? DEFAULT_DISTANCE_FT : DEFAULT_DISTANCE_M,
-  );
-  const distanceInM = useRef<number>(convertTo({ value: distance, unit }, "m"));
+  const [storedDistance, setStoredDistance] = useAtom(proximityDistanceAtom);
 
+  // Stored with its own unit, so the number the user typed is shown back
+  // verbatim; only a mid-session unit change needs converting.
+  const distance = useMemo((): number => {
+    if (!storedDistance) {
+      return unit === "ft" ? DEFAULT_DISTANCE_FT : DEFAULT_DISTANCE_M;
+    }
+
+    return storedDistance.unit === unit
+      ? storedDistance.value
+      : convertTo(storedDistance, unit);
+  }, [storedDistance, unit]);
+
+  // Only reached from the input's commit, so this records values the user chose
+  // and never the unit default.
   const updateDistance = useCallback(
     (value: number) => {
-      setDistance(value);
-      distanceInM.current = convertTo({ value, unit }, "m");
+      setStoredDistance({ value, unit });
+
+      userTracking.capture({
+        name: "networkReview.proximityAnomalies.distanceSet",
+        distance: value,
+        units: unit ?? "",
+      });
     },
-    [unit],
+    [unit, setStoredDistance, userTracking],
   );
 
   return {
-    distanceInM: distanceInM.current,
+    distanceInM: convertTo({ value: distance, unit }, "m"),
     localizedDistance: { value: distance, unit },
     updateDistance,
   };
@@ -291,11 +331,13 @@ const ProximityAnomaliesList = ({
   onSelect,
   selectedAnomaly,
   onGoBack,
+  ignoring,
 }: {
   proximityAnomalies: ProximityAnomaly[];
   onSelect: (issue: ProximityAnomaly | null) => void;
   selectedAnomaly: string | null;
   onGoBack: () => void;
+  ignoring?: Ignoring<string>;
 }) => {
   const isFixPipeOverUnderShotOn = useFeatureFlag(
     "FLAG_FIX_PIPE_OVER_UNDER_SHOT",
@@ -305,7 +347,7 @@ const ProximityAnomaliesList = ({
   const fixAnomaly = useCallback(
     (anomalyId: string) => {
       const anomaly = proximityAnomalies.find(
-        (candidate) => `${candidate.nodeId}-${candidate.pipeId}` === anomalyId,
+        (candidate) => proximityAnomalyId(candidate) === anomalyId,
       );
       if (!anomaly) return;
 
@@ -319,24 +361,26 @@ const ProximityAnomaliesList = ({
       items={proximityAnomalies}
       selectedItemId={selectedAnomaly}
       onSelect={onSelect}
-      getItemId={(issue) => `${issue.nodeId}-${issue.pipeId}`}
-      renderItem={(_index, anomaly, selectedId, onClick) => (
+      getItemId={proximityAnomalyId}
+      renderItem={(_index, anomaly, selectedId, onClick, isIgnored) => (
         <ProximityAnomalyItem
           anomaly={anomaly}
           selectedId={selectedId}
           onClick={onClick}
+          isIgnored={isIgnored}
         />
       )}
       renderItemAction={
         isFixPipeOverUnderShotOn
           ? (anomaly) => (
               <FixProximityAnomalyButton
-                onFix={() => fixAnomaly(`${anomaly.nodeId}-${anomaly.pipeId}`)}
+                onFix={() => fixAnomaly(proximityAnomalyId(anomaly))}
               />
             )
           : undefined
       }
       onItemAction={isFixPipeOverUnderShotOn ? fixAnomaly : undefined}
+      ignoring={ignoring}
       checkType={CheckType.proximityAnomalies}
       onGoBack={onGoBack}
     />
@@ -347,10 +391,12 @@ const ProximityAnomalyItem = ({
   anomaly,
   onClick,
   selectedId,
+  isIgnored = false,
 }: {
   anomaly: ProximityAnomaly;
   onClick: (anomaly: ProximityAnomaly) => void;
   selectedId: string | null;
+  isIgnored?: boolean;
 }) => {
   const translate = useTranslate();
   const isFixPipeOverUnderShotOn = useFeatureFlag(
@@ -358,7 +404,7 @@ const ProximityAnomalyItem = ({
   );
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const { units } = useAtomValue(projectSettingsAtom);
-  const connectionId = `${anomaly.nodeId}-${anomaly.pipeId}`;
+  const connectionId = proximityAnomalyId(anomaly);
   const isSelected = selectedId === connectionId;
 
   const nodeAsset = hydraulicModel.assets.get(anomaly.nodeId);
@@ -379,6 +425,7 @@ const ProximityAnomalyItem = ({
       onClick={() => onClick(anomaly)}
       onMouseDown={(e) => e.preventDefault()}
       variant={"quiet/list"}
+      size="xxs"
       aria-label={translate(
         "networkReview.proximityAnomalies.issueLabel",
         nodeAsset.label,
@@ -389,13 +436,20 @@ const ProximityAnomalyItem = ({
     >
       <div
         className={clsx(
-          "grid gap-x-2 items-center p-1 pr-0 text-size-base w-full",
+          "grid gap-x-2 items-center h-8 px-1 pr-0 text-size-base w-full",
           isFixPipeOverUnderShotOn
             ? "grid-cols-[minmax(0,auto)_auto] justify-start"
             : "grid-cols-[1fr_auto] justify-between",
         )}
       >
-        <div className="min-w-0 truncate text-left">{nodeAsset.label}</div>
+        <div
+          className={clsx(
+            "min-w-0 truncate text-left",
+            isIgnored && "text-subtle",
+          )}
+        >
+          {nodeAsset.label}
+        </div>
         <div
           className={clsx(
             "text-subtle",

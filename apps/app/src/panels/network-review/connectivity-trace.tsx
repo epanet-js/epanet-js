@@ -152,6 +152,8 @@ export const ConnectivityTrace = ({ onGoBack }: { onGoBack: () => void }) => {
   );
 };
 
+const getSubnetworkId = (subnetwork: SubNetwork) => subnetwork.subnetworkId;
+
 const SubNetworksList = ({
   subNetworks,
   onSelect,
@@ -185,7 +187,7 @@ const SubNetworksList = ({
       items={subNetworks}
       selectedItemId={selectedSubNetwork}
       onSelect={onSelect}
-      getItemId={(issue) => issue.subnetworkId}
+      getItemId={getSubnetworkId}
       renderItem={(index, subnetwork, selectedId, onClick) => (
         <SubnetworkItem
           index={index + 1}

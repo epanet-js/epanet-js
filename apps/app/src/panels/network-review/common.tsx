@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { ChevronLeftIcon } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Button } from "src/components/elements";
 import { RingSpinner } from "src/components/ring-spinner";
@@ -8,8 +8,15 @@ import { Action, ActionButton } from "src/components/action-button";
 import { useTranslate } from "src/hooks/use-translate";
 import { useZoom } from "src/hooks/use-zoom";
 import { useUserTracking } from "src/infra/user-tracking";
-import { NoIssuesIcon } from "src/icons";
+import {
+  ChevronDownIcon,
+  ChevronRightIcon,
+  IgnoreIcon,
+  NoIssuesIcon,
+  UndoIcon,
+} from "src/icons";
 import { CheckType } from "src/lib/network-review";
+import { FixButton } from "./fixes/fix-button";
 
 export const ToolHeader = ({
   onGoBack,
@@ -226,6 +233,90 @@ const useListAutoFocus = (options: {
   return { listRef, focusList };
 };
 
+export type Ignoring<I> = {
+  isIgnored: (itemId: I) => boolean;
+  onIgnore: (itemId: I) => void;
+  onRestore: (itemId: I) => void;
+};
+
+type ListRow<T> =
+  | { kind: "item"; item: T; itemIndex: number; isIgnored: boolean }
+  | { kind: "ignoredHeader"; count: number };
+
+// Ignored rows are dropped from the array entirely while the section is closed,
+// so every arrow/Page/Home/End calculation skips them without knowing they exist.
+const buildListRows = <T, I>(
+  items: T[],
+  getItemId: (item: T) => I,
+  ignoring: Ignoring<I> | undefined,
+  isSectionOpen: boolean,
+): ListRow<T>[] => {
+  if (!ignoring) {
+    return items.map((item, itemIndex) => ({
+      kind: "item",
+      item,
+      itemIndex,
+      isIgnored: false,
+    }));
+  }
+
+  const active: ListRow<T>[] = [];
+  const ignored: ListRow<T>[] = [];
+
+  items.forEach((item, itemIndex) => {
+    const row = {
+      kind: "item",
+      item,
+      itemIndex,
+      isIgnored: ignoring.isIgnored(getItemId(item)),
+    } as const;
+
+    (row.isIgnored ? ignored : active).push(row);
+  });
+
+  if (ignored.length === 0) return active;
+
+  return [
+    ...active,
+    { kind: "ignoredHeader", count: ignored.length },
+    ...(isSectionOpen ? ignored : []),
+  ];
+};
+
+const IgnoredSectionHeader = ({
+  count,
+  isOpen,
+  isFocused,
+  onToggle,
+}: {
+  count: number;
+  isOpen: boolean;
+  isFocused: boolean;
+  onToggle: () => void;
+}) => {
+  const translate = useTranslate();
+
+  return (
+    <button
+      type="button"
+      tabIndex={-1}
+      aria-expanded={isOpen}
+      data-section-type="ignored"
+      onClick={onToggle}
+      onMouseDown={(e) => e.preventDefault()}
+      className={clsx(
+        "w-full flex items-center gap-1 h-8 px-1 rounded-sm",
+        "text-size-base font-semibold text-default",
+        isFocused ? "bg-accent-tint" : "hover:bg-base-hover",
+      )}
+    >
+      {isOpen ? <ChevronDownIcon /> : <ChevronRightIcon />}
+      <span className="truncate">{translate("ignored")}</span>
+      <span className="shrink-0">({count})</span>
+    </button>
+  );
+};
+
 export const VirtualizedIssuesList = <T, I>({
   items,
   selectedItemId,
@@ -234,8 +325,9 @@ export const VirtualizedIssuesList = <T, I>({
   renderItem,
   renderItemAction,
   onItemAction,
+  ignoring,
   checkType,
-  estimateSize = 35,
+  estimateSize = 32,
   autoFocus = true,
   showDescription = true,
   onGoBack,
@@ -249,17 +341,22 @@ export const VirtualizedIssuesList = <T, I>({
     item: T,
     selectedId: I | null,
     onClick: (item: T) => void,
+    isIgnored: boolean,
   ) => React.ReactNode;
   renderItemAction?: (item: T, isSelected: boolean) => React.ReactNode;
   onItemAction?: (itemId: I) => void;
+  ignoring?: Ignoring<I>;
   checkType: CheckType;
   estimateSize?: number;
   autoFocus?: boolean;
   showDescription?: boolean;
   onGoBack: () => void;
 }) => {
+  const translate = useTranslate();
   const lastKeyboardNavigatedIndexRef = useRef<number | null>(null);
   const lastProcessedSelectedIdRef = useRef<I | null>(null);
+  const [isHeaderFocused, setHeaderFocused] = useState(false);
+  const [isIgnoredSectionOpen, setIgnoredSectionOpen] = useState(false);
 
   const { zoomIn, zoomOut } = useZoom();
 
@@ -268,16 +365,62 @@ export const VirtualizedIssuesList = <T, I>({
     itemsCount: items.length,
   });
 
+  const listRows = useMemo(
+    () => buildListRows(items, getIdFromIssue, ignoring, isIgnoredSectionOpen),
+    [items, getIdFromIssue, ignoring, isIgnoredSectionOpen],
+  );
+
   const rowVirtualizer = useVirtualizer({
-    count: items.length,
+    count: listRows.length,
     getScrollElement: () => listRef.current,
     estimateSize: () => estimateSize,
   });
+
+  // Focus and selection diverge only for the section header, which is focusable
+  // but not selectable — so it must not touch the map selection.
+  const focusRow = useCallback(
+    (index: number) => {
+      const row = listRows[index];
+      if (!row) return;
+
+      lastKeyboardNavigatedIndexRef.current = index;
+
+      if (row.kind === "ignoredHeader") {
+        setHeaderFocused(true);
+        lastProcessedSelectedIdRef.current = null;
+        onSelect(null);
+        return;
+      }
+
+      setHeaderFocused(false);
+      lastProcessedSelectedIdRef.current = getIdFromIssue(row.item);
+      onSelect(row.item);
+    },
+    [listRows, getIdFromIssue, onSelect],
+  );
+
+  const toggleIgnoredSection = useCallback(() => {
+    const headerIndex = listRows.findIndex(
+      (row) => row.kind === "ignoredHeader",
+    );
+    setIgnoredSectionOpen((open) => !open);
+
+    const focusedIndex = lastKeyboardNavigatedIndexRef.current;
+    if (
+      headerIndex !== -1 &&
+      focusedIndex !== null &&
+      focusedIndex > headerIndex
+    ) {
+      lastKeyboardNavigatedIndexRef.current = headerIndex;
+      setHeaderFocused(true);
+    }
+  }, [listRows]);
 
   const handleItemClick = useCallback(
     (item: T, index: number) => {
       lastKeyboardNavigatedIndexRef.current = index;
       lastProcessedSelectedIdRef.current = getIdFromIssue(item);
+      setHeaderFocused(false);
 
       onSelect(item);
       focusList();
@@ -304,75 +447,91 @@ export const VirtualizedIssuesList = <T, I>({
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
-      if (items.length === 0) return;
+      if (listRows.length === 0) return;
 
       const range = rowVirtualizer.range;
       if (!range) return;
 
       const currentIndex = lastKeyboardNavigatedIndexRef.current ?? -1;
+      const focusedRow = listRows[currentIndex];
 
       switch (e.key) {
         case "ArrowDown":
           e.preventDefault();
-          const nextIndex = Math.min(currentIndex + 1, items.length - 1);
-          onSelect(items[nextIndex]);
-          lastKeyboardNavigatedIndexRef.current = nextIndex;
-          lastProcessedSelectedIdRef.current = getIdFromIssue(items[nextIndex]);
+          focusRow(Math.min(currentIndex + 1, listRows.length - 1));
           break;
         case "ArrowUp":
           e.preventDefault();
-          const prevIndex = currentIndex <= 0 ? 0 : currentIndex - 1;
-          onSelect(items[prevIndex]);
-          lastKeyboardNavigatedIndexRef.current = prevIndex;
-          lastProcessedSelectedIdRef.current = getIdFromIssue(items[prevIndex]);
+          focusRow(currentIndex <= 0 ? 0 : currentIndex - 1);
           break;
         case "PageDown":
           e.preventDefault();
-          const { endIndex } = range;
-          const nextPageIndex = Math.min(endIndex, items.length - 1);
-          onSelect(items[nextPageIndex]);
-          lastKeyboardNavigatedIndexRef.current = nextPageIndex;
-          lastProcessedSelectedIdRef.current = getIdFromIssue(
-            items[nextPageIndex],
-          );
+          focusRow(Math.min(range.endIndex, listRows.length - 1));
           break;
         case "PageUp":
           e.preventDefault();
-          const { startIndex } = range;
-          const previousPageIndex = Math.max(startIndex - 1, 0);
-          onSelect(items[previousPageIndex]);
-          lastKeyboardNavigatedIndexRef.current = previousPageIndex;
-          lastProcessedSelectedIdRef.current = getIdFromIssue(
-            items[previousPageIndex],
-          );
+          focusRow(Math.max(range.startIndex - 1, 0));
           break;
         case "Home":
           e.preventDefault();
-          const firstIndex = 0;
-          onSelect(items[firstIndex]);
-          lastKeyboardNavigatedIndexRef.current = firstIndex;
-          lastProcessedSelectedIdRef.current = getIdFromIssue(
-            items[firstIndex],
-          );
+          focusRow(0);
           break;
         case "End":
           e.preventDefault();
-          const lastIndex = items.length - 1;
-          onSelect(items[lastIndex]);
-          lastKeyboardNavigatedIndexRef.current = lastIndex;
-          lastProcessedSelectedIdRef.current = getIdFromIssue(items[lastIndex]);
+          focusRow(listRows.length - 1);
           break;
         case "Escape":
           e.preventDefault();
           if (lastKeyboardNavigatedIndexRef.current !== null) {
             lastKeyboardNavigatedIndexRef.current = null;
             lastProcessedSelectedIdRef.current = null;
+            setHeaderFocused(false);
             onSelect(null);
           } else if (onGoBack) {
             onGoBack();
           }
           break;
+        case "Delete":
+        case "Backspace": {
+          if (!ignoring) break;
+          // Claims the key before the global asset-delete shortcut sees it.
+          e.preventDefault();
+
+          if (!focusedRow || focusedRow.kind !== "item" || focusedRow.isIgnored)
+            break;
+
+          const remaining = listRows.filter(
+            (row) =>
+              row.kind === "item" && !row.isIgnored && row !== focusedRow,
+          );
+          const activeIndex = listRows
+            .filter((row) => row.kind === "item" && !row.isIgnored)
+            .indexOf(focusedRow);
+
+          ignoring.onIgnore(getIdFromIssue(focusedRow.item));
+
+          const next = remaining[activeIndex % remaining.length];
+          onSelect(
+            next && next.kind === "item" && remaining.length > 0
+              ? next.item
+              : null,
+          );
+          break;
+        }
         case "Enter": {
+          if (focusedRow?.kind === "ignoredHeader") {
+            e.preventDefault();
+            toggleIgnoredSection();
+            break;
+          }
+
+          if (ignoring && focusedRow?.kind === "item" && focusedRow.isIgnored) {
+            e.preventDefault();
+            ignoring.onRestore(getIdFromIssue(focusedRow.item));
+            onSelect(focusedRow.item);
+            break;
+          }
+
           if (!onItemAction || selectedItemId === null) break;
           e.preventDefault();
 
@@ -401,6 +560,10 @@ export const VirtualizedIssuesList = <T, I>({
     },
     [
       items,
+      listRows,
+      focusRow,
+      ignoring,
+      toggleIgnoredSection,
       rowVirtualizer.range,
       ensureItemIsVisible,
       onSelect,
@@ -419,17 +582,19 @@ export const VirtualizedIssuesList = <T, I>({
         selectedItemId !== lastProcessedSelectedIdRef.current &&
         selectedItemId !== null
       ) {
-        const newIndex = items.findIndex(
-          (item) => getIdFromIssue(item) === selectedItemId,
+        const newIndex = listRows.findIndex(
+          (row) =>
+            row.kind === "item" && getIdFromIssue(row.item) === selectedItemId,
         );
         if (newIndex !== -1) {
           lastKeyboardNavigatedIndexRef.current = newIndex;
           lastProcessedSelectedIdRef.current = selectedItemId;
+          setHeaderFocused(false);
         }
       }
       ensureItemIsVisible();
     },
-    [selectedItemId, items, getIdFromIssue, ensureItemIsVisible],
+    [selectedItemId, listRows, getIdFromIssue, ensureItemIsVisible],
   );
 
   const rows = rowVirtualizer.getVirtualItems();
@@ -456,19 +621,68 @@ export const VirtualizedIssuesList = <T, I>({
             }}
           >
             {rows.map((virtualRow) => {
-              const item = items[virtualRow.index];
-              const itemIndex = virtualRow.index;
+              const row = listRows[virtualRow.index];
+              if (!row) return null;
+
+              if (row.kind === "ignoredHeader") {
+                return (
+                  <li
+                    key="ignored-header"
+                    data-index={virtualRow.index}
+                    className="w-full px-1"
+                    ref={rowVirtualizer.measureElement}
+                  >
+                    <IgnoredSectionHeader
+                      count={row.count}
+                      isOpen={isIgnoredSectionOpen}
+                      isFocused={
+                        isHeaderFocused &&
+                        lastKeyboardNavigatedIndexRef.current ===
+                          virtualRow.index
+                      }
+                      onToggle={() => {
+                        focusRow(virtualRow.index);
+                        toggleIgnoredSection();
+                        focusList();
+                      }}
+                    />
+                  </li>
+                );
+              }
+
+              const { item, itemIndex, isIgnored } = row;
               const handleClickWithIndex = (clickedIssue: T) =>
-                handleItemClick(clickedIssue, itemIndex);
+                handleItemClick(clickedIssue, virtualRow.index);
 
               const isItemSelected = getIdFromIssue(item) === selectedItemId;
-              const itemAction = renderItemAction?.(item, isItemSelected);
               const itemContent = renderItem(
                 itemIndex,
                 item,
                 selectedItemId,
                 handleClickWithIndex,
+                isIgnored,
               );
+
+              const rowAction = isIgnored ? (
+                <FixButton
+                  label={translate("restore")}
+                  icon={<UndoIcon size="md" />}
+                  onFix={() => ignoring?.onRestore(getIdFromIssue(item))}
+                />
+              ) : (
+                <>
+                  {renderItemAction?.(item, isItemSelected)}
+                  {ignoring ? (
+                    <FixButton
+                      label={translate("ignore")}
+                      icon={<IgnoreIcon size="md" />}
+                      onFix={() => ignoring.onIgnore(getIdFromIssue(item))}
+                    />
+                  ) : null}
+                </>
+              );
+
+              const hasAction = isIgnored || !!ignoring || !!renderItemAction;
 
               return (
                 <li
@@ -484,16 +698,16 @@ export const VirtualizedIssuesList = <T, I>({
                     )}
                   >
                     <div className="min-w-0 flex-auto">{itemContent}</div>
-                    {itemAction ? (
+                    {hasAction ? (
                       <div
                         className={clsx(
-                          "flex-none self-stretch flex items-center pr-1",
+                          "flex-none self-stretch flex items-center gap-x-1 pr-1",
                           isItemSelected
                             ? ""
                             : "invisible group-hover/item:visible",
                         )}
                       >
-                        {itemAction}
+                        {rowAction}
                       </div>
                     ) : null}
                   </div>

@@ -14,6 +14,7 @@ import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
 import { stubElevation } from "src/map/test/__helpers__/elevations";
 import { Store } from "src/state";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
+import { selectionAtom } from "src/state/selection";
 import { CrossingPipes } from "./crossing-pipes";
 
 vi.mock("src/hooks/use-zoom-to", () => ({ useZoomTo: () => vi.fn() }));
@@ -54,6 +55,7 @@ const renderPanel = (store: Store) => {
 
 // Two pipes crossing at [5, 0] without a shared node.
 const IDS = { A1: 1, A2: 2, PA: 3, B1: 4, B2: 5, PB: 6 } as const;
+const IDS2 = { C1: 7, C2: 8, PC: 9, D1: 10, D2: 11, PD: 12 } as const;
 
 const aModelWithCrossingPipes = () =>
   HydraulicModelBuilder.with()
@@ -63,6 +65,23 @@ const aModelWithCrossingPipes = () =>
     .aNode(IDS.B1, [5, -5])
     .aNode(IDS.B2, [5, 5])
     .aPipe(IDS.PB, { startNodeId: IDS.B1, endNodeId: IDS.B2, label: "PB" })
+    .build();
+
+// Two independent crossings, so ignoring one leaves one active.
+const aModelWithTwoCrossings = () =>
+  HydraulicModelBuilder.with()
+    .aNode(IDS.A1, [0, 0])
+    .aNode(IDS.A2, [10, 0])
+    .aPipe(IDS.PA, { startNodeId: IDS.A1, endNodeId: IDS.A2, label: "PA" })
+    .aNode(IDS.B1, [5, -5])
+    .aNode(IDS.B2, [5, 5])
+    .aPipe(IDS.PB, { startNodeId: IDS.B1, endNodeId: IDS.B2, label: "PB" })
+    .aNode(IDS2.C1, [100, 0])
+    .aNode(IDS2.C2, [110, 0])
+    .aPipe(IDS2.PC, { startNodeId: IDS2.C1, endNodeId: IDS2.C2, label: "PC" })
+    .aNode(IDS2.D1, [105, -5])
+    .aNode(IDS2.D2, [105, 5])
+    .aPipe(IDS2.PD, { startNodeId: IDS2.D1, endNodeId: IDS2.D2, label: "PD" })
     .build();
 
 const listElement = () =>
@@ -182,5 +201,171 @@ describe("CrossingPipes panel fix action", () => {
     });
 
     expect(pipeLabels(store)).toEqual(["PA", "PB"]);
+  });
+
+  describe("ignoring findings", () => {
+    const renderTwoCrossings = () => {
+      stubFeatureOn("FLAG_FIX_CROSSING_PIPES");
+      const store = setInitialState({
+        hydraulicModel: aModelWithTwoCrossings(),
+      });
+      renderPanel(store);
+      return store;
+    };
+
+    const ignoreFirst = () => {
+      fireEvent.click(
+        screen.getAllByRole("button", { name: /crosses pipe/i })[0],
+      );
+      fireEvent.keyDown(listElement(), { key: "Delete" });
+    };
+
+    it("drops the ignored finding out of the header count", async () => {
+      renderTwoCrossings();
+
+      await waitFor(() => {
+        expect(screen.getByText("2 intersections found")).toBeInTheDocument();
+      });
+
+      ignoreFirst();
+
+      await waitFor(() => {
+        expect(screen.getByText("1 intersection found")).toBeInTheDocument();
+      });
+    });
+
+    it("does not delete any asset when ignoring", async () => {
+      const store = renderTwoCrossings();
+
+      await waitFor(() => {
+        expect(screen.getByText("2 intersections found")).toBeInTheDocument();
+      });
+      const assetsBefore = store.get(stagingModelDerivedAtom).assets.size;
+
+      ignoreFirst();
+
+      await waitFor(() => {
+        expect(screen.getByText("1 intersection found")).toBeInTheDocument();
+      });
+      expect(store.get(stagingModelDerivedAtom).assets.size).toEqual(
+        assetsBefore,
+      );
+    });
+
+    it("shows a collapsed ignored section only once something is ignored", async () => {
+      renderTwoCrossings();
+
+      await waitFor(() => {
+        expect(screen.getByText("2 intersections found")).toBeInTheDocument();
+      });
+      expect(screen.queryByRole("button", { name: /ignored/i })).toBeNull();
+
+      ignoreFirst();
+
+      await waitFor(() => {
+        expect(
+          screen.getByRole("button", { name: /ignored/i }),
+        ).toHaveAttribute("aria-expanded", "false");
+      });
+    });
+
+    it("restores an ignored finding back into the count", async () => {
+      renderTwoCrossings();
+
+      await waitFor(() => {
+        expect(screen.getByText("2 intersections found")).toBeInTheDocument();
+      });
+
+      ignoreFirst();
+
+      await waitFor(() => {
+        expect(screen.getByText("1 intersection found")).toBeInTheDocument();
+      });
+
+      // The ignored row lives past the ~2 rows jsdom's zero-height container
+      // renders, so restore is driven by keyboard: down to the section header,
+      // Enter to expand, down onto the row, Enter to restore.
+      const list = listElement();
+      fireEvent.keyDown(list, { key: "ArrowDown" });
+      fireEvent.keyDown(list, { key: "Enter" });
+      fireEvent.keyDown(list, { key: "ArrowDown" });
+      fireEvent.keyDown(list, { key: "Enter" });
+
+      await waitFor(() => {
+        expect(screen.getByText("2 intersections found")).toBeInTheDocument();
+      });
+    });
+
+    it("drops the header highlight once a row is selected", async () => {
+      renderTwoCrossings();
+
+      await waitFor(() => {
+        expect(screen.getByText("2 intersections found")).toBeInTheDocument();
+      });
+
+      ignoreFirst();
+
+      const header = await screen.findByRole("button", { name: /ignored/i });
+      fireEvent.keyDown(listElement(), { key: "ArrowDown" });
+
+      await waitFor(() => {
+        expect(header).toHaveClass("bg-accent-tint");
+      });
+
+      fireEvent.click(
+        screen.getAllByRole("button", { name: /crosses pipe/i })[0],
+      );
+
+      await waitFor(() => {
+        expect(header).not.toHaveClass("bg-accent-tint");
+      });
+    });
+
+    it("clears the row selection when the header takes focus", async () => {
+      const store = renderTwoCrossings();
+
+      await waitFor(() => {
+        expect(screen.getByText("2 intersections found")).toBeInTheDocument();
+      });
+
+      ignoreFirst();
+
+      await waitFor(() => {
+        expect(store.get(selectionAtom).asset.length).toBeGreaterThan(0);
+      });
+
+      fireEvent.keyDown(listElement(), { key: "ArrowDown" });
+
+      await waitFor(() => {
+        expect(store.get(selectionAtom).asset).toEqual([]);
+      });
+      expect(screen.getByRole("button", { name: /ignored/i })).toHaveClass(
+        "bg-accent-tint",
+      );
+    });
+
+    it("ignores nothing when the flag is off", async () => {
+      stubFeatureOff("FLAG_FIX_CROSSING_PIPES");
+      setInitialState({ hydraulicModel: aModelWithTwoCrossings() });
+      renderPanel(
+        setInitialState({ hydraulicModel: aModelWithTwoCrossings() }),
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText("2 intersections found")).toBeInTheDocument();
+      });
+
+      fireEvent.click(
+        screen.getAllByRole("button", { name: /crosses pipe/i })[0],
+      );
+      fireEvent.keyDown(listElement(), { key: "Delete" });
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      });
+
+      expect(screen.getByText("2 intersections found")).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: /ignored/i })).toBeNull();
+    });
   });
 });

@@ -162,7 +162,7 @@ const OrphanAssetsList = ({
       items={orphanAssets}
       selectedItemId={selectedOrphanAsset}
       onSelect={onSelect}
-      getItemId={(assetId) => assetId}
+      getItemId={getOrphanAssetId}
       renderItem={(_index, assetId, selectedId, onClick) => {
         const asset = hydraulicModel.assets.get(assetId);
         if (!asset) return null;
@@ -194,6 +194,8 @@ const OrphanAssetsList = ({
   );
 };
 
+const getOrphanAssetId = (assetId: AssetId) => assetId;
+
 const iconByAssetType: { [key in AssetType]: React.ReactNode } = {
   junction: <JunctionIcon />,
   tank: <TankIcon />,
@@ -220,6 +222,7 @@ const OrphanAssetItem = ({
       onClick={() => onClick(asset.id)}
       onMouseDown={(e) => e.preventDefault()}
       variant={"quiet/list"}
+      size="xxs"
       aria-label={translate(
         "networkReview.orphanAssets.issueLabel",
         translate(asset.type),
@@ -229,8 +232,8 @@ const OrphanAssetItem = ({
       tabIndex={-1}
       className="group w-full hover:bg-transparent dark:hover:bg-transparent aria-selected:bg-transparent! aria-selected:hover:bg-transparent!"
     >
-      <div className="grid grid-cols-[auto_1fr] gap-x-2 items-start p-1 pr-0 text-size-base w-full">
-        <div className="pt-[.125rem]">{iconByAssetType[asset.type]}</div>
+      <div className="grid grid-cols-[auto_1fr] gap-x-2 items-center h-8 px-1 pr-0 text-size-base w-full">
+        <div className="flex items-center">{iconByAssetType[asset.type]}</div>
         <div className="text-size-base text-left">{asset.label}</div>
       </div>
     </Button>

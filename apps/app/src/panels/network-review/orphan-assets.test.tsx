@@ -189,6 +189,23 @@ describe("OrphanAssets panel fix action", () => {
     expect(store.get(stagingModelDerivedAtom).assets.get(IDS.T1)).toBeDefined();
   });
 
+  it("leaves Delete to the global asset-delete shortcut", async () => {
+    stubFeatureOn("FLAG_FIX_ORPHAN_ASSET");
+    const { hydraulicModel } = aModelWithAnOrphanJunction();
+    renderPanel(setInitialState({ hydraulicModel }));
+
+    await waitFor(() => {
+      expect(screen.getByText("ORPHAN")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText("ORPHAN"));
+
+    // fireEvent returns false exactly when preventDefault was called. This check
+    // has no ignoring prop, so the list must not claim Delete.
+    const list = screen.getByRole("list").parentElement!.parentElement!;
+    expect(fireEvent.keyDown(list, { key: "Delete" })).toBe(true);
+  });
+
   it("does not fix via Enter while edition is blocked", async () => {
     stubFeatureOn("FLAG_FIX_ORPHAN_ASSET");
     const { IDS, hydraulicModel } = aModelWithAnOrphanJunction();

@@ -1076,6 +1076,28 @@ type CrossingPipesConnected = {
   pipeIds: number[];
 };
 
+type ProximityDistanceSet = {
+  name: "networkReview.proximityAnomalies.distanceSet";
+  distance: number;
+  units: string;
+};
+
+type NetworkReviewCheckIgnored = {
+  name:
+    | "networkReview.proximityAnomalies.ignored"
+    | "networkReview.proximityAnomalies.restored"
+    | "networkReview.crossingPipes.ignored"
+    | "networkReview.crossingPipes.restored";
+};
+
+type NetworkReviewCheckRestored = {
+  name:
+    | "networkReview.proximityAnomalies.ignored"
+    | "networkReview.proximityAnomalies.restored"
+    | "networkReview.crossingPipes.ignored"
+    | "networkReview.crossingPipes.restored";
+};
+
 type ProximityAnomalyConnected = {
   name: "networkReview.proximityAnomalies.fixed";
   nodeId: number;
@@ -1495,6 +1517,9 @@ export type UserEvent =
   | SubnetworkDisabled
   | CrossingPipesConnected
   | ProximityAnomalyConnected
+  | NetworkReviewCheckIgnored
+  | NetworkReviewCheckRestored
+  | ProximityDistanceSet
   | ModelAttributesValidationChanged
   | ModelAttributesValidationGroupOpened
   | ModelAttributesValidationBulkSelected

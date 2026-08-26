@@ -411,6 +411,8 @@
   "empty": "Empty",
   "type": "Type",
   "connect": "Connect",
+  "ignored": "Ignored",
+  "restore": "Restore",
   "delete": "Delete",
   "copy": "Copy",
   "paste": "Paste",

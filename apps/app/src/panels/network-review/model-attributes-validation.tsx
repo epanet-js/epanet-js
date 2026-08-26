@@ -451,7 +451,7 @@ const ModelAttributesValidationDetail = ({
           items={group.entityIds}
           selectedItemId={selectedEntityId}
           onSelect={selectEntity}
-          getItemId={(entityId) => entityId}
+          getItemId={getEntityId}
           renderItem={(_index, entityId, selectedId, onClick) => (
             <ModelAttributesValidationEntityRow
               entityId={entityId}
@@ -482,6 +482,8 @@ const entityLabel = (
   return entity?.label ?? String(entityId);
 };
 
+const getEntityId = (entityId: AssetId) => entityId;
+
 const ModelAttributesValidationEntityRow = ({
   entityId,
   label,
@@ -498,12 +500,13 @@ const ModelAttributesValidationEntityRow = ({
       onClick={() => onClick(entityId)}
       onMouseDown={(e) => e.preventDefault()}
       variant={"quiet/list"}
+      size="xxs"
       aria-label={label}
       aria-selected={isSelected}
       tabIndex={-1}
       className="group w-full hover:bg-transparent dark:hover:bg-transparent aria-selected:bg-transparent! aria-selected:hover:bg-transparent!"
     >
-      <div className="flex items-center p-1 pr-0 text-size-base w-full text-left">
+      <div className="flex items-center h-8 px-1 pr-0 text-size-base w-full text-left">
         <span className="truncate">{label}</span>
       </div>
     </Button>

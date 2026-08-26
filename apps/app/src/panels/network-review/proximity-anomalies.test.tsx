@@ -13,6 +13,7 @@ import { setInitialState } from "src/__helpers__/state";
 import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
 import { Store } from "src/state";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
+import { proximityDistanceAtom } from "src/state/network-review";
 import { ProximityAnomalies } from "./proximity-anomalies";
 
 vi.mock("src/hooks/use-zoom-to", () => ({ useZoomTo: () => vi.fn() }));
@@ -92,6 +93,41 @@ const expectLongPipeSplit = (store: Store) => {
   expect(labels.filter((label) => label.startsWith("LONG"))).toHaveLength(2);
   expect(labels.filter((label) => label === "SHORT")).toHaveLength(1);
 };
+
+describe("ProximityAnomalies distance", () => {
+  it("keeps the distance when the panel is remounted", async () => {
+    stubFeatureOff("FLAG_FIX_PIPE_OVER_UNDER_SHOT");
+    const store = setInitialState({ hydraulicModel: aModelWithAnAnomaly() });
+    const { unmount } = render(
+      <JotaiProvider store={store}>
+        <TooltipProvider>
+          <ProximityAnomalies onGoBack={vi.fn()} />
+        </TooltipProvider>
+      </JotaiProvider>,
+    );
+
+    const input = await screen.findByRole("textbox");
+    fireEvent.change(input, { target: { value: "0.25" } });
+    fireEvent.blur(input);
+
+    await waitFor(() => {
+      expect(store.get(proximityDistanceAtom)).toEqual({
+        value: 0.25,
+        unit: "m",
+      });
+    });
+
+    unmount();
+    renderPanel(store);
+
+    expect(await screen.findByRole("textbox")).toHaveValue("0.25");
+  });
+
+  it("starts from the default distance for a fresh project", () => {
+    const store = setInitialState({ hydraulicModel: aModelWithAnAnomaly() });
+    expect(store.get(proximityDistanceAtom)).toBeNull();
+  });
+});
 
 describe("ProximityAnomalies panel fix action", () => {
   it("does not render a fix action when the flag is off", async () => {

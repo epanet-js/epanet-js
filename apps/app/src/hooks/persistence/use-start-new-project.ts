@@ -40,7 +40,11 @@ import { modelFactoriesAtom } from "src/state/model-factories";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { momentLogAtom } from "src/state/model-changes";
 import { resetProjectRevision } from "src/state/project-revision";
-import { reviewResultsAtom } from "src/state/network-review";
+import {
+  ignoredFindingsAtom,
+  proximityDistanceAtom,
+  reviewResultsAtom,
+} from "src/state/network-review";
 import {
   simulationDerivedAtom,
   simulationSettingsDerivedAtom,
@@ -110,6 +114,8 @@ export const resetAppState = (set: Setter) => {
   set(simulationPlaybackAtom, initialPlaybackState);
   set(zonesAtom, initializeZones());
   set(reviewResultsAtom, {});
+  set(ignoredFindingsAtom, {});
+  set(proximityDistanceAtom, null);
 };
 
 export const loadModel = (

@@ -6,6 +6,7 @@ import {
   ArrowRight,
   ArrowUpNarrowWide,
   Bell,
+  BellOff,
   BookText,
   ChartColumn,
   Check,
@@ -194,6 +195,7 @@ export const MenuIcon = icon(Menu);
 export const NewFromExampleIcon = icon(Sun);
 export const AddIcon = icon(Plus);
 export const UndoIcon = icon(Undo2);
+export const IgnoreIcon = icon(BellOff);
 export const RedoIcon = icon(Redo2);
 export const SaveIcon = icon(Save);
 export const SaveAllIcon = icon(SaveAll);
