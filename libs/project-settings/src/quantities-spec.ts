@@ -112,24 +112,13 @@ const metricSpec: AssetQuantitiesSpec = {
   defaults: {
     pipe: {
       diameter: 300,
-      length: 1000,
       roughness: 130,
     },
     junction: {},
-    reservoir: {
-      relativeHead: 10,
-    },
-    tank: {
-      diameter: 10,
-      initialLevel: 10,
-      minLevel: 0,
-      maxLevel: 35,
-      minVolume: 0,
-    },
-    pump: {
-      power: 20,
-    },
-    valve: { diameter: 300 },
+    reservoir: {},
+    tank: {},
+    pump: {},
+    valve: {},
   },
 };
 
@@ -172,24 +161,13 @@ const usCustomarySpec: AssetQuantitiesSpec = {
   defaults: {
     pipe: {
       diameter: 12,
-      length: 1000,
       roughness: 130,
     },
     junction: {},
-    reservoir: {
-      relativeHead: 32,
-    },
-    tank: {
-      diameter: 120,
-      initialLevel: 10,
-      minLevel: 0,
-      maxLevel: 30,
-      minVolume: 0,
-    },
-    pump: {
-      power: 20,
-    },
-    valve: { diameter: 12 },
+    reservoir: {},
+    tank: {},
+    pump: {},
+    valve: {},
   },
 };
 
