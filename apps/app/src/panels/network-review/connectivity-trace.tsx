@@ -244,10 +244,11 @@ const SubnetworkItem = ({
         String(subnetwork.linkIds.length),
       )}
       aria-selected={isSelected}
+      size="xxs"
       tabIndex={-1}
       className="group w-full hover:bg-transparent dark:hover:bg-transparent aria-selected:bg-transparent! aria-selected:hover:bg-transparent!"
     >
-      <div className="flex flex-col items-start p-1 pr-0 text-size-base w-full text-left">
+      <div className="flex flex-col items-start py-2 px-2 pr-0 text-size-base w-full text-left">
         <div className="truncate">
           {translate(
             "networkReview.connectivityTrace.subnetwork",

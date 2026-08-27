@@ -224,7 +224,7 @@ const OrphanAssetItem = ({
       tabIndex={-1}
       className="group w-full hover:bg-transparent dark:hover:bg-transparent aria-selected:bg-transparent! aria-selected:hover:bg-transparent!"
     >
-      <div className="grid grid-cols-[auto_1fr] gap-x-2 items-center h-8 px-1 pr-0 text-size-base w-full">
+      <div className="grid grid-cols-[auto_1fr] gap-x-2 items-center h-8 px-2 pr-0 text-size-base w-full">
         <div className="flex items-center">{iconByAssetType[asset.type]}</div>
         <div className="text-size-base text-left">{asset.label}</div>
       </div>

@@ -436,7 +436,7 @@ const ProximityAnomalyItem = ({
     >
       <div
         className={clsx(
-          "grid gap-x-2 items-center h-8 px-1 pr-0 text-size-base w-full",
+          "grid gap-x-2 items-center h-8 px-2 pr-0 text-size-base w-full",
           isFixPipeOverUnderShotOn
             ? "grid-cols-[minmax(0,auto)_auto] justify-start"
             : "grid-cols-[1fr_auto] justify-between",

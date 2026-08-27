@@ -696,7 +696,7 @@ export const VirtualizedIssuesList = <T, I>({
                 <li
                   key={String(getIdFromIssue(item))}
                   data-index={virtualRow.index}
-                  className={clsx("w-full", isArchived ? "pl-6 pr-1" : "px-1")}
+                  className={clsx("w-full", isArchived ? "pl-5 pr-1" : "px-1")}
                   ref={rowVirtualizer.measureElement}
                 >
                   <div

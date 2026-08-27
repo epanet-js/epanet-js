@@ -287,12 +287,13 @@ const CrossingPipeItem = ({
         pipe2Asset.label,
       )}
       aria-selected={isSelected}
+      size="xxs"
       tabIndex={-1}
       className="group w-full hover:bg-transparent dark:hover:bg-transparent aria-selected:bg-transparent! aria-selected:hover:bg-transparent!"
     >
       <div
         className={clsx(
-          "grid w-full items-start",
+          "grid w-full items-start py-1 px-2 text-size-base",
           isFixCrossingPipesOn
             ? "grid-cols-[minmax(0,auto)_auto] gap-x-2 justify-start"
             : "grid-cols-[1fr_auto]",
