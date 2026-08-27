@@ -173,7 +173,7 @@ const processGeoJSONFeature = (
     return null;
   }
 
-  let demandInSourceUnit: number;
+  let demandInSourceUnit: number | null;
   if (demandPropertyName) {
     const demandValue: unknown = feature.properties?.[demandPropertyName];
     const isInvalid =
@@ -184,20 +184,22 @@ const processGeoJSONFeature = (
 
     if (isInvalid) {
       issues.addSkippedInvalidDemand(feature);
-      if (defaultDemand === null) return null;
       demandInSourceUnit = defaultDemand;
     } else {
       demandInSourceUnit = Number(demandValue);
     }
   } else {
-    demandInSourceUnit = defaultDemand ?? 0;
+    demandInSourceUnit = defaultDemand;
   }
 
   try {
-    const demandInTargetUnit = convertTo(
-      { value: demandInSourceUnit, unit: demandImportUnit },
-      demandTargetUnit,
-    );
+    const demandInTargetUnit =
+      demandInSourceUnit === null
+        ? null
+        : convertTo(
+            { value: demandInSourceUnit, unit: demandImportUnit },
+            demandTargetUnit,
+          );
 
     let label: string | undefined;
 
@@ -217,11 +219,14 @@ const processGeoJSONFeature = (
       label,
     );
 
-    const demands: Demand[] = [
-      patternId
-        ? { baseDemand: demandInTargetUnit, patternId }
-        : { baseDemand: demandInTargetUnit },
-    ];
+    const demands: Demand[] =
+      demandInTargetUnit === null
+        ? []
+        : [
+            patternId
+              ? { baseDemand: demandInTargetUnit, patternId }
+              : { baseDemand: demandInTargetUnit },
+          ];
 
     return { customerPoint, demands };
   } catch (error) {

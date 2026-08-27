@@ -300,17 +300,78 @@ describe("parseCustomerPoints", () => {
       expect(issues.buildResult()?.skippedInvalidDemands).toHaveLength(2);
     });
 
-    it("skips invalid values when defaultDemand is null (legacy behavior)", () => {
+    it("keeps points with no demand when defaultDemand is null", () => {
       const geoJson = makeFeatures([10, null, "bad", true]);
 
       const { results, issues } = parse(geoJson, null);
 
-      expect(results[0]).not.toBeNull();
       expect(results[0]!.demands[0].baseDemand).toBe(10);
-      expect(results[1]).toBeNull();
-      expect(results[2]).toBeNull();
-      expect(results[3]).toBeNull();
+      expect(results[1]!.demands).toEqual([]);
+      expect(results[2]!.demands).toEqual([]);
+      expect(results[3]!.demands).toEqual([]);
       expect(issues.buildResult()?.skippedInvalidDemands).toHaveLength(3);
+    });
+  });
+
+  describe("null default demand", () => {
+    const parseWithNullDefault = (
+      properties: Record<string, unknown>,
+      demandPropertyName: string | null,
+    ) => {
+      const geoJson = JSON.stringify({
+        type: "FeatureCollection",
+        features: [
+          {
+            type: "Feature",
+            geometry: { type: "Point", coordinates: [0.001, 0.001] },
+            properties,
+          },
+        ],
+      });
+      const issues = new CustomerPointsIssuesAccumulator();
+      const results = Array.from(
+        parseCustomerPoints(
+          geoJson,
+          issues,
+          "l/d",
+          "l/d",
+          new CustomerPointFactory(
+            new ConsecutiveIdsGenerator(),
+            new LabelManager(),
+          ),
+          demandPropertyName,
+          null,
+          null,
+          null,
+        ),
+      );
+      return { results, issues };
+    };
+
+    it("gives a point no demand when no demand attribute is mapped", () => {
+      const { results, issues } = parseWithNullDefault({ demand: 100 }, null);
+
+      expect(results).toHaveLength(1);
+      expect(results[0]!.demands).toEqual([]);
+      expect(issues.buildResult()?.skippedInvalidDemands).toBeUndefined();
+    });
+
+    it("keeps the point with no demand when the mapped value is invalid", () => {
+      const { results, issues } = parseWithNullDefault(
+        { demand: "not-a-number" },
+        "demand",
+      );
+
+      expect(results).toHaveLength(1);
+      expect(results[0]).not.toBeNull();
+      expect(results[0]!.demands).toEqual([]);
+      expect(issues.buildResult()?.skippedInvalidDemands).toHaveLength(1);
+    });
+
+    it("still reads a valid mapped value", () => {
+      const { results } = parseWithNullDefault({ demand: 100 }, "demand");
+
+      expect(results[0]!.demands[0].baseDemand).toBe(100);
     });
   });
 
