@@ -310,9 +310,11 @@ const IgnoredSectionHeader = ({
         isFocused ? "bg-accent-tint" : "hover:bg-base-hover",
       )}
     >
-      {isOpen ? <ChevronDownIcon /> : <ChevronRightIcon />}
+      <IgnoreIcon />
       <span className="truncate">{translate("ignored")}</span>
       <span className="shrink-0">({count})</span>
+      <div className="flex-1 border-b ml-2" />
+      {isOpen ? <ChevronDownIcon /> : <ChevronRightIcon />}
     </button>
   );
 };

@@ -5,8 +5,9 @@ import {
   ArrowDownUp,
   ArrowRight,
   ArrowUpNarrowWide,
+  Archive,
+  GitPullRequestArrow,
   Bell,
-  BellOff,
   BookText,
   ChartColumn,
   Check,
@@ -195,7 +196,8 @@ export const MenuIcon = icon(Menu);
 export const NewFromExampleIcon = icon(Sun);
 export const AddIcon = icon(Plus);
 export const UndoIcon = icon(Undo2);
-export const IgnoreIcon = icon(BellOff);
+export const IgnoreIcon = icon(Archive);
+export const ConnectToPipeIcon = icon(GitPullRequestArrow);
 export const RedoIcon = icon(Redo2);
 export const SaveIcon = icon(Save);
 export const SaveAllIcon = icon(SaveAll);

@@ -1,5 +1,5 @@
 import { useTranslate } from "src/hooks/use-translate";
-import { ConnectIcon } from "src/icons";
+import { ConnectToPipeIcon } from "src/icons";
 import { FixButton } from "./fix-button";
 
 export const FixProximityAnomalyButton = ({ onFix }: { onFix: () => void }) => {
@@ -8,7 +8,7 @@ export const FixProximityAnomalyButton = ({ onFix }: { onFix: () => void }) => {
   return (
     <FixButton
       label={translate("connect")}
-      icon={<ConnectIcon size="md" />}
+      icon={<ConnectToPipeIcon size="md" />}
       onFix={onFix}
     />
   );
