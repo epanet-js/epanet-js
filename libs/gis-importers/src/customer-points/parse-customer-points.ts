@@ -1,13 +1,21 @@
 import { Feature, FeatureCollection, Position } from "geojson";
-import { LabelManager, CustomerPointFactory } from "@epanet-js/hydraulic-model";
+import {
+  LabelManager,
+  CustomerPointFactory,
+  Demand,
+  PatternId,
+} from "@epanet-js/hydraulic-model";
 import { CustomerPointsIssuesAccumulator } from "./parse-customer-points-issues";
 import { convertTo, Unit } from "@epanet-js/quantity";
-import { Demand, PatternId } from "src/hydraulic-model";
 
 export type ParsedCustomerPoint = {
   customerPoint: ReturnType<CustomerPointFactory["create"]>;
   demands: Demand[];
 };
+
+// Reads `.type` exactly as a bare member access would, throwing on null the way
+// the callers' try/catch already relies on.
+const typeOf = (value: unknown): unknown => (value as { type?: unknown }).type;
 
 export function* parseCustomerPoints(
   fileContent: string,
@@ -25,10 +33,10 @@ export function* parseCustomerPoints(
 
   if (trimmedContent.startsWith("{")) {
     try {
-      const geoJson = JSON.parse(fileContent);
-      if (geoJson.type === "FeatureCollection") {
+      const geoJson: unknown = JSON.parse(fileContent);
+      if (typeOf(geoJson) === "FeatureCollection") {
         yield* parseGeoJSONFeatures(
-          geoJson,
+          geoJson as FeatureCollection,
           issues,
           demandImportUnit,
           demandTargetUnit,
@@ -106,15 +114,15 @@ function* parseGeoJSONLFeatures(
 
   for (const line of lines) {
     try {
-      const json = JSON.parse(line);
+      const json: unknown = JSON.parse(line);
 
-      if (json.type === "metadata") {
+      if (typeOf(json) === "metadata") {
         continue;
       }
 
-      if (json.type === "Feature") {
+      if (typeOf(json) === "Feature") {
         yield processGeoJSONFeature(
-          json,
+          json as Feature,
           customerPointFactory,
           issues,
           demandImportUnit,
@@ -167,7 +175,7 @@ const processGeoJSONFeature = (
 
   let demandInSourceUnit: number;
   if (demandPropertyName) {
-    const demandValue = feature.properties?.[demandPropertyName];
+    const demandValue: unknown = feature.properties?.[demandPropertyName];
     const isInvalid =
       demandValue === null ||
       demandValue === undefined ||
@@ -194,7 +202,7 @@ const processGeoJSONFeature = (
     let label: string | undefined;
 
     if (labelPropertyName && feature.properties) {
-      const labelValue = feature.properties[labelPropertyName];
+      const labelValue: unknown = feature.properties[labelPropertyName];
       if (labelValue != null && labelValue !== "") {
         label = LabelManager.sanitizeLabel(
           String(labelValue),

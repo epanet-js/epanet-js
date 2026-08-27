@@ -1,7 +1,7 @@
 import { Feature } from "geojson";
 import { CustomerPoint, CustomerPointId } from "@epanet-js/hydraulic-model";
 import { Demand } from "@epanet-js/hydraulic-model";
-import { CustomerPointsParserIssues } from "src/import/customer-points/parse-customer-points-issues";
+import { CustomerPointsParserIssues } from "@epanet-js/gis-importers";
 import { Unit } from "@epanet-js/quantity";
 
 export type WizardStep = 1 | 2 | 3;

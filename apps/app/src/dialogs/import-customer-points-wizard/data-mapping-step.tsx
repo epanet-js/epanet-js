@@ -14,12 +14,12 @@ import {
   CustomerPointId,
   MAX_CUSTOMER_POINT_LABEL_LENGTH,
 } from "@epanet-js/hydraulic-model";
-import { parseCustomerPoints } from "src/import/customer-points/parse-customer-points";
-import { useLabelMaxLength } from "src/hooks/use-label-max-length";
 import {
+  parseCustomerPoints,
   CustomerPointsIssuesAccumulator,
   CustomerPointsParserIssues,
-} from "src/import/customer-points/parse-customer-points-issues";
+} from "@epanet-js/gis-importers";
+import { useLabelMaxLength } from "src/hooks/use-label-max-length";
 import { Demand } from "@epanet-js/hydraulic-model";
 import { localizeDecimal } from "@epanet-js/i18n";
 import {
