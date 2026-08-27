@@ -67,7 +67,7 @@ const aModelWithCrossingPipes = () =>
     .aPipe(IDS.PB, { startNodeId: IDS.B1, endNodeId: IDS.B2, label: "PB" })
     .build();
 
-// Two independent crossings, so ignoring one leaves one active.
+// Two independent crossings, so archiving one leaves one active.
 const aModelWithTwoCrossings = () =>
   HydraulicModelBuilder.with()
     .aNode(IDS.A1, [0, 0])
@@ -203,7 +203,7 @@ describe("CrossingPipes panel fix action", () => {
     expect(pipeLabels(store)).toEqual(["PA", "PB"]);
   });
 
-  describe("ignoring findings", () => {
+  describe("archiving items", () => {
     const renderTwoCrossings = () => {
       stubFeatureOn("FLAG_FIX_CROSSING_PIPES");
       const store = setInitialState({
@@ -213,28 +213,28 @@ describe("CrossingPipes panel fix action", () => {
       return store;
     };
 
-    const ignoreFirst = () => {
+    const archiveFirst = () => {
       fireEvent.click(
         screen.getAllByRole("button", { name: /crosses pipe/i })[0],
       );
       fireEvent.keyDown(listElement(), { key: "Delete" });
     };
 
-    it("drops the ignored finding out of the header count", async () => {
+    it("drops the archived item out of the header count", async () => {
       renderTwoCrossings();
 
       await waitFor(() => {
         expect(screen.getByText("2 intersections found")).toBeInTheDocument();
       });
 
-      ignoreFirst();
+      archiveFirst();
 
       await waitFor(() => {
         expect(screen.getByText("1 intersection found")).toBeInTheDocument();
       });
     });
 
-    it("does not delete any asset when ignoring", async () => {
+    it("does not delete any asset when archiving", async () => {
       const store = renderTwoCrossings();
 
       await waitFor(() => {
@@ -242,7 +242,7 @@ describe("CrossingPipes panel fix action", () => {
       });
       const assetsBefore = store.get(stagingModelDerivedAtom).assets.size;
 
-      ignoreFirst();
+      archiveFirst();
 
       await waitFor(() => {
         expect(screen.getByText("1 intersection found")).toBeInTheDocument();
@@ -252,37 +252,37 @@ describe("CrossingPipes panel fix action", () => {
       );
     });
 
-    it("shows a collapsed ignored section only once something is ignored", async () => {
+    it("shows a collapsed archived section only once something is archived", async () => {
       renderTwoCrossings();
 
       await waitFor(() => {
         expect(screen.getByText("2 intersections found")).toBeInTheDocument();
       });
-      expect(screen.queryByRole("button", { name: /ignored/i })).toBeNull();
+      expect(screen.queryByRole("button", { name: /archived/i })).toBeNull();
 
-      ignoreFirst();
+      archiveFirst();
 
       await waitFor(() => {
         expect(
-          screen.getByRole("button", { name: /ignored/i }),
+          screen.getByRole("button", { name: /archived/i }),
         ).toHaveAttribute("aria-expanded", "false");
       });
     });
 
-    it("restores an ignored finding back into the count", async () => {
+    it("restores an archived item back into the count", async () => {
       renderTwoCrossings();
 
       await waitFor(() => {
         expect(screen.getByText("2 intersections found")).toBeInTheDocument();
       });
 
-      ignoreFirst();
+      archiveFirst();
 
       await waitFor(() => {
         expect(screen.getByText("1 intersection found")).toBeInTheDocument();
       });
 
-      // The ignored row lives past the ~2 rows jsdom's zero-height container
+      // The archived row lives past the ~2 rows jsdom's zero-height container
       // renders, so restore is driven by keyboard: down to the section header,
       // Enter to expand, down onto the row, Enter to restore.
       const list = listElement();
@@ -303,9 +303,9 @@ describe("CrossingPipes panel fix action", () => {
         expect(screen.getByText("2 intersections found")).toBeInTheDocument();
       });
 
-      ignoreFirst();
+      archiveFirst();
 
-      const header = await screen.findByRole("button", { name: /ignored/i });
+      const header = await screen.findByRole("button", { name: /archived/i });
       fireEvent.keyDown(listElement(), { key: "ArrowDown" });
 
       await waitFor(() => {
@@ -328,7 +328,7 @@ describe("CrossingPipes panel fix action", () => {
         expect(screen.getByText("2 intersections found")).toBeInTheDocument();
       });
 
-      ignoreFirst();
+      archiveFirst();
 
       await waitFor(() => {
         expect(store.get(selectionAtom).asset.length).toBeGreaterThan(0);
@@ -339,12 +339,12 @@ describe("CrossingPipes panel fix action", () => {
       await waitFor(() => {
         expect(store.get(selectionAtom).asset).toEqual([]);
       });
-      expect(screen.getByRole("button", { name: /ignored/i })).toHaveClass(
+      expect(screen.getByRole("button", { name: /archived/i })).toHaveClass(
         "bg-accent-tint",
       );
     });
 
-    it("ignores nothing when the flag is off", async () => {
+    it("archives nothing when the flag is off", async () => {
       stubFeatureOff("FLAG_FIX_CROSSING_PIPES");
       setInitialState({ hydraulicModel: aModelWithTwoCrossings() });
       renderPanel(
@@ -365,7 +365,7 @@ describe("CrossingPipes panel fix action", () => {
       });
 
       expect(screen.getByText("2 intersections found")).toBeInTheDocument();
-      expect(screen.queryByRole("button", { name: /ignored/i })).toBeNull();
+      expect(screen.queryByRole("button", { name: /archived/i })).toBeNull();
     });
   });
 });

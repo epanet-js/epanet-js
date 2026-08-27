@@ -41,7 +41,7 @@ import { projectSettingsAtom } from "src/state/project-settings";
 import { momentLogAtom } from "src/state/model-changes";
 import { resetProjectRevision } from "src/state/project-revision";
 import {
-  ignoredFindingsAtom,
+  archivedNetworkReviewItemsAtom,
   proximityDistanceAtom,
   reviewResultsAtom,
 } from "src/state/network-review";
@@ -114,7 +114,7 @@ export const resetAppState = (set: Setter) => {
   set(simulationPlaybackAtom, initialPlaybackState);
   set(zonesAtom, initializeZones());
   set(reviewResultsAtom, {});
-  set(ignoredFindingsAtom, {});
+  set(archivedNetworkReviewItemsAtom, {});
   set(proximityDistanceAtom, null);
 };
 

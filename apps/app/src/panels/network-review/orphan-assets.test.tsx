@@ -183,7 +183,7 @@ describe("OrphanAssets panel fix action", () => {
     fireEvent.click(screen.getByText("ORPHAN"));
 
     // fireEvent returns false exactly when preventDefault was called. This check
-    // has no ignoring prop, so the list must not claim Delete.
+    // has no archiving prop, so the list must not claim Delete.
     const list = screen.getByRole("list").parentElement!.parentElement!;
     expect(fireEvent.keyDown(list, { key: "Delete" })).toBe(true);
   });

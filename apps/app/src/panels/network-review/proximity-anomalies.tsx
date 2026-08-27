@@ -8,10 +8,11 @@ import {
 } from "src/lib/network-review";
 import clsx from "clsx";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { useIgnoredFindings } from "./use-ignored-findings";
+import { useArchivedItems } from "./use-archived-items";
 import { FixProximityAnomalyButton } from "./fixes/fix-proximity-anomaly-button";
 import { useFixProximityAnomaly } from "./fixes/use-fix-proximity-anomaly";
 import {
+  Archiving,
   EmptyState,
   LoadingState,
   ToolDescription,
@@ -20,7 +21,6 @@ import {
   useLoadingStatus,
   VirtualizedIssuesList,
 } from "./common";
-import type { Ignoring } from "./common";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAtom, useAtomValue } from "jotai";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
@@ -136,17 +136,17 @@ export const ProximityAnomalies = ({ onGoBack }: { onGoBack: () => void }) => {
   const isFixPipeOverUnderShotOn = useFeatureFlag(
     "FLAG_FIX_PIPE_OVER_UNDER_SHOT",
   );
-  const ignoring = useIgnoredFindings(CheckType.proximityAnomalies);
-  const { isIgnored } = ignoring;
+  const archiving = useArchivedItems(CheckType.proximityAnomalies);
+  const { isArchived } = archiving;
 
   const activeCount = useMemo(
     () =>
       isFixPipeOverUnderShotOn
         ? proximityAnomalies.filter(
-            (item) => !isIgnored(proximityAnomalyId(item)),
+            (item) => !isArchived(proximityAnomalyId(item)),
           ).length
         : proximityAnomalies.length,
-    [proximityAnomalies, isIgnored, isFixPipeOverUnderShotOn],
+    [proximityAnomalies, isArchived, isFixPipeOverUnderShotOn],
   );
 
   const headerProps = useCheckHeader(
@@ -176,7 +176,7 @@ export const ProximityAnomalies = ({ onGoBack }: { onGoBack: () => void }) => {
                 onSelect={selectProximityAnomaly}
                 selectedAnomaly={selectedProximityAnomalyId}
                 onGoBack={onGoBack}
-                ignoring={isFixPipeOverUnderShotOn ? ignoring : undefined}
+                archiving={isFixPipeOverUnderShotOn ? archiving : undefined}
               />
             ) : (
               <>
@@ -331,13 +331,13 @@ const ProximityAnomaliesList = ({
   onSelect,
   selectedAnomaly,
   onGoBack,
-  ignoring,
+  archiving,
 }: {
   proximityAnomalies: ProximityAnomaly[];
   onSelect: (issue: ProximityAnomaly | null) => void;
   selectedAnomaly: string | null;
   onGoBack: () => void;
-  ignoring?: Ignoring<string>;
+  archiving?: Archiving<string>;
 }) => {
   const isFixPipeOverUnderShotOn = useFeatureFlag(
     "FLAG_FIX_PIPE_OVER_UNDER_SHOT",
@@ -362,12 +362,12 @@ const ProximityAnomaliesList = ({
       selectedItemId={selectedAnomaly}
       onSelect={onSelect}
       getItemId={proximityAnomalyId}
-      renderItem={(_index, anomaly, selectedId, onClick, isIgnored) => (
+      renderItem={(_index, anomaly, selectedId, onClick, isArchived) => (
         <ProximityAnomalyItem
           anomaly={anomaly}
           selectedId={selectedId}
           onClick={onClick}
-          isIgnored={isIgnored}
+          isArchived={isArchived}
         />
       )}
       renderItemAction={
@@ -380,7 +380,7 @@ const ProximityAnomaliesList = ({
           : undefined
       }
       onItemAction={isFixPipeOverUnderShotOn ? fixAnomaly : undefined}
-      ignoring={ignoring}
+      archiving={archiving}
       checkType={CheckType.proximityAnomalies}
       onGoBack={onGoBack}
     />
@@ -391,12 +391,12 @@ const ProximityAnomalyItem = ({
   anomaly,
   onClick,
   selectedId,
-  isIgnored = false,
+  isArchived = false,
 }: {
   anomaly: ProximityAnomaly;
   onClick: (anomaly: ProximityAnomaly) => void;
   selectedId: string | null;
-  isIgnored?: boolean;
+  isArchived?: boolean;
 }) => {
   const translate = useTranslate();
   const isFixPipeOverUnderShotOn = useFeatureFlag(
@@ -445,7 +445,7 @@ const ProximityAnomalyItem = ({
         <div
           className={clsx(
             "min-w-0 truncate text-left",
-            isIgnored && "text-subtle",
+            isArchived && "text-subtle",
           )}
         >
           {nodeAsset.label}

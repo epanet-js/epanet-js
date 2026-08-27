@@ -5,10 +5,11 @@ import {
 } from "src/lib/network-review";
 import clsx from "clsx";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { useIgnoredFindings } from "./use-ignored-findings";
+import { useArchivedItems } from "./use-archived-items";
 import { FixCrossingPipesButton } from "./fixes/fix-crossing-pipes-button";
 import { useFixCrossingPipes } from "./fixes/use-fix-crossing-pipes";
 import {
+  Archiving,
   EmptyState,
   LoadingState,
   ToolDescription,
@@ -17,7 +18,6 @@ import {
   useLoadingStatus,
   VirtualizedIssuesList,
 } from "./common";
-import type { Ignoring } from "./common";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAtomValue } from "jotai";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
@@ -117,15 +117,16 @@ export const CrossingPipes = ({ onGoBack }: { onGoBack: () => void }) => {
   }, [crossingPipes, isSelected]);
 
   const isFixCrossingPipesOn = useFeatureFlag("FLAG_FIX_CROSSING_PIPES");
-  const ignoring = useIgnoredFindings(CheckType.crossingPipes);
-  const { isIgnored } = ignoring;
+  const archiving = useArchivedItems(CheckType.crossingPipes);
+  const { isArchived } = archiving;
 
   const activeCount = useMemo(
     () =>
       isFixCrossingPipesOn
-        ? crossingPipes.filter((item) => !isIgnored(getCrossingId(item))).length
+        ? crossingPipes.filter((item) => !isArchived(getCrossingId(item)))
+            .length
         : crossingPipes.length,
-    [crossingPipes, isIgnored, isFixCrossingPipesOn],
+    [crossingPipes, isArchived, isFixCrossingPipesOn],
   );
 
   const headerProps = useCheckHeader(
@@ -149,7 +150,7 @@ export const CrossingPipes = ({ onGoBack }: { onGoBack: () => void }) => {
                 onSelect={selectCrossingPipes}
                 selectedCrossingPipes={selectedCrossingId}
                 onGoBack={onGoBack}
-                ignoring={isFixCrossingPipesOn ? ignoring : undefined}
+                archiving={isFixCrossingPipesOn ? archiving : undefined}
               />
             ) : (
               <>
@@ -175,13 +176,13 @@ const CrossingPipesList = ({
   onSelect,
   selectedCrossingPipes,
   onGoBack,
-  ignoring,
+  archiving,
 }: {
   crossingPipes: CrossingPipe[];
   onSelect: (issue: CrossingPipe | null) => void;
   selectedCrossingPipes: string | null;
   onGoBack: () => void;
-  ignoring?: Ignoring<string>;
+  archiving?: Archiving<string>;
 }) => {
   const isFixCrossingPipesOn = useFeatureFlag("FLAG_FIX_CROSSING_PIPES");
   const { fix } = useFixCrossingPipes();
@@ -204,12 +205,12 @@ const CrossingPipesList = ({
       selectedItemId={selectedCrossingPipes}
       onSelect={onSelect}
       getItemId={getCrossingId}
-      renderItem={(_index, crossing, selectedId, onClick, isIgnored) => (
+      renderItem={(_index, crossing, selectedId, onClick, isArchived) => (
         <CrossingPipeItem
           crossing={crossing}
           selectedId={selectedId}
           onClick={onClick}
-          isIgnored={isIgnored}
+          isArchived={isArchived}
         />
       )}
       renderItemAction={
@@ -222,7 +223,7 @@ const CrossingPipesList = ({
           : undefined
       }
       onItemAction={isFixCrossingPipesOn ? fixCrossing : undefined}
-      ignoring={ignoring}
+      archiving={archiving}
       checkType={CheckType.crossingPipes}
       onGoBack={onGoBack}
     />
@@ -233,12 +234,12 @@ const CrossingPipeItem = ({
   crossing,
   onClick,
   selectedId,
-  isIgnored = false,
+  isArchived = false,
 }: {
   crossing: CrossingPipe;
   onClick: (crossing: CrossingPipe) => void;
   selectedId: string | null;
-  isIgnored?: boolean;
+  isArchived?: boolean;
 }) => {
   const translate = useTranslate();
   const isFixCrossingPipesOn = useFeatureFlag("FLAG_FIX_CROSSING_PIPES");
@@ -267,7 +268,7 @@ const CrossingPipeItem = ({
 
   const labelClassName = clsx(
     "min-w-0 truncate text-left",
-    isIgnored && "text-subtle",
+    isArchived && "text-subtle",
   );
 
   const diameterClassName = clsx(

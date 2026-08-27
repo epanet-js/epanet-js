@@ -20,9 +20,9 @@ export const reviewResultsAtom = atom<ReviewResults>({});
 
 export const selectedReviewCheckAtom = atom<CheckType | "summary" | null>(null);
 
-export type IgnoredFindings = Partial<Record<CheckType, string[]>>;
+export type ArchivedItems = Partial<Record<CheckType, string[]>>;
 
-export const ignoredFindingsAtom = atom<IgnoredFindings>({});
+export const archivedNetworkReviewItemsAtom = atom<ArchivedItems>({});
 
 export type ProximityDistance = { value: number; unit: Unit };
 

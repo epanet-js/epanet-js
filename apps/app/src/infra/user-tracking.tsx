@@ -1082,19 +1082,15 @@ type ProximityDistanceSet = {
   units: string;
 };
 
-type NetworkReviewCheckIgnored = {
+type NetworkReviewCheckArchived = {
   name:
-    | "networkReview.proximityAnomalies.ignored"
-    | "networkReview.proximityAnomalies.restored"
-    | "networkReview.crossingPipes.ignored"
-    | "networkReview.crossingPipes.restored";
+    | "networkReview.proximityAnomalies.archived"
+    | "networkReview.crossingPipes.archived";
 };
 
 type NetworkReviewCheckRestored = {
   name:
-    | "networkReview.proximityAnomalies.ignored"
     | "networkReview.proximityAnomalies.restored"
-    | "networkReview.crossingPipes.ignored"
     | "networkReview.crossingPipes.restored";
 };
 
@@ -1523,7 +1519,7 @@ export type UserEvent =
   | SubnetworkDisabled
   | CrossingPipesConnected
   | ProximityAnomalyConnected
-  | NetworkReviewCheckIgnored
+  | NetworkReviewCheckArchived
   | NetworkReviewCheckRestored
   | ProximityDistanceSet
   | ModelAttributesValidationChanged

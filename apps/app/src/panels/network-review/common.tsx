@@ -11,7 +11,7 @@ import { useUserTracking } from "src/infra/user-tracking";
 import {
   ChevronDownIcon,
   ChevronRightIcon,
-  IgnoreIcon,
+  ArchiveIcon,
   NoIssuesIcon,
   UndoIcon,
 } from "src/icons";
@@ -233,57 +233,57 @@ const useListAutoFocus = (options: {
   return { listRef, focusList };
 };
 
-export type Ignoring<I> = {
-  isIgnored: (itemId: I) => boolean;
-  onIgnore: (itemId: I) => void;
+export type Archiving<I> = {
+  isArchived: (itemId: I) => boolean;
+  onArchive: (itemId: I) => void;
   onRestore: (itemId: I) => void;
 };
 
 type ListRow<T> =
-  | { kind: "item"; item: T; itemIndex: number; isIgnored: boolean }
-  | { kind: "ignoredHeader"; count: number };
+  | { kind: "item"; item: T; itemIndex: number; isArchived: boolean }
+  | { kind: "archivedHeader"; count: number };
 
-// Ignored rows are dropped from the array entirely while the section is closed,
+// Archived rows are dropped from the array entirely while the section is closed,
 // so every arrow/Page/Home/End calculation skips them without knowing they exist.
 const buildListRows = <T, I>(
   items: T[],
   getItemId: (item: T) => I,
-  ignoring: Ignoring<I> | undefined,
+  archiving: Archiving<I> | undefined,
   isSectionOpen: boolean,
 ): ListRow<T>[] => {
-  if (!ignoring) {
+  if (!archiving) {
     return items.map((item, itemIndex) => ({
       kind: "item",
       item,
       itemIndex,
-      isIgnored: false,
+      isArchived: false,
     }));
   }
 
   const active: ListRow<T>[] = [];
-  const ignored: ListRow<T>[] = [];
+  const archived: ListRow<T>[] = [];
 
   items.forEach((item, itemIndex) => {
     const row = {
       kind: "item",
       item,
       itemIndex,
-      isIgnored: ignoring.isIgnored(getItemId(item)),
+      isArchived: archiving.isArchived(getItemId(item)),
     } as const;
 
-    (row.isIgnored ? ignored : active).push(row);
+    (row.isArchived ? archived : active).push(row);
   });
 
-  if (ignored.length === 0) return active;
+  if (archived.length === 0) return active;
 
   return [
     ...active,
-    { kind: "ignoredHeader", count: ignored.length },
-    ...(isSectionOpen ? ignored : []),
+    { kind: "archivedHeader", count: archived.length },
+    ...(isSectionOpen ? archived : []),
   ];
 };
 
-const IgnoredSectionHeader = ({
+const ArchivedSectionHeader = ({
   count,
   isOpen,
   isFocused,
@@ -301,7 +301,6 @@ const IgnoredSectionHeader = ({
       type="button"
       tabIndex={-1}
       aria-expanded={isOpen}
-      data-section-type="ignored"
       onClick={onToggle}
       onMouseDown={(e) => e.preventDefault()}
       className={clsx(
@@ -310,11 +309,9 @@ const IgnoredSectionHeader = ({
         isFocused ? "bg-accent-tint" : "hover:bg-base-hover",
       )}
     >
-      <IgnoreIcon />
-      <span className="truncate">{translate("ignored")}</span>
-      <span className="shrink-0">({count})</span>
-      <div className="flex-1 border-b ml-2" />
       {isOpen ? <ChevronDownIcon /> : <ChevronRightIcon />}
+      <span className="truncate">{translate("archived")}</span>
+      <span className="shrink-0">({count})</span>
     </button>
   );
 };
@@ -327,7 +324,7 @@ export const VirtualizedIssuesList = <T, I>({
   renderItem,
   renderItemAction,
   onItemAction,
-  ignoring,
+  archiving,
   checkType,
   estimateSize = 32,
   autoFocus = true,
@@ -343,11 +340,11 @@ export const VirtualizedIssuesList = <T, I>({
     item: T,
     selectedId: I | null,
     onClick: (item: T) => void,
-    isIgnored: boolean,
+    isArchived: boolean,
   ) => React.ReactNode;
   renderItemAction?: (item: T, isSelected: boolean) => React.ReactNode;
   onItemAction?: (itemId: I) => void;
-  ignoring?: Ignoring<I>;
+  archiving?: Archiving<I>;
   checkType: CheckType;
   estimateSize?: number;
   autoFocus?: boolean;
@@ -358,7 +355,7 @@ export const VirtualizedIssuesList = <T, I>({
   const lastKeyboardNavigatedIndexRef = useRef<number | null>(null);
   const lastProcessedSelectedIdRef = useRef<I | null>(null);
   const [isHeaderFocused, setHeaderFocused] = useState(false);
-  const [isIgnoredSectionOpen, setIgnoredSectionOpen] = useState(false);
+  const [isArchivedSectionOpen, setArchivedSectionOpen] = useState(false);
 
   const { zoomIn, zoomOut } = useZoom();
 
@@ -368,8 +365,9 @@ export const VirtualizedIssuesList = <T, I>({
   });
 
   const listRows = useMemo(
-    () => buildListRows(items, getIdFromIssue, ignoring, isIgnoredSectionOpen),
-    [items, getIdFromIssue, ignoring, isIgnoredSectionOpen],
+    () =>
+      buildListRows(items, getIdFromIssue, archiving, isArchivedSectionOpen),
+    [items, getIdFromIssue, archiving, isArchivedSectionOpen],
   );
 
   const rowVirtualizer = useVirtualizer({
@@ -387,7 +385,7 @@ export const VirtualizedIssuesList = <T, I>({
 
       lastKeyboardNavigatedIndexRef.current = index;
 
-      if (row.kind === "ignoredHeader") {
+      if (row.kind === "archivedHeader") {
         setHeaderFocused(true);
         lastProcessedSelectedIdRef.current = null;
         onSelect(null);
@@ -401,11 +399,11 @@ export const VirtualizedIssuesList = <T, I>({
     [listRows, getIdFromIssue, onSelect],
   );
 
-  const toggleIgnoredSection = useCallback(() => {
+  const toggleArchivedSection = useCallback(() => {
     const headerIndex = listRows.findIndex(
-      (row) => row.kind === "ignoredHeader",
+      (row) => row.kind === "archivedHeader",
     );
-    setIgnoredSectionOpen((open) => !open);
+    setArchivedSectionOpen((open) => !open);
 
     const focusedIndex = lastKeyboardNavigatedIndexRef.current;
     if (
@@ -495,22 +493,26 @@ export const VirtualizedIssuesList = <T, I>({
           break;
         case "Delete":
         case "Backspace": {
-          if (!ignoring) break;
+          if (!archiving) break;
           // Claims the key before the global asset-delete shortcut sees it.
           e.preventDefault();
 
-          if (!focusedRow || focusedRow.kind !== "item" || focusedRow.isIgnored)
+          if (
+            !focusedRow ||
+            focusedRow.kind !== "item" ||
+            focusedRow.isArchived
+          )
             break;
 
           const remaining = listRows.filter(
             (row) =>
-              row.kind === "item" && !row.isIgnored && row !== focusedRow,
+              row.kind === "item" && !row.isArchived && row !== focusedRow,
           );
           const activeIndex = listRows
-            .filter((row) => row.kind === "item" && !row.isIgnored)
+            .filter((row) => row.kind === "item" && !row.isArchived)
             .indexOf(focusedRow);
 
-          ignoring.onIgnore(getIdFromIssue(focusedRow.item));
+          archiving.onArchive(getIdFromIssue(focusedRow.item));
 
           const next = remaining[activeIndex % remaining.length];
           onSelect(
@@ -521,15 +523,19 @@ export const VirtualizedIssuesList = <T, I>({
           break;
         }
         case "Enter": {
-          if (focusedRow?.kind === "ignoredHeader") {
+          if (focusedRow?.kind === "archivedHeader") {
             e.preventDefault();
-            toggleIgnoredSection();
+            toggleArchivedSection();
             break;
           }
 
-          if (ignoring && focusedRow?.kind === "item" && focusedRow.isIgnored) {
+          if (
+            archiving &&
+            focusedRow?.kind === "item" &&
+            focusedRow.isArchived
+          ) {
             e.preventDefault();
-            ignoring.onRestore(getIdFromIssue(focusedRow.item));
+            archiving.onRestore(getIdFromIssue(focusedRow.item));
             onSelect(focusedRow.item);
             break;
           }
@@ -564,8 +570,8 @@ export const VirtualizedIssuesList = <T, I>({
       items,
       listRows,
       focusRow,
-      ignoring,
-      toggleIgnoredSection,
+      archiving,
+      toggleArchivedSection,
       rowVirtualizer.range,
       ensureItemIsVisible,
       onSelect,
@@ -626,17 +632,17 @@ export const VirtualizedIssuesList = <T, I>({
               const row = listRows[virtualRow.index];
               if (!row) return null;
 
-              if (row.kind === "ignoredHeader") {
+              if (row.kind === "archivedHeader") {
                 return (
                   <li
-                    key="ignored-header"
+                    key="archived-header"
                     data-index={virtualRow.index}
                     className="w-full px-1"
                     ref={rowVirtualizer.measureElement}
                   >
-                    <IgnoredSectionHeader
+                    <ArchivedSectionHeader
                       count={row.count}
-                      isOpen={isIgnoredSectionOpen}
+                      isOpen={isArchivedSectionOpen}
                       isFocused={
                         isHeaderFocused &&
                         lastKeyboardNavigatedIndexRef.current ===
@@ -644,7 +650,7 @@ export const VirtualizedIssuesList = <T, I>({
                       }
                       onToggle={() => {
                         focusRow(virtualRow.index);
-                        toggleIgnoredSection();
+                        toggleArchivedSection();
                         focusList();
                       }}
                     />
@@ -652,7 +658,7 @@ export const VirtualizedIssuesList = <T, I>({
                 );
               }
 
-              const { item, itemIndex, isIgnored } = row;
+              const { item, itemIndex, isArchived } = row;
               const handleClickWithIndex = (clickedIssue: T) =>
                 handleItemClick(clickedIssue, virtualRow.index);
 
@@ -662,35 +668,35 @@ export const VirtualizedIssuesList = <T, I>({
                 item,
                 selectedItemId,
                 handleClickWithIndex,
-                isIgnored,
+                isArchived,
               );
 
-              const rowAction = isIgnored ? (
+              const rowAction = isArchived ? (
                 <FixButton
                   label={translate("restore")}
                   icon={<UndoIcon size="md" />}
-                  onFix={() => ignoring?.onRestore(getIdFromIssue(item))}
+                  onFix={() => archiving?.onRestore(getIdFromIssue(item))}
                 />
               ) : (
                 <>
                   {renderItemAction?.(item, isItemSelected)}
-                  {ignoring ? (
+                  {archiving ? (
                     <FixButton
-                      label={translate("ignore")}
-                      icon={<IgnoreIcon size="md" />}
-                      onFix={() => ignoring.onIgnore(getIdFromIssue(item))}
+                      label={translate("archive")}
+                      icon={<ArchiveIcon size="md" />}
+                      onFix={() => archiving.onArchive(getIdFromIssue(item))}
                     />
                   ) : null}
                 </>
               );
 
-              const hasAction = isIgnored || !!ignoring || !!renderItemAction;
+              const hasAction = isArchived || !!archiving || !!renderItemAction;
 
               return (
                 <li
                   key={String(getIdFromIssue(item))}
                   data-index={virtualRow.index}
-                  className="w-full px-1"
+                  className={clsx("w-full", isArchived ? "pl-6 pr-1" : "px-1")}
                   ref={rowVirtualizer.measureElement}
                 >
                   <div
