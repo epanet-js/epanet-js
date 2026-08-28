@@ -1222,6 +1222,13 @@ type PatternsExported = {
   count: number;
 };
 
+type PatternsImportedFromFile = {
+  name: "patterns.importedFromFile";
+  status: "success" | "error" | "partial";
+  format?: "csv" | "xlsx";
+  count: number;
+};
+
 type PipeLibraryOpened = {
   name: "pipeLibrary.opened";
   source: "toolbar";
@@ -1793,6 +1800,7 @@ export type UserEvent =
   | PatternsDiscarded
   | PatternsUncategorized
   | PatternsExported
+  | PatternsImportedFromFile
   | PipeLibraryOpened
   | PipeLibraryMaterialChanged
   | PipeLibraryRoughnessRowChanged

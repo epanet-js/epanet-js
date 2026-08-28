@@ -28,10 +28,7 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { changePatterns } from "src/hydraulic-model/model-operations";
 import { VerticalResizer } from "../vertical-resizer";
 import { DialogActions, DialogActionsHandle } from "../dialog-actions-row";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { ImportExportToolbar } from "src/components/import-export-toolbar";
-import { useExportPatterns } from "src/commands/export-patterns";
-import { buildPatternTypeLabels } from "./pattern-type-labels";
+import { ImportExportPatternsToolbar } from "./import-export-patterns-toolbar";
 
 type PatternUpdate = Partial<Pick<Pattern, "label" | "multipliers" | "type">>;
 
@@ -193,32 +190,15 @@ export const PatternsDialog = ({
     [userTracking],
   );
 
-  const isImportExportOn = useFeatureFlag("FLAG_PATTERNS_IMPORT_EXPORT");
-  const { exportToCsv, exportToXlsx } = useExportPatterns();
+  const handleImported = useCallback((imported: Patterns) => {
+    setEditedPatterns(imported);
+    setSelectedPatternId(null);
+  }, []);
 
-  const exportOptions = useMemo(
-    () => ({
-      typeLabels: buildPatternTypeLabels(translate),
-      intervalSeconds: patternTimestepSeconds,
-      headers: {
-        patternName: translate("patterns.patternName"),
-        type: translate("type"),
-        interval: translate("patterns.interval"),
-        multipliers: translate("patterns.multipliers"),
-      },
-    }),
-    [translate, patternTimestepSeconds],
-  );
-
-  const handleExportCsv = useCallback(
-    () => void exportToCsv(editedPatterns, exportOptions),
-    [exportToCsv, editedPatterns, exportOptions],
-  );
-
-  const handleExportXlsx = useCallback(
-    () => void exportToXlsx(editedPatterns, exportOptions),
-    [exportToXlsx, editedPatterns, exportOptions],
-  );
+  // An import replaces the whole draft from a snapshot taken when it started,
+  // so edits made while it runs would be silently overwritten.
+  const [isImporting, setImporting] = useState(false);
+  const isLocked = isEditionBlocked || isImporting;
 
   return (
     <BaseDialog
@@ -232,18 +212,19 @@ export const PatternsDialog = ({
           ref={dialogActions}
           onSave={handleSave}
           onClose={handleClose}
-          readOnly={isEditionBlocked}
+          readOnly={isLocked}
           hasChanges={!!unsavedChanges}
         />
       }
     >
       <div className="flex flex-col flex-1 min-h-0">
-        {isImportExportOn && (
-          <ImportExportToolbar
-            onExportCsv={handleExportCsv}
-            onExportXlsx={handleExportXlsx}
-          />
-        )}
+        <ImportExportPatternsToolbar
+          patterns={editedPatterns}
+          intervalSeconds={patternTimestepSeconds}
+          onImported={handleImported}
+          onImportingChange={setImporting}
+          readOnly={isEditionBlocked}
+        />
         <div className="flex-1 flex min-h-0">
           <div className="shrink-0 flex">
             <PatternSidebar
@@ -256,7 +237,7 @@ export const PatternsDialog = ({
               onAddPattern={handleAddPattern}
               onChangePattern={handlePatternChange}
               onDeletePattern={handleDeletePattern}
-              readOnly={isEditionBlocked}
+              readOnly={isLocked}
             />
             <VerticalResizer
               width={sidebarWidth}
@@ -273,7 +254,7 @@ export const PatternsDialog = ({
                 onChange={(multipliers) =>
                   handlePatternChange(selectedPatternId, { multipliers })
                 }
-                readOnly={isEditionBlocked}
+                readOnly={isLocked}
               />
             ) : hasPatterns ? (
               <div className="flex-1 flex items-center justify-center p-2">
@@ -281,7 +262,7 @@ export const PatternsDialog = ({
               </div>
             ) : (
               <div className="flex-1 flex items-center justify-center p-2">
-                <EmptyState readOnly={isEditionBlocked} />
+                <EmptyState readOnly={isLocked} />
               </div>
             )}
           </div>

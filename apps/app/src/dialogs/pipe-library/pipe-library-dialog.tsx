@@ -7,7 +7,7 @@ import { PipeLibrarySidebar } from "./pipe-library-sidebar";
 import { PipeRoughnessTable } from "./pipe-roughness-table";
 import { PipeErrorBanner } from "./pipe-error-banner";
 import { VerticalResizer } from "../vertical-resizer";
-import { DismissableBanner } from "../dismissable-banner";
+import { DismissableBanner } from "src/components/dismissable-banner";
 import { WarningActionBanner } from "../warning-action-banner";
 import { ChevronDownIcon, PipeLibraryIcon } from "src/icons";
 import { Button, DDContent, StyledItem } from "src/components/elements";

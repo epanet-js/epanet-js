@@ -7,10 +7,7 @@ import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { Persistence } from "src/lib/persistence/persistence";
 import { PersistenceContext } from "src/lib/persistence/context";
-import {
-  stagingModelDerivedAtom,
-  simulationSettingsDerivedAtom,
-} from "src/state/derived-branch-state";
+import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { Store } from "src/state";
 import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
@@ -30,6 +27,46 @@ const exportToXlsx =
 vi.mock("src/commands/export-patterns", () => ({
   useExportPatterns: () => ({ exportToCsv, exportToXlsx }),
 }));
+
+const importPatterns = vi.fn();
+
+vi.mock("src/commands/import-patterns", () => ({
+  useImportPatterns: () => importPatterns,
+}));
+
+let isEditionBlocked = false;
+vi.mock("src/hooks/use-is-edition-blocked", () => ({
+  useIsEditionBlocked: () => isEditionBlocked,
+}));
+
+const importing = (
+  patterns: {
+    label: string;
+    type?: string;
+    intervalSeconds?: number;
+    multipliers: number[];
+  }[],
+  overrides: { status?: string; errors?: { message: string }[] } = {},
+) =>
+  importPatterns.mockResolvedValue({
+    status: overrides.status ?? "success",
+    format: "csv",
+    patterns,
+    errors: overrides.errors ?? [],
+  });
+
+const clickImport = async (user: ReturnType<typeof setupUser>) =>
+  user.click(screen.getByRole("button", { name: /^import$/i }));
+
+const storeWith = (...args: [number, string, number[]][]) =>
+  setInitialState({
+    hydraulicModel: args
+      .reduce(
+        (b, [id, label, factors]) => b.aDemandPattern(id, label, factors),
+        HydraulicModelBuilder.with(),
+      )
+      .build(),
+  });
 
 const renderDialog = (store: Store) => {
   const persistence = new Persistence(store);
@@ -55,6 +92,7 @@ const getMultiplierCell = (rowIndex: number) => {
 describe("PatternsDialog", () => {
   beforeEach(() => {
     stubUserTracking();
+    isEditionBlocked = false;
   });
 
   describe("save button state", () => {
@@ -571,19 +609,15 @@ describe("PatternsDialog", () => {
     });
   });
 
-  describe("import/export menu bar", () => {
+  describe("import/export toolbar", () => {
     beforeEach(() => {
-      exportToCsv.mockClear();
-      exportToXlsx.mockClear();
+      stubFeatureOn("FLAG_PATTERNS_IMPORT_EXPORT");
+      importPatterns.mockReset();
     });
 
     it("is hidden when the flag is off", () => {
       stubFeatureOff("FLAG_PATTERNS_IMPORT_EXPORT");
-      const store = setInitialState({
-        hydraulicModel: HydraulicModelBuilder.with()
-          .aDemandPattern(100, "Pattern1", [1.0, 0.8])
-          .build(),
-      });
+      const store = storeWith([100, "Pattern1", [1, 0.8]]);
 
       renderDialog(store);
 
@@ -592,61 +626,76 @@ describe("PatternsDialog", () => {
       ).not.toBeInTheDocument();
     });
 
-    it("exports the edited patterns as CSV", async () => {
-      stubFeatureOn("FLAG_PATTERNS_IMPORT_EXPORT");
+    it("shows imported patterns in the sidebar and persists them on save", async () => {
       const user = setupUser();
-      const store = setInitialState({
-        hydraulicModel: HydraulicModelBuilder.with()
-          .aDemandPattern(100, "Pattern1", [1.0, 0.8])
-          .build(),
-      });
+      const store = storeWith([100, "Pattern1", [1, 0.8]]);
+      importing([
+        { label: "Pattern1", type: "demand", multipliers: [5, 6] },
+        { label: "NewOne", type: "demand", multipliers: [2, 3] },
+      ]);
 
       renderDialog(store);
+      await clickImport(user);
 
-      await user.click(screen.getByRole("button", { name: /export/i }));
-      await user.click(screen.getByRole("menuitem", { name: /\.csv/i }));
-
-      await waitFor(() => expect(exportToCsv).toHaveBeenCalled());
-      const [patterns] = exportToCsv.mock.calls[0];
-      expect([...patterns.values()].map((p) => p.label)).toEqual(["Pattern1"]);
-    });
-
-    it("exports the edited patterns as XLSX", async () => {
-      stubFeatureOn("FLAG_PATTERNS_IMPORT_EXPORT");
-      const user = setupUser();
-      const store = setInitialState({
-        hydraulicModel: HydraulicModelBuilder.with()
-          .aDemandPattern(100, "Pattern1", [1.0, 0.8])
-          .build(),
-      });
-
-      renderDialog(store);
-
-      await user.click(screen.getByRole("button", { name: /export/i }));
-      await user.click(screen.getByRole("menuitem", { name: /\.xlsx/i }));
-
-      await waitFor(() => expect(exportToXlsx).toHaveBeenCalled());
-    });
-
-    it("passes the model pattern timestep as the interval", async () => {
-      stubFeatureOn("FLAG_PATTERNS_IMPORT_EXPORT");
-      const user = setupUser();
-      const store = setInitialState({
-        hydraulicModel: HydraulicModelBuilder.with()
-          .aDemandPattern(100, "Pattern1", [1.0, 0.8])
-          .build(),
-      });
-
-      renderDialog(store);
-
-      await user.click(screen.getByRole("button", { name: /export/i }));
-      await user.click(screen.getByRole("menuitem", { name: /\.csv/i }));
-
-      await waitFor(() => expect(exportToCsv).toHaveBeenCalled());
-      const [, options] = exportToCsv.mock.calls[0];
-      expect(options.intervalSeconds).toEqual(
-        store.get(simulationSettingsDerivedAtom).timing.patternTimestep,
+      await waitFor(() =>
+        expect(screen.getByRole("button", { name: "NewOne" })).toBeVisible(),
       );
+      expect(
+        store.get(stagingModelDerivedAtom).patterns.get(100)?.multipliers,
+      ).toEqual([1, 0.8]);
+
+      await user.click(screen.getByRole("button", { name: /dismiss/i }));
+      await user.click(screen.getByRole("button", { name: /save/i }));
+
+      const saved = store.get(stagingModelDerivedAtom).patterns;
+      expect(saved.get(100)?.multipliers).toEqual([5, 6]);
+      expect([...saved.values()].map((p) => p.label)).toContain("NewOne");
+    });
+
+    it("locks the table while the import is in flight", async () => {
+      const user = setupUser();
+      const store = storeWith([100, "Pattern1", [1]]);
+      let finishImport!: (result: unknown) => void;
+      importPatterns.mockReturnValue(
+        new Promise((resolve) => {
+          finishImport = resolve;
+        }),
+      );
+
+      renderDialog(store);
+      await user.click(screen.getByRole("button", { name: "Pattern1" }));
+      await clickImport(user);
+
+      await waitFor(() =>
+        expect(
+          screen.getByRole("button", { name: /^import$/i }),
+        ).toBeDisabled(),
+      );
+      const multiplierCell = getMultiplierCell(0);
+      await user.dblClick(multiplierCell);
+      expect(within(multiplierCell).getByRole("textbox")).toHaveAttribute(
+        "readonly",
+      );
+
+      finishImport({
+        status: "success",
+        format: "csv",
+        patterns: [{ label: "Pattern1", type: "demand", multipliers: [9] }],
+        errors: [],
+      });
+
+      await waitFor(() =>
+        expect(screen.getByText(/added|updated|identical/i)).toBeVisible(),
+      );
+    });
+
+    it("disables importing when edition is blocked", () => {
+      isEditionBlocked = true;
+      const store = storeWith([100, "Pattern1", [1]]);
+
+      renderDialog(store);
+
+      expect(screen.getByRole("button", { name: /^import$/i })).toBeDisabled();
     });
   });
 });
