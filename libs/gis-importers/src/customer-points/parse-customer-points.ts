@@ -1,4 +1,9 @@
-import { Feature, FeatureCollection, Position } from "geojson";
+import {
+  Feature,
+  FeatureCollection,
+  GeoJsonProperties,
+  Position,
+} from "geojson";
 import {
   LabelManager,
   CustomerPointFactory,
@@ -11,6 +16,7 @@ import { convertTo, Unit } from "@epanet-js/quantity";
 export type ParsedCustomerPoint = {
   customerPoint: ReturnType<CustomerPointFactory["create"]>;
   demands: Demand[];
+  properties: GeoJsonProperties;
 };
 
 // Reads `.type` exactly as a bare member access would, throwing on null the way
@@ -228,7 +234,7 @@ const processGeoJSONFeature = (
               : { baseDemand: demandInTargetUnit },
           ];
 
-    return { customerPoint, demands };
+    return { customerPoint, demands, properties: feature.properties };
   } catch (error) {
     issues.addSkippedCreationFailure(feature);
     return null;
