@@ -106,6 +106,7 @@ export const ImportExportCurvesToolbar = ({
     const merged = mergeCurves(curves, parsed.curves, {
       labelManager,
       idGenerator: new ConsecutiveIdsGenerator(maxId),
+      scope: options.scope,
     });
 
     onImported(merged.curves);

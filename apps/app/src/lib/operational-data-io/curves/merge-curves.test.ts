@@ -1,13 +1,25 @@
 import { LabelManager } from "@epanet-js/hydraulic-model";
 import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
-import type { Curves, ICurve } from "@epanet-js/hydraulic-model";
+import type { CurveType, Curves, ICurve } from "@epanet-js/hydraulic-model";
 import { mergeCurves } from "./merge-curves";
 import type { ParsedCurve } from "./parse-curves-file";
+
+const ALL_TYPES: CurveType[] = [
+  "pump",
+  "efficiency",
+  "volume",
+  "valve",
+  "headloss",
+];
 
 const curvesOf = (...items: ICurve[]): Curves =>
   new Map(items.map((c) => [c.id, c]));
 
-const merge = (existing: Curves, incoming: ParsedCurve[]) => {
+const merge = (
+  existing: Curves,
+  incoming: ParsedCurve[],
+  scope: CurveType[] = ALL_TYPES,
+) => {
   const labelManager = new LabelManager();
   for (const curve of existing.values()) {
     labelManager.register(curve.label, "curve", curve.id);
@@ -15,6 +27,7 @@ const merge = (existing: Curves, incoming: ParsedCurve[]) => {
   return mergeCurves(existing, incoming, {
     labelManager,
     idGenerator: new ConsecutiveIdsGenerator(Math.max(0, ...existing.keys())),
+    scope,
   });
 };
 
@@ -162,6 +175,31 @@ describe("mergeCurves", () => {
     ]);
 
     expect(curves.get(2)?.points).toEqual([{ x: 0, y: 1 }]);
+    expect(counts.notModified).toEqual(1);
+  });
+
+  it("leaves curves outside the dialog's scope out of the count", () => {
+    const existing = curvesOf(
+      { id: 1, label: "C1", type: "volume", points: [{ x: 0, y: 1 }] },
+      { id: 2, label: "C2", type: "valve", points: [{ x: 0, y: 1 }] },
+      { id: 3, label: "P1", type: "pump", points: [{ x: 0, y: 1 }] },
+      { id: 4, label: "E1", type: "efficiency", points: [{ x: 0, y: 1 }] },
+    );
+
+    const { counts } = merge(
+      existing,
+      [{ label: "C1", type: "volume", points: [{ x: 5, y: 5 }] }],
+      ["volume", "valve", "headloss"],
+    );
+
+    expect(counts.notModified).toEqual(1);
+  });
+
+  it("counts an untouched uncategorized curve in every scope", () => {
+    const existing = curvesOf({ id: 1, label: "C1", points: [{ x: 0, y: 1 }] });
+
+    const { counts } = merge(existing, [], ["pump", "efficiency"]);
+
     expect(counts.notModified).toEqual(1);
   });
 });

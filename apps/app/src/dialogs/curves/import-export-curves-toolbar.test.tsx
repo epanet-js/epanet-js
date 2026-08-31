@@ -184,6 +184,23 @@ describe("ImportExportCurvesToolbar", () => {
       ).toBeVisible();
     });
 
+    it("leaves the other library's curves out of the report", async () => {
+      const user = setupUser();
+      importing([{ label: "C1", type: "volume", points: [{ x: 0, y: 1 }] }]);
+
+      renderToolbar(
+        curvesOf(
+          { id: 1, label: "C1", type: "volume", points: [{ x: 0, y: 1 }] },
+          { id: 2, label: "P1", type: "pump", points: [{ x: 0, y: 1 }] },
+        ),
+      );
+      await clickImport(user);
+
+      expect(
+        await screen.findByText("Nothing was imported: 1 identical"),
+      ).toBeVisible();
+    });
+
     it("collapses the issues behind a summary", async () => {
       const user = setupUser();
       importing([{ label: "C1", type: "volume", points: [{ x: 0, y: 1 }] }], {

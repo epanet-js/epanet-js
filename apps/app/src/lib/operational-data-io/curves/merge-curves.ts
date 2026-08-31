@@ -1,6 +1,7 @@
 import type {
   CurveId,
   CurvePoint,
+  CurveType,
   Curves,
   ICurve,
   LabelManager,
@@ -29,7 +30,12 @@ export const mergeCurves = (
   {
     labelManager,
     idGenerator,
-  }: { labelManager: LabelManager; idGenerator: IdGenerator },
+    scope,
+  }: {
+    labelManager: LabelManager;
+    idGenerator: IdGenerator;
+    scope: CurveType[];
+  },
 ): MergeResult => {
   const merged: Curves = new Map(existing);
   const byLabel = new Map<string, ICurve>();
@@ -76,13 +82,13 @@ export const mergeCurves = (
     updated += 1;
   }
 
+  const notModified = [...existing.values()].filter(
+    (curve) =>
+      !touched.has(curve.id) && (!curve.type || scope.includes(curve.type)),
+  ).length;
+
   return {
     curves: merged,
-    counts: {
-      added,
-      updated,
-      identical,
-      notModified: existing.size - touched.size,
-    },
+    counts: { added, updated, identical, notModified },
   };
 };
