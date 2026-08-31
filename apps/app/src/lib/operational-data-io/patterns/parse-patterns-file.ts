@@ -1,7 +1,14 @@
-import Papa from "papaparse";
 import type { PatternType } from "src/hydraulic-model";
 import { parseValueToSeconds } from "src/components/form/time-field";
 import type { ImportError, ImportStatus } from "../import-result";
+import { resolveType } from "../resolve-type";
+import {
+  dataRowsOf,
+  formatOf,
+  readTableFile,
+  text,
+  type Cell,
+} from "../table-file";
 import type { PatternTypeLabels } from "./export-patterns";
 
 export type ParsedPattern = {
@@ -21,62 +28,10 @@ export type ParsePatternsResult = {
   ignored: number;
 };
 
-type Cell = string | number | null | undefined;
-
 const LABEL_COLUMN = 0;
 const TYPE_COLUMN = 1;
 const INTERVAL_COLUMN = 2;
 const FIRST_MULTIPLIER_COLUMN = 3;
-
-const text = (cell: Cell): string =>
-  cell === null || cell === undefined ? "" : String(cell).trim();
-
-const isBlankRow = (row: Cell[]): boolean => row.every((c) => text(c) === "");
-
-export const resolveType = (
-  cell: Cell,
-  labels: PatternTypeLabels,
-): PatternType | undefined => {
-  const normalized = text(cell).toLowerCase().replace(/\s+/g, " ");
-  if (normalized === "") return undefined;
-
-  const entries = Object.entries(labels) as [PatternType, string][];
-  const normalize = (value: string) => value.toLowerCase().replace(/\s+/g, " ");
-
-  const byKey = entries.find(([type]) => normalize(type) === normalized);
-  if (byKey) return byKey[0];
-
-  const byLabel = entries.find(([, label]) => normalize(label) === normalized);
-  if (byLabel) return byLabel[0];
-
-  // Containment either way, so both an abbreviation ("speed") and a phrase
-  // built around the label ("Pump speed pattern") resolve. A cell matching
-  // more than one type is left uncategorized rather than guessed at.
-  const partial = entries.filter(([, label]) => {
-    const candidate = normalize(label);
-    return candidate.includes(normalized) || normalized.includes(candidate);
-  });
-  return partial.length === 1 ? partial[0][0] : undefined;
-};
-
-type NumberedRow = { cells: Cell[]; number: number };
-
-const untilDoubleBlank = (rows: Cell[][]): NumberedRow[] => {
-  const kept: NumberedRow[] = [];
-  let blanks = 0;
-
-  for (const [index, row] of rows.entries()) {
-    if (isBlankRow(row)) {
-      blanks += 1;
-      if (blanks >= 2) break;
-      continue;
-    }
-    blanks = 0;
-    kept.push({ cells: row, number: index + 1 });
-  }
-
-  return kept;
-};
 
 const parseMultipliers = (
   cells: Cell[],
@@ -124,14 +79,6 @@ const parseMultipliers = (
   return multipliers;
 };
 
-const isNumeric = (cell: Cell): boolean => {
-  const raw = text(cell);
-  return raw !== "" && Number.isFinite(Number(raw.replace(",", ".")));
-};
-
-const looksLikeHeader = (row: Cell[]): boolean =>
-  !row.slice(FIRST_MULTIPLIER_COLUMN).some(isNumeric);
-
 const buildPatterns = (
   rows: Cell[][],
   labels: PatternTypeLabels,
@@ -144,9 +91,7 @@ const buildPatterns = (
   const byKey = new Map<string, ParsedPattern>();
   const reportedDuplicates = new Set<string>();
 
-  const body = untilDoubleBlank(rows);
-  const dataRows =
-    body.length > 0 && looksLikeHeader(body[0].cells) ? body.slice(1) : body;
+  const dataRows = dataRowsOf(rows, FIRST_MULTIPLIER_COLUMN);
 
   for (const { cells, number } of dataRows) {
     const label = text(cells[LABEL_COLUMN]);
@@ -195,33 +140,13 @@ const buildPatterns = (
   return { patterns: [...byKey.values()], errors, rowCount: dataRows.length };
 };
 
-const readCsv = async (file: File): Promise<Cell[][]> => {
-  const text = await file.text();
-  return Papa.parse<string[]>(text, { header: false, skipEmptyLines: false })
-    .data;
-};
-
-const readXlsx = async (file: File): Promise<Cell[][]> => {
-  const XLSX = await import("xlsx");
-  const workbook = XLSX.read(await file.arrayBuffer(), { type: "array" });
-  const sheetName = workbook.SheetNames[0];
-  if (!sheetName) return [];
-
-  return XLSX.utils.sheet_to_json<Cell[]>(workbook.Sheets[sheetName], {
-    header: 1,
-    blankrows: true,
-    defval: null,
-  });
-};
-
 export const parsePatternsFile = async (
   file: File,
   labels: PatternTypeLabels,
 ): Promise<ParsePatternsResult> => {
-  const isCsv = file.name.toLowerCase().endsWith(".csv");
-  const isXlsx = file.name.toLowerCase().endsWith(".xlsx");
+  const format = formatOf(file);
 
-  if (!isCsv && !isXlsx) {
+  if (!format) {
     return {
       status: "error",
       patterns: [],
@@ -230,11 +155,10 @@ export const parsePatternsFile = async (
     };
   }
 
-  const format = isCsv ? "csv" : "xlsx";
   let rows: Cell[][];
 
   try {
-    rows = isCsv ? await readCsv(file) : await readXlsx(file);
+    rows = await readTableFile(file, format);
   } catch {
     return {
       status: "error",

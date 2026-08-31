@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { LabelManager } from "@epanet-js/hydraulic-model";
 import { Patterns } from "src/hydraulic-model";
 import { useTranslate } from "src/hooks/use-translate";
@@ -9,14 +9,15 @@ import {
 } from "src/components/import-export-toolbar";
 import { useExportPatterns } from "src/commands/export-patterns";
 import { useImportPatterns } from "src/commands/import-patterns";
-import type {
-  ImportCounts,
-  ImportError,
-} from "src/lib/operational-data-io/import-result";
+import {
+  buildImportOutcome,
+  describeErrors,
+} from "src/components/import-outcome";
 import { mergePatterns } from "src/lib/operational-data-io/patterns/merge-patterns";
-import type { ParsePatternsResult } from "src/lib/operational-data-io/patterns/parse-patterns-file";
 import { buildPatternTypeLabels, PATTERN_TYPES } from "./pattern-type-labels";
 import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
+
+const KEYS = "patterns.import";
 
 export const ImportExportPatternsToolbar = ({
   patterns,
@@ -70,13 +71,13 @@ export const ImportExportPatternsToolbar = ({
     if (parsed.status === "error") {
       // The first reason is the headline; any others are detail, and belong
       // in the same expandable section the warning case uses.
-      const [message, ...rest] = describeErrors(parsed.errors, translate);
+      const [message, ...rest] = describeErrors(parsed.errors, translate, KEYS);
 
       return {
         status: "failed",
         message: message ?? translate("fileReadError"),
         issues: rest.length
-          ? { summary: translate("patterns.import.issues"), lines: rest }
+          ? { summary: translate(`${KEYS}.issues`), lines: rest }
           : undefined,
       };
     }
@@ -97,12 +98,22 @@ export const ImportExportPatternsToolbar = ({
 
     onImported(merged.patterns);
 
-    return buildImportOutcome(
-      parsed,
-      merged.counts,
-      intervalSeconds,
-      translate,
+    const intervalIgnored = parsed.patterns.some(
+      (pattern) =>
+        pattern.intervalSeconds !== undefined &&
+        pattern.intervalSeconds !== intervalSeconds,
     );
+
+    return buildImportOutcome({
+      keys: KEYS,
+      counts: merged.counts,
+      ignored: parsed.ignored,
+      errors: parsed.errors,
+      extraIssues: intervalIgnored
+        ? [translate(`${KEYS}.intervalIgnored`)]
+        : [],
+      translate,
+    });
   }, [
     importPatterns,
     options.typeLabels,
@@ -123,119 +134,4 @@ export const ImportExportPatternsToolbar = ({
       readOnly={readOnly}
     />
   );
-};
-
-const MAX_LISTED_ROWS = 5;
-
-// One line per kind of problem, naming the rows it happened on — a file with
-// fifty bad rows reads as two lines, not fifty. File-level problems carry no
-// row and are reported on their own.
-const describeErrors = (
-  errors: ImportError[],
-  translate: (key: string, ...args: string[]) => string,
-): string[] => {
-  const rowsByMessage = new Map<string, number[]>();
-
-  for (const error of errors) {
-    const rows = rowsByMessage.get(error.message) ?? [];
-    if (error.row !== undefined) rows.push(error.row);
-    rowsByMessage.set(error.message, rows);
-  }
-
-  return [...rowsByMessage.entries()].map(([message, rows]) => {
-    const text = translate(message);
-    if (rows.length === 0) return text;
-
-    if (rows.length === 1) {
-      return translate("patterns.import.atRow", text, String(rows[0]));
-    }
-
-    const listed = rows.slice(0, MAX_LISTED_ROWS).join(", ");
-    const remaining = rows.length - MAX_LISTED_ROWS;
-
-    return translate(
-      "patterns.import.atRows",
-      text,
-      remaining > 0
-        ? translate("patterns.import.andMoreRows", listed, String(remaining))
-        : listed,
-    );
-  });
-};
-
-const buildImportOutcome = (
-  parsed: ParsePatternsResult,
-  counts: ImportCounts,
-  modelIntervalSeconds: number,
-  translate: (key: string, ...args: string[]) => string,
-): ImportOutcome => {
-  // Only the categories that actually happened, so "9 added" is not padded
-  // out with zeroes. Ignored is emphasised as the one worth acting on.
-  const parts = (
-    [
-      ["added", counts.added, false],
-      ["updated", counts.updated, false],
-      ["identical", counts.identical, false],
-      ["ignored", parsed.ignored, true],
-      ["untouched", counts.untouched, false],
-    ] as const
-  )
-    .filter(([, count]) => count > 0)
-    .map(([key, count, emphasised]) => ({
-      key,
-      emphasised,
-      text: translate(`patterns.import.${key}`, String(count)),
-    }));
-
-  const intervalIgnored = parsed.patterns.some(
-    (pattern) =>
-      pattern.intervalSeconds !== undefined &&
-      pattern.intervalSeconds !== modelIntervalSeconds,
-  );
-
-  const issues = [
-    ...(intervalIgnored ? [translate("patterns.import.intervalIgnored")] : []),
-    ...describeErrors(parsed.errors, translate),
-  ];
-
-  const summary = parts.map((part) => part.text).join(", ");
-
-  // Nothing to flag: the summary is the whole story. An import that left the
-  // library as it found it is information rather than a success.
-  if (issues.length === 0) {
-    if (counts.added > 0 || counts.updated > 0) {
-      return {
-        status: "success",
-        message: translate("patterns.import.imported"),
-        notes: [summary],
-      };
-    }
-
-    return {
-      status: "info",
-      message: translate("patterns.import.nothingImported"),
-      // An empty file has nothing to break down.
-      notes: summary ? [summary] : undefined,
-    };
-  }
-
-  return {
-    status: "warning",
-    message: translate("patterns.import.issuesFound"),
-    notes: parts.length
-      ? [
-          parts.map((part, index) => (
-            <Fragment key={part.key}>
-              {index > 0 ? ", " : null}
-              {part.emphasised ? (
-                <span className="font-semibold text-warning">{part.text}</span>
-              ) : (
-                part.text
-              )}
-            </Fragment>
-          )),
-        ]
-      : undefined,
-    issues: { summary: translate("patterns.import.issues"), lines: issues },
-  };
 };

@@ -1228,6 +1228,13 @@ type PatternsExported = {
   count: number;
 };
 
+type CurvesImportedFromFile = {
+  name: "curves.importedFromFile";
+  status: "success" | "error" | "partial";
+  format?: "csv" | "xlsx";
+  count: number;
+};
+
 type PatternsImportedFromFile = {
   name: "patterns.importedFromFile";
   status: "success" | "error" | "partial";
@@ -1808,6 +1815,7 @@ export type UserEvent =
   | PatternsExported
   | CurvesExported
   | PatternsImportedFromFile
+  | CurvesImportedFromFile
   | PipeLibraryOpened
   | PipeLibraryMaterialChanged
   | PipeLibraryRoughnessRowChanged

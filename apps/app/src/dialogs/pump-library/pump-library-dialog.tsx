@@ -211,6 +211,16 @@ export const PumpLibraryDialog = ({
     [userTracking],
   );
 
+  const handleImported = useCallback((imported: Curves) => {
+    setEditedCurves(imported);
+    setSelectedCurveId(null);
+  }, []);
+
+  // An import replaces the whole draft from a snapshot taken when it started,
+  // so edits made while it runs would be silently overwritten.
+  const [isImporting, setImporting] = useState(false);
+  const isLocked = isEditionBlocked || isImporting;
+
   return (
     <BaseDialog
       title={translate("pumpLibrary")}
@@ -223,7 +233,7 @@ export const PumpLibraryDialog = ({
           ref={dialogActions}
           onSave={handleSave}
           onClose={handleClose}
-          readOnly={isEditionBlocked}
+          readOnly={isLocked}
           hasChanges={!!unsavedChanges}
           hasWarnings={invalidCurveIds.size > 0}
         />
@@ -233,8 +243,10 @@ export const PumpLibraryDialog = ({
         <ImportExportCurvesToolbar
           curves={editedCurves}
           scope={SCOPE}
+          onImported={handleImported}
+          onImportingChange={setImporting}
           fileSuffix={translate("pumpLibrary")}
-          readOnly={isEditionBlocked}
+          readOnly={isLocked}
         />
         <div className="flex-1 flex min-h-0">
           <div className="shrink-0 flex">
@@ -249,7 +261,7 @@ export const PumpLibraryDialog = ({
               onAddCurve={handleAddCurve}
               onChangeCurve={handleCurveChange}
               onDeleteCurve={handleDeleteCurve}
-              readOnly={isEditionBlocked}
+              readOnly={isLocked}
             />
             <VerticalResizer
               width={sidebarWidth}
@@ -280,7 +292,7 @@ export const PumpLibraryDialog = ({
               </div>
             ) : (
               <div className="flex-1 flex items-center justify-center p-2">
-                <EmptyState readOnly={isEditionBlocked} />
+                <EmptyState readOnly={isLocked} />
               </div>
             )}
           </div>
