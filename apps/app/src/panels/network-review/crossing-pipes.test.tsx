@@ -10,7 +10,6 @@ import { Provider as JotaiProvider } from "jotai";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
-import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
 import { stubElevation } from "src/map/test/__helpers__/elevations";
 import { Store } from "src/state";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
@@ -105,18 +104,7 @@ const expectBothPipesSplit = (store: Store) => {
 };
 
 describe("CrossingPipes panel fix action", () => {
-  it("does not render a fix action when the flag is off", async () => {
-    stubFeatureOff("FLAG_FIX_CROSSING_PIPES");
-    renderPanel(setInitialState({ hydraulicModel: aModelWithCrossingPipes() }));
-
-    await waitFor(() => {
-      expect(screen.getAllByRole("listitem")).toHaveLength(1);
-    });
-    expect(screen.queryByRole("button", { name: /connect/i })).toBeNull();
-  });
-
   it("splits both pipes at the crossing", async () => {
-    stubFeatureOn("FLAG_FIX_CROSSING_PIPES");
     const store = setInitialState({
       hydraulicModel: aModelWithCrossingPipes(),
     });
@@ -134,7 +122,6 @@ describe("CrossingPipes panel fix action", () => {
   });
 
   it("gives the new junction the fetched elevation", async () => {
-    stubFeatureOn("FLAG_FIX_CROSSING_PIPES");
     const store = setInitialState({
       hydraulicModel: aModelWithCrossingPipes(),
     });
@@ -160,7 +147,6 @@ describe("CrossingPipes panel fix action", () => {
   });
 
   it("connects the crossing when pressing Enter", async () => {
-    stubFeatureOn("FLAG_FIX_CROSSING_PIPES");
     const store = setInitialState({
       hydraulicModel: aModelWithCrossingPipes(),
     });
@@ -179,7 +165,6 @@ describe("CrossingPipes panel fix action", () => {
   });
 
   it("does not fix via Enter while edition is blocked", async () => {
-    stubFeatureOn("FLAG_FIX_CROSSING_PIPES");
     isEditionBlocked = true;
     const store = setInitialState({
       hydraulicModel: aModelWithCrossingPipes(),
@@ -205,7 +190,6 @@ describe("CrossingPipes panel fix action", () => {
 
   describe("archiving items", () => {
     const renderTwoCrossings = () => {
-      stubFeatureOn("FLAG_FIX_CROSSING_PIPES");
       const store = setInitialState({
         hydraulicModel: aModelWithTwoCrossings(),
       });
@@ -342,30 +326,6 @@ describe("CrossingPipes panel fix action", () => {
       expect(screen.getByRole("button", { name: /archived/i })).toHaveClass(
         "bg-accent-tint",
       );
-    });
-
-    it("archives nothing when the flag is off", async () => {
-      stubFeatureOff("FLAG_FIX_CROSSING_PIPES");
-      setInitialState({ hydraulicModel: aModelWithTwoCrossings() });
-      renderPanel(
-        setInitialState({ hydraulicModel: aModelWithTwoCrossings() }),
-      );
-
-      await waitFor(() => {
-        expect(screen.getByText("2 intersections found")).toBeInTheDocument();
-      });
-
-      fireEvent.click(
-        screen.getAllByRole("button", { name: /crosses pipe/i })[0],
-      );
-      fireEvent.keyDown(listElement(), { key: "Delete" });
-
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 50));
-      });
-
-      expect(screen.getByText("2 intersections found")).toBeInTheDocument();
-      expect(screen.queryByRole("button", { name: /archived/i })).toBeNull();
     });
   });
 });

@@ -4,7 +4,6 @@ import {
   CrossingPipe,
 } from "src/lib/network-review";
 import clsx from "clsx";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useArchivedItems } from "./use-archived-items";
 import { FixCrossingPipesButton } from "./fixes/fix-crossing-pipes-button";
 import { useFixCrossingPipes } from "./fixes/use-fix-crossing-pipes";
@@ -116,17 +115,13 @@ export const CrossingPipes = ({ onGoBack }: { onGoBack: () => void }) => {
     }
   }, [crossingPipes, isSelected]);
 
-  const isFixCrossingPipesOn = useFeatureFlag("FLAG_FIX_CROSSING_PIPES");
   const archiving = useArchivedItems(CheckType.crossingPipes);
   const { isArchived } = archiving;
 
   const activeCount = useMemo(
     () =>
-      isFixCrossingPipesOn
-        ? crossingPipes.filter((item) => !isArchived(getCrossingId(item)))
-            .length
-        : crossingPipes.length,
-    [crossingPipes, isArchived, isFixCrossingPipesOn],
+      crossingPipes.filter((item) => !isArchived(getCrossingId(item))).length,
+    [crossingPipes, isArchived],
   );
 
   const headerProps = useCheckHeader(
@@ -150,7 +145,7 @@ export const CrossingPipes = ({ onGoBack }: { onGoBack: () => void }) => {
                 onSelect={selectCrossingPipes}
                 selectedCrossingPipes={selectedCrossingId}
                 onGoBack={onGoBack}
-                archiving={isFixCrossingPipesOn ? archiving : undefined}
+                archiving={archiving}
               />
             ) : (
               <>
@@ -182,9 +177,8 @@ const CrossingPipesList = ({
   onSelect: (issue: CrossingPipe | null) => void;
   selectedCrossingPipes: string | null;
   onGoBack: () => void;
-  archiving?: Archiving<string>;
+  archiving: Archiving<string>;
 }) => {
-  const isFixCrossingPipesOn = useFeatureFlag("FLAG_FIX_CROSSING_PIPES");
   const { fix } = useFixCrossingPipes();
 
   const fixCrossing = useCallback(
@@ -213,16 +207,12 @@ const CrossingPipesList = ({
           isArchived={isArchived}
         />
       )}
-      renderItemAction={
-        isFixCrossingPipesOn
-          ? (crossing) => (
-              <FixCrossingPipesButton
-                onFix={() => fixCrossing(getCrossingId(crossing))}
-              />
-            )
-          : undefined
-      }
-      onItemAction={isFixCrossingPipesOn ? fixCrossing : undefined}
+      renderItemAction={(crossing) => (
+        <FixCrossingPipesButton
+          onFix={() => fixCrossing(getCrossingId(crossing))}
+        />
+      )}
+      onItemAction={fixCrossing}
       archiving={archiving}
       checkType={CheckType.crossingPipes}
       onGoBack={onGoBack}
@@ -242,7 +232,6 @@ const CrossingPipeItem = ({
   isArchived?: boolean;
 }) => {
   const translate = useTranslate();
-  const isFixCrossingPipesOn = useFeatureFlag("FLAG_FIX_CROSSING_PIPES");
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const crossingId = `${crossing.pipe1Id}-${crossing.pipe2Id}`;
   const isSelected = selectedId === crossingId;
@@ -271,10 +260,7 @@ const CrossingPipeItem = ({
     isArchived && "text-subtle",
   );
 
-  const diameterClassName = clsx(
-    "whitespace-nowrap text-subtle",
-    isFixCrossingPipesOn ? "text-left" : "text-right",
-  );
+  const diameterClassName = "whitespace-nowrap text-subtle text-left";
 
   return (
     <Button
@@ -291,14 +277,7 @@ const CrossingPipeItem = ({
       tabIndex={-1}
       className="group w-full hover:bg-transparent dark:hover:bg-transparent aria-selected:bg-transparent! aria-selected:hover:bg-transparent!"
     >
-      <div
-        className={clsx(
-          "grid w-full items-start py-1 px-2 text-size-base",
-          isFixCrossingPipesOn
-            ? "grid-cols-[minmax(0,auto)_auto] gap-x-2 justify-start"
-            : "grid-cols-[1fr_auto]",
-        )}
-      >
+      <div className="grid w-full items-start py-1 px-2 text-size-base grid-cols-[minmax(0,auto)_auto] gap-x-2 justify-start">
         <div className={labelClassName}>{pipe1Asset.label}</div>
         <span className={diameterClassName}>⌀ {diameter1Formatted}</span>
         <div className={labelClassName}>{pipe2Asset.label}</div>
