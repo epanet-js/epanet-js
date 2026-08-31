@@ -158,8 +158,6 @@ export const useOpenProjectFile = () => {
         setProjectFileInfo({
           name: file.name,
           handle: file.handle,
-          modelVersion: result.modelVersion,
-          isUnsaved: options.isUnsaved,
           isDemoNetwork: options.isDemoNetwork,
           lastSavedAt: options.isUnsaved
             ? options.lastSavedAt

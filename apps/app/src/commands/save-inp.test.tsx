@@ -46,7 +46,6 @@ describe("save inp", () => {
 
     const fileInfo = store.get(inpFileInfoAtom);
     expect(fileInfo).toEqual({
-      modelVersion: hydraulicModel.version,
       name: "my-network.inp",
       handle,
       options: { type: "inp" },
@@ -66,7 +65,6 @@ describe("save inp", () => {
     );
     const store = setInitialState({
       fileInfo: aFileInfo({
-        modelVersion: "ANY",
         name: "NAME",
         handle: oldHandle,
         options: { type: "inp" },
@@ -100,7 +98,6 @@ describe("save inp", () => {
     );
     const store = setInitialState({
       fileInfo: aFileInfo({
-        modelVersion: "ANY",
         name: "NAME",
         handle: oldHandle,
         options: { type: "inp" },

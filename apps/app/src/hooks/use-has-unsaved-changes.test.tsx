@@ -2,7 +2,6 @@ import { act, renderHook } from "@testing-library/react";
 import { Provider as JotaiProvider } from "jotai";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
-import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
 import { addNode } from "src/hydraulic-model/model-operations/add-node";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import { useUndoableTransactions } from "src/hooks/persistence/use-undoable-transactions";
@@ -110,12 +109,8 @@ const hasUnsavedChanges = (store: Store): boolean => {
   return result.current;
 };
 
-describe("unsaved changes with FLAG_DECOUPLE_UNSAVED enabled", () => {
+describe("unsaved changes", () => {
   useInProcessDb();
-
-  beforeEach(() => {
-    stubFeatureOn("FLAG_DECOUPLE_UNSAVED");
-  });
 
   it("reports saved when nothing changed since the last save", async () => {
     const store = await aSavedProject();
@@ -178,36 +173,5 @@ describe("unsaved changes with FLAG_DECOUPLE_UNSAVED enabled", () => {
     addJunction(store, [10, 20]);
 
     expect(hasUnsavedChanges(store)).toBe(false);
-  });
-});
-
-describe("unsaved changes with FLAG_DECOUPLE_UNSAVED disabled", () => {
-  useInProcessDb();
-
-  beforeEach(() => {
-    stubFeatureOff("FLAG_DECOUPLE_UNSAVED");
-  });
-
-  it("reports saved when nothing changed", async () => {
-    const store = await aSavedProject();
-
-    expect(hasUnsavedChanges(store)).toBe(false);
-  });
-
-  it("reports unsaved after a model edit", async () => {
-    const store = await aSavedProject();
-
-    addJunction(store, [10, 20]);
-
-    expect(hasUnsavedChanges(store)).toBe(true);
-  });
-
-  it("reports unsaved for edits made on a scenario", async () => {
-    const store = await aSavedProject();
-
-    createScenario(store);
-    addJunction(store, [10, 20]);
-
-    expect(hasUnsavedChanges(store)).toBe(true);
   });
 });

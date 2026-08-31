@@ -5,7 +5,6 @@ import { defaultRecentFilesDb, RecentFilesStore } from "src/lib/recent-files";
 
 export type FileInfo = {
   name: string;
-  modelVersion: string;
   handle?: FileSystemHandle | FileSystemFileHandle;
   isMadeByApp: boolean;
   isDemoNetwork: boolean;
@@ -16,9 +15,7 @@ export const inpFileInfoAtom = atom<FileInfo | null>(null);
 
 export type ProjectFileInfo = {
   name: string;
-  modelVersion: string;
   handle?: FileSystemHandle | FileSystemFileHandle;
-  isUnsaved?: boolean;
   lastSavedAt?: number;
   isDemoNetwork?: boolean;
 };

@@ -2,6 +2,10 @@ import { renderHook, act } from "@testing-library/react";
 import { vi } from "vitest";
 import { createStore, Provider as JotaiProvider } from "jotai";
 import { dialogAtom } from "src/state/dialog";
+import {
+  projectRevisionAtom,
+  savedProjectRevisionAtom,
+} from "src/state/project-revision";
 import { useOpenModelBuilder } from "./open-model-builder";
 
 vi.mock("src/infra/user-tracking", () => ({
@@ -25,6 +29,12 @@ vi.mock("src/hooks/persistence/use-start-new-project", () => ({
 const flushMicrotasks = () =>
   new Promise<void>((resolve) => setTimeout(resolve, 0));
 
+const aSavedStore = () => {
+  const store = createStore();
+  store.set(savedProjectRevisionAtom, store.get(projectRevisionAtom));
+  return store;
+};
+
 const renderOpen = (store: ReturnType<typeof createStore>) =>
   renderHook(() => useOpenModelBuilder(), {
     wrapper: ({ children }) => (
@@ -41,7 +51,7 @@ describe("useOpenModelBuilder", () => {
 
   it("opens the v2 dialog when the user can use it", async () => {
     canUseModelBuildV2 = true;
-    const store = createStore();
+    const store = aSavedStore();
 
     const { result } = renderOpen(store);
     await act(async () => {
@@ -54,7 +64,7 @@ describe("useOpenModelBuilder", () => {
 
   it("clears the project to empty before opening the dialog", async () => {
     canUseModelBuildV2 = true;
-    const store = createStore();
+    const store = aSavedStore();
     startBlankProject.mockImplementation(() => {
       expect(store.get(dialogAtom)).toBeNull();
       return Promise.resolve(true);
@@ -72,7 +82,7 @@ describe("useOpenModelBuilder", () => {
 
   it("keeps the dialog closed when the project swap is dropped", async () => {
     canUseModelBuildV2 = true;
-    const store = createStore();
+    const store = aSavedStore();
     startBlankProject.mockResolvedValue(false);
 
     const { result } = renderOpen(store);
@@ -86,7 +96,7 @@ describe("useOpenModelBuilder", () => {
 
   it("opens the paywall without clearing the project", async () => {
     canUseModelBuildV2 = false;
-    const store = createStore();
+    const store = aSavedStore();
 
     const { result } = renderOpen(store);
     await act(async () => {

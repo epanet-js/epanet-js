@@ -12,7 +12,6 @@ import { captureWarning } from "src/infra/error-tracking";
 import { USelection } from "src/selection";
 import { branchStateAtom } from "src/state/branch-state";
 import { selectionAtom } from "src/state/selection";
-import { inpFileInfoAtom, projectFileInfoAtom } from "src/state/file-system";
 import { worktreeAtom } from "src/state/scenarios";
 import {
   type SimulationState,
@@ -195,22 +194,4 @@ export const selectedCustomerPointsDerivedAtom = atom((get) => {
     if (cp) result.push(cp);
   }
   return result;
-});
-
-export const hasUnsavedChangesDerivedAtom = atom<boolean>((get) => {
-  const projectInfo = get(projectFileInfoAtom);
-  const hydraulicModel = get(stagingModelDerivedAtom);
-
-  if (projectInfo) {
-    if (projectInfo.isUnsaved) return true;
-    return projectInfo.modelVersion !== hydraulicModel.version;
-  }
-
-  const inpFileInfo = get(inpFileInfoAtom);
-  if (inpFileInfo) {
-    return true;
-  }
-
-  const momentLog = get(momentLogDerivedAtom);
-  return momentLog.getDeltas().length > 0;
 });

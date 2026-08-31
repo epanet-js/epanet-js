@@ -113,7 +113,6 @@ export const useSaveInp = () => {
           const isDemo = get(isDemoNetworkAtom);
           set(inpFileInfoAtom, {
             name: handle.name,
-            modelVersion: hydraulicModel.version,
             handle,
             options: exportOptions,
             isMadeByApp: true,

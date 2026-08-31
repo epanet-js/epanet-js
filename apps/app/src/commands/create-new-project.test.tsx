@@ -61,7 +61,6 @@ describe("create new project", () => {
 
     const previousFileInfo = aFileInfo({
       name: "previous-file",
-      modelVersion: "PREV",
       options: { type: "inp" },
     });
 
@@ -69,6 +68,7 @@ describe("create new project", () => {
       hydraulicModel: HydraulicModelBuilder.with().aJunction(IDS.J1).build(),
       momentLog: momentLogWithChanges,
       fileInfo: previousFileInfo,
+      isProjectSaved: false,
     });
     const previousEditions = new MapEditionsTracker().record({
       note: "Edit",
@@ -110,6 +110,7 @@ describe("create new project", () => {
     const store = setInitialState({
       hydraulicModel: HydraulicModelBuilder.with().aJunction(IDS.J1).build(),
       momentLog: momentLogWithChanges,
+      isProjectSaved: false,
     });
     renderComponent({ store });
 

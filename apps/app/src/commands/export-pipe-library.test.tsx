@@ -29,7 +29,7 @@ const renderExport = (store: ReturnType<typeof createStore>) =>
 
 const storeWithFileName = (name: string) => {
   const store = createStore();
-  store.set(projectFileInfoAtom, { name, modelVersion: "1" });
+  store.set(projectFileInfoAtom, { name });
   return store;
 };
 

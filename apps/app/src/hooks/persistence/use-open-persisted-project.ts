@@ -22,7 +22,6 @@ type OpenPersistedProjectInput = {
 export type OpenPersistedProjectResult =
   | {
       status: "ok";
-      modelVersion: string;
       hydraulicModel: HydraulicModel;
       projectSettings: ProjectSettings;
       uniqueId: string | null;
@@ -78,7 +77,6 @@ export const useOpenPersistedProject = () => {
         });
         return {
           status: "ok",
-          modelVersion: hydraulicModel.version,
           hydraulicModel,
           projectSettings,
           uniqueId,

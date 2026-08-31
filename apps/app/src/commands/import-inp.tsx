@@ -131,7 +131,6 @@ export const useImportInp = () => {
       setInpFileInfo({
         name: file.name,
         handle: isMadeByApp ? file.handle : undefined,
-        modelVersion: hydraulicModel.version,
         isMadeByApp,
         isDemoNetwork: false,
         options: { type: "inp" },

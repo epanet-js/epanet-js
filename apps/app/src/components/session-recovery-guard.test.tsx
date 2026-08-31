@@ -25,7 +25,6 @@ describe("session recovery guard", () => {
     store.set(dbStorageModeAtom, "opfs");
     store.set(projectFileInfoAtom, {
       name: "my-project.ejsdb",
-      modelVersion: hydraulicModel.version,
       lastSavedAt: 500,
     });
 
@@ -74,11 +73,10 @@ describe("session recovery guard", () => {
     stubClock([1000]);
 
     const hydraulicModel = HydraulicModelBuilder.with().aJunction(1).build();
-    const store = setInitialState({ hydraulicModel });
+    const store = setInitialState({ hydraulicModel, isProjectSaved: false });
     store.set(dbStorageModeAtom, "opfs");
     store.set(projectFileInfoAtom, {
       name: "my-project.ejsdb",
-      modelVersion: "already-stale",
     });
 
     render(

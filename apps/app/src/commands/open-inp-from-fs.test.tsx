@@ -29,13 +29,10 @@ import { waitForNotLoading } from "src/__helpers__/ui-expects";
 import { getByLabel } from "src/__helpers__/asset-queries";
 import { useOpenInpFromFs } from "./open-inp-from-fs";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import { userSettingsAtom } from "src/state/user-settings";
 import { useInProcessDb } from "src/lib/db/__test-helpers__/in-process-db";
 import * as db from "src/lib/db";
 import { recentFilesStoreAtom } from "src/state/file-system";
-
-const aMoment = (name: string) => ({ note: name });
 
 describe("openInpFromFs", () => {
   useInProcessDb();
@@ -161,6 +158,7 @@ describe("openInpFromFs", () => {
       fileInfo: aFileInfo({
         handle: buildFileSystemHandleMock({ fileName: "old.inp" }),
       }),
+      isProjectSaved: false,
     });
     const file = aTestFile({ filename: "my-network.inp", content: inp });
 
@@ -198,14 +196,12 @@ describe("openInpFromFs", () => {
     stubFileOpen();
     stubFileSave({ fileName: "my-project.ejsdb" });
     const inp = minimalInp({ junctionId: "J1" });
-    const momentLogWithChanges = new MomentLog();
-    momentLogWithChanges.append(aMoment("A"), aMoment("B"));
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction(IDS.J1)
       .build();
     const store = setInitialState({
       hydraulicModel,
-      momentLog: momentLogWithChanges,
+      isProjectSaved: false,
     });
     store.set(userSettingsAtom, {
       showFirstScenarioDialog: true,
@@ -254,11 +250,9 @@ describe("openInpFromFs", () => {
 
   it("can discard changes when opening a new project", async () => {
     const inp = minimalInp({ junctionId: "J1" });
-    const momentLogWithChanges = new MomentLog();
-    momentLogWithChanges.append(aMoment("A"), aMoment("B"));
     const store = setInitialState({
       hydraulicModel: HydraulicModelBuilder.empty(),
-      momentLog: momentLogWithChanges,
+      isProjectSaved: false,
     });
     const file = aTestFile({ filename: "my-network.inp", content: inp });
 
@@ -605,39 +599,3 @@ const renderComponent = ({ store }: { store: Store }) => {
     </CommandContainer>,
   );
 };
-
-describe("openInpFromFs with FLAG_DECOUPLE_UNSAVED enabled", () => {
-  useInProcessDb();
-
-  beforeEach(() => {
-    stubFeatureOn("FLAG_DECOUPLE_UNSAVED");
-  });
-
-  it("can discard changes of a project that was never saved", async () => {
-    const inp = minimalInp({ junctionId: "J1" });
-    const store = setInitialState({
-      hydraulicModel: HydraulicModelBuilder.empty(),
-      isProjectSaved: false,
-    });
-    const file = aTestFile({ filename: "my-network.inp", content: inp });
-
-    renderComponent({ store });
-
-    await triggerCommand();
-
-    await waitForNotLoading();
-    expect(screen.getByText(/unsaved/i)).toBeInTheDocument();
-
-    await userEvent.click(screen.getByRole("button", { name: /discard/i }));
-
-    await waitFor(() =>
-      expect(screen.queryByText(/unsaved/i)).not.toBeInTheDocument(),
-    );
-    await doFileSelection(file);
-
-    await waitForNotLoading();
-
-    const hydraulicModel = store.get(stagingModelDerivedAtom);
-    expect(getByLabel(hydraulicModel.assets, "J1")).toBeTruthy();
-  });
-});

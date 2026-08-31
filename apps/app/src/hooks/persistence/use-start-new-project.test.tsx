@@ -52,7 +52,6 @@ describe("useStartBlankProject", () => {
     const store = setInitialState({ hydraulicModel });
     store.set(projectFileInfoAtom, {
       name: "my-project.ejsdb",
-      modelVersion: "1",
     });
 
     expect(store.get(stagingModelDerivedAtom).assets.size).toBeGreaterThan(0);

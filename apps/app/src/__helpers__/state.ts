@@ -168,7 +168,6 @@ export const aLayerConfig = (
 
 export const aFileInfo = (data: Partial<FileInfo> | null) => {
   const defaults = {
-    modelVersion: "ANY",
     name: "NAME",
     handle: undefined,
     isMadeByApp: true,

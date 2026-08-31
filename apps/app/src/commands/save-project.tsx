@@ -7,7 +7,6 @@ import {
   projectFileInfoAtom,
   isDemoNetworkAtom,
 } from "src/state/file-system";
-import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import {
   projectRevisionAtom,
   savedProjectRevisionAtom,
@@ -52,7 +51,6 @@ export const useSaveProject = ({
           const { fileSave } = await getFsAccess();
           const projectInfo = get(projectFileInfoAtom);
           const inpInfo = get(inpFileInfoAtom);
-          const hydraulicModel = get(stagingModelDerivedAtom);
 
           const suggestedName = projectInfo
             ? projectInfo.name
@@ -91,7 +89,6 @@ export const useSaveProject = ({
             const isDemo = get(isDemoNetworkAtom);
             set(projectFileInfoAtom, {
               name: newHandle.name,
-              modelVersion: hydraulicModel.version,
               handle: newHandle,
               lastSavedAt: Date.now(),
             });

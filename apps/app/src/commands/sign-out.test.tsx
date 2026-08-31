@@ -82,6 +82,7 @@ describe("sign out", () => {
     const store = setInitialState({
       hydraulicModel: HydraulicModelBuilder.with().aJunction(1).build(),
       momentLog: aMomentLogWithChanges(),
+      isProjectSaved: false,
     });
 
     renderComponent({ store, signOut });
@@ -99,6 +100,7 @@ describe("sign out", () => {
     const store = setInitialState({
       hydraulicModel: HydraulicModelBuilder.with().aJunction(IDS.J1).build(),
       momentLog: aMomentLogWithChanges(),
+      isProjectSaved: false,
     });
 
     renderComponent({ store, signOut });
