@@ -71,7 +71,7 @@ export const ImportExportPatternsToolbar = ({
 
       return {
         status: "failed",
-        message: message ?? translate("patterns.import.exception"),
+        message: message ?? translate("fileReadError"),
         issues: rest.length
           ? { summary: translate("patterns.import.issues"), lines: rest }
           : undefined,

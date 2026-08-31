@@ -408,7 +408,7 @@ describe("ImportExportPatternsToolbar", () => {
       await clickImport(user);
 
       await waitFor(() =>
-        expect(screen.getByText(/could not be imported/i)).toBeVisible(),
+        expect(screen.getByText(/failed to read file/i)).toBeVisible(),
       );
       expect(onImported).not.toHaveBeenCalled();
 

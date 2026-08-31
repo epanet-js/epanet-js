@@ -1120,7 +1120,6 @@
   "cannotRenderMap": "Cannot render map on your browser",
   "cannotRenderMapExplain": "The map requires WebGL, which could not be initialized in your browser. This issue can sometimes occur after suspending or putting your computer to sleep. Please try closing your browser and reopening the page in a new browser window.",
   "cannotRenderMapAction": "If the problem continues after updating your browser and graphics drivers, please contact {{1}} for assistance.",
-  "importFailed": "The file could not be imported",
   "importCompletedWithWarnings": "Import completed with warnings",
   "importSuccessful": "Import successful",
   "importedCustomerPointSingular": "Imported {{1}} customer point",
@@ -1607,7 +1606,6 @@
       "missingLabel": "Missing pattern name. Pattern ignored",
       "notAValidPatternsFile": "This does not look like a patterns file. Expected columns are Pattern name, Type, Interval and Multipliers.",
       "unsupportedFormat": "Only .csv and .xlsx files can be imported",
-      "exception": "The file could not be read",
       "atRow": "{{1}} (row {{2}})",
       "atRows": "{{1}} (rows {{2}})",
       "andMoreRows": "{{1}} and {{2}} more"

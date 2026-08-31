@@ -241,7 +241,7 @@ export const parsePatternsFile = async (
       format,
       patterns: [],
       ignored: 0,
-      errors: [{ message: "patterns.import.exception" }],
+      errors: [{ message: "fileReadError" }],
     };
   }
 

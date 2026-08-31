@@ -79,7 +79,7 @@ export const ImportExportToolbar = ({
         captureError(error);
         setOutcome({
           status: "failed",
-          message: translate("importFailed"),
+          message: translate("fileReadError"),
         });
       })
       .finally(() => setBusy(false));
