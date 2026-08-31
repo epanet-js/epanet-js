@@ -10,7 +10,6 @@ import { Provider as JotaiProvider } from "jotai";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
-import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
 import { Store } from "src/state";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { proximityDistanceAtom } from "src/state/network-review";
@@ -96,7 +95,6 @@ const expectLongPipeSplit = (store: Store) => {
 
 describe("ProximityAnomalies distance", () => {
   it("keeps the distance when the panel is remounted", async () => {
-    stubFeatureOff("FLAG_FIX_PIPE_OVER_UNDER_SHOT");
     const store = setInitialState({ hydraulicModel: aModelWithAnAnomaly() });
     const { unmount } = render(
       <JotaiProvider store={store}>
@@ -130,18 +128,7 @@ describe("ProximityAnomalies distance", () => {
 });
 
 describe("ProximityAnomalies panel fix action", () => {
-  it("does not render a fix action when the flag is off", async () => {
-    stubFeatureOff("FLAG_FIX_PIPE_OVER_UNDER_SHOT");
-    renderPanel(setInitialState({ hydraulicModel: aModelWithAnAnomaly() }));
-
-    await waitFor(() => {
-      expect(screen.getAllByRole("listitem")).toHaveLength(1);
-    });
-    expect(screen.queryByRole("button", { name: "Connect" })).toBeNull();
-  });
-
   it("splits the pipe at the node", async () => {
-    stubFeatureOn("FLAG_FIX_PIPE_OVER_UNDER_SHOT");
     const store = setInitialState({ hydraulicModel: aModelWithAnAnomaly() });
     renderPanel(store);
 
@@ -157,7 +144,6 @@ describe("ProximityAnomalies panel fix action", () => {
   });
 
   it("connects the node when pressing Enter", async () => {
-    stubFeatureOn("FLAG_FIX_PIPE_OVER_UNDER_SHOT");
     const store = setInitialState({ hydraulicModel: aModelWithAnAnomaly() });
     renderPanel(store);
 
@@ -176,7 +162,6 @@ describe("ProximityAnomalies panel fix action", () => {
   });
 
   it("merges the nodes when the pipe undershoots instead of leaving a stub", async () => {
-    stubFeatureOn("FLAG_FIX_PIPE_OVER_UNDER_SHOT");
     // STUB starts just past where LONG ends, so the connection point lands on
     // an existing node rather than partway along the pipe.
     const UNDER = { A: 1, B: 2, LONG: 3, N: 4, N2: 5, STUB: 6 } as const;
@@ -219,7 +204,6 @@ describe("ProximityAnomalies panel fix action", () => {
   });
 
   it("merges when the connection point is near, not exactly on, an endpoint", async () => {
-    stubFeatureOn("FLAG_FIX_PIPE_OVER_UNDER_SHOT");
     // N sits slightly before LONG's end and off to one side, so the projection
     // lands inside the segment about 5 cm short of B — close enough that adding
     // a node there would sit almost on top of it.
@@ -263,7 +247,6 @@ describe("ProximityAnomalies panel fix action", () => {
   });
 
   it("does not fix via Enter while edition is blocked", async () => {
-    stubFeatureOn("FLAG_FIX_PIPE_OVER_UNDER_SHOT");
     isEditionBlocked = true;
     const store = setInitialState({ hydraulicModel: aModelWithAnAnomaly() });
     renderPanel(store);

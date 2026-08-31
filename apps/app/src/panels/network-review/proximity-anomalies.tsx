@@ -7,7 +7,6 @@ import {
   findProximityAnomalies,
 } from "src/lib/network-review";
 import clsx from "clsx";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useArchivedItems } from "./use-archived-items";
 import { FixProximityAnomalyButton } from "./fixes/fix-proximity-anomaly-button";
 import { useFixProximityAnomaly } from "./fixes/use-fix-proximity-anomaly";
@@ -133,20 +132,14 @@ export const ProximityAnomalies = ({ onGoBack }: { onGoBack: () => void }) => {
     [proximityAnomalies.length],
   );
 
-  const isFixPipeOverUnderShotOn = useFeatureFlag(
-    "FLAG_FIX_PIPE_OVER_UNDER_SHOT",
-  );
   const archiving = useArchivedItems(CheckType.proximityAnomalies);
   const { isArchived } = archiving;
 
   const activeCount = useMemo(
     () =>
-      isFixPipeOverUnderShotOn
-        ? proximityAnomalies.filter(
-            (item) => !isArchived(proximityAnomalyId(item)),
-          ).length
-        : proximityAnomalies.length,
-    [proximityAnomalies, isArchived, isFixPipeOverUnderShotOn],
+      proximityAnomalies.filter((item) => !isArchived(proximityAnomalyId(item)))
+        .length,
+    [proximityAnomalies, isArchived],
   );
 
   const headerProps = useCheckHeader(
@@ -176,7 +169,7 @@ export const ProximityAnomalies = ({ onGoBack }: { onGoBack: () => void }) => {
                 onSelect={selectProximityAnomaly}
                 selectedAnomaly={selectedProximityAnomalyId}
                 onGoBack={onGoBack}
-                archiving={isFixPipeOverUnderShotOn ? archiving : undefined}
+                archiving={archiving}
               />
             ) : (
               <>
@@ -337,11 +330,8 @@ const ProximityAnomaliesList = ({
   onSelect: (issue: ProximityAnomaly | null) => void;
   selectedAnomaly: string | null;
   onGoBack: () => void;
-  archiving?: Archiving<string>;
+  archiving: Archiving<string>;
 }) => {
-  const isFixPipeOverUnderShotOn = useFeatureFlag(
-    "FLAG_FIX_PIPE_OVER_UNDER_SHOT",
-  );
   const { fix } = useFixProximityAnomaly();
 
   const fixAnomaly = useCallback(
@@ -370,16 +360,12 @@ const ProximityAnomaliesList = ({
           isArchived={isArchived}
         />
       )}
-      renderItemAction={
-        isFixPipeOverUnderShotOn
-          ? (anomaly) => (
-              <FixProximityAnomalyButton
-                onFix={() => fixAnomaly(proximityAnomalyId(anomaly))}
-              />
-            )
-          : undefined
-      }
-      onItemAction={isFixPipeOverUnderShotOn ? fixAnomaly : undefined}
+      renderItemAction={(anomaly) => (
+        <FixProximityAnomalyButton
+          onFix={() => fixAnomaly(proximityAnomalyId(anomaly))}
+        />
+      )}
+      onItemAction={fixAnomaly}
       archiving={archiving}
       checkType={CheckType.proximityAnomalies}
       onGoBack={onGoBack}
@@ -399,9 +385,6 @@ const ProximityAnomalyItem = ({
   isArchived?: boolean;
 }) => {
   const translate = useTranslate();
-  const isFixPipeOverUnderShotOn = useFeatureFlag(
-    "FLAG_FIX_PIPE_OVER_UNDER_SHOT",
-  );
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const { units } = useAtomValue(projectSettingsAtom);
   const connectionId = proximityAnomalyId(anomaly);
@@ -434,14 +417,7 @@ const ProximityAnomalyItem = ({
       tabIndex={-1}
       className="group w-full hover:bg-transparent dark:hover:bg-transparent aria-selected:bg-transparent! aria-selected:hover:bg-transparent!"
     >
-      <div
-        className={clsx(
-          "grid gap-x-2 items-center h-8 px-2 pr-0 text-size-base w-full",
-          isFixPipeOverUnderShotOn
-            ? "grid-cols-[minmax(0,auto)_auto] justify-start"
-            : "grid-cols-[1fr_auto] justify-between",
-        )}
-      >
+      <div className="grid gap-x-2 items-center h-8 px-2 pr-0 text-size-base w-full grid-cols-[minmax(0,auto)_auto] justify-start">
         <div
           className={clsx(
             "min-w-0 truncate text-left",
@@ -450,12 +426,7 @@ const ProximityAnomalyItem = ({
         >
           {nodeAsset.label}
         </div>
-        <div
-          className={clsx(
-            "text-subtle",
-            isFixPipeOverUnderShotOn ? "whitespace-nowrap" : "min-w-0",
-          )}
-        >
+        <div className="text-subtle whitespace-nowrap">
           {distanceFormatted} {lengthUnit}
         </div>
       </div>
