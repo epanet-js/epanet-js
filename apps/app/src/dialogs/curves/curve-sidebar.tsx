@@ -27,6 +27,7 @@ import {
   NavigableList,
 } from "src/components/list";
 import type { NavItem, NavigableListHandle } from "src/components/list";
+import { CURVE_TYPE_TRANSLATION_KEYS } from "./curve-type-labels";
 
 type CurveSectionType = "volume" | "valve" | "headloss";
 type SidebarSectionType = CurveSectionType | "uncategorized";
@@ -40,11 +41,7 @@ type ActionState =
 
 const SECTION_TYPES: CurveSectionType[] = ["volume", "valve", "headloss"];
 
-const SECTION_TRANSLATION_KEYS: Record<CurveSectionType, string> = {
-  volume: "curves.volumeCurves",
-  valve: "curves.valveCurves",
-  headloss: "curves.headlossCurves",
-};
+const SECTION_TRANSLATION_KEYS = CURVE_TYPE_TRANSLATION_KEYS;
 
 type CurveSidebarProps = {
   width: number;

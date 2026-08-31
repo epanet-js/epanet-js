@@ -15,7 +15,7 @@ import type {
 } from "src/lib/operational-data-io/import-result";
 import { mergePatterns } from "src/lib/operational-data-io/patterns/merge-patterns";
 import type { ParsePatternsResult } from "src/lib/operational-data-io/patterns/parse-patterns-file";
-import { buildPatternTypeLabels } from "./pattern-type-labels";
+import { buildPatternTypeLabels, PATTERN_TYPES } from "./pattern-type-labels";
 import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
 
 export const ImportExportPatternsToolbar = ({
@@ -33,11 +33,14 @@ export const ImportExportPatternsToolbar = ({
 }) => {
   const translate = useTranslate();
   const isEnabled = useFeatureFlag("FLAG_PATTERNS_IMPORT_EXPORT");
-  const { exportToCsv, exportToXlsx } = useExportPatterns();
+  const { exportToCsv, exportToXlsx } = useExportPatterns(
+    translate("patterns.title"),
+  );
   const importPatterns = useImportPatterns();
 
   const options = useMemo(
     () => ({
+      typeOrder: PATTERN_TYPES,
       typeLabels: buildPatternTypeLabels(translate),
       intervalSeconds,
       headers: {

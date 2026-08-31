@@ -1,10 +1,11 @@
-import Papa from "papaparse";
-import type { PatternType, Patterns } from "src/hydraulic-model";
+import type { Pattern, PatternType, Patterns } from "src/hydraulic-model";
+import { serializeToCsv, serializeToXlsx, type Row } from "../table-file";
 import { formatSecondsToDisplay } from "src/components/form/time-field";
 
 export type PatternTypeLabels = Record<PatternType, string>;
 
 export type ExportPatternsOptions = {
+  typeOrder: PatternType[];
   typeLabels: PatternTypeLabels;
   intervalSeconds: number;
   headers: {
@@ -15,11 +16,9 @@ export type ExportPatternsOptions = {
   };
 };
 
-export type Row = (string | number | null)[];
-
 export const buildPatternRows = (
   patterns: Patterns,
-  { typeLabels, intervalSeconds, headers }: ExportPatternsOptions,
+  { typeOrder, typeLabels, intervalSeconds, headers }: ExportPatternsOptions,
 ): Row[] => {
   const interval = formatSecondsToDisplay(intervalSeconds);
 
@@ -30,14 +29,19 @@ export const buildPatternRows = (
     headers.multipliers,
   ];
 
-  const rows = [...patterns.values()].map(
-    (pattern): Row => [
-      pattern.label,
-      pattern.type ? typeLabels[pattern.type] : "",
-      interval,
-      ...pattern.multipliers,
-    ],
-  );
+  const rank = (pattern: Pattern): number =>
+    pattern.type ? typeOrder.indexOf(pattern.type) : typeOrder.length;
+
+  const rows = [...patterns.values()]
+    .sort((a, b) => rank(a) - rank(b))
+    .map(
+      (pattern): Row => [
+        pattern.label,
+        pattern.type ? typeLabels[pattern.type] : "",
+        interval,
+        ...pattern.multipliers,
+      ],
+    );
 
   return [header, ...rows];
 };
@@ -45,28 +49,10 @@ export const buildPatternRows = (
 export const serializePatternsToCsv = (
   patterns: Patterns,
   options: ExportPatternsOptions,
-): string => Papa.unparse(buildPatternRows(patterns, options));
+): string => serializeToCsv(buildPatternRows(patterns, options));
 
-export const serializePatternsToXlsx = async (
+export const serializePatternsToXlsx = (
   patterns: Patterns,
   options: ExportPatternsOptions,
-): Promise<Uint8Array> => {
-  const XLSX = await import("xlsx");
-  const rows = buildPatternRows(patterns, options);
-  const workbook = XLSX.utils.book_new();
-  const sheet = XLSX.utils.aoa_to_sheet(rows);
-
-  sheet["!freeze"] = { xSplit: 0, ySplit: 1 };
-  sheet["!cols"] = rows[0].map(() => ({ wch: 22 }));
-  for (let column = 0; column < rows[0].length; column++) {
-    const cell = sheet[XLSX.utils.encode_cell({ r: 0, c: column })];
-    if (cell) cell.s = { font: { bold: true } };
-  }
-
-  XLSX.utils.book_append_sheet(workbook, sheet, "Patterns");
-
-  return XLSX.write(workbook, {
-    bookType: "xlsx",
-    type: "array",
-  }) as Uint8Array;
-};
+): Promise<Uint8Array> =>
+  serializeToXlsx("Patterns", buildPatternRows(patterns, options));

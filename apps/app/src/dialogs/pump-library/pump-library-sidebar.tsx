@@ -27,6 +27,7 @@ import {
   NavigableList,
 } from "src/components/list";
 import type { NavItem, NavigableListHandle } from "src/components/list";
+import { CURVE_TYPE_TRANSLATION_KEYS } from "../curves/curve-type-labels";
 
 type CurveSectionType = "pump" | "efficiency";
 type SidebarSectionType = CurveSectionType | "uncategorized";
@@ -40,10 +41,7 @@ type ActionState =
 
 const SECTION_TYPES: CurveSectionType[] = ["pump", "efficiency"];
 
-const SECTION_TRANSLATION_KEYS: Record<CurveSectionType, string> = {
-  pump: "curves.pumpCurves",
-  efficiency: "curves.efficiencyCurves",
-};
+const SECTION_TRANSLATION_KEYS = CURVE_TYPE_TRANSLATION_KEYS;
 
 type PumpLibrarySidebarProps = {
   width: number;

@@ -1,16 +1,16 @@
 import { useCallback, useMemo } from "react";
 import { useAtomValue } from "jotai";
-import type { Patterns } from "src/hydraulic-model";
+import type { Curves } from "@epanet-js/hydraulic-model";
 import { currentFileNameAtom } from "src/state/file-system";
 import { useUserTracking } from "src/infra/user-tracking";
 import { FileSystemHelpers } from "src/infra/storage";
 import {
-  serializePatternsToCsv,
-  serializePatternsToXlsx,
-  type ExportPatternsOptions,
-} from "src/lib/operational-data-io/patterns/export-patterns";
+  serializeCurvesToCsv,
+  serializeCurvesToXlsx,
+  type ExportCurvesOptions,
+} from "src/lib/operational-data-io/curves/export-curves";
 
-export const useExportPatterns = (fileSuffix: string) => {
+export const useExportCurves = (fileSuffix: string) => {
   const { capture } = useUserTracking();
   const fullNetworkName = useAtomValue(currentFileNameAtom) ?? "";
   const networkName = useMemo(() => {
@@ -19,31 +19,23 @@ export const useExportPatterns = (fileSuffix: string) => {
   }, [fullNetworkName]);
 
   const exportToCsv = useCallback(
-    async (patterns: Patterns, options: ExportPatternsOptions) => {
+    async (curves: Curves, options: ExportCurvesOptions) => {
       await FileSystemHelpers.downloadFile(
         `${networkName}-${fileSuffix}.csv`,
-        serializePatternsToCsv(patterns, options),
+        serializeCurvesToCsv(curves, options),
       );
-      capture({
-        name: "patterns.exported",
-        format: "csv",
-        count: patterns.size,
-      });
+      capture({ name: "curves.exported", format: "csv", count: curves.size });
     },
     [networkName, fileSuffix, capture],
   );
 
   const exportToXlsx = useCallback(
-    async (patterns: Patterns, options: ExportPatternsOptions) => {
+    async (curves: Curves, options: ExportCurvesOptions) => {
       await FileSystemHelpers.downloadFile(
         `${networkName}-${fileSuffix}.xlsx`,
-        await serializePatternsToXlsx(patterns, options),
+        await serializeCurvesToXlsx(curves, options),
       );
-      capture({
-        name: "patterns.exported",
-        format: "xlsx",
-        count: patterns.size,
-      });
+      capture({ name: "curves.exported", format: "xlsx", count: curves.size });
     },
     [networkName, fileSuffix, capture],
   );

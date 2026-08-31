@@ -1628,8 +1628,9 @@
   },
   "curves": {
     "title": "Curves",
-    "addCurve": "Add {{1}} curve",
     "curveName": "Curve name",
+    "axis": "Axis",
+    "addCurve": "Add {{1}} curve",
     "emptyTitle": "Curves are empty",
     "emptyDescription": "Add a curve to get started.",
     "noSelection": "Select a curve to edit.",

@@ -55,7 +55,7 @@ export const ImportExportToolbar = ({
 }: {
   onExportCsv: () => void;
   onExportXlsx: () => void;
-  onImport: () => Promise<ImportOutcome | null>;
+  onImport?: () => Promise<ImportOutcome | null>;
   onImportingChange?: (isImporting: boolean) => void;
   readOnly?: boolean;
 }) => {
@@ -72,6 +72,7 @@ export const ImportExportToolbar = ({
   );
 
   const handleImport = useCallback(() => {
+    if (!onImport) return;
     setBusy(true);
     void onImport()
       .then(setOutcome)
@@ -113,14 +114,16 @@ export const ImportExportToolbar = ({
             </StyledItem>
           </DDContent>
         </DD.Root>
-        <Button
-          variant="default"
-          size="sm"
-          onClick={handleImport}
-          disabled={readOnly || isImporting}
-        >
-          {translate("import")}
-        </Button>
+        {onImport && (
+          <Button
+            variant="default"
+            size="sm"
+            onClick={handleImport}
+            disabled={readOnly || isImporting}
+          >
+            {translate("import")}
+          </Button>
+        )}
       </div>
     </div>
   );

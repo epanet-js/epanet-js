@@ -17,6 +17,13 @@ const labels: Record<PatternType, string> = {
 const options = (
   overrides: Partial<ExportPatternsOptions> = {},
 ): ExportPatternsOptions => ({
+  typeOrder: [
+    "demand",
+    "reservoirHead",
+    "pumpSpeed",
+    "qualitySourceStrength",
+    "energyPrice",
+  ],
   typeLabels: labels,
   intervalSeconds: 3600,
   headers: {
@@ -83,6 +90,28 @@ describe("buildPatternRows", () => {
     const rows = buildPatternRows(patterns, options({ intervalSeconds: 1800 }));
 
     expect(rows[1][2]).toEqual("0:30");
+  });
+
+  it("groups patterns by type in the sidebar's order, uncategorized last", () => {
+    const patterns = patternsOf(
+      { id: 1, label: "UNTYPED", multipliers: [1] },
+      { id: 2, label: "ENERGY", type: "energyPrice", multipliers: [1] },
+      { id: 3, label: "DEMAND_B", type: "demand", multipliers: [1] },
+      { id: 4, label: "SPEED", type: "pumpSpeed", multipliers: [1] },
+      { id: 5, label: "DEMAND_A", type: "demand", multipliers: [1] },
+    );
+
+    const names = buildPatternRows(patterns, options())
+      .slice(1)
+      .map((row) => row[0]);
+
+    expect(names).toEqual([
+      "DEMAND_B",
+      "DEMAND_A",
+      "SPEED",
+      "ENERGY",
+      "UNTYPED",
+    ]);
   });
 });
 

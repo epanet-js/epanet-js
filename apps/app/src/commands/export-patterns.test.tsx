@@ -25,6 +25,7 @@ const patterns: Patterns = new Map([
 ]);
 
 const options: ExportPatternsOptions = {
+  typeOrder: ["demand"],
   typeLabels: {
     demand: "Demand",
     reservoirHead: "Reservoir head",
@@ -42,7 +43,7 @@ const options: ExportPatternsOptions = {
 };
 
 const renderExport = (store: ReturnType<typeof createStore>) =>
-  renderHook(() => useExportPatterns(), {
+  renderHook(() => useExportPatterns("Patterns"), {
     wrapper: ({ children }) => (
       <JotaiProvider store={store}>{children}</JotaiProvider>
     ),
@@ -70,7 +71,7 @@ describe("useExportPatterns", () => {
     });
 
     const [fileName, contents] = downloadFile.mock.calls[0];
-    expect(fileName).toEqual("my-network-patterns.csv");
+    expect(fileName).toEqual("my-network-Patterns.csv");
     expect(typeof contents).toBe("string");
     expect(tracking.capture).toHaveBeenCalledWith({
       name: "patterns.exported",
@@ -87,7 +88,7 @@ describe("useExportPatterns", () => {
     });
 
     const [fileName, contents] = downloadFile.mock.calls[0];
-    expect(fileName).toEqual("my-network-patterns.xlsx");
+    expect(fileName).toEqual("my-network-Patterns.xlsx");
     expect(typeof contents).not.toBe("string");
     expect((contents as Uint8Array).byteLength).toBeGreaterThan(0);
     expect(tracking.capture).toHaveBeenCalledWith({

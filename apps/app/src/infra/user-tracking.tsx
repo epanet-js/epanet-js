@@ -1216,6 +1216,12 @@ type PatternsUncategorized = {
   count: number;
 };
 
+type CurvesExported = {
+  name: "curves.exported";
+  format: "csv" | "xlsx";
+  count: number;
+};
+
 type PatternsExported = {
   name: "patterns.exported";
   format: "csv" | "xlsx";
@@ -1800,6 +1806,7 @@ export type UserEvent =
   | PatternsDiscarded
   | PatternsUncategorized
   | PatternsExported
+  | CurvesExported
   | PatternsImportedFromFile
   | PipeLibraryOpened
   | PipeLibraryMaterialChanged

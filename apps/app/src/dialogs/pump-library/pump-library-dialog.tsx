@@ -28,8 +28,11 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { getCurveTypeConfig } from "../curves/curve-type-config";
 import { DialogActions, DialogActionsHandle } from "../dialog-actions-row";
 import { HydraulicModel, Pump } from "src/hydraulic-model";
+import { ImportExportCurvesToolbar } from "../curves/import-export-curves-toolbar";
 
 type CurveUpdate = Partial<Pick<ICurve, "label" | "points" | "type">>;
+
+const SCOPE: CurveType[] = ["pump", "efficiency"];
 
 export const PumpLibraryDialog = ({
   initialCurveId,
@@ -226,53 +229,61 @@ export const PumpLibraryDialog = ({
         />
       }
     >
-      <div className="flex-1 flex min-h-0">
-        <div className="shrink-0 flex">
-          <PumpLibrarySidebar
-            width={sidebarWidth}
-            curves={editedCurves}
-            selectedCurveId={selectedCurveId}
-            initialSection={initialSection}
-            labelManager={labelManagerRef.current}
-            invalidCurveIds={invalidCurveIds}
-            onSelectCurve={setSelectedCurveId}
-            onAddCurve={handleAddCurve}
-            onChangeCurve={handleCurveChange}
-            onDeleteCurve={handleDeleteCurve}
-            readOnly={isEditionBlocked}
-          />
-          <VerticalResizer
-            width={sidebarWidth}
-            onWidthChange={setSidebarWidth}
-          />
-        </div>
-        <div className="flex-1 flex flex-col min-h-0 w-full">
-          {selectedCurveId ? (
-            (() => {
-              const curveType = editedCurves.get(selectedCurveId)?.type;
-              const isUncategorized =
-                curveType !== "pump" && curveType !== "efficiency";
-              return (
-                <CurveDetail
-                  points={getCurvePoints(selectedCurveId)}
-                  onChange={(points) =>
-                    handleCurveChange(selectedCurveId, { points })
-                  }
-                  readOnly={isEditionBlocked || isUncategorized}
-                  curveType={curveType}
-                  units={projectSettings.units}
-                />
-              );
-            })()
-          ) : hasCurves ? (
-            <div className="flex-1 flex items-center justify-center p-2">
-              <NoSelectionState />
-            </div>
-          ) : (
-            <div className="flex-1 flex items-center justify-center p-2">
-              <EmptyState readOnly={isEditionBlocked} />
-            </div>
-          )}
+      <div className="flex flex-col flex-1 min-h-0">
+        <ImportExportCurvesToolbar
+          curves={editedCurves}
+          scope={SCOPE}
+          fileSuffix={translate("pumpLibrary")}
+          readOnly={isEditionBlocked}
+        />
+        <div className="flex-1 flex min-h-0">
+          <div className="shrink-0 flex">
+            <PumpLibrarySidebar
+              width={sidebarWidth}
+              curves={editedCurves}
+              selectedCurveId={selectedCurveId}
+              initialSection={initialSection}
+              labelManager={labelManagerRef.current}
+              invalidCurveIds={invalidCurveIds}
+              onSelectCurve={setSelectedCurveId}
+              onAddCurve={handleAddCurve}
+              onChangeCurve={handleCurveChange}
+              onDeleteCurve={handleDeleteCurve}
+              readOnly={isEditionBlocked}
+            />
+            <VerticalResizer
+              width={sidebarWidth}
+              onWidthChange={setSidebarWidth}
+            />
+          </div>
+          <div className="flex-1 flex flex-col min-h-0 w-full">
+            {selectedCurveId ? (
+              (() => {
+                const curveType = editedCurves.get(selectedCurveId)?.type;
+                const isUncategorized =
+                  curveType !== "pump" && curveType !== "efficiency";
+                return (
+                  <CurveDetail
+                    points={getCurvePoints(selectedCurveId)}
+                    onChange={(points) =>
+                      handleCurveChange(selectedCurveId, { points })
+                    }
+                    readOnly={isEditionBlocked || isUncategorized}
+                    curveType={curveType}
+                    units={projectSettings.units}
+                  />
+                );
+              })()
+            ) : hasCurves ? (
+              <div className="flex-1 flex items-center justify-center p-2">
+                <NoSelectionState />
+              </div>
+            ) : (
+              <div className="flex-1 flex items-center justify-center p-2">
+                <EmptyState readOnly={isEditionBlocked} />
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </BaseDialog>
