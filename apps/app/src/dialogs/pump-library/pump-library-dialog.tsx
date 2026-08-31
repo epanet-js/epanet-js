@@ -32,6 +32,10 @@ import { ImportExportCurvesToolbar } from "../curves/import-export-curves-toolba
 
 type CurveUpdate = Partial<Pick<ICurve, "label" | "points" | "type">>;
 
+const MESSAGE_OVERRIDES = {
+  "curves.import.wrongDialog": "curves.import.belongsToCurveLibrary",
+};
+
 const SCOPE: CurveType[] = ["pump", "efficiency"];
 
 export const PumpLibraryDialog = ({
@@ -243,6 +247,7 @@ export const PumpLibraryDialog = ({
         <ImportExportCurvesToolbar
           curves={editedCurves}
           scope={SCOPE}
+          messageOverrides={MESSAGE_OVERRIDES}
           onImported={handleImported}
           onImportingChange={setImporting}
           fileSuffix={translate("pumpLibrary")}

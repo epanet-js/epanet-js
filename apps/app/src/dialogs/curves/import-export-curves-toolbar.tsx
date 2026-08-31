@@ -18,6 +18,7 @@ import {
 import { useExportCurves } from "src/commands/export-curves";
 import { useImportCurves } from "src/commands/import-curves";
 import { mergeCurves } from "src/lib/operational-data-io/curves/merge-curves";
+import type { MessageOverrides } from "src/lib/operational-data-io/curves/parse-curves-file";
 import { buildCurveTypeLabels } from "./curve-type-labels";
 
 const KEYS = "curves.import";
@@ -25,6 +26,7 @@ const KEYS = "curves.import";
 export const ImportExportCurvesToolbar = ({
   curves,
   scope,
+  messageOverrides,
   fileSuffix,
   onImported,
   onImportingChange,
@@ -33,6 +35,9 @@ export const ImportExportCurvesToolbar = ({
   curves: Curves;
   // The types this dialog owns; untyped curves always travel with them.
   scope: CurveType[];
+  // Wording this dialog states more precisely than the generic default —
+  // which library a foreign curve belongs to, for instance.
+  messageOverrides?: MessageOverrides;
   fileSuffix: string;
   onImported: (curves: Curves) => void;
   onImportingChange?: (isImporting: boolean) => void;
@@ -73,6 +78,7 @@ export const ImportExportCurvesToolbar = ({
       scope: options.scope,
       typeLabels: options.typeLabels,
       axisLabels: options.axisLabels,
+      messageOverrides,
     });
     if (!parsed) return null;
 
@@ -111,7 +117,7 @@ export const ImportExportCurvesToolbar = ({
       errors: parsed.errors,
       translate,
     });
-  }, [importCurves, options, curves, onImported, translate]);
+  }, [importCurves, options, messageOverrides, curves, onImported, translate]);
 
   if (!isEnabled) return null;
 

@@ -195,9 +195,7 @@ describe("ImportExportPatternsToolbar", () => {
       await clickImport(user);
 
       expect(
-        await screen.findByText(
-          "Patterns imported: 1 added, 1 not in the file",
-        ),
+        await screen.findByText("Patterns imported: 1 added, 1 not modified"),
       ).toBeVisible();
       expect(screen.queryByText(/found issues/i)).not.toBeInTheDocument();
     });
@@ -216,7 +214,7 @@ describe("ImportExportPatternsToolbar", () => {
 
       expect(
         await screen.findByText(
-          "Nothing was imported: 1 identical, 1 not in the file",
+          "Nothing was imported: 1 identical, 1 not modified",
         ),
       ).toBeVisible();
     });
@@ -264,7 +262,7 @@ describe("ImportExportPatternsToolbar", () => {
       renderToolbar(patternsOf({ id: 1, label: "PAT1", multipliers: [1] }));
       await clickImport(user);
 
-      await screen.findByText("Patterns imported: 1 added, 1 not in the file");
+      await screen.findByText("Patterns imported: 1 added, 1 not modified");
       expect(screen.queryByText(/^issues$/i)).not.toBeInTheDocument();
     });
 
@@ -282,7 +280,7 @@ describe("ImportExportPatternsToolbar", () => {
 
       await waitFor(() =>
         expect(
-          screen.getByText("Patterns imported: 1 updated, 1 not in the file"),
+          screen.getByText("Patterns imported: 1 updated, 1 not modified"),
         ).toBeVisible(),
       );
     });

@@ -11,6 +11,9 @@ import {
 } from "../table-file";
 import type { CurveTypeLabels } from "./export-curves";
 
+// Replacement translation keys, keyed by the message they replace.
+export type MessageOverrides = Record<string, string>;
+
 export type ParsedCurve = {
   label: string;
   type?: CurveType;
@@ -143,7 +146,7 @@ const pairAxes = (
   axisRows: AxisRow[],
   scope: CurveType[],
   errors: ImportError[],
-): { curves: ParsedCurve[]; rejected: number } => {
+): { curves: ParsedCurve[]; malformed: number; foreign: number } => {
   const byKey = new Map<string, { x?: AxisRow; y?: AxisRow }>();
   const order: string[] = [];
 
@@ -167,7 +170,10 @@ const pairAxes = (
   }
 
   const curves: ParsedCurve[] = [];
-  let rejected = 0;
+  // Rows whose shape was wrong, kept apart from rows that were merely aimed
+  // at the other library: only the former says anything about the file.
+  let malformed = 0;
+  let foreign = 0;
 
   for (const key of order) {
     const { x, y } = byKey.get(key)!;
@@ -179,7 +185,7 @@ const pairAxes = (
         message: "curves.import.unpairedAxis",
         row: present.row,
       });
-      rejected += 1;
+      malformed += 1;
       continue;
     }
 
@@ -191,7 +197,7 @@ const pairAxes = (
         message: "curves.import.conflictingTypes",
         row: y.row,
       });
-      rejected += 2;
+      malformed += 2;
       continue;
     }
 
@@ -203,7 +209,7 @@ const pairAxes = (
         message: "curves.import.wrongDialog",
         row: x.row,
       });
-      rejected += 2;
+      foreign += 2;
       continue;
     }
 
@@ -226,7 +232,7 @@ const pairAxes = (
     });
   }
 
-  return { curves, rejected };
+  return { curves, malformed, foreign };
 };
 
 export const parseCurvesFile = async (
@@ -235,12 +241,23 @@ export const parseCurvesFile = async (
     scope,
     typeLabels,
     axisLabels,
+    messageOverrides = {},
   }: {
     scope: CurveType[];
     typeLabels: CurveTypeLabels;
     axisLabels: { x: string; y: string };
+    // Lets a dialog say something more specific than the generic wording —
+    // naming the library a foreign curve belongs to, for instance.
+    messageOverrides?: MessageOverrides;
   },
 ): Promise<ParseCurvesResult> => {
+  const applyOverrides = (errors: ImportError[]): ImportError[] =>
+    errors.map((error) =>
+      messageOverrides[error.message]
+        ? { ...error, message: messageOverrides[error.message] }
+        : error,
+    );
+
   const format = formatOf(file);
 
   if (!format) {
@@ -248,7 +265,7 @@ export const parseCurvesFile = async (
       status: "error",
       curves: [],
       ignored: 0,
-      errors: [{ message: "curves.import.unsupportedFormat" }],
+      errors: applyOverrides([{ message: "curves.import.unsupportedFormat" }]),
     };
   }
 
@@ -262,7 +279,7 @@ export const parseCurvesFile = async (
       format,
       curves: [],
       ignored: 0,
-      errors: [{ message: "fileReadError" }],
+      errors: applyOverrides([{ message: "fileReadError" }]),
     };
   }
 
@@ -271,17 +288,21 @@ export const parseCurvesFile = async (
   const read = readAxisRows(dataRows, typeLabels, axisLabels, errors);
   const paired = pairAxes(read.rows, scope, errors);
 
-  const ignored = read.rejected + paired.rejected;
+  const malformed = read.rejected + paired.malformed;
+  const ignored = malformed + paired.foreign;
 
-  // Most rows unusable means this is the wrong kind of file rather than a
-  // curves file with mistakes in it
-  if (dataRows.length >= 2 && ignored * 2 > dataRows.length) {
+  // Most rows unreadable means this is the wrong kind of file. Curves meant
+  // for the other library are perfectly well formed, so they are reported on
+  // their own rather than counted as evidence against the file.
+  if (dataRows.length >= 2 && malformed * 2 > dataRows.length) {
     return {
       status: "error",
       format,
       curves: [],
       ignored,
-      errors: [{ message: "curves.import.notAValidCurvesFile" }],
+      errors: applyOverrides([
+        { message: "curves.import.notAValidCurvesFile" },
+      ]),
     };
   }
 
@@ -290,6 +311,6 @@ export const parseCurvesFile = async (
     format,
     curves: paired.curves,
     ignored,
-    errors,
+    errors: applyOverrides(errors),
   };
 };

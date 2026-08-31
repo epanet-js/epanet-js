@@ -13,6 +13,9 @@ const parseOptions = {
   scope: ["volume", "valve", "headloss"] as CurveType[],
   typeLabels,
   axisLabels: { x: "X", y: "Y" },
+  messageOverrides: {
+    "curves.import.wrongDialog": "curves.import.belongsToPumpLibrary",
+  },
 };
 
 const HEADER = "Curve name,Type,Axis,Values";
@@ -186,9 +189,25 @@ describe("parseCurvesFile", () => {
       expect(result.status).toEqual("partial");
       expect(result.curves.map((c) => c.label)).toEqual(["TANK"]);
       expect(result.errors).toEqual([
-        { label: "P1", message: "curves.import.wrongDialog", row: 4 },
+        { label: "P1", message: "curves.import.belongsToPumpLibrary", row: 4 },
       ]);
       expect(result.ignored).toEqual(2);
+    });
+
+    it("reports a file of only foreign curves as such, not as a bad file", async () => {
+      const result = await parse(
+        "P1,Pump head,X,0",
+        "P1,Pump head,Y,50",
+        "E1,Pump efficiency,X,0",
+        "E1,Pump efficiency,Y,75",
+      );
+
+      expect(result.status).toEqual("partial");
+      expect(result.curves).toEqual([]);
+      expect(result.errors.map((e) => e.message)).toEqual([
+        "curves.import.belongsToPumpLibrary",
+        "curves.import.belongsToPumpLibrary",
+      ]);
     });
 
     it("accepts a curve the other library owns when that is the scope", async () => {

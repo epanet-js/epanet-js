@@ -84,7 +84,7 @@ export const mergePatterns = (
       added,
       updated,
       identical,
-      untouched: existing.size - touched.size,
+      notModified: existing.size - touched.size,
     },
   };
 };

@@ -36,7 +36,7 @@ describe("mergeCurves", () => {
       added: 1,
       updated: 0,
       identical: 0,
-      untouched: 1,
+      notModified: 1,
     });
   });
 
@@ -147,7 +147,7 @@ describe("mergeCurves", () => {
       added: 0,
       updated: 0,
       identical: 1,
-      untouched: 0,
+      notModified: 0,
     });
   });
 
@@ -162,6 +162,6 @@ describe("mergeCurves", () => {
     ]);
 
     expect(curves.get(2)?.points).toEqual([{ x: 0, y: 1 }]);
-    expect(counts.untouched).toEqual(1);
+    expect(counts.notModified).toEqual(1);
   });
 });

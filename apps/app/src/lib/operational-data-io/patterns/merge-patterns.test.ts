@@ -37,7 +37,7 @@ describe("mergePatterns", () => {
       added: 1,
       updated: 0,
       identical: 0,
-      untouched: 1,
+      notModified: 1,
     });
   });
 
@@ -142,7 +142,7 @@ describe("mergePatterns", () => {
       added: 1,
       updated: 0,
       identical: 0,
-      untouched: 1,
+      notModified: 1,
     });
   });
 
@@ -162,7 +162,7 @@ describe("mergePatterns", () => {
       added: 0,
       updated: 0,
       identical: 1,
-      untouched: 0,
+      notModified: 0,
     });
   });
 
@@ -182,6 +182,6 @@ describe("mergePatterns", () => {
       type: "demand",
       multipliers: [2],
     });
-    expect(counts.untouched).toEqual(1);
+    expect(counts.notModified).toEqual(1);
   });
 });

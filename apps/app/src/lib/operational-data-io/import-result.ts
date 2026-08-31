@@ -10,7 +10,7 @@ export type ImportCounts = {
   added: number;
   updated: number;
   identical: number;
-  untouched: number;
+  notModified: number;
 };
 
 export type ImportStatus = "success" | "error" | "partial";

@@ -4,6 +4,7 @@ import type { CurveType } from "@epanet-js/hydraulic-model";
 import { useUserTracking } from "src/infra/user-tracking";
 import {
   parseCurvesFile,
+  type MessageOverrides,
   type ParseCurvesResult,
 } from "src/lib/operational-data-io/curves/parse-curves-file";
 import type { CurveTypeLabels } from "src/lib/operational-data-io/curves/export-curves";
@@ -32,6 +33,7 @@ export const useImportCurves = () => {
       scope: CurveType[];
       typeLabels: CurveTypeLabels;
       axisLabels: { x: string; y: string };
+      messageOverrides?: MessageOverrides;
     }): Promise<ParseCurvesResult | null> => {
       const file = await openFilePicker();
       if (!file) return null;

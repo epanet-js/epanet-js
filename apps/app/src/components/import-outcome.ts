@@ -72,7 +72,7 @@ export const buildImportOutcome = ({
       ["updated", counts.updated, false],
       ["identical", counts.identical, false],
       ["ignored", ignored, true],
-      ["untouched", counts.untouched, false],
+      ["notModified", counts.notModified, false],
     ] as const
   )
     .filter(([, count]) => count > 0)

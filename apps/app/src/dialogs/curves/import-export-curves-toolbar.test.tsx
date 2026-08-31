@@ -37,6 +37,9 @@ const renderToolbar = (
       <ImportExportCurvesToolbar
         curves={curves}
         scope={scope}
+        messageOverrides={{
+          "curves.import.wrongDialog": "curves.import.belongsToPumpLibrary",
+        }}
         fileSuffix="curves"
         onImported={onImported}
       />
@@ -177,7 +180,7 @@ describe("ImportExportCurvesToolbar", () => {
       await clickImport(user);
 
       expect(
-        await screen.findByText("Curves imported: 1 added, 1 not in the file"),
+        await screen.findByText("Curves imported: 1 added, 1 not modified"),
       ).toBeVisible();
     });
 
@@ -205,6 +208,28 @@ describe("ImportExportCurvesToolbar", () => {
 
       await user.click(summary);
       expect(reason).toBeVisible();
+    });
+
+    it("names the library a foreign curve belongs to", async () => {
+      const user = setupUser();
+      importing([{ label: "C1", type: "volume", points: [{ x: 0, y: 1 }] }], {
+        status: "partial",
+        ignored: 2,
+        errors: [{ message: "curves.import.belongsToPumpLibrary", row: 4 }],
+      });
+
+      renderToolbar(
+        curvesOf({
+          id: 1,
+          label: "C1",
+          type: "volume",
+          points: [{ x: 9, y: 9 }],
+        }),
+      );
+      await clickImport(user);
+
+      await user.click(await screen.findByText(/^issues$/i));
+      expect(screen.getByText(/belongs to the pump library/i)).toBeVisible();
     });
 
     it("does nothing when the file picker is cancelled", async () => {

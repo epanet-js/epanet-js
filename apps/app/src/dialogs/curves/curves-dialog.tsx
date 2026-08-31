@@ -38,6 +38,10 @@ const CURVE_LIBRARY_TYPES: Set<CurveType> = new Set([
   "headloss",
 ]);
 
+const MESSAGE_OVERRIDES = {
+  "curves.import.wrongDialog": "curves.import.belongsToPumpLibrary",
+};
+
 const SCOPE: CurveType[] = ["volume", "valve", "headloss"];
 
 export const CurveLibraryDialog = ({
@@ -249,6 +253,7 @@ export const CurveLibraryDialog = ({
         <ImportExportCurvesToolbar
           curves={editedCurves}
           scope={SCOPE}
+          messageOverrides={MESSAGE_OVERRIDES}
           onImported={handleImported}
           onImportingChange={setImporting}
           fileSuffix={translate("curves.title")}
