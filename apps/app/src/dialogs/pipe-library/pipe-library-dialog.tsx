@@ -7,12 +7,14 @@ import { PipeLibrarySidebar } from "./pipe-library-sidebar";
 import { PipeRoughnessTable } from "./pipe-roughness-table";
 import { PipeErrorBanner } from "./pipe-error-banner";
 import { VerticalResizer } from "../vertical-resizer";
-import { DismissableBanner } from "src/components/dismissable-banner";
 import { WarningActionBanner } from "../warning-action-banner";
+import { ImportOutcomeReport } from "src/components/import-outcome-report";
 import { ChevronDownIcon, PipeLibraryIcon } from "src/icons";
 import { Button, DDContent, StyledItem } from "src/components/elements";
 import { validateMaterial } from "src/hydraulic-model/pipe-materials";
 import { usePipeLibraryHandlers } from "./use-pipe-library-handlers";
+
+const IMPORT_KEYS = "pipeLibrary.import";
 
 export const PipeLibraryDialog = () => {
   const dialogActions = useRef<DialogActionsHandle>(null);
@@ -20,7 +22,7 @@ export const PipeLibraryDialog = () => {
     translate,
     draftMaterials,
     selectedLabel,
-    setSelectedLabel,
+    handleSelectMaterial,
     selectedMaterial,
     isEmpty,
     hasChanges,
@@ -41,11 +43,11 @@ export const PipeLibraryDialog = () => {
     handleAcceptImport,
     handleCancelImport,
     handleClose,
-    showBanner,
-    handleDismissBanner,
+    importOutcome,
+    handleDismissImportOutcome,
   } = usePipeLibraryHandlers();
 
-  const showMenuBar = !showBanner && pendingImport === null;
+  const showMenuBar = pendingImport === null;
 
   return (
     <BaseDialog
@@ -80,13 +82,6 @@ export const PipeLibraryDialog = () => {
             </div>
           </div>
         )}
-        {showBanner && (
-          <DismissableBanner
-            description={showBanner.description}
-            variant={showBanner.variant}
-            onDismiss={handleDismissBanner}
-          />
-        )}
         {pendingImport !== null && (
           <WarningActionBanner
             description={translate("pipeLibrary.import.confirmMessage")}
@@ -101,7 +96,7 @@ export const PipeLibraryDialog = () => {
               materials={draftMaterials}
               selectedLabel={selectedLabel}
               invalidMaterialLabels={invalidMaterialLabels}
-              onSelectMaterial={setSelectedLabel}
+              onSelectMaterial={handleSelectMaterial}
               onAddMaterial={handleAddMaterial}
               onRenameMaterial={handleRenameMaterial}
               onDuplicateMaterial={handleDuplicateMaterial}
@@ -113,6 +108,13 @@ export const PipeLibraryDialog = () => {
             />
           </div>
           <div className="flex-1 flex flex-col min-h-0 w-full">
+            {importOutcome && (
+              <ImportOutcomeReport
+                outcome={importOutcome}
+                translationKeys={IMPORT_KEYS}
+                onDismiss={handleDismissImportOutcome}
+              />
+            )}
             {selectedMaterial ? (
               <>
                 <PipeRoughnessTable

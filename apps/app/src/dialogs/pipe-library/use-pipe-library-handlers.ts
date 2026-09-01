@@ -14,6 +14,7 @@ import {
   validateMaterial,
   type ImportPipeLibraryResult,
 } from "src/hydraulic-model/pipe-materials";
+import type { ImportOutcome } from "src/components/import-outcome";
 import { useExportPipeLibrary } from "src/commands/export-pipe-library";
 import { useImportPipeLibrary } from "src/commands/import-pipe-library";
 import {
@@ -36,10 +37,9 @@ export const usePipeLibraryHandlers = () => {
   const [pendingImport, setPendingImport] = useState<"file" | "model" | null>(
     null,
   );
-  const [showBanner, setBanner] = useState<{
-    description: string;
-    variant: "default" | "warning" | "error" | "success";
-  } | null>(null);
+  const [importOutcome, setImportOutcome] = useState<ImportOutcome | null>(
+    null,
+  );
   const pendingRenamesRef = useRef(new Map<string, string>());
 
   const { exportToCsv, exportToXlsx } = useExportPipeLibrary();
@@ -188,10 +188,10 @@ export const usePipeLibraryHandlers = () => {
     [selectedLabel],
   );
 
-  const notifyImport = useCallback(
+  const reportImport = useCallback(
     (result: ImportPipeLibraryResult) => {
-      const description = (() => {
-        if (!result || result?.status === "error") {
+      const message = (() => {
+        if (result.status === "error") {
           return translate("pipeLibrary.import.errorTitle");
         }
 
@@ -208,16 +208,17 @@ export const usePipeLibraryHandlers = () => {
         return translate("pipeLibrary.import.success", numMaterials);
       })();
 
-      const variant = (() => {
-        if (result.status === "partial") return "warning";
-        if (result.status === "error") return "error";
-        if (result.pipeLibrary?.length === 0) return "default";
-        return "success";
+      const status = (() => {
+        if (result.status === "partial") return "warning" as const;
+        if (result.status === "error") return "failed" as const;
+        if (result.pipeLibrary?.length === 0) return "info" as const;
+        return "success" as const;
       })();
 
-      setBanner({ description, variant });
+      setImportOutcome({ status, message });
+      setSelectedLabel(null);
     },
-    [translate],
+    [translate, setSelectedLabel],
   );
 
   const handleImportFromFile = useCallback(async () => {
@@ -226,12 +227,11 @@ export const usePipeLibraryHandlers = () => {
 
     if (result.pipeLibrary) {
       setDraftMaterials(result.pipeLibrary);
-      setSelectedLabel(null);
       pendingRenamesRef.current.clear();
     }
 
-    notifyImport(result);
-  }, [importPipeLibraryFromFile, notifyImport, setSelectedLabel]);
+    reportImport(result);
+  }, [importPipeLibraryFromFile, reportImport]);
 
   const handleImportFromModel = useCallback(() => {
     const result = detectModelMaterials(
@@ -240,12 +240,11 @@ export const usePipeLibraryHandlers = () => {
     );
 
     if (!result.pipeLibrary || result.pipeLibrary.length === 0) {
-      notifyImport(result);
+      reportImport(result);
       return;
     }
 
     setDraftMaterials(result.pipeLibrary);
-    setSelectedLabel(null);
     pendingRenamesRef.current.clear();
 
     userTracking.capture({
@@ -253,14 +252,8 @@ export const usePipeLibraryHandlers = () => {
       materialsDetected: result.pipeLibrary.length,
     });
 
-    notifyImport(result);
-  }, [
-    hydraulicModel,
-    defaultRoughness,
-    setSelectedLabel,
-    notifyImport,
-    userTracking,
-  ]);
+    reportImport(result);
+  }, [hydraulicModel, defaultRoughness, reportImport, userTracking]);
 
   const requestImportFromFile = useCallback(() => {
     if (draftMaterials.length > 0) {
@@ -288,9 +281,17 @@ export const usePipeLibraryHandlers = () => {
     setPendingImport(null);
   }, []);
 
-  const handleDismissBanner = useCallback(() => {
-    setBanner(null);
+  const handleDismissImportOutcome = useCallback(() => {
+    setImportOutcome(null);
   }, []);
+
+  const handleSelectMaterial = useCallback(
+    (label: string | null) => {
+      setSelectedLabel(label);
+      setImportOutcome(null);
+    },
+    [setSelectedLabel],
+  );
 
   const handleExportCsv = useCallback(async () => {
     await exportToCsv(draftMaterials);
@@ -311,7 +312,7 @@ export const usePipeLibraryHandlers = () => {
     translate,
     draftMaterials,
     selectedLabel,
-    setSelectedLabel,
+    handleSelectMaterial,
     selectedMaterial,
     isEmpty,
     hasChanges,
@@ -332,7 +333,7 @@ export const usePipeLibraryHandlers = () => {
     handleAcceptImport,
     handleCancelImport,
     handleClose,
-    showBanner,
-    handleDismissBanner,
+    importOutcome,
+    handleDismissImportOutcome,
   };
 };

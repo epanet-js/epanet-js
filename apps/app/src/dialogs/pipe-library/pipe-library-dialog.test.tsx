@@ -28,6 +28,11 @@ vi.mock("src/hydraulic-model/model-operations/change-property", () => ({
   changeProperty: mockChangeProperty,
 }));
 
+const mockImportFromFile = vi.fn();
+vi.mock("src/commands/import-pipe-library", () => ({
+  useImportPipeLibrary: () => mockImportFromFile,
+}));
+
 const mockExportToCsv = vi.fn().mockResolvedValue(undefined);
 const mockExportToXlsx = vi.fn().mockResolvedValue(undefined);
 vi.mock("src/commands/export-pipe-library", () => ({
@@ -351,6 +356,76 @@ describe("PipeLibraryDialog", () => {
       }),
     );
     expect(mockExportToXlsx).toHaveBeenCalledWith(materials);
+  });
+
+  describe("importing from a file", () => {
+    const importing = (
+      pipeLibrary: PipeMaterial[],
+      status: "success" | "partial" | "error" = "success",
+    ) =>
+      mockImportFromFile.mockResolvedValue({
+        status,
+        format: "csv",
+        pipeLibrary,
+        errors: [],
+      });
+
+    const confirmImport = async (user: ReturnType<typeof setupUser>) => {
+      await user.click(screen.getByRole("button", { name: /^import$/i }));
+      await user.click(screen.getByRole("menuitem", { name: /from file/i }));
+      await user.click(screen.getByRole("button", { name: /continue/i }));
+    };
+
+    it("reports over the empty state, dropping the selected material", async () => {
+      const user = setupUser();
+      const store = seededStore(
+        [{ label: "Cast Iron", entries: [{ age: 0, roughness: 100 }] }],
+        "Cast Iron",
+      );
+      importing([{ label: "PVC", entries: [{ age: 0, roughness: 150 }] }]);
+
+      renderDialog(store);
+      await confirmImport(user);
+
+      expect(await screen.findByText(/imported 1 material/i)).toBeVisible();
+      expect(screen.getByText(/select a material/i)).toBeVisible();
+      expect(screen.getByRole("button", { name: /^import$/i })).toBeVisible();
+    });
+
+    it("forgets the report once a material is selected", async () => {
+      const user = setupUser();
+      const store = seededStore([
+        { label: "Cast Iron", entries: [{ age: 0, roughness: 100 }] },
+      ]);
+      importing([{ label: "PVC", entries: [{ age: 0, roughness: 150 }] }]);
+
+      renderDialog(store);
+      await confirmImport(user);
+      const report = await screen.findByText(/imported 1 material/i);
+
+      await user.click(screen.getByRole("button", { name: "PVC" }));
+
+      expect(report).not.toBeInTheDocument();
+    });
+
+    it("reports a failure without touching the draft", async () => {
+      const user = setupUser();
+      const materials = [
+        { label: "Cast Iron", entries: [{ age: 0, roughness: 100 }] },
+      ];
+      const store = seededStore(materials);
+      mockImportFromFile.mockResolvedValue({
+        status: "error",
+        format: "csv",
+        errors: [{ message: "pipeLibrary.import.emptyFile" }],
+      });
+
+      renderDialog(store);
+      await confirmImport(user);
+
+      expect(await screen.findByText(/failed to import/i)).toBeVisible();
+      expect(screen.getByRole("button", { name: "Cast Iron" })).toBeVisible();
+    });
   });
 });
 
