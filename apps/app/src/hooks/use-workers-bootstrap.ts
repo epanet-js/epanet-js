@@ -51,6 +51,14 @@ const preloadCrossingPipesWorker = async (): Promise<void> => {
   getCrossingPipesWorker();
 };
 
+const preloadProximityAnomaliesWorker = async (): Promise<void> => {
+  if (!canUseWorker()) return;
+  const { getProximityAnomaliesWorker } = await import(
+    "src/lib/network-review/proximity-anomalies/get-worker"
+  );
+  getProximityAnomaliesWorker();
+};
+
 export const useWorkersBootstrap = (areFeatureFlagsReady: boolean): boolean => {
   const [areWorkersReady, setAreWorkersReady] = useState(false);
   const isLongLivedWorkersOn = useFeatureFlag("FLAG_LONG_LIVED_WORKERS");
@@ -68,7 +76,11 @@ export const useWorkersBootstrap = (areFeatureFlagsReady: boolean): boolean => {
       configureFullOfflineSupport(isFullOfflineSupportOn);
       try {
         const nextPreloadedWorkers = isFullOfflineSupportOn
-          ? [preloadCustomerPointsWorker(), preloadCrossingPipesWorker()]
+          ? [
+              preloadCustomerPointsWorker(),
+              preloadCrossingPipesWorker(),
+              preloadProximityAnomaliesWorker(),
+            ]
           : [];
         const preloadedWorkers = [
           preloadSimulationWorker(),

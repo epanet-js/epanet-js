@@ -17,7 +17,11 @@ import {
   hydraulicModelTransferables,
 } from "../hydraulic-model-buffers";
 import { findProximityAnomalies } from "./find-proximity-anomalies";
-import { ProximityCheckWorkerAPI } from "./worker";
+import {
+  createProximityAnomaliesWorker,
+  getProximityAnomaliesWorker,
+} from "./get-worker";
+import { isFullOfflineSupportEnabled } from "src/infra/long-lived-workers";
 
 export const runCheck = async (
   hydraulicModel: HydraulicModel,
@@ -59,21 +63,35 @@ const runWithWorker = async (
     throw new DOMException("Operation cancelled", "AbortError");
   }
 
-  const worker = new Worker(new URL("./worker.ts", import.meta.url), {
-    type: "module",
-    name: "ProximityAnomaliesWorker",
-  });
+  const transferData = Comlink.transfer(
+    data,
+    hydraulicModelTransferables(data),
+  );
 
-  const workerAPI = Comlink.wrap<ProximityCheckWorkerAPI>(worker);
+  if (isFullOfflineSupportEnabled()) {
+    const workerAPI = getProximityAnomaliesWorker();
+    try {
+      const result = await workerAPI.findProximityAnomalies(
+        transferData,
+        distance,
+      );
+      if (signal?.aborted) {
+        throw new DOMException("Operation cancelled", "AbortError");
+      }
+      return result;
+    } catch (e) {
+      if (e instanceof DOMException && e.name === "AbortError") throw e;
+      throw enrichWorkerError("proximity-anomalies", e);
+    }
+  }
+
+  const { worker, api: workerAPI } = createProximityAnomaliesWorker();
 
   const abortHandler = () => worker.terminate();
   signal?.addEventListener("abort", abortHandler);
 
   try {
-    return await workerAPI.findProximityAnomalies(
-      Comlink.transfer(data, hydraulicModelTransferables(data)),
-      distance,
-    );
+    return await workerAPI.findProximityAnomalies(transferData, distance);
   } catch (e) {
     throw enrichWorkerError("proximity-anomalies", e);
   } finally {

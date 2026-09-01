@@ -20,6 +20,7 @@ import { resetConnectivityTraceWorkerForTest } from "src/lib/network-review/conn
 import { resetOrphanAssetsWorkerForTest } from "src/lib/network-review/orphan-assets/get-worker";
 import { resetCustomerPointsWorkerForTest } from "src/lib/customer-points/get-worker";
 import { resetCrossingPipesWorkerForTest } from "src/lib/network-review/crossing-pipes/get-worker";
+import { resetProximityAnomaliesWorkerForTest } from "src/lib/network-review/proximity-anomalies/get-worker";
 
 vi.mock("src/hooks/use-auth", () => ({
   useAuth: useAuthMock,
@@ -60,6 +61,7 @@ beforeEach(async () => {
   resetOrphanAssetsWorkerForTest();
   resetCustomerPointsWorkerForTest();
   resetCrossingPipesWorkerForTest();
+  resetProximityAnomaliesWorkerForTest();
   stubUserTracking();
   // Reset shared in-memory storage between tests
   const { InMemoryStorage } = await import("src/infra/storage");
