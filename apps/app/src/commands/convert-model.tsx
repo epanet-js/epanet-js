@@ -209,7 +209,15 @@ export const useConvertModel = () => {
 
 const withSourceHydraulics = (
   settings: SimulationSettings,
-  { patternTimeStep, simulationDuration, viscosity }: NetworkData,
+  {
+    patternTimeStep,
+    simulationDuration,
+    qualityTimeStep,
+    viscosity,
+    trials,
+    headError,
+    flowChange,
+  }: NetworkData,
 ): SimulationSettings => {
   const timing = {
     ...settings.timing,
@@ -223,11 +231,17 @@ const withSourceHydraulics = (
     ...(simulationDuration === undefined
       ? {}
       : { duration: simulationDuration }),
+    ...(qualityTimeStep === undefined
+      ? {}
+      : { qualityTimestep: qualityTimeStep }),
   };
 
   return {
     ...settings,
     ...(viscosity === undefined ? {} : { viscosity }),
+    ...(trials === undefined ? {} : { trials }),
+    ...(headError === undefined ? {} : { headError }),
+    ...(flowChange === undefined ? {} : { flowChange }),
     timing,
   };
 };

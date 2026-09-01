@@ -199,7 +199,11 @@ export type NetworkData = {
   customerPoints: CustomerPointData[];
   patternTimeStep?: number;
   simulationDuration?: number;
+  qualityTimeStep?: number;
   viscosity?: number;
+  trials?: number;
+  headError?: number;
+  flowChange?: number;
   headlossFormula?: HeadlossFormula;
   units: SourceUnits;
   crs: SourceCrs;

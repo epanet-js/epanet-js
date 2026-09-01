@@ -157,6 +157,22 @@ computed ~19.75 °C viscosity and lands 2.2% low.
 It matters only under Darcy-Weisbach, where it enters the Reynolds number and so the friction factor.
 Under Hazen-Williams nothing reads it.
 
+## Solver settings are the model's, not the reader's
+
+`trials`, `headError` and `flowChange` are the convergence settings the source model was authored
+with, and `qualityTimeStep` its water-quality step (seconds, like `patternTimeStep`). They are
+carried for the same reason the timing is: a model whose author raised the trial count did so
+because it needs them, and solving it on the consumer's defaults instead is how an import that is
+faithful in every value still fails to converge.
+
+**`headError` and `flowChange` are in the source's own head and flow units**, unconverted, because a
+consumer that adopts the source's unit system — which is what makes an import comparable against the
+vendor's own run — needs no conversion. A consumer that does *not* adopt them has to convert these
+two the way it converts any other head and flow.
+
+They are not defaults to fall back on: absent means the source stated nothing and the consumer's own
+defaults stand.
+
 ## Optionality is the contract
 
 `?:` on a record field means **the source did not say**, and the consumer decides

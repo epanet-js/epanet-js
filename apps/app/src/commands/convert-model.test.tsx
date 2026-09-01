@@ -232,6 +232,31 @@ describe("convertModel", () => {
     );
   });
 
+  it("solves with the tolerances the source was authored with", async () => {
+    stubFileOpen();
+    stubConverter("synergi", {
+      network: aNetwork({
+        trials: 900,
+        headError: 0.05,
+        flowChange: 0.001,
+        qualityTimeStep: 900,
+      }),
+      issues: [],
+    });
+    const store = setInitialState();
+
+    renderComponent({ store });
+    await triggerCommand();
+    await doFileSelection(aTestFile({ filename: "my-network.mdb" }));
+    await waitForNotLoading();
+
+    const settings = store.get(simulationSettingsDerivedAtom);
+    expect(settings.trials).toEqual(900);
+    expect(settings.headError).toBeCloseTo(0.05, 9);
+    expect(settings.flowChange).toBeCloseTo(0.001, 9);
+    expect(settings.timing.qualityTimestep).toEqual(900);
+  });
+
   it("leaves viscosity unset when the source states no fluid", async () => {
     stubFileOpen();
     stubConverter("synergi", { network: aNetwork(), issues: [] });
