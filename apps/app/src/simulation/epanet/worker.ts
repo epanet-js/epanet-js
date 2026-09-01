@@ -40,6 +40,47 @@ type WorkerProgressCallback = (
   progress: SimulationProgress,
 ) => boolean | void | Promise<boolean | void>;
 
+let sharedWorkspace: Workspace | null = null;
+let reuseEnabled = false;
+
+export const configureWorkerReuse = (enabled: boolean): void => {
+  reuseEnabled = enabled;
+};
+
+export const warmupSimulationEngine = async (): Promise<void> => {
+  await getSharedWorkspace();
+};
+
+export const resetSimulationWorkerForTest = (): void => {
+  sharedWorkspace = null;
+  reuseEnabled = false;
+};
+
+const getSharedWorkspace = async (): Promise<Workspace> => {
+  if (!sharedWorkspace) {
+    sharedWorkspace = new Workspace();
+    await sharedWorkspace.loadModuleVersion(EpanetEngine);
+  }
+  return sharedWorkspace;
+};
+
+const disposeSharedWorkspace = (): void => {
+  sharedWorkspace = null;
+};
+
+const workspaceFiles = ["net.inp", "report.rpt", "results.out"];
+
+const cleanupWorkspaceFiles = (ws: Workspace): void => {
+  const fs = ws.instance.FS as { unlink: (path: string) => void };
+  for (const file of workspaceFiles) {
+    try {
+      fs.unlink(file);
+    } catch {
+      // File may not exist if the run failed before creating it
+    }
+  }
+};
+
 export const runSimulation = async (
   inp: string,
   appId: string,
@@ -51,8 +92,13 @@ export const runSimulation = async (
   // eslint-disable-next-line no-console
   if (Object.keys(flags).length) console.log("Running with flags", flags);
 
-  const ws = new Workspace();
-  await ws.loadModuleVersion(EpanetEngine);
+  let ws: Workspace;
+  if (reuseEnabled) {
+    ws = await getSharedWorkspace();
+  } else {
+    ws = new Workspace();
+    await ws.loadModuleVersion(EpanetEngine);
+  }
 
   const model = new Project(ws);
   ws.writeFile("net.inp", inp);
@@ -180,6 +226,10 @@ export const runSimulation = async (
     const isOutOfMemory = isWasmMemoryError || isJsHeapOom;
     const isEpanetError = /EPANET Error|^Error \d+/.test(errorMessage);
 
+    if (reuseEnabled && isOutOfMemory) {
+      disposeSharedWorkspace();
+    }
+
     const displayMessage = isOutOfMemory
       ? `The simulation ran out of memory at timestep ${timestepCount}. The network may be too large for the current engine. (${errorMessage})`
       : errorMessage;
@@ -199,6 +249,10 @@ export const runSimulation = async (
       errorKind: isOutOfMemory ? "oom" : undefined,
       simulationStats: { nodeCount, linkCount, stepCount: timestepCount },
     };
+  } finally {
+    if (reuseEnabled && sharedWorkspace) {
+      cleanupWorkspaceFiles(sharedWorkspace);
+    }
   }
 };
 

@@ -14,7 +14,10 @@ type AppReadyState = {
   steps: LoadingStep[];
 };
 
-export const useAppReady = (isDbReady: boolean): AppReadyState => {
+export const useAppReady = (
+  isDbReady: boolean,
+  areWorkersReady: boolean,
+): AppReadyState => {
   const { isLoaded: authLoaded } = useAuth();
   const { isI18nReady } = useLocale();
   const featureFlagsReady = useFeatureFlagsReady();
@@ -36,6 +39,10 @@ export const useAppReady = (isDbReady: boolean): AppReadyState => {
     {
       id: "database",
       isComplete: isDbReady,
+    },
+    {
+      id: "workers",
+      isComplete: areWorkersReady,
     },
   ];
 

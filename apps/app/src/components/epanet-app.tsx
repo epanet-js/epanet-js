@@ -70,6 +70,7 @@ import { useIsCustomerAllocationDisabled } from "src/hooks/use-is-customer-alloc
 import { SessionRecoveryGuard } from "./session-recovery-guard";
 import { AuthSyncGuard } from "./auth-sync-guard";
 import { useDbStorageBootstrap } from "src/hooks/use-db-storage-bootstrap";
+import { useWorkersBootstrap } from "src/hooks/use-workers-bootstrap";
 
 type ResolvedLayout = "HORIZONTAL" | "VERTICAL" | "FLOATING";
 
@@ -86,7 +87,8 @@ const persistentTransformAtom = atom<Transform>({
 export function EpanetApp() {
   const areFeatureFlagsReady = useFeatureFlagsReady();
   const isDbReady = useDbStorageBootstrap(areFeatureFlagsReady);
-  const { isReady, progress } = useAppReady(isDbReady);
+  const areWorkersReady = useWorkersBootstrap(areFeatureFlagsReady);
+  const { isReady, progress } = useAppReady(isDbReady, areWorkersReady);
   const [map, setMap] = useState<MapEngine | null>(null);
   useWindowResizeSplits();
   const userTracking = useUserTracking();
