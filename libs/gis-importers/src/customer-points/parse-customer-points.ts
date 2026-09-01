@@ -41,8 +41,8 @@ export function* parseCustomerPoints(
     try {
       const geoJson: unknown = JSON.parse(fileContent);
       if (typeOf(geoJson) === "FeatureCollection") {
-        yield* parseGeoJSONFeatures(
-          geoJson as FeatureCollection,
+        yield* parseCustomerPointFeatures(
+          (geoJson as FeatureCollection).features ?? [],
           issues,
           demandImportUnit,
           demandTargetUnit,
@@ -72,8 +72,8 @@ export function* parseCustomerPoints(
   );
 }
 
-function* parseGeoJSONFeatures(
-  geoJson: FeatureCollection,
+export function* parseCustomerPointFeatures(
+  features: Feature[],
   issues: CustomerPointsIssuesAccumulator,
   demandImportUnit: Unit,
   demandTargetUnit: Unit,
@@ -84,11 +84,7 @@ function* parseGeoJSONFeatures(
   defaultDemand: number | null = null,
   labelMaxLength?: number,
 ): Generator<ParsedCustomerPoint | null, void, unknown> {
-  if (!geoJson || geoJson.type !== "FeatureCollection") {
-    throw new Error("Invalid GeoJSON: must be a FeatureCollection");
-  }
-
-  for (const feature of geoJson.features || []) {
+  for (const feature of features) {
     yield processGeoJSONFeature(
       feature,
       customerPointFactory,
