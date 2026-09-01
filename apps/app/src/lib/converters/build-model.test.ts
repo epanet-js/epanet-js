@@ -1068,6 +1068,32 @@ describe("build tanks from network data", () => {
     expect(tank.diameter).toBeNull();
   });
 
+  it("carries the overflow the source stated", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        tanks: [aTank({ ref: "1", label: "T1", overflow: true })],
+        units: { flow: "l/s" },
+      }),
+      { projections: aCatalogue() },
+    );
+
+    const tank = getByLabel(hydraulicModel.assets, "T1") as Tank;
+    expect(tank.overflow).toEqual(true);
+  });
+
+  it("leaves overflow on the default a drawn tank gets when the source stated none", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        tanks: [aTank({ ref: "1", label: "T1" })],
+        units: { flow: "l/s" },
+      }),
+      { projections: aCatalogue() },
+    );
+
+    const tank = getByLabel(hydraulicModel.assets, "T1") as Tank;
+    expect(tank.overflow).toEqual(false);
+  });
+
   it("keeps a stated zero diameter rather than inventing one", () => {
     const { hydraulicModel } = buildModel(
       aNetwork({

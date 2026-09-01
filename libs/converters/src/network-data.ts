@@ -65,6 +65,7 @@ export type TankData = NodeData & {
   diameter?: number;
   minVolume?: number;
   volumeCurveRef?: string;
+  overflow?: boolean;
 };
 
 export type LinkData = {

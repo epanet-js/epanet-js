@@ -485,6 +485,7 @@ const addTank = (
     maxLevel: converted(tankData.maxLevel, toLevel),
     diameter: converted(tankData.diameter, toTankDiameter),
     minVolume: tankData.minVolume,
+    overflow: tankData.overflow,
     volumeCurveId:
       tankData.volumeCurveRef === undefined
         ? undefined

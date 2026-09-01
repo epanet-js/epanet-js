@@ -47,6 +47,12 @@ an unrecognised valve type to `tcv` too, so both import paths behave alike.
 Its setting stays blank, because a number whose quantity we cannot name is worse than none —
 a valve setting is a pressure, a flow or a dimensionless coefficient depending on the kind.
 
+**A tank's `overflow` is not one of these substitutions.** `TankData.overflow` is passed straight
+through, and a tank whose parser said nothing reaches `createTank` with `undefined` and takes the
+factory's own `overflow ?? false` — the same answer a tank drawn on the map gets. Which engine
+behaviour a format implies is vendor knowledge, so the parser states it and this side does not
+second-guess it; nothing here should grow a default for it while that stays true.
+
 ## What the builder owns
 
 Everything a parser is forbidden to do, so it is written once instead of once per vendor:

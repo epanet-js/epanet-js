@@ -68,6 +68,22 @@ or say it cannot; passing a pressure off as a head is not an option.
 field serve both a fixed and a varying boundary. A parser that has the series states it that way
 rather than reducing it to an average.
 
+## A tank states whether it overflows, because engines differ
+
+`TankData.overflow` says whether the source's engine lets a full tank spill — holding the level at
+the top and discarding the surplus — rather than refusing the inflow and backing it up into the
+network. The two give different answers on any model with a tank that fills, so it is not a
+presentational detail.
+
+It sits here rather than being decided downstream because **which of the two a format means is
+vendor knowledge**, the same as a volume curve's axes: a consumer holding one rule per vendor to
+know how that vendor's solver behaves is exactly what this package exists to prevent. A vendor whose
+file states it reads it; a vendor whose engine simply behaves one way states that, and says why in
+its own notes.
+
+It is optional like everything else, so a parser with nothing to say leaves it out and the consumer
+falls back to whatever it does for a tank nobody imported.
+
 ## Optionality is the contract
 
 `?:` on a record field means **the source did not say**, and the consumer decides
