@@ -22,7 +22,6 @@ import {
   findTopologyConnectionMismatches,
   type OrphanLinkConnection,
 } from "src/hydraulic-model/validate-moment-integrity";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { writeQueue } from "src/lib/persistence/write-queue";
 import { useWriteFailureHandler } from "src/hooks/persistence/use-write-failure-handler";
 
@@ -53,13 +52,12 @@ const buildOrphanReport = (
 };
 
 export const useMomentTransaction = () => {
-  const isAsyncUndoOn = useFeatureFlag("FLAG_ASYNC_UNDO");
   const onWriteFailure = useWriteFailureHandler();
 
   const transact = useAtomCallback(
     useCallback(
       (get: Getter, set: Setter, moment: Moment) => {
-        if (isAsyncUndoOn && get(historyPendingAtom)) {
+        if (get(historyPendingAtom)) {
           captureWarning(
             `Edit "${moment.note}" rejected: a history action is pending`,
           );
@@ -167,7 +165,7 @@ export const useMomentTransaction = () => {
 
         return true;
       },
-      [isAsyncUndoOn, onWriteFailure],
+      [onWriteFailure],
     ),
   );
 

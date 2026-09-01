@@ -3,7 +3,6 @@ import { Provider as JotaiProvider } from "jotai";
 import { Mock, vi } from "vitest";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
-import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
 import { addNode } from "src/hydraulic-model/model-operations/add-node";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import { useUndoableTransactions } from "src/hooks/persistence/use-undoable-transactions";
@@ -97,11 +96,10 @@ const holdPrepare = () => {
   return release;
 };
 
-describe("undoable transactions with FLAG_ASYNC_UNDO enabled", () => {
+describe("undoable transactions", () => {
   useInProcessDb();
 
   beforeEach(() => {
-    stubFeatureOn("FLAG_ASYNC_UNDO");
     (transactionHelpers.prepareHistoryAction as Mock).mockImplementation(
       (action: transactionHelpers.HistoryAction) => Promise.resolve(action),
     );
@@ -265,57 +263,5 @@ describe("undoable transactions with FLAG_ASYNC_UNDO enabled", () => {
     await act(async () => {
       await pending;
     });
-  });
-});
-
-describe("undoable transactions with FLAG_ASYNC_UNDO disabled", () => {
-  useInProcessDb();
-
-  beforeEach(() => {
-    stubFeatureOff("FLAG_ASYNC_UNDO");
-  });
-
-  it("undoes within the same tick", async () => {
-    const store = await aProject();
-    addJunction(store);
-
-    const { result } = renderHook(
-      () => useUndoableTransactions(),
-      withStore(store),
-    );
-
-    act(() => {
-      void result.current.historyControl("undo");
-    });
-
-    expect(assetIds(store)).toEqual([IDS.J1]);
-    expect(store.get(historyPendingAtom)).toBe(false);
-  });
-
-  it("does not block edition", async () => {
-    const store = await aProject();
-    addJunction(store);
-
-    const { result } = renderHook(
-      () => ({
-        ...useUndoableTransactions(),
-        ...useMomentTransaction(),
-        isEditionBlocked: useIsEditionBlocked(),
-      }),
-      withStore(store),
-    );
-
-    act(() => {
-      void result.current.historyControl("undo");
-    });
-
-    expect(result.current.isEditionBlocked).toBe(false);
-
-    let applied!: boolean;
-    act(() => {
-      applied = result.current.transact(buildAddJunctionMoment(store));
-    });
-
-    expect(applied).toBe(true);
   });
 });

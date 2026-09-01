@@ -2,7 +2,6 @@ import { act, renderHook } from "@testing-library/react";
 import { Provider as JotaiProvider } from "jotai";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
-import { stubFeaturesOn } from "src/__helpers__/feature-flags";
 import { addNode } from "src/hydraulic-model/model-operations/add-node";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import { useUndoableTransactions } from "src/hooks/persistence/use-undoable-transactions";
@@ -91,7 +90,6 @@ describe("session history when enabled at storage configuration", () => {
   useInProcessDb();
 
   beforeEach(async () => {
-    stubFeaturesOn(["FLAG_ASYNC_UNDO"]);
     await configureSessionHistory(true);
   });
 
@@ -217,7 +215,6 @@ describe("session history when disabled at storage configuration", () => {
   useInProcessDb();
 
   beforeEach(async () => {
-    stubFeaturesOn(["FLAG_ASYNC_UNDO"]);
     await configureSessionHistory(false);
   });
 

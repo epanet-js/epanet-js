@@ -16,7 +16,6 @@ import type { MomentLog } from "src/lib/persistence/moment-log";
 import { applyMomentToDb, buildMomentPayload } from "src/lib/db";
 import type { ApplyMomentPayload, HistoryCapture } from "@epanet-js/ejsdb";
 import { captureError, captureWarning } from "src/infra/error-tracking";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   writeQueue,
   type WriteFailureHandler,
@@ -67,35 +66,9 @@ const nextAction = (
   direction === "undo" ? momentLog.nextUndo() : momentLog.nextRedo();
 
 export const useUndoableTransactions = () => {
-  const isAsyncUndoOn = useFeatureFlag("FLAG_ASYNC_UNDO");
   const onWriteFailure = useWriteFailureHandler();
 
-  const historyControlDeprecated = useAtomCallback(
-    useCallback(
-      (
-        get: Getter,
-        set: Setter,
-        direction: "undo" | "redo",
-      ): Promise<boolean> => {
-        const momentLog = get(momentLogDerivedAtom).copy();
-        const action = nextAction(momentLog, direction);
-        if (!action) return Promise.resolve(false);
-
-        commitHistoryAction(
-          get,
-          set,
-          direction,
-          action,
-          momentLog,
-          onWriteFailure,
-        );
-        return Promise.resolve(true);
-      },
-      [onWriteFailure],
-    ),
-  );
-
-  const historyControlAsync = useAtomCallback(
+  const historyControl = useAtomCallback(
     useCallback(
       async (
         get: Getter,
@@ -136,10 +109,6 @@ export const useUndoableTransactions = () => {
       [onWriteFailure],
     ),
   );
-
-  const historyControl = isAsyncUndoOn
-    ? historyControlAsync
-    : historyControlDeprecated;
 
   return { historyControl };
 };
