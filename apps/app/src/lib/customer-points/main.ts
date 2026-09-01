@@ -12,6 +12,11 @@ import { enrichWorkerError } from "src/infra/worker";
 import { runAllocation } from "./run-allocation";
 import { AllocationResultsView } from "./allocation-results";
 import type { AllocationWorkerAPI } from "./worker";
+import {
+  createCustomerPointsWorker,
+  getCustomerPointsWorker,
+} from "./get-worker";
+import { isFullOfflineSupportEnabled } from "src/infra/long-lived-workers";
 import type { Zone } from "src/lib/zones";
 
 type AllocationOptions = {
@@ -61,12 +66,18 @@ export const allocateCustomerPoints = async (
   const nullOffset = 0;
 
   const allocationResults = shouldUseWorkers
-    ? await runAllocationWithWorkers(
-        workerData,
-        allocationRules,
-        totalCustomerPoints,
-        workerCount,
-      )
+    ? isFullOfflineSupportEnabled()
+      ? await runAllocationWithSharedWorker(
+          workerData,
+          allocationRules,
+          totalCustomerPoints,
+        )
+      : await runAllocationWithWorkers(
+          workerData,
+          allocationRules,
+          totalCustomerPoints,
+          workerCount,
+        )
     : [runAllocation(workerData, allocationRules, nullOffset)];
 
   let customerPointsMatchedToZone = 0;
@@ -101,6 +112,26 @@ export const allocateCustomerPoints = async (
   };
 };
 
+const runAllocationWithSharedWorker = async (
+  workerData: RunData,
+  allocationRules: CustomerPointAllocationRule[],
+  totalCustomerPoints: number,
+): Promise<ArrayBuffer[]> => {
+  const workerAPI = getCustomerPointsWorker();
+
+  try {
+    const buffer = await workerAPI.runAllocation(
+      workerData,
+      allocationRules,
+      0,
+      totalCustomerPoints,
+    );
+    return [buffer];
+  } catch (e) {
+    throw enrichWorkerError("customer-allocation", e);
+  }
+};
+
 const runAllocationWithWorkers = async (
   workerData: RunData,
   allocationRules: CustomerPointAllocationRule[],
@@ -113,12 +144,9 @@ const runAllocationWithWorkers = async (
 
   try {
     for (let i = 0; i < workerCount; i++) {
-      const worker = new Worker(new URL("./worker.ts", import.meta.url), {
-        type: "module",
-        name: "CustomerPointsWorker",
-      });
+      const { worker, api } = createCustomerPointsWorker();
       workers.push(worker);
-      workerAPIs.push(Comlink.wrap<AllocationWorkerAPI>(worker));
+      workerAPIs.push(api);
     }
 
     const workerPromises = workerAPIs.map((workerAPI, workerIndex) => {
