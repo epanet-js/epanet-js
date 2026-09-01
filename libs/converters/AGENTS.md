@@ -37,6 +37,62 @@ type Converter = {
   unit conversion, no indexes. That is what lets a parse move to a worker without
   changing the contract, and what keeps every domain decision on the app side.
 
+## An importer is a partial converter
+
+A `Converter` reads a whole model file. An `Importer` reads a source that describes only *part*
+of a model — a shapefile of zones, a file of customer points — and needs the user to say which of
+its attributes means what. Both produce the same vocabulary, so both live here.
+
+```ts
+type Importer<Role extends string> = {
+  name: string;
+  extensions: string[];
+  roles: readonly Role[];
+  scanSource(input: ParserInput): Promise<{ summary: SourceSummary | null; issues: ParserIssue[] }>;
+  parseSource(input: ParserInput & { config?: ParseConfig<Role> }): Promise<ImportResult>;
+};
+```
+
+**The result is `Partial<NetworkData>`, and that is the whole difference.** `emptyNetworkData()`
+states `junctions: []` because a converter handed a model file can truthfully say the model has
+none. An importer handed a polygon file knows nothing whatsoever about junctions, and stating
+`[]` there would be the fabricated default this package forbids everywhere else. So an importer
+omits what it does not speak for, and a consumer reads `network.zones ?? []`.
+
+The relationship is not only a metaphor: `NetworkData` is assignable to `Partial<NetworkData>`,
+so a `ParserResult` *is* an `ImportResult`. Merging what two sources produced — two importers, or
+an importer and a converter — is a plain object spread, and nothing downstream has to know which
+kind produced which half.
+
+**Scanning and parsing are separate calls**, because the user has to choose a mapping in between
+and the choice is made against what the file turned out to contain. `scanSource` answers "what is
+in this file" — a `SourceSummary` of `attributes`, `recordCount`, `crs` and, where the source has
+one, `geometry` — without knowing what any of it means, because nothing has told it yet.
+`parseSource` then applies the choice, and a preview is the same call with a `recordLimit`.
+
+The two verbs are the contract: a scan surveys, a parse interprets. An implementation that finds
+itself needing to interpret in order to scan has put something in the wrong half.
+
+**Both phases take `ParserInput`, and a scan returns a summary rather than a handle.** The
+tempting alternative is for `scanSource` to hand back the decoded records for `parseSource` to
+reuse. That puts a second shape in the contract — one per implementation — and makes every
+consumer hold and pass it, for a saving that belongs to the implementation anyway: an importer
+that wants to decode once caches behind its own door, where it can also decide what is worth
+keeping. Taking the same input twice keeps the contract to one shape, matches `Converter`, and
+means a consumer that already has the files needs nothing else to parse them.
+
+Everything here is stated in terms of **records** and **attributes** rather than rows or features,
+because a source that is not geographic still has all three of a record count, an attribute list
+and a mapping. `geometry` is optional for the same reason: a spreadsheet has none.
+
+**An attribute's `name` is also its `ref`.** A source's attribute names are unique within it —
+they are column names — so unlike a vendor's custom attributes there is nothing to disambiguate,
+and `CustomAttributeData.ref` carries the name verbatim.
+
+**`ParseConfig` says what the consumer knows and the file does not.** `units` is echoed onto
+`NetworkData.units` and converted by nobody here; `crs` is used *only* when the source states
+none, so a consumer's guess can never override what a file says.
+
 ## One array per asset kind, and a shared record per shape
 
 `NodeData` (`ref`, `label?`, `coordinates`, `elevation?`) is what every node kind is built
@@ -334,6 +390,27 @@ does — says nothing here, because a consumer that holds zones as geometry deri
 point-in-polygon and a second, disagreeing answer helps nobody. If that changes, a `zoneRef` on the
 asset records is the additive way in.
 
+## A customer point is a location and a demand, and nothing else
+
+`CustomerPointData` is `ref`, `label?`, `coordinates`, `demands?` and `customAttributes?` — the
+same shape a node has, minus everything hydraulic, because a customer point is not connected to
+anything when it is read. What it ends up attached to is decided later by the consumer, from
+geometry.
+
+**`ref` is the record's position in the source**, as a string, because a GeoJSON feature states no
+id of its own. That is unique within the array, which is all a `ref` has to be, and it is never
+displayed — a source that names its customers puts that in `label`.
+
+**`demands` absent means the source stated no demand**, and is not the same as a demand of zero.
+The *default demand* a user types into an import wizard is a consumer's decision and never
+reaches this record; a parser that substituted it would make a typed number indistinguishable
+from a metered one.
+
+**A customer's demand has its own unit.** `SourceUnits.customerDemand` exists for the same reason
+`tankDiameter` does: a source really does state a customer's demand per day while its network
+flows are per second. A source that does not state the unit leaves it out and the consumer
+supplies it through `ParseConfig.units`.
+
 ## A kind the source did not give is `"unknown"`, not a dropped record
 
 `ValveData.kind` is `ValveKind | "unknown"`. A vendor kind that maps to nothing in the domain
@@ -371,3 +448,16 @@ Issues raised by a parser are **source-level** only: this row is malformed, this
 reference does not resolve, this file cannot be read. Domain policy — a truncated
 label, a declared length that disagrees with geometry — belongs to whatever
 builds the model, so it is written once instead of once per implementation.
+
+**A code names the problem, not the role it happened in.** `attributeValueUnreadable` carries the
+source's own column name in `context.attribute` and covers every unreadable value — a demand that
+is not a number, a label that is not a string, a custom attribute that is neither. A code per role
+would add a code and a message every time an importer gains one, for a sentence that only ever
+differs by a name the context already carries. `attributeMissing` is separate because it is a
+different fact: the mapped column is not in the file at all, so it is stated once for the source
+rather than once per record.
+
+`blockingIssues`, `distinctIssueCodes` and `groupIssues` live here rather than in a consumer,
+because every consumer needs the same three and they are pure functions of the vocabulary.
+`groupIssues` collapses a per-record issue list into one `IssueGroup` per code — a count and its
+refs — which is what makes "one issue per offending record" affordable to display.

@@ -22,6 +22,7 @@ export type SourceUnits = {
   tankDiameter?: LengthUnit;
   length?: LengthUnit;
   volume?: VolumeUnit;
+  customerDemand?: FlowUnit;
 };
 
 export type SourceCrs = { type: "epsg"; code: number } | { type: "unknown" };
@@ -123,6 +124,14 @@ export type ZoneData = {
   polygons: Position[][][];
 };
 
+export type CustomerPointData = {
+  ref: string;
+  label?: string;
+  coordinates: Position;
+  demands?: DemandData[];
+  customAttributes?: CustomAttributeValues;
+};
+
 export type ControlLinkKind = "pipe" | "pump" | "valve";
 export type ControlNodeKind = "junction" | "reservoir" | "tank";
 
@@ -187,6 +196,7 @@ export type NetworkData = {
   controls: ControlData[];
   customAttributes: CustomAttributeData[];
   zones: ZoneData[];
+  customerPoints: CustomerPointData[];
   patternTimeStep?: number;
   simulationDuration?: number;
   viscosity?: number;
@@ -207,6 +217,7 @@ export const emptyNetworkData = (): NetworkData => ({
   controls: [],
   customAttributes: [],
   zones: [],
+  customerPoints: [],
   units: {},
   crs: { type: "unknown" },
 });

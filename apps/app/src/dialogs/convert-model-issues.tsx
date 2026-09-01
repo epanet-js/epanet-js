@@ -106,7 +106,7 @@ export const ConvertModelIssuesDialog = ({
 const IssueGroupSummary = ({ group }: { group: IssueGroup }) => {
   const translate = useTranslate();
   const [showAll, setShowAll] = useState(false);
-  const key = `convertModel.issue.${group.code}`;
+  const key = `parserIssues.${group.code}`;
 
   if (!group.refs.length) return <p>{translate(key, ...group.context)}</p>;
 
