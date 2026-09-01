@@ -1,11 +1,19 @@
 import { useEffect, useRef, useState } from "react";
 import { captureError } from "src/infra/error-tracking";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { configureLongLivedWorkers } from "src/infra/long-lived-workers";
+import { canUseWorker } from "src/infra/worker";
 
 const preloadSimulationWorker = async (): Promise<void> => {
   const { lib } = await import("src/lib/worker");
   await lib.configureWorkerReuse(true);
   await lib.warmupSimulationEngine();
+};
+
+const preloadTraceWorker = async (): Promise<void> => {
+  if (!canUseWorker()) return;
+  const { getTraceWorker } = await import("src/lib/trace/get-worker");
+  getTraceWorker();
 };
 
 export const useWorkersBootstrap = (areFeatureFlagsReady: boolean): boolean => {
@@ -19,9 +27,13 @@ export const useWorkersBootstrap = (areFeatureFlagsReady: boolean): boolean => {
     workersInitializedRef.current = true;
 
     const bootstrap = async () => {
+      configureLongLivedWorkers(isLongLivedWorkersOn);
       if (!isLongLivedWorkersOn) return;
       try {
-        const preloadedWorkers = [preloadSimulationWorker()];
+        const preloadedWorkers = [
+          preloadSimulationWorker(),
+          preloadTraceWorker(),
+        ];
         await Promise.all(preloadedWorkers);
       } catch (error) {
         captureError(error as Error);

@@ -18,6 +18,8 @@ import { boundaryTrace } from "./boundary-trace";
 import { upstreamTrace } from "./upstream-trace";
 import { downstreamTrace } from "./downstream-trace";
 import type { TraceWorkerAPI } from "./worker-api";
+import { getTraceWorker } from "./get-worker";
+import { areLongLivedWorkersEnabled } from "src/infra/long-lived-workers";
 
 export interface TraceInput {
   mode: TraceMode;
@@ -90,6 +92,26 @@ const runWithWorker = async (
     nodeIds: input.startNodeIds,
     linkIds: input.startLinkIds,
   };
+  const transferData = Comlink.transfer(data, [
+    ...topologyTransferables(data.topologyBuffers),
+    ...assetIndexTransferables(data.assetIndexBuffers),
+    ...flowDirectionTransferables(data.flowDirectionBuffers),
+    ...allowedFlowDirectionTransferables(data.allowedFlowDirectionBuffers),
+  ]);
+
+  if (areLongLivedWorkersEnabled()) {
+    const workerAPI = getTraceWorker();
+    try {
+      const result = await workerAPI.runTrace(input.mode, start, transferData);
+      if (signal?.aborted) {
+        throw new DOMException("Operation cancelled", "AbortError");
+      }
+      return result;
+    } catch (e) {
+      if (e instanceof DOMException && e.name === "AbortError") throw e;
+      throw enrichWorkerError("trace", e);
+    }
+  }
 
   const worker = new Worker(new URL("./worker.ts", import.meta.url), {
     type: "module",
@@ -102,16 +124,7 @@ const runWithWorker = async (
   signal?.addEventListener("abort", abortHandler);
 
   try {
-    return await workerAPI.runTrace(
-      input.mode,
-      start,
-      Comlink.transfer(data, [
-        ...topologyTransferables(data.topologyBuffers),
-        ...assetIndexTransferables(data.assetIndexBuffers),
-        ...flowDirectionTransferables(data.flowDirectionBuffers),
-        ...allowedFlowDirectionTransferables(data.allowedFlowDirectionBuffers),
-      ]),
-    );
+    return await workerAPI.runTrace(input.mode, start, transferData);
   } catch (e) {
     throw enrichWorkerError("trace", e);
   } finally {

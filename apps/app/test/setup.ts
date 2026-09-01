@@ -14,6 +14,8 @@ import { setWorkerForTest } from "@epanet-js/ejsdb";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { AuthMockProvider, useAuthMock } from "src/__helpers__/auth-mock";
 import { nullDbWorker } from "src/lib/db/__test-helpers__/null-db-worker";
+import { resetLongLivedWorkersForTest } from "src/infra/long-lived-workers";
+import { resetTraceWorkerForTest } from "src/lib/trace/get-worker";
 
 vi.mock("src/hooks/use-auth", () => ({
   useAuth: useAuthMock,
@@ -48,6 +50,8 @@ vi.stubGlobal(
 
 beforeEach(async () => {
   setWorkerForTest(nullDbWorker);
+  resetLongLivedWorkersForTest();
+  resetTraceWorkerForTest();
   stubUserTracking();
   // Reset shared in-memory storage between tests
   const { InMemoryStorage } = await import("src/infra/storage");
