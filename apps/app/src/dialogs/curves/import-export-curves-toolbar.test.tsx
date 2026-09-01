@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Provider as JotaiProvider } from "jotai";
@@ -7,7 +8,12 @@ import { setInitialState } from "src/__helpers__/state";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
 import type { Store } from "src/state";
-import { ImportExportCurvesToolbar } from "./import-export-curves-toolbar";
+import type { ImportOutcome } from "src/components/import-outcome";
+import { ImportOutcomeReport } from "src/components/import-outcome-report";
+import {
+  ImportExportCurvesToolbar,
+  CURVES_IMPORT_KEYS,
+} from "./import-export-curves-toolbar";
 
 const exportToCsv = vi.fn();
 const exportToXlsx = vi.fn();
@@ -25,24 +31,58 @@ vi.mock("src/commands/import-curves", () => ({
 const curvesOf = (...items: ICurve[]): Curves =>
   new Map(items.map((c) => [c.id, c]));
 
+// The dialogs show the report over their empty state; here it stands in for
+// that so the outcome can be read as the user would see it.
+const Harness = ({
+  curves,
+  scope,
+  onImported,
+}: {
+  curves: Curves;
+  scope: CurveType[];
+  onImported: (curves: Curves | null, outcome: ImportOutcome) => void;
+}) => {
+  const [outcome, setOutcome] = useState<ImportOutcome | null>(null);
+  const [isImporting, setImporting] = useState(false);
+
+  return (
+    <>
+      <ImportExportCurvesToolbar
+        curves={curves}
+        scope={scope}
+        codeOverrides={{
+          wrongDialog: "belongsToPumpLibrary",
+        }}
+        fileSuffix="curves"
+        onImported={(merged, result) => {
+          onImported(merged, result);
+          setOutcome(result);
+        }}
+        isImporting={isImporting}
+        onImportingChange={setImporting}
+      />
+      {outcome && (
+        <ImportOutcomeReport
+          outcome={outcome}
+          translationKeys={CURVES_IMPORT_KEYS}
+          onDismiss={() => setOutcome(null)}
+        />
+      )}
+    </>
+  );
+};
+
 const renderToolbar = (
   curves: Curves,
   scope: CurveType[] = ["volume", "valve", "headloss"],
 ) => {
   const store: Store = setInitialState({});
-  const onImported = vi.fn<(curves: Curves) => void>();
+  const onImported =
+    vi.fn<(curves: Curves | null, outcome: ImportOutcome) => void>();
 
   render(
     <JotaiProvider store={store}>
-      <ImportExportCurvesToolbar
-        curves={curves}
-        scope={scope}
-        messageOverrides={{
-          "curves.import.wrongDialog": "curves.import.belongsToPumpLibrary",
-        }}
-        fileSuffix="curves"
-        onImported={onImported}
-      />
+      <Harness curves={curves} scope={scope} onImported={onImported} />
     </JotaiProvider>,
   );
 
@@ -51,6 +91,14 @@ const renderToolbar = (
 
 const clickImport = (user: ReturnType<typeof setupUser>) =>
   user.click(screen.getByRole("button", { name: /^import$/i }));
+
+const lastImported = (
+  onImported: ReturnType<typeof renderToolbar>["onImported"],
+): Curves => {
+  const [merged] = onImported.mock.calls[onImported.mock.calls.length - 1];
+  if (!merged) throw new Error("nothing was merged");
+  return merged;
+};
 
 const setupUser = () => userEvent.setup();
 
@@ -141,7 +189,7 @@ describe("ImportExportCurvesToolbar", () => {
       await clickImport(user);
 
       await waitFor(() => expect(onImported).toHaveBeenCalled());
-      const merged = onImported.mock.calls[0][0];
+      const merged = lastImported(onImported);
       expect([...merged.values()].map((c) => c.label)).toEqual(["C1", "NEW"]);
     });
 
@@ -160,9 +208,7 @@ describe("ImportExportCurvesToolbar", () => {
       await clickImport(user);
 
       await waitFor(() => expect(onImported).toHaveBeenCalled());
-      expect(onImported.mock.calls[0][0].get(7)?.points).toEqual([
-        { x: 2, y: 3 },
-      ]);
+      expect(lastImported(onImported).get(7)?.points).toEqual([{ x: 2, y: 3 }]);
     });
 
     it("reports the result and what it left alone", async () => {
@@ -206,7 +252,7 @@ describe("ImportExportCurvesToolbar", () => {
       importing([{ label: "C1", type: "volume", points: [{ x: 0, y: 1 }] }], {
         status: "partial",
         ignored: 1,
-        errors: [{ message: "curves.import.unpairedAxis", row: 4 }],
+        errors: [{ code: "unpairedAxis", row: 4 }],
       });
 
       renderToolbar(
@@ -232,7 +278,7 @@ describe("ImportExportCurvesToolbar", () => {
       importing([{ label: "C1", type: "volume", points: [{ x: 0, y: 1 }] }], {
         status: "partial",
         ignored: 2,
-        errors: [{ message: "curves.import.belongsToPumpLibrary", row: 4 }],
+        errors: [{ code: "belongsToPumpLibrary", row: 4 }],
       });
 
       renderToolbar(

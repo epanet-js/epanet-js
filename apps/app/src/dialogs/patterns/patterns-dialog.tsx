@@ -28,7 +28,12 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { changePatterns } from "src/hydraulic-model/model-operations";
 import { VerticalResizer } from "../vertical-resizer";
 import { DialogActions, DialogActionsHandle } from "../dialog-actions-row";
-import { ImportExportPatternsToolbar } from "./import-export-patterns-toolbar";
+import {
+  ImportExportPatternsToolbar,
+  PATTERNS_IMPORT_KEYS,
+} from "./import-export-patterns-toolbar";
+import type { ImportOutcome } from "src/components/import-outcome";
+import { ImportOutcomeReport } from "src/components/import-outcome-report";
 
 type PatternUpdate = Partial<Pick<Pattern, "label" | "multipliers" | "type">>;
 
@@ -190,9 +195,24 @@ export const PatternsDialog = ({
     [userTracking],
   );
 
-  const handleImported = useCallback((imported: Patterns) => {
-    setEditedPatterns(imported);
-    setSelectedPatternId(null);
+  // The report takes over the empty state, so the import clears the selection
+  // to make room for it, and the next selection puts the detail back.
+  const [importOutcome, setImportOutcome] = useState<ImportOutcome | null>(
+    null,
+  );
+
+  const handleImported = useCallback(
+    (imported: Patterns | null, outcome: ImportOutcome) => {
+      if (imported) setEditedPatterns(imported);
+      setImportOutcome(outcome);
+      setSelectedPatternId(null);
+    },
+    [],
+  );
+
+  const handleSelectPattern = useCallback((patternId: PatternId | null) => {
+    setSelectedPatternId(patternId);
+    setImportOutcome(null);
   }, []);
 
   // An import replaces the whole draft from a snapshot taken when it started,
@@ -222,6 +242,7 @@ export const PatternsDialog = ({
           patterns={editedPatterns}
           intervalSeconds={patternTimestepSeconds}
           onImported={handleImported}
+          isImporting={isImporting}
           onImportingChange={setImporting}
           readOnly={isEditionBlocked}
         />
@@ -233,7 +254,7 @@ export const PatternsDialog = ({
               selectedPatternId={selectedPatternId}
               initialSection={initialSection}
               minPatternSteps={minPatternSteps}
-              onSelectPattern={setSelectedPatternId}
+              onSelectPattern={handleSelectPattern}
               onAddPattern={handleAddPattern}
               onChangePattern={handlePatternChange}
               onDeletePattern={handleDeletePattern}
@@ -245,6 +266,13 @@ export const PatternsDialog = ({
             />
           </div>
           <div className="flex-1 flex flex-col min-h-0 w-full ml-1">
+            {importOutcome && (
+              <ImportOutcomeReport
+                outcome={importOutcome}
+                translationKeys={PATTERNS_IMPORT_KEYS}
+                onDismiss={() => setImportOutcome(null)}
+              />
+            )}
             {selectedPatternId ? (
               <PatternDetail
                 pattern={getPatternMultipliers(selectedPatternId)}

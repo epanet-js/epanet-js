@@ -85,7 +85,7 @@ describe("parsePatternsFile", () => {
       expect(result.errors).toEqual([
         {
           label: "B",
-          message: "patterns.import.invalidInterval",
+          code: "invalidInterval",
           value: "not-a-time",
           row: 3,
         },
@@ -114,9 +114,7 @@ describe("parsePatternsFile", () => {
       );
 
       expect(result.status).toEqual("error");
-      expect(result.errors).toEqual([
-        { message: "patterns.import.notAValidPatternsFile" },
-      ]);
+      expect(result.errors).toEqual([{ code: "notAValidPatternsFile" }]);
       expect(result.patterns).toEqual([]);
     });
 
@@ -131,9 +129,7 @@ describe("parsePatternsFile", () => {
         labels,
       );
 
-      expect(result.errors).toEqual([
-        { message: "patterns.import.notAValidPatternsFile" },
-      ]);
+      expect(result.errors).toEqual([{ code: "notAValidPatternsFile" }]);
     });
 
     it("rejects a file where most rows are malformed", async () => {
@@ -148,9 +144,7 @@ describe("parsePatternsFile", () => {
       );
 
       expect(result.status).toEqual("error");
-      expect(result.errors).toEqual([
-        { message: "patterns.import.notAValidPatternsFile" },
-      ]);
+      expect(result.errors).toEqual([{ code: "notAValidPatternsFile" }]);
     });
 
     it("keeps a file where a minority of rows are malformed", async () => {
@@ -175,9 +169,7 @@ describe("parsePatternsFile", () => {
       );
 
       expect(result.status).toEqual("error");
-      expect(result.errors).toEqual([
-        { message: "patterns.import.notAValidPatternsFile" },
-      ]);
+      expect(result.errors).toEqual([{ code: "notAValidPatternsFile" }]);
     });
 
     it("accepts a file whose interval column is entirely blank", async () => {
@@ -215,9 +207,7 @@ describe("parsePatternsFile", () => {
         labels,
       );
 
-      expect(result.errors).toEqual([
-        { message: "patterns.import.missingLabel", row: 2 },
-      ]);
+      expect(result.errors).toEqual([{ code: "missingLabel", row: 2 }]);
     });
 
     it("numbers rows from 2 when the header takes row 1", async () => {
@@ -226,9 +216,7 @@ describe("parsePatternsFile", () => {
         labels,
       );
 
-      expect(result.errors).toEqual([
-        { message: "patterns.import.missingLabel", row: 3 },
-      ]);
+      expect(result.errors).toEqual([{ code: "missingLabel", row: 3 }]);
     });
 
     it("treats a translated header as a header too", async () => {
@@ -261,9 +249,7 @@ describe("parsePatternsFile", () => {
       );
 
       // Header is row 1, PAT1 row 2, the blank spacer row 3, the bad row 4.
-      expect(result.errors).toEqual([
-        { message: "patterns.import.missingLabel", row: 4 },
-      ]);
+      expect(result.errors).toEqual([{ code: "missingLabel", row: 4 }]);
     });
 
     it("stops reading at two consecutive blank rows", async () => {
@@ -287,7 +273,7 @@ describe("parsePatternsFile", () => {
     expect(result.errors).toEqual([
       {
         label: "PAT1",
-        message: "patterns.import.missingMultiplier",
+        code: "missingMultiplier",
         row: 2,
       },
     ]);
@@ -313,7 +299,7 @@ describe("parsePatternsFile", () => {
     expect(result.errors).toEqual([
       {
         label: "PAT1",
-        message: "patterns.import.invalidMultiplier",
+        code: "invalidMultiplier",
         value: "oops",
         row: 2,
       },
@@ -338,9 +324,7 @@ describe("parsePatternsFile", () => {
 
     expect(result.status).toEqual("partial");
     expect(result.patterns).toEqual([]);
-    expect(result.errors.map((e) => e.message)).toEqual([
-      "patterns.import.invalidMultiplier",
-    ]);
+    expect(result.errors.map((e) => e.code)).toEqual(["invalidMultiplier"]);
   });
 
   it("reports a duplicated label once however many rows repeat it", async () => {
@@ -363,9 +347,7 @@ describe("parsePatternsFile", () => {
       "PAT4",
     ]);
     expect(
-      result.errors.filter(
-        (e) => e.message === "patterns.import.duplicateLabel",
-      ),
+      result.errors.filter((e) => e.code === "duplicateLabel"),
     ).toHaveLength(1);
   });
 
@@ -377,9 +359,7 @@ describe("parsePatternsFile", () => {
 
     expect(result.status).toEqual("partial");
     expect(result.patterns.map((p) => p.label)).toEqual(["PAT1"]);
-    expect(result.errors).toEqual([
-      { message: "patterns.import.missingLabel", row: 3 },
-    ]);
+    expect(result.errors).toEqual([{ code: "missingLabel", row: 3 }]);
   });
 
   it("reads a file with only a header as nothing to import", async () => {
@@ -395,9 +375,7 @@ describe("parsePatternsFile", () => {
 
     expect(result.status).toEqual("partial");
     expect(result.patterns).toEqual([]);
-    expect(result.errors).toEqual([
-      { message: "patterns.import.missingLabel", row: 2 },
-    ]);
+    expect(result.errors).toEqual([{ code: "missingLabel", row: 2 }]);
   });
 
   it("errors on an unsupported extension", async () => {
@@ -407,9 +385,7 @@ describe("parsePatternsFile", () => {
     );
 
     expect(result.status).toEqual("error");
-    expect(result.errors).toEqual([
-      { message: "patterns.import.unsupportedFormat" },
-    ]);
+    expect(result.errors).toEqual([{ code: "unsupportedFormat" }]);
   });
 
   it("round-trips an XLSX written by the exporter", async () => {

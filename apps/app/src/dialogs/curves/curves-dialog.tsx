@@ -28,7 +28,12 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { getCurveTypeConfig } from "./curve-type-config";
 import { HydraulicModel } from "src/hydraulic-model";
 import { DialogActions, DialogActionsHandle } from "../dialog-actions-row";
-import { ImportExportCurvesToolbar } from "./import-export-curves-toolbar";
+import {
+  ImportExportCurvesToolbar,
+  CURVES_IMPORT_KEYS,
+} from "./import-export-curves-toolbar";
+import type { ImportOutcome } from "src/components/import-outcome";
+import { ImportOutcomeReport } from "src/components/import-outcome-report";
 
 type CurveUpdate = Partial<Pick<ICurve, "label" | "points" | "type">>;
 
@@ -38,8 +43,8 @@ const CURVE_LIBRARY_TYPES: Set<CurveType> = new Set([
   "headloss",
 ]);
 
-const MESSAGE_OVERRIDES = {
-  "curves.import.wrongDialog": "curves.import.belongsToPumpLibrary",
+const CODE_OVERRIDES = {
+  wrongDialog: "belongsToPumpLibrary",
 };
 
 const SCOPE: CurveType[] = ["volume", "valve", "headloss"];
@@ -221,9 +226,24 @@ export const CurveLibraryDialog = ({
     [userTracking],
   );
 
-  const handleImported = useCallback((imported: Curves) => {
-    setEditedCurves(imported);
-    setSelectedCurveId(null);
+  // The report takes over the empty state, so the import clears the selection
+  // to make room for it, and the next selection puts the detail back.
+  const [importOutcome, setImportOutcome] = useState<ImportOutcome | null>(
+    null,
+  );
+
+  const handleImported = useCallback(
+    (imported: Curves | null, outcome: ImportOutcome) => {
+      if (imported) setEditedCurves(imported);
+      setImportOutcome(outcome);
+      setSelectedCurveId(null);
+    },
+    [],
+  );
+
+  const handleSelectCurve = useCallback((curveId: CurveId | null) => {
+    setSelectedCurveId(curveId);
+    setImportOutcome(null);
   }, []);
 
   // An import replaces the whole draft from a snapshot taken when it started,
@@ -253,8 +273,9 @@ export const CurveLibraryDialog = ({
         <ImportExportCurvesToolbar
           curves={editedCurves}
           scope={SCOPE}
-          messageOverrides={MESSAGE_OVERRIDES}
+          codeOverrides={CODE_OVERRIDES}
           onImported={handleImported}
+          isImporting={isImporting}
           onImportingChange={setImporting}
           fileSuffix={translate("curves.title")}
           readOnly={isLocked}
@@ -268,7 +289,7 @@ export const CurveLibraryDialog = ({
               initialSection={initialSection}
               labelManager={labelManagerRef.current}
               invalidCurveIds={invalidCurveIds}
-              onSelectCurve={setSelectedCurveId}
+              onSelectCurve={handleSelectCurve}
               onAddCurve={handleAddCurve}
               onChangeCurve={handleCurveChange}
               onDeleteCurve={handleDeleteCurve}
@@ -280,6 +301,13 @@ export const CurveLibraryDialog = ({
             />
           </div>
           <div className="flex-1 flex flex-col min-h-0 w-full">
+            {importOutcome && (
+              <ImportOutcomeReport
+                outcome={importOutcome}
+                translationKeys={CURVES_IMPORT_KEYS}
+                onDismiss={() => setImportOutcome(null)}
+              />
+            )}
             {selectedCurveId ? (
               (() => {
                 const curveType = editedCurves.get(selectedCurveId)?.type;

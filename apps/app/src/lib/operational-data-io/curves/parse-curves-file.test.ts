@@ -13,8 +13,8 @@ const parseOptions = {
   scope: ["volume", "valve", "headloss"] as CurveType[],
   typeLabels,
   axisLabels: { x: "X", y: "Y" },
-  messageOverrides: {
-    "curves.import.wrongDialog": "curves.import.belongsToPumpLibrary",
+  codeOverrides: {
+    wrongDialog: "belongsToPumpLibrary",
   },
 };
 
@@ -98,23 +98,36 @@ describe("parseCurvesFile", () => {
       expect(result.status).toEqual("partial");
       expect(result.curves.map((c) => c.label)).toEqual(["GOOD"]);
       expect(result.errors).toEqual([
-        { label: "LONELY", message: "curves.import.unpairedAxis", row: 4 },
+        { label: "LONELY", code: "unpairedAxis", row: 4 },
       ]);
     });
 
-    it("pairs to the shorter axis and reports the mismatch", async () => {
+    it("blames the broken row, not the partner it orphaned", async () => {
       const result = await parse(
+        "GOOD,Tank volume,X,0",
+        "GOOD,Tank volume,Y,1",
+        "BAD,Tank volume,X,0,oops",
+        "BAD,Tank volume,Y,0,5",
+      );
+
+      expect(result.curves.map((c) => c.label)).toEqual(["GOOD"]);
+      expect(result.errors).toEqual([
+        { label: "BAD", code: "invalidValue", value: "oops", row: 4 },
+      ]);
+      expect(result.ignored).toEqual(1);
+    });
+
+    it("ignores a curve whose axes disagree in length", async () => {
+      const result = await parse(
+        "GOOD,Tank volume,X,0",
+        "GOOD,Tank volume,Y,1",
         "C1,Tank volume,X,0,1,2",
         "C1,Tank volume,Y,10,20",
       );
 
-      expect(result.curves[0].points).toEqual([
-        { x: 0, y: 10 },
-        { x: 1, y: 20 },
-      ]);
-      expect(result.errors[0].message).toEqual(
-        "curves.import.axisLengthMismatch",
-      );
+      expect(result.curves.map((c) => c.label)).toEqual(["GOOD"]);
+      expect(result.errors[0].code).toEqual("axisLengthMismatch");
+      expect(result.ignored).toEqual(1);
     });
 
     it("skips a row whose axis is not X or Y", async () => {
@@ -125,7 +138,7 @@ describe("parseCurvesFile", () => {
       );
 
       expect(result.curves.map((c) => c.label)).toEqual(["GOOD"]);
-      expect(result.errors[0].message).toEqual("curves.import.invalidAxis");
+      expect(result.errors[0].code).toEqual("invalidAxis");
     });
 
     it("skips a curve with a non-numeric value", async () => {
@@ -137,9 +150,7 @@ describe("parseCurvesFile", () => {
       );
 
       expect(result.curves.map((c) => c.label)).toEqual(["GOOD"]);
-      expect(result.errors.map((e) => e.message)).toContain(
-        "curves.import.invalidValue",
-      );
+      expect(result.errors.map((e) => e.code)).toContain("invalidValue");
     });
 
     it("skips a curve with a gap between its values", async () => {
@@ -151,9 +162,7 @@ describe("parseCurvesFile", () => {
       );
 
       expect(result.curves.map((c) => c.label)).toEqual(["GOOD"]);
-      expect(result.errors.map((e) => e.message)).toContain(
-        "curves.import.missingValue",
-      );
+      expect(result.errors.map((e) => e.code)).toContain("missingValue");
     });
 
     it("ignores a curve whose two rows give different types", async () => {
@@ -167,7 +176,7 @@ describe("parseCurvesFile", () => {
       expect(result.status).toEqual("partial");
       expect(result.curves.map((c) => c.label)).toEqual(["GOOD"]);
       expect(result.errors).toEqual([
-        { label: "CLASH", message: "curves.import.conflictingTypes", row: 5 },
+        { label: "CLASH", code: "conflictingTypes", row: 5 },
       ]);
     });
 
@@ -189,9 +198,33 @@ describe("parseCurvesFile", () => {
       expect(result.status).toEqual("partial");
       expect(result.curves.map((c) => c.label)).toEqual(["TANK"]);
       expect(result.errors).toEqual([
-        { label: "P1", message: "curves.import.belongsToPumpLibrary", row: 4 },
+        { label: "P1", code: "belongsToPumpLibrary", row: 4 },
       ]);
-      expect(result.ignored).toEqual(2);
+      expect(result.ignored).toEqual(1);
+    });
+
+    it("counts a curve broken on both its rows once", async () => {
+      const result = await parse(
+        "TANK,Tank volume,X,0",
+        "TANK,Tank volume,Y,1",
+        "BAD,Tank volume,X,oops",
+        "BAD,Tank volume,Y,nope",
+      );
+
+      expect(result.curves.map((c) => c.label)).toEqual(["TANK"]);
+      expect(result.ignored).toEqual(1);
+    });
+
+    it("counts a curve once when only one of its rows is broken", async () => {
+      const result = await parse(
+        "TANK,Tank volume,X,0",
+        "TANK,Tank volume,Y,1",
+        "BAD,Tank volume,X,oops",
+        "BAD,Tank volume,Y,3",
+      );
+
+      expect(result.curves.map((c) => c.label)).toEqual(["TANK"]);
+      expect(result.ignored).toEqual(1);
     });
 
     it("reports a file of only foreign curves as such, not as a bad file", async () => {
@@ -204,9 +237,9 @@ describe("parseCurvesFile", () => {
 
       expect(result.status).toEqual("partial");
       expect(result.curves).toEqual([]);
-      expect(result.errors.map((e) => e.message)).toEqual([
-        "curves.import.belongsToPumpLibrary",
-        "curves.import.belongsToPumpLibrary",
+      expect(result.errors.map((e) => e.code)).toEqual([
+        "belongsToPumpLibrary",
+        "belongsToPumpLibrary",
       ]);
     });
 
@@ -229,9 +262,7 @@ describe("parseCurvesFile", () => {
       );
 
       expect(result.status).toEqual("error");
-      expect(result.errors).toEqual([
-        { message: "curves.import.notAValidCurvesFile" },
-      ]);
+      expect(result.errors).toEqual([{ code: "notAValidCurvesFile" }]);
       expect(result.curves).toEqual([]);
     });
 
@@ -254,9 +285,7 @@ describe("parseCurvesFile", () => {
         parseOptions,
       );
 
-      expect(result.errors).toEqual([
-        { message: "curves.import.unsupportedFormat" },
-      ]);
+      expect(result.errors).toEqual([{ code: "unsupportedFormat" }]);
     });
   });
 
@@ -280,7 +309,7 @@ describe("parseCurvesFile", () => {
       );
 
       expect(result.errors).toEqual([
-        { label: "LONELY", message: "curves.import.unpairedAxis", row: 6 },
+        { label: "LONELY", code: "unpairedAxis", row: 6 },
       ]);
     });
   });

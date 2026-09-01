@@ -1646,7 +1646,7 @@
       "duplicateAxis": "Axis given twice for the same curve. Row ignored",
       "unpairedAxis": "Curve has no matching X and Y rows. Curve ignored",
       "conflictingTypes": "X and Y rows give different types. Curve ignored",
-      "axisLengthMismatch": "X and Y rows have different lengths. Extra values ignored",
+      "axisLengthMismatch": "X and Y rows have different lengths. Curve ignored",
       "wrongDialog": "Curve belongs to another library. Ignored",
       "belongsToPumpLibrary": "Curve belongs to the Pump library. Ignored",
       "belongsToCurveLibrary": "Curve belongs to the Curves library. Ignored",

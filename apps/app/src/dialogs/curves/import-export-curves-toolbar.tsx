@@ -7,28 +7,29 @@ import {
 import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
 import { useTranslate } from "src/hooks/use-translate";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import {
-  ImportExportToolbar,
-  type ImportOutcome,
-} from "src/components/import-export-toolbar";
+import { ImportExportToolbar } from "src/components/import-export-toolbar";
 import {
   buildImportOutcome,
-  describeErrors,
+  describeIssue,
+  groupErrors,
+  type ImportOutcome,
 } from "src/components/import-outcome";
+import { captureError } from "src/infra/error-tracking";
 import { useExportCurves } from "src/commands/export-curves";
 import { useImportCurves } from "src/commands/import-curves";
 import { mergeCurves } from "src/lib/operational-data-io/curves/merge-curves";
-import type { MessageOverrides } from "src/lib/operational-data-io/curves/parse-curves-file";
+import type { CodeOverrides } from "src/lib/operational-data-io/curves/parse-curves-file";
 import { buildCurveTypeLabels } from "./curve-type-labels";
 
-const KEYS = "curves.import";
+export const CURVES_IMPORT_KEYS = "curves.import";
 
 export const ImportExportCurvesToolbar = ({
   curves,
   scope,
-  messageOverrides,
+  codeOverrides,
   fileSuffix,
   onImported,
+  isImporting,
   onImportingChange,
   readOnly = false,
 }: {
@@ -37,10 +38,13 @@ export const ImportExportCurvesToolbar = ({
   scope: CurveType[];
   // Wording this dialog states more precisely than the generic default —
   // which library a foreign curve belongs to, for instance.
-  messageOverrides?: MessageOverrides;
+  codeOverrides?: CodeOverrides;
   fileSuffix: string;
-  onImported: (curves: Curves) => void;
-  onImportingChange?: (isImporting: boolean) => void;
+  // The merged draft, or null when the file gave us nothing to merge, along
+  // with the report to show for it.
+  onImported: (curves: Curves | null, outcome: ImportOutcome) => void;
+  isImporting: boolean;
+  onImportingChange: (isImporting: boolean) => void;
   readOnly?: boolean;
 }) => {
   const translate = useTranslate();
@@ -73,27 +77,28 @@ export const ImportExportCurvesToolbar = ({
     [exportToXlsx, curves, options],
   );
 
-  const handleImport = useCallback(async (): Promise<ImportOutcome | null> => {
+  const runImport = useCallback(async (): Promise<void> => {
     const parsed = await importCurves({
       scope: options.scope,
       typeLabels: options.typeLabels,
       axisLabels: options.axisLabels,
-      messageOverrides,
+      codeOverrides,
     });
-    if (!parsed) return null;
+    if (!parsed) return;
 
     if (parsed.status === "error") {
       // The first reason is the headline; any others are detail, and belong
       // in the same expandable section the warning case uses.
-      const [message, ...rest] = describeErrors(parsed.errors, translate, KEYS);
+      const [first, ...rest] = groupErrors(parsed.errors);
 
-      return {
+      onImported(null, {
         status: "failed",
-        message: message ?? translate("fileReadError"),
-        issues: rest.length
-          ? { summary: translate(`${KEYS}.issues`), lines: rest }
-          : undefined,
-      };
+        message: first
+          ? describeIssue(first, translate, CURVES_IMPORT_KEYS)
+          : translate("fileReadError"),
+        issues: rest,
+      });
+      return;
     }
 
     const labelManager = new LabelManager();
@@ -109,16 +114,30 @@ export const ImportExportCurvesToolbar = ({
       scope: options.scope,
     });
 
-    onImported(merged.curves);
+    onImported(
+      merged.curves,
+      buildImportOutcome({
+        keysNamespace: CURVES_IMPORT_KEYS,
+        counts: merged.counts,
+        ignored: parsed.ignored,
+        errors: parsed.errors,
+        translate,
+      }),
+    );
+  }, [importCurves, options, codeOverrides, curves, onImported, translate]);
 
-    return buildImportOutcome({
-      keys: KEYS,
-      counts: merged.counts,
-      ignored: parsed.ignored,
-      errors: parsed.errors,
-      translate,
-    });
-  }, [importCurves, options, messageOverrides, curves, onImported, translate]);
+  const handleImport = useCallback(() => {
+    onImportingChange(true);
+    void runImport()
+      .catch((error: Error) => {
+        captureError(error);
+        onImported(null, {
+          status: "failed",
+          message: translate("fileReadError"),
+        });
+      })
+      .finally(() => onImportingChange(false));
+  }, [runImport, onImported, onImportingChange, translate]);
 
   if (!isEnabled) return null;
 
@@ -127,7 +146,7 @@ export const ImportExportCurvesToolbar = ({
       onExportCsv={handleExportCsv}
       onExportXlsx={handleExportXlsx}
       onImport={handleImport}
-      onImportingChange={onImportingChange}
+      disabled={isImporting}
       readOnly={readOnly}
     />
   );

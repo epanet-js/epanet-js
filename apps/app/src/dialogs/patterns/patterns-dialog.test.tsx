@@ -689,6 +689,33 @@ describe("PatternsDialog", () => {
       );
     });
 
+    it("reports over the empty state, dropping the selected pattern", async () => {
+      const user = setupUser();
+      const store = storeWith([100, "Pattern1", [1, 0.8]]);
+      importing([{ label: "Pattern1", type: "demand", multipliers: [5, 6] }]);
+
+      renderDialog(store);
+      await user.click(screen.getByRole("button", { name: "Pattern1" }));
+      await clickImport(user);
+
+      expect(await screen.findByText(/identical|updated/i)).toBeVisible();
+      expect(screen.getByText(/select a pattern/i)).toBeVisible();
+    });
+
+    it("forgets the report once a pattern is selected", async () => {
+      const user = setupUser();
+      const store = storeWith([100, "Pattern1", [1, 0.8]]);
+      importing([{ label: "Pattern1", type: "demand", multipliers: [5, 6] }]);
+
+      renderDialog(store);
+      await clickImport(user);
+      const summary = await screen.findByText(/identical|updated/i);
+
+      await user.click(screen.getByRole("button", { name: "Pattern1" }));
+
+      expect(summary).not.toBeInTheDocument();
+    });
+
     it("disables importing when edition is blocked", () => {
       isEditionBlocked = true;
       const store = storeWith([100, "Pattern1", [1]]);

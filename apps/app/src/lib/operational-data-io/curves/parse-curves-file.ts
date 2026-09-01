@@ -12,7 +12,7 @@ import {
 import type { CurveTypeLabels } from "./export-curves";
 
 // Replacement translation keys, keyed by the message they replace.
-export type MessageOverrides = Record<string, string>;
+export type CodeOverrides = Record<string, string>;
 
 export type ParsedCurve = {
   label: string;
@@ -25,8 +25,8 @@ export type ParseCurvesResult = {
   format?: "csv" | "xlsx";
   curves: ParsedCurve[];
   errors: ImportError[];
-  // Rows that produced no curve. A curve occupies two rows, so this counts
-  // rows rather than curves.
+  // Curves the file named that produced nothing. A curve spans two rows, so
+  // a curve broken on both of them still counts once.
   ignored: number;
 };
 
@@ -72,7 +72,7 @@ const parseValues = (
   for (let i = FIRST_VALUE_COLUMN; i <= last; i++) {
     const raw = text(cells[i]);
     if (raw === "") {
-      errors.push({ label, message: "curves.import.missingValue", row });
+      errors.push({ label, code: "missingValue", row });
       return null;
     }
 
@@ -80,7 +80,7 @@ const parseValues = (
     if (!Number.isFinite(value)) {
       errors.push({
         label,
-        message: "curves.import.invalidValue",
+        code: "invalidValue",
         value: raw,
         row,
       });
@@ -97,9 +97,23 @@ const readAxisRows = (
   typeLabels: CurveTypeLabels,
   axisLabels: { x: string; y: string },
   errors: ImportError[],
-): { rows: AxisRow[]; rejected: number } => {
+): {
+  rows: AxisRow[];
+  // Rows dropped before pairing, for the is-this-even-a-curves-file check.
+  rejected: number;
+  // Every curve the file names, whether or not its rows survived.
+  labels: Set<string>;
+  // Rows that name no curve at all, so they belong to none of the above.
+  unlabeled: number;
+  // Curves that already lost a row here, and whose surviving row must not be
+  // reported again for the pairing it can no longer make.
+  rejectedLabels: Set<string>;
+} => {
   const rows: AxisRow[] = [];
+  const labels = new Set<string>();
+  const rejectedLabels = new Set<string>();
   let rejected = 0;
+  let unlabeled = 0;
   // Name and type may be left blank on the second row of a pair.
   let previous: { label: string; type?: CurveType } | undefined;
 
@@ -108,10 +122,13 @@ const readAxisRows = (
     const label = named ? text(cells[LABEL_COLUMN]) : previous?.label;
 
     if (label === undefined) {
-      errors.push({ message: "curves.import.missingLabel", row: number });
+      errors.push({ code: "missingLabel", row: number });
       rejected += 1;
+      unlabeled += 1;
       continue;
     }
+
+    labels.add(label.toLowerCase());
 
     const type = named
       ? resolveType(cells[TYPE_COLUMN], typeLabels)
@@ -122,31 +139,34 @@ const readAxisRows = (
     if (axis === undefined) {
       errors.push({
         label,
-        message: "curves.import.invalidAxis",
+        code: "invalidAxis",
         value: text(cells[AXIS_COLUMN]),
         row: number,
       });
       rejected += 1;
+      rejectedLabels.add(label.toLowerCase());
       continue;
     }
 
     const values = parseValues(cells, label, number, errors);
     if (values === null) {
       rejected += 1;
+      rejectedLabels.add(label.toLowerCase());
       continue;
     }
 
     rows.push({ label, type, axis, values, row: number });
   }
 
-  return { rows, rejected };
+  return { rows, rejected, labels, unlabeled, rejectedLabels };
 };
 
 const pairAxes = (
   axisRows: AxisRow[],
   scope: CurveType[],
+  rejectedLabels: Set<string>,
   errors: ImportError[],
-): { curves: ParsedCurve[]; malformed: number; foreign: number } => {
+): { curves: ParsedCurve[]; malformedRows: number } => {
   const byKey = new Map<string, { x?: AxisRow; y?: AxisRow }>();
   const order: string[] = [];
 
@@ -161,7 +181,7 @@ const pairAxes = (
     if (pair[row.axis]) {
       errors.push({
         label: row.label,
-        message: "curves.import.duplicateAxis",
+        code: "duplicateAxis",
         row: row.row,
       });
       continue;
@@ -170,22 +190,25 @@ const pairAxes = (
   }
 
   const curves: ParsedCurve[] = [];
-  // Rows whose shape was wrong, kept apart from rows that were merely aimed
-  // at the other library: only the former says anything about the file.
-  let malformed = 0;
-  let foreign = 0;
+  // Rows whose shape was wrong. Rows merely aimed at the other library are
+  // left out: they are well formed, and say nothing about the file.
+  let malformedRows = 0;
 
   for (const key of order) {
     const { x, y } = byKey.get(key)!;
     const present = x ?? y!;
 
     if (!x || !y) {
-      errors.push({
-        label: present.label,
-        message: "curves.import.unpairedAxis",
-        row: present.row,
-      });
-      malformed += 1;
+      // When the missing half was rejected on its own terms, that reason has
+      // already been reported and points at the row actually at fault.
+      if (!rejectedLabels.has(key)) {
+        errors.push({
+          label: present.label,
+          code: "unpairedAxis",
+          row: present.row,
+        });
+      }
+      malformedRows += 1;
       continue;
     }
 
@@ -194,10 +217,10 @@ const pairAxes = (
     if (x.type && y.type && x.type !== y.type) {
       errors.push({
         label: present.label,
-        message: "curves.import.conflictingTypes",
+        code: "conflictingTypes",
         row: y.row,
       });
-      malformed += 2;
+      malformedRows += 2;
       continue;
     }
 
@@ -206,33 +229,32 @@ const pairAxes = (
     if (type && !scope.includes(type)) {
       errors.push({
         label: present.label,
-        message: "curves.import.wrongDialog",
+        code: "wrongDialog",
         row: x.row,
       });
-      foreign += 2;
       continue;
     }
 
+    // Pairing the values we do have would invent points the file never
+    // stated, so a length mismatch takes the whole curve with it.
     if (x.values.length !== y.values.length) {
       errors.push({
         label: present.label,
-        message: "curves.import.axisLengthMismatch",
+        code: "axisLengthMismatch",
         row: y.row,
       });
+      malformedRows += 2;
+      continue;
     }
 
-    const length = Math.min(x.values.length, y.values.length);
     curves.push({
       label: present.label,
       type,
-      points: Array.from({ length }, (_, i) => ({
-        x: x.values[i],
-        y: y.values[i],
-      })),
+      points: x.values.map((value, i) => ({ x: value, y: y.values[i] })),
     });
   }
 
-  return { curves, malformed, foreign };
+  return { curves, malformedRows };
 };
 
 export const parseCurvesFile = async (
@@ -241,20 +263,20 @@ export const parseCurvesFile = async (
     scope,
     typeLabels,
     axisLabels,
-    messageOverrides = {},
+    codeOverrides = {},
   }: {
     scope: CurveType[];
     typeLabels: CurveTypeLabels;
     axisLabels: { x: string; y: string };
     // Lets a dialog say something more specific than the generic wording —
     // naming the library a foreign curve belongs to, for instance.
-    messageOverrides?: MessageOverrides;
+    codeOverrides?: CodeOverrides;
   },
 ): Promise<ParseCurvesResult> => {
   const applyOverrides = (errors: ImportError[]): ImportError[] =>
     errors.map((error) =>
-      messageOverrides[error.message]
-        ? { ...error, message: messageOverrides[error.message] }
+      codeOverrides[error.code]
+        ? { ...error, code: codeOverrides[error.code] }
         : error,
     );
 
@@ -265,7 +287,7 @@ export const parseCurvesFile = async (
       status: "error",
       curves: [],
       ignored: 0,
-      errors: applyOverrides([{ message: "curves.import.unsupportedFormat" }]),
+      errors: applyOverrides([{ code: "unsupportedFormat" }]),
     };
   }
 
@@ -279,30 +301,30 @@ export const parseCurvesFile = async (
       format,
       curves: [],
       ignored: 0,
-      errors: applyOverrides([{ message: "fileReadError" }]),
+      errors: [],
     };
   }
 
   const errors: ImportError[] = [];
   const dataRows = dataRowsOf(rows, FIRST_VALUE_COLUMN);
   const read = readAxisRows(dataRows, typeLabels, axisLabels, errors);
-  const paired = pairAxes(read.rows, scope, errors);
+  const paired = pairAxes(read.rows, scope, read.rejectedLabels, errors);
 
-  const malformed = read.rejected + paired.malformed;
-  const ignored = malformed + paired.foreign;
+  const malformedRows = read.rejected + paired.malformedRows;
+  // Every curve the file named that we could not build, however many of its
+  // rows were at fault, plus the rows that named no curve at all.
+  const ignored = read.labels.size - paired.curves.length + read.unlabeled;
 
   // Most rows unreadable means this is the wrong kind of file. Curves meant
   // for the other library are perfectly well formed, so they are reported on
   // their own rather than counted as evidence against the file.
-  if (dataRows.length >= 2 && malformed * 2 > dataRows.length) {
+  if (dataRows.length >= 2 && malformedRows * 2 > dataRows.length) {
     return {
       status: "error",
       format,
       curves: [],
       ignored,
-      errors: applyOverrides([
-        { message: "curves.import.notAValidCurvesFile" },
-      ]),
+      errors: applyOverrides([{ code: "notAValidCurvesFile" }]),
     };
   }
 

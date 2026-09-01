@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Provider as JotaiProvider } from "jotai";
@@ -7,7 +8,12 @@ import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
 import type { Pattern, Patterns } from "src/hydraulic-model";
 import type { Store } from "src/state";
-import { ImportExportPatternsToolbar } from "./import-export-patterns-toolbar";
+import type { ImportOutcome } from "src/components/import-outcome";
+import { ImportOutcomeReport } from "src/components/import-outcome-report";
+import {
+  ImportExportPatternsToolbar,
+  PATTERNS_IMPORT_KEYS,
+} from "./import-export-patterns-toolbar";
 
 const exportToCsv = vi.fn();
 const exportToXlsx = vi.fn();
@@ -43,20 +49,58 @@ const importing = (
     errors: overrides.errors ?? [],
   });
 
+// The dialog shows the report over its empty state; here it stands in for
+// that so the outcome can be read as the user would see it.
+const Harness = ({
+  patterns,
+  readOnly,
+  onImported,
+}: {
+  patterns: Patterns;
+  readOnly?: boolean;
+  onImported: (patterns: Patterns | null, outcome: ImportOutcome) => void;
+}) => {
+  const [outcome, setOutcome] = useState<ImportOutcome | null>(null);
+  const [isImporting, setImporting] = useState(false);
+
+  return (
+    <>
+      <ImportExportPatternsToolbar
+        patterns={patterns}
+        intervalSeconds={MODEL_INTERVAL}
+        onImported={(merged, result) => {
+          onImported(merged, result);
+          setOutcome(result);
+        }}
+        isImporting={isImporting}
+        onImportingChange={setImporting}
+        readOnly={readOnly}
+      />
+      {outcome && (
+        <ImportOutcomeReport
+          outcome={outcome}
+          translationKeys={PATTERNS_IMPORT_KEYS}
+          onDismiss={() => setOutcome(null)}
+        />
+      )}
+    </>
+  );
+};
+
 const renderToolbar = (
   patterns: Patterns,
   props: { readOnly?: boolean } = {},
 ) => {
   const store: Store = setInitialState({});
-  const onImported = vi.fn<(patterns: Patterns) => void>();
+  const onImported =
+    vi.fn<(patterns: Patterns | null, outcome: ImportOutcome) => void>();
 
   render(
     <JotaiProvider store={store}>
-      <ImportExportPatternsToolbar
+      <Harness
         patterns={patterns}
-        intervalSeconds={MODEL_INTERVAL}
-        onImported={onImported}
         readOnly={props.readOnly}
+        onImported={onImported}
       />
     </JotaiProvider>,
   );
@@ -71,7 +115,11 @@ const clickImport = (user: ReturnType<typeof setupUser>) =>
 
 const lastImported = (
   onImported: ReturnType<typeof renderToolbar>["onImported"],
-): Patterns => onImported.mock.calls[onImported.mock.calls.length - 1][0];
+): Patterns => {
+  const [merged] = onImported.mock.calls[onImported.mock.calls.length - 1];
+  if (!merged) throw new Error("nothing was merged");
+  return merged;
+};
 
 describe("ImportExportPatternsToolbar", () => {
   beforeEach(() => {
@@ -169,8 +217,8 @@ describe("ImportExportPatternsToolbar", () => {
         patterns: [{ label: "PAT1", type: "demand", multipliers: [1] }],
         ignored: 2,
         errors: [
-          { message: "patterns.import.missingLabel", row: 3 },
-          { message: "patterns.import.invalidMultiplier", row: 4 },
+          { code: "missingLabel", row: 3 },
+          { code: "invalidMultiplier", row: 4 },
         ],
       });
 
@@ -243,7 +291,7 @@ describe("ImportExportPatternsToolbar", () => {
         format: "csv",
         patterns: [{ label: "PAT1", type: "demand", multipliers: [1] }],
         ignored: 1,
-        errors: [{ message: "patterns.import.missingLabel", row: 3 }],
+        errors: [{ code: "missingLabel", row: 3 }],
       });
 
       renderToolbar(patternsOf({ id: 1, label: "PAT1", multipliers: [9] }));
@@ -336,7 +384,7 @@ describe("ImportExportPatternsToolbar", () => {
       importPatterns.mockResolvedValue({
         status: "error",
         patterns: [],
-        errors: [{ message: "patterns.import.unsupportedFormat" }],
+        errors: [{ code: "unsupportedFormat" }],
       });
 
       const { onImported } = renderToolbar(
@@ -347,7 +395,7 @@ describe("ImportExportPatternsToolbar", () => {
       await waitFor(() =>
         expect(screen.getByText(/only \.csv and \.xlsx/i)).toBeVisible(),
       );
-      expect(onImported).not.toHaveBeenCalled();
+      expect(onImported.mock.calls[0][0]).toBeNull();
     });
 
     it("groups problems by kind and names the rows they happened on", async () => {
@@ -357,10 +405,10 @@ describe("ImportExportPatternsToolbar", () => {
         format: "csv",
         patterns: [],
         errors: [
-          { message: "patterns.import.notAValidPatternsFile" },
-          { message: "patterns.import.missingLabel", row: 2 },
-          { message: "patterns.import.missingLabel", row: 5 },
-          { message: "patterns.import.invalidMultiplier", row: 3 },
+          { code: "notAValidPatternsFile" },
+          { code: "missingLabel", row: 2 },
+          { code: "missingLabel", row: 5 },
+          { code: "invalidMultiplier", row: 3 },
         ],
       });
 
@@ -384,7 +432,7 @@ describe("ImportExportPatternsToolbar", () => {
         format: "csv",
         patterns: [],
         errors: Array.from({ length: 14 }, (_, i) => ({
-          message: "patterns.import.missingLabel",
+          code: "missingLabel",
           row: i + 2,
         })),
       });
@@ -408,7 +456,7 @@ describe("ImportExportPatternsToolbar", () => {
       await waitFor(() =>
         expect(screen.getByText(/failed to read file/i)).toBeVisible(),
       );
-      expect(onImported).not.toHaveBeenCalled();
+      expect(onImported.mock.calls[0][0]).toBeNull();
 
       await user.click(screen.getByRole("button", { name: /dismiss/i }));
       await waitFor(() =>
@@ -430,7 +478,7 @@ describe("ImportExportPatternsToolbar", () => {
       expect(screen.getByRole("button", { name: /^import$/i })).toBeVisible();
     });
 
-    it("hides the toolbar until the banner is dismissed", async () => {
+    it("keeps the toolbar available and drops the report on dismiss", async () => {
       const user = setupUser();
       importing([{ label: "PAT1", type: "demand", multipliers: [7] }]);
 
@@ -438,19 +486,13 @@ describe("ImportExportPatternsToolbar", () => {
         patternsOf({ id: 1, label: "PAT1", type: "demand", multipliers: [1] }),
       );
       await clickImport(user);
-      await waitFor(() =>
-        expect(screen.getByText(/added|updated|identical/i)).toBeVisible(),
-      );
+      const summary = await screen.findByText(/added|updated|identical/i);
 
-      expect(
-        screen.queryByRole("button", { name: /^import$/i }),
-      ).not.toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /^import$/i })).toBeVisible();
 
       await user.click(screen.getByRole("button", { name: /dismiss/i }));
 
-      await waitFor(() =>
-        expect(screen.getByRole("button", { name: /^import$/i })).toBeVisible(),
-      );
+      expect(summary).not.toBeInTheDocument();
     });
   });
 

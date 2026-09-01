@@ -57,7 +57,7 @@ const parseMultipliers = (
     if (raw === "") {
       errors.push({
         label,
-        message: "patterns.import.missingMultiplier",
+        code: "missingMultiplier",
         row,
       });
       return null;
@@ -67,7 +67,7 @@ const parseMultipliers = (
     if (!Number.isFinite(value)) {
       errors.push({
         label,
-        message: "patterns.import.invalidMultiplier",
+        code: "invalidMultiplier",
         value: raw,
         row,
       });
@@ -96,7 +96,7 @@ const buildPatterns = (
   for (const { cells, number } of dataRows) {
     const label = text(cells[LABEL_COLUMN]);
     if (label === "") {
-      errors.push({ message: "patterns.import.missingLabel", row: number });
+      errors.push({ code: "missingLabel", row: number });
       continue;
     }
 
@@ -106,7 +106,7 @@ const buildPatterns = (
         reportedDuplicates.add(key);
         errors.push({
           label,
-          message: "patterns.import.duplicateLabel",
+          code: "duplicateLabel",
           row: number,
         });
       }
@@ -119,7 +119,7 @@ const buildPatterns = (
     if (intervalCell !== "" && intervalSeconds === undefined) {
       errors.push({
         label,
-        message: "patterns.import.invalidInterval",
+        code: "invalidInterval",
         value: intervalCell,
         row: number,
       });
@@ -151,7 +151,7 @@ export const parsePatternsFile = async (
       status: "error",
       patterns: [],
       ignored: 0,
-      errors: [{ message: "patterns.import.unsupportedFormat" }],
+      errors: [{ code: "unsupportedFormat" }],
     };
   }
 
@@ -165,7 +165,7 @@ export const parsePatternsFile = async (
       format,
       patterns: [],
       ignored: 0,
-      errors: [{ message: "fileReadError" }],
+      errors: [],
     };
   }
 
@@ -180,7 +180,7 @@ export const parsePatternsFile = async (
       format,
       patterns: [],
       ignored: rejectedRows,
-      errors: [{ message: "patterns.import.notAValidPatternsFile" }],
+      errors: [{ code: "notAValidPatternsFile" }],
     };
   }
 
