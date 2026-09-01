@@ -17,8 +17,7 @@ import { TraceMode, TraceStart, TraceResult } from "./types";
 import { boundaryTrace } from "./boundary-trace";
 import { upstreamTrace } from "./upstream-trace";
 import { downstreamTrace } from "./downstream-trace";
-import type { TraceWorkerAPI } from "./worker-api";
-import { getTraceWorker } from "./get-worker";
+import { createTraceWorker, getTraceWorker } from "./get-worker";
 import { areLongLivedWorkersEnabled } from "src/infra/long-lived-workers";
 
 export interface TraceInput {
@@ -113,12 +112,7 @@ const runWithWorker = async (
     }
   }
 
-  const worker = new Worker(new URL("./worker.ts", import.meta.url), {
-    type: "module",
-    name: "TraceToolWorker",
-  });
-
-  const workerAPI = Comlink.wrap<TraceWorkerAPI>(worker);
+  const { worker, api: workerAPI } = createTraceWorker();
 
   const abortHandler = () => worker.terminate();
   signal?.addEventListener("abort", abortHandler);

@@ -16,6 +16,14 @@ const preloadTraceWorker = async (): Promise<void> => {
   getTraceWorker();
 };
 
+const preloadConnectivityTraceWorker = async (): Promise<void> => {
+  if (!canUseWorker()) return;
+  const { getConnectivityTraceWorker } = await import(
+    "src/lib/network-review/connectivity-trace/get-worker"
+  );
+  getConnectivityTraceWorker();
+};
+
 export const useWorkersBootstrap = (areFeatureFlagsReady: boolean): boolean => {
   const [areWorkersReady, setAreWorkersReady] = useState(false);
   const isLongLivedWorkersOn = useFeatureFlag("FLAG_LONG_LIVED_WORKERS");
@@ -33,6 +41,7 @@ export const useWorkersBootstrap = (areFeatureFlagsReady: boolean): boolean => {
         const preloadedWorkers = [
           preloadSimulationWorker(),
           preloadTraceWorker(),
+          preloadConnectivityTraceWorker(),
         ];
         await Promise.all(preloadedWorkers);
       } catch (error) {
