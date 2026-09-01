@@ -14,7 +14,8 @@ import {
 } from "src/hydraulic-model/customer-points-geo";
 import { queryContainedAssets } from "src/hydraulic-model/spatial-queries";
 import { canUseWorker, enrichWorkerError } from "src/infra/worker";
-import type { SpatialQueryWorkerAPI } from "./worker-api";
+import { createSpatialQueryWorker, getSpatialQueryWorker } from "./get-worker";
+import { isFullOfflineSupportEnabled } from "src/infra/long-lived-workers";
 import {
   EncodedAreaSelectionBuffers,
   EncodedAreaSelectionResult,
@@ -84,32 +85,50 @@ const runQueryWithWorker = async (
     throw new DOMException("Operation cancelled", "AbortError");
   }
 
-  const worker = new Worker(new URL("./worker.ts", import.meta.url), {
-    type: "module",
-    name: "SpatialQueryWorker",
-  });
+  const assetIndexArg = Comlink.transfer(
+    encoded.assetIndexBuffers,
+    assetIndexTransferables(encoded.assetIndexBuffers),
+  );
+  const assetsGeoArg = Comlink.transfer(
+    encoded.assetsGeoBuffers,
+    assetsGeoTransferables(encoded.assetsGeoBuffers),
+  );
+  const customerPointsGeoArg = encoded.customerPointsGeoBuffers
+    ? Comlink.transfer(
+        encoded.customerPointsGeoBuffers,
+        customerPointsGeoTransferables(encoded.customerPointsGeoBuffers),
+      )
+    : undefined;
 
-  const workerAPI = Comlink.wrap<SpatialQueryWorkerAPI>(worker);
+  if (isFullOfflineSupportEnabled()) {
+    const workerAPI = getSpatialQueryWorker();
+    try {
+      const result = await workerAPI.queryContainedFeatures(
+        assetIndexArg,
+        assetsGeoArg,
+        customerPointsGeoArg,
+        points,
+      );
+      if (signal?.aborted) {
+        throw new DOMException("Operation cancelled", "AbortError");
+      }
+      return result;
+    } catch (e) {
+      if (e instanceof DOMException && e.name === "AbortError") throw e;
+      throw enrichWorkerError("spatial-query", e);
+    }
+  }
+
+  const { worker, api: workerAPI } = createSpatialQueryWorker();
 
   const abortHandler = () => worker.terminate();
   signal?.addEventListener("abort", abortHandler);
 
   try {
     return await workerAPI.queryContainedFeatures(
-      Comlink.transfer(
-        encoded.assetIndexBuffers,
-        assetIndexTransferables(encoded.assetIndexBuffers),
-      ),
-      Comlink.transfer(
-        encoded.assetsGeoBuffers,
-        assetsGeoTransferables(encoded.assetsGeoBuffers),
-      ),
-      encoded.customerPointsGeoBuffers
-        ? Comlink.transfer(
-            encoded.customerPointsGeoBuffers,
-            customerPointsGeoTransferables(encoded.customerPointsGeoBuffers),
-          )
-        : undefined,
+      assetIndexArg,
+      assetsGeoArg,
+      customerPointsGeoArg,
       points,
     );
   } catch (e) {

@@ -23,6 +23,7 @@ describe("useWorkersBootstrap", () => {
     expect(getCustomerPointsWorker).toHaveBeenCalledTimes(1);
     expect(getCrossingPipesWorker).toHaveBeenCalledTimes(1);
     expect(getProximityAnomaliesWorker).toHaveBeenCalledTimes(1);
+    expect(getSpatialQueryWorker).toHaveBeenCalledTimes(1);
   });
 
   it("stays not ready until feature flags are ready", () => {
@@ -73,6 +74,11 @@ vi.mock("src/lib/network-review/crossing-pipes/get-worker", () => ({
 const getProximityAnomaliesWorker = vi.fn();
 vi.mock("src/lib/network-review/proximity-anomalies/get-worker", () => ({
   getProximityAnomaliesWorker,
+}));
+
+const getSpatialQueryWorker = vi.fn();
+vi.mock("src/map/mode-handlers/area-selection/get-worker", () => ({
+  getSpatialQueryWorker,
 }));
 
 vi.mock("src/infra/worker", async (importActual) => {

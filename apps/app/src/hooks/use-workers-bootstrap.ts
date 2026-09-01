@@ -59,6 +59,14 @@ const preloadProximityAnomaliesWorker = async (): Promise<void> => {
   getProximityAnomaliesWorker();
 };
 
+const preloadSpatialQueryWorker = async (): Promise<void> => {
+  if (!canUseWorker()) return;
+  const { getSpatialQueryWorker } = await import(
+    "src/map/mode-handlers/area-selection/get-worker"
+  );
+  getSpatialQueryWorker();
+};
+
 export const useWorkersBootstrap = (areFeatureFlagsReady: boolean): boolean => {
   const [areWorkersReady, setAreWorkersReady] = useState(false);
   const isLongLivedWorkersOn = useFeatureFlag("FLAG_LONG_LIVED_WORKERS");
@@ -80,6 +88,7 @@ export const useWorkersBootstrap = (areFeatureFlagsReady: boolean): boolean => {
               preloadCustomerPointsWorker(),
               preloadCrossingPipesWorker(),
               preloadProximityAnomaliesWorker(),
+              preloadSpatialQueryWorker(),
             ]
           : [];
         const preloadedWorkers = [
