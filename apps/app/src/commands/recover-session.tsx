@@ -71,10 +71,6 @@ export const useRecoverSession = () => {
           lastSavedAt: fingerprint.timestampLastSave,
         });
 
-        // After the project db is open, and before the dead pool is reclaimed below.
-        await db.restoreSessionHistory(fingerprint.poolId);
-        await db.reportSessionHistoryFailure();
-
         clearRecoveryFingerprints([fingerprint.poolId]);
         discardRecoverablePools();
         userTracking.capture({

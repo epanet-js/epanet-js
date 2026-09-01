@@ -16,11 +16,8 @@ vi.mock("src/infra/user-tracking", () => ({
 }));
 
 const exportDbFromPool = vi.fn<(poolId: string) => Promise<Blob>>();
-const restoreSessionHistory = vi.fn<(poolId: string) => Promise<boolean>>();
 vi.mock("src/lib/db", () => ({
   exportDbFromPool: (poolId: string) => exportDbFromPool(poolId),
-  restoreSessionHistory: (poolId: string) => restoreSessionHistory(poolId),
-  reportSessionHistoryFailure: () => Promise.resolve(),
 }));
 
 const openProjectFile =
@@ -65,7 +62,6 @@ describe("recover session", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     exportDbFromPool.mockResolvedValue(new Blob(["db"]));
-    restoreSessionHistory.mockResolvedValue(true);
     openProjectFile.mockResolvedValue(undefined);
     cleanupStaleDbPools.mockResolvedValue(undefined);
     readRecoveryFingerprints.mockReturnValue([]);
@@ -93,34 +89,6 @@ describe("recover session", () => {
     expect(capture).toHaveBeenCalledWith({
       name: "sessionRecovery.recovered",
       count: 2,
-    });
-  });
-
-  it("carries the session history over from the recovered pool", async () => {
-    const store = storeWith([aSession({ poolId: "pool-1" })]);
-
-    const { result } = renderRecover(store, useRecoverSession);
-    await act(async () => {
-      await result.current(aSession({ poolId: "pool-1" }));
-    });
-
-    expect(restoreSessionHistory).toHaveBeenCalledWith("pool-1");
-  });
-
-  it("still recovers the project when the history cannot be carried over", async () => {
-    const store = storeWith([aSession({ poolId: "pool-1" })]);
-    restoreSessionHistory.mockResolvedValue(false);
-
-    const { result } = renderRecover(store, useRecoverSession);
-    await act(async () => {
-      await result.current(aSession({ poolId: "pool-1" }));
-    });
-
-    expect(openProjectFile).toHaveBeenCalledTimes(1);
-    expect(clearRecoveryFingerprints).toHaveBeenCalledWith(["pool-1"]);
-    expect(capture).toHaveBeenCalledWith({
-      name: "sessionRecovery.recovered",
-      count: 1,
     });
   });
 

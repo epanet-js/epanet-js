@@ -2,7 +2,6 @@ import type { HydraulicModel } from "src/hydraulic-model";
 import type { ProjectSettings } from "@epanet-js/project-settings";
 import type { Zones } from "src/lib/zones";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
-import { reportSessionHistoryFailure } from "./session-history";
 import { getWorker, timed } from "@epanet-js/ejsdb";
 import {
   assetsToRows,
@@ -62,6 +61,5 @@ export const importProject = async (
     if (result.status !== "ok") {
       throw new Error(`importProject storage error: ${result.errorDetails}`);
     }
-    await reportSessionHistoryFailure();
   });
 };

@@ -14,7 +14,7 @@ import { modeAtom, MODE_INFO } from "src/state/mode";
 import { trackMoment } from "src/lib/persistence/shared";
 import { applyMoment } from "src/lib/persistence/transaction-helpers";
 import { applyMomentToDb, buildMomentPayload } from "src/lib/db";
-import type { ApplyMomentPayload, HistoryCapture } from "@epanet-js/ejsdb";
+import type { ApplyMomentPayload } from "@epanet-js/ejsdb";
 import { captureError, captureWarning } from "src/infra/error-tracking";
 import {
   findOrphanLinkConnections,
@@ -149,16 +149,7 @@ export const useMomentTransaction = () => {
         momentLog.append(moment, reverseMoment, newStateId);
 
         if (payload) {
-          const history: HistoryCapture = {
-            kind: "edit",
-            seq: momentLog.getPointer(),
-            stateId: newStateId,
-            note: moment.note || "Update",
-          };
-          writeQueue.enqueue(
-            () => applyMomentToDb(payload, history),
-            onWriteFailure,
-          );
+          writeQueue.enqueue(() => applyMomentToDb(payload), onWriteFailure);
         }
 
         set(momentLogDerivedAtom, momentLog);

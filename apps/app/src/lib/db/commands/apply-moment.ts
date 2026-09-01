@@ -17,7 +17,6 @@ import {
   type AssetCustomAttributeUpdates,
   type CustomAttributeValueUpdate,
   type CustomerPointDemandUpdate,
-  type HistoryCapture,
   type JunctionDemandUpdate,
 } from "@epanet-js/ejsdb";
 import {
@@ -200,10 +199,9 @@ export const buildMomentPayload = (moment: Moment): ApplyMomentPayload => {
 
 export const applyMomentToDb = async (
   payload: ApplyMomentPayload,
-  history: HistoryCapture | null = null,
 ): Promise<void> => {
   await timed("applyMomentToDb", async () => {
     const worker = getWorker();
-    await worker.applyMoment(payload, history);
+    await worker.applyMoment(payload);
   });
 };

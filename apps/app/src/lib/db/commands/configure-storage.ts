@@ -13,18 +13,13 @@ export type DbStorageMode = "memory" | "sahpool";
 
 const OPFS_MIN_AVAILABLE_BYTES = 512 * 1024 * 1024;
 
-export const configureDbStorage = async ({
-  sessionHistory,
-}: {
-  sessionHistory: boolean;
-}): Promise<DbStorageMode> => {
+export const configureDbStorage = async (): Promise<DbStorageMode> => {
   const opfsAvailable = await isOPFSAvailable();
   if (!opfsAvailable) {
     reportFallback("opfs-not-available");
     return await getWorker().configure({
       mode: "memory",
       sahpoolId: getAppId(),
-      sessionHistory,
     });
   }
 
@@ -35,7 +30,6 @@ export const configureDbStorage = async ({
     return await getWorker().configure({
       mode: "memory",
       sahpoolId: getAppId(),
-      sessionHistory,
     });
   }
 
@@ -57,19 +51,11 @@ export const configureDbStorage = async ({
   }
 
   const mode = "sahpool";
-  let effective = await getWorker().configure({
-    mode,
-    sahpoolId: appId,
-    sessionHistory,
-  });
+  let effective = await getWorker().configure({ mode, sahpoolId: appId });
 
   if (effective !== mode) {
     appId = resetAppId();
-    effective = await getWorker().configure({
-      mode,
-      sahpoolId: appId,
-      sessionHistory,
-    });
+    effective = await getWorker().configure({ mode, sahpoolId: appId });
   }
 
   if (effective !== "memory") {

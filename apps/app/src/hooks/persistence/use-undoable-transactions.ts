@@ -14,7 +14,7 @@ import {
 } from "src/lib/persistence/transaction-helpers";
 import type { MomentLog } from "src/lib/persistence/moment-log";
 import { applyMomentToDb, buildMomentPayload } from "src/lib/db";
-import type { ApplyMomentPayload, HistoryCapture } from "@epanet-js/ejsdb";
+import type { ApplyMomentPayload } from "@epanet-js/ejsdb";
 import { captureError, captureWarning } from "src/infra/error-tracking";
 import {
   writeQueue,
@@ -49,11 +49,7 @@ const commitHistoryAction = (
   isUndo ? momentLog.undo() : momentLog.redo();
 
   if (payload) {
-    const history: HistoryCapture = {
-      kind: "replay",
-      seq: momentLog.getPointer(),
-    };
-    writeQueue.enqueue(() => applyMomentToDb(payload, history), onWriteFailure);
+    writeQueue.enqueue(() => applyMomentToDb(payload), onWriteFailure);
   }
 
   set(momentLogDerivedAtom, momentLog);

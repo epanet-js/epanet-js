@@ -27,7 +27,6 @@ import { getTrialDaysRemaining } from "src/lib/account-plans";
 import { useEffectivePlan } from "src/hooks/use-effective-plan";
 import { usePermissions } from "src/hooks/use-permissions";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { sessionHistoryPanelOpenAtom } from "src/state/session-history-panel";
 import { PlanLabel } from "./plan-label";
 import { useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
@@ -171,8 +170,6 @@ export function HelpDot() {
   const showWelcome = useShowWelcome();
   const showShortcuts = useShowShortcuts();
   const userTracking = useUserTracking();
-  const setSessionHistoryPanelOpen = useSetAtom(sessionHistoryPanelOpenAtom);
-  const isPersistHistoryOn = useFeatureFlag("FLAG_PERSIST_SESSION_HISTORY");
 
   return (
     <DD.Root>
@@ -245,16 +242,6 @@ export function HelpDot() {
           <KeyboardIcon />
           {translate("keyboardShortcuts.title")}
         </StyledItem>
-        {isPersistHistoryOn && (
-          <StyledItem
-            onSelect={() => {
-              setSessionHistoryPanelOpen((isOpen) => !isOpen);
-            }}
-          >
-            <HelpIcon />
-            Session history
-          </StyledItem>
-        )}
       </DDContent>
     </DD.Root>
   );

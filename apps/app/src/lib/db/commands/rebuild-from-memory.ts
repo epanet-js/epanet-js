@@ -23,14 +23,7 @@ export const rebuildDbFromMemory = async (
 
   const appId = resetAppId();
   const mode = skipOpfs
-    ? await getWorker().configure({
-        mode: "memory",
-        sahpoolId: appId,
-        // `configure` resets session-history capture, and a rebuild has no business
-        // turning an unrelated feature off; carry the current setting through.
-        sessionHistory: (await getWorker().storageDiagnostics())
-          .sessionHistoryEnabled,
-      })
+    ? await getWorker().configure({ mode: "memory", sahpoolId: appId })
     : await getWorker().reinstallSahpool(appId);
   const storageMode: DbStorageMode = mode === "sahpool" ? "opfs" : "memory";
 

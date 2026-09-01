@@ -15,13 +15,6 @@
 > Do not proceed until the user has acknowledged the file-format
 > implication and explicitly asked for it.**
 
-## Scope: this file governs `main.sqlite3` only
-
-This package owns a **second** database, `session.sqlite3` (`src/session/`), which is disposable and
-never reaches a saved file. Nothing below applies to it — its migrations may be edited and
-renumbered freely. Read [`src/session/AGENTS.md`](./src/session/AGENTS.md) before touching that
-directory, and do not carry its conventions back here.
-
 ## Changes that REQUIRE a migration
 
 Any of these breaks file compatibility unless a migration ships with it:

@@ -17,10 +17,5 @@ export { ensureUniqueId, newUniqueId } from "./commands/ensure-unique-id";
 export { exportDb } from "./commands/export-db";
 export { exportDbFromPool } from "./commands/recover-db";
 export { configureDbStorage } from "./commands/configure-storage";
-export {
-  fetchSessionHistory,
-  reportSessionHistoryFailure,
-  restoreSessionHistory,
-} from "./commands/session-history";
 export { rebuildDbFromMemory } from "./commands/rebuild-from-memory";
 export type { RebuildPhase } from "./commands/rebuild-from-memory";

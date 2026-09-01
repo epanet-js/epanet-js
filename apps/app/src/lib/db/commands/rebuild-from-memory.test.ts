@@ -9,14 +9,12 @@ const configure =
 const sahpoolFailure = vi.fn<() => { name: string; message: string } | null>(
   () => null,
 );
-const storageDiagnostics = vi.fn(() => ({ sessionHistoryEnabled: true }));
 vi.mock("@epanet-js/ejsdb", async (importActual) => ({
   ...(await importActual<typeof import("@epanet-js/ejsdb")>()),
   getWorker: () => ({
     reinstallSahpool,
     sahpoolFailure,
     configure,
-    storageDiagnostics,
   }),
 }));
 
@@ -138,14 +136,6 @@ describe("rebuildDbFromMemory", () => {
     // Still writes the whole model — skipping OPFS is not skipping the rebuild.
     expect(importProject).toHaveBeenCalledWith(
       expect.objectContaining({ newDb: true }),
-    );
-  });
-
-  it("does not turn session-history capture off while rebuilding", async () => {
-    await rebuildDbFromMemory(anInput(), { skipOpfs: true });
-
-    expect(configure).toHaveBeenCalledWith(
-      expect.objectContaining({ sessionHistory: true }),
     );
   });
 
