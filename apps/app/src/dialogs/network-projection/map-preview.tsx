@@ -135,13 +135,7 @@ export const MapPreview = ({
         return;
       }
       if (!onBoundsChangeRef.current) return;
-      const b = map.getBounds();
-      onBoundsChangeRef.current([
-        b.getWest(),
-        b.getSouth(),
-        b.getEast(),
-        b.getNorth(),
-      ]);
+      onBoundsChangeRef.current(currentViewportBbox(map));
     });
 
     mapRef.current = map;
@@ -154,8 +148,9 @@ export const MapPreview = ({
         }
       },
       fitToBbox: (bbox: Bbox) => {
-        if (!styleReadyRef.current) return;
+        if (!styleReadyRef.current) return null;
         programmaticFit(map, null, bbox);
+        return currentViewportBbox(map);
       },
     });
 
@@ -245,6 +240,16 @@ export const MapPreview = ({
     fitToGeoJSON(map, geoJSON);
   }
 };
+
+function currentViewportBbox(map: mapboxgl.Map): Bbox {
+  const bounds = map.getBounds();
+  return [
+    bounds.getWest(),
+    bounds.getSouth(),
+    bounds.getEast(),
+    bounds.getNorth(),
+  ];
+}
 
 function fitToGeoJSON(map: mapboxgl.Map, geoJSON: FeatureCollection) {
   const coords: [number, number][] = [];

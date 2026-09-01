@@ -24,6 +24,7 @@ import { getExtent } from "@epanet-js/geometry";
 import { computeCentroid, transformPoint } from "@epanet-js/projections";
 import type { Bbox, ProjectionCandidate } from "./types";
 import { useUserTracking } from "src/infra/user-tracking";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useTranslate } from "src/hooks/use-translate";
 
 const DEBOUNCE_MS = 200;
@@ -50,6 +51,7 @@ export const NetworkProjectionDialog = ({
   const { fitToNetwork, fitToBbox, setHandle } = useMapPreview();
   const userTracking = useUserTracking();
   const t = useTranslate();
+  const isBboxMapOn = useFeatureFlag("FLAG_BBOX_MAP");
 
   const bounds = useMemo(() => computeBounds(previewGeoJson), [previewGeoJson]);
 
@@ -221,10 +223,12 @@ export const NetworkProjectionDialog = ({
       selectedLocationRef.current = location;
       setProjectionError(null);
       setShowBasemap(true);
-      fitToBbox(location.bbox);
-      updateVisibleCandidates(location.bbox, "first");
+      const viewportBbox = fitToBbox(location.bbox);
+      const searchBbox =
+        isBboxMapOn && viewportBbox ? viewportBbox : location.bbox;
+      updateVisibleCandidates(searchBbox, "first");
     },
-    [updateVisibleCandidates, fitToBbox],
+    [updateVisibleCandidates, fitToBbox, isBboxMapOn],
   );
 
   const handleBoundsChange = useCallback(

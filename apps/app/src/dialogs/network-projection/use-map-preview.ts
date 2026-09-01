@@ -4,7 +4,7 @@ import type { Bbox } from "./types";
 
 export type MapPreviewHandle = {
   fitToNetwork: (geoJSON: FeatureCollection) => void;
-  fitToBbox: (bbox: Bbox) => void;
+  fitToBbox: (bbox: Bbox) => Bbox | null;
 };
 
 export const useMapPreview = () => {
@@ -14,7 +14,7 @@ export const useMapPreview = () => {
     () => ({
       fitToNetwork: (geoJSON: FeatureCollection) =>
         handleRef.current?.fitToNetwork(geoJSON),
-      fitToBbox: (bbox: Bbox) => handleRef.current?.fitToBbox(bbox),
+      fitToBbox: (bbox: Bbox) => handleRef.current?.fitToBbox(bbox) ?? null,
     }),
     [],
   );
