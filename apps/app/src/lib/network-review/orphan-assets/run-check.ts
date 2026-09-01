@@ -10,7 +10,8 @@ import {
 import { topologyTransferables } from "src/hydraulic-model/topology/topology-transferable";
 import { assetIndexTransferables } from "src/hydraulic-model/asset-index-transferable";
 import { findOrphanAssets } from "./find-orphan-assets";
-import type { OrphanAssetsWorkerAPI } from "./worker-api";
+import { createOrphanAssetsWorker, getOrphanAssetsWorker } from "./get-worker";
+import { areLongLivedWorkersEnabled } from "src/infra/long-lived-workers";
 import { BufferType } from "@epanet-js/buffers";
 import { canUseWorker, enrichWorkerError } from "src/infra/worker";
 
@@ -50,24 +51,32 @@ const runWithWorker = async (
     return fallbackWorkerAPI.findOrphanAssets(data);
   }
 
-  const worker = new Worker(new URL("./worker.ts", import.meta.url), {
-    type: "module",
-    name: "OrphanAssetsWorker",
-  });
+  const transferData = Comlink.transfer(data, [
+    ...topologyTransferables(data.topologyBuffers),
+    ...assetIndexTransferables(data.assetIndexBuffers),
+  ]);
 
-  const workerAPI = Comlink.wrap<OrphanAssetsWorkerAPI>(worker);
+  if (areLongLivedWorkersEnabled()) {
+    const workerAPI = getOrphanAssetsWorker();
+    try {
+      const result = await workerAPI.findOrphanAssets(transferData);
+      if (signal?.aborted) {
+        throw new DOMException("Operation cancelled", "AbortError");
+      }
+      return result;
+    } catch (e) {
+      if (e instanceof DOMException && e.name === "AbortError") throw e;
+      throw enrichWorkerError("orphan-assets", e);
+    }
+  }
+
+  const { worker, api: workerAPI } = createOrphanAssetsWorker();
 
   const abortHandler = () => worker.terminate();
   signal?.addEventListener("abort", abortHandler);
 
   try {
-    const data = encodeData(model, bufferType);
-    return await workerAPI.findOrphanAssets(
-      Comlink.transfer(data, [
-        ...topologyTransferables(data.topologyBuffers),
-        ...assetIndexTransferables(data.assetIndexBuffers),
-      ]),
-    );
+    return await workerAPI.findOrphanAssets(transferData);
   } catch (e) {
     throw enrichWorkerError("orphan-assets", e);
   } finally {
