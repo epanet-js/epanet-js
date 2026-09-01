@@ -43,6 +43,14 @@ const preloadCustomerPointsWorker = async (): Promise<void> => {
   getCustomerPointsWorker();
 };
 
+const preloadCrossingPipesWorker = async (): Promise<void> => {
+  if (!canUseWorker()) return;
+  const { getCrossingPipesWorker } = await import(
+    "src/lib/network-review/crossing-pipes/get-worker"
+  );
+  getCrossingPipesWorker();
+};
+
 export const useWorkersBootstrap = (areFeatureFlagsReady: boolean): boolean => {
   const [areWorkersReady, setAreWorkersReady] = useState(false);
   const isLongLivedWorkersOn = useFeatureFlag("FLAG_LONG_LIVED_WORKERS");
@@ -60,7 +68,7 @@ export const useWorkersBootstrap = (areFeatureFlagsReady: boolean): boolean => {
       configureFullOfflineSupport(isFullOfflineSupportOn);
       try {
         const nextPreloadedWorkers = isFullOfflineSupportOn
-          ? [preloadCustomerPointsWorker()]
+          ? [preloadCustomerPointsWorker(), preloadCrossingPipesWorker()]
           : [];
         const preloadedWorkers = [
           preloadSimulationWorker(),

@@ -21,6 +21,7 @@ describe("useWorkersBootstrap", () => {
     expect(getConnectivityTraceWorker).toHaveBeenCalledTimes(1);
     expect(getOrphanAssetsWorker).toHaveBeenCalledTimes(1);
     expect(getCustomerPointsWorker).toHaveBeenCalledTimes(1);
+    expect(getCrossingPipesWorker).toHaveBeenCalledTimes(1);
   });
 
   it("stays not ready until feature flags are ready", () => {
@@ -61,6 +62,11 @@ vi.mock("src/lib/network-review/orphan-assets/get-worker", () => ({
 const getCustomerPointsWorker = vi.fn();
 vi.mock("src/lib/customer-points/get-worker", () => ({
   getCustomerPointsWorker,
+}));
+
+const getCrossingPipesWorker = vi.fn();
+vi.mock("src/lib/network-review/crossing-pipes/get-worker", () => ({
+  getCrossingPipesWorker,
 }));
 
 vi.mock("src/infra/worker", async (importActual) => {
