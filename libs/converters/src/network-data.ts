@@ -189,6 +189,7 @@ export type NetworkData = {
   zones: ZoneData[];
   patternTimeStep?: number;
   simulationDuration?: number;
+  viscosity?: number;
   headlossFormula?: HeadlossFormula;
   units: SourceUnits;
   crs: SourceCrs;

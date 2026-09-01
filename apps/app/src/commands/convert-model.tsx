@@ -93,7 +93,7 @@ export const useConvertModel = () => {
             ...projectSettings,
             name: file.name.replace(/\.[^.]+$/, ""),
           },
-          simulationSettings: withSourceTiming(
+          simulationSettings: withSourceHydraulics(
             defaultSimulationSettings,
             network,
           ),
@@ -207,9 +207,9 @@ export const useConvertModel = () => {
   );
 };
 
-const withSourceTiming = (
+const withSourceHydraulics = (
   settings: SimulationSettings,
-  { patternTimeStep, simulationDuration }: NetworkData,
+  { patternTimeStep, simulationDuration, viscosity }: NetworkData,
 ): SimulationSettings => {
   const timing = {
     ...settings.timing,
@@ -225,5 +225,9 @@ const withSourceTiming = (
       : { duration: simulationDuration }),
   };
 
-  return { ...settings, timing };
+  return {
+    ...settings,
+    ...(viscosity === undefined ? {} : { viscosity }),
+    timing,
+  };
 };

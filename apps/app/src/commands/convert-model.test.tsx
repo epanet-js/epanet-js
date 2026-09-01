@@ -213,6 +213,38 @@ describe("convertModel", () => {
     expect(timing.reportTimestep).toEqual(900);
   });
 
+  it("solves with the viscosity of the source's own fluid", async () => {
+    stubFileOpen();
+    stubConverter("synergi", {
+      network: aNetwork({ viscosity: 1.131 }),
+      issues: [],
+    });
+    const store = setInitialState();
+
+    renderComponent({ store });
+    await triggerCommand();
+    await doFileSelection(aTestFile({ filename: "my-network.mdb" }));
+    await waitForNotLoading();
+
+    expect(store.get(simulationSettingsDerivedAtom).viscosity).toBeCloseTo(
+      1.131,
+      9,
+    );
+  });
+
+  it("leaves viscosity unset when the source states no fluid", async () => {
+    stubFileOpen();
+    stubConverter("synergi", { network: aNetwork(), issues: [] });
+    const store = setInitialState();
+
+    renderComponent({ store });
+    await triggerCommand();
+    await doFileSelection(aTestFile({ filename: "my-network.mdb" }));
+    await waitForNotLoading();
+
+    expect(store.get(simulationSettingsDerivedAtom).viscosity).toBeUndefined();
+  });
+
   it("stays on the defaults when the source states no timing", async () => {
     stubFileOpen();
     stubConverter("synergi", { network: aNetwork(), issues: [] });

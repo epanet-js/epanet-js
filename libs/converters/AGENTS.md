@@ -84,6 +84,23 @@ its own notes.
 It is optional like everything else, so a parser with nothing to say leaves it out and the consumer
 falls back to whatever it does for a tank nobody imported.
 
+## Viscosity is a ratio, and the denominator is EPANET's not physics'
+
+`NetworkData.viscosity` is the fluid's kinematic viscosity **relative to water at 20 °C, which is
+defined as exactly 1.0 centistoke** — EPANET's own wording, and the reason this is a bare number
+with no entry in `SourceUnits`. A source holding 1.131e-6 m²/s therefore states `1.131`, and the
+conversion a parser does is m²/s → cSt and nothing more.
+
+**Do not "correct" the denominator to the true viscosity of water at 20 °C** (1.0035e-6 m²/s). It is
+tempting, because a vendor that references its fluid to some other temperature — Synergi uses 60 °F —
+looks like it needs a temperature conversion. It does not: the temperature explains why the ratio is
+not 1, but the ratio is against a *defined* constant, so dividing by a measured one shifts every
+model by 0.35% for no reason. The same trap caught one of the reference exporters, which divides by a
+computed ~19.75 °C viscosity and lands 2.2% low.
+
+It matters only under Darcy-Weisbach, where it enters the Reynolds number and so the friction factor.
+Under Hazen-Williams nothing reads it.
+
 ## Optionality is the contract
 
 `?:` on a record field means **the source did not say**, and the consumer decides
