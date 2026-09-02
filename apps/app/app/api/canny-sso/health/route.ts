@@ -9,8 +9,9 @@ const timeoutMs = 5000;
 
 export async function GET(request: NextRequest) {
   if (
-    process.env.CRON_SECRET &&
-    request.headers.get("Authorization") !== `Bearer ${process.env.CRON_SECRET}`
+    process.env.HEALTH_SECRET &&
+    request.headers.get("Authorization") !==
+      `Bearer ${process.env.HEALTH_SECRET}`
   ) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
