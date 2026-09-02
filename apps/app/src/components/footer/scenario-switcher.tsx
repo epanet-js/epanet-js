@@ -36,6 +36,7 @@ export const ScenarioSwitcher = () => {
   const createScenario = useCreateScenario();
 
   const {
+    scenariosAvailable,
     switchToMain,
     switchToBranch,
     deleteScenarioById,
@@ -106,6 +107,8 @@ export const ScenarioSwitcher = () => {
       onConfirm: handleRenameScenario,
     });
   };
+
+  if (!scenariosAvailable) return null;
 
   const hasScenarios = scenariosList.length > 0;
 

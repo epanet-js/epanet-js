@@ -21,7 +21,7 @@ import { OPFSStorage, opfsUnavailableErrors } from "src/infra/storage";
 import { getAppId } from "src/infra/app-instance";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { MapEditionsTracker } from "src/map/map-editions-tracker";
-import { initializeWorktree } from "src/lib/worktree";
+import { initializeWorktree } from "@epanet-js/worktree";
 import { worktreeAtom } from "src/state/scenarios";
 
 type CustomerPointsImportResetInput = {

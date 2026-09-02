@@ -12,7 +12,7 @@ import { selectionAtom } from "src/state/selection";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { branchStateAtom } from "src/state/branch-state";
 import { worktreeAtom } from "src/state/scenarios";
-import type { Branch, Worktree } from "src/lib/worktree/types";
+import type { Branch, Worktree } from "@epanet-js/worktree";
 import { initialSimulationState } from "src/state/simulation";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { MomentLog } from "src/lib/persistence/moment-log";

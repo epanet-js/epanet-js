@@ -1,23 +1,11 @@
 import { atom } from "jotai";
-import type { Branch, Worktree } from "src/lib/worktree/types";
+import {
+  initializeWorktree,
+  type Branch,
+  type Worktree,
+} from "@epanet-js/worktree";
 
-const mainBranch: Branch = {
-  id: "main",
-  name: "Main",
-  parentId: null,
-  status: "open",
-};
-
-export const initialWorktree: Worktree = {
-  activeBranchId: "main",
-  lastActiveBranchId: "main",
-  branches: new Map([["main", mainBranch]]),
-  mainId: "main",
-  scenarios: [],
-  highestScenarioNumber: 0,
-};
-
-export const worktreeAtom = atom<Worktree>(initialWorktree);
+export const worktreeAtom = atom<Worktree>(initializeWorktree());
 
 export const scenariosListAtom = atom((get) => {
   const state = get(worktreeAtom);
@@ -30,4 +18,4 @@ export const hasScenariosAtom = atom((get) => {
   return get(worktreeAtom).scenarios.length > 0;
 });
 
-export type { Worktree } from "src/lib/worktree/types";
+export type { Worktree } from "@epanet-js/worktree";

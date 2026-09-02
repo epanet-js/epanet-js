@@ -13,8 +13,3 @@ export interface Worktree {
   scenarios: string[];
   highestScenarioNumber: number;
 }
-
-export interface ScenarioOperationResult {
-  worktree: Worktree;
-  branch: Branch | null;
-}

@@ -122,7 +122,6 @@ export {
 // Scenarios
 export type { Worktree } from "src/state/scenarios";
 export {
-  initialWorktree,
   worktreeAtom,
   scenariosListAtom,
   hasScenariosAtom,

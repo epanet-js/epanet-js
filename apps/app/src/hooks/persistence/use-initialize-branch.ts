@@ -7,7 +7,7 @@ import { MomentLog } from "src/lib/persistence/moment-log";
 import { branchStateAtom } from "src/state/branch-state";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { worktreeAtom } from "src/state/scenarios";
-import type { Branch } from "src/lib/worktree/types";
+import type { Branch } from "@epanet-js/worktree";
 
 export const useInitializeBranch = () => {
   const initializeBranch = useAtomCallback(

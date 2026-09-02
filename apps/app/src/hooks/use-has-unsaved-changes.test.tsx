@@ -6,7 +6,10 @@ import { addNode } from "src/hydraulic-model/model-operations/add-node";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import { useUndoableTransactions } from "src/hooks/persistence/use-undoable-transactions";
 import { useProjectSettingsTransaction } from "src/hooks/persistence/use-project-settings-transaction";
-import { useScenarioOperations } from "src/hooks/use-scenario-operations";
+import { useInitializeBranch } from "src/hooks/persistence/use-initialize-branch";
+import { useSwitchBranch } from "src/hooks/persistence/use-switch-branch";
+import { worktreeAtom } from "src/state/scenarios";
+import type { Branch } from "@epanet-js/worktree";
 import { useCustomerPointsImportReset } from "src/hooks/persistence/use-customer-points-import-reset";
 import { addCustomerPoints } from "src/hydraulic-model/mutations/add-customer-points";
 import { buildCustomerPoint } from "src/__helpers__/hydraulic-model-builder";
@@ -81,12 +84,33 @@ const renameProject = async (store: Store, name: string) => {
 
 const createScenario = (store: Store) => {
   const { result } = renderHook(
-    () => useScenarioOperations(),
+    () => ({
+      ...useInitializeBranch(),
+      ...useSwitchBranch(),
+    }),
     withStore(store),
   );
 
+  const branch: Branch = {
+    id: "scenario-1",
+    name: "Scenario #1",
+    parentId: "main",
+    status: "open",
+  };
+
   act(() => {
-    result.current.createNewScenario();
+    result.current.initializeBranch(branch);
+    result.current.switchBranch(branch.id);
+  });
+
+  const worktree = store.get(worktreeAtom);
+  store.set(worktreeAtom, {
+    ...worktree,
+    branches: new Map(worktree.branches).set(branch.id, branch),
+    scenarios: [branch.id],
+    activeBranchId: branch.id,
+    lastActiveBranchId: worktree.activeBranchId,
+    highestScenarioNumber: 1,
   });
 };
 

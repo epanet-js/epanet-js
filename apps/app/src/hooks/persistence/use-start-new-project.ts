@@ -34,7 +34,7 @@ import {
   writesSucceededAtRebuildAtom,
   opfsReinstallFailedAtom,
 } from "src/state/session-recovery";
-import { initializeWorktree } from "src/lib/worktree";
+import { initializeWorktree } from "@epanet-js/worktree";
 import { dialogAtom } from "src/state/dialog";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { projectSettingsAtom } from "src/state/project-settings";

@@ -48,7 +48,10 @@ export const ScenariosPaywallConnector = ({
   const runSimulation = useRunSimulation();
 
   const proceedWithCreation = useCallback(() => {
-    const { scenarioId, scenarioName } = createNewScenario();
+    const created = createNewScenario();
+    if (!created) return;
+
+    const { scenarioId, scenarioName } = created;
     userTracking.capture({
       name: "scenario.created",
       scenarioId,

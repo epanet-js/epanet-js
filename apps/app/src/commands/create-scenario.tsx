@@ -18,7 +18,7 @@ import { userSettingsAtom } from "src/state/user-settings";
 export const createScenarioShortcut = "alt+y";
 
 export const useCreateScenario = () => {
-  const { createNewScenario } = useScenarioOperations();
+  const { createNewScenario, scenariosAvailable } = useScenarioOperations();
   const scenariosList = useAtomValue(scenariosListAtom);
   const setDialog = useSetAtom(dialogAtom);
   const { canUseScenarios } = usePermissions();
@@ -32,6 +32,8 @@ export const useCreateScenario = () => {
 
   return useCallback(
     ({ source: _source }: { source: string }) => {
+      if (!scenariosAvailable) return null;
+
       const isFirstTimeEnabling = scenariosList.length === 0;
 
       if (isFirstTimeEnabling && !canUseScenarios && !isDemoNetwork) {
@@ -46,7 +48,10 @@ export const useCreateScenario = () => {
       }
 
       const proceedWithCreation = () => {
-        const { scenarioId, scenarioName } = createNewScenario();
+        const created = createNewScenario();
+        if (!created) return null;
+
+        const { scenarioId, scenarioName } = created;
 
         userTracking.capture({
           name: "scenario.created",
@@ -100,6 +105,7 @@ export const useCreateScenario = () => {
     },
     [
       createNewScenario,
+      scenariosAvailable,
       scenariosList,
       setDialog,
       canUseScenarios,

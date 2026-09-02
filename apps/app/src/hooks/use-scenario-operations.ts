@@ -1,18 +1,13 @@
 import { useSetAtom } from "jotai";
 import { useAtomCallback } from "jotai/utils";
 import { useCallback } from "react";
+import type { Worktree } from "@epanet-js/worktree";
 import { useInitializeBranch } from "src/hooks/persistence/use-initialize-branch";
 import { useSwitchBranch } from "src/hooks/persistence/use-switch-branch";
 import { useDeleteBranch } from "src/hooks/persistence/use-delete-branch";
+import { getBranchingRules } from "src/lib/branching";
 import { worktreeAtom } from "src/state/scenarios";
 import { modeAtom, Mode } from "src/state/mode";
-import {
-  createScenario,
-  switchToBranch as switchToBranchFn,
-  deleteScenario,
-  renameScenario,
-} from "src/lib/worktree";
-import type { Worktree } from "src/lib/worktree";
 
 const DRAWING_MODES: Mode[] = [
   Mode.DRAW_JUNCTION,
@@ -34,10 +29,10 @@ export const useScenarioOperations = () => {
 
   const performSwitch = useCallback(
     (worktree: Worktree, branchId: string) => {
-      const result = switchToBranchFn(worktree, branchId);
+      const result = getBranchingRules().switchToBranch(worktree, branchId);
 
-      if (result.branch) {
-        switchBranch(result.branch.id);
+      if (result.activated) {
+        switchBranch(result.activated.id);
       }
 
       setWorktree(result.worktree);
@@ -81,18 +76,20 @@ export const useScenarioOperations = () => {
     useCallback(
       (get, _set) => {
         const worktree = get(worktreeAtom);
-        const created = createScenario(worktree);
+        const { worktree: withScenario, created: scenario } =
+          getBranchingRules().createBranch(worktree);
+        if (!scenario) return null;
 
-        initializeBranch(created.branch);
-        switchBranch(created.branch.id);
+        initializeBranch(scenario);
+        switchBranch(scenario.id);
 
-        const result = switchToBranchFn(created.worktree, created.branch.id);
-        setWorktree(result.worktree);
+        const switched = getBranchingRules().switchToBranch(
+          withScenario,
+          scenario.id,
+        );
+        setWorktree(switched.worktree);
 
-        return {
-          scenarioId: created.branch.id,
-          scenarioName: created.branch.name,
-        };
+        return { scenarioId: scenario.id, scenarioName: scenario.name };
       },
       [initializeBranch, switchBranch, setWorktree],
     ),
@@ -100,11 +97,11 @@ export const useScenarioOperations = () => {
 
   const deleteScenarioById = useAtomCallback(
     useCallback(
-      (get, set, scenarioId: string) => {
+      (get, _set, scenarioId: string) => {
         const worktree = get(worktreeAtom);
-        const result = deleteScenario(worktree, scenarioId);
+        const result = getBranchingRules().deleteBranch(worktree, scenarioId);
 
-        deleteBranch(scenarioId, result.branch?.id ?? null);
+        deleteBranch(scenarioId, result.nextActive?.id ?? null);
 
         setWorktree(result.worktree);
       },
@@ -116,13 +113,16 @@ export const useScenarioOperations = () => {
     useCallback(
       (get, _set, scenarioId: string, newName: string) => {
         const worktree = get(worktreeAtom);
-        setWorktree(renameScenario(worktree, scenarioId, newName));
+        setWorktree(
+          getBranchingRules().renameBranch(worktree, scenarioId, newName),
+        );
       },
       [setWorktree],
     ),
   );
 
   return {
+    scenariosAvailable: getBranchingRules().isAvailable,
     switchToBranch,
     switchToMain,
     createNewScenario,
