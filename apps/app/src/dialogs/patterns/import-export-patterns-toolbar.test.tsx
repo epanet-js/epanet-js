@@ -5,7 +5,6 @@ import { Provider as JotaiProvider } from "jotai";
 import { vi } from "vitest";
 import { setInitialState } from "src/__helpers__/state";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
-import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
 import type { Pattern, Patterns } from "src/hydraulic-model";
 import type { Store } from "src/state";
 import type { ImportOutcome } from "src/components/import-outcome";
@@ -124,18 +123,7 @@ const lastImported = (
 describe("ImportExportPatternsToolbar", () => {
   beforeEach(() => {
     stubUserTracking();
-    stubFeatureOn("FLAG_PATTERNS_IMPORT_EXPORT");
     vi.clearAllMocks();
-  });
-
-  it("renders nothing when the flag is off", () => {
-    stubFeatureOff("FLAG_PATTERNS_IMPORT_EXPORT");
-
-    renderToolbar(patternsOf({ id: 1, label: "PAT1", multipliers: [1] }));
-
-    expect(
-      screen.queryByRole("button", { name: /export/i }),
-    ).not.toBeInTheDocument();
   });
 
   describe("exporting", () => {

@@ -2,7 +2,6 @@ import { useCallback, useMemo } from "react";
 import { LabelManager } from "@epanet-js/hydraulic-model";
 import { Patterns } from "src/hydraulic-model";
 import { useTranslate } from "src/hooks/use-translate";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { ImportExportToolbar } from "src/components/import-export-toolbar";
 import { useExportPatterns } from "src/commands/export-patterns";
 import { useImportPatterns } from "src/commands/import-patterns";
@@ -37,7 +36,6 @@ export const ImportExportPatternsToolbar = ({
   readOnly?: boolean;
 }) => {
   const translate = useTranslate();
-  const isEnabled = useFeatureFlag("FLAG_PATTERNS_IMPORT_EXPORT");
   const { exportToCsv, exportToXlsx } = useExportPatterns(
     translate("patterns.title"),
   );
@@ -139,8 +137,6 @@ export const ImportExportPatternsToolbar = ({
       })
       .finally(() => onImportingChange(false));
   }, [runImport, onImported, onImportingChange, translate]);
-
-  if (!isEnabled) return null;
 
   return (
     <ImportExportToolbar

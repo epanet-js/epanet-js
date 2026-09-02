@@ -10,7 +10,6 @@ import { PersistenceContext } from "src/lib/persistence/context";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { Store } from "src/state";
-import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
 import type { ExportPatternsOptions } from "src/lib/operational-data-io/patterns/export-patterns";
 import type { Patterns } from "src/hydraulic-model";
 import { PatternsDialog } from "./patterns-dialog";
@@ -611,19 +610,7 @@ describe("PatternsDialog", () => {
 
   describe("import/export toolbar", () => {
     beforeEach(() => {
-      stubFeatureOn("FLAG_PATTERNS_IMPORT_EXPORT");
       importPatterns.mockReset();
-    });
-
-    it("is hidden when the flag is off", () => {
-      stubFeatureOff("FLAG_PATTERNS_IMPORT_EXPORT");
-      const store = storeWith([100, "Pattern1", [1, 0.8]]);
-
-      renderDialog(store);
-
-      expect(
-        screen.queryByRole("button", { name: /export/i }),
-      ).not.toBeInTheDocument();
     });
 
     it("shows imported patterns in the sidebar and persists them on save", async () => {

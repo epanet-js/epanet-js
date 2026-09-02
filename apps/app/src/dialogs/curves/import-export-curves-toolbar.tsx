@@ -6,7 +6,6 @@ import {
 } from "@epanet-js/hydraulic-model";
 import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
 import { useTranslate } from "src/hooks/use-translate";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { ImportExportToolbar } from "src/components/import-export-toolbar";
 import {
   buildImportOutcome,
@@ -48,7 +47,6 @@ export const ImportExportCurvesToolbar = ({
   readOnly?: boolean;
 }) => {
   const translate = useTranslate();
-  const isEnabled = useFeatureFlag("FLAG_CURVES_IMPORT_EXPORT");
   const { exportToCsv, exportToXlsx } = useExportCurves(fileSuffix);
   const importCurves = useImportCurves();
 
@@ -138,8 +136,6 @@ export const ImportExportCurvesToolbar = ({
       })
       .finally(() => onImportingChange(false));
   }, [runImport, onImported, onImportingChange, translate]);
-
-  if (!isEnabled) return null;
 
   return (
     <ImportExportToolbar
