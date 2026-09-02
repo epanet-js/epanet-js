@@ -20,7 +20,7 @@ export function PipeErrorBanner({
     <NotificationBanner
       variant="warning"
       title={translate("pipeLibrary.validation.invalidMaterial", materialLabel)}
-      description={translate(error.message, error.value ?? "")}
+      description={translate(`pipeLibrary.${error.code}`)}
       Icon={TriangleAlert}
       className="shrink-0 mb-3 mr-3 rounded-md"
     />

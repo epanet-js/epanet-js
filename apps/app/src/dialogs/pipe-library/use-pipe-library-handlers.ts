@@ -14,7 +14,7 @@ import {
   validateMaterial,
   type ImportPipeLibraryResult,
 } from "src/hydraulic-model/pipe-materials";
-import type { ImportOutcome } from "src/components/import-outcome";
+import { groupErrors, type ImportOutcome } from "src/components/import-outcome";
 import { useExportPipeLibrary } from "src/commands/export-pipe-library";
 import { useImportPipeLibrary } from "src/commands/import-pipe-library";
 import {
@@ -215,7 +215,7 @@ export const usePipeLibraryHandlers = () => {
         return "success" as const;
       })();
 
-      setImportOutcome({ status, message });
+      setImportOutcome({ status, message, issues: groupErrors(result.errors) });
       setSelectedLabel(null);
     },
     [translate, setSelectedLabel],

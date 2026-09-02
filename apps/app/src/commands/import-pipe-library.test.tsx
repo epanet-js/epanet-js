@@ -21,7 +21,7 @@ describe("useImportPipeLibrary", () => {
     tracking = stubUserTracking();
   });
 
-  it("returns an invalidFile error and does not track when the picker is cancelled", async () => {
+  it("returns nothing and does not track when the picker is cancelled", async () => {
     vi.mocked(fileOpen).mockRejectedValue(
       Object.assign(new Error(), { name: "AbortError" }),
     );
@@ -33,8 +33,7 @@ describe("useImportPipeLibrary", () => {
       outcome = await result.current();
     });
 
-    expect(outcome.status).toBe("error");
-    expect(outcome.errors[0].message).toBe("pipeLibrary.import.invalidFile");
+    expect(outcome).toBeNull();
     expect(tracking.capture).not.toHaveBeenCalled();
   });
 
@@ -54,8 +53,8 @@ describe("useImportPipeLibrary", () => {
       outcome = await result.current();
     });
 
-    expect(outcome.status).toBe("success");
-    expect(outcome.pipeLibrary).toHaveLength(1);
+    expect(outcome?.status).toBe("success");
+    expect(outcome?.pipeLibrary).toHaveLength(1);
     expect(tracking.capture).toHaveBeenCalledWith({
       name: "pipeLibrary.importedFromFile",
       status: "success",

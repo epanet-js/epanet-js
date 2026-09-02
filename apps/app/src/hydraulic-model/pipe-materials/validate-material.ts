@@ -2,7 +2,8 @@ import type { PipeMaterial, RoughnessEntry } from "@epanet-js/hydraulic-model";
 
 export type EntryValidationError = {
   field: "age" | "roughness";
-  message: string;
+  // Translation key relative to the pipeLibrary namespace.
+  code: string;
   value?: string;
 };
 
@@ -14,11 +15,11 @@ export const validateEntry = (
   if (entry.age === null && entry.roughness === null) {
     errors.push({
       field: "age",
-      message: "pipeLibrary.validation.emptyEntries",
+      code: "validation.emptyEntries",
     });
     errors.push({
       field: "roughness",
-      message: "pipeLibrary.validation.emptyEntries",
+      code: "validation.emptyEntries",
     });
     return errors;
   }
@@ -26,14 +27,14 @@ export const validateEntry = (
   if (typeof entry.age === "number" && isNaN(entry.age)) {
     errors.push({
       field: "age",
-      message: "pipeLibrary.validation.mustBeNumber",
+      code: "validation.mustBeNumber",
       value: String(entry.age),
     });
   }
   if (typeof entry.roughness === "number" && isNaN(entry.roughness)) {
     errors.push({
       field: "roughness",
-      message: "pipeLibrary.validation.mustBeNumber",
+      code: "validation.mustBeNumber",
       value: String(entry.roughness),
     });
   }
@@ -42,27 +43,27 @@ export const validateEntry = (
   if (entry.roughness !== null && entry.roughness <= 0) {
     errors.push({
       field: "roughness",
-      message: "pipeLibrary.validation.roughnessPositive",
+      code: "validation.roughnessPositive",
       value: String(entry.roughness),
     });
   }
   if (entry.age !== null && entry.age < 0) {
     errors.push({
       field: "age",
-      message: "pipeLibrary.validation.agePositive",
+      code: "validation.agePositive",
       value: String(entry.age),
     });
   }
   if (entry.age !== null && entry.roughness === null) {
     errors.push({
       field: "roughness",
-      message: "pipeLibrary.validation.roughnessRequired",
+      code: "validation.roughnessRequired",
     });
   }
   if (entry.age === null && entry.roughness !== null) {
     errors.push({
       field: "age",
-      message: "pipeLibrary.validation.ageRequired",
+      code: "validation.ageRequired",
     });
   }
 
@@ -70,7 +71,7 @@ export const validateEntry = (
 };
 
 export type MaterialValidationError = {
-  message: string;
+  code: string;
   value?: string;
 };
 
@@ -78,23 +79,23 @@ export const validateMaterial = (
   material: PipeMaterial,
 ): MaterialValidationError | null => {
   if (material.entries.length === 0) {
-    return { message: "pipeLibrary.validation.emptyEntries" };
+    return { code: "validation.emptyEntries" };
   }
 
   for (const entry of material.entries) {
     const errors = validateEntry(entry);
     if (errors.length > 0) {
-      return { message: errors[0].message, value: errors[0].value };
+      return { code: errors[0].code, value: errors[0].value };
     }
   }
 
   if (material.entries.find((e) => e.age === 0) === undefined) {
-    return { message: "pipeLibrary.validation.zeroAge" };
+    return { code: "validation.zeroAge" };
   }
 
   const ages = material.entries.map((e) => e.age).filter((a) => a !== null);
   if (new Set(ages).size !== ages.length) {
-    return { message: "pipeLibrary.validation.duplicateAge" };
+    return { code: "validation.duplicateAge" };
   }
 
   return null;

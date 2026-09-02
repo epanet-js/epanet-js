@@ -14,7 +14,7 @@ import { Button, DDContent, StyledItem } from "src/components/elements";
 import { validateMaterial } from "src/hydraulic-model/pipe-materials";
 import { usePipeLibraryHandlers } from "./use-pipe-library-handlers";
 
-const IMPORT_KEYS = "pipeLibrary.import";
+const IMPORT_KEYS = "pipeLibrary";
 
 export const PipeLibraryDialog = () => {
   const dialogActions = useRef<DialogActionsHandle>(null);

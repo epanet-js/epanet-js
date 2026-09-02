@@ -11,11 +11,11 @@ describe("validateEntry", () => {
     expect(errors).toEqual([
       {
         field: "age",
-        message: "pipeLibrary.validation.emptyEntries",
+        code: "validation.emptyEntries",
       },
       {
         field: "roughness",
-        message: "pipeLibrary.validation.emptyEntries",
+        code: "validation.emptyEntries",
       },
     ]);
   });
@@ -24,7 +24,7 @@ describe("validateEntry", () => {
     expect(validateEntry({ age: 0, roughness: 0 })).toEqual([
       {
         field: "roughness",
-        message: "pipeLibrary.validation.roughnessPositive",
+        code: "validation.roughnessPositive",
         value: "0",
       },
     ]);
@@ -34,7 +34,7 @@ describe("validateEntry", () => {
     expect(validateEntry({ age: 0, roughness: -5 })).toEqual([
       {
         field: "roughness",
-        message: "pipeLibrary.validation.roughnessPositive",
+        code: "validation.roughnessPositive",
         value: "-5",
       },
     ]);
@@ -44,7 +44,7 @@ describe("validateEntry", () => {
     expect(validateEntry({ age: -1, roughness: 140 })).toEqual([
       {
         field: "age",
-        message: "pipeLibrary.validation.agePositive",
+        code: "validation.agePositive",
         value: "-1",
       },
     ]);
@@ -54,7 +54,7 @@ describe("validateEntry", () => {
     expect(validateEntry({ age: 10, roughness: null })).toEqual([
       {
         field: "roughness",
-        message: "pipeLibrary.validation.roughnessRequired",
+        code: "validation.roughnessRequired",
       },
     ]);
   });
@@ -63,7 +63,7 @@ describe("validateEntry", () => {
     expect(validateEntry({ age: null, roughness: 140 })).toEqual([
       {
         field: "age",
-        message: "pipeLibrary.validation.ageRequired",
+        code: "validation.ageRequired",
       },
     ]);
   });
@@ -72,12 +72,12 @@ describe("validateEntry", () => {
     expect(validateEntry({ age: -1, roughness: -5 })).toEqual([
       {
         field: "roughness",
-        message: "pipeLibrary.validation.roughnessPositive",
+        code: "validation.roughnessPositive",
         value: "-5",
       },
       {
         field: "age",
-        message: "pipeLibrary.validation.agePositive",
+        code: "validation.agePositive",
         value: "-1",
       },
     ]);
@@ -87,7 +87,7 @@ describe("validateEntry", () => {
     expect(validateEntry({ age: NaN, roughness: 140 })).toEqual([
       {
         field: "age",
-        message: "pipeLibrary.validation.mustBeNumber",
+        code: "validation.mustBeNumber",
         value: "NaN",
       },
     ]);
@@ -97,7 +97,7 @@ describe("validateEntry", () => {
     expect(validateEntry({ age: 0, roughness: NaN })).toEqual([
       {
         field: "roughness",
-        message: "pipeLibrary.validation.mustBeNumber",
+        code: "validation.mustBeNumber",
         value: "NaN",
       },
     ]);
@@ -107,12 +107,12 @@ describe("validateEntry", () => {
     expect(validateEntry({ age: NaN, roughness: NaN })).toEqual([
       {
         field: "age",
-        message: "pipeLibrary.validation.mustBeNumber",
+        code: "validation.mustBeNumber",
         value: "NaN",
       },
       {
         field: "roughness",
-        message: "pipeLibrary.validation.mustBeNumber",
+        code: "validation.mustBeNumber",
         value: "NaN",
       },
     ]);

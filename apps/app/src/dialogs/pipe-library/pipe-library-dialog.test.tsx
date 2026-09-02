@@ -408,6 +408,47 @@ describe("PipeLibraryDialog", () => {
       expect(report).not.toBeInTheDocument();
     });
 
+    it("collapses the reasons entries were rejected behind a summary", async () => {
+      const user = setupUser();
+      const store = seededStore([
+        { label: "Cast Iron", entries: [{ age: 0, roughness: 100 }] },
+      ]);
+      mockImportFromFile.mockResolvedValue({
+        status: "partial",
+        format: "csv",
+        pipeLibrary: [{ label: "PVC", entries: [{ age: 0, roughness: null }] }],
+        errors: [
+          { material: "PVC", code: "validation.roughnessRequired", row: 3 },
+          {
+            material: "PE",
+            code: "validation.roughnessPositive",
+            value: "-5",
+            row: 5,
+          },
+          { material: "PE", code: "import.duplicateMaterial", row: 7 },
+        ],
+      });
+
+      renderDialog(store);
+      await confirmImport(user);
+
+      const summary = await screen.findByText(/^issues$/i);
+      const reason = screen.getByText(/roughness is required.*\(row 3\)/i);
+      expect(reason).not.toBeVisible();
+
+      await user.click(summary);
+
+      expect(reason).toBeVisible();
+      expect(
+        screen.getByText(/duplicated material name.*\(row 7\)/i),
+      ).toBeVisible();
+      // Issue lines are translated without variables, so no message may
+      // depend on one.
+      expect(
+        screen.getByText("Roughness cannot be negative (row 5)"),
+      ).toBeVisible();
+    });
+
     it("reports a failure without touching the draft", async () => {
       const user = setupUser();
       const materials = [

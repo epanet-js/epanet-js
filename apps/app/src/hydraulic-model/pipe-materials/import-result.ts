@@ -1,9 +1,10 @@
 import type { PipeMaterial } from "@epanet-js/hydraulic-model";
 
 export type ImportError = {
-  message: string;
+  code: string;
   material?: string;
   value?: string;
+  row?: number;
 };
 
 export type ImportPipeLibraryResult = {

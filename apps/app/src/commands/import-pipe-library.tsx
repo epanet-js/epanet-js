@@ -25,14 +25,9 @@ const openFilePicker = async (): Promise<File | null> => {
 export const useImportPipeLibrary = () => {
   const { capture } = useUserTracking();
 
-  return useCallback(async (): Promise<ImportPipeLibraryResult> => {
+  return useCallback(async (): Promise<ImportPipeLibraryResult | null> => {
     const file = await openFilePicker();
-    if (!file) {
-      return {
-        status: "error",
-        errors: [{ message: "pipeLibrary.import.invalidFile" }],
-      };
-    }
+    if (!file) return null;
 
     const result = await parsePipeLibraryFile(file);
     capture({
