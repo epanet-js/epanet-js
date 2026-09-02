@@ -4,7 +4,7 @@ import { NextResponse, NextRequest } from "next/server";
 // Mirrors `isAuthEnabled` from src/global-config
 const isAuthEnabled = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
-const isProtectedRoute = createRouteMatcher(["/api/canny-sso(.*)"]);
+const isProtectedRoute = createRouteMatcher(["/api/canny-sso"]);
 
 const withCacheHeaders = (request: NextRequest): NextResponse => {
   if (request.nextUrl.pathname.startsWith("/api")) return NextResponse.next();
