@@ -1,7 +1,7 @@
 # @epanet-js/worktree
 
 The vocabulary for the set of branches a project is edited through, and the
-contract an implementation of branch operations registers against.
+`BranchingRules` contract an implementation registers against.
 
 It is a **no-build source package** — the `.ts` is consumed directly by the
 importing app's bundler (the same convention as the other `@epanet-js/*`

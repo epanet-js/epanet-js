@@ -1,0 +1,65 @@
+// The wire format for a ChangeSet: one operation's worth of model change,
+// carrying both directions. See ../AGENTS.md before editing.
+namespace ChangeSetFb;
+
+// Asset kinds are listed individually: the kind is what tells the applier
+// which class to build.
+enum Entity : ubyte {
+  Junction,
+  Reservoir,
+  Tank,
+  Pipe,
+  Pump,
+  Valve,
+  CustomerPoint,
+  Curve,
+  Pattern,
+  Control,
+  JunctionDemand,
+  CustomerDemand,
+  CustomAttribute,
+  PipeLibrary,
+  RawControls,
+}
+
+enum Kind : ubyte { Create, Update, Delete }
+
+// Null mask entries. Absent and Null are distinct, and must stay that way.
+enum Presence : ubyte { Present, Null, Absent }
+
+table Doubles { v:[double]; nulls:[ubyte]; }
+table Bools   { v:[ubyte];  nulls:[ubyte]; }
+table Texts   { v:[string]; nulls:[ubyte]; }
+// Same shape as Texts, but each entry is JSON: coordinates, connections,
+// curve points, demands, control definitions.
+table Json    { v:[string]; nulls:[ubyte]; }
+
+union Values { Doubles, Bools, Texts, Json }
+
+// One property across every entity in the op. A vector of length 1 against
+// many ids broadcasts.
+table Column {
+  field:string;
+  before:Values;
+  after:Values;
+}
+
+table Op {
+  entity:Entity;
+  kind:Kind;
+  ids:[int];
+  // String-key entities (controls by nanoid, custom attributes by
+  // "<assetType>/<id>"). Exactly one of ids/keys is populated.
+  keys:[string];
+  cols:[Column];
+}
+
+table ChangeSet {
+  name:string;
+  ops:[Op];
+  // Append new fields to the end of a table, never in the middle: an absent
+  // field reads as its default, which is what makes every older buffer readable.
+  version:ushort = 1;
+}
+
+root_type ChangeSet;
