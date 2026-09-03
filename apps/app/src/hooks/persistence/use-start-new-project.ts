@@ -26,6 +26,7 @@ import type { SimulationSettings } from "src/simulation/simulation-settings";
 import { OPFSStorage } from "src/infra/storage";
 import { getAppId } from "src/infra/app-instance";
 import { MomentLog } from "src/lib/persistence/moment-log";
+import { SessionHistory } from "src/lib/persistence/session-history";
 import { MapEditionsTracker } from "src/map/map-editions-tracker";
 import { writeQueue } from "src/lib/persistence/write-queue";
 import {
@@ -131,6 +132,7 @@ export const loadModel = (
     autoElevations,
   } = input;
   const momentLog = new MomentLog(hydraulicModel.version);
+  const sessionHistory = new SessionHistory(hydraulicModel.version);
 
   resetProjectRevision(set, hydraulicModel.version);
   writeQueue.reset();
@@ -166,6 +168,7 @@ export const loadModel = (
           hydraulicModel,
           labelManager: factories.labelManager,
           momentLog,
+          sessionHistory,
           simulation: null,
           simulationSourceId: "main",
           simulationSettings,

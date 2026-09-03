@@ -1,6 +1,7 @@
 import { createStore } from "jotai";
 import { HydraulicModelBuilder } from "./hydraulic-model-builder";
 import { MomentLog } from "src/lib/persistence/moment-log";
+import { SessionHistory } from "src/lib/persistence/session-history";
 import { selectionAtom } from "src/state/selection";
 import {
   FileInfo,
@@ -54,6 +55,7 @@ export const setInitialState = (
     store?: Store;
     hydraulicModel?: HydraulicModel;
     momentLog?: MomentLog;
+    sessionHistory?: SessionHistory;
     selection?: Sel;
     fileInfo?: FileInfo | null;
     layerConfigs?: LayerConfigMap;
@@ -72,6 +74,7 @@ export const setInitialState = (
     store = createStore(),
     hydraulicModel = HydraulicModelBuilder.with().build(),
     momentLog = new MomentLog(hydraulicModel.version),
+    sessionHistory = new SessionHistory(hydraulicModel.version),
     selection = USelection.none(),
     fileInfo = null,
     layerConfigs = new Map(),
@@ -135,6 +138,7 @@ export const setInitialState = (
           hydraulicModel,
           labelManager: new LabelManager(),
           momentLog,
+          sessionHistory,
           simulation: branchSimulation,
           simulationSourceId: "main",
           simulationSettings: simulationSettings ?? defaultSimulationSettings,

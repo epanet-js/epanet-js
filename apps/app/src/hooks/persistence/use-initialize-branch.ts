@@ -4,6 +4,7 @@ import type { Getter, Setter } from "jotai";
 import { copyModel } from "src/hydraulic-model";
 import { LabelManager } from "@epanet-js/hydraulic-model";
 import { MomentLog } from "src/lib/persistence/moment-log";
+import { SessionHistory } from "src/lib/persistence/session-history";
 import { branchStateAtom } from "src/state/branch-state";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { worktreeAtom } from "src/state/scenarios";
@@ -30,6 +31,7 @@ export const useInitializeBranch = () => {
         hydraulicModel: copyModel(mainState.hydraulicModel),
         labelManager,
         momentLog: new MomentLog(mainState.hydraulicModel.version),
+        sessionHistory: new SessionHistory(mainState.hydraulicModel.version),
         simulation: mainState.simulation,
         simulationSourceId: mainState.simulationSourceId,
         simulationSettings: mainState.simulationSettings,

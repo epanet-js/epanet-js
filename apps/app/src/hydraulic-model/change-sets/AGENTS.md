@@ -6,8 +6,12 @@ directory connects it to the model: the **builder** that reads a `HydraulicModel
 to fill in `before`, and the **applier** that writes a change set into one. Both
 need the asset classes, which is why they are here and not in the package.
 
-Nothing in the app runs this code yet. The live edit path is still moments; the
-switch is a later slice.
+The app runs this behind `FLAG_CHANGE_SETS`. With the flag on, edits and
+undo/redo go through `toChangeSet` and `applyChange`
+(`src/lib/persistence/transaction-helpers.ts`) and land in a `SessionHistory`;
+with it off the moment path is untouched. **The database is still written from
+the moment**, and not at all while the flag is on — see the flag's entry in
+`private/feature-flags.md`.
 
 ## The shape of an edit
 
@@ -132,8 +136,14 @@ JSON-safe.
 ## Three strategies, by worked example
 
 **Assets and customer points — the whole entity, flattened to a field bag.**
-`assetToFields` spreads `feature.properties` and pulls `coordinates` off the
-geometry, skipping `type` (it rides on the entity kind).
+`assetToFields` spreads `feature.properties`, pulls `coordinates` off the
+geometry and `at` off the asset, skipping `type` (it rides on the entity kind).
+
+`at` is the fractional ordering key `sortAssets` reads, and it lives on the asset
+rather than in `feature.properties`, so it has to be named explicitly at both
+ends. Without it a rebuilt asset gets the `"any"` class-field default back and
+sorts by id instead of where it was — invisible to a test that drives the two
+appliers directly, because `ensureAtValues` never runs there.
 
 ```json
 { "entity": "pipe", "id": 3, "kind": "create", "before": {},
@@ -194,6 +204,12 @@ each operation down both paths and compares the resulting models.
   topology, so re-putting a *node* with a changed label leaks the old
   registration. This path de-registers whenever `label` is among the changed
   fields. Do not reproduce the leak.
+- **A restored asset keeps its position.** Undoing a delete re-puts the asset
+  with the `at` it had, so it returns to where it was in the order. The moment
+  path re-keys it instead: `ensureAtValues` sees an id the model no longer holds,
+  finds its `at` collides with the assets still there, and hands it a key that
+  sorts to the **front**. Both leave the same model; only the row order in the
+  data grid differs. `change-sets-parity.test.tsx` pins both behaviours.
 - **`mergeMoments` drops `putPipeMaterials` and `putCustomAttributesDefinition`.**
   Not a difference — it happens upstream, so both paths see the same merged
   moment. It is a latent bug that disappears when operations emit records

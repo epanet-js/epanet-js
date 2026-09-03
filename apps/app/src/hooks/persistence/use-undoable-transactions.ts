@@ -4,17 +4,24 @@ import type { Getter, Setter } from "jotai";
 import {
   stagingModelDerivedAtom,
   momentLogDerivedAtom,
+  sessionHistoryDerivedAtom,
 } from "src/state/derived-branch-state";
 import { worktreeAtom } from "src/state/scenarios";
 import { historyPendingAtom } from "src/state/transactions";
 import {
+  applyChange,
   applyMoment,
   prepareHistoryAction,
   type HistoryAction,
 } from "src/lib/persistence/transaction-helpers";
 import type { MomentLog } from "src/lib/persistence/moment-log";
+import type {
+  HistoryEntry,
+  SessionHistory,
+} from "src/lib/persistence/session-history";
 import { applyMomentToDb, buildMomentPayload } from "src/lib/db";
 import type { ApplyMomentPayload } from "@epanet-js/ejsdb";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { captureError, captureWarning } from "src/infra/error-tracking";
 import {
   writeQueue,
@@ -55,14 +62,44 @@ const commitHistoryAction = (
   set(momentLogDerivedAtom, momentLog);
 };
 
+const commitHistoryEntry = (
+  get: Getter,
+  set: Setter,
+  direction: "undo" | "redo",
+  entry: HistoryEntry,
+  sessionHistory: SessionHistory,
+) => {
+  const isUndo = direction === "undo";
+
+  applyChange(
+    get,
+    set,
+    entry.stateId,
+    entry.changeSet,
+    isUndo ? "reverse" : "forward",
+    stagingModelDerivedAtom,
+  );
+
+  isUndo ? sessionHistory.undo() : sessionHistory.redo();
+
+  set(sessionHistoryDerivedAtom, sessionHistory);
+};
+
 const nextAction = (
   momentLog: MomentLog,
   direction: "undo" | "redo",
 ): HistoryAction | null =>
   direction === "undo" ? momentLog.nextUndo() : momentLog.nextRedo();
 
+const nextEntry = (
+  sessionHistory: SessionHistory,
+  direction: "undo" | "redo",
+): HistoryEntry | null =>
+  direction === "undo" ? sessionHistory.nextUndo() : sessionHistory.nextRedo();
+
 export const useUndoableTransactions = () => {
   const onWriteFailure = useWriteFailureHandler();
+  const isChangeSetsOn = useFeatureFlag("FLAG_CHANGE_SETS");
 
   const historyControl = useAtomCallback(
     useCallback(
@@ -72,6 +109,20 @@ export const useUndoableTransactions = () => {
         direction: "undo" | "redo",
       ): Promise<boolean> => {
         if (get(historyPendingAtom)) return false;
+
+        if (isChangeSetsOn) {
+          const sessionHistory = get(sessionHistoryDerivedAtom).copy();
+          const entry = nextEntry(sessionHistory, direction);
+          if (!entry) return false;
+
+          set(historyPendingAtom, true);
+          try {
+            commitHistoryEntry(get, set, direction, entry, sessionHistory);
+            return true;
+          } finally {
+            set(historyPendingAtom, false);
+          }
+        }
 
         const action = nextAction(get(momentLogDerivedAtom).copy(), direction);
         if (!action) return false;
@@ -102,7 +153,7 @@ export const useUndoableTransactions = () => {
           set(historyPendingAtom, false);
         }
       },
-      [onWriteFailure],
+      [onWriteFailure, isChangeSetsOn],
     ),
   );
 

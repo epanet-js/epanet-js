@@ -10,6 +10,7 @@ import { initialSimulationState } from "src/state/simulation";
 import {
   stagingModelDerivedAtom,
   momentLogDerivedAtom,
+  sessionHistoryDerivedAtom,
   simulationDerivedAtom,
   simulationSettingsDerivedAtom,
 } from "src/state/derived-branch-state";
@@ -20,6 +21,7 @@ import { ephemeralStateAtom } from "src/state/drawing";
 import { OPFSStorage, opfsUnavailableErrors } from "src/infra/storage";
 import { getAppId } from "src/infra/app-instance";
 import { MomentLog } from "src/lib/persistence/moment-log";
+import { SessionHistory } from "src/lib/persistence/session-history";
 import { MapEditionsTracker } from "src/map/map-editions-tracker";
 import { initializeWorktree } from "@epanet-js/worktree";
 import { worktreeAtom } from "src/state/scenarios";
@@ -48,6 +50,7 @@ const loadModel = (
 ) => {
   const importedModel = { ...hydraulicModel, version: nanoid() };
   const momentLog = new MomentLog(importedModel.version);
+  const sessionHistory = new SessionHistory(importedModel.version);
 
   set(stagingModelDerivedAtom, importedModel);
   void db
@@ -63,6 +66,7 @@ const loadModel = (
       }),
     );
   set(momentLogDerivedAtom, momentLog);
+  set(sessionHistoryDerivedAtom, sessionHistory);
 
   set(worktreeAtom, initializeWorktree());
 };

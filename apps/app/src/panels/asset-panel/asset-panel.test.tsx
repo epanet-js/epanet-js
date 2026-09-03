@@ -10,6 +10,7 @@ import { branchStateAtom } from "src/state/branch-state";
 import { LabelManager, Valve } from "@epanet-js/hydraulic-model";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { MomentLog } from "src/lib/persistence/moment-log";
+import { SessionHistory } from "src/lib/persistence/session-history";
 import { Store } from "src/state";
 import { Provider as JotaiProvider, createStore } from "jotai";
 import { HydraulicModel, Pipe, Pump } from "src/hydraulic-model";
@@ -2082,6 +2083,7 @@ describe("AssetPanel", () => {
             hydraulicModel,
             labelManager: new LabelManager(),
             momentLog: new MomentLog(),
+            sessionHistory: new SessionHistory(),
             simulation,
             simulationSourceId: "main",
             simulationSettings: defaultSimulationSettings,

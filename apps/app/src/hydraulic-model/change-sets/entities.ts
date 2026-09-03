@@ -27,6 +27,7 @@ export const COORDINATES_FIELD = "coordinates";
 export const CONNECTIONS_FIELD = "connections";
 export const LABEL_FIELD = "label";
 export const CONNECTION_FIELD = "connection";
+export const AT_FIELD = "at";
 
 export type Fields = Record<string, Cell>;
 
@@ -57,6 +58,7 @@ export const entityToAssetType = (entity: AssetEntityKind): AssetType =>
 export const assetToFields = (asset: Asset): Fields => {
   const fields: Fields = {
     [COORDINATES_FIELD]: asset.feature.geometry.coordinates,
+    [AT_FIELD]: asset.at,
   };
   for (const [key, value] of Object.entries(asset.feature.properties)) {
     if (key === TYPE_FIELD) continue;
@@ -115,11 +117,17 @@ export const buildAssetFromFields = (
   id: AssetId,
   fields: Fields,
 ): Asset => {
-  const { [COORDINATES_FIELD]: coordinates, ...properties } = fields;
-  return assetBuilders[entity](id, coordinates, {
+  const {
+    [COORDINATES_FIELD]: coordinates,
+    [AT_FIELD]: at,
+    ...properties
+  } = fields;
+  const asset = assetBuilders[entity](id, coordinates, {
     ...properties,
     [TYPE_FIELD]: entityToAssetType(entity),
   });
+  if (typeof at === "string") (asset as { at: string }).at = at;
+  return asset;
 };
 
 export const customerPointToFields = (customerPoint: CustomerPoint): Fields => {

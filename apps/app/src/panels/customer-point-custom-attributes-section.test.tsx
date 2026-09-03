@@ -15,6 +15,7 @@ import type { Branch, Worktree } from "@epanet-js/worktree";
 import { initialSimulationState } from "src/state/simulation";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { MomentLog } from "src/lib/persistence/moment-log";
+import { SessionHistory } from "src/lib/persistence/session-history";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { Persistence } from "src/lib/persistence/persistence";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
@@ -42,6 +43,7 @@ const branchState = (hydraulicModel: HydraulicModel) => ({
   hydraulicModel,
   labelManager: new LabelManager(),
   momentLog: new MomentLog(),
+  sessionHistory: new SessionHistory(),
   simulation: initialSimulationState,
   simulationSourceId: "main",
   simulationSettings: defaultSimulationSettings,

@@ -7,6 +7,7 @@ import {
 } from "src/hydraulic-model";
 import type { BranchState } from "src/state/branch-state";
 import { MomentLog } from "src/lib/persistence/moment-log";
+import { SessionHistory } from "src/lib/persistence/session-history";
 import { catchErrors } from "src/infra/errors";
 import { captureWarning } from "src/infra/error-tracking";
 import { USelection } from "src/selection";
@@ -92,12 +93,27 @@ export const momentLogDerivedAtom = atom(
   },
 );
 
+export const sessionHistoryDerivedAtom = atom(
+  (get): SessionHistory => {
+    return getActiveBranchState(get)?.sessionHistory ?? new SessionHistory();
+  },
+  (get, set, value: SessionHistory) => {
+    updateActiveBranchState(get, set, { sessionHistory: value });
+  },
+);
+
 export const canUndoDerivedAtom = atom((get): boolean => {
-  return get(momentLogDerivedAtom).nextUndo() !== null;
+  return (
+    get(momentLogDerivedAtom).nextUndo() !== null ||
+    get(sessionHistoryDerivedAtom).nextUndo() !== null
+  );
 });
 
 export const canRedoDerivedAtom = atom((get): boolean => {
-  return get(momentLogDerivedAtom).nextRedo() !== null;
+  return (
+    get(momentLogDerivedAtom).nextRedo() !== null ||
+    get(sessionHistoryDerivedAtom).nextRedo() !== null
+  );
 });
 
 export const simulationDerivedAtom = atom(

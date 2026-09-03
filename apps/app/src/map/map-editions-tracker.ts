@@ -24,17 +24,19 @@ export class MapEditionsTracker {
   }
 
   record(moment: Moment): MapEditionsTracker {
+    return this.recordAssetIds([
+      ...(moment.deleteAssets || []),
+      ...(moment.putAssets || []).map((asset) => asset.id),
+      ...(moment.patchAssetsAttributes || []).map((patch) => patch.id),
+    ]);
+  }
+
+  recordAssetIds(assetIds: Iterable<AssetId>): MapEditionsTracker {
     const next = this.clone();
     next.seq = this.seq + 1;
 
-    for (const assetId of moment.deleteAssets || []) {
+    for (const assetId of assetIds) {
       next.lastChangedAt.set(assetId, next.seq);
-    }
-    for (const asset of moment.putAssets || []) {
-      next.lastChangedAt.set(asset.id, next.seq);
-    }
-    for (const patch of moment.patchAssetsAttributes || []) {
-      next.lastChangedAt.set(patch.id, next.seq);
     }
 
     return next;

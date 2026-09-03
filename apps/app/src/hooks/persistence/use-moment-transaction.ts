@@ -6,15 +6,22 @@ import type { Moment } from "src/lib/persistence/moment";
 import {
   stagingModelDerivedAtom,
   momentLogDerivedAtom,
+  sessionHistoryDerivedAtom,
 } from "src/state/derived-branch-state";
 import { worktreeAtom } from "src/state/scenarios";
 import { historyPendingAtom } from "src/state/transactions";
 import { dialogAtom } from "src/state/dialog";
 import { modeAtom, MODE_INFO } from "src/state/mode";
 import { trackMoment } from "src/lib/persistence/shared";
-import { applyMoment } from "src/lib/persistence/transaction-helpers";
+import {
+  applyChange,
+  applyMoment,
+  processMoment,
+} from "src/lib/persistence/transaction-helpers";
+import { toChangeSet } from "src/hydraulic-model/change-sets";
 import { applyMomentToDb, buildMomentPayload } from "src/lib/db";
 import type { ApplyMomentPayload } from "@epanet-js/ejsdb";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { captureError, captureWarning } from "src/infra/error-tracking";
 import {
   findOrphanLinkConnections,
@@ -51,8 +58,47 @@ const buildOrphanReport = (
   };
 };
 
+const reportAppliedIntegrity = (get: Getter, moment: Moment) => {
+  const storeInconsistencies = findStoreInconsistencies(
+    get(stagingModelDerivedAtom),
+    moment,
+  );
+  if (storeInconsistencies.length > 0) {
+    captureWarning(
+      `Model integrity (store desync) after "${moment.note}": ` +
+        storeInconsistencies
+          .map(
+            (i) =>
+              `id=${i.id} kind=${i.kind} ` +
+              `assets=${i.inAssets} index=${i.inAssetIndex} ` +
+              `topology=${i.inTopology}`,
+          )
+          .join("; "),
+    );
+  }
+
+  const connectionMismatches = findTopologyConnectionMismatches(
+    get(stagingModelDerivedAtom),
+    moment,
+  );
+  if (connectionMismatches.length > 0) {
+    captureWarning(
+      `Model integrity (topology desync) after "${moment.note}": ` +
+        connectionMismatches
+          .slice(0, maxReportedIds)
+          .map(
+            (m) =>
+              `id=${m.linkId} assets=${m.assetConnections.join(",")} ` +
+              `topology=${m.topologyConnections.join(",")}`,
+          )
+          .join("; "),
+    );
+  }
+};
+
 export const useMomentTransaction = () => {
   const onWriteFailure = useWriteFailureHandler();
+  const isChangeSetsOn = useFeatureFlag("FLAG_CHANGE_SETS");
 
   const transact = useAtomCallback(
     useCallback(
@@ -64,10 +110,9 @@ export const useMomentTransaction = () => {
           return false;
         }
 
-        const momentLog = get(momentLogDerivedAtom).copy();
-
         const worktree = get(worktreeAtom);
-        const willPersist = worktree.activeBranchId === worktree.mainId;
+        const willPersist =
+          worktree.activeBranchId === worktree.mainId && !isChangeSetsOn;
 
         let payload: ApplyMomentPayload | undefined;
         if (willPersist) {
@@ -102,6 +147,33 @@ export const useMomentTransaction = () => {
         trackMoment(moment);
         const newStateId = nanoid();
 
+        if (isChangeSetsOn) {
+          const sessionHistory = get(sessionHistoryDerivedAtom).copy();
+          const hydraulicModel = get(stagingModelDerivedAtom);
+          const changeSet = toChangeSet(
+            hydraulicModel,
+            processMoment(moment, hydraulicModel),
+          );
+
+          applyChange(
+            get,
+            set,
+            newStateId,
+            changeSet,
+            "forward",
+            stagingModelDerivedAtom,
+          );
+
+          reportAppliedIntegrity(get, moment);
+
+          sessionHistory.append(changeSet, newStateId);
+          set(sessionHistoryDerivedAtom, sessionHistory);
+
+          return true;
+        }
+
+        const momentLog = get(momentLogDerivedAtom).copy();
+
         const reverseMoment = applyMoment(
           get,
           set,
@@ -110,41 +182,7 @@ export const useMomentTransaction = () => {
           stagingModelDerivedAtom,
         );
 
-        const storeInconsistencies = findStoreInconsistencies(
-          get(stagingModelDerivedAtom),
-          moment,
-        );
-        if (storeInconsistencies.length > 0) {
-          captureWarning(
-            `Model integrity (store desync) after "${moment.note}": ` +
-              storeInconsistencies
-                .map(
-                  (i) =>
-                    `id=${i.id} kind=${i.kind} ` +
-                    `assets=${i.inAssets} index=${i.inAssetIndex} ` +
-                    `topology=${i.inTopology}`,
-                )
-                .join("; "),
-          );
-        }
-
-        const connectionMismatches = findTopologyConnectionMismatches(
-          get(stagingModelDerivedAtom),
-          moment,
-        );
-        if (connectionMismatches.length > 0) {
-          captureWarning(
-            `Model integrity (topology desync) after "${moment.note}": ` +
-              connectionMismatches
-                .slice(0, maxReportedIds)
-                .map(
-                  (m) =>
-                    `id=${m.linkId} assets=${m.assetConnections.join(",")} ` +
-                    `topology=${m.topologyConnections.join(",")}`,
-                )
-                .join("; "),
-          );
-        }
+        reportAppliedIntegrity(get, moment);
 
         momentLog.append(moment, reverseMoment, newStateId);
 
@@ -156,7 +194,7 @@ export const useMomentTransaction = () => {
 
         return true;
       },
-      [onWriteFailure],
+      [onWriteFailure, isChangeSetsOn],
     ),
   );
 

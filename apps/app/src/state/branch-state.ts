@@ -1,5 +1,6 @@
 import { atom } from "jotai";
 import type { MomentLog } from "src/lib/persistence/moment-log";
+import type { SessionHistory } from "src/lib/persistence/session-history";
 import type { SimulationState } from "src/state/simulation";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
 import { HydraulicModel } from "src/hydraulic-model";
@@ -10,6 +11,7 @@ export type BranchState = {
   hydraulicModel: HydraulicModel;
   labelManager: LabelManager;
   momentLog: MomentLog;
+  sessionHistory: SessionHistory;
   simulation: SimulationState | null;
   simulationSourceId: string;
   simulationSettings: SimulationSettings;
