@@ -3,6 +3,7 @@ import { notify } from "src/components/notifications";
 import { captureError } from "src/infra/error-tracking";
 import { useTranslate } from "src/hooks/use-translate";
 import { useAuth } from "src/hooks/use-auth";
+import { billingUrl } from "src/global-config";
 import { ErrorIcon } from "src/icons";
 
 const activateTrialLoadingAtom = atom<boolean>(false);
@@ -15,7 +16,10 @@ export const useActivateTrial = () => {
   const activateTrial = async (): Promise<boolean> => {
     setLoading(true);
     try {
-      const response = await fetch("/api/activate-trial", { method: "POST" });
+      const response = await fetch(`${billingUrl}/trial`, {
+        method: "POST",
+        credentials: "include",
+      });
 
       if (!response.ok) {
         throw new Error(`Trial activation failed: ${response.statusText}`);
