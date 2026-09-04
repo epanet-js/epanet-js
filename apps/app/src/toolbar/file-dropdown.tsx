@@ -152,7 +152,10 @@ const ConvertModelSubmenu = () => {
   const isSynergiOn = useFeatureFlag("FLAG_SYNERGI");
   const { canImportSynergi } = usePermissions();
 
-  if (!isSynergiOn || !canImportSynergi) return null;
+  const isSynergiAvailable =
+    isSynergiOn && canImportSynergi && !!getConverter("synergi");
+
+  if (!isSynergiAvailable) return null;
 
   return (
     <DD.Sub>
