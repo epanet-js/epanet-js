@@ -1,12 +1,19 @@
 import { describe, it, expect } from "vitest";
 import { WHOLE_VALUE } from "@epanet-js/change-set";
+import {
+  buildTimedSetting,
+  emptyCustomAttributesDefinition,
+  setAssetControl,
+} from "@epanet-js/hydraulic-model";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { buildTestFactories } from "src/__helpers__/test-factories";
 import { changeSet } from "./build";
 import {
   dropAssets,
   putAssets,
+  replaceControls,
   replaceCurves,
+  replaceCustomAttributes,
   setAsset,
   setDemands,
   setPipeLibrary,
@@ -156,6 +163,63 @@ describe("change-set builder", () => {
     expect(record.id).toBe(IDS.J1);
     expect(record.before[WHOLE_VALUE]).toEqual([{ baseDemand: 5 }]);
     expect(record.after[WHOLE_VALUE]).toEqual([{ baseDemand: 9 }]);
+  });
+
+  it("records every control when one of them changes", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3, P2: 4 } as const;
+    const { labelManager } = buildTestFactories();
+    const model = HydraulicModelBuilder.with({ labelManager })
+      .aJunction(IDS.J1)
+      .aJunction(IDS.J2)
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
+      .aPipe(IDS.P2, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
+      .aTimedSettingControl({
+        linkId: IDS.P1,
+        steps: [{ time: 0, status: "off", setting: 1 }],
+      })
+      .aTimedSettingControl({
+        linkId: IDS.P2,
+        steps: [{ time: 0, status: "off", setting: 1 }],
+      })
+      .build();
+
+    const next = setAssetControl(
+      model.controls,
+      IDS.P1,
+      buildTimedSetting(IDS.P1, [{ time: 5, status: "on", setting: 2 }]),
+    );
+
+    const built = changeSet(model, "changeAssetControl", [
+      replaceControls(next),
+    ]);
+    const record = built.records[0];
+
+    expect(built.records).toHaveLength(1);
+    expect(record.entity).toBe("allControls");
+    expect(record.id).toBe(0);
+    expect(record.before[WHOLE_VALUE]).toEqual(model.controls);
+    expect(record.after[WHOLE_VALUE]).toEqual(next);
+  });
+
+  it("records the custom attributes definition flattened to one value", () => {
+    const { labelManager } = buildTestFactories();
+    const model = HydraulicModelBuilder.with({ labelManager })
+      .aCustomAttribute("junction", { id: "a1", label: "ZONE", type: "text" })
+      .build();
+
+    const next = emptyCustomAttributesDefinition();
+
+    const built = changeSet(model, "changeCustomAttributesDefinition", [
+      replaceCustomAttributes(next),
+    ]);
+    const record = built.records[0];
+
+    expect(built.records).toHaveLength(1);
+    expect(record.entity).toBe("customAttributesDefinition");
+    expect(record.before[WHOLE_VALUE]).toEqual({
+      "junction/a1": { id: "a1", label: "ZONE", type: "text" },
+    });
+    expect(record.after[WHOLE_VALUE]).toEqual({});
   });
 
   it("records the pipe library as a singleton whole value", () => {

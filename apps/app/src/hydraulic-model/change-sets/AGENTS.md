@@ -121,17 +121,32 @@ only when a *stored* delta is replayed into a model whose generator has never se
 those ids. That is what the id-pools work exists for, and the fix cannot live
 inside `applyChangeSet` anyway. Keep the applier ignorant of the generator.
 
-## Keyed collections are diffed, not stored whole
+## Keyed collections are diffed, not stored whole — except where a column forces it
 
-Curves, patterns, controls and custom attributes reach operations as whole
-replacement collections, because that is how the dialogs edit them.
-`diffKeyed` turns them into per-entity records.
+Curves and patterns reach operations as whole replacement collections, because
+that is how the dialogs edit them. `diffKeyed` turns them into per-entity
+records, which is a size win over the moment path (it costs every curve on both
+sides of a one-curve edit).
 
-That is not only a size win over the moment path (which costs every curve on both
-sides of a one-curve edit). A `Map` in a `WHOLE_VALUE` cell would
-`JSON.stringify` to `{}` and lose everything, silently. Only `pipeLibrary` (an
-array) and `rawControls` (a plain object) are whole-value singletons, and both are
-JSON-safe.
+**Controls and the custom-attributes definition do not get that treatment**, and
+the reason is the database rather than this directory. Each is persisted as a
+*single JSON column* — `controls.data` and `project.custom_attributes_definition`
+— so rewriting one needs every member of the collection, and a per-entity record
+carries only the member that moved. They travel as one whole-collection record
+each (`allControls`, `customAttributesDefinition`), the same shape `pipeLibrary`
+and `rawControls` already had. A one-control edit therefore carries every
+control, on main and inside a scenario's delta.
+
+This is deliberately temporary: give either of them real rows and per-entity
+records come back, which is why `stringKeyed` and the `keys` vector survive in
+`@epanet-js/change-set` with nothing using them.
+
+A `Map` in a `WHOLE_VALUE` cell would `JSON.stringify` to `{}` and lose
+everything, silently. `model.controls` is an array and is safe as it stands; the
+custom-attributes definition is nested `Map`s and is **not**, so
+`customAttributesToPlain` / `customAttributesFromPlain` in `entities.ts` flatten
+it to a plain object keyed by the same `<assetType>/<id>` string a per-attribute
+record used. Nothing else may put a `Map` in a whole value.
 
 ## Three strategies, by worked example
 
@@ -187,8 +202,8 @@ rides in one cell. An owner with no demands reads as `[]`, not absent.
   "after":  { "$value": [{ "baseDemand": 5, "patternId": 21 }] } }
 ```
 
-`pipeLibrary` and `rawControls` are the same idea with no owner either, so they
-sit at a synthetic `id: 0`.
+`pipeLibrary`, `rawControls`, `allControls` and `customAttributesDefinition` are
+the same idea with no owner either, so they sit at a synthetic `id: 0`.
 
 ## Known differences from the moment path
 

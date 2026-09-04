@@ -7,9 +7,7 @@ import {
 import type {
   Asset,
   AssetId,
-  Control,
   Controls,
-  CustomAttribute,
   CustomAttributesDefinition,
   Curves,
   CustomerPoint,
@@ -24,7 +22,7 @@ import {
   type Fields,
   assetToFields,
   assetTypeToEntity,
-  customAttributeKey,
+  customAttributesToPlain,
   customerPointToFields,
 } from "./entities";
 
@@ -271,45 +269,6 @@ export const replacePatterns =
     );
   };
 
-const controlsById = (controls: Controls): Map<string, Control> =>
-  new Map(controls.map((control) => [control.id, control]));
-
-export const replaceControls =
-  (controls: Controls): Intent =>
-  (model, out) => {
-    diffKeyed(
-      "control",
-      controlsById(model.controls),
-      controlsById(controls),
-      wholeValue,
-      out,
-    );
-  };
-
-const flattenCustomAttributes = (
-  definition: CustomAttributesDefinition,
-): Map<string, CustomAttribute> => {
-  const flat = new Map<string, CustomAttribute>();
-  for (const [assetType, byId] of definition) {
-    for (const [id, attribute] of byId) {
-      flat.set(customAttributeKey(assetType, id), attribute);
-    }
-  }
-  return flat;
-};
-
-export const replaceCustomAttributes =
-  (definition: CustomAttributesDefinition): Intent =>
-  (model, out) => {
-    diffKeyed(
-      "customAttribute",
-      flattenCustomAttributes(model.customAttributes),
-      flattenCustomAttributes(definition),
-      wholeValue,
-      out,
-    );
-  };
-
 const putSingleton = (
   entity: EntityKind,
   current: unknown,
@@ -325,6 +284,23 @@ const putSingleton = (
     after: wholeValue(next),
   });
 };
+
+export const replaceControls =
+  (controls: Controls): Intent =>
+  (model, out) => {
+    putSingleton("allControls", model.controls, controls, out);
+  };
+
+export const replaceCustomAttributes =
+  (definition: CustomAttributesDefinition): Intent =>
+  (model, out) => {
+    putSingleton(
+      "customAttributesDefinition",
+      customAttributesToPlain(model.customAttributes),
+      customAttributesToPlain(definition),
+      out,
+    );
+  };
 
 export const setPipeLibrary =
   (materials: PipeMaterial[]): Intent =>

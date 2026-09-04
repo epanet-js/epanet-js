@@ -3,7 +3,9 @@ import {
   type Asset,
   type AssetId,
   type AssetType,
+  type CustomAttribute,
   type CustomAttributeAssetType,
+  type CustomAttributesDefinition,
   CustomerPoint,
   type CustomerPointConnection,
   type CustomerPointId,
@@ -179,4 +181,37 @@ export const splitCustomAttributeKey = (
     assetType: key.slice(0, separator) as CustomAttributeAssetType,
     id: key.slice(separator + 1),
   };
+};
+
+export type PlainCustomAttributes = Record<string, CustomAttribute>;
+
+// The definition is nested `Map`s, and a `Map` in a `WHOLE_VALUE` cell
+// JSON.stringifies to `{}` — everything lost, no error. It travels flattened to
+// the same `<assetType>/<id>` keys a per-attribute record used.
+export const customAttributesToPlain = (
+  definition: CustomAttributesDefinition,
+): PlainCustomAttributes => {
+  const plain: PlainCustomAttributes = {};
+  for (const [assetType, byId] of definition) {
+    for (const [id, attribute] of byId) {
+      plain[customAttributeKey(assetType, id)] = attribute;
+    }
+  }
+  return plain;
+};
+
+export const customAttributesFromPlain = (
+  plain: PlainCustomAttributes,
+): CustomAttributesDefinition => {
+  const definition: CustomAttributesDefinition = new Map();
+  for (const [key, attribute] of Object.entries(plain)) {
+    const { assetType, id } = splitCustomAttributeKey(key);
+    let byId = definition.get(assetType);
+    if (!byId) {
+      byId = new Map<string, CustomAttribute>();
+      definition.set(assetType, byId);
+    }
+    byId.set(id, attribute);
+  }
+  return definition;
 };

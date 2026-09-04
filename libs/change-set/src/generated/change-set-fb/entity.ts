@@ -12,10 +12,10 @@ export enum Entity {
   CustomerPoint = 6,
   Curve = 7,
   Pattern = 8,
-  Control = 9,
+  AllControls = 9,
   JunctionDemand = 10,
   CustomerDemand = 11,
-  CustomAttribute = 12,
+  CustomAttributesDefinition = 12,
   PipeLibrary = 13,
   RawControls = 14
 }

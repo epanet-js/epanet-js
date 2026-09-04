@@ -8,14 +8,11 @@ import {
 } from "@epanet-js/change-set";
 import {
   buildControlsLookup,
-  deepCloneCustomAttributes,
   type AssetId,
-  type Control,
   type Controls,
   type CurvePoint,
   type CurveType,
   type Curves,
-  type CustomAttribute,
   type Demand,
   type ICurve,
   type LabelManager,
@@ -34,7 +31,8 @@ import {
   buildCustomerPointFromFields,
   customerPointToFields,
   entityToAssetType,
-  splitCustomAttributeKey,
+  customAttributesFromPlain,
+  type PlainCustomAttributes,
   type Fields,
 } from "./entities";
 
@@ -51,7 +49,7 @@ export type ApplyReport = {
 const CREATE_RANK: Record<EntityKind, number> = {
   pipeLibrary: 0,
   rawControls: 1,
-  customAttribute: 2,
+  customAttributesDefinition: 2,
   curve: 3,
   pattern: 4,
   junction: 5,
@@ -61,7 +59,7 @@ const CREATE_RANK: Record<EntityKind, number> = {
   pump: 9,
   valve: 10,
   customerPoint: 11,
-  control: 12,
+  allControls: 12,
   junctionDemand: 13,
   customerDemand: 14,
 };
@@ -255,42 +253,6 @@ const applyPattern = (
   labelManager.register(pattern.label, "pattern", id);
 };
 
-const applyControl = (
-  record: ChangeRecord,
-  step: Effective,
-  controls: Map<string, Control>,
-): void => {
-  const id = String(record.id);
-  if (step.kind === "delete") {
-    controls.delete(id);
-    return;
-  }
-  controls.set(id, wholeValueOf<Control>(step.fields));
-};
-
-const applyCustomAttribute = (
-  record: ChangeRecord,
-  step: Effective,
-  definition: HydraulicModel["customAttributes"],
-): void => {
-  const { assetType, id } = splitCustomAttributeKey(String(record.id));
-
-  if (step.kind === "delete") {
-    const byId = definition.get(assetType);
-    if (!byId) return;
-    byId.delete(id);
-    if (byId.size === 0) definition.delete(assetType);
-    return;
-  }
-
-  let byId = definition.get(assetType);
-  if (!byId) {
-    byId = new Map<string, CustomAttribute>();
-    definition.set(assetType, byId);
-  }
-  byId.set(id, wholeValueOf<CustomAttribute>(step.fields));
-};
-
 const applyDemand = (
   record: ChangeRecord,
   step: Effective,
@@ -318,8 +280,6 @@ export const applyChangeSet = (
 
   let curves: Curves | null = null;
   let patterns: Map<number, Pattern> | null = null;
-  let controls: Map<string, Control> | null = null;
-  let customAttributes: HydraulicModel["customAttributes"] | null = null;
   let junctionDemands: Map<number, Demand[]> | null = null;
   let customerDemands: Map<number, Demand[]> | null = null;
 
@@ -361,17 +321,16 @@ export const applyChangeSet = (
             patterns ??= new Map(model.patterns);
             applyPattern(labelManager, record, step, patterns);
             break;
-          case "control":
-            controls ??= new Map(
-              model.controls.map((control) => [control.id, control]),
-            );
-            applyControl(record, step, controls);
+          case "allControls": {
+            const next = wholeValueOf<Controls>(step.fields);
+            model.controls = next;
+            model.controlsLookup = buildControlsLookup(next);
             break;
-          case "customAttribute":
-            customAttributes ??= deepCloneCustomAttributes(
-              model.customAttributes,
+          }
+          case "customAttributesDefinition":
+            model.customAttributes = customAttributesFromPlain(
+              wholeValueOf<PlainCustomAttributes>(step.fields),
             );
-            applyCustomAttribute(record, step, customAttributes);
             break;
           case "junctionDemand":
             junctionDemands ??= new Map(model.demands.junctions);
@@ -394,12 +353,6 @@ export const applyChangeSet = (
 
   if (curves) model.curves = curves;
   if (patterns) model.patterns = patterns;
-  if (controls) {
-    const asList: Controls = [...controls.values()];
-    model.controls = asList;
-    model.controlsLookup = buildControlsLookup(asList);
-  }
-  if (customAttributes) model.customAttributes = customAttributes;
   if (junctionDemands || customerDemands) {
     model.demands = {
       ...model.demands,

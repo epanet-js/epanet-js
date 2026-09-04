@@ -31,10 +31,10 @@ const entityToFb: Record<EntityKind, Entity> = {
   customerPoint: Entity.CustomerPoint,
   curve: Entity.Curve,
   pattern: Entity.Pattern,
-  control: Entity.Control,
+  allControls: Entity.AllControls,
   junctionDemand: Entity.JunctionDemand,
   customerDemand: Entity.CustomerDemand,
-  customAttribute: Entity.CustomAttribute,
+  customAttributesDefinition: Entity.CustomAttributesDefinition,
   pipeLibrary: Entity.PipeLibrary,
   rawControls: Entity.RawControls,
 };
@@ -55,7 +55,11 @@ const fbToKind = new Map<Kind, ChangeKind>([
   [Kind.Delete, "delete"],
 ]);
 
-const stringKeyed = new Set<EntityKind>(["control", "customAttribute"]);
+// Empty today: controls and the custom-attributes definition each travel as one
+// whole-collection record, because each is persisted as a single JSON column and
+// a per-entity record cannot rewrite one. The capability stays because that is
+// what they come back to once either is stored as rows.
+const stringKeyed = new Set<EntityKind>([]);
 
 export const isStringKeyed = (entity: EntityKind): boolean =>
   stringKeyed.has(entity);

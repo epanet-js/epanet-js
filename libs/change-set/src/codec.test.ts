@@ -85,18 +85,32 @@ describe("codec", () => {
     expect(uniform.records[499].before.diameter).toBe(599);
   });
 
-  it("keeps string-keyed entities apart from numeric ones", () => {
+  it("round-trips a whole collection in one record", () => {
     const cs = ChangeSet.of("changeControls", [
       {
-        entity: "control",
-        id: "abc123",
-        kind: "create",
-        before: {},
-        after: { $value: { type: "timed-setting" } },
+        entity: "allControls",
+        id: 0,
+        kind: "update",
+        before: { $value: [] },
+        after: { $value: [{ id: "abc123", type: "timed-setting" }] },
+      },
+      {
+        entity: "customAttributesDefinition",
+        id: 0,
+        kind: "update",
+        before: { $value: {} },
+        after: { $value: { "pipe/1": { label: "DIAMETER" } } },
       },
     ]);
-    expect(cs.records[0].id).toBe("abc123");
-    expect(cs.records[0].after.$value).toEqual({ type: "timed-setting" });
+
+    expect(cs.records).toHaveLength(2);
+    expect(cs.records[0].after.$value).toEqual([
+      { id: "abc123", type: "timed-setting" },
+    ]);
+    expect(cs.records[0].before.$value).toEqual([]);
+    expect(cs.records[1].after.$value).toEqual({
+      "pipe/1": { label: "DIAMETER" },
+    });
   });
 });
 

@@ -8,10 +8,10 @@ export const entityKinds = [
   "customerPoint",
   "curve",
   "pattern",
-  "control",
+  "allControls",
   "junctionDemand",
   "customerDemand",
-  "customAttribute",
+  "customAttributesDefinition",
   "pipeLibrary",
   "rawControls",
 ] as const;

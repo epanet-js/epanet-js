@@ -25,11 +25,17 @@ The API speaks in `ChangeRecord` — one entity, one kind, a `before` bag and an
 `after` bag. The columnar layout on the wire is an encoding detail that neither
 the builder nor the applier sees.
 
-Entities that are not property bags — a control, a demand list, the pipe library
-— have no fields to name, so their whole value travels as a single JSON cell
-under `WHOLE_VALUE` (`$value`). Entities keyed by a string rather than a number
-(a control by nanoid, a custom attribute by `<assetType>/<id>`) are listed in
-`stringKeyed` in `codec.ts` and ride in the op's `keys` vector instead of `ids`.
+Entities that are not property bags — a demand list, the pipe library, the whole
+set of controls — have no fields to name, so their whole value travels as a
+single JSON cell under `WHOLE_VALUE` (`$value`).
+
+`stringKeyed` in `codec.ts` is **empty today**, so nothing rides in the op's
+`keys` vector. Controls and the custom-attributes definition used to: a control
+by nanoid, an attribute by `<assetType>/<id>`. Each is persisted as one JSON
+column, and a per-entity record cannot rewrite one of those — you need every
+member of the collection — so both became whole-collection records instead
+(`allControls`, `customAttributesDefinition`). The vector and the machinery stay
+because that is what they come back to once either is stored as rows.
 
 The compression that layout buys is real: a column whose entries are all
 identical collapses to a single entry, so "set diameter to 300 on 5000 pipes"

@@ -14,10 +14,10 @@ enum Entity : ubyte {
   CustomerPoint,
   Curve,
   Pattern,
-  Control,
+  AllControls,
   JunctionDemand,
   CustomerDemand,
-  CustomAttribute,
+  CustomAttributesDefinition,
   PipeLibrary,
   RawControls,
 }
@@ -48,8 +48,10 @@ table Op {
   entity:Entity;
   kind:Kind;
   ids:[int];
-  // String-key entities (controls by nanoid, custom attributes by
-  // "<assetType>/<id>"). Exactly one of ids/keys is populated.
+  // String-key entities. Nothing is keyed this way today - controls and the
+  // custom-attributes definition each travel as one whole-collection record -
+  // but the vector stays, because it is what per-entity records come back to
+  // once those two are stored as rows rather than as one column.
   keys:[string];
   cols:[Column];
 }
