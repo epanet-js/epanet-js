@@ -30,6 +30,9 @@ import { MapContext, captureThumbnail } from "src/map";
 import { getExtent } from "@epanet-js/geometry";
 import { projectExtension } from "./save-project";
 import { inpExtension, useImportInp } from "./import-inp";
+import { useConvertFile } from "./convert-model";
+import { converterExtensions, converterForFile } from "src/lib/converters";
+import { useAvailableConverters } from "src/hooks/use-available-converters";
 
 export const openProjectShortcut = "ctrl+o";
 
@@ -282,6 +285,8 @@ export const useOpenProject = () => {
   const { openFile, isReady } = useFileOpen();
   const openProjectFile = useOpenProjectFile();
   const importInp = useImportInp();
+  const converters = useAvailableConverters();
+  const convertFile = useConvertFile();
   const userTracking = useUserTracking();
   const setDialogState = useSetAtom(dialogAtom);
   const translate = useTranslate();
@@ -294,8 +299,16 @@ export const useOpenProject = () => {
 
       const file = await openFile({
         multiple: false,
-        extensions: [projectExtension, inpExtension],
-        description: "Project or EPANET INP",
+        extensions: [
+          projectExtension,
+          inpExtension,
+          ...converterExtensions(converters),
+        ],
+        description: describeFileTypes([
+          "Project",
+          "EPANET INP",
+          ...converters.map(({ converter }) => converter.name),
+        ]),
         mimeTypes: ["application/octet-stream"],
       });
       if (!file) return;
@@ -307,6 +320,17 @@ export const useOpenProject = () => {
       }
 
       if (!name.endsWith(projectExtension)) {
+        const match = converterForFile(converters, name);
+        if (match) {
+          userTracking.capture({
+            name: "convertModel.started",
+            source,
+            vendor: match.vendor,
+          });
+          void convertFile(match.converter, match.vendor, file, source);
+          return;
+        }
+
         setDialogState({ type: "invalidFilesError" });
         userTracking.capture({ name: "invalidFilesError.seen" });
         return;
@@ -340,6 +364,8 @@ export const useOpenProject = () => {
       isReady,
       openProjectFile,
       importInp,
+      converters,
+      convertFile,
       userTracking,
       setDialogState,
       translate,
@@ -358,3 +384,8 @@ export const useOpenProject = () => {
     [checkUnsavedChanges, openProject],
   );
 };
+
+const describeFileTypes = (names: string[]): string =>
+  names.length < 2
+    ? names.join("")
+    : `${names.slice(0, -1).join(", ")} or ${names[names.length - 1]}`;

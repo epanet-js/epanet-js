@@ -29,10 +29,8 @@ import { useStartNewProject } from "src/hooks/persistence/use-start-new-project"
 import { saveCustomAttributes } from "src/lib/db";
 import { MapContext } from "src/map";
 
-export const useConvertModel = () => {
-  const checkUnsavedChanges = useUnsavedChangesCheck();
+export const useConvertFile = () => {
   const userTracking = useUserTracking();
-  const { openFile, isReady } = useFileOpen();
   const { projections } = useProjections();
   const labelMaxLength = useLabelMaxLength();
   const { startNewProject } = useStartNewProject();
@@ -163,6 +161,16 @@ export const useConvertModel = () => {
       userTracking,
     ],
   );
+
+  return convertFile;
+};
+
+export const useConvertModel = () => {
+  const checkUnsavedChanges = useUnsavedChangesCheck();
+  const userTracking = useUserTracking();
+  const { openFile, isReady } = useFileOpen();
+  const setDialogState = useSetAtom(dialogAtom);
+  const convertFile = useConvertFile();
 
   const pickAndConvert = useCallback(
     async ({ vendor, source }: { vendor: ConverterVendor; source: string }) => {
