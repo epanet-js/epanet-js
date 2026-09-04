@@ -1,8 +1,7 @@
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { FeatureCollection } from "geojson";
-import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
 import { stubProjectionsReady } from "src/__helpers__/projections";
 import { geocodingQueryClient } from "src/lib/geocoding";
 import { NetworkProjectionDialog } from "./network-projection-dialog";
@@ -100,25 +99,7 @@ describe("NetworkProjectionDialog", () => {
     global.fetch = vi.fn().mockResolvedValue(locationResponse);
   });
 
-  it("misses a projection just outside the location bbox until the user zooms out", async () => {
-    stubFeatureOff("FLAG_BBOX_MAP");
-
-    await selectRiverside();
-
-    expect(
-      await screen.findByText("No matching projections found here"),
-    ).toBeInTheDocument();
-
-    act(() => {
-      mapPreview.onBoundsChange?.(FITTED_VIEWPORT_BBOX);
-    });
-
-    expect(await screen.findByText("EPSG:4326")).toBeInTheDocument();
-  });
-
-  it("finds it on selection when the map viewport is the search area", async () => {
-    stubFeatureOn("FLAG_BBOX_MAP");
-
+  it("finds a projection outside the location bbox but inside the fitted viewport", async () => {
     await selectRiverside();
 
     expect(await screen.findByText("EPSG:4326")).toBeInTheDocument();
