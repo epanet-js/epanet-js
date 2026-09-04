@@ -524,6 +524,31 @@ describe("label manager", () => {
       expect(source.generateFor("customerPoint", anId())).toEqual("CP3");
     });
 
+    it("copy carries every registered label to the new manager", () => {
+      const source = new LabelManager();
+      const pipeId = anId();
+      source.register("P1", "pipe", pipeId);
+      source.register("J2", "junction", anId());
+      source.generateFor("pipe", anId());
+
+      const sharedCounters = new Map<LabelType, number>();
+      const target = source.copy(sharedCounters);
+
+      expect(target.search("P1").map((r) => r.id)).toEqual([pipeId]);
+      expect(target.isLabelAvailable("J2", "junction")).toBe(false);
+      expect(sharedCounters.get("pipe")).toBeUndefined();
+    });
+
+    it("copy does not mutate the source", () => {
+      const source = new LabelManager();
+      source.register("P1", "pipe", anId());
+
+      const target = source.copy();
+      target.register("P9", "pipe", anId());
+
+      expect(source.isLabelAvailable("P9", "pipe")).toBe(true);
+    });
+
     it("adoptCounters keeps the higher value from shared map", () => {
       const manager = new LabelManager();
       manager.generateFor("pipe", anId());

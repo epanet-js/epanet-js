@@ -1,4 +1,10 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  render,
+  renderHook,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Provider as JotaiProvider } from "jotai";
 import { vi } from "vitest";
@@ -17,6 +23,10 @@ import { selectionAtom } from "src/state/selection";
 import { commandBarOpenAtom } from "src/state/command-bar";
 import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
 import { Store } from "src/state";
+import { useInitializeBranch } from "src/hooks/persistence/use-initialize-branch";
+import { useSwitchBranch } from "src/hooks/persistence/use-switch-branch";
+import { worktreeAtom } from "src/state/scenarios";
+import type { Branch } from "@epanet-js/worktree";
 
 const zoomToMock = vi.fn();
 vi.mock("src/hooks/use-zoom-to", () => ({
@@ -157,6 +167,25 @@ describe("CommandBar", () => {
     await waitFor(() => expect(store.get(commandBarOpenAtom)).toBe(false));
   });
 
+  it("finds assets inherited from main when a scenario is active", async () => {
+    const user = userEvent.setup();
+    const { store } = setupWithLabels([
+      { label: "P1", type: "pipe", id: 1 },
+      { label: "J3", type: "junction", id: 3 },
+    ]);
+    switchToNewScenario(store);
+    store.set(commandBarOpenAtom, true);
+
+    renderComponent(store);
+
+    await user.type(screen.getByRole("textbox"), "P1");
+
+    await waitFor(() => {
+      expect(screen.getByText("P1")).toBeInTheDocument();
+    });
+    expect(screen.queryByText("No results")).not.toBeInTheDocument();
+  });
+
   it("closes when clicking the backdrop", async () => {
     const user = userEvent.setup();
     const { store } = setupWithLabels([{ label: "P1", type: "pipe", id: 1 }]);
@@ -190,7 +219,7 @@ const setupWithLabels = (
   entries.forEach((e) => labelManager.register(e.label, e.type, e.id));
 
   const hydraulicModel = HydraulicModelBuilder.with({ labelManager }).build();
-  const store = setInitialState({ hydraulicModel });
+  const store = setInitialState({ hydraulicModel, labelManager });
 
   store.set(
     modelFactoriesAtom,
@@ -201,6 +230,42 @@ const setupWithLabels = (
   );
 
   return { store, labelManager };
+};
+
+const switchToNewScenario = (store: Store) => {
+  const { result } = renderHook(
+    () => ({
+      ...useInitializeBranch(),
+      ...useSwitchBranch(),
+    }),
+    {
+      wrapper: ({ children }: { children: React.ReactNode }) => (
+        <JotaiProvider store={store}>{children}</JotaiProvider>
+      ),
+    },
+  );
+
+  const scenario: Branch = {
+    id: "scenario-1",
+    name: "Scenario #1",
+    parentId: "main",
+    status: "open",
+  };
+
+  act(() => {
+    result.current.initializeBranch(scenario);
+    result.current.switchBranch(scenario.id);
+  });
+
+  const worktree = store.get(worktreeAtom);
+  store.set(worktreeAtom, {
+    ...worktree,
+    branches: new Map(worktree.branches).set(scenario.id, scenario),
+    scenarios: [scenario.id],
+    activeBranchId: scenario.id,
+    lastActiveBranchId: worktree.activeBranchId,
+    highestScenarioNumber: 1,
+  });
 };
 
 const renderComponent = (store: Store) => {

@@ -2,7 +2,6 @@ import { useCallback } from "react";
 import { useAtomCallback } from "jotai/utils";
 import type { Getter, Setter } from "jotai";
 import { copyModel } from "src/hydraulic-model";
-import { LabelManager } from "@epanet-js/hydraulic-model";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { SessionHistory } from "src/lib/persistence/session-history";
 import { branchStateAtom } from "src/state/branch-state";
@@ -21,7 +20,7 @@ export const useInitializeBranch = () => {
       }
 
       const currentFactories = get(modelFactoriesAtom);
-      const labelManager = new LabelManager(
+      const labelManager = mainState.labelManager.copy(
         new Map(currentFactories.labelCounters),
       );
 

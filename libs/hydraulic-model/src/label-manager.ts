@@ -82,6 +82,16 @@ export class LabelManager {
     this.indexPerType = counters;
   }
 
+  copy(sharedCounters?: Map<LabelType, number>): LabelManager {
+    const target = new LabelManager(
+      sharedCounters ?? new Map(this.indexPerType),
+    );
+    for (const [label, entries] of this.labelToEntries) {
+      target.labelToEntries.set(label, [...entries]);
+    }
+    return target;
+  }
+
   copyTypeFrom(type: LabelType, source: LabelManager): void {
     const sourceCounter = source.indexPerType.get(type);
     if (sourceCounter !== undefined) {

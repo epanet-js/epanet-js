@@ -68,6 +68,7 @@ export const setInitialState = (
     simulationResults?: ResultsReader | null;
     simulationSettings?: SimulationSettings;
     isProjectSaved?: boolean;
+    labelManager?: LabelManager;
   } = {},
 ): Store => {
   const {
@@ -87,6 +88,7 @@ export const setInitialState = (
     simulationResults = null,
     simulationSettings,
     isProjectSaved = true,
+    labelManager = new LabelManager(),
   } = args;
   const simulationStepWasExplicit = "simulationStep" in args;
   const recentFilesKv = new InMemoryKeyValueStore();
@@ -136,7 +138,7 @@ export const setInitialState = (
         {
           version: hydraulicModel.version,
           hydraulicModel,
-          labelManager: new LabelManager(),
+          labelManager,
           momentLog,
           sessionHistory,
           simulation: branchSimulation,
