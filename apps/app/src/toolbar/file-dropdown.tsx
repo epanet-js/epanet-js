@@ -90,6 +90,8 @@ export const FileDropdown = () => {
                 {translate("openFile")}
               </StyledItem>
 
+              <ConvertModelSubmenu />
+
               <DDSeparator />
 
               <StyledItem
@@ -129,7 +131,6 @@ export const FileDropdown = () => {
 
 const ConverterItem = ({ vendor }: { vendor: ConverterVendor }) => {
   const convertModel = useConvertModel();
-  const translate = useTranslate();
   const converter = getConverter(vendor);
 
   if (!converter) return null;
@@ -141,8 +142,31 @@ const ConverterItem = ({ vendor }: { vendor: ConverterVendor }) => {
       }}
     >
       <DatabaseIcon />
-      {translate("newProject.fromConverter", converter.name)}
+      {converter.name}
     </StyledItem>
+  );
+};
+
+const ConvertModelSubmenu = () => {
+  const translate = useTranslate();
+  const isSynergiOn = useFeatureFlag("FLAG_SYNERGI");
+  const { canImportSynergi } = usePermissions();
+
+  if (!isSynergiOn || !canImportSynergi) return null;
+
+  return (
+    <DD.Sub>
+      <DDSubTriggerItem>
+        <FileBoxIcon />
+        {translate("convertModel.menuTitle")}
+        <ChevronRightIcon size="sm" className="ml-auto" />
+      </DDSubTriggerItem>
+      <DD.Portal>
+        <DDSubContent sideOffset={4} alignOffset={-4}>
+          <ConverterItem vendor="synergi" />
+        </DDSubContent>
+      </DD.Portal>
+    </DD.Sub>
   );
 };
 
@@ -152,8 +176,6 @@ const NewProjectSubmenu = () => {
   const openInpFromFs = useOpenInpFromFs();
   const userTracking = useUserTracking();
   const translate = useTranslate();
-  const isSynergiOn = useFeatureFlag("FLAG_SYNERGI");
-  const { canImportSynergi } = usePermissions();
 
   return (
     <DD.Sub>
@@ -199,10 +221,6 @@ const NewProjectSubmenu = () => {
             <FileSpreadsheetIcon />
             {translate("newProject.fromEpanetInp")}
           </StyledItem>
-
-          {isSynergiOn && canImportSynergi && (
-            <ConverterItem vendor="synergi" />
-          )}
         </DDSubContent>
       </DD.Portal>
     </DD.Sub>

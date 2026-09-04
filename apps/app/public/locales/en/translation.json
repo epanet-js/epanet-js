@@ -1,5 +1,6 @@
 {
   "convertModel": {
+    "menuTitle": "Convert model",
     "failedTitle": "Model could not be imported",
     "failedDetail": "We could not read this model, so nothing was imported. Your current project is unchanged.",
     "issuesTitle": "Partially imported model",
@@ -567,7 +568,6 @@
   "newProject.blank": "Blank project",
   "newProject.fromGIS": "From GIS data",
   "newProject.fromEpanetInp": "From EPANET INP",
-  "newProject.fromConverter": "From {{1}}",
   "create": "Create",
   "createNew": "Create new...",
   "file": "File",
