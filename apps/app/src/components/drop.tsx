@@ -6,6 +6,9 @@ import { StyledDropOverlay } from "./elements";
 import { useTranslate } from "src/hooks/use-translate";
 import { useImportInp, inpExtension } from "src/commands/import-inp";
 import { useOpenProjectFile } from "src/commands/open-project";
+import { useConvertFile } from "src/commands/convert-model";
+import { converterForFile } from "src/lib/converters";
+import { useAvailableConverters } from "src/hooks/use-available-converters";
 import { projectExtension } from "src/commands/save-project";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useUnsavedChangesCheck } from "src/commands/check-unsaved-changes";
@@ -41,6 +44,8 @@ const Drop = () => {
   const checkUnsavedChanges = useUnsavedChangesCheck();
   const importInp = useImportInp();
   const openProjectFile = useOpenProjectFile();
+  const converters = useAvailableConverters();
+  const convertFile = useConvertFile();
   const userTracking = useUserTracking();
   const dialog = useAtomValue(dialogAtom);
   const setDialogState = useSetAtom(dialogAtom);
@@ -58,8 +63,23 @@ const Drop = () => {
           f.name.toLowerCase().endsWith(inpExtension),
         handle: (files: FileWithHandle[]) => importInp(files, "dragDrop"),
       },
+      {
+        matches: (f: FileWithHandle) =>
+          converterForFile(converters, f.name) !== null,
+        handle: (files: FileWithHandle[]) => {
+          const match = converterForFile(converters, files[0].name);
+          if (!match) return;
+
+          userTracking.capture({
+            name: "convertModel.started",
+            source: "dragDrop",
+            vendor: match.vendor,
+          });
+          void convertFile(match.converter, match.vendor, files[0], "dragDrop");
+        },
+      },
     ],
-    [openProjectFile, importInp],
+    [openProjectFile, importInp, converters, convertFile, userTracking],
   );
 
   useEffect(() => {
@@ -153,7 +173,11 @@ const Drop = () => {
   if (dialog && dialog.type !== "welcome") return null;
 
   return dragging ? (
-    <StyledDropOverlay>{translate("dropProjectOrInp")}</StyledDropOverlay>
+    <StyledDropOverlay>
+      {converters.length > 0
+        ? translate("dropProjectInpOrModel")
+        : translate("dropProjectOrInp")}
+    </StyledDropOverlay>
   ) : null;
 };
 

@@ -33,6 +33,7 @@ import { inpExtension, useImportInp } from "./import-inp";
 import { useConvertFile } from "./convert-model";
 import { converterExtensions, converterForFile } from "src/lib/converters";
 import { useAvailableConverters } from "src/hooks/use-available-converters";
+import { describeFileTypes } from "src/lib/describe-file-types";
 
 export const openProjectShortcut = "ctrl+o";
 
@@ -384,8 +385,3 @@ export const useOpenProject = () => {
     [checkUnsavedChanges, openProject],
   );
 };
-
-const describeFileTypes = (names: string[]): string =>
-  names.length < 2
-    ? names.join("")
-    : `${names.slice(0, -1).join(", ")} or ${names[names.length - 1]}`;
