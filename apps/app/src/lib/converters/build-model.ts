@@ -2,7 +2,7 @@ import type {
   ControlData,
   CustomAttributeValues,
   IssueCode,
-  ParserIssue,
+  Issue,
   TankLevelControlData,
   TimedSettingControlData,
   CurvePointData,
@@ -96,7 +96,7 @@ export type BuildModelOptions = {
 export type BuildModelResult = {
   hydraulicModel: HydraulicModel;
   zones: Zones;
-  issues: ParserIssue[];
+  issues: Issue[];
   factories: ModelFactories;
   idGenerator: IdGenerator;
   bounds: Maybe<BBox>;

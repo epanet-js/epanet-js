@@ -37,61 +37,18 @@ type Converter = {
   unit conversion, no indexes. That is what lets a parse move to a worker without
   changing the contract, and what keeps every domain decision on the app side.
 
-## An importer is a partial converter
+## A source that describes only part of a model is an importer's, not this package's
 
-A `Converter` reads a whole model file. An `Importer` reads a source that describes only *part*
-of a model — a shapefile of zones, a file of customer points — and needs the user to say which of
-its attributes means what. Both produce the same vocabulary, so both live here.
+A `Converter` reads a whole model file. A source that describes only *part* of one — a shapefile
+of zones, a file of customer points — is read by an `Importer`, which lives in
+[`@epanet-js/gis-importers`](../gis-importers/AGENTS.md) along with the shapes its two phases
+take. What it produces is still stated in this package's vocabulary: `Partial<NetworkData>` and
+`Issue`.
 
-```ts
-type Importer<Role extends string> = {
-  name: string;
-  extensions: string[];
-  roles: readonly Role[];
-  scanSource(input: ParserInput): Promise<{ summary: SourceSummary | null; issues: ParserIssue[] }>;
-  parseSource(input: ParserInput & { config?: ParseConfig<Role> }): Promise<ImportResult>;
-};
-```
-
-**The result is `Partial<NetworkData>`, and that is the whole difference.** `emptyNetworkData()`
-states `junctions: []` because a converter handed a model file can truthfully say the model has
-none. An importer handed a polygon file knows nothing whatsoever about junctions, and stating
-`[]` there would be the fabricated default this package forbids everywhere else. So an importer
-omits what it does not speak for, and a consumer reads `network.zones ?? []`.
-
-The relationship is not only a metaphor: `NetworkData` is assignable to `Partial<NetworkData>`,
-so a `ParserResult` *is* an `ImportResult`. Merging what two sources produced — two importers, or
-an importer and a converter — is a plain object spread, and nothing downstream has to know which
-kind produced which half.
-
-**Scanning and parsing are separate calls**, because the user has to choose a mapping in between
-and the choice is made against what the file turned out to contain. `scanSource` answers "what is
-in this file" — a `SourceSummary` of `attributes`, `recordCount`, `crs` and, where the source has
-one, `geometry` — without knowing what any of it means, because nothing has told it yet.
-`parseSource` then applies the choice, and a preview is the same call with a `recordLimit`.
-
-The two verbs are the contract: a scan surveys, a parse interprets. An implementation that finds
-itself needing to interpret in order to scan has put something in the wrong half.
-
-**Both phases take `ParserInput`, and a scan returns a summary rather than a handle.** The
-tempting alternative is for `scanSource` to hand back the decoded records for `parseSource` to
-reuse. That puts a second shape in the contract — one per implementation — and makes every
-consumer hold and pass it, for a saving that belongs to the implementation anyway: an importer
-that wants to decode once caches behind its own door, where it can also decide what is worth
-keeping. Taking the same input twice keeps the contract to one shape, matches `Converter`, and
-means a consumer that already has the files needs nothing else to parse them.
-
-Everything here is stated in terms of **records** and **attributes** rather than rows or features,
-because a source that is not geographic still has all three of a record count, an attribute list
-and a mapping. `geometry` is optional for the same reason: a spreadsheet has none.
-
-**An attribute's `name` is also its `ref`.** A source's attribute names are unique within it —
-they are column names — so unlike a vendor's custom attributes there is nothing to disambiguate,
-and `CustomAttributeData.ref` carries the name verbatim.
-
-**`ParseConfig` says what the consumer knows and the file does not.** `units` is echoed onto
-`NetworkData.units` and converted by nobody here; `crs` is used *only* when the source states
-none, so a consumer's guess can never override what a file says.
+`NetworkData` is assignable to `Partial<NetworkData>`, so a `ParserResult` *is* an importer's
+result. Merging what two sources produced — two importers, or an importer and a converter — is a
+plain object spread, and nothing downstream has to know which kind produced which half. That is
+what `Partial` buys, and it is the only thing this package has to say about importers.
 
 ## One array per asset kind, and a shared record per shape
 
@@ -453,7 +410,7 @@ formulas.
 
 ## Issues carry structure, not sentences
 
-`ParserIssue` is `{ code, severity, ref?, context? }`. `code` is a short leaf id —
+`Issue` is `{ code, severity, ref?, context?, raw? }`. `code` is a short leaf id —
 the UI composes the i18n key and interpolates `context`, so no English lives
 here. **`issueCodes` is a runtime array and `IssueCode` is derived from it**, so a consumer can
 enumerate the vocabulary and prove it has a message for every code — the app does, and without it
@@ -473,7 +430,18 @@ differs by a name the context already carries. `attributeMissing` is separate be
 different fact: the mapped column is not in the file at all, so it is stated once for the source
 rather than once per record.
 
+**`context` composes the message; `raw` is the evidence.** `context` values are interpolated into
+the i18n string positionally, so anything put there ends up inside a sentence — which is why the
+offending record travels in `raw` instead, opaque and untyped. A parser attaches the record it was
+reading, by reference rather than serialised, and a consumer decides whether to show it.
+
+**`raw` is the user's own data** — whatever the record held, verbatim — so it belongs on screen and
+nowhere else. It must never be attached to an analytics event, an error report or any other payload
+that leaves the browser; send the `code` and the `ref`, which is what they are for.
+
 `blockingIssues`, `distinctIssueCodes` and `groupIssues` live here rather than in a consumer,
 because every consumer needs the same three and they are pure functions of the vocabulary.
 `groupIssues` collapses a per-record issue list into one `IssueGroup` per code — a count and its
-refs — which is what makes "one issue per offending record" affordable to display.
+refs — which is what makes "one issue per offending record" affordable to display. Its `maxRefs`
+bounds the refs a group keeps without touching `count`, so nothing pins ten thousand records to
+render three.

@@ -1,6 +1,6 @@
 import { atomWithReset } from "jotai/utils";
 import { ParserIssues } from "src/import/inp";
-import type { ParserIssue } from "@epanet-js/converters";
+import type { Issue } from "@epanet-js/converters";
 import type { QualitySimulationType } from "src/simulation/simulation-settings";
 import { CurveId } from "@epanet-js/hydraulic-model";
 import type { CustomAttributeAssetType } from "@epanet-js/hydraulic-model";
@@ -78,12 +78,12 @@ export type InpIssuesDialogState = {
 
 export type ConvertModelFailedDialogState = {
   type: "convertModelFailed";
-  issues: ParserIssue[];
+  issues: Issue[];
 };
 
 export type ConvertModelIssuesDialogState = {
   type: "convertModelIssues";
-  issues: ParserIssue[];
+  issues: Issue[];
 };
 
 export type FileFormatUpdatedDialogState = {

@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { ParserIssue } from "@epanet-js/converters";
+import type { Issue } from "@epanet-js/converters";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import {
   ConvertModelFailedDialog,
@@ -100,7 +100,7 @@ const expandSummary = async () => {
   );
 };
 
-const linkIssues = (count: number): ParserIssue[] =>
+const linkIssues = (count: number): Issue[] =>
   Array.from({ length: count }, (_, index) => ({
     code: "linkHydraulicsMissing",
     severity: "warning",

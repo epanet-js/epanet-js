@@ -8,8 +8,8 @@ import { useUnsavedChangesCheck } from "./check-unsaved-changes";
 import {
   blockingIssues,
   buildModel,
-  distinctIssueCodes,
   getConverter,
+  issueCodes,
   type ConverterVendor,
 } from "src/lib/converters";
 import { dialogAtom } from "src/state/dialog";
@@ -66,7 +66,7 @@ export const useConvertFile = () => {
             name: "convertModel.failed",
             source,
             vendor,
-            issues: distinctIssueCodes(blocking),
+            issues: issueCodes(blocking),
           });
           setDialogState({ type: "convertModelFailed", issues: blocking });
           return;
@@ -130,7 +130,7 @@ export const useConvertFile = () => {
             zones: zones.size,
             customAttributes: network.customAttributes.length,
           },
-          issues: distinctIssueCodes(allIssues),
+          issues: issueCodes(allIssues),
         });
 
         setDialogState(

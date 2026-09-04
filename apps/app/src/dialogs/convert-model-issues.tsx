@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import type { ParserIssue } from "@epanet-js/converters";
+import type { Issue } from "@epanet-js/converters";
 import { BaseDialog, SimpleDialogActions } from "src/components/dialog";
 import { Button } from "src/components/elements";
 import { ChevronDownIcon, ChevronRightIcon } from "src/icons";
@@ -16,7 +16,7 @@ export const ConvertModelFailedDialog = ({
   issues,
   onClose,
 }: {
-  issues: ParserIssue[];
+  issues: Issue[];
   onClose: () => void;
 }) => {
   const translate = useTranslate();
@@ -52,7 +52,7 @@ export const ConvertModelIssuesDialog = ({
   issues,
   onClose,
 }: {
-  issues: ParserIssue[];
+  issues: Issue[];
   onClose: () => void;
 }) => {
   const translate = useTranslate();
@@ -106,7 +106,7 @@ export const ConvertModelIssuesDialog = ({
 const IssueGroupSummary = ({ group }: { group: IssueGroup }) => {
   const translate = useTranslate();
   const [showAll, setShowAll] = useState(false);
-  const key = `parserIssues.${group.code}`;
+  const key = `convertModel.issue.${group.code}`;
 
   if (!group.refs.length) return <p>{translate(key, ...group.context)}</p>;
 
