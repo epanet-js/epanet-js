@@ -1672,6 +1672,12 @@ export type UserEvent =
   | { name: "patternsLibrary.opened"; source: string }
   | { name: "assetControls.opened"; source: string }
   | { name: "dataTables.opened"; source: string }
+  | {
+      name: "dataTables.panelClosed";
+      source: string;
+      panelType: string;
+      assetType?: string;
+    }
   | { name: "bottomPanel.tabSwitched"; tabId: string }
   | {
       name: "bottomPanel.toggled";

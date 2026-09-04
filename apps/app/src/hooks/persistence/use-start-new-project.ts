@@ -82,8 +82,8 @@ import {
   simulationPlaybackAtom,
 } from "src/state/simulation-playback";
 import { zonesAtom } from "src/state/zones";
-import { hglProfileAtom, hglProfileOpenAtom } from "src/state/hgl-profile";
-import { bottomActiveTabAtom } from "src/state/panel-layout";
+import { hglProfileAtom } from "src/state/hgl-profile";
+import { resetPanelsAtom } from "src/state/panels";
 
 export type ProjectLoadInput = {
   hydraulicModel: HydraulicModel;
@@ -105,8 +105,7 @@ export const resetAppState = (set: Setter) => {
   set(nodeSizeAtom, defaultNodeSizeConfig);
   set(modeAtom, { mode: Mode.NONE });
   set(hglProfileAtom, null);
-  set(hglProfileOpenAtom, false);
-  set(bottomActiveTabAtom, null);
+  set(resetPanelsAtom);
   set(ephemeralStateAtom, { type: "none" });
   set(pipeDrawingDefaultsAtom, {});
   set(autoElevationsAtom, true);

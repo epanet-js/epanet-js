@@ -1,23 +1,31 @@
 import { useSetAtom } from "jotai";
 import { useCallback } from "react";
 import { splitsAtom } from "src/state/layout";
-import { bottomActiveTabAtom } from "src/state/panel-layout";
-import { hglProfileOpenAtom } from "src/state/hgl-profile";
+import { panelsAtom } from "src/state/panels";
+import { useActivatePanel } from "./activate-panel";
+import {
+  HGL_PANEL_ID,
+  createHglProfilePanel,
+} from "src/panels/hgl-profile/create-panel";
 import { useUserTracking } from "src/infra/user-tracking";
 
 export const useShowHglProfile = () => {
   const setSplits = useSetAtom(splitsAtom);
-  const setBottomTab = useSetAtom(bottomActiveTabAtom);
-  const setHglProfileOpen = useSetAtom(hglProfileOpenAtom);
+  const activatePanel = useActivatePanel();
+  const setPanels = useSetAtom(panelsAtom);
   const userTracking = useUserTracking();
 
   return useCallback(
     ({ source }: { source: "toolbar" | "shortcut" }) => {
       userTracking.capture({ name: "profileView.opened", source });
-      setHglProfileOpen(true);
+      setPanels((prev) =>
+        prev.some((panel) => panel.id === HGL_PANEL_ID)
+          ? prev
+          : [...prev, createHglProfilePanel()],
+      );
       setSplits((s) => ({ ...s, bottomOpen: true }));
-      setBottomTab("hgl-profile");
+      activatePanel(HGL_PANEL_ID);
     },
-    [setSplits, setBottomTab, setHglProfileOpen, userTracking],
+    [setSplits, activatePanel, setPanels, userTracking],
   );
 };

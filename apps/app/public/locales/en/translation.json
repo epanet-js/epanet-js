@@ -1834,10 +1834,16 @@
       "cappedDescription": "This paste was too large to apply in full. Use Import to add data in bulk."
     }
   },
+  "panels": {
+    "closePanel": "Close {{1}}",
+    "empty": {
+      "title": "Nothing open",
+      "description": "Use Data tables or HGL profile in the toolbar to open a panel here."
+    }
+  },
   "hglProfile": {
     "title": "HGL profile",
     "toolbar": "HGL profile",
-    "close": "Close HGL profile",
     "selectStart": "Click a node or pipe to set the start of the profile",
     "selectEnd": "Click to add a waypoint, or double-click to finish the profile",
     "selectPath": "Select path",

@@ -10,7 +10,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { MapStylingEditor } from "./map-styling-editor";
 import { NetworkReview } from "./network-review";
 import { BottomResizer } from "src/components/resizer";
-import { BottomZoneTabs } from "./bottom-zone/bottom-zone-tabs";
+import { BottomDock } from "./bottom-dock/bottom-dock";
 
 function Tab({
   onClick,
@@ -126,7 +126,7 @@ export const BottomPanel = memo(function BottomPanelInner() {
     >
       <BottomResizer />
       <div className="flex-1 min-h-0 relative">
-        <BottomZoneTabs />
+        <BottomDock />
       </div>
     </div>
   );
