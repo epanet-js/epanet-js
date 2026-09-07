@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
+import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
 import { hglProfileAtom } from "src/state/hgl-profile";
 import { ephemeralStateAtom } from "src/state/drawing";
 import { Mode, modeAtom } from "src/state/mode";
@@ -33,6 +34,7 @@ const aStore = () =>
 
 beforeEach(() => {
   stubUserTracking();
+  stubFeatureOff("FLAG_PARTIAL_DATA_TABLES");
 });
 
 describe("useClosePanel", () => {
@@ -137,6 +139,30 @@ describe("useClosePanel", () => {
     await close(store, "hgl-profile");
 
     expect(store.get(ephemeralStateAtom)).toMatchObject({ type: "drawLink" });
+  });
+
+  it("refuses to close a seeded table while the flag is off", async () => {
+    const store = aStore();
+    store.set(panelsAtom, [
+      createAssetTablePanel("junction", { id: "junction", closable: false }),
+    ]);
+
+    await close(store, "junction");
+
+    expect(store.get(panelsAtom).map((p) => p.id)).toEqual(["junction"]);
+  });
+
+  it("closes a seeded table once the flag is on", async () => {
+    stubFeatureOn("FLAG_PARTIAL_DATA_TABLES");
+    const store = aStore();
+    store.set(panelsAtom, [
+      createAssetTablePanel("junction", { id: "junction", closable: false }),
+      anInstance("b"),
+    ]);
+
+    await close(store, "junction");
+
+    expect(store.get(panelsAtom).map((p) => p.id)).toEqual(["b"]);
   });
 
   it("removes the HGL panel like any other", async () => {

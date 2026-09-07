@@ -3,6 +3,7 @@ import { useAtomCallback } from "jotai/utils";
 import { useCallback } from "react";
 import { useUserTracking } from "src/infra/user-tracking";
 import { panelFor } from "src/panels/panel-template";
+import { useIsPanelClosable } from "src/panels/use-panel-closable";
 import { useDeactivatePanel } from "./deactivate-panel";
 import type { Panel } from "src/panels/panel";
 import {
@@ -16,6 +17,7 @@ import {
 
 export const useClosePanel = () => {
   const deactivatePanel = useDeactivatePanel();
+  const isClosable = useIsPanelClosable();
   const setPanels = useSetAtom(panelsAtom);
   const forgetPanel = useSetAtom(forgetPanelAtom);
   const activatePanel = useSetAtom(activatePanelAtom);
@@ -36,7 +38,7 @@ export const useClosePanel = () => {
   return useCallback(
     (panelId: string) => {
       const entry = allPanels.find((placed) => placed.id === panelId);
-      if (!entry || !entry.closable) return;
+      if (!entry || !isClosable(entry)) return;
 
       const { dock } = entry;
       const ids = dock ? byDock[dock].map((placed) => placed.id) : [];
@@ -54,6 +56,7 @@ export const useClosePanel = () => {
     },
     [
       allPanels,
+      isClosable,
       byDock,
       activePanels,
       deactivatePanel,

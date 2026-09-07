@@ -6,6 +6,7 @@ import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import "src/__helpers__/locale";
 import { setInitialState } from "src/__helpers__/state";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
+import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
 import { CommandContainer } from "src/commands/__helpers__/command-container";
 import { Store } from "src/state";
 import type { AssetType } from "@epanet-js/hydraulic-model";
@@ -56,6 +57,7 @@ const renderTabs = (store: Store) =>
 
 beforeEach(() => {
   stubUserTracking();
+  stubFeatureOff("FLAG_PARTIAL_DATA_TABLES");
   mounts.length = 0;
 });
 
@@ -102,6 +104,38 @@ describe("BottomDock", () => {
     renderTabs(store);
 
     expect(screen.getAllByRole("tab")).toHaveLength(2);
+  });
+
+  it("offers a close button on every table once the flag is on", () => {
+    stubFeatureOn("FLAG_PARTIAL_DATA_TABLES");
+    const store = aStore();
+    store.set(panelsAtom, [
+      anInstance("a", { closable: false }),
+      anInstance("b", { assetType: "pipe", closable: false }),
+    ]);
+
+    renderTabs(store);
+
+    expect(
+      screen.getByRole("button", { name: "Close Junctions" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Close Pipes" }),
+    ).toBeInTheDocument();
+  });
+
+  it("shows the empty state once the last panel is closed", async () => {
+    stubFeatureOn("FLAG_PARTIAL_DATA_TABLES");
+    const store = aStore();
+    store.set(panelsAtom, [anInstance("a", { closable: false })]);
+
+    renderTabs(store);
+    await userEvent.click(
+      screen.getByRole("button", { name: "Close Junctions" }),
+    );
+
+    expect(screen.getByText("Nothing open")).toBeInTheDocument();
+    expect(screen.queryByRole("tab")).not.toBeInTheDocument();
   });
 
   it("only offers a close button on closable panels", () => {

@@ -17,6 +17,8 @@ import {
 import { inpFileInfoAtom, projectFileInfoAtom } from "src/state/file-system";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { Store } from "src/state";
+import { panelContentStateAtom, panelsAtom } from "src/state/panels";
+import { createAssetTablePanel } from "src/panels/data-tables/create-panel";
 import {
   useSeedDefaultProjectDb,
   useStartBlankProject,
@@ -65,6 +67,30 @@ describe("useStartBlankProject", () => {
     expect(store.get(baseModelDerivedAtom).assets.size).toBe(0);
     expect(store.get(inpFileInfoAtom)).toBeNull();
     expect(store.get(projectFileInfoAtom)).toBeNull();
+  });
+
+  it("brings the seeded data tables back after they were closed", async () => {
+    const store = setInitialState();
+    store.set(panelsAtom, [
+      createAssetTablePanel("pipe", { id: "pipe", closable: false }),
+    ]);
+    store.set(panelContentStateAtom, { pipe: { scrollTop: 120 } });
+
+    const { result } = renderStartEmptyProject(store);
+    await act(async () => {
+      await result.current();
+    });
+
+    expect(store.get(panelsAtom).map((panel) => panel.id)).toEqual([
+      "junction",
+      "pipe",
+      "pump",
+      "valve",
+      "reservoir",
+      "tank",
+      "customer-point",
+    ]);
+    expect(store.get(panelContentStateAtom)).toEqual({});
   });
 
   it("stamps a uniqueId in project settings", async () => {

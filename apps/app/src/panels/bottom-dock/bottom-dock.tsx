@@ -7,6 +7,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { type PlacedPanel, activePanelIn, panelsIn } from "src/state/panels";
 import { useActivatePanel } from "src/commands/activate-panel";
 import { useClosePanel } from "src/commands/close-panel";
+import { useIsPanelClosable } from "../use-panel-closable";
 import { useUserTracking } from "src/infra/user-tracking";
 import { panelLabel } from "../panel-template";
 import { PanelCloseButton } from "../panel-close-button";
@@ -22,6 +23,7 @@ export const BottomDock = memo(function BottomDockInner() {
   const activatePanel = useActivatePanel();
   const translate = useTranslate();
   const closePanel = useClosePanel();
+  const isClosable = useIsPanelClosable();
   const userTracking = useUserTracking();
 
   const labelOf = useCallback(
@@ -55,10 +57,10 @@ export const BottomDock = memo(function BottomDockInner() {
           <Tab
             key={entry.id}
             value={entry.id}
-            className={clsx("relative", entry.closable && "pr-7")}
+            className={clsx("relative", isClosable(entry) && "pr-7")}
           >
             {labelOf(entry)}
-            {entry.closable && (
+            {isClosable(entry) && (
               <PanelCloseButton
                 panelLabel={labelOf(entry)}
                 onClose={() => closePanel(entry.id)}
