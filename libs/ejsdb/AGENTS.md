@@ -50,6 +50,26 @@ These are safe — they don't touch the format:
 
 When in doubt, ask. Do not assume.
 
+## Timing an edit end to end
+
+`src/perf-log.ts` is off unless `localStorage.DEBUG_DB_PERFORMANCE === "true"` at page load
+(main reads it, then turns the worker's on through `setPerfLogging`). Everything it wraps —
+`timed` / `timedWith` for async, `timedSync` / `timedWithSync` for the synchronous edit path
+— is a plain pass-through when it is off, and the meta callbacks do not run.
+
+With it on, one edit prints the whole pipeline, `db [main]` and `db [worker]` interleaved:
+
+    db [main]   changeSet:build   note=... records=3 bytes=512
+    db [main]   changeSet:apply   note=...
+    db [main]   changeSet:save    direction=forward bytes=512
+    db [worker] changeSet:toRows  direction=forward bytes=512 records=3
+    db [worker] changeSet:write   upJ=1 patP=1 ...
+
+`moment:build` / `moment:apply` / `moment:save` / `moment:write` are the same four stages on
+the other path, so a flag-on and a flag-off run of the same edit line up. `changeSet:save`
+brackets the whole worker round trip, so `save − (toRows + write)` is what the boundary
+costs.
+
 ## `src/change-set/` — rows from a change set
 
 `applyChangeSet(bytes, direction)` decodes a `@epanet-js/change-set` blob and maps its

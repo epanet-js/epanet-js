@@ -20,6 +20,7 @@ import {
 } from "src/lib/persistence/transaction-helpers";
 import { toChangeSet } from "src/hydraulic-model/change-sets";
 import type { ChangeSet } from "@epanet-js/change-set";
+import { timedSync, timedWithSync } from "@epanet-js/ejsdb";
 import {
   applyChangeSetToDb,
   applyMomentToDb,
@@ -135,9 +136,14 @@ const transactWithChangeSet = (
   let changeSet: ChangeSet;
   try {
     const hydraulicModel = get(stagingModelDerivedAtom);
-    changeSet = toChangeSet(
-      hydraulicModel,
-      processMoment(moment, hydraulicModel),
+    changeSet = timedWithSync(
+      "changeSet:build",
+      () => toChangeSet(hydraulicModel, processMoment(moment, hydraulicModel)),
+      (built) => ({
+        note: moment.note,
+        records: built.records.length,
+        bytes: built.byteLength,
+      }),
     );
   } catch (error) {
     return rejectChange(set, error);
@@ -149,13 +155,18 @@ const transactWithChangeSet = (
   const newStateId = nanoid();
   const sessionHistory = get(sessionHistoryDerivedAtom).copy();
 
-  applyChange(
-    get,
-    set,
-    newStateId,
-    changeSet,
-    "forward",
-    stagingModelDerivedAtom,
+  timedSync(
+    "changeSet:apply",
+    () =>
+      applyChange(
+        get,
+        set,
+        newStateId,
+        changeSet,
+        "forward",
+        stagingModelDerivedAtom,
+      ),
+    { note: moment.note },
   );
 
   reportAppliedIntegrity(get, moment);
@@ -183,7 +194,9 @@ const transactWithMoment = (
   let payload: ApplyMomentPayload | undefined;
   if (willPersist) {
     try {
-      payload = buildMomentPayload(moment);
+      payload = timedSync("moment:build", () => buildMomentPayload(moment), {
+        note: moment.note,
+      });
     } catch (error) {
       return rejectChange(set, error);
     }
@@ -195,12 +208,10 @@ const transactWithMoment = (
   const newStateId = nanoid();
   const momentLog = get(momentLogDerivedAtom).copy();
 
-  const reverseMoment = applyMoment(
-    get,
-    set,
-    newStateId,
-    moment,
-    stagingModelDerivedAtom,
+  const reverseMoment = timedSync(
+    "moment:apply",
+    () => applyMoment(get, set, newStateId, moment, stagingModelDerivedAtom),
+    { note: moment.note },
   );
 
   reportAppliedIntegrity(get, moment);

@@ -25,6 +25,7 @@ import {
   buildMomentPayload,
 } from "src/lib/db";
 import type { Direction } from "@epanet-js/change-set";
+import { timedSync } from "@epanet-js/ejsdb";
 import type { ApplyMomentPayload } from "@epanet-js/ejsdb";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { captureError, captureWarning } from "src/infra/error-tracking";
@@ -50,13 +51,28 @@ const commitHistoryAction = (
   let payload: ApplyMomentPayload | null = null;
   if (willPersist) {
     try {
-      payload = buildMomentPayload(action.moment);
+      payload = timedSync(
+        "moment:build",
+        () => buildMomentPayload(action.moment),
+        { direction },
+      );
     } catch (error) {
       captureError(error instanceof Error ? error : new Error(String(error)));
     }
   }
 
-  applyMoment(get, set, action.stateId, action.moment, stagingModelDerivedAtom);
+  timedSync(
+    "moment:apply",
+    () =>
+      applyMoment(
+        get,
+        set,
+        action.stateId,
+        action.moment,
+        stagingModelDerivedAtom,
+      ),
+    { direction },
+  );
 
   isUndo ? momentLog.undo() : momentLog.redo();
 
@@ -81,13 +97,18 @@ const commitHistoryEntry = (
   const worktree = get(worktreeAtom);
   const willPersist = worktree.activeBranchId === worktree.mainId;
 
-  applyChange(
-    get,
-    set,
-    entry.stateId,
-    entry.changeSet,
-    changeDirection,
-    stagingModelDerivedAtom,
+  timedSync(
+    "changeSet:apply",
+    () =>
+      applyChange(
+        get,
+        set,
+        entry.stateId,
+        entry.changeSet,
+        changeDirection,
+        stagingModelDerivedAtom,
+      ),
+    { direction: changeDirection },
   );
 
   isUndo ? sessionHistory.undo() : sessionHistory.redo();

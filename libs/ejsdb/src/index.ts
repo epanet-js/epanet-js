@@ -9,7 +9,13 @@ export type {
   DbStorageDiagnostics,
 } from "./worker-api";
 export { APP_VERSION } from "./migrations";
-export { timed, timedWith } from "./perf-log";
+export {
+  timed,
+  timedWith,
+  timedSync,
+  timedWithSync,
+  isPerfLoggingEnabled,
+} from "./perf-log";
 export type {
   NewDbResult,
   OpenDbResult,

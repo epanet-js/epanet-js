@@ -1,7 +1,7 @@
 import sqliteWasmPkg from "@sqlite.org/sqlite-wasm/package.json";
 import type { SAHPoolUtil } from "@sqlite.org/sqlite-wasm";
 import { APP_VERSION, migrations } from "./migrations";
-import { setPerfLogging, timed } from "./perf-log";
+import { setPerfLogging, timed, timedSync } from "./perf-log";
 import { sahpoolDirectory, sahpoolPoolName } from "./sahpool-storage";
 import { normalizeError } from "./worker-api-errors";
 import type {
@@ -1475,16 +1475,22 @@ export const api = {
 
   async applyMoment(payload: ApplyMomentPayload): Promise<void> {
     if (isEmptyApplyMomentPayload(payload)) return;
-    return writeApplyPayload("applyMoment", payload);
+    return writeApplyPayload("moment:write", payload);
   },
 
   async applyChangeSet(bytes: Uint8Array, direction: Direction): Promise<void> {
-    const payload = buildChangeSetPayload(
-      ChangeSet.fromBytes(bytes),
-      direction,
+    const changeSet = ChangeSet.fromBytes(bytes);
+    const payload = timedSync(
+      "changeSet:toRows",
+      () => buildChangeSetPayload(changeSet, direction),
+      {
+        direction,
+        bytes: bytes.byteLength,
+        records: changeSet.read().records.length,
+      },
     );
     if (isEmptyApplyMomentPayload(payload)) return;
-    return writeApplyPayload("applyChangeSet", payload);
+    return writeApplyPayload("changeSet:write", payload);
   },
 
   async importProject(payload: ImportProjectPayload): Promise<NewDbResult> {

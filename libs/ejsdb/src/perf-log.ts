@@ -38,6 +38,28 @@ const log = (label: string, durationMs: number, meta: Meta): void => {
   console.log(`DEBUG ${prefix} ${label} ${duration}ms${formatMeta(meta)}`);
 };
 
+export const timedSync = <T>(label: string, fn: () => T, meta?: Meta): T => {
+  if (!enabled) return fn();
+  const start = performance.now();
+  try {
+    return fn();
+  } finally {
+    log(label, performance.now() - start, meta);
+  }
+};
+
+export const timedWithSync = <T>(
+  label: string,
+  fn: () => T,
+  metaFn: (result: T) => Meta,
+): T => {
+  if (!enabled) return fn();
+  const start = performance.now();
+  const result = fn();
+  log(label, performance.now() - start, metaFn(result));
+  return result;
+};
+
 export const timed = async <T>(
   label: string,
   fn: () => Promise<T> | T,

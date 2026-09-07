@@ -202,7 +202,7 @@ export const buildMomentPayload = (moment: Moment): ApplyMomentPayload => {
 export const applyMomentToDb = async (
   payload: ApplyMomentPayload,
 ): Promise<void> => {
-  await timed("applyMomentToDb", async () => {
+  await timed("moment:save", async () => {
     const worker = getWorker();
     await worker.applyMoment(payload);
   });

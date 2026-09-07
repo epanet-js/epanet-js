@@ -5,8 +5,12 @@ export const applyChangeSetToDb = async (
   changeSet: ChangeSet,
   direction: Direction,
 ): Promise<void> => {
-  await timed("applyChangeSetToDb", async () => {
-    const worker = getWorker();
-    await worker.applyChangeSet(changeSet.bytes, direction);
-  });
+  await timed(
+    "changeSet:save",
+    async () => {
+      const worker = getWorker();
+      await worker.applyChangeSet(changeSet.bytes, direction);
+    },
+    { direction, bytes: changeSet.byteLength },
+  );
 };
