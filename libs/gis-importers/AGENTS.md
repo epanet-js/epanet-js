@@ -53,7 +53,8 @@ type Importer<Role extends string> = {
   extensions: string[];
   roles: readonly Role[];
   scanSource(input: GisInput): Promise<{ summary: SourceSummary | null; issues: Issue[] }>;
-  importSource(input: GisInput & { config?: ImportConfig<Role> }): Promise<ImportResult>;
+  importFromSource(input: GisInput & { config?: ImportConfig<Role> }): Promise<ImportResult>;
+  importFromFeatures(features: Feature[], config?: ImportConfig<Role>): ImportResult;
 };
 ```
 
@@ -75,13 +76,21 @@ error is real.
 
 That is not only a metaphor: `NetworkData` is assignable to `Partial<NetworkData>`, so a `ParserResult` *is* an `ImportResult`. Merging what two sources produced — two importers, or an importer and a converter — is a plain object spread, and nothing downstream has to know which kind produced which half.
 
-**Scanning and importing are separate calls**, because the user chooses a mapping in between and chooses it against what the file turned out to contain. `scanSource` answers "what is in this file" — a `SourceSummary` of `attributes`, `recordCount`, `originalProjection` and, where the source has one, `geometry` — without knowing what any of it means, because nothing has told it yet. `importSource` then applies the choice, and a preview is the same call with a `recordLimit`.
+**An import is offered twice, from a source and from features already read.** `importFromSource`
+parses and then interprets; `importFromFeatures` is the interpreting alone, and it is **synchronous**,
+because only reading a file is asynchronous. They are two doors to one room — `importFromSource` is
+parse, guard, delegate — and which a consumer uses depends on whether it holds bytes or records. One
+that already has the features skips a second decode by taking the second door; one that has only a
+file takes the first. Only `importFromSource` states `crs`, because only it knows whether the parse
+managed to place anything.
+
+**Scanning and importing are separate calls**, because the user chooses a mapping in between and chooses it against what the file turned out to contain. `scanSource` answers "what is in this file" — a `SourceSummary` of `attributes`, `recordCount`, `originalProjection` and, where the source has one, `geometry` — without knowing what any of it means, because nothing has told it yet. `importFromSource` then applies the choice, and a preview is the same call with a `recordLimit`.
 
 The two verbs are the contract: a scan surveys, an import interprets. An implementation that finds itself needing to interpret in order to scan has put something in the wrong half.
 
 The verb says which half you are in. `file-parsers/` parses — bytes, formats, projections. An importer imports — parsed data into `NetworkData`. A `parse` in an importer folder, or an `import` in `file-parsers/`, is a file in the wrong place.
 
-**Both phases take `GisInput` — the files, plus the CRS to read them in when they state none and the projection definitions to resolve one against — and a scan returns a summary rather than a handle.** The two are separate because they answer separate questions: `crs` is which projection this particular file is in, `projections` is which projections we can handle at all. A consumer that supports more of them extends the map without touching a mapping, and both phases need them because a scan reprojects exactly as an import does — a summary of a file nobody could place would be a summary of nothing. The tempting alternative is for `scanSource` to hand back the decoded records for `importSource` to reuse. That puts a second shape in the contract — one per implementation — and makes every consumer hold and pass it, for a saving that belongs to the implementation anyway. Taking the same input twice keeps the contract to one shape, matches `Converter`, and means a consumer that already has the files needs nothing else to parse them.
+**Both phases take `GisInput` — the files, plus the CRS to read them in when they state none and the projection definitions to resolve one against — and a scan returns a summary rather than a handle.** The two are separate because they answer separate questions: `crs` is which projection this particular file is in, `projections` is which projections we can handle at all. A consumer that supports more of them extends the map without touching a mapping, and both phases need them because a scan reprojects exactly as an import does. **A summary is null only when there was nothing to describe**, never merely because an error was raised: a file nobody could place still has attributes and a record count, and a consumer that means to place it itself needs them to build a mapping. Whether to proceed is read from the issues, in the scan exactly as in the import. The tempting alternative is for `scanSource` to hand back the decoded records for `importFromSource` to reuse. That puts a second shape in the contract — one per implementation — and makes every consumer hold and pass it, for a saving that belongs to the implementation anyway. Taking the same input twice keeps the contract to one shape, matches `Converter`, and means a consumer that already has the files needs nothing else to parse them.
 
 **`ImportConfig` says what the consumer knows about a file's contents.** `units` is echoed onto `NetworkData.units` and converted by nobody here. How to read the file at all — including the CRS to assume — is `GisInput`'s, because the reader needs it before a mapping exists, and a supplied CRS applies *only* where the file states none: a guess never overrides what a file says.
 

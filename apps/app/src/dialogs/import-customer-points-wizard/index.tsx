@@ -256,6 +256,7 @@ export const ImportCustomerPointsWizard: React.FC<
                 onBack={handleBack}
                 renderActions={false}
                 wizardState={wizardState}
+                projections={projections}
               />
             )}
             {currentStep === 3 && (

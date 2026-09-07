@@ -8,6 +8,11 @@ import { parseGeoJson } from "src/lib/geojson-utils/parse-geojson";
 import { parseShapefile } from "src/lib/gis-import/parse-shapefile";
 import { GisParseError } from "src/lib/gis-import/types";
 import type { Proj4Projection } from "@epanet-js/projections";
+import { useAtomValue } from "jotai";
+import { customerPointsImporter } from "@epanet-js/gis-importers";
+import type { Issue } from "@epanet-js/converters";
+import { isUnprojectedAtom } from "src/state/map-projection";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   customerPointsImportGuide,
   customerPointsImportVideoUrl,
@@ -24,6 +29,8 @@ export const DataInputStep: React.FC<{
   const userTracking = useUserTracking();
   const translate = useTranslate();
   const [gisFiles, setGisFiles] = useState<GisFiles>({});
+  const isImporterOn = useFeatureFlag("FLAG_CUSTOMER_POINTS_IMPORTER");
+  const isUnprojected = useAtomValue(isUnprojectedAtom);
 
   const {
     error,
@@ -36,8 +43,112 @@ export const DataInputStep: React.FC<{
     inputData,
   } = wizardState;
 
+  const messageFor = useCallback(
+    (issue: Issue | undefined): string => {
+      switch (issue?.code) {
+        case "coordinateSystemUnsupported":
+          return translate(
+            "importCustomerPoints.dataSource.unsupportedCrsError",
+          );
+        case "coordinateSystemMismatch":
+          return translate(
+            "importCustomerPoints.dataSource.projectionConversionError",
+          );
+        case "coordinateSystemUnknown":
+          return translate(
+            "importCustomerPoints.dataSource.coordinateValidationError",
+          );
+        case "sourceEmpty":
+          return translate(
+            "importCustomerPoints.dataSource.noValidPointsError",
+          );
+        default:
+          return translate("importCustomerPoints.dataSource.parseFileError");
+      }
+    },
+    [translate],
+  );
+
+  const scanWithImporter = useCallback(
+    async (files: File[], primary: File) => {
+      resetWizardData();
+      setSelectedFile(primary);
+      setLoading(true);
+
+      try {
+        const { summary, issues } = await customerPointsImporter.scanSource({
+          files,
+          projections: projections ?? undefined,
+        });
+
+        const blocking = issues.find(({ severity }) => severity === "error");
+        // A file nobody could place is still importable into a project that is
+        // itself unprojected: the model's own transform is what places it.
+        const refused =
+          blocking !== undefined &&
+          !(blocking.code === "coordinateSystemUnknown" && isUnprojected);
+
+        if (summary === null || refused) {
+          userTracking.capture({
+            name: "importCustomerPoints.dataInput.parseError",
+            fileName: primary.name,
+            errorCode: blocking?.code ?? "sourceEmpty",
+          });
+          setError(messageFor(blocking));
+          setLoading(false);
+          return;
+        }
+
+        setInputData({
+          properties: new Set(summary.attributes.map(({ name }) => name)),
+        });
+        setLoading(false);
+
+        userTracking.capture({
+          name: "importCustomerPoints.dataInput.fileLoaded",
+          fileName: primary.name,
+          propertiesCount: summary.attributes.length,
+          featuresCount: summary.recordCount,
+          coordinateConversion:
+            summary.originalProjection === undefined
+              ? null
+              : {
+                  detected: summary.originalProjection,
+                  converted: true,
+                  fromCRS: summary.originalProjection,
+                },
+        });
+
+        onNext();
+      } catch (error) {
+        userTracking.capture({
+          name: "importCustomerPoints.dataInput.parseError",
+          fileName: primary.name,
+        });
+        captureError(error as Error);
+        setError(translate("importCustomerPoints.dataSource.parseFileError"));
+        setLoading(false);
+      }
+    },
+    [
+      resetWizardData,
+      setSelectedFile,
+      setLoading,
+      setError,
+      setInputData,
+      onNext,
+      userTracking,
+      translate,
+      projections,
+      isUnprojected,
+      messageFor,
+    ],
+  );
+
   const handleFileProcess = useCallback(
     async (file: File) => {
+      if (isImporterOn) return scanWithImporter([file], file);
+
       resetWizardData();
       setSelectedFile(file);
       setLoading(true);
@@ -154,6 +265,8 @@ export const DataInputStep: React.FC<{
       userTracking,
       translate,
       projections,
+      isImporterOn,
+      scanWithImporter,
     ],
   );
 
@@ -161,6 +274,15 @@ export const DataInputStep: React.FC<{
     async (files: GisFiles) => {
       const shpFile = files.shp;
       if (!shpFile) return;
+
+      if (isImporterOn) {
+        return scanWithImporter(
+          [files.shp, files.dbf, files.prj, files.cpg].filter(
+            (f): f is File => f != null,
+          ),
+          shpFile,
+        );
+      }
 
       resetWizardData();
       setSelectedFile(shpFile);
@@ -246,6 +368,8 @@ export const DataInputStep: React.FC<{
       onNext,
       userTracking,
       translate,
+      isImporterOn,
+      scanWithImporter,
     ],
   );
 

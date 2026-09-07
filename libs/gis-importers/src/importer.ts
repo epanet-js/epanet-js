@@ -5,6 +5,7 @@ import type {
   Issue,
   SourceCrs,
 } from "@epanet-js/converters";
+import type { Feature } from "geojson";
 import type { Proj4Projection } from "@epanet-js/projections";
 import type { ImportConfig } from "./import-config";
 
@@ -40,18 +41,24 @@ export type ScanSourceResult = {
 
 export type ScanSource = (input: GisInput) => Promise<ScanSourceResult>;
 
-export type ImportSourceInput<Role extends string = string> = GisInput & {
+export type ImportFromSourceInput<Role extends string = string> = GisInput & {
   config?: ImportConfig<Role>;
 };
 
-export type ImportSource<Role extends string = string> = (
-  input: ImportSourceInput<Role>,
+export type ImportFromSource<Role extends string = string> = (
+  input: ImportFromSourceInput<Role>,
 ) => Promise<ImportResult>;
+
+export type ImportFromFeatures<Role extends string = string> = (
+  features: Feature[],
+  config?: ImportConfig<Role>,
+) => ImportResult;
 
 export type Importer<Role extends string = string> = {
   name: string;
   extensions: string[];
   roles: readonly Role[];
   scanSource: ScanSource;
-  importSource: ImportSource<Role>;
+  importFromSource: ImportFromSource<Role>;
+  importFromFeatures: ImportFromFeatures<Role>;
 };

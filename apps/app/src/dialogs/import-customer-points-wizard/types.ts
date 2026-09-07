@@ -16,7 +16,9 @@ export type ParsedDataSummary = {
 
 export type InputData = {
   properties: Set<string>;
-  features: Feature[];
+  // Absent on the importer path, which re-reads the file for each mapping
+  // rather than holding what it parsed.
+  features?: Feature[];
 };
 
 export type WizardState = {

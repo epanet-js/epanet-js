@@ -12,16 +12,12 @@ import { parseGisSource } from "../file-parsers/parse-gis-source";
 
 export type CustomerPointRole = "label" | "demand";
 
-export const importCustomerPointsSource = async (
-  input: ParserInput & { config?: ImportConfig<CustomerPointRole> },
-): Promise<ImportResult> => {
-  const { features, issues } = await parseGisSource(input);
-  const config = input.config ?? {};
+export const importCustomerPointsFromFeatures = (
+  features: Feature[],
+  config: ImportConfig<CustomerPointRole> = {},
+): ImportResult => {
+  const issues = new IssueCollector();
   const collected = issues.build();
-
-  if (features.length === 0) return { network: {}, issues: collected };
-
-  const placed = !collected.some(({ severity }) => severity === "error");
 
   const labelProperty = config.mapping?.label ?? null;
   const demandProperty = config.mapping?.demand ?? null;
@@ -45,9 +41,31 @@ export const importCustomerPointsSource = async (
       customerPoints,
       customAttributes: declarations(customAttributeNames, customerPoints),
       ...(config.units === undefined ? {} : { units: config.units }),
-      crs: placed ? { type: "epsg", code: 4326 } : { type: "unknown" },
     },
     issues: collected,
+  };
+};
+
+export const importCustomerPointsFromSource = async (
+  input: ParserInput & { config?: ImportConfig<CustomerPointRole> },
+): Promise<ImportResult> => {
+  const { features, issues } = await parseGisSource(input);
+  const parsed = issues.build();
+
+  if (features.length === 0) return { network: {}, issues: parsed };
+
+  const placed = !parsed.some(({ severity }) => severity === "error");
+  const { network, issues: interpreted } = importCustomerPointsFromFeatures(
+    features,
+    input.config ?? {},
+  );
+
+  return {
+    network: {
+      ...network,
+      crs: placed ? { type: "epsg", code: 4326 } : { type: "unknown" },
+    },
+    issues: [...parsed, ...interpreted],
   };
 };
 

@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { numericChecks } from "src/lib/model-attributes-validation";
 import { Feature } from "geojson";
 import { useTranslate } from "src/hooks/use-translate";
@@ -16,9 +22,16 @@ import {
 } from "@epanet-js/hydraulic-model";
 import {
   parseCustomerPoints,
+  parseGisSource,
+  customerPointsImporter,
   CustomerPointsIssuesAccumulator,
   CustomerPointsParserIssues,
 } from "@epanet-js/gis-importers";
+import { createProjectionMapper } from "@epanet-js/projections";
+import type { Proj4Projection } from "@epanet-js/projections";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { buildCustomerPoints, type Placement } from "./build-customer-points";
+import { collectImportIssues } from "./collect-import-issues";
 import { useLabelMaxLength } from "src/hooks/use-label-max-length";
 import { Demand } from "@epanet-js/hydraulic-model";
 import { localizeDecimal } from "@epanet-js/i18n";
@@ -41,7 +54,8 @@ export const DataMappingStep: React.FC<{
   onBack: () => void;
   renderActions?: boolean;
   wizardState: WizardState & WizardActions & { units: UnitsSpec };
-}> = ({ onNext, onBack, renderActions = true, wizardState }) => {
+  projections?: Map<string, Proj4Projection> | null;
+}> = ({ onNext, onBack, renderActions = true, wizardState, projections }) => {
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
   const userTracking = useUserTracking();
@@ -79,6 +93,109 @@ export const DataMappingStep: React.FC<{
     return options;
   }, [patterns]);
 
+  const isImporterOn = useFeatureFlag("FLAG_CUSTOMER_POINTS_IMPORTER");
+  const latestRequest = useRef(0);
+
+  const placement: Placement = useMemo(() => {
+    const projection = projectSettings.projection;
+    return projection.type === "xy-grid"
+      ? {
+          kind: "transform",
+          toWgs84: createProjectionMapper(projection).toWgs84,
+        }
+      : { kind: "wgs84" };
+  }, [projectSettings.projection]);
+
+  const importSelection = useCallback(
+    async (
+      demandPropertyName: string | null,
+      labelPropertyName: string | null,
+      patternId: number | null,
+      defaultDemandValue: number,
+    ) => {
+      const request = ++latestRequest.current;
+      const files = [selectedFile!];
+      const source = { files, projections: projections ?? undefined };
+
+      try {
+        const { features } = await parseGisSource(source);
+        const { network, issues: importIssues } =
+          customerPointsImporter.importFromFeatures(features, {
+            mapping: { label: labelPropertyName, demand: demandPropertyName },
+          });
+
+        if (request !== latestRequest.current) return;
+
+        const issues = new CustomerPointsIssuesAccumulator();
+        collectImportIssues(importIssues, issues);
+
+        const demandImportUnit = projectSettings.units.customerDemandPerDay;
+        const demandTargetUnit = projectSettings.units.customerDemand;
+
+        const { customerPoints, demands } = buildCustomerPoints(
+          network.customerPoints ?? [],
+          features,
+          {
+            factory: buildCustomerPointPreviewFactory(labelManager),
+            placement,
+            toDemand: (value) =>
+              convertTo({ value, unit: demandImportUnit }, demandTargetUnit),
+            patternId,
+            defaultDemand: defaultDemandValue,
+            labelMaxLength,
+            issues,
+          },
+        );
+
+        setParsedDataSummary({
+          validCustomerPoints: customerPoints,
+          customerPointDemands: demands,
+          issues: issues.buildResult(),
+          totalCount: features.length,
+          demandImportUnit,
+        });
+        setLoading(false);
+
+        if (customerPoints.length === 0) {
+          userTracking.capture({
+            name: "importCustomerPoints.dataMapping.noValidPoints",
+            fileName: selectedFile!.name,
+          });
+        }
+
+        userTracking.capture({
+          name: "importCustomerPoints.dataMapping.customerPointsLoaded",
+          validCount: customerPoints.length,
+          issuesCount: issues.count(),
+          totalCount: features.length,
+          fileName: selectedFile!.name,
+        });
+      } catch {
+        if (request !== latestRequest.current) return;
+
+        userTracking.capture({
+          name: "importCustomerPoints.dataMapping.parseError",
+          fileName: selectedFile!.name,
+        });
+        setError(translate("importCustomerPoints.dataSource.parseFileError"));
+        setLoading(false);
+      }
+    },
+    [
+      selectedFile,
+      projections,
+      projectSettings.units,
+      placement,
+      labelManager,
+      labelMaxLength,
+      setParsedDataSummary,
+      setLoading,
+      setError,
+      translate,
+      userTracking,
+    ],
+  );
+
   const parseInputDataToCustomerPoints = useCallback(
     (
       inputData: InputData,
@@ -89,6 +206,16 @@ export const DataMappingStep: React.FC<{
     ) => {
       setLoading(true);
       setError(null);
+
+      if (isImporterOn) {
+        void importSelection(
+          demandPropertyName,
+          labelPropertyName,
+          patternId,
+          defaultDemandValue,
+        );
+        return;
+      }
 
       setTimeout(() => {
         try {
@@ -170,6 +297,8 @@ export const DataMappingStep: React.FC<{
       selectedFile,
       translate,
       labelMaxLength,
+      isImporterOn,
+      importSelection,
     ],
   );
 

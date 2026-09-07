@@ -1,6 +1,7 @@
 export { customerPointsImporter } from "./customer-points/importer";
 export type { ImportConfig } from "./import-config";
 export type { ImportResult, SourceSummary } from "./importer";
+export { parseGisSource } from "./file-parsers/parse-gis-source";
 
 // Superseded by the importer above; goes when its last call site does.
 export {

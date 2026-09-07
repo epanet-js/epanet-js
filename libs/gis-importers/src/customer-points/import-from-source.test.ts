@@ -2,7 +2,7 @@ import type { Feature } from "geojson";
 import type { SourceFile } from "@epanet-js/converters";
 import { customerPointsImporter } from "./importer";
 
-const { scanSource, importSource } = customerPointsImporter;
+const { scanSource, importFromSource: importSource } = customerPointsImporter;
 
 const WGS84 = { type: "name", properties: { name: "EPSG:4326" } };
 
@@ -368,15 +368,16 @@ describe("customer points scanSource", () => {
     expect(issues).toEqual([]);
   });
 
-  it("refuses a file that names no CRS and is plainly not in degrees", async () => {
+  it("describes a file it could not place, and says it could not", async () => {
     const { summary, issues } = await scanSource(
       filesStatingNoCrs([
-        aPoint({}, [432000, 5812000]),
-        aPoint({}, [433000, 5813000]),
+        aPoint({ METER: "M-1" }, [432000, 5812000]),
+        aPoint({ METER: "M-2" }, [433000, 5813000]),
       ]),
     );
 
-    expect(summary).toBeNull();
+    expect(summary!.recordCount).toBe(2);
+    expect(summary!.attributes.map(({ name }) => name)).toEqual(["METER"]);
     expect(issues).toEqual([
       { code: "coordinateSystemUnknown", severity: "error" },
     ]);
