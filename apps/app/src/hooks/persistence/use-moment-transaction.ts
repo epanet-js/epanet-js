@@ -19,7 +19,12 @@ import {
   processMoment,
 } from "src/lib/persistence/transaction-helpers";
 import { toChangeSet } from "src/hydraulic-model/change-sets";
-import { applyMomentToDb, buildMomentPayload } from "src/lib/db";
+import type { ChangeSet } from "@epanet-js/change-set";
+import {
+  applyChangeSetToDb,
+  applyMomentToDb,
+  buildMomentPayload,
+} from "src/lib/db";
 import type { ApplyMomentPayload } from "@epanet-js/ejsdb";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { captureError, captureWarning } from "src/infra/error-tracking";
@@ -29,7 +34,10 @@ import {
   findTopologyConnectionMismatches,
   type OrphanLinkConnection,
 } from "src/hydraulic-model/validate-moment-integrity";
-import { writeQueue } from "src/lib/persistence/write-queue";
+import {
+  writeQueue,
+  type WriteFailureHandler,
+} from "src/lib/persistence/write-queue";
 import { useWriteFailureHandler } from "src/hooks/persistence/use-write-failure-handler";
 
 const maxReportedIds = 20;
@@ -96,6 +104,118 @@ const reportAppliedIntegrity = (get: Getter, moment: Moment) => {
   }
 };
 
+const reportOrphanLinks = (get: Getter, moment: Moment) => {
+  const orphanLinks = findOrphanLinkConnections(
+    get(stagingModelDerivedAtom),
+    moment,
+  );
+  if (orphanLinks.length === 0) return;
+
+  captureWarning(`Model integrity (orphan link connection)`, undefined, {
+    "model operation": {
+      ...buildOrphanReport(moment, orphanLinks),
+      mode: MODE_INFO[get(modeAtom).mode].name,
+    },
+  });
+};
+
+const rejectChange = (set: Setter, error: unknown): false => {
+  captureError(error instanceof Error ? error : new Error(String(error)));
+  set(dialogAtom, { type: "changeNotApplied" });
+  return false;
+};
+
+const transactWithChangeSet = (
+  get: Getter,
+  set: Setter,
+  moment: Moment,
+  willPersist: boolean,
+  onWriteFailure: WriteFailureHandler,
+): boolean => {
+  let changeSet: ChangeSet;
+  try {
+    const hydraulicModel = get(stagingModelDerivedAtom);
+    changeSet = toChangeSet(
+      hydraulicModel,
+      processMoment(moment, hydraulicModel),
+    );
+  } catch (error) {
+    return rejectChange(set, error);
+  }
+
+  reportOrphanLinks(get, moment);
+
+  trackMoment(moment);
+  const newStateId = nanoid();
+  const sessionHistory = get(sessionHistoryDerivedAtom).copy();
+
+  applyChange(
+    get,
+    set,
+    newStateId,
+    changeSet,
+    "forward",
+    stagingModelDerivedAtom,
+  );
+
+  reportAppliedIntegrity(get, moment);
+
+  sessionHistory.append(changeSet, newStateId);
+  set(sessionHistoryDerivedAtom, sessionHistory);
+
+  if (willPersist) {
+    writeQueue.enqueue(
+      () => applyChangeSetToDb(changeSet, "forward"),
+      onWriteFailure,
+    );
+  }
+
+  return true;
+};
+
+const transactWithMoment = (
+  get: Getter,
+  set: Setter,
+  moment: Moment,
+  willPersist: boolean,
+  onWriteFailure: WriteFailureHandler,
+): boolean => {
+  let payload: ApplyMomentPayload | undefined;
+  if (willPersist) {
+    try {
+      payload = buildMomentPayload(moment);
+    } catch (error) {
+      return rejectChange(set, error);
+    }
+  }
+
+  reportOrphanLinks(get, moment);
+
+  trackMoment(moment);
+  const newStateId = nanoid();
+  const momentLog = get(momentLogDerivedAtom).copy();
+
+  const reverseMoment = applyMoment(
+    get,
+    set,
+    newStateId,
+    moment,
+    stagingModelDerivedAtom,
+  );
+
+  reportAppliedIntegrity(get, moment);
+
+  momentLog.append(moment, reverseMoment, newStateId);
+
+  if (payload) {
+    writeQueue.enqueue(() => applyMomentToDb(payload), onWriteFailure);
+  }
+
+  set(momentLogDerivedAtom, momentLog);
+
+  return true;
+};
+
 export const useMomentTransaction = () => {
   const onWriteFailure = useWriteFailureHandler();
   const isChangeSetsOn = useFeatureFlag("FLAG_CHANGE_SETS");
@@ -111,88 +231,11 @@ export const useMomentTransaction = () => {
         }
 
         const worktree = get(worktreeAtom);
-        const willPersist =
-          worktree.activeBranchId === worktree.mainId && !isChangeSetsOn;
+        const willPersist = worktree.activeBranchId === worktree.mainId;
 
-        let payload: ApplyMomentPayload | undefined;
-        if (willPersist) {
-          try {
-            payload = buildMomentPayload(moment);
-          } catch (error) {
-            captureError(
-              error instanceof Error ? error : new Error(String(error)),
-            );
-            set(dialogAtom, { type: "changeNotApplied" });
-            return false;
-          }
-        }
-
-        const orphanLinks = findOrphanLinkConnections(
-          get(stagingModelDerivedAtom),
-          moment,
-        );
-        if (orphanLinks.length > 0) {
-          captureWarning(
-            `Model integrity (orphan link connection)`,
-            undefined,
-            {
-              "model operation": {
-                ...buildOrphanReport(moment, orphanLinks),
-                mode: MODE_INFO[get(modeAtom).mode].name,
-              },
-            },
-          );
-        }
-
-        trackMoment(moment);
-        const newStateId = nanoid();
-
-        if (isChangeSetsOn) {
-          const sessionHistory = get(sessionHistoryDerivedAtom).copy();
-          const hydraulicModel = get(stagingModelDerivedAtom);
-          const changeSet = toChangeSet(
-            hydraulicModel,
-            processMoment(moment, hydraulicModel),
-          );
-
-          applyChange(
-            get,
-            set,
-            newStateId,
-            changeSet,
-            "forward",
-            stagingModelDerivedAtom,
-          );
-
-          reportAppliedIntegrity(get, moment);
-
-          sessionHistory.append(changeSet, newStateId);
-          set(sessionHistoryDerivedAtom, sessionHistory);
-
-          return true;
-        }
-
-        const momentLog = get(momentLogDerivedAtom).copy();
-
-        const reverseMoment = applyMoment(
-          get,
-          set,
-          newStateId,
-          moment,
-          stagingModelDerivedAtom,
-        );
-
-        reportAppliedIntegrity(get, moment);
-
-        momentLog.append(moment, reverseMoment, newStateId);
-
-        if (payload) {
-          writeQueue.enqueue(() => applyMomentToDb(payload), onWriteFailure);
-        }
-
-        set(momentLogDerivedAtom, momentLog);
-
-        return true;
+        return isChangeSetsOn
+          ? transactWithChangeSet(get, set, moment, willPersist, onWriteFailure)
+          : transactWithMoment(get, set, moment, willPersist, onWriteFailure);
       },
       [onWriteFailure, isChangeSetsOn],
     ),

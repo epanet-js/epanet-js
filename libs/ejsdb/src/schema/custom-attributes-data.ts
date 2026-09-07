@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+export const CUSTOM_ATTRIBUTE_KEY_PREFIX = "custom-";
+
 export const customAttributeValueSchema = z.union([
   z.string(),
   z.number(),

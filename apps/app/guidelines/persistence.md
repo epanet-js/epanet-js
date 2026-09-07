@@ -76,6 +76,32 @@ Because import throws instead of showing its own dialog, the **caller** catches 
 
 Do not copy this "validate while saving" shape into interactive edit paths — those have a live atom to protect, so they must validate first.
 
+## The change-set write path
+
+Edits that travel as a `ChangeSet` write main's rows **from the change set**, not from the
+model. `applyChangeSetToDb` (`src/lib/db/commands/apply-change-set.ts`) posts the encoded
+change set to the DB worker, and the worker maps its records to rows inside the write
+transaction (`@epanet-js/ejsdb`, `src/change-set/`). Nothing on the main thread builds a row,
+which is the point: only one `Uint8Array` crosses the worker boundary instead of the whole
+row set.
+
+The consequence for this guideline: **the row schemas are checked in the worker, after the
+in-memory model has already been updated.** That is the second departure from validate-then-
+save, alongside import, and it is deliberate rather than an oversight.
+
+What still holds:
+
+- The write is one transaction, so a rejected row leaves the file exactly as it was — the DB
+  never receives partial or invalid data (invariant 1).
+- A rejection reaches `useWriteFailureHandler` like any other write failure, which reloads
+  the model from the persisted DB. The model and the file converge again, at the cost of the
+  rejected edit (invariant 2) — rather than the `changeNotApplied` dialog, which can only be
+  shown while the model is still untouched.
+
+What it costs: between the edit and that recovery, memory holds a change the file does not.
+Closing that gap means validating **when the change set is built**, which is where a change
+set that will later be stored as a scenario delta needs it anyway.
+
 ## The write queue, recovery & rebuild
 
 Interactive writes go through one global serial queue (`writeQueue`), enqueued fire-and-forget *after* the atom is set, and sharing a single failure path (`useWriteFailureHandler`). Whole-project writes — `importProject`, `openProject`, `newProject`, and the settings write inside file-save — are deliberately **not** queued: they replace or read the DB themselves, so the shared failure path would be circular.

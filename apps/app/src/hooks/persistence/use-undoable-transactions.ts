@@ -19,7 +19,12 @@ import type {
   HistoryEntry,
   SessionHistory,
 } from "src/lib/persistence/session-history";
-import { applyMomentToDb, buildMomentPayload } from "src/lib/db";
+import {
+  applyChangeSetToDb,
+  applyMomentToDb,
+  buildMomentPayload,
+} from "src/lib/db";
+import type { Direction } from "@epanet-js/change-set";
 import type { ApplyMomentPayload } from "@epanet-js/ejsdb";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { captureError, captureWarning } from "src/infra/error-tracking";
@@ -68,19 +73,31 @@ const commitHistoryEntry = (
   direction: "undo" | "redo",
   entry: HistoryEntry,
   sessionHistory: SessionHistory,
+  onWriteFailure: WriteFailureHandler,
 ) => {
   const isUndo = direction === "undo";
+  const changeDirection: Direction = isUndo ? "reverse" : "forward";
+
+  const worktree = get(worktreeAtom);
+  const willPersist = worktree.activeBranchId === worktree.mainId;
 
   applyChange(
     get,
     set,
     entry.stateId,
     entry.changeSet,
-    isUndo ? "reverse" : "forward",
+    changeDirection,
     stagingModelDerivedAtom,
   );
 
   isUndo ? sessionHistory.undo() : sessionHistory.redo();
+
+  if (willPersist) {
+    writeQueue.enqueue(
+      () => applyChangeSetToDb(entry.changeSet, changeDirection),
+      onWriteFailure,
+    );
+  }
 
   set(sessionHistoryDerivedAtom, sessionHistory);
 };
@@ -117,7 +134,14 @@ export const useUndoableTransactions = () => {
 
           set(historyPendingAtom, true);
           try {
-            commitHistoryEntry(get, set, direction, entry, sessionHistory);
+            commitHistoryEntry(
+              get,
+              set,
+              direction,
+              entry,
+              sessionHistory,
+              onWriteFailure,
+            );
             return true;
           } finally {
             set(historyPendingAtom, false);

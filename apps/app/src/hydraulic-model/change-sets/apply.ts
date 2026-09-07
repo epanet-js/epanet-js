@@ -1,9 +1,12 @@
 import {
   WHOLE_VALUE,
+  effective,
   entityKinds,
   isAssetEntity,
   type ChangeRecord,
   type ChangeSet,
+  type Direction,
+  type Effective,
   type EntityKind,
 } from "@epanet-js/change-set";
 import {
@@ -36,8 +39,6 @@ import {
   type Fields,
 } from "./entities";
 
-export type Direction = "forward" | "reverse";
-
 export type ApplyReport = {
   name: string;
   direction: Direction;
@@ -69,25 +70,6 @@ const CREATE_ORDER: EntityKind[] = [...entityKinds].sort(
 );
 
 const DELETE_ORDER: EntityKind[] = [...CREATE_ORDER].reverse();
-
-type Effective = { kind: "create" | "update" | "delete"; fields: Fields };
-
-const effective = (record: ChangeRecord, direction: Direction): Effective => {
-  if (direction === "forward") {
-    if (record.kind === "create") {
-      return { kind: "create", fields: record.after };
-    }
-    if (record.kind === "delete") {
-      return { kind: "delete", fields: record.before };
-    }
-    return { kind: "update", fields: record.after };
-  }
-  if (record.kind === "create") return { kind: "delete", fields: record.after };
-  if (record.kind === "delete") {
-    return { kind: "create", fields: record.before };
-  }
-  return { kind: "update", fields: record.before };
-};
 
 const wholeValueOf = <T>(fields: Fields): T => fields[WHOLE_VALUE] as T;
 

@@ -22,6 +22,28 @@ export type {
 } from "./types";
 export {
   emptyAssetCustomAttributeUpdates,
+  emptyApplyMomentPayload,
   isEmptyApplyMomentPayload,
 } from "./types";
 export * from "./schema";
+export { buildChangeSetPayload } from "./change-set/to-payload";
+export {
+  column,
+  patchFrom,
+  rowFrom,
+  toDbBool,
+  toNullable,
+  type ColumnMap,
+  type ColumnWriter,
+} from "./change-set/column-map";
+export {
+  junctionMap,
+  reservoirMap,
+  tankMap,
+  pipeMap,
+  pumpMap,
+  valveMap,
+  customerPointMap,
+  curveMap,
+  patternMap,
+} from "./change-set/columns";

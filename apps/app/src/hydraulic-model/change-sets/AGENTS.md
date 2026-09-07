@@ -9,9 +9,12 @@ need the asset classes, which is why they are here and not in the package.
 The app runs this behind `FLAG_CHANGE_SETS`. With the flag on, edits and
 undo/redo go through `toChangeSet` and `applyChange`
 (`src/lib/persistence/transaction-helpers.ts`) and land in a `SessionHistory`;
-with it off the moment path is untouched. **The database is still written from
-the moment**, and not at all while the flag is on — see the flag's entry in
-`private/feature-flags.md`.
+with it off the moment path is untouched. **Main's rows are written from the
+change set**, and the mapping happens in the DB worker: `applyChangeSetToDb` posts
+`changeSet.bytes`, and `@epanet-js/ejsdb`'s `src/change-set/` turns records into
+rows without consulting the model, which is what makes field-bag completeness a
+property every edit exercises. Nothing here maps rows — this directory's job ends
+at the change set. See the flag's entry in `private/feature-flags.md`.
 
 ## The shape of an edit
 

@@ -22,9 +22,18 @@ import type { JunctionDemandRow } from "./schema/junction-demands";
 import type { PatternRow } from "./schema/patterns";
 import type { CurveRow } from "./schema/curves";
 import type { ZoneRow } from "./schema/zones";
-import type { AssetPatchRow, CustomerPointPatchRow } from "./schema/patches";
+import type {
+  AssetPatchRow,
+  CustomerPointPatchRow,
+  CurvePatchRow,
+  PatternPatchRow,
+} from "./schema/patches";
 
-type PatchRow = AssetPatchRow | CustomerPointPatchRow;
+type PatchRow =
+  | AssetPatchRow
+  | CustomerPointPatchRow
+  | CurvePatchRow
+  | PatternPatchRow;
 import type {
   ApplyMomentPayload,
   CustomAttributeValueUpdate,
@@ -33,6 +42,8 @@ import type {
   OpenDbResult,
 } from "./types";
 import { isEmptyApplyMomentPayload } from "./types";
+import { ChangeSet, type Direction } from "@epanet-js/change-set";
+import { buildChangeSetPayload } from "./change-set/to-payload";
 
 const formatErrorDetails = (e: unknown): string => {
   if (!(e instanceof Error)) return String(e);
@@ -311,14 +322,18 @@ const ASSET_TYPE_TABLES = [
 
 const insertPattern = (row: PatternRow) => {
   getStmt(
-    `INSERT INTO patterns (id, label, type, multipliers) VALUES (?, ?, ?, ?)`,
+    `INSERT INTO patterns (id, label, type, multipliers) VALUES (?, ?, ?, ?) ` +
+      `ON CONFLICT(id) DO UPDATE SET label = excluded.label, type = excluded.type, multipliers = excluded.multipliers`,
   )
     .bind([row.id, row.label, row.type, row.multipliers])
     .stepReset();
 };
 
 const insertCurve = (row: CurveRow) => {
-  getStmt(`INSERT INTO curves (id, label, type, points) VALUES (?, ?, ?, ?)`)
+  getStmt(
+    `INSERT INTO curves (id, label, type, points) VALUES (?, ?, ?, ?) ` +
+      `ON CONFLICT(id) DO UPDATE SET label = excluded.label, type = excluded.type, points = excluded.points`,
+  )
     .bind([row.id, row.label, row.type, row.points])
     .stepReset();
 };
@@ -958,10 +973,149 @@ const countApplyMoment = (payload: ApplyMomentPayload) => ({
   jDem: payload.junctionDemandUpdates.length,
   pat: payload.patternsReplacement?.length ?? 0,
   cur: payload.curvesReplacement?.length ?? 0,
+  delCur: payload.curveDeleteIds.length,
+  upCur: payload.curveUpserts.length,
+  patCur: payload.curvePatches.length,
+  delPat: payload.patternDeleteIds.length,
+  upPat: payload.patternUpserts.length,
+  patPat: payload.patternPatches.length,
   pipeLib: payload.pipeLibraryReplacement !== null ? 1 : 0,
   ctrl: payload.rawControlsReplacement !== null ? 1 : 0,
   ctrls: payload.controlsReplacement !== null ? 1 : 0,
 });
+
+const writeApplyPayload = (
+  label: string,
+  payload: ApplyMomentPayload,
+): Promise<void> =>
+  withTransaction(
+    label,
+    (db) => {
+      const touchedAssetIds: number[] = [...payload.assetDeleteIds];
+      for (const r of payload.assetUpserts.junctions)
+        touchedAssetIds.push(r.id);
+      for (const r of payload.assetUpserts.reservoirs)
+        touchedAssetIds.push(r.id);
+      for (const r of payload.assetUpserts.tanks) touchedAssetIds.push(r.id);
+      for (const r of payload.assetUpserts.pipes) touchedAssetIds.push(r.id);
+      for (const r of payload.assetUpserts.pumps) touchedAssetIds.push(r.id);
+      for (const r of payload.assetUpserts.valves) touchedAssetIds.push(r.id);
+
+      bulkDelete(ASSET_TYPE_TABLES, "id", touchedAssetIds);
+
+      bulkInsertJunctions(payload.assetUpserts.junctions);
+      bulkInsertReservoirs(payload.assetUpserts.reservoirs);
+      bulkInsertTanks(payload.assetUpserts.tanks);
+      bulkInsertPipes(payload.assetUpserts.pipes);
+      bulkInsertPumps(payload.assetUpserts.pumps);
+      bulkInsertValves(payload.assetUpserts.valves);
+
+      bulkUpdate("junctions", payload.assetPatches.junctions);
+      bulkUpdate("reservoirs", payload.assetPatches.reservoirs);
+      bulkUpdate("tanks", payload.assetPatches.tanks);
+      bulkUpdate("pipes", payload.assetPatches.pipes);
+      bulkUpdate("pumps", payload.assetPatches.pumps);
+      bulkUpdate("valves", payload.assetPatches.valves);
+
+      applyCustomAttributeValues(
+        "junctions",
+        payload.customAttributeValues.junctions,
+      );
+      applyCustomAttributeValues(
+        "reservoirs",
+        payload.customAttributeValues.reservoirs,
+      );
+      applyCustomAttributeValues("tanks", payload.customAttributeValues.tanks);
+      applyCustomAttributeValues("pipes", payload.customAttributeValues.pipes);
+      applyCustomAttributeValues("pumps", payload.customAttributeValues.pumps);
+      applyCustomAttributeValues(
+        "valves",
+        payload.customAttributeValues.valves,
+      );
+
+      const cpDemandCpIds: number[] = [...payload.customerPointDeleteIds];
+      for (const u of payload.customerPointDemandUpdates) {
+        cpDemandCpIds.push(u.customerPointId);
+      }
+      bulkDelete(
+        ["customer_point_demands"],
+        "customer_point_id",
+        cpDemandCpIds,
+      );
+
+      const cpIds: number[] = [...payload.customerPointDeleteIds];
+      for (const r of payload.customerPointUpserts) cpIds.push(r.id);
+      bulkDelete(["customer_points"], "id", cpIds);
+
+      bulkInsertCustomerPoints(payload.customerPointUpserts);
+
+      bulkUpdate("customer_points", payload.customerPointPatches);
+
+      applyCustomAttributeValues(
+        "customer_points",
+        payload.customerPointCustomAttributeValues,
+      );
+
+      const cpDemandRows: CustomerPointDemandRow[] = [];
+      for (const u of payload.customerPointDemandUpdates) {
+        for (const row of u.demands) cpDemandRows.push(row);
+      }
+      bulkInsertCustomerPointDemands(cpDemandRows);
+
+      const jDemandJunctionIds: number[] = [];
+      for (const u of payload.junctionDemandUpdates) {
+        jDemandJunctionIds.push(u.junctionId);
+      }
+      bulkDelete(["junction_demands"], "junction_id", jDemandJunctionIds);
+
+      const jDemandRows: JunctionDemandRow[] = [];
+      for (const u of payload.junctionDemandUpdates) {
+        for (const row of u.demands) jDemandRows.push(row);
+      }
+      bulkInsertJunctionDemands(jDemandRows);
+
+      if (payload.patternsReplacement !== null) {
+        db.exec("DELETE FROM patterns");
+        for (const row of payload.patternsReplacement) {
+          insertPattern(row);
+        }
+      }
+      if (payload.curvesReplacement !== null) {
+        db.exec("DELETE FROM curves");
+        for (const row of payload.curvesReplacement) {
+          insertCurve(row);
+        }
+      }
+
+      bulkDelete(["curves"], "id", payload.curveDeleteIds);
+      for (const row of payload.curveUpserts) {
+        insertCurve(row);
+      }
+      bulkUpdate("curves", payload.curvePatches);
+
+      bulkDelete(["patterns"], "id", payload.patternDeleteIds);
+      for (const row of payload.patternUpserts) {
+        insertPattern(row);
+      }
+      bulkUpdate("patterns", payload.patternPatches);
+      if (payload.pipeLibraryReplacement !== null) {
+        updatePipeLibrary(payload.pipeLibraryReplacement);
+      }
+      if (payload.rawControlsReplacement !== null) {
+        upsertRawControls(payload.rawControlsReplacement);
+      }
+      if (payload.controlsReplacement !== null) {
+        upsertControls(payload.controlsReplacement);
+      }
+      if (payload.customAttributesDefinition !== null) {
+        db.exec(
+          "UPDATE project SET custom_attributes_definition = ? WHERE id = 1",
+          { bind: [payload.customAttributesDefinition] },
+        );
+      }
+    },
+    countApplyMoment(payload),
+  );
 
 export const api = {
   setPerfLogging(enabled: boolean) {
@@ -1321,132 +1475,16 @@ export const api = {
 
   async applyMoment(payload: ApplyMomentPayload): Promise<void> {
     if (isEmptyApplyMomentPayload(payload)) return;
+    return writeApplyPayload("applyMoment", payload);
+  },
 
-    return withTransaction(
-      "applyMoment",
-      (db) => {
-        const touchedAssetIds: number[] = [...payload.assetDeleteIds];
-        for (const r of payload.assetUpserts.junctions)
-          touchedAssetIds.push(r.id);
-        for (const r of payload.assetUpserts.reservoirs)
-          touchedAssetIds.push(r.id);
-        for (const r of payload.assetUpserts.tanks) touchedAssetIds.push(r.id);
-        for (const r of payload.assetUpserts.pipes) touchedAssetIds.push(r.id);
-        for (const r of payload.assetUpserts.pumps) touchedAssetIds.push(r.id);
-        for (const r of payload.assetUpserts.valves) touchedAssetIds.push(r.id);
-
-        bulkDelete(ASSET_TYPE_TABLES, "id", touchedAssetIds);
-
-        bulkInsertJunctions(payload.assetUpserts.junctions);
-        bulkInsertReservoirs(payload.assetUpserts.reservoirs);
-        bulkInsertTanks(payload.assetUpserts.tanks);
-        bulkInsertPipes(payload.assetUpserts.pipes);
-        bulkInsertPumps(payload.assetUpserts.pumps);
-        bulkInsertValves(payload.assetUpserts.valves);
-
-        bulkUpdate("junctions", payload.assetPatches.junctions);
-        bulkUpdate("reservoirs", payload.assetPatches.reservoirs);
-        bulkUpdate("tanks", payload.assetPatches.tanks);
-        bulkUpdate("pipes", payload.assetPatches.pipes);
-        bulkUpdate("pumps", payload.assetPatches.pumps);
-        bulkUpdate("valves", payload.assetPatches.valves);
-
-        applyCustomAttributeValues(
-          "junctions",
-          payload.customAttributeValues.junctions,
-        );
-        applyCustomAttributeValues(
-          "reservoirs",
-          payload.customAttributeValues.reservoirs,
-        );
-        applyCustomAttributeValues(
-          "tanks",
-          payload.customAttributeValues.tanks,
-        );
-        applyCustomAttributeValues(
-          "pipes",
-          payload.customAttributeValues.pipes,
-        );
-        applyCustomAttributeValues(
-          "pumps",
-          payload.customAttributeValues.pumps,
-        );
-        applyCustomAttributeValues(
-          "valves",
-          payload.customAttributeValues.valves,
-        );
-
-        const cpDemandCpIds: number[] = [...payload.customerPointDeleteIds];
-        for (const u of payload.customerPointDemandUpdates) {
-          cpDemandCpIds.push(u.customerPointId);
-        }
-        bulkDelete(
-          ["customer_point_demands"],
-          "customer_point_id",
-          cpDemandCpIds,
-        );
-
-        const cpIds: number[] = [...payload.customerPointDeleteIds];
-        for (const r of payload.customerPointUpserts) cpIds.push(r.id);
-        bulkDelete(["customer_points"], "id", cpIds);
-
-        bulkInsertCustomerPoints(payload.customerPointUpserts);
-
-        bulkUpdate("customer_points", payload.customerPointPatches);
-
-        applyCustomAttributeValues(
-          "customer_points",
-          payload.customerPointCustomAttributeValues,
-        );
-
-        const cpDemandRows: CustomerPointDemandRow[] = [];
-        for (const u of payload.customerPointDemandUpdates) {
-          for (const row of u.demands) cpDemandRows.push(row);
-        }
-        bulkInsertCustomerPointDemands(cpDemandRows);
-
-        const jDemandJunctionIds: number[] = [];
-        for (const u of payload.junctionDemandUpdates) {
-          jDemandJunctionIds.push(u.junctionId);
-        }
-        bulkDelete(["junction_demands"], "junction_id", jDemandJunctionIds);
-
-        const jDemandRows: JunctionDemandRow[] = [];
-        for (const u of payload.junctionDemandUpdates) {
-          for (const row of u.demands) jDemandRows.push(row);
-        }
-        bulkInsertJunctionDemands(jDemandRows);
-
-        if (payload.patternsReplacement !== null) {
-          db.exec("DELETE FROM patterns");
-          for (const row of payload.patternsReplacement) {
-            insertPattern(row);
-          }
-        }
-        if (payload.curvesReplacement !== null) {
-          db.exec("DELETE FROM curves");
-          for (const row of payload.curvesReplacement) {
-            insertCurve(row);
-          }
-        }
-        if (payload.pipeLibraryReplacement !== null) {
-          updatePipeLibrary(payload.pipeLibraryReplacement);
-        }
-        if (payload.rawControlsReplacement !== null) {
-          upsertRawControls(payload.rawControlsReplacement);
-        }
-        if (payload.controlsReplacement !== null) {
-          upsertControls(payload.controlsReplacement);
-        }
-        if (payload.customAttributesDefinition !== null) {
-          db.exec(
-            "UPDATE project SET custom_attributes_definition = ? WHERE id = 1",
-            { bind: [payload.customAttributesDefinition] },
-          );
-        }
-      },
-      countApplyMoment(payload),
+  async applyChangeSet(bytes: Uint8Array, direction: Direction): Promise<void> {
+    const payload = buildChangeSetPayload(
+      ChangeSet.fromBytes(bytes),
+      direction,
     );
+    if (isEmptyApplyMomentPayload(payload)) return;
+    return writeApplyPayload("applyChangeSet", payload);
   },
 
   async importProject(payload: ImportProjectPayload): Promise<NewDbResult> {

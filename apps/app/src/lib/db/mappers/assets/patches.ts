@@ -1,8 +1,7 @@
 import { z } from "zod";
 import type { AssetPatch } from "src/hydraulic-model/model-operation";
-import { type AssetId, type CurvePoint } from "@epanet-js/hydraulic-model";
+import { type AssetId } from "@epanet-js/hydraulic-model";
 import {
-  pointsSchema,
   junctionPatchRowSchema,
   reservoirPatchRowSchema,
   tankPatchRowSchema,
@@ -10,6 +9,13 @@ import {
   pumpPatchRowSchema,
   valvePatchRowSchema,
   emptyAssetPatchRows,
+  patchFrom,
+  junctionMap,
+  reservoirMap,
+  tankMap,
+  pipeMap,
+  pumpMap,
+  valveMap,
   type AssetPatchRows,
 } from "@epanet-js/ejsdb";
 
@@ -25,7 +31,7 @@ export const assetPatchesToRows = (
         rows.junctions.push(
           parsePatch(
             junctionPatchRowSchema,
-            buildPatchObject(patch.id, patch.properties, junctionMap),
+            patchFrom(patch.id, patch.properties, junctionMap),
             "Junction",
             patch.id,
           ),
@@ -35,7 +41,7 @@ export const assetPatchesToRows = (
         rows.reservoirs.push(
           parsePatch(
             reservoirPatchRowSchema,
-            buildPatchObject(patch.id, patch.properties, reservoirMap),
+            patchFrom(patch.id, patch.properties, reservoirMap),
             "Reservoir",
             patch.id,
           ),
@@ -45,7 +51,7 @@ export const assetPatchesToRows = (
         rows.tanks.push(
           parsePatch(
             tankPatchRowSchema,
-            buildPatchObject(patch.id, patch.properties, tankMap),
+            patchFrom(patch.id, patch.properties, tankMap),
             "Tank",
             patch.id,
           ),
@@ -55,7 +61,7 @@ export const assetPatchesToRows = (
         rows.pipes.push(
           parsePatch(
             pipePatchRowSchema,
-            buildPatchObject(patch.id, patch.properties, pipeMap),
+            patchFrom(patch.id, patch.properties, pipeMap),
             "Pipe",
             patch.id,
           ),
@@ -65,7 +71,7 @@ export const assetPatchesToRows = (
         rows.pumps.push(
           parsePatch(
             pumpPatchRowSchema,
-            buildPatchObject(patch.id, patch.properties, pumpMap),
+            patchFrom(patch.id, patch.properties, pumpMap),
             "Pump",
             patch.id,
           ),
@@ -75,7 +81,7 @@ export const assetPatchesToRows = (
         rows.valves.push(
           parsePatch(
             valvePatchRowSchema,
-            buildPatchObject(patch.id, patch.properties, valveMap),
+            patchFrom(patch.id, patch.properties, valveMap),
             "Valve",
             patch.id,
           ),
@@ -99,128 +105,4 @@ const parsePatch = <T>(
     );
   }
   return result.data;
-};
-
-type ColumnMap = Record<
-  string,
-  { col: string; transform?: (v: unknown) => unknown }
->;
-
-const buildPatchObject = (
-  id: AssetId,
-  properties: Record<string, unknown>,
-  map: ColumnMap,
-): Record<string, unknown> => {
-  const row: Record<string, unknown> = { id };
-  for (const key in properties) {
-    const entry = map[key];
-    if (!entry) continue;
-    const value = properties[key];
-    row[entry.col] = entry.transform ? entry.transform(value) : value;
-  }
-  return row;
-};
-
-const toDbBool = (v: unknown): number => (v ? 1 : 0);
-const toNullable = (v: unknown): unknown => (v === undefined ? null : v);
-
-const toPumpCurvePoints = (v: unknown): string | null => {
-  if (v === undefined || v === null) return null;
-  const result = pointsSchema.safeParse(v as CurvePoint[]);
-  if (!result.success) {
-    throw new Error(
-      `Pump patch: inline curve points must be an array of {x,y} with finite numbers — ${result.error.message}`,
-    );
-  }
-  return JSON.stringify(result.data);
-};
-
-const sharedAssetMap: ColumnMap = {
-  label: { col: "label" },
-  isActive: { col: "is_active", transform: toDbBool },
-};
-
-const sharedNodeMap: ColumnMap = {
-  ...sharedAssetMap,
-  elevation: { col: "elevation" },
-  initialQuality: { col: "initial_quality", transform: toNullable },
-  chemicalSourceType: {
-    col: "chemical_source_type",
-    transform: toNullable,
-  },
-  chemicalSourceStrength: {
-    col: "chemical_source_strength",
-    transform: toNullable,
-  },
-  chemicalSourcePatternId: {
-    col: "chemical_source_pattern_id",
-    transform: toNullable,
-  },
-};
-
-const sharedLinkMap: ColumnMap = {
-  ...sharedAssetMap,
-  length: { col: "length", transform: toNullable },
-  initialStatus: { col: "initial_status", transform: toNullable },
-};
-
-const junctionMap: ColumnMap = {
-  ...sharedNodeMap,
-  emitterCoefficient: { col: "emitter_coefficient", transform: toNullable },
-};
-
-const reservoirMap: ColumnMap = {
-  ...sharedNodeMap,
-  head: { col: "head", transform: toNullable },
-  headPatternId: { col: "head_pattern_id", transform: toNullable },
-};
-
-const tankMap: ColumnMap = {
-  ...sharedNodeMap,
-  initialLevel: { col: "initial_level", transform: toNullable },
-  minLevel: { col: "min_level", transform: toNullable },
-  maxLevel: { col: "max_level", transform: toNullable },
-  minVolume: { col: "min_volume", transform: toNullable },
-  diameter: { col: "diameter", transform: toNullable },
-  overflow: { col: "overflow", transform: toDbBool },
-  mixingModel: { col: "mixing_model", transform: toNullable },
-  mixingFraction: { col: "mixing_fraction", transform: toNullable },
-  bulkReactionCoeff: { col: "bulk_reaction_coeff", transform: toNullable },
-  volumeCurveId: { col: "volume_curve_id", transform: toNullable },
-};
-
-const pipeMap: ColumnMap = {
-  ...sharedLinkMap,
-  diameter: { col: "diameter", transform: toNullable },
-  roughness: { col: "roughness", transform: toNullable },
-  minorLoss: { col: "minor_loss", transform: toNullable },
-  bulkReactionCoeff: { col: "bulk_reaction_coeff", transform: toNullable },
-  wallReactionCoeff: { col: "wall_reaction_coeff", transform: toNullable },
-  material: { col: "material", transform: toNullable },
-  year: { col: "year", transform: toNullable },
-};
-
-const pumpMap: ColumnMap = {
-  ...sharedLinkMap,
-  definitionType: { col: "definition_type" },
-  power: { col: "power", transform: toNullable },
-  speed: { col: "speed", transform: toNullable },
-  speedPatternId: { col: "speed_pattern_id", transform: toNullable },
-  efficiencyCurveId: { col: "efficiency_curve_id", transform: toNullable },
-  energyPrice: { col: "energy_price", transform: toNullable },
-  energyPricePatternId: {
-    col: "energy_price_pattern_id",
-    transform: toNullable,
-  },
-  curveId: { col: "curve_id", transform: toNullable },
-  curve: { col: "curve_points", transform: toPumpCurvePoints },
-};
-
-const valveMap: ColumnMap = {
-  ...sharedLinkMap,
-  diameter: { col: "diameter", transform: toNullable },
-  minorLoss: { col: "minor_loss", transform: toNullable },
-  kind: { col: "valve_kind", transform: toNullable },
-  setting: { col: "setting", transform: toNullable },
-  curveId: { col: "curve_id", transform: toNullable },
 };

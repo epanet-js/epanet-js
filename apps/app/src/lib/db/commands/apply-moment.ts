@@ -12,6 +12,7 @@ import type {
 import {
   getWorker,
   timed,
+  emptyApplyMomentPayload,
   emptyAssetCustomAttributeUpdates,
   type ApplyMomentPayload,
   type AssetCustomAttributeUpdates,
@@ -172,6 +173,7 @@ export const buildMomentPayload = (moment: Moment): ApplyMomentPayload => {
     : null;
 
   return {
+    ...emptyApplyMomentPayload(),
     assetDeleteIds: [...(moment.deleteAssets ?? [])],
     assetUpserts: assetsToRows(upsertAssets),
     assetPatches,

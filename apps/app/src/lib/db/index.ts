@@ -11,6 +11,7 @@ export { serializeZones } from "./mappers/zones/to-rows";
 export { setAllSimulationSettings } from "./commands/set-all-simulation-settings";
 export { serializeSimulationSettings } from "./mappers/simulation-settings/to-rows";
 export { applyMomentToDb, buildMomentPayload } from "./commands/apply-moment";
+export { applyChangeSetToDb } from "./commands/apply-change-set";
 export { importProject } from "./commands/import-project";
 export type { ImportProjectInput } from "./commands/import-project";
 export { ensureUniqueId, newUniqueId } from "./commands/ensure-unique-id";

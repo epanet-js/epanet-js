@@ -1,5 +1,10 @@
 import type { AssetRows } from "./schema/assets";
-import type { AssetPatchRows, CustomerPointPatchRow } from "./schema/patches";
+import type {
+  AssetPatchRows,
+  CustomerPointPatchRow,
+  CurvePatchRow,
+  PatternPatchRow,
+} from "./schema/patches";
 import type {
   CustomerPointRow,
   CustomerPointDemandRow,
@@ -87,6 +92,12 @@ export type ApplyMomentPayload = {
   junctionDemandUpdates: JunctionDemandUpdate[];
   patternsReplacement: PatternRow[] | null;
   curvesReplacement: CurveRow[] | null;
+  curveDeleteIds: number[];
+  curveUpserts: CurveRow[];
+  curvePatches: CurvePatchRow[];
+  patternDeleteIds: number[];
+  patternUpserts: PatternRow[];
+  patternPatches: PatternPatchRow[];
   pipeLibraryReplacement: string | null;
   rawControlsReplacement: string | null;
   controlsReplacement: string | null;
@@ -118,6 +129,12 @@ export const isEmptyApplyMomentPayload = (
   payload.junctionDemandUpdates.length === 0 &&
   payload.patternsReplacement === null &&
   payload.curvesReplacement === null &&
+  payload.curveDeleteIds.length === 0 &&
+  payload.curveUpserts.length === 0 &&
+  payload.curvePatches.length === 0 &&
+  payload.patternDeleteIds.length === 0 &&
+  payload.patternUpserts.length === 0 &&
+  payload.patternPatches.length === 0 &&
   payload.pipeLibraryReplacement === null &&
   payload.rawControlsReplacement === null &&
   payload.controlsReplacement === null &&
@@ -129,3 +146,42 @@ export const isEmptyApplyMomentPayload = (
   payload.customAttributeValues.pumps.length === 0 &&
   payload.customAttributeValues.valves.length === 0 &&
   payload.customerPointCustomAttributeValues.length === 0;
+
+export const emptyApplyMomentPayload = (): ApplyMomentPayload => ({
+  assetDeleteIds: [],
+  assetUpserts: {
+    junctions: [],
+    reservoirs: [],
+    tanks: [],
+    pipes: [],
+    pumps: [],
+    valves: [],
+  },
+  assetPatches: {
+    junctions: [],
+    reservoirs: [],
+    tanks: [],
+    pipes: [],
+    pumps: [],
+    valves: [],
+  },
+  customerPointDeleteIds: [],
+  customerPointUpserts: [],
+  customerPointPatches: [],
+  customerPointDemandUpdates: [],
+  junctionDemandUpdates: [],
+  patternsReplacement: null,
+  curvesReplacement: null,
+  curveDeleteIds: [],
+  curveUpserts: [],
+  curvePatches: [],
+  patternDeleteIds: [],
+  patternUpserts: [],
+  patternPatches: [],
+  pipeLibraryReplacement: null,
+  rawControlsReplacement: null,
+  controlsReplacement: null,
+  customAttributesDefinition: null,
+  customAttributeValues: emptyAssetCustomAttributeUpdates(),
+  customerPointCustomAttributeValues: [],
+});

@@ -50,6 +50,29 @@ These are safe — they don't touch the format:
 
 When in doubt, ask. Do not assume.
 
+## `src/change-set/` — rows from a change set
+
+`applyChangeSet(bytes, direction)` decodes a `@epanet-js/change-set` blob and maps its
+records to the same rows `applyMoment` writes, then runs the identical transaction. The
+mapping lives here, in the worker, so a change set crosses the boundary as one
+`Uint8Array` rather than as a cloned row set.
+
+- **`columns.ts` is the single source of truth for what gets persisted**, for creates and
+  updates, on both write paths — the app's moment patches import the same maps. A property
+  with a matching column is silently not written until it has an entry.
+- A map entry is a function from one field value to a partial row, so one field can fan out
+  to several columns (`coordinates` → `coord_x`/`coord_y`, `connections` →
+  `start_node_id`/`end_node_id`). `patchFrom` iterates the fields (partial bag → patch),
+  `rowFrom` iterates the map (complete bag → full row, absent optionals becoming `null`).
+- The row Zod schemas run **here**, inside the worker, which means after the app has already
+  updated its model. See `public/apps/app/guidelines/persistence.md`.
+- `CUSTOM_ATTRIBUTE_KEY_PREFIX` (`src/schema/custom-attributes-data.ts`) must stay equal to
+  the model's `CUSTOM_PROPERTY_PREFIX`; an app test asserts it, because this package does
+  not depend on `@epanet-js/hydraulic-model` and should not start.
+
+None of this is a file-format change: the rows and their column lists are the same ones the
+moment path writes.
+
 ## Migration procedure
 
 1. Add a new SQL file `src/migrations/NNNN_short_description.sql` (next sequential number, zero-padded to 4)

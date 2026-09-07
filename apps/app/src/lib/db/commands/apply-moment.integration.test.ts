@@ -16,6 +16,7 @@ import {
   setAttributes,
 } from "@epanet-js/hydraulic-model";
 import { serializeCustomAttributesDefinition } from "@epanet-js/ejsdb-mappers";
+import { emptyApplyMomentPayload } from "@epanet-js/ejsdb";
 import type { HydraulicModel } from "src/hydraulic-model";
 import {
   changeCustomAttributesDefinition,
@@ -957,5 +958,120 @@ describe("buildMomentPayload validation", () => {
     expect(() =>
       buildMomentPayload({ note: "valid", putAssets: [junction] }),
     ).not.toThrow();
+  });
+});
+
+describe("applyMomentToDb curve and pattern writes", () => {
+  useInProcessDb();
+
+  it("deletes, upserts and patches curves in one payload", async () => {
+    const IDS = { C1: 1, C2: 2, C3: 3, C4: 4 } as const;
+
+    await seed(
+      HydraulicModelBuilder.with()
+        .aCurve({
+          id: IDS.C1,
+          label: "C1",
+          type: "volume",
+          points: [{ x: 1, y: 1 }],
+        })
+        .aCurve({
+          id: IDS.C2,
+          label: "C2",
+          type: "volume",
+          points: [{ x: 2, y: 2 }],
+        })
+        .aCurve({
+          id: IDS.C3,
+          label: "C3",
+          type: "volume",
+          points: [{ x: 3, y: 3 }],
+        })
+        .build(),
+    );
+
+    await applyMomentToDb({
+      ...emptyApplyMomentPayload(),
+      curveDeleteIds: [IDS.C3],
+      curveUpserts: [
+        {
+          id: IDS.C1,
+          label: "RENAMED",
+          type: "volume",
+          points: JSON.stringify([{ x: 9, y: 9 }]),
+        },
+        {
+          id: IDS.C4,
+          label: "C4",
+          type: "pump",
+          points: JSON.stringify([{ x: 4, y: 4 }]),
+        },
+      ],
+      curvePatches: [{ id: IDS.C2, points: JSON.stringify([{ x: 8, y: 8 }]) }],
+    });
+
+    const { hydraulicModel } = await fetchProject();
+
+    expect(hydraulicModel.curves.get(IDS.C1)).toMatchObject({
+      label: "RENAMED",
+      points: [{ x: 9, y: 9 }],
+    });
+    expect(hydraulicModel.curves.get(IDS.C2)).toMatchObject({
+      label: "C2",
+      points: [{ x: 8, y: 8 }],
+    });
+    expect(hydraulicModel.curves.has(IDS.C3)).toBe(false);
+    expect(hydraulicModel.curves.get(IDS.C4)).toMatchObject({
+      label: "C4",
+      points: [{ x: 4, y: 4 }],
+    });
+  });
+
+  it("deletes, upserts and patches patterns in one payload", async () => {
+    const IDS = { PAT1: 1, PAT2: 2, PAT3: 3, PAT4: 4 } as const;
+
+    await seed(
+      HydraulicModelBuilder.with()
+        .aPattern(IDS.PAT1, "PAT1", [1], "demand")
+        .aPattern(IDS.PAT2, "PAT2", [2], "demand")
+        .aPattern(IDS.PAT3, "PAT3", [3], "demand")
+        .build(),
+    );
+
+    await applyMomentToDb({
+      ...emptyApplyMomentPayload(),
+      patternDeleteIds: [IDS.PAT3],
+      patternUpserts: [
+        {
+          id: IDS.PAT1,
+          label: "RENAMED",
+          type: "demand",
+          multipliers: JSON.stringify([9]),
+        },
+        {
+          id: IDS.PAT4,
+          label: "PAT4",
+          type: "demand",
+          multipliers: JSON.stringify([4]),
+        },
+      ],
+      patternPatches: [{ id: IDS.PAT2, multipliers: JSON.stringify([8]) }],
+    });
+
+    const { hydraulicModel } = await fetchProject();
+
+    expect(hydraulicModel.patterns.get(IDS.PAT1)).toMatchObject({
+      label: "RENAMED",
+      multipliers: [9],
+    });
+    expect(hydraulicModel.patterns.get(IDS.PAT2)).toMatchObject({
+      label: "PAT2",
+      multipliers: [8],
+    });
+    expect(hydraulicModel.patterns.has(IDS.PAT3)).toBe(false);
+    expect(hydraulicModel.patterns.get(IDS.PAT4)).toMatchObject({
+      label: "PAT4",
+      multipliers: [4],
+    });
   });
 });

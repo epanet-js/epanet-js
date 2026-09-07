@@ -8,11 +8,10 @@ import {
   applyMomentToModel,
 } from "src/hydraulic-model";
 import { CustomerPoints } from "@epanet-js/hydraulic-model";
-import type { ChangeSet } from "@epanet-js/change-set";
+import type { ChangeSet, Direction } from "@epanet-js/change-set";
 import {
   applyChangeSet,
   type ApplyReport,
-  type Direction,
 } from "src/hydraulic-model/change-sets";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { mapEditionsTrackerAtom } from "src/state/map";
