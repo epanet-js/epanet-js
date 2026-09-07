@@ -10,8 +10,7 @@ import {
 import { topologyTransferables } from "src/hydraulic-model/topology/topology-transferable";
 import { assetIndexTransferables } from "src/hydraulic-model/asset-index-transferable";
 import { findOrphanAssets } from "./find-orphan-assets";
-import { createOrphanAssetsWorker, getOrphanAssetsWorker } from "./get-worker";
-import { areLongLivedWorkersEnabled } from "src/infra/long-lived-workers";
+import { getOrphanAssetsWorker } from "./get-worker";
 import { BufferType } from "@epanet-js/buffers";
 import { canUseWorker, enrichWorkerError } from "src/infra/worker";
 
@@ -56,31 +55,15 @@ const runWithWorker = async (
     ...assetIndexTransferables(data.assetIndexBuffers),
   ]);
 
-  if (areLongLivedWorkersEnabled()) {
-    const workerAPI = getOrphanAssetsWorker();
-    try {
-      const result = await workerAPI.findOrphanAssets(transferData);
-      if (signal?.aborted) {
-        throw new DOMException("Operation cancelled", "AbortError");
-      }
-      return result;
-    } catch (e) {
-      if (e instanceof DOMException && e.name === "AbortError") throw e;
-      throw enrichWorkerError("orphan-assets", e);
-    }
-  }
-
-  const { worker, api: workerAPI } = createOrphanAssetsWorker();
-
-  const abortHandler = () => worker.terminate();
-  signal?.addEventListener("abort", abortHandler);
-
+  const workerAPI = getOrphanAssetsWorker();
   try {
-    return await workerAPI.findOrphanAssets(transferData);
+    const result = await workerAPI.findOrphanAssets(transferData);
+    if (signal?.aborted) {
+      throw new DOMException("Operation cancelled", "AbortError");
+    }
+    return result;
   } catch (e) {
+    if (e instanceof DOMException && e.name === "AbortError") throw e;
     throw enrichWorkerError("orphan-assets", e);
-  } finally {
-    signal?.removeEventListener("abort", abortHandler);
-    worker.terminate();
   }
 };

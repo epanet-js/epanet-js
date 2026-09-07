@@ -3,7 +3,7 @@ import type { CrossingPipesWorkerAPI } from "./worker";
 
 let cached: Comlink.Remote<CrossingPipesWorkerAPI> | null = null;
 
-export const createCrossingPipesWorker = (): {
+const createCrossingPipesWorker = (): {
   worker: Worker;
   api: Comlink.Remote<CrossingPipesWorkerAPI>;
 } => {

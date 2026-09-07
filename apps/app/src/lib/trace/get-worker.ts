@@ -3,7 +3,7 @@ import type { TraceWorkerAPI } from "./worker-api";
 
 let cached: Comlink.Remote<TraceWorkerAPI> | null = null;
 
-export const createTraceWorker = (): {
+const createTraceWorker = (): {
   worker: Worker;
   api: Comlink.Remote<TraceWorkerAPI>;
 } => {

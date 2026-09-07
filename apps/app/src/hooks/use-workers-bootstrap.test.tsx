@@ -1,12 +1,7 @@
 import { renderHook, waitFor } from "@testing-library/react";
-import { stubFeaturesOn } from "src/__helpers__/feature-flags";
 import { useWorkersBootstrap } from "./use-workers-bootstrap";
 
 describe("useWorkersBootstrap", () => {
-  beforeAll(() => {
-    stubFeaturesOn(["FLAG_LONG_LIVED_WORKERS", "FLAG_FULL_OFFLINE_SUPPORT"]);
-  });
-
   beforeEach(() => {
     vi.clearAllMocks();
   });

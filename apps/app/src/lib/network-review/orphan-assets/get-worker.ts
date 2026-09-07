@@ -3,7 +3,7 @@ import type { OrphanAssetsWorkerAPI } from "./worker-api";
 
 let cached: Comlink.Remote<OrphanAssetsWorkerAPI> | null = null;
 
-export const createOrphanAssetsWorker = (): {
+const createOrphanAssetsWorker = (): {
   worker: Worker;
   api: Comlink.Remote<OrphanAssetsWorkerAPI>;
 } => {

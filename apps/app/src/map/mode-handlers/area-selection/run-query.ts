@@ -14,8 +14,7 @@ import {
 } from "src/hydraulic-model/customer-points-geo";
 import { queryContainedAssets } from "src/hydraulic-model/spatial-queries";
 import { canUseWorker, enrichWorkerError } from "src/infra/worker";
-import { createSpatialQueryWorker, getSpatialQueryWorker } from "./get-worker";
-import { isFullOfflineSupportEnabled } from "src/infra/long-lived-workers";
+import { getSpatialQueryWorker } from "./get-worker";
 import {
   EncodedAreaSelectionBuffers,
   EncodedAreaSelectionResult,
@@ -100,41 +99,20 @@ const runQueryWithWorker = async (
       )
     : undefined;
 
-  if (isFullOfflineSupportEnabled()) {
-    const workerAPI = getSpatialQueryWorker();
-    try {
-      const result = await workerAPI.queryContainedFeatures(
-        assetIndexArg,
-        assetsGeoArg,
-        customerPointsGeoArg,
-        points,
-      );
-      if (signal?.aborted) {
-        throw new DOMException("Operation cancelled", "AbortError");
-      }
-      return result;
-    } catch (e) {
-      if (e instanceof DOMException && e.name === "AbortError") throw e;
-      throw enrichWorkerError("spatial-query", e);
-    }
-  }
-
-  const { worker, api: workerAPI } = createSpatialQueryWorker();
-
-  const abortHandler = () => worker.terminate();
-  signal?.addEventListener("abort", abortHandler);
-
+  const workerAPI = getSpatialQueryWorker();
   try {
-    return await workerAPI.queryContainedFeatures(
+    const result = await workerAPI.queryContainedFeatures(
       assetIndexArg,
       assetsGeoArg,
       customerPointsGeoArg,
       points,
     );
+    if (signal?.aborted) {
+      throw new DOMException("Operation cancelled", "AbortError");
+    }
+    return result;
   } catch (e) {
+    if (e instanceof DOMException && e.name === "AbortError") throw e;
     throw enrichWorkerError("spatial-query", e);
-  } finally {
-    signal?.removeEventListener("abort", abortHandler);
-    worker.terminate();
   }
 };

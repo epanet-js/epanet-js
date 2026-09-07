@@ -3,7 +3,7 @@ import type { AllocationWorkerAPI } from "./worker";
 
 let cached: Comlink.Remote<AllocationWorkerAPI> | null = null;
 
-export const createCustomerPointsWorker = (): {
+const createCustomerPointsWorker = (): {
   worker: Worker;
   api: Comlink.Remote<AllocationWorkerAPI>;
 } => {

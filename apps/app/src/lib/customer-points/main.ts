@@ -1,4 +1,3 @@
-import * as Comlink from "comlink";
 import { HydraulicModel } from "../../hydraulic-model/hydraulic-model";
 import {
   AssetId,
@@ -11,12 +10,7 @@ import { prepareWorkerData, RunData } from "./prepare-data";
 import { enrichWorkerError } from "src/infra/worker";
 import { runAllocation } from "./run-allocation";
 import { AllocationResultsView } from "./allocation-results";
-import type { AllocationWorkerAPI } from "./worker";
-import {
-  createCustomerPointsWorker,
-  getCustomerPointsWorker,
-} from "./get-worker";
-import { isFullOfflineSupportEnabled } from "src/infra/long-lived-workers";
+import { getCustomerPointsWorker } from "./get-worker";
 import type { Zone } from "src/lib/zones";
 
 type AllocationOptions = {
@@ -62,22 +56,14 @@ export const allocateCustomerPoints = async (
   }
 
   const shouldUseWorkers = runOnWorker && hasWebWorker();
-  const workerCount = 1;
   const nullOffset = 0;
 
   const allocationResults = shouldUseWorkers
-    ? isFullOfflineSupportEnabled()
-      ? await runAllocationWithSharedWorker(
-          workerData,
-          allocationRules,
-          totalCustomerPoints,
-        )
-      : await runAllocationWithWorkers(
-          workerData,
-          allocationRules,
-          totalCustomerPoints,
-          workerCount,
-        )
+    ? await runAllocationWithSharedWorker(
+        workerData,
+        allocationRules,
+        totalCustomerPoints,
+      )
     : [runAllocation(workerData, allocationRules, nullOffset)];
 
   let customerPointsMatchedToZone = 0;
@@ -129,51 +115,6 @@ const runAllocationWithSharedWorker = async (
     return [buffer];
   } catch (e) {
     throw enrichWorkerError("customer-allocation", e);
-  }
-};
-
-const runAllocationWithWorkers = async (
-  workerData: RunData,
-  allocationRules: CustomerPointAllocationRule[],
-  totalCustomerPoints: number,
-  workerCount: number,
-): Promise<ArrayBuffer[]> => {
-  const pointsPerWorker = Math.ceil(totalCustomerPoints / workerCount);
-  const workers: Worker[] = [];
-  const workerAPIs: Comlink.Remote<AllocationWorkerAPI>[] = [];
-
-  try {
-    for (let i = 0; i < workerCount; i++) {
-      const { worker, api } = createCustomerPointsWorker();
-      workers.push(worker);
-      workerAPIs.push(api);
-    }
-
-    const workerPromises = workerAPIs.map((workerAPI, workerIndex) => {
-      const offset = workerIndex * pointsPerWorker;
-      const count = Math.min(pointsPerWorker, totalCustomerPoints - offset);
-
-      if (count <= 0) {
-        return Promise.resolve(null);
-      }
-
-      return workerAPI.runAllocation(
-        workerData,
-        allocationRules,
-        offset,
-        count,
-      );
-    });
-
-    const workerResults = await Promise.all(workerPromises);
-
-    return workerResults.filter((buffer): buffer is ArrayBuffer => !!buffer);
-  } catch (e) {
-    throw enrichWorkerError("customer-allocation", e);
-  } finally {
-    workers.forEach((worker) => {
-      worker.terminate();
-    });
   }
 };
 

@@ -3,7 +3,7 @@ import type { SpatialQueryWorkerAPI } from "./worker-api";
 
 let cached: Comlink.Remote<SpatialQueryWorkerAPI> | null = null;
 
-export const createSpatialQueryWorker = (): {
+const createSpatialQueryWorker = (): {
   worker: Worker;
   api: Comlink.Remote<SpatialQueryWorkerAPI>;
 } => {

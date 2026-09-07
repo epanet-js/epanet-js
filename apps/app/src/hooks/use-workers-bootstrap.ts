@@ -1,10 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { captureError } from "src/infra/error-tracking";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import {
-  configureLongLivedWorkers,
-  configureFullOfflineSupport,
-} from "src/infra/long-lived-workers";
 import { canUseWorker } from "src/infra/worker";
 
 const preloadSimulationWorker = async (): Promise<void> => {
@@ -69,8 +64,6 @@ const preloadSpatialQueryWorker = async (): Promise<void> => {
 
 export const useWorkersBootstrap = (areFeatureFlagsReady: boolean): boolean => {
   const [areWorkersReady, setAreWorkersReady] = useState(false);
-  const isLongLivedWorkersOn = useFeatureFlag("FLAG_LONG_LIVED_WORKERS");
-  const isFullOfflineSupportOn = useFeatureFlag("FLAG_FULL_OFFLINE_SUPPORT");
   const workersInitializedRef = useRef(false);
 
   useEffect(() => {
@@ -79,25 +72,17 @@ export const useWorkersBootstrap = (areFeatureFlagsReady: boolean): boolean => {
     workersInitializedRef.current = true;
 
     const bootstrap = async () => {
-      configureLongLivedWorkers(isLongLivedWorkersOn);
-      if (!isLongLivedWorkersOn) return;
-      configureFullOfflineSupport(isFullOfflineSupportOn);
       try {
-        const nextPreloadedWorkers = isFullOfflineSupportOn
-          ? [
-              preloadCustomerPointsWorker(),
-              preloadCrossingPipesWorker(),
-              preloadProximityAnomaliesWorker(),
-              preloadSpatialQueryWorker(),
-            ]
-          : [];
-        const preloadedWorkers = [
+        await Promise.all([
           preloadSimulationWorker(),
           preloadTraceWorker(),
           preloadConnectivityTraceWorker(),
           preloadOrphanAssetsWorker(),
-        ];
-        await Promise.all([...preloadedWorkers, ...nextPreloadedWorkers]);
+          preloadCustomerPointsWorker(),
+          preloadCrossingPipesWorker(),
+          preloadProximityAnomaliesWorker(),
+          preloadSpatialQueryWorker(),
+        ]);
       } catch (error) {
         captureError(error as Error);
       }
@@ -106,7 +91,7 @@ export const useWorkersBootstrap = (areFeatureFlagsReady: boolean): boolean => {
     void bootstrap().finally(() => {
       setAreWorkersReady(true);
     });
-  }, [areFeatureFlagsReady, isLongLivedWorkersOn, isFullOfflineSupportOn]);
+  }, [areFeatureFlagsReady]);
 
   return areWorkersReady;
 };

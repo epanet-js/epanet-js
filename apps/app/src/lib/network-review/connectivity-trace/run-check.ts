@@ -8,11 +8,7 @@ import {
 } from "src/infra/worker";
 import { EncodedSubNetwork, SubNetwork, decodeSubNetworks } from "./data";
 import { findSubNetworks } from "./find-subnetworks";
-import {
-  createConnectivityTraceWorker,
-  getConnectivityTraceWorker,
-} from "./get-worker";
-import { areLongLivedWorkersEnabled } from "src/infra/long-lived-workers";
+import { getConnectivityTraceWorker } from "./get-worker";
 import {
   HydraulicModelBuffers,
   HydraulicModelEncoder,
@@ -63,31 +59,15 @@ const runWithWorker = async (
     hydraulicModelTransferables(data),
   );
 
-  if (areLongLivedWorkersEnabled()) {
-    const workerAPI = getConnectivityTraceWorker();
-    try {
-      const result = await workerAPI.findSubNetworks(transferData);
-      if (signal?.aborted) {
-        throw new DOMException("Operation cancelled", "AbortError");
-      }
-      return result;
-    } catch (e) {
-      if (e instanceof DOMException && e.name === "AbortError") throw e;
-      throw enrichWorkerError("connectivity-trace", e);
-    }
-  }
-
-  const { worker, api: workerAPI } = createConnectivityTraceWorker();
-
-  const abortHandler = () => worker.terminate();
-  signal?.addEventListener("abort", abortHandler);
-
+  const workerAPI = getConnectivityTraceWorker();
   try {
-    return await workerAPI.findSubNetworks(transferData);
+    const result = await workerAPI.findSubNetworks(transferData);
+    if (signal?.aborted) {
+      throw new DOMException("Operation cancelled", "AbortError");
+    }
+    return result;
   } catch (e) {
+    if (e instanceof DOMException && e.name === "AbortError") throw e;
     throw enrichWorkerError("connectivity-trace", e);
-  } finally {
-    signal?.removeEventListener("abort", abortHandler);
-    worker.terminate();
   }
 };

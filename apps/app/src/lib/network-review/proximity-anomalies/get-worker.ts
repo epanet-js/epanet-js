@@ -3,7 +3,7 @@ import type { ProximityCheckWorkerAPI } from "./worker";
 
 let cached: Comlink.Remote<ProximityCheckWorkerAPI> | null = null;
 
-export const createProximityAnomaliesWorker = (): {
+const createProximityAnomaliesWorker = (): {
   worker: Worker;
   api: Comlink.Remote<ProximityCheckWorkerAPI>;
 } => {

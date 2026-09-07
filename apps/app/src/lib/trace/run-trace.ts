@@ -17,8 +17,7 @@ import { TraceMode, TraceStart, TraceResult } from "./types";
 import { boundaryTrace } from "./boundary-trace";
 import { upstreamTrace } from "./upstream-trace";
 import { downstreamTrace } from "./downstream-trace";
-import { createTraceWorker, getTraceWorker } from "./get-worker";
-import { areLongLivedWorkersEnabled } from "src/infra/long-lived-workers";
+import { getTraceWorker } from "./get-worker";
 
 export interface TraceInput {
   mode: TraceMode;
@@ -98,31 +97,15 @@ const runWithWorker = async (
     ...allowedFlowDirectionTransferables(data.allowedFlowDirectionBuffers),
   ]);
 
-  if (areLongLivedWorkersEnabled()) {
-    const workerAPI = getTraceWorker();
-    try {
-      const result = await workerAPI.runTrace(input.mode, start, transferData);
-      if (signal?.aborted) {
-        throw new DOMException("Operation cancelled", "AbortError");
-      }
-      return result;
-    } catch (e) {
-      if (e instanceof DOMException && e.name === "AbortError") throw e;
-      throw enrichWorkerError("trace", e);
-    }
-  }
-
-  const { worker, api: workerAPI } = createTraceWorker();
-
-  const abortHandler = () => worker.terminate();
-  signal?.addEventListener("abort", abortHandler);
-
+  const workerAPI = getTraceWorker();
   try {
-    return await workerAPI.runTrace(input.mode, start, transferData);
+    const result = await workerAPI.runTrace(input.mode, start, transferData);
+    if (signal?.aborted) {
+      throw new DOMException("Operation cancelled", "AbortError");
+    }
+    return result;
   } catch (e) {
+    if (e instanceof DOMException && e.name === "AbortError") throw e;
     throw enrichWorkerError("trace", e);
-  } finally {
-    signal?.removeEventListener("abort", abortHandler);
-    worker.terminate();
   }
 };
