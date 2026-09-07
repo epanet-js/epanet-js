@@ -17,9 +17,11 @@ export const importCustomerPointsSource = async (
 ): Promise<ImportResult> => {
   const { features, issues } = await parseGisSource(input);
   const config = input.config ?? {};
+  const collected = issues.build();
 
-  const blocking = issues.build().some(({ severity }) => severity === "error");
-  if (blocking) return { network: {}, issues: issues.build() };
+  if (features.length === 0) return { network: {}, issues: collected };
+
+  const placed = !collected.some(({ severity }) => severity === "error");
 
   const labelProperty = config.mapping?.label ?? null;
   const demandProperty = config.mapping?.demand ?? null;
@@ -43,9 +45,9 @@ export const importCustomerPointsSource = async (
       customerPoints,
       customAttributes: declarations(customAttributeNames, customerPoints),
       ...(config.units === undefined ? {} : { units: config.units }),
-      crs: { type: "epsg", code: 4326 },
+      crs: placed ? { type: "epsg", code: 4326 } : { type: "unknown" },
     },
-    issues: issues.build(),
+    issues: collected,
   };
 };
 

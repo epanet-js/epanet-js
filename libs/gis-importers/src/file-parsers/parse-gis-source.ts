@@ -66,7 +66,6 @@ const failure = (
     | "sourceEmpty"
     | "sourceUnreadable"
     | "sourceFilesIncomplete"
-    | "coordinateSystemUnknown"
     | "coordinateSystemUnsupported"
     | "coordinateSystemMismatch",
 ): DecodedSource => ({
@@ -151,12 +150,14 @@ const parseGeoJson = async (
   const statedCrs = parsed.stated ?? (crs?.type === "epsg" ? crs.code : null);
 
   if (statedCrs === null || statedCrs === WGS84_EPSG) {
-    if (!mostlyLatLng(parsed.features))
-      return failure(
-        statedCrs === null
-          ? "coordinateSystemUnknown"
-          : "coordinateSystemMismatch",
-      );
+    if (!mostlyLatLng(parsed.features)) {
+      if (statedCrs !== null) return failure("coordinateSystemMismatch");
+
+      return {
+        features: parsed.features,
+        issues: [{ code: "coordinateSystemUnknown", severity: "error" }],
+      };
+    }
 
     return {
       features: parsed.features,

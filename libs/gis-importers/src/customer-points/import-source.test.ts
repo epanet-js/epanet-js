@@ -47,6 +47,36 @@ describe("customer points importSource", () => {
     expect(network.pipes).toBeUndefined();
   });
 
+  it("states the coordinates are WGS84 once it has placed them", async () => {
+    const { network } = await importSource(filesOf([aPoint({})]));
+
+    expect(network.crs).toEqual({ type: "epsg", code: 4326 });
+  });
+
+  it("hands back records it could not place, in the coordinates it read", async () => {
+    const { network, issues } = await importSource(
+      filesStatingNoCrs([
+        aPoint({}, [432000, 5812000]),
+        aPoint({}, [433000, 5813000]),
+      ]),
+    );
+
+    expect(network.crs).toEqual({ type: "unknown" });
+    expect(network.customerPoints).toHaveLength(2);
+    expect(network.customerPoints![0].coordinates).toEqual([432000, 5812000]);
+    expect(issues).toContainEqual({
+      code: "coordinateSystemUnknown",
+      severity: "error",
+    });
+  });
+
+  it("keeps losing the records it truly could not read", async () => {
+    const { network, issues } = await importSource({ files: [] });
+
+    expect(network.customerPoints).toBeUndefined();
+    expect(issues).toEqual([{ code: "sourceEmpty", severity: "error" }]);
+  });
+
   it("leaves the label out unless one is mapped", async () => {
     const features = [aPoint({ METER: "M-1" })];
 

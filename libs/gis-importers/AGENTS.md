@@ -14,14 +14,16 @@ Turns GIS files into the part of a model they describe. The model vocabulary —
 
 - **Stop at parsed data, never at `NetworkData`.** Records and attributes are the whole output; which of them is a customer point is not this half's question.
 - **Format handling belongs here, so a new importer inherits every format at once.** Reading is shared; interpreting is not.
-- **Hand back WGS84, always.** Reprojecting needs no knowledge of what a record means, so it belongs here rather than in every consumer — and it removes the asymmetry where shapefiles arrived converted (shpjs reprojects and cannot be stopped) while GeoJSON did not. Because coordinates are always WGS84 there is no CRS to report: `originalProjection` names where they came from, and absent means they were already WGS84.
-- **Name what the data was authored in.** `originalProjection` carries the source's own name for it, verbatim, because once the coordinates have moved that name is the only trace of where they came from.
+- **Hand back WGS84 wherever it can be worked out.** Reprojecting needs no knowledge of what a record means, so it belongs here rather than in every consumer — and it removes the asymmetry where shapefiles arrived converted (shpjs reprojects and cannot be stopped) while GeoJSON did not.
+- **The issues already say whether the parse succeeded, so nothing else does.** Records with no error are placed; records that came back with one are not. A separate flag would be a second copy of what the issues state, free to drift from them, and it would have to hold some value on every failure that returns no records at all — a claim about coordinates that do not exist. It would also drag `SourceCrs` — declared in `network-data.ts` — into a half that must not name `NetworkData` types.
+- **Name what the data was authored in.** `originalProjection` carries the source's own name for it, verbatim, because once the coordinates have moved that name is the only trace of where they came from. It is for showing a person, never for deciding anything, and it is absent when there was nothing worth reporting — a WGS84 `.prj` names nothing, because the file was already there.
 - **A file that states no CRS means WGS84 — but its coordinates must bear that out.** GeoJSON's default is the reason to assume rather than guess. Eastings read as degrees put the whole network in the sea, so a file that plainly is not in degrees and names nothing is refused, and the caller says what it is in through the input's `crs`.
 - **An assumption that holds is still an assumption, and it is reported.** Coordinates that pass for degrees are read as WGS84 and the source imports, but `coordinateSystemMissing` comes back as a warning: nothing in the file ever confirmed it, and only the user can. Silence there would leave a network placed on a guess with no record that a guess was made — and a file that does state WGS84 says nothing, because there was nothing to assume.
 - **Judge that over the file, not a record.** A projection puts everything out of range at once, so a majority decides it; a handful of stray coordinates are individual records' problems and are reported as such.
 - **A supplied CRS stands in for one the file never stated, and never overrides one.** A caller that knows what its export is in says so, and the parser then treats it exactly as the file having said it, reprojection included. `{ type: "unknown" }` says nothing at all, and a shapefile ignores it outright because its `.prj` always states one.
 - **Whether anyone named a CRS changes what being out of range means.** Nothing stated and nothing supplied is `coordinateSystemUnknown` — nobody ever said and the coordinates do not tell us, so a consumer can go and ask. Out of range once a CRS *has* been named is `coordinateSystemMismatch` — the answer was wrong rather than absent, and asking again with the same answer will not help. `coordinateSystemMissing` is not a failure here at all: it is the warning that we assumed, and one message per situation is why the two are separate codes.
 - **A CRS with no definition and a CRS that does not fit are different failures.** No definition is `coordinateSystemUnsupported` — we cannot try. Coordinates that are still not on the globe after applying it is `coordinateSystemMismatch` — we tried and the answer says the CRS is wrong, including when a file names WGS84 and holds eastings. Either way nothing imports, rather than a network silently in the wrong place.
+- **A file nobody could place still comes back, in the coordinates it was written in.** `coordinateSystemUnknown` is the one error that keeps its records; every other error returns nothing, because there was nothing to return. That is what lets records and issues be read together: **features with no error are placed, features with an error are not**, and a consumer needs no other signal. Keep it true — an error that starts returning records would silently make placed data look unplaced. The reason for the exception is in *The contract* below: a consumer may know where the records go even when the file does not say.
 - **The definitions to resolve a code against come from the caller.** The parser keeps no table of its own, so which projections are supported is the consumer's to decide and to extend.
 - **A scan reads every record, and must not be "optimised" into a sample.** Whether an attribute is stated on every record, and whether it is a number, are claims about all of them — one unreadable value among a thousand is exactly the case that has to make the column text.
 - **Decoding the same input twice must be cheap, not correct-by-luck.** Caching is this half's own business, so a cache miss may be slow and may never change an answer.
@@ -54,6 +56,20 @@ type Importer<Role extends string> = {
   importSource(input: GisInput & { config?: ImportConfig<Role> }): Promise<ImportResult>;
 };
 ```
+
+**A converter's source defines a projection; an importer's source is placed into one that already
+exists.** A converter reads the file a project is *created* from, so what that file says its
+coordinates are in becomes the project's answer. An importer adds to a project that already has one,
+and the file it reads may not say anything — a customer-points export sharing a model's own local
+coordinates says nothing because there is nothing to say. So an importer states what it could
+establish in `crs` and leaves the placing to the consumer, which is the only party that knows the
+project. `NetworkData` carries source coordinates and the CRS they are in; whoever builds puts them
+on the globe.
+
+That is why `coordinateSystemUnknown` keeps its records. It does not mean the file is unusable — it
+means *this* half cannot say where it goes. A consumer whose project is itself unprojected knows
+exactly where it goes, and one whose project is georeferenced still refuses, because for it the
+error is real.
 
 **The result is `Partial<NetworkData>`, and that is the whole difference from a converter.** `emptyNetworkData()` states `junctions: []` because a converter handed a model file can truthfully say the model has none. An importer handed a polygon file knows nothing whatsoever about junctions, and stating `[]` there would be the fabricated default the vocabulary forbids everywhere else. A consumer reads `network.zones ?? []`.
 
