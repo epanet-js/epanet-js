@@ -4,7 +4,7 @@ import type { TranslateFn } from "src/hooks/use-translate";
 import type { useUserTracking } from "src/infra/user-tracking";
 import type { Dock } from "./docks";
 import type { Panel, PanelOfType, PanelType } from "./panel";
-import type { DataGridState } from "./data-tables/grid-state";
+import type { DataGridState } from "src/components/data-grid";
 import { assetTablePanel, customerPointTablePanel } from "./data-tables/panel";
 import { hglProfilePanel } from "./hgl-profile/panel";
 
@@ -60,15 +60,17 @@ export const PanelContent = ({ panel }: { panel: Panel }) => {
 
 export const contentStateFor = <T extends PanelType>(
   states: Record<string, PanelContentState>,
-  panel: PanelOfType<T>,
+  panelId: string,
+  _panelType: T,
 ): PanelContentStateByType[T] | undefined =>
-  states[panel.id] as PanelContentStateByType[T] | undefined;
+  states[panelId] as PanelContentStateByType[T] | undefined;
 
 export const withContentState = <T extends PanelType>(
   states: Record<string, PanelContentState>,
-  panel: PanelOfType<T>,
+  panelId: string,
+  _panelType: T,
   contentState: PanelContentStateByType[T],
 ): Record<string, PanelContentState> => ({
   ...states,
-  [panel.id]: contentState,
+  [panelId]: contentState,
 });

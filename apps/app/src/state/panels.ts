@@ -33,6 +33,17 @@ export const panelContentStateAtom = atom<Record<string, PanelContentState>>(
 
 const selectedPanelIdsAtom = atom<Partial<Record<Dock, string>>>({});
 
+export const forgetPanelAtom = atom(null, (_get, set, panelId: string) => {
+  const drop = <T>(prev: Record<string, T>) => {
+    if (!(panelId in prev)) return prev;
+    const next = { ...prev };
+    delete next[panelId];
+    return next;
+  };
+  set(panelLayoutAtom, drop);
+  set(panelContentStateAtom, drop);
+});
+
 export const resetPanelsAtom = atom(null, (_get, set) => {
   set(panelsAtom, defaultPanels());
   set(panelLayoutAtom, {});

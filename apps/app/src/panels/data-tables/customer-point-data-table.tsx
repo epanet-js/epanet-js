@@ -1,6 +1,11 @@
-import { memo, useCallback, useMemo, useRef } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
+import { usePanelGridState } from "./use-panel-grid-state";
+import {
+  registerTableHandleAtom,
+  unregisterTableHandleAtom,
+} from "./table-handles";
 import { dialogAtom } from "src/state/dialog";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import {
@@ -47,9 +52,34 @@ import { buildCustomerPointColumns } from "./customer-point-data-table-columns";
 import { useDeferredGridMount } from "./use-deferred-grid-mount";
 import { useLabelMaxLength } from "src/hooks/use-label-max-length";
 
+interface CustomerPointDataTableProps {
+  id: string;
+  type: "customer-point-table";
+}
+
 export const CustomerPointDataTable = memo(
-  function CustomerPointDataTableInner() {
+  function CustomerPointDataTableInner({
+    id,
+    type,
+  }: CustomerPointDataTableProps) {
     const dataGridRef = useRef<DataGridRef>(null);
+    const [savedState, saveState] = usePanelGridState(id, type);
+    const registerHandle = useSetAtom(registerTableHandleAtom);
+    const unregisterHandle = useSetAtom(unregisterTableHandleAtom);
+
+    useEffect(
+      function publishCaptureHandle() {
+        const handle = {
+          captureState: () => {
+            const state = dataGridRef.current?.captureState();
+            if (state) saveState(state);
+          },
+        };
+        registerHandle(id, handle);
+        return () => unregisterHandle(id, handle);
+      },
+      [id, saveState, registerHandle, unregisterHandle],
+    );
     const setDialogState = useSetAtom(dialogAtom);
     const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
     const { patterns } = hydraulicModel;
@@ -486,6 +516,7 @@ export const CustomerPointDataTable = memo(
         ) : (
           <DataGrid
             ref={dataGridRef}
+            initialGridState={savedState}
             data={rows}
             columns={columns}
             onChange={onChange}

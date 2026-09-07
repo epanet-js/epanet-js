@@ -3,6 +3,7 @@ import {
   useCallback,
   useEffect,
   useImperativeHandle,
+  useLayoutEffect,
   useRef,
 } from "react";
 import { type ColumnDef, useReactTable } from "@tanstack/react-table";
@@ -39,6 +40,12 @@ import type { CellPosition } from "./types";
 import { InlineGrid, GridRef, VirtualGrid, AddRowButton } from "./shared";
 import { defaultPatchRow, type PatchRowFn } from "./utils/patch-row";
 import { resolveDataIndex } from "./utils/data-index";
+import type { DataGridState } from "./types";
+import {
+  captureGridState,
+  restoreGridScroll,
+  toInitialTableState,
+} from "./utils/grid-state";
 
 export type DataGridRef = {
   selectCells: (options?: {
@@ -48,6 +55,7 @@ export type DataGridRef = {
   }) => void;
   clearSelection: () => void;
   copySelection: (options?: CopySelectionOptions) => Promise<void>;
+  captureState: () => DataGridState;
   selection: GridSelection | null;
 };
 
@@ -80,6 +88,7 @@ type DataGridProps<TData extends Record<string, unknown>> = {
   // Optional cap on how many rows a single copy or paste handles. Unset = no cap.
   maxClipboardRows?: number;
   patchRow?: PatchRowFn;
+  initialGridState?: DataGridState;
 };
 
 export const DataGrid = forwardRef(function DataGrid<
@@ -113,6 +122,7 @@ export const DataGrid = forwardRef(function DataGrid<
     pinnedColumns,
     patchRow,
     maxClipboardRows,
+    initialGridState,
   }: DataGridProps<TData>,
   ref: React.ForwardedRef<DataGridRef>,
 ) {
@@ -122,6 +132,15 @@ export const DataGrid = forwardRef(function DataGrid<
   const dataRef = useRef(data);
   dataRef.current = data;
   const patchRowFn: PatchRowFn = patchRow ?? defaultPatchRow;
+
+  const scrollElementRef = useRef<HTMLDivElement | null>(null);
+  const scrollOffsetRef = useRef({ top: 0, left: 0 });
+  const trackScrollOffset = useCallback(
+    (offset: { top: number; left: number }) => {
+      scrollOffsetRef.current = offset;
+    },
+    [],
+  );
 
   const { isBusy, busyApi } = useGridBusyState();
   const translate = useTranslate();
@@ -178,6 +197,7 @@ export const DataGrid = forwardRef(function DataGrid<
     enableColumnResizing: resizable,
     initialState: {
       columnPinning: { left: pinnedColumns?.left ?? [] },
+      ...toInitialTableState(initialGridState, data.length),
     },
     // Data sorting options
     getSortedRowModel: getLazyStickySortedRowModel(),
@@ -185,6 +205,16 @@ export const DataGrid = forwardRef(function DataGrid<
     enableSortingRemoval: true,
     enableMultiSort: false,
   });
+
+  useLayoutEffect(function restoreScroll() {
+    restoreGridScroll(scrollElementRef.current, initialGridState);
+    scrollOffsetRef.current = {
+      top: scrollElementRef.current?.scrollTop ?? 0,
+      left: scrollElementRef.current?.scrollLeft ?? 0,
+    };
+    // Restores once, from the state the panel was last closed with.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const activeCell = table.getActiveCell();
   const selection = table.getSelection();
@@ -320,6 +350,7 @@ export const DataGrid = forwardRef(function DataGrid<
       selectCells,
       clearSelection,
       copySelection: table.copySelection,
+      captureState: () => captureGridState(table, scrollOffsetRef.current),
       selection,
     }),
     [selectCells, clearSelection, table, selection],
@@ -513,7 +544,12 @@ export const DataGrid = forwardRef(function DataGrid<
           data-capture-escape-key
         >
           {isSpreadsheet ? (
-            <VirtualGrid ref={rowsRef} {...rowsProps} />
+            <VirtualGrid
+              ref={rowsRef}
+              scrollElementRef={scrollElementRef}
+              onScrollOffset={trackScrollOffset}
+              {...rowsProps}
+            />
           ) : (
             <InlineGrid ref={rowsRef} {...rowsProps} />
           )}

@@ -18,9 +18,17 @@ export function useScrollActiveCellIntoView<
     ? `${activeCell.row}:${activeCell.col}`
     : null;
   const lastScrolledKey = useRef<string | null>(null);
+  const hasMounted = useRef(false);
 
   useEffect(
     function keepActiveCellInViewPort() {
+      // On mount the cursor has not moved, so there is nothing to bring into
+      // view — and scrolling here would discard a restored scroll position.
+      if (!hasMounted.current) {
+        hasMounted.current = true;
+        lastScrolledKey.current = activeCellKey;
+        return;
+      }
       if (activeCellKey === lastScrolledKey.current) return;
       lastScrolledKey.current = activeCellKey;
 

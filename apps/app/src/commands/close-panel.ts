@@ -9,8 +9,7 @@ import {
   activatePanelAtom,
   activePanelsAtom,
   placedPanelsAtom,
-  panelContentStateAtom,
-  panelLayoutAtom,
+  forgetPanelAtom,
   panelsAtom,
   panelsByDockAtom,
 } from "src/state/panels";
@@ -18,8 +17,7 @@ import {
 export const useClosePanel = () => {
   const deactivatePanel = useDeactivatePanel();
   const setPanels = useSetAtom(panelsAtom);
-  const setLayout = useSetAtom(panelLayoutAtom);
-  const setContentState = useSetAtom(panelContentStateAtom);
+  const forgetPanel = useSetAtom(forgetPanelAtom);
   const activatePanel = useSetAtom(activatePanelAtom);
   const activePanels = useAtomValue(activePanelsAtom);
   const allPanels = useAtomValue(placedPanelsAtom);
@@ -33,20 +31,6 @@ export const useClosePanel = () => {
       },
       [userTracking],
     ),
-  );
-
-  const forgetPanel = useCallback(
-    (panelId: string) => {
-      const drop = <T>(prev: Record<string, T>) => {
-        if (!(panelId in prev)) return prev;
-        const next = { ...prev };
-        delete next[panelId];
-        return next;
-      };
-      setLayout(drop);
-      setContentState(drop);
-    },
-    [setLayout, setContentState],
   );
 
   return useCallback(

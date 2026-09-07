@@ -14,11 +14,12 @@
 - **Panel** — one open thing in a dock. Represented by a `Panel`: an `id`, a `type`, its `dock`, whether it is `closable`, and whatever config that type needs. Being in `panelsAtom` _is_ being open.
 - **Dock** — a named layout area: `"left"` | `"right"` | `"center"` | `"bottom"`. Not all docks exist in all layouts: horizontal has all four, while vertical has only the map and one dock (`VERTICAL_DOCK`). Three separate things decide where a panel sits, and only the last is exposed to consumers:
 
-  - **`Panel.initialDock`** — where it *opens* in horizontal layout. A starting point, not a location.
+  - **`Panel.initialDock`** — where it _opens_ in horizontal layout. A starting point, not a location.
   - **`Panel.availableInVerticalLayout`** — whether it exists at all in vertical layout. An availability question, not a placement one, because there is only one dock to go to.
   - **`PanelLayout.movedToDock`** — where the user moved it. Horizontal only; there is nowhere to move a panel in vertical layout, so a move can never leak into it.
 
   `currentDock(panel, movedToDock, layout)` resolves those into **`PlacedPanel.dock`**, which is `undefined` when the panel is not available in the current layout. Not all docks exist in all layouts — `"left"` and `"right"` only exist in `"horizontal"` layout; `"vertical"` layout has only `"center"` and `"bottom"`.
+
 - **Dock component** — the UI that owns a dock and renders its active panel. One per dock (`BottomDock`). Reads `panelsIn(dock)` and `activePanelIn(dock)`, never the registry directly.
 - **Panel type** — the code-owned kind of a panel (`"asset-table"`, `"customer-point-table"`, `"hgl-profile"`), and the discriminant of the `Panel` union. Its behaviour lives in a `PanelTemplate`: how to render it, how to label it, and what to do when it is deactivated or closed. Types are a closed union, not registrations.
 - **Panel instance** — a specific open panel of some type. A panel the user can open many times gets an **opaque `nanoid` id** (`newPanelId()`), so ids carry no meaning and nothing may be derived from them. A **singleton** panel — one the app opens at most once, like HGL or a seeded data table — uses a fixed, well-known id instead, which is what lets a `show-*` command detect "already open" and what keeps its layout state addressable across reloads.
@@ -30,22 +31,22 @@
 
 ## Key Files
 
-| File                                     | Role                                                                                                         |
-| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| `src/panels/panel-template.tsx`          | `PanelTemplate`, the type→template registry (`panelFor`), `PanelContent`, `panelLabel`, `PanelLayout`, content-state types + accessors |
-| `src/panels/panel.ts`                    | `Panel` union — **pure data, no atoms, no components**                                                       |
-| `src/panels/<panel>/grid-state.ts`       | A panel type's own `contentState` shape                                                                      |
-| `src/panels/<panel>/create-panel.ts`     | Per-type instance factories (pure) — safe for `src/state` to import                                          |
-| `src/panels/<panel>/panel.tsx`           | Per-type template: component, label, lifecycle hooks                                                          |
-| `src/panels/default-panels.ts`           | Panels registered at app start-up                                                                            |
-| `src/panels/docks.ts`                    | `Dock`, `ResolvedLayout`, `resolveLayout` — leaf module, keeps `src/state` → `src/panels` acyclic            |
+| File                                     | Role                                                                                                                                            |
+| ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/panels/panel-template.tsx`          | `PanelTemplate`, the type→template registry (`panelFor`), `PanelContent`, `panelLabel`, `PanelLayout`, content-state types + accessors          |
+| `src/panels/panel.ts`                    | `Panel` union — **pure data, no atoms, no components**                                                                                          |
+| `src/panels/<panel>/grid-state.ts`       | A panel type's own `contentState` shape                                                                                                         |
+| `src/panels/<panel>/create-panel.ts`     | Per-type instance factories (pure) — safe for `src/state` to import                                                                             |
+| `src/panels/<panel>/panel.tsx`           | Per-type template: component, label, lifecycle hooks                                                                                            |
+| `src/panels/default-panels.ts`           | Panels registered at app start-up                                                                                                               |
+| `src/panels/docks.ts`                    | `Dock`, `ResolvedLayout`, `resolveLayout` — leaf module, keeps `src/state` → `src/panels` acyclic                                               |
 | `src/state/panels.ts`                    | `panelsAtom`, `panelLayoutAtom`, `panelContentStateAtom`, `placedPanelsAtom`, `activePanelIn`, `panelsIn` — **knows nothing about panel types** |
-| `src/panels/bottom-dock/bottom-dock.tsx` | Dock for bottom dock                                                                                         |
-| `src/panels/right-dock/right-dock.tsx`   | Dock for right dock (Phase 2C+)                                                                              |
-| `src/panels/left-dock/left-dock.tsx`     | Dock for left dock (Phase 2D+)                                                                               |
-| `src/state/layout.ts`                    | `splitsAtom` — bottom open/maximized and outer dock dimensions                                               |
-| `src/components/epanet-app.tsx`          | Root layout — wires dock components into dock shells                                                         |
-| `src/panels/index.tsx`                   | Dock shell components (`BottomPanel`, `SidePanel`, `LeftSidePanel`)                                          |
+| `src/panels/bottom-dock/bottom-dock.tsx` | Dock for bottom dock                                                                                                                            |
+| `src/panels/right-dock/right-dock.tsx`   | Dock for right dock (Phase 2C+)                                                                                                                 |
+| `src/panels/left-dock/left-dock.tsx`     | Dock for left dock (Phase 2D+)                                                                                                                  |
+| `src/state/layout.ts`                    | `splitsAtom` — bottom open/maximized and outer dock dimensions                                                                                  |
+| `src/components/epanet-app.tsx`          | Root layout — wires dock components into dock shells                                                                                            |
+| `src/panels/index.tsx`                   | Dock shell components (`BottomPanel`, `SidePanel`, `LeftSidePanel`)                                                                             |
 
 ---
 
@@ -221,8 +222,11 @@ Convention: `FLAG_SCREAMING_SNAKE_CASE`. Test via URL param `?FLAG_FOO=true`.
 - **Ephemeral UI state** (selected row, collapsed section within a panel): `useState`. No Jotai atom.
 - **A panel's label**: `panelLabel(panel, renamedTo, translate)` — `renamedTo` if the user set one, otherwise the template's `buildLabel`. Never store a rendered label, and never resolve it inline.
 - **Which panel is active per dock**: `activePanelsAtom` in `src/state/panels.ts`, narrowed with `activePanelIn(dock)`. It resolves a stale selection to the dock's first panel, so it is null only when the dock is empty. Activate through `useActivatePanel`, which also deactivates the outgoing panel. Do not add per-panel open/closed atoms — a panel is open because it is in `panelsAtom`.
-- **A panel's restorable UI state** (sorting, scroll, cursor, column widths): `panelContentStateAtom`, typed per panel type by `PanelContentStateByType` in `src/panels/panel-template.tsx`. **Not wired up yet** — nothing captures or restores it, so a data table still loses its sorting and scroll on a tab switch. The intent is to capture on unmount and restore on mount, since only the active panel is mounted.
-- **Always read and write content state through `contentStateFor` / `withContentState`.** `panelContentStateAtom` is keyed by panel id, and an id does not carry its panel's type, so the atom holds the union of every type's state and cannot police which state belongs to which panel — setting it directly will happily store a data table's grid state against the HGL panel. Both accessors take the panel, which recovers the correlation and turns a mismatch into a compile error.
+- **A panel's restorable UI state** (sorting, scroll, cursor, column widths): `panelContentStateAtom`, typed per panel type by `PanelContentStateByType` in `src/panels/panel-template.tsx`. Restored on mount from `initialGridState`; **captured from the user action that hides the panel**, never on unmount. How a panel type captures is its own business. `onDeactivate` is a plain function over `Panel` data, so it cannot reach the mounted component where `DataGridRef.captureState()` lives — the data tables bridge that with `tableHandlesAtom` in `data-tables/table-handles.ts`, which the mounted table publishes to and `assetTablePanel.onDeactivate` reads through its `get`. Every path that deactivates therefore captures for free, and a panel type with nothing to keep simply omits the hook.
+
+  Capturing at unmount looks tempting and does not work: React detaches the DOM node before cleanups run, so `scrollTop` reads `0`, and a snapshot that lands after `resetPanelsAtom` or `forgetPanelAtom` resurrects the state they just cleared. **A new way to hide a panel must deactivate it.**
+
+- **Always read and write content state through `contentStateFor` / `withContentState`.** `panelContentStateAtom` is keyed by panel id, and an id does not carry its panel's type, so the atom holds the union of every type's state and cannot police which state belongs to which panel — setting it directly will happily store a data table's grid state against the HGL panel. Both accessors take the panel's id **and its type**, and the type argument is what recovers the correlation — storing a data table's grid state against the HGL panel is a compile error. Passing only an id would let `T` widen to `PanelType` and silently allow it.
 - **Panel's current dock**: read `PlacedPanel.dock`, already resolved. `currentDock(panel, movedToDock, layout)` does the resolving in one place. Do not track dock assignment anywhere else, and never read `movedToDock` directly — it is meaningless outside horizontal layout.
 - **Whether a panel is open**: its presence in `panelsAtom`. Do not add visibility flags or per-panel open/closed atoms.
 - **Do not add new fields to `Splits`** for panel content. `Splits` owns outer dock dimensions only.

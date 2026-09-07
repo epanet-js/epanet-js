@@ -1,4 +1,4 @@
-import { forwardRef, useRef } from "react";
+import { forwardRef, useCallback, useRef } from "react";
 import { Table } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import {
@@ -23,6 +23,8 @@ import { ScrollShadows } from "./scroll-shadows";
 import { VirtualRows } from "./virtual-rows";
 
 export type VirtualGridProps<TData extends Record<string, unknown>> = {
+  scrollElementRef?: React.MutableRefObject<HTMLDivElement | null>;
+  onScrollOffset?: (offset: { top: number; left: number }) => void;
   table: Table<TData>;
   onCellMouseDown: (col: number, row: number, e: React.MouseEvent) => void;
   onCellMouseEnter: (col: number, row: number) => void;
@@ -79,16 +81,34 @@ export const VirtualGrid = forwardRef(function VirtualGrid<
     onColumnSort,
     cellContextActions,
     gutterContextActions,
+    scrollElementRef,
+    onScrollOffset,
   }: VirtualGridProps<TData>,
   ref: React.ForwardedRef<GridRef>,
 ) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
   const headerScrollRef = useRef<HTMLDivElement>(null);
+
+  const attachScrollElement = useCallback(
+    (element: HTMLDivElement | null) => {
+      scrollRef.current = element;
+      if (scrollElementRef) scrollElementRef.current = element;
+    },
+    [scrollElementRef],
+  );
 
   const rowsHeight = useContainerHeight(containerRef);
   const scrollState = useScrollState(scrollRef);
-  const onScroll = useHeaderScrollSync(scrollRef, headerScrollRef);
+  const syncHeaderScroll = useHeaderScrollSync(scrollRef, headerScrollRef);
+  const onScroll = useCallback(
+    (event: React.UIEvent<HTMLDivElement>) => {
+      syncHeaderScroll();
+      const { scrollTop, scrollLeft } = event.currentTarget;
+      onScrollOffset?.({ top: scrollTop, left: scrollLeft });
+    },
+    [syncHeaderScroll, onScrollOffset],
+  );
 
   useScrollActiveCellIntoView({
     scrollRef,
@@ -162,7 +182,7 @@ export const VirtualGrid = forwardRef(function VirtualGrid<
         onClose={clearMenuTarget}
       >
         <div
-          ref={scrollRef}
+          ref={attachScrollElement}
           onMouseDown={onEmptyAreaMouseDown}
           onContextMenu={(e) => {
             if (e.target === e.currentTarget) e.preventDefault();

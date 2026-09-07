@@ -45,7 +45,11 @@ const renderTable = (store: Store, user: User = aUser({ plan: "pro" })) => {
         <JotaiProvider store={store}>
           <PersistenceContext.Provider value={persistence}>
             <TooltipProvider>
-              <AssetDataTable assetType="junction" />
+              <AssetDataTable
+                id="junction"
+                type="asset-table"
+                assetType="junction"
+              />
             </TooltipProvider>
           </PersistenceContext.Provider>
         </JotaiProvider>

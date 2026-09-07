@@ -55,7 +55,9 @@ describe("withContentState", () => {
   it("stores content state under the panel's id", () => {
     const panel = createAssetTablePanel("junction", { id: "junction" });
 
-    const states = withContentState({}, panel, { scrollTop: 120 });
+    const states = withContentState({}, panel.id, panel.type, {
+      scrollTop: 120,
+    });
 
     expect(states).toEqual({ junction: { scrollTop: 120 } });
   });
@@ -67,7 +69,9 @@ describe("withContentState", () => {
       pipe: { scrollTop: 40 },
     };
 
-    const states = withContentState(before, panel, { scrollTop: 8 });
+    const states = withContentState(before, panel.id, panel.type, {
+      scrollTop: 8,
+    });
 
     expect(states).toEqual({
       junction: { scrollTop: 8 },
@@ -79,7 +83,7 @@ describe("withContentState", () => {
     const hgl = createHglProfilePanel();
 
     // @ts-expect-error the HGL panel has no grid state
-    withContentState({}, hgl, { scrollTop: 120 });
+    withContentState({}, hgl.id, hgl.type, { scrollTop: 120 });
   });
 });
 
@@ -87,11 +91,11 @@ describe("contentStateFor", () => {
   it("round-trips through withContentState", () => {
     const panel = createAssetTablePanel("junction", { id: "junction" });
 
-    const states = withContentState({}, panel, {
+    const states = withContentState({}, panel.id, panel.type, {
       sorting: [{ id: "label", desc: true }],
     });
 
-    expect(contentStateFor(states, panel)).toEqual({
+    expect(contentStateFor(states, panel.id, panel.type)).toEqual({
       sorting: [{ id: "label", desc: true }],
     });
   });
@@ -99,6 +103,6 @@ describe("contentStateFor", () => {
   it("is undefined for a panel with nothing stored", () => {
     const panel = createAssetTablePanel("junction", { id: "junction" });
 
-    expect(contentStateFor({}, panel)).toBeUndefined();
+    expect(contentStateFor({}, panel.id, panel.type)).toBeUndefined();
   });
 });

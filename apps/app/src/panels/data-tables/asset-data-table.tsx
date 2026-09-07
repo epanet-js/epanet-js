@@ -1,4 +1,4 @@
-import { memo, useCallback, useMemo, useRef } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
 import {
@@ -28,7 +28,6 @@ import type { PropertyChange } from "src/hydraulic-model/model-operations/change
 import { createTimeSlicer } from "src/infra/yield-to-main";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import {
-  type AssetType,
   type AssetId,
   type PumpDefinitionType,
   type ValveKind,
@@ -69,6 +68,12 @@ import {
 } from "./data";
 import { listPipeMaterials } from "src/hydraulic-model/pipe-materials";
 import { useDeferredGridMount } from "./use-deferred-grid-mount";
+import type { AssetType } from "@epanet-js/hydraulic-model";
+import {
+  registerTableHandleAtom,
+  unregisterTableHandleAtom,
+} from "./table-handles";
+import { usePanelGridState } from "./use-panel-grid-state";
 import {
   buildColumns,
   EDITABLE_NUMERIC_KEYS,
@@ -80,13 +85,35 @@ import { useLabelMaxLength } from "src/hooks/use-label-max-length";
 import { useRoughnessInferrer } from "src/hooks/use-roughness-inferrer";
 
 interface AssetDataTableProps {
+  id: string;
+  type: "asset-table";
   assetType: AssetType;
 }
 
 export const AssetDataTable = memo(function AssetDataTableInner({
+  id,
+  type,
   assetType,
 }: AssetDataTableProps) {
   const dataGridRef = useRef<DataGridRef>(null);
+  const [savedState, saveState] = usePanelGridState(id, type);
+
+  const registerHandle = useSetAtom(registerTableHandleAtom);
+  const unregisterHandle = useSetAtom(unregisterTableHandleAtom);
+
+  useEffect(
+    function publishCaptureHandle() {
+      const handle = {
+        captureState: () => {
+          const state = dataGridRef.current?.captureState();
+          if (state) saveState(state);
+        },
+      };
+      registerHandle(id, handle);
+      return () => unregisterHandle(id, handle);
+    },
+    [id, saveState, registerHandle, unregisterHandle],
+  );
   const setDialogState = useSetAtom(dialogAtom);
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const simulation = useAtomValue(simulationResultsDerivedAtom);
@@ -665,6 +692,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
       ) : (
         <DataGrid
           ref={dataGridRef}
+          initialGridState={savedState}
           key={assetType}
           data={rows}
           columns={columns}

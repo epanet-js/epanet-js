@@ -9,14 +9,15 @@ export const hglProfilePanel: PanelTemplate<"hgl-profile"> = {
   component: () => <HglProfilePanel />,
   buildLabel: (_panel, translate: TranslateFn) => translate("hglProfile.title"),
   onDeactivate: ({ get, set }) => {
-    if (get(modeAtom).mode !== Mode.HGL_PROFILE) return;
-    set(modeAtom, { mode: Mode.NONE });
-  },
-  onClose: ({ get, set, userTracking }) => {
-    set(hglProfileAtom, null);
     if (get(ephemeralStateAtom).type === "hglProfile") {
       set(ephemeralStateAtom, { type: "none" });
     }
+    if (get(modeAtom).mode === Mode.HGL_PROFILE) {
+      set(modeAtom, { mode: Mode.NONE });
+    }
+  },
+  onClose: ({ set, userTracking }) => {
+    set(hglProfileAtom, null);
     userTracking.capture({ name: "profileView.closed", source: "tab" });
   },
 };

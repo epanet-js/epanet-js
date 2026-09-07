@@ -5,6 +5,8 @@ export type GridColumn<TData extends RowData = RowData> = ColumnDef<
   unknown
 >;
 
+import type { ColumnSizingState, SortingState } from "@tanstack/react-table";
+
 export type CellPosition = { col: number; row: number };
 
 export type GridSelection = {
@@ -63,3 +65,12 @@ export type CellProps<TValue = unknown> = {
 };
 
 export type DataGridVariant = "spreadsheet" | "inline";
+
+export type DataGridState = {
+  sorting?: SortingState;
+  columnSizing?: ColumnSizingState;
+  selection?: GridSelection | null;
+  activeCell?: CellPosition | null;
+  scrollTop?: number;
+  scrollLeft?: number;
+};

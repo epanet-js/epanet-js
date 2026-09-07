@@ -7,6 +7,7 @@ export type {
 } from "./features";
 
 export type {
+  DataGridState,
   GridSelection,
   GridColumn,
   RowAction,
