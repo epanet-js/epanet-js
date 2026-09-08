@@ -4,9 +4,8 @@ import {
   type CustomAttributeData,
   type CustomAttributeValues,
   type CustomerPointData,
-  type ParserInput,
 } from "@epanet-js/converters";
-import type { ImportResult } from "../importer";
+import type { GisInput, ImportResult } from "../importer";
 import type { ImportConfig } from "../import-config";
 import { parseGisSource } from "../file-parsers/parse-gis-source";
 
@@ -47,7 +46,7 @@ export const importCustomerPointsFromFeatures = (
 };
 
 export const importCustomerPointsFromSource = async (
-  input: ParserInput & { config?: ImportConfig<CustomerPointRole> },
+  input: GisInput & { config?: ImportConfig<CustomerPointRole> },
 ): Promise<ImportResult> => {
   const { features, issues } = await parseGisSource(input);
   const parsed = issues.build();

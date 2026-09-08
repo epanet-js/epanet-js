@@ -1,4 +1,5 @@
 export { customerPointsImporter } from "./customer-points/importer";
+export { zonesImporter } from "./zones/importer";
 export type { ImportConfig } from "./import-config";
 export type { ImportResult, SourceSummary } from "./importer";
 export { parseGisSource } from "./file-parsers/parse-gis-source";
