@@ -55,11 +55,11 @@ describe("Selector", () => {
       ).toHaveTextContent("Choose…");
     });
 
-    it("renders the option's description in preference to its label", async () => {
+    it("keeps the trigger to the label and shows the description in the list", async () => {
       render(
         <Selector
           ariaLabel="Pick one"
-          options={[{ value: "a", label: "A", description: "Apple (desc)" }]}
+          options={[{ value: "a", label: "PRV", description: "(Reducing)" }]}
           selected="a"
           onChange={vi.fn()}
           nullable
@@ -68,12 +68,34 @@ describe("Selector", () => {
       );
       expect(
         screen.getByRole("combobox", { name: "Pick one" }),
-      ).toHaveTextContent("Apple (desc)");
+      ).toHaveTextContent("PRV");
+      expect(
+        screen.getByRole("combobox", { name: "Pick one" }),
+      ).not.toHaveTextContent("Reducing");
 
       await openSelector();
       expect(
-        screen.getByRole("option", { name: "Apple (desc)" }),
+        screen.getByRole("option", { name: "PRV (Reducing)" }),
       ).toBeInTheDocument();
+    });
+
+    it("renders the option by its label", async () => {
+      render(
+        <Selector
+          ariaLabel="Pick one"
+          options={[{ value: "a", label: "Apple" }]}
+          selected="a"
+          onChange={vi.fn()}
+          nullable
+          placeholder="Choose…"
+        />,
+      );
+      expect(
+        screen.getByRole("combobox", { name: "Pick one" }),
+      ).toHaveTextContent("Apple");
+
+      await openSelector();
+      expect(screen.getByRole("option", { name: "Apple" })).toBeInTheDocument();
     });
   });
 

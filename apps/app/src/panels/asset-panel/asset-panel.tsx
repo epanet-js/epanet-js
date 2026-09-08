@@ -2102,14 +2102,14 @@ const ValveEditor = ({
       valveKinds.map((kind) => {
         return {
           label: kind.toUpperCase(),
-          description: translate(`valve.${kind}.detailed`),
+          description: `(${translate(`valve.${kind}.name`)})`,
           value: kind,
         };
       });
     if (!valveKinds.includes(valve.kind as any)) {
       options.push({
         label: valve.kind.toUpperCase(),
-        description: translate(`valve.${valve.kind}.detailed`),
+        description: `(${translate(`valve.${valve.kind}.name`)})`,
         value: valve.kind,
       });
     }

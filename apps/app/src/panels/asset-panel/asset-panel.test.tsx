@@ -691,7 +691,7 @@ describe("AssetPanel", () => {
 
       await user.click(selector);
 
-      await user.click(screen.getByText(/psv: pressure sustaining valve/i));
+      await user.click(screen.getByText(/pressure sustaining valve/i));
 
       const updatedHydraulicModel = store.get(stagingModelDerivedAtom);
       expect(

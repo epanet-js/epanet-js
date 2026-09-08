@@ -164,9 +164,7 @@ export function BaseSelector<T extends string | number>({
               selectedOption === null && nullable && "italic text-subtle",
             )}
           >
-            {selectedOption
-              ? (selectedOption.description ?? selectedOption.label)
-              : (placeholder ?? "")}
+            {selectedOption ? selectedOption.label : (placeholder ?? "")}
           </div>
           <div className="px-1">
             <ChevronDownIcon />

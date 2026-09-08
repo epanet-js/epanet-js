@@ -506,7 +506,12 @@ export function BaseSelectorList<T extends string | number | boolean>({
                     isOptionDisabled ? undefined : () => onCommit(option.value)
                   }
                 >
-                  <span>{option.description ?? option.label}</span>
+                  <span className="flex items-baseline gap-1 min-w-0">
+                    <span>{option.label}</span>
+                    {option.description && (
+                      <span className="text-subtle">{option.description}</span>
+                    )}
+                  </span>
                   {option.value === selected && (
                     <CheckIcon className="text-accent shrink-0" />
                   )}

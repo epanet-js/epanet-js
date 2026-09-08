@@ -288,8 +288,15 @@ export function BaseMultiSelectorList<T extends string | number>({
                       <CheckIcon size={12} className="text-accent" />
                     )}
                   </span>
-                  <span className="text-nowrap overflow-hidden text-ellipsis">
-                    {option.description ?? option.label}
+                  <span className="flex items-baseline gap-1 min-w-0">
+                    <span className="text-nowrap overflow-hidden text-ellipsis">
+                      {option.label}
+                    </span>
+                    {option.description && (
+                      <span className="text-nowrap text-subtle">
+                        {option.description}
+                      </span>
+                    )}
                   </span>
                 </li>
               );
