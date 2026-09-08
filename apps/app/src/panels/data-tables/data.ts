@@ -149,10 +149,13 @@ function computeAssetComputedField(
 export function buildAssetModelRows(
   assetType: AssetType,
   hydraulicModel: HydraulicModel,
+  onlyIds?: ReadonlySet<AssetId>,
 ): AssetRow[] {
   const rows: AssetRow[] = [];
   for (const asset of hydraulicModel.assets.values()) {
-    if (asset.type === assetType) rows.push(asset as unknown as AssetRow);
+    if (asset.type !== assetType) continue;
+    if (onlyIds && !onlyIds.has(asset.id)) continue;
+    rows.push(asset as unknown as AssetRow);
   }
   return rows;
 }

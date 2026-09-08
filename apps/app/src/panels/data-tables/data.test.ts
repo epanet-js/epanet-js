@@ -48,6 +48,22 @@ describe("buildAssetModelRows", () => {
     // is what accessorKey reads.
     expect((rows[0] as unknown as { elevation: number }).elevation).toBe(25);
   });
+
+  it("narrows to the given ids, keeping model order", () => {
+    const model = buildModel();
+
+    const rows = buildAssetModelRows("junction", model, new Set([2]));
+
+    expect(rows.map((r) => r.id)).toEqual([2]);
+  });
+
+  it("ignores ids of a different type", () => {
+    const model = buildModel();
+
+    const rows = buildAssetModelRows("junction", model, new Set([1, 999]));
+
+    expect(rows.map((r) => r.id)).toEqual([1]);
+  });
 });
 
 describe("assetAccessor (computed columns)", () => {

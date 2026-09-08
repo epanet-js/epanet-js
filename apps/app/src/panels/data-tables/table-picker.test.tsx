@@ -6,6 +6,7 @@ import "src/__helpers__/locale";
 import { setInitialState } from "src/__helpers__/state";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { CommandContainer } from "src/commands/__helpers__/command-container";
+import { USelection } from "src/selection";
 import { Store } from "src/state";
 import { activatePanelAtom, activePanelIn, panelsAtom } from "src/state/panels";
 import { createAssetTablePanel, createTablePickerPanel } from "./create-panel";
@@ -23,7 +24,20 @@ const renderPicker = (store: Store) =>
     </CommandContainer>,
   );
 
+const aStoreWithSelection = (assetIds: number[]) =>
+  setInitialState({
+    hydraulicModel: HydraulicModelBuilder.with()
+      .aJunction(1)
+      .aJunction(2)
+      .aPipe(10, { startNodeId: 1, endNodeId: 2 })
+      .build(),
+    selection: USelection.fromAssetIds(assetIds),
+  });
+
 const openButton = () => screen.getByRole("button", { name: "Open" });
+
+const scopeCheckbox = () =>
+  screen.getByRole("checkbox", { name: /Selected assets only/ });
 
 beforeEach(() => {
   stubUserTracking();
@@ -131,7 +145,66 @@ describe("TablePicker", () => {
     });
   });
 
-  it("offers the selected-assets scope as not yet available", () => {
+  it("offers the selected-assets scope once something is selected", () => {
+    const store = aStoreWithSelection([1]);
+    store.set(panelsAtom, [createTablePickerPanel()]);
+
+    renderPicker(store);
+
+    expect(scopeCheckbox()).toBeEnabled();
+  });
+
+  it("opens the checked tables scoped to the selection", async () => {
+    const store = aStoreWithSelection([1, 2]);
+    store.set(panelsAtom, [createTablePickerPanel()]);
+
+    renderPicker(store);
+    await userEvent.click(scopeCheckbox());
+    await userEvent.click(screen.getByRole("checkbox", { name: /Junctions/ }));
+    await userEvent.click(openButton());
+
+    expect(store.get(panelsAtom)).toMatchObject([
+      { assetType: "junction", assetIds: [1, 2] },
+    ]);
+  });
+
+  it("lets a scoped table be opened for a type already open", async () => {
+    const store = aStoreWithSelection([1]);
+    store.set(panelsAtom, [
+      createTablePickerPanel(),
+      createAssetTablePanel("junction", { id: "junction", closable: false }),
+    ]);
+
+    renderPicker(store);
+    await userEvent.click(scopeCheckbox());
+
+    expect(screen.getByRole("checkbox", { name: /Junctions/ })).toBeEnabled();
+  });
+
+  it("disables a type with nothing selected under the selection scope", async () => {
+    const store = aStoreWithSelection([1]);
+    store.set(panelsAtom, [createTablePickerPanel()]);
+
+    renderPicker(store);
+    await userEvent.click(scopeCheckbox());
+
+    expect(screen.getByRole("checkbox", { name: /Pipes/ })).toBeDisabled();
+    expect(screen.getByRole("checkbox", { name: /Junctions/ })).toBeEnabled();
+  });
+
+  it("shows how many of each type are selected", async () => {
+    const store = aStoreWithSelection([1, 2]);
+    store.set(panelsAtom, [createTablePickerPanel()]);
+
+    renderPicker(store);
+    await userEvent.click(scopeCheckbox());
+
+    expect(
+      screen.getByRole("checkbox", { name: /Junctions \(2\)/ }),
+    ).toBeInTheDocument();
+  });
+
+  it("offers no selected-assets scope while nothing is selected", () => {
     const store = aStore();
     store.set(panelsAtom, [createTablePickerPanel()]);
 

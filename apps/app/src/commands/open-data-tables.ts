@@ -7,64 +7,63 @@ import {
   createCustomerPointTablePanel,
 } from "src/panels/data-tables/create-panel";
 import { panelsAtom } from "src/state/panels";
+import { selectionAtom } from "src/state/selection";
+import { USelection } from "src/selection";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useActivatePanel } from "./activate-panel";
 
+export const CUSTOMER_POINTS_TABLE = "customerPoints";
+
+export type DataTableType = AssetType | typeof CUSTOMER_POINTS_TABLE;
+
+export type DataTableScope = "all" | "selection";
+
 export type OpenDataTablesRequest = {
-  assetTypes: readonly AssetType[];
-  includeCustomerPoints: boolean;
+  tableTypes: readonly DataTableType[];
+  scope?: DataTableScope;
 };
 
-const isSameTable = (panel: Panel, assetType: AssetType | null): boolean =>
-  assetType === null
-    ? panel.type === "customer-point-table"
-    : panel.type === "asset-table" && panel.assetType === assetType;
-
 export const useOpenDataTables = () => {
-  const panels = useAtomValue(panelsAtom);
   const setPanels = useSetAtom(panelsAtom);
+  const selection = useAtomValue(selectionAtom);
   const activatePanel = useActivatePanel();
   const userTracking = useUserTracking();
 
   return useCallback(
-    ({ assetTypes, includeCustomerPoints }: OpenDataTablesRequest) => {
-      const requested: (AssetType | null)[] = [
-        ...assetTypes,
-        ...(includeCustomerPoints ? [null] : []),
-      ];
-      if (requested.length === 0) return;
+    ({ tableTypes, scope = "all" }: OpenDataTablesRequest) => {
+      if (tableTypes.length === 0) return;
+
+      const selectedIdsFor = (tableType: DataTableType) =>
+        tableType === CUSTOMER_POINTS_TABLE
+          ? [...USelection.getCustomerPointIds(selection)]
+          : [...USelection.getAssetIds(selection)];
 
       const created: Panel[] = [];
-      const firstId = (() => {
-        let first: string | undefined;
-        for (const assetType of requested) {
-          const existing = panels.find((panel) =>
-            isSameTable(panel, assetType),
-          );
-          if (existing) {
-            first ??= existing.id;
-            continue;
-          }
-          const panel =
-            assetType === null
-              ? createCustomerPointTablePanel()
-              : createAssetTablePanel(assetType);
-          created.push(panel);
-          first ??= panel.id;
-        }
-        return first;
-      })();
 
-      if (created.length > 0) setPanels((prev) => [...prev, ...created]);
-      if (firstId) activatePanel(firstId);
+      for (const tableType of tableTypes) {
+        const ids =
+          scope === "selection" ? selectedIdsFor(tableType) : undefined;
+
+        created.push(
+          tableType === CUSTOMER_POINTS_TABLE
+            ? createCustomerPointTablePanel({ customerPointIds: ids })
+            : createAssetTablePanel(tableType, { assetIds: ids }),
+        );
+      }
+
+      if (created.length > 0) {
+        setPanels((prev) => [...prev, ...created]);
+        activatePanel(created[0].id);
+      }
 
       userTracking.capture({
         name: "dataTables.opened",
         source: "picker",
+        scope,
         opened: created.length,
-        requested: requested.length,
+        requested: tableTypes.length,
       });
     },
-    [panels, setPanels, activatePanel, userTracking],
+    [setPanels, selection, activatePanel, userTracking],
   );
 };

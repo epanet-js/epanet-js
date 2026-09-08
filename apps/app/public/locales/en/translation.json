@@ -1843,7 +1843,9 @@
       "prompt": "Choose which tables to open.",
       "alreadyOpen": "(already open)",
       "selectedAssetsOnly": "Selected assets only",
-      "open": "Open"
+      "open": "Open",
+      "noneSelected": "(none selected)",
+      "nothingSelected": "(nothing selected)"
     },
     "copy": {
       "includeHeadersPrompt": "Copied. Include column headers?",

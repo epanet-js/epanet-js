@@ -37,7 +37,11 @@ import { notify } from "src/components/notifications";
 
 const setupUser = () => userEvent.setup({ pointerEventsCheck: 0 });
 
-const renderTable = (store: Store, user: User = aUser({ plan: "pro" })) => {
+const renderTable = (
+  store: Store,
+  user: User = aUser({ plan: "pro" }),
+  assetIds?: readonly number[],
+) => {
   const persistence = new Persistence(store);
   return render(
     <AuthMockProvider user={user} isSignedIn={true}>
@@ -49,6 +53,7 @@ const renderTable = (store: Store, user: User = aUser({ plan: "pro" })) => {
                 id="junction"
                 type="asset-table"
                 assetType="junction"
+                assetIds={assetIds}
               />
             </TooltipProvider>
           </PersistenceContext.Provider>
@@ -179,6 +184,46 @@ describe("AssetDataTable", () => {
       const model = store.get(stagingModelDerivedAtom);
       expect(model.assets.get(1)?.label).toBe("J9");
     });
+  });
+
+  it("shows only the assets it is scoped to", async () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction(1, { label: "J1", elevation: 25 })
+      .aJunction(2, { label: "J2", elevation: 30 })
+      .build();
+    const store = setInitialState({ hydraulicModel });
+
+    renderTable(store, aUser({ plan: "pro" }), [2]);
+
+    expect(await screen.findByDisplayValue("J2")).toBeInTheDocument();
+    expect(screen.queryByDisplayValue("J1")).not.toBeInTheDocument();
+  });
+
+  it("writes an edit in a scoped table to the right asset", async () => {
+    const user = setupUser();
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction(1, { label: "J1", elevation: 25 })
+      .aJunction(2, { label: "J2", elevation: 30 })
+      .build();
+    const store = setInitialState({ hydraulicModel });
+
+    renderTable(store, aUser({ plan: "pro" }), [2]);
+
+    const cell = await screen.findByDisplayValue("J2");
+    await user.dblClick(cell);
+    await waitFor(() => {
+      expect(screen.getByDisplayValue("J2")).not.toHaveAttribute("readonly");
+    });
+
+    const input = screen.getByDisplayValue("J2");
+    await user.clear(input);
+    await user.type(input, "J7{Enter}");
+
+    await waitFor(() => {
+      const model = store.get(stagingModelDerivedAtom);
+      expect(model.assets.get(2)?.label).toBe("J7");
+    });
+    expect(store.get(stagingModelDerivedAtom).assets.get(1)?.label).toBe("J1");
   });
 
   it("renders custom-attribute columns", async () => {

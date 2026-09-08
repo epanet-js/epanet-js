@@ -1,3 +1,4 @@
+import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { createAssetTablePanel } from "./data-tables/create-panel";
 import { createHglProfilePanel } from "./hgl-profile/create-panel";
 import { createCustomerPointTablePanel } from "./data-tables/create-panel";
@@ -20,7 +21,16 @@ const translate = ((key: string) => {
   return labels[key] ?? key;
 }) as never;
 
-const labelOf = (panel: Panel) => panelFor(panel).buildLabel(panel, translate);
+const hydraulicModel = HydraulicModelBuilder.with()
+  .aJunction(1)
+  .aJunction(2)
+  .aPipe(10, { startNodeId: 1, endNodeId: 2 })
+  .aCustomerPoint(7, {})
+  .build();
+
+const context = { translate, hydraulicModel };
+
+const labelOf = (panel: Panel) => panelFor(panel).buildLabel(panel, context);
 
 describe("panel definitions", () => {
   it("labels asset tables by their asset type", () => {
@@ -35,19 +45,43 @@ describe("panel definitions", () => {
   it("labels the HGL panel", () => {
     expect(labelOf(createHglProfilePanel())).toEqual("HGL profile");
   });
+
+  it("counts only the rows a scoped table will show", () => {
+    const panel = createAssetTablePanel("junction", { assetIds: [1, 2, 10] });
+
+    expect(labelOf(panel)).toEqual("Junctions (2)");
+  });
+
+  it("counts zero when the scope holds none of its type", () => {
+    const panel = createAssetTablePanel("pipe", { assetIds: [1, 2] });
+
+    expect(labelOf(panel)).toEqual("Pipes (0)");
+  });
+
+  it("stops counting an asset once it leaves the model", () => {
+    const panel = createAssetTablePanel("junction", { assetIds: [1, 2, 999] });
+
+    expect(labelOf(panel)).toEqual("Junctions (2)");
+  });
+
+  it("counts the customer points a scoped table will show", () => {
+    const panel = createCustomerPointTablePanel({ customerPointIds: [7, 999] });
+
+    expect(labelOf(panel)).toEqual("Customer points (1)");
+  });
 });
 
 describe("panelLabel", () => {
   it("falls back to the type's own label", () => {
     const panel = createAssetTablePanel("junction");
 
-    expect(panelLabel(panel, undefined, translate)).toEqual("Junctions");
+    expect(panelLabel(panel, undefined, context)).toEqual("Junctions");
   });
 
   it("prefers a rename by the user", () => {
     const panel = createAssetTablePanel("junction");
 
-    expect(panelLabel(panel, "My table", translate)).toEqual("My table");
+    expect(panelLabel(panel, "My table", context)).toEqual("My table");
   });
 });
 

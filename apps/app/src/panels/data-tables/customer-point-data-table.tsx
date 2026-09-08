@@ -55,12 +55,14 @@ import { useLabelMaxLength } from "src/hooks/use-label-max-length";
 interface CustomerPointDataTableProps {
   id: string;
   type: "customer-point-table";
+  customerPointIds?: readonly number[];
 }
 
 export const CustomerPointDataTable = memo(
   function CustomerPointDataTableInner({
     id,
     type,
+    customerPointIds,
   }: CustomerPointDataTableProps) {
     const dataGridRef = useRef<DataGridRef>(null);
     const [savedState, saveState] = usePanelGridState(id, type);
@@ -100,9 +102,14 @@ export const CustomerPointDataTable = memo(
     const userTracking = useUserTracking();
     const labelMaxLength = useLabelMaxLength();
 
+    const scopedIds = useMemo(
+      () => (customerPointIds ? new Set(customerPointIds) : undefined),
+      [customerPointIds],
+    );
+
     const rows = useMemo(
-      () => buildCustomerPointModelRows(hydraulicModel),
-      [hydraulicModel],
+      () => buildCustomerPointModelRows(hydraulicModel, scopedIds),
+      [hydraulicModel, scopedIds],
     );
     const rowsRef = useRef(rows);
     rowsRef.current = rows;

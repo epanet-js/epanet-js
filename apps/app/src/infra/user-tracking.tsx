@@ -1675,6 +1675,7 @@ export type UserEvent =
   | {
       name: "dataTables.opened";
       source: string;
+      scope?: string;
       opened?: number;
       requested?: number;
     }

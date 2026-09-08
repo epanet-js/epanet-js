@@ -77,9 +77,11 @@ export function cpAccessor(
 
 export function buildCustomerPointModelRows(
   hydraulicModel: HydraulicModel,
+  onlyIds?: ReadonlySet<number>,
 ): CustomerPointRow[] {
   const rows: CustomerPointRow[] = [];
   for (const cp of hydraulicModel.customerPoints.values()) {
+    if (onlyIds && !onlyIds.has(cp.id)) continue;
     rows.push(cp as unknown as CustomerPointRow);
   }
   return rows;

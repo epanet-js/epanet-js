@@ -4,6 +4,7 @@ import { useAtomValue } from "jotai";
 import { TabRoot, TabList, Tab } from "src/components/tab";
 import { DefaultErrorBoundary } from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
+import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { type PlacedPanel, activePanelIn, panelsIn } from "src/state/panels";
 import { useActivatePanel } from "src/commands/activate-panel";
 import { useClosePanel } from "src/commands/close-panel";
@@ -22,13 +23,15 @@ export const BottomDock = memo(function BottomDockInner() {
   const activePanel = useAtomValue(activeBottomPanelAtom);
   const activatePanel = useActivatePanel();
   const translate = useTranslate();
+  const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const closePanel = useClosePanel();
   const isClosable = useIsPanelClosable();
   const userTracking = useUserTracking();
 
   const labelOf = useCallback(
-    (entry: PlacedPanel) => panelLabel(entry.panel, entry.renamedTo, translate),
-    [translate],
+    (entry: PlacedPanel) =>
+      panelLabel(entry.panel, entry.renamedTo, { translate, hydraulicModel }),
+    [translate, hydraulicModel],
   );
 
   const handleTabChange = useCallback(

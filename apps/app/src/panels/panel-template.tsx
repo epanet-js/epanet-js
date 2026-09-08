@@ -1,6 +1,7 @@
 import type { ComponentType } from "react";
 import type { Getter, Setter } from "jotai";
 import type { TranslateFn } from "src/hooks/use-translate";
+import type { HydraulicModel } from "src/hydraulic-model";
 import type { useUserTracking } from "src/infra/user-tracking";
 import type { Dock } from "./docks";
 import type { Panel, PanelOfType, PanelType } from "./panel";
@@ -18,9 +19,14 @@ export type PanelLifecycleContext = {
   userTracking: ReturnType<typeof useUserTracking>;
 };
 
+export type PanelLabelContext = {
+  translate: TranslateFn;
+  hydraulicModel: HydraulicModel;
+};
+
 export type PanelTemplate<T extends PanelType> = {
   component: ComponentType<{ panel: PanelOfType<T> }>;
-  buildLabel: (panel: PanelOfType<T>, translate: TranslateFn) => string;
+  buildLabel: (panel: PanelOfType<T>, context: PanelLabelContext) => string;
   onDeactivate?: (
     context: PanelLifecycleContext,
     panel: PanelOfType<T>,
@@ -56,8 +62,8 @@ export const panelFor = (panel: Panel): PanelTemplate<PanelType> =>
 export const panelLabel = (
   panel: Panel,
   renamedTo: string | undefined,
-  translate: TranslateFn,
-): string => renamedTo ?? panelFor(panel).buildLabel(panel, translate);
+  context: PanelLabelContext,
+): string => renamedTo ?? panelFor(panel).buildLabel(panel, context);
 
 export const PanelContent = ({ panel }: { panel: Panel }) => {
   const Component = panelFor(panel).component;

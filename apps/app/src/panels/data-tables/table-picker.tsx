@@ -5,11 +5,18 @@ import { Button } from "src/components/elements";
 import { Checkbox } from "src/components/form/Checkbox";
 import { useTranslate } from "src/hooks/use-translate";
 import { useClosePanel } from "src/commands/close-panel";
-import { useOpenDataTables } from "src/commands/open-data-tables";
+import {
+  CUSTOMER_POINTS_TABLE,
+  type DataTableType,
+  useOpenDataTables,
+} from "src/commands/open-data-tables";
 import { panelsAtom } from "src/state/panels";
+import { selectionAtom } from "src/state/selection";
+import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
+import { USelection } from "src/selection";
 import { OPENABLE_ASSET_TYPES } from "./create-panel";
 
-type Choice = { key: string; label: string; assetType: AssetType | null };
+type Choice = { tableType: DataTableType; label: string };
 
 const assetTypeLabelKeys: Record<AssetType, string> = {
   junction: "junctions",
@@ -25,20 +32,18 @@ export const TablePicker = ({ id }: { id: string }) => {
   const panels = useAtomValue(panelsAtom);
   const openDataTables = useOpenDataTables();
   const closePanel = useClosePanel();
-  const [checked, setChecked] = useState<ReadonlySet<string>>(new Set());
+  const selection = useAtomValue(selectionAtom);
+  const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
+  const [checked, setChecked] = useState<ReadonlySet<DataTableType>>(new Set());
+  const [selectedOnly, setSelectedOnly] = useState(false);
 
   const choices = useMemo<Choice[]>(
     () => [
       ...OPENABLE_ASSET_TYPES.map((assetType) => ({
-        key: assetType,
+        tableType: assetType,
         label: translate(assetTypeLabelKeys[assetType]),
-        assetType,
       })),
-      {
-        key: "customer-point",
-        label: translate("customerPoints"),
-        assetType: null,
-      },
+      { tableType: CUSTOMER_POINTS_TABLE, label: translate("customerPoints") },
     ],
     [translate],
   );
@@ -49,41 +54,60 @@ export const TablePicker = ({ id }: { id: string }) => {
         choices
           .filter((choice) =>
             panels.some((panel) =>
-              choice.assetType === null
+              choice.tableType === CUSTOMER_POINTS_TABLE
                 ? panel.type === "customer-point-table"
                 : panel.type === "asset-table" &&
-                  panel.assetType === choice.assetType,
+                  panel.assetType === choice.tableType,
             ),
           )
-          .map((choice) => choice.key),
+          .map((choice) => choice.tableType),
       ),
     [choices, panels],
   );
 
-  const toggle = useCallback((key: string) => {
+  const selectedCounts = useMemo(() => {
+    const counts = new Map<DataTableType, number>();
+    for (const assetId of USelection.getAssetIds(selection)) {
+      const assetType = hydraulicModel.assets.get(assetId)?.type;
+      if (!assetType) continue;
+      counts.set(assetType, (counts.get(assetType) ?? 0) + 1);
+    }
+    const customerPoints = USelection.getCustomerPointIds(selection).length;
+    if (customerPoints > 0) counts.set(CUSTOMER_POINTS_TABLE, customerPoints);
+    return counts;
+  }, [selection, hydraulicModel]);
+
+  const hasSelection = selectedCounts.size > 0;
+  const scopedToSelection = selectedOnly && hasSelection;
+
+  const isUnavailable = useCallback(
+    (choice: Choice) =>
+      scopedToSelection
+        ? !selectedCounts.has(choice.tableType)
+        : alreadyOpen.has(choice.tableType),
+    [scopedToSelection, selectedCounts, alreadyOpen],
+  );
+
+  const toggle = useCallback((tableType: DataTableType) => {
     setChecked((prev) => {
       const next = new Set(prev);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
+      if (next.has(tableType)) next.delete(tableType);
+      else next.add(tableType);
       return next;
     });
   }, []);
 
   const newlyChecked = choices.filter(
-    (choice) => checked.has(choice.key) && !alreadyOpen.has(choice.key),
+    (choice) => checked.has(choice.tableType) && !isUnavailable(choice),
   );
 
   const open = useCallback(() => {
     openDataTables({
-      assetTypes: newlyChecked
-        .map((choice) => choice.assetType)
-        .filter((assetType): assetType is AssetType => assetType !== null),
-      includeCustomerPoints: newlyChecked.some(
-        (choice) => choice.assetType === null,
-      ),
+      tableTypes: newlyChecked.map((choice) => choice.tableType),
+      scope: scopedToSelection ? "selection" : "all",
     });
     closePanel(id);
-  }, [newlyChecked, openDataTables, closePanel, id]);
+  }, [newlyChecked, scopedToSelection, openDataTables, closePanel, id]);
 
   return (
     <div className="absolute inset-0 flex flex-col gap-3 overflow-auto bg-popover p-4">
@@ -93,26 +117,38 @@ export const TablePicker = ({ id }: { id: string }) => {
 
       <ul className="flex flex-col gap-1.5">
         {choices.map((choice) => {
-          const isOpen = alreadyOpen.has(choice.key);
+          const unavailable = isUnavailable(choice);
+          const selectedCount = selectedCounts.get(choice.tableType) ?? 0;
           return (
-            <li key={choice.key}>
+            <li key={choice.tableType}>
               <label
                 className={`flex items-center gap-2 text-size-base w-max ${
-                  isOpen
+                  unavailable
                     ? "text-disabled cursor-not-allowed"
                     : "text-default cursor-pointer"
                 }`}
               >
                 <Checkbox
-                  checked={isOpen || checked.has(choice.key)}
-                  disabled={isOpen}
-                  onChange={() => toggle(choice.key)}
+                  checked={
+                    (unavailable && !scopedToSelection) ||
+                    checked.has(choice.tableType)
+                  }
+                  disabled={unavailable}
+                  onChange={() => toggle(choice.tableType)}
                 />
                 {choice.label}
-                {isOpen && (
+                {scopedToSelection ? (
                   <span className="text-size-small text-subtle">
-                    {translate("dataTables.picker.alreadyOpen")}
+                    {selectedCount > 0
+                      ? `(${selectedCount.toLocaleString()})`
+                      : translate("dataTables.picker.noneSelected")}
                   </span>
+                ) : (
+                  unavailable && (
+                    <span className="text-size-small text-subtle">
+                      {translate("dataTables.picker.alreadyOpen")}
+                    </span>
+                  )
                 )}
               </label>
             </li>
@@ -120,9 +156,24 @@ export const TablePicker = ({ id }: { id: string }) => {
         })}
       </ul>
 
-      <label className="flex items-center gap-2 text-size-base w-max text-disabled cursor-not-allowed">
-        <Checkbox checked={false} disabled onChange={() => {}} />
+      <label
+        className={`flex items-center gap-2 text-size-base w-max ${
+          hasSelection
+            ? "text-default cursor-pointer"
+            : "text-disabled cursor-not-allowed"
+        }`}
+      >
+        <Checkbox
+          checked={scopedToSelection}
+          disabled={!hasSelection}
+          onChange={() => setSelectedOnly((prev) => !prev)}
+        />
         {translate("dataTables.picker.selectedAssetsOnly")}
+        {!hasSelection && (
+          <span className="text-size-small text-subtle">
+            {translate("dataTables.picker.nothingSelected")}
+          </span>
+        )}
       </label>
 
       <div>

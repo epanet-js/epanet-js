@@ -1,4 +1,3 @@
-import type { TranslateFn } from "src/hooks/use-translate";
 import { ephemeralStateAtom } from "src/state/drawing";
 import { hglProfileAtom } from "src/state/hgl-profile";
 import { Mode, modeAtom } from "src/state/mode";
@@ -7,7 +6,7 @@ import { HglProfilePanel } from "./index";
 
 export const hglProfilePanel: PanelTemplate<"hgl-profile"> = {
   component: () => <HglProfilePanel />,
-  buildLabel: (_panel, translate: TranslateFn) => translate("hglProfile.title"),
+  buildLabel: (_panel, { translate }) => translate("hglProfile.title"),
   onDeactivate: ({ get, set }) => {
     if (get(ephemeralStateAtom).type === "hglProfile") {
       set(ephemeralStateAtom, { type: "none" });

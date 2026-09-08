@@ -4,6 +4,7 @@ import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { createAssetTablePanel } from "src/panels/data-tables/create-panel";
+import { USelection } from "src/selection";
 import { Store } from "src/state";
 import { activePanelIn, panelsAtom } from "src/state/panels";
 import { CommandContainer } from "./__helpers__/command-container";
@@ -15,6 +16,16 @@ import {
 const aStore = () =>
   setInitialState({
     hydraulicModel: HydraulicModelBuilder.with().aJunction(1).build(),
+  });
+
+const aModelWithSelection = (assetIds: number[]) =>
+  setInitialState({
+    hydraulicModel: HydraulicModelBuilder.with()
+      .aJunction(1)
+      .aJunction(2)
+      .aPipe(10, { startNodeId: 1, endNodeId: 2 })
+      .build(),
+    selection: USelection.fromAssetIds(assetIds),
   });
 
 const tablesOf = (store: Store) =>
@@ -34,8 +45,7 @@ describe("useOpenDataTables", () => {
     store.set(panelsAtom, []);
 
     await open(store, {
-      assetTypes: ["junction", "pipe"],
-      includeCustomerPoints: false,
+      tableTypes: ["junction", "pipe"],
     });
 
     expect(tablesOf(store)).toEqual([
@@ -49,8 +59,7 @@ describe("useOpenDataTables", () => {
     store.set(panelsAtom, []);
 
     await open(store, {
-      assetTypes: ["junction", "pipe"],
-      includeCustomerPoints: false,
+      tableTypes: ["junction", "pipe"],
     });
 
     const ids = store.get(panelsAtom).map((panel) => panel.id);
@@ -62,8 +71,7 @@ describe("useOpenDataTables", () => {
     store.set(panelsAtom, []);
 
     await open(store, {
-      assetTypes: ["pipe", "valve"],
-      includeCustomerPoints: false,
+      tableTypes: ["pipe", "valve"],
     });
 
     expect(store.get(activePanelIn("bottom"))?.panel).toMatchObject({
@@ -72,57 +80,127 @@ describe("useOpenDataTables", () => {
     });
   });
 
-  it("does not open a second table for an asset type already open", async () => {
+  it("opens what it is asked for, even when that type is already open", async () => {
     const store = aStore();
     store.set(panelsAtom, [
       createAssetTablePanel("pipe", { id: "pipe", closable: false }),
     ]);
 
-    await open(store, { assetTypes: ["pipe"], includeCustomerPoints: false });
+    await open(store, { tableTypes: ["pipe"] });
 
-    expect(tablesOf(store)).toEqual(["asset-table:pipe"]);
+    expect(tablesOf(store)).toEqual(["asset-table:pipe", "asset-table:pipe"]);
   });
 
-  it("activates the existing table instead of duplicating it", async () => {
-    const store = aStore();
-    store.set(panelsAtom, [
-      createAssetTablePanel("junction", { id: "junction", closable: false }),
-      createAssetTablePanel("pipe", { id: "pipe", closable: false }),
-    ]);
-
-    await open(store, { assetTypes: ["pipe"], includeCustomerPoints: false });
-
-    expect(store.get(activePanelIn("bottom"))?.id).toEqual("pipe");
-  });
-
-  it("opens only the types that are not already open", async () => {
+  it("activates the table it just opened, not the existing one", async () => {
     const store = aStore();
     store.set(panelsAtom, [
       createAssetTablePanel("pipe", { id: "pipe", closable: false }),
     ]);
 
-    await open(store, {
-      assetTypes: ["pipe", "valve"],
-      includeCustomerPoints: false,
-    });
+    await open(store, { tableTypes: ["pipe"] });
 
-    expect(tablesOf(store)).toEqual(["asset-table:pipe", "asset-table:valve"]);
+    expect(store.get(activePanelIn("bottom"))?.id).not.toEqual("pipe");
   });
 
   it("opens the customer points table when asked", async () => {
     const store = aStore();
     store.set(panelsAtom, []);
 
-    await open(store, { assetTypes: [], includeCustomerPoints: true });
+    await open(store, { tableTypes: ["customerPoints"] });
 
     expect(tablesOf(store)).toEqual(["customer-point-table:"]);
+  });
+
+  it("scopes every opened table to the current selection", async () => {
+    const store = aModelWithSelection([1, 2, 10]);
+    store.set(panelsAtom, []);
+
+    await open(store, {
+      tableTypes: ["junction", "pipe"],
+      scope: "selection",
+    });
+
+    expect(store.get(panelsAtom)).toMatchObject([
+      { assetType: "junction", assetIds: [1, 2, 10] },
+      { assetType: "pipe", assetIds: [1, 2, 10] },
+    ]);
+  });
+
+  it("opens a table for a type the selection has none of", async () => {
+    const store = aModelWithSelection([1, 2]);
+    store.set(panelsAtom, []);
+
+    await open(store, {
+      tableTypes: ["junction", "pipe"],
+      scope: "selection",
+    });
+
+    expect(tablesOf(store)).toEqual([
+      "asset-table:junction",
+      "asset-table:pipe",
+    ]);
+  });
+
+  it("opens a scoped table alongside the whole-model one", async () => {
+    const store = aModelWithSelection([1]);
+    store.set(panelsAtom, [
+      createAssetTablePanel("junction", { id: "junction", closable: false }),
+    ]);
+
+    await open(store, {
+      tableTypes: ["junction"],
+      scope: "selection",
+    });
+
+    const [wholeModel, scoped] = store.get(panelsAtom);
+    expect(wholeModel).not.toHaveProperty("assetIds");
+    expect(scoped).toMatchObject({ assetType: "junction", assetIds: [1] });
+  });
+
+  it("activates the newly scoped table, not the existing one", async () => {
+    const store = aModelWithSelection([1]);
+    store.set(panelsAtom, [
+      createAssetTablePanel("junction", { id: "junction", closable: false }),
+    ]);
+
+    await open(store, {
+      tableTypes: ["junction"],
+      scope: "selection",
+    });
+
+    expect(store.get(activePanelIn("bottom"))?.id).not.toEqual("junction");
+  });
+
+  it("hands the table the selection, not only its own type's ids", async () => {
+    const store = aModelWithSelection([10]);
+    store.set(panelsAtom, []);
+
+    await open(store, {
+      tableTypes: ["junction"],
+      scope: "selection",
+    });
+
+    expect(store.get(panelsAtom)).toMatchObject([
+      { assetType: "junction", assetIds: [10] },
+    ]);
+  });
+
+  it("opens whole-model tables when the scope is not the selection", async () => {
+    const store = aModelWithSelection([1]);
+    store.set(panelsAtom, []);
+
+    await open(store, {
+      tableTypes: ["junction"],
+    });
+
+    expect(store.get(panelsAtom)[0]).not.toHaveProperty("assetIds");
   });
 
   it("does nothing when nothing is requested", async () => {
     const store = aStore();
     store.set(panelsAtom, []);
 
-    await open(store, { assetTypes: [], includeCustomerPoints: false });
+    await open(store, { tableTypes: [] });
 
     expect(store.get(panelsAtom)).toEqual([]);
   });

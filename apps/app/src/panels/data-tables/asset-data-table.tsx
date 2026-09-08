@@ -88,12 +88,14 @@ interface AssetDataTableProps {
   id: string;
   type: "asset-table";
   assetType: AssetType;
+  assetIds?: readonly AssetId[];
 }
 
 export const AssetDataTable = memo(function AssetDataTableInner({
   id,
   type,
   assetType,
+  assetIds,
 }: AssetDataTableProps) {
   const dataGridRef = useRef<DataGridRef>(null);
   const [savedState, saveState] = usePanelGridState(id, type);
@@ -129,19 +131,23 @@ export const AssetDataTable = memo(function AssetDataTableInner({
   const deleteAssetsAction = useDeleteAssets();
   const userTracking = useUserTracking();
 
-  const assetIds = useMemo(() => {
-    const ids: AssetId[] = [];
-    for (const asset of hydraulicModel.assets.values()) {
-      if (asset.type === assetType) ids.push(asset.id);
-    }
-    return ids;
-  }, [hydraulicModel.assets, assetType]);
+  const scopedIds = useMemo(
+    () => (assetIds ? new Set(assetIds) : undefined),
+    [assetIds],
+  );
+
+  const rows = useMemo(
+    () => buildAssetModelRows(assetType, hydraulicModel, scopedIds),
+    [assetType, hydraulicModel, scopedIds],
+  );
+  const rowsRef = useRef(rows);
+  rowsRef.current = rows;
 
   const hasSimulation = simulation !== null;
 
   const qualityType = useMemo((): QualityAnalysisType => {
     if (!simulation) return "none";
-    const id = assetIds[0];
+    const id = rows[0]?.id;
     if (id === undefined) return "none";
     let q:
       | {
@@ -162,14 +168,8 @@ export const AssetDataTable = memo(function AssetDataTableInner({
     if (q.waterTrace != null) return "trace";
     if (q.chemicalConcentration != null) return "chemical";
     return "none";
-  }, [simulation, assetType, assetIds]);
+  }, [simulation, assetType, rows]);
 
-  const rows = useMemo(
-    () => buildAssetModelRows(assetType, hydraulicModel),
-    [assetType, hydraulicModel],
-  );
-  const rowsRef = useRef(rows);
-  rowsRef.current = rows;
   // Defer mounting the grid so switching tabs stays responsive.
   const gridReady = useDeferredGridMount();
 
