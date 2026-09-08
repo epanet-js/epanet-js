@@ -47,6 +47,19 @@ one value per id; mixing field sets would leave holes that read back as "unset
 this property", which is a different and silently wrong model. If you change the
 grouping in `codec.ts`, keep that invariant.
 
+## The format does not type-check anything
+
+A `Column` carries `Doubles | Bools | Texts | Json`, and `pickTag` in `codec.ts` chooses
+the arm from the runtime type of the cells it is handed. So a string in a number field
+encodes as `Texts` and round-trips as a string; mixed types in one column fall back to
+`Json` and both survive; `NaN` and `Infinity` are doubles like any other. That is
+faithfulness, not validation, and it is the correct behaviour for a wire format.
+
+**Do not add field validation here.** Knowing that a pipe's `diameter` is a nullable finite
+number is knowing what a hydraulic model is, which this package deliberately does not. The
+rules live in `@epanet-js/model-schema` and the app's builder applies them before calling
+`ChangeSet.of` — see `src/hydraulic-model/change-sets/AGENTS.md` in the app.
+
 ## Three states, not two
 
 `Presence` distinguishes `Present`, `Null` and `Absent`. The domain has optional

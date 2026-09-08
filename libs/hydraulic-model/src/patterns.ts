@@ -1,13 +1,10 @@
+import { patternTypes, type PatternType } from "@epanet-js/model-schema";
 export type PatternMultipliers = number[];
 
 export type PatternId = number;
 
-export type PatternType =
-  | "demand"
-  | "reservoirHead"
-  | "pumpSpeed"
-  | "qualitySourceStrength"
-  | "energyPrice";
+export { patternTypes };
+export type { PatternType };
 
 export type Pattern = {
   id: PatternId;

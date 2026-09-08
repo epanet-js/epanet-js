@@ -289,3 +289,80 @@ describe("change-set builder", () => {
     expect(record.after).toEqual({ elevation: 30 });
   });
 });
+
+describe("change-set validation", () => {
+  const IDS = { J1: 1, P1: 3, J2: 2 } as const;
+
+  const aModel = () => {
+    const { labelManager } = buildTestFactories();
+    return HydraulicModelBuilder.with({ labelManager })
+      .aJunction(IDS.J1, { elevation: 10 })
+      .aJunction(IDS.J2, { elevation: 20 })
+      .aPipe(IDS.P1, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        diameter: 200,
+      })
+      .build();
+  };
+
+  it("rejects a string where the model has a number", () => {
+    const model = aModel();
+
+    expect(() =>
+      changeSet(model, "changeProperty", [
+        setAsset(IDS.P1, { diameter: "300" as unknown as number }),
+      ]),
+    ).toThrow(/pipe 3: diameter/);
+  });
+
+  it("rejects a non-finite number", () => {
+    const model = aModel();
+
+    expect(() =>
+      changeSet(model, "changeProperty", [
+        setAsset(IDS.J1, { elevation: NaN }),
+      ]),
+    ).toThrow(/junction 1: elevation/);
+
+    expect(() =>
+      changeSet(model, "changeProperty", [
+        setAsset(IDS.J1, { elevation: Infinity }),
+      ]),
+    ).toThrow(/junction 1: elevation/);
+  });
+
+  it("rejects a value outside an enum", () => {
+    const model = aModel();
+
+    expect(() =>
+      changeSet(model, "changeProperty", [
+        setAsset(IDS.P1, { initialStatus: "active" }),
+      ]),
+    ).toThrow(/pipe 3: initialStatus/);
+  });
+
+  it("allows null only where the model does", () => {
+    const model = aModel();
+
+    expect(() =>
+      changeSet(model, "changeProperty", [
+        setAsset(IDS.P1, { diameter: null }),
+      ]),
+    ).not.toThrow();
+
+    expect(() =>
+      changeSet(model, "changeProperty", [
+        setAsset(IDS.P1, { minorLoss: null }),
+      ]),
+    ).toThrow(/pipe 3: minorLoss/);
+  });
+
+  it("rejects a field nothing has declared", () => {
+    const model = aModel();
+
+    expect(() =>
+      changeSet(model, "changeProperty", [setAsset(IDS.J1, { madeUp: 1 })]),
+    ).toThrow(/junction 1: madeUp has no schema/);
+  });
+});

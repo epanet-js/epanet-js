@@ -1,16 +1,14 @@
+import {
+  chemicalSourceTypes,
+  type ChemicalSourceType,
+} from "@epanet-js/model-schema";
 import { Position } from "geojson";
 import { BaseAsset, AssetId, AssetProperties } from "./base-asset";
 import { NodeType } from "./types";
 import { PatternId } from "../patterns";
 
-export const chemicalSourceTypes = [
-  "concen",
-  "mass",
-  "flowpaced",
-  "setpoint",
-] as const;
-
-export type ChemicalSourceType = (typeof chemicalSourceTypes)[number];
+export { chemicalSourceTypes };
+export type { ChemicalSourceType };
 
 export const DEFAULT_INITIAL_QUALITY = 0;
 

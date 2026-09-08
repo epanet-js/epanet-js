@@ -16,6 +16,7 @@
   "dependencies": {
     "@epanet-js/geometry": "workspace:*",
     "@epanet-js/id-generator": "workspace:*",
+    "@epanet-js/model-schema": "workspace:^",
     "@epanet-js/quantity": "workspace:*",
     "@turf/length": "^6.5.0",
     "nanoid": "^3.3.7",

@@ -1,9 +1,11 @@
+import { curveTypes, type CurveType } from "@epanet-js/model-schema";
 import { LabelManager } from "./label-manager";
 
 export type CurveId = number;
 export type CurvePoint = { x: number; y: number };
 
-export type CurveType = "pump" | "efficiency" | "volume" | "valve" | "headloss";
+export { curveTypes };
+export type { CurveType };
 
 export interface ICurve {
   id: CurveId;

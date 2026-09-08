@@ -1,7 +1,8 @@
+import { pipeStatuses, type PipeStatus } from "@epanet-js/model-schema";
 import { Link, LinkProperties } from "./link";
 
-export const pipeStatuses = ["open", "closed", "cv"] as const;
-export type PipeStatus = (typeof pipeStatuses)[number];
+export { pipeStatuses };
+export type { PipeStatus };
 
 export type PipeProperties = {
   type: "pipe";

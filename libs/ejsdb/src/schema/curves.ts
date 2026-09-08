@@ -1,19 +1,9 @@
+import { curvePointsCell, curveTypes } from "@epanet-js/model-schema";
 import { z } from "zod";
 
-export const curveTypeSchema = z.enum([
-  "pump",
-  "efficiency",
-  "volume",
-  "valve",
-  "headloss",
-]);
+export const curveTypeSchema = z.enum(curveTypes);
 
-export const pointsSchema = z.array(
-  z.object({
-    x: z.number().finite(),
-    y: z.number().finite(),
-  }),
-);
+export const pointsSchema = curvePointsCell;
 
 export const curveRowSchema = z.object({
   id: z.number().int(),

@@ -1,3 +1,4 @@
+import { intCell, nullableInt, numberCell } from "@epanet-js/model-schema";
 import { z } from "zod";
 import {
   chemicalSourceTypes,
@@ -9,12 +10,16 @@ import {
   valveStatuses,
 } from "./enums";
 
-export const linkCoordinatesSchema = z.array(z.array(z.number().finite()));
+export const linkCoordinatesSchema = z.array(z.array(numberCell));
 
-const id = z.number().int();
-const fkId = z.number().int().nullable();
+const id = intCell;
+const fkId = nullableInt;
 const dbBool = z.union([z.literal(0), z.literal(1)]);
-const finiteCoord = z.number().finite();
+const finiteCoord = numberCell;
+// Deliberately not model-schema's `nullableNumber`, which is finite. These
+// columns have always accepted an infinity, and tightening them is a change to
+// the moment path rather than part of sharing the atoms — a change set is
+// checked against the finite rule as it is built.
 const nullableNumber = z.number().nullable();
 const chemicalSourceTypeSchema = z.enum(chemicalSourceTypes).nullable();
 

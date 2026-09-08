@@ -643,6 +643,9 @@ describe("buildChangeSetPayload direction", () => {
 });
 
 describe("buildChangeSetPayload validation", () => {
+  // Nothing with a schema reaches the payload builder any more: the change set
+  // is validated as it is built, before the model mutates. What is left here is
+  // the mapping the row schemas still guard — the columns a cell fans out into.
   it("throws on a non-finite node elevation create", () => {
     const { model, assetFactory } = aNetwork();
     const junction = assetFactory.createJunction({
@@ -651,27 +654,28 @@ describe("buildChangeSetPayload validation", () => {
       elevation: 15,
     });
     junction.setElevation(NaN);
-    const built = changeSet(model, "addNode", [putAssets([junction])]);
 
-    expect(() => buildChangeSetPayload(built, "forward")).toThrow();
+    expect(() =>
+      changeSet(model, "addNode", [putAssets([junction])]),
+    ).toThrow();
   });
 
   it("throws on a non-finite pipe diameter patch", () => {
     const { model } = aNetwork();
-    const built = changeSet(model, "changeProperty", [
-      setAsset(IDS.P1, { diameter: NaN }),
-    ]);
 
-    expect(() => buildChangeSetPayload(built, "forward")).toThrow();
+    expect(() =>
+      changeSet(model, "changeProperty", [setAsset(IDS.P1, { diameter: NaN })]),
+    ).toThrow();
   });
 
   it("throws on a non-finite demand", () => {
     const { model } = aNetwork();
-    const built = changeSet(model, "changeDemandAssignment", [
-      setDemands([{ junctionId: IDS.J2, demands: [{ baseDemand: NaN }] }]),
-    ]);
 
-    expect(() => buildChangeSetPayload(built, "forward")).toThrow();
+    expect(() =>
+      changeSet(model, "changeDemandAssignment", [
+        setDemands([{ junctionId: IDS.J2, demands: [{ baseDemand: NaN }] }]),
+      ]),
+    ).toThrow();
   });
 });
 

@@ -1,10 +1,13 @@
+import {
+  CUSTOM_PROPERTY_PREFIX,
+  type CustomAttributeType,
+} from "@epanet-js/model-schema";
 import type { AssetType } from "../asset-types/types";
 
 export type CustomAttributeAssetType = AssetType | "customerPoint";
 
-export type CustomAttributeType = "text" | "number";
-
-export const customAttributeTypes: CustomAttributeType[] = ["text", "number"];
+export { customAttributeTypes } from "@epanet-js/model-schema";
+export type { CustomAttributeType } from "@epanet-js/model-schema";
 
 export type CustomAttributeId = string;
 
@@ -22,7 +25,7 @@ export type CustomAttributesDefinition = Map<
 export const emptyCustomAttributesDefinition = (): CustomAttributesDefinition =>
   new Map();
 
-export const CUSTOM_PROPERTY_PREFIX = "custom-";
+export { CUSTOM_PROPERTY_PREFIX };
 
 export const buildCustomAttributeId = (seed: number): CustomAttributeId =>
   `${CUSTOM_PROPERTY_PREFIX}${seed}`;

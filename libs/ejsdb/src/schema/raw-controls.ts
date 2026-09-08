@@ -1,22 +1,3 @@
-import { z } from "zod";
-
-const assetReferenceSchema = z.object({
-  assetId: z.number(),
-  isActionTarget: z.boolean(),
-});
-
-const simpleControlSchema = z.object({
-  template: z.string(),
-  assetReferences: z.array(assetReferenceSchema),
-});
-
-const ruleBasedControlSchema = z.object({
-  ruleId: z.string(),
-  template: z.string(),
-  assetReferences: z.array(assetReferenceSchema),
-});
-
-export const rawControlsSchema = z.object({
-  simple: z.array(simpleControlSchema),
-  rules: z.array(ruleBasedControlSchema),
-});
+// Moved to `@epanet-js/model-schema`: these describe a model value, not a row.
+// Re-exported so `@epanet-js/ejsdb`'s schema surface is unchanged.
+export { rawControlsSchema } from "@epanet-js/model-schema";

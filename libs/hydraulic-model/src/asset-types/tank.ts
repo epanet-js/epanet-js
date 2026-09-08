@@ -1,8 +1,12 @@
+import {
+  tankMixingModels,
+  type TankMixingModel,
+} from "@epanet-js/model-schema";
 import { CurveId, Curves, ICurve } from "../curves";
 import { Node, NodeProperties } from "./node";
 
-export const tankMixingModels = ["mixed", "2comp", "fifo", "lifo"] as const;
-export type TankMixingModel = (typeof tankMixingModels)[number];
+export { tankMixingModels };
+export type { TankMixingModel };
 export const TANK_TWO_COMPARTMENT_MIXING =
   "2comp" as const satisfies TankMixingModel;
 

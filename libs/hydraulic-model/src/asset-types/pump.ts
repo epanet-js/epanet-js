@@ -1,19 +1,20 @@
+import {
+  pumpDefinitionTypes,
+  pumpStatuses,
+  type PumpDefinitionType,
+  type PumpStatus,
+} from "@epanet-js/model-schema";
 import { CurveId, CurvePoint, Curves, ICurve } from "../curves";
 import { PatternId } from "../patterns";
 import { Link, LinkProperties } from "./link";
 
-export const pumpStatuses = ["on", "off"] as const;
-export type PumpStatus = (typeof pumpStatuses)[number];
+export { pumpStatuses };
+export type { PumpStatus };
 
 export type PumpStatusWarning = "cannot-deliver-flow" | "cannot-deliver-head";
 
-export const pumpDefinitionTypes = [
-  "power",
-  "designPointCurve",
-  "standardCurve",
-  "curveId",
-] as const;
-export type PumpDefinitionType = (typeof pumpDefinitionTypes)[number];
+export { pumpDefinitionTypes };
+export type { PumpDefinitionType };
 
 export const DEFAULT_SPEED = 1;
 

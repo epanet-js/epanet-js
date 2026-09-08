@@ -1,14 +1,9 @@
+import { multipliersCell, patternTypes } from "@epanet-js/model-schema";
 import { z } from "zod";
 
-export const patternTypeSchema = z.enum([
-  "demand",
-  "reservoirHead",
-  "pumpSpeed",
-  "qualitySourceStrength",
-  "energyPrice",
-]);
+export const patternTypeSchema = z.enum(patternTypes);
 
-export const multipliersSchema = z.array(z.number().finite());
+export const multipliersSchema = multipliersCell;
 
 export const patternRowSchema = z.object({
   id: z.number().int(),

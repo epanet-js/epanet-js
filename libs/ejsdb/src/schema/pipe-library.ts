@@ -1,15 +1,6 @@
-import { z } from "zod";
-
-const roughnessEntrySchema = z.object({
-  age: z.number().nullable(),
-  roughness: z.number().nullable(),
-});
-
-const pipeMaterialSchema = z.object({
-  label: z.string(),
-  entries: z.array(roughnessEntrySchema),
-});
-
-export const pipeLibrarySchema = z.array(pipeMaterialSchema);
-
-export type PipeLibraryData = z.infer<typeof pipeLibrarySchema>;
+// Moved to `@epanet-js/model-schema`: these describe a model value, not a row.
+// Re-exported so `@epanet-js/ejsdb`'s schema surface is unchanged.
+export {
+  pipeLibrarySchema,
+  type PipeLibraryData,
+} from "@epanet-js/model-schema";

@@ -28,6 +28,25 @@ forwards or backwards.
 rests on: a change set is complete before anything mutates, which is what makes
 it undoable, persistable and squashable.
 
+## Records are validated as they are built
+
+`changeSet()` runs `validateRecords` before `ChangeSet.of` encodes anything, checking every
+cell against [`@epanet-js/model-schema`](../../../../../libs/model-schema/README.md).
+It is the only place this happens: the format itself is self-describing rather than
+field-typed, so `encode` accepts a string where the model has a number and a `NaN` where it
+has a coordinate, and `@epanet-js/change-set` stays model-ignorant by design.
+
+Build time is the right moment for two reasons. Nothing has mutated yet, so a rejection
+leaves the model untouched — the validate-then-save shape from
+[`guidelines/persistence.md`](../../../guidelines/persistence.md). And from the moment a
+scenario stores its delta, a change set becomes an artefact nothing re-validates: the row
+schemas in the DB worker only ever see main's writes.
+
+Three states, three rules. **Absent** is always allowed and never checked — it means
+untouched, or "this property is not on this entity". **Null** is allowed only where the field
+schema says `.nullable()`. **Present** must parse. A field with no schema throws, so a new
+persisted property is a failing test rather than a value that silently never reaches the file.
+
 ## Direction is the whole of undo
 
 There is no reverse change set. `applyChangeSet(model, cs, "reverse")` reads the

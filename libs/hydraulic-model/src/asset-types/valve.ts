@@ -1,24 +1,22 @@
+import {
+  valveKinds,
+  valveStatuses,
+  type ValveKind,
+  type ValveStatus,
+} from "@epanet-js/model-schema";
 import { CurveId } from "../curves";
 import { Link, LinkProperties } from "./link";
 
-export const valveStatuses = ["active", "open", "closed"] as const;
-export type ValveStatus = (typeof valveStatuses)[number];
+export { valveStatuses };
+export type { ValveStatus };
 export type ValveStatusWarning =
   | "cannot-deliver-flow"
   | "cannot-deliver-pressure";
 
-export const valveKinds = [
-  "prv",
-  "psv",
-  "fcv",
-  "pbv",
-  "tcv",
-  "gpv",
-  "pcv",
-] as const;
+export { valveKinds };
+export type { ValveKind };
 
 export const controlKinds = ["prv", "psv", "fcv", "pbv", "gpv"];
-export type ValveKind = (typeof valveKinds)[number];
 
 export type ValveProperties = {
   type: "valve";

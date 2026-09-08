@@ -58,6 +58,7 @@
     "@epanet-js/i18n": "workspace:*",
     "@epanet-js/id-generator": "workspace:*",
     "@epanet-js/map": "workspace:*",
+    "@epanet-js/model-schema": "workspace:^",
     "@epanet-js/project-settings": "workspace:*",
     "@epanet-js/projections": "workspace:*",
     "@epanet-js/quantity": "workspace:*",

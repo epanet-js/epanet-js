@@ -89,6 +89,15 @@ The consequence for this guideline: **the row schemas are checked in the worker,
 in-memory model has already been updated.** That is the second departure from validate-then-
 save, alongside import, and it is deliberate rather than an oversight.
 
+Most of the way back is covered by validating the change set as it is **built**. Every record
+is checked field by field against [`@epanet-js/model-schema`](../../../libs/model-schema/README.md)
+before `ChangeSet.of` encodes it, which is before anything mutates — so a bad value rejects the
+edit with the model untouched, the way validate-then-save intends. That covers the values a
+change set carries, whole values included — the four things stored as a single JSON column
+are checked against the very schemas the worker uses. The row schemas stay as the backstop
+for what a cell cannot describe: the columns a cell is fanned out into, and the DB's own
+`NOT NULL` and `CHECK` constraints.
+
 What still holds:
 
 - The write is one transaction, so a rejected row leaves the file exactly as it was — the DB
