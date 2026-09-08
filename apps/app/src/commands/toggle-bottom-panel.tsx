@@ -2,6 +2,7 @@ import { useAtomValue, useSetAtom } from "jotai";
 import { useCallback } from "react";
 import { useDeactivatePanel } from "src/commands/deactivate-panel";
 import { useUserTracking } from "src/infra/user-tracking";
+import { panelTrackingName } from "src/panels/panel";
 import { activePanelIn } from "src/state/panels";
 import { splitsAtom } from "src/state/layout";
 
@@ -24,7 +25,9 @@ export const useToggleBottomPanel = () => {
       userTracking.capture({
         name: "bottomPanel.toggled",
         open: newOpen,
-        activeTabId: activeBottomPanel?.id ?? null,
+        activePanelType: activeBottomPanel
+          ? panelTrackingName(activeBottomPanel.panel)
+          : null,
         source,
       });
     },

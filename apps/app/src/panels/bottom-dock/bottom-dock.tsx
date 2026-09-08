@@ -5,6 +5,7 @@ import { TabRoot, TabList, Tab } from "src/components/tab";
 import { DefaultErrorBoundary } from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
+import { panelTrackingName } from "../panel";
 import { type PlacedPanel, activePanelIn, panelsIn } from "src/state/panels";
 import { useActivatePanel } from "src/commands/activate-panel";
 import { useClosePanel } from "src/commands/close-panel";
@@ -36,15 +37,16 @@ export const BottomDock = memo(function BottomDockInner() {
 
   const handleTabChange = useCallback(
     (panelId: string) => {
-      if (panelId !== activePanel?.id) {
+      const entry = panels.find((placed) => placed.id === panelId);
+      if (entry && panelId !== activePanel?.id) {
         userTracking.capture({
           name: "bottomPanel.tabSwitched",
-          tabId: panelId,
+          panelType: panelTrackingName(entry.panel),
         });
       }
       activatePanel(panelId);
     },
-    [activePanel, activatePanel, userTracking],
+    [activePanel, activatePanel, panels, userTracking],
   );
 
   if (panels.length === 0) return <DockEmptyState />;

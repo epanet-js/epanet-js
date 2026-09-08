@@ -26,3 +26,20 @@ export type PanelType = Panel["type"];
 export type PanelOfType<T extends PanelType> = Extract<Panel, { type: T }>;
 
 export const newPanelId = (): string => nanoid();
+
+export const panelTrackingName = (panel: Panel): string => {
+  switch (panel.type) {
+    case "asset-table":
+      return [
+        panel.type,
+        panel.assetType,
+        panel.assetIds ? "selection" : "all",
+      ].join(":");
+    case "customer-point-table":
+      return [panel.type, panel.customerPointIds ? "selection" : "all"].join(
+        ":",
+      );
+    default:
+      return panel.type;
+  }
+};

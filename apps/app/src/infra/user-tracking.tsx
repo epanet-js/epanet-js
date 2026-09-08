@@ -1695,11 +1695,11 @@ export type UserEvent =
       panelType: string;
       assetType?: string;
     }
-  | { name: "bottomPanel.tabSwitched"; tabId: string }
+  | { name: "bottomPanel.tabSwitched"; panelType: string }
   | {
       name: "bottomPanel.toggled";
       open: boolean;
-      activeTabId: string | null;
+      activePanelType: string | null;
       source: "toolbar" | "shortcut";
     }
   | {
