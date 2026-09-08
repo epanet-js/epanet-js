@@ -2,7 +2,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "src/__helpers__/locale";
-import { Tab, TabList, TabRoot } from "./tab";
+import { Tab, TabList, TabRoot, scrollTargetFor } from "./tab";
 
 const stubMetrics = ({
   scrollWidth,
@@ -37,6 +37,26 @@ const leftControl = () =>
 const rightControl = () =>
   screen.queryByRole("button", { name: "Scroll tabs right" });
 
+const stubTabGeometry = (
+  widths: number[],
+  listWidth: number,
+  scrollLeft: number,
+) => {
+  const list = tabList();
+  list.scrollLeft = scrollLeft;
+  vi.spyOn(list, "getBoundingClientRect").mockReturnValue({
+    left: 0,
+    width: listWidth,
+  } as DOMRect);
+  Array.from(list.children).forEach((tab, index) => {
+    const start = widths.slice(0, index).reduce((total, w) => total + w, 0);
+    vi.spyOn(tab, "getBoundingClientRect").mockReturnValue({
+      left: start - scrollLeft,
+      width: widths[index],
+    } as DOMRect);
+  });
+};
+
 beforeEach(() => {
   Object.defineProperty(HTMLElement.prototype, "scrollLeft", {
     configurable: true,
@@ -44,10 +64,47 @@ beforeEach(() => {
     value: 0,
   });
   HTMLElement.prototype.scrollBy = vi.fn();
+  HTMLElement.prototype.scrollTo = vi.fn();
 });
 
 afterEach(() => {
   stubMetrics({ scrollWidth: 0, clientWidth: 0 });
+});
+
+describe("scrollTargetFor", () => {
+  const tabs = [
+    { start: 0, end: 100 },
+    { start: 100, end: 220 },
+    { start: 220, end: 300 },
+  ];
+
+  it("aligns the next cut-off tab with the far edge", () => {
+    expect(scrollTargetFor(tabs, 0, 200, 1)).toEqual(20);
+  });
+
+  it("advances one tab at a time, not one viewport", () => {
+    expect(scrollTargetFor(tabs, 20, 200, 1)).toEqual(100);
+  });
+
+  it("stays put when the last tab is already whole", () => {
+    expect(scrollTargetFor(tabs, 100, 200, 1)).toEqual(100);
+  });
+
+  it("brings the tab cut off at the start flush to the left", () => {
+    expect(scrollTargetFor(tabs, 150, 200, -1)).toEqual(100);
+  });
+
+  it("steps back one tab rather than one viewport", () => {
+    expect(scrollTargetFor(tabs, 100, 200, -1)).toEqual(0);
+  });
+
+  it("stays put at the beginning of the strip", () => {
+    expect(scrollTargetFor(tabs, 0, 200, -1)).toEqual(0);
+  });
+
+  it("ignores a sub-pixel sliver at the edge", () => {
+    expect(scrollTargetFor(tabs, 100.5, 200, -1)).toEqual(0);
+  });
 });
 
 describe("Tab", () => {
@@ -120,13 +177,15 @@ describe("TabList", () => {
     expect(leftControl()).toBeEnabled();
   });
 
-  it("scrolls the strip when a control is pressed", async () => {
+  it("brings the next cut-off tab fully into view", async () => {
     stubMetrics({ scrollWidth: 600, clientWidth: 200 });
 
     renderTabs();
+    // Two 120px tabs in a 200px strip: the second is cut off by 40px.
+    stubTabGeometry([120, 120], 200, 0);
     await userEvent.click(rightControl() as HTMLElement);
 
-    expect(tabList().scrollBy).toHaveBeenCalledWith({ left: 160 });
+    expect(tabList().scrollTo).toHaveBeenCalledWith({ left: 40 });
   });
 
   it("turns a vertical wheel into a horizontal scroll", () => {

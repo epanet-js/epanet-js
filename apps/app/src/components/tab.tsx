@@ -6,7 +6,37 @@ import { ChevronLeftIcon, ChevronRightIcon } from "src/icons";
 
 export const TabRoot = Tabs.Root;
 
-const SCROLL_STEP_RATIO = 0.8;
+const EDGE_TOLERANCE = 1;
+
+type TabBox = { start: number; end: number };
+
+export const scrollTargetFor = (
+  tabs: readonly TabBox[],
+  scrollLeft: number,
+  viewport: number,
+  direction: -1 | 1,
+): number => {
+  if (direction === 1) {
+    const cutOff = tabs.find(
+      (tab) => tab.end > scrollLeft + viewport + EDGE_TOLERANCE,
+    );
+    return cutOff ? cutOff.end - viewport : scrollLeft;
+  }
+
+  for (let i = tabs.length - 1; i >= 0; i--) {
+    if (tabs[i].start < scrollLeft - EDGE_TOLERANCE) return tabs[i].start;
+  }
+  return scrollLeft;
+};
+
+const measureTabs = (list: HTMLElement): TabBox[] => {
+  const listLeft = list.getBoundingClientRect().left;
+  return Array.from(list.children).map((tab) => {
+    const rect = tab.getBoundingClientRect();
+    const start = rect.left - listLeft + list.scrollLeft;
+    return { start, end: start + rect.width };
+  });
+};
 
 type Overflow = { scrollable: boolean; start: boolean; end: boolean };
 
@@ -71,7 +101,14 @@ export function TabList({
   const scrollByStep = useCallback((direction: -1 | 1) => {
     const list = listRef.current;
     if (!list) return;
-    list.scrollBy({ left: direction * list.clientWidth * SCROLL_STEP_RATIO });
+    list.scrollTo({
+      left: scrollTargetFor(
+        measureTabs(list),
+        list.scrollLeft,
+        list.clientWidth,
+        direction,
+      ),
+    });
   }, []);
 
   return (
