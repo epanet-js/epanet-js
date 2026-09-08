@@ -1671,7 +1671,12 @@ export type UserEvent =
   | { name: "controls.opened"; source: string }
   | { name: "patternsLibrary.opened"; source: string }
   | { name: "assetControls.opened"; source: string }
-  | { name: "dataTables.opened"; source: string }
+  | {
+      name: "dataTables.opened";
+      source: string;
+      opened?: number;
+      requested?: number;
+    }
   | {
       name: "dataTables.panelClosed";
       source: string;

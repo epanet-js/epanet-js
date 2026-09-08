@@ -12,7 +12,8 @@ type Common = {
 export type Panel =
   | (Common & { type: "asset-table"; assetType: AssetType })
   | (Common & { type: "customer-point-table" })
-  | (Common & { type: "hgl-profile" });
+  | (Common & { type: "hgl-profile" })
+  | (Common & { type: "table-picker" });
 
 export type PanelType = Panel["type"];
 

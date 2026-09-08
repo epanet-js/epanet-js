@@ -1,11 +1,9 @@
-import { useAtomValue, useSetAtom } from "jotai";
 import { useAtomCallback } from "jotai/utils";
 import { useCallback } from "react";
 import { useUserTracking } from "src/infra/user-tracking";
 import { panelFor } from "src/panels/panel-template";
 import { useIsPanelClosable } from "src/panels/use-panel-closable";
 import { useDeactivatePanel } from "./deactivate-panel";
-import type { Panel } from "src/panels/panel";
 import {
   activatePanelAtom,
   activePanelsAtom,
@@ -18,52 +16,37 @@ import {
 export const useClosePanel = () => {
   const deactivatePanel = useDeactivatePanel();
   const isClosable = useIsPanelClosable();
-  const setPanels = useSetAtom(panelsAtom);
-  const forgetPanel = useSetAtom(forgetPanelAtom);
-  const activatePanel = useSetAtom(activatePanelAtom);
-  const activePanels = useAtomValue(activePanelsAtom);
-  const allPanels = useAtomValue(placedPanelsAtom);
-  const byDock = useAtomValue(panelsByDockAtom);
   const userTracking = useUserTracking();
 
-  const runCloseEffect = useAtomCallback(
+  return useAtomCallback(
     useCallback(
-      (get, set, panel: Panel) => {
-        panelFor(panel).onClose?.({ get, set, userTracking }, panel);
+      (get, set, panelId: string) => {
+        const entry = get(placedPanelsAtom).find(
+          (placed) => placed.id === panelId,
+        );
+        if (!entry || !isClosable(entry)) return;
+
+        const { dock } = entry;
+        const ids = dock
+          ? get(panelsByDockAtom)[dock].map((placed) => placed.id)
+          : [];
+        const position = ids.indexOf(panelId);
+        const neighbour = ids[position + 1] ?? ids[position - 1] ?? null;
+        const wasActive = dock
+          ? get(activePanelsAtom)[dock]?.id === panelId
+          : false;
+
+        deactivatePanel(entry.panel);
+        panelFor(entry.panel).onClose?.(
+          { get, set, userTracking },
+          entry.panel,
+        );
+
+        set(panelsAtom, (prev) => prev.filter((panel) => panel.id !== panelId));
+        set(forgetPanelAtom, panelId);
+        if (wasActive && neighbour) set(activatePanelAtom, neighbour);
       },
-      [userTracking],
+      [deactivatePanel, isClosable, userTracking],
     ),
-  );
-
-  return useCallback(
-    (panelId: string) => {
-      const entry = allPanels.find((placed) => placed.id === panelId);
-      if (!entry || !isClosable(entry)) return;
-
-      const { dock } = entry;
-      const ids = dock ? byDock[dock].map((placed) => placed.id) : [];
-      const position = ids.indexOf(panelId);
-      const neighbour = ids[position + 1] ?? ids[position - 1] ?? null;
-
-      deactivatePanel(entry.panel);
-      runCloseEffect(entry.panel);
-
-      setPanels((prev) => prev.filter((panel) => panel.id !== panelId));
-      forgetPanel(panelId);
-      if (dock && activePanels[dock]?.id === panelId) {
-        if (neighbour) activatePanel(neighbour);
-      }
-    },
-    [
-      allPanels,
-      isClosable,
-      byDock,
-      activePanels,
-      deactivatePanel,
-      runCloseEffect,
-      forgetPanel,
-      setPanels,
-      activatePanel,
-    ],
   );
 };

@@ -24,6 +24,16 @@ export const createCustomerPointTablePanel = ({
   closable,
 });
 
+export const TABLE_PICKER_PANEL_ID = "table-picker";
+
+export const createTablePickerPanel = (): PanelOfType<"table-picker"> => ({
+  id: TABLE_PICKER_PANEL_ID,
+  type: "table-picker",
+  initialDock: "bottom",
+  availableInVerticalLayout: true,
+  closable: true,
+});
+
 const DEFAULT_ASSET_TYPES: AssetType[] = [
   "junction",
   "pipe",
@@ -32,6 +42,8 @@ const DEFAULT_ASSET_TYPES: AssetType[] = [
   "reservoir",
   "tank",
 ];
+
+export const OPENABLE_ASSET_TYPES: readonly AssetType[] = DEFAULT_ASSET_TYPES;
 
 export const defaultDataTablePanels = () => [
   ...DEFAULT_ASSET_TYPES.map((assetType) =>

@@ -4,6 +4,7 @@ import { tableHandlesAtom } from "./table-handles";
 import type { PanelTemplate } from "src/panels/panel-template";
 import { AssetDataTable } from "./asset-data-table";
 import { CustomerPointDataTable } from "./customer-point-data-table";
+import { TablePicker } from "./table-picker";
 
 const assetTypeLabelKeys: Record<AssetType, string> = {
   junction: "junctions",
@@ -50,4 +51,10 @@ export const customerPointTablePanel: PanelTemplate<"customer-point-table"> = {
       panelType: panel.type,
     });
   },
+};
+
+export const tablePickerPanel: PanelTemplate<"table-picker"> = {
+  component: ({ panel }) => <TablePicker id={panel.id} />,
+  buildLabel: (_panel, translate: TranslateFn) =>
+    translate("dataTables.picker.title"),
 };

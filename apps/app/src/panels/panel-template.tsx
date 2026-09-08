@@ -5,7 +5,11 @@ import type { useUserTracking } from "src/infra/user-tracking";
 import type { Dock } from "./docks";
 import type { Panel, PanelOfType, PanelType } from "./panel";
 import type { DataGridState } from "src/components/data-grid";
-import { assetTablePanel, customerPointTablePanel } from "./data-tables/panel";
+import {
+  assetTablePanel,
+  customerPointTablePanel,
+  tablePickerPanel,
+} from "./data-tables/panel";
 import { hglProfilePanel } from "./hgl-profile/panel";
 
 export type PanelLifecycleContext = {
@@ -33,6 +37,7 @@ export type PanelContentStateByType = {
   "asset-table": DataGridState;
   "customer-point-table": DataGridState;
   "hgl-profile": undefined;
+  "table-picker": undefined;
 };
 
 export type PanelContentState =
@@ -42,6 +47,7 @@ const panelTemplates = {
   "asset-table": assetTablePanel,
   "customer-point-table": customerPointTablePanel,
   "hgl-profile": hglProfilePanel,
+  "table-picker": tablePickerPanel,
 } satisfies { [K in PanelType]: PanelTemplate<K> };
 
 export const panelFor = (panel: Panel): PanelTemplate<PanelType> =>
