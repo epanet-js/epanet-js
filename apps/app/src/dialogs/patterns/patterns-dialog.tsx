@@ -306,7 +306,7 @@ const NoSelectionState = () => {
   return (
     <div className="flex flex-col items-center justify-center px-4">
       <div className="text-subtle">
-        <PatternsIcon size={96} />
+        <PatternsIcon size="2xl" />
       </div>
       <p className="text-size-base text-subtle text-center max-w-64 py-4">
         {translate("patterns.noSelection")}
@@ -321,7 +321,7 @@ const EmptyState = ({ readOnly }: { readOnly: boolean }) => {
   return (
     <div className="flex flex-col items-center justify-center px-4">
       <div className="text-subtle">
-        <PatternsIcon size={96} />
+        <PatternsIcon size="2xl" />
       </div>
       <p className="text-size-base font-semibold py-4 text-subtle">
         {translate("patterns.emptyTitle")}

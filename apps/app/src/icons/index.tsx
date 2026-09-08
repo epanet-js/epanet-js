@@ -88,6 +88,7 @@ import {
   SquareDashed,
   SquareDashedMousePointer,
   SquareStack,
+  SquircleDashed,
   Star,
   Sun,
   Table,
@@ -115,6 +116,7 @@ export const iconSizes = {
   md: 16,
   lg: 20,
   xl: 24,
+  "2xl": 96,
 } as const;
 
 export type IconSizeKey = keyof typeof iconSizes;
@@ -229,6 +231,7 @@ export const DisconnectIcon = icon(Link2Off);
 export const HouseIcon = icon(House);
 export const ConnectivityTraceIcon = icon(Waypoints);
 export const OrphanNodeIcon = icon(CircleDotDashed);
+export const EmptyStateIcon = icon(SquircleDashed);
 export const NoIssuesIcon = icon(Goal);
 export const RectangularSelectionIcon = icon(SquareDashed);
 export const FreeHandSelectionIcon = icon(Lasso);

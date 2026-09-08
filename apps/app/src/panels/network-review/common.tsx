@@ -131,7 +131,7 @@ export const EmptyState = ({ checkType }: { checkType: CheckType }) => {
   return (
     <div className="grow flex flex-col items-center justify-center px-4 pb-4">
       <div className="text-subtle">
-        <NoIssuesIcon size={96} />
+        <NoIssuesIcon size="2xl" />
       </div>
       <p className="text-size-base text-center py-4 text-subtle max-w-48">
         {translate(`networkReview.${checkType}.emptyMessage`)}

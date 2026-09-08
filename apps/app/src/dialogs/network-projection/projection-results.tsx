@@ -49,7 +49,7 @@ export const ProjectionResults = ({
     return (
       <div className="flex-1 min-h-0 flex flex-col items-center justify-center px-4 text-center">
         <div className="text-subtle">
-          <MapPinXInsideIcon size={96} />
+          <MapPinXInsideIcon size="2xl" />
         </div>
         <p className="text-size-base font-semibold py-4 text-subtle dark:text-gray-300 max-w-48">
           {t("networkProjection.noResultsTitle")}

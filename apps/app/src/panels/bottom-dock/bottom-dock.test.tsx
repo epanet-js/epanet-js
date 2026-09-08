@@ -68,7 +68,7 @@ describe("BottomDock", () => {
 
     renderTabs(store);
 
-    expect(screen.getByText("Nothing open")).toBeInTheDocument();
+    expect(screen.getByText("Nothing here yet")).toBeInTheDocument();
     expect(screen.queryByRole("tab")).not.toBeInTheDocument();
   });
 
@@ -170,7 +170,7 @@ describe("BottomDock", () => {
       screen.getByRole("button", { name: "Close Junctions" }),
     );
 
-    expect(screen.getByText("Nothing open")).toBeInTheDocument();
+    expect(screen.getByText("Nothing here yet")).toBeInTheDocument();
     expect(screen.queryByRole("tab")).not.toBeInTheDocument();
   });
 

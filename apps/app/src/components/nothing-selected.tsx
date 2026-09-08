@@ -20,7 +20,7 @@ export const NothingSelected = memo(function NothingSelected() {
   return (
     <div className="grow flex flex-col items-center justify-center px-4 pb-4">
       <div className="text-subtle">
-        <PointerClickIcon size={96} />
+        <PointerClickIcon size="2xl" />
       </div>
       <p className="text-size-base font-semibold py-4 text-subtle">
         {translate("nothingSelectedTitle")}

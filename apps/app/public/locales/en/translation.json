@@ -1861,8 +1861,9 @@
   "panels": {
     "closePanel": "Close {{1}}",
     "empty": {
-      "title": "Nothing open",
-      "description": "Use Data tables or HGL profile in the toolbar to open a panel here."
+      "title": "Nothing here yet",
+      "dataTables": "View and edit your model's assets in a spreadsheet.",
+      "hglProfile": "Plot elevation and hydraulic grade along a path of pipes."
     }
   },
   "hglProfile": {
