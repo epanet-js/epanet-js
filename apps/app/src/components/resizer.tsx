@@ -193,7 +193,7 @@ export const Resizer = memo(function ResizerInner({
           cursor: "col-resize",
           [side]: showPanel ? splits[side] : 0,
         }}
-        className="absolute top-0 bottom-0
+        className="absolute top-0 bottom-0 z-10
         touch-none
         flex items-center
         justify-center

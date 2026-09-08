@@ -77,8 +77,7 @@
       "coordinateSystemUnknown": "The file does not state a coordinate system and its coordinates are not longitude and latitude, so nothing was imported.",
       "coordinateSystemUnsupported": "The file names a coordinate system we cannot apply, so nothing was imported.",
       "coordinateSystemMismatch": "The coordinate system does not match the coordinates in the file, so nothing was imported."
-    }
-  ,
+    },
     "paywall": {
       "title": "Upgrade to convert models",
       "description1": "Bring models authored in other software into epanet-js without rebuilding them by hand.",
@@ -1982,5 +1981,9 @@
       "plans": "The pipe library is available on paid plans.",
       "trial": "The pipe library is a paid feature. Activate your free trial to get full access for 14 days—no credit card required."
     }
+  },
+  "tabs": {
+    "scrollLeft": "Scroll tabs left",
+    "scrollRight": "Scroll tabs right"
   }
 }

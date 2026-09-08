@@ -745,3 +745,12 @@ body.dark .mapboxgl-ctrl-attrib-button {
   width: 2rem;
   height: 2rem;
 }
+
+.scrollbar-hidden {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
