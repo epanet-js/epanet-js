@@ -8,19 +8,21 @@ import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { CommandContainer } from "src/commands/__helpers__/command-container";
 import { USelection } from "src/selection";
 import { Store } from "src/state";
-import { activatePanelAtom, activePanelIn, panelsAtom } from "src/state/panels";
-import { createAssetTablePanel, createTablePickerPanel } from "./create-panel";
-import { TablePicker } from "./table-picker";
+import { activePanelIn, panelsAtom } from "src/state/panels";
+import { createAssetTablePanel } from "src/panels/data-tables/create-panel";
+import { OpenDataTablesDialog } from "./open-data-tables";
 
 const aStore = () =>
   setInitialState({
     hydraulicModel: HydraulicModelBuilder.with().aJunction(1).build(),
   });
 
+const onClose = vi.fn();
+
 const renderPicker = (store: Store) =>
   render(
     <CommandContainer store={store}>
-      <TablePicker id="table-picker" />
+      <OpenDataTablesDialog onClose={onClose} />
     </CommandContainer>,
   );
 
@@ -41,12 +43,13 @@ const scopeCheckbox = () =>
 
 beforeEach(() => {
   stubUserTracking();
+  onClose.mockClear();
 });
 
-describe("TablePicker", () => {
+describe("OpenDataTablesDialog", () => {
   it("disables Open until something is checked", async () => {
     const store = aStore();
-    store.set(panelsAtom, [createTablePickerPanel()]);
+    store.set(panelsAtom, []);
 
     renderPicker(store);
     expect(openButton()).toBeDisabled();
@@ -58,7 +61,7 @@ describe("TablePicker", () => {
 
   it("opens a table for each checked type", async () => {
     const store = aStore();
-    store.set(panelsAtom, [createTablePickerPanel()]);
+    store.set(panelsAtom, []);
 
     renderPicker(store);
     await userEvent.click(screen.getByRole("checkbox", { name: /Junctions/ }));
@@ -74,7 +77,6 @@ describe("TablePicker", () => {
   it("shows an already-open table as checked and disabled", () => {
     const store = aStore();
     store.set(panelsAtom, [
-      createTablePickerPanel(),
       createAssetTablePanel("pipe", { id: "pipe", closable: false }),
     ]);
 
@@ -88,7 +90,6 @@ describe("TablePicker", () => {
   it("keeps Open disabled when only already-open tables are listed", () => {
     const store = aStore();
     store.set(panelsAtom, [
-      createTablePickerPanel(),
       createAssetTablePanel("pipe", { id: "pipe", closable: false }),
     ]);
 
@@ -100,7 +101,6 @@ describe("TablePicker", () => {
   it("opens only the newly checked table", async () => {
     const store = aStore();
     store.set(panelsAtom, [
-      createTablePickerPanel(),
       createAssetTablePanel("pipe", { id: "pipe", closable: false }),
     ]);
 
@@ -115,26 +115,22 @@ describe("TablePicker", () => {
     ).toEqual(["pipe", "valve"]);
   });
 
-  it("closes itself once the tables are open", async () => {
+  it("closes once the tables are open", async () => {
     const store = aStore();
-    store.set(panelsAtom, [createTablePickerPanel()]);
+    store.set(panelsAtom, []);
 
     renderPicker(store);
     await userEvent.click(screen.getByRole("checkbox", { name: /Junctions/ }));
     await userEvent.click(openButton());
 
-    expect(
-      store.get(panelsAtom).some((panel) => panel.type === "table-picker"),
-    ).toBe(false);
+    expect(onClose).toHaveBeenCalled();
   });
 
-  it("leaves the newly opened table active, not a neighbour", async () => {
+  it("activates the table it just opened", async () => {
     const store = aStore();
     store.set(panelsAtom, [
       createAssetTablePanel("pipe", { id: "pipe", closable: false }),
-      createTablePickerPanel(),
     ]);
-    store.set(activatePanelAtom, "table-picker");
 
     renderPicker(store);
     await userEvent.click(screen.getByRole("checkbox", { name: /Valves/ }));
@@ -147,7 +143,7 @@ describe("TablePicker", () => {
 
   it("offers the selected-assets scope once something is selected", () => {
     const store = aStoreWithSelection([1]);
-    store.set(panelsAtom, [createTablePickerPanel()]);
+    store.set(panelsAtom, []);
 
     renderPicker(store);
 
@@ -156,7 +152,7 @@ describe("TablePicker", () => {
 
   it("opens the checked tables scoped to the selection", async () => {
     const store = aStoreWithSelection([1, 2]);
-    store.set(panelsAtom, [createTablePickerPanel()]);
+    store.set(panelsAtom, []);
 
     renderPicker(store);
     await userEvent.click(scopeCheckbox());
@@ -171,7 +167,6 @@ describe("TablePicker", () => {
   it("lets a scoped table be opened for a type already open", async () => {
     const store = aStoreWithSelection([1]);
     store.set(panelsAtom, [
-      createTablePickerPanel(),
       createAssetTablePanel("junction", { id: "junction", closable: false }),
     ]);
 
@@ -183,7 +178,7 @@ describe("TablePicker", () => {
 
   it("disables a type with nothing selected under the selection scope", async () => {
     const store = aStoreWithSelection([1]);
-    store.set(panelsAtom, [createTablePickerPanel()]);
+    store.set(panelsAtom, []);
 
     renderPicker(store);
     await userEvent.click(scopeCheckbox());
@@ -194,7 +189,7 @@ describe("TablePicker", () => {
 
   it("shows how many of each type are selected", async () => {
     const store = aStoreWithSelection([1, 2]);
-    store.set(panelsAtom, [createTablePickerPanel()]);
+    store.set(panelsAtom, []);
 
     renderPicker(store);
     await userEvent.click(scopeCheckbox());
@@ -206,7 +201,7 @@ describe("TablePicker", () => {
 
   it("offers no selected-assets scope while nothing is selected", () => {
     const store = aStore();
-    store.set(panelsAtom, [createTablePickerPanel()]);
+    store.set(panelsAtom, []);
 
     renderPicker(store);
 

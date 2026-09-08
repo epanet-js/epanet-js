@@ -69,6 +69,7 @@ import { GisImportErrorsDialog } from "src/dialogs/gis-import-errors";
 import { ActivatingTrialDialog } from "src/dialogs/activating-trial";
 import { WaitingForPaymentDialog } from "src/dialogs/waiting-for-payment";
 import { ExportAssetDataDialog } from "src/dialogs/export-asset-data";
+import { OpenDataTablesDialog } from "src/dialogs/open-data-tables";
 import { ExportSimulationResultsDialog as ExportTimeSeriesDialog } from "src/dialogs/export-simulation-results";
 import { FirstScenarioDialog } from "src/dialogs/first-scenario";
 import { ProfileNoPathDialog } from "src/dialogs/profile-no-path";
@@ -358,6 +359,10 @@ export const Dialogs = memo(function Dialogs() {
 
   if (dialog.type === "exportAssetData") {
     return <ExportAssetDataDialog onClose={onClose} />;
+  }
+
+  if (dialog.type === "openDataTables") {
+    return <OpenDataTablesDialog onClose={onClose} />;
   }
 
   if (dialog.type === "exportTimeSeries") {

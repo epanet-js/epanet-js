@@ -285,6 +285,10 @@ export type ExportAssetDataDialogState = {
   type: "exportAssetData";
 };
 
+export type OpenDataTablesDialogState = {
+  type: "openDataTables";
+};
+
 export type ExportTimeSeriesDialogState = {
   type: "exportTimeSeries";
 };
@@ -411,6 +415,7 @@ export type DialogState =
   | ActivatingTrialDialogState
   | WaitingForPaymentDialogState
   | ExportAssetDataDialogState
+  | OpenDataTablesDialogState
   | ExportTimeSeriesDialogState
   | NetworkProjectionDialogState
   | ProfileNoPathDialogState

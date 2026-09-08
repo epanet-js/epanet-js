@@ -6,6 +6,7 @@ import {
   createAssetTablePanel,
   createCustomerPointTablePanel,
 } from "src/panels/data-tables/create-panel";
+import { splitsAtom } from "src/state/layout";
 import { panelsAtom } from "src/state/panels";
 import { selectionAtom } from "src/state/selection";
 import { USelection } from "src/selection";
@@ -25,6 +26,7 @@ export type OpenDataTablesRequest = {
 
 export const useOpenDataTables = () => {
   const setPanels = useSetAtom(panelsAtom);
+  const setSplits = useSetAtom(splitsAtom);
   const selection = useAtomValue(selectionAtom);
   const activatePanel = useActivatePanel();
   const userTracking = useUserTracking();
@@ -53,6 +55,7 @@ export const useOpenDataTables = () => {
 
       if (created.length > 0) {
         setPanels((prev) => [...prev, ...created]);
+        setSplits((splits) => ({ ...splits, bottomOpen: true }));
         activatePanel(created[0].id);
       }
 
@@ -64,6 +67,6 @@ export const useOpenDataTables = () => {
         requested: tableTypes.length,
       });
     },
-    [setPanels, selection, activatePanel, userTracking],
+    [userTracking, selection, setPanels, setSplits, activatePanel],
   );
 };

@@ -5,8 +5,9 @@ import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
 import { setInitialState } from "src/__helpers__/state";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { Store } from "src/state";
+import { dialogAtom } from "src/state/dialog";
 import { splitsAtom } from "src/state/layout";
-import { activePanelIn, panelsAtom } from "src/state/panels";
+import { activePanelIn } from "src/state/panels";
 import { CommandContainer } from "./__helpers__/command-container";
 import { useShowDataTables } from "./show-data-tables";
 
@@ -21,7 +22,7 @@ beforeEach(() => {
 });
 
 describe("useShowDataTables", () => {
-  it("opens the bottom dock", async () => {
+  it("opens the bottom dock while the flag is off", async () => {
     const store = aStore();
 
     await show(store);
@@ -37,26 +38,23 @@ describe("useShowDataTables", () => {
     expect(store.get(activePanelIn("bottom"))?.id).toEqual("junction");
   });
 
-  it("opens the picker instead once the flag is on", async () => {
+  it("asks which tables to open once the flag is on", async () => {
     stubFeatureOn("FLAG_PARTIAL_DATA_TABLES");
     const store = aStore();
 
     await show(store);
 
-    expect(store.get(activePanelIn("bottom"))?.id).toEqual("table-picker");
+    expect(store.get(dialogAtom)).toEqual({ type: "openDataTables" });
   });
 
-  it("focuses the picker it already opened rather than adding another", async () => {
+  it("leaves the dock alone until tables are picked", async () => {
     stubFeatureOn("FLAG_PARTIAL_DATA_TABLES");
     const store = aStore();
+    store.set(splitsAtom, { ...store.get(splitsAtom), bottomOpen: false });
 
     await show(store);
-    await show(store);
 
-    const pickers = store
-      .get(panelsAtom)
-      .filter((panel) => panel.type === "table-picker");
-    expect(pickers).toHaveLength(1);
+    expect(store.get(splitsAtom).bottomOpen).toBe(false);
   });
 });
 

@@ -35,16 +35,6 @@ export const createCustomerPointTablePanel = ({
   ...(customerPointIds ? { customerPointIds } : {}),
 });
 
-export const TABLE_PICKER_PANEL_ID = "table-picker";
-
-export const createTablePickerPanel = (): PanelOfType<"table-picker"> => ({
-  id: TABLE_PICKER_PANEL_ID,
-  type: "table-picker",
-  initialDock: "bottom",
-  availableInVerticalLayout: true,
-  closable: true,
-});
-
 const DEFAULT_ASSET_TYPES: AssetType[] = [
   "junction",
   "pipe",

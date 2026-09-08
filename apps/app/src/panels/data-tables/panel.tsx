@@ -3,7 +3,6 @@ import { tableHandlesAtom } from "./table-handles";
 import type { PanelTemplate } from "src/panels/panel-template";
 import { AssetDataTable } from "./asset-data-table";
 import { CustomerPointDataTable } from "./customer-point-data-table";
-import { TablePicker } from "./table-picker";
 
 const countMatching = <T,>(ids: readonly T[], matches: (id: T) => boolean) =>
   ids.reduce((count, id) => (matches(id) ? count + 1 : count), 0);
@@ -76,9 +75,4 @@ export const customerPointTablePanel: PanelTemplate<"customer-point-table"> = {
       panelType: panel.type,
     });
   },
-};
-
-export const tablePickerPanel: PanelTemplate<"table-picker"> = {
-  component: ({ panel }) => <TablePicker id={panel.id} />,
-  buildLabel: (_panel, { translate }) => translate("dataTables.picker.title"),
 };
