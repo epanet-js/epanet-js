@@ -124,6 +124,42 @@ describe("BottomDock", () => {
     ).toBeInTheDocument();
   });
 
+  it("reveals the close buttons on hover once the flag is on", () => {
+    stubFeatureOn("FLAG_PARTIAL_DATA_TABLES");
+    const store = aStore();
+    store.set(panelsAtom, [anInstance("a", { closable: false })]);
+
+    renderTabs(store);
+
+    expect(screen.getByRole("button", { name: "Close Junctions" })).toHaveClass(
+      "opacity-0",
+      "group-hover:opacity-100",
+    );
+  });
+
+  it("keeps the close button on the active tab visible", () => {
+    stubFeatureOn("FLAG_PARTIAL_DATA_TABLES");
+    const store = aStore();
+    store.set(panelsAtom, [anInstance("a", { closable: false })]);
+
+    renderTabs(store);
+
+    expect(screen.getByRole("button", { name: "Close Junctions" })).toHaveClass(
+      "group-data-[state=active]:opacity-100",
+    );
+  });
+
+  it("keeps the close button visible while the flag is off", () => {
+    const store = aStore();
+    store.set(panelsAtom, [anInstance("a")]);
+
+    renderTabs(store);
+
+    expect(
+      screen.getByRole("button", { name: "Close Junctions" }),
+    ).not.toHaveClass("opacity-0");
+  });
+
   it("shows the empty state once the last panel is closed", async () => {
     stubFeatureOn("FLAG_PARTIAL_DATA_TABLES");
     const store = aStore();

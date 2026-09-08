@@ -57,7 +57,7 @@ export const BottomDock = memo(function BottomDockInner() {
           <Tab
             key={entry.id}
             value={entry.id}
-            className={clsx("relative", isClosable(entry) && "pr-7")}
+            className={clsx("relative group", isClosable(entry) && "pr-7")}
           >
             {labelOf(entry)}
             {isClosable(entry) && (
