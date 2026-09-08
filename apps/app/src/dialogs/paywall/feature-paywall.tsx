@@ -149,7 +149,56 @@ export const FeaturePaywall = ({
         </div>
 
         <div className="flex flex-col">
-          {showTrialButton ? (
+          {showPlans ? (
+            <>
+              <button
+                className="flex items-center gap-1 text-size-base text-subtle hover:text-default dark:hover:text-gray-200 pb-2"
+                onClick={() => setShowPlans(false)}
+              >
+                <ChevronLeftIcon className="w-4 h-4" />
+                {translate("back")}
+              </button>
+              <div className="flex flex-col gap-5">
+                <div className="flex flex-col gap-1">
+                  <h3 className="text-size-base font-medium text-default dark:text-gray-100">
+                    {translate("paywall.nonCommercial.title")}
+                  </h3>
+                  <p className="text-size-base text-subtle">
+                    {translate("paywall.nonCommercial.description")}
+                  </p>
+                  <div className="pt-2" onClick={handlePersonalCheckout}>
+                    <CheckoutButton
+                      plan="personal"
+                      paymentType="yearly"
+                      variant="default"
+                      source="paywall"
+                      feature={config.feature}
+                    >
+                      {translate("paywall.nonCommercial.cta")}
+                    </CheckoutButton>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <h3 className="text-size-base font-medium text-default dark:text-gray-100">
+                    {translate("paywall.commercial.title")}
+                  </h3>
+                  <p className="text-size-base text-subtle">
+                    {translate("paywall.commercial.description")}
+                  </p>
+                  <div className="pt-2">
+                    <Button
+                      variant="primary"
+                      size="full-width"
+                      onClick={handleChooseYourPlan}
+                    >
+                      {translate("paywall.commercial.cta")}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : showTrialButton ? (
             <>
               <div className="space-y-3 pb-6">
                 {config.descriptionKeys.map((key) => (
@@ -221,55 +270,6 @@ export const FeaturePaywall = ({
                     {translate("paywall.explorePlans")}
                   </Button>
                 )}
-              </div>
-            </>
-          ) : showPlans ? (
-            <>
-              <button
-                className="flex items-center gap-1 text-size-base text-subtle hover:text-default dark:hover:text-gray-200 pb-2"
-                onClick={() => setShowPlans(false)}
-              >
-                <ChevronLeftIcon className="w-4 h-4" />
-                {translate("back")}
-              </button>
-              <div className="flex flex-col gap-5">
-                <div className="flex flex-col gap-1">
-                  <h3 className="text-size-base font-medium text-default dark:text-gray-100">
-                    {translate("paywall.nonCommercial.title")}
-                  </h3>
-                  <p className="text-size-base text-subtle">
-                    {translate("paywall.nonCommercial.description")}
-                  </p>
-                  <div className="pt-2" onClick={handlePersonalCheckout}>
-                    <CheckoutButton
-                      plan="personal"
-                      paymentType="yearly"
-                      variant="default"
-                      source="paywall"
-                      feature={config.feature}
-                    >
-                      {translate("paywall.nonCommercial.cta")}
-                    </CheckoutButton>
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-1">
-                  <h3 className="text-size-base font-medium text-default dark:text-gray-100">
-                    {translate("paywall.commercial.title")}
-                  </h3>
-                  <p className="text-size-base text-subtle">
-                    {translate("paywall.commercial.description")}
-                  </p>
-                  <div className="pt-2">
-                    <Button
-                      variant="primary"
-                      size="full-width"
-                      onClick={handleChooseYourPlan}
-                    >
-                      {translate("paywall.commercial.cta")}
-                    </Button>
-                  </div>
-                </div>
               </div>
             </>
           ) : (

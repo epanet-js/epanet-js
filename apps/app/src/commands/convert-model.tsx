@@ -21,6 +21,7 @@ import { ConvertModelStarted, useUserTracking } from "src/infra/user-tracking";
 import { useFileOpen } from "src/hooks/use-file-open";
 import { useProjections } from "src/hooks/use-projections";
 import { useLabelMaxLength } from "src/hooks/use-label-max-length";
+import { usePermissions } from "src/hooks/use-permissions";
 import {
   defaultSimulationSettings,
   type SimulationSettings,
@@ -34,6 +35,7 @@ export const useConvertFile = () => {
   const { projections } = useProjections();
   const labelMaxLength = useLabelMaxLength();
   const { startNewProject } = useStartNewProject();
+  const { canImportSynergi } = usePermissions();
   const setDialogState = useSetAtom(dialogAtom);
   const setInpFileInfo = useSetAtom(inpFileInfoAtom);
   const setProjectFileInfo = useSetAtom(projectFileInfoAtom);
@@ -47,6 +49,11 @@ export const useConvertFile = () => {
       file: FileWithHandle,
       source: string,
     ) => {
+      if (!canImportSynergi) {
+        setDialogState({ type: "featurePaywall", feature: "convertModel" });
+        return;
+      }
+
       if (!projections) {
         setDialogState({ type: "invalidFilesError" });
         userTracking.capture({ name: "invalidFilesError.seen" });
@@ -150,6 +157,7 @@ export const useConvertFile = () => {
       }
     },
     [
+      canImportSynergi,
       projections,
       labelMaxLength,
       startNewProject,
@@ -170,11 +178,22 @@ export const useConvertModel = () => {
   const userTracking = useUserTracking();
   const { openFile, isReady } = useFileOpen();
   const setDialogState = useSetAtom(dialogAtom);
+  const { canImportSynergi } = usePermissions();
   const convertFile = useConvertFile();
 
   const pickAndConvert = useCallback(
     async ({ vendor, source }: { vendor: ConverterVendor; source: string }) => {
-      userTracking.capture({ name: "convertModel.started", source, vendor });
+      userTracking.capture({
+        name: "convertModel.started",
+        source,
+        vendor,
+        canImportSynergi,
+      });
+
+      if (!canImportSynergi) {
+        setDialogState({ type: "featurePaywall", feature: "convertModel" });
+        return;
+      }
 
       const converter = getConverter(vendor);
       if (!converter) {
@@ -198,7 +217,14 @@ export const useConvertModel = () => {
         captureError(error as Error);
       }
     },
-    [openFile, isReady, convertFile, setDialogState, userTracking],
+    [
+      openFile,
+      isReady,
+      convertFile,
+      setDialogState,
+      userTracking,
+      canImportSynergi,
+    ],
   );
 
   return useCallback(

@@ -33,6 +33,7 @@ import { inpExtension, useImportInp } from "./import-inp";
 import { useConvertFile } from "./convert-model";
 import { converterExtensions, converterForFile } from "src/lib/converters";
 import { useAvailableConverters } from "src/hooks/use-available-converters";
+import { usePermissions } from "src/hooks/use-permissions";
 import { describeFileTypes } from "src/lib/describe-file-types";
 
 export const openProjectShortcut = "ctrl+o";
@@ -287,6 +288,7 @@ export const useOpenProject = () => {
   const openProjectFile = useOpenProjectFile();
   const importInp = useImportInp();
   const converters = useAvailableConverters();
+  const { canImportSynergi } = usePermissions();
   const convertFile = useConvertFile();
   const userTracking = useUserTracking();
   const setDialogState = useSetAtom(dialogAtom);
@@ -327,6 +329,7 @@ export const useOpenProject = () => {
             name: "convertModel.started",
             source,
             vendor: match.vendor,
+            canImportSynergi,
           });
           void convertFile(match.converter, match.vendor, file, source);
           return;
@@ -370,6 +373,7 @@ export const useOpenProject = () => {
       userTracking,
       setDialogState,
       translate,
+      canImportSynergi,
     ],
   );
 

@@ -9,6 +9,7 @@ import { useOpenProjectFile } from "src/commands/open-project";
 import { useConvertFile } from "src/commands/convert-model";
 import { converterForFile } from "src/lib/converters";
 import { useAvailableConverters } from "src/hooks/use-available-converters";
+import { usePermissions } from "src/hooks/use-permissions";
 import { projectExtension } from "src/commands/save-project";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useUnsavedChangesCheck } from "src/commands/check-unsaved-changes";
@@ -45,6 +46,7 @@ const Drop = () => {
   const importInp = useImportInp();
   const openProjectFile = useOpenProjectFile();
   const converters = useAvailableConverters();
+  const { canImportSynergi } = usePermissions();
   const convertFile = useConvertFile();
   const userTracking = useUserTracking();
   const dialog = useAtomValue(dialogAtom);
@@ -74,12 +76,20 @@ const Drop = () => {
             name: "convertModel.started",
             source: "dragDrop",
             vendor: match.vendor,
+            canImportSynergi,
           });
           void convertFile(match.converter, match.vendor, files[0], "dragDrop");
         },
       },
     ],
-    [openProjectFile, importInp, converters, convertFile, userTracking],
+    [
+      openProjectFile,
+      importInp,
+      converters,
+      convertFile,
+      userTracking,
+      canImportSynergi,
+    ],
   );
 
   useEffect(() => {

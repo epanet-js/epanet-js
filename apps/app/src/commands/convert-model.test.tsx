@@ -8,6 +8,8 @@ import { stubFileOpen } from "src/__helpers__/browser-fs-mock";
 import { fileOpen } from "browser-fs-access";
 import { stubProjectionsReady } from "src/__helpers__/projections";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
+import { stubFeatureOff } from "src/__helpers__/feature-flags";
+import { AuthMockProvider, aUser } from "src/__helpers__/auth-mock";
 import { getByLabel } from "src/__helpers__/asset-queries";
 import { waitForNotLoading } from "src/__helpers__/ui-expects";
 import { stubConverter } from "src/lib/converters/__helpers__/stub-converter";
@@ -21,6 +23,7 @@ import {
 import { projectSettingsAtom } from "src/state/project-settings";
 import { zonesAtom } from "src/state/zones";
 import { Store } from "src/state";
+import { dialogAtom } from "src/state/dialog";
 import { Junction, Pipe, Reservoir, Tank, Valve } from "src/hydraulic-model";
 import { getAttributes } from "@epanet-js/hydraulic-model";
 import { CommandContainer } from "./__helpers__/command-container";
@@ -299,6 +302,7 @@ describe("convertModel", () => {
       name: "convertModel.started",
       source: "toolbar",
       vendor: "synergi",
+      canImportSynergi: true,
     });
     expect(userTracking.capture).toHaveBeenCalledWith({
       name: "convertModel.completed",
@@ -315,6 +319,30 @@ describe("convertModel", () => {
         customAttributes: 0,
       },
       issues: [],
+    });
+  });
+
+  it("shows the paywall instead of converting when the plan does not allow it", async () => {
+    const userTracking = stubUserTracking();
+    stubFeatureOff("FLAG_ACTIVATE_TRIAL");
+    stubFileOpen();
+    stubConverter("synergi", { network: aNetwork(), issues: [] });
+    const store = setInitialState();
+
+    renderComponent({ store, plan: "free" });
+    const pickerCalls = vi.mocked(fileOpen).mock.calls.length;
+    await triggerCommand();
+
+    expect(store.get(dialogAtom)).toEqual({
+      type: "featurePaywall",
+      feature: "convertModel",
+    });
+    expect(vi.mocked(fileOpen).mock.calls).toHaveLength(pickerCalls);
+    expect(userTracking.capture).toHaveBeenCalledWith({
+      name: "convertModel.started",
+      source: "toolbar",
+      vendor: "synergi",
+      canImportSynergi: false,
     });
   });
 
@@ -477,10 +505,18 @@ const TestableComponent = () => {
   );
 };
 
-const renderComponent = ({ store }: { store: Store }) => {
+const renderComponent = ({
+  store,
+  plan = "pro",
+}: {
+  store: Store;
+  plan?: "free" | "pro";
+}) => {
   render(
-    <CommandContainer store={store}>
-      <TestableComponent />
-    </CommandContainer>,
+    <AuthMockProvider user={aUser({ plan })}>
+      <CommandContainer store={store}>
+        <TestableComponent />
+      </CommandContainer>
+    </AuthMockProvider>,
   );
 };

@@ -41,7 +41,6 @@ import { useOpenZonesImport } from "src/commands/open-zones-import";
 import { useImportZonesDisabled } from "src/hooks/use-import-zones-disabled";
 import { useRecentFiles } from "src/hooks/use-recent-files";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { usePermissions } from "src/hooks/use-permissions";
 import {
   Button,
   DDContent,
@@ -149,10 +148,8 @@ const ConverterItem = ({ vendor }: { vendor: ConverterVendor }) => {
 const ConvertModelSubmenu = () => {
   const translate = useTranslate();
   const isSynergiOn = useFeatureFlag("FLAG_SYNERGI");
-  const { canImportSynergi } = usePermissions();
 
-  const isSynergiAvailable =
-    isSynergiOn && canImportSynergi && !!getConverter("synergi");
+  const isSynergiAvailable = isSynergiOn && !!getConverter("synergi");
 
   if (!isSynergiAvailable) return null;
 

@@ -380,6 +380,7 @@ export type ConvertModelStarted = {
   name: "convertModel.started";
   source: string;
   vendor: ConverterVendor;
+  canImportSynergi: boolean;
 };
 
 export type ConvertModelCompleted = {

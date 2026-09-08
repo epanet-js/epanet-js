@@ -27,6 +27,7 @@ import { Store } from "src/state";
 import type { FileWithHandle } from "browser-fs-access";
 import { useOpenProject, useOpenProjectFile } from "./open-project";
 import { recentFilesStoreAtom } from "src/state/file-system";
+import { dialogAtom } from "src/state/dialog";
 
 describe("openProjectFile", () => {
   useInProcessDb();
@@ -165,6 +166,37 @@ describe("openProject", () => {
     expect(store.get(projectSettingsAtom).name).toEqual("my-network");
   });
 
+  it("shows the paywall when the picked file needs a converter the plan does not allow", async () => {
+    stubFeatureOn("FLAG_SYNERGI");
+    stubFileOpen();
+    stubConverter(
+      "synergi",
+      {
+        network: {
+          ...emptyNetworkData(),
+          junctions: [
+            { ref: "1", label: "J1", coordinates: [0, 0], elevation: 63 },
+          ],
+        },
+        issues: [],
+      },
+      { name: "Synergi", extensions: [".mdb"] },
+    );
+    const store = setInitialState();
+
+    renderPicker({ store, plan: "free" });
+    await triggerOpenProject();
+    await doFileSelection(aTestFile({ filename: "my-network.mdb" }));
+
+    await waitFor(() => {
+      expect(store.get(dialogAtom)).toEqual({
+        type: "featurePaywall",
+        feature: "convertModel",
+      });
+    });
+    expect(store.get(stagingModelDerivedAtom).assets.size).toEqual(0);
+  });
+
   it("keeps the picker to projects and INPs when no converter is available", async () => {
     stubFeatureOff("FLAG_SYNERGI");
     stubFileOpen();
@@ -214,9 +246,15 @@ const PickerComponent = () => {
   );
 };
 
-const renderPicker = ({ store }: { store: Store }) => {
+const renderPicker = ({
+  store,
+  plan = "pro",
+}: {
+  store: Store;
+  plan?: "free" | "pro";
+}) => {
   render(
-    <AuthMockProvider user={aUser({ plan: "pro" })}>
+    <AuthMockProvider user={aUser({ plan })}>
       <CommandContainer store={store}>
         <PickerComponent />
       </CommandContainer>

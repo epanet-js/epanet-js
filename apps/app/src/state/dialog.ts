@@ -239,7 +239,8 @@ export type PaywallFeature =
   | "pipeLibrary"
   | "customAttributes"
   | "modelAttributesValidation"
-  | "modelBuilder";
+  | "modelBuilder"
+  | "convertModel";
 
 export type FeaturePaywallDialogState = {
   type: "featurePaywall";

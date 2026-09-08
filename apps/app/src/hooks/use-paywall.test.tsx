@@ -98,4 +98,19 @@ describe("usePaywall", () => {
       feature: "customAttributes",
     });
   });
+
+  it("returns null for convertModel when the user has the permission", () => {
+    permissionsRef.current = {
+      ...defaultPermissions,
+      canImportSynergi: true,
+    };
+    expect(captureDialog("convertModel")).toBeNull();
+  });
+
+  it("returns the featurePaywall dialog for convertModel when locked", () => {
+    expect(captureDialog("convertModel")).toEqual({
+      type: "featurePaywall",
+      feature: "convertModel",
+    });
+  });
 });

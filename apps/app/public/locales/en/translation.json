@@ -78,6 +78,19 @@
       "coordinateSystemUnsupported": "The file names a coordinate system we cannot apply, so nothing was imported.",
       "coordinateSystemMismatch": "The coordinate system does not match the coordinates in the file, so nothing was imported."
     }
+  ,
+    "paywall": {
+      "title": "Upgrade to convert models",
+      "description1": "Bring models authored in other software into epanet-js without rebuilding them by hand.",
+      "description2": "Pipes, pumps, valves, zones and custom attributes come across with the data the source file states.",
+      "plans": "Model conversion is available on paid plans.",
+      "trial": "Model conversion is a paid feature. Activate your free trial to get full access for 14 days—no credit card required.",
+      "captions": {
+        "1": "Convert a model from another format",
+        "2": "Pipes, pumps, valves and zones come across with your data",
+        "3": "Pick up where your existing model left off"
+      }
+    }
   },
   "assetSearch": {
     "placeholder": "Search assets...",

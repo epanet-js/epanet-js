@@ -54,6 +54,10 @@ const FEATURE_CONFIG: Record<PaywallFeature, FeatureConfig> = {
     permission: "canUseModelBuildV2",
     dialog: { type: "upgrade", feature: "modelBuilder" },
   },
+  convertModel: {
+    permission: "canImportSynergi",
+    dialog: { type: "featurePaywall", feature: "convertModel" },
+  },
 };
 
 // Pure routing: the dialog that starts the upgrade flow for a feature,
