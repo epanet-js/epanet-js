@@ -9,7 +9,6 @@ import {
   FileBoxIcon,
   FilePlusCornerIcon,
   FileSpreadsheetIcon,
-  DatabaseIcon,
   FolderIcon,
   FolderOpenIcon,
   GlobeIcon,
@@ -141,7 +140,7 @@ const ConverterItem = ({ vendor }: { vendor: ConverterVendor }) => {
         void convertModel({ vendor, source: "toolbar" });
       }}
     >
-      <DatabaseIcon />
+      <FileBoxIcon />
       {converter.name}
     </StyledItem>
   );
@@ -160,7 +159,7 @@ const ConvertModelSubmenu = () => {
   return (
     <DD.Sub>
       <DDSubTriggerItem>
-        <FileBoxIcon />
+        <FolderOpenIcon />
         {translate("convertModel.menuTitle")}
         <ChevronRightIcon size="sm" className="ml-auto" />
       </DDSubTriggerItem>
