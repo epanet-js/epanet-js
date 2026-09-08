@@ -82,7 +82,7 @@ export function TabList({
           disabled={!overflow.start}
           onClick={() => scrollByStep(-1)}
         >
-          <ChevronLeftIcon size="sm" />
+          <ChevronLeftIcon />
         </ScrollControl>
       )}
       <div className="scroll-shadows-x flex-1 min-w-0 flex">
@@ -104,7 +104,7 @@ export function TabList({
           disabled={!overflow.end}
           onClick={() => scrollByStep(1)}
         >
-          <ChevronRightIcon size="sm" />
+          <ChevronRightIcon />
         </ScrollControl>
       )}
     </div>
@@ -128,7 +128,7 @@ function ScrollControl({
       aria-label={label}
       disabled={disabled}
       onClick={onClick}
-      className="flex-none w-6 inline-flex items-center justify-center
+      className="flex-none w-8 inline-flex items-center justify-center
         text-subtle transition-colors
         enabled:hover:text-default enabled:hover:bg-base-hover
         disabled:opacity-30"
