@@ -35,6 +35,7 @@ import { Message } from "@epanet-js/ui-kit";
 import { DRUMCHAPEL, WATERDOWN } from "src/demo/demo-networks";
 import optimaticsLogoUrl from "src/assets/images/logos/optimatics-logo-black.webp";
 import affinityWaterLogoUrl from "src/assets/images/logos/affinity-water-logo.svg";
+import anglianWaterLogoUrl from "src/assets/images/logos/anglian-water-logo.webp";
 import atkinsRealisLogoUrl from "src/assets/images/logos/atkins-realis-logo.svg";
 import iteratingLogoUrl from "src/assets/images/logos/iterating-logo-muted-padded.svg";
 import type { RecentFileEntry } from "src/lib/recent-files";
@@ -185,12 +186,12 @@ const FoundingPartners = () => {
   const userTracking = useUserTracking();
   return (
     <div className="bg-panel rounded-lg p-4 mt-6 text-size-small text-center shrink-0">
-      <h3 className="text-subtle font-bold">
+      <h3 className="pb-2 text-subtle font-bold">
         {translate("foundersPartnerTitle")}
       </h3>
-      <div className="flex gap-4 justify-center">
+      <div className="flex gap-4 place-content-between">
         <a
-          className="flex-auto"
+          className=""
           href="https://optimatics.com/"
           target="_blank"
           onClick={() => {
@@ -202,14 +203,14 @@ const FoundingPartners = () => {
         >
           <img
             src={optimaticsLogoUrl.src}
-            className="block m-auto h-16"
-            height="64"
+            className="block h-7.5 mt-3.75"
+            height="30"
           />
         </a>
         <a
           href="https://www.affinitywater.co.uk/"
           target="_blank"
-          className="pt-4 flex-auto"
+          className="pt-4"
           onClick={() => {
             userTracking.capture({
               name: "foundersPartner.visited",
@@ -219,14 +220,14 @@ const FoundingPartners = () => {
         >
           <img
             src={affinityWaterLogoUrl.src}
-            className="block m-auto h-4"
-            height="16"
+            className="block h-3.5"
+            height="14"
           />
         </a>
         <a
           href="https://www.atkinsrealis.com/"
           target="_blank"
-          className="pt-3 flex-auto"
+          className="pt-3"
           onClick={() => {
             userTracking.capture({
               name: "foundersPartner.visited",
@@ -236,8 +237,25 @@ const FoundingPartners = () => {
         >
           <img
             src={atkinsRealisLogoUrl.src}
-            className="block m-auto h-4"
-            height="16"
+            className="block h-3.5"
+            height="14"
+          />
+        </a>
+        <a
+          href="https://www.anglianwater.co.uk/"
+          target="_blank"
+          className="pt-3 -mt-5.75"
+          onClick={() => {
+            userTracking.capture({
+              name: "foundersPartner.visited",
+              link: "anglianWater",
+            });
+          }}
+        >
+          <img
+            src={anglianWaterLogoUrl.src}
+            className="block h-10"
+            height="40"
           />
         </a>
       </div>
