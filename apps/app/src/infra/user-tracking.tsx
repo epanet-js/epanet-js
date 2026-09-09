@@ -1816,7 +1816,7 @@ export type UserEvent =
   | { name: "priorityAccess.seen"; featureName: string }
   | { name: "priorityAccess.clickedUpgrade"; featureName: string }
   | { name: "priorityAccess.dismissed"; featureName: string }
-  | { name: "trial.activated"; feature: PaywallFeature }
+  | { name: "trial.activated"; source: UpgradeOrigin; feature: string }
   | { name: "firstScenario.dialogEnabled" }
   | { name: "firstScenario.dialogHidden" }
   | {

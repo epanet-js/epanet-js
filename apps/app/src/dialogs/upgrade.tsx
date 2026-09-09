@@ -24,9 +24,18 @@ import {
 import { useUnsavedChangesCheck } from "src/commands/check-unsaved-changes";
 import { useAuth } from "src/hooks/use-auth";
 import { PaymentType } from "src/hooks/use-checkout";
+import { useActivateTrial } from "src/hooks/use-activate-trial";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { usePermissions } from "src/hooks/use-permissions";
+import { notify } from "src/components/notifications";
 import { signUpUrl } from "src/global-config";
-import { CheckIcon, InfoIcon, CloseIcon } from "src/icons";
+import {
+  CheckIcon,
+  InfoIcon,
+  CloseIcon,
+  RefreshIcon,
+  SuccessIcon,
+} from "src/icons";
 import type { UpgradeOrigin } from "src/state/dialog";
 
 type UsageOption = "commercial" | "non-commercial";
@@ -433,6 +442,13 @@ const ProPlan = ({
 }) => {
   const translate = useTranslate();
   const price = prices.pro[paymentType];
+  const { user, isSignedIn } = useAuth();
+  const isActivateTrialOn = useFeatureFlag("FLAG_ACTIVATE_TRIAL");
+  const canStartTrial =
+    isActivateTrialOn &&
+    paymentType === "yearly" &&
+    !!isSignedIn &&
+    !user.hasUsedTrial;
 
   return (
     <div className="relative bg-base border border-purple-100 rounded-lg shadow-md shadow-purple-300 overflow-hidden flex flex-col justify-between">
@@ -508,16 +524,63 @@ const ProPlan = ({
         </div>
       </div>
       <div className="p-4 w-full">
-        <CheckoutButton
-          plan="pro"
-          paymentType={paymentType}
-          feature={feature}
-          source={source}
-        >
-          {translate("upgradeTo", "Pro")}
-        </CheckoutButton>
+        {canStartTrial ? (
+          <StartTrialButton feature={feature} source={source} />
+        ) : (
+          <CheckoutButton
+            plan="pro"
+            paymentType={paymentType}
+            feature={feature}
+            source={source}
+          >
+            {translate("upgradeTo", "Pro")}
+          </CheckoutButton>
+        )}
       </div>
     </div>
+  );
+};
+
+const StartTrialButton = ({
+  feature,
+  source,
+}: {
+  feature: string;
+  source: UpgradeOrigin;
+}) => {
+  const translate = useTranslate();
+  const userTracking = useUserTracking();
+  const { closeDialog } = useDialogState();
+  const { activateTrial, isLoading } = useActivateTrial();
+
+  const startTrial = async () => {
+    userTracking.capture({ name: "trial.activated", source, feature });
+
+    const activated = await activateTrial();
+    if (!activated) return;
+
+    notify({
+      variant: "success",
+      title: translate("trial.activated"),
+      Icon: SuccessIcon,
+      duration: 3000,
+    });
+    closeDialog();
+  };
+
+  return (
+    <Button
+      variant="primary"
+      size="full-width"
+      onClick={() => void startTrial()}
+      disabled={isLoading}
+    >
+      {isLoading ? (
+        <RefreshIcon className="animate-spin" />
+      ) : (
+        translate("trial.startPlan", "Pro")
+      )}
+    </Button>
   );
 };
 

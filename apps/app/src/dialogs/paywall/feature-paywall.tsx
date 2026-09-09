@@ -93,6 +93,7 @@ export const FeaturePaywall = ({
   const handleStartTrial = async () => {
     userTracking.capture({
       name: "trial.activated",
+      source: "paywall",
       feature: config.feature,
     });
     const activated = await activateTrial();

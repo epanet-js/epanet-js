@@ -1,10 +1,12 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Provider as JotaiProvider, createStore } from "jotai";
 import * as Tooltip from "@radix-ui/react-tooltip";
-import { AuthMockProvider } from "src/__helpers__/auth-mock";
+import { AuthMockProvider, aUser } from "src/__helpers__/auth-mock";
+import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
 import { stubLocale } from "src/__helpers__/locale";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
+import { User } from "src/auth-types";
 import { billingUrl } from "src/global-config";
 import { dialogAtom } from "src/state/dialog";
 import { UpgradeDialog } from "./upgrade";
@@ -155,10 +157,11 @@ describe("upgrade dialog checkout", () => {
 
   const renderDialog = ({
     isSignedIn = true,
-  }: { isSignedIn?: boolean } = {}) => {
+    user = aUser(),
+  }: { isSignedIn?: boolean; user?: User } = {}) => {
     const store = createStore();
     render(
-      <AuthMockProvider isSignedIn={isSignedIn}>
+      <AuthMockProvider isSignedIn={isSignedIn} user={user}>
         <JotaiProvider store={store}>
           <Tooltip.Provider>
             <UpgradeDialog />
@@ -167,5 +170,134 @@ describe("upgrade dialog checkout", () => {
       </AuthMockProvider>,
     );
     return { store };
+  };
+});
+
+describe("upgrade dialog trial", () => {
+  beforeEach(() => {
+    stubUserTracking();
+    stubLocale("en");
+    stubFeatureOn("FLAG_ACTIVATE_TRIAL");
+  });
+
+  it("offers the trial on the yearly pro card", () => {
+    renderDialog();
+
+    expect(
+      screen.getByRole("button", { name: "Start Pro trial" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Upgrade to Pro" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("starts the trial in billing rather than a checkout", async () => {
+    const fetchSpy = billingAnswers();
+    const open = stubOpen();
+    renderDialog();
+
+    await userEvent.click(
+      screen.getByRole("button", { name: "Start Pro trial" }),
+    );
+
+    expect(fetchSpy).toHaveBeenCalledWith(`${billingUrl}/trial`, {
+      method: "POST",
+      credentials: "include",
+    });
+    expect(open).not.toHaveBeenCalled();
+  });
+
+  it("closes the plans once the trial is running", async () => {
+    billingAnswers();
+    const { store } = renderDialog();
+    store.set(dialogAtom, { type: "upgrade" });
+
+    await userEvent.click(
+      screen.getByRole("button", { name: "Start Pro trial" }),
+    );
+
+    await waitFor(() => expect(store.get(dialogAtom)).toBeNull());
+  });
+
+  it("records where the trial was started from", async () => {
+    billingAnswers();
+    const { userTracking } = renderDialog();
+
+    await userEvent.click(
+      screen.getByRole("button", { name: "Start Pro trial" }),
+    );
+
+    expect(userTracking.capture).toHaveBeenCalledWith({
+      name: "trial.activated",
+      source: "upgrade",
+      feature: "upgradeMenu",
+    });
+  });
+
+  it("keeps the checkout on the monthly pro card", async () => {
+    const user = userEvent.setup();
+    renderDialog();
+
+    await user.click(screen.getByRole("switch"));
+
+    expect(
+      screen.getByRole("button", { name: "Upgrade to Pro" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Start Pro trial" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("keeps the checkout for someone who already trialled", () => {
+    renderDialog({ user: aUser({ hasUsedTrial: true }) });
+
+    expect(
+      screen.getByRole("button", { name: "Upgrade to Pro" }),
+    ).toBeInTheDocument();
+  });
+
+  it("keeps the checkout for a signed-out visitor", () => {
+    renderDialog({ isSignedIn: false });
+
+    expect(
+      screen.getByRole("button", { name: "Upgrade to Pro" }),
+    ).toBeInTheDocument();
+  });
+
+  it("keeps the checkout with the flag off", () => {
+    stubFeatureOff("FLAG_ACTIVATE_TRIAL");
+    renderDialog();
+
+    expect(
+      screen.getByRole("button", { name: "Upgrade to Pro" }),
+    ).toBeInTheDocument();
+  });
+
+  const billingAnswers = () =>
+    vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(
+        new Response(JSON.stringify({ status: "success" }), { status: 200 }),
+      );
+
+  const stubOpen = () =>
+    vi.spyOn(window, "open").mockReturnValue(null as unknown as Window);
+
+  const renderDialog = ({
+    isSignedIn = true,
+    user = aUser(),
+  }: { isSignedIn?: boolean; user?: User } = {}) => {
+    const store = createStore();
+    const userTracking = stubUserTracking();
+    render(
+      <AuthMockProvider isSignedIn={isSignedIn} user={user}>
+        <JotaiProvider store={store}>
+          <Tooltip.Provider>
+            <UpgradeDialog />
+          </Tooltip.Provider>
+        </JotaiProvider>
+      </AuthMockProvider>,
+    );
+    return { store, userTracking };
   };
 });
