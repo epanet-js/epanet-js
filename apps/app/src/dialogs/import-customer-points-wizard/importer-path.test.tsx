@@ -96,7 +96,7 @@ describe("customer points wizard, on the importer", () => {
     });
   });
 
-  it("places local coordinates into a model that is not georeferenced", async () => {
+  it("refuses local coordinates in a model that is not georeferenced either", async () => {
     const store = setInitialState({
       hydraulicModel: HydraulicModelBuilder.with().build(),
     });
@@ -105,11 +105,12 @@ describe("customer points wizard, on the importer", () => {
     renderAt(store, [aPoint([1000, 2000], "M-1"), aPoint([1200, 2400], "M-2")]);
 
     await waitFor(() => {
-      expect(screen.getByText(/Customer points \(2\)/)).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /next/i })).toBeDisabled();
     });
+    expect(screen.queryByText(/Customer points \(2\)/)).not.toBeInTheDocument();
   });
 
-  it("still refuses local coordinates in a georeferenced model", async () => {
+  it("refuses them in a georeferenced model", async () => {
     const store = setInitialState({
       hydraulicModel: HydraulicModelBuilder.with().build(),
     });

@@ -29,7 +29,6 @@ import {
 } from "@epanet-js/gis-importers";
 import type { Proj4Projection } from "@epanet-js/projections";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { useProjectPlacement, placementFor } from "src/hooks/use-placement";
 import { buildCustomerPoints } from "./build-customer-points";
 import { collectImportIssues } from "./collect-import-issues";
 import { useLabelMaxLength } from "src/hooks/use-label-max-length";
@@ -97,8 +96,6 @@ export const DataMappingStep: React.FC<{
   const latestRequest = useRef(0);
   const [primaryFile] = sourceFiles;
 
-  const projectPlacement = useProjectPlacement();
-
   const importSelection = useCallback(
     async (
       demandPropertyName: string | null,
@@ -113,7 +110,7 @@ export const DataMappingStep: React.FC<{
       };
 
       try {
-        const { features, issues: parseIssues } = await parseGisSource(source);
+        const { features } = await parseGisSource(source);
         const { network, issues: importIssues } =
           customerPointsImporter.importFromFeatures(features, {
             mapping: { label: labelPropertyName, demand: demandPropertyName },
@@ -132,7 +129,6 @@ export const DataMappingStep: React.FC<{
           features,
           {
             factory: buildCustomerPointPreviewFactory(labelManager),
-            placement: placementFor(projectPlacement, parseIssues.build()),
             toDemand: (value) =>
               convertTo({ value, unit: demandImportUnit }, demandTargetUnit),
             patternId,
@@ -181,7 +177,6 @@ export const DataMappingStep: React.FC<{
       primaryFile,
       projections,
       projectSettings.units,
-      projectPlacement,
       labelManager,
       labelMaxLength,
       setParsedDataSummary,

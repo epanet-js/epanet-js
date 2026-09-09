@@ -37,8 +37,7 @@ const aFile = (features: Feature[], crs?: unknown) =>
     { type: "application/json" },
   );
 
-const georeferenced = { isUnprojected: false };
-const unprojected = { isUnprojected: true };
+const options = {};
 
 describe("readZonesWithImporter", () => {
   it("reads the polygons and the properties to map", async () => {
@@ -49,7 +48,7 @@ describe("readZonesWithImporter", () => {
           aZone(aSquare(0.003, 0.003, 0.001), { DMA: "South" }),
         ]),
       },
-      georeferenced,
+      options,
     );
 
     expect(result.error).toBeUndefined();
@@ -65,7 +64,7 @@ describe("readZonesWithImporter", () => {
           aZone(aSquare(0.001, 0.001, 0.001), { DMA: "North" }),
         ]),
       },
-      georeferenced,
+      options,
     );
 
     expect(result.features).toHaveLength(1);
@@ -74,39 +73,22 @@ describe("readZonesWithImporter", () => {
   it("reports a file with no polygons at all", async () => {
     const result = await readZonesWithImporter(
       { geojson: aFile([aPoint([0.001, 0.001])]) },
-      georeferenced,
+      options,
     );
 
     expect(result.error).toBe("noPolygons");
   });
 
-  it("refuses local coordinates in a georeferenced project", async () => {
+  it("refuses coordinates it cannot place, whatever the project", async () => {
     const result = await readZonesWithImporter(
       { geojson: aFile([aZone(aSquare(432000, 5812000, 100), {})]) },
-      georeferenced,
+      options,
     );
 
     expect(result.error).toBe("invalidProjection");
   });
 
-  it("accepts those same coordinates in a project that is not georeferenced", async () => {
-    const result = await readZonesWithImporter(
-      {
-        geojson: aFile([
-          aZone(aSquare(432000, 5812000, 100), { DMA: "North" }),
-        ]),
-      },
-      unprojected,
-    );
-
-    expect(result.error).toBeUndefined();
-    expect(result.features).toHaveLength(1);
-    expect(result.features[0].geometry.coordinates).toEqual([
-      aSquare(432000, 5812000, 100),
-    ]);
-  });
-
-  it("refuses a CRS it has no definition for, wherever it lands", async () => {
+  it("refuses a CRS it has no definition for", async () => {
     const stated = {
       type: "name",
       properties: { name: "EPSG:27700" },
@@ -114,7 +96,7 @@ describe("readZonesWithImporter", () => {
 
     const result = await readZonesWithImporter(
       { geojson: aFile([aZone(aSquare(432000, 181000, 100), {})], stated) },
-      unprojected,
+      options,
     );
 
     expect(result.error).toBe("unsupportedProjection");
@@ -125,10 +107,7 @@ describe("readZonesWithImporter", () => {
       type: "application/json",
     });
 
-    const result = await readZonesWithImporter(
-      { geojson: broken },
-      georeferenced,
-    );
+    const result = await readZonesWithImporter({ geojson: broken }, options);
 
     expect(result.error).toBe("invalidFile");
   });

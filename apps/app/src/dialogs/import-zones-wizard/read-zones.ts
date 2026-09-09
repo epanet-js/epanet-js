@@ -7,15 +7,12 @@ import type { ReadZoneFeaturesResult, ZoneFeature } from "src/lib/zones";
 
 type ReadOptions = {
   projections?: Map<string, Proj4Projection> | null;
-  isUnprojected: boolean;
 };
-
-export type ZonesRead = ReadZoneFeaturesResult & { sourceIssues: Issue[] };
 
 export const readZonesWithImporter = async (
   gisFiles: GisFiles,
-  { projections, isUnprojected }: ReadOptions,
-): Promise<ZonesRead> => {
+  { projections }: ReadOptions,
+): Promise<ReadZoneFeaturesResult> => {
   const files = [
     gisFiles.geojson,
     gisFiles.shp,
@@ -28,11 +25,10 @@ export const readZonesWithImporter = async (
   const { summary, issues } = await zonesImporter.scanSource(source);
 
   const blocking = issues.find(({ severity }) => severity === "error");
-  const refused =
-    blocking !== undefined &&
-    !(blocking.code === "coordinateSystemUnknown" && isUnprojected);
 
-  if (summary === null || refused) return anError(errorFor(blocking));
+  if (summary === null || blocking !== undefined) {
+    return anError(errorFor(blocking));
+  }
 
   const { features } = await parseGisSource(source);
   const polygons = features.filter(isPolygon);
@@ -42,7 +38,6 @@ export const readZonesWithImporter = async (
 
   return {
     features: polygons,
-    sourceIssues: issues,
     uniqueProperties: new Set(summary.attributes.map(({ name }) => name)),
     ...(originalProjection === undefined
       ? {}
@@ -70,10 +65,11 @@ const errorFor = (
   }
 };
 
-const anError = (error: ReadZoneFeaturesResult["error"]): ZonesRead => ({
+const anError = (
+  error: ReadZoneFeaturesResult["error"],
+): ReadZoneFeaturesResult => ({
   error,
   features: [],
-  sourceIssues: [],
   uniqueProperties: new Set<string>(),
 });
 

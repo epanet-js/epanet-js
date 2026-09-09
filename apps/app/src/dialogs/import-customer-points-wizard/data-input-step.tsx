@@ -8,10 +8,8 @@ import { parseGeoJson } from "src/lib/geojson-utils/parse-geojson";
 import { parseShapefile } from "src/lib/gis-import/parse-shapefile";
 import { GisParseError } from "src/lib/gis-import/types";
 import type { Proj4Projection } from "@epanet-js/projections";
-import { useAtomValue } from "jotai";
 import { customerPointsImporter } from "@epanet-js/gis-importers";
 import type { Issue } from "@epanet-js/converters";
-import { isUnprojectedAtom } from "src/state/map-projection";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   customerPointsImportGuide,
@@ -30,7 +28,6 @@ export const DataInputStep: React.FC<{
   const translate = useTranslate();
   const [gisFiles, setGisFiles] = useState<GisFiles>({});
   const isImporterOn = useFeatureFlag("FLAG_CUSTOMER_POINTS_IMPORTER");
-  const isUnprojected = useAtomValue(isUnprojectedAtom);
 
   const {
     error,
@@ -82,13 +79,8 @@ export const DataInputStep: React.FC<{
         });
 
         const blocking = issues.find(({ severity }) => severity === "error");
-        // A file nobody could place is still importable into a project that is
-        // itself unprojected: the model's own transform is what places it.
-        const refused =
-          blocking !== undefined &&
-          !(blocking.code === "coordinateSystemUnknown" && isUnprojected);
 
-        if (summary === null || refused) {
+        if (summary === null || blocking !== undefined) {
           userTracking.capture({
             name: "importCustomerPoints.dataInput.parseError",
             fileName: primary.name,
@@ -140,7 +132,6 @@ export const DataInputStep: React.FC<{
       userTracking,
       translate,
       projections,
-      isUnprojected,
       messageFor,
     ],
   );

@@ -9,11 +9,9 @@ import {
   PatternId,
 } from "@epanet-js/hydraulic-model";
 import { CustomerPointsIssuesAccumulator } from "@epanet-js/gis-importers";
-import type { Placement } from "src/hooks/use-placement";
 
 export type BuildCustomerPointsOptions = {
   factory: CustomerPointFactory;
-  placement: Placement;
   toDemand: (value: number) => number;
   patternId: PatternId | null;
   defaultDemand: number | null;
@@ -31,7 +29,6 @@ export const buildCustomerPoints = (
   features: Feature[],
   {
     factory,
-    placement,
     toDemand,
     patternId,
     defaultDemand,
@@ -44,9 +41,9 @@ export const buildCustomerPoints = (
 
   for (const record of records) {
     const feature = features[Number(record.ref)];
-    const coordinates = place(record.coordinates, placement);
+    const coordinates = record.coordinates;
 
-    if (coordinates === null) {
+    if (!isWgs84(coordinates)) {
       issues.addSkippedInvalidProjection(featureFor(feature, record));
       continue;
     }
@@ -82,18 +79,8 @@ export const buildCustomerPoints = (
   return { customerPoints, demands };
 };
 
-const place = (
-  coordinates: Position,
-  placement: Placement,
-): Position | null => {
-  if (placement.kind === "transform") return placement.toWgs84(coordinates);
-
-  const [longitude, latitude] = coordinates;
-  const inRange =
-    longitude >= -180 && longitude <= 180 && latitude >= -90 && latitude <= 90;
-
-  return inRange ? coordinates : null;
-};
+const isWgs84 = ([longitude, latitude]: Position): boolean =>
+  longitude >= -180 && longitude <= 180 && latitude >= -90 && latitude <= 90;
 
 const featureFor = (
   feature: Feature | undefined,
