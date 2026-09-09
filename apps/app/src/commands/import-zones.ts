@@ -1,6 +1,5 @@
 import { useCallback } from "react";
-import { importZoneFeatures } from "src/lib/zones";
-import type { ZoneFeature, ImportZoneFeaturesResult } from "src/lib/zones";
+import type { ImportZoneFeaturesResult } from "src/lib/zones";
 import { useZonesTransaction } from "src/hooks/persistence/use-zones-transaction";
 
 export const useImportZones = () => {
@@ -8,15 +7,12 @@ export const useImportZones = () => {
 
   const importZones = useCallback(
     async (
-      features: ZoneFeature[],
-      labelProperty?: string,
+      built: ImportZoneFeaturesResult,
     ): Promise<ImportZoneFeaturesResult | null> => {
-      const result = importZoneFeatures(features, labelProperty);
-
-      const applied = await transact(result.zones);
+      const applied = await transact(built.zones);
       if (!applied) return null;
 
-      return result;
+      return built;
     },
     [transact],
   );

@@ -36,9 +36,9 @@ describe("DataMappingStep", () => {
       });
 
       setWizardState(store, {
-        selectedFile: new File(["test"], "test.geojson", {
-          type: "application/json",
-        }),
+        sourceFiles: [
+          new File(["test"], "test.geojson", { type: "application/json" }),
+        ],
         inputData: createInputData(),
       });
 
@@ -57,9 +57,9 @@ describe("DataMappingStep", () => {
       });
 
       setWizardState(store, {
-        selectedFile: new File(["test"], "test.geojson", {
-          type: "application/json",
-        }),
+        sourceFiles: [
+          new File(["test"], "test.geojson", { type: "application/json" }),
+        ],
         inputData: createInputData(),
         selectedDemandProperty: null,
       });
@@ -80,9 +80,9 @@ describe("DataMappingStep", () => {
       });
 
       setWizardState(store, {
-        selectedFile: new File(["test"], "test.geojson", {
-          type: "application/json",
-        }),
+        sourceFiles: [
+          new File(["test"], "test.geojson", { type: "application/json" }),
+        ],
         inputData: {
           properties: new Set(["demand"]),
           features: [
@@ -125,9 +125,9 @@ describe("DataMappingStep", () => {
       });
 
       setWizardState(store, {
-        selectedFile: new File(["test"], "test.geojson", {
-          type: "application/json",
-        }),
+        sourceFiles: [
+          new File(["test"], "test.geojson", { type: "application/json" }),
+        ],
         selectedDemandProperty: "demand",
         inputData: {
           properties: new Set(["demand"]),
@@ -173,9 +173,9 @@ describe("DataMappingStep", () => {
       });
 
       setWizardState(store, {
-        selectedFile: new File(["test"], "test.geojson", {
-          type: "application/json",
-        }),
+        sourceFiles: [
+          new File(["test"], "test.geojson", { type: "application/json" }),
+        ],
         inputData: {
           properties: new Set(["name"]),
           features: [
@@ -215,9 +215,9 @@ describe("DataMappingStep", () => {
       });
 
       setWizardState(store, {
-        selectedFile: new File(["test"], "test.geojson", {
-          type: "application/json",
-        }),
+        sourceFiles: [
+          new File(["test"], "test.geojson", { type: "application/json" }),
+        ],
         inputData: {
           properties: new Set(["demand"]),
           features: [
@@ -265,9 +265,9 @@ describe("DataMappingStep", () => {
       });
 
       setWizardState(store, {
-        selectedFile: new File(["test"], "test.geojson", {
-          type: "application/json",
-        }),
+        sourceFiles: [
+          new File(["test"], "test.geojson", { type: "application/json" }),
+        ],
         inputData: createInputData(),
       });
 
@@ -311,9 +311,9 @@ describe("DataMappingStep", () => {
       });
 
       setWizardState(store, {
-        selectedFile: new File(["test"], "test.geojson", {
-          type: "application/json",
-        }),
+        sourceFiles: [
+          new File(["test"], "test.geojson", { type: "application/json" }),
+        ],
         inputData: twoFeatureInputData(),
       });
 

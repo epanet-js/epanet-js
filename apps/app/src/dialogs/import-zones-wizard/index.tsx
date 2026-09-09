@@ -10,16 +10,27 @@ import { useProjections } from "src/hooks/use-projections";
 import { projectSettingsAtom } from "src/state/project-settings";
 import {
   readZoneFeatures,
+  importZoneFeatures,
   getLabelProperties,
   type ReadZoneFeaturesResult,
   type MergedZoneInfo,
 } from "src/lib/zones";
+import { zonesImporter } from "@epanet-js/gis-importers";
 import { useImportZones } from "src/commands/import-zones";
 import { useUserTracking } from "src/infra/user-tracking";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import {
+  useProjectPlacement,
+  placementFor,
+  type Placement,
+} from "src/hooks/use-placement";
+import { isUnprojectedAtom } from "src/state/map-projection";
 import type { GisFiles } from "src/components/gis-drop-zone";
 import { DataInputStep } from "./data-input-step";
 import { DataMappingStep } from "./data-mapping-step";
 import { CompleteStep } from "./complete-step";
+import { readZonesWithImporter, type ZonesRead } from "./read-zones";
+import { buildZones } from "./build-zones";
 
 const DATA_INPUT_STEP_NUMBER = 1;
 const DATA_MAPPING_STEP_NUMBER = 2;
@@ -37,6 +48,9 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
   const importZones = useImportZones();
   const { projections } = useProjections();
   const networkProjection = useAtomValue(projectSettingsAtom).projection;
+  const isImporterOn = useFeatureFlag("FLAG_ZONES_IMPORTER");
+  const isUnprojected = useAtomValue(isUnprojectedAtom);
+  const projectPlacement = useProjectPlacement();
   const [currentStep, setCurrentStep] = useState(DATA_INPUT_STEP_NUMBER);
   const [selectedGisFiles, setSelectedGisFiles] = useState<GisFiles>({});
   const [selectedLabel, setSelectedLabel] = useState<string>("none");
@@ -45,6 +59,7 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
   const [readResult, setReadResult] = useState<ReadZoneFeaturesResult | null>(
     null,
   );
+  const [placement, setPlacement] = useState<Placement>({ kind: "wgs84" });
   const [mergedZones, setMergedZones] = useState<MergedZoneInfo[]>([]);
   const [importedZoneCount, setImportedZoneCount] = useState(0);
 
@@ -73,7 +88,14 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
       setIsProcessing(true);
 
       const primaryFile = gisFiles.geojson ?? gisFiles.shp;
-      const result = await readZoneFeatures(gisFiles, projections);
+      const result: ZonesRead = isImporterOn
+        ? await readZonesWithImporter(gisFiles, { projections, isUnprojected })
+        : {
+            ...(await readZoneFeatures(gisFiles, projections)),
+            sourceIssues: [],
+          };
+
+      setPlacement(placementFor(projectPlacement, result.sourceIssues));
 
       setIsProcessing(false);
 
@@ -97,7 +119,7 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
 
       setReadResult(result);
     },
-    [projections, userTracking],
+    [projections, userTracking, isImporterOn, isUnprojected, projectPlacement],
   );
 
   const handleGisFilesDrop = useCallback(
@@ -129,7 +151,16 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
     userTracking.capture({ name: "importZones.dataMapping.next" });
 
     const labelProperty = selectedLabel === "none" ? undefined : selectedLabel;
-    const result = await importZones(readResult.features, labelProperty);
+    const built = isImporterOn
+      ? buildZones(
+          zonesImporter.importFromFeatures(readResult.features, {
+            mapping: { label: labelProperty ?? null },
+          }).network.zones ?? [],
+          placement,
+        )
+      : importZoneFeatures(readResult.features, labelProperty);
+
+    const result = await importZones(built);
     if (!result) return;
     setMergedZones(result.mergedZones);
     const zonesCount = result.zones.size;
@@ -142,7 +173,14 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
     });
 
     setCurrentStep(COMPLETE_STEP_NUMBER);
-  }, [readResult, selectedLabel, importZones, userTracking]);
+  }, [
+    readResult,
+    selectedLabel,
+    importZones,
+    userTracking,
+    isImporterOn,
+    placement,
+  ]);
 
   const goBack = useCallback(() => {
     userTracking.capture({ name: "importZones.dataMapping.back" });

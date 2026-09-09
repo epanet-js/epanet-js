@@ -23,7 +23,7 @@ export type InputData = {
 
 export type WizardState = {
   currentStep: WizardStep;
-  selectedFile: File | null;
+  sourceFiles: File[];
   parsedDataSummary: ParsedDataSummary | null;
   inputData: InputData | null;
   selectedDemandProperty: string | null;
@@ -40,7 +40,7 @@ export type WizardActions = {
   goToStep: (step: WizardStep) => void;
   goNext: () => void;
   goBack: () => void;
-  setSelectedFile: (file: File | null) => void;
+  setSourceFiles: (files: File[]) => void;
   setParsedDataSummary: (summary: ParsedDataSummary | null) => void;
   setInputData: (data: InputData | null) => void;
   setSelectedDemandProperty: (property: string | null) => void;

@@ -8,6 +8,8 @@ Turns GIS files into the part of a model they describe. The model vocabulary —
 
 **An importer checks and transforms that parsed data into `NetworkData`.** Which records are customer points, which attribute the user mapped to a demand, what counts as a usable record, what to report when one is not. It lives in a folder of its own, one per source.
 
+**A scan belongs to neither half, so it is shared rather than written twice.** `scan-source.ts`, at the package root, parses and then summarises — it answers "what is in this file" without interpreting a single record, so every importer's `scanSource` is that one function. An importer that finds itself wanting its own is interpreting in order to survey, which belongs in `importFromFeatures`. The root is where anything both halves need lives; a folder still never reaches into another's.
+
 **The test, when it is not obvious:** a file parser that needs to name a `NetworkData` type has been given work that belongs to an importer. `grep NetworkData file-parsers/` should stay empty.
 
 ## A file parser: bytes to geometry and properties

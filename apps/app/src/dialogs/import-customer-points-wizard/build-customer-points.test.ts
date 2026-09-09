@@ -4,7 +4,8 @@ import { createProjectionMapper } from "@epanet-js/projections";
 import { CustomerPointFactory, LabelManager } from "@epanet-js/hydraulic-model";
 import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
 import { CustomerPointsIssuesAccumulator } from "@epanet-js/gis-importers";
-import { buildCustomerPoints, type Placement } from "./build-customer-points";
+import type { Placement } from "src/hooks/use-placement";
+import { buildCustomerPoints } from "./build-customer-points";
 
 const aRecord = (
   ref: string,

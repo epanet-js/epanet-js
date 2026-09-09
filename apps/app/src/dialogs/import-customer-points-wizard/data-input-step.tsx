@@ -35,7 +35,7 @@ export const DataInputStep: React.FC<{
   const {
     error,
     isLoading,
-    setSelectedFile,
+    setSourceFiles,
     setLoading,
     setError,
     setInputData,
@@ -72,7 +72,7 @@ export const DataInputStep: React.FC<{
   const scanWithImporter = useCallback(
     async (files: File[], primary: File) => {
       resetWizardData();
-      setSelectedFile(primary);
+      setSourceFiles(files);
       setLoading(true);
 
       try {
@@ -132,7 +132,7 @@ export const DataInputStep: React.FC<{
     },
     [
       resetWizardData,
-      setSelectedFile,
+      setSourceFiles,
       setLoading,
       setError,
       setInputData,
@@ -150,7 +150,7 @@ export const DataInputStep: React.FC<{
       if (isImporterOn) return scanWithImporter([file], file);
 
       resetWizardData();
-      setSelectedFile(file);
+      setSourceFiles([file]);
       setLoading(true);
 
       try {
@@ -257,7 +257,7 @@ export const DataInputStep: React.FC<{
     },
     [
       resetWizardData,
-      setSelectedFile,
+      setSourceFiles,
       setLoading,
       setError,
       setInputData,
@@ -284,14 +284,15 @@ export const DataInputStep: React.FC<{
         );
       }
 
+      const fileArray = [files.shp, files.dbf, files.prj, files.cpg].filter(
+        (f): f is File => f != null,
+      );
+
       resetWizardData();
-      setSelectedFile(shpFile);
+      setSourceFiles(fileArray);
       setLoading(true);
 
       try {
-        const fileArray = [files.shp, files.dbf, files.prj, files.cpg].filter(
-          (f): f is File => f != null,
-        );
         const result = await parseShapefile(fileArray);
         const features = result.featureCollection.features;
 
@@ -361,7 +362,7 @@ export const DataInputStep: React.FC<{
     },
     [
       resetWizardData,
-      setSelectedFile,
+      setSourceFiles,
       setLoading,
       setError,
       setInputData,

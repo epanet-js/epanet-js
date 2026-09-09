@@ -1,4 +1,5 @@
 import type { Feature } from "geojson";
+import shp from "shpjs";
 import { screen, waitFor } from "@testing-library/react";
 import { defaultProjectSettings } from "@epanet-js/project-settings";
 import { setInitialState } from "src/__helpers__/state";
@@ -35,12 +36,22 @@ const unprojected = (centroid: [number, number]) => ({
 });
 
 const renderAt = (store: Store, features: Feature[]) => {
+  const file = aFile(features);
+
   setWizardState(store, {
-    selectedFile: aFile(features),
+    sourceFiles: [file],
     inputData: { properties: new Set(["METER"]) },
   });
   renderWizard(store);
 };
+
+vi.mock("shpjs");
+
+const aShapefileBundle = () => [
+  new File([""], "customers.shp"),
+  new File([""], "customers.dbf"),
+  new File(['GEOGCS["WGS 84"]'], "customers.prj"),
+];
 
 describe("customer points wizard, on the importer", () => {
   beforeEach(() => {
@@ -58,6 +69,27 @@ describe("customer points wizard, on the importer", () => {
       aPoint([0.001, 0.001], "M-1"),
       aPoint([0.002, 0.002], "M-2"),
     ]);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Customer points \(2\)/)).toBeInTheDocument();
+    });
+  });
+
+  it("reads a shapefile from every file of its bundle", async () => {
+    vi.mocked(shp).mockResolvedValue({
+      type: "FeatureCollection",
+      features: [aPoint([0.001, 0.001], "M-1"), aPoint([0.002, 0.002], "M-2")],
+    });
+    const store = setInitialState({
+      hydraulicModel: HydraulicModelBuilder.with().build(),
+    });
+    const bundle = aShapefileBundle();
+
+    setWizardState(store, {
+      sourceFiles: bundle,
+      inputData: { properties: new Set(["METER"]) },
+    });
+    renderWizard(store);
 
     await waitFor(() => {
       expect(screen.getByText(/Customer points \(2\)/)).toBeInTheDocument();

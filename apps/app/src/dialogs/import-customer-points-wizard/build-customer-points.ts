@@ -9,10 +9,7 @@ import {
   PatternId,
 } from "@epanet-js/hydraulic-model";
 import { CustomerPointsIssuesAccumulator } from "@epanet-js/gis-importers";
-
-export type Placement =
-  | { kind: "wgs84" }
-  | { kind: "transform"; toWgs84: (coordinates: Position) => Position };
+import type { Placement } from "src/hooks/use-placement";
 
 export type BuildCustomerPointsOptions = {
   factory: CustomerPointFactory;

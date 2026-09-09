@@ -12,7 +12,7 @@ export const setWizardState = (
 ) => {
   const defaultWizardState: WizardState = {
     currentStep: 2,
-    selectedFile: null,
+    sourceFiles: [],
     parsedDataSummary: null,
     inputData: null,
     selectedDemandProperty: null,

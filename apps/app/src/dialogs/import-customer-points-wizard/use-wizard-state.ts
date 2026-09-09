@@ -12,7 +12,7 @@ import {
 
 const initialState: WizardState = {
   currentStep: 1,
-  selectedFile: null,
+  sourceFiles: [],
   parsedDataSummary: null,
   inputData: null,
   selectedDemandProperty: null,
@@ -53,10 +53,10 @@ export const useWizardState = (): WizardState & {
     }));
   };
 
-  const setSelectedFile = (file: File | null) => {
+  const setSourceFiles = (files: File[]) => {
     setWizardState((prev) => ({
       ...prev,
-      selectedFile: file,
+      sourceFiles: files,
       error: null,
     }));
   };
@@ -123,7 +123,7 @@ export const useWizardState = (): WizardState & {
     goToStep,
     goNext,
     goBack,
-    setSelectedFile,
+    setSourceFiles,
     setParsedDataSummary,
     setInputData,
     setSelectedDemandProperty,
