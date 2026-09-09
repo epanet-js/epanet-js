@@ -27,6 +27,7 @@ export const aUser = (attributes: Partial<User> = {}): User => {
     trialActivatedAt: null,
     trialEndsAt: null,
     hasUsedTrial: false,
+    subscriptionStatus: null,
   };
   return { ...defaults, ...attributes };
 };

@@ -1664,6 +1664,11 @@ export type UserEvent =
       source: "menu" | "customLayers" | "customElevations";
     }
   | {
+      name: "billingPortal.opened";
+      source: "menu";
+      trial: "running" | "ended";
+    }
+  | {
       name: "upgradeDialog.seen";
       source?: UpgradeOrigin;
       sourceFeature?: string;

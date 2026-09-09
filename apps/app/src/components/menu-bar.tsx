@@ -23,10 +23,11 @@ import { SignInButton, SignUpButton } from "./auth-buttons";
 import { useShowWelcome } from "src/commands/show-welcome";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useShowShortcuts } from "src/commands/show-shortcuts";
-import { getTrialDaysRemaining } from "src/lib/account-plans";
+import { TrialCta, resolveTrialCta } from "src/lib/account-plans";
 import { useEffectivePlan } from "src/hooks/use-effective-plan";
 import { usePermissions } from "src/hooks/use-permissions";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { useBillingPortal } from "src/hooks/use-billing-portal";
 import { PlanLabel } from "./plan-label";
 import { useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
@@ -381,6 +382,7 @@ export const SideMenu = () => {
                         source: "menu",
                       });
                     }}
+                    onNavigate={() => setIsOpen(false)}
                   />
                 )}
                 <UserButton />
@@ -431,38 +433,56 @@ const AccountSection = ({
   return <div className="hidden md:flex items-center gap-x-2">{children}</div>;
 };
 
-const TrialOrUpgradeButton = ({
+export const TrialOrUpgradeButton = ({
   user,
   isActivateTrialOn,
   translate,
   size,
   onUpgrade,
+  onNavigate,
 }: {
   user: User;
   isActivateTrialOn: boolean;
   translate: TranslateFn;
   size?: "full-width";
   onUpgrade: () => void;
+  onNavigate?: () => void;
 }) => {
-  const trial = useMemo(() => {
-    if (!isActivateTrialOn || !user.hasUsedTrial) return null;
-    if (!user.trialEndsAt) return null;
-
-    const days = getTrialDaysRemaining(user.trialEndsAt);
-    const isUrgent = days <= 0;
-    const label =
-      days < 0 ? translate("trial.expired") : translate("trial.status", days);
-    return { label, isUrgent };
-  }, [isActivateTrialOn, user.hasUsedTrial, user.trialEndsAt, translate]);
-
   const { canUpgrade } = usePermissions();
+  const userTracking = useUserTracking();
+  const { openBillingPortal } = useBillingPortal();
 
-  if (trial) {
-    const colorClass = trial.isUrgent ? "text-warning" : "text-accent-hover";
+  const trial = useMemo(() => {
+    if (!isActivateTrialOn || !canUpgrade) return { kind: "none" } as TrialCta;
+
+    return resolveTrialCta(user);
+  }, [isActivateTrialOn, canUpgrade, user]);
+
+  if (trial.kind !== "none") {
+    const isEnded = trial.kind === "ended";
+    const label = isEnded
+      ? translate("trial.expired")
+      : translate("trial.status", trial.daysRemaining);
+    const isUrgent = isEnded || trial.daysRemaining === 0;
+    const colorClass = isUrgent ? "text-warning" : "text-accent-hover";
+
+    const manageBilling = () => {
+      userTracking.capture({
+        name: "billingPortal.opened",
+        source: "menu",
+        trial: trial.kind,
+      });
+      onNavigate?.();
+      openBillingPortal();
+    };
 
     return (
-      <Button variant="quiet" size={size} onClick={onUpgrade}>
-        <span className={`${colorClass} font-medium`}>{trial.label}</span>
+      <Button
+        variant="quiet"
+        size={size}
+        onClick={isEnded && !trial.payable ? onUpgrade : manageBilling}
+      >
+        <span className={`${colorClass} font-medium`}>{label}</span>
       </Button>
     );
   }

@@ -5,7 +5,7 @@ import {
 } from "@clerk/nextjs";
 import { isAuthEnabled } from "src/global-config";
 import { nullUser, User } from "src/auth-types";
-import { Plan } from "src/lib/account-plans";
+import { Plan, SubscriptionStatus } from "src/lib/account-plans";
 import { allSupportedLanguages, Locale } from "@epanet-js/i18n/locale";
 
 export type UseAuthHook = () => {
@@ -35,6 +35,9 @@ const useAuthWithClerk: UseAuthHook = () => {
         trialEndsAt: (clerkUser.publicMetadata?.trialEndsAt as string) ?? null,
         hasUsedTrial:
           (clerkUser.publicMetadata?.hasUsedTrial as boolean) ?? false,
+        subscriptionStatus:
+          (clerkUser.publicMetadata
+            ?.subscriptionStatus as SubscriptionStatus) ?? null,
         getLocale: () => {
           const savedLocale = clerkUser.unsafeMetadata?.locale as Locale;
           return savedLocale && allSupportedLanguages.includes(savedLocale)
