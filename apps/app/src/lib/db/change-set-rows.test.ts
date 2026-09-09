@@ -642,10 +642,7 @@ describe("buildChangeSetPayload direction", () => {
   });
 });
 
-describe("buildChangeSetPayload validation", () => {
-  // Nothing with a schema reaches the payload builder any more: the change set
-  // is validated as it is built, before the model mutates. What is left here is
-  // the mapping the row schemas still guard — the columns a cell fans out into.
+describe("validation rejects at build, not at payload", () => {
   it("throws on a non-finite node elevation create", () => {
     const { model, assetFactory } = aNetwork();
     const junction = assetFactory.createJunction({

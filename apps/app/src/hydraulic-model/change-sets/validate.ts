@@ -1,4 +1,9 @@
-import type { ChangeRecord, EntityKind } from "@epanet-js/change-set";
+import {
+  WHOLE_VALUE,
+  type Cell,
+  type ChangeRecord,
+  type EntityKind,
+} from "@epanet-js/change-set";
 import { schemaForField } from "@epanet-js/model-schema";
 
 const describe = (entity: EntityKind, id: number | string, field: string) =>
@@ -26,6 +31,8 @@ const checkBag = (
           .join("; ")}`,
       );
     }
+
+    if (field === WHOLE_VALUE) bag[field] = result.data as Cell;
   }
 };
 

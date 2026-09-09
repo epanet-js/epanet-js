@@ -1,4 +1,3 @@
-import type { z } from "zod";
 import {
   WHOLE_VALUE,
   effective,
@@ -9,37 +8,7 @@ import {
   type Direction,
   type Effective,
 } from "@epanet-js/change-set";
-import {
-  junctionRowSchema,
-  reservoirRowSchema,
-  tankRowSchema,
-  pipeRowSchema,
-  pumpRowSchema,
-  valveRowSchema,
-} from "../schema/assets";
-import {
-  junctionPatchRowSchema,
-  reservoirPatchRowSchema,
-  tankPatchRowSchema,
-  pipePatchRowSchema,
-  pumpPatchRowSchema,
-  valvePatchRowSchema,
-  customerPointPatchRowSchema,
-  curvePatchRowSchema,
-  patternPatchRowSchema,
-} from "../schema/patches";
-import { customerPointRowSchema } from "../schema/customer-points";
-import { curveRowSchema } from "../schema/curves";
-import { patternRowSchema } from "../schema/patterns";
-import { controlsSchema } from "../schema/controls";
-import { rawControlsSchema } from "../schema/raw-controls";
-import { pipeLibrarySchema } from "../schema/pipe-library";
-import {
-  customAttributesDefinitionSchema,
-  type CustomAttributesDefinitionData,
-} from "../schema/custom-attributes-definition";
-import { junctionDemandRowSchema } from "../schema/junction-demands";
-import { customerPointDemandRowSchema } from "../schema/customer-points";
+import type { CustomAttributesDefinitionData } from "../schema/custom-attributes-definition";
 import {
   emptyApplyMomentPayload,
   type ApplyMomentPayload,
@@ -68,84 +37,16 @@ type AnyColumnMap = ColumnMap<Record<string, unknown>>;
 
 type AssetSpec = {
   table: keyof AssetCustomAttributeUpdates;
-  kind: string;
-  rowSchema: z.ZodTypeAny;
-  patchSchema: z.ZodTypeAny;
   map: AnyColumnMap;
 };
 
 const ASSET_SPECS: Record<AssetEntityKind, AssetSpec> = {
-  junction: {
-    table: "junctions",
-    kind: "Junction",
-    rowSchema: junctionRowSchema,
-    patchSchema: junctionPatchRowSchema,
-    map: junctionMap as AnyColumnMap,
-  },
-  reservoir: {
-    table: "reservoirs",
-    kind: "Reservoir",
-    rowSchema: reservoirRowSchema,
-    patchSchema: reservoirPatchRowSchema,
-    map: reservoirMap as AnyColumnMap,
-  },
-  tank: {
-    table: "tanks",
-    kind: "Tank",
-    rowSchema: tankRowSchema,
-    patchSchema: tankPatchRowSchema,
-    map: tankMap as AnyColumnMap,
-  },
-  pipe: {
-    table: "pipes",
-    kind: "Pipe",
-    rowSchema: pipeRowSchema,
-    patchSchema: pipePatchRowSchema,
-    map: pipeMap as AnyColumnMap,
-  },
-  pump: {
-    table: "pumps",
-    kind: "Pump",
-    rowSchema: pumpRowSchema,
-    patchSchema: pumpPatchRowSchema,
-    map: pumpMap as AnyColumnMap,
-  },
-  valve: {
-    table: "valves",
-    kind: "Valve",
-    rowSchema: valveRowSchema,
-    patchSchema: valvePatchRowSchema,
-    map: valveMap as AnyColumnMap,
-  },
-};
-
-const parseRow = (
-  schema: z.ZodTypeAny,
-  candidate: Record<string, unknown>,
-  kind: string,
-  id: number,
-): unknown => {
-  const result = schema.safeParse(candidate);
-  if (!result.success) {
-    throw new Error(
-      `${kind} ${id}: row does not match schema — ${result.error.message}`,
-    );
-  }
-  return result.data;
-};
-
-const serialize = (
-  schema: z.ZodTypeAny,
-  value: unknown,
-  kind: string,
-): string => {
-  const result = schema.safeParse(value);
-  if (!result.success) {
-    throw new Error(
-      `${kind}: data does not match schema — ${result.error.message}`,
-    );
-  }
-  return JSON.stringify(result.data);
+  junction: { table: "junctions", map: junctionMap as AnyColumnMap },
+  reservoir: { table: "reservoirs", map: reservoirMap as AnyColumnMap },
+  tank: { table: "tanks", map: tankMap as AnyColumnMap },
+  pipe: { table: "pipes", map: pipeMap as AnyColumnMap },
+  pump: { table: "pumps", map: pumpMap as AnyColumnMap },
+  valve: { table: "valves", map: valveMap as AnyColumnMap },
 };
 
 const wholeValueOf = <T>(fields: Fields): T => fields[WHOLE_VALUE] as T;
@@ -182,15 +83,13 @@ const addAsset = (
   if (step.kind === "create") {
     const candidate = rowFrom(id, step.fields, spec.map);
     candidate.custom_attributes = customAttributesFrom(step.fields);
-    const row = parseRow(spec.rowSchema, candidate, spec.kind, id);
-    (payload.assetUpserts[spec.table] as unknown[]).push(row);
+    (payload.assetUpserts[spec.table] as unknown[]).push(candidate);
     return;
   }
 
   const candidate = patchFrom(id, step.fields, spec.map);
   if (hasColumns(candidate)) {
-    const patch = parseRow(spec.patchSchema, candidate, spec.kind, id);
-    (payload.assetPatches[spec.table] as unknown[]).push(patch);
+    (payload.assetPatches[spec.table] as unknown[]).push(candidate);
   }
 
   const delta = customAttributesDelta(step.fields);
@@ -213,12 +112,7 @@ const addCustomerPoint = (
     const candidate = rowFrom(id, step.fields, customerPointMap);
     candidate.custom_attributes = customAttributesFrom(step.fields);
     payload.customerPointUpserts.push(
-      parseRow(
-        customerPointRowSchema,
-        candidate,
-        "CustomerPoint",
-        id,
-      ) as (typeof payload.customerPointUpserts)[number],
+      candidate as (typeof payload.customerPointUpserts)[number],
     );
     return;
   }
@@ -226,12 +120,7 @@ const addCustomerPoint = (
   const candidate = patchFrom(id, step.fields, customerPointMap);
   if (hasColumns(candidate)) {
     payload.customerPointPatches.push(
-      parseRow(
-        customerPointPatchRowSchema,
-        candidate,
-        "CustomerPoint",
-        id,
-      ) as (typeof payload.customerPointPatches)[number],
+      candidate as (typeof payload.customerPointPatches)[number],
     );
   }
 
@@ -253,11 +142,10 @@ const addCurve = (
 
   if (step.kind === "create") {
     payload.curveUpserts.push(
-      parseRow(
-        curveRowSchema,
-        rowFrom(id, step.fields, curveMap),
-        "Curve",
+      rowFrom(
         id,
+        step.fields,
+        curveMap,
       ) as (typeof payload.curveUpserts)[number],
     );
     return;
@@ -265,14 +153,7 @@ const addCurve = (
 
   const candidate = patchFrom(id, step.fields, curveMap);
   if (!hasColumns(candidate)) return;
-  payload.curvePatches.push(
-    parseRow(
-      curvePatchRowSchema,
-      candidate,
-      "Curve",
-      id,
-    ) as (typeof payload.curvePatches)[number],
-  );
+  payload.curvePatches.push(candidate as (typeof payload.curvePatches)[number]);
 };
 
 const addPattern = (
@@ -287,11 +168,10 @@ const addPattern = (
 
   if (step.kind === "create") {
     payload.patternUpserts.push(
-      parseRow(
-        patternRowSchema,
-        rowFrom(id, step.fields, patternMap),
-        "Pattern",
+      rowFrom(
         id,
+        step.fields,
+        patternMap,
       ) as (typeof payload.patternUpserts)[number],
     );
     return;
@@ -300,36 +180,24 @@ const addPattern = (
   const candidate = patchFrom(id, step.fields, patternMap);
   if (!hasColumns(candidate)) return;
   payload.patternPatches.push(
-    parseRow(
-      patternPatchRowSchema,
-      candidate,
-      "Pattern",
-      id,
-    ) as (typeof payload.patternPatches)[number],
+    candidate as (typeof payload.patternPatches)[number],
   );
 };
 
 const demandRows = <T>(
-  schema: z.ZodTypeAny,
   ownerColumn: "junction_id" | "customer_point_id",
   ownerId: number,
   demands: { baseDemand: number; patternId?: number | null }[],
 ): T[] =>
-  demands.map((demand, ordinal) => {
-    const candidate = {
-      [ownerColumn]: ownerId,
-      ordinal,
-      base_demand: demand.baseDemand,
-      pattern_id: demand.patternId ?? null,
-    };
-    const result = schema.safeParse(candidate);
-    if (!result.success) {
-      throw new Error(
-        `Demand ${ownerId}/${ordinal}: row does not match schema — ${result.error.message}`,
-      );
-    }
-    return result.data as T;
-  });
+  demands.map(
+    (demand, ordinal) =>
+      ({
+        [ownerColumn]: ownerId,
+        ordinal,
+        base_demand: demand.baseDemand,
+        pattern_id: demand.patternId ?? null,
+      }) as T,
+  );
 
 export const buildChangeSetPayload = (
   changeSet: ChangeSet,
@@ -369,7 +237,6 @@ export const buildChangeSetPayload = (
         payload.junctionDemandUpdates.push({
           junctionId: id,
           demands: demandRows(
-            junctionDemandRowSchema,
             "junction_id",
             id,
             wholeValueOf(step.fields) ?? [],
@@ -381,7 +248,6 @@ export const buildChangeSetPayload = (
         payload.customerPointDemandUpdates.push({
           customerPointId: id,
           demands: demandRows(
-            customerPointDemandRowSchema,
             "customer_point_id",
             id,
             wholeValueOf(step.fields) ?? [],
@@ -389,33 +255,23 @@ export const buildChangeSetPayload = (
         });
         break;
       case "allControls":
-        payload.controlsReplacement = serialize(
-          controlsSchema,
-          wholeValueOf(step.fields),
-          "Controls",
-        );
+        payload.controlsReplacement = JSON.stringify(wholeValueOf(step.fields));
         break;
       case "pipeLibrary":
-        payload.pipeLibraryReplacement = serialize(
-          pipeLibrarySchema,
+        payload.pipeLibraryReplacement = JSON.stringify(
           wholeValueOf(step.fields),
-          "Pipe library",
         );
         break;
       case "rawControls":
-        payload.rawControlsReplacement = serialize(
-          rawControlsSchema,
+        payload.rawControlsReplacement = JSON.stringify(
           wholeValueOf(step.fields),
-          "Controls",
         );
         break;
       case "customAttributesDefinition":
-        payload.customAttributesDefinition = serialize(
-          customAttributesDefinitionSchema,
+        payload.customAttributesDefinition = JSON.stringify(
           groupCustomAttributes(
             wholeValueOf<Record<string, PlainAttribute>>(step.fields) ?? {},
           ),
-          "Custom attributes",
         );
         break;
     }

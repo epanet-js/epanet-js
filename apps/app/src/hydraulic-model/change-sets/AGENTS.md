@@ -38,14 +38,18 @@ has a coordinate, and `@epanet-js/change-set` stays model-ignorant by design.
 
 Build time is the right moment for two reasons. Nothing has mutated yet, so a rejection
 leaves the model untouched — the validate-then-save shape from
-[`guidelines/persistence.md`](../../../guidelines/persistence.md). And from the moment a
-scenario stores its delta, a change set becomes an artefact nothing re-validates: the row
-schemas in the DB worker only ever see main's writes.
+[`guidelines/persistence.md`](../../../guidelines/persistence.md). And a change set is an
+artefact nothing re-validates afterwards: the DB worker maps it to rows without re-checking
+them, and a scenario stores its delta unchecked too.
 
 Three states, three rules. **Absent** is always allowed and never checked — it means
 untouched, or "this property is not on this entity". **Null** is allowed only where the field
 schema says `.nullable()`. **Present** must parse. A field with no schema throws, so a new
 persisted property is a failing test rather than a value that silently never reaches the file.
+
+A **whole value** is the one cell whose parsed result is kept: it is stored as a single JSON
+column, so the schema's shape is the stored shape, and keeping the parse is what strips keys
+the schema does not declare and fixes key order. Every other cell is checked and left alone.
 
 ## Direction is the whole of undo
 

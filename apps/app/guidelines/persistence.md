@@ -85,31 +85,28 @@ transaction (`@epanet-js/ejsdb`, `src/change-set/`). Nothing on the main thread 
 which is the point: only one `Uint8Array` crosses the worker boundary instead of the whole
 row set.
 
-The consequence for this guideline: **the row schemas are checked in the worker, after the
-in-memory model has already been updated.** That is the second departure from validate-then-
-save, alongside import, and it is deliberate rather than an oversight.
+The consequence for this guideline: **validate-then-save is upheld by the builder, not by the
+worker.** A change set is checked as it is **built** — every record, field by field, against
+[`@epanet-js/model-schema`](../../../libs/model-schema/README.md), before `ChangeSet.of`
+encodes it and before anything mutates. A bad value therefore rejects the edit with the model
+untouched and the `changeNotApplied` dialog shown, the way validate-then-save intends. That
+covers the values a change set carries, whole values included — the four things stored as a
+single JSON column are checked against the very schemas the DB uses, and the builder keeps
+the parsed value, so the stored JSON is the schema's shape.
 
-Most of the way back is covered by validating the change set as it is **built**. Every record
-is checked field by field against [`@epanet-js/model-schema`](../../../libs/model-schema/README.md)
-before `ChangeSet.of` encodes it, which is before anything mutates — so a bad value rejects the
-edit with the model untouched, the way validate-then-save intends. That covers the values a
-change set carries, whole values included — the four things stored as a single JSON column
-are checked against the very schemas the worker uses. The row schemas stay as the backstop
-for what a cell cannot describe: the columns a cell is fanned out into, and the DB's own
-`NOT NULL` and `CHECK` constraints.
+Because that happens before the model mutates and applies equally to a change set replayed by
+undo or read back as a scenario delta, **the worker does not re-check the rows it maps** — it
+trusts the change set and writes. The one thing nothing checks any more is *completeness*: a
+`create` record missing a `NOT NULL` column is caught by the DB rather than by a schema, and
+so arrives as a write failure.
 
 What still holds:
 
 - The write is one transaction, so a rejected row leaves the file exactly as it was — the DB
   never receives partial or invalid data (invariant 1).
-- A rejection reaches `useWriteFailureHandler` like any other write failure, which reloads
-  the model from the persisted DB. The model and the file converge again, at the cost of the
-  rejected edit (invariant 2) — rather than the `changeNotApplied` dialog, which can only be
-  shown while the model is still untouched.
-
-What it costs: between the edit and that recovery, memory holds a change the file does not.
-Closing that gap means validating **when the change set is built**, which is where a change
-set that will later be stored as a scenario delta needs it anyway.
+- A write the DB does refuse reaches `useWriteFailureHandler` like any other write failure,
+  which reloads the model from the persisted DB. The model and the file converge again, at
+  the cost of the rejected edit (invariant 2).
 
 ## The write queue, recovery & rebuild
 

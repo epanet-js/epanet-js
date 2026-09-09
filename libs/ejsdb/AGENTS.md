@@ -84,8 +84,10 @@ mapping lives here, in the worker, so a change set crosses the boundary as one
   to several columns (`coordinates` → `coord_x`/`coord_y`, `connections` →
   `start_node_id`/`end_node_id`). `patchFrom` iterates the fields (partial bag → patch),
   `rowFrom` iterates the map (complete bag → full row, absent optionals becoming `null`).
-- The row Zod schemas run **here**, inside the worker, which means after the app has already
-  updated its model. See `public/apps/app/guidelines/persistence.md`.
+- **`to-payload.ts` does not validate.** A change set arrives already checked — and, for the
+  whole values stored as a single JSON column, already normalised to its schema — so the
+  mapping trusts it and the row Zod schemas are not run on this path. They still guard the
+  moment path and every read. See `public/apps/app/guidelines/persistence.md`.
 - `CUSTOM_ATTRIBUTE_KEY_PREFIX` (`src/schema/custom-attributes-data.ts`) must stay equal to
   the model's `CUSTOM_PROPERTY_PREFIX`; an app test asserts it, because this package does
   not depend on `@epanet-js/hydraulic-model` and should not start.

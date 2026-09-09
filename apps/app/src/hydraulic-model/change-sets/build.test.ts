@@ -4,6 +4,7 @@ import {
   buildTimedSetting,
   emptyCustomAttributesDefinition,
   setAssetControl,
+  type PipeMaterial,
 } from "@epanet-js/hydraulic-model";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { buildTestFactories } from "src/__helpers__/test-factories";
@@ -364,5 +365,24 @@ describe("change-set validation", () => {
     expect(() =>
       changeSet(model, "changeProperty", [setAsset(IDS.J1, { madeUp: 1 })]),
     ).toThrow(/junction 1: madeUp has no schema/);
+  });
+
+  it("drops a key the whole value's schema does not declare", () => {
+    const model = aModel();
+
+    const materials = [
+      {
+        label: "PVC",
+        entries: [{ age: 0, roughness: 140 }],
+        madeUp: 1,
+      },
+    ] as unknown as PipeMaterial[];
+    const built = changeSet(model, "changePipeMaterials", [
+      setPipeLibrary(materials),
+    ]);
+
+    expect(built.records[0].after[WHOLE_VALUE]).toEqual([
+      { label: "PVC", entries: [{ age: 0, roughness: 140 }] },
+    ]);
   });
 });
