@@ -3,7 +3,6 @@ import { selectAtom } from "jotai/utils";
 import { splitsAtom } from "src/state/layout";
 import type { Panel } from "src/panels/panel";
 import type { PanelContentState, PanelLayout } from "src/panels/panel-template";
-import { defaultPanels } from "src/panels/default-panels";
 import {
   type Dock,
   type ResolvedLayout,
@@ -23,7 +22,7 @@ export type PlacedPanel = {
   renamedTo?: string;
 };
 
-export const panelsAtom = atom<Panel[]>(defaultPanels());
+export const panelsAtom = atom<Panel[]>([]);
 
 export const panelLayoutAtom = atom<Record<string, PanelLayout>>({});
 

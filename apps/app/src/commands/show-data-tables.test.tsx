@@ -7,7 +7,8 @@ import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { Store } from "src/state";
 import { dialogAtom } from "src/state/dialog";
 import { splitsAtom } from "src/state/layout";
-import { activePanelIn } from "src/state/panels";
+import { defaultPanels } from "src/panels/default-panels";
+import { activePanelIn, panelsAtom } from "src/state/panels";
 import { CommandContainer } from "./__helpers__/command-container";
 import { useShowDataTables } from "./show-data-tables";
 
@@ -32,6 +33,8 @@ describe("useShowDataTables", () => {
 
   it("focuses the junctions table while the flag is off", async () => {
     const store = aStore();
+    // The dock is seeded by the model-load path, not by the atom itself.
+    store.set(panelsAtom, defaultPanels());
 
     await show(store);
 
