@@ -8,11 +8,13 @@ import { PanelCloseButton } from "../panel-close-button";
 export const PanelTab = memo(function PanelTab({
   id,
   label,
+  description,
   closable,
   onClose,
 }: {
   id: string;
   label: string;
+  description?: string;
   closable: boolean;
   onClose: (panelId: string) => void;
 }) {
@@ -32,6 +34,12 @@ export const PanelTab = memo(function PanelTab({
       {...listeners}
     >
       {label}
+      {description !== undefined && (
+        <>
+          {" "}
+          <span className="text-subtle">{description}</span>
+        </>
+      )}
       {closable && (
         <PanelCloseButton panelLabel={label} onClose={() => onClose(id)} />
       )}

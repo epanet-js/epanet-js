@@ -115,6 +115,8 @@ const label =
 
 Any command that changes the instance re-labels the panel for free — no second piece of state to keep in sync, and nothing goes stale when the locale changes. `renamedTo` is only for explicit user renames.
 
+A template may add an optional `buildDescription` beside `buildLabel`, read through `panelDescription(panel, context)`. It says what the panel currently holds — the data tables use it for the row count of a scoped table — while the label says what the panel is and stays put. The tab renders the description in `text-subtle`, so it keeps that colour while the label follows the tab between base and accent. A rename replaces the label and leaves the description alone.
+
 ---
 
 ## Dock Pattern
@@ -221,7 +223,7 @@ Convention: `FLAG_SCREAMING_SNAKE_CASE`. Test via URL param `?FLAG_FOO=true`.
 ## State Management Rules
 
 - **Ephemeral UI state** (selected row, collapsed section within a panel): `useState`. No Jotai atom.
-- **A panel's label**: `panelLabel(panel, renamedTo, translate)` — `renamedTo` if the user set one, otherwise the template's `buildLabel`. Never store a rendered label, and never resolve it inline.
+- **A panel's label**: `panelLabel(panel, renamedTo, translate)` — `renamedTo` if the user set one, otherwise the template's `buildLabel`. Never store a rendered label, and never resolve it inline. What the panel holds right now goes in the template's optional `buildDescription`, read through `panelDescription` — not appended to the label.
 - **Which panel is active per dock**: `activePanelsAtom` in `src/state/panels.ts`, narrowed with `activePanelIn(dock)`. It resolves a stale selection to the dock's first panel, so it is null only when the dock is empty. Activate through `useActivatePanel`, which also deactivates the outgoing panel. Do not add per-panel open/closed atoms — a panel is open because it is in `panelsAtom`.
 - **The order a dock shows its tabs in**: `panelOrderAtom`, applied in `panelsByDockAtom` and written through `useReorderPanel`. Reorder it there rather than by splicing `panelsAtom` — `panelsAtom` spans every dock, so moving an entry within it would need slot-preserving surgery to leave the other docks alone, and a reorder would churn the open set for anything watching it. A reorder must not activate or deactivate anything; keeping the order outside `panelsAtom` is what makes that true by construction.
 - **A panel's restorable UI state** (sorting, scroll, cursor, column widths): `panelContentStateAtom`, typed per panel type by `PanelContentStateByType` in `src/panels/panel-template.tsx`. Restored on mount from `initialGridState`; **captured from the user action that hides the panel**, never on unmount. How a panel type captures is its own business. `onDeactivate` is a plain function over `Panel` data, so it cannot reach the mounted component where `DataGridRef.captureState()` lives — the data tables bridge that with `tableHandlesAtom` in `data-tables/table-handles.ts`, which the mounted table publishes to and `assetTablePanel.onDeactivate` reads through its `get`. Every path that deactivates therefore captures for free, and a panel type with nothing to keep simply omits the hook.

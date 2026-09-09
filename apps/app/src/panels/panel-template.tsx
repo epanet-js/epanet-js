@@ -23,6 +23,10 @@ export type PanelLabelContext = {
 export type PanelTemplate<T extends PanelType> = {
   component: ComponentType<{ panel: PanelOfType<T> }>;
   buildLabel: (panel: PanelOfType<T>, context: PanelLabelContext) => string;
+  buildDescription?: (
+    panel: PanelOfType<T>,
+    context: PanelLabelContext,
+  ) => string | undefined;
   onDeactivate?: (
     context: PanelLifecycleContext,
     panel: PanelOfType<T>,
@@ -58,6 +62,13 @@ export const panelLabel = (
   renamedTo: string | undefined,
   context: PanelLabelContext,
 ): string => renamedTo ?? panelFor(panel).buildLabel(panel, context);
+
+// What the panel currently holds, rather than what it is: it stands apart from
+// the label, and a rename leaves it alone.
+export const panelDescription = (
+  panel: Panel,
+  context: PanelLabelContext,
+): string | undefined => panelFor(panel).buildDescription?.(panel, context);
 
 export const PanelContent = ({ panel }: { panel: Panel }) => {
   const Component = panelFor(panel).component;

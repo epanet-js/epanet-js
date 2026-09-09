@@ -16,8 +16,8 @@ const assetTypeLabelKeys: Record<AssetType, string> = {
   valve: "valves",
 };
 
-const scopedLabel = (label: string, rowCount: number | undefined) =>
-  rowCount === undefined ? label : `${label} (${rowCount.toLocaleString()})`;
+const scopeDescription = (rowCount: number | undefined) =>
+  rowCount === undefined ? undefined : `(${rowCount.toLocaleString()})`;
 
 export const assetTablePanel: PanelTemplate<"asset-table"> = {
   component: ({ panel }) => (
@@ -30,9 +30,10 @@ export const assetTablePanel: PanelTemplate<"asset-table"> = {
   ),
   onDeactivate: ({ get }, panel) =>
     get(tableHandlesAtom)[panel.id]?.captureState(),
-  buildLabel: (panel, { translate, hydraulicModel }) =>
-    scopedLabel(
-      translate(assetTypeLabelKeys[panel.assetType]),
+  buildLabel: (panel, { translate }) =>
+    translate(assetTypeLabelKeys[panel.assetType]),
+  buildDescription: (panel, { hydraulicModel }) =>
+    scopeDescription(
       panel.assetIds &&
         countMatching(
           panel.assetIds,
@@ -60,9 +61,9 @@ export const customerPointTablePanel: PanelTemplate<"customer-point-table"> = {
   ),
   onDeactivate: ({ get }, panel) =>
     get(tableHandlesAtom)[panel.id]?.captureState(),
-  buildLabel: (panel, { translate, hydraulicModel }) =>
-    scopedLabel(
-      translate("customerPoints"),
+  buildLabel: (_panel, { translate }) => translate("customerPoints"),
+  buildDescription: (panel, { hydraulicModel }) =>
+    scopeDescription(
       panel.customerPointIds &&
         countMatching(panel.customerPointIds, (customerPointId) =>
           hydraulicModel.customerPoints.has(customerPointId),

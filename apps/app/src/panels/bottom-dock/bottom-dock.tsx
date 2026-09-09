@@ -24,7 +24,7 @@ import { useClosePanel } from "src/commands/close-panel";
 import { useReorderPanel } from "src/commands/reorder-panel";
 import { useIsPanelClosable } from "../use-panel-closable";
 import { useUserTracking } from "src/infra/user-tracking";
-import { panelLabel } from "../panel-template";
+import { panelDescription, panelLabel } from "../panel-template";
 import { PanelContent } from "../panel-template";
 import { DockEmptyState } from "../dock-empty-state";
 import { PanelTab } from "./panel-tab";
@@ -60,6 +60,12 @@ export const BottomDock = memo(function BottomDockInner() {
   const labelOf = useCallback(
     (entry: PlacedPanel) =>
       panelLabel(entry.panel, entry.renamedTo, { translate, hydraulicModel }),
+    [translate, hydraulicModel],
+  );
+
+  const descriptionOf = useCallback(
+    (entry: PlacedPanel) =>
+      panelDescription(entry.panel, { translate, hydraulicModel }),
     [translate, hydraulicModel],
   );
 
@@ -101,6 +107,7 @@ export const BottomDock = memo(function BottomDockInner() {
                 key={entry.id}
                 id={entry.id}
                 label={labelOf(entry)}
+                description={descriptionOf(entry)}
                 closable={isClosable(entry)}
                 onClose={closePanel}
               />

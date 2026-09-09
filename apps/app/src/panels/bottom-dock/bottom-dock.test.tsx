@@ -129,6 +129,33 @@ describe("BottomDock", () => {
     expect(screen.getAllByRole("tab")).toHaveLength(2);
   });
 
+  it("spells out what a scoped table holds beside its label", () => {
+    const store = aStore();
+    store.set(panelsAtom, [
+      createAssetTablePanel("junction", { id: "a", assetIds: [1] }),
+    ]);
+
+    renderTabs(store);
+
+    expect(
+      screen.getByRole("tab", { name: "Junctions (1)" }),
+    ).toBeInTheDocument();
+  });
+
+  it("keeps that description subdued while the label takes the tab's colour", () => {
+    const store = aStore();
+    store.set(panelsAtom, [
+      createAssetTablePanel("junction", { id: "a", assetIds: [1] }),
+    ]);
+
+    renderTabs(store);
+
+    expect(screen.getByText("(1)")).toHaveClass("text-subtle");
+    expect(screen.getByRole("tab")).toHaveClass(
+      "data-[state=active]:text-accent",
+    );
+  });
+
   it("offers a close button on every table once the flag is on", () => {
     stubFeatureOn("FLAG_PARTIAL_DATA_TABLES");
     const store = aStore();

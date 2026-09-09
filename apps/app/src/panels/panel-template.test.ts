@@ -6,6 +6,7 @@ import type { Panel } from "./panel";
 import {
   type PanelContentState,
   contentStateFor,
+  panelDescription,
   panelFor,
   panelLabel,
   withContentState,
@@ -31,6 +32,7 @@ const hydraulicModel = HydraulicModelBuilder.with()
 const context = { translate, hydraulicModel };
 
 const labelOf = (panel: Panel) => panelFor(panel).buildLabel(panel, context);
+const descriptionOf = (panel: Panel) => panelDescription(panel, context);
 
 describe("panel definitions", () => {
   it("labels asset tables by their asset type", () => {
@@ -46,28 +48,45 @@ describe("panel definitions", () => {
     expect(labelOf(createHglProfilePanel())).toEqual("HGL profile");
   });
 
+  it("keeps the label free of the scope a table is holding", () => {
+    const panel = createAssetTablePanel("junction", { assetIds: [1, 2, 10] });
+
+    expect(labelOf(panel)).toEqual("Junctions");
+  });
+});
+
+describe("panelDescription", () => {
   it("counts only the rows a scoped table will show", () => {
     const panel = createAssetTablePanel("junction", { assetIds: [1, 2, 10] });
 
-    expect(labelOf(panel)).toEqual("Junctions (2)");
+    expect(descriptionOf(panel)).toEqual("(2)");
   });
 
   it("counts zero when the scope holds none of its type", () => {
     const panel = createAssetTablePanel("pipe", { assetIds: [1, 2] });
 
-    expect(labelOf(panel)).toEqual("Pipes (0)");
+    expect(descriptionOf(panel)).toEqual("(0)");
   });
 
   it("stops counting an asset once it leaves the model", () => {
     const panel = createAssetTablePanel("junction", { assetIds: [1, 2, 999] });
 
-    expect(labelOf(panel)).toEqual("Junctions (2)");
+    expect(descriptionOf(panel)).toEqual("(2)");
   });
 
   it("counts the customer points a scoped table will show", () => {
     const panel = createCustomerPointTablePanel({ customerPointIds: [7, 999] });
 
-    expect(labelOf(panel)).toEqual("Customer points (1)");
+    expect(descriptionOf(panel)).toEqual("(1)");
+  });
+
+  it("describes nothing when a table holds the whole model", () => {
+    expect(descriptionOf(createAssetTablePanel("junction"))).toBeUndefined();
+    expect(descriptionOf(createCustomerPointTablePanel())).toBeUndefined();
+  });
+
+  it("describes nothing for a panel type without a description", () => {
+    expect(descriptionOf(createHglProfilePanel())).toBeUndefined();
   });
 });
 
