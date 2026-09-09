@@ -1,6 +1,6 @@
 import * as Tabs from "@radix-ui/react-tabs";
 import clsx from "clsx";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { forwardRef, useCallback, useEffect, useRef, useState } from "react";
 import { useTranslate } from "src/hooks/use-translate";
 import { ChevronLeftIcon, ChevronRightIcon } from "src/icons";
 
@@ -175,12 +175,13 @@ function ScrollControl({
   );
 }
 
-export function Tab({
-  className,
-  ...props
-}: React.ComponentPropsWithoutRef<typeof Tabs.Trigger>) {
+export const Tab = forwardRef<
+  React.ElementRef<typeof Tabs.Trigger>,
+  React.ComponentPropsWithoutRef<typeof Tabs.Trigger>
+>(function Tab({ className, ...props }, ref) {
   return (
     <Tabs.Trigger
+      ref={ref}
       className={clsx(
         `px-4 h-8 shrink-0 whitespace-nowrap
         border-b-2 border-transparent
@@ -197,4 +198,4 @@ export function Tab({
       {...props}
     />
   );
-}
+});

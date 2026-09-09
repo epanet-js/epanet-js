@@ -19,6 +19,7 @@ import {
   activePanelIn,
   panelsAtom,
   panelLayoutAtom,
+  reorderPanelAtom,
 } from "src/state/panels";
 import { BottomDock } from "./bottom-dock";
 
@@ -95,6 +96,28 @@ describe("BottomDock", () => {
     expect(
       screen.getByRole("tab", { name: "My working set" }),
     ).toBeInTheDocument();
+  });
+
+  it("renders the tabs in the order the dock reports them", () => {
+    const store = aStore();
+    store.set(panelsAtom, [
+      anInstance("a"),
+      anInstance("b", { assetType: "pipe" }),
+      anInstance("c", { assetType: "pump" }),
+    ]);
+    store.set(reorderPanelAtom, {
+      dock: "bottom",
+      activeId: "c",
+      overId: "a",
+    });
+
+    renderTabs(store);
+
+    expect(screen.getAllByRole("tab").map((tab) => tab.textContent)).toEqual([
+      "Pumps",
+      "Junctions",
+      "Pipes",
+    ]);
   });
 
   it("allows the same asset type to be open more than once", () => {

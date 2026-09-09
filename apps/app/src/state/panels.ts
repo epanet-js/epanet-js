@@ -32,6 +32,8 @@ export const panelContentStateAtom = atom<Record<string, PanelContentState>>(
 
 const selectedPanelIdsAtom = atom<Partial<Record<Dock, string>>>({});
 
+const panelOrderAtom = atom<Partial<Record<Dock, string[]>>>({});
+
 export const forgetPanelAtom = atom(null, (_get, set, panelId: string) => {
   const drop = <T>(prev: Record<string, T>) => {
     if (!(panelId in prev)) return prev;
@@ -41,6 +43,14 @@ export const forgetPanelAtom = atom(null, (_get, set, panelId: string) => {
   };
   set(panelLayoutAtom, drop);
   set(panelContentStateAtom, drop);
+  set(panelOrderAtom, (prev) => {
+    const dock = DOCKS.find((candidate) => prev[candidate]?.includes(panelId));
+    if (!dock) return prev;
+    return {
+      ...prev,
+      [dock]: prev[dock]!.filter((id) => id !== panelId),
+    };
+  });
 });
 
 export const resetPanelsAtom = atom(null, (_get, set, panels: Panel[]) => {
@@ -48,6 +58,7 @@ export const resetPanelsAtom = atom(null, (_get, set, panels: Panel[]) => {
   set(panelLayoutAtom, {});
   set(panelContentStateAtom, {});
   set(selectedPanelIdsAtom, {});
+  set(panelOrderAtom, {});
 });
 
 const resolvedLayoutAtom = selectAtom(splitsAtom, (splits) =>
@@ -78,6 +89,7 @@ export const placedPanelsAtom = atom<PlacedPanel[]>((get) => {
 });
 
 export const panelsByDockAtom = atom<Record<Dock, PlacedPanel[]>>((get) => {
+  const order = get(panelOrderAtom);
   const byDock: Record<Dock, PlacedPanel[]> = {
     left: [],
     right: [],
@@ -86,6 +98,15 @@ export const panelsByDockAtom = atom<Record<Dock, PlacedPanel[]>>((get) => {
   };
   for (const entry of get(placedPanelsAtom)) {
     if (entry.dock) byDock[entry.dock].push(entry);
+  }
+  for (const dock of DOCKS) {
+    const ids = order[dock];
+    if (!ids) continue;
+    const positionOf = (entry: PlacedPanel) => {
+      const position = ids.indexOf(entry.id);
+      return position === -1 ? Infinity : position;
+    };
+    byDock[dock].sort((a, b) => positionOf(a) - positionOf(b));
   }
   return byDock;
 });
@@ -113,6 +134,28 @@ export const activatePanelAtom = atom(null, (get, set, panelId: string) => {
   if (!dock) return;
   set(selectedPanelIdsAtom, (prev) => ({ ...prev, [dock]: panelId }));
 });
+
+export const reorderPanelAtom = atom(
+  null,
+  (get, set, { dock, activeId, overId }: ReorderPanel) => {
+    if (activeId === overId) return;
+
+    const ids = get(panelsByDockAtom)[dock].map((entry) => entry.id);
+    const from = ids.indexOf(activeId);
+    const to = ids.indexOf(overId);
+    if (from === -1 || to === -1) return;
+
+    const reordered = [...ids];
+    reordered.splice(to, 0, ...reordered.splice(from, 1));
+    set(panelOrderAtom, (prev) => ({ ...prev, [dock]: reordered }));
+  },
+);
+
+export type ReorderPanel = {
+  dock: Dock;
+  activeId: string;
+  overId: string;
+};
 
 const samePlacedPanel = (
   a: PlacedPanel | null,

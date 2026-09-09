@@ -1697,6 +1697,12 @@ export type UserEvent =
     }
   | { name: "bottomPanel.tabSwitched"; panelType: string }
   | {
+      name: "bottomPanel.tabReordered";
+      panelType: string;
+      fromIndex: number;
+      toIndex: number;
+    }
+  | {
       name: "bottomPanel.toggled";
       open: boolean;
       activePanelType: string | null;

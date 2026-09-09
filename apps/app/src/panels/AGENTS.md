@@ -3,7 +3,7 @@
 > **North star — partially implemented.**
 > This document describes the target architecture for the panel and layout system. Treat it as the authoritative direction for new work, but expect the code to be at an earlier stage.
 >
-> **Current state:** The bottom dock (`BottomDock`) is the only dock on this architecture. Panels are modelled as data in a single list (`panelsAtom` → `placedPanelsAtom`); there is no separate static definition list. Right, left, and center docks, drag-and-drop, persistence of panel layout state, and the full flexible layout system are future phases.
+> **Current state:** The bottom dock (`BottomDock`) is the only dock on this architecture. Panels are modelled as data in a single list (`panelsAtom` → `placedPanelsAtom`); there is no separate static definition list. Tabs can be dragged to reorder them within their dock. Right, left, and center docks, cross-dock drag-and-drop, persistence of panel layout state, and the full flexible layout system are future phases.
 >
 > When in doubt about what is live, check which dock components exist in `src/panels/` — that is the ground truth for what has been implemented (see [Which Phase Is Active?](#which-phase-is-active)).
 
@@ -23,7 +23,8 @@
 - **Dock component** — the UI that owns a dock and renders its active panel. One per dock (`BottomDock`). Reads `panelsIn(dock)` and `activePanelIn(dock)`, never the registry directly.
 - **Panel type** — the code-owned kind of a panel (`"asset-table"`, `"customer-point-table"`, `"hgl-profile"`), and the discriminant of the `Panel` union. Its behaviour lives in a `PanelTemplate`: how to render it, how to label it, and what to do when it is deactivated or closed. Types are a closed union, not registrations.
 - **Panel instance** — a specific open panel of some type. A panel the user can open many times gets an **opaque `nanoid` id** (`newPanelId()`), so ids carry no meaning and nothing may be derived from them. A **singleton** panel — one the app opens at most once, like HGL or a seeded data table — uses a fixed, well-known id instead, which is what lets a `show-*` command detect "already open" and what keeps its layout state addressable across reloads.
-- **Panel layout** (`panelLayoutAtom`) — what the user has changed about a panel, keyed by panel id: `movedToDock` (for when drag-and-drop lands) and `renamedTo`.
+- **Panel layout** (`panelLayoutAtom`) — what the user has changed about a panel, keyed by panel id: `movedToDock` (for when cross-dock drag-and-drop lands) and `renamedTo`.
+- **Panel order** (`panelOrderAtom`, private to `src/state/panels.ts`) — the order the user dragged a dock's tabs into, as one ordered id list per dock. Kept out of `panelsAtom` on purpose: `panelsAtom` means "what is open, in the order it was opened", and dragging a tab changes only how the dock presents it. Applied in `panelsByDockAtom`, so every consumer inherits it — the tab strip, `activePanelsAtom`'s fallback, and the neighbour `useClosePanel` activates. Ids not in the list sort after the ones that are, keeping their `panelsAtom` order, which is what makes a newly opened panel land at the end of the strip. Written only through `reorderPanelAtom`. Not persisted.
 - **Panel content state** (`panelContentStateAtom`) — what a panel's component needs to restore itself, e.g. a data table's sorting, column widths, cursor and scroll. A separate atom on purpose: `placedPanelsAtom` reads only the layout, so a scroll or sort can never invalidate the registry or re-render a dock. Neither atom is persisted yet; `atomWithStorage` is the intended end state.
 - **Panel registry** (`placedPanelsAtom`) — a **derived read-only atom** pairing each panel with its resolved placement. Dock components read the narrowed `panelsIn(dock)` / `activePanelIn(dock)` rather than this directly.
 
@@ -222,6 +223,7 @@ Convention: `FLAG_SCREAMING_SNAKE_CASE`. Test via URL param `?FLAG_FOO=true`.
 - **Ephemeral UI state** (selected row, collapsed section within a panel): `useState`. No Jotai atom.
 - **A panel's label**: `panelLabel(panel, renamedTo, translate)` — `renamedTo` if the user set one, otherwise the template's `buildLabel`. Never store a rendered label, and never resolve it inline.
 - **Which panel is active per dock**: `activePanelsAtom` in `src/state/panels.ts`, narrowed with `activePanelIn(dock)`. It resolves a stale selection to the dock's first panel, so it is null only when the dock is empty. Activate through `useActivatePanel`, which also deactivates the outgoing panel. Do not add per-panel open/closed atoms — a panel is open because it is in `panelsAtom`.
+- **The order a dock shows its tabs in**: `panelOrderAtom`, applied in `panelsByDockAtom` and written through `useReorderPanel`. Reorder it there rather than by splicing `panelsAtom` — `panelsAtom` spans every dock, so moving an entry within it would need slot-preserving surgery to leave the other docks alone, and a reorder would churn the open set for anything watching it. A reorder must not activate or deactivate anything; keeping the order outside `panelsAtom` is what makes that true by construction.
 - **A panel's restorable UI state** (sorting, scroll, cursor, column widths): `panelContentStateAtom`, typed per panel type by `PanelContentStateByType` in `src/panels/panel-template.tsx`. Restored on mount from `initialGridState`; **captured from the user action that hides the panel**, never on unmount. How a panel type captures is its own business. `onDeactivate` is a plain function over `Panel` data, so it cannot reach the mounted component where `DataGridRef.captureState()` lives — the data tables bridge that with `tableHandlesAtom` in `data-tables/table-handles.ts`, which the mounted table publishes to and `assetTablePanel.onDeactivate` reads through its `get`. Every path that deactivates therefore captures for free, and a panel type with nothing to keep simply omits the hook.
 
   Capturing at unmount looks tempting and does not work: React detaches the DOM node before cleanups run, so `scrollTop` reads `0`, and a snapshot that lands after `resetPanelsAtom` or `forgetPanelAtom` resurrects the state they just cleared. **A new way to hide a panel must deactivate it.**
@@ -232,6 +234,16 @@ Convention: `FLAG_SCREAMING_SNAKE_CASE`. Test via URL param `?FLAG_FOO=true`.
 - **Do not add new fields to `Splits`** for panel content. `Splits` owns outer dock dimensions only.
 
 ---
+
+## Dragging Tabs
+
+`PanelTab` makes the whole tab the drag handle, which puts dnd-kit and Radix on the same element. Three things fall out of that, and each looks like a bug rather than a decision:
+
+- **`PointerSensor` needs `activationConstraint: { distance: 4 }`.** The drag listeners sit on the `Tabs.Trigger` itself, so without a movement threshold they swallow the click and tabs stop switching. The click-to-activate tests in `bottom-dock.test.tsx` are the guard.
+- **`useSortable`'s `attributes` are deliberately not spread.** They carry `role="button"` and their own `tabIndex`, which displace the tab role and Radix's roving focus, and they advertise a space-bar interaction that only exists with a `KeyboardSensor` — which we do not register, because Radix already binds the arrow keys to move focus between tabs. Only `listeners` go on the tab.
+- **Use `CSS.Translate.toString(transform)`, never `CSS.Transform.toString`.** dnd-kit scales the dragged element by `over.rect.width / activeNodeRect.width`, so a tab dragged across neighbours of different label widths visibly stretches and squashes. `Translate` drops the scale and keeps the movement.
+
+`DndContext` lives inside `TabRoot` so Radix's tab context is unbroken, and wraps only the tab strip. Autoscroll is dnd-kit's default and works off the `overflow-x-auto` container inside `TabList`.
 
 ## Resize Rules
 
@@ -260,6 +272,7 @@ Do not introduce a new dock components until there is an actual panel that needs
 | -------------------------------------------------------------------- | ---------------------------------------------------------------- |
 | `bottomSidebarOpenAtom` and `splits.bottomOpen` must be kept in sync | Phase 3: merge into one atom                                     |
 | `tabAtom` and `TabOption` enum are redundant                         | Phase 2C: right dock migrates to registry                        |
-| Nothing writes the `dock` override yet                               | Phase 3: drag-and-drop populates it                              |
+| Nothing writes the `dock` override yet                               | Phase 3: cross-dock drag-and-drop populates it                   |
 | `panelLayoutAtom` is not persisted (`atomWithStorage` is the intent) | Whenever panel layout should survive a reload                    |
-| A **label** change re-renders a whole dock, not just the renamed tab | Only if renames become common — extract a memo'd `PanelTab` then |
+| Tab order is session-only — a reload returns the dock to open order  | Same as above; `panelOrderAtom` would persist alongside it       |
+| Tabs cannot be reordered from the keyboard                           | Needs its own affordance — Radix's arrow keys already move focus between tabs, so dnd-kit's `KeyboardSensor` cannot be added as-is |

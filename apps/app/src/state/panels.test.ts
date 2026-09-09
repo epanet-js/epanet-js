@@ -13,6 +13,7 @@ import {
   panelsAtom,
   panelsByDockAtom,
   panelsIn,
+  reorderPanelAtom,
 } from "./panels";
 
 const aPanel = (
@@ -94,6 +95,113 @@ describe("panelsByDockAtom", () => {
     store.set(splitsAtom, (s) => ({ ...s, layout: "VERTICAL" }));
 
     expect(store.get(panelsByDockAtom).bottom).toEqual([]);
+  });
+});
+
+describe("reorderPanelAtom", () => {
+  const bottomIds = (store: ReturnType<typeof createStore>) =>
+    store.get(panelsIn("bottom")).map((p) => p.id);
+
+  const reorder = (
+    store: ReturnType<typeof createStore>,
+    activeId: string,
+    overId: string,
+  ) => store.set(reorderPanelAtom, { dock: "bottom", activeId, overId });
+
+  it("moves a panel forward", () => {
+    const store = createStore();
+    store.set(panelsAtom, [aPanel("a"), aPanel("b"), aPanel("c")]);
+
+    reorder(store, "a", "c");
+
+    expect(bottomIds(store)).toEqual(["b", "c", "a"]);
+  });
+
+  it("moves a panel backward", () => {
+    const store = createStore();
+    store.set(panelsAtom, [aPanel("a"), aPanel("b"), aPanel("c")]);
+
+    reorder(store, "c", "a");
+
+    expect(bottomIds(store)).toEqual(["c", "a", "b"]);
+  });
+
+  it("leaves the open order alone", () => {
+    const store = createStore();
+    store.set(panelsAtom, [aPanel("a"), aPanel("b"), aPanel("c")]);
+
+    reorder(store, "c", "a");
+
+    expect(store.get(panelsAtom).map((p) => p.id)).toEqual(["a", "b", "c"]);
+  });
+
+  it("appends a panel opened after a reorder", () => {
+    const store = createStore();
+    store.set(panelsAtom, [aPanel("a"), aPanel("b"), aPanel("c")]);
+    reorder(store, "c", "a");
+
+    store.set(panelsAtom, (prev) => [...prev, aPanel("d")]);
+
+    expect(bottomIds(store)).toEqual(["c", "a", "b", "d"]);
+  });
+
+  it("keeps panels that were never dragged in open order", () => {
+    const store = createStore();
+    store.set(panelsAtom, [aPanel("a"), aPanel("b"), aPanel("c")]);
+    store.set(panelsAtom, (prev) => [...prev, aPanel("d"), aPanel("e")]);
+
+    reorder(store, "a", "b");
+
+    expect(bottomIds(store)).toEqual(["b", "a", "c", "d", "e"]);
+  });
+
+  it("does not change which panel is active", () => {
+    const store = createStore();
+    store.set(panelsAtom, [aPanel("a"), aPanel("b"), aPanel("c")]);
+    store.set(activatePanelAtom, "b");
+
+    reorder(store, "c", "a");
+
+    expect(store.get(activePanelIn("bottom"))?.id ?? null).toEqual("b");
+  });
+
+  it("leaves panels in other docks untouched", () => {
+    const store = createStore();
+    store.set(panelsAtom, [aPanel("a"), aPanel("b"), aPanel("c")]);
+    store.set(panelLayoutAtom, { b: { movedToDock: "right" } });
+
+    reorder(store, "a", "c");
+
+    expect(bottomIds(store)).toEqual(["c", "a"]);
+    expect(store.get(panelsIn("right")).map((p) => p.id)).toEqual(["b"]);
+  });
+
+  it("ignores an order left behind by a closed panel", () => {
+    const store = createStore();
+    store.set(panelsAtom, [aPanel("a"), aPanel("b"), aPanel("c")]);
+    reorder(store, "c", "a");
+
+    store.set(panelsAtom, (prev) => prev.filter((p) => p.id !== "a"));
+
+    expect(bottomIds(store)).toEqual(["c", "b"]);
+  });
+
+  it("does nothing when a panel is dropped on itself", () => {
+    const store = createStore();
+    store.set(panelsAtom, [aPanel("a"), aPanel("b")]);
+
+    reorder(store, "a", "a");
+
+    expect(bottomIds(store)).toEqual(["a", "b"]);
+  });
+
+  it("does nothing when either panel is not in the dock", () => {
+    const store = createStore();
+    store.set(panelsAtom, [aPanel("a"), aPanel("b")]);
+
+    reorder(store, "a", "missing");
+
+    expect(bottomIds(store)).toEqual(["a", "b"]);
   });
 });
 
