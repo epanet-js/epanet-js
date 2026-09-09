@@ -278,14 +278,14 @@ export function BaseMultiSelectorList<T extends string | number>({
                   <span
                     aria-hidden="true"
                     className={clsx(
-                      "flex items-center justify-center w-4 h-4 rounded-xs border shrink-0",
+                      "flex items-center justify-center w-4 h-4 rounded border shrink-0",
                       isSelected
-                        ? "bg-accent-tint border-accent"
-                        : "border-strong",
+                        ? "bg-accent border-transparent"
+                        : "bg-panel border-strong",
                     )}
                   >
                     {isSelected && (
-                      <CheckIcon size={12} className="text-accent" />
+                      <CheckIcon size={12} className="text-white" />
                     )}
                   </span>
                   <span className="flex items-baseline gap-1 min-w-0">

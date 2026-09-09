@@ -84,6 +84,8 @@ import {
 import { zonesAtom } from "src/state/zones";
 import { hglProfileAtom } from "src/state/hgl-profile";
 import { resetPanelsAtom } from "src/state/panels";
+import type { Panel } from "src/panels/panel";
+import { useDefaultPanels } from "src/panels/use-default-panels";
 
 export type ProjectLoadInput = {
   hydraulicModel: HydraulicModel;
@@ -94,7 +96,7 @@ export type ProjectLoadInput = {
   autoElevations?: boolean;
 };
 
-export const resetAppState = (set: Setter) => {
+export const resetAppState = (set: Setter, panels: Panel[]) => {
   set(splitsAtom, defaultSplits);
   set(selectionAtom, USelection.none());
   set(mapEditionsTrackerAtom, new MapEditionsTracker());
@@ -105,7 +107,7 @@ export const resetAppState = (set: Setter) => {
   set(nodeSizeAtom, defaultNodeSizeConfig);
   set(modeAtom, { mode: Mode.NONE });
   set(hglProfileAtom, null);
-  set(resetPanelsAtom);
+  set(resetPanelsAtom, panels);
   set(ephemeralStateAtom, { type: "none" });
   set(pipeDrawingDefaultsAtom, {});
   set(autoElevationsAtom, true);
@@ -200,6 +202,7 @@ export const withDatabaseBusy = async <T>(
 };
 
 export const useStartNewProject = () => {
+  const defaultPanelsFor = useDefaultPanels();
   const startNewProject = useAtomCallback(
     useCallback(
       async (
@@ -225,14 +228,14 @@ export const useStartNewProject = () => {
             simulationSettings: input.simulationSettings,
             ...(input.zones === undefined ? {} : { zones: input.zones }),
           });
-          resetAppState(set);
+          resetAppState(set, defaultPanelsFor());
           loadModel(set, { ...input, projectSettings: mergedProjectSettings });
           return true;
         });
 
         return started ?? false;
       },
-      [],
+      [defaultPanelsFor],
     ),
   );
 
@@ -275,38 +278,42 @@ export const useStartBlankProject = () => {
 };
 
 export const useSeedDefaultProjectDb = () => {
+  const defaultPanelsFor = useDefaultPanels();
   return useAtomCallback(
-    useCallback((get: Getter, set: Setter): Promise<void> => {
-      const projectSettings: ProjectSettings = {
-        ...get(projectSettingsAtom),
-        ...{ uniqueId: db.newUniqueId() },
-      };
-      const hydraulicModel = get(stagingModelDerivedAtom);
-      const simulationSettings = get(simulationSettingsDerivedAtom);
+    useCallback(
+      (get: Getter, set: Setter): Promise<void> => {
+        const projectSettings: ProjectSettings = {
+          ...get(projectSettingsAtom),
+          ...{ uniqueId: db.newUniqueId() },
+        };
+        const hydraulicModel = get(stagingModelDerivedAtom);
+        const simulationSettings = get(simulationSettingsDerivedAtom);
 
-      resetAppState(set);
-      loadModel(set, {
-        hydraulicModel,
-        factories: get(modelFactoriesAtom),
-        projectSettings,
-        simulationSettings,
-      });
-
-      return db
-        .importProject({
-          newDb: true,
-          projectSettings,
+        resetAppState(set, defaultPanelsFor());
+        loadModel(set, {
           hydraulicModel,
+          factories: get(modelFactoriesAtom),
+          projectSettings,
           simulationSettings,
-        })
-        .catch((e: unknown) => {
-          const error = e instanceof Error ? e : new Error(String(e));
-          captureWarning("Failed to seed default project db", error);
-          set(dialogAtom, {
-            type: "appLoadFailed",
-            errorMessage: error.message,
-          });
         });
-    }, []),
+
+        return db
+          .importProject({
+            newDb: true,
+            projectSettings,
+            hydraulicModel,
+            simulationSettings,
+          })
+          .catch((e: unknown) => {
+            const error = e instanceof Error ? e : new Error(String(e));
+            captureWarning("Failed to seed default project db", error);
+            set(dialogAtom, {
+              type: "appLoadFailed",
+              errorMessage: error.message,
+            });
+          });
+      },
+      [defaultPanelsFor],
+    ),
   );
 };

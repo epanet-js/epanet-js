@@ -1846,12 +1846,9 @@
     "title": "Data tables",
     "picker": {
       "title": "Open data tables",
-      "prompt": "Choose which tables to open.",
-      "alreadyOpen": "(already open)",
+      "prompt": "Select tables to add",
       "selectedAssetsOnly": "Selected assets only",
-      "open": "Open",
-      "noneSelected": "(none selected)",
-      "nothingSelected": "(nothing selected)"
+      "open": "Open"
     },
     "copy": {
       "includeHeadersPrompt": "Copied. Include column headers?",

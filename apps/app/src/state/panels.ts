@@ -44,8 +44,8 @@ export const forgetPanelAtom = atom(null, (_get, set, panelId: string) => {
   set(panelContentStateAtom, drop);
 });
 
-export const resetPanelsAtom = atom(null, (_get, set) => {
-  set(panelsAtom, defaultPanels());
+export const resetPanelsAtom = atom(null, (_get, set, panels: Panel[]) => {
+  set(panelsAtom, panels);
   set(panelLayoutAtom, {});
   set(panelContentStateAtom, {});
   set(selectedPanelIdsAtom, {});

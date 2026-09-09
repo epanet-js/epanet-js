@@ -1,5 +1,6 @@
 import { useCallback } from "react";
 import { useAtomCallback } from "jotai/utils";
+import { useDefaultPanels } from "src/panels/use-default-panels";
 import type { Getter, Setter } from "jotai";
 import * as db from "src/lib/db";
 import type { HydraulicModel } from "src/hydraulic-model";
@@ -36,6 +37,7 @@ export type OpenPersistedProjectResult =
     };
 
 export const useOpenPersistedProject = () => {
+  const defaultPanelsFor = useDefaultPanels();
   const openPersistedProject = useAtomCallback(
     useCallback(
       async (
@@ -66,7 +68,7 @@ export const useOpenPersistedProject = () => {
         } = await fetchProject({ onProgress });
         onProgress?.("finalizing");
         await clearSimulationStorage();
-        resetAppState(set);
+        resetAppState(set, defaultPanelsFor());
         loadModel(set, {
           hydraulicModel,
           factories,
@@ -82,7 +84,7 @@ export const useOpenPersistedProject = () => {
           uniqueId,
         };
       },
-      [],
+      [defaultPanelsFor],
     ),
   );
 

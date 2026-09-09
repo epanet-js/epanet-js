@@ -1,6 +1,10 @@
 import { useCallback, useMemo, useState } from "react";
 import { useAtomValue } from "jotai";
 import type { AssetType } from "@epanet-js/hydraulic-model";
+import {
+  BaseMultiSelectorList,
+  type SelectorListOption,
+} from "@epanet-js/ui-kit";
 import { BaseDialog, SimpleDialogActions } from "src/components/dialog";
 import { Checkbox } from "src/components/form/Checkbox";
 import { useTranslate } from "src/hooks/use-translate";
@@ -28,11 +32,31 @@ const assetTypeLabelKeys: Record<AssetType, string> = {
 
 export const OpenDataTablesDialog = ({ onClose }: { onClose: () => void }) => {
   const translate = useTranslate();
-  const panels = useAtomValue(panelsAtom);
   const openDataTables = useOpenDataTables();
+  const panels = useAtomValue(panelsAtom);
   const selection = useAtomValue(selectionAtom);
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
-  const [checked, setChecked] = useState<ReadonlySet<DataTableType>>(new Set());
+  const totalCounts = useMemo(() => {
+    const counts = new Map<DataTableType, number>();
+    for (const asset of hydraulicModel.assets.values()) {
+      counts.set(asset.type, (counts.get(asset.type) ?? 0) + 1);
+    }
+    counts.set(CUSTOMER_POINTS_TABLE, hydraulicModel.customerPoints.size);
+    return counts;
+  }, [hydraulicModel]);
+
+  const [checked, setChecked] = useState<ReadonlySet<DataTableType>>(() =>
+    panels.some(
+      (panel) =>
+        panel.type === "asset-table" || panel.type === "customer-point-table",
+    )
+      ? new Set<DataTableType>()
+      : new Set(
+          [...totalCounts]
+            .filter(([, count]) => count > 0)
+            .map(([tableType]) => tableType),
+        ),
+  );
   const [selectedOnly, setSelectedOnly] = useState(false);
 
   const choices = useMemo<Choice[]>(
@@ -44,23 +68,6 @@ export const OpenDataTablesDialog = ({ onClose }: { onClose: () => void }) => {
       { tableType: CUSTOMER_POINTS_TABLE, label: translate("customerPoints") },
     ],
     [translate],
-  );
-
-  const alreadyOpen = useMemo(
-    () =>
-      new Set(
-        choices
-          .filter((choice) =>
-            panels.some((panel) =>
-              choice.tableType === CUSTOMER_POINTS_TABLE
-                ? panel.type === "customer-point-table"
-                : panel.type === "asset-table" &&
-                  panel.assetType === choice.tableType,
-            ),
-          )
-          .map((choice) => choice.tableType),
-      ),
-    [choices, panels],
   );
 
   const selectedCounts = useMemo(() => {
@@ -78,14 +85,6 @@ export const OpenDataTablesDialog = ({ onClose }: { onClose: () => void }) => {
   const hasSelection = selectedCounts.size > 0;
   const scopedToSelection = selectedOnly && hasSelection;
 
-  const isUnavailable = useCallback(
-    (choice: Choice) =>
-      scopedToSelection
-        ? !selectedCounts.has(choice.tableType)
-        : alreadyOpen.has(choice.tableType),
-    [scopedToSelection, selectedCounts, alreadyOpen],
-  );
-
   const toggle = useCallback((tableType: DataTableType) => {
     setChecked((prev) => {
       const next = new Set(prev);
@@ -95,8 +94,22 @@ export const OpenDataTablesDialog = ({ onClose }: { onClose: () => void }) => {
     });
   }, []);
 
-  const newlyChecked = choices.filter(
-    (choice) => checked.has(choice.tableType) && !isUnavailable(choice),
+  const options = useMemo<SelectorListOption<DataTableType>[]>(
+    () =>
+      choices.map((choice) => ({
+        value: choice.tableType,
+        label: choice.label,
+        description: `(${(
+          (scopedToSelection ? selectedCounts : totalCounts).get(
+            choice.tableType,
+          ) ?? 0
+        ).toLocaleString()})`,
+      })),
+    [choices, scopedToSelection, selectedCounts, totalCounts],
+  );
+
+  const newlyChecked = choices.filter((choice) =>
+    checked.has(choice.tableType),
   );
 
   const open = useCallback(() => {
@@ -123,51 +136,6 @@ export const OpenDataTablesDialog = ({ onClose }: { onClose: () => void }) => {
       }
     >
       <div className="flex flex-col gap-3 p-4">
-        <p className="text-size-small text-subtle">
-          {translate("dataTables.picker.prompt")}
-        </p>
-
-        <ul className="flex flex-col gap-1.5">
-          {choices.map((choice) => {
-            const unavailable = isUnavailable(choice);
-            const selectedCount = selectedCounts.get(choice.tableType) ?? 0;
-            return (
-              <li key={choice.tableType}>
-                <label
-                  className={`flex items-center gap-2 text-size-base w-max ${
-                    unavailable
-                      ? "text-disabled cursor-not-allowed"
-                      : "text-default cursor-pointer"
-                  }`}
-                >
-                  <Checkbox
-                    checked={
-                      (unavailable && !scopedToSelection) ||
-                      checked.has(choice.tableType)
-                    }
-                    disabled={unavailable}
-                    onChange={() => toggle(choice.tableType)}
-                  />
-                  {choice.label}
-                  {scopedToSelection ? (
-                    <span className="text-size-small text-subtle">
-                      {selectedCount > 0
-                        ? `(${selectedCount.toLocaleString()})`
-                        : translate("dataTables.picker.noneSelected")}
-                    </span>
-                  ) : (
-                    unavailable && (
-                      <span className="text-size-small text-subtle">
-                        {translate("dataTables.picker.alreadyOpen")}
-                      </span>
-                    )
-                  )}
-                </label>
-              </li>
-            );
-          })}
-        </ul>
-
         <label
           className={`flex items-center gap-2 text-size-base w-max ${
             hasSelection
@@ -181,12 +149,24 @@ export const OpenDataTablesDialog = ({ onClose }: { onClose: () => void }) => {
             onChange={() => setSelectedOnly((prev) => !prev)}
           />
           {translate("dataTables.picker.selectedAssetsOnly")}
-          {!hasSelection && (
-            <span className="text-size-small text-subtle">
-              {translate("dataTables.picker.nothingSelected")}
-            </span>
-          )}
         </label>
+
+        <div className="gap-0.5">
+          <p className="text-size-base text-subtle font-semibold">
+            {translate("dataTables.picker.prompt")}
+          </p>
+
+          <div className="border rounded-sm">
+            <BaseMultiSelectorList<DataTableType>
+              options={options}
+              selected={Array.from(checked)}
+              onToggle={toggle}
+              onClose={onClose}
+              maxVisibleOptions={options.length}
+              listClassName="text-size-base"
+            />
+          </div>
+        </div>
       </div>
     </BaseDialog>
   );

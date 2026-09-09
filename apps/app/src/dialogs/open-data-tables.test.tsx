@@ -36,6 +36,9 @@ const aStoreWithSelection = (assetIds: number[]) =>
     selection: USelection.fromAssetIds(assetIds),
   });
 
+const anEmptyModelStore = () =>
+  setInitialState({ hydraulicModel: HydraulicModelBuilder.with().build() });
+
 const openButton = () => screen.getByRole("button", { name: "Open" });
 
 const scopeCheckbox = () =>
@@ -48,24 +51,24 @@ beforeEach(() => {
 
 describe("OpenDataTablesDialog", () => {
   it("disables Open until something is checked", async () => {
-    const store = aStore();
+    const store = anEmptyModelStore();
     store.set(panelsAtom, []);
 
     renderPicker(store);
     expect(openButton()).toBeDisabled();
 
-    await userEvent.click(screen.getByRole("checkbox", { name: /Junctions/ }));
+    await userEvent.click(screen.getByRole("option", { name: /Junctions/ }));
 
     expect(openButton()).toBeEnabled();
   });
 
   it("opens a table for each checked type", async () => {
-    const store = aStore();
+    const store = anEmptyModelStore();
     store.set(panelsAtom, []);
 
     renderPicker(store);
-    await userEvent.click(screen.getByRole("checkbox", { name: /Junctions/ }));
-    await userEvent.click(screen.getByRole("checkbox", { name: /Pipes/ }));
+    await userEvent.click(screen.getByRole("option", { name: /Junctions/ }));
+    await userEvent.click(screen.getByRole("option", { name: /Pipes/ }));
     await userEvent.click(openButton());
 
     expect(store.get(panelsAtom).map((panel) => panel.type)).toEqual([
@@ -74,7 +77,7 @@ describe("OpenDataTablesDialog", () => {
     ]);
   });
 
-  it("shows an already-open table as checked and disabled", () => {
+  it("pre-selects nothing once a data table is open", () => {
     const store = aStore();
     store.set(panelsAtom, [
       createAssetTablePanel("pipe", { id: "pipe", closable: false }),
@@ -82,12 +85,86 @@ describe("OpenDataTablesDialog", () => {
 
     renderPicker(store);
 
-    const pipes = screen.getByRole("checkbox", { name: /Pipes/ });
-    expect(pipes).toBeChecked();
-    expect(pipes).toBeDisabled();
+    expect(screen.getByRole("option", { name: /Pipes/ })).toHaveAttribute(
+      "aria-selected",
+      "false",
+    );
   });
 
-  it("keeps Open disabled when only already-open tables are listed", () => {
+  it("lets a ticked table be unticked", async () => {
+    const store = aStore();
+    store.set(panelsAtom, []);
+
+    renderPicker(store);
+    const junctions = () => screen.getByRole("option", { name: /Junctions/ });
+    expect(junctions()).toHaveAttribute("aria-selected", "true");
+    await userEvent.click(junctions());
+
+    expect(junctions()).toHaveAttribute("aria-selected", "false");
+    expect(openButton()).toBeDisabled();
+  });
+
+  it("keeps the ticks when the selection scope is toggled", async () => {
+    const store = aStoreWithSelection([1]);
+    store.set(panelsAtom, []);
+
+    renderPicker(store);
+    await userEvent.click(screen.getByRole("option", { name: /Junctions/ }));
+    await userEvent.click(scopeCheckbox());
+
+    expect(screen.getByRole("option", { name: /Junctions/ })).toHaveAttribute(
+      "aria-selected",
+      "false",
+    );
+    expect(screen.getByRole("option", { name: /Pipes/ })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+  });
+
+  it("pre-selects every type the model has onto an empty dock", () => {
+    const store = aStoreWithSelection([]);
+    store.set(panelsAtom, []);
+
+    renderPicker(store);
+
+    expect(screen.getByRole("option", { name: /Junctions/ })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    expect(screen.getByRole("option", { name: /Pipes/ })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+  });
+
+  it("leaves a type the model has none of unticked", () => {
+    const store = aStoreWithSelection([]);
+    store.set(panelsAtom, []);
+
+    renderPicker(store);
+
+    expect(screen.getByRole("option", { name: /Valves/ })).toHaveAttribute(
+      "aria-selected",
+      "false",
+    );
+  });
+
+  it("counts every asset of the type while the scope is the whole model", () => {
+    const store = aStoreWithSelection([1]);
+    store.set(panelsAtom, []);
+
+    renderPicker(store);
+
+    expect(
+      screen.getByRole("option", { name: /Junctions \(2\)/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("option", { name: /Pipes \(1\)/ }),
+    ).toBeInTheDocument();
+  });
+
+  it("keeps Open disabled until a table is ticked", () => {
     const store = aStore();
     store.set(panelsAtom, [
       createAssetTablePanel("pipe", { id: "pipe", closable: false }),
@@ -105,7 +182,7 @@ describe("OpenDataTablesDialog", () => {
     ]);
 
     renderPicker(store);
-    await userEvent.click(screen.getByRole("checkbox", { name: /Valves/ }));
+    await userEvent.click(screen.getByRole("option", { name: /Valves/ }));
     await userEvent.click(openButton());
 
     expect(
@@ -120,7 +197,6 @@ describe("OpenDataTablesDialog", () => {
     store.set(panelsAtom, []);
 
     renderPicker(store);
-    await userEvent.click(screen.getByRole("checkbox", { name: /Junctions/ }));
     await userEvent.click(openButton());
 
     expect(onClose).toHaveBeenCalled();
@@ -133,7 +209,7 @@ describe("OpenDataTablesDialog", () => {
     ]);
 
     renderPicker(store);
-    await userEvent.click(screen.getByRole("checkbox", { name: /Valves/ }));
+    await userEvent.click(screen.getByRole("option", { name: /Valves/ }));
     await userEvent.click(openButton());
 
     expect(store.get(activePanelIn("bottom"))?.panel).toMatchObject({
@@ -156,7 +232,7 @@ describe("OpenDataTablesDialog", () => {
 
     renderPicker(store);
     await userEvent.click(scopeCheckbox());
-    await userEvent.click(screen.getByRole("checkbox", { name: /Junctions/ }));
+    await userEvent.click(screen.getByRole("option", { name: /Pipes/ }));
     await userEvent.click(openButton());
 
     expect(store.get(panelsAtom)).toMatchObject([
@@ -173,18 +249,21 @@ describe("OpenDataTablesDialog", () => {
     renderPicker(store);
     await userEvent.click(scopeCheckbox());
 
-    expect(screen.getByRole("checkbox", { name: /Junctions/ })).toBeEnabled();
+    expect(
+      screen.getByRole("option", { name: /Junctions/ }),
+    ).toBeInTheDocument();
   });
 
-  it("disables a type with nothing selected under the selection scope", async () => {
+  it("shows a zero count for a type the selection has none of", async () => {
     const store = aStoreWithSelection([1]);
     store.set(panelsAtom, []);
 
     renderPicker(store);
     await userEvent.click(scopeCheckbox());
 
-    expect(screen.getByRole("checkbox", { name: /Pipes/ })).toBeDisabled();
-    expect(screen.getByRole("checkbox", { name: /Junctions/ })).toBeEnabled();
+    expect(
+      screen.getByRole("option", { name: /Pipes \(0\)/ }),
+    ).toBeInTheDocument();
   });
 
   it("shows how many of each type are selected", async () => {
@@ -195,7 +274,7 @@ describe("OpenDataTablesDialog", () => {
     await userEvent.click(scopeCheckbox());
 
     expect(
-      screen.getByRole("checkbox", { name: /Junctions \(2\)/ }),
+      screen.getByRole("option", { name: /Junctions \(2\)/ }),
     ).toBeInTheDocument();
   });
 
