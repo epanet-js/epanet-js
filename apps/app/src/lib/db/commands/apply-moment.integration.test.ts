@@ -16,7 +16,7 @@ import {
   setAttributes,
 } from "@epanet-js/hydraulic-model";
 import { serializeCustomAttributesDefinition } from "@epanet-js/ejsdb-mappers";
-import { emptyApplyMomentPayload } from "@epanet-js/ejsdb";
+import { emptyWriteBatch } from "@epanet-js/ejsdb";
 import type { HydraulicModel } from "src/hydraulic-model";
 import {
   changeCustomAttributesDefinition,
@@ -991,7 +991,7 @@ describe("applyMomentToDb curve and pattern writes", () => {
     );
 
     await applyMomentToDb({
-      ...emptyApplyMomentPayload(),
+      ...emptyWriteBatch(),
       curveDeleteIds: [IDS.C3],
       curveUpserts: [
         {
@@ -1039,7 +1039,7 @@ describe("applyMomentToDb curve and pattern writes", () => {
     );
 
     await applyMomentToDb({
-      ...emptyApplyMomentPayload(),
+      ...emptyWriteBatch(),
       patternDeleteIds: [IDS.PAT3],
       patternUpserts: [
         {

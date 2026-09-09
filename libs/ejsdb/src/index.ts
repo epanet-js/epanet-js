@@ -19,7 +19,7 @@ export {
 export type {
   NewDbResult,
   OpenDbResult,
-  ApplyMomentPayload,
+  WriteBatch,
   ImportProjectPayload,
   CustomAttributeValueUpdate,
   AssetCustomAttributeUpdates,
@@ -28,8 +28,8 @@ export type {
 } from "./types";
 export {
   emptyAssetCustomAttributeUpdates,
-  emptyApplyMomentPayload,
-  isEmptyApplyMomentPayload,
+  emptyWriteBatch,
+  isEmptyWriteBatch,
 } from "./types";
 export * from "./schema";
 export { buildChangeSetPayload } from "./change-set/to-payload";

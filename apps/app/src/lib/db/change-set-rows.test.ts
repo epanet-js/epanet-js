@@ -16,10 +16,7 @@ import {
   serializeRawControls,
   toCustomerPointRow,
 } from "@epanet-js/ejsdb-mappers";
-import {
-  buildChangeSetPayload,
-  isEmptyApplyMomentPayload,
-} from "@epanet-js/ejsdb";
+import { buildChangeSetPayload, isEmptyWriteBatch } from "@epanet-js/ejsdb";
 import {
   HydraulicModelBuilder,
   buildCustomerPoint,
@@ -285,7 +282,7 @@ describe("buildChangeSetPayload assets", () => {
       "forward",
     );
 
-    expect(isEmptyApplyMomentPayload(payload)).toBe(true);
+    expect(isEmptyWriteBatch(payload)).toBe(true);
   });
 
   it("writes a delete as an id", () => {

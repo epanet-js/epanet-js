@@ -35,13 +35,13 @@ type PatchRow =
   | CurvePatchRow
   | PatternPatchRow;
 import type {
-  ApplyMomentPayload,
+  WriteBatch,
   CustomAttributeValueUpdate,
   ImportProjectPayload,
   NewDbResult,
   OpenDbResult,
 } from "./types";
-import { isEmptyApplyMomentPayload } from "./types";
+import { isEmptyWriteBatch } from "./types";
 import { ChangeSet, type Direction } from "@epanet-js/change-set";
 import { buildChangeSetPayload } from "./change-set/to-payload";
 
@@ -953,7 +953,7 @@ const countImportProject = (payload: ImportProjectPayload) => ({
   jDem: payload.junctionDemands.length,
 });
 
-const countApplyMoment = (payload: ApplyMomentPayload) => ({
+const countWriteBatch = (payload: WriteBatch) => ({
   delAssets: payload.assetDeleteIds.length,
   upJ: payload.assetUpserts.junctions.length,
   upR: payload.assetUpserts.reservoirs.length,
@@ -984,10 +984,7 @@ const countApplyMoment = (payload: ApplyMomentPayload) => ({
   ctrls: payload.controlsReplacement !== null ? 1 : 0,
 });
 
-const writeApplyPayload = (
-  label: string,
-  payload: ApplyMomentPayload,
-): Promise<void> =>
+const applyWriteBatch = (label: string, payload: WriteBatch): Promise<void> =>
   withTransaction(
     label,
     (db) => {
@@ -1114,7 +1111,7 @@ const writeApplyPayload = (
         );
       }
     },
-    countApplyMoment(payload),
+    countWriteBatch(payload),
   );
 
 export const api = {
@@ -1473,9 +1470,9 @@ export const api = {
     });
   },
 
-  async applyMoment(payload: ApplyMomentPayload): Promise<void> {
-    if (isEmptyApplyMomentPayload(payload)) return;
-    return writeApplyPayload("moment:write", payload);
+  async applyMoment(payload: WriteBatch): Promise<void> {
+    if (isEmptyWriteBatch(payload)) return;
+    return applyWriteBatch("moment:write", payload);
   },
 
   async applyChangeSet(bytes: Uint8Array, direction: Direction): Promise<void> {
@@ -1489,8 +1486,8 @@ export const api = {
         records: changeSet.read().records.length,
       },
     );
-    if (isEmptyApplyMomentPayload(payload)) return;
-    return writeApplyPayload("changeSet:write", payload);
+    if (isEmptyWriteBatch(payload)) return;
+    return applyWriteBatch("changeSet:write", payload);
   },
 
   async importProject(payload: ImportProjectPayload): Promise<NewDbResult> {

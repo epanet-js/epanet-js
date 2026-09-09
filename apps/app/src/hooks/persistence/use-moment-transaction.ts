@@ -26,7 +26,7 @@ import {
   applyMomentToDb,
   buildMomentPayload,
 } from "src/lib/db";
-import type { ApplyMomentPayload } from "@epanet-js/ejsdb";
+import type { WriteBatch } from "@epanet-js/ejsdb";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { captureError, captureWarning } from "src/infra/error-tracking";
 import {
@@ -191,7 +191,7 @@ const transactWithMoment = (
   willPersist: boolean,
   onWriteFailure: WriteFailureHandler,
 ): boolean => {
-  let payload: ApplyMomentPayload | undefined;
+  let payload: WriteBatch | undefined;
   if (willPersist) {
     try {
       payload = timedSync("moment:build", () => buildMomentPayload(moment), {

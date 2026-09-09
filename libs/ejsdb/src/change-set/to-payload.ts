@@ -10,8 +10,8 @@ import {
 } from "@epanet-js/change-set";
 import type { CustomAttributesDefinitionData } from "../schema/custom-attributes-definition";
 import {
-  emptyApplyMomentPayload,
-  type ApplyMomentPayload,
+  emptyWriteBatch,
+  type WriteBatch,
   type AssetCustomAttributeUpdates,
 } from "../types";
 import { patchFrom, rowFrom, type ColumnMap } from "./column-map";
@@ -68,7 +68,7 @@ const groupCustomAttributes = (
 };
 
 const addAsset = (
-  payload: ApplyMomentPayload,
+  payload: WriteBatch,
   entity: AssetEntityKind,
   id: number,
   step: Effective,
@@ -99,7 +99,7 @@ const addAsset = (
 };
 
 const addCustomerPoint = (
-  payload: ApplyMomentPayload,
+  payload: WriteBatch,
   id: number,
   step: Effective,
 ): void => {
@@ -130,11 +130,7 @@ const addCustomerPoint = (
   }
 };
 
-const addCurve = (
-  payload: ApplyMomentPayload,
-  id: number,
-  step: Effective,
-): void => {
+const addCurve = (payload: WriteBatch, id: number, step: Effective): void => {
   if (step.kind === "delete") {
     payload.curveDeleteIds.push(id);
     return;
@@ -156,11 +152,7 @@ const addCurve = (
   payload.curvePatches.push(candidate as (typeof payload.curvePatches)[number]);
 };
 
-const addPattern = (
-  payload: ApplyMomentPayload,
-  id: number,
-  step: Effective,
-): void => {
+const addPattern = (payload: WriteBatch, id: number, step: Effective): void => {
   if (step.kind === "delete") {
     payload.patternDeleteIds.push(id);
     return;
@@ -202,8 +194,8 @@ const demandRows = <T>(
 export const buildChangeSetPayload = (
   changeSet: ChangeSet,
   direction: Direction,
-): ApplyMomentPayload => {
-  const payload = emptyApplyMomentPayload();
+): WriteBatch => {
+  const payload = emptyWriteBatch();
   const { records } = changeSet.read();
 
   const deletedCustomerPointIds = new Set<number>();

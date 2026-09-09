@@ -12,9 +12,9 @@ import type {
 import {
   getWorker,
   timed,
-  emptyApplyMomentPayload,
+  emptyWriteBatch,
   emptyAssetCustomAttributeUpdates,
-  type ApplyMomentPayload,
+  type WriteBatch,
   type AssetCustomAttributeUpdates,
   type CustomAttributeValueUpdate,
   type CustomerPointDemandUpdate,
@@ -104,7 +104,7 @@ const buildCustomerPointCustomAttributeValues = (
   return updates;
 };
 
-export const buildMomentPayload = (moment: Moment): ApplyMomentPayload => {
+export const buildMomentPayload = (moment: Moment): WriteBatch => {
   const upsertAssets: Asset[] = [];
   if (moment.putAssets) {
     const byId = new Map<AssetId, Asset>();
@@ -173,7 +173,7 @@ export const buildMomentPayload = (moment: Moment): ApplyMomentPayload => {
     : null;
 
   return {
-    ...emptyApplyMomentPayload(),
+    ...emptyWriteBatch(),
     assetDeleteIds: [...(moment.deleteAssets ?? [])],
     assetUpserts: assetsToRows(upsertAssets),
     assetPatches,
@@ -199,9 +199,7 @@ export const buildMomentPayload = (moment: Moment): ApplyMomentPayload => {
   };
 };
 
-export const applyMomentToDb = async (
-  payload: ApplyMomentPayload,
-): Promise<void> => {
+export const applyMomentToDb = async (payload: WriteBatch): Promise<void> => {
   await timed("moment:save", async () => {
     const worker = getWorker();
     await worker.applyMoment(payload);

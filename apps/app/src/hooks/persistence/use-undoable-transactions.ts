@@ -26,7 +26,7 @@ import {
 } from "src/lib/db";
 import type { Direction } from "@epanet-js/change-set";
 import { timedSync } from "@epanet-js/ejsdb";
-import type { ApplyMomentPayload } from "@epanet-js/ejsdb";
+import type { WriteBatch } from "@epanet-js/ejsdb";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { captureError, captureWarning } from "src/infra/error-tracking";
 import {
@@ -48,7 +48,7 @@ const commitHistoryAction = (
   const worktree = get(worktreeAtom);
   const willPersist = worktree.activeBranchId === worktree.mainId;
 
-  let payload: ApplyMomentPayload | null = null;
+  let payload: WriteBatch | null = null;
   if (willPersist) {
     try {
       payload = timedSync(

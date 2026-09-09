@@ -81,7 +81,7 @@ export type ImportProjectPayload = {
   junctionDemands: JunctionDemandRow[];
 };
 
-export type ApplyMomentPayload = {
+export type WriteBatch = {
   assetDeleteIds: number[];
   assetUpserts: AssetRows;
   assetPatches: AssetPatchRows;
@@ -106,9 +106,7 @@ export type ApplyMomentPayload = {
   customerPointCustomAttributeValues: CustomAttributeValueUpdate[];
 };
 
-export const isEmptyApplyMomentPayload = (
-  payload: ApplyMomentPayload,
-): boolean =>
+export const isEmptyWriteBatch = (payload: WriteBatch): boolean =>
   payload.assetDeleteIds.length === 0 &&
   payload.assetUpserts.junctions.length === 0 &&
   payload.assetUpserts.reservoirs.length === 0 &&
@@ -147,7 +145,7 @@ export const isEmptyApplyMomentPayload = (
   payload.customAttributeValues.valves.length === 0 &&
   payload.customerPointCustomAttributeValues.length === 0;
 
-export const emptyApplyMomentPayload = (): ApplyMomentPayload => ({
+export const emptyWriteBatch = (): WriteBatch => ({
   assetDeleteIds: [],
   assetUpserts: {
     junctions: [],
