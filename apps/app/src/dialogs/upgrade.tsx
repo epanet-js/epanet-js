@@ -27,15 +27,8 @@ import { PaymentType } from "src/hooks/use-checkout";
 import { useActivateTrial } from "src/hooks/use-activate-trial";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { usePermissions } from "src/hooks/use-permissions";
-import { notify } from "src/components/notifications";
 import { signUpUrl } from "src/global-config";
-import {
-  CheckIcon,
-  InfoIcon,
-  CloseIcon,
-  RefreshIcon,
-  SuccessIcon,
-} from "src/icons";
+import { CheckIcon, InfoIcon, CloseIcon, RefreshIcon } from "src/icons";
 import type { UpgradeOrigin } from "src/state/dialog";
 
 type UsageOption = "commercial" | "non-commercial";
@@ -559,12 +552,6 @@ const StartTrialButton = ({
     const activated = await activateTrial();
     if (!activated) return;
 
-    notify({
-      variant: "success",
-      title: translate("trial.activated"),
-      Icon: SuccessIcon,
-      duration: 3000,
-    });
     closeDialog();
   };
 

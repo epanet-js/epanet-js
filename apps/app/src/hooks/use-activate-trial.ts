@@ -4,7 +4,7 @@ import { captureError } from "src/infra/error-tracking";
 import { useTranslate } from "src/hooks/use-translate";
 import { useAuth } from "src/hooks/use-auth";
 import { billingUrl } from "src/global-config";
-import { ErrorIcon, WarningIcon } from "src/icons";
+import { ErrorIcon, SuccessIcon, WarningIcon } from "src/icons";
 
 const activateTrialLoadingAtom = atom<boolean>(false);
 
@@ -38,6 +38,12 @@ export const useActivateTrial = () => {
 
       await reload();
       setLoading(false);
+      notify({
+        variant: "success",
+        title: translate("trial.activated"),
+        Icon: SuccessIcon,
+        duration: 3000,
+      });
       return true;
     } catch (error) {
       setLoading(false);

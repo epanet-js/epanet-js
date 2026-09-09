@@ -6,14 +6,13 @@ import { CheckoutButton } from "src/components/checkout-button";
 import { VideoPlayer } from "src/components/video-player";
 import { useActivateTrial } from "src/hooks/use-activate-trial";
 import { dialogAtom, type PaywallFeature } from "src/state/dialog";
-import { ChevronLeftIcon, RefreshIcon, SuccessIcon } from "src/icons";
+import { ChevronLeftIcon, RefreshIcon } from "src/icons";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useAuth } from "src/hooks/use-auth";
 import { SignInButton } from "src/components/auth/sign-in-button";
 import { buildAfterSignupUrl } from "src/hooks/use-early-access";
-import { notify } from "src/components/notifications";
 
 export type FeaturePaywallConfig = {
   feature: PaywallFeature;
@@ -98,13 +97,6 @@ export const FeaturePaywall = ({
     });
     const activated = await activateTrial();
     if (!activated) return;
-
-    notify({
-      variant: "success",
-      title: translate("trial.activated"),
-      Icon: SuccessIcon,
-      duration: 3000,
-    });
 
     config.onTrialActivated();
   };

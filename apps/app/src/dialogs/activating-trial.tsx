@@ -3,8 +3,7 @@ import { BaseDialog, useDialogState } from "src/components/dialog";
 import { useActivateTrial } from "src/hooks/use-activate-trial";
 import { useAuth } from "src/hooks/use-auth";
 import { isTrialActive } from "src/lib/account-plans";
-import { notify } from "src/components/notifications";
-import { RefreshIcon, SuccessIcon } from "src/icons";
+import { RefreshIcon } from "src/icons";
 import { useTranslate } from "src/hooks/use-translate";
 
 export const ActivatingTrialDialog = () => {
@@ -20,15 +19,7 @@ export const ActivatingTrialDialog = () => {
     if (isTrialActive(user)) {
       closeDialog();
     } else {
-      void activateTrial().then((success) => {
-        if (success) {
-          notify({
-            variant: "success",
-            title: translate("trial.activated"),
-            Icon: SuccessIcon,
-            duration: 3000,
-          });
-        }
+      void activateTrial().then(() => {
         closeDialog();
       });
     }
