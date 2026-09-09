@@ -1,8 +1,8 @@
 /** @vitest-environment jsdom */
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "src/__helpers__/locale";
-import { Tab, TabList, TabRoot, scrollTargetFor } from "./tab";
+import { Tab, TabList, TabRoot } from "./tab";
 
 const stubMetrics = ({
   scrollWidth,
@@ -31,6 +31,18 @@ const renderTabs = () =>
     </TabRoot>,
   );
 
+const tabStrip = (active: string, values: string[] = ["a", "b"]) => (
+  <TabRoot value={active}>
+    <TabList>
+      {values.map((value) => (
+        <Tab key={value} value={value}>
+          {value.toUpperCase()}
+        </Tab>
+      ))}
+    </TabList>
+  </TabRoot>
+);
+
 const tabList = () => screen.getByRole("tablist");
 const leftControl = () =>
   screen.queryByRole("button", { name: "Scroll tabs left" });
@@ -57,6 +69,10 @@ const stubTabGeometry = (
   });
 };
 
+// The list makes its active tab visible on mount, before a test has any say
+// over the geometry: forget that first scroll to read the ones a test provokes.
+const forgetScrolls = () => vi.mocked(tabList().scrollTo).mockClear();
+
 beforeEach(() => {
   Object.defineProperty(HTMLElement.prototype, "scrollLeft", {
     configurable: true,
@@ -69,42 +85,6 @@ beforeEach(() => {
 
 afterEach(() => {
   stubMetrics({ scrollWidth: 0, clientWidth: 0 });
-});
-
-describe("scrollTargetFor", () => {
-  const tabs = [
-    { start: 0, end: 100 },
-    { start: 100, end: 220 },
-    { start: 220, end: 300 },
-  ];
-
-  it("aligns the next cut-off tab with the far edge", () => {
-    expect(scrollTargetFor(tabs, 0, 200, 1)).toEqual(20);
-  });
-
-  it("advances one tab at a time, not one viewport", () => {
-    expect(scrollTargetFor(tabs, 20, 200, 1)).toEqual(100);
-  });
-
-  it("stays put when the last tab is already whole", () => {
-    expect(scrollTargetFor(tabs, 100, 200, 1)).toEqual(100);
-  });
-
-  it("brings the tab cut off at the start flush to the left", () => {
-    expect(scrollTargetFor(tabs, 150, 200, -1)).toEqual(100);
-  });
-
-  it("steps back one tab rather than one viewport", () => {
-    expect(scrollTargetFor(tabs, 100, 200, -1)).toEqual(0);
-  });
-
-  it("stays put at the beginning of the strip", () => {
-    expect(scrollTargetFor(tabs, 0, 200, -1)).toEqual(0);
-  });
-
-  it("ignores a sub-pixel sliver at the edge", () => {
-    expect(scrollTargetFor(tabs, 100.5, 200, -1)).toEqual(0);
-  });
 });
 
 describe("Tab", () => {
@@ -189,6 +169,97 @@ describe("TabList", () => {
       left: 40,
       behavior: "smooth",
     });
+  });
+
+  it("pages forward on the last tab shown whole, which leads the new page", async () => {
+    stubMetrics({ scrollWidth: 400, clientWidth: 250 });
+
+    render(tabStrip("a", ["a", "b", "c", "d"]));
+    // Four 100px tabs in a 250px strip: A and B are whole, C is cut off.
+    stubTabGeometry([100, 100, 100, 100], 250, 0);
+    forgetScrolls();
+    await userEvent.click(rightControl() as HTMLElement);
+
+    expect(tabList().scrollTo).toHaveBeenCalledWith({
+      left: 100,
+      behavior: "smooth",
+    });
+  });
+
+  it("pages back on the first tab shown whole, which trails the new page", async () => {
+    stubMetrics({ scrollWidth: 400, clientWidth: 250 });
+
+    render(tabStrip("a", ["a", "b", "c", "d"]));
+    // Showing 150px in: A and B are behind, C and D are whole.
+    stubTabGeometry([100, 100, 100, 100], 250, 150);
+    fireEvent.scroll(tabList());
+    forgetScrolls();
+    await userEvent.click(leftControl() as HTMLElement);
+
+    expect(tabList().scrollTo).toHaveBeenCalledWith({
+      left: 50,
+      behavior: "smooth",
+    });
+  });
+
+  it("stops a page short of running past the end of the strip", async () => {
+    stubMetrics({ scrollWidth: 400, clientWidth: 250 });
+
+    render(tabStrip("a", ["a", "b", "c", "d"]));
+    stubTabGeometry([100, 100, 100, 100], 250, 100);
+    fireEvent.scroll(tabList());
+    forgetScrolls();
+    await userEvent.click(rightControl() as HTMLElement);
+
+    expect(tabList().scrollTo).toHaveBeenCalledWith({
+      left: 150,
+      behavior: "smooth",
+    });
+  });
+
+  it("scrolls a tab into view as it becomes the active one", async () => {
+    stubMetrics({ scrollWidth: 600, clientWidth: 200 });
+
+    const view = render(tabStrip("a"));
+    // Two 120px tabs in a 200px strip: the second one is cut off by 40px.
+    stubTabGeometry([120, 120], 200, 0);
+    forgetScrolls();
+    view.rerender(tabStrip("b"));
+
+    await waitFor(() =>
+      expect(tabList().scrollTo).toHaveBeenCalledWith({
+        left: 40,
+        behavior: "smooth",
+      }),
+    );
+  });
+
+  it("scrolls a tab into view as it joins the strip already active", async () => {
+    stubMetrics({ scrollWidth: 600, clientWidth: 200 });
+
+    const view = render(tabStrip("a"));
+    forgetScrolls();
+    view.rerender(tabStrip("c", ["a", "b", "c"]));
+    stubTabGeometry([120, 120, 120], 200, 0);
+
+    await waitFor(() =>
+      expect(tabList().scrollTo).toHaveBeenCalledWith({
+        left: 160,
+        behavior: "smooth",
+      }),
+    );
+  });
+
+  it("leaves the strip where it is when a tab joins an untouched selection", async () => {
+    stubMetrics({ scrollWidth: 600, clientWidth: 200 });
+
+    const view = render(tabStrip("a"));
+    stubTabGeometry([120, 120], 200, 0);
+    forgetScrolls();
+    view.rerender(tabStrip("a", ["a", "b", "c"]));
+
+    await waitFor(() => expect(screen.getAllByRole("tab")).toHaveLength(3));
+    expect(tabList().scrollTo).not.toHaveBeenCalled();
   });
 
   it("turns a vertical wheel into a horizontal scroll", () => {

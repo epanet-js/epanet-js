@@ -311,6 +311,9 @@ if (
     get: () => 128,
   });
 
+  // jsdom ships no scrolling at all, so this method is simply missing.
+  Element.prototype.scrollTo = vi.fn();
+
   // Chart cursors, scroll-spy, the grid's scrollbar hit-test and Radix
   // positioning all read this; jsdom would report zeros.
   Element.prototype.getBoundingClientRect = vi.fn(() => ({
