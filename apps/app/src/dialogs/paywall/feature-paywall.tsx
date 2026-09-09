@@ -95,7 +95,8 @@ export const FeaturePaywall = ({
       name: "trial.activated",
       feature: config.feature,
     });
-    await activateTrial();
+    const activated = await activateTrial();
+    if (!activated) return;
 
     notify({
       variant: "success",

@@ -4,7 +4,7 @@ import { captureError } from "src/infra/error-tracking";
 import { useTranslate } from "src/hooks/use-translate";
 import { useAuth } from "src/hooks/use-auth";
 import { billingUrl } from "src/global-config";
-import { ErrorIcon } from "src/icons";
+import { ErrorIcon, WarningIcon } from "src/icons";
 
 const activateTrialLoadingAtom = atom<boolean>(false);
 
@@ -22,6 +22,17 @@ export const useActivateTrial = () => {
       });
 
       if (!response.ok) {
+        if (await isEmailRefused(response)) {
+          setLoading(false);
+          notify({
+            variant: "warning",
+            title: translate("trial.emailNotEligible"),
+            description: translate("trial.emailNotEligibleDetail"),
+            Icon: WarningIcon,
+          });
+          return false;
+        }
+
         throw new Error(`Trial activation failed: ${response.statusText}`);
       }
 
@@ -42,4 +53,13 @@ export const useActivateTrial = () => {
   };
 
   return { activateTrial, isLoading };
+};
+
+const isEmailRefused = async (response: Response): Promise<boolean> => {
+  try {
+    const { reason } = (await response.json()) as { reason?: string };
+    return reason === "emailNotEligible";
+  } catch {
+    return false;
+  }
 };
