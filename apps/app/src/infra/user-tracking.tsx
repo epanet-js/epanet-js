@@ -1665,8 +1665,8 @@ export type UserEvent =
     }
   | {
       name: "billingPortal.opened";
-      source: "menu";
-      trial: "running" | "ended";
+      source: "menu" | "userMenu";
+      trial: "running" | "ended" | "none";
     }
   | {
       name: "upgradeDialog.seen";

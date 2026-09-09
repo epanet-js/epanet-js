@@ -19,6 +19,13 @@ export const isTrialActive = (user: {
   return new Date(user.trialEndsAt) > new Date();
 };
 
+const purchasablePlans: Plan[] = ["pro", "personal"];
+
+export const hasBillingAccount = (user: {
+  plan: Plan;
+  hasUsedTrial: boolean;
+}): boolean => purchasablePlans.includes(user.plan) || user.hasUsedTrial;
+
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 export const getTrialDaysRemaining = (trialEndsAt: string): number => {

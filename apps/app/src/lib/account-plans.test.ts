@@ -1,7 +1,9 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import {
+  Plan,
   SubscriptionStatus,
   getTrialDaysRemaining,
+  hasBillingAccount,
   isTrialActive,
   resolveTrialCta,
 } from "./account-plans";
@@ -175,5 +177,27 @@ describe("resolveTrialCta", () => {
 
   it("says nothing to someone who never trialled", () => {
     expect(resolve({ hasUsedTrial: false })).toEqual({ kind: "none" });
+  });
+});
+
+describe("hasBillingAccount", () => {
+  const user = (plan: Plan, hasUsedTrial = false) => ({ plan, hasUsedTrial });
+
+  it("has one once a plan has been purchased", () => {
+    expect(hasBillingAccount(user("pro"))).toBe(true);
+    expect(hasBillingAccount(user("personal"))).toBe(true);
+  });
+
+  it("has one once the trial has started, even after it ended", () => {
+    expect(hasBillingAccount(user("free", true))).toBe(true);
+  });
+
+  it("has none for a free user who never trialled", () => {
+    expect(hasBillingAccount(user("free"))).toBe(false);
+  });
+
+  it("has none for plans granted outside stripe", () => {
+    expect(hasBillingAccount(user("education"))).toBe(false);
+    expect(hasBillingAccount(user("teams"))).toBe(false);
   });
 });
