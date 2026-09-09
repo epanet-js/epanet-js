@@ -63,8 +63,6 @@ export const panelLabel = (
   context: PanelLabelContext,
 ): string => renamedTo ?? panelFor(panel).buildLabel(panel, context);
 
-// What the panel currently holds, rather than what it is: it stands apart from
-// the label, and a rename leaves it alone.
 export const panelDescription = (
   panel: Panel,
   context: PanelLabelContext,

@@ -12,8 +12,27 @@ export function TabList({
   ...props
 }: React.ComponentPropsWithoutRef<typeof Tabs.List>) {
   const listRef = useRef<HTMLDivElement>(null);
+  const tabShown = useRef<Element | null>(null);
   const translate = useTranslate();
   const [overflow, setOverflow] = useState<Overflow>(NO_OVERFLOW);
+
+  const showTheActiveTab = useCallback(() => {
+    const list = listRef.current;
+    if (!list) return;
+    const active = activeTabIn(list);
+    if (!active || !isLaidOut(active.box, list.clientWidth)) return;
+    tabShown.current = active.element;
+    scrollListTo(
+      list,
+      pageShowing(active.box, list.scrollLeft, list.clientWidth),
+    );
+  }, []);
+
+  const showTheActiveTabWhenItChanges = useCallback(() => {
+    const list = listRef.current;
+    if (!list || activeTabIn(list)?.element === tabShown.current) return;
+    showTheActiveTab();
+  }, [showTheActiveTab]);
 
   const measure = useCallback(() => {
     const list = listRef.current;
@@ -62,28 +81,24 @@ export function TabList({
     return () => list.removeEventListener("wheel", scrollSideways);
   }, []);
 
-  useEffect(function keepTheActiveTabVisible() {
-    const list = listRef.current;
-    if (!list) return;
+  useEffect(
+    function keepTheActiveTabVisible() {
+      const list = listRef.current;
+      if (!list) return;
 
-    let lastTabShown: Element | null = null;
+      showTheActiveTabWhenItChanges();
 
-    // Only a change of tab pulls the strip: showing the same one again would
-    // undo the scrolling the reader has done since.
-    const ensureActiveTabIsVisible = () => {
-      const active = activeTabIn(list);
-      if (!active || active.element === lastTabShown) return;
-      lastTabShown = active.element;
-      scrollListTo(
-        list,
-        pageShowing(active.box, list.scrollLeft, list.clientWidth),
-      );
-    };
-
-    ensureActiveTabIsVisible();
-    const observer = watchTheTabs(list, ensureActiveTabIsVisible);
-    return () => observer.disconnect();
-  }, []);
+      const sizes = new ResizeObserver(showTheActiveTab);
+      sizes.observe(list);
+      for (const tab of Array.from(list.children)) sizes.observe(tab);
+      const states = watchTheTabs(list, showTheActiveTabWhenItChanges);
+      return () => {
+        sizes.disconnect();
+        states.disconnect();
+      };
+    },
+    [showTheActiveTab, showTheActiveTabWhenItChanges, children],
+  );
 
   const scrollByPage = useCallback((direction: -1 | 1) => {
     const list = listRef.current;
@@ -191,7 +206,6 @@ const EDGE_TOLERANCE = 1;
 
 type TabBox = { start: number; end: number };
 
-// The stretch of the strip on show, in the strip's own coordinates.
 type Page = { from: number; to: number };
 
 type Overflow = { scrollable: boolean; start: boolean; end: boolean };
@@ -291,6 +305,9 @@ const measureTabs = (list: HTMLElement): TabBox[] => {
     return { start, end: start + rect.width };
   });
 };
+
+const isLaidOut = (tab: TabBox, viewport: number) =>
+  viewport > 0 && tab.end > tab.start;
 
 const activeTabIn = (
   list: HTMLElement,
