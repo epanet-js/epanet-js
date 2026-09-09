@@ -29,6 +29,9 @@ export const scrollTargetFor = (
   return scrollLeft;
 };
 
+const prefersReducedMotion = () =>
+  window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+
 const measureTabs = (list: HTMLElement): TabBox[] => {
   const listLeft = list.getBoundingClientRect().left;
   return Array.from(list.children).map((tab) => {
@@ -108,6 +111,7 @@ export function TabList({
         list.clientWidth,
         direction,
       ),
+      behavior: prefersReducedMotion() ? "auto" : "smooth",
     });
   }, []);
 

@@ -185,7 +185,10 @@ describe("TabList", () => {
     stubTabGeometry([120, 120], 200, 0);
     await userEvent.click(rightControl() as HTMLElement);
 
-    expect(tabList().scrollTo).toHaveBeenCalledWith({ left: 40 });
+    expect(tabList().scrollTo).toHaveBeenCalledWith({
+      left: 40,
+      behavior: "smooth",
+    });
   });
 
   it("turns a vertical wheel into a horizontal scroll", () => {
