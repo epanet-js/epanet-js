@@ -17,7 +17,7 @@ import {
 import { inpFileInfoAtom, projectFileInfoAtom } from "src/state/file-system";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { Store } from "src/state";
-import { panelContentStateAtom, panelsAtom } from "src/state/panels";
+import { panelContentStateAtom, panelsAtom, panelsIn } from "src/state/panels";
 import { createAssetTablePanel } from "src/panels/data-tables/create-panel";
 import {
   useSeedDefaultProjectDb,
@@ -81,7 +81,7 @@ describe("useStartBlankProject", () => {
       await result.current();
     });
 
-    expect(store.get(panelsAtom).map((panel) => panel.id)).toEqual([
+    expect(store.get(panelsIn("bottom")).map((entry) => entry.id)).toEqual([
       "junction",
       "pipe",
       "pump",

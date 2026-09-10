@@ -19,7 +19,8 @@ export type Panel =
       type: "customer-point-table";
       customerPointIds?: readonly number[];
     })
-  | (Common & { type: "hgl-profile" });
+  | (Common & { type: "hgl-profile" })
+  | (Common & { type: "network-review" });
 
 export type PanelType = Panel["type"];
 

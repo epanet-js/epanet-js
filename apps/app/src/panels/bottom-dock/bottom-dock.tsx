@@ -59,8 +59,8 @@ export const BottomDock = memo(function BottomDockInner() {
 
   const labelOf = useCallback(
     (entry: PlacedPanel) =>
-      panelLabel(entry.panel, entry.renamedTo, { translate, hydraulicModel }),
-    [translate, hydraulicModel],
+      panelLabel(entry.panel, entry.renamedTo, { translate }),
+    [translate],
   );
 
   const descriptionOf = useCallback(

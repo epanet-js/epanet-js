@@ -8,6 +8,7 @@ import type { Panel, PanelOfType, PanelType } from "./panel";
 import type { DataGridState } from "src/components/data-grid";
 import { assetTablePanel, customerPointTablePanel } from "./data-tables/panel";
 import { hglProfilePanel } from "./hgl-profile/panel";
+import { networkReviewPanel } from "./network-review/panel";
 
 export type PanelLifecycleContext = {
   get: Getter;
@@ -17,6 +18,11 @@ export type PanelLifecycleContext = {
 
 export type PanelLabelContext = {
   translate: TranslateFn;
+};
+
+// Descriptions report on model contents (a scoped table's row count), so they
+// need the model; labels never do.
+export type PanelDescriptionContext = PanelLabelContext & {
   hydraulicModel: HydraulicModel;
 };
 
@@ -25,7 +31,7 @@ export type PanelTemplate<T extends PanelType> = {
   buildLabel: (panel: PanelOfType<T>, context: PanelLabelContext) => string;
   buildDescription?: (
     panel: PanelOfType<T>,
-    context: PanelLabelContext,
+    context: PanelDescriptionContext,
   ) => string | undefined;
   onDeactivate?: (
     context: PanelLifecycleContext,
@@ -43,6 +49,7 @@ export type PanelContentStateByType = {
   "asset-table": DataGridState;
   "customer-point-table": DataGridState;
   "hgl-profile": undefined;
+  "network-review": undefined;
 };
 
 export type PanelContentState =
@@ -52,6 +59,7 @@ const panelTemplates = {
   "asset-table": assetTablePanel,
   "customer-point-table": customerPointTablePanel,
   "hgl-profile": hglProfilePanel,
+  "network-review": networkReviewPanel,
 } satisfies { [K in PanelType]: PanelTemplate<K> };
 
 export const panelFor = (panel: Panel): PanelTemplate<PanelType> =>
@@ -65,7 +73,7 @@ export const panelLabel = (
 
 export const panelDescription = (
   panel: Panel,
-  context: PanelLabelContext,
+  context: PanelDescriptionContext,
 ): string | undefined => panelFor(panel).buildDescription?.(panel, context);
 
 export const PanelContent = ({ panel }: { panel: Panel }) => {

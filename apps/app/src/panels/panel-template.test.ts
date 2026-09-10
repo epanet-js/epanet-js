@@ -1,6 +1,7 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { createAssetTablePanel } from "./data-tables/create-panel";
 import { createHglProfilePanel } from "./hgl-profile/create-panel";
+import { createNetworkReviewPanel } from "./network-review/create-panel";
 import { createCustomerPointTablePanel } from "./data-tables/create-panel";
 import type { Panel } from "./panel";
 import {
@@ -18,6 +19,7 @@ const translate = ((key: string) => {
     pipes: "Pipes",
     customerPoints: "Customer points",
     "hglProfile.title": "HGL profile",
+    "networkReview.title": "Network Review",
   };
   return labels[key] ?? key;
 }) as never;
@@ -46,6 +48,10 @@ describe("panel definitions", () => {
 
   it("labels the HGL panel", () => {
     expect(labelOf(createHglProfilePanel())).toEqual("HGL profile");
+  });
+
+  it("labels the network review panel", () => {
+    expect(labelOf(createNetworkReviewPanel())).toEqual("Network Review");
   });
 
   it("keeps the label free of the scope a table is holding", () => {

@@ -8,9 +8,9 @@ import FeatureEditor from "./feature-editor";
 import { DefaultErrorBoundary } from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
 import { MapStylingEditor } from "./map-styling-editor";
-import { NetworkReview } from "./network-review";
 import { BottomResizer } from "src/components/resizer";
 import { BottomDock } from "./bottom-dock/bottom-dock";
+import { LeftDock } from "./left-dock/left-dock";
 
 function Tab({
   onClick,
@@ -166,7 +166,7 @@ export const LeftSidePanel = memo(function LeftSidePanelInner() {
       }}
       className="bg-popover border-r relative"
     >
-      <NetworkReview />
+      <LeftDock />
     </div>
   );
 });
