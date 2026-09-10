@@ -91,7 +91,7 @@ const checkStudentEmail = async (email: string) => {
       body: JSON.stringify({ email }),
     });
     const data = await response.json();
-    return data.academic === true;
+    return data.type === "academic";
   } catch (error) {
     const betterMessage = `Error checking student email ${(error as Error).message}`;
     logger.error(betterMessage);
