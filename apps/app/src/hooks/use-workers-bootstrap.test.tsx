@@ -10,7 +10,6 @@ describe("useWorkersBootstrap", () => {
     const { result } = renderHook(() => useWorkersBootstrap(true));
 
     await waitFor(() => expect(result.current).toBe(true));
-    expect(configureWorkerReuse).toHaveBeenCalledWith(true);
     expect(warmupSimulationEngine).toHaveBeenCalledTimes(1);
     expect(getTraceWorker).toHaveBeenCalledTimes(1);
     expect(getConnectivityTraceWorker).toHaveBeenCalledTimes(1);
@@ -25,17 +24,12 @@ describe("useWorkersBootstrap", () => {
     const { result } = renderHook(() => useWorkersBootstrap(false));
 
     expect(result.current).toBe(false);
-    expect(configureWorkerReuse).not.toHaveBeenCalled();
   });
 });
 
-const configureWorkerReuse = vi.fn();
 const warmupSimulationEngine = vi.fn();
 vi.mock("src/lib/worker", () => ({
   lib: {
-    configureWorkerReuse: (value: boolean) => {
-      configureWorkerReuse(value);
-    },
     warmupSimulationEngine: () => {
       warmupSimulationEngine();
       return Promise.resolve();

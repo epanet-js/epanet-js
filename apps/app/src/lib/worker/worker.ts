@@ -5,7 +5,6 @@ import { bufferFeature } from "src/lib/buffer";
 import {
   runSimulation,
   warmupSimulationEngine,
-  configureWorkerReuse,
 } from "src/simulation/epanet/worker";
 
 export const lib = {
@@ -13,7 +12,6 @@ export const lib = {
   bufferFeature,
   runSimulation,
   warmupSimulationEngine,
-  configureWorkerReuse,
 };
 
 export type Lib = typeof lib;

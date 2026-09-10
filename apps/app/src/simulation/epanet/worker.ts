@@ -41,11 +41,6 @@ type WorkerProgressCallback = (
 ) => boolean | void | Promise<boolean | void>;
 
 let sharedWorkspace: Workspace | null = null;
-let reuseEnabled = false;
-
-export const configureWorkerReuse = (enabled: boolean): void => {
-  reuseEnabled = enabled;
-};
 
 export const warmupSimulationEngine = async (): Promise<void> => {
   await getSharedWorkspace();
@@ -53,7 +48,6 @@ export const warmupSimulationEngine = async (): Promise<void> => {
 
 export const resetSimulationWorkerForTest = (): void => {
   sharedWorkspace = null;
-  reuseEnabled = false;
 };
 
 const getSharedWorkspace = async (): Promise<Workspace> => {
@@ -92,13 +86,7 @@ export const runSimulation = async (
   // eslint-disable-next-line no-console
   if (Object.keys(flags).length) console.log("Running with flags", flags);
 
-  let ws: Workspace;
-  if (reuseEnabled) {
-    ws = await getSharedWorkspace();
-  } else {
-    ws = new Workspace();
-    await ws.loadModuleVersion(EpanetEngine);
-  }
+  const ws = await getSharedWorkspace();
 
   const model = new Project(ws);
   ws.writeFile("net.inp", inp);
@@ -226,7 +214,7 @@ export const runSimulation = async (
     const isOutOfMemory = isWasmMemoryError || isJsHeapOom;
     const isEpanetError = /EPANET Error|^Error \d+/.test(errorMessage);
 
-    if (reuseEnabled && isOutOfMemory) {
+    if (isOutOfMemory) {
       disposeSharedWorkspace();
     }
 
@@ -250,7 +238,7 @@ export const runSimulation = async (
       simulationStats: { nodeCount, linkCount, stepCount: timestepCount },
     };
   } finally {
-    if (reuseEnabled && sharedWorkspace) {
+    if (sharedWorkspace) {
       cleanupWorkspaceFiles(sharedWorkspace);
     }
   }

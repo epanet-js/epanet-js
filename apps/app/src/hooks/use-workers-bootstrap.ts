@@ -4,7 +4,6 @@ import { canUseWorker } from "src/infra/worker";
 
 const preloadSimulationWorker = async (): Promise<void> => {
   const { lib } = await import("src/lib/worker");
-  await lib.configureWorkerReuse(true);
   await lib.warmupSimulationEngine();
 };
 

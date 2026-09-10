@@ -6,7 +6,6 @@ import { patchEpanetLoader } from "src/__helpers__/epanet-loader";
 import { Workspace } from "epanet-js/slim";
 import {
   runSimulation,
-  configureWorkerReuse,
   warmupSimulationEngine,
   resetSimulationWorkerForTest,
 } from "./worker";
@@ -39,7 +38,6 @@ describe("simulation worker reuse", () => {
 
   it("reuses a single workspace across runs when reuse is enabled", async () => {
     const loadSpy = vi.spyOn(Workspace.prototype, "loadModuleVersion");
-    configureWorkerReuse(true);
 
     const inp = buildSimpleInp();
     const first = await runSimulation(inp, "reuse-1", () => {});
@@ -52,21 +50,8 @@ describe("simulation worker reuse", () => {
     loadSpy.mockRestore();
   });
 
-  it("creates a fresh workspace per run when reuse is disabled", async () => {
-    const loadSpy = vi.spyOn(Workspace.prototype, "loadModuleVersion");
-
-    const inp = buildSimpleInp();
-    await runSimulation(inp, "no-reuse-1", () => {});
-    await runSimulation(inp, "no-reuse-2", () => {});
-
-    expect(loadSpy).toHaveBeenCalledTimes(2);
-
-    loadSpy.mockRestore();
-  });
-
   it("cleans up workspace files after each run when reuse is enabled", async () => {
     const loadSpy = vi.spyOn(Workspace.prototype, "loadModuleVersion");
-    configureWorkerReuse(true);
 
     const inp = buildSimpleInp();
     await runSimulation(inp, "cleanup-1", () => {});
@@ -83,7 +68,6 @@ describe("simulation worker reuse", () => {
 
   it("warms the engine once and reuses the warmed workspace", async () => {
     const loadSpy = vi.spyOn(Workspace.prototype, "loadModuleVersion");
-    configureWorkerReuse(true);
 
     await warmupSimulationEngine();
     const inp = buildSimpleInp();
