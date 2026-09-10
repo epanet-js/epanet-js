@@ -30,6 +30,7 @@ Turns GIS files into the part of a model they describe. The model vocabulary —
 - **A scan reads every record, and must not be "optimised" into a sample.** Whether an attribute is stated on every record, and whether it is a number, are claims about all of them — one unreadable value among a thousand is exactly the case that has to make the column text.
 - **Decoding the same input twice must be cheap, not correct-by-luck.** Caching is this half's own business, so a cache miss may be slow and may never change an answer.
 - **A cache holds what the bytes said, never what a caller added.** Two reads with different mappings raise different issues, and the second must not inherit the first's.
+- **What the bytes said still depends on the CRS they were read in, so that is part of the key.** A supplied `crs` is a reading instruction rather than an interpretation — it decides whether a file comes back placed or `coordinateSystemUnknown` — so a second read that supplies one must not be answered from a first that did not. `projections` is deliberately left out: it is the set of definitions we can handle at all, built once per session, and keying on it would turn every re-render into a miss for an answer that did not change.
 
 ## An importer: parsed data to `NetworkData`
 

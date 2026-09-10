@@ -26,10 +26,22 @@ type DecodedSource = {
   issues: Issue[];
 };
 
-type CacheEntry = { files: SourceFile[]; decoded: DecodedSource };
+type CacheEntry = {
+  files: SourceFile[];
+  suppliedEpsg: number | null;
+  decoded: DecodedSource;
+};
 const cache = new WeakMap<SourceFile, CacheEntry>();
 
-const sameFiles = (entry: CacheEntry, files: SourceFile[]): boolean =>
+const suppliedEpsg = (crs: GisInput["crs"]): number | null =>
+  crs?.type === "epsg" ? crs.code : null;
+
+const sameInput = (
+  entry: CacheEntry,
+  files: SourceFile[],
+  epsg: number | null,
+): boolean =>
+  entry.suppliedEpsg === epsg &&
   entry.files.length === files.length &&
   entry.files.every((file, index) => file === files[index]);
 
@@ -40,11 +52,12 @@ export const parseGisSource = async (
   const key = files[0];
   if (key === undefined) return resultOf(failure("sourceEmpty"));
 
+  const epsg = suppliedEpsg(input.crs);
   const cached = cache.get(key);
-  if (cached && sameFiles(cached, files)) return resultOf(cached.decoded);
+  if (cached && sameInput(cached, files, epsg)) return resultOf(cached.decoded);
 
   const decoded = await decode(input);
-  cache.set(key, { files, decoded });
+  cache.set(key, { files, suppliedEpsg: epsg, decoded });
   return resultOf(decoded);
 };
 
@@ -147,7 +160,7 @@ const parseGeoJson = async (
   if (parsed === null) return failure("sourceUnreadable");
   if (parsed.features.length === 0) return failure("sourceEmpty");
 
-  const statedCrs = parsed.stated ?? (crs?.type === "epsg" ? crs.code : null);
+  const statedCrs = parsed.stated ?? suppliedEpsg(crs);
 
   if (statedCrs === null || statedCrs === WGS84_EPSG) {
     if (!mostlyLatLng(parsed.features)) {
@@ -252,4 +265,6 @@ const mostlyLatLng = (features: Feature[]): boolean => {
 };
 
 const textOf = async (file: SourceFile): Promise<string> =>
-  new TextDecoder().decode(new Uint8Array(await file.arrayBuffer()));
+  file.text
+    ? file.text()
+    : new TextDecoder().decode(new Uint8Array(await file.arrayBuffer()));
