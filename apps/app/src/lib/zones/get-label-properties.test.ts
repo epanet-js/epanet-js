@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { getLabelProperties } from "./get-label-properties";
-import type { ZoneFeature } from "./read-zone-features";
+import type { ZoneFeature } from "./zone-features";
 
 describe("getLabelProperties", () => {
   it("returns properties present in all features with non-null values", () => {

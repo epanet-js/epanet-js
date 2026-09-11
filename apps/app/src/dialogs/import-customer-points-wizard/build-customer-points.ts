@@ -8,7 +8,7 @@ import {
   LabelManager,
   PatternId,
 } from "@epanet-js/hydraulic-model";
-import { CustomerPointsIssuesAccumulator } from "@epanet-js/gis-importers";
+import { CustomerPointsIssuesAccumulator } from "./issues";
 import { createTimeSlicer } from "src/infra/yield-to-main";
 import { throwIfAborted } from "src/infra/abort";
 

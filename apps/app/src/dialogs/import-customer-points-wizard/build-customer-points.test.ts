@@ -2,7 +2,7 @@ import type { Feature } from "geojson";
 import type { CustomerPointData } from "@epanet-js/converters";
 import { CustomerPointFactory, LabelManager } from "@epanet-js/hydraulic-model";
 import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
-import { CustomerPointsIssuesAccumulator } from "@epanet-js/gis-importers";
+import { CustomerPointsIssuesAccumulator } from "./issues";
 import { buildCustomerPoints } from "./build-customer-points";
 
 const aRecord = (

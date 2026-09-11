@@ -1,4 +1,4 @@
-import type { ZoneFeature } from "./read-zone-features";
+import type { ZoneFeature } from "./zone-features";
 
 export const getLabelProperties = (features: ZoneFeature[]): string[] => {
   if (features.length === 0) return [];

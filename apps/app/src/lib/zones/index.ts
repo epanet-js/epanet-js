@@ -3,8 +3,7 @@ export type { Zone, ZoneId, Zones } from "./zones";
 
 export { ZoneLabelGenerator } from "./zone-label-generator";
 
-export { readZoneFeatures } from "./read-zone-features";
-export type { ZoneFeature, ReadZoneFeaturesResult } from "./read-zone-features";
+export type { ZoneFeature, ReadZoneFeaturesResult } from "./zone-features";
 
 export { importZoneFeatures } from "./import-zone-features";
 export type {

@@ -1,6 +1,6 @@
 import type { Feature } from "geojson";
 import type { Issue } from "@epanet-js/converters";
-import { CustomerPointsIssuesAccumulator } from "@epanet-js/gis-importers";
+import { CustomerPointsIssuesAccumulator } from "./issues";
 
 const placeholder = {
   type: "Feature",

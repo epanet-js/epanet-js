@@ -9,8 +9,6 @@ import { useDialogState } from "src/components/dialog";
 import { useProjections } from "src/hooks/use-projections";
 import { projectSettingsAtom } from "src/state/project-settings";
 import {
-  readZoneFeatures,
-  importZoneFeatures,
   getLabelProperties,
   type ReadZoneFeaturesResult,
   type MergedZoneInfo,
@@ -18,7 +16,6 @@ import {
 import { zonesImporter } from "@epanet-js/gis-importers";
 import { useImportZones } from "src/commands/import-zones";
 import { useUserTracking } from "src/infra/user-tracking";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import type { GisFiles } from "src/components/gis-drop-zone";
 import { DataInputStep } from "./data-input-step";
 import { DataMappingStep } from "./data-mapping-step";
@@ -42,7 +39,6 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
   const importZones = useImportZones();
   const { projections } = useProjections();
   const networkProjection = useAtomValue(projectSettingsAtom).projection;
-  const isImporterOn = useFeatureFlag("FLAG_ZONES_IMPORTER");
   const [currentStep, setCurrentStep] = useState(DATA_INPUT_STEP_NUMBER);
   const [selectedGisFiles, setSelectedGisFiles] = useState<GisFiles>({});
   const [selectedLabel, setSelectedLabel] = useState<string>("none");
@@ -79,9 +75,7 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
       setIsProcessing(true);
 
       const primaryFile = gisFiles.geojson ?? gisFiles.shp;
-      const result = isImporterOn
-        ? await readZonesWithImporter(gisFiles, { projections })
-        : await readZoneFeatures(gisFiles, projections);
+      const result = await readZonesWithImporter(gisFiles, { projections });
 
       setIsProcessing(false);
 
@@ -105,7 +99,7 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
 
       setReadResult(result);
     },
-    [projections, userTracking, isImporterOn],
+    [projections, userTracking],
   );
 
   const handleGisFilesDrop = useCallback(
@@ -137,15 +131,11 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
     userTracking.capture({ name: "importZones.dataMapping.next" });
 
     const labelProperty = selectedLabel === "none" ? undefined : selectedLabel;
-    const built = isImporterOn
-      ? buildZones(
-          (
-            await zonesImporter.importFromFeatures(readResult.features, {
-              mapping: { label: labelProperty ?? null },
-            })
-          ).network.zones ?? [],
-        )
-      : importZoneFeatures(readResult.features, labelProperty);
+    const { network } = await zonesImporter.importFromFeatures(
+      readResult.features,
+      { mapping: { label: labelProperty ?? null } },
+    );
+    const built = buildZones(network.zones ?? []);
 
     const result = await importZones(built);
     if (!result) return;
@@ -160,7 +150,7 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
     });
 
     setCurrentStep(COMPLETE_STEP_NUMBER);
-  }, [readResult, selectedLabel, importZones, userTracking, isImporterOn]);
+  }, [readResult, selectedLabel, importZones, userTracking]);
 
   const goBack = useCallback(() => {
     userTracking.capture({ name: "importZones.dataMapping.back" });

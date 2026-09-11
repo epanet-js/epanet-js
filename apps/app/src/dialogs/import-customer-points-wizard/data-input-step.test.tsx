@@ -6,12 +6,11 @@ import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { aTestFile } from "src/__helpers__/file";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { stubProjectionsReady } from "src/__helpers__/projections";
-import { parseShapefile } from "src/lib/gis-import/parse-shapefile";
-import { GisParseError } from "src/lib/gis-import/types";
+import shp from "shpjs";
 import { setWizardState } from "./__helpers__/wizard-state";
 import { renderWizard } from "./__helpers__/render-wizard";
 
-vi.mock("src/lib/gis-import/parse-shapefile");
+vi.mock("shpjs");
 
 describe("DataInputStep", () => {
   beforeEach(() => {
@@ -146,6 +145,39 @@ describe("DataInputStep", () => {
       expect(userTracking.capture).toHaveBeenCalledWith({
         name: "importCustomerPoints.dataInput.parseError",
         fileName: "invalid.geojson",
+        errorCode: "sourceUnreadable",
+      });
+    });
+
+    it("shows unsupported CRS error for unknown projections", async () => {
+      const userTracking = stubUserTracking();
+      const store = setInitialState({
+        hydraulicModel: HydraulicModelBuilder.with().build(),
+      });
+
+      setWizardState(store, {
+        currentStep: 1,
+      });
+
+      renderWizard(store);
+
+      const file = aTestFile({
+        filename: "projected.geojson",
+        content: createGeoJSONWithCrs("EPSG:27700"),
+      });
+
+      await uploadFileInStep(file);
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(/unsupported coordinate reference system/i),
+        ).toBeInTheDocument();
+      });
+
+      expect(userTracking.capture).toHaveBeenCalledWith({
+        name: "importCustomerPoints.dataInput.parseError",
+        fileName: "projected.geojson",
+        errorCode: "coordinateSystemUnsupported",
       });
     });
 
@@ -233,29 +265,20 @@ describe("DataInputStep", () => {
 
   describe("shapefile upload", () => {
     it("processes valid shapefile successfully", async () => {
-      vi.mocked(parseShapefile).mockResolvedValue({
-        featureCollection: {
-          type: "FeatureCollection",
-          features: [
-            {
-              type: "Feature",
-              geometry: { type: "Point", coordinates: [0.001, 0.001] },
-              properties: { name: "Customer A", demand: 25.5 },
-            },
-            {
-              type: "Feature",
-              geometry: { type: "Point", coordinates: [0.002, 0.002] },
-              properties: { name: "Customer B", demand: 50.0 },
-            },
-          ],
-        },
-        name: "customers",
-        properties: ["name", "demand"],
-        coordinateConversion: {
-          detected: "GCS_WGS_1984",
-          converted: false,
-          fromCRS: "GCS_WGS_1984",
-        },
+      vi.mocked(shp).mockResolvedValue({
+        type: "FeatureCollection",
+        features: [
+          {
+            type: "Feature",
+            geometry: { type: "Point", coordinates: [0.001, 0.001] },
+            properties: { name: "Customer A", demand: 25.5 },
+          },
+          {
+            type: "Feature",
+            geometry: { type: "Point", coordinates: [0.002, 0.002] },
+            properties: { name: "Customer B", demand: 50.0 },
+          },
+        ],
       });
 
       const userTracking = stubUserTracking();
@@ -282,18 +305,12 @@ describe("DataInputStep", () => {
         fileName: "customers.shp",
         propertiesCount: 2,
         featuresCount: 2,
-        coordinateConversion: {
-          detected: "GCS_WGS_1984",
-          converted: false,
-          fromCRS: "GCS_WGS_1984",
-        },
+        coordinateConversion: null,
       });
     });
 
     it("shows error when shapefile parsing fails", async () => {
-      vi.mocked(parseShapefile).mockRejectedValue(
-        new GisParseError("customers.shp", "invalid-format"),
-      );
+      vi.mocked(shp).mockRejectedValue(new Error("invalid format"));
 
       const userTracking = stubUserTracking();
       const store = setInitialState({
@@ -312,40 +329,12 @@ describe("DataInputStep", () => {
       expect(userTracking.capture).toHaveBeenCalledWith({
         name: "importCustomerPoints.dataInput.parseError",
         fileName: "customers.shp",
-        errorCode: "invalid-format",
-      });
-    });
-
-    it("shows unsupported CRS error for unknown projections", async () => {
-      vi.mocked(parseShapefile).mockRejectedValue(
-        new GisParseError("customers.shp", "unsupported-crs"),
-      );
-
-      const userTracking = stubUserTracking();
-      const store = setInitialState({
-        hydraulicModel: HydraulicModelBuilder.with().build(),
-      });
-
-      setWizardState(store, { currentStep: 1 });
-      renderWizard(store);
-
-      await uploadShapefileInStep();
-
-      await waitFor(() => {
-        expect(
-          screen.getByText(/unsupported coordinate reference system/i),
-        ).toBeInTheDocument();
-      });
-
-      expect(userTracking.capture).toHaveBeenCalledWith({
-        name: "importCustomerPoints.dataInput.parseError",
-        fileName: "customers.shp",
-        errorCode: "unsupported-crs",
+        errorCode: "sourceUnreadable",
       });
     });
 
     it("does not process shapefiles until all required files are present", async () => {
-      vi.mocked(parseShapefile).mockClear();
+      vi.mocked(shp).mockClear();
 
       const store = setInitialState({
         hydraulicModel: HydraulicModelBuilder.with().build(),
@@ -361,7 +350,7 @@ describe("DataInputStep", () => {
       const shpFile = aTestFile({ filename: "customers.shp" });
       await userEvent.upload(fileInput, shpFile);
 
-      expect(parseShapefile).not.toHaveBeenCalled();
+      expect(shp).not.toHaveBeenCalled();
     });
   });
 
@@ -392,6 +381,7 @@ describe("DataInputStep", () => {
       expect(userTracking.capture).toHaveBeenCalledWith({
         name: "importCustomerPoints.dataInput.parseError",
         fileName: "invalid.geojson",
+        errorCode: "sourceUnreadable",
       });
 
       expect(
@@ -436,8 +426,9 @@ describe("DataInputStep", () => {
       });
 
       expect(userTracking.capture).toHaveBeenCalledWith({
-        name: "importCustomerPoints.dataInput.noValidPoints",
+        name: "importCustomerPoints.dataInput.parseError",
         fileName: "empty.geojson",
+        errorCode: "sourceEmpty",
       });
 
       expect(
@@ -492,6 +483,19 @@ const createValidGeoJSONL = () =>
   ].join("\n");
 
 const createInvalidJSON = () => "{ invalid json";
+
+const createGeoJSONWithCrs = (crsName: string) =>
+  JSON.stringify({
+    type: "FeatureCollection",
+    crs: { type: "name", properties: { name: crsName } },
+    features: [
+      {
+        type: "Feature",
+        geometry: { type: "Point", coordinates: [530000, 180000] },
+        properties: { name: "Customer A" },
+      },
+    ],
+  });
 
 const createEmptyFeaturesGeoJSON = () =>
   JSON.stringify({

@@ -4,13 +4,9 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { captureError } from "src/infra/error-tracking";
 import { useTranslate } from "src/hooks/use-translate";
 import { GisDropZone, type GisFiles } from "src/components/gis-drop-zone";
-import { parseGeoJson } from "src/lib/geojson-utils/parse-geojson";
-import { parseShapefile } from "src/lib/gis-import/parse-shapefile";
-import { GisParseError } from "src/lib/gis-import/types";
 import type { Proj4Projection } from "@epanet-js/projections";
 import { customerPointsImporter } from "@epanet-js/gis-importers";
 import type { Issue } from "@epanet-js/converters";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   customerPointsImportGuide,
   customerPointsImportVideoUrl,
@@ -27,7 +23,6 @@ export const DataInputStep: React.FC<{
   const userTracking = useUserTracking();
   const translate = useTranslate();
   const [gisFiles, setGisFiles] = useState<GisFiles>({});
-  const isImporterOn = useFeatureFlag("FLAG_CUSTOMER_POINTS_IMPORTER");
 
   const {
     error,
@@ -136,247 +131,21 @@ export const DataInputStep: React.FC<{
     ],
   );
 
-  const handleFileProcess = useCallback(
-    async (file: File) => {
-      if (isImporterOn) return scanWithImporter([file], file);
-
-      resetWizardData();
-      setSourceFiles([file]);
-      setLoading(true);
-
-      try {
-        const text = await file.text();
-
-        try {
-          const {
-            features,
-            properties,
-            error: validationError,
-            coordinateConversion,
-            hasValidGeometry,
-          } = parseGeoJson(text, projections || undefined);
-
-          if (validationError) {
-            let errorMessage: string;
-
-            if (validationError.code === "unsupported-crs") {
-              errorMessage = translate(
-                "importCustomerPoints.dataSource.unsupportedCrsError",
-              );
-            } else if (
-              validationError.code === "projection-conversion-failed"
-            ) {
-              errorMessage = translate(
-                "importCustomerPoints.dataSource.projectionConversionError",
-              );
-            } else {
-              errorMessage = translate(
-                "importCustomerPoints.dataSource.coordinateValidationError",
-              );
-            }
-
-            userTracking.capture({
-              name: "importCustomerPoints.dataInput.parseError",
-              fileName: file.name,
-              errorCode: validationError.code,
-            });
-            setError(errorMessage);
-            setLoading(false);
-            return;
-          }
-
-          if (hasValidGeometry === false) {
-            userTracking.capture({
-              name: "importCustomerPoints.dataInput.noValidPoints",
-              fileName: file.name,
-            });
-            setError(
-              translate("importCustomerPoints.dataSource.noValidPointsError"),
-            );
-            setLoading(false);
-            return;
-          }
-
-          if (features.length === 0) {
-            userTracking.capture({
-              name: "importCustomerPoints.dataInput.noValidPoints",
-              fileName: file.name,
-            });
-            setError(
-              translate("importCustomerPoints.dataSource.noValidPointsError"),
-            );
-            setLoading(false);
-            return;
-          }
-
-          setInputData({ features, properties });
-          setLoading(false);
-
-          userTracking.capture({
-            name: "importCustomerPoints.dataInput.fileLoaded",
-            fileName: file.name,
-            propertiesCount: properties.size,
-            featuresCount: features.length,
-            coordinateConversion: coordinateConversion
-              ? {
-                  detected: coordinateConversion.detected,
-                  converted: coordinateConversion.converted,
-                  fromCRS: coordinateConversion.fromCRS,
-                }
-              : null,
-          });
-
-          onNext();
-        } catch (error) {
-          userTracking.capture({
-            name: "importCustomerPoints.dataInput.parseError",
-            fileName: file.name,
-          });
-          captureError(error as Error);
-          setError(translate("importCustomerPoints.dataSource.parseFileError"));
-          setLoading(false);
-          return;
-        }
-      } catch (error) {
-        userTracking.capture({
-          name: "importCustomerPoints.dataInput.parseError",
-          fileName: file.name,
-        });
-        captureError(error as Error);
-        setError(translate("importCustomerPoints.dataSource.parseFileError"));
-      }
-    },
-    [
-      resetWizardData,
-      setSourceFiles,
-      setLoading,
-      setError,
-      setInputData,
-      onNext,
-      userTracking,
-      translate,
-      projections,
-      isImporterOn,
-      scanWithImporter,
-    ],
-  );
-
-  const handleShapefileProcess = useCallback(
-    async (files: GisFiles) => {
-      const shpFile = files.shp;
-      if (!shpFile) return;
-
-      if (isImporterOn) {
-        return scanWithImporter(
-          [files.shp, files.dbf, files.prj, files.cpg].filter(
-            (f): f is File => f != null,
-          ),
-          shpFile,
-        );
-      }
-
-      const fileArray = [files.shp, files.dbf, files.prj, files.cpg].filter(
-        (f): f is File => f != null,
-      );
-
-      resetWizardData();
-      setSourceFiles(fileArray);
-      setLoading(true);
-
-      try {
-        const result = await parseShapefile(fileArray);
-        const features = result.featureCollection.features;
-
-        if (features.length === 0) {
-          userTracking.capture({
-            name: "importCustomerPoints.dataInput.noValidPoints",
-            fileName: shpFile.name,
-          });
-          setError(
-            translate("importCustomerPoints.dataSource.noValidPointsError"),
-          );
-          setLoading(false);
-          return;
-        }
-
-        setInputData({
-          features,
-          properties: new Set(result.properties),
-        });
-        setLoading(false);
-
-        userTracking.capture({
-          name: "importCustomerPoints.dataInput.fileLoaded",
-          fileName: shpFile.name,
-          propertiesCount: result.properties.length,
-          featuresCount: features.length,
-          coordinateConversion: result.coordinateConversion ?? null,
-        });
-
-        onNext();
-      } catch (err) {
-        const fileName = shpFile.name;
-        userTracking.capture({
-          name: "importCustomerPoints.dataInput.parseError",
-          fileName,
-          errorCode: err instanceof GisParseError ? err.code : undefined,
-        });
-
-        if (err instanceof GisParseError) {
-          if (
-            err.code === "unsupported-crs" ||
-            err.code === "projection-conversion-failed"
-          ) {
-            setError(
-              translate("importCustomerPoints.dataSource.unsupportedCrsError"),
-            );
-          } else if (
-            err.code === "missing-projection" ||
-            err.code === "invalid-projection"
-          ) {
-            setError(
-              translate(
-                "importCustomerPoints.dataSource.coordinateValidationError",
-              ),
-            );
-          } else {
-            setError(
-              translate("importCustomerPoints.dataSource.parseFileError"),
-            );
-          }
-        } else {
-          captureError(err as Error);
-          setError(translate("importCustomerPoints.dataSource.parseFileError"));
-        }
-        setLoading(false);
-      }
-    },
-    [
-      resetWizardData,
-      setSourceFiles,
-      setLoading,
-      setError,
-      setInputData,
-      onNext,
-      userTracking,
-      translate,
-      isImporterOn,
-      scanWithImporter,
-    ],
-  );
-
   const handleGisFilesDrop = useCallback(
     (files: GisFiles) => {
       setGisFiles(files);
 
-      if (files.geojson || files.geojsonl) {
-        const file = (files.geojson ?? files.geojsonl)!;
-        void handleFileProcess(file);
+      const geojson = files.geojson ?? files.geojsonl;
+      if (geojson) {
+        void scanWithImporter([geojson], geojson);
       } else if (files.shp && files.dbf && files.prj) {
-        void handleShapefileProcess(files);
+        const bundle = [files.shp, files.dbf, files.prj, files.cpg].filter(
+          (f): f is File => f != null,
+        );
+        void scanWithImporter(bundle, files.shp);
       }
     },
-    [handleFileProcess, handleShapefileProcess],
+    [scanWithImporter],
   );
 
   return (

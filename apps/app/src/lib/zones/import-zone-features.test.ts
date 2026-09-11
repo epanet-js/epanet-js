@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import type { ZoneFeature } from "./read-zone-features";
+import type { ZoneFeature } from "./zone-features";
 import { importZoneFeatures } from "./import-zone-features";
 
 describe("importZoneFeatures", () => {

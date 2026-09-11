@@ -1,7 +1,6 @@
-import { Feature } from "geojson";
 import { CustomerPoint, CustomerPointId } from "@epanet-js/hydraulic-model";
 import { Demand } from "@epanet-js/hydraulic-model";
-import { CustomerPointsParserIssues } from "@epanet-js/gis-importers";
+import { CustomerPointsParserIssues } from "./issues";
 import { Unit } from "@epanet-js/quantity";
 
 export type WizardStep = 1 | 2 | 3;
@@ -16,9 +15,6 @@ export type ParsedDataSummary = {
 
 export type InputData = {
   properties: Set<string>;
-  // Absent on the importer path, which re-reads the file for each mapping
-  // rather than holding what it parsed.
-  features?: Feature[];
 };
 
 export type WizardState = {

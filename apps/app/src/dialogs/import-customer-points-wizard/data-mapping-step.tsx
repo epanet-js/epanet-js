@@ -17,30 +17,23 @@ import { modelFactoriesAtom } from "src/state/model-factories";
 import {
   buildCustomerPointPreviewFactory,
   CustomerPoint,
-  CustomerPointId,
   MAX_CUSTOMER_POINT_LABEL_LENGTH,
 } from "@epanet-js/hydraulic-model";
 import {
-  parseCustomerPoints,
   parseGisSource,
   customerPointsImporter,
-  CustomerPointsIssuesAccumulator,
-  CustomerPointsParserIssues,
 } from "@epanet-js/gis-importers";
+import {
+  CustomerPointsIssuesAccumulator,
+  type CustomerPointsParserIssues,
+} from "./issues";
 import type { Proj4Projection } from "@epanet-js/projections";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { isAbortError } from "src/infra/abort";
 import { buildCustomerPoints } from "./build-customer-points";
 import { collectImportIssues } from "./collect-import-issues";
 import { useLabelMaxLength } from "src/hooks/use-label-max-length";
-import { Demand } from "@epanet-js/hydraulic-model";
 import { localizeDecimal } from "@epanet-js/i18n";
-import {
-  WizardState,
-  WizardActions,
-  ParsedDataSummary,
-  InputData,
-} from "./types";
+import { WizardState, WizardActions, ParsedDataSummary } from "./types";
 import { UnitsSpec } from "@epanet-js/project-settings";
 import { WizardActions as WizardActionsComponent } from "src/components/wizard";
 import { convertTo } from "@epanet-js/quantity";
@@ -93,7 +86,6 @@ export const DataMappingStep: React.FC<{
     return options;
   }, [patterns]);
 
-  const isImporterOn = useFeatureFlag("FLAG_CUSTOMER_POINTS_IMPORTER");
   const inFlight = useRef<AbortController | null>(null);
   const [primaryFile] = sourceFiles;
 
@@ -106,6 +98,9 @@ export const DataMappingStep: React.FC<{
       patternId: number | null,
       defaultDemandValue: number,
     ) => {
+      setLoading(true);
+      setError(null);
+
       inFlight.current?.abort();
       const { signal } = (inFlight.current = new AbortController());
 
@@ -197,112 +192,6 @@ export const DataMappingStep: React.FC<{
     ],
   );
 
-  const parseInputDataToCustomerPoints = useCallback(
-    (
-      inputData: InputData,
-      demandPropertyName: string | null,
-      labelPropertyName: string | null = null,
-      patternId: number | null = null,
-      defaultDemandValue: number = 0,
-    ) => {
-      setLoading(true);
-      setError(null);
-
-      if (isImporterOn) {
-        void importSelection(
-          demandPropertyName,
-          labelPropertyName,
-          patternId,
-          defaultDemandValue,
-        );
-        return;
-      }
-
-      setTimeout(() => {
-        try {
-          const issues = new CustomerPointsIssuesAccumulator();
-          const validCustomerPoints: CustomerPoint[] = [];
-          const customerPointDemands = new Map<CustomerPointId, Demand[]>();
-          let totalCount = 0;
-
-          const demandImportUnit = projectSettings.units.customerDemandPerDay;
-          const demandTargetUnit = projectSettings.units.customerDemand;
-
-          const fileContent = JSON.stringify({
-            type: "FeatureCollection",
-            features: inputData.features,
-          });
-
-          const previewFactory = buildCustomerPointPreviewFactory(labelManager);
-
-          for (const parsed of parseCustomerPoints(
-            fileContent,
-            issues,
-            demandImportUnit,
-            demandTargetUnit,
-            previewFactory,
-            demandPropertyName,
-            labelPropertyName,
-            patternId,
-            defaultDemandValue,
-            labelMaxLength,
-          )) {
-            totalCount++;
-            if (parsed) {
-              validCustomerPoints.push(parsed.customerPoint);
-              customerPointDemands.set(parsed.customerPoint.id, parsed.demands);
-            }
-          }
-
-          const parsedDataSummary: ParsedDataSummary = {
-            validCustomerPoints,
-            customerPointDemands,
-            issues: issues.buildResult(),
-            totalCount,
-            demandImportUnit,
-          };
-
-          if (validCustomerPoints.length === 0) {
-            userTracking.capture({
-              name: "importCustomerPoints.dataMapping.noValidPoints",
-              fileName: primaryFile.name,
-            });
-          }
-
-          setParsedDataSummary(parsedDataSummary);
-          setLoading(false);
-
-          userTracking.capture({
-            name: "importCustomerPoints.dataMapping.customerPointsLoaded",
-            validCount: validCustomerPoints.length,
-            issuesCount: issues.count(),
-            totalCount,
-            fileName: primaryFile.name,
-          });
-        } catch (error) {
-          userTracking.capture({
-            name: "importCustomerPoints.dataMapping.parseError",
-            fileName: primaryFile.name,
-          });
-          setError(translate("importCustomerPoints.dataSource.parseFileError"));
-        }
-      }, 50);
-    },
-    [
-      setLoading,
-      setError,
-      projectSettings.units,
-      labelManager,
-      setParsedDataSummary,
-      userTracking,
-      primaryFile,
-      translate,
-      labelMaxLength,
-      isImporterOn,
-      importSelection,
-    ],
-  );
-
   const handleDemandPropertyChange = useCallback(
     (property: string | null) => {
       userTracking.capture({
@@ -312,8 +201,7 @@ export const DataMappingStep: React.FC<{
       setSelectedDemandProperty(property);
       if (!inputData) return;
       setParsedDataSummary(null);
-      parseInputDataToCustomerPoints(
-        inputData,
+      void importSelection(
         property,
         selectedLabelProperty,
         selectedPatternId,
@@ -324,7 +212,7 @@ export const DataMappingStep: React.FC<{
       userTracking,
       setSelectedDemandProperty,
       setParsedDataSummary,
-      parseInputDataToCustomerPoints,
+      importSelection,
       inputData,
       selectedLabelProperty,
       selectedPatternId,
@@ -338,8 +226,7 @@ export const DataMappingStep: React.FC<{
       setDefaultDemand(safeValue);
       if (!inputData) return;
       setParsedDataSummary(null);
-      parseInputDataToCustomerPoints(
-        inputData,
+      void importSelection(
         selectedDemandProperty,
         selectedLabelProperty,
         selectedPatternId,
@@ -349,7 +236,7 @@ export const DataMappingStep: React.FC<{
     [
       setDefaultDemand,
       setParsedDataSummary,
-      parseInputDataToCustomerPoints,
+      importSelection,
       inputData,
       selectedDemandProperty,
       selectedLabelProperty,
@@ -366,8 +253,7 @@ export const DataMappingStep: React.FC<{
       setSelectedLabelProperty(property);
       if (!inputData) return;
       setParsedDataSummary(null);
-      parseInputDataToCustomerPoints(
-        inputData,
+      void importSelection(
         selectedDemandProperty,
         property,
         selectedPatternId,
@@ -379,7 +265,7 @@ export const DataMappingStep: React.FC<{
       setSelectedLabelProperty,
       selectedDemandProperty,
       setParsedDataSummary,
-      parseInputDataToCustomerPoints,
+      importSelection,
       inputData,
       selectedPatternId,
       defaultDemand,
@@ -392,8 +278,7 @@ export const DataMappingStep: React.FC<{
       setSelectedPatternId(patternId);
       if (inputData) {
         setParsedDataSummary(null);
-        parseInputDataToCustomerPoints(
-          inputData,
+        void importSelection(
           selectedDemandProperty,
           selectedLabelProperty,
           patternId,
@@ -410,7 +295,7 @@ export const DataMappingStep: React.FC<{
       setSelectedPatternId,
       selectedDemandProperty,
       setParsedDataSummary,
-      parseInputDataToCustomerPoints,
+      importSelection,
       inputData,
       selectedLabelProperty,
       patterns,
@@ -420,8 +305,7 @@ export const DataMappingStep: React.FC<{
 
   useEffect(() => {
     if (inputData && !parsedDataSummary && !isLoading && !error) {
-      parseInputDataToCustomerPoints(
-        inputData,
+      void importSelection(
         selectedDemandProperty,
         selectedLabelProperty,
         selectedPatternId,

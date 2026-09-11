@@ -1,3 +1,4 @@
+import type { Feature } from "geojson";
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { setInitialState } from "src/__helpers__/state";
@@ -7,6 +8,22 @@ import { stubProjectionsReady } from "src/__helpers__/projections";
 import { setWizardState } from "./__helpers__/wizard-state";
 import { renderWizard } from "./__helpers__/render-wizard";
 
+const aPoint = (
+  coordinates: [number, number],
+  properties: Record<string, unknown>,
+): Feature => ({
+  type: "Feature",
+  geometry: { type: "Point", coordinates },
+  properties,
+});
+
+const aSourceFile = (features: Feature[]) =>
+  new File(
+    [JSON.stringify({ type: "FeatureCollection", features })],
+    "test.geojson",
+    { type: "application/json" },
+  );
+
 describe("DataMappingStep", () => {
   beforeEach(() => {
     stubUserTracking();
@@ -14,21 +31,10 @@ describe("DataMappingStep", () => {
   });
 
   describe("optional demand attribute + default value", () => {
-    const createInputData = () => ({
-      properties: new Set(["name"]),
-      features: [
-        {
-          type: "Feature" as const,
-          geometry: { type: "Point" as const, coordinates: [0.001, 0.001] },
-          properties: { name: "Point1" },
-        },
-        {
-          type: "Feature" as const,
-          geometry: { type: "Point" as const, coordinates: [0.002, 0.002] },
-          properties: { name: "Point2" },
-        },
-      ],
-    });
+    const namedPoints = () => [
+      aPoint([0.001, 0.001], { name: "Point1" }),
+      aPoint([0.002, 0.002], { name: "Point2" }),
+    ];
 
     it("auto-parses with default demand when no attribute is selected", async () => {
       const store = setInitialState({
@@ -36,10 +42,8 @@ describe("DataMappingStep", () => {
       });
 
       setWizardState(store, {
-        sourceFiles: [
-          new File(["test"], "test.geojson", { type: "application/json" }),
-        ],
-        inputData: createInputData(),
+        sourceFiles: [aSourceFile(namedPoints())],
+        inputData: { properties: new Set(["name"]) },
       });
 
       renderWizard(store);
@@ -57,10 +61,8 @@ describe("DataMappingStep", () => {
       });
 
       setWizardState(store, {
-        sourceFiles: [
-          new File(["test"], "test.geojson", { type: "application/json" }),
-        ],
-        inputData: createInputData(),
+        sourceFiles: [aSourceFile(namedPoints())],
+        inputData: { properties: new Set(["name"]) },
         selectedDemandProperty: null,
       });
 
@@ -80,22 +82,8 @@ describe("DataMappingStep", () => {
       });
 
       setWizardState(store, {
-        sourceFiles: [
-          new File(["test"], "test.geojson", { type: "application/json" }),
-        ],
-        inputData: {
-          properties: new Set(["demand"]),
-          features: [
-            {
-              type: "Feature" as const,
-              geometry: {
-                type: "Point" as const,
-                coordinates: [0.001, 0.001],
-              },
-              properties: { demand: 12 },
-            },
-          ],
-        },
+        sourceFiles: [aSourceFile([aPoint([0.001, 0.001], { demand: 12 })])],
+        inputData: { properties: new Set(["demand"]) },
       });
 
       renderWizard(store);
@@ -126,38 +114,14 @@ describe("DataMappingStep", () => {
 
       setWizardState(store, {
         sourceFiles: [
-          new File(["test"], "test.geojson", { type: "application/json" }),
+          aSourceFile([
+            aPoint([0.001, 0.001], { demand: 10 }),
+            aPoint([0.002, 0.002], {}),
+            aPoint([0.003, 0.003], { demand: null }),
+          ]),
         ],
         selectedDemandProperty: "demand",
-        inputData: {
-          properties: new Set(["demand"]),
-          features: [
-            {
-              type: "Feature" as const,
-              geometry: {
-                type: "Point" as const,
-                coordinates: [0.001, 0.001],
-              },
-              properties: { demand: 10 },
-            },
-            {
-              type: "Feature" as const,
-              geometry: {
-                type: "Point" as const,
-                coordinates: [0.002, 0.002],
-              },
-              properties: {},
-            },
-            {
-              type: "Feature" as const,
-              geometry: {
-                type: "Point" as const,
-                coordinates: [0.003, 0.003],
-              },
-              properties: { demand: null },
-            },
-          ],
-        },
+        inputData: { properties: new Set(["demand"]) },
       });
 
       renderWizard(store);
@@ -174,29 +138,12 @@ describe("DataMappingStep", () => {
 
       setWizardState(store, {
         sourceFiles: [
-          new File(["test"], "test.geojson", { type: "application/json" }),
+          aSourceFile([
+            aPoint([0.001, 0.001], { name: "A" }),
+            aPoint([0.002, 0.002], { name: "B" }),
+          ]),
         ],
-        inputData: {
-          properties: new Set(["name"]),
-          features: [
-            {
-              type: "Feature" as const,
-              geometry: {
-                type: "Point" as const,
-                coordinates: [0.001, 0.001],
-              },
-              properties: { name: "A" },
-            },
-            {
-              type: "Feature" as const,
-              geometry: {
-                type: "Point" as const,
-                coordinates: [0.002, 0.002],
-              },
-              properties: { name: "B" },
-            },
-          ],
-        },
+        inputData: { properties: new Set(["name"]) },
       });
 
       renderWizard(store);
@@ -215,22 +162,8 @@ describe("DataMappingStep", () => {
       });
 
       setWizardState(store, {
-        sourceFiles: [
-          new File(["test"], "test.geojson", { type: "application/json" }),
-        ],
-        inputData: {
-          properties: new Set(["demand"]),
-          features: [
-            {
-              type: "Feature" as const,
-              geometry: {
-                type: "Point" as const,
-                coordinates: [0.001, 0.001],
-              },
-              properties: { demand: 10 },
-            },
-          ],
-        },
+        sourceFiles: [aSourceFile([aPoint([0.001, 0.001], { demand: 10 })])],
+        inputData: { properties: new Set(["demand"]) },
       });
 
       renderWizard(store);
@@ -248,17 +181,6 @@ describe("DataMappingStep", () => {
   });
 
   describe("pattern selector visibility", () => {
-    const createInputData = () => ({
-      properties: new Set(["name", "demand"]),
-      features: [
-        {
-          type: "Feature" as const,
-          geometry: { type: "Point" as const, coordinates: [0.001, 0.001] },
-          properties: { name: "Point1", demand: 25.5 },
-        },
-      ],
-    });
-
     it("shows the pattern selector even when no patterns are defined yet", () => {
       const store = setInitialState({
         hydraulicModel: HydraulicModelBuilder.with().build(),
@@ -266,9 +188,11 @@ describe("DataMappingStep", () => {
 
       setWizardState(store, {
         sourceFiles: [
-          new File(["test"], "test.geojson", { type: "application/json" }),
+          aSourceFile([
+            aPoint([0.001, 0.001], { name: "Point1", demand: 25.5 }),
+          ]),
         ],
-        inputData: createInputData(),
+        inputData: { properties: new Set(["name", "demand"]) },
       });
 
       renderWizard(store);
@@ -282,27 +206,10 @@ describe("DataMappingStep", () => {
   });
 
   describe("label property switching", () => {
-    const twoFeatureInputData = () => ({
-      properties: new Set(["name", "demand"]),
-      features: [
-        {
-          type: "Feature" as const,
-          geometry: {
-            type: "Point" as const,
-            coordinates: [0.001, 0.001],
-          },
-          properties: { name: "Alpha", demand: 10 },
-        },
-        {
-          type: "Feature" as const,
-          geometry: {
-            type: "Point" as const,
-            coordinates: [0.002, 0.002],
-          },
-          properties: { name: "Beta", demand: 20 },
-        },
-      ],
-    });
+    const twoFeatures = () => [
+      aPoint([0.001, 0.001], { name: "Alpha", demand: 10 }),
+      aPoint([0.002, 0.002], { name: "Beta", demand: 20 }),
+    ];
 
     it("does not advance the auto-generated label counter when switching label property and back", async () => {
       const user = userEvent.setup();
@@ -311,10 +218,8 @@ describe("DataMappingStep", () => {
       });
 
       setWizardState(store, {
-        sourceFiles: [
-          new File(["test"], "test.geojson", { type: "application/json" }),
-        ],
-        inputData: twoFeatureInputData(),
+        sourceFiles: [aSourceFile(twoFeatures())],
+        inputData: { properties: new Set(["name", "demand"]) },
       });
 
       renderWizard(store);

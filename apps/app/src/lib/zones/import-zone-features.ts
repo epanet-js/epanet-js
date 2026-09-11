@@ -1,7 +1,7 @@
 import type { MultiPolygon, Position } from "geojson";
 import turfGetBbox from "@turf/bbox";
 import type { Zones, ZoneId } from "./zones";
-import type { ZoneFeature } from "./read-zone-features";
+import type { ZoneFeature } from "./zone-features";
 import { ZoneLabelGenerator } from "./zone-label-generator";
 
 export type MergedZoneInfo = {

@@ -6,7 +6,6 @@ import { setInitialState } from "src/__helpers__/state";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { stubProjectionsReady } from "src/__helpers__/projections";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { Store } from "src/state";
 import { setWizardState } from "./__helpers__/wizard-state";
@@ -57,7 +56,6 @@ describe("customer points wizard, on the importer", () => {
   beforeEach(() => {
     stubUserTracking();
     stubProjectionsReady();
-    stubFeatureOn("FLAG_CUSTOMER_POINTS_IMPORTER");
   });
 
   it("reads a file through the importer", async () => {
