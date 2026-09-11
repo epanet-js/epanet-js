@@ -86,40 +86,45 @@ const failure = (
   issues: [{ code, severity: "error" }],
 });
 
+const SHAPEFILE_SIDECARS = [".dbf", ".prj", ".cpg", ".shx"];
+
+const hasExtension = (file: SourceFile, extension: string) =>
+  file.name.toLowerCase().endsWith(extension);
+
 const decode = async (input: GisInput): Promise<DecodedSource> => {
   const { files } = input;
-  const shpFile = files.find((file) =>
-    file.name.toLowerCase().endsWith(".shp"),
-  );
+  const shpFile = files.find((file) => hasExtension(file, ".shp"));
+  if (shpFile) return parseShapefile(files, shpFile, input);
 
-  return shpFile
-    ? parseShapefile(files, shpFile)
-    : parseGeoJson(files[0], input);
+  const primary = files.find(
+    (file) =>
+      !SHAPEFILE_SIDECARS.some((extension) => hasExtension(file, extension)),
+  );
+  if (primary === undefined) return failure("sourceFilesIncomplete");
+
+  return parseGeoJson(primary, input);
 };
 
 const parseShapefile = async (
   files: SourceFile[],
   shpFile: SourceFile,
+  { crs, projections }: GisInput,
 ): Promise<DecodedSource> => {
   const byExtension = (extension: string) =>
-    files.find((file) => file.name.toLowerCase().endsWith(extension));
+    files.find((file) => hasExtension(file, extension));
 
   const dbf = byExtension(".dbf");
   const prj = byExtension(".prj");
   const cpg = byExtension(".cpg");
 
-  if (!dbf || !prj) return failure("sourceFilesIncomplete");
-
   const input: {
     shp: ArrayBuffer;
-    dbf: ArrayBuffer;
-    prj: string;
+    dbf?: ArrayBuffer;
+    prj?: string;
     cpg?: string;
-  } = {
-    shp: await shpFile.arrayBuffer(),
-    dbf: await dbf.arrayBuffer(),
-    prj: await textOf(prj),
-  };
+  } = { shp: await shpFile.arrayBuffer() };
+  if (dbf) input.dbf = await dbf.arrayBuffer();
+  if (prj) input.prj = await textOf(prj);
   if (cpg) input.cpg = await textOf(cpg);
 
   let collection: FeatureCollection;
@@ -132,7 +137,11 @@ const parseShapefile = async (
   const features = collection.features ?? [];
   if (features.length === 0) return failure("sourceEmpty");
 
-  if (!mostlyLatLng(features)) return failure("sourceUnreadable");
+  if (input.prj === undefined) {
+    return placeFeatures({ features, epsg: suppliedEpsg(crs), projections });
+  }
+
+  if (!mostlyLatLng(features)) return failure("coordinateSystemMismatch");
 
   const authoredIn = crsNameFromWkt(input.prj);
 
@@ -160,29 +169,45 @@ const parseGeoJson = async (
   if (parsed === null) return failure("sourceUnreadable");
   if (parsed.features.length === 0) return failure("sourceEmpty");
 
-  const statedCrs = parsed.stated ?? suppliedEpsg(crs);
+  return placeFeatures({
+    features: parsed.features,
+    epsg: parsed.stated ?? suppliedEpsg(crs),
+    projections,
+  });
+};
 
-  if (statedCrs === null || statedCrs === WGS84_EPSG) {
-    if (!mostlyLatLng(parsed.features)) {
-      if (statedCrs !== null) return failure("coordinateSystemMismatch");
+type Placement = {
+  features: Feature[];
+  epsg: number | null;
+  projections?: Map<string, Proj4Projection>;
+};
+
+const placeFeatures = ({
+  features,
+  epsg,
+  projections,
+}: Placement): DecodedSource => {
+  if (epsg === null || epsg === WGS84_EPSG) {
+    if (!mostlyLatLng(features)) {
+      if (epsg !== null) return failure("coordinateSystemMismatch");
 
       return {
-        features: parsed.features,
+        features,
         issues: [{ code: "coordinateSystemUnknown", severity: "error" }],
       };
     }
 
     return {
-      features: parsed.features,
+      features,
       issues:
-        statedCrs === null
+        epsg === null
           ? [{ code: "coordinateSystemMissing", severity: "warning" }]
           : [],
     };
   }
 
   const projection = findProjectionByCode(
-    String(statedCrs),
+    String(epsg),
     projections ?? new Map<string, Proj4Projection>(),
   );
   if (projection === null) return failure("coordinateSystemUnsupported");
@@ -190,7 +215,7 @@ const parseGeoJson = async (
   let converted: FeatureCollection;
   try {
     converted = convertGeoJsonToWGS84(
-      { type: "FeatureCollection", features: parsed.features },
+      { type: "FeatureCollection", features },
       projection.code,
     );
   } catch {

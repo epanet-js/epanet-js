@@ -64,7 +64,7 @@
       "zoneGeometryUnreadable_other": "{{count}} Zone boundaries have too few points to make polygons, so they were not imported",
       "sourceUnreadable": "The file could not be read. It may be corrupted, or in a format we do not read yet.",
       "sourceEmpty": "The file has nothing we can import.",
-      "sourceFilesIncomplete": "Some shapefile parts are missing. A shapefile needs its SHP, DBF and PRJ files together.",
+      "sourceFilesIncomplete": "Some of the files this source needs are missing. Add them and try again.",
       "featureGeometryMissing_one": "1 Record has no location, so it was skipped",
       "featureGeometryMissing_other": "{{count}} Records have no location, so they were skipped",
       "featureGeometryUnsupported_one": "1 Record has a shape we cannot use here, so it was skipped",

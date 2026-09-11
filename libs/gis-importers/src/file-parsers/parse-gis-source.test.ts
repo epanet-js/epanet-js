@@ -238,16 +238,128 @@ describe("parseGisSource", () => {
       expect(originalProjection).toBeUndefined();
     });
 
-    it("refuses a bundle with no .dbf", async () => {
-      const codes = await codesOf(shapefileOf(["a.shp", "a.prj"]));
+    it("refuses coordinates that contradict the .prj", async () => {
+      shp.mockResolvedValue({
+        type: "FeatureCollection",
+        features: [aPoint(IN_METRES)],
+      });
+
+      const codes = await codesOf(shapefileOf(["a.shp", "a.dbf", "a.prj"]));
+
+      expect(codes).toEqual(["coordinateSystemMismatch"]);
+    });
+
+    it("ignores a supplied CRS when the bundle has a .prj", async () => {
+      const { features, issues } = await parseGisSource({
+        ...shapefileOf(["a.shp", "a.dbf", "a.prj"]),
+        crs: { type: "epsg", code: 3857 },
+        projections,
+      });
+
+      expect(features[0].geometry).toEqual({
+        type: "Point",
+        coordinates: IN_DEGREES,
+      });
+      expect(issues.build()).toEqual([]);
+    });
+
+    describe("with no .dbf", () => {
+      it("reads the bundle anyway", async () => {
+        const { features, issues } = await parseGisSource(
+          shapefileOf(["a.shp", "a.prj"]),
+        );
+
+        expect(features).toHaveLength(1);
+        expect(issues.build()).toEqual([]);
+      });
+
+      it("asks shpjs for no attributes", async () => {
+        await parseGisSource(shapefileOf(["a.shp", "a.prj"]));
+
+        const [input] = shp.mock.calls[0];
+
+        expect(input).not.toHaveProperty("dbf");
+        expect(input).toHaveProperty("prj");
+      });
+    });
+
+    describe("with no .prj", () => {
+      it("assumes WGS84 when the coordinates bear it out, and says so", async () => {
+        const { features, issues } = await parseGisSource(
+          shapefileOf(["a.shp", "a.dbf"]),
+        );
+
+        expect(features).toHaveLength(1);
+        expect(issues.build()).toEqual([
+          { code: "coordinateSystemMissing", severity: "warning" },
+        ]);
+      });
+
+      it("keeps the records when nobody could say where they are", async () => {
+        shp.mockResolvedValue({
+          type: "FeatureCollection",
+          features: [aPoint(IN_METRES)],
+        });
+
+        const { features, issues } = await parseGisSource(
+          shapefileOf(["a.shp", "a.dbf"]),
+        );
+
+        expect(features).toHaveLength(1);
+        expect(issues.build()).toEqual([
+          { code: "coordinateSystemUnknown", severity: "error" },
+        ]);
+      });
+
+      it("reads a supplied CRS in its place", async () => {
+        shp.mockResolvedValue({
+          type: "FeatureCollection",
+          features: [aPoint(IN_METRES)],
+        });
+
+        const { features, originalProjection, issues } = await parseGisSource({
+          ...shapefileOf(["a.shp", "a.dbf"]),
+          crs: { type: "epsg", code: 3857 },
+          projections,
+        });
+
+        const [longitude] = (features[0].geometry as { coordinates: Position })
+          .coordinates;
+
+        expect(longitude).toBeCloseTo(4.4915, 3);
+        expect(originalProjection).toEqual("Pseudo-Mercator");
+        expect(issues.build()).toEqual([]);
+      });
+    });
+
+    it("refuses sidecars that arrive with no .shp", async () => {
+      const codes = await codesOf(shapefileOf(["a.dbf", "a.prj"]));
 
       expect(codes).toEqual(["sourceFilesIncomplete"]);
     });
 
-    it("refuses a bundle with no .prj", async () => {
-      const codes = await codesOf(shapefileOf(["a.shp", "a.dbf"]));
+    it("reads a GeoJSON that a stray sidecar arrived alongside", async () => {
+      const { features, issues } = await parseGisSource({
+        files: [
+          aCollection([aPoint(IN_DEGREES)], "EPSG:4326"),
+          aBinaryFile("a.dbf"),
+        ],
+      });
 
-      expect(codes).toEqual(["sourceFilesIncomplete"]);
+      expect(features).toHaveLength(1);
+      expect(issues.build()).toEqual([]);
+    });
+
+    it("reads a GeoJSON that arrives after a stray sidecar", async () => {
+      const { features, issues } = await parseGisSource({
+        files: [
+          aBinaryFile("a.dbf"),
+          aCollection([aPoint(IN_DEGREES)], "EPSG:4326"),
+        ],
+      });
+
+      expect(features).toHaveLength(1);
+      expect(issues.build()).toEqual([]);
     });
 
     it("reports a bundle shpjs cannot read", async () => {
@@ -283,7 +395,9 @@ describe("parseGisSource", () => {
       const readBytes = vi.spyOn(file, "arrayBuffer");
 
       await parseGisSource({ files: [file] });
-      await parseGisSource({ files: [file, aBinaryFile("a.cpg")] });
+      await parseGisSource({
+        files: [file, aCollection([aPoint(IN_DEGREES)])],
+      });
 
       expect(readBytes).toHaveBeenCalledTimes(2);
     });
