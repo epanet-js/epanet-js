@@ -1,5 +1,29 @@
 # Testing Guidelines
 
+## What earns a test
+
+**Deciding not to write a test is part of the work.** Every test is read on every
+change to the code around it and runs on every CI job, so one that restates the
+implementation costs more than it protects. Before writing one, ask what it would
+catch that nothing else would.
+
+**Test the logic, not the wiring.** Model operations, importers and exporters,
+change sets, persistence commands, parsing, formatting, and the rules inside
+panels — that is where a regression is silent and a test pays for itself. A test
+that renders a dialog to assert it rendered, clicks a button to assert the command
+it is wired to ran, or flips a flag to assert a component disappeared, asserts that
+React and the wiring work. Verify those by using the app.
+
+**Scaffolding is fine while you build — trim it when you're done.** A throwaway
+test is often the fastest way to drive a component you are still shaping, and
+there is no reason to avoid one. It is development scaffolding, not deliverable:
+once the behaviour works, keep the parts that cover real logic and delete the
+rest, in the same piece of work that added them. Scaffolding that ships becomes
+someone else's maintenance, and nothing later will identify it as scaffolding.
+
+**Say what you removed.** Trimming is a judgement call, so name the tests you
+dropped and why when reporting the work — never a silent deletion.
+
 ## Standard Testing Requirements
 
 ### Test Structure
@@ -14,10 +38,12 @@
 - Short titles in `it()` blocks
 - Descriptive `describe()` blocks
 
-### Required Test Types
-1. **Unit Tests**: Individual component/function testing
-2. **Integration Tests**: Component interaction testing
+### Test Types
+1. **Unit Tests**: Individual function/module testing
+2. **Integration Tests**: Behaviour across collaborating modules, driven through a real path
 3. **User Acceptance Tests**: End-to-end user scenarios
+
+None of the three is owed to a change by category — see [What earns a test](#what-earns-a-test).
 
 ### Testing Tools
 - **Framework**: Vitest (existing setup)
@@ -171,7 +197,9 @@ describe("Hydraulic Model", () => {
 - Features with external dependencies that need mocking strategies
 - MVP features with relaxed testing requirements (document the plan for full testing)
 
-## Required Test Coverage
-- All user-facing features must have acceptance tests
-- Business logic must have unit tests
-- Components must have integration tests
+## Coverage
+- Business logic — model operations, conversions, persistence, calculations — must
+  have unit tests
+- A user-facing feature gets an acceptance test when it has logic worth protecting,
+  not because it is user-facing
+- Components get no test for rendering, wiring, or flag-gating alone
