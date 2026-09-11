@@ -663,6 +663,7 @@
   "ok": "OK",
   "toggleSatellite": "Toggle satellite basemap",
   "toggleBottomPanel": "Toggle bottom panel",
+  "toggleLeftPanel": "Toggle left panel",
   "toggleSidePanel": "Toggle side panel",
   "createScenario": "Create new scenario",
   "cycleScenario": "Cycle through scenarios",

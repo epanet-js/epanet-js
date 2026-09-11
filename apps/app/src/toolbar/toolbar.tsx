@@ -1,4 +1,5 @@
 import { useTranslate } from "src/hooks/use-translate";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import MenuAction, { DisabledMenuAction } from "src/components/menu-action";
 import {
   FileTextIcon,
@@ -53,9 +54,9 @@ import { useShowDataTables } from "src/commands/show-data-tables";
 import { useShowHglProfile } from "src/commands/show-hgl-profile";
 import { useStartProfileSelection } from "src/commands/start-profile-selection";
 import {
-  toggleNetworkReviewShortcut,
-  useToggleNetworkReview,
-} from "src/commands/toggle-network-review";
+  toggleLeftPanelShortcut,
+  useToggleLeftPanel,
+} from "src/commands/toggle-left-panel";
 import {
   toggleSidePanelShortcut,
   useToggleSidePanel,
@@ -287,9 +288,10 @@ const CommandBarButton = () => {
 const LayoutActions = () => {
   const translate = useTranslate();
   const splits = useAtomValue(splitsAtom);
-  const toggleNetworkReview = useToggleNetworkReview();
+  const toggleLeftPanel = useToggleLeftPanel();
   const toggleBottomPanel = useToggleBottomPanel();
   const toggleSidePanel = useToggleSidePanel();
+  const isSelectionSetsOn = useFeatureFlag("FLAG_SELECTION_SETS");
 
   const leftPanelIcon = splits.leftOpen ? (
     <PanelLeftActiveIcon />
@@ -310,12 +312,14 @@ const LayoutActions = () => {
   return (
     <>
       <MenuAction
-        label={translate("networkReview.toggle")}
+        label={translate(
+          isSelectionSetsOn ? "toggleLeftPanel" : "networkReview.toggle",
+        )}
         role="button"
         onClick={() => {
-          toggleNetworkReview({ source: "toolbar" });
+          toggleLeftPanel({ source: "toolbar" });
         }}
-        readOnlyHotkey={toggleNetworkReviewShortcut}
+        readOnlyHotkey={toggleLeftPanelShortcut}
       >
         {leftPanelIcon}
       </MenuAction>

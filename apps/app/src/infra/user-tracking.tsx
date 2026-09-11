@@ -1032,12 +1032,7 @@ type SimulationReportAssetClicked = {
 
 type NetworkReviewOpened = {
   name: "networkReview.opened";
-  source: string;
-};
-
-type NetworkReviewClosed = {
-  name: "networkReview.closed";
-  source: string;
+  source: "auto";
 };
 
 type NetworkReviewChecked = {
@@ -1537,7 +1532,6 @@ export type UserEvent =
   | ImportCustomerPointsDataSelectLabelProperty
   | ImportCustomerPointsDataSelectPatternProperty
   | NetworkReviewOpened
-  | NetworkReviewClosed
   | NetworkReviewChecked
   | NetworkReviewBack
   | NetworkReviewChanged
@@ -1702,6 +1696,12 @@ export type UserEvent =
     }
   | {
       name: "bottomPanel.toggled";
+      open: boolean;
+      activePanelType: string | null;
+      source: "toolbar" | "shortcut";
+    }
+  | {
+      name: "leftPanel.toggled";
       open: boolean;
       activePanelType: string | null;
       source: "toolbar" | "shortcut";

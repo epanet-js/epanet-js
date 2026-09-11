@@ -25,7 +25,7 @@ import { OPFSStorage } from "src/infra/storage";
 import { worktreeAtom } from "src/state/scenarios";
 import { nanoid } from "src/lib/id";
 import { useUserTracking } from "src/infra/user-tracking";
-import { useToggleNetworkReview } from "src/commands/toggle-network-review";
+import { useShowNetworkReview } from "src/commands/show-network-review";
 import { selectedReviewCheckAtom } from "src/state/network-review";
 import {
   CheckType,
@@ -45,7 +45,7 @@ export const useRunSimulation = () => {
   const setSimulationState = useSetAtom(simulationDerivedAtom);
   const setDialogState = useSetAtom(dialogAtom);
   const userTracking = useUserTracking();
-  const toggleNetworkReview = useToggleNetworkReview();
+  const showNetworkReview = useShowNetworkReview();
   const { ensureFresh } = useReviewChecks();
   const isCheckingRef = useRef(false);
 
@@ -216,7 +216,7 @@ export const useRunSimulation = () => {
             choice: "fixFirst",
           });
           set(selectedReviewCheckAtom, target);
-          toggleNetworkReview({ source: "auto", state: true });
+          showNetworkReview({ source: "auto" });
         };
 
         if (isCheckingRef.current) return;
@@ -331,7 +331,7 @@ export const useRunSimulation = () => {
         setSimulationState,
         setDialogState,
         userTracking,
-        toggleNetworkReview,
+        showNetworkReview,
         ensureFresh,
       ],
     ),

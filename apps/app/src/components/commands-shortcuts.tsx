@@ -58,9 +58,9 @@ import {
 } from "src/commands/set-redraw-mode";
 import { reverseLinkShortcut, useReverseLink } from "src/commands/reverse-link";
 import {
-  toggleNetworkReviewShortcut,
-  useToggleNetworkReview,
-} from "src/commands/toggle-network-review";
+  toggleLeftPanelShortcut,
+  useToggleLeftPanel,
+} from "src/commands/toggle-left-panel";
 import {
   toggleSidePanelShortcut,
   useToggleSidePanel,
@@ -127,7 +127,7 @@ export const CommandShortcuts = () => {
   const reverseLinkAction = useReverseLink();
   const simulation = useAtomValue(simulationDerivedAtom);
   const simulationSettings = useAtomValue(simulationSettingsDerivedAtom);
-  const toggleNetworkReview = useToggleNetworkReview();
+  const toggleLeftPanel = useToggleLeftPanel();
   const toggleSidePanel = useToggleSidePanel();
   const toggleBottomPanel = useToggleBottomPanel();
   const cycleSelectionMode = useCycleSelectionMode();
@@ -380,13 +380,13 @@ export const CommandShortcuts = () => {
   );
 
   useHotkeys(
-    toggleNetworkReviewShortcut,
+    toggleLeftPanelShortcut,
     (e) => {
       e.preventDefault();
-      toggleNetworkReview({ source: "shortcut" });
+      toggleLeftPanel({ source: "shortcut" });
     },
-    [toggleNetworkReview],
-    "Toggle network review",
+    [toggleLeftPanel],
+    "Toggle left panel",
   );
 
   useHotkeys(

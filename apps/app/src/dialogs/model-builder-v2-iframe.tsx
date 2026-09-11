@@ -7,7 +7,7 @@ import { EarlyAccessBadge } from "../components/early-access-badge";
 import { useOpenProjectFile } from "src/commands/open-project";
 import { projectExtension } from "src/commands/save-project";
 import { useUserTracking, UserEvent } from "src/infra/user-tracking";
-import { useToggleNetworkReview } from "src/commands/toggle-network-review";
+import { useShowNetworkReview } from "src/commands/show-network-review";
 import { useEnabledFeatureFlags } from "src/hooks/use-feature-flags";
 import { modelBuilderV2Url } from "src/global-config";
 
@@ -60,7 +60,7 @@ const handleModelBuildEjsdbComplete = async (
   message: ModelBuildEjsdbCompleteMessage,
   userTracking: ReturnType<typeof useUserTracking>,
   openProjectFile: ReturnType<typeof useOpenProjectFile>,
-  toggleNetworkReview: ReturnType<typeof useToggleNetworkReview>,
+  showNetworkReview: ReturnType<typeof useShowNetworkReview>,
 ) => {
   if (!message.data.ejsdbBytes) {
     return;
@@ -79,7 +79,7 @@ const handleModelBuildEjsdbComplete = async (
   });
 
   await openProjectFile(projectFile, "modelBuilder", { isUnsaved: true });
-  toggleNetworkReview({ source: "auto", state: true });
+  showNetworkReview({ source: "auto" });
 };
 
 const handleUserEvent = (
@@ -115,7 +115,7 @@ export const ModelBuilderV2IframeDialog = ({
   const [isLoading, setIsLoading] = useState(true);
   const openProjectFile = useOpenProjectFile();
   const userTracking = useUserTracking();
-  const toggleNetworkReview = useToggleNetworkReview();
+  const showNetworkReview = useShowNetworkReview();
   const enabledFlags = useEnabledFeatureFlags();
   const iframeSrc = useMemo(
     () => buildIframeSrc(enabledFlags, locale),
@@ -139,7 +139,7 @@ export const ModelBuilderV2IframeDialog = ({
           message as ModelBuildEjsdbCompleteMessage,
           userTracking,
           openProjectFile,
-          toggleNetworkReview,
+          showNetworkReview,
         );
       } else if (message.type === "trackUserEvent") {
         handleUserEvent(message as TrackUserEventMessage, userTracking);
@@ -153,7 +153,7 @@ export const ModelBuilderV2IframeDialog = ({
     return () => {
       window.removeEventListener("message", handleMessage);
     };
-  }, [openProjectFile, userTracking, toggleNetworkReview]);
+  }, [openProjectFile, userTracking, showNetworkReview]);
 
   return (
     <BaseDialog

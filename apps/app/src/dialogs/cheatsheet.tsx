@@ -7,7 +7,7 @@ import { showSimulationSettingsShortcut } from "src/commands/show-simulation-set
 import { showControlsShortcut } from "src/commands/show-controls";
 import { getIsMac } from "src/infra/i18n/mac";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { toggleNetworkReviewShortcut } from "src/commands/toggle-network-review";
+import { toggleLeftPanelShortcut } from "src/commands/toggle-left-panel";
 import { toggleSidePanelShortcut } from "src/commands/toggle-side-panel";
 import { toggleBottomPanelShortcut } from "src/commands/toggle-bottom-panel";
 import { selectionModeShortcut } from "src/commands/set-area-selection-mode";
@@ -43,6 +43,7 @@ export function CheatsheetDialog() {
   const { closeDialog } = useDialogState();
   const translate = useTranslate();
   const isMac = useFeatureFlag("FLAG_MAC");
+  const isSelectionSetsOn = useFeatureFlag("FLAG_SELECTION_SETS");
 
   const BINDINGS: ShortcutSection[] = [
     {
@@ -62,8 +63,10 @@ export function CheatsheetDialog() {
       shortcuts: [
         { binding: "B", description: "toggleSatellite" },
         {
-          binding: toggleNetworkReviewShortcut,
-          description: "networkReview.toggle",
+          binding: toggleLeftPanelShortcut,
+          description: isSelectionSetsOn
+            ? "toggleLeftPanel"
+            : "networkReview.toggle",
         },
         {
           binding: toggleBottomPanelShortcut,
