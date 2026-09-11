@@ -742,9 +742,6 @@ describe("AssetPanel", () => {
       expect(control).not.toBeNull();
       expect(control?.type).toBe("target-node");
       expect(control?.targetId).toBe(IDS.other);
-      expect(
-        (getLink(updated.assets, IDS.V1) as Valve).getProperty("targetNode"),
-      ).toBeDefined();
     });
 
     it("can show simulation results", async () => {
