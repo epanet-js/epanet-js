@@ -29,6 +29,7 @@ import {
 } from "@epanet-js/gis-importers";
 import type { Proj4Projection } from "@epanet-js/projections";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { isAbortError } from "src/infra/abort";
 import { buildCustomerPoints } from "./build-customer-points";
 import { collectImportIssues } from "./collect-import-issues";
 import { useLabelMaxLength } from "src/hooks/use-label-max-length";
@@ -93,8 +94,10 @@ export const DataMappingStep: React.FC<{
   }, [patterns]);
 
   const isImporterOn = useFeatureFlag("FLAG_CUSTOMER_POINTS_IMPORTER");
-  const latestRequest = useRef(0);
+  const inFlight = useRef<AbortController | null>(null);
   const [primaryFile] = sourceFiles;
+
+  useEffect(() => () => inFlight.current?.abort(), []);
 
   const importSelection = useCallback(
     async (
@@ -103,7 +106,9 @@ export const DataMappingStep: React.FC<{
       patternId: number | null,
       defaultDemandValue: number,
     ) => {
-      const request = ++latestRequest.current;
+      inFlight.current?.abort();
+      const { signal } = (inFlight.current = new AbortController());
+
       const source = {
         files: sourceFiles,
         projections: projections ?? undefined,
@@ -112,11 +117,13 @@ export const DataMappingStep: React.FC<{
       try {
         const { features } = await parseGisSource(source);
         const { network, issues: importIssues } =
-          customerPointsImporter.importFromFeatures(features, {
-            mapping: { label: labelPropertyName, demand: demandPropertyName },
-          });
-
-        if (request !== latestRequest.current) return;
+          await customerPointsImporter.importFromFeatures(
+            features,
+            {
+              mapping: { label: labelPropertyName, demand: demandPropertyName },
+            },
+            { signal },
+          );
 
         const issues = new CustomerPointsIssuesAccumulator();
         collectImportIssues(importIssues, issues);
@@ -124,7 +131,7 @@ export const DataMappingStep: React.FC<{
         const demandImportUnit = projectSettings.units.customerDemandPerDay;
         const demandTargetUnit = projectSettings.units.customerDemand;
 
-        const { customerPoints, demands } = buildCustomerPoints(
+        const built = await buildCustomerPoints(
           network.customerPoints ?? [],
           features,
           {
@@ -135,8 +142,11 @@ export const DataMappingStep: React.FC<{
             defaultDemand: defaultDemandValue,
             labelMaxLength,
             issues,
+            signal,
           },
         );
+
+        const { customerPoints, demands } = built;
 
         setParsedDataSummary({
           validCustomerPoints: customerPoints,
@@ -161,8 +171,8 @@ export const DataMappingStep: React.FC<{
           totalCount: features.length,
           fileName: primaryFile.name,
         });
-      } catch {
-        if (request !== latestRequest.current) return;
+      } catch (error) {
+        if (isAbortError(error)) return;
 
         userTracking.capture({
           name: "importCustomerPoints.dataMapping.parseError",

@@ -41,9 +41,14 @@ export type ScanSourceResult = {
 
 export type ScanSource = (input: GisInput) => Promise<ScanSourceResult>;
 
-export type ImportFromSourceInput<Role extends string = string> = GisInput & {
-  config?: ImportConfig<Role>;
+export type ImportOptions = {
+  signal?: AbortSignal;
 };
+
+export type ImportFromSourceInput<Role extends string = string> = GisInput &
+  ImportOptions & {
+    config?: ImportConfig<Role>;
+  };
 
 export type ImportFromSource<Role extends string = string> = (
   input: ImportFromSourceInput<Role>,
@@ -52,7 +57,8 @@ export type ImportFromSource<Role extends string = string> = (
 export type ImportFromFeatures<Role extends string = string> = (
   features: Feature[],
   config?: ImportConfig<Role>,
-) => ImportResult;
+  options?: ImportOptions,
+) => Promise<ImportResult>;
 
 export type Importer<Role extends string = string> = {
   name: string;

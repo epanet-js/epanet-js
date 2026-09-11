@@ -5,16 +5,24 @@ import {
   type CustomAttributeValues,
   type CustomerPointData,
 } from "@epanet-js/converters";
-import type { GisInput, ImportResult } from "../importer";
+import type { GisInput, ImportOptions, ImportResult } from "../importer";
 import type { ImportConfig } from "../import-config";
 import { parseGisSource } from "../file-parsers/parse-gis-source";
+import { createTimeSlicer, throwIfAborted } from "../time-slice";
 
 export type CustomerPointRole = "label" | "demand";
 
-export const importCustomerPointsFromFeatures = (
+// Reading a point is a handful of property lookups, so a batch this size is well
+// under a slice and the slice stays the thing that decides when to yield.
+const RECORDS_PER_BATCH = 4096;
+
+export const importCustomerPointsFromFeatures = async (
   features: Feature[],
   config: ImportConfig<CustomerPointRole> = {},
-): ImportResult => {
+  { signal }: ImportOptions = {},
+): Promise<ImportResult> => {
+  throwIfAborted(signal);
+
   const issues = new IssueCollector();
   const collected = issues.build();
 
@@ -25,14 +33,24 @@ export const importCustomerPointsFromFeatures = (
   const customerPoints: CustomerPointData[] = [];
   const customAttributeNames = config.customAttributes ?? [];
 
-  for (let index = 0; index < features.length && index < limit; index++) {
-    const point = importFeature(
-      features[index],
-      String(index),
-      { labelProperty, demandProperty, customAttributeNames },
-      issues,
-    );
-    if (point !== null) customerPoints.push(point);
+  const end = Math.min(features.length, limit);
+  const sliceIfDue = createTimeSlicer();
+
+  for (let start = 0; start < end; start += RECORDS_PER_BATCH) {
+    const stop = Math.min(start + RECORDS_PER_BATCH, end);
+
+    for (let index = start; index < stop; index++) {
+      const point = importFeature(
+        features[index],
+        String(index),
+        { labelProperty, demandProperty, customAttributeNames },
+        issues,
+      );
+      if (point !== null) customerPoints.push(point);
+    }
+
+    await sliceIfDue();
+    throwIfAborted(signal);
   }
 
   return {
@@ -46,7 +64,8 @@ export const importCustomerPointsFromFeatures = (
 };
 
 export const importCustomerPointsFromSource = async (
-  input: GisInput & { config?: ImportConfig<CustomerPointRole> },
+  input: GisInput &
+    ImportOptions & { config?: ImportConfig<CustomerPointRole> },
 ): Promise<ImportResult> => {
   const { features, issues } = await parseGisSource(input);
   const parsed = issues.build();
@@ -54,10 +73,10 @@ export const importCustomerPointsFromSource = async (
   if (features.length === 0) return { network: {}, issues: parsed };
 
   const placed = !parsed.some(({ severity }) => severity === "error");
-  const { network, issues: interpreted } = importCustomerPointsFromFeatures(
-    features,
-    input.config ?? {},
-  );
+  const { network, issues: interpreted } =
+    await importCustomerPointsFromFeatures(features, input.config ?? {}, {
+      signal: input.signal,
+    });
 
   return {
     network: {

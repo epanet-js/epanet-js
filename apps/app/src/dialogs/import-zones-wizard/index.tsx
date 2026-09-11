@@ -139,9 +139,11 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
     const labelProperty = selectedLabel === "none" ? undefined : selectedLabel;
     const built = isImporterOn
       ? buildZones(
-          zonesImporter.importFromFeatures(readResult.features, {
-            mapping: { label: labelProperty ?? null },
-          }).network.zones ?? [],
+          (
+            await zonesImporter.importFromFeatures(readResult.features, {
+              mapping: { label: labelProperty ?? null },
+            })
+          ).network.zones ?? [],
         )
       : importZoneFeatures(readResult.features, labelProperty);
 

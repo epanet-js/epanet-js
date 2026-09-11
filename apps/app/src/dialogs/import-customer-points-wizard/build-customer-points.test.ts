@@ -17,7 +17,7 @@ const aFeature = (coordinates: [number, number]): Feature => ({
   properties: {},
 });
 
-const build = (
+const build = async (
   records: CustomerPointData[],
   features: Feature[],
   overrides: Partial<{
@@ -27,7 +27,7 @@ const build = (
   }> = {},
 ) => {
   const issues = new CustomerPointsIssuesAccumulator();
-  const result = buildCustomerPoints(records, features, {
+  const result = await buildCustomerPoints(records, features, {
     factory: new CustomerPointFactory(
       new ConsecutiveIdsGenerator(),
       new LabelManager(),
@@ -42,8 +42,8 @@ const build = (
 };
 
 describe("buildCustomerPoints", () => {
-  it("skips records outside lat/lng, which is every projection we could not apply", () => {
-    const { customerPoints, issues } = build(
+  it("skips records outside lat/lng, which is every projection we could not apply", async () => {
+    const { customerPoints, issues } = await build(
       [aRecord("0", [432000, 5812000]), aRecord("1", [0.001, 0.001])],
       [aFeature([432000, 5812000]), aFeature([0.001, 0.001])],
     );
@@ -52,8 +52,8 @@ describe("buildCustomerPoints", () => {
     expect(issues!.skippedInvalidProjection).toHaveLength(1);
   });
 
-  it("falls back to the default demand when a record states none", () => {
-    const { customerPoints, demands } = build(
+  it("falls back to the default demand when a record states none", async () => {
+    const { customerPoints, demands } = await build(
       [aRecord("0", [0.001, 0.001])],
       [aFeature([0.001, 0.001])],
       { defaultDemand: 7 },
@@ -62,8 +62,8 @@ describe("buildCustomerPoints", () => {
     expect(demands.get(customerPoints[0].id)).toEqual([{ baseDemand: 7 }]);
   });
 
-  it("leaves demands out when neither the record nor a default states one", () => {
-    const { customerPoints, demands } = build(
+  it("leaves demands out when neither the record nor a default states one", async () => {
+    const { customerPoints, demands } = await build(
       [aRecord("0", [0.001, 0.001])],
       [aFeature([0.001, 0.001])],
     );
@@ -71,8 +71,8 @@ describe("buildCustomerPoints", () => {
     expect(demands.get(customerPoints[0].id)).toEqual([]);
   });
 
-  it("converts the stated demand and attaches the pattern", () => {
-    const { customerPoints, demands } = build(
+  it("converts the stated demand and attaches the pattern", async () => {
+    const { customerPoints, demands } = await build(
       [aRecord("0", [0.001, 0.001], [{ baseDemand: 86400 }])],
       [aFeature([0.001, 0.001])],
       { patternId: 3, toDemand: (value) => value / 86400 },

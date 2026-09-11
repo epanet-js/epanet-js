@@ -56,8 +56,8 @@ type Importer<Role extends string> = {
   extensions: string[];
   roles: readonly Role[];
   scanSource(input: GisInput): Promise<{ summary: SourceSummary | null; issues: Issue[] }>;
-  importFromSource(input: GisInput & { config?: ImportConfig<Role> }): Promise<ImportResult>;
-  importFromFeatures(features: Feature[], config?: ImportConfig<Role>): ImportResult;
+  importFromSource(input: GisInput & ImportOptions & { config?: ImportConfig<Role> }): Promise<ImportResult>;
+  importFromFeatures(features: Feature[], config?: ImportConfig<Role>, options?: ImportOptions): Promise<ImportResult>;
 };
 ```
 
@@ -80,12 +80,29 @@ error is real.
 That is not only a metaphor: `NetworkData` is assignable to `Partial<NetworkData>`, so a `ParserResult` *is* an `ImportResult`. Merging what two sources produced — two importers, or an importer and a converter — is a plain object spread, and nothing downstream has to know which kind produced which half.
 
 **An import is offered twice, from a source and from features already read.** `importFromSource`
-parses and then interprets; `importFromFeatures` is the interpreting alone, and it is **synchronous**,
-because only reading a file is asynchronous. They are two doors to one room — `importFromSource` is
-parse, guard, delegate — and which a consumer uses depends on whether it holds bytes or records. One
-that already has the features skips a second decode by taking the second door; one that has only a
-file takes the first. Only `importFromSource` states `crs`, because only it knows whether the parse
-managed to place anything.
+parses and then interprets; `importFromFeatures` is the interpreting alone. They are two doors to one
+room — `importFromSource` is parse, guard, delegate — and which a consumer uses depends on whether it
+holds bytes or records. One that already has the features skips a second decode by taking the second
+door; one that has only a file takes the first. Only `importFromSource` states `crs`, because only it
+knows whether the parse managed to place anything.
+
+**Both doors are asynchronous, because interpreting a large source has to yield.** `importFromFeatures`
+was synchronous while the reasoning was that only reading a file is asynchronous — true of the I/O, but
+not of the CPU. A few hundred thousand records take seconds to interpret, and a consumer on a UI thread
+is frozen for all of it. So an importer reads records in batches and lets go of the thread between them
+whenever the batch has held it past a slice. When to let go is shared (`createTimeSlicer`, in
+`time-slice.ts` at the root); **how many records make a batch is each importer's own**, because it
+follows from what one of *its* records costs — a zone carrying whole rings is not a point. The yield is
+a **macrotask**: a microtask resumes before the host can paint, which would make the batching invisible.
+
+**A consumer says when to stop, because only it knows whether stopping is possible.** Both doors take
+an `ImportOptions` with an optional `signal`, checked at every batch boundary; an aborted import throws
+`AbortError` rather than returning a partial `ImportResult`, so a half-read source can never be mistaken
+for a whole one. This is the one thing here that throws — *"never throw for bad input"* is about
+records, and a caller that has stopped wanting the answer is not bad input. `signal` sits outside
+`ImportConfig` deliberately: config says what the consumer knows about the file's **contents**, and this
+says nothing about the file at all. Whether the host is slicing this on a main thread or running it in a
+worker is not ours to infer, which is why it is told rather than guessed.
 
 **Scanning and importing are separate calls**, because the user chooses a mapping in between and chooses it against what the file turned out to contain. `scanSource` answers "what is in this file" — a `SourceSummary` of `attributes`, `recordCount`, `originalProjection` and, where the source has one, `geometry` — without knowing what any of it means, because nothing has told it yet. `importFromSource` then applies the choice, and a preview is the same call with a `recordLimit`.
 

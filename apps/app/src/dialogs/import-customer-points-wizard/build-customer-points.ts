@@ -9,6 +9,8 @@ import {
   PatternId,
 } from "@epanet-js/hydraulic-model";
 import { CustomerPointsIssuesAccumulator } from "@epanet-js/gis-importers";
+import { createTimeSlicer } from "src/infra/yield-to-main";
+import { throwIfAborted } from "src/infra/abort";
 
 export type BuildCustomerPointsOptions = {
   factory: CustomerPointFactory;
@@ -17,6 +19,7 @@ export type BuildCustomerPointsOptions = {
   defaultDemand: number | null;
   labelMaxLength?: number;
   issues: CustomerPointsIssuesAccumulator;
+  signal?: AbortSignal;
 };
 
 export type BuiltCustomerPoints = {
@@ -24,7 +27,16 @@ export type BuiltCustomerPoints = {
   demands: Map<CustomerPointId, Demand[]>;
 };
 
-export const buildCustomerPoints = (
+// Minting an id and a label per point costs roughly eight allocations, so a
+// large source is seconds of work — batched with a yield between batches so the
+// wizard keeps painting, and abandoned outright once it is superseded.
+
+// The clock is only read at a batch boundary, so a batch has to stay well under
+// the slice or it, rather than the slice, decides when we yield. A point costs
+// ~7µs, so this is ~3.5ms of work.
+const RECORDS_PER_BATCH = 512;
+
+export const buildCustomerPoints = async (
   records: CustomerPointData[],
   features: Feature[],
   {
@@ -34,46 +46,58 @@ export const buildCustomerPoints = (
     defaultDemand,
     labelMaxLength,
     issues,
+    signal,
   }: BuildCustomerPointsOptions,
-): BuiltCustomerPoints => {
+): Promise<BuiltCustomerPoints> => {
+  throwIfAborted(signal);
+
   const customerPoints: CustomerPoint[] = [];
   const demands = new Map<CustomerPointId, Demand[]>();
+  const sliceIfDue = createTimeSlicer();
 
-  for (const record of records) {
-    const feature = features[Number(record.ref)];
-    const coordinates = record.coordinates;
+  for (let start = 0; start < records.length; start += RECORDS_PER_BATCH) {
+    const stop = Math.min(start + RECORDS_PER_BATCH, records.length);
 
-    if (!isWgs84(coordinates)) {
-      issues.addSkippedInvalidProjection(featureFor(feature, record));
-      continue;
+    for (let index = start; index < stop; index++) {
+      const record = records[index];
+      const feature = features[Number(record.ref)];
+      const coordinates = record.coordinates;
+
+      if (!isWgs84(coordinates)) {
+        issues.addSkippedInvalidProjection(featureFor(feature, record));
+        continue;
+      }
+
+      const baseDemand = record.demands?.[0]?.baseDemand ?? defaultDemand;
+      const label =
+        record.label === undefined
+          ? undefined
+          : LabelManager.sanitizeLabel(
+              record.label,
+              "customerPoint",
+              labelMaxLength,
+            );
+
+      try {
+        const customerPoint = factory.create(coordinates, label);
+        customerPoints.push(customerPoint);
+        demands.set(
+          customerPoint.id,
+          baseDemand === null
+            ? []
+            : [
+                patternId
+                  ? { baseDemand: toDemand(baseDemand), patternId }
+                  : { baseDemand: toDemand(baseDemand) },
+              ],
+        );
+      } catch {
+        issues.addSkippedCreationFailure(featureFor(feature, record));
+      }
     }
 
-    const baseDemand = record.demands?.[0]?.baseDemand ?? defaultDemand;
-    const label =
-      record.label === undefined
-        ? undefined
-        : LabelManager.sanitizeLabel(
-            record.label,
-            "customerPoint",
-            labelMaxLength,
-          );
-
-    try {
-      const customerPoint = factory.create(coordinates, label);
-      customerPoints.push(customerPoint);
-      demands.set(
-        customerPoint.id,
-        baseDemand === null
-          ? []
-          : [
-              patternId
-                ? { baseDemand: toDemand(baseDemand), patternId }
-                : { baseDemand: toDemand(baseDemand) },
-            ],
-      );
-    } catch {
-      issues.addSkippedCreationFailure(featureFor(feature, record));
-    }
+    await sliceIfDue();
+    throwIfAborted(signal);
   }
 
   return { customerPoints, demands };
