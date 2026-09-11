@@ -25,6 +25,8 @@ import {
 import { applyMoment } from "src/lib/persistence/transaction-helpers";
 import userEvent, { type UserEvent } from "@testing-library/user-event";
 import { AssetId, getLink, getPipe } from "@epanet-js/hydraulic-model";
+import { getLinkTargetNode } from "@epanet-js/hydraulic-model";
+import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import FeatureEditor from "../feature-editor";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
@@ -710,6 +712,39 @@ describe("AssetPanel", () => {
         expect(updatedSelector).toHaveTextContent("FCV");
       });
       expectPropertyDisplayed("setting (l/s)", "10");
+    });
+
+    it("inserts a target-node control when a node is selected", async () => {
+      stubFeatureOn("FLAG_REMOTE_SETPOINT_PRV");
+      const IDS = { V1: 1, up: 2, down: 3, other: 4 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.up, { label: "UPSTREAM" })
+        .aJunction(IDS.down, { label: "DOWNSTREAM" })
+        .aJunction(IDS.other, { label: "OTHER" })
+        .aValve(IDS.V1, { kind: "prv", connections: [IDS.up, IDS.down] })
+        .build();
+      const store = setInitialState({
+        hydraulicModel,
+        selectedAssetId: IDS.V1,
+      });
+      const user = userEvent.setup();
+
+      renderComponent(store);
+
+      const selector = screen.getByRole("combobox", {
+        name: /target node/i,
+      });
+      await user.click(selector);
+      await user.click(screen.getByText("OTHER"));
+
+      const updated = store.get(stagingModelDerivedAtom);
+      const control = getLinkTargetNode(updated.controls, IDS.V1);
+      expect(control).not.toBeNull();
+      expect(control?.type).toBe("target-node");
+      expect(control?.targetId).toBe(IDS.other);
+      expect(
+        (getLink(updated.assets, IDS.V1) as Valve).getProperty("targetNode"),
+      ).toBeDefined();
     });
 
     it("can show simulation results", async () => {

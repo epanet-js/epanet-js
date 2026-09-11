@@ -878,6 +878,7 @@
   "getHelp": "Get help",
   "startNode": "Start node",
   "endNode": "End node",
+  "targetNode": "Target node",
   "positionX": "Position X",
   "positionY": "Position Y",
   "connectionX": "Connection X",

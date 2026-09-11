@@ -50,6 +50,7 @@ import {
 import { UnitsSpec } from "@epanet-js/project-settings";
 import { getMinorLossUnit } from "@epanet-js/project-settings";
 import { useTranslate } from "src/hooks/use-translate";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import { useUserTracking } from "src/infra/user-tracking";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
@@ -75,6 +76,10 @@ import {
 } from "src/lib/model-attributes-validation";
 import { getLinkNodes } from "@epanet-js/hydraulic-model";
 import { type AssetId, type Control } from "@epanet-js/hydraulic-model";
+import {
+  getLinkTargetNode,
+  buildTargetNodeControl,
+} from "@epanet-js/hydraulic-model";
 import { changeAssetControl } from "src/hydraulic-model/model-operations";
 import {
   AssetEditorContent,
@@ -394,6 +399,7 @@ export function AssetPanel({
           valve={valve}
           onPropertyChange={handlePropertyChange}
           onBatchPropertyChange={handleBatchPropertyChange}
+          onControlChange={handleControlChange}
           units={units}
           onStatusChange={handleStatusChange}
           onActiveTopologyStatusChange={handleActiveTopologyStatusChange}
@@ -2056,6 +2062,7 @@ const ValveEditor = ({
   units,
   onPropertyChange,
   onBatchPropertyChange,
+  onControlChange,
   onStatusChange,
   onActiveTopologyStatusChange,
   onLabelChange,
@@ -2069,6 +2076,11 @@ const ValveEditor = ({
   onStatusChange: OnStatusChange<ValveStatus>;
   onPropertyChange: OnPropertyChange;
   onBatchPropertyChange: (changes: PropertyChange[]) => void;
+  onControlChange: (
+    assetId: AssetId,
+    control: Control | null,
+    previousControl: Control | null,
+  ) => void;
   onActiveTopologyStatusChange: (
     property: string,
     newValue: boolean,
@@ -2078,6 +2090,7 @@ const ValveEditor = ({
   readonly?: boolean;
 }) => {
   const translate = useTranslate();
+  const isRemoteSetpointPrvOn = useFeatureFlag("FLAG_REMOTE_SETPOINT_PRV");
   const { footer } = useQuickGraph(valve.id, "valve");
   const { getComparison, getCurveComparison, isNew } =
     useAssetComparison(valve);
@@ -2137,6 +2150,28 @@ const ValveEditor = ({
     if (["psv", "prv", "pbv"].includes(valve.kind)) return units.pressure;
     if (valve.kind === "fcv") return units.flow;
     return null;
+  };
+
+  const showTargetNode = isRemoteSetpointPrvOn && valve.kind === "prv";
+  const targetNodeControl = getLinkTargetNode(
+    hydraulicModel.controls,
+    valve.id,
+  );
+
+  const nodeOptions = useMemo(() => {
+    const options: { value: number; label: string }[] = [];
+    for (const candidate of hydraulicModel.assets.values()) {
+      if (!candidate.isNode) continue;
+      options.push({ value: candidate.id, label: candidate.label });
+    }
+    return options;
+  }, [hydraulicModel.assets]);
+
+  const handleTargetNodeChange = (_name: string, newValue: number | null) => {
+    const previousControl = targetNodeControl;
+    const control =
+      newValue != null ? buildTargetNodeControl(valve.id, newValue) : null;
+    onControlChange(valve.id, control, previousControl);
   };
 
   const activeTopologyComparison = getComparison("isActive", valve.isActive);
@@ -2216,6 +2251,18 @@ const ValveEditor = ({
             getCurveComparison={getCurveComparison}
             onChange={onPropertyChange}
             readOnly={readonly}
+          />
+        )}
+        {showTargetNode && (
+          <SelectRow
+            name="targetNode"
+            selected={targetNodeControl?.targetId ?? null}
+            options={nodeOptions}
+            nullable
+            placeholder={endNode ? endNode.label : translate("select") + "..."}
+            onChange={handleTargetNodeChange}
+            readOnly={readonly}
+            clearLabel={endNode ? endNode.label : translate("select") + "..."}
           />
         )}
         <SelectRow
