@@ -29,7 +29,17 @@ export type LevelSettingControl = {
   off: { level: number };
 };
 
-export type Control = TimedSettingControl | LevelSettingControl;
+export type TargetNodeControl = {
+  id: ControlId;
+  type: "target-node";
+  linkId: AssetId;
+  targetId: AssetId;
+};
+
+export type Control =
+  | TimedSettingControl
+  | LevelSettingControl
+  | TargetNodeControl;
 
 export type Controls = Control[];
 
@@ -53,6 +63,15 @@ export const getLinkLevelSetting = (
       control.type === "level-setting" && control.linkId === linkId,
   ) ?? null;
 
+export const getLinkTargetNode = (
+  controls: Controls,
+  linkId: AssetId,
+): TargetNodeControl | null =>
+  controls.find(
+    (control): control is TargetNodeControl =>
+      control.type === "target-node" && control.linkId === linkId,
+  ) ?? null;
+
 export const buildTimedSetting = (
   linkId: AssetId,
   steps: TimedSettingStep[],
@@ -62,6 +81,17 @@ export const buildTimedSetting = (
   type: "timed-setting",
   linkId,
   steps,
+});
+
+export const buildTargetNodeControl = (
+  linkId: AssetId,
+  targetId: AssetId,
+  id: ControlId = createControlId(),
+): TargetNodeControl => ({
+  id,
+  type: "target-node",
+  linkId,
+  targetId,
 });
 
 export const buildDefaultLevelSetting = (

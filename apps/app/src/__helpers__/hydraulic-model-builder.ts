@@ -27,8 +27,10 @@ import {
 import {
   Controls,
   LevelSettingControl,
+  TargetNodeControl,
   TimedSettingStep,
   buildTimedSetting,
+  buildTargetNodeControl,
   createControlId,
   createEmptyControls,
   setAssetControl,
@@ -515,6 +517,15 @@ export class HydraulicModelBuilder {
       type: "level-setting",
       ...data,
     });
+    return this;
+  }
+
+  aTargetNodeControl(data: Omit<TargetNodeControl, "type" | "id">) {
+    this.controlsValue = setAssetControl(
+      this.controlsValue,
+      data.linkId,
+      buildTargetNodeControl(data.linkId, data.targetId),
+    );
     return this;
   }
 

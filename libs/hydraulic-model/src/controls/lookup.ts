@@ -9,12 +9,18 @@ export class ControlsLookup {
     if (control.type === "level-setting") {
       this.index(control.tankId, control);
     }
+    if (control.type === "target-node") {
+      this.index(control.targetId, control);
+    }
   }
 
   removeControl(control: Control): void {
     this.unindex(control.linkId, control);
     if (control.type === "level-setting") {
       this.unindex(control.tankId, control);
+    }
+    if (control.type === "target-node") {
+      this.unindex(control.targetId, control);
     }
   }
 

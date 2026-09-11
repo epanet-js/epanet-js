@@ -1,12 +1,28 @@
 import { expect, describe, it } from "vitest";
 import { ControlsLookup, buildControlsLookup } from "./lookup";
-import { LevelSettingControl, TimedSettingControl, Controls } from "./types";
+import {
+  LevelSettingControl,
+  TargetNodeControl,
+  TimedSettingControl,
+  Controls,
+} from "./types";
 
 const aTimedControl = (id: string, linkId: number): TimedSettingControl => ({
   id,
   type: "timed-setting",
   linkId,
   steps: [{ time: 3600, status: "off", setting: 1 }],
+});
+
+const aTargetNodeControl = (
+  id: string,
+  linkId: number,
+  targetId: number,
+): TargetNodeControl => ({
+  id,
+  type: "target-node",
+  linkId,
+  targetId,
 });
 
 const aLevelControl = (
@@ -42,6 +58,29 @@ describe("ControlsLookup", () => {
     lookup.addControl(control);
 
     expect(lookup.getControls(IDS.P1)).toEqual(new Set([control]));
+  });
+
+  it("finds a target-node control by both its link and its target node", () => {
+    const IDS = { V1: 1, N1: 2 } as const;
+    const lookup = new ControlsLookup();
+    const control = aTargetNodeControl("ctrl-1", IDS.V1, IDS.N1);
+
+    lookup.addControl(control);
+
+    expect(lookup.getControls(IDS.V1)).toEqual(new Set([control]));
+    expect(lookup.getControls(IDS.N1)).toEqual(new Set([control]));
+  });
+
+  it("removes a target-node control from both its link and its target index", () => {
+    const IDS = { V1: 1, N1: 2 } as const;
+    const lookup = new ControlsLookup();
+    const control = aTargetNodeControl("ctrl-1", IDS.V1, IDS.N1);
+
+    lookup.addControl(control);
+    lookup.removeControl(control);
+
+    expect(lookup.hasControls(IDS.V1)).toBe(false);
+    expect(lookup.hasControls(IDS.N1)).toBe(false);
   });
 
   it("returns every control that depends on the same tank", () => {

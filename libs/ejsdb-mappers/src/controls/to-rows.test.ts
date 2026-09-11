@@ -38,6 +38,21 @@ describe("serializeControls", () => {
     expect(JSON.parse(data)).toEqual(controls);
   });
 
+  it("round-trips a target-node control", () => {
+    const controls: Controls = [
+      {
+        id: "ctrl-1",
+        type: "target-node",
+        linkId: 7,
+        targetId: 12,
+      },
+    ];
+
+    const data = serializeControls(controls);
+
+    expect(JSON.parse(data)).toEqual(controls);
+  });
+
   it("serializes empty controls as an empty array", () => {
     const data = serializeControls(createEmptyControls());
     expect(JSON.parse(data)).toEqual([]);

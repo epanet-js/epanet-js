@@ -1,14 +1,43 @@
 import {
   buildDefaultLevelSetting,
+  buildTargetNodeControl,
   buildTimedSetting,
   createEmptyControls,
   getLinkLevelSetting,
+  getLinkTargetNode,
   getLinkTimedSetting,
   setAssetControl,
 } from "./types";
 
 describe("controls helpers", () => {
-  const IDS = { P1: 7, P2: 8 } as const;
+  const IDS = { P1: 7, P2: 8, N1: 9 } as const;
+
+  describe("buildTargetNodeControl", () => {
+    it("builds a target-node control with the given id", () => {
+      expect(buildTargetNodeControl(IDS.P1, IDS.N1, "ctrl-1")).toEqual({
+        id: "ctrl-1",
+        type: "target-node",
+        linkId: IDS.P1,
+        targetId: IDS.N1,
+      });
+    });
+
+    it("generates an id when none is provided", () => {
+      expect(typeof buildTargetNodeControl(IDS.P1, IDS.N1).id).toBe("string");
+    });
+  });
+
+  describe("getLinkTargetNode", () => {
+    it("returns null when no target-node control exists for the link", () => {
+      expect(getLinkTargetNode(createEmptyControls(), IDS.P1)).toBeNull();
+    });
+
+    it("returns the target-node control for the link", () => {
+      const control = buildTargetNodeControl(IDS.P1, IDS.N1, "ctrl-1");
+      const controls = setAssetControl(createEmptyControls(), IDS.P1, control);
+      expect(getLinkTargetNode(controls, IDS.P1)).toEqual(control);
+    });
+  });
 
   describe("getLinkTimedSetting", () => {
     it("returns null when no control exists for the link", () => {

@@ -23,9 +23,17 @@ const levelSettingControlSchema = z.object({
   off: z.object({ level: z.number() }),
 });
 
+const targetNodeControlSchema = z.object({
+  id: z.string(),
+  type: z.literal("target-node"),
+  linkId: z.number(),
+  targetId: z.number(),
+});
+
 export const controlSchema = z.discriminatedUnion("type", [
   timedSettingControlSchema,
   levelSettingControlSchema,
+  targetNodeControlSchema,
 ]);
 
 export const controlsSchema = z.array(controlSchema);

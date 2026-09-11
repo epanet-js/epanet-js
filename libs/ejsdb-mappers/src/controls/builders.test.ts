@@ -54,6 +54,26 @@ describe("buildControlsData", () => {
     });
   });
 
+  it("reconstructs a target-node control from the serialized blob", () => {
+    const controls = buildControlsData(
+      JSON.stringify([
+        {
+          id: "ctrl-1",
+          type: "target-node",
+          linkId: 7,
+          targetId: 12,
+        },
+      ]),
+    );
+
+    expect(controls[0]).toEqual({
+      id: "ctrl-1",
+      type: "target-node",
+      linkId: 7,
+      targetId: 12,
+    });
+  });
+
   it("returns empty controls for null input (fresh project)", () => {
     expect(buildControlsData(null)).toEqual([]);
   });
