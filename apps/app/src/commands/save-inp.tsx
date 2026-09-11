@@ -35,6 +35,7 @@ export const useSaveInp = () => {
   const userTracking = useUserTracking();
   const map = useContext(MapContext);
   const isExportLabelsOn = useFeatureFlag("FLAG_EXPORT_LABELS");
+  const isScriptingOn = useFeatureFlag("FLAG_REMOTE_SETPOINT_PRV");
 
   const saveInp = useAtomCallback(
     useCallback(
@@ -71,6 +72,7 @@ export const useSaveInp = () => {
             simulationSettings,
             units: projectSettings.units,
             headlossFormula: projectSettings.headlossFormula,
+            includeScript: isScriptingOn,
           };
 
           const suggestedName = fileInfo

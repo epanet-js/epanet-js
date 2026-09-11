@@ -79,6 +79,7 @@ export const useRunSimulation = () => {
             includeQuality:
               simulationSettings.qualitySimulationType === "age" ||
               simulationSettings.qualitySimulationType === "chemical",
+            includeScript: enableLsx,
             simulationSettings,
             units: projectSettings.units,
             headlossFormula: projectSettings.headlossFormula,

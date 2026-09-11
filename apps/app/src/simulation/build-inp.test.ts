@@ -415,12 +415,13 @@ describe("build inp", () => {
     const inp = buildInp(hydraulicModel, {
       units: presets.LPS.units,
       simulationSettings: defaultSimulationSettings,
+      includeScript: true,
     });
 
     expect(inp).not.toContain("[SCRIPT]");
   });
 
-  it("adds the [SCRIPT] section when a target-node control is present", () => {
+  it("adds the [SCRIPT] section when a target-node control is present and includeScript is set", () => {
     const IDS = { NODE1: 1, NODE2: 2, VALVE1: 3 };
     const hydraulicModel = HydraulicModelBuilder.with()
       .aNode(IDS.NODE1)
@@ -437,6 +438,7 @@ describe("build inp", () => {
     const inp = buildInp(hydraulicModel, {
       units: presets.LPS.units,
       simulationSettings: defaultSimulationSettings,
+      includeScript: true,
     });
 
     expect(inp).toContain("[SCRIPT]");

@@ -390,6 +390,7 @@ type BuildOptions = {
   usedPatterns?: boolean;
   usedCurves?: boolean;
   includeQuality?: boolean;
+  includeScript?: boolean;
   projection?: Projection;
 };
 
@@ -440,6 +441,7 @@ type ResolvedBuildOptions = BuildOptions &
       | "usedPatterns"
       | "usedCurves"
       | "includeQuality"
+      | "includeScript"
     >
   >;
 
@@ -459,6 +461,7 @@ function* generateInp(
     usedPatterns: false,
     usedCurves: false,
     includeQuality: false,
+    includeScript: false,
     ...options,
   };
   const idMap = new EpanetIds({
@@ -740,7 +743,9 @@ function* generateInp(
   }
   yield* emitSection(state, ["[CONTROLS]"], controlRows(hydraulicModel, idMap));
   yield* emitSection(state, ["[RULES]"], ruleRows(hydraulicModel, idMap));
-  yield* emitSection(state, ["[SCRIPT]"], scriptRows(hydraulicModel, idMap));
+  if (opts.includeScript) {
+    yield* emitSection(state, ["[SCRIPT]"], scriptRows(hydraulicModel, idMap));
+  }
   yield* emitSection(state, ["[END]"], [], { alwaysWrite: true });
 }
 
@@ -1463,15 +1468,14 @@ function* scriptRows(
 
   for (const control of hydraulicModel.controls) {
     if (control.type !== "target-node") continue;
-    const linkId = resolveLinkId(hydraulicModel, idMap, control.linkId);
-    const setting = (hydraulicModel.assets.get(Number(linkId)) as Valve)
-      .setting;
+    const valve = hydraulicModel.assets.get(control.linkId) as Valve;
+    if (!valve) continue;
 
-    builder.withRemoteSetpointPrv(
-      control.linkId.toString(),
-      control.targetId.toString(),
-      setting ?? 0,
-    );
+    const linkId = resolveLinkId(hydraulicModel, idMap, control.linkId);
+    const targetId = resolveNodeId(hydraulicModel, idMap, control.targetId);
+    const setting = valve.setting ?? 0;
+
+    builder.withRemoteSetpointPrv(linkId, targetId, setting);
   }
 
   const script = builder.build();
