@@ -50,6 +50,18 @@ beforeEach(() => {
 });
 
 describe("OpenDataTablesDialog", () => {
+  it("starts with nothing ticked", () => {
+    const store = aStoreWithSelection([]);
+    store.set(panelsAtom, []);
+
+    renderPicker(store);
+
+    for (const option of screen.getAllByRole("option")) {
+      expect(option).toHaveAttribute("aria-selected", "false");
+    }
+    expect(openButton()).toBeDisabled();
+  });
+
   it("disables Open until something is checked", async () => {
     const store = anEmptyModelStore();
     store.set(panelsAtom, []);
@@ -77,26 +89,13 @@ describe("OpenDataTablesDialog", () => {
     ]);
   });
 
-  it("pre-selects nothing once a data table is open", () => {
-    const store = aStore();
-    store.set(panelsAtom, [
-      createAssetTablePanel("pipe", { id: "pipe", closable: false }),
-    ]);
-
-    renderPicker(store);
-
-    expect(screen.getByRole("option", { name: /Pipes/ })).toHaveAttribute(
-      "aria-selected",
-      "false",
-    );
-  });
-
   it("lets a ticked table be unticked", async () => {
     const store = aStore();
     store.set(panelsAtom, []);
 
     renderPicker(store);
     const junctions = () => screen.getByRole("option", { name: /Junctions/ });
+    await userEvent.click(junctions());
     expect(junctions()).toHaveAttribute("aria-selected", "true");
     await userEvent.click(junctions());
 
@@ -114,37 +113,9 @@ describe("OpenDataTablesDialog", () => {
 
     expect(screen.getByRole("option", { name: /Junctions/ })).toHaveAttribute(
       "aria-selected",
-      "false",
-    );
-    expect(screen.getByRole("option", { name: /Pipes/ })).toHaveAttribute(
-      "aria-selected",
-      "true",
-    );
-  });
-
-  it("pre-selects every type the model has onto an empty dock", () => {
-    const store = aStoreWithSelection([]);
-    store.set(panelsAtom, []);
-
-    renderPicker(store);
-
-    expect(screen.getByRole("option", { name: /Junctions/ })).toHaveAttribute(
-      "aria-selected",
       "true",
     );
     expect(screen.getByRole("option", { name: /Pipes/ })).toHaveAttribute(
-      "aria-selected",
-      "true",
-    );
-  });
-
-  it("leaves a type the model has none of unticked", () => {
-    const store = aStoreWithSelection([]);
-    store.set(panelsAtom, []);
-
-    renderPicker(store);
-
-    expect(screen.getByRole("option", { name: /Valves/ })).toHaveAttribute(
       "aria-selected",
       "false",
     );
@@ -197,6 +168,7 @@ describe("OpenDataTablesDialog", () => {
     store.set(panelsAtom, []);
 
     renderPicker(store);
+    await userEvent.click(screen.getByRole("option", { name: /Junctions/ }));
     await userEvent.click(openButton());
 
     expect(onClose).toHaveBeenCalled();
@@ -232,7 +204,7 @@ describe("OpenDataTablesDialog", () => {
 
     renderPicker(store);
     await userEvent.click(scopeCheckbox());
-    await userEvent.click(screen.getByRole("option", { name: /Pipes/ }));
+    await userEvent.click(screen.getByRole("option", { name: /Junctions/ }));
     await userEvent.click(openButton());
 
     expect(store.get(panelsAtom)).toMatchObject([

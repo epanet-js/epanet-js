@@ -1,5 +1,6 @@
 import type { AssetType } from "@epanet-js/hydraulic-model";
 import { tableHandlesAtom } from "./table-handles";
+import { panelTrackingName } from "src/panels/panel";
 import type { PanelTemplate } from "src/panels/panel-template";
 import { AssetDataTable } from "./asset-data-table";
 import { CustomerPointDataTable } from "./customer-point-data-table";
@@ -43,10 +44,9 @@ export const assetTablePanel: PanelTemplate<"asset-table"> = {
     ),
   onClose: ({ userTracking }, panel) => {
     userTracking.capture({
-      name: "dataTables.panelClosed",
+      name: "dataTables.closed",
       source: "tab",
-      panelType: panel.type,
-      assetType: panel.assetType,
+      panelType: panelTrackingName(panel),
     });
   },
 };
@@ -71,9 +71,9 @@ export const customerPointTablePanel: PanelTemplate<"customer-point-table"> = {
     ),
   onClose: ({ userTracking }, panel) => {
     userTracking.capture({
-      name: "dataTables.panelClosed",
+      name: "dataTables.closed",
       source: "tab",
-      panelType: panel.type,
+      panelType: panelTrackingName(panel),
     });
   },
 };

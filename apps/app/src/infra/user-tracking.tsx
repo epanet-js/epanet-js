@@ -1686,14 +1686,12 @@ export type UserEvent =
       name: "dataTables.opened";
       source: string;
       scope?: string;
-      opened?: number;
-      requested?: number;
+      tables?: string[];
     }
   | {
-      name: "dataTables.panelClosed";
+      name: "dataTables.closed";
       source: string;
       panelType: string;
-      assetType?: string;
     }
   | { name: "bottomPanel.tabSwitched"; panelType: string }
   | {

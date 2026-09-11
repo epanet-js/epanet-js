@@ -14,7 +14,6 @@ import {
   useOpenDataTables,
 } from "src/commands/open-data-tables";
 import { OPENABLE_ASSET_TYPES } from "src/panels/data-tables/create-panel";
-import { panelsAtom } from "src/state/panels";
 import { selectionAtom } from "src/state/selection";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { USelection } from "src/selection";
@@ -33,7 +32,6 @@ const assetTypeLabelKeys: Record<AssetType, string> = {
 export const OpenDataTablesDialog = ({ onClose }: { onClose: () => void }) => {
   const translate = useTranslate();
   const openDataTables = useOpenDataTables();
-  const panels = useAtomValue(panelsAtom);
   const selection = useAtomValue(selectionAtom);
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const totalCounts = useMemo(() => {
@@ -45,18 +43,7 @@ export const OpenDataTablesDialog = ({ onClose }: { onClose: () => void }) => {
     return counts;
   }, [hydraulicModel]);
 
-  const [checked, setChecked] = useState<ReadonlySet<DataTableType>>(() =>
-    panels.some(
-      (panel) =>
-        panel.type === "asset-table" || panel.type === "customer-point-table",
-    )
-      ? new Set<DataTableType>()
-      : new Set(
-          [...totalCounts]
-            .filter(([, count]) => count > 0)
-            .map(([tableType]) => tableType),
-        ),
-  );
+  const [checked, setChecked] = useState<ReadonlySet<DataTableType>>(new Set());
   const [selectedOnly, setSelectedOnly] = useState(false);
 
   const choices = useMemo<Choice[]>(

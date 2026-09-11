@@ -63,8 +63,7 @@ export const useOpenDataTables = () => {
         name: "dataTables.opened",
         source: "picker",
         scope,
-        opened: created.length,
-        requested: tableTypes.length,
+        tables: [...tableTypes],
       });
     },
     [userTracking, selection, setPanels, setSplits, activatePanel],

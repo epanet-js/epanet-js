@@ -15,13 +15,12 @@ export const useShowDataTables = () => {
 
   return useCallback(
     ({ source }: { source: "toolbar" | "shortcut" }) => {
-      userTracking.capture({ name: "dataTables.opened", source });
-
       if (partialDataTables) {
         setDialogState({ type: "openDataTables" });
         return;
       }
 
+      userTracking.capture({ name: "dataTables.opened", source });
       setSplits((s) => ({ ...s, bottomOpen: true }));
       activatePanel("junction");
     },
