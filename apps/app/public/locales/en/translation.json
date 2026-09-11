@@ -770,14 +770,13 @@
   "trial.expired": "Trial expired",
   "trial.activated": "Your trial is now active!",
   "trial.activating": "Activating trial",
-  "trial.activateFree": "Activate free trial",
   "trial.startPlan": "Start {{1}} trial",
   "trial.emailNotEligible": "Free trial not available for this email",
   "trial.emailNotEligibleDetail": "Free trials are only available for organisation email addresses. Contact support and we will help you find the plan that fits you.",
-  "trial.tryWithDemo": "Try with a demo network",
   "paywall": {
     "tooltip": "Paid feature",
     "explorePlans": "Explore plans",
+    "choosePlan": "Choose your plan",
     "or": "or",
     "nonCommercial": {
       "title": "Non-commercial use",
@@ -1601,7 +1600,6 @@
       "description2": "Create alternative versions of your network and compare results against your baseline.",
       "trial": "Scenarios are a paid feature. Activate your free trial to get full access for 14 days—no credit card required.",
       "plans": "Scenarios are available on paid plans.",
-      "demo": "Try scenarios for free with a demo network, or explore our paid plans.",
       "captions": {
         "1": "Ask “what-if” questions with scenarios",
         "2": "Modify asset parameters",

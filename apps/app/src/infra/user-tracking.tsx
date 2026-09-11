@@ -1808,7 +1808,6 @@ export type UserEvent =
     }
   | { name: "paywall.clickedChoosePlan"; feature: PaywallFeature }
   | { name: "paywall.clickedPersonal"; feature: PaywallFeature }
-  | { name: "paywall.clickedTryDemo"; feature: PaywallFeature }
   | { name: "paywall.clickedExplorePlans"; feature: PaywallFeature }
   | { name: "paywall.dismissed"; feature: PaywallFeature }
   | { name: "priorityAccess.seen"; featureName: string }
