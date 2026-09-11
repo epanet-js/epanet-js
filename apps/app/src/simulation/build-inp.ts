@@ -64,6 +64,7 @@ const MISSING_VALUE = "MISSING";
 const CURVE_TANK_DIAMETER = 1;
 
 import type { EpanetUnitSystem } from "@epanet-js/project-settings";
+import { LuaScriptBuilder } from "./epanet/lua-scripting";
 export type { EpanetUnitSystem };
 
 export const defaultAccuracy = 0.001;
@@ -739,6 +740,7 @@ function* generateInp(
   }
   yield* emitSection(state, ["[CONTROLS]"], controlRows(hydraulicModel, idMap));
   yield* emitSection(state, ["[RULES]"], ruleRows(hydraulicModel, idMap));
+  yield* emitSection(state, ["[SCRIPT]"], scriptRows(hydraulicModel, idMap));
   yield* emitSection(state, ["[END]"], [], { alwaysWrite: true });
 }
 
@@ -1450,6 +1452,32 @@ function* levelSettingControlRows(
 
     yield `LINK ${linkId} ${onSettingText} IF NODE ${tankId} BELOW ${control.on.level}`;
     yield `LINK ${linkId} CLOSED IF NODE ${tankId} ABOVE ${control.off.level}`;
+  }
+}
+
+function* scriptRows(
+  hydraulicModel: HydraulicModel,
+  idMap: EpanetIds,
+): Generator<string> {
+  const builder = LuaScriptBuilder();
+
+  for (const control of hydraulicModel.controls) {
+    if (control.type !== "target-node") continue;
+    const linkId = resolveLinkId(hydraulicModel, idMap, control.linkId);
+    const setting = (hydraulicModel.assets.get(Number(linkId)) as Valve)
+      .setting;
+
+    builder.withRemoteSetpointPrv(
+      control.linkId.toString(),
+      control.targetId.toString(),
+      setting ?? 0,
+    );
+  }
+
+  const script = builder.build();
+
+  for (const line of script) {
+    yield line;
   }
 }
 

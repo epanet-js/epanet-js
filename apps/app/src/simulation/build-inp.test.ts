@@ -400,6 +400,49 @@ describe("build inp", () => {
     expect(inp).toContain("5\tClosed");
   });
 
+  it("omits the [SCRIPT] section when no control requires a script", () => {
+    const IDS = { NODE1: 1, NODE2: 2, VALVE1: 3 };
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aNode(IDS.NODE1)
+      .aNode(IDS.NODE2)
+      .aValve(IDS.VALVE1, {
+        startNodeId: IDS.NODE1,
+        endNodeId: IDS.NODE2,
+        kind: "prv",
+      })
+      .build();
+
+    const inp = buildInp(hydraulicModel, {
+      units: presets.LPS.units,
+      simulationSettings: defaultSimulationSettings,
+    });
+
+    expect(inp).not.toContain("[SCRIPT]");
+  });
+
+  it("adds the [SCRIPT] section when a target-node control is present", () => {
+    const IDS = { NODE1: 1, NODE2: 2, VALVE1: 3 };
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aNode(IDS.NODE1)
+      .aNode(IDS.NODE2)
+      .aValve(IDS.VALVE1, {
+        startNodeId: IDS.NODE1,
+        endNodeId: IDS.NODE2,
+        kind: "prv",
+        setting: 30,
+      })
+      .aTargetNodeControl({ linkId: IDS.VALVE1, targetId: IDS.NODE2 })
+      .build();
+
+    const inp = buildInp(hydraulicModel, {
+      units: presets.LPS.units,
+      simulationSettings: defaultSimulationSettings,
+    });
+
+    expect(inp).toContain("[SCRIPT]");
+    expect(inp).toContain("function on_hydraulic_step()");
+  });
+
   it("adds pumps with a curve", () => {
     const IDS = { NODE1: 1, NODE2: 2, NODE3: 3, PUMP1: 4 };
     const hydraulicModel = HydraulicModelBuilder.with()
