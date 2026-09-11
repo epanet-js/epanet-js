@@ -34,6 +34,7 @@ import {
 } from "src/lib/network-review";
 import { useReviewChecks } from "src/hooks/use-review-checks";
 import { errorName, handleError } from "src/infra/errors";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 export const runSimulationShortcut = "shift+enter";
 
 // Small models settle well inside this, so the dialog never flashes for them.
@@ -48,6 +49,7 @@ export const useRunSimulation = () => {
   const showNetworkReview = useShowNetworkReview();
   const { ensureFresh } = useReviewChecks();
   const isCheckingRef = useRef(false);
+  const enableLsx = useFeatureFlag("FLAG_REMOTE_SETPOINT_PRV");
 
   const runSimulation = useAtomCallback(
     useCallback(
@@ -115,7 +117,7 @@ export const useRunSimulation = () => {
               inp,
               appId,
               reportProgress,
-              { runQuality },
+              { runQuality, enableLsx },
               scenarioKey,
               runId,
             );
@@ -330,6 +332,7 @@ export const useRunSimulation = () => {
       [
         setSimulationState,
         setDialogState,
+        enableLsx,
         userTracking,
         showNetworkReview,
         ensureFresh,

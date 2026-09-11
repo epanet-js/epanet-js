@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { captureError } from "src/infra/error-tracking";
 import { canUseWorker } from "src/infra/worker";
+import { useFeatureFlag } from "./use-feature-flags";
 
-const preloadSimulationWorker = async (): Promise<void> => {
+const preloadSimulationWorker = async (enableLsx: boolean): Promise<void> => {
   const { lib } = await import("src/lib/worker");
-  await lib.warmupSimulationEngine();
+  await lib.warmupSimulationEngine(enableLsx);
 };
 
 const preloadTraceWorker = async (): Promise<void> => {
@@ -64,6 +65,7 @@ const preloadSpatialQueryWorker = async (): Promise<void> => {
 export const useWorkersBootstrap = (areFeatureFlagsReady: boolean): boolean => {
   const [areWorkersReady, setAreWorkersReady] = useState(false);
   const workersInitializedRef = useRef(false);
+  const enableLsx = useFeatureFlag("FLAG_REMOTE_SETPOINT_PRV");
 
   useEffect(() => {
     if (workersInitializedRef.current) return;
@@ -73,7 +75,7 @@ export const useWorkersBootstrap = (areFeatureFlagsReady: boolean): boolean => {
     const bootstrap = async () => {
       try {
         await Promise.all([
-          preloadSimulationWorker(),
+          preloadSimulationWorker(enableLsx),
           preloadTraceWorker(),
           preloadConnectivityTraceWorker(),
           preloadOrphanAssetsWorker(),
