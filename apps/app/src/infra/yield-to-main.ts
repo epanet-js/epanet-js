@@ -13,7 +13,7 @@ export const yieldToMain = (): Promise<void> => {
   return new Promise((resolve) => setTimeout(resolve, 0));
 };
 
-const MAIN_THREAD_SLICE_MS = 50;
+const MAIN_THREAD_SLICE_MS = 16;
 
 export const createTimeSlicer = (
   sliceMs: number = MAIN_THREAD_SLICE_MS,

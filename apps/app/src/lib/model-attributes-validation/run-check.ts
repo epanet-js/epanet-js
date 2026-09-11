@@ -1,6 +1,7 @@
 import { Asset, AssetId } from "@epanet-js/hydraulic-model";
 import { HydraulicModel } from "src/hydraulic-model";
 import { createTimeSlicer } from "src/infra/yield-to-main";
+import { throwIfAborted } from "src/infra/abort";
 import {
   EntityType,
   Rule,
@@ -63,12 +64,6 @@ const severityRank: Record<Severity, number> = { error: 0, warning: 1 };
 const rankOf = (rulesById: Map<string, Rule>, ruleId: string): number => {
   const rule = rulesById.get(ruleId);
   return rule ? severityRank[rule.severity] : severityRank.warning;
-};
-
-const throwIfAborted = (signal?: AbortSignal) => {
-  if (signal?.aborted) {
-    throw new DOMException("Operation cancelled", "AbortError");
-  }
 };
 
 export const validateModelAttributes = async (
