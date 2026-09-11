@@ -428,6 +428,13 @@ export const buildInpToFile = withDebugInstrumentation(
   { name: "BUILD_INP_TO_FILE", maxDurationMs: 1000 },
 );
 
+export const willRequireLsx = (hydraulicModel: HydraulicModel): boolean => {
+  for (const control of hydraulicModel.controls) {
+    if (control.type === "target-node") return true;
+  }
+  return false;
+};
+
 type ResolvedBuildOptions = BuildOptions &
   Required<
     Pick<
