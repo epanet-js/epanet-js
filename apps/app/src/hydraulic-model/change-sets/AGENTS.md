@@ -14,7 +14,7 @@ change set**, and the mapping happens in the DB worker: `applyChangeSetToDb` pos
 `changeSet.bytes`, and `@epanet-js/ejsdb`'s `src/change-set/` turns records into
 rows without consulting the model, which is what makes field-bag completeness a
 property every edit exercises. Nothing here maps rows — this directory's job ends
-at the change set. See the flag's entry in `private/feature-flags.md`.
+at the change set.
 
 ## The shape of an edit
 
