@@ -243,13 +243,15 @@ export const FeaturePaywall = ({
                 </p>
               </div>
               <div className="flex flex-col gap-3">
-                <Button
+                <CheckoutButton
+                  plan="pro"
+                  paymentType="yearly"
                   variant="primary"
-                  size="full-width"
-                  onClick={handleChooseYourPlan}
+                  source="paywall"
+                  feature={config.feature}
                 >
-                  {translate("paywall.choosePlan")}
-                </Button>
+                  {translate("upgradeTo", "Pro")}
+                </CheckoutButton>
               </div>
             </>
           )}
