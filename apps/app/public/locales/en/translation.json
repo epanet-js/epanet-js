@@ -855,6 +855,7 @@
   "year": "year",
   "yearShort": "yr",
   "upgradeTo": "Upgrade to {{1}}",
+  "requestQuote": "Request quote",
   "comingSoon": "Coming soon",
   "individualNamedLicense": "Individual named license",
   "floatingSharedLicenses": "Floating shared licenses",

@@ -437,11 +437,7 @@ const ProPlan = ({
   const price = prices.pro[paymentType];
   const { user, isSignedIn } = useAuth();
   const isActivateTrialOn = useFeatureFlag("FLAG_ACTIVATE_TRIAL");
-  const canStartTrial =
-    isActivateTrialOn &&
-    paymentType === "yearly" &&
-    !!isSignedIn &&
-    !user.hasUsedTrial;
+  const canStartTrial = isActivateTrialOn && !!isSignedIn && !user.hasUsedTrial;
 
   return (
     <div className="relative bg-base border border-purple-100 rounded-lg shadow-md shadow-purple-300 overflow-hidden flex flex-col justify-between">
@@ -660,10 +656,10 @@ const TeamsPlan = ({
       <div className="p-4 w-full">
         <Button
           size="full-width"
-          variant="primary"
+          className="default-pointer bg-panel text-default"
           onClick={goToTeamsRequestForm}
         >
-          {translate("upgradeTo", "Teams")}
+          {translate("requestQuote")}
         </Button>
       </div>
     </div>
