@@ -113,7 +113,7 @@ describe("trial or upgrade button", () => {
     expect(open).not.toHaveBeenCalled();
   });
 
-  it("offers the plan cards to a cancelled trial, which has nothing to pay", async () => {
+  it("offers the plan cards to a cancelled subscription", async () => {
     const open = stubOpen();
     const onUpgrade = vi.fn();
     renderButton({
@@ -121,9 +121,9 @@ describe("trial or upgrade button", () => {
       onUpgrade,
     });
 
-    await userEvent.click(
-      screen.getByRole("button", { name: "Trial expired" }),
-    );
+    expect(screen.queryByText("Trial expired")).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: "Upgrade" }));
 
     expect(onUpgrade).toHaveBeenCalled();
     expect(open).not.toHaveBeenCalled();

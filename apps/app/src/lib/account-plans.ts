@@ -58,7 +58,11 @@ export const resolveTrialCta = (user: {
     };
   }
 
-  if (user.subscriptionStatus === "active") return { kind: "none" };
+  if (
+    user.subscriptionStatus === "active" ||
+    user.subscriptionStatus === "canceled"
+  )
+    return { kind: "none" };
 
   return {
     kind: "ended",

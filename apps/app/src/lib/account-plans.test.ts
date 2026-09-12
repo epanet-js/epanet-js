@@ -149,11 +149,18 @@ describe("resolveTrialCta", () => {
     });
   });
 
-  it("says the trial ended without offering the portal once cancelled", () => {
+  it("says nothing once the subscription is cancelled", () => {
     expect(resolve({ subscriptionStatus: "canceled" })).toEqual({
-      kind: "ended",
-      payable: false,
+      kind: "none",
     });
+  });
+
+  it("says nothing to a cancelled subscription whose trial dates have passed", () => {
+    const yesterday = new Date(now.getTime() - MS_PER_DAY).toISOString();
+
+    expect(
+      resolve({ subscriptionStatus: "canceled", trialEndsAt: yesterday }),
+    ).toEqual({ kind: "none" });
   });
 
   it("says the trial ended for a trial predating the stripe sync", () => {
