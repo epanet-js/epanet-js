@@ -247,6 +247,30 @@ export const FeaturePaywall = ({
                 </Button>
               </div>
             </>
+          ) : isActivateTrialOn ? (
+            <>
+              <div className="space-y-3 pb-6">
+                {config.descriptionKeys.map((key) => (
+                  <p key={key} className="text-size-base text-default">
+                    {translate(key)}
+                  </p>
+                ))}
+                <p className="text-size-base text-default">
+                  {translate(config.actionDescriptionKeys.plans)}
+                </p>
+              </div>
+              <div className="flex flex-col gap-3">
+                <CheckoutButton
+                  plan="pro"
+                  paymentType="yearly"
+                  variant="primary"
+                  source="paywall"
+                  feature={config.feature}
+                >
+                  {translate("upgradeTo", "Pro")}
+                </CheckoutButton>
+              </div>
+            </>
           ) : (
             <>
               <div className="space-y-3 pb-6">
@@ -295,15 +319,13 @@ export const FeaturePaywall = ({
                     </Button>
                   </>
                 ) : (
-                  <CheckoutButton
-                    plan="pro"
-                    paymentType="yearly"
+                  <Button
                     variant="primary"
-                    source="paywall"
-                    feature={config.feature}
+                    size="full-width"
+                    onClick={handleExplorePlans}
                   >
-                    {translate("upgradeTo", "Pro")}
-                  </CheckoutButton>
+                    {translate("paywall.explorePlans")}
+                  </Button>
                 )}
               </div>
             </>
