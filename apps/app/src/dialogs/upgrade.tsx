@@ -437,7 +437,11 @@ const ProPlan = ({
   const price = prices.pro[paymentType];
   const { user, isSignedIn } = useAuth();
   const isActivateTrialOn = useFeatureFlag("FLAG_ACTIVATE_TRIAL");
-  const canStartTrial = isActivateTrialOn && !!isSignedIn && !user.hasUsedTrial;
+  const canStartTrial =
+    isActivateTrialOn &&
+    paymentType === "yearly" &&
+    !!isSignedIn &&
+    !user.hasUsedTrial;
 
   return (
     <div className="relative bg-base border border-purple-100 rounded-lg shadow-md shadow-purple-300 overflow-hidden flex flex-col justify-between">
