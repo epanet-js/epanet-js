@@ -198,7 +198,7 @@ export const FeaturePaywall = ({
                     {isTrialLoading ? (
                       <RefreshIcon className="animate-spin" />
                     ) : (
-                      translate("trial.startPlan", "Pro")
+                      translate("trial.startFree")
                     )}
                   </Button>
                 ) : (
@@ -209,7 +209,7 @@ export const FeaturePaywall = ({
                     )}
                   >
                     <Button variant="primary" size="full-width">
-                      {translate("trial.startPlan", "Pro")}
+                      {translate("trial.startFree")}
                     </Button>
                   </SignInButton>
                 )}

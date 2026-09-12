@@ -774,7 +774,7 @@
   "trial.expired": "Trial expired",
   "trial.activated": "Your trial is now active!",
   "trial.activating": "Activating trial",
-  "trial.startPlan": "Start {{1}} trial",
+  "trial.startFree": "Start free trial",
   "trial.emailNotEligible": "Free trial not available for this email",
   "trial.emailNotEligibleDetail": "Trials cannot be activated using free email providers. Please register with your work email to start your trial.",
   "paywall": {

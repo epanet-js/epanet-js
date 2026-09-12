@@ -565,7 +565,7 @@ const StartTrialButton = ({
       {isLoading ? (
         <RefreshIcon className="animate-spin" />
       ) : (
-        translate("trial.startPlan", "Pro")
+        translate("trial.startFree")
       )}
     </Button>
   );
