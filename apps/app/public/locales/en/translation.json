@@ -775,7 +775,7 @@
   "trial.activated": "Your trial is now active!",
   "trial.activating": "Activating trial",
   "trial.startFree": "Start free trial",
-  "trial.emailNotEligible": "Free trial not available for this email",
+  "trial.emailNotEligible": "Work email required for trials",
   "trial.emailNotEligibleDetail": "Trials cannot be activated using free email providers. Please register with your work email to start your trial.",
   "paywall": {
     "tooltip": "Paid feature",
