@@ -19,6 +19,11 @@ export const isTrialActive = (user: {
   return new Date(user.trialEndsAt) > new Date();
 };
 
+export const isTrialAvailable = (user: {
+  plan: Plan;
+  hasUsedTrial: boolean;
+}): boolean => !user.hasUsedTrial && user.plan === "free";
+
 const purchasablePlans: Plan[] = ["pro", "personal"];
 
 export const hasBillingAccount = (user: {

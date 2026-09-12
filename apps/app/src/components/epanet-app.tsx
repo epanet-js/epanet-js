@@ -5,6 +5,7 @@ import { MapCanvas } from "src/map/map-canvas";
 import { MenuBarPlay } from "src/components/menu-bar";
 import Drop from "src/components/drop";
 import { Dialogs } from "src/dialogs";
+import { ActivateTrialAfterSignIn } from "src/dialogs/activating-trial";
 import { CSS } from "@dnd-kit/utilities";
 import React, {
   Suspense,
@@ -221,6 +222,7 @@ export function EpanetApp() {
         </div>
         <Drop />
         <Dialogs />
+        <ActivateTrialAfterSignIn />
         <CommandBar />
         <Suspense fallback={null}>
           <CommandShortcuts />

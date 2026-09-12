@@ -8,6 +8,8 @@ import { ErrorIcon, SuccessIcon, WarningIcon } from "src/icons";
 
 const activateTrialLoadingAtom = atom<boolean>(false);
 
+export const trialAfterSignInAtom = atom<boolean>(false);
+
 export const useActivateTrial = () => {
   const translate = useTranslate();
   const [isLoading, setLoading] = useAtom(activateTrialLoadingAtom);

@@ -4,7 +4,10 @@ import { BaseDialog } from "src/components/dialog";
 import { Button } from "src/components/elements";
 import { CheckoutButton } from "src/components/checkout-button";
 import { VideoPlayer } from "src/components/video-player";
-import { useActivateTrial } from "src/hooks/use-activate-trial";
+import {
+  trialAfterSignInAtom,
+  useActivateTrial,
+} from "src/hooks/use-activate-trial";
 import { dialogAtom, type PaywallFeature } from "src/state/dialog";
 import { ChevronLeftIcon, RefreshIcon } from "src/icons";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -13,6 +16,7 @@ import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useAuth } from "src/hooks/use-auth";
 import { SignInButton } from "src/components/auth/sign-in-button";
 import { buildAfterSignupUrl } from "src/hooks/use-early-access";
+import { isTrialAvailable } from "src/lib/account-plans";
 
 export type FeaturePaywallConfig = {
   feature: PaywallFeature;
@@ -38,12 +42,12 @@ export const FeaturePaywall = ({
   onClose: () => void;
 }) => {
   const setDialog = useSetAtom(dialogAtom);
+  const setTrialAfterSignIn = useSetAtom(trialAfterSignInAtom);
   const userTracking = useUserTracking();
   const translate = useTranslate();
   const { user, isSignedIn } = useAuth();
   const isActivateTrialOn = useFeatureFlag("FLAG_ACTIVATE_TRIAL");
-  const showTrialButton =
-    isActivateTrialOn && !user.hasUsedTrial && user.plan === "free";
+  const showTrialButton = isActivateTrialOn && isTrialAvailable(user);
   const [showPlans, setShowPlans] = useState(false);
   const [isDemoLoading, setIsDemoLoading] = useState(false);
 
@@ -99,6 +103,11 @@ export const FeaturePaywall = ({
     if (!activated) return;
 
     config.onTrialActivated();
+  };
+
+  const handleSignInToStartTrial = () => {
+    setTrialAfterSignIn(true);
+    _onClose();
   };
 
   const handleTryDemo = async () => {
@@ -225,7 +234,11 @@ export const FeaturePaywall = ({
                       "activatingTrial",
                     )}
                   >
-                    <Button variant="primary" size="full-width">
+                    <Button
+                      variant="primary"
+                      size="full-width"
+                      onClick={handleSignInToStartTrial}
+                    >
                       {translate("trial.startFree")}
                     </Button>
                   </SignInButton>
