@@ -24,7 +24,9 @@ export type FeaturePaywallConfig = {
   actionDescriptionKeys: {
     trial: string;
     plans: string;
+    demo?: string;
   };
+  onTryDemo?: () => Promise<void>;
   onTrialActivated: () => void;
 };
 
@@ -43,6 +45,7 @@ export const FeaturePaywall = ({
   const showTrialButton =
     isActivateTrialOn && !user.hasUsedTrial && user.plan === "free";
   const [showPlans, setShowPlans] = useState(false);
+  const [isDemoLoading, setIsDemoLoading] = useState(false);
 
   const { activateTrial, isLoading: isTrialLoading } = useActivateTrial();
 
@@ -96,6 +99,20 @@ export const FeaturePaywall = ({
     if (!activated) return;
 
     config.onTrialActivated();
+  };
+
+  const handleTryDemo = async () => {
+    if (!config.onTryDemo) return;
+    userTracking.capture({
+      name: "paywall.clickedTryDemo",
+      feature: config.feature,
+    });
+    setIsDemoLoading(true);
+    try {
+      await config.onTryDemo();
+    } finally {
+      setIsDemoLoading(false);
+    }
   };
 
   return (
@@ -239,19 +256,55 @@ export const FeaturePaywall = ({
                   </p>
                 ))}
                 <p className="text-size-base text-default">
-                  {translate(config.actionDescriptionKeys.plans)}
+                  {translate(
+                    config.onTryDemo && config.actionDescriptionKeys.demo
+                      ? config.actionDescriptionKeys.demo
+                      : config.actionDescriptionKeys.plans,
+                  )}
                 </p>
               </div>
               <div className="flex flex-col gap-3">
-                <CheckoutButton
-                  plan="pro"
-                  paymentType="yearly"
-                  variant="primary"
-                  source="paywall"
-                  feature={config.feature}
-                >
-                  {translate("upgradeTo", "Pro")}
-                </CheckoutButton>
+                {config.onTryDemo ? (
+                  <>
+                    <Button
+                      variant="default"
+                      size="full-width"
+                      onClick={() => void handleTryDemo()}
+                      disabled={isDemoLoading}
+                    >
+                      {isDemoLoading ? (
+                        <RefreshIcon className="animate-spin" />
+                      ) : (
+                        translate("trial.tryWithDemo")
+                      )}
+                    </Button>
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 border-t" />
+                      <span className="text-size-small text-subtle">
+                        {translate("paywall.or")}
+                      </span>
+                      <div className="flex-1 border-t" />
+                    </div>
+                    <Button
+                      variant="primary"
+                      size="full-width"
+                      onClick={handleExplorePlans}
+                      disabled={isDemoLoading}
+                    >
+                      {translate("paywall.explorePlans")}
+                    </Button>
+                  </>
+                ) : (
+                  <CheckoutButton
+                    plan="pro"
+                    paymentType="yearly"
+                    variant="primary"
+                    source="paywall"
+                    feature={config.feature}
+                  >
+                    {translate("upgradeTo", "Pro")}
+                  </CheckoutButton>
+                )}
               </div>
             </>
           )}

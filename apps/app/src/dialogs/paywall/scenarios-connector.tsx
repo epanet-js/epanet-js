@@ -3,6 +3,8 @@ import { useAtomValue } from "jotai";
 import { useAtomCallback } from "jotai/utils";
 import { FeaturePaywall, type FeaturePaywallConfig } from "./feature-paywall";
 import { useScenarioOperations } from "src/hooks/use-scenario-operations";
+import { useOpenProjectFile } from "src/commands/open-project";
+import { useUnsavedChangesCheck } from "src/commands/check-unsaved-changes";
 import { useRunSimulation } from "src/commands/run-simulation";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";
@@ -14,8 +16,10 @@ import {
 import { userSettingsAtom } from "src/state/user-settings";
 import { dialogAtom } from "src/state/dialog";
 import { useSetAtom } from "jotai";
-import { SuccessIcon } from "src/icons";
+import { SuccessIcon, DisconnectIcon } from "src/icons";
 import { notify } from "src/components/notifications";
+import { captureError } from "src/infra/error-tracking";
+import { DRUMCHAPEL } from "src/demo/demo-networks";
 
 const SCENARIOS_VIDEO_SRC =
   "https://stream.mux.com/RVxWPZgcfKowXmi00iovKx1sffG100gu21BpD2U6Mjv98.m3u8";
@@ -39,6 +43,8 @@ export const ScenariosPaywallConnector = ({
   const { createNewScenario } = useScenarioOperations();
   const isDemoNetwork = useAtomValue(isDemoNetworkAtom);
   const userSettings = useAtomValue(userSettingsAtom);
+  const openProjectFile = useOpenProjectFile();
+  const checkUnsavedChanges = useUnsavedChangesCheck();
   const runSimulation = useRunSimulation();
 
   const proceedWithCreation = useCallback(() => {
@@ -93,6 +99,33 @@ export const ScenariosPaywallConnector = ({
     ),
   );
 
+  const handleTryDemo = useCallback(async () => {
+    const response = await fetch(DRUMCHAPEL.url);
+    if (!response.ok) throw new Error("Failed to download demo network");
+
+    const name = DRUMCHAPEL.url.split("/").pop()!;
+    const file = new File([await response.blob()], name);
+
+    checkUnsavedChanges(async () => {
+      await openProjectFile(file, "scenariosPaywall", { isDemoNetwork: true });
+      runSimulationThenProceed();
+    });
+  }, [checkUnsavedChanges, openProjectFile, runSimulationThenProceed]);
+
+  const handleTryDemoWithErrorHandling = useCallback(async () => {
+    try {
+      await handleTryDemo();
+    } catch (error) {
+      captureError(error as Error);
+      notify({
+        variant: "error",
+        title: "Could not load demo network",
+        Icon: DisconnectIcon,
+        size: "md",
+      });
+    }
+  }, [handleTryDemo]);
+
   const config: FeaturePaywallConfig = {
     feature: "scenarios",
     videoSrc: SCENARIOS_VIDEO_SRC,
@@ -105,7 +138,9 @@ export const ScenariosPaywallConnector = ({
     actionDescriptionKeys: {
       trial: "scenarios.paywall.trial",
       plans: "scenarios.paywall.plans",
+      demo: "scenarios.paywall.demo",
     },
+    onTryDemo: handleTryDemoWithErrorHandling,
     onTrialActivated: runSimulationThenProceed,
   };
 
