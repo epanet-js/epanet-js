@@ -33,6 +33,8 @@ import {
   type ValveKind,
   type ChemicalSourceType,
   type CurveId,
+  buildTargetNodeControl,
+  setAssetControl,
 } from "@epanet-js/hydraulic-model";
 import {
   getAttribute,
@@ -83,6 +85,7 @@ import {
 } from "./asset-data-table-columns";
 import { useLabelMaxLength } from "src/hooks/use-label-max-length";
 import { useRoughnessInferrer } from "src/hooks/use-roughness-inferrer";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 interface AssetDataTableProps {
   id: string;
@@ -130,6 +133,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
   const zoomTo = useZoomTo();
   const deleteAssetsAction = useDeleteAssets();
   const userTracking = useUserTracking();
+  const isRemoteSetpointPrvOn = useFeatureFlag("FLAG_REMOTE_SETPOINT_PRV");
 
   const scopedIds = useMemo(
     () => (assetIds ? new Set(assetIds) : undefined),
@@ -238,6 +242,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
       customAttributesLock,
       labelMaxLength,
       inferRoughness,
+      isRemoteSetpointPrvOn,
     );
   }, [
     assetType,
@@ -260,6 +265,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
     customAttributes,
     labelMaxLength,
     inferRoughness,
+    isRemoteSetpointPrvOn,
   ]);
 
   const onChange = useCallback(
@@ -272,6 +278,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
       const moments: ModelMoment[] = [];
       const editedProperties = new Map<string, number>();
       const demandAssignments: JunctionDemandAssignment[] = [];
+      let controls = hydraulicModel.controls;
       const yieldIfSliceElapsed = createTimeSlicer();
       for (let i = 0; i < newRows.length; i++) {
         await yieldIfSliceElapsed();
@@ -400,6 +407,21 @@ export const AssetDataTable = memo(function AssetDataTableInner({
               ),
             );
           }
+
+          if (newRow.targetNode !== oldRow.targetNode) {
+            const targetId = newRow.targetNode as AssetId | null;
+            controls = setAssetControl(
+              controls,
+              assetId,
+              targetId === null
+                ? null
+                : buildTargetNodeControl(assetId, targetId),
+            );
+            editedProperties.set(
+              "targetNode",
+              (editedProperties.get("targetNode") ?? 0) + 1,
+            );
+          }
         }
 
         const sourceTypeIdx = changes.findIndex(
@@ -430,6 +452,10 @@ export const AssetDataTable = memo(function AssetDataTableInner({
             }),
           );
         }
+      }
+
+      if (controls !== hydraulicModel.controls) {
+        moments.push({ note: "Change controls", putControls: controls });
       }
 
       if (demandAssignments.length > 0) {

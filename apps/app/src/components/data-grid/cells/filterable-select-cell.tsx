@@ -230,8 +230,8 @@ export function filterableSelectColumn<
     header: string;
     size?: number;
     options: FilterableSelectOption<T>[];
-    placeholder?: string;
-    emptyOptionLabel?: string;
+    placeholder?: string | ((rowIndex: number) => string);
+    emptyOptionLabel?: string | ((rowIndex: number) => string);
     emptyValue?: T | null;
     minOptionsForSearch?: number;
     isReadOnly?: boolean | ((rowIndex: number) => boolean);
@@ -268,7 +268,10 @@ export function filterableSelectColumn<
     },
     meta: {
       autoSizeExtraWidth: 32,
-      placeholder: options.placeholder,
+      placeholder:
+        typeof options.placeholder === "string"
+          ? options.placeholder
+          : undefined,
       copyValue: (v: T | null) => {
         const match = findOption(options.options, v, options.allowNew);
         if (match) return match.label;
@@ -298,8 +301,16 @@ export function filterableSelectColumn<
               string | number | boolean
             >[]
           }
-          placeholder={options.placeholder ?? ""}
-          emptyOptionLabel={options.emptyOptionLabel}
+          placeholder={
+            typeof options.placeholder === "function"
+              ? options.placeholder(props.rowIndex)
+              : (options.placeholder ?? "")
+          }
+          emptyOptionLabel={
+            typeof options.emptyOptionLabel === "function"
+              ? options.emptyOptionLabel(props.rowIndex)
+              : options.emptyOptionLabel
+          }
           minOptionsForSearch={options.minOptionsForSearch}
           actionLabel={options.actionLabel}
           onActionClick={options.onActionClick}

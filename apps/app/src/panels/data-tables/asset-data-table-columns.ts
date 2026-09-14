@@ -10,7 +10,7 @@ import {
 import type { ReactNode } from "react";
 import type { CustomHeaderAction } from "src/components/data-grid/features";
 import { type CustomAttribute } from "@epanet-js/hydraulic-model";
-import { type Asset, type Pipe } from "@epanet-js/hydraulic-model";
+import { type Asset, type Pipe, type Valve } from "@epanet-js/hydraulic-model";
 import type { RoughnessInferrer } from "src/hydraulic-model/pipe-materials";
 import {
   type AssetType,
@@ -466,6 +466,7 @@ type BuildColumnsArgs = [
   customAttributesLock?: AttributesLock,
   labelMaxLength?: number,
   inferRoughness?: RoughnessInferrer,
+  isRemoteSetpointPrvOn?: boolean,
 ];
 
 type ExtraPipeColsFn = (
@@ -591,6 +592,7 @@ function _buildColumns(
   customAttributesLock?: AttributesLock,
   labelMaxLength?: number,
   inferRoughness?: RoughnessInferrer,
+  isRemoteSetpointPrvOn = false,
 ): GridColumn<AssetRow>[] {
   const ck = makeCk(type, accessorCtx);
   const energyGlobalPatternId = simulationSettings.energyGlobalPatternId;
@@ -615,6 +617,13 @@ function _buildColumns(
     return row && inferRoughness
       ? inferRoughness(row as unknown as Pipe)
       : null;
+  };
+
+  const endNodeLabelFor = (rowIndex: number): string => {
+    const valve = getRow?.(rowIndex) as unknown as Valve;
+    if (!valve) return translate("none");
+    const endNode = accessorCtx?.model.assets.get(valve.connections[1]);
+    return endNode?.label ?? translate("none");
   };
 
   const numericCol = (
@@ -1000,6 +1009,23 @@ function _buildColumns(
             return kind !== "gpv" && kind !== "pcv";
           },
         }),
+        ...(isRemoteSetpointPrvOn
+          ? [
+              filterableSelectColumn(ck("targetNode"), {
+                header: translate("targetNode"),
+                options: [...(accessorCtx?.model.assets.values() ?? [])]
+                  .filter((asset) => asset.isNode)
+                  .map((asset) => ({ value: asset.id, label: asset.label })),
+                placeholder: (rowIndex) =>
+                  getRow?.(rowIndex)?.kind === "prv"
+                    ? endNodeLabelFor(rowIndex)
+                    : translate("none"),
+                emptyOptionLabel: endNodeLabelFor,
+                emptyValue: null,
+                isReadOnly: (rowIndex) => getRow?.(rowIndex)?.kind !== "prv",
+              }),
+            ]
+          : []),
         filterableSelectColumn("initialStatus", {
           header: translate("initialStatus"),
           options: valveStatuses.map((s) => ({

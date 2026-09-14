@@ -7,6 +7,7 @@ import {
   type AssetId,
   tankVolumeCurveRange,
   getActiveCustomerPoints,
+  getLinkTargetNode,
 } from "@epanet-js/hydraulic-model";
 import {
   calculateAverageDemand,
@@ -42,7 +43,7 @@ const ASSET_COMPUTED_KEYS: Record<AssetType, Set<string>> = {
     "customerPointCount",
   ]),
   pump: new Set(["startNode", "endNode"]),
-  valve: new Set(["startNode", "endNode"]),
+  valve: new Set(["startNode", "endNode", "targetNode"]),
   reservoir: new Set<string>([]),
   tank: new Set(["minLevel", "maxLevel", "minVolume", "maxVolume"]),
 };
@@ -138,6 +139,11 @@ function computeAssetComputedField(
       }
       // No volume curve → the asset's own value.
       return tank ? (tank as unknown as Record<string, unknown>)[key] : null;
+    }
+    case "targetNode": {
+      const valve = model.assets.get(id) as Valve;
+      if (!valve || valve.kind !== "prv") return null;
+      return getLinkTargetNode(model.controls, id)?.targetId ?? null;
     }
     default: {
       const asset = model.assets.get(id);
