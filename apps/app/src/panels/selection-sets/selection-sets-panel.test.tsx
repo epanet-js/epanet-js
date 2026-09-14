@@ -200,36 +200,92 @@ describe("SelectionSetsPanel", () => {
     });
   });
 
-  describe("highlighting a selection set", () => {
+  describe("moving through the list", () => {
     const rowOf = (name: string) =>
       screen.getByText(name).closest("li") as HTMLElement;
 
-    it("highlights a set once the map selection contains all of it", async () => {
+    const focusList = (name: string) =>
+      act(() =>
+        (
+          screen.getByText(name).closest('[tabindex="0"]') as HTMLElement
+        ).focus(),
+      );
+
+    const aStoreWithASavedSet = async () => {
       const store = aStore();
       store.set(selectionAtom, USelection.fromAssetIds([1, 2]));
       renderPanel(store);
       await userEvent.click(saveButton());
       await nameIt("Downtown loop");
+      act(() => store.set(selectionAtom, USelection.fromAssetIds([3])));
+      zoomTo.mockClear();
+      return store;
+    };
 
-      act(() => store.set(selectionAtom, USelection.fromAssetIds([1])));
+    it("leaves no row highlighted after clicking one", async () => {
+      await aStoreWithASavedSet();
+
+      await userEvent.click(screen.getByText("Downtown loop"));
+
       expect(rowOf("Downtown loop")).not.toHaveClass("bg-accent-tint");
-
-      act(() => store.set(selectionAtom, USelection.fromAssetIds([1, 2, 3])));
-      expect(rowOf("Downtown loop")).toHaveClass("bg-accent-tint");
+      expect(rowOf("Downtown loop")).not.toHaveClass("bg-base-hover");
     });
 
-    it("highlights only the largest of the sets the selection contains", async () => {
+    it("highlights a row with the arrow keys without applying it", async () => {
+      const store = await aStoreWithASavedSet();
+      focusList("Downtown loop");
+
+      await userEvent.keyboard("{ArrowDown}{ArrowDown}");
+
+      expect(rowOf("Downtown loop")).toHaveClass("bg-base-hover");
+      expect(rowOf("Downtown loop")).not.toHaveClass("bg-accent-tint");
+      expect(USelection.getAssetIds(store.get(selectionAtom))).toEqual([3]);
+      expect(zoomTo).not.toHaveBeenCalled();
+    });
+
+    it("drops the highlight when the list loses focus", async () => {
+      await aStoreWithASavedSet();
+      focusList("Downtown loop");
+      await userEvent.keyboard("{ArrowDown}{ArrowDown}");
+
+      act(() => (document.activeElement as HTMLElement).blur());
+
+      expect(rowOf("Downtown loop")).not.toHaveClass("bg-base-hover");
+    });
+
+    it("drops the highlight on a section heading when the list loses focus", async () => {
+      await aStoreWithASavedSet();
+      focusList("Downtown loop");
+      await userEvent.keyboard("{ArrowDown}");
+      const heading = screen
+        .getByRole("button", { name: /^selections/i })
+        .closest("[data-section-type]") as HTMLElement;
+      expect(heading).toHaveClass("bg-base-hover");
+
+      act(() => (document.activeElement as HTMLElement).blur());
+
+      expect(heading).not.toHaveClass("bg-base-hover");
+    });
+
+    it("applies the highlighted selection set on enter", async () => {
+      const store = await aStoreWithASavedSet();
+      focusList("Downtown loop");
+
+      await userEvent.keyboard("{ArrowDown}{ArrowDown}{Enter}");
+
+      expect(USelection.getAssetIds(store.get(selectionAtom))).toEqual([1, 2]);
+    });
+
+    it("travels to the highlighted bookmark on enter", async () => {
       const store = aStore();
       renderPanel(store);
-      act(() => store.set(selectionAtom, USelection.fromAssetIds([1, 2])));
-      await userEvent.click(saveButton());
-      await nameIt("Small");
-      act(() => store.set(selectionAtom, USelection.fromAssetIds([1, 2, 3])));
-      await userEvent.click(saveButton());
-      await nameIt("Large");
+      await userEvent.click(addBookmarkButton());
+      await nameIt("Downtown");
+      focusList("Downtown");
 
-      expect(rowOf("Large")).toHaveClass("bg-accent-tint");
-      expect(rowOf("Small")).not.toHaveClass("bg-accent-tint");
+      await userEvent.keyboard("{End}{Enter}");
+
+      expect(zoomTo).toHaveBeenCalledWith(Just(VIEWPORT));
     });
   });
 

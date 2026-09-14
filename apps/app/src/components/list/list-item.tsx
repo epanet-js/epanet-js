@@ -10,6 +10,7 @@ type LabelledItem = {
 type ListItemProps<T extends LabelledItem> = {
   item: T;
   isSelected: boolean;
+  isFocused?: boolean;
   onSelect: (id: number) => void;
   actions?: ItemAction[];
   onAction?: (action: string, item: T) => void;
@@ -20,6 +21,7 @@ type ListItemProps<T extends LabelledItem> = {
 export const ListItem = <T extends LabelledItem>({
   item,
   isSelected,
+  isFocused = false,
   onSelect,
   actions,
   onAction,
@@ -34,7 +36,7 @@ export const ListItem = <T extends LabelledItem>({
       className={`group flex items-center justify-between text-sm cursor-pointer h-8 min-w-0 rounded-sm ${
         isSelected
           ? "bg-accent-tint"
-          : isMenuOpen
+          : isFocused || isMenuOpen
             ? "bg-base-hover"
             : "hover:bg-base-hover"
       }`}

@@ -10,6 +10,7 @@ type LabelledItem = {
 type EditableListItemProps<T extends LabelledItem> = {
   item: T;
   isSelected: boolean;
+  isFocused?: boolean;
   onSelect: (id: number) => void;
   actions?: ItemAction[];
   onAction?: (action: string, item: T) => void;
@@ -25,6 +26,7 @@ type EditableListItemProps<T extends LabelledItem> = {
 export const EditableListItem = <T extends LabelledItem>({
   item,
   isSelected,
+  isFocused,
   onSelect,
   actions,
   onAction,
@@ -53,6 +55,7 @@ export const EditableListItem = <T extends LabelledItem>({
       <ListItem
         item={item}
         isSelected={isSelected}
+        isFocused={isFocused}
         onSelect={onSelect}
         icon={icon}
         actions={actions}

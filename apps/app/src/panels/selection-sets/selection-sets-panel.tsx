@@ -28,8 +28,6 @@ import { useTranslate } from "src/hooks/use-translate";
 import { AddIcon, CloseIcon, RenameIcon } from "src/icons";
 import { USelection } from "src/selection";
 import { selectionAtom } from "src/state/selection";
-import { largestContainedSet } from "src/lib/selection-sets";
-import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { bookmarksAtom, selectionSetsAtom } from "src/state/selection-sets";
 
 type SectionType = "selections" | "bookmarks";
@@ -38,10 +36,10 @@ type ActionState =
   | { action: "creating"; section: SectionType }
   | { action: "renaming"; section: SectionType; id: string };
 
-type Row = {
+type RowKey = { section: SectionType; id: string };
+
+type Row = RowKey & {
   navId: number;
-  section: SectionType;
-  id: string;
   name: string;
 };
 
@@ -50,12 +48,6 @@ export const SelectionSetsPanel = () => {
   const selectionSets = useAtomValue(selectionSetsAtom);
   const bookmarks = useAtomValue(bookmarksAtom);
   const selection = useAtomValue(selectionAtom);
-  const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
-
-  const matchedSelectionSetId = useMemo(
-    () => largestContainedSet(selectionSets, selection, hydraulicModel),
-    [selectionSets, selection, hydraulicModel],
-  );
 
   const saveSelectionSet = useSaveSelectionSet();
   const applySelectionSet = useApplySelectionSet();
@@ -73,7 +65,7 @@ export const SelectionSetsPanel = () => {
   const [focusedSection, setFocusedSection] = useState<SectionType | null>(
     null,
   );
-  const [focusedNavId, setFocusedNavId] = useState<number | null>(null);
+  const [focusedRow, setFocusedRow] = useState<RowKey | null>(null);
 
   const { selectionRows, bookmarkRows, byNavId } = useMemo(() => {
     const selectionRows: Row[] = selectionSets.map((set, index) => ({
@@ -103,23 +95,36 @@ export const SelectionSetsPanel = () => {
   );
 
   const focusedItem = useMemo((): NavItem<SectionType> | undefined => {
-    if (focusedNavId !== null) {
-      const row = byNavId.get(focusedNavId);
+    if (focusedRow) {
+      const row = [...byNavId.values()].find((candidate) =>
+        isSameRow(candidate, focusedRow),
+      );
       if (row) return { id: row.navId, section: row.section };
     }
     if (focusedSection) return { section: focusedSection };
     return undefined;
-  }, [focusedNavId, focusedSection, byNavId]);
+  }, [focusedRow, focusedSection, byNavId]);
 
   const clearActionState = useCallback(() => {
     setActionState(undefined);
     requestAnimationFrame(() => listRef.current?.focus());
   }, []);
 
-  const handleSelectItem = useCallback(
+  const runRow = useCallback(
+    (row: Row) => {
+      if (row.section === "selections") {
+        applySelectionSet({ setId: row.id, source: "panel" });
+      } else {
+        goToBookmark({ bookmarkId: row.id, source: "panel" });
+      }
+    },
+    [applySelectionSet, goToBookmark],
+  );
+
+  const handleFocusItem = useCallback(
     (item: NavItem<SectionType>) => {
       if (item.id == null) {
-        setFocusedNavId(null);
+        setFocusedRow(null);
         setFocusedSection(item.section);
         return;
       }
@@ -128,16 +133,30 @@ export const SelectionSetsPanel = () => {
       if (!row) return;
 
       setFocusedSection(null);
-      setFocusedNavId(row.navId);
-
-      if (row.section === "selections") {
-        applySelectionSet({ setId: row.id, source: "panel" });
-      } else {
-        goToBookmark({ bookmarkId: row.id, source: "panel" });
-      }
+      setFocusedRow({ section: row.section, id: row.id });
     },
-    [byNavId, applySelectionSet, goToBookmark],
+    [byNavId],
   );
+
+  const handleActivateItem = useCallback(
+    (item: NavItem<SectionType>) => {
+      const row = item.id == null ? undefined : byNavId.get(item.id);
+      if (row) runRow(row);
+    },
+    [byNavId, runRow],
+  );
+
+  const handleBlur = (e: React.FocusEvent<HTMLDivElement>) => {
+    if (e.currentTarget.contains(e.relatedTarget)) return;
+    setFocusedSection(null);
+    setFocusedRow(null);
+  };
+
+  const handleClickRow = (row: Row) => {
+    setFocusedSection(null);
+    setFocusedRow(null);
+    runRow(row);
+  };
 
   const handleNameChange = (name: string): boolean => {
     if (!actionState) return true;
@@ -184,7 +203,7 @@ export const SelectionSetsPanel = () => {
     }
 
     clearActionState();
-    setFocusedNavId(null);
+    setFocusedRow(null);
     if (row.section === "selections") {
       deleteSelectionSet({ setId: row.id, source: "panel" });
     } else {
@@ -213,12 +232,9 @@ export const SelectionSetsPanel = () => {
     <EditableListItem
       key={row.id}
       item={{ id: row.navId, label: row.name }}
-      isSelected={
-        row.section === "selections"
-          ? matchedSelectionSetId === row.id
-          : focusedNavId === row.navId
-      }
-      onSelect={() => handleSelectItem({ id: row.navId, section: row.section })}
+      isSelected={false}
+      isFocused={focusedRow !== null && isSameRow(row, focusedRow)}
+      onSelect={() => handleClickRow(row)}
       actions={itemActions}
       onAction={handleAction}
       editLabelMode={getEditMode(actionState, row)}
@@ -228,12 +244,13 @@ export const SelectionSetsPanel = () => {
   );
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full" onBlur={handleBlur}>
       <NavigableList
         ref={listRef}
         navItems={navItems}
         focusedItem={focusedItem}
-        onSelectItem={handleSelectItem}
+        onSelectItem={handleFocusItem}
+        onActivateItem={handleActivateItem}
         isNavBlocked={!!actionState}
       >
         <CollapsibleListSection
@@ -300,6 +317,9 @@ export const SelectionSetsPanel = () => {
 const EmptyRow = ({ children }: { children: React.ReactNode }) => (
   <li className="px-1 py-2 text-size-base text-subtle">{children}</li>
 );
+
+const isSameRow = (a: RowKey, b: RowKey) =>
+  a.section === b.section && a.id === b.id;
 
 const isCreatingIn = (
   actionState: ActionState | undefined,

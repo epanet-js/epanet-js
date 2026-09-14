@@ -28,6 +28,7 @@ type NavigableListProps<S extends string> = {
   navItems: NavItem<S>[];
   focusedItem?: NavItem<S>;
   onSelectItem: (item: NavItem<S>) => void;
+  onActivateItem?: (item: NavItem<S>) => void;
   isNavBlocked?: boolean;
   children: React.ReactNode;
 };
@@ -37,6 +38,7 @@ function NavigableListInner<S extends string>(
     navItems,
     focusedItem,
     onSelectItem,
+    onActivateItem,
     isNavBlocked,
     children,
   }: NavigableListProps<S>,
@@ -173,6 +175,18 @@ function NavigableListInner<S extends string>(
         return;
       }
 
+      if (
+        e.key === "Enter" &&
+        onActivateItem &&
+        focusedItem?.id != null &&
+        e.target === e.currentTarget
+      ) {
+        e.preventDefault();
+        e.stopPropagation();
+        onActivateItem(focusedItem);
+        return;
+      }
+
       if (e.key === "Escape" && focusedItem) {
         e.preventDefault();
         e.stopPropagation();
@@ -238,6 +252,7 @@ function NavigableListInner<S extends string>(
       navigateToItem,
       toggleSection,
       currentNavIndex,
+      onActivateItem,
     ],
   );
 
