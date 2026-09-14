@@ -92,7 +92,7 @@ export const useWorkersBootstrap = (areFeatureFlagsReady: boolean): boolean => {
     void bootstrap().finally(() => {
       setAreWorkersReady(true);
     });
-  }, [areFeatureFlagsReady]);
+  }, [areFeatureFlagsReady, enableLsx]);
 
   return areWorkersReady;
 };

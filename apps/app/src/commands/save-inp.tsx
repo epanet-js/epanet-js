@@ -176,7 +176,14 @@ export const useSaveInp = () => {
           return false;
         }
       },
-      [userTracking, addRecent, translate, map, isExportLabelsOn],
+      [
+        userTracking,
+        translate,
+        isExportLabelsOn,
+        isScriptingOn,
+        map,
+        addRecent,
+      ],
     ),
   );
 
