@@ -69,11 +69,9 @@ describe("useStartBlankProject", () => {
     expect(store.get(projectFileInfoAtom)).toBeNull();
   });
 
-  it("brings the seeded data tables back after they were closed", async () => {
+  it("clears the open data tables", async () => {
     const store = setInitialState();
-    store.set(panelsAtom, [
-      createAssetTablePanel("pipe", { id: "pipe", closable: false }),
-    ]);
+    store.set(panelsAtom, [createAssetTablePanel("pipe", { id: "pipe" })]);
     store.set(panelContentStateAtom, { pipe: { scrollTop: 120 } });
 
     const { result } = renderStartEmptyProject(store);
@@ -81,15 +79,7 @@ describe("useStartBlankProject", () => {
       await result.current();
     });
 
-    expect(store.get(panelsIn("bottom")).map((entry) => entry.id)).toEqual([
-      "junction",
-      "pipe",
-      "pump",
-      "valve",
-      "reservoir",
-      "tank",
-      "customer-point",
-    ]);
+    expect(store.get(panelsIn("bottom"))).toEqual([]);
     expect(store.get(panelContentStateAtom)).toEqual({});
   });
 

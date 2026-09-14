@@ -22,7 +22,6 @@ import { type PlacedPanel, activePanelIn, panelsIn } from "src/state/panels";
 import { useActivatePanel } from "src/commands/activate-panel";
 import { useClosePanel } from "src/commands/close-panel";
 import { useReorderPanel } from "src/commands/reorder-panel";
-import { useIsPanelClosable } from "../use-panel-closable";
 import { useUserTracking } from "src/infra/user-tracking";
 import { panelDescription, panelLabel } from "../panel-template";
 import { PanelContent } from "../panel-template";
@@ -39,7 +38,6 @@ export const BottomDock = memo(function BottomDockInner() {
   const translate = useTranslate();
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const closePanel = useClosePanel();
-  const isClosable = useIsPanelClosable();
   const userTracking = useUserTracking();
   const reorderPanel = useReorderPanel();
 
@@ -108,7 +106,7 @@ export const BottomDock = memo(function BottomDockInner() {
                 id={entry.id}
                 label={labelOf(entry)}
                 description={descriptionOf(entry)}
-                closable={isClosable(entry)}
+                closable={entry.closable}
                 onClose={closePanel}
               />
             ))}

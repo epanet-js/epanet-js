@@ -45,10 +45,3 @@ const DEFAULT_ASSET_TYPES: AssetType[] = [
 ];
 
 export const OPENABLE_ASSET_TYPES: readonly AssetType[] = DEFAULT_ASSET_TYPES;
-
-export const defaultDataTablePanels = () => [
-  ...DEFAULT_ASSET_TYPES.map((assetType) =>
-    createAssetTablePanel(assetType, { id: assetType, closable: false }),
-  ),
-  createCustomerPointTablePanel({ id: "customer-point", closable: false }),
-];

@@ -1,7 +1,6 @@
 import {
   createAssetTablePanel,
   createCustomerPointTablePanel,
-  defaultDataTablePanels,
 } from "./create-panel";
 
 describe("createAssetTablePanel", () => {
@@ -41,26 +40,5 @@ describe("createCustomerPointTablePanel", () => {
 
     expect(panel.type).toEqual("customer-point-table");
     expect(panel.closable).toBe(true);
-  });
-});
-
-describe("defaultDataTablePanels", () => {
-  it("seeds one unclosable table per asset type plus customer points", () => {
-    const panels = defaultDataTablePanels();
-
-    expect(panels.map((p) => p.id)).toEqual([
-      "junction",
-      "pipe",
-      "pump",
-      "valve",
-      "reservoir",
-      "tank",
-      "customer-point",
-    ]);
-    expect(panels.every((p) => !p.closable)).toBe(true);
-  });
-
-  it("returns a fresh list each call", () => {
-    expect(defaultDataTablePanels()).not.toBe(defaultDataTablePanels());
   });
 });

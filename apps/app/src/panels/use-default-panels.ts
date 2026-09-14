@@ -1,22 +1,17 @@
 import { useCallback } from "react";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { defaultDataTablePanels } from "./data-tables/create-panel";
 import { createNetworkReviewPanel } from "./network-review/create-panel";
 import { createSelectionSetsPanel } from "./selection-sets/create-panel";
 import type { Panel } from "./panel";
 
-export const defaultDataTables = (): Panel[] => [...defaultDataTablePanels()];
-
 export const useDefaultPanels = () => {
-  const partialDataTables = useFeatureFlag("FLAG_PARTIAL_DATA_TABLES");
   const isSelectionSetsOn = useFeatureFlag("FLAG_SELECTION_SETS");
 
   return useCallback(
     (): Panel[] => [
-      ...(partialDataTables ? [] : defaultDataTables()),
       createNetworkReviewPanel(),
       ...(isSelectionSetsOn ? [createSelectionSetsPanel()] : []),
     ],
-    [partialDataTables, isSelectionSetsOn],
+    [isSelectionSetsOn],
   );
 };

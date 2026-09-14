@@ -212,7 +212,7 @@ export const Toolbar = ({
       <MenuAction
         label={translate("dataTables.title")}
         role="button"
-        onClick={() => showDataTables({ source: "toolbar" })}
+        onClick={showDataTables}
       >
         <TableIcon />
       </MenuAction>

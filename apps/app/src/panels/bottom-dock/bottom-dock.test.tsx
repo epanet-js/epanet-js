@@ -6,7 +6,6 @@ import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import "src/__helpers__/locale";
 import { setInitialState } from "src/__helpers__/state";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
-import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
 import { CommandContainer } from "src/commands/__helpers__/command-container";
 import { Store } from "src/state";
 import type { AssetType } from "@epanet-js/hydraulic-model";
@@ -58,7 +57,6 @@ const renderTabs = (store: Store) =>
 
 beforeEach(() => {
   stubUserTracking();
-  stubFeatureOff("FLAG_PARTIAL_DATA_TABLES");
   mounts.length = 0;
 });
 
@@ -156,74 +154,6 @@ describe("BottomDock", () => {
     );
   });
 
-  it("offers a close button on every table once the flag is on", () => {
-    stubFeatureOn("FLAG_PARTIAL_DATA_TABLES");
-    const store = aStore();
-    store.set(panelsAtom, [
-      anInstance("a", { closable: false }),
-      anInstance("b", { assetType: "pipe", closable: false }),
-    ]);
-
-    renderTabs(store);
-
-    expect(
-      screen.getByRole("button", { name: "Close Junctions" }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Close Pipes" }),
-    ).toBeInTheDocument();
-  });
-
-  it("reveals the close buttons on hover once the flag is on", () => {
-    stubFeatureOn("FLAG_PARTIAL_DATA_TABLES");
-    const store = aStore();
-    store.set(panelsAtom, [anInstance("a", { closable: false })]);
-
-    renderTabs(store);
-
-    expect(screen.getByRole("button", { name: "Close Junctions" })).toHaveClass(
-      "opacity-0",
-      "group-hover:opacity-100",
-    );
-  });
-
-  it("keeps the close button on the active tab visible", () => {
-    stubFeatureOn("FLAG_PARTIAL_DATA_TABLES");
-    const store = aStore();
-    store.set(panelsAtom, [anInstance("a", { closable: false })]);
-
-    renderTabs(store);
-
-    expect(screen.getByRole("button", { name: "Close Junctions" })).toHaveClass(
-      "group-data-[state=active]:opacity-100",
-    );
-  });
-
-  it("keeps the close button visible while the flag is off", () => {
-    const store = aStore();
-    store.set(panelsAtom, [anInstance("a")]);
-
-    renderTabs(store);
-
-    expect(
-      screen.getByRole("button", { name: "Close Junctions" }),
-    ).not.toHaveClass("opacity-0");
-  });
-
-  it("shows the empty state once the last panel is closed", async () => {
-    stubFeatureOn("FLAG_PARTIAL_DATA_TABLES");
-    const store = aStore();
-    store.set(panelsAtom, [anInstance("a", { closable: false })]);
-
-    renderTabs(store);
-    await userEvent.click(
-      screen.getByRole("button", { name: "Close Junctions" }),
-    );
-
-    expect(screen.getByText("Nothing here yet")).toBeInTheDocument();
-    expect(screen.queryByRole("tab")).not.toBeInTheDocument();
-  });
-
   it("only offers a close button on closable panels", () => {
     const store = aStore();
     store.set(panelsAtom, [
@@ -239,6 +169,42 @@ describe("BottomDock", () => {
     expect(
       screen.queryByRole("button", { name: "Close Pipes" }),
     ).not.toBeInTheDocument();
+  });
+
+  it("reveals the close buttons on hover", () => {
+    const store = aStore();
+    store.set(panelsAtom, [anInstance("a")]);
+
+    renderTabs(store);
+
+    expect(screen.getByRole("button", { name: "Close Junctions" })).toHaveClass(
+      "opacity-0",
+      "group-hover:opacity-100",
+    );
+  });
+
+  it("keeps the close button on the active tab visible", () => {
+    const store = aStore();
+    store.set(panelsAtom, [anInstance("a")]);
+
+    renderTabs(store);
+
+    expect(screen.getByRole("button", { name: "Close Junctions" })).toHaveClass(
+      "group-data-[state=active]:opacity-100",
+    );
+  });
+
+  it("shows the empty state once the last panel is closed", async () => {
+    const store = aStore();
+    store.set(panelsAtom, [anInstance("a")]);
+
+    renderTabs(store);
+    await userEvent.click(
+      screen.getByRole("button", { name: "Close Junctions" }),
+    );
+
+    expect(screen.getByText("Nothing here yet")).toBeInTheDocument();
+    expect(screen.queryByRole("tab")).not.toBeInTheDocument();
   });
 
   it("closes a panel from its close button", async () => {

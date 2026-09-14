@@ -6,7 +6,6 @@ import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import "src/__helpers__/locale";
 import { setInitialState } from "src/__helpers__/state";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
-import { stubFeatureOff } from "src/__helpers__/feature-flags";
 import { CommandContainer } from "src/commands/__helpers__/command-container";
 import { Store } from "src/state";
 import type { Panel } from "src/panels/panel";
@@ -50,7 +49,6 @@ const renderDock = (store: Store) =>
 
 beforeEach(() => {
   stubUserTracking();
-  stubFeatureOff("FLAG_PARTIAL_DATA_TABLES");
   mounts.length = 0;
 });
 

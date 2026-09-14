@@ -3,7 +3,6 @@ import userEvent from "@testing-library/user-event";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
-import { stubFeatureOff } from "src/__helpers__/feature-flags";
 import { splitsAtom } from "src/state/layout";
 import { createNetworkReviewPanel } from "src/panels/network-review/create-panel";
 import { panelsAtom } from "src/state/panels";
@@ -21,7 +20,6 @@ const aStore = () => {
 
 beforeEach(() => {
   stubUserTracking();
-  stubFeatureOff("FLAG_PARTIAL_DATA_TABLES");
 });
 
 describe("useToggleLeftPanel", () => {
