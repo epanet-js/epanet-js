@@ -7,6 +7,7 @@ import { VideoPlayer } from "src/components/video-player";
 import {
   trialAfterSignInAtom,
   useActivateTrial,
+  useIsTrialEmailRefused,
 } from "src/hooks/use-activate-trial";
 import { dialogAtom, type PaywallFeature } from "src/state/dialog";
 import { ChevronLeftIcon, RefreshIcon } from "src/icons";
@@ -47,7 +48,9 @@ export const FeaturePaywall = ({
   const translate = useTranslate();
   const { user, isSignedIn } = useAuth();
   const isActivateTrialOn = useFeatureFlag("FLAG_ACTIVATE_TRIAL");
-  const showTrialButton = isActivateTrialOn && isTrialAvailable(user);
+  const isTrialEmailRefused = useIsTrialEmailRefused();
+  const showTrialButton =
+    isActivateTrialOn && isTrialAvailable(user) && !isTrialEmailRefused;
   const [showPlans, setShowPlans] = useState(false);
   const [isDemoLoading, setIsDemoLoading] = useState(false);
 

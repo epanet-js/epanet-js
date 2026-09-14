@@ -24,7 +24,10 @@ import {
 import { useUnsavedChangesCheck } from "src/commands/check-unsaved-changes";
 import { useAuth } from "src/hooks/use-auth";
 import { PaymentType } from "src/hooks/use-checkout";
-import { useActivateTrial } from "src/hooks/use-activate-trial";
+import {
+  useActivateTrial,
+  useIsTrialEmailRefused,
+} from "src/hooks/use-activate-trial";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { usePermissions } from "src/hooks/use-permissions";
 import { signUpUrl } from "src/global-config";
@@ -437,11 +440,13 @@ const ProPlan = ({
   const price = prices.pro[paymentType];
   const { user, isSignedIn } = useAuth();
   const isActivateTrialOn = useFeatureFlag("FLAG_ACTIVATE_TRIAL");
+  const isTrialEmailRefused = useIsTrialEmailRefused();
   const canStartTrial =
     isActivateTrialOn &&
     paymentType === "yearly" &&
     !!isSignedIn &&
-    !user.hasUsedTrial;
+    !user.hasUsedTrial &&
+    !isTrialEmailRefused;
 
   return (
     <div className="relative bg-base border border-purple-100 rounded-lg shadow-md shadow-purple-300 overflow-hidden flex flex-col justify-between">

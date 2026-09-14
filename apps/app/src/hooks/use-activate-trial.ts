@@ -1,4 +1,5 @@
-import { atom, useAtom } from "jotai";
+import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
+import { atomWithStorage } from "jotai/utils";
 import { notify } from "src/components/notifications";
 import { captureError } from "src/infra/error-tracking";
 import { useTranslate } from "src/hooks/use-translate";
@@ -10,10 +11,23 @@ const activateTrialLoadingAtom = atom<boolean>(false);
 
 export const trialAfterSignInAtom = atom<boolean>(false);
 
+const refusedTrialEmailsAtom = atomWithStorage<string[]>(
+  "refusedTrialEmails",
+  [],
+);
+
+export const useIsTrialEmailRefused = (): boolean => {
+  const { user } = useAuth();
+  const refusedEmails = useAtomValue(refusedTrialEmailsAtom);
+
+  return refusedEmails.includes(user.email);
+};
+
 export const useActivateTrial = () => {
   const translate = useTranslate();
   const [isLoading, setLoading] = useAtom(activateTrialLoadingAtom);
-  const { reload } = useAuth();
+  const setRefusedEmails = useSetAtom(refusedTrialEmailsAtom);
+  const { user, reload } = useAuth();
 
   const activateTrial = async (): Promise<boolean> => {
     setLoading(true);
@@ -26,11 +40,15 @@ export const useActivateTrial = () => {
       if (!response.ok) {
         if (await isEmailRefused(response)) {
           setLoading(false);
+          setRefusedEmails((emails) =>
+            emails.includes(user.email) ? emails : [...emails, user.email],
+          );
           notify({
             variant: "warning",
             title: translate("trial.emailNotEligible"),
             description: translate("trial.emailNotEligibleDetail"),
             Icon: WarningIcon,
+            duration: Infinity,
           });
           return false;
         }
