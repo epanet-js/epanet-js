@@ -2092,7 +2092,7 @@ const ValveEditor = ({
   const translate = useTranslate();
   const isRemoteSetpointPrvOn = useFeatureFlag("FLAG_REMOTE_SETPOINT_PRV");
   const { footer } = useQuickGraph(valve.id, "valve");
-  const { getComparison, getCurveComparison, isNew } =
+  const { getComparison, getCurveComparison, getControlComparison, isNew } =
     useAssetComparison(valve);
   const simulation = useSimulation();
   const valveSimulation = simulation?.getValve(valve.id);
@@ -2157,6 +2157,13 @@ const ValveEditor = ({
     hydraulicModel.controls,
     valve.id,
   );
+  const controlComparison = getControlComparison(targetNodeControl);
+  const baseControl = controlComparison.baseValue;
+  const targetNodeComparison: PropertyComparison<AssetId> = {
+    hasChanged: controlComparison.hasChanged,
+    baseValue:
+      baseControl?.type === "target-node" ? baseControl.targetId : endNode?.id,
+  };
 
   const nodeOptions = useMemo(() => {
     const options: { value: number; label: string }[] = [];
@@ -2180,7 +2187,8 @@ const ValveEditor = ({
       (p) => getComparison(p, valve.getProperty(p)).hasChanged,
     ) ||
     getCurveComparison("curveId", valve.curveId, hydraulicModel.curves)
-      .hasChanged;
+      .hasChanged ||
+    (showTargetNode && targetNodeComparison.hasChanged);
 
   return (
     <AssetEditorContent
@@ -2260,6 +2268,7 @@ const ValveEditor = ({
             options={nodeOptions}
             nullable
             placeholder={endNode ? endNode.label : translate("select") + "..."}
+            comparison={targetNodeComparison}
             onChange={handleTargetNodeChange}
             readOnly={readonly}
             clearLabel={endNode ? endNode.label : translate("select") + "..."}
