@@ -76,14 +76,21 @@ const resultOf = (decoded: DecodedSource): ParsedGisSource => {
 };
 
 const failure = (
-  code:
-    | "sourceEmpty"
-    | "sourceUnreadable"
-    | "sourceFilesIncomplete"
-    | "coordinateSystemUnsupported"
-    | "coordinateSystemMismatch",
+  code: "sourceEmpty" | "sourceUnreadable" | "sourceFilesIncomplete",
 ): DecodedSource => ({
   features: [],
+  issues: [{ code, severity: "error" }],
+});
+
+type PlacementError =
+  | "coordinateSystemUnsupported"
+  | "coordinateSystemMismatch";
+
+const unplaced = (
+  features: Feature[],
+  code: PlacementError,
+): DecodedSource => ({
+  features,
   issues: [{ code, severity: "error" }],
 });
 
@@ -116,39 +123,64 @@ const parseShapefile = async (
   const prj = byExtension(".prj");
   const cpg = byExtension(".cpg");
 
-  const input: {
-    shp: ArrayBuffer;
-    dbf?: ArrayBuffer;
-    prj?: string;
-    cpg?: string;
-  } = { shp: await shpFile.arrayBuffer() };
+  const input: ShapefileInput = { shp: await shpFile.arrayBuffer() };
   if (dbf) input.dbf = await dbf.arrayBuffer();
   if (prj) input.prj = await textOf(prj);
   if (cpg) input.cpg = await textOf(cpg);
 
-  let collection: FeatureCollection;
-  try {
-    collection = await shp(input);
-  } catch {
-    return failure("sourceUnreadable");
-  }
-
-  const features = collection.features ?? [];
+  const features = await decodeBundle(input);
+  if (features === null) return failure("sourceUnreadable");
   if (features.length === 0) return failure("sourceEmpty");
 
+  const supplied = suppliedEpsg(crs);
+
   if (input.prj === undefined) {
-    return placeFeatures({ features, epsg: suppliedEpsg(crs), projections });
+    return placeFeatures({ features, candidates: [supplied], projections });
   }
 
-  if (!mostlyLatLng(features)) return failure("coordinateSystemMismatch");
+  if (mostlyLatLng(features)) {
+    const authoredIn = crsNameFromWkt(input.prj);
+    return {
+      features,
+      ...(authoredIn === null ? {} : { originalProjection: authoredIn }),
+      issues: [],
+    };
+  }
 
-  const authoredIn = crsNameFromWkt(input.prj);
+  const withoutPrj = { ...input };
+  delete withoutPrj.prj;
+  const written = (await decodeBundle(withoutPrj)) ?? features;
+  const error = sameFirstGeometry(written, features)
+    ? "coordinateSystemUnsupported"
+    : "coordinateSystemMismatch";
 
-  return {
-    features,
-    ...(authoredIn === null ? {} : { originalProjection: authoredIn }),
-    issues: [],
-  };
+  return supplied === null
+    ? unplaced(written, error)
+    : placeFeatures({ features: written, candidates: [supplied], projections });
+};
+
+type ShapefileInput = {
+  shp: ArrayBuffer;
+  dbf?: ArrayBuffer;
+  prj?: string;
+  cpg?: string;
+};
+
+const decodeBundle = async (
+  input: ShapefileInput,
+): Promise<Feature[] | null> => {
+  try {
+    const collection: FeatureCollection = await shp(input);
+    return collection.features ?? [];
+  } catch {
+    return null;
+  }
+};
+
+const sameFirstGeometry = (a: Feature[], b: Feature[]): boolean => {
+  const first = (features: Feature[]) =>
+    JSON.stringify(features.find((feature) => feature.geometry)?.geometry);
+  return first(a) === first(b);
 };
 
 const WGS84_WKT_NAMES = new Set(["gcs_wgs_1984", "wgs 84", "wgs84"]);
@@ -170,46 +202,65 @@ const parseGeoJson = async (
 
   return placeFeatures({
     features: parsed.features,
-    epsg: parsed.stated ?? suppliedEpsg(crs),
+    candidates: [parsed.stated, suppliedEpsg(crs)],
     projections,
   });
 };
 
 type Placement = {
   features: Feature[];
-  epsg: number | null;
+  candidates: (number | null)[];
   projections?: Map<string, Proj4Projection>;
 };
 
 const placeFeatures = ({
   features,
-  epsg,
+  candidates,
   projections,
 }: Placement): DecodedSource => {
-  if (epsg === null || epsg === WGS84_EPSG) {
-    if (!mostlyLatLng(features)) {
-      if (epsg !== null) return failure("coordinateSystemMismatch");
+  const epsgs = candidates.filter(
+    (epsg, index): epsg is number =>
+      epsg !== null && candidates.indexOf(epsg) === index,
+  );
+  if (epsgs.length === 0) return assumeWgs84(features);
 
-      return {
+  let error: PlacementError = "coordinateSystemMismatch";
+  for (const epsg of epsgs) {
+    const attempt = placeIn(features, epsg, projections);
+    if (typeof attempt !== "string") return attempt;
+    error = attempt;
+  }
+
+  return unplaced(features, error);
+};
+
+const assumeWgs84 = (features: Feature[]): DecodedSource =>
+  mostlyLatLng(features)
+    ? {
+        features,
+        issues: [{ code: "coordinateSystemMissing", severity: "warning" }],
+      }
+    : {
         features,
         issues: [{ code: "coordinateSystemUnknown", severity: "error" }],
       };
-    }
 
-    return {
-      features,
-      issues:
-        epsg === null
-          ? [{ code: "coordinateSystemMissing", severity: "warning" }]
-          : [],
-    };
+const placeIn = (
+  features: Feature[],
+  epsg: number,
+  projections: Map<string, Proj4Projection> | undefined,
+): DecodedSource | PlacementError => {
+  if (epsg === WGS84_EPSG) {
+    return mostlyLatLng(features)
+      ? { features, issues: [] }
+      : "coordinateSystemMismatch";
   }
 
   const projection = findProjectionByCode(
     String(epsg),
     projections ?? new Map<string, Proj4Projection>(),
   );
-  if (projection === null) return failure("coordinateSystemUnsupported");
+  if (projection === null) return "coordinateSystemUnsupported";
 
   let converted: FeatureCollection;
   try {
@@ -218,7 +269,7 @@ const placeFeatures = ({
       projection.code,
     );
   } catch {
-    return failure("coordinateSystemMismatch");
+    return "coordinateSystemMismatch";
   }
 
   return mostlyLatLng(converted.features)
@@ -227,7 +278,7 @@ const placeFeatures = ({
         originalProjection: projection.name,
         issues: [],
       }
-    : failure("coordinateSystemMismatch");
+    : "coordinateSystemMismatch";
 };
 
 const WGS84_EPSG = 4326;
@@ -240,7 +291,7 @@ const featuresFromText = (content: string): ParsedGeoJson | null => {
 
   if (collection !== null) {
     return {
-      features: collection.features ?? [],
+      features: (collection.features ?? []).filter(isFeature),
       stated: statedCrs(collection),
     };
   }
@@ -265,8 +316,8 @@ const asFeatureLines = (content: string): ParsedGeoJson | null => {
   for (const line of content.split("\n")) {
     if (!line.trim()) continue;
     try {
-      const candidate = JSON.parse(line) as Feature;
-      if (candidate.type === "Feature") features.push(candidate);
+      const candidate: unknown = JSON.parse(line);
+      if (isFeature(candidate)) features.push(candidate);
     } catch {
       continue;
     }
@@ -274,6 +325,9 @@ const asFeatureLines = (content: string): ParsedGeoJson | null => {
 
   return features.length === 0 ? null : { features, stated: null };
 };
+
+const isFeature = (candidate: unknown): candidate is Feature =>
+  (candidate as Feature | null)?.type === "Feature";
 
 const statedCrs = (collection: FeatureCollection): number | null => {
   const { code } = extractEPSGFromGeoJSON(collection);

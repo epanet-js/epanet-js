@@ -432,7 +432,7 @@ describe("customer points scanSource", () => {
     expect(issues).toEqual([]);
   });
 
-  it("refuses a file whose stated WGS84 does not match its coordinates", async () => {
+  it("reports a file whose stated WGS84 does not match its coordinates", async () => {
     const projected = JSON.stringify({
       type: "FeatureCollection",
       crs: { type: "name", properties: { name: "EPSG:4326" } },
@@ -446,19 +446,19 @@ describe("customer points scanSource", () => {
 
     const { summary, issues } = await scanSource({ files: [file] });
 
-    expect(summary).toBeNull();
+    expect(summary?.recordCount).toEqual(2);
     expect(issues).toEqual([
       { code: "coordinateSystemMismatch", severity: "error" },
     ]);
   });
 
-  it("refuses a CRS it has no definition for", async () => {
+  it("reports a CRS it has no definition for", async () => {
     const { summary, issues } = await scanSource({
       ...filesStatingNoCrs([aPoint({}, [432000, 181000])]),
       crs: { type: "epsg", code: 27700 },
     });
 
-    expect(summary).toBeNull();
+    expect(summary?.recordCount).toEqual(1);
     expect(issues).toEqual([
       { code: "coordinateSystemUnsupported", severity: "error" },
     ]);

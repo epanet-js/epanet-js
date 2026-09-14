@@ -129,13 +129,16 @@ describe("parseGisSource", () => {
       expect(codes).toEqual(["coordinateSystemUnsupported"]);
     });
 
-    it("returns nothing when it cannot resolve the CRS", async () => {
+    it("keeps the records, as written, when it cannot resolve the CRS", async () => {
       const { features } = await parseGisSource({
         files: [aCollection([aPoint(IN_METRES)], "EPSG:27700")],
         projections,
       });
 
-      expect(features).toEqual([]);
+      expect(features[0].geometry).toEqual({
+        type: "Point",
+        coordinates: IN_METRES,
+      });
     });
 
     it("refuses coordinates that contradict the CRS the file states", async () => {
@@ -144,6 +147,58 @@ describe("parseGisSource", () => {
       });
 
       expect(codes).toEqual(["coordinateSystemMismatch"]);
+    });
+
+    it("keeps the records, as written, when the stated CRS does not fit them", async () => {
+      const { features } = await parseGisSource({
+        files: [aCollection([aPoint(IN_METRES)], "EPSG:4326")],
+      });
+
+      expect(features[0].geometry).toEqual({
+        type: "Point",
+        coordinates: IN_METRES,
+      });
+    });
+
+    it("reads a supplied CRS when the stated one does not fit the records", async () => {
+      const { features, originalProjection, issues } = await parseGisSource({
+        files: [aCollection([aPoint(IN_METRES)], "EPSG:4326")],
+        crs: { type: "epsg", code: 3857 },
+        projections,
+      });
+
+      const [longitude] = (features[0].geometry as { coordinates: Position })
+        .coordinates;
+
+      expect(longitude).toBeCloseTo(4.4915, 3);
+      expect(originalProjection).toEqual("Pseudo-Mercator");
+      expect(issues.build()).toEqual([]);
+    });
+
+    it("reports the supplied CRS when it does not fit the records either", async () => {
+      const codes = await codesOf({
+        files: [aCollection([aPoint(IN_METRES)], "EPSG:4326")],
+        crs: { type: "epsg", code: 27700 },
+        projections,
+      });
+
+      expect(codes).toEqual(["coordinateSystemUnsupported"]);
+    });
+
+    it("skips entries of a collection that are not features", async () => {
+      const { features } = await parseGisSource({
+        files: [
+          aJsonFile({
+            type: "FeatureCollection",
+            features: [
+              aPoint(IN_DEGREES),
+              { type: "Point", coordinates: [0, 0] },
+            ],
+          }),
+        ],
+      });
+
+      expect(features).toHaveLength(1);
     });
 
     it("reads a supplied CRS where the file states none", async () => {
@@ -238,15 +293,72 @@ describe("parseGisSource", () => {
       expect(originalProjection).toBeUndefined();
     });
 
-    it("refuses coordinates that contradict the .prj", async () => {
+    describe("when the .prj does not place the records", () => {
+      const IN_THE_WRONG_PLACE: Position = [9000000, 9000000];
+
+      beforeEach(() => {
+        shp
+          .mockResolvedValueOnce({
+            type: "FeatureCollection",
+            features: [aPoint(IN_THE_WRONG_PLACE)],
+          })
+          .mockResolvedValueOnce({
+            type: "FeatureCollection",
+            features: [aPoint(IN_METRES)],
+          });
+      });
+
+      it("keeps the records as written, and says the .prj does not fit", async () => {
+        const { features, issues } = await parseGisSource(
+          shapefileOf(["a.shp", "a.dbf", "a.prj"]),
+        );
+
+        expect(features[0].geometry).toEqual({
+          type: "Point",
+          coordinates: IN_METRES,
+        });
+        expect(issues.build()).toEqual([
+          { code: "coordinateSystemMismatch", severity: "error" },
+        ]);
+      });
+
+      it("reads the records as written by leaving the .prj out", async () => {
+        await parseGisSource(shapefileOf(["a.shp", "a.dbf", "a.prj"]));
+
+        const [input] = shp.mock.calls[1];
+
+        expect(input).not.toHaveProperty("prj");
+      });
+
+      it("reads a supplied CRS in its place", async () => {
+        const { features, issues } = await parseGisSource({
+          ...shapefileOf(["a.shp", "a.dbf", "a.prj"]),
+          crs: { type: "epsg", code: 3857 },
+          projections,
+        });
+
+        const [longitude] = (features[0].geometry as { coordinates: Position })
+          .coordinates;
+
+        expect(longitude).toBeCloseTo(4.4915, 3);
+        expect(issues.build()).toEqual([]);
+      });
+    });
+
+    it("reports a .prj shpjs could not apply as one it has no definition for", async () => {
       shp.mockResolvedValue({
         type: "FeatureCollection",
         features: [aPoint(IN_METRES)],
       });
 
-      const codes = await codesOf(shapefileOf(["a.shp", "a.dbf", "a.prj"]));
+      const { features, issues } = await parseGisSource(
+        shapefileOf(["a.shp", "a.dbf", "a.prj"]),
+      );
 
-      expect(codes).toEqual(["coordinateSystemMismatch"]);
+      expect(features).toHaveLength(1);
+      expect(issues.build()).toEqual([
+        { code: "coordinateSystemUnsupported", severity: "error" },
+      ]);
     });
 
     it("ignores a supplied CRS when the bundle has a .prj", async () => {
