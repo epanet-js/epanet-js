@@ -157,12 +157,12 @@ describe("calculateInterval", () => {
   });
 
   describe("precision edge cases", () => {
-    it("handles very small values", () => {
+    it("caps the zoom at a 0.1 interval for very small values", () => {
       const values = [0.001, 0.002, 0.003];
       const result = calculateInterval(3, values);
       expect(result.min).toBeCloseTo(0);
-      expect(result.max).toBeCloseTo(0.04);
-      expect(result.interval).toBeCloseTo(0.01);
+      expect(result.max).toBeCloseTo(0.4);
+      expect(result.interval).toBeCloseTo(0.1);
     });
 
     it("handles very large values", () => {

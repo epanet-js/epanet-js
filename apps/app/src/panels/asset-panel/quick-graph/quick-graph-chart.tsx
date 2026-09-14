@@ -409,6 +409,8 @@ const buildYAxis = (
   };
 };
 
+const MAX_Y_AXIS_ZOOM = 0.1;
+
 export const calculateInterval = (
   decimals: number,
   values: number[],
@@ -423,7 +425,7 @@ export const calculateInterval = (
     values.length > 0 ? Math.ceil(Math.max(...values) * factor) / factor : 0;
   const range = maxVal - minVal;
 
-  const minPrecision = Math.pow(10, -decimals + 1);
+  const minPrecision = Math.max(Math.pow(10, -decimals + 1), MAX_Y_AXIS_ZOOM);
   let niceInterval = minPrecision;
   if (range > 0) {
     const roughInterval = range / (targetIntervalsCount - 1);
