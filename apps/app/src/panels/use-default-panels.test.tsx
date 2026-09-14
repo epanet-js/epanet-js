@@ -1,6 +1,10 @@
 /** @vitest-environment jsdom */
 import { renderHook } from "@testing-library/react";
-import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
+import {
+  stubFeatureOff,
+  stubFeatureOn,
+  stubFeaturesOn,
+} from "src/__helpers__/feature-flags";
 import { setInitialState } from "src/__helpers__/state";
 import { panelsAtom, panelsIn } from "src/state/panels";
 import { useDefaultPanels } from "./use-default-panels";
@@ -29,6 +33,25 @@ describe("useDefaultPanels", () => {
     const { result } = renderHook(() => useDefaultPanels());
 
     expect(dockedPanels(result.current).bottom).not.toHaveLength(0);
+  });
+
+  it("leaves the selections panel out while its flag is off", () => {
+    stubFeatureOff("FLAG_SELECTION_SETS");
+
+    const { result } = renderHook(() => useDefaultPanels());
+
+    expect(dockedPanels(result.current).left).toEqual(["network-review"]);
+  });
+
+  it("seeds the selections panel beside the network review once its flag is on", () => {
+    stubFeaturesOn(["FLAG_SELECTION_SETS"]);
+
+    const { result } = renderHook(() => useDefaultPanels());
+
+    expect(dockedPanels(result.current).left).toEqual([
+      "network-review",
+      "selection-sets",
+    ]);
   });
 
   it("keeps the network review when partial data tables empties the bottom dock", () => {

@@ -5,6 +5,8 @@ import { DefaultErrorBoundary } from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
 import { type PlacedPanel, activePanelIn, panelsIn } from "src/state/panels";
 import { useActivatePanel } from "src/commands/activate-panel";
+import { useUserTracking } from "src/infra/user-tracking";
+import { panelTrackingName } from "../panel";
 import { panelLabel } from "../panel-template";
 import { PanelContent } from "../panel-template";
 
@@ -16,6 +18,7 @@ export const LeftDock = memo(function LeftDockInner() {
   const activePanel = useAtomValue(activeLeftPanelAtom);
   const activatePanel = useActivatePanel();
   const translate = useTranslate();
+  const userTracking = useUserTracking();
 
   const labelOf = useCallback(
     (entry: PlacedPanel) =>
@@ -23,12 +26,26 @@ export const LeftDock = memo(function LeftDockInner() {
     [translate],
   );
 
+  const handleTabChange = useCallback(
+    (panelId: string) => {
+      const entry = panels.find((placed) => placed.id === panelId);
+      if (entry && panelId !== activePanel?.id) {
+        userTracking.capture({
+          name: "leftPanel.tabSwitched",
+          panelType: panelTrackingName(entry.panel),
+        });
+      }
+      activatePanel(panelId);
+    },
+    [activePanel, activatePanel, panels, userTracking],
+  );
+
   if (panels.length === 0) return null;
 
   return (
     <TabRoot
       value={activePanel?.id ?? undefined}
-      onValueChange={activatePanel}
+      onValueChange={handleTabChange}
       className="absolute inset-0 flex flex-col"
     >
       {panels.length > 1 && (

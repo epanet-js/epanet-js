@@ -20,7 +20,8 @@ export type Panel =
       customerPointIds?: readonly number[];
     })
   | (Common & { type: "hgl-profile" })
-  | (Common & { type: "network-review" });
+  | (Common & { type: "network-review" })
+  | (Common & { type: "selection-sets" });
 
 export type PanelType = Panel["type"];
 

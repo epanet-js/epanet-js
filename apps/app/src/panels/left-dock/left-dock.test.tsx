@@ -12,6 +12,7 @@ import { Store } from "src/state";
 import type { Panel } from "src/panels/panel";
 import { createAssetTablePanel } from "src/panels/data-tables/create-panel";
 import { createNetworkReviewPanel } from "src/panels/network-review/create-panel";
+import { createSelectionSetsPanel } from "src/panels/selection-sets/create-panel";
 import { activePanelIn, panelsAtom, panelLayoutAtom } from "src/state/panels";
 import { splitsAtom } from "src/state/layout";
 import { LeftDock } from "./left-dock";
@@ -75,6 +76,22 @@ describe("LeftDock", () => {
       screen.getByRole("tab", { name: "Network Review" }),
     ).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: "Junctions" })).toBeInTheDocument();
+  });
+
+  it("shows both left panels once the selections panel is seeded", async () => {
+    const store = aStore();
+    store.set(panelsAtom, [
+      createNetworkReviewPanel(),
+      createSelectionSetsPanel(),
+    ]);
+
+    renderDock(store);
+    await userEvent.click(screen.getByRole("tab", { name: "Selections" }));
+
+    expect(
+      screen.getByRole("tab", { name: "Network Review" }),
+    ).toBeInTheDocument();
+    expect(store.get(activePanelIn("left"))?.id).toEqual("selection-sets");
   });
 
   it("prefers a label override when one is set", () => {

@@ -9,6 +9,7 @@ import type { DataGridState } from "src/components/data-grid";
 import { assetTablePanel, customerPointTablePanel } from "./data-tables/panel";
 import { hglProfilePanel } from "./hgl-profile/panel";
 import { networkReviewPanel } from "./network-review/panel";
+import { selectionSetsPanel } from "./selection-sets/panel";
 
 export type PanelLifecycleContext = {
   get: Getter;
@@ -50,6 +51,7 @@ export type PanelContentStateByType = {
   "customer-point-table": DataGridState;
   "hgl-profile": undefined;
   "network-review": undefined;
+  "selection-sets": undefined;
 };
 
 export type PanelContentState =
@@ -60,6 +62,7 @@ const panelTemplates = {
   "customer-point-table": customerPointTablePanel,
   "hgl-profile": hglProfilePanel,
   "network-review": networkReviewPanel,
+  "selection-sets": selectionSetsPanel,
 } satisfies { [K in PanelType]: PanelTemplate<K> };
 
 export const panelFor = (panel: Panel): PanelTemplate<PanelType> =>

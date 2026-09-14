@@ -12,7 +12,7 @@ type CollapsibleListSectionProps = {
   isFocused: boolean;
   onToggle?: () => void;
   children: React.ReactNode;
-  action?: { label: string; icon: React.ReactNode };
+  action?: { label: string; icon: React.ReactNode; disabled?: boolean };
   onAction?: (sectionType: string) => void;
   readOnly?: boolean;
 };
@@ -42,13 +42,13 @@ export const CollapsibleListSection = ({
         }`}
       >
         <C.Trigger asChild>
-          <button className="flex-1 min-w-0 flex items-center gap-1 text-sm font-medium text-default">
+          <button className="h-6 w-6 flex-1 min-w-0 flex items-center gap-1 text-sm font-medium text-default">
             {isOpen ? (
-              <ChevronDownIcon size="sm" />
+              <ChevronDownIcon size="md" />
             ) : (
-              <ChevronRightIcon size="sm" />
+              <ChevronRightIcon size="md" />
             )}
-            <span className="truncate">{title}</span>
+            <span className="font-semibold truncate">{title}</span>
             {count !== undefined && <span className="shrink-0">({count})</span>}
           </button>
         </C.Trigger>
@@ -57,6 +57,7 @@ export const CollapsibleListSection = ({
             variant="quiet"
             size="xs"
             aria-label={action.label}
+            disabled={action.disabled}
             onClick={() => onAction(sectionType)}
             className="h-6 w-6 hover:bg-base-hover"
           >

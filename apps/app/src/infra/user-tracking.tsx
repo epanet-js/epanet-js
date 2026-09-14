@@ -1706,6 +1706,20 @@ export type UserEvent =
       activePanelType: string | null;
       source: "toolbar" | "shortcut";
     }
+  | { name: "leftPanel.tabSwitched"; panelType: string }
+  | { name: "selectionSet.saved"; count: number; source: "panel" }
+  | {
+      name: "selectionSet.applied";
+      count: number;
+      missing: number;
+      source: "panel";
+    }
+  | { name: "selectionSet.renamed"; source: "panel" }
+  | { name: "selectionSet.deleted"; source: "panel" }
+  | { name: "bookmark.added"; source: "panel" }
+  | { name: "bookmark.visited"; source: "panel" }
+  | { name: "bookmark.renamed"; source: "panel" }
+  | { name: "bookmark.deleted"; source: "panel" }
   | {
       name: "dataTables.cellEdited";
       type: Asset["type"];

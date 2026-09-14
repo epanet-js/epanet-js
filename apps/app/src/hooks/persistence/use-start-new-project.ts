@@ -82,6 +82,11 @@ import {
   simulationPlaybackAtom,
 } from "src/state/simulation-playback";
 import { zonesAtom } from "src/state/zones";
+import { bookmarksAtom, selectionSetsAtom } from "src/state/selection-sets";
+import {
+  initializeBookmarks,
+  initializeSelectionSets,
+} from "src/lib/selection-sets";
 import { hglProfileAtom } from "src/state/hgl-profile";
 import { resetPanelsAtom } from "src/state/panels";
 import type { Panel } from "src/panels/panel";
@@ -115,6 +120,8 @@ export const resetAppState = (set: Setter, panels: Panel[]) => {
   set(resultsFetchDurationsAtom, []);
   set(simulationPlaybackAtom, initialPlaybackState);
   set(zonesAtom, initializeZones());
+  set(selectionSetsAtom, initializeSelectionSets());
+  set(bookmarksAtom, initializeBookmarks());
   set(reviewResultsAtom, {});
   set(archivedNetworkReviewItemsAtom, {});
   set(proximityDistanceAtom, null);
