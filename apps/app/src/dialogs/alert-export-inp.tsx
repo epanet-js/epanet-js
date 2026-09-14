@@ -44,12 +44,12 @@ export const AlertExportInpDialog = ({
       }
     >
       <div className="p-4 text-size-base text-default">
+        {showLsxWarning && <LsxRequiredWarning />}
         <p className="pb-2">{translate("alertExportInpDetail")}</p>
         {isExportLabelsOn && (
           <p className="pb-2">{translate("alertExportInpLabels")}</p>
         )}
         <p>{translate("alertExportInpRecommendation")}</p>
-        {showLsxWarning && <LsxRequiredWarning />}
       </div>
     </BaseDialog>
   );
@@ -59,7 +59,7 @@ export const LsxRequiredWarning = () => {
   const translate = useTranslate();
 
   return (
-    <div className="mt-4 p-3 rounded-md space-y-1 bg-yellow-50 border border-yellow-200">
+    <div className="mb-4 p-3 rounded-md space-y-1 bg-yellow-50 border border-yellow-200">
       <p className="text-size-base font-medium text-yellow-800">
         {translate("alertExportInpLsxTitle")}
       </p>
