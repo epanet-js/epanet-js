@@ -221,13 +221,15 @@ export const FeaturePaywall = ({
                   <Button
                     variant="primary"
                     size="full-width"
+                    className="relative"
                     onClick={() => void handleStartTrial()}
                     disabled={isTrialLoading}
                   >
-                    {isTrialLoading ? (
-                      <RefreshIcon className="animate-spin" />
-                    ) : (
-                      translate("trial.startFree")
+                    <span className={isTrialLoading ? "invisible" : undefined}>
+                      {translate("trial.startFree")}
+                    </span>
+                    {isTrialLoading && (
+                      <RefreshIcon className="animate-spin absolute" />
                     )}
                   </Button>
                 ) : (

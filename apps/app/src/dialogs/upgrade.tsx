@@ -564,14 +564,14 @@ const StartTrialButton = ({
     <Button
       variant="primary"
       size="full-width"
+      className="relative"
       onClick={() => void startTrial()}
       disabled={isLoading}
     >
-      {isLoading ? (
-        <RefreshIcon className="animate-spin" />
-      ) : (
-        translate("trial.startFree")
-      )}
+      <span className={isLoading ? "invisible" : undefined}>
+        {translate("trial.startFree")}
+      </span>
+      {isLoading && <RefreshIcon className="animate-spin absolute" />}
     </Button>
   );
 };
