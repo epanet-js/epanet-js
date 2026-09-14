@@ -1,5 +1,6 @@
 import type { Importer } from "../importer";
 import { scanSource } from "../scan-source";
+import { gisSourceExtensions } from "../file-parsers/formats";
 import {
   importCustomerPointsFromSource,
   importCustomerPointsFromFeatures,
@@ -8,15 +9,7 @@ import {
 
 export const customerPointsImporter: Importer<CustomerPointRole> = {
   name: "GIS",
-  extensions: [
-    ".geojson",
-    ".json",
-    ".geojsonl",
-    ".shp",
-    ".dbf",
-    ".prj",
-    ".cpg",
-  ],
+  extensions: [...gisSourceExtensions],
   roles: ["label", "demand"],
   scanSource,
   importFromSource: importCustomerPointsFromSource,

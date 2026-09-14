@@ -13,6 +13,7 @@ import {
   type SourceFile,
 } from "@epanet-js/converters";
 import type { GisInput } from "../importer";
+import { gisFormatOf, isGisSecondaryPart } from "./formats";
 
 export type ParsedGisSource = {
   features: Feature[];
@@ -86,20 +87,18 @@ const failure = (
   issues: [{ code, severity: "error" }],
 });
 
-const SHAPEFILE_SIDECARS = [".dbf", ".prj", ".cpg", ".shx"];
-
 const hasExtension = (file: SourceFile, extension: string) =>
   file.name.toLowerCase().endsWith(extension);
 
 const decode = async (input: GisInput): Promise<DecodedSource> => {
   const { files } = input;
-  const shpFile = files.find((file) => hasExtension(file, ".shp"));
+
+  const shpFile = files.find(
+    (file) => gisFormatOf(file.name)?.id === "shapefile",
+  );
   if (shpFile) return parseShapefile(files, shpFile, input);
 
-  const primary = files.find(
-    (file) =>
-      !SHAPEFILE_SIDECARS.some((extension) => hasExtension(file, extension)),
-  );
+  const primary = files.find((file) => !isGisSecondaryPart(file.name));
   if (primary === undefined) return failure("sourceFilesIncomplete");
 
   return parseGeoJson(primary, input);
