@@ -7,6 +7,9 @@ type RemoteSetpointPrv = {
 const REMOTE_SETPOINT_PRV_FUNCTION =
   `function simulate_remote_setpoint_prv(valveId, nodeId, setting)
     local diff = node(nodeId).pressure - setting
+    if diff < 0 then
+        return
+    end
     if math.abs(diff) > 0.01 then
         link(valveId).setting = link(valveId).setting - diff
     end
