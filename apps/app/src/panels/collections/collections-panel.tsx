@@ -26,7 +26,7 @@ import type {
   NavigableListHandle,
 } from "src/components/list";
 import { useTranslate } from "src/hooks/use-translate";
-import { AddIcon, CloseIcon, RenameIcon } from "src/icons";
+import { AddIcon, CloseIcon, PointerClickIcon, RenameIcon } from "src/icons";
 import { USelection } from "src/selection";
 import { selectionAtom } from "src/state/selection";
 import { bookmarksAtom, selectionSetsAtom } from "src/state/collections";
@@ -47,6 +47,7 @@ type Row = RowKey & {
 export const CollectionsPanel = () => {
   const translate = useTranslate();
   const moreActionsLabel = translate("moreActions");
+  const selectOnlyLabel = translate("collections.selectionSets.selectOnly");
   const selectionSets = useAtomValue(selectionSetsAtom);
   const bookmarks = useAtomValue(bookmarksAtom);
   const selection = useAtomValue(selectionAtom);
@@ -115,7 +116,7 @@ export const CollectionsPanel = () => {
   const runRow = useCallback(
     (row: Row) => {
       if (row.section === "selectionSets") {
-        applySelectionSet({ setId: row.id, source: "panel" });
+        applySelectionSet({ setId: row.id, zoom: true, source: "panel" });
       } else {
         goToBookmark({ bookmarkId: row.id, source: "panel" });
       }
@@ -158,6 +159,12 @@ export const CollectionsPanel = () => {
     setFocusedSection(null);
     setFocusedRow(null);
     runRow(row);
+  };
+
+  const handleSelectOnly = (row: Row) => {
+    setFocusedSection(null);
+    setFocusedRow(null);
+    applySelectionSet({ setId: row.id, zoom: false, source: "panel" });
   };
 
   const handleNameChange = (name: string): boolean => {
@@ -239,6 +246,15 @@ export const CollectionsPanel = () => {
       actions={itemActions}
       onAction={handleAction}
       actionsLabel={moreActionsLabel}
+      secondaryAction={
+        row.section === "selectionSets"
+          ? {
+              label: selectOnlyLabel,
+              icon: <PointerClickIcon size="md" />,
+              onClick: () => handleSelectOnly(row),
+            }
+          : undefined
+      }
       editLabelMode={getEditMode(actionState, row)}
       onLabelChange={handleNameChange}
       onCancel={clearActionState}
@@ -279,6 +295,7 @@ export const CollectionsPanel = () => {
                   ? translate("collections.selectionSets.current")
                   : translate("collections.selectionSets.nothingSelected")
               }
+              count={canSaveSelection ? assets + customerPoints : undefined}
               isDisabled={!canSaveSelection}
               onAdd={() => handleNew("selectionSets")}
             />
@@ -314,10 +331,12 @@ export const CollectionsPanel = () => {
 
 const CurrentStateRow = ({
   label,
+  count,
   isDisabled = false,
   onAdd,
 }: {
   label: string;
+  count?: number;
   isDisabled?: boolean;
   onAdd: () => void;
 }) => (
@@ -336,6 +355,9 @@ const CurrentStateRow = ({
       <span className="flex items-center gap-1 min-w-0 text-subtle">
         <AddIcon />
         <span className="truncate">{label}</span>
+        {count !== undefined && (
+          <span className="shrink-0">({count.toLocaleString()})</span>
+        )}
       </span>
     </Button>
   </li>

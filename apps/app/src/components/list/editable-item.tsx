@@ -1,6 +1,6 @@
 import { ItemAction } from "./item-actions";
 import { ItemInput } from "./item-input";
-import { ListItem } from "./list-item";
+import { ListItem, type ItemSecondaryAction } from "./list-item";
 
 type LabelledItem = {
   id: number;
@@ -15,6 +15,7 @@ type EditableListItemProps<T extends LabelledItem> = {
   actions?: ItemAction[];
   actionsLabel?: string;
   onAction?: (action: string, item: T) => void;
+  secondaryAction?: ItemSecondaryAction;
   icon?: React.ReactNode;
   editLabelMode?: "inline" | "below" | null;
   placeholder?: string;
@@ -32,6 +33,7 @@ export const EditableListItem = <T extends LabelledItem>({
   actions,
   actionsLabel,
   onAction,
+  secondaryAction,
   editLabelMode,
   placeholder,
   sanitize,
@@ -63,6 +65,7 @@ export const EditableListItem = <T extends LabelledItem>({
         actions={actions}
         actionsLabel={actionsLabel}
         onAction={onAction}
+        secondaryAction={secondaryAction}
         readOnly={readOnly}
       />
       {editLabelMode === "below" && (

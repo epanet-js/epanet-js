@@ -46,7 +46,11 @@ export const useApplySelectionSet = () => {
       (
         get,
         set,
-        { setId, source }: { setId: SelectionSetId; source: "panel" },
+        {
+          setId,
+          zoom,
+          source,
+        }: { setId: SelectionSetId; zoom: boolean; source: "panel" },
       ) => {
         const selectionSet = get(selectionSetsAtom).find(
           (candidate) => candidate.id === setId,
@@ -63,10 +67,11 @@ export const useApplySelectionSet = () => {
           name: "selectionSet.applied",
           count,
           missing: countSelected(selectionSet.selection) - count,
+          zoom,
           source,
         });
         set(selectionAtom, selection);
-        zoomTo(selection);
+        if (zoom) zoomTo(selection);
       },
       [zoomTo, userTracking],
     ),

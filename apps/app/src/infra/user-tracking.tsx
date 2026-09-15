@@ -1731,6 +1731,7 @@ export type UserEvent =
       name: "selectionSet.applied";
       count: number;
       missing: number;
+      zoom: boolean;
       source: "panel";
     }
   | { name: "selectionSet.renamed"; source: "panel" }

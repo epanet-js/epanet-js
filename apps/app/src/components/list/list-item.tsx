@@ -1,10 +1,17 @@
 import { useState } from "react";
+import * as Tooltip from "@radix-ui/react-tooltip";
 import { ItemAction, ItemActions } from "./item-actions";
-import { Button } from "../elements";
+import { Button, StyledTooltipArrow, TContent } from "../elements";
 
 type LabelledItem = {
   id: number;
   label: string;
+};
+
+export type ItemSecondaryAction = {
+  label: string;
+  icon: React.ReactNode;
+  onClick: () => void;
 };
 
 type ListItemProps<T extends LabelledItem> = {
@@ -15,6 +22,7 @@ type ListItemProps<T extends LabelledItem> = {
   actions?: ItemAction[];
   actionsLabel?: string;
   onAction?: (action: string, item: T) => void;
+  secondaryAction?: ItemSecondaryAction;
   icon?: React.ReactNode;
   readOnly?: boolean;
 };
@@ -27,6 +35,7 @@ export const ListItem = <T extends LabelledItem>({
   actions,
   actionsLabel,
   onAction,
+  secondaryAction,
   icon,
   readOnly = false,
 }: ListItemProps<T>) => {
@@ -52,6 +61,29 @@ export const ListItem = <T extends LabelledItem>({
         {icon && icon}
         <span className="truncate">{item.label}</span>
       </Button>
+      {!readOnly && secondaryAction && (
+        <div className="self-stretch flex">
+          <Tooltip.Root>
+            <Tooltip.Trigger asChild>
+              <Button
+                variant="quiet"
+                size="xxs"
+                aria-label={secondaryAction.label}
+                onClick={secondaryAction.onClick}
+                className={`h-6 w-6 self-center justify-center hover:bg-base-hover ${
+                  isSelected ? "" : "invisible group-hover:visible"
+                }`}
+              >
+                {secondaryAction.icon}
+              </Button>
+            </Tooltip.Trigger>
+            <TContent side="bottom">
+              <StyledTooltipArrow />
+              <span className="whitespace-nowrap">{secondaryAction.label}</span>
+            </TContent>
+          </Tooltip.Root>
+        </div>
+      )}
       {!readOnly && actions && onAction && (
         <ItemActions
           label={actionsLabel}

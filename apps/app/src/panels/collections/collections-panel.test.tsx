@@ -54,7 +54,7 @@ const renderPanel = (store: Store) =>
   );
 
 const saveButton = () =>
-  screen.getByRole("button", { name: "Current selection" });
+  screen.getByRole("button", { name: /^current selection/i });
 const addBookmarkButton = () =>
   screen.getByRole("button", { name: "Current map area" });
 
@@ -91,6 +91,16 @@ describe("CollectionsPanel", () => {
       renderPanel(store);
 
       expect(saveButton()).toBeEnabled();
+    });
+
+    it("counts the selected assets and customer points", () => {
+      const store = aStore();
+      store.set(selectionAtom, USelection.fromIds([1, 2], [7]));
+      renderPanel(store);
+
+      expect(
+        screen.getByRole("button", { name: "Current selection (3)" }),
+      ).toBeInTheDocument();
     });
 
     it("can save a single customer point", () => {
@@ -176,6 +186,39 @@ describe("CollectionsPanel", () => {
       await userEvent.click(screen.getByText("Downtown loop"));
 
       expect(zoomTo).toHaveBeenCalledWith(USelection.fromAssetIds([1, 2]));
+    });
+
+    it("selects the set without moving the map from its select button", async () => {
+      const store = aStore();
+      store.set(selectionAtom, USelection.fromAssetIds([1, 2]));
+      renderPanel(store);
+      await userEvent.click(saveButton());
+      await nameIt("Downtown loop");
+      act(() => store.set(selectionAtom, USelection.fromAssetIds([3])));
+      zoomTo.mockClear();
+
+      const row = screen
+        .getByText("Downtown loop")
+        .closest("li") as HTMLElement;
+      await userEvent.click(
+        within(row).getByRole("button", { name: "Select only" }),
+      );
+
+      expect(USelection.getAssetIds(store.get(selectionAtom))).toEqual([1, 2]);
+      expect(zoomTo).not.toHaveBeenCalled();
+    });
+
+    it("offers no select button on bookmarks", async () => {
+      const store = aStore();
+      renderPanel(store);
+      await userEvent.click(addBookmarkButton());
+      await nameIt("Downtown");
+
+      const row = screen.getByText("Downtown").closest("li") as HTMLElement;
+
+      expect(
+        within(row).queryByRole("button", { name: "Select only" }),
+      ).not.toBeInTheDocument();
     });
 
     it("selects only the assets that still exist", async () => {

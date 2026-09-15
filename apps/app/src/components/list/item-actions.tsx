@@ -35,13 +35,13 @@ export const ItemActions = ({
         <DD.Trigger asChild>
           <Button
             variant="quiet"
-            size="xs"
+            size="xxs"
             aria-label={label}
-            className={`h-6 w-6 self-center aria-expanded:bg-base-hover aria-expanded:visible hover:bg-base-hover ${
+            className={`h-6 w-6 self-center justify-center aria-expanded:bg-base-hover aria-expanded:visible hover:bg-base-hover ${
               isSelected ? "" : "invisible group-hover:visible"
             }`}
           >
-            <MoreActionsIcon size="sm" />
+            <MoreActionsIcon size="md" />
           </Button>
         </DD.Trigger>
         <DD.Portal>
