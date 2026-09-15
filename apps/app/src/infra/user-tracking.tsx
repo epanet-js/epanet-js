@@ -1834,7 +1834,8 @@ export type UserEvent =
   | { name: "priorityAccess.seen"; featureName: string }
   | { name: "priorityAccess.clickedUpgrade"; featureName: string }
   | { name: "priorityAccess.dismissed"; featureName: string }
-  | { name: "trial.activated"; source: UpgradeOrigin; feature: string }
+  | { name: "trial.clickedStart"; source: UpgradeOrigin; feature: string }
+  | { name: "trial.refused" }
   | { name: "firstScenario.dialogEnabled" }
   | { name: "firstScenario.dialogHidden" }
   | {

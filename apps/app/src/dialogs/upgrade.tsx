@@ -552,7 +552,7 @@ const StartTrialButton = ({
   const { activateTrial, isLoading } = useActivateTrial();
 
   const startTrial = async () => {
-    userTracking.capture({ name: "trial.activated", source, feature });
+    userTracking.capture({ name: "trial.clickedStart", source, feature });
 
     const activated = await activateTrial();
     if (!activated) return;

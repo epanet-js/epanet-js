@@ -2,6 +2,7 @@ import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import { notify } from "src/components/notifications";
 import { captureError } from "src/infra/error-tracking";
+import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";
 import { useAuth } from "src/hooks/use-auth";
 import { billingUrl } from "src/global-config";
@@ -28,6 +29,7 @@ export const useActivateTrial = () => {
   const [isLoading, setLoading] = useAtom(activateTrialLoadingAtom);
   const setRefusedEmails = useSetAtom(refusedTrialEmailsAtom);
   const { user, reload } = useAuth();
+  const userTracking = useUserTracking();
 
   const activateTrial = async (): Promise<boolean> => {
     setLoading(true);
@@ -39,6 +41,7 @@ export const useActivateTrial = () => {
 
       if (!response.ok) {
         if (await isEmailRefused(response)) {
+          userTracking.capture({ name: "trial.refused" });
           setLoading(false);
           setRefusedEmails((emails) =>
             emails.includes(user.email) ? emails : [...emails, user.email],
