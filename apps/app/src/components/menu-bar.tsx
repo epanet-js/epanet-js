@@ -26,6 +26,7 @@ import { useShowShortcuts } from "src/commands/show-shortcuts";
 import { TrialCta, resolveTrialCta } from "src/lib/account-plans";
 import { useEffectivePlan } from "src/hooks/use-effective-plan";
 import { usePermissions } from "src/hooks/use-permissions";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useBillingPortal } from "src/hooks/use-billing-portal";
 import { PlanLabel } from "./plan-label";
 import { useSetAtom } from "jotai";
@@ -67,6 +68,7 @@ export const MenuBarPlay = memo(function MenuBar() {
   const showWelcome = useShowWelcome();
   const isMdOrLarger = useBreakpoint("md");
   const isSmOrLarger = useBreakpoint("sm");
+  const isActivateTrialOn = useFeatureFlag("FLAG_ACTIVATE_TRIAL");
   const effectivePlan = useEffectivePlan();
   const { openOrganizationProfile } = useAccountManager();
   const { canManageOrganization } = usePermissions();
@@ -108,6 +110,7 @@ export const MenuBarPlay = memo(function MenuBar() {
               {effectivePlan === "free" ? (
                 <TrialOrUpgradeButton
                   user={user}
+                  isActivateTrialOn={isActivateTrialOn}
                   translate={translate}
                   onUpgrade={() => {
                     userTracking.capture({
@@ -257,6 +260,7 @@ export const SideMenu = () => {
   const setDialogState = useSetAtom(dialogAtom);
   const showWelcome = useShowWelcome();
   const { user } = useAuth();
+  const isActivateTrialOn = useFeatureFlag("FLAG_ACTIVATE_TRIAL");
   const effectivePlan = useEffectivePlan();
   const { openOrganizationProfile } = useAccountManager();
   const { canManageOrganization } = usePermissions();
@@ -363,6 +367,7 @@ export const SideMenu = () => {
                 {effectivePlan === "free" && (
                   <TrialOrUpgradeButton
                     user={user}
+                    isActivateTrialOn={isActivateTrialOn}
                     translate={translate}
                     size="full-width"
                     onUpgrade={() => {
@@ -430,12 +435,14 @@ const AccountSection = ({
 
 export const TrialOrUpgradeButton = ({
   user,
+  isActivateTrialOn,
   translate,
   size,
   onUpgrade,
   onNavigate,
 }: {
   user: User;
+  isActivateTrialOn: boolean;
   translate: TranslateFn;
   size?: "full-width";
   onUpgrade: () => void;
@@ -446,10 +453,10 @@ export const TrialOrUpgradeButton = ({
   const { openBillingPortal } = useBillingPortal();
 
   const trial = useMemo(() => {
-    if (!canUpgrade) return { kind: "none" } as TrialCta;
+    if (!isActivateTrialOn || !canUpgrade) return { kind: "none" } as TrialCta;
 
     return resolveTrialCta(user);
-  }, [canUpgrade, user]);
+  }, [isActivateTrialOn, canUpgrade, user]);
 
   if (trial.kind !== "none") {
     const isEnded = trial.kind === "ended";

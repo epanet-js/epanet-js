@@ -8,6 +8,7 @@ import { stubFileOpen } from "src/__helpers__/browser-fs-mock";
 import { fileOpen } from "browser-fs-access";
 import { stubProjectionsReady } from "src/__helpers__/projections";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
+import { stubFeatureOff } from "src/__helpers__/feature-flags";
 import { AuthMockProvider, aUser } from "src/__helpers__/auth-mock";
 import { getByLabel } from "src/__helpers__/asset-queries";
 import { waitForNotLoading } from "src/__helpers__/ui-expects";
@@ -323,6 +324,7 @@ describe("convertModel", () => {
 
   it("shows the paywall instead of converting when the plan does not allow it", async () => {
     const userTracking = stubUserTracking();
+    stubFeatureOff("FLAG_ACTIVATE_TRIAL");
     stubFileOpen();
     stubConverter("synergi", { network: aNetwork(), issues: [] });
     const store = setInitialState();

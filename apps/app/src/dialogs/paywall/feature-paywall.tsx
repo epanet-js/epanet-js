@@ -13,6 +13,7 @@ import { dialogAtom, type PaywallFeature } from "src/state/dialog";
 import { ChevronLeftIcon, RefreshIcon } from "src/icons";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useAuth } from "src/hooks/use-auth";
 import { SignInButton } from "src/components/auth/sign-in-button";
 import { buildAfterSignupUrl } from "src/hooks/use-early-access";
@@ -28,7 +29,9 @@ export type FeaturePaywallConfig = {
   actionDescriptionKeys: {
     trial: string;
     plans: string;
+    demo?: string;
   };
+  onTryDemo?: () => Promise<void>;
   onTrialActivated: () => void;
 };
 
@@ -44,9 +47,12 @@ export const FeaturePaywall = ({
   const userTracking = useUserTracking();
   const translate = useTranslate();
   const { user, isSignedIn } = useAuth();
+  const isActivateTrialOn = useFeatureFlag("FLAG_ACTIVATE_TRIAL");
   const isTrialEmailRefused = useIsTrialEmailRefused();
-  const showTrialButton = isTrialAvailable(user) && !isTrialEmailRefused;
+  const showTrialButton =
+    isActivateTrialOn && isTrialAvailable(user) && !isTrialEmailRefused;
   const [showPlans, setShowPlans] = useState(false);
+  const [isDemoLoading, setIsDemoLoading] = useState(false);
 
   const { activateTrial, isLoading: isTrialLoading } = useActivateTrial();
 
@@ -105,6 +111,20 @@ export const FeaturePaywall = ({
   const handleSignInToStartTrial = () => {
     setTrialAfterSignIn(true);
     _onClose();
+  };
+
+  const handleTryDemo = async () => {
+    if (!config.onTryDemo) return;
+    userTracking.capture({
+      name: "paywall.clickedTryDemo",
+      feature: config.feature,
+    });
+    setIsDemoLoading(true);
+    try {
+      await config.onTryDemo();
+    } finally {
+      setIsDemoLoading(false);
+    }
   };
 
   return (
@@ -245,7 +265,7 @@ export const FeaturePaywall = ({
                 </Button>
               </div>
             </>
-          ) : (
+          ) : isActivateTrialOn ? (
             <>
               <div className="space-y-3 pb-6">
                 {config.descriptionKeys.map((key) => (
@@ -267,6 +287,64 @@ export const FeaturePaywall = ({
                 >
                   {translate("upgradeTo", "Pro")}
                 </CheckoutButton>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="space-y-3 pb-6">
+                {config.descriptionKeys.map((key) => (
+                  <p key={key} className="text-size-base text-default">
+                    {translate(key)}
+                  </p>
+                ))}
+                <p className="text-size-base text-default">
+                  {translate(
+                    config.onTryDemo && config.actionDescriptionKeys.demo
+                      ? config.actionDescriptionKeys.demo
+                      : config.actionDescriptionKeys.plans,
+                  )}
+                </p>
+              </div>
+              <div className="flex flex-col gap-3">
+                {config.onTryDemo ? (
+                  <>
+                    <Button
+                      variant="default"
+                      size="full-width"
+                      onClick={() => void handleTryDemo()}
+                      disabled={isDemoLoading}
+                    >
+                      {isDemoLoading ? (
+                        <RefreshIcon className="animate-spin" />
+                      ) : (
+                        translate("trial.tryWithDemo")
+                      )}
+                    </Button>
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 border-t" />
+                      <span className="text-size-small text-subtle">
+                        {translate("paywall.or")}
+                      </span>
+                      <div className="flex-1 border-t" />
+                    </div>
+                    <Button
+                      variant="primary"
+                      size="full-width"
+                      onClick={handleExplorePlans}
+                      disabled={isDemoLoading}
+                    >
+                      {translate("paywall.explorePlans")}
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    variant="primary"
+                    size="full-width"
+                    onClick={handleExplorePlans}
+                  >
+                    {translate("paywall.explorePlans")}
+                  </Button>
+                )}
               </div>
             </>
           )}
