@@ -59,6 +59,7 @@ export const useActivateTrial = () => {
         throw new Error(`Trial activation failed: ${response.statusText}`);
       }
 
+      userTracking.capture({ name: "trial.activated" });
       await reload();
       setLoading(false);
       notify({
