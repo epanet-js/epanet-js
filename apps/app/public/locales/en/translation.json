@@ -777,7 +777,6 @@
   "trial.startFree": "Start free trial",
   "trial.emailNotEligible": "Work email required for trials",
   "trial.emailNotEligibleDetail": "Trials cannot be activated using free email providers. Register with your work email to start your trial.\n\nYou can still upgrade to Pro with this email.",
-  "trial.tryWithDemo": "Try with a demo network",
   "paywall": {
     "tooltip": "Paid feature",
     "explorePlans": "Explore plans",

@@ -28,7 +28,6 @@ import {
   useActivateTrial,
   useIsTrialEmailRefused,
 } from "src/hooks/use-activate-trial";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { usePermissions } from "src/hooks/use-permissions";
 import { signUpUrl } from "src/global-config";
 import { CheckIcon, InfoIcon, CloseIcon, RefreshIcon } from "src/icons";
@@ -439,10 +438,8 @@ const ProPlan = ({
   const translate = useTranslate();
   const price = prices.pro[paymentType];
   const { user, isSignedIn } = useAuth();
-  const isActivateTrialOn = useFeatureFlag("FLAG_ACTIVATE_TRIAL");
   const isTrialEmailRefused = useIsTrialEmailRefused();
   const canStartTrial =
-    isActivateTrialOn &&
     paymentType === "yearly" &&
     !!isSignedIn &&
     !user.hasUsedTrial &&
