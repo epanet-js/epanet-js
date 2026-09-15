@@ -5,7 +5,7 @@ import clsx from "clsx";
 import { TContent } from "src/components/elements";
 
 export const RailTabList = ({ children }: { children: ReactNode }) => (
-  <Tabs.List className="flex-none w-8 flex flex-col border-r bg-popover overflow-y-auto scrollbar-hidden">
+  <Tabs.List className="flex-none w-10 flex flex-col border-r bg-popover overflow-y-auto scrollbar-hidden">
     {children}
   </Tabs.List>
 );
@@ -25,7 +25,7 @@ export const RailTab = memo(
             ref={ref}
             aria-label={label}
             className={clsx(
-              `flex-none h-8 w-full inline-flex items-center justify-center
+              `flex-none h-10 w-full inline-flex items-center justify-center
               border-r-2 border-transparent
               focus:outline-hidden focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-accent
               transition-colors
