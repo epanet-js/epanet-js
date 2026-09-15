@@ -79,6 +79,7 @@ export const CurveSidebar = ({
   readOnly = false,
 }: CurveSidebarProps) => {
   const translate = useTranslate();
+  const moreActionsLabel = translate("moreActions");
   const labelMaxLength = useLabelMaxLength();
   const listRef = useRef<NavigableListHandle>(null);
   const [actionState, setActionState] = useState<ActionState | undefined>(
@@ -316,6 +317,7 @@ export const CurveSidebar = ({
                     }
                     actions={itemActions}
                     onAction={handleAction}
+                    actionsLabel={moreActionsLabel}
                     editLabelMode={getEditMode(actionState, curve.id)}
                     sanitize={(raw) =>
                       LabelManager.sanitizeLabel(raw, "curve", labelMaxLength)
@@ -360,6 +362,7 @@ export const CurveSidebar = ({
                   }
                   actions={uncategorizedItemActions}
                   onAction={handleAction}
+                  actionsLabel={moreActionsLabel}
                   readOnly={readOnly}
                 />
               );

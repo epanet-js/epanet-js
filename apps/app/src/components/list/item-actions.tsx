@@ -10,11 +10,13 @@ export type ItemAction = {
 };
 
 export const ItemActions = ({
+  label = "Actions",
   actions,
   isSelected,
   onAction,
   onOpenChange,
 }: {
+  label?: string;
   actions: ItemAction[];
   isSelected: boolean;
   onAction: (name: string) => void;
@@ -34,7 +36,7 @@ export const ItemActions = ({
           <Button
             variant="quiet"
             size="xs"
-            aria-label="Actions"
+            aria-label={label}
             className={`h-6 w-6 self-center aria-expanded:bg-base-hover aria-expanded:visible hover:bg-base-hover ${
               isSelected ? "" : "invisible group-hover:visible"
             }`}

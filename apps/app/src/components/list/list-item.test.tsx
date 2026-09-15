@@ -55,6 +55,23 @@ describe("ListItem", () => {
     ).toBeInTheDocument();
   });
 
+  it("names the actions menu button with the label the caller provides", () => {
+    render(
+      <ul>
+        <ListItem
+          {...defaultProps}
+          actions={actions}
+          actionsLabel="Más acciones"
+          onAction={vi.fn()}
+        />
+      </ul>,
+    );
+
+    expect(
+      screen.getByRole("button", { name: "Más acciones" }),
+    ).toBeInTheDocument();
+  });
+
   it("hides actions menu button when no actions are provided", () => {
     renderItem();
 

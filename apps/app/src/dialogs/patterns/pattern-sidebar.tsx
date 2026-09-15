@@ -78,6 +78,7 @@ export const PatternSidebar = ({
   readOnly = false,
 }: PatternSidebarProps) => {
   const translate = useTranslate();
+  const moreActionsLabel = translate("moreActions");
   const labelMaxLength = useLabelMaxLength();
   const userTracking = useUserTracking();
   const labelManager = useRef(new LabelManager());
@@ -347,6 +348,7 @@ export const PatternSidebar = ({
                     }
                     actions={itemActions}
                     onAction={handleAction}
+                    actionsLabel={moreActionsLabel}
                     editLabelMode={getEditMode(actionState, pattern.id)}
                     sanitize={(raw) =>
                       LabelManager.sanitizeLabel(raw, "pattern", labelMaxLength)
@@ -393,6 +395,7 @@ export const PatternSidebar = ({
                   }
                   actions={uncategorizedItemActions}
                   onAction={handleAction}
+                  actionsLabel={moreActionsLabel}
                   readOnly={readOnly}
                 />
               );

@@ -13,6 +13,7 @@ type ListItemProps<T extends LabelledItem> = {
   isFocused?: boolean;
   onSelect: (id: number) => void;
   actions?: ItemAction[];
+  actionsLabel?: string;
   onAction?: (action: string, item: T) => void;
   icon?: React.ReactNode;
   readOnly?: boolean;
@@ -24,6 +25,7 @@ export const ListItem = <T extends LabelledItem>({
   isFocused = false,
   onSelect,
   actions,
+  actionsLabel,
   onAction,
   icon,
   readOnly = false,
@@ -52,6 +54,7 @@ export const ListItem = <T extends LabelledItem>({
       </Button>
       {!readOnly && actions && onAction && (
         <ItemActions
+          label={actionsLabel}
           isSelected={isSelected}
           actions={actions}
           onAction={(action) => onAction(action, item)}

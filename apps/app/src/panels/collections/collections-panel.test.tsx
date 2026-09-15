@@ -65,7 +65,9 @@ const nameIt = async (name: string) => {
 
 const openRowMenu = async (rowName: string) => {
   const row = screen.getByText(rowName).closest("li") as HTMLElement;
-  await userEvent.click(within(row).getByRole("button", { name: "Actions" }));
+  await userEvent.click(
+    within(row).getByRole("button", { name: "More actions" }),
+  );
 };
 
 beforeEach(() => {

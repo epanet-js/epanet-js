@@ -13,6 +13,7 @@ type EditableListItemProps<T extends LabelledItem> = {
   isFocused?: boolean;
   onSelect: (id: number) => void;
   actions?: ItemAction[];
+  actionsLabel?: string;
   onAction?: (action: string, item: T) => void;
   icon?: React.ReactNode;
   editLabelMode?: "inline" | "below" | null;
@@ -29,6 +30,7 @@ export const EditableListItem = <T extends LabelledItem>({
   isFocused,
   onSelect,
   actions,
+  actionsLabel,
   onAction,
   editLabelMode,
   placeholder,
@@ -59,6 +61,7 @@ export const EditableListItem = <T extends LabelledItem>({
         onSelect={onSelect}
         icon={icon}
         actions={actions}
+        actionsLabel={actionsLabel}
         onAction={onAction}
         readOnly={readOnly}
       />

@@ -45,6 +45,7 @@ type Row = RowKey & {
 
 export const CollectionsPanel = () => {
   const translate = useTranslate();
+  const moreActionsLabel = translate("moreActions");
   const selectionSets = useAtomValue(selectionSetsAtom);
   const bookmarks = useAtomValue(bookmarksAtom);
   const selection = useAtomValue(selectionAtom);
@@ -237,6 +238,7 @@ export const CollectionsPanel = () => {
       onSelect={() => handleClickRow(row)}
       actions={itemActions}
       onAction={handleAction}
+      actionsLabel={moreActionsLabel}
       editLabelMode={getEditMode(actionState, row)}
       onLabelChange={handleNameChange}
       onCancel={clearActionState}

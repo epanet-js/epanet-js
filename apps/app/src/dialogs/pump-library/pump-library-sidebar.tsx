@@ -79,6 +79,7 @@ export const PumpLibrarySidebar = ({
   readOnly = false,
 }: PumpLibrarySidebarProps) => {
   const translate = useTranslate();
+  const moreActionsLabel = translate("moreActions");
   const labelMaxLength = useLabelMaxLength();
   const listRef = useRef<NavigableListHandle>(null);
   const [actionState, setActionState] = useState<ActionState | undefined>(
@@ -308,6 +309,7 @@ export const PumpLibrarySidebar = ({
                     }
                     actions={itemActions}
                     onAction={handleAction}
+                    actionsLabel={moreActionsLabel}
                     editLabelMode={getEditMode(actionState, curve.id)}
                     sanitize={(raw) =>
                       LabelManager.sanitizeLabel(raw, "curve", labelMaxLength)
@@ -352,6 +354,7 @@ export const PumpLibrarySidebar = ({
                   }
                   actions={uncategorizedItemActions}
                   onAction={handleAction}
+                  actionsLabel={moreActionsLabel}
                   readOnly={readOnly}
                 />
               );

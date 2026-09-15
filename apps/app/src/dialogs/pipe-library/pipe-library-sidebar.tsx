@@ -51,6 +51,7 @@ export const PipeLibrarySidebar = ({
   onDeleteMaterial,
 }: PipeLibrarySidebarProps) => {
   const translate = useTranslate();
+  const moreActionsLabel = translate("moreActions");
   const listRef = useRef<NavigableListHandle>(null);
   const [actionState, setActionState] = useState<ActionState | undefined>(
     undefined,
@@ -209,6 +210,7 @@ export const PipeLibrarySidebar = ({
               }
               actions={itemActions}
               onAction={handleAction}
+              actionsLabel={moreActionsLabel}
               editLabelMode={getEditMode(actionState, material.label)}
               onLabelChange={handleLabelChange}
               placeholder={translate("pipeLibrary.materials")}
