@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
-import type { AssetFactory } from "@epanet-js/hydraulic-model";
+import type {
+  AssetFactory,
+  LinkAsset,
+  NodeAsset,
+} from "@epanet-js/hydraulic-model";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { buildTestFactories } from "src/__helpers__/test-factories";
 import {
@@ -26,6 +30,7 @@ import {
   disconnectCustomers,
   moveCustomerPoint,
   removeCustomerPoints,
+  replaceLink,
 } from "../model-operations";
 import { deactivateAssets } from "../model-operations/deactivate-assets";
 import { reverseLink } from "../model-operations/reverse-link";
@@ -329,6 +334,49 @@ const cases: DifferentialCase[] = [
         model,
         emptyCustomAttributesDefinition(),
       ),
+  },
+  {
+    name: "replaceLink redrawing a pipe between the same nodes",
+    fixture: aNetwork,
+    run: ({ model, assetFactory, labelManager }) => {
+      const redrawn = (model.assets.get(IDS.P1) as LinkAsset).copy();
+      redrawn.setCoordinates([
+        [0, 0],
+        [3, 3],
+        [7, 3],
+        [10, 0],
+      ]);
+      return replaceLink(model, {
+        sourceLinkId: IDS.P1,
+        newLink: redrawn,
+        startNode: model.assets.get(IDS.J1) as NodeAsset,
+        endNode: model.assets.get(IDS.J2) as NodeAsset,
+        lengthUnit: "m",
+        assetFactory,
+        labelManager,
+      });
+    },
+  },
+  {
+    name: "replaceLink redrawing a pipe to another end node",
+    fixture: aNetwork,
+    run: ({ model, assetFactory, labelManager }) => {
+      const redrawn = (model.assets.get(IDS.P1) as LinkAsset).copy();
+      redrawn.setCoordinates([
+        [0, 0],
+        [10, 5],
+        [20, 0],
+      ]);
+      return replaceLink(model, {
+        sourceLinkId: IDS.P1,
+        newLink: redrawn,
+        startNode: model.assets.get(IDS.J1) as NodeAsset,
+        endNode: model.assets.get(IDS.J3) as NodeAsset,
+        lengthUnit: "m",
+        assetFactory,
+        labelManager,
+      });
+    },
   },
 ];
 

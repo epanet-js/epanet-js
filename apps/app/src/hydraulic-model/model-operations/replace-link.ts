@@ -58,6 +58,16 @@ export const replaceLink: ModelOperation<InputData> = (
     );
   }
 
+  if (newLink.id !== sourceLinkId) {
+    throw new Error(
+      `Replaced link must keep the source id: source is ${sourceLinkId}, new is ${newLink.id}`,
+    );
+  }
+
+  if (startPipeId === sourceLinkId || endPipeId === sourceLinkId) {
+    throw new Error(`Cannot split link ${sourceLinkId} while replacing it`);
+  }
+
   newLink.setProperty("isActive", sourceLink.isActive);
 
   const addLinkResult = addLink(hydraulicModel, {
@@ -103,7 +113,7 @@ export const replaceLink: ModelOperation<InputData> = (
   return {
     note: `Replace ${sourceLinkAsset.type}`,
     putAssets: allPutAssets,
-    deleteAssets: [...(addLinkResult.deleteAssets || []), sourceLinkId],
+    deleteAssets: addLinkResult.deleteAssets,
     putCustomerPoints:
       allPutCustomerPoints.length > 0 ? allPutCustomerPoints : undefined,
   };

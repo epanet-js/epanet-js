@@ -71,10 +71,11 @@ stops being true and undo will restore an intermediate value.
 It reproduces the order `applyMomentToModel` applies a moment in, which is
 **asymmetric** and easy to get backwards:
 
-- **Assets: drop before put.** The moment applier deletes assets before putting
-  them, so an id in both `deleteAssets` and `putAssets` ends up *present*.
-  Emitting `dropAssets` first makes `mergeRecords` fold delete-then-create into
-  an `update`, which is the same outcome.
+- **Assets: never in both lists.** Nothing checks for an id in both
+  `deleteAssets` and `putAssets`, and it corrupts silently: both intents read the
+  unmutated model, so the put is a diff-only `update`; merged with the drop's
+  full `before`, every field the diff omits decodes as removed. An operation that
+  keeps an asset's identity puts it and never deletes it.
 - **Customer points: put before drop.** The moment applier does the opposite for
   customer points — puts at step 8, deletes at step 9 — so an id in both ends up
   *deleted*. Emitting `putCustomerPoints` first folds update-then-delete into a
