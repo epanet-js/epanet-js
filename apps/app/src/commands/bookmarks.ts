@@ -8,9 +8,9 @@ import {
   newBookmark,
   removeItem,
   renameItem,
-} from "src/lib/selection-sets";
+} from "src/lib/collections";
 import { MapContext } from "src/map";
-import { bookmarksAtom } from "src/state/selection-sets";
+import { bookmarksAtom } from "src/state/collections";
 import type { BBox } from "src/types";
 
 export const useAddBookmark = () => {

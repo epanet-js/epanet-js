@@ -21,7 +21,7 @@ export type Panel =
     })
   | (Common & { type: "hgl-profile" })
   | (Common & { type: "network-review" })
-  | (Common & { type: "selection-sets" });
+  | (Common & { type: "collections" });
 
 export type PanelType = Panel["type"];
 

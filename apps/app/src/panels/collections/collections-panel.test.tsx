@@ -11,8 +11,8 @@ import { MapContext } from "src/map";
 import { USelection } from "src/selection";
 import { Store } from "src/state";
 import { selectionAtom } from "src/state/selection";
-import { bookmarksAtom, selectionSetsAtom } from "src/state/selection-sets";
-import { SelectionSetsPanel } from "./selection-sets-panel";
+import { bookmarksAtom, selectionSetsAtom } from "src/state/collections";
+import { CollectionsPanel } from "./collections-panel";
 
 const zoomTo = vi.fn();
 vi.mock("src/hooks/use-zoom-to", () => ({ useZoomTo: () => zoomTo }));
@@ -47,7 +47,7 @@ const renderPanel = (store: Store) =>
     <JotaiProvider store={store}>
       <TooltipProvider>
         <MapContext.Provider value={aFakeMap as never}>
-          <SelectionSetsPanel />
+          <CollectionsPanel />
         </MapContext.Provider>
       </TooltipProvider>
     </JotaiProvider>,
@@ -72,7 +72,7 @@ beforeEach(() => {
   zoomTo.mockClear();
 });
 
-describe("SelectionSetsPanel", () => {
+describe("CollectionsPanel", () => {
   describe("saving a selection set", () => {
     it("cannot save when nothing is selected", () => {
       const store = aStore();
@@ -258,7 +258,7 @@ describe("SelectionSetsPanel", () => {
       focusList("Downtown loop");
       await userEvent.keyboard("{ArrowDown}");
       const heading = screen
-        .getByRole("button", { name: /^selections/i })
+        .getByRole("button", { name: /^selection sets/i })
         .closest("[data-section-type]") as HTMLElement;
       expect(heading).toHaveClass("bg-base-hover");
 

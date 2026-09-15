@@ -9,10 +9,10 @@ import {
   newSelectionSet,
   removeItem,
   renameItem,
-} from "src/lib/selection-sets";
+} from "src/lib/collections";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { selectionAtom } from "src/state/selection";
-import { selectionSetsAtom } from "src/state/selection-sets";
+import { selectionSetsAtom } from "src/state/collections";
 
 export const MIN_SELECTION_SET_SIZE = 2;
 

@@ -4,7 +4,7 @@ import {
   type SelectionSet,
   initializeBookmarks,
   initializeSelectionSets,
-} from "src/lib/selection-sets";
+} from "src/lib/collections";
 
 export const selectionSetsAtom = atom<SelectionSet[]>(
   initializeSelectionSets(),

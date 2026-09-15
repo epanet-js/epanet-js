@@ -21,7 +21,7 @@ describe("useDefaultPanels", () => {
     expect(dockedPanels(result.current).left).toEqual(["network-review"]);
   });
 
-  it("leaves the selections panel out while its flag is off", () => {
+  it("leaves the collections panel out while its flag is off", () => {
     stubFeatureOff("FLAG_SELECTION_SETS");
 
     const { result } = renderHook(() => useDefaultPanels());
@@ -29,14 +29,14 @@ describe("useDefaultPanels", () => {
     expect(dockedPanels(result.current).left).toEqual(["network-review"]);
   });
 
-  it("seeds the selections panel beside the network review once its flag is on", () => {
+  it("seeds the collections panel beside the network review once its flag is on", () => {
     stubFeaturesOn(["FLAG_SELECTION_SETS"]);
 
     const { result } = renderHook(() => useDefaultPanels());
 
     expect(dockedPanels(result.current).left).toEqual([
       "network-review",
-      "selection-sets",
+      "collections",
     ]);
   });
 

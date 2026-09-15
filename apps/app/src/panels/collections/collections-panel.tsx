@@ -28,9 +28,9 @@ import { useTranslate } from "src/hooks/use-translate";
 import { AddIcon, CloseIcon, RenameIcon } from "src/icons";
 import { USelection } from "src/selection";
 import { selectionAtom } from "src/state/selection";
-import { bookmarksAtom, selectionSetsAtom } from "src/state/selection-sets";
+import { bookmarksAtom, selectionSetsAtom } from "src/state/collections";
 
-type SectionType = "selections" | "bookmarks";
+type SectionType = "selectionSets" | "bookmarks";
 
 type ActionState =
   | { action: "creating"; section: SectionType }
@@ -43,7 +43,7 @@ type Row = RowKey & {
   name: string;
 };
 
-export const SelectionSetsPanel = () => {
+export const CollectionsPanel = () => {
   const translate = useTranslate();
   const selectionSets = useAtomValue(selectionSetsAtom);
   const bookmarks = useAtomValue(bookmarksAtom);
@@ -70,7 +70,7 @@ export const SelectionSetsPanel = () => {
   const { selectionRows, bookmarkRows, byNavId } = useMemo(() => {
     const selectionRows: Row[] = selectionSets.map((set, index) => ({
       navId: index + 1,
-      section: "selections",
+      section: "selectionSets",
       id: set.id,
       name: set.name,
     }));
@@ -112,7 +112,7 @@ export const SelectionSetsPanel = () => {
 
   const runRow = useCallback(
     (row: Row) => {
-      if (row.section === "selections") {
+      if (row.section === "selectionSets") {
         applySelectionSet({ setId: row.id, source: "panel" });
       } else {
         goToBookmark({ bookmarkId: row.id, source: "panel" });
@@ -165,12 +165,12 @@ export const SelectionSetsPanel = () => {
     if (!trimmedName) return true;
 
     if (actionState.action === "creating") {
-      if (actionState.section === "selections") {
+      if (actionState.section === "selectionSets") {
         saveSelectionSet({ name: trimmedName, source: "panel" });
       } else {
         addBookmark({ name: trimmedName, source: "panel" });
       }
-    } else if (actionState.section === "selections") {
+    } else if (actionState.section === "selectionSets") {
       renameSelectionSet({
         setId: actionState.id,
         name: trimmedName,
@@ -204,7 +204,7 @@ export const SelectionSetsPanel = () => {
 
     clearActionState();
     setFocusedRow(null);
-    if (row.section === "selections") {
+    if (row.section === "selectionSets") {
       deleteSelectionSet({ setId: row.id, source: "panel" });
     } else {
       deleteBookmark({ bookmarkId: row.id, source: "panel" });
@@ -254,59 +254,63 @@ export const SelectionSetsPanel = () => {
         isNavBlocked={!!actionState}
       >
         <CollapsibleListSection
-          sectionType="selections"
-          title="Selections"
+          sectionType="selectionSets"
+          title={translate("collections.selectionSets.title")}
           count={selectionSets.length}
-          isFocused={focusedSection === "selections"}
+          isFocused={focusedSection === "selectionSets"}
           action={{
             icon: <AddIcon />,
             label: canSaveSelection
-              ? "Save selection"
-              : "Save selection — select two or more items first",
+              ? translate("collections.selectionSets.save")
+              : translate("collections.selectionSets.saveDisabled"),
             disabled: !canSaveSelection,
           }}
           onAction={handleNew}
         >
           {selectionRows.map(renderRow)}
-          {isCreatingIn(actionState, "selections") && (
+          {isCreatingIn(actionState, "selectionSets") && (
             <ItemInput
-              label="New selection name"
+              label={translate("collections.selectionSets.newName")}
               value=""
-              placeholder="Selection name"
+              placeholder={translate(
+                "collections.selectionSets.namePlaceholder",
+              )}
               onCommit={handleNameChange}
               onCancel={clearActionState}
             />
           )}
           {selectionSets.length === 0 &&
-            !isCreatingIn(actionState, "selections") && (
+            !isCreatingIn(actionState, "selectionSets") && (
               <EmptyRow>
-                Select two or more assets on the map, then press + to save the
-                selection.
+                {translate("collections.selectionSets.empty")}
               </EmptyRow>
             )}
         </CollapsibleListSection>
 
         <CollapsibleListSection
           sectionType="bookmarks"
-          title="Bookmarks"
+          title={translate("collections.bookmarks.title")}
           count={bookmarks.length}
           isFocused={focusedSection === "bookmarks"}
-          action={{ icon: <AddIcon />, label: "Add bookmark" }}
+          action={{
+            icon: <AddIcon />,
+            label: translate("collections.bookmarks.add"),
+          }}
           onAction={handleNew}
         >
           {bookmarkRows.map(renderRow)}
           {isCreatingIn(actionState, "bookmarks") && (
             <ItemInput
-              label="New bookmark name"
+              label={translate("collections.bookmarks.newName")}
               value=""
-              placeholder="Bookmark name"
+              placeholder={translate("collections.bookmarks.namePlaceholder")}
               onCommit={handleNameChange}
               onCancel={clearActionState}
             />
           )}
           {bookmarks.length === 0 &&
             !isCreatingIn(actionState, "bookmarks") && (
-              <EmptyRow>Press + to name the area you are looking at.</EmptyRow>
+              <EmptyRow>{translate("collections.bookmarks.empty")}</EmptyRow>
             )}
         </CollapsibleListSection>
       </NavigableList>

@@ -1997,6 +1997,24 @@
       "trial": "The pipe library is a paid feature. Activate your free trial to get full access for 14 days—no credit card required."
     }
   },
+  "collections": {
+    "title": "Collections",
+    "selectionSets": {
+      "title": "Selection sets",
+      "save": "Save selection set",
+      "saveDisabled": "Save selection set — select two or more items first",
+      "newName": "New selection set name",
+      "namePlaceholder": "Selection set name",
+      "empty": "Select two or more assets on the map, then press + to save the selection."
+    },
+    "bookmarks": {
+      "title": "Bookmarks",
+      "add": "Add bookmark",
+      "newName": "New bookmark name",
+      "namePlaceholder": "Bookmark name",
+      "empty": "Press + to name the area you are looking at."
+    }
+  },
   "tabs": {
     "scrollLeft": "Scroll tabs left",
     "scrollRight": "Scroll tabs right"

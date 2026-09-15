@@ -82,11 +82,11 @@ import {
   simulationPlaybackAtom,
 } from "src/state/simulation-playback";
 import { zonesAtom } from "src/state/zones";
-import { bookmarksAtom, selectionSetsAtom } from "src/state/selection-sets";
+import { bookmarksAtom, selectionSetsAtom } from "src/state/collections";
 import {
   initializeBookmarks,
   initializeSelectionSets,
-} from "src/lib/selection-sets";
+} from "src/lib/collections";
 import { hglProfileAtom } from "src/state/hgl-profile";
 import { resetPanelsAtom } from "src/state/panels";
 import type { Panel } from "src/panels/panel";
