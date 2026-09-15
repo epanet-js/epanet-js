@@ -5,6 +5,7 @@ import { Button } from "src/components/elements";
 import { Action } from "src/components/action-button";
 import { useTranslate } from "src/hooks/use-translate";
 import { useZoomTo } from "src/hooks/use-zoom-to";
+import { useShowAssetPanel } from "src/commands/show-asset-panel";
 import { ErrorIcon, PointerClickIcon, WarningIcon } from "src/icons";
 import { usePermissions } from "src/hooks/use-permissions";
 import { PaywallFade, PaywallUpgradeBox } from "src/components/form/paywall";
@@ -63,6 +64,7 @@ export const ModelAttributesValidation = ({
     selectCustomerPoints,
   } = useSelection(selection);
   const zoomTo = useZoomTo();
+  const showAssetPanel = useShowAssetPanel();
   const [detailRuleId, setDetailRuleId] = useState<string | null>(null);
   const [selectedReviewCheck, setSelectedReviewCheck] = useAtom(
     selectedReviewCheckAtom,
@@ -179,11 +181,13 @@ export const ModelAttributesValidation = ({
       <ModelAttributesValidationDetail
         group={detailGroup}
         onGoBack={() => setDetailRuleId(null)}
-        onSelectEntity={(entityId) =>
-          selectEntity(detailGroup.entityType, entityId)
-        }
+        onSelectEntity={(entityId) => {
+          selectEntity(detailGroup.entityType, entityId);
+          showAssetPanel({ source: "modelAttributesValidation" });
+        }}
         onSelectAll={() => {
           selectEntities(detailGroup.entityType, detailGroup.entityIds);
+          showAssetPanel({ source: "modelAttributesValidation" });
           userTracking.capture({
             name: "networkReview.modelAttributesValidation.bulkSelected",
             ruleId: detailGroup.ruleId,
