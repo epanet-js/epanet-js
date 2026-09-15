@@ -9,6 +9,7 @@ import {
   GitPullRequestArrow,
   Bell,
   BookText,
+  Bookmark,
   ChartColumn,
   Check,
   ChevronDown,
@@ -53,6 +54,7 @@ import {
   Lasso,
   Link2,
   Link2Off,
+  ListChecks,
   ListPlus,
   Lock,
   Locate,
@@ -257,6 +259,8 @@ export const CustomAttributesIcon = icon(ListPlus);
 export const SelectPathIcon = icon(SquareDashedMousePointer);
 export const ChartLineIcon = icon(ChartLine);
 export const PipeLibraryIcon = icon(BookText);
+export const NetworkReviewIcon = icon(ListChecks);
+export const BookmarkIcon = icon(Bookmark);
 export { CustomZonesIcon as ZonesIcon } from "./custom-icons/zones-icon";
 
 export const ReverseIcon: React.FC<IconProps> = ({

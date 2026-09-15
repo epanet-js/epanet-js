@@ -2,6 +2,8 @@
 import { useEffect } from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { TooltipProvider } from "@radix-ui/react-tooltip";
+import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import "src/__helpers__/locale";
 import { setInitialState } from "src/__helpers__/state";
@@ -43,17 +45,20 @@ const aStore = () =>
 const renderDock = (store: Store) =>
   render(
     <CommandContainer store={store}>
-      <LeftDock />
+      <TooltipProvider>
+        <LeftDock />
+      </TooltipProvider>
     </CommandContainer>,
   );
 
 beforeEach(() => {
   stubUserTracking();
+  stubFeatureOn("FLAG_ACTIVITY_BAR_SWITCHER");
   mounts.length = 0;
 });
 
 describe("LeftDock", () => {
-  it("shows the panel without a tab strip when it holds only one", () => {
+  it("shows the panel without tabs when it holds only one", () => {
     const store = aStore();
     store.set(panelsAtom, [createNetworkReviewPanel()]);
 
@@ -63,7 +68,7 @@ describe("LeftDock", () => {
     expect(screen.queryByRole("tab")).not.toBeInTheDocument();
   });
 
-  it("shows a tab strip once it holds more than one", () => {
+  it("shows tabs once it holds more than one", () => {
     const store = aStore();
     store.set(panelsAtom, [createNetworkReviewPanel(), aTableMovedLeft("a")]);
     store.set(panelLayoutAtom, movedLeft("a"));

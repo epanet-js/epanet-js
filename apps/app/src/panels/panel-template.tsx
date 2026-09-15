@@ -29,6 +29,7 @@ export type PanelDescriptionContext = PanelLabelContext & {
 
 export type PanelTemplate<T extends PanelType> = {
   component: ComponentType<{ panel: PanelOfType<T> }>;
+  icon: ComponentType<{ panel: PanelOfType<T> }>;
   buildLabel: (panel: PanelOfType<T>, context: PanelLabelContext) => string;
   buildDescription?: (
     panel: PanelOfType<T>,
@@ -82,6 +83,11 @@ export const panelDescription = (
 export const PanelContent = ({ panel }: { panel: Panel }) => {
   const Component = panelFor(panel).component;
   return <Component panel={panel} />;
+};
+
+export const PanelIcon = ({ panel }: { panel: Panel }) => {
+  const Icon = panelFor(panel).icon;
+  return <Icon panel={panel} />;
 };
 
 export const contentStateFor = <T extends PanelType>(
