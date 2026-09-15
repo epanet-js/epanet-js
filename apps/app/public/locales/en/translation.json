@@ -2001,6 +2001,7 @@
       "title": "Selection sets",
       "current": "Current selection",
       "nothingSelected": "Nothing selected",
+      "save": "Save selection set",
       "selectOnly": "Select only",
       "newName": "New selection set name",
       "namePlaceholder": "Selection set name"
@@ -2008,6 +2009,7 @@
     "bookmarks": {
       "title": "Bookmarks",
       "current": "Current map area",
+      "add": "Add bookmark",
       "newName": "New bookmark name",
       "namePlaceholder": "Bookmark name"
     }

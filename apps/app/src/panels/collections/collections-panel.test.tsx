@@ -161,6 +161,48 @@ describe("CollectionsPanel", () => {
     });
   });
 
+  describe("adding from a section heading", () => {
+    it("starts naming a selection set from the heading", async () => {
+      const store = aStore();
+      store.set(selectionAtom, USelection.fromAssetIds([1]));
+      renderPanel(store);
+
+      await userEvent.click(
+        screen.getByRole("button", { name: "Save selection set" }),
+      );
+
+      expect(screen.queryByText("Current selection")).not.toBeInTheDocument();
+      expect(screen.getByRole("textbox")).toHaveFocus();
+    });
+
+    it("cannot add a selection set from the heading while nothing is selected", () => {
+      const store = aStore();
+      renderPanel(store);
+
+      expect(
+        screen.getByRole("button", { name: "Save selection set" }),
+      ).toBeDisabled();
+    });
+
+    it("opens a collapsed section to name a bookmark from its heading", async () => {
+      const store = aStore();
+      renderPanel(store);
+      await userEvent.click(addBookmarkButton());
+      await nameIt("Downtown");
+      await userEvent.click(
+        screen.getByRole("button", { name: /^bookmarks/i }),
+      );
+      expect(screen.queryByText("Downtown")).not.toBeInTheDocument();
+
+      await userEvent.click(
+        screen.getByRole("button", { name: "Add bookmark" }),
+      );
+
+      expect(screen.getByText("Downtown")).toBeInTheDocument();
+      expect(screen.getByRole("textbox")).toHaveFocus();
+    });
+  });
+
   describe("applying a selection set", () => {
     it("takes over the current selection", async () => {
       const store = aStore();

@@ -199,6 +199,7 @@ export const CollectionsPanel = () => {
 
   const handleNew = (section: SectionType) => {
     setActionState({ action: "creating", section });
+    listRef.current?.openSection(section);
   };
 
   const handleAction = (action: string, item: { id: number }) => {
@@ -276,6 +277,12 @@ export const CollectionsPanel = () => {
           title={translate("collections.selectionSets.title")}
           count={selectionSets.length}
           isFocused={focusedSection === "selectionSets"}
+          action={{
+            icon: <AddIcon />,
+            label: translate("collections.selectionSets.save"),
+            disabled: !canSaveSelection,
+          }}
+          onAction={() => handleNew("selectionSets")}
         >
           {selectionRows.map(renderRow)}
           {isCreatingIn(actionState, "selectionSets") ? (
@@ -307,6 +314,11 @@ export const CollectionsPanel = () => {
           title={translate("collections.bookmarks.title")}
           count={bookmarks.length}
           isFocused={focusedSection === "bookmarks"}
+          action={{
+            icon: <AddIcon />,
+            label: translate("collections.bookmarks.add"),
+          }}
+          onAction={() => handleNew("bookmarks")}
         >
           {bookmarkRows.map(renderRow)}
           {isCreatingIn(actionState, "bookmarks") ? (
