@@ -18,6 +18,7 @@ const REMOTE_SETPOINT_PRV_FUNCTION =
         local max_setting = node(upstreamId).pressure
         if proposed_setting > max_setting then
             proposed_setting = max_setting
+            print(string.format("WARNING: Can't regulate Node %s\\n                          over %f (requested %f)", nodeId, max_setting, target))
         end
 
         if math.abs(proposed_setting - current_setting) > 0.001 then
