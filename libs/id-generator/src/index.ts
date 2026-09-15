@@ -1,3 +1,5 @@
+export type IdPool = "asset" | "pattern" | "curve" | "zone";
+
 export interface IdGenerator {
   get totalGenerated(): number;
   newId(): number;

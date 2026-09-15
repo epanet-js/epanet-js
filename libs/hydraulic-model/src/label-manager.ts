@@ -1,5 +1,6 @@
 import { Asset } from "./asset-types";
 import { MAX_CUSTOMER_POINT_LABEL_LENGTH } from "./customer-points";
+import { sharesIdPool } from "./id-pools";
 
 export type LabelType = Asset["type"] | "pattern" | "curve" | "customerPoint";
 
@@ -114,7 +115,7 @@ export class LabelManager {
     const normalizedLabel = this.normalizeLabel(label);
 
     const entries = this.labelToEntries.get(normalizedLabel) || [];
-    if (entries.some((e) => e.id === id)) return;
+    if (entries.some((e) => e.id === id && sharesIdPool(e.type, type))) return;
 
     this.labelToEntries.set(normalizedLabel, [...entries, { id, type }]);
   }
@@ -221,7 +222,9 @@ export class LabelManager {
     const normalizedLabel = this.normalizeLabel(label);
 
     const entries = this.labelToEntries.get(normalizedLabel) || [];
-    const filtered = entries.filter((e) => e.id !== id);
+    const filtered = entries.filter(
+      (e) => !(e.id === id && sharesIdPool(e.type, type)),
+    );
     if (filtered.length === 0) {
       this.labelToEntries.delete(normalizedLabel);
     } else {

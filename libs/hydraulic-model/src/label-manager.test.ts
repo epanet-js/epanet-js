@@ -54,6 +54,48 @@ describe("label manager", () => {
     expect(labelManager.count("LABEL_1")).toEqual(1);
   });
 
+  it("registers the same label and id in different id pools", () => {
+    const labelManager = new LabelManager();
+
+    labelManager.register("1", "pattern", 1);
+    labelManager.register("1", "junction", 1);
+
+    expect(labelManager.count("1")).toEqual(2);
+    expect(labelManager.getIdByLabel("1", "pattern")).toEqual(1);
+    expect(labelManager.getIdByLabel("1", "junction")).toEqual(1);
+  });
+
+  it("only registers once the same id within an id pool", () => {
+    const labelManager = new LabelManager();
+
+    labelManager.register("L", "junction", 5);
+    labelManager.register("L", "tank", 5);
+
+    expect(labelManager.count("L")).toEqual(1);
+  });
+
+  it("treats assets and customer points as the same id pool", () => {
+    const labelManager = new LabelManager();
+
+    labelManager.register("X", "junction", 7);
+    labelManager.register("X", "customerPoint", 7);
+
+    expect(labelManager.count("X")).toEqual(1);
+  });
+
+  it("removes only the entry of the given id pool", () => {
+    const labelManager = new LabelManager();
+
+    labelManager.register("1", "pattern", 1);
+    labelManager.register("1", "junction", 1);
+
+    labelManager.remove("1", "pattern", 1);
+
+    expect(labelManager.count("1")).toEqual(1);
+    expect(labelManager.getIdByLabel("1", "junction")).toEqual(1);
+    expect(labelManager.getIdByLabel("1", "pattern")).toBeUndefined();
+  });
+
   it("can delete a previous label", () => {
     const labelManager = new LabelManager();
     const firstId = anId();

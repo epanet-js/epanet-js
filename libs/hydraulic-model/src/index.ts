@@ -12,6 +12,7 @@ export * from "./asset-types/types";
 export * from "./asset-types/valve";
 export * from "./asset-types/defaults-spec";
 export * from "./label-manager";
+export * from "./id-pools";
 export * from "./curves";
 export * from "./patterns";
 export * from "./pipe-materials";
