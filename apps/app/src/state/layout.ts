@@ -41,13 +41,6 @@ export const defaultSplits: Splits = {
 };
 export const splitsAtom = atom<Splits>(defaultSplits);
 
-export enum TabOption {
-  Asset = "Asset",
-  Map = "Map",
-}
-
-export const tabAtom = atom<TabOption>(TabOption.Asset);
-
 export type MultiAssetPanelCollapse = {
   junction: boolean;
   pipe: boolean;

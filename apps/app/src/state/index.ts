@@ -40,8 +40,6 @@ export {
   MAX_SPLIT,
   defaultSplits,
   splitsAtom,
-  TabOption,
-  tabAtom,
   multiAssetPanelCollapseAtom,
   assetPanelSectionsExpandedAtom,
 } from "src/state/layout";

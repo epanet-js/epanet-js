@@ -1030,6 +1030,11 @@ type SimulationReportAssetClicked = {
   assetType: Asset["type"] | null;
 };
 
+type AssetPanelOpened = {
+  name: "assetPanel.opened";
+  source: "draw" | "modelAttributesValidation";
+};
+
 type NetworkReviewOpened = {
   name: "networkReview.opened";
   source: "auto";
@@ -1531,6 +1536,7 @@ export type UserEvent =
   | ImportCustomerPointsDataSelectDemandProperty
   | ImportCustomerPointsDataSelectLabelProperty
   | ImportCustomerPointsDataSelectPatternProperty
+  | AssetPanelOpened
   | NetworkReviewOpened
   | NetworkReviewChecked
   | NetworkReviewBack

@@ -6,10 +6,10 @@ import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { splitsAtom } from "src/state/layout";
 import { createAssetPanel } from "src/panels/asset-panel/create-panel";
 import { createMapStylingPanel } from "src/panels/map-styling-editor/create-panel";
-import { panelsAtom } from "src/state/panels";
+import { activatePanelAtom, activePanelIn, panelsAtom } from "src/state/panels";
 import { Store } from "src/state";
 import { CommandContainer } from "./__helpers__/command-container";
-import { useShowAssetPanel } from "./show-asset-panel";
+import { useActivateAssetPanel } from "./activate-asset-panel";
 
 const aStore = () =>
   setInitialState({
@@ -20,35 +20,42 @@ beforeEach(() => {
   stubUserTracking();
 });
 
-describe("useShowAssetPanel", () => {
-  it("opens the side bar holding the asset panel", async () => {
+describe("useActivateAssetPanel", () => {
+  it("brings the asset panel forward over the map styling", async () => {
+    const store = aStore();
+    store.set(panelsAtom, [createAssetPanel(), createMapStylingPanel()]);
+    store.set(activatePanelAtom, "map-styling");
+
+    await activate(store);
+
+    expect(store.get(activePanelIn("right"))?.id).toEqual("asset");
+  });
+
+  it("leaves a closed side bar closed", async () => {
     const store = aStore();
     store.set(panelsAtom, [createAssetPanel(), createMapStylingPanel()]);
     store.set(splitsAtom, { ...store.get(splitsAtom), rightOpen: false });
 
-    await show(store);
+    await activate(store);
 
-    expect(store.get(splitsAtom).rightOpen).toBe(true);
+    expect(store.get(splitsAtom).rightOpen).toBe(false);
   });
 });
 
 const Trigger = () => {
-  const showAssetPanel = useShowAssetPanel();
+  const activateAssetPanel = useActivateAssetPanel();
   return (
-    <button
-      aria-label="show"
-      onClick={() => showAssetPanel({ source: "draw" })}
-    >
-      Show
+    <button aria-label="activate" onClick={activateAssetPanel}>
+      Activate
     </button>
   );
 };
 
-const show = async (store: Store) => {
+const activate = async (store: Store) => {
   render(
     <CommandContainer store={store}>
       <Trigger />
     </CommandContainer>,
   );
-  await userEvent.click(screen.getByRole("button", { name: "show" }));
+  await userEvent.click(screen.getByRole("button", { name: "activate" }));
 };

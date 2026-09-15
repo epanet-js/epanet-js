@@ -1,15 +1,20 @@
 import { useSetAtom } from "jotai";
 import { useCallback } from "react";
-import { TabOption, tabAtom } from "src/state/layout";
-import { activatePanelAtom } from "src/state/panels";
-import { ASSET_PANEL_ID } from "src/panels/asset-panel/create-panel";
+import { useUserTracking } from "src/infra/user-tracking";
+import { splitsAtom } from "src/state/layout";
+import { useActivateAssetPanel } from "./activate-asset-panel";
 
 export const useShowAssetPanel = () => {
-  const setTab = useSetAtom(tabAtom);
-  const activatePanel = useSetAtom(activatePanelAtom);
+  const setSplits = useSetAtom(splitsAtom);
+  const activateAssetPanel = useActivateAssetPanel();
+  const userTracking = useUserTracking();
 
-  return useCallback(() => {
-    setTab(TabOption.Asset);
-    activatePanel(ASSET_PANEL_ID);
-  }, [setTab, activatePanel]);
+  return useCallback(
+    ({ source }: { source: "draw" | "modelAttributesValidation" }) => {
+      userTracking.capture({ name: "assetPanel.opened", source });
+      setSplits((s) => (s.rightOpen ? s : { ...s, rightOpen: true }));
+      activateAssetPanel();
+    },
+    [setSplits, activateAssetPanel, userTracking],
+  );
 };

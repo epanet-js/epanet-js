@@ -8,16 +8,14 @@ import type { Panel } from "./panel";
 
 export const useDefaultPanels = () => {
   const isSelectionSetsOn = useFeatureFlag("FLAG_SELECTION_SETS");
-  const isAssetPanelAloneOn = useFeatureFlag("FLAG_ASSET_PANEL_ALONE");
 
   return useCallback(
     (): Panel[] => [
       createNetworkReviewPanel(),
       ...(isSelectionSetsOn ? [createCollectionsPanel()] : []),
-      ...(isAssetPanelAloneOn
-        ? [createAssetPanel(), createMapStylingPanel()]
-        : []),
+      createAssetPanel(),
+      createMapStylingPanel(),
     ],
-    [isSelectionSetsOn, isAssetPanelAloneOn],
+    [isSelectionSetsOn],
   );
 };

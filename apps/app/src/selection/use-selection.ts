@@ -1,19 +1,19 @@
 import { useSetAtom } from "jotai";
 import { USelection } from "./selection";
 import type { Sel } from "./types";
-import { useShowAssetPanel } from "src/commands/show-asset-panel";
+import { useActivateAssetPanel } from "src/commands/activate-asset-panel";
 import { selectionAtom } from "src/state/selection";
 import { Asset, AssetId } from "src/hydraulic-model";
 import { useUserTracking } from "src/infra/user-tracking";
 
 export const useSelection = (selection: Sel) => {
   const setSelection = useSetAtom(selectionAtom);
-  const showAssetPanel = useShowAssetPanel();
+  const activateAssetPanel = useActivateAssetPanel();
   const userTracking = useUserTracking();
 
   const toggleSingleSelection = (id: AssetId, _type: Asset["type"]) => {
     setSelection(USelection.toggleSingleAsset(selection, id));
-    showAssetPanel();
+    activateAssetPanel();
   };
 
   const extendSelection = (assetId: AssetId | AssetId[]) => {
@@ -28,7 +28,7 @@ export const useSelection = (selection: Sel) => {
       operation: Array.isArray(assetId) ? "bulk_add" : "single_add",
     });
     setSelection(newSelection);
-    showAssetPanel();
+    activateAssetPanel();
   };
 
   const isSelected = (assetId: AssetId) => {
@@ -37,7 +37,7 @@ export const useSelection = (selection: Sel) => {
 
   const selectAsset = (assetId: AssetId) => {
     setSelection(USelection.singleAsset(assetId));
-    showAssetPanel();
+    activateAssetPanel();
   };
 
   const selectAssets = (assetIds: AssetId[]) => {
@@ -47,12 +47,12 @@ export const useSelection = (selection: Sel) => {
       operation: "new",
     });
     setSelection(USelection.fromAssetIds(assetIds));
-    showAssetPanel();
+    activateAssetPanel();
   };
 
   const selectCustomerPoint = (customerPointId: number) => {
     setSelection(USelection.singleCustomerPoint(customerPointId));
-    showAssetPanel();
+    activateAssetPanel();
   };
 
   const selectCustomerPoints = (customerPointIds: number[]) => {
@@ -62,7 +62,7 @@ export const useSelection = (selection: Sel) => {
       operation: "new",
     });
     setSelection(USelection.fromIds([], customerPointIds));
-    showAssetPanel();
+    activateAssetPanel();
   };
 
   const extendCustomerPointSelection = (customerPointId: number | number[]) => {
@@ -78,14 +78,14 @@ export const useSelection = (selection: Sel) => {
       operation: Array.isArray(customerPointId) ? "bulk_add" : "single_add",
     });
     setSelection(next);
-    showAssetPanel();
+    activateAssetPanel();
   };
 
   const toggleCustomerPointSelection = (customerPointId: number) => {
     setSelection(
       USelection.toggleId(selection, "customerPoint", customerPointId),
     );
-    showAssetPanel();
+    activateAssetPanel();
   };
 
   const removeCustomerPointFromSelection = (
