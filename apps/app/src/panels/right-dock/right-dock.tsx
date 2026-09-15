@@ -38,7 +38,7 @@ export const RightDock = memo(function RightDockInner() {
   const translate = useTranslate();
   const userTracking = useUserTracking();
   const reorderPanel = useReorderPanel();
-  const isAssetPanelAloneOn = useFeatureFlag("FLAG_ASSET_PANEL_ALONE");
+  const isActivityBarSwitcher = useFeatureFlag("FLAG_ACTIVITY_BAR_SWITCHER");
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
@@ -88,7 +88,7 @@ export const RightDock = memo(function RightDockInner() {
     </div>
   );
 
-  if (!isAssetPanelAloneOn) {
+  if (!isActivityBarSwitcher) {
     return (
       <div className="absolute inset-0 flex flex-col">
         {panels.length > 1 && (
