@@ -13,6 +13,7 @@ import {
   useRenameSelectionSet,
   useSaveSelectionSet,
 } from "src/commands/selection-sets";
+import { Button } from "src/components/elements";
 import {
   CollapsibleListSection,
   EditableListItem,
@@ -189,9 +190,8 @@ export const CollectionsPanel = () => {
     return false;
   };
 
-  const handleNew = (section: string) => {
-    setActionState({ action: "creating", section: section as SectionType });
-    listRef.current?.openSection(section);
+  const handleNew = (section: SectionType) => {
+    setActionState({ action: "creating", section });
   };
 
   const handleAction = (action: string, item: { id: number }) => {
@@ -260,17 +260,9 @@ export const CollectionsPanel = () => {
           title={translate("collections.selectionSets.title")}
           count={selectionSets.length}
           isFocused={focusedSection === "selectionSets"}
-          action={{
-            icon: <AddIcon />,
-            label: canSaveSelection
-              ? translate("collections.selectionSets.save")
-              : translate("collections.selectionSets.saveDisabled"),
-            disabled: !canSaveSelection,
-          }}
-          onAction={handleNew}
         >
           {selectionRows.map(renderRow)}
-          {isCreatingIn(actionState, "selectionSets") && (
+          {isCreatingIn(actionState, "selectionSets") ? (
             <ItemInput
               label={translate("collections.selectionSets.newName")}
               value=""
@@ -280,13 +272,17 @@ export const CollectionsPanel = () => {
               onCommit={handleNameChange}
               onCancel={clearActionState}
             />
+          ) : (
+            <CurrentStateRow
+              label={
+                canSaveSelection
+                  ? translate("collections.selectionSets.current")
+                  : translate("collections.selectionSets.nothingSelected")
+              }
+              isDisabled={!canSaveSelection}
+              onAdd={() => handleNew("selectionSets")}
+            />
           )}
-          {selectionSets.length === 0 &&
-            !isCreatingIn(actionState, "selectionSets") && (
-              <EmptyRow>
-                {translate("collections.selectionSets.empty")}
-              </EmptyRow>
-            )}
         </CollapsibleListSection>
 
         <CollapsibleListSection
@@ -294,14 +290,9 @@ export const CollectionsPanel = () => {
           title={translate("collections.bookmarks.title")}
           count={bookmarks.length}
           isFocused={focusedSection === "bookmarks"}
-          action={{
-            icon: <AddIcon />,
-            label: translate("collections.bookmarks.add"),
-          }}
-          onAction={handleNew}
         >
           {bookmarkRows.map(renderRow)}
-          {isCreatingIn(actionState, "bookmarks") && (
+          {isCreatingIn(actionState, "bookmarks") ? (
             <ItemInput
               label={translate("collections.bookmarks.newName")}
               value=""
@@ -309,19 +300,45 @@ export const CollectionsPanel = () => {
               onCommit={handleNameChange}
               onCancel={clearActionState}
             />
+          ) : (
+            <CurrentStateRow
+              label={translate("collections.bookmarks.current")}
+              onAdd={() => handleNew("bookmarks")}
+            />
           )}
-          {bookmarks.length === 0 &&
-            !isCreatingIn(actionState, "bookmarks") && (
-              <EmptyRow>{translate("collections.bookmarks.empty")}</EmptyRow>
-            )}
         </CollapsibleListSection>
       </NavigableList>
     </div>
   );
 };
 
-const EmptyRow = ({ children }: { children: React.ReactNode }) => (
-  <li className="pt-0.5 px-2 pb-2 text-size-base text-subtle">{children}</li>
+const CurrentStateRow = ({
+  label,
+  isDisabled = false,
+  onAdd,
+}: {
+  label: string;
+  isDisabled?: boolean;
+  onAdd: () => void;
+}) => (
+  <li
+    className={`flex items-center text-sm h-8 min-w-0 rounded-sm ${
+      isDisabled ? "" : "hover:bg-base-hover"
+    }`}
+  >
+    <Button
+      variant="quiet/list"
+      size="sm"
+      disabled={isDisabled}
+      onClick={onAdd}
+      className="flex-1 min-w-0 self-stretch justify-start hover:bg-transparent dark:hover:bg-transparent"
+    >
+      <span className="flex items-center gap-1 min-w-0 text-subtle">
+        <AddIcon />
+        <span className="truncate">{label}</span>
+      </span>
+    </Button>
+  </li>
 );
 
 const isSameRow = (a: RowKey, b: RowKey) =>

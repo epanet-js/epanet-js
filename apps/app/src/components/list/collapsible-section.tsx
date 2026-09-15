@@ -12,7 +12,7 @@ type CollapsibleListSectionProps = {
   isFocused: boolean;
   onToggle?: () => void;
   children: React.ReactNode;
-  action?: { label: string; icon: React.ReactNode; disabled?: boolean };
+  action?: { label: string; icon: React.ReactNode };
   onAction?: (sectionType: string) => void;
   readOnly?: boolean;
 };
@@ -57,7 +57,6 @@ export const CollapsibleListSection = ({
             variant="quiet"
             size="xs"
             aria-label={action.label}
-            disabled={action.disabled}
             onClick={() => onAction(sectionType)}
             className="h-6 w-6 hover:bg-base-hover"
           >

@@ -54,9 +54,9 @@ const renderPanel = (store: Store) =>
   );
 
 const saveButton = () =>
-  screen.getByRole("button", { name: /^save selection/i });
+  screen.getByRole("button", { name: "Current selection" });
 const addBookmarkButton = () =>
-  screen.getByRole("button", { name: "Add bookmark" });
+  screen.getByRole("button", { name: "Current map area" });
 
 const nameIt = async (name: string) => {
   await userEvent.keyboard(name);
@@ -76,43 +76,40 @@ beforeEach(() => {
 
 describe("CollectionsPanel", () => {
   describe("saving a selection set", () => {
-    it("cannot save when nothing is selected", () => {
+    it("shows nothing selected and cannot save while nothing is selected", () => {
       const store = aStore();
       renderPanel(store);
 
-      expect(saveButton()).toBeDisabled();
+      expect(
+        screen.getByRole("button", { name: "Nothing selected" }),
+      ).toBeDisabled();
     });
 
-    it("cannot save a single asset", () => {
+    it("offers the current selection once a single asset is selected", () => {
       const store = aStore();
       store.set(selectionAtom, USelection.fromAssetIds([1]));
       renderPanel(store);
 
-      expect(saveButton()).toBeDisabled();
+      expect(saveButton()).toBeEnabled();
     });
 
-    it("cannot save a single customer point", () => {
+    it("can save a single customer point", () => {
       const store = aStore();
       store.set(selectionAtom, USelection.fromIds([], [7]));
       renderPanel(store);
 
-      expect(saveButton()).toBeDisabled();
-    });
-
-    it("can save once two assets are selected", () => {
-      const store = aStore();
-      store.set(selectionAtom, USelection.fromAssetIds([1, 2]));
-      renderPanel(store);
-
       expect(saveButton()).toBeEnabled();
     });
 
-    it("can save an asset together with a customer point", () => {
+    it("turns the current selection into a name input when its text is clicked", async () => {
       const store = aStore();
-      store.set(selectionAtom, USelection.fromIds([1], [7]));
+      store.set(selectionAtom, USelection.fromAssetIds([1]));
       renderPanel(store);
 
-      expect(saveButton()).toBeEnabled();
+      await userEvent.click(screen.getByText("Current selection"));
+
+      expect(screen.queryByText("Current selection")).not.toBeInTheDocument();
+      expect(screen.getByRole("textbox")).toHaveFocus();
     });
 
     it("lists the set under the name the user gave it", async () => {
@@ -372,13 +369,10 @@ describe("CollectionsPanel", () => {
     });
   });
 
-  it("explains how to fill each list while both are empty", () => {
+  it("offers the current map area as a bookmark", () => {
     const store = aStore();
     renderPanel(store);
 
-    expect(
-      screen.getByText(/press \+ to save the selection/i),
-    ).toBeInTheDocument();
-    expect(screen.getByText(/press \+ to name the area/i)).toBeInTheDocument();
+    expect(addBookmarkButton()).toBeEnabled();
   });
 });

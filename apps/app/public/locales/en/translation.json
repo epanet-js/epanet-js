@@ -1999,18 +1999,16 @@
     "title": "Collections",
     "selectionSets": {
       "title": "Selection sets",
-      "save": "Save selection set",
-      "saveDisabled": "Save selection set — select two or more items first",
+      "current": "Current selection",
+      "nothingSelected": "Nothing selected",
       "newName": "New selection set name",
-      "namePlaceholder": "Selection set name",
-      "empty": "Select two or more assets on the map, then press + to save the selection."
+      "namePlaceholder": "Selection set name"
     },
     "bookmarks": {
       "title": "Bookmarks",
-      "add": "Add bookmark",
+      "current": "Current map area",
       "newName": "New bookmark name",
-      "namePlaceholder": "Bookmark name",
-      "empty": "Press + to name the area you are looking at."
+      "namePlaceholder": "Bookmark name"
     }
   },
   "tabs": {

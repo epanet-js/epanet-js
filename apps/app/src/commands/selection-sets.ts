@@ -14,7 +14,7 @@ import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { selectionAtom } from "src/state/selection";
 import { selectionSetsAtom } from "src/state/collections";
 
-export const MIN_SELECTION_SET_SIZE = 2;
+export const MIN_SELECTION_SET_SIZE = 1;
 
 export const useSaveSelectionSet = () => {
   const userTracking = useUserTracking();
