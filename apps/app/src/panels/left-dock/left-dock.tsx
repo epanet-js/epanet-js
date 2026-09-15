@@ -109,7 +109,7 @@ export const LeftDock = memo(function LeftDockInner() {
             </RailTabList>
           </DndContext>
         ) : (
-          <TabList>
+          <TabList className="border">
             {panels.map((entry) => (
               <Tab key={entry.id} value={entry.id}>
                 {labelOf(entry)}

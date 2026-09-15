@@ -8,24 +8,25 @@ import {
   useSensors,
   type DragEndEvent,
 } from "@dnd-kit/core";
-import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
+import { restrictToHorizontalAxis } from "@dnd-kit/modifiers";
 import {
   SortableContext,
-  verticalListSortingStrategy,
+  horizontalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { TabRoot } from "src/components/tab";
-import { RailTabList } from "src/components/rail-tab";
+import { TabList, TabRoot } from "src/components/tab";
 import { DefaultErrorBoundary } from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
 import { type PlacedPanel, activePanelIn, panelsIn } from "src/state/panels";
 import { useActivatePanel } from "src/commands/activate-panel";
 import { useReorderPanel } from "src/commands/reorder-panel";
+import { useClosePanel } from "src/commands/close-panel";
+import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { panelTrackingName } from "../panel";
-import { PanelIcon, panelLabel } from "../panel-template";
+import { panelDescription, panelLabel } from "../panel-template";
 import { PanelContent } from "../panel-template";
-import { PanelRailTab } from "../left-dock/panel-rail-tab";
+import { PanelTab } from "../bottom-dock/panel-tab";
 import { SideTabList } from "./side-tab-list";
 
 const rightPanelsAtom = panelsIn("right");
@@ -38,6 +39,8 @@ export const RightDock = memo(function RightDockInner() {
   const translate = useTranslate();
   const userTracking = useUserTracking();
   const reorderPanel = useReorderPanel();
+  const closePanel = useClosePanel();
+  const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const isActivityBarSwitcher = useFeatureFlag("FLAG_ACTIVITY_BAR_SWITCHER");
 
   const sensors = useSensors(
@@ -56,6 +59,12 @@ export const RightDock = memo(function RightDockInner() {
     (entry: PlacedPanel) =>
       panelLabel(entry.panel, entry.renamedTo, { translate }),
     [translate],
+  );
+
+  const descriptionOf = useCallback(
+    (entry: PlacedPanel) =>
+      panelDescription(entry.panel, { translate, hydraulicModel }),
+    [translate, hydraulicModel],
   );
 
   const handleTabChange = useCallback(
@@ -110,35 +119,35 @@ export const RightDock = memo(function RightDockInner() {
     <TabRoot
       value={activePanel?.id ?? undefined}
       onValueChange={handleTabChange}
-      orientation="vertical"
-      className="absolute inset-0 flex flex-row"
+      className="absolute inset-0 flex flex-col"
     >
-      {content}
       {panels.length > 1 && (
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
-          modifiers={[restrictToVerticalAxis]}
+          modifiers={[restrictToHorizontalAxis]}
           onDragEnd={handleDragEnd}
         >
-          <RailTabList side="right">
+          <TabList className="border-b">
             <SortableContext
               items={panels}
-              strategy={verticalListSortingStrategy}
+              strategy={horizontalListSortingStrategy}
             >
               {panels.map((entry) => (
-                <PanelRailTab
+                <PanelTab
                   key={entry.id}
                   id={entry.id}
-                  side="right"
                   label={labelOf(entry)}
-                  icon={<PanelIcon panel={entry.panel} />}
+                  description={descriptionOf(entry)}
+                  closable={entry.closable}
+                  onClose={closePanel}
                 />
               ))}
             </SortableContext>
-          </RailTabList>
+          </TabList>
         </DndContext>
       )}
+      {content}
     </TabRoot>
   );
 });

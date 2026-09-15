@@ -95,7 +95,7 @@ export const BottomDock = memo(function BottomDockInner() {
         modifiers={[restrictToHorizontalAxis]}
         onDragEnd={handleDragEnd}
       >
-        <TabList>
+        <TabList className="border-b">
           <SortableContext
             items={panels}
             strategy={horizontalListSortingStrategy}

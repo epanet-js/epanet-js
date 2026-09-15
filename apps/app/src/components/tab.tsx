@@ -115,7 +115,7 @@ export function TabList({
   }, []);
 
   return (
-    <div className="flex-none flex items-stretch border-b bg-popover border">
+    <div className={clsx("flex-none flex items-stretch bg-popover", className)}>
       {overflow.scrollable && (
         <ScrollControl
           label={translate("tabs.scrollLeft")}
@@ -129,10 +129,7 @@ export function TabList({
         <Tabs.List
           ref={listRef}
           onScroll={measure}
-          className={clsx(
-            "scroll-shadows-x-inner flex-1 flex overflow-x-auto overscroll-x-none scrollbar-hidden",
-            className,
-          )}
+          className="scroll-shadows-x-inner flex-1 flex overflow-x-auto overscroll-x-none scrollbar-hidden"
           {...props}
         >
           {children}
