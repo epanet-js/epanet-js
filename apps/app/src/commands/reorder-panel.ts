@@ -27,7 +27,10 @@ export const useReorderPanel = () => {
 
         set(reorderPanelAtom, { dock, activeId, overId });
         userTracking.capture({
-          name: "bottomPanel.tabReordered",
+          name:
+            dock === "left"
+              ? "leftPanel.tabReordered"
+              : "bottomPanel.tabReordered",
           panelType: panelTrackingName(entry.panel),
           fromIndex,
           toIndex,

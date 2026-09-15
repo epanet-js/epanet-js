@@ -59,10 +59,10 @@ Both receive `{ get, set, userTracking }` and the instance. `useActivatePanel` d
 
 ## Dragging tabs
 
-`PanelTab` makes the whole tab the drag handle, which puts dnd-kit and Radix on the same element. Three things fall out of that, and each looks like a bug rather than a decision:
+`PanelTab` and `PanelRailTab` make the whole tab the drag handle, which puts dnd-kit and Radix on the same element. Three things fall out of that, and each looks like a bug rather than a decision:
 
-- **`PointerSensor` needs `activationConstraint: { distance: 4 }`.** The drag listeners sit on the `Tabs.Trigger` itself, so without a movement threshold they swallow the click and tabs stop switching. The click-to-activate tests in `bottom-dock.test.tsx` are the guard.
+- **`PointerSensor` needs `activationConstraint: { distance: 4 }`.** The drag listeners sit on the `Tabs.Trigger` itself, so without a movement threshold they swallow the click and tabs stop switching. The click-to-activate tests in `bottom-dock.test.tsx` and `left-dock.test.tsx` are the guard.
 - **`useSortable`'s `attributes` are deliberately not spread.** They carry `role="button"` and their own `tabIndex`, which displace the tab role and Radix's roving focus, and they advertise a space-bar interaction that only exists with a `KeyboardSensor` — which we do not register, because Radix already binds the arrow keys to move focus between tabs. Only `listeners` go on the tab. This is also why tabs cannot yet be reordered from the keyboard.
 - **Use `CSS.Translate.toString(transform)`, never `CSS.Transform.toString`.** dnd-kit scales the dragged element by `over.rect.width / activeNodeRect.width`, so a tab dragged across neighbours of different label widths visibly stretches and squashes. `Translate` drops the scale and keeps the movement.
 
-`DndContext` lives inside `TabRoot` so Radix's tab context is unbroken, and wraps only the tab strip.
+`DndContext` lives inside `TabRoot` so Radix's tab context is unbroken, and wraps only the tabs.

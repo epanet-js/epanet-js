@@ -1707,6 +1707,12 @@ export type UserEvent =
       source: "toolbar" | "shortcut";
     }
   | { name: "leftPanel.tabSwitched"; panelType: string }
+  | {
+      name: "leftPanel.tabReordered";
+      panelType: string;
+      fromIndex: number;
+      toIndex: number;
+    }
   | { name: "selectionSet.saved"; count: number; source: "panel" }
   | {
       name: "selectionSet.applied";

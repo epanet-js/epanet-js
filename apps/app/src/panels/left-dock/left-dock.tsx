@@ -1,17 +1,32 @@
 import { memo, useCallback } from "react";
 import { useAtomValue } from "jotai";
 import clsx from "clsx";
+import {
+  DndContext,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 import { Tab, TabList, TabRoot } from "src/components/tab";
 import { DefaultErrorBoundary } from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
 import { type PlacedPanel, activePanelIn, panelsIn } from "src/state/panels";
 import { useActivatePanel } from "src/commands/activate-panel";
+import { useReorderPanel } from "src/commands/reorder-panel";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useUserTracking } from "src/infra/user-tracking";
 import { panelTrackingName } from "../panel";
 import { PanelIcon, panelLabel } from "../panel-template";
 import { PanelContent } from "../panel-template";
-import { RailTab, RailTabList } from "src/components/rail-tab";
+import { RailTabList } from "src/components/rail-tab";
+import { PanelRailTab } from "./panel-rail-tab";
 
 const leftPanelsAtom = panelsIn("left");
 const activeLeftPanelAtom = activePanelIn("left");
@@ -23,6 +38,19 @@ export const LeftDock = memo(function LeftDockInner() {
   const translate = useTranslate();
   const userTracking = useUserTracking();
   const isActivityBarOn = useFeatureFlag("FLAG_ACTIVITY_BAR_SWITCHER");
+  const reorderPanel = useReorderPanel();
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+  );
+
+  const handleDragEnd = useCallback(
+    ({ active, over }: DragEndEvent) => {
+      if (!over || active.id === over.id) return;
+      reorderPanel(String(active.id), String(over.id));
+    },
+    [reorderPanel],
+  );
 
   const labelOf = useCallback(
     (entry: PlacedPanel) =>
@@ -58,16 +86,28 @@ export const LeftDock = memo(function LeftDockInner() {
     >
       {panels.length > 1 &&
         (isActivityBarOn ? (
-          <RailTabList>
-            {panels.map((entry) => (
-              <RailTab
-                key={entry.id}
-                id={entry.id}
-                label={labelOf(entry)}
-                icon={<PanelIcon panel={entry.panel} />}
-              />
-            ))}
-          </RailTabList>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            modifiers={[restrictToVerticalAxis]}
+            onDragEnd={handleDragEnd}
+          >
+            <RailTabList>
+              <SortableContext
+                items={panels}
+                strategy={verticalListSortingStrategy}
+              >
+                {panels.map((entry) => (
+                  <PanelRailTab
+                    key={entry.id}
+                    id={entry.id}
+                    label={labelOf(entry)}
+                    icon={<PanelIcon panel={entry.panel} />}
+                  />
+                ))}
+              </SortableContext>
+            </RailTabList>
+          </DndContext>
         ) : (
           <TabList>
             {panels.map((entry) => (
