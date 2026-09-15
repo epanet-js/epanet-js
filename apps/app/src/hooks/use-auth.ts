@@ -15,12 +15,13 @@ export type UseAuthHook = () => {
   user: User;
   signOut: (options?: { redirectUrl?: string }) => Promise<void>;
   reload: () => Promise<void>;
+  getToken: () => Promise<string | null>;
 };
 
 const AUTH_TIMEOUT_MS = 5000;
 
 const useAuthWithClerk: UseAuthHook = () => {
-  const { isSignedIn, userId, signOut, isLoaded } = useClerkAuth();
+  const { isSignedIn, userId, signOut, isLoaded, getToken } = useClerkAuth();
   const { user: clerkUser } = useClerkUser();
 
   const user: User = clerkUser
@@ -59,7 +60,7 @@ const useAuthWithClerk: UseAuthHook = () => {
     await clerkUser?.reload();
   }, [clerkUser]);
 
-  return { isSignedIn, isLoaded, userId, user, signOut, reload };
+  return { isSignedIn, isLoaded, userId, user, signOut, reload, getToken };
 };
 
 const useAuthWithTimeout: UseAuthHook = () => {
@@ -110,6 +111,7 @@ const useAuthNull: UseAuthHook = () => {
     user: nullUser,
     signOut: async () => {},
     reload: async () => {},
+    getToken: () => Promise.resolve(null),
   };
 };
 

@@ -69,5 +69,6 @@ export const useAuthMock: UseAuthHook = () => {
     signOut,
     isLoaded,
     reload,
+    getToken: () => Promise.resolve(isSignedIn ? "session-token" : null),
   };
 };

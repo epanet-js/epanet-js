@@ -28,15 +28,16 @@ export const useActivateTrial = () => {
   const translate = useTranslate();
   const [isLoading, setLoading] = useAtom(activateTrialLoadingAtom);
   const setRefusedEmails = useSetAtom(refusedTrialEmailsAtom);
-  const { user, reload } = useAuth();
+  const { user, reload, getToken } = useAuth();
   const userTracking = useUserTracking();
 
   const activateTrial = async (): Promise<boolean> => {
     setLoading(true);
     try {
+      const token = await getToken();
       const response = await fetch(`${billingUrl}/trial`, {
         method: "POST",
-        credentials: "include",
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (!response.ok) {
