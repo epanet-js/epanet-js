@@ -1,6 +1,5 @@
 import classed from "classed-components";
 import clsx from "clsx";
-import type { ClassValue } from "clsx";
 import { Field } from "formik";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import * as DD from "@radix-ui/react-dropdown-menu";
@@ -8,6 +7,15 @@ import * as CM from "@radix-ui/react-context-menu";
 import * as Popover from "@radix-ui/react-popover";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as S from "@radix-ui/react-switch";
+import {
+  sharedOutline,
+  sharedPadding,
+  sharedText,
+  styledButton,
+  type ButtonSide,
+  type ButtonSize,
+  type ButtonVariant,
+} from "@epanet-js/ui-kit";
 import { ErrorBoundary } from "src/infra/error-tracking";
 import React from "react";
 import { SUPPORT_EMAIL } from "src/lib/constants";
@@ -443,199 +451,10 @@ export const StyledItem = classed(DD.Item)(menuItemLike);
 export const DDSubTriggerItem = classed(DD.SubTrigger)(menuItemLike);
 export const CMItem = classed(CM.Item)(menuItemLike);
 
-export type B3Size = "xxs" | "xs" | "sm" | "md" | "lg" | "xl";
-export type B3Variant =
-  | "default"
-  | "primary"
-  | "blue"
-  | "quiet"
-  | "code"
-  | "quiet/mode"
-  | "quiet/list"
-  | "destructive"
-  | "danger"
-  | "danger-quiet"
-  | "ultra-quiet"
-  | "success";
-export type B3Side = "default" | "left" | "right" | "middle";
-
-export const sharedPadding = (
-  size: B3Size,
-  side: B3Side = "default",
-): ClassValue => ({
-  "p-0 text-xs rounded-sm": size === "xxs",
-  "py-0.5 px-1.5 text-xs rounded-sm": size === "xs",
-  "py-1 px-2 text-sm rounded-sm": size === "sm",
-  "py-1 px-3 text-md rounded-sm": size === "md",
-  "rounded-l-none": side === "right",
-  "rounded-r-none": side === "left",
-  "rounded-none": side === "middle",
-});
-
-export function sharedOutline(
-  variant: B3Variant,
-  disabled = false,
-): ClassValue {
-  return [
-    `
-    outline-hidden
-
-  `,
-    disabled
-      ? ""
-      : variant === "danger"
-        ? `focus-visible:ring-1
-    focus-visible:ring-offset-1
-    focus-visible:ring-error`
-        : variant === "blue"
-          ? `focus-visible:ring-1
-    focus-visible:ring-offset-1
-    focus-visible:ring-info`
-          : `focus-visible:ring-1
-    focus-visible:ring-offset-1
-    focus-visible:ring-accent`,
-
-    {
-      [`border border-accent`]: variant === "primary",
-      [`hover:border-accent-hover`]: variant === "primary" && !disabled,
-      [`border border-blue-500`]: variant === "blue",
-      [`border border-strong shadow-xs`]: variant === "default",
-      [`focus-visible:border-base hover:border-base`]:
-        variant === "default" && !disabled,
-      [`border border-red-200 dark:border-red-300`]: variant === "destructive",
-      [`focus-visible:border-red-500   dark:focus-visible:border-red-300
-    hover:border-red-300   dark:hover:border-red-300
-  `]: variant === "destructive" && !disabled,
-      [`border border-green-500`]: variant === "success",
-      [`border border-red-700`]: variant === "danger",
-    },
-  ];
-}
-
-const sharedBackground = (variant: B3Variant, disabled = false): ClassValue => {
-  switch (variant) {
-    case "primary":
-    case "code":
-      return [
-        `bg-accent`,
-        !disabled && `hover:bg-accent-hover hover:shadow-sm`,
-      ];
-    case "blue":
-      return [
-        `bg-blue-600`,
-        !disabled && `hover:bg-blue-700 dark:hover:bg-blue-500 hover:shadow-sm`,
-      ];
-    case "default":
-      return [`bg-base`, !disabled && `hover:bg-base-hover`];
-    case "quiet":
-      return !disabled && `hover:bg-base-hover`;
-    case "ultra-quiet":
-      return !disabled && `hover:bg-base-hover`;
-    case "quiet/mode":
-      return !disabled && `hover:bg-base-hover`;
-    case "quiet/list":
-      return !disabled && `hover:bg-base-hover`;
-    case "destructive":
-    case "danger-quiet":
-      return !disabled && `hover:bg-error-subtle`;
-    case "success":
-      return [
-        `bg-green-500`,
-        !disabled &&
-          `hover:bg-green-600 dark:hover:bg-green-400 hover:shadow-sm`,
-      ];
-    case "danger":
-      return [
-        `bg-red-700`,
-        !disabled && `hover:bg-red-600 dark:hover:bg-red-400 hover:shadow-sm`,
-      ];
-  }
-};
-
-const sharedText = (variant: B3Variant): ClassValue => {
-  switch (variant) {
-    case "quiet":
-    case "code":
-    case "quiet/mode":
-    case "quiet/list":
-    case "danger-quiet":
-    case "default": {
-      return "font-medium text-default";
-    }
-    case "ultra-quiet":
-      return "text-subtle hover:text-default";
-    case "primary": {
-      return "font-medium text-white";
-    }
-    case "blue": {
-      return "font-medium text-white";
-    }
-    case "destructive": {
-      return "font-medium text-error";
-    }
-    case "success": {
-      return "font-medium text-white";
-    }
-    case "danger": {
-      return "font-medium text-white";
-    }
-  }
-};
-
-export const styledButton = ({
-  size = "sm",
-  variant = "default",
-  disabled = false,
-  side = "default",
-  textAlign = "center",
-}: {
-  size?: B3Size | "full-width";
-  variant?: B3Variant;
-  disabled?: boolean;
-  side?: B3Side;
-  textAlign?: "start" | "center";
-}) =>
-  clsx(
-    variant === "quiet/list"
-      ? `
-    aria-expanded:bg-base-hover
-    aria-selected:bg-accent-tint
-    aria-selected:hover:bg-accent-tint
-    transition-colors
-    `
-      : variant === "quiet/mode"
-        ? `aria-expanded:bg-accent aria-expanded:text-white
-    data-[state=on]:bg-accent dark:data-[state=on]:bg-gray-900`
-        : variant === "primary"
-          ? `aria-expanded:bg-accent-hover
-    data-[state=on]:bg-accent-hover`
-          : variant === "blue"
-            ? `aria-expanded:bg-blue-700
-    data-[state=on]:bg-blue-700`
-            : `
-    aria-expanded:bg-base-hover
-    data-[state=on]:bg-base-hover`,
-    "disabled:opacity-50 disabled:cursor-not-allowed",
-    "transition-colors",
-    // Focus
-    `focus-visible:outline-hidden`,
-    // Sizing
-    sharedPadding(size === "full-width" ? "md" : size, side),
-    // Display
-    `inline-flex items-center gap-x-1`,
-    // Transition
-    // `transition-all`,
-    // Text
-    sharedText(variant),
-    // Outline
-    sharedOutline(variant, disabled),
-    sharedBackground(variant, disabled),
-    size === "full-width" &&
-      `flex-auto w-full ${textAlign === "start" ? "justify-start" : "justify-center"}`,
-    // Colored variants
-    variant === "danger-quiet" &&
-      `[&>svg]:text-error [&>svg]:hover:text-red-600 dark:[&>svg]:hover:text-red-400`,
-  );
+export type B3Size = ButtonSize;
+export type B3Variant = ButtonVariant;
+export type B3Side = ButtonSide;
+export { sharedPadding, sharedOutline, styledButton };
 
 export const Button = classed.button(styledButton);
 
