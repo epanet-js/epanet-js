@@ -3,7 +3,6 @@ import userEvent from "@testing-library/user-event";
 import { Provider as JotaiProvider, createStore } from "jotai";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AuthMockProvider, aUser } from "src/__helpers__/auth-mock";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import { stubLocale } from "src/__helpers__/locale";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { User } from "src/auth-types";
@@ -19,7 +18,6 @@ const inThreeDays = new Date(Date.now() + 3 * MS_PER_DAY).toISOString();
 describe("trial or upgrade button", () => {
   beforeEach(() => {
     stubLocale("en");
-    stubFeatureOn("FLAG_ACTIVATE_TRIAL");
   });
 
   it("counts the trial down and opens the billing portal", async () => {
@@ -129,13 +127,6 @@ describe("trial or upgrade button", () => {
     expect(open).not.toHaveBeenCalled();
   });
 
-  it("shows the plain upgrade button when the trial flag is off", () => {
-    renderButton({ user: anEndedTrial(), isActivateTrialOn: false });
-
-    expect(screen.getByRole("button", { name: "Upgrade" })).toBeInTheDocument();
-    expect(screen.queryByText("Trial expired")).not.toBeInTheDocument();
-  });
-
   it("shows nothing to someone who already pays", () => {
     const { container } = renderButton({
       user: aUser({ plan: "pro", hasUsedTrial: true }),
@@ -157,11 +148,9 @@ describe("trial or upgrade button", () => {
 
   const renderButton = ({
     user = aUser(),
-    isActivateTrialOn = true,
     onUpgrade = vi.fn(),
   }: {
     user?: User;
-    isActivateTrialOn?: boolean;
     onUpgrade?: () => void;
   } = {}) => {
     const store = createStore();
@@ -170,7 +159,6 @@ describe("trial or upgrade button", () => {
     const Subject = () => (
       <TrialOrUpgradeButton
         user={user}
-        isActivateTrialOn={isActivateTrialOn}
         translate={useTranslate()}
         onUpgrade={onUpgrade}
       />

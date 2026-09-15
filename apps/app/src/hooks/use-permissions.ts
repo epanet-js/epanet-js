@@ -3,7 +3,6 @@ import { useAtomValue } from "jotai";
 import { useAuth } from "src/hooks/use-auth";
 import { useOrganization } from "src/hooks/use-organization";
 import { useEffectivePlan } from "src/hooks/use-effective-plan";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { Plan, isTrialActive } from "src/lib/account-plans";
 import { isDemoNetworkAtom } from "src/state/file-system";
 
@@ -53,8 +52,7 @@ export const resolvePermissions = (
 export const usePermissions = (): Permissions => {
   const { user } = useAuth();
   const effectivePlan = useEffectivePlan();
-  const isActivateTrialOn = useFeatureFlag("FLAG_ACTIVATE_TRIAL");
-  const trialActive = isActivateTrialOn && isTrialActive(user);
+  const trialActive = isTrialActive(user);
   const org = useOrganization();
   const membership = "membership" in org ? org.membership : null;
   const isOrgAdmin = membership?.role === "org:admin";

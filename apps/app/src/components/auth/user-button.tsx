@@ -1,7 +1,6 @@
 import React from "react";
 import { UserButton as ClerkUserButton, useClerk } from "@clerk/nextjs";
 import { useAuth } from "src/hooks/use-auth";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { usePermissions } from "src/hooks/use-permissions";
 import { useTranslate } from "src/hooks/use-translate";
 import { useBillingPortal } from "src/hooks/use-billing-portal";
@@ -21,7 +20,6 @@ const UserButtonWithManageTeam = () => {
   const { openOrganizationProfile } = useClerk();
   const { canManageOrganization } = usePermissions();
   const { user } = useAuth();
-  const isActivateTrialOn = useFeatureFlag("FLAG_ACTIVATE_TRIAL");
   const translate = useTranslate();
   const signOut = useSignOut();
   const userTracking = useUserTracking();
@@ -46,7 +44,7 @@ const UserButtonWithManageTeam = () => {
             onClick={() => openOrganizationProfile()}
           />
         ) : null}
-        {isActivateTrialOn && hasBillingAccount(user) ? (
+        {hasBillingAccount(user) ? (
           <ClerkUserButton.Action
             label={translate("billing")}
             labelIcon={<CreditCard size={14} />}
