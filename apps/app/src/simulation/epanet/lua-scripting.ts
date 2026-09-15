@@ -2,16 +2,27 @@ type RemoteSetpointPrv = {
   valveId: string;
   nodeId: string;
   setting: number;
+  upstreamNodeId: string;
 };
 
 const REMOTE_SETPOINT_PRV_FUNCTION =
-  `function simulate_remote_setpoint_prv(valveId, nodeId, setting)
-    local diff = node(nodeId).pressure - setting
-    if diff < 0 then
-        return
-    end
+  `function simulate_remote_setpoint_prv(valveId, nodeId, target, upstreamId)
+    local current_pressure = node(nodeId).pressure
+    local diff = current_pressure - target
+
     if math.abs(diff) > 0.01 then
-        link(valveId).setting = link(valveId).setting - diff
+        local valve = link(valveId)
+        local current_setting = valve.setting
+        local proposed_setting = current_setting - diff
+
+        local max_setting = node(upstreamId).pressure
+        if proposed_setting > max_setting then
+            proposed_setting = max_setting
+        end
+
+        if math.abs(proposed_setting - current_setting) > 0.001 then
+            valve.setting = proposed_setting
+        end
     end
 end`.split("\n");
 
@@ -25,8 +36,9 @@ const remoteSetpointPrvInvocation = ({
   valveId,
   nodeId,
   setting,
+  upstreamNodeId,
 }: RemoteSetpointPrv) =>
-  `simulate_remote_setpoint_prv(${valveId}, ${nodeId}, ${setting})`;
+  `simulate_remote_setpoint_prv("${valveId}", "${nodeId}", ${setting}, "${upstreamNodeId}")`;
 
 export const LuaScriptBuilder = () => {
   const remoteSetpointPrvs: RemoteSetpointPrv[] = [];
@@ -54,8 +66,12 @@ export const LuaScriptBuilder = () => {
   };
 
   return {
-    withRemoteSetpointPrv: (valveId: string, nodeId: string, setting: number) =>
-      remoteSetpointPrvs.push({ valveId, nodeId, setting }),
+    withRemoteSetpointPrv: (
+      valveId: string,
+      nodeId: string,
+      setting: number,
+      upstreamNodeId: string,
+    ) => remoteSetpointPrvs.push({ valveId, nodeId, setting, upstreamNodeId }),
     build,
   };
 };

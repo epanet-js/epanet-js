@@ -1481,8 +1481,9 @@ function* scriptRows(
     const linkId = resolveLinkId(hydraulicModel, idMap, control.linkId);
     const targetId = resolveNodeId(hydraulicModel, idMap, control.targetId);
     const setting = valve.setting ?? 0;
+    const [upstreamNodeId] = getLinkConnectionIds(hydraulicModel, idMap, valve);
 
-    builder.withRemoteSetpointPrv(linkId, targetId, setting);
+    builder.withRemoteSetpointPrv(linkId, targetId, setting, upstreamNodeId);
   }
 
   const script = builder.build();

@@ -443,6 +443,9 @@ describe("build inp", () => {
 
     expect(inp).toContain("[SCRIPT]");
     expect(inp).toContain("function on_hydraulic_step()");
+    expect(inp).toContain(
+      `simulate_remote_setpoint_prv("${IDS.VALVE1}", "${IDS.NODE2}", 30, "${IDS.NODE1}")`,
+    );
   });
 
   it("adds pumps with a curve", () => {
