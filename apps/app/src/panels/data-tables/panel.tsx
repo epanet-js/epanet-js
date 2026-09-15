@@ -1,14 +1,5 @@
-import type { ReactNode } from "react";
 import type { AssetType } from "@epanet-js/hydraulic-model";
-import {
-  CustomerPointIcon,
-  JunctionIcon,
-  PipeIcon,
-  PumpIcon,
-  ReservoirIcon,
-  TankIcon,
-  ValveIcon,
-} from "src/icons";
+import { CustomerPointIcon, TableIcon } from "src/icons";
 import { tableHandlesAtom } from "./table-handles";
 import { panelTrackingName } from "src/panels/panel";
 import type { PanelTemplate } from "src/panels/panel-template";
@@ -27,15 +18,6 @@ const assetTypeLabelKeys: Record<AssetType, string> = {
   valve: "valves",
 };
 
-const assetTypeIcons: Record<AssetType, ReactNode> = {
-  junction: <JunctionIcon />,
-  reservoir: <ReservoirIcon />,
-  tank: <TankIcon />,
-  pipe: <PipeIcon />,
-  pump: <PumpIcon />,
-  valve: <ValveIcon />,
-};
-
 const scopeDescription = (rowCount: number | undefined) =>
   rowCount === undefined ? undefined : `(${rowCount.toLocaleString()})`;
 
@@ -52,7 +34,7 @@ export const assetTablePanel: PanelTemplate<"asset-table"> = {
     get(tableHandlesAtom)[panel.id]?.captureState(),
   buildLabel: (panel, { translate }) =>
     translate(assetTypeLabelKeys[panel.assetType]),
-  icon: ({ panel }) => assetTypeIcons[panel.assetType],
+  icon: () => <TableIcon />,
   buildDescription: (panel, { hydraulicModel }) =>
     scopeDescription(
       panel.assetIds &&
