@@ -14,6 +14,7 @@ import {
   SelectorListOption,
   isSelectorEmpty,
 } from "@epanet-js/ui-kit";
+import { VirtualizedOptionList } from "src/components/form/virtualized-option-list";
 import { CellProps, GridColumn } from "../types";
 import { type ColumnKey, resolveColumnKey } from "./column-key";
 
@@ -37,6 +38,7 @@ type FilterableSelectCellProps<
   allowNew?: boolean;
   createLabel?: (query: string) => string;
   validateNew?: (query: string) => boolean;
+  virtualized?: boolean;
 };
 
 // Creatable columns hold free text, where a value differing only in case is the
@@ -73,6 +75,7 @@ export function FilterableSelectCell({
   allowNew,
   createLabel,
   validateNew,
+  virtualized = false,
 }: CellProps<string | number | boolean | null> &
   FilterableSelectCellProps<string | number | boolean>) {
   const isOpen = !!editMode;
@@ -81,12 +84,14 @@ export function FilterableSelectCell({
 
   const listOptions: SelectorListOption<string | number | boolean>[] = useMemo(
     () =>
-      options.map((o) => ({
-        value: o.value,
-        label: o.label,
-        disabled: o.enabled === false,
-      })),
-    [options],
+      virtualized
+        ? []
+        : options.map((o) => ({
+            value: o.value,
+            label: o.label,
+            disabled: o.enabled === false,
+          })),
+    [options, virtualized],
   );
 
   const selectedOption = useMemo(
@@ -141,6 +146,11 @@ export function FilterableSelectCell({
     [startEditing],
   );
 
+  const handleCommit = (v: string | number | boolean | null) => {
+    onChange(v);
+    stopEditing();
+  };
+
   if (readOnly) {
     return (
       <div className="w-full h-full px-2 flex items-center text-size-base bg-panel">
@@ -194,26 +204,33 @@ export function FilterableSelectCell({
               }
             }}
           >
-            {isOpen && (
-              <SelectorList<string | number | boolean>
-                options={listOptions}
-                selected={value}
-                nullable
-                onCommit={(v) => {
-                  onChange(v);
-                  stopEditing();
-                }}
-                onClose={stopEditing}
-                clearLabel={emptyOptionLabel}
-                actionLabel={actionLabel}
-                onActionClick={onActionClick}
-                allowNew={allowNew}
-                createLabel={createLabel}
-                minOptionsForSearch={minOptionsForSearch}
-                validateNew={validateNew}
-                initialQuery={initialQuery}
-              />
-            )}
+            {isOpen &&
+              (virtualized ? (
+                <VirtualizedOptionList<string | number | boolean>
+                  options={options}
+                  selected={value}
+                  clearLabel={emptyOptionLabel}
+                  initialQuery={initialQuery}
+                  onCommit={handleCommit}
+                  onClose={stopEditing}
+                />
+              ) : (
+                <SelectorList<string | number | boolean>
+                  options={listOptions}
+                  selected={value}
+                  nullable
+                  onCommit={handleCommit}
+                  onClose={stopEditing}
+                  clearLabel={emptyOptionLabel}
+                  actionLabel={actionLabel}
+                  onActionClick={onActionClick}
+                  allowNew={allowNew}
+                  createLabel={createLabel}
+                  minOptionsForSearch={minOptionsForSearch}
+                  validateNew={validateNew}
+                  initialQuery={initialQuery}
+                />
+              ))}
           </Popover.Content>
         </Popover.Portal>
       </Popover.Root>
@@ -240,6 +257,7 @@ export function filterableSelectColumn<
     allowNew?: boolean;
     createLabel?: (query: string) => string;
     validateNew?: (query: string) => boolean;
+    virtualized?: boolean;
   },
 ): GridColumn<TData> {
   const isEmpty = isSelectorEmpty(options.options, {
@@ -317,6 +335,7 @@ export function filterableSelectColumn<
           allowNew={options.allowNew}
           createLabel={options.createLabel}
           validateNew={options.validateNew}
+          virtualized={options.virtualized}
         />
       ),
     },
