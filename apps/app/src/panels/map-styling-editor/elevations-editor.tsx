@@ -73,6 +73,7 @@ import {
   useRecomputeElevations,
 } from "src/commands/recompute-elevations";
 import { dialogAtom } from "src/state/dialog";
+import { useSideTowardMap } from "src/panels/panel-dock-context";
 import {
   ElevationSource,
   GeoTiffElevationSource,
@@ -249,6 +250,7 @@ const GeoTiffElevationSourceRow = ({
   readonly: boolean;
 }) => {
   const translate = useTranslate();
+  const sideTowardMap = useSideTowardMap();
   const { units } = useAtomValue(projectSettingsAtom);
   const elevationUnit = units.elevation;
   const resolutionDisplay = Math.round(
@@ -290,7 +292,7 @@ const GeoTiffElevationSourceRow = ({
           <StyledPopoverContent
             size="auto"
             onOpenAutoFocus={(e) => e.preventDefault()}
-            side="left"
+            side={sideTowardMap}
             align="start"
           >
             <StyledPopoverArrow />
@@ -423,6 +425,7 @@ const TileServerElevationSourceRow = ({
   readonly: boolean;
 }) => {
   const translate = useTranslate();
+  const sideTowardMap = useSideTowardMap();
   const isOffline = useAtomValue(offlineAtom);
   const isDisabled = isOffline || !source.enabled;
 
@@ -444,7 +447,7 @@ const TileServerElevationSourceRow = ({
           <StyledPopoverContent
             size="auto"
             onOpenAutoFocus={(e) => e.preventDefault()}
-            side="left"
+            side={sideTowardMap}
             align="start"
           >
             <StyledPopoverArrow />

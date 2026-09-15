@@ -65,6 +65,7 @@ import {
   Menu,
   MousePointer2,
   MousePointerClick,
+  Palette,
   PanelBottom,
   PanelLeft,
   PanelRight,
@@ -147,6 +148,7 @@ const icon = (Icon: LucideIcon): React.FC<IconProps> => {
 
 export const HelpIcon = icon(CircleQuestionMark);
 export const RoadmapIcon = icon(MapIcon);
+export const MapStylingIcon = icon(Palette);
 export const MapPinnedIcon = icon(MapPinned);
 export const MapPinXInsideIcon = icon(MapPinXInside);
 export const UtilitiesIcon = icon(ToolCase);

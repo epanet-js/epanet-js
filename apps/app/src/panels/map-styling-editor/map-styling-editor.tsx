@@ -22,6 +22,7 @@ import { Checkbox } from "src/components/form/Checkbox";
 import { ColorRampSelector } from "src/components/color-ramp-selector";
 import { RangeColorRuleEditor } from "./range-color-rule-editor";
 import { NodeSizeField } from "./node-size-field";
+import { useOutsidePanelPlacement } from "./popover-placement";
 import {
   StyledPopoverArrow,
   StyledPopoverContent,
@@ -561,6 +562,7 @@ const RangeColorRuleEditorTrigger = ({
   readonly?: boolean;
 }) => {
   const translate = useTranslate();
+  const placement = useOutsidePanelPlacement();
 
   return readonly ? (
     <TextField>
@@ -577,9 +579,9 @@ const RangeColorRuleEditorTrigger = ({
         <StyledPopoverContent
           size="sm"
           onOpenAutoFocus={(e) => e.preventDefault()}
-          side="right"
+          side={placement.side}
           align="start"
-          sideOffset={94}
+          sideOffset={placement.sideOffset}
         >
           <StyledPopoverArrow />
           <RangeColorRuleEditor geometryType={geometryType} />

@@ -14,6 +14,7 @@ import { strokeColorFor } from "@epanet-js/map";
 import { SelectorLikeButton } from "@epanet-js/ui-kit";
 import { InlineField } from "src/components/form/fields";
 import * as E from "src/components/elements";
+import { useOutsidePanelPlacement } from "./popover-placement";
 
 // Kept strictly below LAYER_MAX_ZOOM so the radius interpolation stops stay ascending.
 const MAX_MIN_VISIBLE_ZOOM = LAYER_MAX_ZOOM - 1;
@@ -283,6 +284,7 @@ function NodeSizeEditor({
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
   const userTracking = useUserTracking();
+  const placement = useOutsidePanelPlacement();
   const nodeColor = useAtomValue(nodeSymbologyAtom).defaults.color;
   const strokeColor = strokeColorFor(nodeColor);
 
@@ -333,9 +335,9 @@ function NodeSizeEditor({
       </Popover.Trigger>
       <E.PopoverContent2
         size="sm"
-        side="right"
+        side={placement.side}
         align="start"
-        sideOffset={94}
+        sideOffset={placement.sideOffset}
         onOpenAutoFocus={(e) => e.preventDefault()}
         aria-label={translate("nodeSize.label")}
       >

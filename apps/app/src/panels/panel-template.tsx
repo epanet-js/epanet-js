@@ -4,12 +4,15 @@ import type { TranslateFn } from "src/hooks/use-translate";
 import type { HydraulicModel } from "src/hydraulic-model";
 import type { useUserTracking } from "src/infra/user-tracking";
 import type { Dock } from "./docks";
+import { PanelDockContext } from "./panel-dock-context";
 import type { Panel, PanelOfType, PanelType } from "./panel";
 import type { DataGridState } from "src/components/data-grid";
 import { assetTablePanel, customerPointTablePanel } from "./data-tables/panel";
 import { hglProfilePanel } from "./hgl-profile/panel";
 import { networkReviewPanel } from "./network-review/panel";
 import { collectionsPanel } from "./collections/panel";
+import { assetPanel } from "./asset-panel/panel";
+import { mapStylingPanel } from "./map-styling-editor/panel";
 
 export type PanelLifecycleContext = {
   get: Getter;
@@ -53,6 +56,8 @@ export type PanelContentStateByType = {
   "hgl-profile": undefined;
   "network-review": undefined;
   collections: undefined;
+  asset: undefined;
+  "map-styling": undefined;
 };
 
 export type PanelContentState =
@@ -64,6 +69,8 @@ const panelTemplates = {
   "hgl-profile": hglProfilePanel,
   "network-review": networkReviewPanel,
   collections: collectionsPanel,
+  asset: assetPanel,
+  "map-styling": mapStylingPanel,
 } satisfies { [K in PanelType]: PanelTemplate<K> };
 
 export const panelFor = (panel: Panel): PanelTemplate<PanelType> =>
@@ -80,9 +87,19 @@ export const panelDescription = (
   context: PanelDescriptionContext,
 ): string | undefined => panelFor(panel).buildDescription?.(panel, context);
 
-export const PanelContent = ({ panel }: { panel: Panel }) => {
+export const PanelContent = ({
+  panel,
+  dock,
+}: {
+  panel: Panel;
+  dock?: Dock;
+}) => {
   const Component = panelFor(panel).component;
-  return <Component panel={panel} />;
+  return (
+    <PanelDockContext.Provider value={dock}>
+      <Component panel={panel} />
+    </PanelDockContext.Provider>
+  );
 };
 
 export const PanelIcon = ({ panel }: { panel: Panel }) => {

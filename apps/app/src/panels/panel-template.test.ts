@@ -1,3 +1,4 @@
+/** @vitest-environment jsdom */
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { createAssetTablePanel } from "./data-tables/create-panel";
 import { createHglProfilePanel } from "./hgl-profile/create-panel";

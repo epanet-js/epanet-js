@@ -2,7 +2,7 @@
 import { useEffect, useRef, type RefObject } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { selectionAtom } from "src/state/selection";
-import { tabAtom, TabOption } from "src/state/layout";
+import { useShowAssetPanel } from "src/commands/show-asset-panel";
 import { Mode, modeAtom } from "src/state/mode";
 import { ephemeralStateAtom } from "src/state/drawing";
 import { USelection, type Sel } from "src/selection";
@@ -31,7 +31,7 @@ export function useChartClick({
 }: UseChartClickParams): void {
   const selection = useAtomValue(selectionAtom);
   const setSelection = useSetAtom(selectionAtom);
-  const setTab = useSetAtom(tabAtom);
+  const showAssetPanel = useShowAssetPanel();
   const { mode } = useAtomValue(modeAtom);
   const setMode = useSetAtom(modeAtom);
   const setEphemeralState = useSetAtom(ephemeralStateAtom);
@@ -42,7 +42,7 @@ export function useChartClick({
     links,
     selection,
     setSelection,
-    setTab,
+    showAssetPanel,
     mode,
     setMode,
     setEphemeralState,
@@ -54,7 +54,7 @@ export function useChartClick({
     links,
     selection,
     setSelection,
-    setTab,
+    showAssetPanel,
     mode,
     setMode,
     setEphemeralState,
@@ -118,7 +118,7 @@ export function useChartClick({
             : USelection.addId(deps.selection, "asset", id)
           : USelection.toggleSingleAsset(deps.selection, id);
         deps.setSelection(next);
-        deps.setTab(TabOption.Asset);
+        deps.showAssetPanel();
         if (deps.mode === Mode.HGL_PROFILE) {
           deps.setEphemeralState({ type: "none" });
         }

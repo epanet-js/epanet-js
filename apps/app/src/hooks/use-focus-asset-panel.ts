@@ -1,12 +1,13 @@
 import { useCallback } from "react";
 import { useSetAtom } from "jotai";
-import { splitsAtom, tabAtom, TabOption } from "src/state/layout";
+import { splitsAtom } from "src/state/layout";
+import { useShowAssetPanel } from "src/commands/show-asset-panel";
 
 export const ASSET_PANEL_ANCHOR = "data-asset-panel";
 
 export const useFocusAssetPanel = () => {
   const setSplits = useSetAtom(splitsAtom);
-  const setTab = useSetAtom(tabAtom);
+  const showAssetPanel = useShowAssetPanel();
 
   return useCallback(
     (autoOpen = false) => {
@@ -14,7 +15,7 @@ export const useFocusAssetPanel = () => {
         setSplits((splits) =>
           splits.rightOpen ? splits : { ...splits, rightOpen: true },
         );
-        setTab(TabOption.Asset);
+        showAssetPanel();
       }
 
       const run = (attempt: number) => {
@@ -34,6 +35,6 @@ export const useFocusAssetPanel = () => {
 
       requestAnimationFrame(() => run(0));
     },
-    [setSplits, setTab],
+    [setSplits, showAssetPanel],
   );
 };

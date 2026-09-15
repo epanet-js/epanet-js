@@ -11,6 +11,11 @@ import { MapStylingEditor } from "./map-styling-editor";
 import { BottomResizer } from "src/components/resizer";
 import { BottomDock } from "./bottom-dock/bottom-dock";
 import { LeftDock } from "./left-dock/left-dock";
+import { RightDock } from "./right-dock/right-dock";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { panelsIn } from "src/state/panels";
+
+const rightPanelsAtom = panelsIn("right");
 
 function Tab({
   onClick,
@@ -101,9 +106,19 @@ export const SidePanel = memo(function SidePanelInner() {
       }}
       className="bg-popover border-l relative"
     >
-      <Panel />
+      <RightSide />
     </div>
   );
+});
+
+const RightSide = memo(function RightSideInner() {
+  const isAssetPanelAloneOn = useFeatureFlag("FLAG_ASSET_PANEL_ALONE");
+  const hasRightPanels = useAtomValue(rightPanelsAtom).length > 0;
+  const dialog = useAtomValue(dialogAtom);
+
+  if (!isAssetPanelAloneOn || !hasRightPanels) return <Panel />;
+  if (dialog && dialog.type === "welcome") return null;
+  return <RightDock />;
 });
 
 export const RelocatedSidePanel = memo(function RelocatedSidePanelInner() {

@@ -1,6 +1,5 @@
 import { memo, useCallback } from "react";
 import { useAtomValue } from "jotai";
-import clsx from "clsx";
 import {
   DndContext,
   PointerSensor,
@@ -9,35 +8,36 @@ import {
   useSensors,
   type DragEndEvent,
 } from "@dnd-kit/core";
-import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
+import { restrictToHorizontalAxis } from "@dnd-kit/modifiers";
 import {
   SortableContext,
-  verticalListSortingStrategy,
+  horizontalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { Tab, TabList, TabRoot } from "src/components/tab";
+import { TabRoot, TabList } from "src/components/tab";
 import { DefaultErrorBoundary } from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
+import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { type PlacedPanel, activePanelIn, panelsIn } from "src/state/panels";
 import { useActivatePanel } from "src/commands/activate-panel";
+import { useClosePanel } from "src/commands/close-panel";
 import { useReorderPanel } from "src/commands/reorder-panel";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useUserTracking } from "src/infra/user-tracking";
 import { panelTrackingName } from "../panel";
-import { PanelIcon, panelLabel } from "../panel-template";
+import { panelDescription, panelLabel } from "../panel-template";
 import { PanelContent } from "../panel-template";
-import { RailTabList } from "src/components/rail-tab";
-import { PanelRailTab } from "./panel-rail-tab";
+import { PanelTab } from "../bottom-dock/panel-tab";
 
-const leftPanelsAtom = panelsIn("left");
-const activeLeftPanelAtom = activePanelIn("left");
+const rightPanelsAtom = panelsIn("right");
+const activeRightPanelAtom = activePanelIn("right");
 
-export const LeftDock = memo(function LeftDockInner() {
-  const panels = useAtomValue(leftPanelsAtom);
-  const activePanel = useAtomValue(activeLeftPanelAtom);
+export const RightDock = memo(function RightDockInner() {
+  const panels = useAtomValue(rightPanelsAtom);
+  const activePanel = useAtomValue(activeRightPanelAtom);
   const activatePanel = useActivatePanel();
   const translate = useTranslate();
+  const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
+  const closePanel = useClosePanel();
   const userTracking = useUserTracking();
-  const isActivityBarOn = useFeatureFlag("FLAG_ACTIVITY_BAR_SWITCHER");
   const reorderPanel = useReorderPanel();
 
   const sensors = useSensors(
@@ -58,12 +58,18 @@ export const LeftDock = memo(function LeftDockInner() {
     [translate],
   );
 
+  const descriptionOf = useCallback(
+    (entry: PlacedPanel) =>
+      panelDescription(entry.panel, { translate, hydraulicModel }),
+    [translate, hydraulicModel],
+  );
+
   const handleTabChange = useCallback(
     (panelId: string) => {
       const entry = panels.find((placed) => placed.id === panelId);
       if (entry && panelId !== activePanel?.id) {
         userTracking.capture({
-          name: "leftPanel.tabSwitched",
+          name: "rightPanel.tabSwitched",
           panelType: panelTrackingName(entry.panel),
         });
       }
@@ -78,45 +84,34 @@ export const LeftDock = memo(function LeftDockInner() {
     <TabRoot
       value={activePanel?.id ?? undefined}
       onValueChange={handleTabChange}
-      orientation={isActivityBarOn ? "vertical" : "horizontal"}
-      className={clsx(
-        "absolute inset-0 flex",
-        isActivityBarOn ? "flex-row" : "flex-col",
-      )}
+      className="absolute inset-0 flex flex-col"
     >
-      {panels.length > 1 &&
-        (isActivityBarOn ? (
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            modifiers={[restrictToVerticalAxis]}
-            onDragEnd={handleDragEnd}
-          >
-            <RailTabList>
-              <SortableContext
-                items={panels}
-                strategy={verticalListSortingStrategy}
-              >
-                {panels.map((entry) => (
-                  <PanelRailTab
-                    key={entry.id}
-                    id={entry.id}
-                    label={labelOf(entry)}
-                    icon={<PanelIcon panel={entry.panel} />}
-                  />
-                ))}
-              </SortableContext>
-            </RailTabList>
-          </DndContext>
-        ) : (
+      {panels.length > 1 && (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          modifiers={[restrictToHorizontalAxis]}
+          onDragEnd={handleDragEnd}
+        >
           <TabList>
-            {panels.map((entry) => (
-              <Tab key={entry.id} value={entry.id}>
-                {labelOf(entry)}
-              </Tab>
-            ))}
+            <SortableContext
+              items={panels}
+              strategy={horizontalListSortingStrategy}
+            >
+              {panels.map((entry) => (
+                <PanelTab
+                  key={entry.id}
+                  id={entry.id}
+                  label={labelOf(entry)}
+                  description={descriptionOf(entry)}
+                  closable={entry.closable}
+                  onClose={closePanel}
+                />
+              ))}
+            </SortableContext>
           </TabList>
-        ))}
+        </DndContext>
+      )}
       <div className="flex-1 min-h-0 min-w-0 flex flex-col relative">
         <DefaultErrorBoundary>
           {activePanel && (
