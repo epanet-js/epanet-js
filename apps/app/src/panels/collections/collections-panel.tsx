@@ -319,7 +319,7 @@ export const CollectionsPanel = () => {
 };
 
 const EmptyRow = ({ children }: { children: React.ReactNode }) => (
-  <li className="px-1 py-2 text-size-base text-subtle">{children}</li>
+  <li className="pt-0.5 px-2 pb-2 text-size-base text-subtle">{children}</li>
 );
 
 const isSameRow = (a: RowKey, b: RowKey) =>
