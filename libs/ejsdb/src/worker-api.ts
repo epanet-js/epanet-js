@@ -1459,10 +1459,7 @@ export const api = {
            SELECT MAX(id) FROM pipes UNION ALL
            SELECT MAX(id) FROM pumps UNION ALL
            SELECT MAX(id) FROM valves UNION ALL
-           SELECT MAX(id) FROM customer_points UNION ALL
-           SELECT MAX(id) FROM patterns UNION ALL
-           SELECT MAX(id) FROM curves UNION ALL
-           SELECT MAX(id) FROM zones
+           SELECT MAX(id) FROM customer_points
          )`,
         { returnValue: "resultRows" },
       ) as Array<Array<number | null>>;
