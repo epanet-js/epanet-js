@@ -6,13 +6,11 @@ import { LabelManager } from "../label-manager";
 
 export const buildCustomerPointPreviewFactory = (
   labelManager: LabelManager,
+  idGenerator: IdGenerator = new ConsecutiveIdsGenerator(),
 ): CustomerPointFactory => {
   const previewLabelManager = new LabelManager();
   previewLabelManager.copyTypeFrom("customerPoint", labelManager);
-  return new CustomerPointFactory(
-    new ConsecutiveIdsGenerator(),
-    previewLabelManager,
-  );
+  return new CustomerPointFactory(idGenerator, previewLabelManager);
 };
 
 export class CustomerPointFactory {

@@ -27,6 +27,9 @@ class TestIdGenerator implements IdGenerator {
   get totalGenerated(): number {
     return this.last;
   }
+  copy(): IdGenerator {
+    return new TestIdGenerator(this.last);
+  }
 }
 
 function createTestFactories(

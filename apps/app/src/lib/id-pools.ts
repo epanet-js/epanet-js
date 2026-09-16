@@ -8,6 +8,7 @@ import {
 
 export const emptyIdPoolSeeds: IdPoolSeeds = {
   asset: 0,
+  customerPoint: 0,
   pattern: 0,
   curve: 0,
   zone: 0,

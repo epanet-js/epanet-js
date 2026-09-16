@@ -14,6 +14,7 @@ import { useAtomValue } from "jotai";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { modelFactoriesAtom } from "src/state/model-factories";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   buildCustomerPointPreviewFactory,
   CustomerPoint,
@@ -54,7 +55,8 @@ export const DataMappingStep: React.FC<{
   const userTracking = useUserTracking();
   const projectSettings = useAtomValue(projectSettingsAtom);
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
-  const { labelManager } = useAtomValue(modelFactoriesAtom);
+  const { labelManager, idPools } = useAtomValue(modelFactoriesAtom);
+  const isIdPoolsOn = useFeatureFlag("FLAG_ID_POOLS");
   const labelMaxLength = useLabelMaxLength();
   const patterns = hydraulicModel.patterns;
   const customerDemandPerDayUnit = projectSettings.units.customerDemandPerDay;
@@ -126,11 +128,18 @@ export const DataMappingStep: React.FC<{
         const demandImportUnit = projectSettings.units.customerDemandPerDay;
         const demandTargetUnit = projectSettings.units.customerDemand;
 
+        const previewIdGenerator = isIdPoolsOn
+          ? idPools.forPool("customerPoint").copy()
+          : undefined;
+
         const built = await buildCustomerPoints(
           network.customerPoints ?? [],
           features,
           {
-            factory: buildCustomerPointPreviewFactory(labelManager),
+            factory: buildCustomerPointPreviewFactory(
+              labelManager,
+              previewIdGenerator,
+            ),
             toDemand: (value) =>
               convertTo({ value, unit: demandImportUnit }, demandTargetUnit),
             patternId,
@@ -145,6 +154,7 @@ export const DataMappingStep: React.FC<{
 
         setParsedDataSummary({
           validCustomerPoints: customerPoints,
+          idGenerator: previewIdGenerator,
           customerPointDemands: demands,
           issues: issues.buildResult(),
           totalCount: features.length,
@@ -183,6 +193,8 @@ export const DataMappingStep: React.FC<{
       projections,
       projectSettings.units,
       labelManager,
+      idPools,
+      isIdPoolsOn,
       labelMaxLength,
       setParsedDataSummary,
       setLoading,

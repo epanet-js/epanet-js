@@ -2,6 +2,7 @@ import {
   ConsecutiveIdsGenerator,
   IdPoolsGenerator,
   sharedIdPools,
+  withPool,
 } from "./index";
 
 describe("ConsecutiveIdsGenerator", () => {
@@ -21,7 +22,13 @@ describe("ConsecutiveIdsGenerator", () => {
 });
 
 describe("IdPoolsGenerator", () => {
-  const seeds = { asset: 0, pattern: 0, curve: 0, zone: 0 };
+  const seeds = {
+    asset: 0,
+    customerPoint: 0,
+    pattern: 0,
+    curve: 0,
+    zone: 0,
+  };
 
   it("advances each pool independently", () => {
     const pools = new IdPoolsGenerator(seeds);
@@ -35,6 +42,7 @@ describe("IdPoolsGenerator", () => {
   it("starts each pool after its own seed", () => {
     const pools = new IdPoolsGenerator({
       asset: 10,
+      customerPoint: 5,
       pattern: 3,
       curve: 7,
       zone: 0,
@@ -83,5 +91,56 @@ describe("sharedIdPools", () => {
 
     expect(pools.forPool("asset")).toBe(shared);
     expect(pools.forPool("pattern")).toBe(shared);
+  });
+});
+
+describe("copy", () => {
+  it("starts where its source had reached, then advances independently", () => {
+    const source = new ConsecutiveIdsGenerator();
+    source.newId();
+    source.newId();
+
+    const copy = source.copy();
+
+    expect(copy.newId()).toBe(3);
+    expect(copy.newId()).toBe(4);
+    expect(source.newId()).toBe(3);
+    expect(copy.totalGenerated).toBe(4);
+  });
+});
+
+describe("withPool", () => {
+  it("draws the named pool from the replacement and the rest from the original", () => {
+    const pools = new IdPoolsGenerator({
+      asset: 10,
+      customerPoint: 0,
+      pattern: 0,
+      curve: 0,
+      zone: 0,
+    });
+    const replacement = new ConsecutiveIdsGenerator(80);
+
+    const swapped = withPool(pools, "customerPoint", replacement);
+
+    expect(swapped.newId("customerPoint")).toBe(81);
+    expect(swapped.newId("asset")).toBe(11);
+    expect(swapped.forPool("customerPoint")).toBe(replacement);
+    expect(swapped.forPool("asset")).toBe(pools.forPool("asset"));
+  });
+
+  it("leaves the original pools untouched", () => {
+    const pools = new IdPoolsGenerator({
+      asset: 0,
+      customerPoint: 0,
+      pattern: 0,
+      curve: 0,
+      zone: 0,
+    });
+
+    withPool(pools, "customerPoint", new ConsecutiveIdsGenerator(80)).newId(
+      "customerPoint",
+    );
+
+    expect(pools.newId("customerPoint")).toBe(1);
   });
 });

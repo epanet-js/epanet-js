@@ -91,6 +91,25 @@ describe("buildCustomerPointPreviewFactory", () => {
     expect(secondPreview.create([0, 0]).label).toBe("CP3");
   });
 
+  it("mints from a supplied generator, leaving it advanced", () => {
+    const generator = new ConsecutiveIdsGenerator(40);
+
+    const previewFactory = buildCustomerPointPreviewFactory(
+      new LabelManager(),
+      generator,
+    );
+
+    expect(previewFactory.create([0, 0]).id).toBe(41);
+    expect(previewFactory.create([0, 0]).id).toBe(42);
+    expect(generator.totalGenerated).toBe(42);
+  });
+
+  it("starts from one when no generator is supplied", () => {
+    const previewFactory = buildCustomerPointPreviewFactory(new LabelManager());
+
+    expect(previewFactory.create([0, 0]).id).toBe(1);
+  });
+
   it("does not mutate the source label manager", () => {
     const sourceLabelManager = new LabelManager();
     sourceLabelManager.register("CP1", "customerPoint", 99);

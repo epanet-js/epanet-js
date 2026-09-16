@@ -40,6 +40,7 @@ const aProjectWhosePoolIsAhead = (withPools: boolean): Store => {
     initializeModelFactoriesWithPools({
       idPools: buildIdPools(withPools, {
         asset: IDS.J1,
+        customerPoint: IDS.J1,
         pattern: IDS.J1,
         curve: IDS.HANDED_OUT,
         zone: IDS.J1,

@@ -142,6 +142,12 @@ export class WritableIdGenerator implements IdGenerator {
   addId(id: number) {
     if (id > this.last) this.last = id;
   }
+
+  copy(): IdGenerator {
+    const copy = new WritableIdGenerator();
+    copy.addId(this.last);
+    return copy;
+  }
 }
 
 export class HydraulicModelBuilder {

@@ -2,11 +2,13 @@ import { CustomerPoint, CustomerPointId } from "@epanet-js/hydraulic-model";
 import { Demand } from "@epanet-js/hydraulic-model";
 import { CustomerPointsParserIssues } from "./issues";
 import { Unit } from "@epanet-js/quantity";
+import { IdGenerator } from "@epanet-js/id-generator";
 
 export type WizardStep = 1 | 2 | 3;
 
 export type ParsedDataSummary = {
   validCustomerPoints: CustomerPoint[];
+  idGenerator?: IdGenerator;
   customerPointDemands: Map<CustomerPointId, Demand[]>;
   issues: CustomerPointsParserIssues | null;
   totalCount: number;

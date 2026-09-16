@@ -245,6 +245,8 @@ describe("fetch-project id pools", () => {
     CUR2: 61,
     ZONE1: 80,
     ZONE2: 81,
+    CP1: 90,
+    CP2: 91,
   } as const;
 
   const aSquare = (x: number): MultiPolygon => ({
@@ -318,6 +320,39 @@ describe("fetch-project id pools", () => {
 
     expect(factories.idPools.newId("curve")).toBe(IDS.CUR2 + 1);
     expect(factories.idPools.newId("asset")).toBe(IDS.J1 + 1);
+  });
+
+  it("continues the customer point pool from its own table, not the asset maximum", async () => {
+    await importProject({
+      newDb: true,
+      hydraulicModel: HydraulicModelBuilder.with()
+        .aJunction(IDS.J1)
+        .aCustomerPoint(IDS.CP1)
+        .aCustomerPoint(IDS.CP2)
+        .build(),
+      projectSettings: defaultProjectSettings,
+      simulationSettings: defaultSimulationSettings,
+    });
+
+    const { factories } = await fetchProject({ idPools: true });
+
+    expect(factories.idPools.newId("customerPoint")).toBe(IDS.CP2 + 1);
+  });
+
+  it("keeps seeding the asset pool above customer point ids", async () => {
+    await importProject({
+      newDb: true,
+      hydraulicModel: HydraulicModelBuilder.with()
+        .aJunction(IDS.J1)
+        .aCustomerPoint(IDS.CP2)
+        .build(),
+      projectSettings: defaultProjectSettings,
+      simulationSettings: defaultSimulationSettings,
+    });
+
+    const { factories } = await fetchProject({ idPools: true });
+
+    expect(factories.idPools.newId("asset")).toBe(IDS.CP2 + 1);
   });
 
   it("continues the zone pool from the zones table, not the asset maximum", async () => {

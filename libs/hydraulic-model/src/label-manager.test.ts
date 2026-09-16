@@ -74,13 +74,15 @@ describe("label manager", () => {
     expect(labelManager.count("L")).toEqual(1);
   });
 
-  it("treats assets and customer points as the same id pool", () => {
+  it("treats assets and customer points as separate id pools", () => {
     const labelManager = new LabelManager();
 
     labelManager.register("X", "junction", 7);
     labelManager.register("X", "customerPoint", 7);
 
-    expect(labelManager.count("X")).toEqual(1);
+    expect(labelManager.count("X")).toEqual(2);
+    expect(labelManager.getIdByLabel("X", "junction")).toEqual(7);
+    expect(labelManager.getIdByLabel("X", "customerPoint")).toEqual(7);
   });
 
   it("removes only the entry of the given id pool", () => {

@@ -8,7 +8,7 @@ const idPoolByType: Record<LabelType, IdPool> = {
   pipe: "asset",
   pump: "asset",
   valve: "asset",
-  customerPoint: "asset",
+  customerPoint: "customerPoint",
   pattern: "pattern",
   curve: "curve",
 };

@@ -43,7 +43,7 @@ const buildModelFactories = (
 
   return {
     customerPointFactory: new CustomerPointFactory(
-      idGenerator,
+      options.idPools.forPool("customerPoint"),
       options.labelManager,
     ),
     assetFactory: new AssetFactory(idGenerator, options.labelManager),

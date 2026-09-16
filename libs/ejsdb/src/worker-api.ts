@@ -1500,6 +1500,17 @@ export const api = {
     });
   },
 
+  async getMaxCustomerPointId(): Promise<number> {
+    return timed("getMaxCustomerPointId", async () => {
+      await ready;
+      if (!db) throw new Error("No database open");
+      const rows = db.exec("SELECT MAX(id) AS m FROM customer_points", {
+        returnValue: "resultRows",
+      }) as Array<Array<number | null>>;
+      return rows[0]?.[0] ?? 0;
+    });
+  },
+
   async applyMoment(payload: WriteBatch): Promise<void> {
     if (isEmptyWriteBatch(payload)) return;
     return applyWriteBatch("moment:write", payload);

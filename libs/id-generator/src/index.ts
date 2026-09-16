@@ -1,8 +1,9 @@
-export type IdPool = "asset" | "pattern" | "curve" | "zone";
+export type IdPool = "asset" | "customerPoint" | "pattern" | "curve" | "zone";
 
 export interface IdGenerator {
   get totalGenerated(): number;
   newId(): number;
+  copy(): IdGenerator;
 }
 
 export class ConsecutiveIdsGenerator implements IdGenerator {
@@ -18,6 +19,10 @@ export class ConsecutiveIdsGenerator implements IdGenerator {
 
   get totalGenerated(): number {
     return this.last;
+  }
+
+  copy(): IdGenerator {
+    return new ConsecutiveIdsGenerator(this.last);
   }
 }
 
@@ -35,6 +40,7 @@ export class IdPoolsGenerator implements PooledIdGenerator {
   constructor(seeds: IdPoolSeeds) {
     this.generators = {
       asset: new ConsecutiveIdsGenerator(seeds.asset),
+      customerPoint: new ConsecutiveIdsGenerator(seeds.customerPoint),
       pattern: new ConsecutiveIdsGenerator(seeds.pattern),
       curve: new ConsecutiveIdsGenerator(seeds.curve),
       zone: new ConsecutiveIdsGenerator(seeds.zone),
@@ -58,4 +64,15 @@ export const sharedIdPools = (shared: IdGenerator): PooledIdGenerator => ({
   newId: () => shared.newId(),
   totalGenerated: () => shared.totalGenerated,
   forPool: () => shared,
+});
+
+export const withPool = (
+  pools: PooledIdGenerator,
+  pool: IdPool,
+  generator: IdGenerator,
+): PooledIdGenerator => ({
+  newId: (p) => (p === pool ? generator.newId() : pools.newId(p)),
+  totalGenerated: (p) =>
+    p === pool ? generator.totalGenerated : pools.totalGenerated(p),
+  forPool: (p) => (p === pool ? generator : pools.forPool(p)),
 });

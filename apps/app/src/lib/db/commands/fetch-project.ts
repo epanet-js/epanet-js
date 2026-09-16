@@ -120,6 +120,7 @@ export const fetchProject = async (
       maxPatternId,
       maxCurveId,
       maxZoneId,
+      maxCustomerPointId,
     ] = await timed("fetchProject.readSettings", () =>
       Promise.all([
         worker.getProjectSettings(),
@@ -136,6 +137,7 @@ export const fetchProject = async (
         worker.getMaxPatternId(),
         worker.getMaxCurveId(),
         worker.getMaxZoneId(),
+        worker.getMaxCustomerPointId(),
       ]),
     );
     if (!settingsJson) {
@@ -155,6 +157,7 @@ export const fetchProject = async (
         const factories = buildFactories(
           {
             asset: maxId,
+            customerPoint: maxCustomerPointId,
             pattern: maxPatternId,
             curve: maxCurveId,
             zone: maxZoneId,

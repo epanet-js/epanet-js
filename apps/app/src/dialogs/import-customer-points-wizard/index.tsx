@@ -105,6 +105,7 @@ export const ImportCustomerPointsWizard: React.FC<
 
       void customerPointsImportReset({
         hydraulicModel: updatedHydraulicModel,
+        idGenerator: parsedDataSummary.idGenerator,
       });
 
       userTracking.capture({

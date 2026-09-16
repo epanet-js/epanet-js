@@ -28,6 +28,7 @@ const aProjectWithAPatternIdGap = (withPools: boolean): Store => {
     initializeModelFactoriesWithPools({
       idPools: buildIdPools(withPools, {
         asset: IDS.J1,
+        customerPoint: IDS.J1,
         pattern: IDS.PAT3,
         curve: IDS.J1,
         zone: IDS.J1,
