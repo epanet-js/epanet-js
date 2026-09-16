@@ -3,6 +3,7 @@
  */
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { UIProvider } from "@epanet-js/ui-kit";
 import {
   FilterableSelectCell,
   filterableSelectColumn,
@@ -207,6 +208,28 @@ describe("FilterableSelectCell", () => {
     expect(
       screen.getByRole("button", { name: /Pattern A/ }),
     ).toBeInTheDocument();
+  });
+
+  it("renders only the rows in view for long lists", async () => {
+    const manyOptions = Array.from({ length: 500 }, (_, i) => ({
+      value: i,
+      label: `Pattern ${i}`,
+    }));
+    render(
+      <UIProvider config={{ isSelectorVirtualizationEnabled: true }}>
+        <FilterableSelectCell
+          {...defaultProps}
+          value={0}
+          options={manyOptions}
+          editMode="full"
+        />
+      </UIProvider>,
+    );
+    await waitFor(() => {
+      expect(screen.getByRole("listbox")).toBeInTheDocument();
+    });
+
+    expect(screen.getAllByRole("option").length).toBeLessThan(500);
   });
 
   it("caps the options list at 5 rows for long lists", async () => {

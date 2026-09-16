@@ -1,7 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Selector, SelectorOption } from "./selector";
-import { UIProvider } from "../ui-config";
 
 const setupUser = () => userEvent.setup();
 

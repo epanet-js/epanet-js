@@ -14,7 +14,6 @@ import {
   SelectorListOption,
   isSelectorEmpty,
 } from "@epanet-js/ui-kit";
-import { VirtualizedOptionList } from "src/components/form/virtualized-option-list";
 import { CellProps, GridColumn } from "../types";
 import { type ColumnKey, resolveColumnKey } from "./column-key";
 
@@ -38,7 +37,7 @@ type FilterableSelectCellProps<
   allowNew?: boolean;
   createLabel?: (query: string) => string;
   validateNew?: (query: string) => boolean;
-  virtualized?: boolean;
+  enableVirtualization?: boolean;
   isOptionAvailable?: (
     value: string | number | boolean,
     row: unknown,
@@ -80,7 +79,7 @@ export function FilterableSelectCell({
   allowNew,
   createLabel,
   validateNew,
-  virtualized = false,
+  enableVirtualization = false,
   isOptionAvailable,
 }: CellProps<string | number | boolean | null> &
   FilterableSelectCellProps<string | number | boolean>) {
@@ -98,14 +97,14 @@ export function FilterableSelectCell({
 
   const listOptions: SelectorListOption<string | number | boolean>[] = useMemo(
     () =>
-      virtualized
-        ? []
-        : availableOptions.map((o) => ({
+      isOpen
+        ? availableOptions.map((o) => ({
             value: o.value,
             label: o.label,
             disabled: o.enabled === false,
-          })),
-    [availableOptions, virtualized],
+          }))
+        : [],
+    [availableOptions, isOpen],
   );
 
   const selectedOption = useMemo(
@@ -218,33 +217,24 @@ export function FilterableSelectCell({
               }
             }}
           >
-            {isOpen &&
-              (virtualized ? (
-                <VirtualizedOptionList<string | number | boolean>
-                  options={availableOptions}
-                  selected={value}
-                  clearLabel={emptyOptionLabel}
-                  initialQuery={initialQuery}
-                  onCommit={handleCommit}
-                  onClose={stopEditing}
-                />
-              ) : (
-                <SelectorList<string | number | boolean>
-                  options={listOptions}
-                  selected={value}
-                  nullable
-                  onCommit={handleCommit}
-                  onClose={stopEditing}
-                  clearLabel={emptyOptionLabel}
-                  actionLabel={actionLabel}
-                  onActionClick={onActionClick}
-                  allowNew={allowNew}
-                  createLabel={createLabel}
-                  minOptionsForSearch={minOptionsForSearch}
-                  validateNew={validateNew}
-                  initialQuery={initialQuery}
-                />
-              ))}
+            {isOpen && (
+              <SelectorList<string | number | boolean>
+                options={listOptions}
+                selected={value}
+                nullable
+                onCommit={handleCommit}
+                onClose={stopEditing}
+                clearLabel={emptyOptionLabel}
+                actionLabel={actionLabel}
+                onActionClick={onActionClick}
+                allowNew={allowNew}
+                createLabel={createLabel}
+                minOptionsForSearch={minOptionsForSearch}
+                validateNew={validateNew}
+                initialQuery={initialQuery}
+                enableVirtualization={enableVirtualization}
+              />
+            )}
           </Popover.Content>
         </Popover.Portal>
       </Popover.Root>
@@ -271,7 +261,7 @@ export function filterableSelectColumn<
     allowNew?: boolean;
     createLabel?: (query: string) => string;
     validateNew?: (query: string) => boolean;
-    virtualized?: boolean;
+    enableVirtualization?: boolean;
     isOptionAvailable?: (value: T, row: TData) => boolean;
   },
 ): GridColumn<TData> {
@@ -351,7 +341,7 @@ export function filterableSelectColumn<
           allowNew={options.allowNew}
           createLabel={options.createLabel}
           validateNew={options.validateNew}
-          virtualized={options.virtualized}
+          enableVirtualization={options.enableVirtualization}
           isOptionAvailable={
             options.isOptionAvailable as FilterableSelectCellProps["isOptionAvailable"]
           }

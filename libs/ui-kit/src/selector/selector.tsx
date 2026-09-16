@@ -3,7 +3,6 @@ import * as Popover from "@radix-ui/react-popover";
 import clsx from "clsx";
 import { ChevronDownIcon } from "../icons";
 import { useSelectorPortalContainer } from "../portal";
-import { useUIConfig } from "../ui-config";
 import { StyleOptions, triggerStylesFor } from "./selector-trigger";
 import {
   BaseSelectorList,
@@ -12,8 +11,6 @@ import {
 } from "./selector-list";
 
 export type SelectorOption<T extends string | number> = SelectorListOption<T>;
-
-const VIRTUALIZATION_THRESHOLD = 100;
 
 type SelectorPropsBase<T extends string | number> = {
   options: SelectorOption<T>[];
@@ -96,7 +93,6 @@ export function BaseSelector<T extends string | number>({
   const [open, setOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const portalContainer = useSelectorPortalContainer();
-  const ui = useUIConfig();
 
   const selectedOption = useMemo(
     () => options.find((o) => o.value === selected) ?? null,
@@ -211,10 +207,7 @@ export function BaseSelector<T extends string | number>({
               listClassName={listClassName}
               validateNew={validateNew}
               onActiveOptionChange={onActiveOptionChange}
-              virtualized={
-                (enableVirtualization || ui.isSelectorVirtualizationEnabled) &&
-                options.length > VIRTUALIZATION_THRESHOLD
-              }
+              enableVirtualization={enableVirtualization}
             />
           )}
         </Popover.Content>

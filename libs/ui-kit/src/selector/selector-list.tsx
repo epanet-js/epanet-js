@@ -47,10 +47,12 @@ export type SelectorListProps<T extends string | number | boolean> = {
    * option, e.g. highlight it elsewhere in the UI.
    */
   onActiveOptionChange?: (value: T | null) => void;
-  /** Render only the option rows in view, for long lists. */
-  virtualized?: boolean;
+  /** Render only the option rows in view when there are more than 100
+   *  options. */
+  enableVirtualization?: boolean;
 };
 
+const VIRTUALIZATION_THRESHOLD = 100;
 const NO_INDEX = -1;
 const PAGE_SIZE = 5;
 const TYPE_AHEAD_RESET_MS = 500;
@@ -99,9 +101,12 @@ export function BaseSelectorList<T extends string | number | boolean>({
   maxVisibleOptions = 5,
   initialQuery = "",
   onActiveOptionChange,
-  virtualized = false,
+  enableVirtualization = false,
 }: SelectorListProps<T>) {
   const ui = useUIConfig();
+  const virtualized =
+    (enableVirtualization || ui.isSelectorVirtualizationEnabled) &&
+    options.length > VIRTUALIZATION_THRESHOLD;
   const [query, setQuery] = useState(initialQuery);
   const [activeIndex, setActiveIndex] = useState<number>(() => {
     if (selected === null) return NO_INDEX;

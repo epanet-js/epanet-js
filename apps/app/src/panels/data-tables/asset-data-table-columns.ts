@@ -1033,7 +1033,7 @@ function _buildColumns(
                 emptyOptionLabel: endNodeLabelFor,
                 emptyValue: null,
                 isReadOnly: (rowIndex) => getRow?.(rowIndex)?.kind !== "prv",
-                virtualized: true,
+                enableVirtualization: true,
                 isOptionAvailable: isNotEndNode,
               }),
             ]
