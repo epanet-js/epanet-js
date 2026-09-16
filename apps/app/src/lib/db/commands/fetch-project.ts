@@ -52,6 +52,7 @@ export type FetchProjectOptions = {
 const buildFactories = (
   maxId: number,
   maxPatternId: number,
+  maxCurveId: number,
   withPools: boolean,
 ): ModelFactories => {
   const labelManager = new LabelManager();
@@ -66,7 +67,7 @@ const buildFactories = (
     idPools: new IdPoolsGenerator({
       asset: maxId,
       pattern: maxPatternId,
-      curve: maxId,
+      curve: maxCurveId,
       zone: maxId,
     }),
     labelManager,
@@ -123,6 +124,7 @@ export const fetchProject = async (
       simulationSettingsData,
       maxId,
       maxPatternId,
+      maxCurveId,
     ] = await timed("fetchProject.readSettings", () =>
       Promise.all([
         worker.getProjectSettings(),
@@ -137,6 +139,7 @@ export const fetchProject = async (
         worker.getSimulationSettings(),
         worker.getMaxId(),
         worker.getMaxPatternId(),
+        worker.getMaxCurveId(),
       ]),
     );
     if (!settingsJson) {
@@ -156,6 +159,7 @@ export const fetchProject = async (
         const factories = buildFactories(
           maxId,
           maxPatternId,
+          maxCurveId,
           options.idPools ?? false,
         );
         const { idGenerator } = factories;

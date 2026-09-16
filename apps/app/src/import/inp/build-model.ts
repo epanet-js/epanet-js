@@ -125,6 +125,7 @@ export const buildModel = (
   const curvesContext: CurvesContext = initializeCurvesContext(
     labelManager,
     inpData.curves,
+    withIdPools ? idPools.forPool("curve") : new ConsecutiveIdsGenerator(),
   );
 
   const patternContext: PatternsContext = initializeBuildPatternContext(
@@ -257,12 +258,13 @@ export const buildModel = (
 const initializeCurvesContext = (
   labelManager: LabelManager,
   rawCurves: ItemData<CurveData>,
+  idGenerator: IdGenerator,
 ): CurvesContext => {
   const curveContext: CurvesContext = {
     curves: new Map(),
     pumpCurves: new Map(),
     labelManager: labelManager,
-    idGenerator: new ConsecutiveIdsGenerator(),
+    idGenerator,
     duplicates: new Map(),
   };
 

@@ -157,7 +157,7 @@ export const buildModel = (
       labelMaxLength,
     }),
     curveIdByRef: addCurves(hydraulicModel, network, {
-      idGenerator,
+      idGenerator: idPools.forPool("curve"),
       labelManager,
       labelMaxLength,
       toVolume: converterFor(network.units.volume, spec.units.volume),

@@ -1,4 +1,5 @@
 import { curveTypes, type CurveType } from "@epanet-js/model-schema";
+import type { IdGenerator } from "@epanet-js/id-generator";
 import { LabelManager } from "./label-manager";
 
 export type CurveId = number;
@@ -227,12 +228,17 @@ export const buildDefaultCurve = (
   labelManager: LabelManager,
   candidateLabel: string,
   type: CurveType,
+  idGenerator?: IdGenerator,
 ): ICurve => {
   const label = labelManager.isLabelAvailable(candidateLabel, "curve")
     ? candidateLabel
     : labelManager.generateNextLabel(candidateLabel);
 
-  const id = curves.size > 0 ? Math.max(...curves.keys()) + 1 : 1;
+  const id = idGenerator
+    ? idGenerator.newId()
+    : curves.size > 0
+      ? Math.max(...curves.keys()) + 1
+      : 1;
 
   return {
     id,

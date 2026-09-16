@@ -235,7 +235,7 @@ describe("fetch-project integration", () => {
 describe("fetch-project id pools", () => {
   useInProcessDb();
 
-  const IDS = { J1: 1, PAT1: 40, PAT2: 41 } as const;
+  const IDS = { J1: 1, PAT1: 40, PAT2: 41, CUR1: 60, CUR2: 61 } as const;
 
   const seed = () =>
     importProject({
@@ -267,12 +267,39 @@ describe("fetch-project id pools", () => {
     expect(factories.idPools.forPool("pattern")).toBe(factories.idGenerator);
   });
 
+  it("continues the curve pool from the curves table, not the asset maximum", async () => {
+    await importProject({
+      newDb: true,
+      hydraulicModel: HydraulicModelBuilder.with()
+        .aJunction(IDS.J1)
+        .aCurve({
+          id: IDS.CUR1,
+          label: "CUR1",
+          points: [{ x: 0, y: 1 }],
+          type: "volume",
+        })
+        .aCurve({
+          id: IDS.CUR2,
+          label: "CUR2",
+          points: [{ x: 0, y: 1 }],
+          type: "volume",
+        })
+        .build(),
+      projectSettings: defaultProjectSettings,
+      simulationSettings: defaultSimulationSettings,
+    });
+
+    const { factories } = await fetchProject({ idPools: true });
+
+    expect(factories.idPools.newId("curve")).toBe(IDS.CUR2 + 1);
+    expect(factories.idPools.newId("asset")).toBe(IDS.J1 + 1);
+  });
+
   it("floors the unseeded pools at the asset maximum", async () => {
     await seed();
 
     const { factories } = await fetchProject({ idPools: true });
 
-    expect(factories.idPools.newId("curve")).toBe(IDS.J1 + 1);
     expect(factories.idPools.newId("zone")).toBe(IDS.J1 + 1);
   });
 });
