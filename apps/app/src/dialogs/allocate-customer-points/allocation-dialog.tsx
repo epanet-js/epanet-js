@@ -7,8 +7,7 @@ import {
   Pipe,
   initializeCustomerPoints,
 } from "@epanet-js/hydraulic-model";
-import { Selector, SelectorListOption } from "@epanet-js/ui-kit";
-import { NotificationBanner } from "src/components/notifications";
+import { Callout, Selector, SelectorListOption } from "@epanet-js/ui-kit";
 import { convertTo } from "@epanet-js/quantity";
 
 import { AllocationRulesTable } from "./allocation-rules-table";
@@ -506,7 +505,7 @@ const ExcludedPipesWarning = ({
   if (count === 0) return null;
 
   return (
-    <NotificationBanner
+    <Callout
       variant="warning"
       Icon={WarningIcon}
       title={translate("allocateCustomerPoints.dialog.excludedPipesTitle")}

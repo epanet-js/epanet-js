@@ -10,7 +10,7 @@ import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import { changeCustomAttributesDefinition } from "src/hydraulic-model/model-operations";
 import { useUserTracking } from "src/infra/user-tracking";
-import { NotificationBanner } from "src/components/notifications";
+import { Callout } from "@epanet-js/ui-kit";
 import { VerticalResizer } from "../vertical-resizer";
 import { DialogActions, DialogActionsHandle } from "../dialog-actions-row";
 import { CustomAttributesSidebar } from "./custom-attributes-sidebar";
@@ -232,7 +232,7 @@ export const CustomAttributesDialog = ({
               !selectedTypeHasDuplicateLabel
             }
           >
-            <NotificationBanner
+            <Callout
               variant="warning"
               title={translate("customAttributes.invalidLabel")}
               description={

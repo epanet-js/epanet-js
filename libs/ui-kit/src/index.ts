@@ -7,5 +7,5 @@ export * from "./selector/searchable-selector";
 export * from "./selector/virtualized-searchable-selector";
 export * from "./ui-config";
 export * from "./portal";
-export * from "./message/message";
 export * from "./button/button";
+export * from "./callout/callout";

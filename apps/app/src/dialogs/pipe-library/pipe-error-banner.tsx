@@ -1,5 +1,5 @@
 import { useTranslate } from "src/hooks/use-translate";
-import { NotificationBanner } from "src/components/notifications";
+import { Callout } from "@epanet-js/ui-kit";
 import { TriangleAlert } from "lucide-react";
 import type { MaterialValidationError } from "src/hydraulic-model/pipe-materials";
 
@@ -17,7 +17,7 @@ export function PipeErrorBanner({
   if (!error) return null;
 
   return (
-    <NotificationBanner
+    <Callout
       variant="warning"
       title={translate("pipeLibrary.validation.invalidMaterial", materialLabel)}
       description={translate(`pipeLibrary.${error.code}`)}

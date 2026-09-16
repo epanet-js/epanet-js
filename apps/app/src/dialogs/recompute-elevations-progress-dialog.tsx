@@ -2,7 +2,7 @@ import { useState } from "react";
 import * as Progress from "@radix-ui/react-progress";
 import { BaseDialog, SimpleDialogActions } from "src/components/dialog";
 import { Button } from "src/components/elements";
-import { NotificationBanner } from "src/components/notifications";
+import { Callout } from "@epanet-js/ui-kit";
 import { TranslateFn, useTranslate } from "src/hooks/use-translate";
 import { UnavailableIcon, WarningIcon } from "src/icons";
 import type { ElevationFetchStatus } from "src/lib/elevations";
@@ -141,7 +141,7 @@ const SummaryDialog = ({
       }
     >
       <div className="p-4 text-size-base flex flex-col gap-4">
-        <NotificationBanner
+        <Callout
           variant={banner.variant}
           Icon={banner.Icon}
           description={banner.description}

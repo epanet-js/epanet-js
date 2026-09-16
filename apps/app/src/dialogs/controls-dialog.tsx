@@ -20,7 +20,7 @@ import {
 import { changeRawControls } from "src/hydraulic-model/model-operations";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
-import { Message } from "@epanet-js/ui-kit";
+import { Callout } from "@epanet-js/ui-kit";
 
 type Tab = "simple" | "ruleBased";
 
@@ -100,15 +100,16 @@ export const ControlsDialog = () => {
         >
           <Form>
             <div className="flex flex-col gap-4 p-4">
-              <Message
+              <Callout
                 variant="info"
                 title={translate("controls.nativeControlsInfoTitle")}
+                className="border rounded-lg"
               >
                 <div className="space-y-2">
                   <p>{translate("controls.nativeControlsInfoDescription")}</p>
                   <p>{translate("controls.nativeControlsInfoNote")}</p>
                 </div>
-              </Message>
+              </Callout>
               <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
               <ControlsTextArea
                 name="simpleText"

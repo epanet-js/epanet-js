@@ -1,7 +1,7 @@
 import { CurvePoint, CurveType } from "@epanet-js/hydraulic-model";
 import { getCurveTypeConfig } from "./curve-type-config";
 import { useTranslate } from "src/hooks/use-translate";
-import { NotificationBanner } from "src/components/notifications";
+import { Callout } from "@epanet-js/ui-kit";
 import { TriangleAlert } from "lucide-react";
 
 interface CurveErrorBannerProps {
@@ -31,7 +31,7 @@ export function CurveErrorBanner({ points, curveType }: CurveErrorBannerProps) {
 
   if (needsMorePoints) {
     return (
-      <NotificationBanner
+      <Callout
         variant="warning"
         title={translate("curves.invalidCurve")}
         description={translate("curveValidation.needsMorePoints")}
@@ -65,7 +65,7 @@ export function CurveErrorBanner({ points, curveType }: CurveErrorBannerProps) {
   }
 
   return (
-    <NotificationBanner
+    <Callout
       variant="warning"
       title={translate("curves.invalidCurve")}
       description={description}

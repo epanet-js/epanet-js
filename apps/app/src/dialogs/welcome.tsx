@@ -31,7 +31,7 @@ import {
   EarlyAccessIcon,
 } from "src/icons";
 import { BaseDialog, DialogCloseX, useDialogState } from "../components/dialog";
-import { Message } from "@epanet-js/ui-kit";
+import { Callout } from "@epanet-js/ui-kit";
 import { DRUMCHAPEL, WATERDOWN } from "src/demo/demo-networks";
 import optimaticsLogoUrl from "src/assets/images/logos/optimatics-logo-black.webp";
 import affinityWaterLogoUrl from "src/assets/images/logos/affinity-water-logo.svg";
@@ -159,12 +159,13 @@ export const WelcomeDialog = () => {
           <div className="p-6 min-w-0 flex flex-col overflow-hidden">
             {isExperimental && (
               <div className="mt-7 mb-3">
-                <Message
+                <Callout
                   variant="info"
                   title={translate("startNotificationLanguageTitle")}
+                  className="border rounded-lg"
                 >
                   {translate("startNotificationLanguageDescription")}
-                </Message>
+                </Callout>
               </div>
             )}
 
@@ -283,7 +284,11 @@ const FoundingPartners = () => {
 const SmallDeviceWarning = () => {
   const translate = useTranslate();
   return (
-    <Message variant="warning" title={translate("headsUpSmallScreen")}>
+    <Callout
+      variant="warning"
+      title={translate("headsUpSmallScreen")}
+      className="border rounded-lg"
+    >
       <p>{translate("smallScreenExplain")}</p>
       <hr className="my-4" />
       <p className="pb-2">{translate("hereYourOptions")}:</p>
@@ -305,7 +310,7 @@ const SmallDeviceWarning = () => {
           : {translate("visitLandingPageExplain")}
         </ul>
       </div>
-    </Message>
+    </Callout>
   );
 };
 

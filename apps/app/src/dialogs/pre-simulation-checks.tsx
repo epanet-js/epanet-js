@@ -1,7 +1,7 @@
 import * as Progress from "@radix-ui/react-progress";
 import { BaseDialog, SimpleDialogActions } from "src/components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
-import { NotificationBanner } from "src/components/notifications";
+import { Callout } from "@epanet-js/ui-kit";
 import { ErrorIcon, WarningIcon } from "src/icons";
 import { ruleLabelKey } from "src/panels/network-review/rule-labels";
 import { PreSimulationChecksDialogState } from "src/state/dialog";
@@ -31,7 +31,7 @@ const FailedBody = () => {
 
   return (
     <div className="p-4 text-size-base flex flex-col gap-4">
-      <NotificationBanner
+      <Callout
         variant="error"
         Icon={ErrorIcon}
         description={translate("preSimulationChecks.failed.warning")}
@@ -49,7 +49,7 @@ const SummaryBody = ({ failingRules }: { failingRules: string[] }) => {
 
   return (
     <div className="p-4 text-size-base flex flex-col gap-4">
-      <NotificationBanner
+      <Callout
         variant="warning"
         Icon={WarningIcon}
         description={translate("preSimulationChecks.warning")}
