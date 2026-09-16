@@ -25,3 +25,25 @@ const ids = new ConsecutiveIdsGenerator();
 ids.newId(); // 1
 ids.newId(); // 2
 ```
+
+## Id pools
+
+Ids are drawn per **pool** — `asset`, `pattern`, `curve`, `zone`. Assets share
+one pool because nodes and links are keyed in a single space; everything else is
+keyed in its own map, so a pattern and a curve may both be `7`.
+
+- **`PooledIdGenerator`** — `newId(pool)`, `totalGenerated(pool)`, and
+  `forPool(pool)`, which returns a plain `IdGenerator` bound to that pool so
+  existing consumers can be handed one without changing their signature.
+- **`IdPoolsGenerator`** — a `ConsecutiveIdsGenerator` per pool. Its `seeds` are
+  a complete `Record<IdPool, number>`: a pool that silently starts at 0 hands
+  out an id something already holds, so there is no default.
+- **`sharedIdPools(generator)`** — every pool aliases one generator, so all four
+  draw from a single sequence. Use it where the caller has one generator and no
+  per-pool seeds.
+
+```ts
+const pools = new IdPoolsGenerator({ asset: 42, pattern: 7, curve: 0, zone: 0 });
+pools.newId("asset"); // 43
+pools.newId("pattern"); // 8
+```

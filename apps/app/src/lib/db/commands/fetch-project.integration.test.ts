@@ -231,3 +231,48 @@ describe("fetch-project integration", () => {
     });
   });
 });
+
+describe("fetch-project id pools", () => {
+  useInProcessDb();
+
+  const IDS = { J1: 1, PAT1: 40, PAT2: 41 } as const;
+
+  const seed = () =>
+    importProject({
+      newDb: true,
+      hydraulicModel: HydraulicModelBuilder.with()
+        .aJunction(IDS.J1)
+        .aDemandPattern(IDS.PAT1, "PAT1", [1])
+        .aDemandPattern(IDS.PAT2, "PAT2", [1])
+        .build(),
+      projectSettings: defaultProjectSettings,
+      simulationSettings: defaultSimulationSettings,
+    });
+
+  it("continues the pattern pool from the patterns table, not the asset maximum", async () => {
+    await seed();
+
+    const { factories } = await fetchProject({ idPools: true });
+
+    expect(factories.idPools.newId("pattern")).toBe(IDS.PAT2 + 1);
+    expect(factories.idPools.newId("asset")).toBe(IDS.J1 + 1);
+  });
+
+  it("draws patterns from the asset pool when the flag is off", async () => {
+    await seed();
+
+    const { factories } = await fetchProject();
+
+    expect(factories.idPools.newId("pattern")).toBe(IDS.J1 + 1);
+    expect(factories.idPools.forPool("pattern")).toBe(factories.idGenerator);
+  });
+
+  it("floors the unseeded pools at the asset maximum", async () => {
+    await seed();
+
+    const { factories } = await fetchProject({ idPools: true });
+
+    expect(factories.idPools.newId("curve")).toBe(IDS.J1 + 1);
+    expect(factories.idPools.newId("zone")).toBe(IDS.J1 + 1);
+  });
+});

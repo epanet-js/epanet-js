@@ -1,4 +1,8 @@
-import { IdGenerator } from "@epanet-js/id-generator";
+import {
+  IdGenerator,
+  PooledIdGenerator,
+  sharedIdPools,
+} from "@epanet-js/id-generator";
 import { CustomerPointFactory } from "./customer-point-factory";
 import { LabelManager, type LabelType } from "../label-manager";
 import { AssetFactory } from "./asset-factory";
@@ -15,6 +19,7 @@ export type ModelFactories = {
   labelManager: LabelManager;
   labelCounters: Map<LabelType, number>;
   idGenerator: IdGenerator;
+  idPools: PooledIdGenerator;
 };
 
 type ModelFactoriesOptions = {
@@ -23,29 +28,41 @@ type ModelFactoriesOptions = {
   labelCounters?: Map<LabelType, number>;
 };
 
+type PooledModelFactoriesOptions = {
+  idPools: PooledIdGenerator;
+  labelManager: LabelManager;
+  labelCounters?: Map<LabelType, number>;
+};
+
 const buildModelFactories = (
-  options: ModelFactoriesOptions,
-  assetFactory: AssetFactory,
+  options: PooledModelFactoriesOptions,
 ): ModelFactories => {
   const labelCounters = options.labelCounters ?? new Map<LabelType, number>();
   options.labelManager.adoptCounters(labelCounters);
+  const idGenerator = options.idPools.forPool("asset");
 
   return {
     customerPointFactory: new CustomerPointFactory(
-      options.idGenerator,
+      idGenerator,
       options.labelManager,
     ),
-    assetFactory,
+    assetFactory: new AssetFactory(idGenerator, options.labelManager),
     labelManager: options.labelManager,
     labelCounters,
-    idGenerator: options.idGenerator,
+    idGenerator,
+    idPools: options.idPools,
   };
 };
 
 export const initializeModelFactories = (
   options: ModelFactoriesOptions,
 ): ModelFactories =>
-  buildModelFactories(
-    options,
-    new AssetFactory(options.idGenerator, options.labelManager),
-  );
+  buildModelFactories({
+    idPools: sharedIdPools(options.idGenerator),
+    labelManager: options.labelManager,
+    labelCounters: options.labelCounters,
+  });
+
+export const initializeModelFactoriesWithPools = (
+  options: PooledModelFactoriesOptions,
+): ModelFactories => buildModelFactories(options);

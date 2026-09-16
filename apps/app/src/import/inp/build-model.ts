@@ -6,7 +6,7 @@ import {
 import {
   CustomerPointFactory,
   ModelFactories,
-  initializeModelFactories,
+  initializeModelFactoriesWithPools,
   type TankMixingModel,
   PumpStatus,
   ValveStatus,
@@ -49,6 +49,7 @@ import type { Unit } from "@epanet-js/quantity";
 import { Position } from "geojson";
 import { ParseInpOptions } from "./parse-inp";
 import { ConsecutiveIdsGenerator, IdGenerator } from "@epanet-js/id-generator";
+import { buildIdPools } from "src/lib/id-pools";
 import {
   LabelResolver,
   parseSimpleControlsFromText,
@@ -106,16 +107,17 @@ export const buildModel = (
   const nodeIds = new ItemData<AssetId>();
   const linkIds = new ItemData<AssetId>();
 
-  const idGenerator = new ConsecutiveIdsGenerator();
+  const withIdPools = options?.idPools ?? false;
+  const idPools = buildIdPools(withIdPools);
   const labelManager = new LabelManager();
+  const factories = initializeModelFactoriesWithPools({
+    idPools,
+    labelManager,
+  });
+  const idGenerator = factories.idGenerator;
   const hydraulicModel = initializeHydraulicModel({
     demands: createEmptyDemands(),
     idGenerator,
-  });
-
-  const factories = initializeModelFactories({
-    idGenerator,
-    labelManager,
   });
 
   const { assetFactory } = factories;
@@ -128,6 +130,7 @@ export const buildModel = (
   const patternContext: PatternsContext = initializeBuildPatternContext(
     labelManager,
     inpData.patterns,
+    withIdPools ? idPools.forPool("pattern") : new ConsecutiveIdsGenerator(),
     inpData.options.defaultPattern,
   );
 
@@ -293,12 +296,13 @@ const addCurve = (
 const initializeBuildPatternContext = (
   labelManager: LabelManager,
   rawPatterns: ItemData<PatternData>,
+  idGenerator: IdGenerator,
   defaultPatternOption?: string,
 ): PatternsContext => {
   const patternContext: PatternsContext = {
     patterns: new Map(),
     labelManager: labelManager,
-    idGenerator: new ConsecutiveIdsGenerator(),
+    idGenerator,
     duplicates: new Map(),
   };
 

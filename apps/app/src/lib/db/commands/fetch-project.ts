@@ -6,9 +6,13 @@ import { HydraulicModel, initializeHydraulicModel } from "src/hydraulic-model";
 import {
   ModelFactories,
   initializeModelFactories,
+  initializeModelFactoriesWithPools,
   LabelManager,
 } from "@epanet-js/hydraulic-model";
-import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
+import {
+  ConsecutiveIdsGenerator,
+  IdPoolsGenerator,
+} from "@epanet-js/id-generator";
 import { getWorker, timed } from "@epanet-js/ejsdb";
 import {
   buildAssetsData,
@@ -42,12 +46,34 @@ export type FetchProjectPhase =
 
 export type FetchProjectOptions = {
   onProgress?: (phase: FetchProjectPhase) => void;
+  idPools?: boolean;
 };
 
-type InitializeModelFactories = typeof initializeModelFactories;
+const buildFactories = (
+  maxId: number,
+  maxPatternId: number,
+  withPools: boolean,
+): ModelFactories => {
+  const labelManager = new LabelManager();
+  if (!withPools) {
+    return initializeModelFactories({
+      idGenerator: new ConsecutiveIdsGenerator(maxId),
+      labelManager,
+    });
+  }
 
-const fetchProjectWith = async (
-  initializeFactories: InitializeModelFactories,
+  return initializeModelFactoriesWithPools({
+    idPools: new IdPoolsGenerator({
+      asset: maxId,
+      pattern: maxPatternId,
+      curve: maxId,
+      zone: maxId,
+    }),
+    labelManager,
+  });
+};
+
+export const fetchProject = async (
   options: FetchProjectOptions = {},
 ): Promise<Project> => {
   const { onProgress } = options;
@@ -96,6 +122,7 @@ const fetchProjectWith = async (
       controlsData,
       simulationSettingsData,
       maxId,
+      maxPatternId,
     ] = await timed("fetchProject.readSettings", () =>
       Promise.all([
         worker.getProjectSettings(),
@@ -109,6 +136,7 @@ const fetchProjectWith = async (
         worker.getControls(),
         worker.getSimulationSettings(),
         worker.getMaxId(),
+        worker.getMaxPatternId(),
       ]),
     );
     if (!settingsJson) {
@@ -125,11 +153,12 @@ const fetchProjectWith = async (
           buildCustomAttributesDefinition(customAttributesJson);
         const zones = buildZonesData(zonesRaw);
 
-        const idGenerator = new ConsecutiveIdsGenerator(maxId);
-        const factories = initializeFactories({
-          idGenerator,
-          labelManager: new LabelManager(),
-        });
+        const factories = buildFactories(
+          maxId,
+          maxPatternId,
+          options.idPools ?? false,
+        );
+        const { idGenerator } = factories;
 
         const { assets, assetIndex, topology } = buildAssetsData(
           {
@@ -199,7 +228,3 @@ const fetchProjectWith = async (
     );
   });
 };
-
-export const fetchProject = (
-  options: FetchProjectOptions = {},
-): Promise<Project> => fetchProjectWith(initializeModelFactories, options);

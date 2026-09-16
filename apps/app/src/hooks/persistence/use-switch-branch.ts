@@ -3,7 +3,7 @@ import { useAtomCallback } from "jotai/utils";
 import type { Getter, Setter } from "jotai";
 import type { HydraulicModel } from "src/hydraulic-model";
 import {
-  initializeModelFactories,
+  initializeModelFactoriesWithPools,
   type LabelManager,
 } from "@epanet-js/hydraulic-model";
 import { branchStateAtom } from "src/state/branch-state";
@@ -21,8 +21,8 @@ function updateFactories(
   const currentFactories = get(modelFactoriesAtom);
   set(
     modelFactoriesAtom,
-    initializeModelFactories({
-      idGenerator: currentFactories.idGenerator,
+    initializeModelFactoriesWithPools({
+      idPools: currentFactories.idPools,
       labelManager,
       labelCounters: currentFactories.labelCounters,
     }),

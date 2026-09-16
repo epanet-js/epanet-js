@@ -10,10 +10,11 @@ import {
 } from "src/hydraulic-model";
 import {
   type ModelFactories,
-  initializeModelFactories,
+  initializeModelFactoriesWithPools,
   LabelManager,
 } from "@epanet-js/hydraulic-model";
-import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
+import { buildIdPools } from "src/lib/id-pools";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   type ProjectSettings,
   defaultProjectSettings,
@@ -253,6 +254,7 @@ export const useStartBlankProject = () => {
   const { startNewProject } = useStartNewProject();
   const setInpFileInfo = useSetAtom(inpFileInfoAtom);
   const setProjectFileInfo = useSetAtom(projectFileInfoAtom);
+  const isIdPoolsOn = useFeatureFlag("FLAG_ID_POOLS");
   return useCallback(
     async ({
       projectSettings = defaultProjectSettings,
@@ -261,11 +263,13 @@ export const useStartBlankProject = () => {
       projectSettings?: ProjectSettings;
       autoElevations?: boolean;
     } = {}): Promise<boolean> => {
-      const idGenerator = new ConsecutiveIdsGenerator();
-      const hydraulicModel = initializeHydraulicModel({ idGenerator });
-      const factories = initializeModelFactories({
-        idGenerator,
+      const idPools = buildIdPools(isIdPoolsOn);
+      const factories = initializeModelFactoriesWithPools({
+        idPools,
         labelManager: new LabelManager(),
+      });
+      const hydraulicModel = initializeHydraulicModel({
+        idGenerator: factories.idGenerator,
       });
       const started = await startNewProject({
         hydraulicModel,
@@ -280,7 +284,7 @@ export const useStartBlankProject = () => {
       setProjectFileInfo(null);
       return true;
     },
-    [startNewProject, setInpFileInfo, setProjectFileInfo],
+    [startNewProject, setInpFileInfo, setProjectFileInfo, isIdPoolsOn],
   );
 };
 

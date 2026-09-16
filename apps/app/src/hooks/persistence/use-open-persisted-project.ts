@@ -12,6 +12,7 @@ import {
   resetAppState,
 } from "./use-start-new-project";
 import { captureError } from "src/infra/error-tracking";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export type OpenPersistedProjectPhase = FetchProjectPhase | "finalizing";
 
@@ -38,6 +39,7 @@ export type OpenPersistedProjectResult =
 
 export const useOpenPersistedProject = () => {
   const defaultPanelsFor = useDefaultPanels();
+  const isIdPoolsOn = useFeatureFlag("FLAG_ID_POOLS");
   const openPersistedProject = useAtomCallback(
     useCallback(
       async (
@@ -65,7 +67,7 @@ export const useOpenPersistedProject = () => {
           hydraulicModel,
           factories,
           simulationSettings,
-        } = await fetchProject({ onProgress });
+        } = await fetchProject({ onProgress, idPools: isIdPoolsOn });
         onProgress?.("finalizing");
         await clearSimulationStorage();
         resetAppState(set, defaultPanelsFor());
@@ -84,7 +86,7 @@ export const useOpenPersistedProject = () => {
           uniqueId,
         };
       },
-      [defaultPanelsFor],
+      [defaultPanelsFor, isIdPoolsOn],
     ),
   );
 

@@ -15,6 +15,9 @@ import { captureError } from "src/infra/error-tracking";
 import { mergePatterns } from "src/lib/operational-data-io/patterns/merge-patterns";
 import { buildPatternTypeLabels, PATTERN_TYPES } from "./pattern-type-labels";
 import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
+import { useAtomValue } from "jotai";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { modelFactoriesAtom } from "src/state/model-factories";
 
 export const PATTERNS_IMPORT_KEYS = "patterns.import";
 
@@ -40,6 +43,8 @@ export const ImportExportPatternsToolbar = ({
     translate("patterns.title"),
   );
   const importPatterns = useImportPatterns();
+  const isIdPoolsOn = useFeatureFlag("FLAG_ID_POOLS");
+  const { idPools } = useAtomValue(modelFactoriesAtom);
 
   const options = useMemo(
     () => ({
@@ -92,7 +97,9 @@ export const ImportExportPatternsToolbar = ({
       if (pattern.id > maxId) maxId = pattern.id;
     }
 
-    const idGenerator = new ConsecutiveIdsGenerator(maxId);
+    const idGenerator = isIdPoolsOn
+      ? idPools.forPool("pattern")
+      : new ConsecutiveIdsGenerator(maxId);
 
     const merged = mergePatterns(patterns, parsed.patterns, {
       labelManager,
@@ -123,6 +130,8 @@ export const ImportExportPatternsToolbar = ({
     intervalSeconds,
     onImported,
     translate,
+    isIdPoolsOn,
+    idPools,
   ]);
 
   const handleImport = useCallback(() => {

@@ -1467,6 +1467,17 @@ export const api = {
     });
   },
 
+  async getMaxPatternId(): Promise<number> {
+    return timed("getMaxPatternId", async () => {
+      await ready;
+      if (!db) throw new Error("No database open");
+      const rows = db.exec("SELECT MAX(id) AS m FROM patterns", {
+        returnValue: "resultRows",
+      }) as Array<Array<number | null>>;
+      return rows[0]?.[0] ?? 0;
+    });
+  },
+
   async applyMoment(payload: WriteBatch): Promise<void> {
     if (isEmptyWriteBatch(payload)) return;
     return applyWriteBatch("moment:write", payload);
