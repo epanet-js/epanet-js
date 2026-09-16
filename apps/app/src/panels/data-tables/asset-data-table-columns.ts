@@ -10,7 +10,12 @@ import {
 import type { ReactNode } from "react";
 import type { CustomHeaderAction } from "src/components/data-grid/features";
 import { type CustomAttribute } from "@epanet-js/hydraulic-model";
-import { type Asset, type Pipe, type Valve } from "@epanet-js/hydraulic-model";
+import {
+  type Asset,
+  type Pipe,
+  type Valve,
+  type AssetId,
+} from "@epanet-js/hydraulic-model";
 import type { RoughnessInferrer } from "src/hydraulic-model/pipe-materials";
 import {
   type AssetType,
@@ -619,6 +624,11 @@ function _buildColumns(
       : null;
   };
 
+  const isNotEndNode = (nodeId: AssetId | null, row: AssetRow): boolean => {
+    const valve = accessorCtx?.model.assets.get(row.id) as Valve | undefined;
+    return valve?.connections[1] !== nodeId;
+  };
+
   const endNodeLabelFor = (rowIndex: number): string => {
     const valve = getRow?.(rowIndex) as unknown as Valve;
     if (!valve) return translate("none");
@@ -1024,6 +1034,7 @@ function _buildColumns(
                 emptyValue: null,
                 isReadOnly: (rowIndex) => getRow?.(rowIndex)?.kind !== "prv",
                 virtualized: true,
+                isOptionAvailable: isNotEndNode,
               }),
             ]
           : []),

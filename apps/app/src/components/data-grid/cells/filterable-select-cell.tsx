@@ -39,6 +39,10 @@ type FilterableSelectCellProps<
   createLabel?: (query: string) => string;
   validateNew?: (query: string) => boolean;
   virtualized?: boolean;
+  isOptionAvailable?: (
+    value: string | number | boolean,
+    row: unknown,
+  ) => boolean;
 };
 
 // Creatable columns hold free text, where a value differing only in case is the
@@ -60,6 +64,7 @@ const findOption = <T extends string | number | boolean>(
 
 export function FilterableSelectCell({
   value,
+  row,
   onChange,
   stopEditing,
   startEditing,
@@ -76,22 +81,31 @@ export function FilterableSelectCell({
   createLabel,
   validateNew,
   virtualized = false,
+  isOptionAvailable,
 }: CellProps<string | number | boolean | null> &
   FilterableSelectCellProps<string | number | boolean>) {
   const isOpen = !!editMode;
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [initialQuery, setInitialQuery] = useState("");
 
+  const availableOptions = useMemo(
+    () =>
+      isOpen && isOptionAvailable
+        ? options.filter((o) => isOptionAvailable(o.value, row))
+        : options,
+    [options, isOptionAvailable, isOpen, row],
+  );
+
   const listOptions: SelectorListOption<string | number | boolean>[] = useMemo(
     () =>
       virtualized
         ? []
-        : options.map((o) => ({
+        : availableOptions.map((o) => ({
             value: o.value,
             label: o.label,
             disabled: o.enabled === false,
           })),
-    [options, virtualized],
+    [availableOptions, virtualized],
   );
 
   const selectedOption = useMemo(
@@ -207,7 +221,7 @@ export function FilterableSelectCell({
             {isOpen &&
               (virtualized ? (
                 <VirtualizedOptionList<string | number | boolean>
-                  options={options}
+                  options={availableOptions}
                   selected={value}
                   clearLabel={emptyOptionLabel}
                   initialQuery={initialQuery}
@@ -258,6 +272,7 @@ export function filterableSelectColumn<
     createLabel?: (query: string) => string;
     validateNew?: (query: string) => boolean;
     virtualized?: boolean;
+    isOptionAvailable?: (value: T, row: TData) => boolean;
   },
 ): GridColumn<TData> {
   const isEmpty = isSelectorEmpty(options.options, {
@@ -295,10 +310,11 @@ export function filterableSelectColumn<
         if (match) return match.label;
         return options.allowNew && v != null && v !== "" ? String(v) : "";
       },
-      pasteValue: (v: string) => {
+      pasteValue: (v: string, row: TData) => {
         const match = options.options.find(
           (opt) =>
             opt.enabled !== false &&
+            (options.isOptionAvailable?.(opt.value, row) ?? true) &&
             (String(opt.value) === v ||
               opt.label.toLowerCase() === v.toLowerCase()),
         );
@@ -336,6 +352,9 @@ export function filterableSelectColumn<
           createLabel={options.createLabel}
           validateNew={options.validateNew}
           virtualized={options.virtualized}
+          isOptionAvailable={
+            options.isOptionAvailable as FilterableSelectCellProps["isOptionAvailable"]
+          }
         />
       ),
     },
