@@ -11,7 +11,11 @@ import { MapContext } from "src/map";
 import { USelection } from "src/selection";
 import { Store } from "src/state";
 import { selectionAtom } from "src/state/selection";
-import { bookmarksAtom, selectionSetsAtom } from "src/state/collections";
+import {
+  bookmarksAtom,
+  pendingCollectionDraftAtom,
+  selectionSetsAtom,
+} from "src/state/collections";
 import { CollectionsPanel } from "./collections-panel";
 
 const zoomTo = vi.fn();
@@ -200,6 +204,30 @@ describe("CollectionsPanel", () => {
 
       expect(screen.getByText("Downtown")).toBeInTheDocument();
       expect(screen.getByRole("textbox")).toHaveFocus();
+    });
+  });
+
+  describe("a draft requested from outside the panel", () => {
+    it("opens the name input for the current selection", () => {
+      const store = aStore();
+      store.set(selectionAtom, USelection.fromAssetIds([1, 2]));
+      store.set(pendingCollectionDraftAtom, "selectionSets");
+      renderPanel(store);
+
+      expect(screen.queryByText("Current selection")).not.toBeInTheDocument();
+      expect(screen.getByRole("textbox")).toHaveFocus();
+    });
+
+    it("saves under the name given and clears the request", async () => {
+      const store = aStore();
+      store.set(selectionAtom, USelection.fromAssetIds([1, 2]));
+      store.set(pendingCollectionDraftAtom, "selectionSets");
+      renderPanel(store);
+
+      await nameIt("From the map");
+
+      expect(screen.getByText("From the map")).toBeInTheDocument();
+      expect(store.get(pendingCollectionDraftAtom)).toBeNull();
     });
   });
 

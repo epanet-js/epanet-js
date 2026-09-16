@@ -1,5 +1,5 @@
-import { useAtomValue } from "jotai";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useAtom, useAtomValue } from "jotai";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   useAddBookmark,
   useDeleteBookmark,
@@ -29,9 +29,14 @@ import { useTranslate } from "src/hooks/use-translate";
 import { AddIcon, CloseIcon, PointerClickIcon, RenameIcon } from "src/icons";
 import { USelection } from "src/selection";
 import { selectionAtom } from "src/state/selection";
-import { bookmarksAtom, selectionSetsAtom } from "src/state/collections";
+import {
+  bookmarksAtom,
+  pendingCollectionDraftAtom,
+  selectionSetsAtom,
+} from "src/state/collections";
+import type { CollectionKind } from "src/lib/collections";
 
-type SectionType = "selectionSets" | "bookmarks";
+type SectionType = CollectionKind;
 
 type ActionState =
   | { action: "creating"; section: SectionType }
@@ -69,6 +74,7 @@ export const CollectionsPanel = () => {
     null,
   );
   const [focusedRow, setFocusedRow] = useState<RowKey | null>(null);
+  const [pendingDraft, setPendingDraft] = useAtom(pendingCollectionDraftAtom);
 
   const { selectionRows, bookmarkRows, byNavId } = useMemo(() => {
     const selectionRows: Row[] = selectionSets.map((set, index) => ({
@@ -196,6 +202,14 @@ export const CollectionsPanel = () => {
     clearActionState();
     return false;
   };
+
+  useEffect(() => {
+    if (!pendingDraft) return;
+
+    setActionState({ action: "creating", section: pendingDraft });
+    listRef.current?.openSection(pendingDraft);
+    setPendingDraft(null);
+  }, [pendingDraft, setPendingDraft]);
 
   const handleNew = (section: SectionType) => {
     setActionState({ action: "creating", section });

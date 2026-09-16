@@ -8,6 +8,7 @@ import {
   changeActiveTopologyShortcut,
 } from "src/commands/change-selected-assets-active-topology-status";
 import {
+  BookmarkIcon,
   DeleteIcon,
   ZoomToIcon,
   ActivateTopologyIcon,
@@ -21,6 +22,10 @@ import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
 import { useCustomGraph } from "src/hooks/use-custom-graph";
 import { USelection } from "src/selection";
 import { useDisconnectCustomerPoints } from "src/commands/customer-point-actions";
+import {
+  useIsCollectionsAvailable,
+  useStartSelectionSetDraft,
+} from "src/commands/selection-sets";
 
 export function useMultiAssetActions(readonly = false): Action[] {
   const translate = useTranslate();
@@ -33,6 +38,8 @@ export function useMultiAssetActions(readonly = false): Action[] {
   const { assets: assetCount, customerPoints: customerPointCount } =
     USelection.countByKind(selection);
   const { openCustomGraph } = useCustomGraph();
+  const startSelectionSetDraft = useStartSelectionSetDraft();
+  const isCollectionsAvailable = useIsCollectionsAvailable();
 
   const hasAssets = assetCount > 0;
   const hasCustomerPoints = customerPointCount > 0;
@@ -74,6 +81,16 @@ export function useMultiAssetActions(readonly = false): Action[] {
     },
   };
 
+  const saveSelectionSetAction = {
+    icon: <BookmarkIcon />,
+    applicable: isCollectionsAvailable,
+    label: translate("collections.selectionSets.save"),
+    onSelect: function saveSelectionSet() {
+      startSelectionSetDraft({ source: "multi-asset-panel" });
+      return Promise.resolve();
+    },
+  };
+
   const disconnectCustomersAction = {
     label: onlyHasCustomerPoints
       ? translate("contextActions.customerPoints.disconnect")
@@ -99,6 +116,7 @@ export function useMultiAssetActions(readonly = false): Action[] {
 
   return [
     zoomToAction,
+    saveSelectionSetAction,
     changeActiveTopologyActionItem,
     customGraphAction,
     disconnectCustomersAction,

@@ -1734,6 +1734,10 @@ export type UserEvent =
       zoom: boolean;
       source: "panel";
     }
+  | {
+      name: "selectionSet.draftStarted";
+      source: "context-menu" | "multi-asset-panel";
+    }
   | { name: "selectionSet.renamed"; source: "panel" }
   | { name: "selectionSet.deleted"; source: "panel" }
   | { name: "bookmark.added"; source: "panel" }

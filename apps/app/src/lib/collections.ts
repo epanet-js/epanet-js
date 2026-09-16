@@ -4,6 +4,8 @@ import { USelection } from "src/selection";
 import type { Sel } from "src/selection";
 import type { BBox } from "src/types";
 
+export type CollectionKind = "selectionSets" | "bookmarks";
+
 export type SelectionSetId = string;
 export type BookmarkId = string;
 

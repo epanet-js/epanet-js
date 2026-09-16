@@ -1,5 +1,10 @@
+import { useAtomValue, useSetAtom } from "jotai";
 import { useAtomCallback } from "jotai/utils";
 import { useCallback } from "react";
+import { useActivatePanel } from "src/commands/activate-panel";
+import { COLLECTIONS_PANEL_ID } from "src/panels/collections/create-panel";
+import { defaultSplits, splitsAtom } from "src/state/layout";
+import { panelsIn } from "src/state/panels";
 import { useZoomTo } from "src/hooks/use-zoom-to";
 import { useUserTracking } from "src/infra/user-tracking";
 import {
@@ -12,9 +17,40 @@ import {
 } from "src/lib/collections";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { selectionAtom } from "src/state/selection";
-import { selectionSetsAtom } from "src/state/collections";
+import {
+  pendingCollectionDraftAtom,
+  selectionSetsAtom,
+} from "src/state/collections";
 
 export const MIN_SELECTION_SET_SIZE = 1;
+
+const leftPanelsAtom = panelsIn("left");
+
+export const useIsCollectionsAvailable = (): boolean => {
+  const leftPanels = useAtomValue(leftPanelsAtom);
+  return leftPanels.some((entry) => entry.id === COLLECTIONS_PANEL_ID);
+};
+
+export const useStartSelectionSetDraft = () => {
+  const setSplits = useSetAtom(splitsAtom);
+  const setPendingDraft = useSetAtom(pendingCollectionDraftAtom);
+  const activatePanel = useActivatePanel();
+  const userTracking = useUserTracking();
+
+  return useCallback(
+    ({ source }: { source: "context-menu" | "multi-asset-panel" }) => {
+      userTracking.capture({ name: "selectionSet.draftStarted", source });
+      setSplits((splits) => ({
+        ...splits,
+        leftOpen: true,
+        left: defaultSplits.left,
+      }));
+      activatePanel(COLLECTIONS_PANEL_ID);
+      setPendingDraft("selectionSets");
+    },
+    [setSplits, setPendingDraft, activatePanel, userTracking],
+  );
+};
 
 export const useSaveSelectionSet = () => {
   const userTracking = useUserTracking();

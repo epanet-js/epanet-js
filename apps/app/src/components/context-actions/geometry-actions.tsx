@@ -17,6 +17,7 @@ import {
   changeActiveTopologyShortcut,
 } from "src/commands/change-selected-assets-active-topology-status";
 import {
+  BookmarkIcon,
   DeleteIcon,
   ZoomToIcon,
   RedrawIcon,
@@ -30,6 +31,10 @@ import { Mode, modeAtom } from "src/state/mode";
 import { useSetRedrawMode } from "src/commands/set-redraw-mode";
 import { useReverseLink } from "src/commands/reverse-link";
 import { useCustomGraph } from "src/hooks/use-custom-graph";
+import {
+  useIsCollectionsAvailable,
+  useStartSelectionSetDraft,
+} from "src/commands/selection-sets";
 
 export function GeometryActions({ as }: { as: ActionProps["as"] }) {
   const actions = useSelectionActions(as);
@@ -57,6 +62,8 @@ function useSelectionActions(source: ActionProps["as"]): Action[] {
   const setRedrawMode = useSetRedrawMode();
   const reverseLinkAction = useReverseLink();
   const { openCustomGraph } = useCustomGraph();
+  const startSelectionSetDraft = useStartSelectionSetDraft();
+  const isCollectionsAvailable = useIsCollectionsAvailable();
   const selectedAssets = useAtomValue(selectedAssetsDerivedAtom);
   const selectedCustomerPoints = useAtomValue(
     selectedCustomerPointsDerivedAtom,
@@ -87,6 +94,16 @@ function useSelectionActions(source: ActionProps["as"]): Action[] {
       zoomToSelection({
         source: source === "context-item" ? "context-menu" : "toolbar",
       });
+      return Promise.resolve();
+    },
+  };
+
+  const saveSelectionSetAction = {
+    icon: <BookmarkIcon />,
+    applicable: isCollectionsAvailable,
+    label: translate("collections.selectionSets.save"),
+    onSelect: function saveSelectionSet() {
+      startSelectionSetDraft({ source: "context-menu" });
       return Promise.resolve();
     },
   };
@@ -149,6 +166,7 @@ function useSelectionActions(source: ActionProps["as"]): Action[] {
 
   return [
     zoomToAction,
+    saveSelectionSetAction,
     reverseAction,
     redrawAction,
     changeActiveTopologyStatusAction,
