@@ -2160,20 +2160,21 @@ const ValveEditor = ({
   );
   const controlComparison = getControlComparison(targetNodeControl);
   const baseControl = controlComparison.baseValue;
-  const targetNodeComparison: PropertyComparison<AssetId> = {
+  const targetNodeComparison: PropertyComparison<AssetId | null> = {
     hasChanged: controlComparison.hasChanged,
     baseValue:
-      baseControl?.type === "target-node" ? baseControl.targetId : endNode?.id,
+      baseControl?.type === "target-node" ? baseControl.targetId : null,
   };
 
+  const endNodeId = endNode?.id;
   const nodeOptions = useMemo(() => {
     const options: { value: number; label: string }[] = [];
     for (const candidate of hydraulicModel.assets.values()) {
-      if (!candidate.isNode) continue;
+      if (!candidate.isNode || candidate.id === endNodeId) continue;
       options.push({ value: candidate.id, label: candidate.label });
     }
     return options;
-  }, [hydraulicModel.assets]);
+  }, [hydraulicModel.assets, endNodeId]);
 
   const handleTargetNodeChange = (_name: string, newValue: number | null) => {
     const previousControl = targetNodeControl;

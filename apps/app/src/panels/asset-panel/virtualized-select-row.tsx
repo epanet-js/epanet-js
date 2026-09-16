@@ -54,7 +54,7 @@ export const VirtualizedSelectRow = <P extends string>({
     ? comparison.baseValue != null
       ? (options.find((option) => option.value === comparison.baseValue)
           ?.label ?? String(comparison.baseValue))
-      : `(${translate("none").toLocaleLowerCase()})`
+      : (clearLabel ?? `(${translate("none").toLocaleLowerCase()})`)
     : undefined;
 
   const handleCommit = (value: number | null) => {
