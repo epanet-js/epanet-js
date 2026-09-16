@@ -64,7 +64,10 @@ Thumbs.db
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
-.claude/
+
+.claude/*
+!.claude/skills/
+
 *.suo
 *.ntvs*
 *.njsproj
