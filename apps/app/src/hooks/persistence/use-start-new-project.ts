@@ -288,8 +288,21 @@ export const useStartBlankProject = () => {
   );
 };
 
+const withIdPools = (
+  factories: ModelFactories,
+  withPools: boolean,
+): ModelFactories =>
+  withPools
+    ? initializeModelFactoriesWithPools({
+        idPools: buildIdPools(true),
+        labelManager: factories.labelManager,
+        labelCounters: factories.labelCounters,
+      })
+    : factories;
+
 export const useSeedDefaultProjectDb = () => {
   const defaultPanelsFor = useDefaultPanels();
+  const isIdPoolsOn = useFeatureFlag("FLAG_ID_POOLS");
   return useAtomCallback(
     useCallback(
       (get: Getter, set: Setter): Promise<void> => {
@@ -303,7 +316,7 @@ export const useSeedDefaultProjectDb = () => {
         resetAppState(set, defaultPanelsFor());
         loadModel(set, {
           hydraulicModel,
-          factories: get(modelFactoriesAtom),
+          factories: withIdPools(get(modelFactoriesAtom), isIdPoolsOn),
           projectSettings,
           simulationSettings,
         });
@@ -324,7 +337,7 @@ export const useSeedDefaultProjectDb = () => {
             });
           });
       },
-      [defaultPanelsFor],
+      [defaultPanelsFor, isIdPoolsOn],
     ),
   );
 };
