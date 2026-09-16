@@ -20,7 +20,7 @@ type Tally = { stated: number; numeric: number };
 
 export const summarizeFeatures = (
   features: Feature[],
-  originalProjection?: string,
+  sourceProjectionName?: string,
 ): SourceSummary => {
   const tallies = new Map<string, Tally>();
 
@@ -49,7 +49,7 @@ export const summarizeFeatures = (
   return {
     attributes,
     recordCount: features.length,
-    ...(originalProjection === undefined ? {} : { originalProjection }),
+    ...(sourceProjectionName === undefined ? {} : { sourceProjectionName }),
     geometry: geometryOf(features),
   };
 };

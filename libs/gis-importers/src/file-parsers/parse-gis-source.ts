@@ -17,14 +17,12 @@ import { gisFormatOf, isGisSecondaryPart } from "./formats";
 
 export type ParsedGisSource = {
   features: Feature[];
-  originalProjection?: string;
   sourceProjection?: Proj4Projection;
   issues: IssueCollector;
 };
 
 type DecodedSource = {
   features: Feature[];
-  originalProjection?: string;
   sourceProjection?: Proj4Projection;
   issues: Issue[];
 };
@@ -70,9 +68,6 @@ const resultOf = (decoded: DecodedSource): ParsedGisSource => {
 
   return {
     features: decoded.features,
-    ...(decoded.originalProjection === undefined
-      ? {}
-      : { originalProjection: decoded.originalProjection }),
     ...(decoded.sourceProjection === undefined
       ? {}
       : { sourceProjection: decoded.sourceProjection }),
@@ -144,12 +139,10 @@ const parseShapefile = async (
   }
 
   if (mostlyLatLng(features)) {
-    const authoredIn = crsNameFromWkt(input.prj);
     const sourceProjection = projectionOfWkt(input.prj, projections);
 
     return {
       features,
-      ...(authoredIn === null ? {} : { originalProjection: authoredIn }),
       ...(sourceProjection === null ? {} : { sourceProjection }),
       issues: [],
     };
@@ -191,24 +184,18 @@ const sameFirstGeometry = (a: Feature[], b: Feature[]): boolean => {
 
 const WGS84_WKT_NAMES = new Set(["gcs_wgs_1984", "wgs 84", "wgs84"]);
 
-const crsNameFromWkt = (wkt: string): string | null => {
-  const name = /^(?:PROJCS|GEOGCS)\["([^"]+)"/.exec(wkt)?.[1];
-  if (name === undefined) return null;
-
-  return WGS84_WKT_NAMES.has(name.toLowerCase()) ? null : name;
-};
-
 const projectionOfWkt = (
   wkt: string,
   projections: Map<string, Proj4Projection> | undefined,
 ): Proj4Projection | null => {
   const text = wkt.trim();
   const name = /^(?:PROJCS|GEOGCS|PROJCRS|GEOGCRS)\["([^"]+)"/.exec(text)?.[1];
-  const epsg = /AUTHORITY\["EPSG",\s*"?(\d+)"?\]\]$/.exec(text)?.[1];
+  if (name === undefined || WGS84_WKT_NAMES.has(name.toLowerCase())) {
+    return null;
+  }
 
-  const namesWgs84 =
-    name !== undefined && WGS84_WKT_NAMES.has(name.toLowerCase());
-  if (namesWgs84 || epsg === String(WGS84_EPSG)) return null;
+  const epsg = /AUTHORITY\["EPSG",\s*"?(\d+)"?\]\]$/.exec(text)?.[1];
+  if (epsg === String(WGS84_EPSG)) return null;
 
   const listed =
     epsg === undefined
@@ -219,8 +206,7 @@ const projectionOfWkt = (
         );
   if (listed !== null) return listed;
 
-  const label = name ?? "Custom projection";
-  return { type: "proj4", id: label, name: label, code: text };
+  return { type: "proj4", id: name, name, code: text };
 };
 
 const parseGeoJson = async (
@@ -296,7 +282,6 @@ const placeIn = (
   return mostlyLatLng(converted.features)
     ? {
         features: converted.features,
-        originalProjection: projection.name,
         sourceProjection: projection,
         issues: [],
       }

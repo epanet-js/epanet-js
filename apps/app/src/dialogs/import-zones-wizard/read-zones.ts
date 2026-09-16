@@ -34,18 +34,18 @@ export const readZonesWithImporter = async (
   const polygons = features.filter(isPolygon);
   if (polygons.length === 0) return anError("noPolygons");
 
-  const { originalProjection } = summary;
+  const { sourceProjectionName } = summary;
 
   return {
     features: polygons,
     uniqueProperties: new Set(summary.attributes.map(({ name }) => name)),
-    ...(originalProjection === undefined
+    ...(sourceProjectionName === undefined
       ? {}
       : {
           coordinateConversion: {
-            detected: originalProjection,
+            detected: sourceProjectionName,
             converted: true,
-            fromCRS: originalProjection,
+            fromCRS: sourceProjectionName,
           },
         }),
   };

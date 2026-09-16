@@ -97,12 +97,12 @@ export const DataInputStep: React.FC<{
           propertiesCount: summary.attributes.length,
           featuresCount: summary.recordCount,
           coordinateConversion:
-            summary.originalProjection === undefined
+            summary.sourceProjectionName === undefined
               ? null
               : {
-                  detected: summary.originalProjection,
+                  detected: summary.sourceProjectionName,
                   converted: true,
-                  fromCRS: summary.originalProjection,
+                  fromCRS: summary.sourceProjectionName,
                 },
         });
 

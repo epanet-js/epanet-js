@@ -5,13 +5,13 @@ import { summarizeFeatures } from "./file-parsers/summarize";
 export const scanSource = async (
   input: GisInput,
 ): Promise<ScanSourceResult> => {
-  const { features, originalProjection, issues } = await parseGisSource(input);
+  const { features, sourceProjection, issues } = await parseGisSource(input);
 
   return {
     summary:
       features.length === 0
         ? null
-        : summarizeFeatures(features, originalProjection),
+        : summarizeFeatures(features, sourceProjection?.name),
     issues: issues.build(),
   };
 };

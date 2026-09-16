@@ -151,7 +151,7 @@ describe("parseGisSource", () => {
     });
 
     it("reprojects from the CRS the file states", async () => {
-      const { features, originalProjection, issues } = await parseGisSource({
+      const { features, sourceProjection, issues } = await parseGisSource({
         files: [aCollection([aPoint(IN_METRES)], "EPSG:3857")],
         projections,
       });
@@ -162,7 +162,7 @@ describe("parseGisSource", () => {
 
       expect(longitude).toBeCloseTo(4.4915, 3);
       expect(latitude).toBeCloseTo(47.3537, 3);
-      expect(originalProjection).toEqual("Pseudo-Mercator");
+      expect(sourceProjection?.name).toEqual("Pseudo-Mercator");
       expect(issues.build()).toEqual([]);
     });
 
@@ -207,7 +207,7 @@ describe("parseGisSource", () => {
     });
 
     it("reads a supplied CRS when the stated one does not fit the records", async () => {
-      const { features, originalProjection, issues } = await parseGisSource({
+      const { features, sourceProjection, issues } = await parseGisSource({
         files: [aCollection([aPoint(IN_METRES)], "EPSG:4326")],
         crs: { type: "epsg", code: 3857 },
         projections,
@@ -217,7 +217,7 @@ describe("parseGisSource", () => {
         .coordinates;
 
       expect(longitude).toBeCloseTo(4.4915, 3);
-      expect(originalProjection).toEqual("Pseudo-Mercator");
+      expect(sourceProjection?.name).toEqual("Pseudo-Mercator");
       expect(issues.build()).toEqual([]);
     });
 
@@ -399,9 +399,9 @@ describe("parseGisSource", () => {
         ),
       ];
 
-      const { originalProjection } = await parseGisSource({ files });
+      const { sourceProjection } = await parseGisSource({ files });
 
-      expect(originalProjection).toEqual("Pseudo-Mercator");
+      expect(sourceProjection?.name).toEqual("Pseudo-Mercator");
     });
 
     it("names nothing when the .prj already says WGS84", async () => {
@@ -411,12 +411,24 @@ describe("parseGisSource", () => {
         aTextFile('GEOGCS["WGS 84"]', "a.prj"),
       ];
 
-      const { originalProjection, sourceProjection } = await parseGisSource({
+      const { sourceProjection } = await parseGisSource({ files });
+
+      expect(sourceProjection).toBeUndefined();
+    });
+
+    it("names nothing for a .prj that is not WKT", async () => {
+      const files = [
+        aBinaryFile("a.shp"),
+        aTextFile("not a projection", "a.prj"),
+      ];
+
+      const { sourceProjection, issues } = await parseGisSource({
         files,
+        projections,
       });
 
-      expect(originalProjection).toBeUndefined();
       expect(sourceProjection).toBeUndefined();
+      expect(issues.build()).toEqual([]);
     });
 
     it("names the listed projection a .prj identifies by EPSG code", async () => {
@@ -583,7 +595,7 @@ describe("parseGisSource", () => {
           features: [aPoint(IN_METRES)],
         });
 
-        const { features, originalProjection, issues } = await parseGisSource({
+        const { features, sourceProjection, issues } = await parseGisSource({
           ...shapefileOf(["a.shp", "a.dbf"]),
           crs: { type: "epsg", code: 3857 },
           projections,
@@ -593,7 +605,7 @@ describe("parseGisSource", () => {
           .coordinates;
 
         expect(longitude).toBeCloseTo(4.4915, 3);
-        expect(originalProjection).toEqual("Pseudo-Mercator");
+        expect(sourceProjection?.name).toEqual("Pseudo-Mercator");
         expect(issues.build()).toEqual([]);
       });
     });

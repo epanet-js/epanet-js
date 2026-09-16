@@ -347,7 +347,7 @@ describe("customer points scanSource", () => {
       filesStatingNoCrs([aPoint({})]),
     );
 
-    expect(summary!.originalProjection).toBeUndefined();
+    expect(summary!.sourceProjectionName).toBeUndefined();
     expect(issues).toEqual([
       { code: "coordinateSystemMissing", severity: "warning" },
     ]);
@@ -405,7 +405,7 @@ describe("customer points scanSource", () => {
       projections: osgb,
     });
 
-    expect(summary!.originalProjection).toBe(
+    expect(summary!.sourceProjectionName).toBe(
       "OSGB 1936 / British National Grid",
     );
     expect(issues).toEqual([]);
@@ -428,7 +428,7 @@ describe("customer points scanSource", () => {
 
     const { summary, issues } = await scanSource({ files: [file] });
 
-    expect(summary!.originalProjection).toBeUndefined();
+    expect(summary!.sourceProjectionName).toBeUndefined();
     expect(issues).toEqual([]);
   });
 

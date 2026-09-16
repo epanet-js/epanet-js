@@ -20,7 +20,7 @@ export type SourceGeometry = "point" | "line" | "polygon" | "mixed" | "unknown";
 export type SourceSummary = {
   attributes: SourceAttribute[];
   recordCount: number;
-  originalProjection?: string;
+  sourceProjectionName?: string;
   geometry?: SourceGeometry;
 };
 

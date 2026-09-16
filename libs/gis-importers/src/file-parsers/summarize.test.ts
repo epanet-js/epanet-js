@@ -95,10 +95,12 @@ describe("summarizeFeatures", () => {
     expect(summarizeFeatures([aPoint({}), line]).geometry).toBe("mixed");
   });
 
-  it("carries what a reader converted out of, when it says", () => {
+  it("carries the name of the projection a reader converted out of, when it says", () => {
     const summary = summarizeFeatures([aPoint({})], "OSGB 1936");
 
-    expect(summary.originalProjection).toBe("OSGB 1936");
-    expect(summarizeFeatures([aPoint({})]).originalProjection).toBeUndefined();
+    expect(summary.sourceProjectionName).toBe("OSGB 1936");
+    expect(
+      summarizeFeatures([aPoint({})]).sourceProjectionName,
+    ).toBeUndefined();
   });
 });
