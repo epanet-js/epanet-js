@@ -278,6 +278,38 @@ describe("export-geojson", () => {
     });
   });
 
+  it("exports a projection without an EPSG code in WGS84, with no CRS", async () => {
+    const custom = {
+      type: "proj4" as const,
+      id: "ETRS_1989_UTM_Zone_30N",
+      name: "ETRS_1989_UTM_Zone_30N",
+      code: "+proj=utm +zone=30 +ellps=GRS80 +units=m +no_defs",
+    };
+    const IDS = { J1: 1, P1: 2, CP1: 3 } as const;
+    const model = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1, { coordinates: [-3.7, 40.4] })
+      .aPipe(IDS.P1, { startNodeId: IDS.J1 })
+      .aCustomerPoint(IDS.CP1, {
+        coordinates: [-3.7, 40.4],
+        connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
+      })
+      .build();
+
+    const files = exportGeoJson(model, custom, translate);
+
+    const junctions = await parseGeoJson(findFile(files, "junctions.geojson"));
+    expect(junctions).not.toHaveProperty("crs");
+    expect(junctions.features[0].geometry.coordinates).toEqual([-3.7, 40.4]);
+
+    const customerPoints = await parseGeoJson(
+      findFile(files, "customer-points.geojson"),
+    );
+    expect(customerPoints).not.toHaveProperty("crs");
+    expect(customerPoints.features[0].geometry.coordinates).toEqual([
+      -3.7, 40.4,
+    ]);
+  });
+
   it("omits the length property for valves and pumps but keeps it for pipes", async () => {
     const model = HydraulicModelBuilder.with()
       .aJunction(1)

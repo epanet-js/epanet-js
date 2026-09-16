@@ -24,24 +24,29 @@ import {
 
 const GEOJSON_END = `]}`;
 
-const toEpsgUrn = (epsgId: string): string => {
-  const code = epsgId.split(":")[1];
-  return `urn:ogc:def:crs:EPSG::${code}`;
-};
+const epsgCodeOf = (id: string): string | null =>
+  /^EPSG:(\d+)$/i.exec(id)?.[1] ?? null;
 
-const buildCrs = (projection: Projection): string => {
+const namedCrs = (name: string): string =>
+  `{"type":"name","properties":{"name":${JSON.stringify(name)}}}`;
+
+const buildCrs = (projection: Projection): string | null => {
   switch (projection.type) {
     case "wgs84":
-      return '{"type":"name","properties":{"name":"urn:ogc:def:crs:EPSG::4326"}}';
-    case "proj4":
-      return `{"type":"name","properties":{"name":${JSON.stringify(toEpsgUrn(projection.id))}}}`;
+      return namedCrs("urn:ogc:def:crs:EPSG::4326");
+    case "proj4": {
+      const code = epsgCodeOf(projection.id);
+      return code === null ? null : namedCrs(`urn:ogc:def:crs:EPSG::${code}`);
+    }
     case "xy-grid":
-      return `{"type":"name","properties":{"name":${JSON.stringify(projection.id)}}}`;
+      return namedCrs(projection.id);
   }
 };
 
-const buildGeoJsonHeader = (projection: Projection): string =>
-  `{"type":"FeatureCollection","crs":${buildCrs(projection)},"features":[`;
+const buildGeoJsonHeader = (crs: string | null): string =>
+  crs === null
+    ? `{"type":"FeatureCollection","features":[`
+    : `{"type":"FeatureCollection","crs":${crs},"features":[`;
 
 export const exportGeoJson = (
   hydraulicModel: HydraulicModel,
@@ -66,10 +71,14 @@ export const exportGeoJson = (
       entrySize +
     1024;
   const encoder = new TextEncoder();
-  const transformCoord = createProjectionMapper(projection).toSource;
+  const crs = buildCrs(projection);
+  const transformCoord =
+    crs === null
+      ? (position: Position) => position
+      : createProjectionMapper(projection).toSource;
   const getSimulationResults = buildSimulationResultsReader(resultsReader);
   const { buffers, offsets } = allocateBuffers(size);
-  const header = buildGeoJsonHeader(projection);
+  const header = buildGeoJsonHeader(crs);
 
   encodeHeader(buffers, offsets, encoder, header);
 
