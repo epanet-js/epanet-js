@@ -15,7 +15,6 @@ export const AlertExportInpDialog = ({
   onClose: () => void;
 }) => {
   const translate = useTranslate();
-  const isExportLabelsOn = useFeatureFlag("FLAG_EXPORT_LABELS");
   const isScriptingOn = useFeatureFlag("FLAG_REMOTE_SETPOINT_PRV");
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const showLsxWarning = isScriptingOn && willRequireLsx(hydraulicModel);
@@ -46,9 +45,7 @@ export const AlertExportInpDialog = ({
       <div className="p-4 text-size-base text-default">
         {showLsxWarning && <LsxRequiredWarning />}
         <p className="pb-2">{translate("alertExportInpDetail")}</p>
-        {isExportLabelsOn && (
-          <p className="pb-2">{translate("alertExportInpLabels")}</p>
-        )}
+        <p className="pb-2">{translate("alertExportInpLabels")}</p>
         <p>{translate("alertExportInpRecommendation")}</p>
       </div>
     </BaseDialog>

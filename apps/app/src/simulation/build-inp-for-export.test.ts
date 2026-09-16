@@ -275,12 +275,7 @@ describe("build inp export ", () => {
     expect(inp).toContain("SAME_LABEL.1\tJ_2\tJ_3");
   });
 
-  describe("enforceLabelLimit", () => {
-    const exportOptionsWithLimit = {
-      ...exportOptions,
-      enforceLabelLimit: true,
-    };
-
+  describe("label limit", () => {
     it("truncates labels longer than the EPANET limit", () => {
       const IDS = { J1: 1 } as const;
       const longLabel = "JUNCTION_WITH_A_REALLY_LONG_DESCRIPTIVE_NAME";
@@ -288,7 +283,7 @@ describe("build inp export ", () => {
         .aJunction(IDS.J1, { label: longLabel, elevation: 10 })
         .build();
 
-      const inp = buildInp(hydraulicModel, exportOptionsWithLimit);
+      const inp = buildInp(hydraulicModel, exportOptions);
 
       const truncated = longLabel.slice(0, 31);
       expect(truncated).toHaveLength(31);
@@ -321,7 +316,7 @@ describe("build inp export ", () => {
         })
         .build();
 
-      const inp = buildInp(hydraulicModel, exportOptionsWithLimit);
+      const inp = buildInp(hydraulicModel, exportOptions);
 
       const startId = start.slice(0, 31);
       const endId = end.slice(0, 31);
@@ -338,7 +333,7 @@ describe("build inp export ", () => {
         .aJunction(IDS.J2, { label: `${base}_B`, elevation: 20 })
         .build();
 
-      const inp = buildInp(hydraulicModel, exportOptionsWithLimit);
+      const inp = buildInp(hydraulicModel, exportOptions);
 
       const firstId = `${base}_A`.slice(0, 31);
       const secondId = `${base.slice(0, 28)}.1`;
@@ -357,7 +352,7 @@ describe("build inp export ", () => {
         .aDemandPattern(IDS.PAT1, longPattern, [0.8, 1.2, 1.0])
         .build();
 
-      const inp = buildInp(hydraulicModel, exportOptionsWithLimit);
+      const inp = buildInp(hydraulicModel, exportOptions);
 
       const patternId = longPattern.slice(0, 31);
       expect(patternId).toHaveLength(31);
@@ -386,7 +381,7 @@ describe("build inp export ", () => {
         })
         .build();
 
-      const inp = buildInp(hydraulicModel, exportOptionsWithLimit);
+      const inp = buildInp(hydraulicModel, exportOptions);
 
       const pumpId = longPump.slice(0, 31);
       expect(pumpId).toHaveLength(31);
@@ -415,32 +410,15 @@ describe("build inp export ", () => {
         })
         .build();
 
-      const inp = buildInp(hydraulicModel, exportOptionsWithLimit);
+      const inp = buildInp(hydraulicModel, exportOptions);
 
       const tankId = longTank.slice(0, 31);
       const pipeId = longPipe.slice(0, 31);
       expect(inp).toContain(`LINK ${pipeId} OPEN IF NODE ${tankId} ABOVE 100`);
     });
-
-    it("leaves long labels untouched when the limit is not enforced", () => {
-      const IDS = { J1: 1 } as const;
-      const longLabel = "JUNCTION_WITH_A_REALLY_LONG_DESCRIPTIVE_NAME";
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(IDS.J1, { label: longLabel, elevation: 10 })
-        .build();
-
-      const inp = buildInp(hydraulicModel, exportOptions);
-
-      expect(rowsFrom(inp)).toContain(`${longLabel}\t10`);
-    });
   });
 
   describe("safe labels on export", () => {
-    const exportOptionsWithSafeLabels = {
-      ...exportOptions,
-      enforceLabelLimit: true,
-    };
-
     it("strips commas from labels and dedupes any resulting collision", () => {
       const IDS = { J1: 1, J2: 2 } as const;
       const hydraulicModel = HydraulicModelBuilder.with()
@@ -448,7 +426,7 @@ describe("build inp export ", () => {
         .aJunction(IDS.J2, { label: "AB", elevation: 20 })
         .build();
 
-      const inp = buildInp(hydraulicModel, exportOptionsWithSafeLabels);
+      const inp = buildInp(hydraulicModel, exportOptions);
 
       expect(inp).not.toContain("A,B");
       const rows = rowsFrom(inp);
@@ -480,21 +458,10 @@ describe("build inp export ", () => {
         })
         .build();
 
-      const inp = buildInp(hydraulicModel, exportOptionsWithSafeLabels);
+      const inp = buildInp(hydraulicModel, exportOptions);
 
       expect(inp).not.toMatch(/[NP],\d/);
       expect(rowsFrom(inp)).toContain("P1\tN1\tN2\t10\t100\t1");
-    });
-
-    it("leaves commas untouched when the flag/limit is not enforced", () => {
-      const IDS = { J1: 1 } as const;
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(IDS.J1, { label: "A,B", elevation: 10 })
-        .build();
-
-      const inp = buildInp(hydraulicModel, exportOptions);
-
-      expect(rowsFrom(inp)).toContain("A,B\t10");
     });
   });
 

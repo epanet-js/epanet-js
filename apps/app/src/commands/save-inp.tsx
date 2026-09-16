@@ -34,7 +34,6 @@ export const useSaveInp = () => {
   const { addRecent } = useRecentFiles();
   const userTracking = useUserTracking();
   const map = useContext(MapContext);
-  const isExportLabelsOn = useFeatureFlag("FLAG_EXPORT_LABELS");
   const isScriptingOn = useFeatureFlag("FLAG_REMOTE_SETPOINT_PRV");
 
   const saveInp = useAtomCallback(
@@ -65,7 +64,6 @@ export const useSaveInp = () => {
             geolocation: true,
             madeBy: true,
             labelIds: true,
-            enforceLabelLimit: isExportLabelsOn,
             customerDemands: true,
             includeQuality: true,
             projection: projectSettings.projection,
@@ -176,14 +174,7 @@ export const useSaveInp = () => {
           return false;
         }
       },
-      [
-        userTracking,
-        translate,
-        isExportLabelsOn,
-        isScriptingOn,
-        map,
-        addRecent,
-      ],
+      [userTracking, translate, isScriptingOn, map, addRecent],
     ),
   );
 

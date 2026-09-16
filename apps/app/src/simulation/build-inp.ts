@@ -249,8 +249,6 @@ const toSafeEpanetId = (label: string, fallbackId: string): string => {
 
 class EpanetIds {
   private strategy: "id" | "label";
-  private maxLabelLength?: number;
-  private sanitizeLabels: boolean;
   private assetIds: Map<AssetId, string>;
   private linkIds: Set<string>;
   private nodeIds: Set<string>;
@@ -259,18 +257,8 @@ class EpanetIds {
   private curveIds: Map<CurveId, string>;
   private curveLabels: Set<string>;
 
-  constructor({
-    strategy,
-    maxLabelLength,
-    sanitizeLabels = false,
-  }: {
-    strategy: "id" | "label";
-    maxLabelLength?: number;
-    sanitizeLabels?: boolean;
-  }) {
+  constructor({ strategy }: { strategy: "id" | "label" }) {
     this.strategy = strategy;
-    this.maxLabelLength = maxLabelLength;
-    this.sanitizeLabels = sanitizeLabels;
     this.nodeIds = new Set();
     this.linkIds = new Set();
     this.assetIds = new Map();
@@ -353,7 +341,7 @@ class EpanetIds {
   }
 
   private safeLabel(label: string, fallbackId: string): string {
-    return this.sanitizeLabels ? toSafeEpanetId(label, fallbackId) : label;
+    return toSafeEpanetId(label, fallbackId);
   }
 
   private ensureUnique(
@@ -371,9 +359,8 @@ class EpanetIds {
   }
 
   private fitToLimit(candidate: string, suffix: string): string {
-    if (this.maxLabelLength === undefined) return `${candidate}${suffix}`;
     const reserve = suffix.length === 0 ? 0 : Math.max(3, suffix.length);
-    const base = candidate.slice(0, this.maxLabelLength - reserve);
+    const base = candidate.slice(0, EPANET_MAX_LABEL_LENGTH - reserve);
     return `${base}${suffix}`;
   }
 }
@@ -385,7 +372,6 @@ type BuildOptions = {
   geolocation?: boolean;
   madeBy?: boolean;
   labelIds?: boolean;
-  enforceLabelLimit?: boolean;
   customerDemands?: boolean;
   usedPatterns?: boolean;
   usedCurves?: boolean;
@@ -443,7 +429,6 @@ type ResolvedBuildOptions = BuildOptions &
       | "geolocation"
       | "madeBy"
       | "labelIds"
-      | "enforceLabelLimit"
       | "customerDemands"
       | "usedPatterns"
       | "usedCurves"
@@ -463,7 +448,6 @@ function* generateInp(
     geolocation: false,
     madeBy: false,
     labelIds: false,
-    enforceLabelLimit: false,
     customerDemands: false,
     usedPatterns: false,
     usedCurves: false,
@@ -473,10 +457,6 @@ function* generateInp(
   };
   const idMap = new EpanetIds({
     strategy: opts.labelIds ? "label" : "id",
-    maxLabelLength: opts.enforceLabelLimit
-      ? EPANET_MAX_LABEL_LENGTH
-      : undefined,
-    sanitizeLabels: opts.enforceLabelLimit,
   });
   const units = chooseUnitSystem(opts.units);
   const headlossFormula = opts.headlossFormula;
