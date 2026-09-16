@@ -59,7 +59,7 @@ import {
   initializeModelFactoriesWithPools,
   setAttributes,
 } from "@epanet-js/hydraulic-model";
-import { IdGenerator } from "@epanet-js/id-generator";
+import { ConsecutiveIdsGenerator, IdGenerator } from "@epanet-js/id-generator";
 import { buildIdPools } from "src/lib/id-pools";
 import { inferNodeIsActive } from "src/hydraulic-model/utilities/active-topology";
 import {
@@ -212,7 +212,11 @@ export const buildModel = (
 
   return {
     hydraulicModel,
-    zones: buildZones(network.zones, toWgs84),
+    zones: buildZones(
+      network.zones,
+      toWgs84,
+      withIdPools ? idPools.forPool("zone") : new ConsecutiveIdsGenerator(),
+    ),
     issues: issues.build(),
     factories,
     idGenerator,
@@ -314,6 +318,7 @@ const zoneLabelProperty = "label";
 const buildZones = (
   zones: ZoneData[],
   toWgs84: (coordinates: Position) => Position,
+  idGenerator: IdGenerator,
 ): Zones => {
   if (zones.length === 0) return initializeZones();
 
@@ -328,7 +333,7 @@ const buildZones = (
     },
   }));
 
-  return importZoneFeatures(features, zoneLabelProperty).zones;
+  return importZoneFeatures(features, zoneLabelProperty, idGenerator).zones;
 };
 
 const resolveProjection = (

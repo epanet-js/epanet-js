@@ -3,6 +3,10 @@ import turfGetBbox from "@turf/bbox";
 import type { Zones, ZoneId } from "./zones";
 import type { ZoneFeature } from "./zone-features";
 import { ZoneLabelGenerator } from "./zone-label-generator";
+import {
+  ConsecutiveIdsGenerator,
+  type IdGenerator,
+} from "@epanet-js/id-generator";
 
 export type MergedZoneInfo = {
   label: string;
@@ -17,14 +21,15 @@ export type ImportZoneFeaturesResult = {
 export const importZoneFeatures = (
   features: ZoneFeature[],
   labelProperty?: string,
+  idGenerator: IdGenerator = new ConsecutiveIdsGenerator(),
 ): ImportZoneFeaturesResult => {
   const zones: Zones = new Map();
   const mergedZones: MergedZoneInfo[] = [];
   const labelGenerator = new ZoneLabelGenerator();
 
   if (!labelProperty) {
-    features.forEach((feature, index) => {
-      const id: ZoneId = index + 1;
+    features.forEach((feature) => {
+      const id: ZoneId = idGenerator.newId();
       const label = labelGenerator.next();
       const geometry = toMultiPolygon(feature);
       const bbox = turfGetBbox(geometry);
@@ -48,7 +53,6 @@ export const importZoneFeatures = (
       }
     }
 
-    let id: ZoneId = 1;
     for (const [label, groupFeatures] of groups) {
       const coordinates: Position[][][] = [];
 
@@ -62,13 +66,12 @@ export const importZoneFeatures = (
         coordinates,
       };
       const bbox = turfGetBbox(geometry);
+      const id: ZoneId = idGenerator.newId();
       zones.set(id, { id, label, geometry, bbox });
 
       if (groupFeatures.length > 1) {
         mergedZones.push({ label, featureCount: groupFeatures.length });
       }
-
-      id++;
     }
   }
 

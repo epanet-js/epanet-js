@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import type { ZoneFeature } from "./zone-features";
 import { importZoneFeatures } from "./import-zone-features";
+import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
 
 describe("importZoneFeatures", () => {
   it("generates auto labels when no label property is provided", () => {
@@ -138,6 +139,18 @@ describe("importZoneFeatures", () => {
 
     expect(zones.size).toBe(2);
     expect(mergedZones).toEqual([]);
+  });
+
+  it("draws ids from a supplied generator", () => {
+    const features = [polygonFeature(), polygonFeature()];
+
+    const { zones } = importZoneFeatures(
+      features,
+      undefined,
+      new ConsecutiveIdsGenerator(40),
+    );
+
+    expect([...zones.keys()]).toEqual([41, 42]);
   });
 });
 

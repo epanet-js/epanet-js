@@ -20,6 +20,8 @@ import {
   setAttributes,
 } from "@epanet-js/hydraulic-model";
 import { useInProcessDb } from "../__test-helpers__/in-process-db";
+import type { MultiPolygon } from "geojson";
+import type { BBox } from "@turf/helpers";
 
 describe("fetch-project integration", () => {
   useInProcessDb();
@@ -235,7 +237,30 @@ describe("fetch-project integration", () => {
 describe("fetch-project id pools", () => {
   useInProcessDb();
 
-  const IDS = { J1: 1, PAT1: 40, PAT2: 41, CUR1: 60, CUR2: 61 } as const;
+  const IDS = {
+    J1: 1,
+    PAT1: 40,
+    PAT2: 41,
+    CUR1: 60,
+    CUR2: 61,
+    ZONE1: 80,
+    ZONE2: 81,
+  } as const;
+
+  const aSquare = (x: number): MultiPolygon => ({
+    type: "MultiPolygon",
+    coordinates: [
+      [
+        [
+          [x, 0],
+          [x + 1, 0],
+          [x + 1, 1],
+          [x, 1],
+          [x, 0],
+        ],
+      ],
+    ],
+  });
 
   const seed = () =>
     importProject({
@@ -295,11 +320,37 @@ describe("fetch-project id pools", () => {
     expect(factories.idPools.newId("asset")).toBe(IDS.J1 + 1);
   });
 
-  it("floors the unseeded pools at the asset maximum", async () => {
-    await seed();
+  it("continues the zone pool from the zones table, not the asset maximum", async () => {
+    await importProject({
+      newDb: true,
+      hydraulicModel: HydraulicModelBuilder.with().aJunction(IDS.J1).build(),
+      projectSettings: defaultProjectSettings,
+      simulationSettings: defaultSimulationSettings,
+      zones: new Map([
+        [
+          IDS.ZONE1,
+          {
+            id: IDS.ZONE1,
+            label: "ZA",
+            geometry: aSquare(0),
+            bbox: [0, 0, 1, 1] as BBox,
+          },
+        ],
+        [
+          IDS.ZONE2,
+          {
+            id: IDS.ZONE2,
+            label: "ZB",
+            geometry: aSquare(2),
+            bbox: [2, 0, 3, 1] as BBox,
+          },
+        ],
+      ]),
+    });
 
     const { factories } = await fetchProject({ idPools: true });
 
-    expect(factories.idPools.newId("zone")).toBe(IDS.J1 + 1);
+    expect(factories.idPools.newId("zone")).toBe(IDS.ZONE2 + 1);
+    expect(factories.idPools.newId("asset")).toBe(IDS.J1 + 1);
   });
 });

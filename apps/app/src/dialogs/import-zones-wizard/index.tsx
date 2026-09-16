@@ -16,6 +16,9 @@ import {
 import { zonesImporter } from "@epanet-js/gis-importers";
 import { useImportZones } from "src/commands/import-zones";
 import { useUserTracking } from "src/infra/user-tracking";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { modelFactoriesAtom } from "src/state/model-factories";
+import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
 import type { GisFiles } from "src/components/gis-drop-zone";
 import { DataInputStep } from "./data-input-step";
 import { DataMappingStep } from "./data-mapping-step";
@@ -35,6 +38,8 @@ const stepNames = {
 export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
   const translate = useTranslate();
   const userTracking = useUserTracking();
+  const isIdPoolsOn = useFeatureFlag("FLAG_ID_POOLS");
+  const { idPools } = useAtomValue(modelFactoriesAtom);
   const { closeDialog } = useDialogState();
   const importZones = useImportZones();
   const { projections } = useProjections();
@@ -135,7 +140,10 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
       readResult.features,
       { mapping: { label: labelProperty ?? null } },
     );
-    const built = buildZones(network.zones ?? []);
+    const built = buildZones(
+      network.zones ?? [],
+      isIdPoolsOn ? idPools.forPool("zone") : new ConsecutiveIdsGenerator(),
+    );
 
     const result = await importZones(built);
     if (!result) return;
@@ -150,7 +158,14 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
     });
 
     setCurrentStep(COMPLETE_STEP_NUMBER);
-  }, [readResult, selectedLabel, importZones, userTracking]);
+  }, [
+    readResult,
+    selectedLabel,
+    importZones,
+    userTracking,
+    isIdPoolsOn,
+    idPools,
+  ]);
 
   const goBack = useCallback(() => {
     userTracking.capture({ name: "importZones.dataMapping.back" });

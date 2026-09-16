@@ -1,6 +1,7 @@
 import type { Position } from "geojson";
 import type { ZoneData } from "@epanet-js/converters";
 import { buildZones } from "./build-zones";
+import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
 
 const aSquare = (x = 0, y = 0, size = 1): Position[] => [
   [x, y],
@@ -71,5 +72,14 @@ describe("buildZones", () => {
     const { zones } = buildZones([aRecord("0", aSquare(1, 1, 2))]);
 
     expect(zones.get(1)!.bbox).toEqual([1, 1, 3, 3]);
+  });
+
+  it("draws ids from a supplied generator", () => {
+    const { zones } = buildZones(
+      [aRecord("0"), aRecord("1", aSquare(2, 2))],
+      new ConsecutiveIdsGenerator(40),
+    );
+
+    expect([...zones.keys()]).toEqual([41, 42]);
   });
 });

@@ -12,6 +12,7 @@ import {
 import {
   ConsecutiveIdsGenerator,
   IdPoolsGenerator,
+  type IdPoolSeeds,
 } from "@epanet-js/id-generator";
 import { getWorker, timed } from "@epanet-js/ejsdb";
 import {
@@ -50,26 +51,19 @@ export type FetchProjectOptions = {
 };
 
 const buildFactories = (
-  maxId: number,
-  maxPatternId: number,
-  maxCurveId: number,
+  maxima: IdPoolSeeds,
   withPools: boolean,
 ): ModelFactories => {
   const labelManager = new LabelManager();
   if (!withPools) {
     return initializeModelFactories({
-      idGenerator: new ConsecutiveIdsGenerator(maxId),
+      idGenerator: new ConsecutiveIdsGenerator(maxima.asset),
       labelManager,
     });
   }
 
   return initializeModelFactoriesWithPools({
-    idPools: new IdPoolsGenerator({
-      asset: maxId,
-      pattern: maxPatternId,
-      curve: maxCurveId,
-      zone: maxId,
-    }),
+    idPools: new IdPoolsGenerator(maxima),
     labelManager,
   });
 };
@@ -125,6 +119,7 @@ export const fetchProject = async (
       maxId,
       maxPatternId,
       maxCurveId,
+      maxZoneId,
     ] = await timed("fetchProject.readSettings", () =>
       Promise.all([
         worker.getProjectSettings(),
@@ -140,6 +135,7 @@ export const fetchProject = async (
         worker.getMaxId(),
         worker.getMaxPatternId(),
         worker.getMaxCurveId(),
+        worker.getMaxZoneId(),
       ]),
     );
     if (!settingsJson) {
@@ -157,9 +153,12 @@ export const fetchProject = async (
         const zones = buildZonesData(zonesRaw);
 
         const factories = buildFactories(
-          maxId,
-          maxPatternId,
-          maxCurveId,
+          {
+            asset: maxId,
+            pattern: maxPatternId,
+            curve: maxCurveId,
+            zone: maxZoneId,
+          },
           options.idPools ?? false,
         );
         const { idGenerator } = factories;

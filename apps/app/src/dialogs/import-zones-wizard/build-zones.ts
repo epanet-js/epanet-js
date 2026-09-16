@@ -3,7 +3,14 @@ import turfGetBbox from "@turf/bbox";
 import type { ZoneData } from "@epanet-js/converters";
 import { ZoneLabelGenerator, type ZoneId, type Zones } from "src/lib/zones";
 import type { ImportZoneFeaturesResult, MergedZoneInfo } from "src/lib/zones";
-export const buildZones = (records: ZoneData[]): ImportZoneFeaturesResult => {
+import {
+  ConsecutiveIdsGenerator,
+  type IdGenerator,
+} from "@epanet-js/id-generator";
+export const buildZones = (
+  records: ZoneData[],
+  idGenerator: IdGenerator = new ConsecutiveIdsGenerator(),
+): ImportZoneFeaturesResult => {
   const labelGenerator = new ZoneLabelGenerator();
   const grouped = new Map<
     string,
@@ -25,15 +32,13 @@ export const buildZones = (records: ZoneData[]): ImportZoneFeaturesResult => {
 
   const zones: Zones = new Map();
   const mergedZones: MergedZoneInfo[] = [];
-  let id: ZoneId = 1;
 
   for (const [label, { coordinates, recordCount }] of grouped) {
     const geometry: MultiPolygon = { type: "MultiPolygon", coordinates };
+    const id: ZoneId = idGenerator.newId();
     zones.set(id, { id, label, geometry, bbox: turfGetBbox(geometry) });
 
     if (recordCount > 1) mergedZones.push({ label, featureCount: recordCount });
-
-    id++;
   }
 
   return { zones, mergedZones };
