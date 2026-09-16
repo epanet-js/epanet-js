@@ -18,12 +18,14 @@ import { gisFormatOf, isGisSecondaryPart } from "./formats";
 export type ParsedGisSource = {
   features: Feature[];
   originalProjection?: string;
+  sourceProjection?: Proj4Projection;
   issues: IssueCollector;
 };
 
 type DecodedSource = {
   features: Feature[];
   originalProjection?: string;
+  sourceProjection?: Proj4Projection;
   issues: Issue[];
 };
 
@@ -71,6 +73,9 @@ const resultOf = (decoded: DecodedSource): ParsedGisSource => {
     ...(decoded.originalProjection === undefined
       ? {}
       : { originalProjection: decoded.originalProjection }),
+    ...(decoded.sourceProjection === undefined
+      ? {}
+      : { sourceProjection: decoded.sourceProjection }),
     issues,
   };
 };
@@ -123,26 +128,29 @@ const parseShapefile = async (
   const prj = byExtension(".prj");
   const cpg = byExtension(".cpg");
 
+  const supplied = suppliedEpsg(crs);
+
   const input: ShapefileInput = { shp: await shpFile.arrayBuffer() };
   if (dbf) input.dbf = await dbf.arrayBuffer();
-  if (prj) input.prj = await textOf(prj);
+  if (prj && supplied === null) input.prj = await textOf(prj);
   if (cpg) input.cpg = await textOf(cpg);
 
   const features = await decodeBundle(input);
   if (features === null) return failure("sourceUnreadable");
-  if (features.length === 0) return failure("sourceEmpty");
-
-  const supplied = suppliedEpsg(crs);
+  if (!features.some(hasGeometry)) return failure("sourceEmpty");
 
   if (input.prj === undefined) {
-    return placeFeatures({ features, candidates: [supplied], projections });
+    return placeFeatures({ features, epsg: supplied, projections });
   }
 
   if (mostlyLatLng(features)) {
     const authoredIn = crsNameFromWkt(input.prj);
+    const sourceProjection = projectionOfWkt(input.prj, projections);
+
     return {
       features,
       ...(authoredIn === null ? {} : { originalProjection: authoredIn }),
+      ...(sourceProjection === null ? {} : { sourceProjection }),
       issues: [],
     };
   }
@@ -154,9 +162,7 @@ const parseShapefile = async (
     ? "coordinateSystemUnsupported"
     : "coordinateSystemMismatch";
 
-  return supplied === null
-    ? unplaced(written, error)
-    : placeFeatures({ features: written, candidates: [supplied], projections });
+  return unplaced(written, error);
 };
 
 type ShapefileInput = {
@@ -192,46 +198,61 @@ const crsNameFromWkt = (wkt: string): string | null => {
   return WGS84_WKT_NAMES.has(name.toLowerCase()) ? null : name;
 };
 
+const projectionOfWkt = (
+  wkt: string,
+  projections: Map<string, Proj4Projection> | undefined,
+): Proj4Projection | null => {
+  const text = wkt.trim();
+  const name = /^(?:PROJCS|GEOGCS|PROJCRS|GEOGCRS)\["([^"]+)"/.exec(text)?.[1];
+  const epsg = /AUTHORITY\["EPSG",\s*"?(\d+)"?\]\]$/.exec(text)?.[1];
+
+  const namesWgs84 =
+    name !== undefined && WGS84_WKT_NAMES.has(name.toLowerCase());
+  if (namesWgs84 || epsg === String(WGS84_EPSG)) return null;
+
+  const listed =
+    epsg === undefined
+      ? null
+      : findProjectionByCode(
+          epsg,
+          projections ?? new Map<string, Proj4Projection>(),
+        );
+  if (listed !== null) return listed;
+
+  const label = name ?? "Custom projection";
+  return { type: "proj4", id: label, name: label, code: text };
+};
+
 const parseGeoJson = async (
   file: SourceFile,
   { crs, projections }: GisInput,
 ): Promise<DecodedSource> => {
   const parsed = featuresFromText(await textOf(file));
   if (parsed === null) return failure("sourceUnreadable");
-  if (parsed.features.length === 0) return failure("sourceEmpty");
+  if (!parsed.features.some(hasGeometry)) return failure("sourceEmpty");
 
   return placeFeatures({
     features: parsed.features,
-    candidates: [parsed.stated, suppliedEpsg(crs)],
+    epsg: suppliedEpsg(crs) ?? parsed.stated,
     projections,
   });
 };
 
 type Placement = {
   features: Feature[];
-  candidates: (number | null)[];
+  epsg: number | null;
   projections?: Map<string, Proj4Projection>;
 };
 
 const placeFeatures = ({
   features,
-  candidates,
+  epsg,
   projections,
 }: Placement): DecodedSource => {
-  const epsgs = candidates.filter(
-    (epsg, index): epsg is number =>
-      epsg !== null && candidates.indexOf(epsg) === index,
-  );
-  if (epsgs.length === 0) return assumeWgs84(features);
+  if (epsg === null) return assumeWgs84(features);
 
-  let error: PlacementError = "coordinateSystemMismatch";
-  for (const epsg of epsgs) {
-    const attempt = placeIn(features, epsg, projections);
-    if (typeof attempt !== "string") return attempt;
-    error = attempt;
-  }
-
-  return unplaced(features, error);
+  const attempt = placeIn(features, epsg, projections);
+  return typeof attempt === "string" ? unplaced(features, attempt) : attempt;
 };
 
 const assumeWgs84 = (features: Feature[]): DecodedSource =>
@@ -276,6 +297,7 @@ const placeIn = (
     ? {
         features: converted.features,
         originalProjection: projection.name,
+        sourceProjection: projection,
         issues: [],
       }
     : "coordinateSystemMismatch";
@@ -291,7 +313,7 @@ const featuresFromText = (content: string): ParsedGeoJson | null => {
 
   if (collection !== null) {
     return {
-      features: (collection.features ?? []).filter(isFeature),
+      features: onlyFeatures(collection.features ?? []),
       stated: statedCrs(collection),
     };
   }
@@ -326,6 +348,18 @@ const asFeatureLines = (content: string): ParsedGeoJson | null => {
   return features.length === 0 ? null : { features, stated: null };
 };
 
+const onlyFeatures = (candidates: unknown[]): Feature[] => {
+  const firstOther = candidates.findIndex((candidate) => !isFeature(candidate));
+  if (firstOther === -1) return candidates as Feature[];
+
+  const features = candidates.slice(0, firstOther) as Feature[];
+  for (let index = firstOther + 1; index < candidates.length; index++) {
+    const candidate = candidates[index];
+    if (isFeature(candidate)) features.push(candidate);
+  }
+  return features;
+};
+
 const isFeature = (candidate: unknown): candidate is Feature =>
   (candidate as Feature | null)?.type === "Feature";
 
@@ -334,12 +368,22 @@ const statedCrs = (collection: FeatureCollection): number | null => {
   return code === null ? null : Number(code);
 };
 
-const mostlyLatLng = (features: Feature[]): boolean => {
-  const located = features.filter((feature) => feature.geometry);
-  if (located.length === 0) return false;
+const hasGeometry = (feature: Feature): boolean => !!feature.geometry;
 
-  const inRange = located.filter((feature) => isLikelyLatLng(feature)).length;
-  return inRange * 2 > located.length;
+const mostlyLatLng = (features: Feature[]): boolean => {
+  const decided = features.length / 2;
+  let located = 0;
+  let inRange = 0;
+
+  for (const feature of features) {
+    if (!feature.geometry) continue;
+    located += 1;
+    if (isLikelyLatLng(feature)) inRange += 1;
+    if (inRange > decided) return true;
+    if (located - inRange >= decided) return false;
+  }
+
+  return inRange * 2 > located;
 };
 
 const textOf = async (file: SourceFile): Promise<string> =>

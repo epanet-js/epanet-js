@@ -25,6 +25,13 @@ const aPoint = (coordinates: Position): Feature => ({
   properties: { NAME: "north" },
 });
 
+const aFeatureWithoutGeometry = (): Feature =>
+  ({
+    type: "Feature",
+    geometry: null,
+    properties: { NAME: "nowhere" },
+  }) as unknown as Feature;
+
 const IN_DEGREES: Position = [0.001, 0.001];
 const IN_METRES: Position = [500000, 6000000];
 
@@ -65,6 +72,45 @@ describe("parseGisSource", () => {
       expect(issues.build()).toEqual([
         { code: "coordinateSystemMissing", severity: "warning" },
       ]);
+    });
+
+    it("names no source projection when it assumed WGS84", async () => {
+      const { sourceProjection } = await parseGisSource({
+        files: [aCollection([aPoint(IN_DEGREES)])],
+      });
+
+      expect(sourceProjection).toBeUndefined();
+    });
+
+    it("does not take a tie for a majority in degrees", async () => {
+      const codes = await codesOf({
+        files: [
+          aCollection([
+            aPoint(IN_DEGREES),
+            aFeatureWithoutGeometry(),
+            aPoint(IN_METRES),
+          ]),
+        ],
+      });
+
+      expect(codes).toEqual(["coordinateSystemUnknown"]);
+    });
+
+    it("judges the majority over the records that have a geometry", async () => {
+      const codes = await codesOf({
+        files: [
+          aCollection([
+            aPoint(IN_DEGREES),
+            aPoint(IN_DEGREES),
+            aFeatureWithoutGeometry(),
+            aFeatureWithoutGeometry(),
+            aFeatureWithoutGeometry(),
+            aPoint(IN_METRES),
+          ]),
+        ],
+      });
+
+      expect(codes).toEqual(["coordinateSystemMissing"]);
     });
 
     it("says nothing when the file states WGS84 itself", async () => {
@@ -175,6 +221,33 @@ describe("parseGisSource", () => {
       expect(issues.build()).toEqual([]);
     });
 
+    it("reads a supplied CRS in place of a stated one that fits", async () => {
+      const { sourceProjection, issues } = await parseGisSource({
+        files: [aCollection([aPoint(IN_DEGREES)], "EPSG:4326")],
+        crs: { type: "epsg", code: 3857 },
+        projections,
+      });
+
+      expect(sourceProjection).toEqual(WEB_MERCATOR);
+      expect(issues.build()).toEqual([]);
+    });
+
+    it("keeps the records as written when a supplied CRS does not fit, rather than falling back", async () => {
+      const { features, issues } = await parseGisSource({
+        files: [aCollection([aPoint(IN_DEGREES)], "EPSG:4326")],
+        crs: { type: "epsg", code: 27700 },
+        projections,
+      });
+
+      expect(features[0].geometry).toEqual({
+        type: "Point",
+        coordinates: IN_DEGREES,
+      });
+      expect(issues.build()).toEqual([
+        { code: "coordinateSystemUnsupported", severity: "error" },
+      ]);
+    });
+
     it("reports the supplied CRS when it does not fit the records either", async () => {
       const codes = await codesOf({
         files: [aCollection([aPoint(IN_METRES)], "EPSG:4326")],
@@ -199,6 +272,44 @@ describe("parseGisSource", () => {
       });
 
       expect(features).toHaveLength(1);
+    });
+
+    it("names the projection it reprojected from", async () => {
+      const { sourceProjection } = await parseGisSource({
+        files: [aCollection([aPoint(IN_METRES)], "EPSG:3857")],
+        projections,
+      });
+
+      expect(sourceProjection).toEqual(WEB_MERCATOR);
+    });
+
+    it("names a supplied projection it reprojected from", async () => {
+      const { sourceProjection } = await parseGisSource({
+        files: [aCollection([aPoint(IN_METRES)], "EPSG:4326")],
+        crs: { type: "epsg", code: 3857 },
+        projections,
+      });
+
+      expect(sourceProjection).toEqual(WEB_MERCATOR);
+    });
+
+    it("keeps every feature around the entries that are not features", async () => {
+      const notAFeature = { type: "Point", coordinates: [0, 0] };
+      const { features } = await parseGisSource({
+        files: [
+          aJsonFile({
+            type: "FeatureCollection",
+            features: [
+              notAFeature,
+              aPoint(IN_DEGREES),
+              notAFeature,
+              aPoint(IN_DEGREES),
+            ],
+          }),
+        ],
+      });
+
+      expect(features).toHaveLength(2);
     });
 
     it("reads a supplied CRS where the file states none", async () => {
@@ -229,6 +340,18 @@ describe("parseGisSource", () => {
       const codes = await codesOf({ files: [aCollection([])] });
 
       expect(codes).toEqual(["sourceEmpty"]);
+    });
+
+    it("reports a file whose records have no geometry as having nothing to import", async () => {
+      const { features, issues } = await parseGisSource({
+        files: [aCollection([aFeatureWithoutGeometry()], "EPSG:3857")],
+        projections,
+      });
+
+      expect(features).toEqual([]);
+      expect(issues.build()).toEqual([
+        { code: "sourceEmpty", severity: "error" },
+      ]);
     });
 
     it("reports a file it cannot read at all", async () => {
@@ -288,9 +411,46 @@ describe("parseGisSource", () => {
         aTextFile('GEOGCS["WGS 84"]', "a.prj"),
       ];
 
-      const { originalProjection } = await parseGisSource({ files });
+      const { originalProjection, sourceProjection } = await parseGisSource({
+        files,
+      });
 
       expect(originalProjection).toBeUndefined();
+      expect(sourceProjection).toBeUndefined();
+    });
+
+    it("names the listed projection a .prj identifies by EPSG code", async () => {
+      const files = [
+        aBinaryFile("a.shp"),
+        aTextFile(
+          'PROJCS["WGS_1984_Web_Mercator_Auxiliary_Sphere",AUTHORITY["EPSG","3857"]]',
+          "a.prj",
+        ),
+      ];
+
+      const { sourceProjection } = await parseGisSource({
+        files,
+        projections,
+      });
+
+      expect(sourceProjection).toEqual(WEB_MERCATOR);
+    });
+
+    it("names a .prj with no listed projection as a projection of its own", async () => {
+      const wkt = 'PROJCS["ETRS_1989_UTM_Zone_30N",GEOGCS["GCS_ETRS_1989"]]';
+      const files = [aBinaryFile("a.shp"), aTextFile(`${wkt}\n`, "a.prj")];
+
+      const { sourceProjection } = await parseGisSource({
+        files,
+        projections,
+      });
+
+      expect(sourceProjection).toEqual({
+        type: "proj4",
+        id: "ETRS_1989_UTM_Zone_30N",
+        name: "ETRS_1989_UTM_Zone_30N",
+        code: wkt,
+      });
     });
 
     describe("when the .prj does not place the records", () => {
@@ -329,20 +489,6 @@ describe("parseGisSource", () => {
 
         expect(input).not.toHaveProperty("prj");
       });
-
-      it("reads a supplied CRS in its place", async () => {
-        const { features, issues } = await parseGisSource({
-          ...shapefileOf(["a.shp", "a.dbf", "a.prj"]),
-          crs: { type: "epsg", code: 3857 },
-          projections,
-        });
-
-        const [longitude] = (features[0].geometry as { coordinates: Position })
-          .coordinates;
-
-        expect(longitude).toBeCloseTo(4.4915, 3);
-        expect(issues.build()).toEqual([]);
-      });
     });
 
     it("reports a .prj shpjs could not apply as one it has no definition for", async () => {
@@ -361,18 +507,26 @@ describe("parseGisSource", () => {
       ]);
     });
 
-    it("ignores a supplied CRS when the bundle has a .prj", async () => {
-      const { features, issues } = await parseGisSource({
+    it("reads a supplied CRS in place of the .prj", async () => {
+      shp.mockResolvedValue({
+        type: "FeatureCollection",
+        features: [aPoint(IN_METRES)],
+      });
+
+      const { features, sourceProjection, issues } = await parseGisSource({
         ...shapefileOf(["a.shp", "a.dbf", "a.prj"]),
         crs: { type: "epsg", code: 3857 },
         projections,
       });
 
-      expect(features[0].geometry).toEqual({
-        type: "Point",
-        coordinates: IN_DEGREES,
-      });
+      const [longitude] = (features[0].geometry as { coordinates: Position })
+        .coordinates;
+      const [input] = shp.mock.calls[0];
+
+      expect(longitude).toBeCloseTo(4.4915, 3);
+      expect(sourceProjection).toEqual(WEB_MERCATOR);
       expect(issues.build()).toEqual([]);
+      expect(input).not.toHaveProperty("prj");
     });
 
     describe("with no .dbf", () => {
@@ -480,6 +634,17 @@ describe("parseGisSource", () => {
       const codes = await codesOf(shapefileOf(["a.shp", "a.dbf", "a.prj"]));
 
       expect(codes).toEqual(["sourceUnreadable"]);
+    });
+
+    it("reports a bundle whose records have no geometry as having nothing to import", async () => {
+      shp.mockResolvedValue({
+        type: "FeatureCollection",
+        features: [aFeatureWithoutGeometry()],
+      });
+
+      const codes = await codesOf(shapefileOf(["a.shp", "a.dbf"]));
+
+      expect(codes).toEqual(["sourceEmpty"]);
     });
 
     it("reports a bundle with no records", async () => {
