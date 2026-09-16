@@ -186,4 +186,36 @@ describe("SearchableSelector", () => {
       ).toHaveAttribute("data-side", "bottom");
     });
   });
+  describe("placeholder icon", () => {
+    const renderWithIcon = (selected?: Option) =>
+      render(
+        <SearchableSelector<Option>
+          label="Fruit"
+          selected={selected}
+          onChange={() => {}}
+          onSearch={search}
+          placeholderIcon={<svg data-testid="search-icon" />}
+        />,
+      );
+
+    it("shows the icon while the input is empty", () => {
+      renderWithIcon();
+
+      expect(screen.getByTestId("search-icon")).toBeInTheDocument();
+    });
+
+    it("hides the icon once there is text in the input", async () => {
+      renderWithIcon();
+
+      await userEvent.type(screen.getByRole("textbox", { name: "Fruit" }), "a");
+
+      expect(screen.queryByTestId("search-icon")).not.toBeInTheDocument();
+    });
+
+    it("hides the icon when an option is already selected", () => {
+      renderWithIcon(options[0]);
+
+      expect(screen.queryByTestId("search-icon")).not.toBeInTheDocument();
+    });
+  });
 });

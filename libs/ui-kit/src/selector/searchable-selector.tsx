@@ -22,6 +22,7 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
   renderOption,
   side = "auto",
   searchDebounceMs = 0,
+  placeholderIcon,
 }: {
   selected?: T;
   onChange: (option: T) => void;
@@ -32,6 +33,8 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
   autoFocus?: boolean;
   wrapperClassName?: string;
   renderOption?: (option: T) => React.ReactNode;
+  /** Shown inside the input, before the placeholder, while it is empty. */
+  placeholderIcon?: React.ReactNode;
   /** Where the dropdown opens: "auto" (default) lets it flip to fit the
    *  viewport; "top"/"bottom" pin it to that side and never flip. */
   side?: "top" | "bottom" | "auto";
@@ -48,6 +51,7 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
   const [activeIndex, setActiveIndex] = useState<number>(-1);
 
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const showPlaceholderIcon = !!placeholderIcon && searchTerm === "";
   const listRef = useRef<HTMLUListElement | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchSeqRef = useRef(0);
@@ -205,6 +209,11 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
       <Popover.Root open={open} onOpenChange={setOpen}>
         <Popover.Anchor asChild>
           <div className="relative w-full">
+            {showPlaceholderIcon && (
+              <span className="pointer-events-none absolute inset-y-0 left-2 flex items-center text-subtle">
+                {placeholderIcon}
+              </span>
+            )}
             <input
               ref={inputRef}
               type="text"
@@ -218,7 +227,8 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
               autoComplete="off"
               className={clsx(
                 "flex items-center gap-x-2 w-full min-w-[90px]",
-                "border rounded-xs border-base px-2 py-2 text-size-base",
+                "border rounded-xs border-base py-2 pr-2 text-size-base",
+                showPlaceholderIcon ? "pl-7" : "pl-2",
                 "outline-hidden focus:outline-hidden focus-visible:outline-hidden",
                 disabled
                   ? "cursor-not-allowed bg-base-disabled border-strong text-disabled"
