@@ -64,40 +64,25 @@ describe("getTrialDaysRemaining", () => {
 });
 
 describe("isTrialActive", () => {
-  const inTwoWeeks = new Date(Date.now() + 14 * MS_PER_DAY).toISOString();
-
   const user = (attributes: Partial<Parameters<typeof isTrialActive>[0]>) => ({
     hasUsedTrial: true,
-    trialEndsAt: inTwoWeeks,
-    subscriptionStatus: null,
+    subscriptionStatus: "trialing" as SubscriptionStatus | null,
     ...attributes,
   });
 
-  it("follows stripe rather than the clock once a status is known", () => {
+  it("follows the stripe subscription status", () => {
     expect(isTrialActive(user({ subscriptionStatus: "trialing" }))).toBe(true);
     expect(isTrialActive(user({ subscriptionStatus: "paused" }))).toBe(false);
     expect(isTrialActive(user({ subscriptionStatus: "canceled" }))).toBe(false);
     expect(isTrialActive(user({ subscriptionStatus: "active" }))).toBe(false);
   });
 
-  it("ends access on a cancellation even while the end date is in the future", () => {
-    expect(
-      isTrialActive(
-        user({ subscriptionStatus: "canceled", trialEndsAt: inTwoWeeks }),
-      ),
-    ).toBe(false);
-  });
-
-  it("falls back to the end date for a trial started before the sync existed", () => {
-    expect(isTrialActive(user({}))).toBe(true);
-
-    const past = new Date(Date.now() - MS_PER_DAY).toISOString();
-    expect(isTrialActive(user({ trialEndsAt: past }))).toBe(false);
-  });
-
   it("is false without a trial", () => {
     expect(isTrialActive(user({ hasUsedTrial: false }))).toBe(false);
-    expect(isTrialActive(user({ trialEndsAt: null }))).toBe(false);
+  });
+
+  it("is false without a synced status", () => {
+    expect(isTrialActive(user({ subscriptionStatus: null }))).toBe(false);
   });
 });
 
@@ -161,21 +146,6 @@ describe("resolveTrialCta", () => {
     expect(
       resolve({ subscriptionStatus: "canceled", trialEndsAt: yesterday }),
     ).toEqual({ kind: "none" });
-  });
-
-  it("says the trial ended for a trial predating the stripe sync", () => {
-    const yesterday = new Date(now.getTime() - MS_PER_DAY).toISOString();
-
-    expect(
-      resolve({ subscriptionStatus: null, trialEndsAt: yesterday }),
-    ).toEqual({ kind: "ended", payable: false });
-  });
-
-  it("keeps counting down a legacy trial that is still running", () => {
-    expect(resolve({ subscriptionStatus: null })).toEqual({
-      kind: "running",
-      daysRemaining: 9,
-    });
   });
 
   it("says nothing while a converted trial waits for its plan", () => {

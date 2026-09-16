@@ -10,14 +10,8 @@ export type SubscriptionStatus =
 
 export const isTrialActive = (user: {
   hasUsedTrial: boolean;
-  trialEndsAt: string | null;
   subscriptionStatus: SubscriptionStatus | null;
-}) => {
-  if (!user.hasUsedTrial || !user.trialEndsAt) return false;
-  if (user.subscriptionStatus) return user.subscriptionStatus === "trialing";
-
-  return new Date(user.trialEndsAt) > new Date();
-};
+}) => user.hasUsedTrial && user.subscriptionStatus === "trialing";
 
 export const isTrialAvailable = (user: {
   plan: Plan;
