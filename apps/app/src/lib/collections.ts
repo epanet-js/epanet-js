@@ -6,6 +6,17 @@ import type { BBox } from "src/types";
 
 export type CollectionKind = "selectionSets" | "bookmarks";
 
+export type CollectionDraftSource =
+  | "collections-heading"
+  | "collections-add-row"
+  | "context-menu"
+  | "toolbar";
+
+export type CollectionDraft = {
+  kind: CollectionKind;
+  source: CollectionDraftSource;
+};
+
 export type SelectionSetId = string;
 export type BookmarkId = string;
 

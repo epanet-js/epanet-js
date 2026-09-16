@@ -34,12 +34,16 @@ import {
   pendingCollectionDraftAtom,
   selectionSetsAtom,
 } from "src/state/collections";
-import type { CollectionKind } from "src/lib/collections";
+import type {
+  CollectionDraftSource,
+  CollectionKind,
+} from "src/lib/collections";
+import { useStartCollectionDraft } from "src/commands/collection-draft";
 
 type SectionType = CollectionKind;
 
 type ActionState =
-  | { action: "creating"; section: SectionType }
+  | { action: "creating"; section: SectionType; source: CollectionDraftSource }
   | { action: "renaming"; section: SectionType; id: string };
 
 type RowKey = { section: SectionType; id: string };
@@ -65,6 +69,7 @@ export const CollectionsPanel = () => {
   const goToBookmark = useGoToBookmark();
   const renameBookmark = useRenameBookmark();
   const deleteBookmark = useDeleteBookmark();
+  const startCollectionDraft = useStartCollectionDraft();
 
   const listRef = useRef<NavigableListHandle>(null);
   const [actionState, setActionState] = useState<ActionState | undefined>(
@@ -181,9 +186,9 @@ export const CollectionsPanel = () => {
 
     if (actionState.action === "creating") {
       if (actionState.section === "selectionSets") {
-        saveSelectionSet({ name: trimmedName, source: "panel" });
+        saveSelectionSet({ name: trimmedName, source: actionState.source });
       } else {
-        addBookmark({ name: trimmedName, source: "panel" });
+        addBookmark({ name: trimmedName, source: actionState.source });
       }
     } else if (actionState.section === "selectionSets") {
       renameSelectionSet({
@@ -206,15 +211,17 @@ export const CollectionsPanel = () => {
   useEffect(() => {
     if (!pendingDraft) return;
 
-    setActionState({ action: "creating", section: pendingDraft });
-    listRef.current?.openSection(pendingDraft);
+    setActionState({
+      action: "creating",
+      section: pendingDraft.kind,
+      source: pendingDraft.source,
+    });
+    listRef.current?.openSection(pendingDraft.kind);
     setPendingDraft(null);
   }, [pendingDraft, setPendingDraft]);
 
-  const handleNew = (section: SectionType) => {
-    setActionState({ action: "creating", section });
-    listRef.current?.openSection(section);
-  };
+  const handleNew = (section: SectionType, source: CollectionDraftSource) =>
+    startCollectionDraft({ kind: section, source });
 
   const handleAction = (action: string, item: { id: number }) => {
     const row = byNavId.get(item.id);
@@ -296,7 +303,7 @@ export const CollectionsPanel = () => {
             label: translate("collections.selectionSets.save"),
             disabled: !canSaveSelection,
           }}
-          onAction={() => handleNew("selectionSets")}
+          onAction={() => handleNew("selectionSets", "collections-heading")}
         >
           {selectionRows.map(renderRow)}
           {isCreatingIn(actionState, "selectionSets") ? (
@@ -318,7 +325,7 @@ export const CollectionsPanel = () => {
               }
               count={canSaveSelection ? assets + customerPoints : undefined}
               isDisabled={!canSaveSelection}
-              onAdd={() => handleNew("selectionSets")}
+              onAdd={() => handleNew("selectionSets", "collections-add-row")}
             />
           )}
         </CollapsibleListSection>
@@ -332,7 +339,7 @@ export const CollectionsPanel = () => {
             icon: <AddIcon />,
             label: translate("collections.bookmarks.add"),
           }}
-          onAction={() => handleNew("bookmarks")}
+          onAction={() => handleNew("bookmarks", "collections-heading")}
         >
           {bookmarkRows.map(renderRow)}
           {isCreatingIn(actionState, "bookmarks") ? (
@@ -346,7 +353,7 @@ export const CollectionsPanel = () => {
           ) : (
             <CurrentStateRow
               label={translate("collections.bookmarks.current")}
-              onAdd={() => handleNew("bookmarks")}
+              onAdd={() => handleNew("bookmarks", "collections-add-row")}
             />
           )}
         </CollapsibleListSection>

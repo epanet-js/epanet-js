@@ -24,8 +24,8 @@ import { USelection } from "src/selection";
 import { useDisconnectCustomerPoints } from "src/commands/customer-point-actions";
 import {
   useIsCollectionsAvailable,
-  useStartSelectionSetDraft,
-} from "src/commands/selection-sets";
+  useStartCollectionDraft,
+} from "src/commands/collection-draft";
 
 export function useMultiAssetActions(readonly = false): Action[] {
   const translate = useTranslate();
@@ -38,7 +38,7 @@ export function useMultiAssetActions(readonly = false): Action[] {
   const { assets: assetCount, customerPoints: customerPointCount } =
     USelection.countByKind(selection);
   const { openCustomGraph } = useCustomGraph();
-  const startSelectionSetDraft = useStartSelectionSetDraft();
+  const startCollectionDraft = useStartCollectionDraft();
   const isCollectionsAvailable = useIsCollectionsAvailable();
 
   const hasAssets = assetCount > 0;
@@ -86,7 +86,7 @@ export function useMultiAssetActions(readonly = false): Action[] {
     applicable: isCollectionsAvailable,
     label: translate("collections.selectionSets.save"),
     onSelect: function saveSelectionSet() {
-      startSelectionSetDraft({ source: "multi-asset-panel" });
+      startCollectionDraft({ kind: "selectionSets", source: "toolbar" });
       return Promise.resolve();
     },
   };

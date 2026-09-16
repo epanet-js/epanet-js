@@ -33,8 +33,8 @@ import { useReverseLink } from "src/commands/reverse-link";
 import { useCustomGraph } from "src/hooks/use-custom-graph";
 import {
   useIsCollectionsAvailable,
-  useStartSelectionSetDraft,
-} from "src/commands/selection-sets";
+  useStartCollectionDraft,
+} from "src/commands/collection-draft";
 
 export function GeometryActions({ as }: { as: ActionProps["as"] }) {
   const actions = useSelectionActions(as);
@@ -62,7 +62,7 @@ function useSelectionActions(source: ActionProps["as"]): Action[] {
   const setRedrawMode = useSetRedrawMode();
   const reverseLinkAction = useReverseLink();
   const { openCustomGraph } = useCustomGraph();
-  const startSelectionSetDraft = useStartSelectionSetDraft();
+  const startCollectionDraft = useStartCollectionDraft();
   const isCollectionsAvailable = useIsCollectionsAvailable();
   const selectedAssets = useAtomValue(selectedAssetsDerivedAtom);
   const selectedCustomerPoints = useAtomValue(
@@ -103,7 +103,7 @@ function useSelectionActions(source: ActionProps["as"]): Action[] {
     applicable: isCollectionsAvailable,
     label: translate("collections.selectionSets.save"),
     onSelect: function saveSelectionSet() {
-      startSelectionSetDraft({ source: "context-menu" });
+      startCollectionDraft({ kind: "selectionSets", source: "context-menu" });
       return Promise.resolve();
     },
   };

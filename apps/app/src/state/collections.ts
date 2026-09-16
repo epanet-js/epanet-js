@@ -1,7 +1,7 @@
 import { atom } from "jotai";
 import {
   type Bookmark,
-  type CollectionKind,
+  type CollectionDraft,
   type SelectionSet,
   initializeBookmarks,
   initializeSelectionSets,
@@ -13,4 +13,4 @@ export const selectionSetsAtom = atom<SelectionSet[]>(
 
 export const bookmarksAtom = atom<Bookmark[]>(initializeBookmarks());
 
-export const pendingCollectionDraftAtom = atom<CollectionKind | null>(null);
+export const pendingCollectionDraftAtom = atom<CollectionDraft | null>(null);

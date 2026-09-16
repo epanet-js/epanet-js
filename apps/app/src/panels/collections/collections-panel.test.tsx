@@ -172,7 +172,7 @@ describe("CollectionsPanel", () => {
       renderPanel(store);
 
       await userEvent.click(
-        screen.getByRole("button", { name: "Save selection set" }),
+        screen.getByRole("button", { name: "Save selection" }),
       );
 
       expect(screen.queryByText("Current selection")).not.toBeInTheDocument();
@@ -184,7 +184,7 @@ describe("CollectionsPanel", () => {
       renderPanel(store);
 
       expect(
-        screen.getByRole("button", { name: "Save selection set" }),
+        screen.getByRole("button", { name: "Save selection" }),
       ).toBeDisabled();
     });
 
@@ -211,7 +211,10 @@ describe("CollectionsPanel", () => {
     it("opens the name input for the current selection", () => {
       const store = aStore();
       store.set(selectionAtom, USelection.fromAssetIds([1, 2]));
-      store.set(pendingCollectionDraftAtom, "selectionSets");
+      store.set(pendingCollectionDraftAtom, {
+        kind: "selectionSets",
+        source: "context-menu",
+      });
       renderPanel(store);
 
       expect(screen.queryByText("Current selection")).not.toBeInTheDocument();
@@ -221,7 +224,10 @@ describe("CollectionsPanel", () => {
     it("saves under the name given and clears the request", async () => {
       const store = aStore();
       store.set(selectionAtom, USelection.fromAssetIds([1, 2]));
-      store.set(pendingCollectionDraftAtom, "selectionSets");
+      store.set(pendingCollectionDraftAtom, {
+        kind: "selectionSets",
+        source: "context-menu",
+      });
       renderPanel(store);
 
       await nameIt("From the map");

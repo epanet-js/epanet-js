@@ -5,6 +5,7 @@ import { useZoomTo } from "src/hooks/use-zoom-to";
 import { useUserTracking } from "src/infra/user-tracking";
 import {
   type BookmarkId,
+  type CollectionDraftSource,
   newBookmark,
   removeItem,
   renameItem,
@@ -19,14 +20,22 @@ export const useAddBookmark = () => {
 
   return useAtomCallback(
     useCallback(
-      (_get, set, { name, source }: { name: string; source: "panel" }) => {
+      (
+        get,
+        set,
+        { name, source }: { name: string; source: CollectionDraftSource },
+      ) => {
         const bounds = map?.map.getBounds();
         if (!bounds) return;
 
         const [[west, south], [east, north]] = bounds.toArray();
         const bbox: BBox = [west, south, east, north];
 
-        userTracking.capture({ name: "bookmark.added", source });
+        userTracking.capture({
+          name: "bookmark.created",
+          totalBookmarks: get(bookmarksAtom).length + 1,
+          source,
+        });
         set(bookmarksAtom, (bookmarks) => [
           ...bookmarks,
           newBookmark(name, bbox),

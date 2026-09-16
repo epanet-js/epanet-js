@@ -18,6 +18,7 @@ import type {
   UpgradeOrigin,
 } from "src/state/dialog";
 import type { PlaybackSpeed } from "src/state/simulation-playback";
+import type { CollectionDraftSource } from "src/lib/collections";
 import type { ConverterVendor } from "src/lib/converters";
 import { usePrivacySettings } from "src/hooks/use-privacy-settings";
 import type { QualitySimulationType } from "src/simulation/simulation-settings";
@@ -1726,7 +1727,12 @@ export type UserEvent =
       fromIndex: number;
       toIndex: number;
     }
-  | { name: "selectionSet.saved"; count: number; source: "panel" }
+  | {
+      name: "selectionSet.created";
+      count: number;
+      totalSets: number;
+      source: CollectionDraftSource;
+    }
   | {
       name: "selectionSet.applied";
       count: number;
@@ -1734,13 +1740,15 @@ export type UserEvent =
       zoom: boolean;
       source: "panel";
     }
-  | {
-      name: "selectionSet.draftStarted";
-      source: "context-menu" | "multi-asset-panel";
-    }
+  | { name: "selectionSet.draftStarted"; source: CollectionDraftSource }
   | { name: "selectionSet.renamed"; source: "panel" }
   | { name: "selectionSet.deleted"; source: "panel" }
-  | { name: "bookmark.added"; source: "panel" }
+  | { name: "bookmark.draftStarted"; source: CollectionDraftSource }
+  | {
+      name: "bookmark.created";
+      totalBookmarks: number;
+      source: CollectionDraftSource;
+    }
   | { name: "bookmark.visited"; source: "panel" }
   | { name: "bookmark.renamed"; source: "panel" }
   | { name: "bookmark.deleted"; source: "panel" }
