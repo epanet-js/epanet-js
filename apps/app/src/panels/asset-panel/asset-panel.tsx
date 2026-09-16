@@ -114,7 +114,6 @@ import type {
 } from "@epanet-js/simulation";
 import { DemandsEditor } from "./demands-editor";
 import { PumpControlsEditor } from "./pump-controls-editor";
-import { VirtualizedSelectRow } from "./virtualized-select-row";
 import { PumpDefinitionDetails } from "./pump-definition-details";
 import { getAttribute, isCustomProperty } from "@epanet-js/hydraulic-model";
 import { CustomAttributesSection } from "./custom-attributes-section";
@@ -2264,10 +2263,12 @@ const ValveEditor = ({
           />
         )}
         {showTargetNode && (
-          <VirtualizedSelectRow
+          <SelectRow
             name="targetNode"
             selected={targetNodeControl?.targetId ?? null}
             options={nodeOptions}
+            nullable
+            enableVirtualization={true}
             placeholder={endNode ? endNode.label : translate("select") + "..."}
             comparison={targetNodeComparison}
             onChange={handleTargetNodeChange}

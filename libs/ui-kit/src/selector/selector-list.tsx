@@ -7,6 +7,7 @@ import React, {
   useLayoutEffect,
 } from "react";
 import clsx from "clsx";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { CheckIcon } from "../icons";
 import { useUIConfig } from "../ui-config";
 
@@ -46,6 +47,8 @@ export type SelectorListProps<T extends string | number | boolean> = {
    * option, e.g. highlight it elsewhere in the UI.
    */
   onActiveOptionChange?: (value: T | null) => void;
+  /** Render only the option rows in view, for long lists. */
+  virtualized?: boolean;
 };
 
 const NO_INDEX = -1;
@@ -54,6 +57,9 @@ const TYPE_AHEAD_RESET_MS = 500;
 
 const ROW_REM = 2;
 const LIST_TOP_PAD_REM = 0.25;
+const ROW_PX = 32;
+const LIST_PAD_PX = 4;
+const VIRTUAL_OVERSCAN = 8;
 
 /**
  * A selector has nothing to show when there are no options and there is no
@@ -93,6 +99,7 @@ export function BaseSelectorList<T extends string | number | boolean>({
   maxVisibleOptions = 5,
   initialQuery = "",
   onActiveOptionChange,
+  virtualized = false,
 }: SelectorListProps<T>) {
   const ui = useUIConfig();
   const [query, setQuery] = useState(initialQuery);
@@ -103,6 +110,9 @@ export function BaseSelectorList<T extends string | number | boolean>({
   });
   const inputRef = useRef<HTMLInputElement>(null);
   const listContainerRef = useRef<HTMLDivElement>(null);
+  const [scrollElement, setScrollElement] = useState<HTMLDivElement | null>(
+    null,
+  );
 
   const showSearch = allowNew || options.length >= minOptionsForSearch;
   const trimmedQuery = query.trim();
@@ -138,6 +148,20 @@ export function BaseSelectorList<T extends string | number | boolean>({
   const actionIdx = showActionRow
     ? filtered.length + (showCreateOption ? 1 : 0) + (showClearRow ? 1 : 0)
     : -1;
+  const virtualRowCount = virtualized
+    ? filtered.length + (showCreateOption ? 1 : 0)
+    : 0;
+  const virtualizer = useVirtualizer({
+    count: virtualRowCount,
+    getScrollElement: () => scrollElement,
+    estimateSize: () => ROW_PX,
+    overscan: VIRTUAL_OVERSCAN,
+    paddingStart: LIST_PAD_PX,
+    paddingEnd: LIST_PAD_PX,
+    initialOffset: () =>
+      Math.max(0, (activeIndex - Math.floor(maxVisibleOptions / 2)) * ROW_PX),
+  });
+
   const totalEntries =
     filtered.length +
     (showCreateOption ? 1 : 0) +
@@ -158,13 +182,19 @@ export function BaseSelectorList<T extends string | number | boolean>({
   useEffect(
     function scrollActiveIntoView() {
       if (activeIndex < 0) return;
+      if (virtualized) {
+        if (activeIndex < virtualRowCount) {
+          virtualizer.scrollToIndex(activeIndex, { align: "auto" });
+        }
+        return;
+      }
       const list =
         listContainerRef.current?.querySelector("ul[role='listbox']");
       if (!list) return;
       const items = list.querySelectorAll<HTMLElement>("li[role='option']");
       items[activeIndex]?.scrollIntoView({ block: "nearest" });
     },
-    [activeIndex],
+    [activeIndex, virtualized, virtualRowCount, virtualizer],
   );
 
   const activeValue =
@@ -432,6 +462,80 @@ export function BaseSelectorList<T extends string | number | boolean>({
     ],
   );
 
+  function renderOptionRow(
+    option: SelectorListOption<T>,
+    i: number,
+    virtualStyle?: React.CSSProperties,
+  ) {
+    const isOptionDisabled = !!option.disabled;
+    return (
+      <li
+        key={String(option.value)}
+        role="option"
+        aria-selected={option.value === selected}
+        aria-disabled={isOptionDisabled}
+        style={virtualStyle}
+        className={clsx(
+          "flex items-center justify-between gap-4 h-8 px-2 rounded-sm",
+          virtualStyle && "absolute top-0 left-1 right-1",
+          isOptionDisabled
+            ? "cursor-default text-disabled"
+            : "cursor-pointer text-default",
+          !isOptionDisabled && option.value === selected && "bg-accent-tint",
+          !isOptionDisabled &&
+            option.value !== selected &&
+            i === activeIndex &&
+            "bg-base-hover",
+          !isOptionDisabled &&
+            option.value !== selected &&
+            i !== activeIndex &&
+            "hover:bg-base-hover",
+          listClassName,
+        )}
+        onMouseEnter={isOptionDisabled ? undefined : () => setActiveIndex(i)}
+        onMouseDown={(e) => e.preventDefault()}
+        onClick={isOptionDisabled ? undefined : () => onCommit(option.value)}
+      >
+        <span className="flex items-baseline gap-1 min-w-0">
+          <span className={clsx(virtualStyle && "truncate")}>
+            {option.label}
+          </span>
+          {option.description && (
+            <span className="text-subtle">{option.description}</span>
+          )}
+        </span>
+        {option.value === selected && (
+          <CheckIcon className="text-accent shrink-0" />
+        )}
+      </li>
+    );
+  }
+
+  function renderCreateRow(virtualStyle?: React.CSSProperties) {
+    return (
+      <li
+        key="create-new-value"
+        role="option"
+        style={virtualStyle}
+        className={clsx(
+          "flex items-center h-8 px-2 cursor-pointer text-accent rounded-sm",
+          virtualStyle
+            ? "absolute top-0 left-1 right-1 border-t border"
+            : filtered.length > 0 && "border-t border mt-1",
+          activeIndex === filtered.length && "bg-base-hover",
+          activeIndex !== filtered.length && "hover:bg-base-hover",
+        )}
+        onMouseEnter={() => setActiveIndex(filtered.length)}
+        onMouseDown={(e) => e.preventDefault()}
+        onClick={() => onCommit(trimmedQuery as T)}
+      >
+        {createLabel
+          ? createLabel(trimmedQuery)
+          : ui.selectorAddNewValueTemplate.replace("{{1}}", trimmedQuery)}
+      </li>
+    );
+  }
+
   return (
     <div
       ref={listContainerRef}
@@ -454,6 +558,7 @@ export function BaseSelectorList<T extends string | number | boolean>({
             onChange={(e) => {
               setQuery(e.target.value);
               setActiveIndex(e.target.value.trim() ? 0 : NO_INDEX);
+              if (virtualized) virtualizer.scrollToOffset(0);
             }}
             placeholder={searchPlaceholder ?? ui.searchPlaceholder}
             aria-invalid={isNewQueryInvalid || undefined}
@@ -468,78 +573,33 @@ export function BaseSelectorList<T extends string | number | boolean>({
       )}
       {showList && (
         <div
+          ref={setScrollElement}
           style={{ maxHeight: maxListHeight }}
           className="outline-hidden min-h-0 overflow-auto scroll-shadows [scrollbar-width:thin]"
         >
-          <ul role="listbox" tabIndex={-1} className="p-1">
-            {filtered.map((option, i) => {
-              const isOptionDisabled = !!option.disabled;
-              return (
-                <li
-                  key={String(option.value)}
-                  role="option"
-                  aria-selected={option.value === selected}
-                  aria-disabled={isOptionDisabled}
-                  className={clsx(
-                    "flex items-center justify-between gap-4 h-8 px-2 rounded-sm",
-                    isOptionDisabled
-                      ? "cursor-default text-disabled"
-                      : "cursor-pointer text-default",
-                    !isOptionDisabled &&
-                      option.value === selected &&
-                      "bg-accent-tint",
-                    !isOptionDisabled &&
-                      option.value !== selected &&
-                      i === activeIndex &&
-                      "bg-base-hover",
-                    !isOptionDisabled &&
-                      option.value !== selected &&
-                      i !== activeIndex &&
-                      "hover:bg-base-hover",
-                    listClassName,
-                  )}
-                  onMouseEnter={
-                    isOptionDisabled ? undefined : () => setActiveIndex(i)
-                  }
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={
-                    isOptionDisabled ? undefined : () => onCommit(option.value)
-                  }
-                >
-                  <span className="flex items-baseline gap-1 min-w-0">
-                    <span>{option.label}</span>
-                    {option.description && (
-                      <span className="text-subtle">{option.description}</span>
-                    )}
-                  </span>
-                  {option.value === selected && (
-                    <CheckIcon className="text-accent shrink-0" />
-                  )}
-                </li>
-              );
-            })}
-            {showCreateOption && (
-              <li
-                role="option"
-                className={clsx(
-                  "flex items-center h-8 px-2 cursor-pointer text-accent rounded-sm",
-                  filtered.length > 0 && "border-t border mt-1",
-                  activeIndex === filtered.length && "bg-base-hover",
-                  activeIndex !== filtered.length && "hover:bg-base-hover",
-                )}
-                onMouseEnter={() => setActiveIndex(filtered.length)}
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => onCommit(trimmedQuery as T)}
-              >
-                {createLabel
-                  ? createLabel(trimmedQuery)
-                  : ui.selectorAddNewValueTemplate.replace(
-                      "{{1}}",
-                      trimmedQuery,
-                    )}
-              </li>
-            )}
-          </ul>
+          {virtualized ? (
+            <ul
+              role="listbox"
+              tabIndex={-1}
+              className="relative"
+              style={{ height: virtualizer.getTotalSize() }}
+            >
+              {virtualizer.getVirtualItems().map((row) => {
+                const style = {
+                  height: ROW_PX,
+                  transform: `translateY(${row.start}px)`,
+                };
+                return row.index < filtered.length
+                  ? renderOptionRow(filtered[row.index], row.index, style)
+                  : renderCreateRow(style);
+              })}
+            </ul>
+          ) : (
+            <ul role="listbox" tabIndex={-1} className="p-1">
+              {filtered.map((option, i) => renderOptionRow(option, i))}
+              {showCreateOption && renderCreateRow()}
+            </ul>
+          )}
         </div>
       )}
       {showClearRow && (

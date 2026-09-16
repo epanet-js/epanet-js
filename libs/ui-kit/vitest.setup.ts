@@ -15,6 +15,17 @@ window.ResizeObserver = class ResizeObserver {
   disconnect() {}
 };
 
+// jsdom performs no layout; @tanstack/virtual-core sizes the scroll viewport
+// from these, and would otherwise virtualize every row away.
+Object.defineProperty(window.HTMLElement.prototype, "offsetWidth", {
+  configurable: true,
+  get: () => 300,
+});
+Object.defineProperty(window.HTMLElement.prototype, "offsetHeight", {
+  configurable: true,
+  get: () => 180,
+});
+
 Object.defineProperty(window, "matchMedia", {
   writable: true,
   value: vi.fn().mockImplementation((query: string) => ({
