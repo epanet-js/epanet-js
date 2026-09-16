@@ -39,6 +39,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { useImportCustomerPoints } from "src/commands/import-customer-points";
 import { useOpenZonesImport } from "src/commands/open-zones-import";
 import { useImportZonesDisabled } from "src/hooks/use-import-zones-disabled";
+import { useImportCustomerPointsDisabled } from "src/hooks/use-import-customer-points-disabled";
 import { useRecentFiles } from "src/hooks/use-recent-files";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
@@ -230,6 +231,7 @@ const ImportSubmenu = () => {
   const importCustomerPoints = useImportCustomerPoints();
   const openZonesImport = useOpenZonesImport();
   const importZonesDisabled = useImportZonesDisabled();
+  const importCustomerPointsDisabled = useImportCustomerPointsDisabled();
   const translate = useTranslate();
 
   return (
@@ -242,6 +244,8 @@ const ImportSubmenu = () => {
       <DD.Portal>
         <DDSubContent sideOffset={4} alignOffset={-4}>
           <StyledItem
+            disabled={importCustomerPointsDisabled}
+            className={importCustomerPointsDisabled ? "opacity-60" : undefined}
             onSelect={() => {
               importCustomerPoints({ source: "toolbar" });
             }}

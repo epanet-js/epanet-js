@@ -1386,7 +1386,8 @@
       "supportedFormats": "Supported formats:",
       "parsingFile": "Reading file...",
       "chooseFile": "Choose file"
-    }
+    },
+    "blockedByScenarios": "Customer points can't be imported while scenarios exist. Delete your scenarios first."
   },
   "importCustomerPointsWarning": {
     "explain": "Your current customer points will be permanently deleted and replaced with the points from your new import.",
