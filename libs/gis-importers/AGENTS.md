@@ -19,6 +19,7 @@ Turns GIS files into the part of a model they describe. The model vocabulary —
 - **One table lists the formats; the dispatch, importers and drop zones read it instead of keeping their own lists.**
 - **The extension picks the parser, but the content decides what is in it; an unknown extension is still read, not refused.**
 - **Hand back WGS84 wherever it can be worked out.** Reprojecting needs no knowledge of what a record means, so it belongs here rather than in every consumer — and it removes the asymmetry where shapefiles arrived converted (shpjs reprojects and cannot be stopped) while GeoJSON did not.
+- **A multi-part point or line comes back as one record per part, so no consumer splits its own.** A `MultiPoint` is several points that happen to share a row, and a `MultiLineString` several lines; each part carries the record's attributes, and `recordCount` counts the parts, because that is what a consumer builds. A `MultiPolygon` stays whole: it is one area with several rings — an island, a zone in two pieces — not several areas. Consumers that split multi-parts themselves silently disagreed with each other: the builder split lines and dropped multi-points, and the customer points importer skipped both.
 - **The issues already say whether the parse succeeded, so nothing else does.** Records with no error are placed; records that came back with one are not. A separate flag would be a second copy of what the issues state, free to drift from them, and it would have to hold some value on every failure that returns no records at all — a claim about coordinates that do not exist. It would also drag `SourceCrs` — declared in `network-data.ts` — into a half that must not name `NetworkData` types.
 - **Name what the data was authored in through `sourceProjection`, and only there.** Once the coordinates have moved it is the only trace of where they came from; a summary shows its `name` as `sourceProjectionName`. It is absent when the records were already WGS84 — a WGS84 `.prj` names nothing, because the file was already there, and a bundle with no `.prj` at all names nothing either, because nobody ever said.
 - **Hand back the definition that placed the records, for a consumer that has to keep it.** `sourceProjection` is what the records were converted from: a stated or supplied EPSG resolved against the caller's `projections`, or a `.prj`, which resolves to the listed projection its EPSG authority names and otherwise stands as its own WKT. It is absent whenever the records were already WGS84, stated or assumed.
@@ -109,7 +110,7 @@ records, and a caller that has stopped wanting the answer is not bad input. `sig
 says nothing about the file at all. Whether the host is slicing this on a main thread or running it in a
 worker is not ours to infer, which is why it is told rather than guessed.
 
-**Scanning and importing are separate calls**, because the user chooses a mapping in between and chooses it against what the file turned out to contain. `scanSource` answers "what is in this file" — a `SourceSummary` of `attributes`, `recordCount`, `sourceProjectionName` and, where the source has one, `geometry` — without knowing what any of it means, because nothing has told it yet. `importFromSource` then applies the choice, and a preview is the same call with a `recordLimit`.
+**Scanning and importing are separate calls**, because the user chooses a mapping in between and chooses it against what the file turned out to contain. `scanSource` answers "what is in this file" — a `SourceSummary` of `attributes`, `recordCount`, `sourceProjectionName` and, where the source has any, `geometries` — without knowing what any of it means, because nothing has told it yet. `importFromSource` then applies the choice, and a preview is the same call with a `recordLimit`.
 
 The two verbs are the contract: a scan surveys, an import interprets. An implementation that finds itself needing to interpret in order to scan has put something in the wrong half.
 
@@ -119,7 +120,7 @@ The verb says which half you are in. `file-parsers/` parses — bytes, formats, 
 
 **`ImportConfig` says what the consumer knows about a file's contents.** `units` is echoed onto `NetworkData.units` and converted by nobody here. How to read the file at all — including the CRS to assume — is `GisInput`'s, because the reader needs it before a mapping exists, and a supplied CRS replaces whatever the file states.
 
-Everything is stated in **records** and **attributes** rather than rows or features, because a source that is not geographic still has a record count, an attribute list and a mapping. `geometry` is optional for the same reason: a spreadsheet has none.
+Everything is stated in **records** and **attributes** rather than rows or features, because a source that is not geographic still has a record count, an attribute list and a mapping. `geometries` is optional for the same reason: a spreadsheet has none.
 
 ## This package publishes
 

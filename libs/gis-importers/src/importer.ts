@@ -15,13 +15,13 @@ export type SourceAttribute = {
   onEveryRecord: boolean;
 };
 
-export type SourceGeometry = "point" | "line" | "polygon" | "mixed" | "unknown";
+export type SourceGeometry = "point" | "line" | "polygon" | "unknown";
 
 export type SourceSummary = {
   attributes: SourceAttribute[];
   recordCount: number;
   sourceProjectionName?: string;
-  geometry?: SourceGeometry;
+  geometries?: SourceGeometry[];
 };
 
 export type GisInput = ParserInput & {

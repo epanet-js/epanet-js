@@ -76,10 +76,12 @@ describe("summarizeFeatures", () => {
       properties: {},
     };
 
-    expect(summarizeFeatures([aPoint({}), multi]).geometry).toBe("point");
+    expect(summarizeFeatures([aPoint({}), multi]).geometries).toEqual([
+      "point",
+    ]);
   });
 
-  it("reports mixed geometry when kinds disagree", () => {
+  it("lists every kind of a source of mixed geometry, once and in order", () => {
     const line: Feature = {
       type: "Feature",
       geometry: {
@@ -92,7 +94,10 @@ describe("summarizeFeatures", () => {
       properties: {},
     };
 
-    expect(summarizeFeatures([aPoint({}), line]).geometry).toBe("mixed");
+    expect(summarizeFeatures([line, aPoint({}), line]).geometries).toEqual([
+      "point",
+      "line",
+    ]);
   });
 
   it("carries the name of the projection a reader converted out of, when it says", () => {

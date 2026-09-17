@@ -332,7 +332,7 @@ describe("customer points scanSource", () => {
 
     expect(summary!.recordCount).toBe(2);
     expect(summary!.attributes.map((a) => a.name)).toEqual(["METER", "USAGE"]);
-    expect(summary!.geometry).toBe("point");
+    expect(summary!.geometries).toEqual(["point"]);
   });
 
   it("has no summary for a source it could not read", async () => {

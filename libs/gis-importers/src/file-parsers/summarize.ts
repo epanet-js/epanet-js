@@ -50,25 +50,29 @@ export const summarizeFeatures = (
     attributes,
     recordCount: features.length,
     ...(sourceProjectionName === undefined ? {} : { sourceProjectionName }),
-    geometry: geometryOf(features),
+    geometries: geometriesOf(features),
   };
 };
 
-const geometryOf = (features: Feature[]): SourceGeometry => {
-  const kinds = new Set<SourceGeometry>();
+const GEOMETRY_ORDER: SourceGeometry[] = [
+  "point",
+  "line",
+  "polygon",
+  "unknown",
+];
 
+const kindOf = (type: string): SourceGeometry => {
+  if (type === "Point" || type === "MultiPoint") return "point";
+  if (type === "LineString" || type === "MultiLineString") return "line";
+  if (type === "Polygon" || type === "MultiPolygon") return "polygon";
+  return "unknown";
+};
+
+const geometriesOf = (features: Feature[]): SourceGeometry[] => {
+  const kinds = new Set<SourceGeometry>();
   for (const feature of features) {
     const type = feature.geometry?.type;
-    if (!type) continue;
-    if (type === "Point" || type === "MultiPoint") kinds.add("point");
-    else if (type === "LineString" || type === "MultiLineString")
-      kinds.add("line");
-    else if (type === "Polygon" || type === "MultiPolygon")
-      kinds.add("polygon");
-    else kinds.add("unknown");
+    if (type) kinds.add(kindOf(type));
   }
-
-  if (kinds.size === 0) return "unknown";
-  if (kinds.size > 1) return "mixed";
-  return [...kinds][0];
+  return GEOMETRY_ORDER.filter((kind) => kinds.has(kind));
 };

@@ -668,6 +668,131 @@ describe("parseGisSource", () => {
     });
   });
 
+  describe("multi-part records", () => {
+    const multiOf = (
+      type: "MultiPoint" | "MultiLineString",
+      coordinates: unknown,
+    ) =>
+      ({
+        type: "Feature",
+        geometry: { type, coordinates },
+        properties: { NAME: "north" },
+      }) as unknown as Feature;
+
+    it("reads a MultiPoint as one point per position, each with the record's attributes", async () => {
+      const { features } = await parseGisSource({
+        files: [
+          aCollection([
+            aPoint(IN_DEGREES),
+            multiOf("MultiPoint", [
+              [0.002, 0.002],
+              [0.003, 0.003],
+            ]),
+          ]),
+        ],
+      });
+
+      expect(
+        features.map(({ geometry, properties }) => [
+          geometry.type,
+          (geometry as { coordinates: Position }).coordinates,
+          properties,
+        ]),
+      ).toEqual([
+        ["Point", IN_DEGREES, { NAME: "north" }],
+        ["Point", [0.002, 0.002], { NAME: "north" }],
+        ["Point", [0.003, 0.003], { NAME: "north" }],
+      ]);
+    });
+
+    it("reads a MultiLineString as one line per part", async () => {
+      const parts = [
+        [
+          [0.001, 0.001],
+          [0.002, 0.002],
+        ],
+        [
+          [0.003, 0.003],
+          [0.004, 0.004],
+        ],
+      ];
+
+      const { features } = await parseGisSource({
+        files: [aCollection([multiOf("MultiLineString", parts)])],
+      });
+
+      expect(
+        features.map(({ geometry }) => [
+          geometry.type,
+          (geometry as { coordinates: Position[] }).coordinates,
+        ]),
+      ).toEqual([
+        ["LineString", parts[0]],
+        ["LineString", parts[1]],
+      ]);
+    });
+
+    it("leaves a MultiPolygon whole: it is one area with several rings", async () => {
+      const rings = [
+        [
+          [
+            [0.001, 0.001],
+            [0.002, 0.001],
+            [0.002, 0.002],
+            [0.001, 0.001],
+          ],
+        ],
+        [
+          [
+            [0.003, 0.003],
+            [0.004, 0.003],
+            [0.004, 0.004],
+            [0.003, 0.003],
+          ],
+        ],
+      ];
+
+      const { features } = await parseGisSource({
+        files: [
+          aCollection([
+            {
+              type: "Feature",
+              geometry: { type: "MultiPolygon", coordinates: rings },
+              properties: {},
+            } as unknown as Feature,
+          ]),
+        ],
+      });
+
+      expect(features).toHaveLength(1);
+      expect(features[0].geometry.type).toBe("MultiPolygon");
+    });
+
+    it("places the parts of a record it had to reproject", async () => {
+      const { features } = await parseGisSource({
+        files: [
+          aCollection(
+            [
+              multiOf("MultiPoint", [
+                [500000, 6000000],
+                [500100, 6000100],
+              ]),
+            ],
+            "EPSG:3857",
+          ),
+        ],
+        projections,
+      });
+
+      expect(features).toHaveLength(2);
+      for (const { geometry } of features) {
+        const [longitude] = (geometry as { coordinates: Position })
+          .coordinates as unknown as number[];
+        expect(longitude).toBeCloseTo(4.49, 2);
+      }
+    });
+  });
+
   describe("decoding the same input twice", () => {
     it("reads the bytes once", async () => {
       const file = aCollection([aPoint(IN_DEGREES)]);

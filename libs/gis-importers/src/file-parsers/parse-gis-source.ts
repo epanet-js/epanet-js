@@ -57,10 +57,33 @@ export const parseGisSource = async (
   const cached = cache.get(key);
   if (cached && sameInput(cached, files, epsg)) return resultOf(cached.decoded);
 
-  const decoded = await decode(input);
+  const decoded = asSingleParts(await decode(input));
   cache.set(key, { files, suppliedEpsg: epsg, decoded });
   return resultOf(decoded);
 };
+
+/** A multi-part point or line is several records of one kind, so every
+ *  consumer would otherwise split them itself. A MultiPolygon is left whole:
+ *  it is one area with several rings, not several areas. */
+const asSingleParts = (decoded: DecodedSource): DecodedSource => ({
+  ...decoded,
+  features: decoded.features.flatMap((feature) => {
+    const geometry = feature.geometry;
+    if (geometry?.type === "MultiPoint") {
+      return geometry.coordinates.map((coordinates) => ({
+        ...feature,
+        geometry: { type: "Point" as const, coordinates },
+      }));
+    }
+    if (geometry?.type === "MultiLineString") {
+      return geometry.coordinates.map((coordinates) => ({
+        ...feature,
+        geometry: { type: "LineString" as const, coordinates },
+      }));
+    }
+    return [feature];
+  }),
+});
 
 const resultOf = (decoded: DecodedSource): ParsedGisSource => {
   const issues = new IssueCollector();

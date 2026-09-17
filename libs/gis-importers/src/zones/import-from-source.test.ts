@@ -275,7 +275,7 @@ describe("zones scanSource", () => {
       "AREA",
       "DMA",
     ]);
-    expect(summary!.geometry).toBe("polygon");
+    expect(summary!.geometries).toEqual(["polygon"]);
   });
 
   it("describes a file it could not place, and says it could not", async () => {
