@@ -3,7 +3,6 @@ export type {
   TimedSettingStep,
   TimedSettingControl,
   LevelSettingControl,
-  TargetNodeControl,
   Control,
   Controls,
 } from "./types";
@@ -13,10 +12,8 @@ export {
   createEmptyControls,
   getLinkTimedSetting,
   getLinkLevelSetting,
-  getLinkTargetNode,
   buildTimedSetting,
   buildDefaultLevelSetting,
-  buildTargetNodeControl,
   setAssetControl,
 } from "./types";
 
