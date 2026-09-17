@@ -21,6 +21,7 @@ type CalloutProps = {
   title?: string;
   description?: string;
   details?: string;
+  detailsLabel?: string;
   Icon?: React.ElementType;
   className?: string;
   action?: CalloutAction;
@@ -35,6 +36,7 @@ export const Callout = ({
   title,
   description,
   details,
+  detailsLabel = "Show details",
   Icon,
   className,
   action,
@@ -116,7 +118,7 @@ export const Callout = ({
         {details && (
           <details className="text-size-small">
             <summary className="cursor-pointer text-gray-600 hover:text-gray-800">
-              Show details
+              {detailsLabel}
             </summary>
             <pre className="mt-1 whitespace-pre-wrap wrap-break-word font-mono text-default bg-white/60 rounded-sm p-2 max-h-40 overflow-auto">
               {details}
