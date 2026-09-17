@@ -96,7 +96,6 @@ export const snapshot = (
       [...points].map((point) => point.id).sort(),
     ])
     .sort(byKey),
-  valveTargetsLookup: [...model.valveTargetsLookup.entries()].sort(byKey),
   labels: [...new Set([...modelLabels(model), ...labelProbe])]
     .sort()
     .map((label) => [label, labelManager.count(label)]),

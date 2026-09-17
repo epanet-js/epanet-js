@@ -5,6 +5,7 @@ import {
   type ValveStatus,
 } from "@epanet-js/model-schema";
 import { CurveId } from "../curves";
+import { AssetId } from "./base-asset";
 import { Link, LinkProperties } from "./link";
 
 export { valveStatuses };
@@ -26,6 +27,7 @@ export type ValveProperties = {
   setting: number | null;
   initialStatus: ValveStatus;
   curveId?: CurveId;
+  targetNodeId?: AssetId;
 } & LinkProperties;
 
 export const valveQuantities = ["diameter", "minorLoss", "setting"];
@@ -54,6 +56,10 @@ export class Valve extends Link<ValveProperties> {
 
   get curveId() {
     return this.properties.curveId;
+  }
+
+  get targetNodeId() {
+    return this.properties.targetNodeId;
   }
 
   copy() {

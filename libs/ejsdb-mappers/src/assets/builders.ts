@@ -234,6 +234,7 @@ const buildValve = (row: ValveRow, assetFactory: AssetFactory): Valve =>
     initialStatus: nullable(row.initial_status) as ValveStatus | undefined,
     isActive: toBool(row.is_active),
     curveId: nullable(row.curve_id),
+    targetNodeId: nullable(row.target_node_id),
   });
 
 const nullable = <T>(v: T | null | undefined): T | undefined =>

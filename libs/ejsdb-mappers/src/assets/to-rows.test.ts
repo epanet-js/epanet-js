@@ -172,6 +172,7 @@ describe("assetsToRows", () => {
     expect(rows.pumps[0].speed).toBeNull();
     expect(rows.pumps[0].power).toBeNull();
     expect(rows.valves[0].minor_loss).toBeNull();
+    expect(rows.valves[0].target_node_id).toBeNull();
   });
 
   it("round-trips unset EPANET-optional attributes back to undefined", () => {
@@ -204,6 +205,7 @@ describe("assetsToRows", () => {
     expect((rebuilt.get(2) as Tank).minVolume).toBeUndefined();
     expect((rebuilt.get(2) as Tank).mixingFraction).toBeUndefined();
     expect((rebuilt.get(3) as Valve).minorLoss).toBeUndefined();
+    expect((rebuilt.get(3) as Valve).targetNodeId).toBeUndefined();
     // Power is nullable (required-for-definition), so it round-trips to null.
     expect((rebuilt.get(4) as Pump).power).toBeNull();
   });

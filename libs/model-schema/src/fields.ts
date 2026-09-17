@@ -124,6 +124,7 @@ const valve: FieldSchemas = {
   kind: z.enum(valveKinds),
   setting: nullableNumber,
   curveId: intCell,
+  targetNodeId: intCell,
 };
 
 const customerPoint: FieldSchemas = {

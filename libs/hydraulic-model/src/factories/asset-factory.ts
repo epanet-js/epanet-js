@@ -69,6 +69,7 @@ export type ValveBuildData = {
   initialStatus?: ValveStatus;
   isActive?: boolean;
   curveId?: CurveId;
+  targetNodeId?: AssetId;
   customAttributes?: Record<string, string | number | null>;
 };
 
@@ -202,6 +203,7 @@ export class AssetFactory {
     initialStatus = "active",
     isActive = true,
     curveId,
+    targetNodeId,
     customAttributes,
   }: ValveBuildData = {}): Valve {
     const internalId = id ?? this.idGenerator.newId();
@@ -217,6 +219,7 @@ export class AssetFactory {
       initialStatus,
       isActive,
       curveId,
+      targetNodeId,
     });
     return applyCustomAttributes(valve, customAttributes);
   }
