@@ -15,6 +15,7 @@ import m0014 from "./0014_asset_custom_attributes.sql?raw";
 import m0015 from "./0015_drop_custom_attributes_data.sql?raw";
 import m0016 from "./0016_restore_link_endpoint_precision";
 import m0017 from "./0017_rebuild_broken_valve_geometry";
+import m0018 from "./0018_id_pools.sql?raw";
 
 export type MigrationDB = Parameters<typeof m0006>[0];
 
@@ -38,6 +39,7 @@ export const migrations: Migration[] = [
   m0015,
   m0016,
   m0017,
+  m0018,
 ];
 
 export const APP_VERSION = migrations.length;

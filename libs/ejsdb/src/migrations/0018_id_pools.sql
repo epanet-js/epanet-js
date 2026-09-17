@@ -1,0 +1,1 @@
+ALTER TABLE project ADD COLUMN id_pools TEXT DEFAULT NULL;
