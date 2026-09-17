@@ -27,7 +27,6 @@ import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { useUndoableTransactions } from "src/hooks/persistence/use-undoable-transactions";
 import userEvent, { type UserEvent } from "@testing-library/user-event";
 import { AssetId, getLink, getPipe } from "@epanet-js/hydraulic-model";
-import { getLinkTargetNode } from "@epanet-js/hydraulic-model";
 import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import FeatureEditor from "../feature-editor";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -716,7 +715,7 @@ describe("AssetPanel", () => {
       expectPropertyDisplayed("setting (l/s)", "10");
     });
 
-    it("inserts a target-node control when a node is selected", async () => {
+    it("sets the target node when a node is selected", async () => {
       stubFeatureOn("FLAG_REMOTE_SETPOINT_PRV");
       const IDS = { V1: 1, up: 2, down: 3, other: 4 };
       const hydraulicModel = HydraulicModelBuilder.with()
@@ -740,10 +739,8 @@ describe("AssetPanel", () => {
       await user.click(screen.getByText("OTHER"));
 
       const updated = store.get(stagingModelDerivedAtom);
-      const control = getLinkTargetNode(updated.controls, IDS.V1);
-      expect(control).not.toBeNull();
-      expect(control?.type).toBe("target-node");
-      expect(control?.targetId).toBe(IDS.other);
+      const valve = getLink(updated.assets, IDS.V1) as Valve;
+      expect(valve.targetNodeId).toBe(IDS.other);
     });
 
     it("can show simulation results", async () => {

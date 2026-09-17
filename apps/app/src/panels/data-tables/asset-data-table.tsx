@@ -33,8 +33,6 @@ import {
   type ValveKind,
   type ChemicalSourceType,
   type CurveId,
-  buildTargetNodeControl,
-  setAssetControl,
 } from "@epanet-js/hydraulic-model";
 import {
   getAttribute,
@@ -278,7 +276,6 @@ export const AssetDataTable = memo(function AssetDataTableInner({
       const moments: ModelMoment[] = [];
       const editedProperties = new Map<string, number>();
       const demandAssignments: JunctionDemandAssignment[] = [];
-      let controls = hydraulicModel.controls;
       const yieldIfSliceElapsed = createTimeSlicer();
       for (let i = 0; i < newRows.length; i++) {
         await yieldIfSliceElapsed();
@@ -408,18 +405,14 @@ export const AssetDataTable = memo(function AssetDataTableInner({
             );
           }
 
-          if (newRow.targetNode !== oldRow.targetNode) {
-            const targetId = newRow.targetNode as AssetId | null;
-            controls = setAssetControl(
-              controls,
-              assetId,
-              targetId === null
-                ? null
-                : buildTargetNodeControl(assetId, targetId),
-            );
+          if (newRow.targetNodeId !== oldRow.targetNodeId) {
+            changes.push({
+              property: "targetNodeId",
+              value: (newRow.targetNodeId as AssetId | null) ?? undefined,
+            });
             editedProperties.set(
-              "targetNode",
-              (editedProperties.get("targetNode") ?? 0) + 1,
+              "targetNodeId",
+              (editedProperties.get("targetNodeId") ?? 0) + 1,
             );
           }
         }
@@ -452,10 +445,6 @@ export const AssetDataTable = memo(function AssetDataTableInner({
             }),
           );
         }
-      }
-
-      if (controls !== hydraulicModel.controls) {
-        moments.push({ note: "Change controls", putControls: controls });
       }
 
       if (demandAssignments.length > 0) {

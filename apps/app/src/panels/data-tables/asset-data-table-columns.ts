@@ -1021,7 +1021,7 @@ function _buildColumns(
         }),
         ...(isRemoteSetpointPrvOn
           ? [
-              filterableSelectColumn(ck("targetNode"), {
+              filterableSelectColumn(ck("targetNodeId"), {
                 header: translate("targetNode"),
                 options: [...(accessorCtx?.model.assets.values() ?? [])]
                   .filter((asset) => asset.isNode)

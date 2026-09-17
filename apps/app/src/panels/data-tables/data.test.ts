@@ -87,6 +87,24 @@ describe("assetAccessor (computed columns)", () => {
     expect(assetAccessor("pipe", "endNode", ctx)(row)).toBe("J2");
   });
 
+  it("shows a valve target node only for PRVs targeting an existing node", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3, V1: 4, V2: 5, V3: 6, MISSING: 99 };
+    const model = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1)
+      .aJunction(IDS.J2)
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
+      .aValve(IDS.V1, { kind: "prv", targetNodeId: IDS.J2 })
+      .aValve(IDS.V2, { kind: "fcv", targetNodeId: IDS.J2 })
+      .aValve(IDS.V3, { kind: "prv", targetNodeId: IDS.MISSING })
+      .build();
+    const targetOf = (id: number) =>
+      assetAccessor("valve", "targetNodeId", ctxFor(model))({ id } as AssetRow);
+
+    expect(targetOf(IDS.V1)).toBe(IDS.J2);
+    expect(targetOf(IDS.V2)).toBeNull();
+    expect(targetOf(IDS.V3)).toBeNull();
+  });
+
   it("returns null for sim_* columns when there is no simulation", () => {
     const model = buildModel();
     const ctx = ctxFor(model);

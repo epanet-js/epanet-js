@@ -76,10 +76,6 @@ import {
 } from "src/lib/model-attributes-validation";
 import { getLinkNodes } from "@epanet-js/hydraulic-model";
 import { type AssetId, type Control } from "@epanet-js/hydraulic-model";
-import {
-  getLinkTargetNode,
-  buildTargetNodeControl,
-} from "@epanet-js/hydraulic-model";
 import { changeAssetControl } from "src/hydraulic-model/model-operations";
 import {
   AssetEditorContent,
@@ -399,7 +395,6 @@ export function AssetPanel({
           valve={valve}
           onPropertyChange={handlePropertyChange}
           onBatchPropertyChange={handleBatchPropertyChange}
-          onControlChange={handleControlChange}
           units={units}
           onStatusChange={handleStatusChange}
           onActiveTopologyStatusChange={handleActiveTopologyStatusChange}
@@ -2062,7 +2057,6 @@ const ValveEditor = ({
   units,
   onPropertyChange,
   onBatchPropertyChange,
-  onControlChange,
   onStatusChange,
   onActiveTopologyStatusChange,
   onLabelChange,
@@ -2076,11 +2070,6 @@ const ValveEditor = ({
   onStatusChange: OnStatusChange<ValveStatus>;
   onPropertyChange: OnPropertyChange;
   onBatchPropertyChange: (changes: PropertyChange[]) => void;
-  onControlChange: (
-    assetId: AssetId,
-    control: Control | null,
-    previousControl: Control | null,
-  ) => void;
   onActiveTopologyStatusChange: (
     property: string,
     newValue: boolean,
@@ -2092,7 +2081,7 @@ const ValveEditor = ({
   const translate = useTranslate();
   const isRemoteSetpointPrvOn = useFeatureFlag("FLAG_REMOTE_SETPOINT_PRV");
   const { footer } = useQuickGraph(valve.id, "valve");
-  const { getComparison, getCurveComparison, getControlComparison, isNew } =
+  const { getComparison, getCurveComparison, isNew } =
     useAssetComparison(valve);
   const simulation = useSimulation();
   const valveSimulation = simulation?.getValve(valve.id);
@@ -2153,17 +2142,15 @@ const ValveEditor = ({
   };
 
   const showTargetNode = isRemoteSetpointPrvOn && valve.kind === "prv";
-  const targetNodeControl = getLinkTargetNode(
-    hydraulicModel.controls,
-    valve.id,
+  const targetNode =
+    valve.targetNodeId !== undefined
+      ? hydraulicModel.assets.get(valve.targetNodeId)
+      : undefined;
+  const targetNodeId = targetNode?.isNode ? targetNode.id : null;
+  const targetNodeComparison = getComparison<AssetId | null>(
+    "targetNodeId",
+    targetNodeId,
   );
-  const controlComparison = getControlComparison(targetNodeControl);
-  const baseControl = controlComparison.baseValue;
-  const targetNodeComparison: PropertyComparison<AssetId | null> = {
-    hasChanged: controlComparison.hasChanged,
-    baseValue:
-      baseControl?.type === "target-node" ? baseControl.targetId : null,
-  };
 
   const endNodeId = endNode?.id;
   const nodeOptions = useMemo(() => {
@@ -2176,10 +2163,7 @@ const ValveEditor = ({
   }, [hydraulicModel.assets, endNodeId]);
 
   const handleTargetNodeChange = (_name: string, newValue: number | null) => {
-    const previousControl = targetNodeControl;
-    const control =
-      newValue != null ? buildTargetNodeControl(valve.id, newValue) : null;
-    onControlChange(valve.id, control, previousControl);
+    onPropertyChange("targetNodeId", newValue ?? undefined, valve.targetNodeId);
   };
 
   const activeTopologyComparison = getComparison("isActive", valve.isActive);
@@ -2265,7 +2249,7 @@ const ValveEditor = ({
         {showTargetNode && (
           <SelectRow
             name="targetNode"
-            selected={targetNodeControl?.targetId ?? null}
+            selected={targetNodeId}
             options={nodeOptions}
             nullable
             enableVirtualization={true}

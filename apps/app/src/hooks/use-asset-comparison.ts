@@ -6,7 +6,6 @@ import { baseModelDerivedAtom } from "src/state/derived-branch-state";
 import { buildRoughnessInferrer } from "src/hydraulic-model/pipe-materials";
 import type { Asset, Patterns, Pipe, Pump } from "src/hydraulic-model";
 import {
-  type Control,
   type Pattern,
   type PatternId,
   getActiveCustomerPoints,
@@ -164,24 +163,6 @@ export function useAssetComparison(asset: Asset | undefined) {
     return { hasChanged: false };
   };
 
-  const getControlComparison = (
-    currentControl: Control | null,
-  ): PropertyComparison<Control> => {
-    if (!isInScenario || !baseAsset || !asset) {
-      return { hasChanged: false };
-    }
-
-    const baseControl =
-      baseModel.controls.find((control) => control.linkId === asset.id) ?? null;
-
-    const hasChanged = !isEqual(
-      currentControl && { ...currentControl, id: null },
-      baseControl && { ...baseControl, id: null },
-    );
-
-    return { hasChanged, baseValue: baseControl ?? undefined };
-  };
-
   const getPumpCurveComparison = (
     currentCurve: CurvePoint[] | undefined,
   ): PumpCurveComparison => {
@@ -262,7 +243,6 @@ export function useAssetComparison(asset: Asset | undefined) {
     getCustomerDemandComparison,
     getCustomerCountComparison,
     getCurveComparison,
-    getControlComparison,
     getPumpCurveComparison,
     isNew,
   };
