@@ -81,3 +81,35 @@ export const existingSelection = (
       hydraulicModel.customerPoints.has(id),
     ),
   );
+
+export const largestContainedSet = (
+  selectionSets: readonly SelectionSet[],
+  selection: Sel,
+  hydraulicModel: HydraulicModel,
+): SelectionSetId | null => {
+  const selectedAssets = new Set(USelection.getAssetIds(selection));
+  const selectedCustomerPoints = new Set(
+    USelection.getCustomerPointIds(selection),
+  );
+  if (selectedAssets.size + selectedCustomerPoints.size === 0) return null;
+
+  let largest: { id: SelectionSetId; size: number } | null = null;
+
+  for (const selectionSet of selectionSets) {
+    const members = existingSelection(selectionSet.selection, hydraulicModel);
+    const size = countSelected(members);
+    if (size === 0) continue;
+
+    const isContained =
+      USelection.getAssetIds(members).every((id) => selectedAssets.has(id)) &&
+      USelection.getCustomerPointIds(members).every((id) =>
+        selectedCustomerPoints.has(id),
+      );
+
+    if (isContained && (largest === null || size > largest.size)) {
+      largest = { id: selectionSet.id, size };
+    }
+  }
+
+  return largest?.id ?? null;
+};

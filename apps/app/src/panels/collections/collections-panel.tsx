@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import { useAtom, useAtomValue } from "jotai";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -34,10 +35,12 @@ import {
   pendingCollectionDraftAtom,
   selectionSetsAtom,
 } from "src/state/collections";
-import type {
-  CollectionDraftSource,
-  CollectionKind,
+import {
+  type CollectionDraftSource,
+  type CollectionKind,
+  largestContainedSet,
 } from "src/lib/collections";
+import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { useStartCollectionDraft } from "src/commands/collection-draft";
 
 type SectionType = CollectionKind;
@@ -47,6 +50,8 @@ type ActionState =
   | { action: "renaming"; section: SectionType; id: string };
 
 type RowKey = { section: SectionType; id: string };
+
+const SECTIONS: readonly SectionType[] = ["selectionSets", "bookmarks"];
 
 type Row = RowKey & {
   navId: number;
@@ -60,6 +65,15 @@ export const CollectionsPanel = () => {
   const selectionSets = useAtomValue(selectionSetsAtom);
   const bookmarks = useAtomValue(bookmarksAtom);
   const selection = useAtomValue(selectionAtom);
+  const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
+
+  const { assets, customerPoints } = USelection.countByKind(selection);
+  const canSaveSelection = assets + customerPoints >= MIN_SELECTION_SET_SIZE;
+
+  const selectedSetId = useMemo(
+    () => largestContainedSet(selectionSets, selection, hydraulicModel),
+    [selectionSets, selection, hydraulicModel],
+  );
 
   const saveSelectionSet = useSaveSelectionSet();
   const applySelectionSet = useApplySelectionSet();
@@ -79,9 +93,10 @@ export const CollectionsPanel = () => {
     null,
   );
   const [focusedRow, setFocusedRow] = useState<RowKey | null>(null);
+  const [focusedAddRow, setFocusedAddRow] = useState<SectionType | null>(null);
   const [pendingDraft, setPendingDraft] = useAtom(pendingCollectionDraftAtom);
 
-  const { selectionRows, bookmarkRows, byNavId } = useMemo(() => {
+  const { selectionRows, bookmarkRows, byNavId, addRowNavIds } = useMemo(() => {
     const selectionRows: Row[] = selectionSets.map((set, index) => ({
       navId: index + 1,
       section: "selectionSets",
@@ -89,26 +104,41 @@ export const CollectionsPanel = () => {
       name: set.name,
     }));
     const bookmarkRows: Row[] = bookmarks.map((bookmark, index) => ({
-      navId: selectionSets.length + index + 1,
+      navId: selectionSets.length + index + 2,
       section: "bookmarks",
       id: bookmark.id,
       name: bookmark.name,
     }));
+    const addRowNavIds: Record<SectionType, number> = {
+      selectionSets: selectionSets.length + 1,
+      bookmarks: selectionSets.length + bookmarks.length + 2,
+    };
     const byNavId = new Map<number, Row>(
       [...selectionRows, ...bookmarkRows].map((row) => [row.navId, row]),
     );
-    return { selectionRows, bookmarkRows, byNavId };
+    return { selectionRows, bookmarkRows, byNavId, addRowNavIds };
   }, [selectionSets, bookmarks]);
+
+  const addRowSectionOf = useCallback(
+    (navId: number): SectionType | undefined =>
+      SECTIONS.find((section) => addRowNavIds[section] === navId),
+    [addRowNavIds],
+  );
 
   const navItems = useMemo(
     (): NavItem<SectionType>[] => [
       ...selectionRows.map((row) => ({ id: row.navId, section: row.section })),
+      { id: addRowNavIds.selectionSets, section: "selectionSets" },
       ...bookmarkRows.map((row) => ({ id: row.navId, section: row.section })),
+      { id: addRowNavIds.bookmarks, section: "bookmarks" },
     ],
-    [selectionRows, bookmarkRows],
+    [selectionRows, bookmarkRows, addRowNavIds],
   );
 
   const focusedItem = useMemo((): NavItem<SectionType> | undefined => {
+    if (focusedAddRow) {
+      return { id: addRowNavIds[focusedAddRow], section: focusedAddRow };
+    }
     if (focusedRow) {
       const row = [...byNavId.values()].find((candidate) =>
         isSameRow(candidate, focusedRow),
@@ -116,8 +146,19 @@ export const CollectionsPanel = () => {
       if (row) return { id: row.navId, section: row.section };
     }
     if (focusedSection) return { section: focusedSection };
+    const selectedRow = selectionRows.find((row) => row.id === selectedSetId);
+    if (selectedRow)
+      return { id: selectedRow.navId, section: selectedRow.section };
     return undefined;
-  }, [focusedRow, focusedSection, byNavId]);
+  }, [
+    focusedAddRow,
+    addRowNavIds,
+    focusedRow,
+    focusedSection,
+    byNavId,
+    selectionRows,
+    selectedSetId,
+  ]);
 
   const clearActionState = useCallback(() => {
     setActionState(undefined);
@@ -139,7 +180,16 @@ export const CollectionsPanel = () => {
     (item: NavItem<SectionType>) => {
       if (item.id == null) {
         setFocusedRow(null);
+        setFocusedAddRow(null);
         setFocusedSection(item.section);
+        return;
+      }
+
+      const addRowSection = addRowSectionOf(item.id);
+      if (addRowSection) {
+        setFocusedSection(null);
+        setFocusedRow(null);
+        setFocusedAddRow(addRowSection);
         return;
       }
 
@@ -147,34 +197,55 @@ export const CollectionsPanel = () => {
       if (!row) return;
 
       setFocusedSection(null);
+      setFocusedAddRow(null);
       setFocusedRow({ section: row.section, id: row.id });
+      if (row.section === "selectionSets") {
+        applySelectionSet({ setId: row.id, zoom: false, source: "panel" });
+      }
     },
-    [byNavId],
+    [byNavId, addRowSectionOf, applySelectionSet],
   );
 
   const handleActivateItem = useCallback(
     (item: NavItem<SectionType>) => {
-      const row = item.id == null ? undefined : byNavId.get(item.id);
+      if (item.id == null) return;
+
+      const addRowSection = addRowSectionOf(item.id);
+      if (addRowSection) {
+        if (addRowSection === "selectionSets" && !canSaveSelection) return;
+        startCollectionDraft({
+          kind: addRowSection,
+          source: "collections-add-row",
+        });
+        return;
+      }
+
+      const row = byNavId.get(item.id);
       if (row) runRow(row);
     },
-    [byNavId, runRow],
+    [byNavId, addRowSectionOf, canSaveSelection, startCollectionDraft, runRow],
   );
 
   const handleBlur = (e: React.FocusEvent<HTMLDivElement>) => {
     if (e.currentTarget.contains(e.relatedTarget)) return;
     setFocusedSection(null);
     setFocusedRow(null);
+    setFocusedAddRow(null);
+  };
+
+  const clearKeyboardFocus = () => {
+    setFocusedSection(null);
+    setFocusedRow(null);
+    setFocusedAddRow(null);
   };
 
   const handleClickRow = (row: Row) => {
-    setFocusedSection(null);
-    setFocusedRow(null);
+    clearKeyboardFocus();
     runRow(row);
   };
 
   const handleSelectOnly = (row: Row) => {
-    setFocusedSection(null);
-    setFocusedRow(null);
+    clearKeyboardFocus();
     applySelectionSet({ setId: row.id, zoom: false, source: "panel" });
   };
 
@@ -220,8 +291,10 @@ export const CollectionsPanel = () => {
     setPendingDraft(null);
   }, [pendingDraft, setPendingDraft]);
 
-  const handleNew = (section: SectionType, source: CollectionDraftSource) =>
+  const handleNew = (section: SectionType, source: CollectionDraftSource) => {
+    clearKeyboardFocus();
     startCollectionDraft({ kind: section, source });
+  };
 
   const handleAction = (action: string, item: { id: number }) => {
     const row = byNavId.get(item.id);
@@ -255,14 +328,11 @@ export const CollectionsPanel = () => {
     },
   ];
 
-  const { assets, customerPoints } = USelection.countByKind(selection);
-  const canSaveSelection = assets + customerPoints >= MIN_SELECTION_SET_SIZE;
-
   const renderRow = (row: Row) => (
     <EditableListItem
       key={row.id}
       item={{ id: row.navId, label: row.name }}
-      isSelected={false}
+      isSelected={row.section === "selectionSets" && row.id === selectedSetId}
       isFocused={focusedRow !== null && isSameRow(row, focusedRow)}
       onSelect={() => handleClickRow(row)}
       actions={itemActions}
@@ -324,6 +394,8 @@ export const CollectionsPanel = () => {
                   : translate("collections.selectionSets.nothingSelected")
               }
               count={canSaveSelection ? assets + customerPoints : undefined}
+              navId={addRowNavIds.selectionSets}
+              isFocused={focusedAddRow === "selectionSets"}
               isDisabled={!canSaveSelection}
               onAdd={() => handleNew("selectionSets", "collections-add-row")}
             />
@@ -353,6 +425,8 @@ export const CollectionsPanel = () => {
           ) : (
             <CurrentStateRow
               label={translate("collections.bookmarks.current")}
+              navId={addRowNavIds.bookmarks}
+              isFocused={focusedAddRow === "bookmarks"}
               onAdd={() => handleNew("bookmarks", "collections-add-row")}
             />
           )}
@@ -365,18 +439,25 @@ export const CollectionsPanel = () => {
 const CurrentStateRow = ({
   label,
   count,
+  navId,
+  isFocused,
   isDisabled = false,
   onAdd,
 }: {
   label: string;
   count?: number;
+  navId: number;
+  isFocused: boolean;
   isDisabled?: boolean;
   onAdd: () => void;
 }) => (
   <li
-    className={`flex items-center text-sm h-8 min-w-0 rounded-sm ${
-      isDisabled ? "" : "hover:bg-base-hover"
-    }`}
+    data-item-id={navId}
+    className={clsx(
+      "flex items-center text-sm h-8 min-w-0 rounded-sm",
+      isFocused && "bg-base-hover",
+      !isFocused && !isDisabled && "hover:bg-base-hover",
+    )}
   >
     <Button
       variant="quiet/list"

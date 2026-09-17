@@ -318,7 +318,7 @@ describe("CollectionsPanel", () => {
     });
   });
 
-  describe("moving through the list", () => {
+  describe("the selected set and the keyboard", () => {
     const rowOf = (name: string) =>
       screen.getByText(name).closest("li") as HTMLElement;
 
@@ -329,50 +329,97 @@ describe("CollectionsPanel", () => {
         ).focus(),
       );
 
-    const aStoreWithASavedSet = async () => {
-      const store = aStore();
-      store.set(selectionAtom, USelection.fromAssetIds([1, 2]));
-      renderPanel(store);
+    const saveSet = async (name: string, assetIds: number[]) => {
+      act(() => store.set(selectionAtom, USelection.fromAssetIds(assetIds)));
       await userEvent.click(saveButton());
-      await nameIt("Downtown loop");
-      act(() => store.set(selectionAtom, USelection.fromAssetIds([3])));
-      zoomTo.mockClear();
-      return store;
+      await nameIt(name);
     };
 
-    it("leaves no row highlighted after clicking one", async () => {
-      await aStoreWithASavedSet();
+    let store: Store;
+
+    const aPanelWithSets = async () => {
+      store = aStore();
+      renderPanel(store);
+      await saveSet("Downtown loop", [1, 2]);
+      await saveSet("Pump feeders", [3]);
+      act(() => store.set(selectionAtom, USelection.none()));
+      zoomTo.mockClear();
+    };
+
+    it("keeps a clicked selection set selected", async () => {
+      await aPanelWithSets();
 
       await userEvent.click(screen.getByText("Downtown loop"));
 
-      expect(rowOf("Downtown loop")).not.toHaveClass("bg-accent-tint");
-      expect(rowOf("Downtown loop")).not.toHaveClass("bg-base-hover");
+      expect(rowOf("Downtown loop")).toHaveClass("bg-accent-tint");
+      expect(rowOf("Pump feeders")).not.toHaveClass("bg-accent-tint");
     });
 
-    it("highlights a row with the arrow keys without applying it", async () => {
-      const store = await aStoreWithASavedSet();
+    it("selects a set once the map selection contains all of it", async () => {
+      await aPanelWithSets();
+
+      act(() => store.set(selectionAtom, USelection.fromAssetIds([1])));
+      expect(rowOf("Downtown loop")).not.toHaveClass("bg-accent-tint");
+
+      act(() => store.set(selectionAtom, USelection.fromAssetIds([1, 2, 4])));
+      expect(rowOf("Downtown loop")).toHaveClass("bg-accent-tint");
+    });
+
+    it("moves the selection to a larger set as assets are added", async () => {
+      await aPanelWithSets();
+      await saveSet("Downtown and feeders", [1, 2, 3]);
+
+      act(() => store.set(selectionAtom, USelection.fromAssetIds([1, 2])));
+      expect(rowOf("Downtown loop")).toHaveClass("bg-accent-tint");
+
+      act(() => store.set(selectionAtom, USelection.fromAssetIds([1, 2, 3])));
+      expect(rowOf("Downtown and feeders")).toHaveClass("bg-accent-tint");
+      expect(rowOf("Downtown loop")).not.toHaveClass("bg-accent-tint");
+    });
+
+    it("selects a set without zooming when the arrow keys reach it", async () => {
+      await aPanelWithSets();
       focusList("Downtown loop");
 
       await userEvent.keyboard("{ArrowDown}{ArrowDown}");
 
-      expect(rowOf("Downtown loop")).toHaveClass("bg-base-hover");
-      expect(rowOf("Downtown loop")).not.toHaveClass("bg-accent-tint");
-      expect(USelection.getAssetIds(store.get(selectionAtom))).toEqual([3]);
+      expect(USelection.getAssetIds(store.get(selectionAtom))).toEqual([1, 2]);
+      expect(rowOf("Downtown loop")).toHaveClass("bg-accent-tint");
       expect(zoomTo).not.toHaveBeenCalled();
     });
 
-    it("drops the highlight when the list loses focus", async () => {
-      await aStoreWithASavedSet();
+    it("zooms to the set the arrow keys are on when enter is pressed", async () => {
+      await aPanelWithSets();
+      focusList("Downtown loop");
+
+      await userEvent.keyboard("{ArrowDown}{ArrowDown}{Enter}");
+
+      expect(zoomTo).toHaveBeenCalledWith(USelection.fromAssetIds([1, 2]));
+    });
+
+    it("continues from the selected set with the arrow keys", async () => {
+      await aPanelWithSets();
+      await userEvent.click(screen.getByText("Downtown loop"));
+      focusList("Downtown loop");
+
+      await userEvent.keyboard("{ArrowDown}");
+
+      expect(USelection.getAssetIds(store.get(selectionAtom))).toEqual([3]);
+      expect(rowOf("Pump feeders")).toHaveClass("bg-accent-tint");
+    });
+
+    it("keeps the selected set tinted when the list loses focus", async () => {
+      await aPanelWithSets();
       focusList("Downtown loop");
       await userEvent.keyboard("{ArrowDown}{ArrowDown}");
 
       act(() => (document.activeElement as HTMLElement).blur());
 
-      expect(rowOf("Downtown loop")).not.toHaveClass("bg-base-hover");
+      expect(rowOf("Downtown loop")).toHaveClass("bg-accent-tint");
     });
 
     it("drops the highlight on a section heading when the list loses focus", async () => {
-      await aStoreWithASavedSet();
+      await aPanelWithSets();
       focusList("Downtown loop");
       await userEvent.keyboard("{ArrowDown}");
       const heading = screen
@@ -384,26 +431,126 @@ describe("CollectionsPanel", () => {
 
       expect(heading).not.toHaveClass("bg-base-hover");
     });
+  });
 
-    it("applies the highlighted selection set on enter", async () => {
-      const store = await aStoreWithASavedSet();
-      focusList("Downtown loop");
+  describe("bookmarks and the keyboard", () => {
+    const rowOf = (name: string) =>
+      screen.getByText(name).closest("li") as HTMLElement;
 
-      await userEvent.keyboard("{ArrowDown}{ArrowDown}{Enter}");
+    const focusList = (name: string) =>
+      act(() =>
+        (
+          screen.getByText(name).closest('[tabindex="0"]') as HTMLElement
+        ).focus(),
+      );
 
-      expect(USelection.getAssetIds(store.get(selectionAtom))).toEqual([1, 2]);
-    });
-
-    it("travels to the highlighted bookmark on enter", async () => {
+    const aPanelWithABookmark = async () => {
       const store = aStore();
       renderPanel(store);
       await userEvent.click(addBookmarkButton());
       await nameIt("Downtown");
+      zoomTo.mockClear();
+      return store;
+    };
+
+    it("leaves no bookmark highlighted after clicking one", async () => {
+      await aPanelWithABookmark();
+
+      await userEvent.click(screen.getByText("Downtown"));
+
+      expect(rowOf("Downtown")).not.toHaveClass("bg-accent-tint");
+      expect(rowOf("Downtown")).not.toHaveClass("bg-base-hover");
+    });
+
+    it("highlights a bookmark with the arrow keys without travelling to it", async () => {
+      await aPanelWithABookmark();
       focusList("Downtown");
+
+      await userEvent.keyboard("{End}{ArrowUp}");
+
+      expect(rowOf("Downtown")).toHaveClass("bg-base-hover");
+      expect(rowOf("Downtown")).not.toHaveClass("bg-accent-tint");
+      expect(zoomTo).not.toHaveBeenCalled();
+    });
+
+    it("drops the highlight when the list loses focus", async () => {
+      await aPanelWithABookmark();
+      focusList("Downtown");
+      await userEvent.keyboard("{End}{ArrowUp}");
+
+      act(() => (document.activeElement as HTMLElement).blur());
+
+      expect(rowOf("Downtown")).not.toHaveClass("bg-base-hover");
+    });
+
+    it("travels to the highlighted bookmark on enter", async () => {
+      await aPanelWithABookmark();
+      focusList("Downtown");
+
+      await userEvent.keyboard("{End}{ArrowUp}{Enter}");
+
+      expect(zoomTo).toHaveBeenCalledWith(Just(VIEWPORT));
+    });
+  });
+
+  describe("add rows and the keyboard", () => {
+    const rowOf = (name: string | RegExp) =>
+      screen.getByText(name).closest("li") as HTMLElement;
+
+    const focusList = () =>
+      act(() =>
+        (
+          screen
+            .getByText("Current map area")
+            .closest('[tabindex="0"]') as HTMLElement
+        ).focus(),
+      );
+
+    it("highlights an add row with the arrow keys", async () => {
+      const store = aStore();
+      renderPanel(store);
+      focusList();
+
+      await userEvent.keyboard("{End}");
+
+      expect(rowOf("Current map area")).toHaveClass("bg-base-hover");
+    });
+
+    it("starts a bookmark from its add row on enter", async () => {
+      const store = aStore();
+      renderPanel(store);
+      focusList();
 
       await userEvent.keyboard("{End}{Enter}");
 
-      expect(zoomTo).toHaveBeenCalledWith(Just(VIEWPORT));
+      expect(screen.queryByText("Current map area")).not.toBeInTheDocument();
+      expect(screen.getByRole("textbox")).toHaveFocus();
+    });
+
+    it("starts a selection set from its add row on enter", async () => {
+      const store = aStore();
+      store.set(selectionAtom, USelection.fromAssetIds([1]));
+      renderPanel(store);
+      focusList();
+
+      await userEvent.keyboard("{ArrowDown}{ArrowDown}{Enter}");
+
+      expect(screen.queryByText("Current selection")).not.toBeInTheDocument();
+      expect(screen.getByRole("textbox")).toHaveFocus();
+    });
+
+    it("does nothing on enter while nothing is selected", async () => {
+      const store = aStore();
+      renderPanel(store);
+      focusList();
+
+      await userEvent.keyboard("{ArrowDown}{ArrowDown}");
+      expect(rowOf("Nothing selected")).toHaveClass("bg-base-hover");
+
+      await userEvent.keyboard("{Enter}");
+
+      expect(screen.getByText("Nothing selected")).toBeInTheDocument();
+      expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
     });
   });
 
