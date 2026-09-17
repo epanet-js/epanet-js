@@ -239,6 +239,8 @@ describe("fetch-project id pools", () => {
 
   const IDS = {
     J1: 1,
+    J2: 2,
+    VALVE1: 20,
     PAT1: 40,
     PAT2: 41,
     CUR1: 60,
@@ -339,8 +341,8 @@ describe("fetch-project id pools", () => {
     expect(factories.idPools.newId("customerPoint")).toBe(IDS.CP2 + 1);
   });
 
-  it("keeps seeding the asset pool above customer point ids", async () => {
-    await importProject({
+  const aJunctionWithACustomerPointAbove = () =>
+    importProject({
       newDb: true,
       hydraulicModel: HydraulicModelBuilder.with()
         .aJunction(IDS.J1)
@@ -350,7 +352,35 @@ describe("fetch-project id pools", () => {
       simulationSettings: defaultSimulationSettings,
     });
 
+  it("continues the asset pool from the asset tables, not customer point ids", async () => {
+    await aJunctionWithACustomerPointAbove();
+
     const { factories } = await fetchProject({ idPools: true });
+
+    expect(factories.idPools.newId("asset")).toBe(IDS.J1 + 1);
+  });
+
+  it("continues the asset pool from the highest asset of any kind", async () => {
+    await importProject({
+      newDb: true,
+      hydraulicModel: HydraulicModelBuilder.with()
+        .aJunction(IDS.J1)
+        .aJunction(IDS.J2)
+        .aValve(IDS.VALVE1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
+        .build(),
+      projectSettings: defaultProjectSettings,
+      simulationSettings: defaultSimulationSettings,
+    });
+
+    const { factories } = await fetchProject({ idPools: true });
+
+    expect(factories.idPools.newId("asset")).toBe(IDS.VALVE1 + 1);
+  });
+
+  it("seeds the shared sequence above customer point ids when the flag is off", async () => {
+    await aJunctionWithACustomerPointAbove();
+
+    const { factories } = await fetchProject();
 
     expect(factories.idPools.newId("asset")).toBe(IDS.CP2 + 1);
   });

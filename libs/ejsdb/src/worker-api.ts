@@ -1467,6 +1467,25 @@ export const api = {
     });
   },
 
+  async getMaxAssetId(): Promise<number> {
+    return timed("getMaxAssetId", async () => {
+      await ready;
+      if (!db) throw new Error("No database open");
+      const rows = db.exec(
+        `SELECT MAX(m) AS m FROM (
+           SELECT MAX(id) AS m FROM junctions UNION ALL
+           SELECT MAX(id) FROM reservoirs UNION ALL
+           SELECT MAX(id) FROM tanks UNION ALL
+           SELECT MAX(id) FROM pipes UNION ALL
+           SELECT MAX(id) FROM pumps UNION ALL
+           SELECT MAX(id) FROM valves
+         )`,
+        { returnValue: "resultRows" },
+      ) as Array<Array<number | null>>;
+      return rows[0]?.[0] ?? 0;
+    });
+  },
+
   async getMaxPatternId(): Promise<number> {
     return timed("getMaxPatternId", async () => {
       await ready;

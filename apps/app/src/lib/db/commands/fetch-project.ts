@@ -72,6 +72,7 @@ export const fetchProject = async (
   options: FetchProjectOptions = {},
 ): Promise<Project> => {
   const { onProgress } = options;
+  const withPools = options.idPools ?? false;
   return timed("fetchProject", async () => {
     const worker = getWorker();
 
@@ -116,7 +117,7 @@ export const fetchProject = async (
       rawControlsData,
       controlsData,
       simulationSettingsData,
-      maxId,
+      maxAssetId,
       maxPatternId,
       maxCurveId,
       maxZoneId,
@@ -133,7 +134,7 @@ export const fetchProject = async (
         worker.getRawControls(),
         worker.getControls(),
         worker.getSimulationSettings(),
-        worker.getMaxId(),
+        withPools ? worker.getMaxAssetId() : worker.getMaxId(),
         worker.getMaxPatternId(),
         worker.getMaxCurveId(),
         worker.getMaxZoneId(),
@@ -156,13 +157,13 @@ export const fetchProject = async (
 
         const factories = buildFactories(
           {
-            asset: maxId,
+            asset: maxAssetId,
             customerPoint: maxCustomerPointId,
             pattern: maxPatternId,
             curve: maxCurveId,
             zone: maxZoneId,
           },
-          options.idPools ?? false,
+          withPools,
         );
         const { idGenerator } = factories;
 
