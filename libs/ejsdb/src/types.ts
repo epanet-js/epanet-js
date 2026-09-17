@@ -70,6 +70,7 @@ export type ImportProjectPayload = {
   newDb: boolean;
   projectSettings: string | null;
   pipeLibrary: string | null;
+  idPools: string | null;
   zones: ZoneRow[] | null;
   assets: AssetRows;
   customerPoints: CustomerPointsData;

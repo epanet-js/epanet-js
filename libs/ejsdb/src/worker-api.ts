@@ -22,6 +22,7 @@ import type { JunctionDemandRow } from "./schema/junction-demands";
 import type { PatternRow } from "./schema/patterns";
 import type { CurveRow } from "./schema/curves";
 import type { ZoneRow } from "./schema/zones";
+import { idPoolsSchema } from "./schema/id-pools";
 import type {
   AssetPatchRow,
   CustomerPointPatchRow,
@@ -343,6 +344,24 @@ const upsertProjectSettings = (json: string) => {
     "INSERT INTO project (id, settings) VALUES (1, ?) ON CONFLICT(id) DO UPDATE SET settings = excluded.settings",
     { bind: [json] },
   );
+};
+
+const updateIdPools = (json: string) => {
+  const result = idPoolsSchema.safeParse(JSON.parse(json));
+  if (!result.success) {
+    throw new Error(
+      `Id pools: data does not match schema — ${result.error.message}`,
+    );
+  }
+  db!.exec("UPDATE project SET id_pools = ? WHERE id = 1", {
+    bind: [JSON.stringify(result.data)],
+  });
+  const changes = db!.exec("SELECT changes()", {
+    returnValue: "resultRows",
+  }) as number[][];
+  if (changes[0][0] === 0) {
+    throw new Error("Id pools: project row missing");
+  }
 };
 
 const updatePipeLibrary = (json: string) => {
@@ -986,7 +1005,11 @@ const countWriteBatch = (payload: WriteBatch) => ({
   ctrls: payload.controlsReplacement !== null ? 1 : 0,
 });
 
-const applyWriteBatch = (label: string, payload: WriteBatch): Promise<void> =>
+const applyWriteBatch = (
+  label: string,
+  payload: WriteBatch,
+  idPools: string | null,
+): Promise<void> =>
   withTransaction(
     label,
     (db) => {
@@ -1112,6 +1135,7 @@ const applyWriteBatch = (label: string, payload: WriteBatch): Promise<void> =>
           { bind: [payload.customAttributesDefinition] },
         );
       }
+      if (idPools !== null) updateIdPools(idPools);
     },
     countWriteBatch(payload),
   );
@@ -1313,6 +1337,18 @@ export const api = {
     });
   },
 
+  async getIdPools(): Promise<string | null> {
+    return timed("getIdPools", async () => {
+      await ready;
+      if (!db) throw new Error("No database open");
+      const rows = db.exec("SELECT id_pools FROM project WHERE id = 1", {
+        returnValue: "resultRows",
+      }) as Array<Array<string | null>>;
+      if (rows.length === 0) return null;
+      return rows[0][0];
+    });
+  },
+
   async getCustomAttributesDefinition(): Promise<string | null> {
     return timed("getCustomAttributesDefinition", async () => {
       await ready;
@@ -1438,12 +1474,13 @@ export const api = {
     return timed("getZones", () => readAll("SELECT * FROM zones"));
   },
 
-  async setAllZones(rows: ZoneRow[]): Promise<void> {
+  async setAllZones(rows: ZoneRow[], idPools: string | null): Promise<void> {
     return withTransaction(
       "setAllZones",
       (db) => {
         db.exec("DELETE FROM zones");
         bulkInsertZones(rows);
+        if (idPools !== null) updateIdPools(idPools);
       },
       { rows: rows.length },
     );
@@ -1534,10 +1571,14 @@ export const api = {
 
   async applyMoment(payload: WriteBatch): Promise<void> {
     if (isEmptyWriteBatch(payload)) return;
-    return applyWriteBatch("moment:write", payload);
+    return applyWriteBatch("moment:write", payload, null);
   },
 
-  async applyChangeSet(bytes: Uint8Array, direction: Direction): Promise<void> {
+  async applyChangeSet(
+    bytes: Uint8Array,
+    direction: Direction,
+    idPools: string | null,
+  ): Promise<void> {
     const changeSet = ChangeSet.fromBytes(bytes);
     const payload = timedSync(
       "changeSet:toRows",
@@ -1548,8 +1589,8 @@ export const api = {
         records: changeSet.read().records.length,
       },
     );
-    if (isEmptyWriteBatch(payload)) return;
-    return applyWriteBatch("changeSet:write", payload);
+    if (isEmptyWriteBatch(payload) && idPools === null) return;
+    return applyWriteBatch("changeSet:write", payload, idPools);
   },
 
   async importProject(payload: ImportProjectPayload): Promise<NewDbResult> {
@@ -1566,6 +1607,9 @@ export const api = {
         }
         if (payload.pipeLibrary !== null) {
           updatePipeLibrary(payload.pipeLibrary);
+        }
+        if (payload.idPools !== null) {
+          updateIdPools(payload.idPools);
         }
         if (payload.zones !== null) {
           db.exec("DELETE FROM zones");

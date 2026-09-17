@@ -25,87 +25,99 @@ import {
 } from "src/state/session-recovery";
 import { withDatabaseBusy } from "src/hooks/persistence/use-start-new-project";
 import { writeQueue } from "src/lib/persistence/write-queue";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { modelFactoriesAtom } from "src/state/model-factories";
+import { idPoolsToPersist } from "src/lib/id-pools";
 
-export const useRebuildDb = (): (() => Promise<void>) =>
-  useAtomCallback(
-    useCallback(async (get: Getter, set: Setter) => {
-      set(dbAvailabilityAtom, "rebuilding");
+export const useRebuildDb = (): (() => Promise<void>) => {
+  const isIdPoolsOn = useFeatureFlag("FLAG_ID_POOLS");
+  return useAtomCallback(
+    useCallback(
+      async (get: Getter, set: Setter) => {
+        set(dbAvailabilityAtom, "rebuilding");
 
-      const attempts = get(rebuildAttemptsAtom);
-      set(rebuildAttemptsAtom, attempts + 1);
-      set(writesSucceededAtRebuildAtom, writeQueue.succeededCount());
-      const skipOpfs = get(opfsReinstallFailedAtom);
-      const wasOnOpfs = get(dbStorageModeAtom) === "opfs";
+        const attempts = get(rebuildAttemptsAtom);
+        set(rebuildAttemptsAtom, attempts + 1);
+        set(writesSucceededAtRebuildAtom, writeQueue.succeededCount());
+        const skipOpfs = get(opfsReinstallFailedAtom);
+        const wasOnOpfs = get(dbStorageModeAtom) === "opfs";
 
-      try {
-        const { result: storageMode, wasShown } = await withProgressDialog(
-          (state: DialogState) => set(dialogAtom, state),
-          "storage" as RebuildPhase,
-          (phase: RebuildPhase) => ({
-            type: "rebuildStorageProgress" as const,
-            phase,
-          }),
-          (onPhase) =>
-            withDatabaseBusy(() =>
-              rebuildDbFromMemory(
-                {
-                  zones: get(zonesAtom),
-                  projectSettings: get(projectSettingsAtom),
-                  hydraulicModel: get(stagingModelDerivedAtom),
-                  simulationSettings: get(simulationSettingsDerivedAtom),
-                },
-                { skipOpfs, onPhase },
+        try {
+          const { result: storageMode, wasShown } = await withProgressDialog(
+            (state: DialogState) => set(dialogAtom, state),
+            "storage" as RebuildPhase,
+            (phase: RebuildPhase) => ({
+              type: "rebuildStorageProgress" as const,
+              phase,
+            }),
+            (onPhase) =>
+              withDatabaseBusy(() =>
+                rebuildDbFromMemory(
+                  {
+                    zones: get(zonesAtom),
+                    projectSettings: get(projectSettingsAtom),
+                    hydraulicModel: get(stagingModelDerivedAtom),
+                    simulationSettings: get(simulationSettingsDerivedAtom),
+                    idPools: idPoolsToPersist(
+                      isIdPoolsOn,
+                      get(modelFactoriesAtom).idPools,
+                    ),
+                  },
+                  { skipOpfs, onPhase },
+                ),
               ),
-            ),
-        );
+          );
 
-        if (storageMode === null) {
-          throw new Error("DB rebuild skipped: another load is in progress");
-        }
+          if (storageMode === null) {
+            throw new Error("DB rebuild skipped: another load is in progress");
+          }
 
-        if (!skipOpfs && storageMode === "memory") {
-          set(opfsReinstallFailedAtom, true);
-        }
+          if (!skipOpfs && storageMode === "memory") {
+            set(opfsReinstallFailedAtom, true);
+          }
 
-        set(dbStorageModeAtom, storageMode);
-        set(dbAvailabilityAtom, "available");
+          set(dbStorageModeAtom, storageMode);
+          set(dbAvailabilityAtom, "available");
 
-        const lostCrashRecovery = storageMode === "memory" && wasOnOpfs;
-        if (lostCrashRecovery) {
-          set(dialogAtom, {
-            type: "rebuildStorageProgress",
-            phase: "finalizing",
-            outcome: "memory",
+          const lostCrashRecovery = storageMode === "memory" && wasOnOpfs;
+          if (lostCrashRecovery) {
+            set(dialogAtom, {
+              type: "rebuildStorageProgress",
+              phase: "finalizing",
+              outcome: "memory",
+            });
+          } else if (wasShown) {
+            set(dialogAtom, null);
+          }
+          addToErrorLog({
+            category: "db",
+            level: "info",
+            message: `DB rebuilt from memory (${storageMode})`,
           });
-        } else if (wasShown) {
-          set(dialogAtom, null);
-        }
-        addToErrorLog({
-          category: "db",
-          level: "info",
-          message: `DB rebuilt from memory (${storageMode})`,
-        });
 
-        if (attempts === 0) {
-          captureWarning(
-            "DB storage degraded; rebuilt from memory",
-            undefined,
-            {
-              "DB Storage": { storageMode, lostCrashRecovery },
-            },
+          if (attempts === 0) {
+            captureWarning(
+              "DB storage degraded; rebuilt from memory",
+              undefined,
+              {
+                "DB Storage": { storageMode, lostCrashRecovery },
+              },
+            );
+          }
+        } catch (error) {
+          set(dbAvailabilityAtom, "unavailable");
+          set(dialogAtom, { type: "dbUnavailable" });
+
+          const diagnostics = await collectDbDiagnostics().catch(() => null);
+          captureError(
+            error instanceof Error ? error : new Error(String(error)),
+            diagnostics
+              ? { "DB Storage": { ...diagnostics } as Record<string, unknown> }
+              : undefined,
           );
         }
-      } catch (error) {
-        set(dbAvailabilityAtom, "unavailable");
-        set(dialogAtom, { type: "dbUnavailable" });
-
-        const diagnostics = await collectDbDiagnostics().catch(() => null);
-        captureError(
-          error instanceof Error ? error : new Error(String(error)),
-          diagnostics
-            ? { "DB Storage": { ...diagnostics } as Record<string, unknown> }
-            : undefined,
-        );
-      }
-    }, []),
+      },
+      [isIdPoolsOn],
+    ),
   );
+};

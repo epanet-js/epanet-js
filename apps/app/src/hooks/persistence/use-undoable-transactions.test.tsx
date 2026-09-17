@@ -53,6 +53,7 @@ const aProject = async (): Promise<Store> => {
     }),
   );
   await db.importProject({
+    idPools: null,
     newDb: true,
     hydraulicModel,
     simulationSettings: defaultSimulationSettings,

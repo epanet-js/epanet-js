@@ -26,6 +26,9 @@ import { SessionHistory } from "src/lib/persistence/session-history";
 import { MapEditionsTracker } from "src/map/map-editions-tracker";
 import { initializeWorktree } from "@epanet-js/worktree";
 import { worktreeAtom } from "src/state/scenarios";
+import { modelFactoriesAtom } from "src/state/model-factories";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { idPoolsToPersist } from "src/lib/id-pools";
 
 type ReprojectionResetInput = {
   hydraulicModel: HydraulicModel;
@@ -50,6 +53,7 @@ const loadModel = (
   get: Getter,
   set: Setter,
   { hydraulicModel, projectSettings, autoElevations }: ReprojectionResetInput,
+  withIdPools: boolean,
 ) => {
   const momentLog = new MomentLog(hydraulicModel.version);
   const sessionHistory = new SessionHistory(hydraulicModel.version);
@@ -61,6 +65,7 @@ const loadModel = (
       projectSettings,
       hydraulicModel,
       simulationSettings: get(simulationSettingsDerivedAtom),
+      idPools: idPoolsToPersist(withIdPools, get(modelFactoriesAtom).idPools),
     })
     .catch((error) =>
       handleError(error, {
@@ -79,14 +84,15 @@ const loadModel = (
 };
 
 export const useReprojectionReset = () => {
+  const isIdPoolsOn = useFeatureFlag("FLAG_ID_POOLS");
   const reprojectionReset = useAtomCallback(
     useCallback(
       async (get: Getter, set: Setter, input: ReprojectionResetInput) => {
         resetAppState(set);
         await clearSimulationStorage();
-        loadModel(get, set, input);
+        loadModel(get, set, input, isIdPoolsOn);
       },
-      [],
+      [isIdPoolsOn],
     ),
   );
 

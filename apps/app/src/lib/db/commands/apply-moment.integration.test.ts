@@ -32,6 +32,7 @@ import { useInProcessDb } from "../__test-helpers__/in-process-db";
 
 const seed = (hydraulicModel: HydraulicModel) =>
   importProject({
+    idPools: null,
     newDb: true,
     hydraulicModel,
     projectSettings: defaultProjectSettings,

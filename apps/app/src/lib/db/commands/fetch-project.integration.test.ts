@@ -14,6 +14,7 @@ import {
 import { fetchProject } from "./fetch-project";
 import { importProject } from "./import-project";
 import { saveCustomAttributes } from "./save-custom-attributes";
+import type { IdPoolSeeds } from "@epanet-js/id-generator";
 import {
   emptyCustomAttributesDefinition,
   getAttributes,
@@ -72,6 +73,7 @@ describe("fetch-project integration", () => {
       .build();
 
     await importProject({
+      idPools: null,
       newDb: true,
       hydraulicModel,
       projectSettings,
@@ -129,6 +131,7 @@ describe("fetch-project integration", () => {
 
   it("isolates state between tests (no leftover data from previous test)", async () => {
     await importProject({
+      idPools: null,
       newDb: true,
       hydraulicModel: HydraulicModelBuilder.with().aJunction(1).build(),
       projectSettings: defaultProjectSettings,
@@ -154,6 +157,7 @@ describe("fetch-project integration", () => {
     pipeLibrary.forEach((material) => builder.aPipeMaterial(material));
 
     await importProject({
+      idPools: null,
       newDb: true,
       hydraulicModel: builder.build(),
       projectSettings: defaultProjectSettings,
@@ -166,6 +170,7 @@ describe("fetch-project integration", () => {
 
   it("returns empty array when no pipe library was saved", async () => {
     await importProject({
+      idPools: null,
       newDb: true,
       hydraulicModel: HydraulicModelBuilder.with().aJunction(1).build(),
       projectSettings: defaultProjectSettings,
@@ -178,6 +183,7 @@ describe("fetch-project integration", () => {
 
   it("round-trips the custom attributes definition", async () => {
     await importProject({
+      idPools: null,
       newDb: true,
       hydraulicModel: HydraulicModelBuilder.with().aJunction(1).build(),
       projectSettings: defaultProjectSettings,
@@ -199,6 +205,7 @@ describe("fetch-project integration", () => {
 
   it("returns an empty definition when none was saved (migrated default)", async () => {
     await importProject({
+      idPools: null,
       newDb: true,
       hydraulicModel: HydraulicModelBuilder.with().aJunction(1).build(),
       projectSettings: defaultProjectSettings,
@@ -212,6 +219,7 @@ describe("fetch-project integration", () => {
   describe("when the roughness column is null", () => {
     const importPipeWithNullRoughness = () =>
       importProject({
+        idPools: null,
         newDb: true,
         hydraulicModel: HydraulicModelBuilder.with()
           .aJunction(1)
@@ -268,6 +276,7 @@ describe("fetch-project id pools", () => {
 
   const seed = () =>
     importProject({
+      idPools: null,
       newDb: true,
       hydraulicModel: HydraulicModelBuilder.with()
         .aJunction(IDS.J1)
@@ -298,6 +307,7 @@ describe("fetch-project id pools", () => {
 
   it("continues the curve pool from the curves table, not the asset maximum", async () => {
     await importProject({
+      idPools: null,
       newDb: true,
       hydraulicModel: HydraulicModelBuilder.with()
         .aJunction(IDS.J1)
@@ -326,6 +336,7 @@ describe("fetch-project id pools", () => {
 
   it("continues the customer point pool from its own table, not the asset maximum", async () => {
     await importProject({
+      idPools: null,
       newDb: true,
       hydraulicModel: HydraulicModelBuilder.with()
         .aJunction(IDS.J1)
@@ -343,6 +354,7 @@ describe("fetch-project id pools", () => {
 
   const aJunctionWithACustomerPointAbove = () =>
     importProject({
+      idPools: null,
       newDb: true,
       hydraulicModel: HydraulicModelBuilder.with()
         .aJunction(IDS.J1)
@@ -362,6 +374,7 @@ describe("fetch-project id pools", () => {
 
   it("continues the asset pool from the highest asset of any kind", async () => {
     await importProject({
+      idPools: null,
       newDb: true,
       hydraulicModel: HydraulicModelBuilder.with()
         .aJunction(IDS.J1)
@@ -387,6 +400,7 @@ describe("fetch-project id pools", () => {
 
   it("continues the zone pool from the zones table, not the asset maximum", async () => {
     await importProject({
+      idPools: null,
       newDb: true,
       hydraulicModel: HydraulicModelBuilder.with().aJunction(IDS.J1).build(),
       projectSettings: defaultProjectSettings,
@@ -417,5 +431,55 @@ describe("fetch-project id pools", () => {
 
     expect(factories.idPools.newId("zone")).toBe(IDS.ZONE2 + 1);
     expect(factories.idPools.newId("asset")).toBe(IDS.J1 + 1);
+  });
+
+  describe("stored pools", () => {
+    const storedAbove: IdPoolSeeds = {
+      asset: 50,
+      customerPoint: 60,
+      pattern: 70,
+      curve: 80,
+      zone: 90,
+    };
+
+    const seedStoring = (idPools: IdPoolSeeds) =>
+      importProject({
+        idPools,
+        newDb: true,
+        hydraulicModel: HydraulicModelBuilder.with()
+          .aJunction(IDS.J1)
+          .aDemandPattern(IDS.PAT2, "PAT2", [1])
+          .build(),
+        projectSettings: defaultProjectSettings,
+        simulationSettings: defaultSimulationSettings,
+      });
+
+    it("continues every pool from the stored values", async () => {
+      await seedStoring(storedAbove);
+
+      const { factories } = await fetchProject({ idPools: true });
+
+      expect(factories.idPools.newId("asset")).toBe(51);
+      expect(factories.idPools.newId("customerPoint")).toBe(61);
+      expect(factories.idPools.newId("pattern")).toBe(71);
+      expect(factories.idPools.newId("curve")).toBe(81);
+      expect(factories.idPools.newId("zone")).toBe(91);
+    });
+
+    it("fails to open when a stored pool is behind the persisted ids", async () => {
+      await seedStoring({ ...storedAbove, pattern: IDS.PAT2 - 1 });
+
+      await expect(fetchProject({ idPools: true })).rejects.toThrow(
+        /Stored id pools are behind persisted ids: pattern stored=40 persisted=41/,
+      );
+    });
+
+    it("ignores the stored pools when the flag is off", async () => {
+      await seedStoring(storedAbove);
+
+      const { factories } = await fetchProject();
+
+      expect(factories.idPools.newId("asset")).toBe(IDS.J1 + 1);
+    });
   });
 });

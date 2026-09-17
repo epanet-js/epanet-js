@@ -36,6 +36,7 @@ const aSavedProject = async ({
     .build();
   const store = setInitialState({ hydraulicModel, isProjectSaved });
   await db.importProject({
+    idPools: null,
     newDb: true,
     hydraulicModel,
     simulationSettings: defaultSimulationSettings,

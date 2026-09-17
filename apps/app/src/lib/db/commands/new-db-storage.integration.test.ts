@@ -61,6 +61,7 @@ describe("newDb storage errors", () => {
 
     await expect(
       importProject({
+        idPools: null,
         newDb: true,
         hydraulicModel: HydraulicModelBuilder.with().build(),
         simulationSettings: defaultSimulationSettings,
@@ -93,6 +94,7 @@ describe("newDb storage errors", () => {
     setSahpoolForTest(fakeSahpool(wipeFiles));
 
     await importProject({
+      idPools: null,
       hydraulicModel: HydraulicModelBuilder.with().build(),
       simulationSettings: defaultSimulationSettings,
     });

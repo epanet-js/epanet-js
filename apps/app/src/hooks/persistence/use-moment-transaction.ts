@@ -40,6 +40,8 @@ import {
   type WriteFailureHandler,
 } from "src/lib/persistence/write-queue";
 import { useWriteFailureHandler } from "src/hooks/persistence/use-write-failure-handler";
+import { modelFactoriesAtom } from "src/state/model-factories";
+import { idPoolsToPersist } from "src/lib/id-pools";
 
 const maxReportedIds = 20;
 
@@ -131,6 +133,7 @@ const transactWithChangeSet = (
   set: Setter,
   moment: Moment,
   willPersist: boolean,
+  withIdPools: boolean,
   onWriteFailure: WriteFailureHandler,
 ): boolean => {
   let changeSet: ChangeSet;
@@ -175,8 +178,12 @@ const transactWithChangeSet = (
   set(sessionHistoryDerivedAtom, sessionHistory);
 
   if (willPersist) {
+    const idPools = idPoolsToPersist(
+      withIdPools,
+      get(modelFactoriesAtom).idPools,
+    );
     writeQueue.enqueue(
-      () => applyChangeSetToDb(changeSet, "forward"),
+      () => applyChangeSetToDb(changeSet, "forward", idPools),
       onWriteFailure,
     );
   }
@@ -230,6 +237,7 @@ const transactWithMoment = (
 export const useMomentTransaction = () => {
   const onWriteFailure = useWriteFailureHandler();
   const isChangeSetsOn = useFeatureFlag("FLAG_CHANGE_SETS");
+  const isIdPoolsOn = useFeatureFlag("FLAG_ID_POOLS");
 
   const transact = useAtomCallback(
     useCallback(
@@ -245,10 +253,17 @@ export const useMomentTransaction = () => {
         const willPersist = worktree.activeBranchId === worktree.mainId;
 
         return isChangeSetsOn
-          ? transactWithChangeSet(get, set, moment, willPersist, onWriteFailure)
+          ? transactWithChangeSet(
+              get,
+              set,
+              moment,
+              willPersist,
+              isIdPoolsOn,
+              onWriteFailure,
+            )
           : transactWithMoment(get, set, moment, willPersist, onWriteFailure);
       },
-      [onWriteFailure, isChangeSetsOn],
+      [onWriteFailure, isChangeSetsOn, isIdPoolsOn],
     ),
   );
 

@@ -11,6 +11,7 @@ import {
 } from "@epanet-js/hydraulic-model";
 import {
   ConsecutiveIdsGenerator,
+  ID_POOLS,
   IdPoolsGenerator,
   type IdPoolSeeds,
 } from "@epanet-js/id-generator";
@@ -25,6 +26,7 @@ import {
   buildJunctionDemandsData,
   buildCustomAttributesDefinition,
   buildPipeLibraryData,
+  buildIdPoolsData,
 } from "@epanet-js/ejsdb-mappers";
 import { buildSimulationSettingsData } from "../mappers/simulation-settings/builders";
 import { buildProjectSettingsData } from "../mappers/project-settings/builders";
@@ -66,6 +68,24 @@ const buildFactories = (
     idPools: new IdPoolsGenerator(maxima),
     labelManager,
   });
+};
+
+const resolveIdPoolSeeds = (
+  stored: IdPoolSeeds | null,
+  queried: IdPoolSeeds,
+): IdPoolSeeds => {
+  if (stored === null) return queried;
+
+  const behind = ID_POOLS.filter((pool) => stored[pool] < queried[pool]);
+  if (behind.length > 0) {
+    const details = behind
+      .map(
+        (pool) => `${pool} stored=${stored[pool]} persisted=${queried[pool]}`,
+      )
+      .join(", ");
+    throw new Error(`Stored id pools are behind persisted ids: ${details}`);
+  }
+  return stored;
 };
 
 export const fetchProject = async (
@@ -122,6 +142,7 @@ export const fetchProject = async (
       maxCurveId,
       maxZoneId,
       maxCustomerPointId,
+      idPoolsJson,
     ] = await timed("fetchProject.readSettings", () =>
       Promise.all([
         worker.getProjectSettings(),
@@ -139,6 +160,7 @@ export const fetchProject = async (
         worker.getMaxCurveId(),
         worker.getMaxZoneId(),
         worker.getMaxCustomerPointId(),
+        withPools ? worker.getIdPools() : Promise.resolve(null),
       ]),
     );
     if (!settingsJson) {
@@ -155,14 +177,17 @@ export const fetchProject = async (
           buildCustomAttributesDefinition(customAttributesJson);
         const zones = buildZonesData(zonesRaw);
 
+        const queriedSeeds: IdPoolSeeds = {
+          asset: maxAssetId,
+          customerPoint: maxCustomerPointId,
+          pattern: maxPatternId,
+          curve: maxCurveId,
+          zone: maxZoneId,
+        };
         const factories = buildFactories(
-          {
-            asset: maxAssetId,
-            customerPoint: maxCustomerPointId,
-            pattern: maxPatternId,
-            curve: maxCurveId,
-            zone: maxZoneId,
-          },
+          withPools
+            ? resolveIdPoolSeeds(buildIdPoolsData(idPoolsJson), queriedSeeds)
+            : queriedSeeds,
           withPools,
         );
         const { idGenerator } = factories;

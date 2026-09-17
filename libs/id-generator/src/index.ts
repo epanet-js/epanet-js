@@ -1,4 +1,12 @@
-export type IdPool = "asset" | "customerPoint" | "pattern" | "curve" | "zone";
+export const ID_POOLS = [
+  "asset",
+  "customerPoint",
+  "pattern",
+  "curve",
+  "zone",
+] as const;
+
+export type IdPool = (typeof ID_POOLS)[number];
 
 export interface IdGenerator {
   get totalGenerated(): number;
@@ -59,6 +67,11 @@ export class IdPoolsGenerator implements PooledIdGenerator {
     return this.generators[pool];
   }
 }
+
+export const snapshotIdPools = (pools: PooledIdGenerator): IdPoolSeeds =>
+  Object.fromEntries(
+    ID_POOLS.map((pool) => [pool, pools.totalGenerated(pool)]),
+  ) as IdPoolSeeds;
 
 export const sharedIdPools = (shared: IdGenerator): PooledIdGenerator => ({
   newId: () => shared.newId(),

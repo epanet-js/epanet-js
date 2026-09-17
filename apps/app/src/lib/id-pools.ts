@@ -2,6 +2,7 @@ import {
   ConsecutiveIdsGenerator,
   IdPoolsGenerator,
   sharedIdPools,
+  snapshotIdPools,
   type IdPoolSeeds,
   type PooledIdGenerator,
 } from "@epanet-js/id-generator";
@@ -21,3 +22,8 @@ export const buildIdPools = (
   withPools
     ? new IdPoolsGenerator(seeds)
     : sharedIdPools(new ConsecutiveIdsGenerator(seeds.asset));
+
+export const idPoolsToPersist = (
+  withPools: boolean,
+  pools: PooledIdGenerator,
+): IdPoolSeeds | null => (withPools ? snapshotIdPools(pools) : null);
