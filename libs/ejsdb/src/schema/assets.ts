@@ -107,6 +107,7 @@ export const valveRowSchema = z.object({
   valve_kind: z.enum(valveKinds).nullable(),
   setting: nullableNumber,
   curve_id: fkId,
+  target_node_id: fkId,
 });
 
 export type JunctionRow = z.infer<typeof junctionRowSchema>;

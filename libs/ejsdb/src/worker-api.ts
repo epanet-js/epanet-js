@@ -394,7 +394,7 @@ const BULK_CHUNK_SIZES = {
   tanks: 1400, // 21 cols × 1400 = 29400 params
   pipes: 1800, // 16 cols × 1800 = 28800 params
   pumps: 1600, // 18 cols × 1600 = 28800 params
-  valves: 2100, // 14 cols × 2100 = 29400 params
+  valves: 2000, // 15 cols × 2000 = 30000 params
   customer_points: 3200, //  9 cols × 3200 = 28800 params
   customer_point_demands: 7500, //  4 cols × 7500 = 30000 params
   junction_demands: 7500, //  4 cols × 7500 = 30000 params
@@ -830,6 +830,7 @@ const bulkInsertValves = (rows: readonly ValveRow[]) => {
       "valve_kind",
       "setting",
       "curve_id",
+      "target_node_id",
       "custom_attributes",
     ],
     rows,
@@ -848,6 +849,7 @@ const bulkInsertValves = (rows: readonly ValveRow[]) => {
         row.valve_kind,
         row.setting,
         row.curve_id,
+        row.target_node_id,
         row.custom_attributes,
       );
     },

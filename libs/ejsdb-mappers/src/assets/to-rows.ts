@@ -226,6 +226,7 @@ const toValveRow = (valve: Valve): ValveRow =>
       valve_kind: valve.kind,
       setting: valve.setting,
       curve_id: toDbId(valve.curveId),
+      target_node_id: null,
       custom_attributes: serializeAssetCustomAttributes(valve),
     },
     "Valve",

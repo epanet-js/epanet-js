@@ -220,6 +220,7 @@ export const valveMap: ColumnMap<ValveRow> = {
   kind: column<ValveRow>("valve_kind", toNullable),
   setting: column<ValveRow>("setting", toNullable),
   curveId: column<ValveRow>("curve_id", toNullable),
+  targetNodeId: column<ValveRow>("target_node_id", toNullable),
 };
 
 export const customerPointMap: ColumnMap<CustomerPointRow> = {
