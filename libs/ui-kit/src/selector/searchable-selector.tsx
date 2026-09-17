@@ -23,6 +23,7 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
   side = "auto",
   searchDebounceMs = 0,
   placeholderIcon,
+  emptySuggestions,
 }: {
   selected?: T;
   onChange: (option: T) => void;
@@ -43,6 +44,9 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
    *  the searching label until results arrive; when 0 (default), search fires
    *  on every keystroke and the dropdown only opens once results arrive. */
   searchDebounceMs?: number;
+  /** Listed when the input is focused, clicked or cleared while empty, before
+   *  anything is typed. Omit to open only once a search returns results. */
+  emptySuggestions?: T[];
 }) => {
   const [searchTerm, setSearchTerm] = useState(selected?.label || "");
   const [suggestions, setSuggestions] = useState<T[]>([]);
@@ -97,6 +101,18 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
     [onSearch, searchDebounceMs],
   );
 
+  const showEmptySuggestions = useCallback(() => {
+    if (!emptySuggestions?.length) return false;
+    setSuggestions(emptySuggestions);
+    setActiveIndex(-1);
+    setOpen(true);
+    return true;
+  }, [emptySuggestions]);
+
+  const handleEmptyInputOpen = useCallback(() => {
+    if (searchTerm.trim() === "") showEmptySuggestions();
+  }, [searchTerm, showEmptySuggestions]);
+
   const handleInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const value = e.target.value;
@@ -108,8 +124,10 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
       }
       searchSeqRef.current++;
       if (value.trim().length < 2) {
-        setSuggestions([]);
         setIsSearching(false);
+        if (value.trim() === "" && showEmptySuggestions()) return;
+        setSuggestions([]);
+        if (emptySuggestions?.length) setOpen(false);
         return;
       }
       if (searchDebounceMs > 0) {
@@ -123,7 +141,7 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
         void search(value);
       }
     },
-    [search, searchDebounceMs],
+    [search, searchDebounceMs, showEmptySuggestions, emptySuggestions],
   );
 
   const commit = useCallback(
@@ -220,6 +238,8 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
               value={searchTerm}
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
+              onFocus={handleEmptyInputOpen}
+              onClick={handleEmptyInputOpen}
               placeholder={placeholder}
               disabled={disabled}
               spellCheck={false}

@@ -218,4 +218,64 @@ describe("SearchableSelector", () => {
       expect(screen.queryByTestId("search-icon")).not.toBeInTheDocument();
     });
   });
+
+  describe("empty suggestions", () => {
+    const renderWithSuggestions = (selected?: Option) => {
+      const onChange = vi.fn();
+      render(
+        <SearchableSelector<Option>
+          label="Fruit"
+          selected={selected}
+          onChange={onChange}
+          onSearch={search}
+          emptySuggestions={[options[1]]}
+        />,
+      );
+      return {
+        onChange,
+        input: screen.getByRole("textbox", { name: "Fruit" }),
+      };
+    };
+
+    it("lists them when the empty input is clicked, and picks one", async () => {
+      const { onChange, input } = renderWithSuggestions();
+
+      await userEvent.click(input);
+      expect(screen.getAllByRole("option").map((o) => o.textContent)).toEqual([
+        "Banana",
+      ]);
+
+      await userEvent.click(screen.getByRole("option", { name: "Banana" }));
+      expect(onChange).toHaveBeenCalledWith(options[1]);
+      expect(input).toHaveValue("Banana");
+    });
+
+    it("does not list them while the input has a value", async () => {
+      const { input } = renderWithSuggestions(options[0]);
+
+      await userEvent.click(input);
+
+      expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
+    });
+
+    it("lists them again once the input is cleared, and hides them while typing", async () => {
+      const { input } = renderWithSuggestions(options[0]);
+
+      await userEvent.clear(input);
+      expect(
+        screen.getByRole("option", { name: "Banana" }),
+      ).toBeInTheDocument();
+
+      await userEvent.type(input, "a");
+      expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
+      expect(screen.queryByText("No results")).not.toBeInTheDocument();
+
+      await userEvent.type(input, "p");
+      await waitFor(() => {
+        expect(
+          screen.getByRole("option", { name: "Apple" }),
+        ).toBeInTheDocument();
+      });
+    });
+  });
 });
