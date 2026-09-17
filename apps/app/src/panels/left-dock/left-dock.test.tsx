@@ -1,8 +1,6 @@
 /** @vitest-environment jsdom */
 import { useEffect } from "react";
-import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import { TooltipProvider } from "@radix-ui/react-tooltip";
+import { act, render, screen } from "@testing-library/react";
 import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import "src/__helpers__/locale";
@@ -13,8 +11,11 @@ import { Store } from "src/state";
 import type { Panel } from "src/panels/panel";
 import { createAssetTablePanel } from "src/panels/data-tables/create-panel";
 import { createNetworkReviewPanel } from "src/panels/network-review/create-panel";
-import { createCollectionsPanel } from "src/panels/collections/create-panel";
-import { activePanelIn, panelsAtom, panelLayoutAtom } from "src/state/panels";
+import {
+  activatePanelAtom,
+  panelsAtom,
+  panelLayoutAtom,
+} from "src/state/panels";
 import { splitsAtom } from "src/state/layout";
 import { LeftDock } from "./left-dock";
 
@@ -45,9 +46,7 @@ const aStore = () =>
 const renderDock = (store: Store) =>
   render(
     <CommandContainer store={store}>
-      <TooltipProvider>
-        <LeftDock />
-      </TooltipProvider>
+      <LeftDock />
     </CommandContainer>,
   );
 
@@ -58,88 +57,27 @@ beforeEach(() => {
 });
 
 describe("LeftDock", () => {
-  it("shows the panel without tabs when it holds only one", () => {
+  it("shows only the active panel content", () => {
     const store = aStore();
-    store.set(panelsAtom, [createNetworkReviewPanel()]);
+    store.set(panelsAtom, [createNetworkReviewPanel(), aTableMovedLeft("a")]);
+    store.set(panelLayoutAtom, movedLeft("a"));
 
     renderDock(store);
 
     expect(screen.getByText("content for network-review")).toBeInTheDocument();
+    expect(screen.queryByText("content for a")).not.toBeInTheDocument();
     expect(screen.queryByRole("tab")).not.toBeInTheDocument();
   });
 
-  it("shows tabs once it holds more than one", () => {
+  it("remounts the content when the panel changes", () => {
     const store = aStore();
     store.set(panelsAtom, [createNetworkReviewPanel(), aTableMovedLeft("a")]);
     store.set(panelLayoutAtom, movedLeft("a"));
 
     renderDock(store);
+    act(() => store.set(activatePanelAtom, "a"));
 
-    expect(
-      screen.getByRole("tab", { name: "Network Review" }),
-    ).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: "Junctions" })).toBeInTheDocument();
-  });
-
-  it("shows both left panels once the collections panel is seeded", async () => {
-    const store = aStore();
-    store.set(panelsAtom, [
-      createNetworkReviewPanel(),
-      createCollectionsPanel(),
-    ]);
-
-    renderDock(store);
-    await userEvent.click(screen.getByRole("tab", { name: "Collections" }));
-
-    expect(
-      screen.getByRole("tab", { name: "Network Review" }),
-    ).toBeInTheDocument();
-    expect(store.get(activePanelIn("left"))?.id).toEqual("collections");
-  });
-
-  it("prefers a label override when one is set", () => {
-    const store = aStore();
-    store.set(panelsAtom, [createNetworkReviewPanel(), aTableMovedLeft("a")]);
-    store.set(panelLayoutAtom, {
-      ...movedLeft("a"),
-      "network-review": { renamedTo: "My review" },
-    });
-
-    renderDock(store);
-
-    expect(screen.getByRole("tab", { name: "My review" })).toBeInTheDocument();
-  });
-
-  it("shows the first panel until another is picked", () => {
-    const store = aStore();
-    store.set(panelsAtom, [createNetworkReviewPanel(), aTableMovedLeft("a")]);
-    store.set(panelLayoutAtom, movedLeft("a"));
-
-    renderDock(store);
-
-    expect(screen.getByText("content for network-review")).toBeInTheDocument();
-  });
-
-  it("activates the panel whose tab was clicked", async () => {
-    const store = aStore();
-    store.set(panelsAtom, [createNetworkReviewPanel(), aTableMovedLeft("a")]);
-    store.set(panelLayoutAtom, movedLeft("a"));
-
-    renderDock(store);
-    await userEvent.click(screen.getByRole("tab", { name: "Junctions" }));
-
-    expect(store.get(activePanelIn("left"))?.id).toEqual("a");
     expect(screen.getByText("content for a")).toBeInTheDocument();
-  });
-
-  it("remounts the content when the panel changes", async () => {
-    const store = aStore();
-    store.set(panelsAtom, [createNetworkReviewPanel(), aTableMovedLeft("a")]);
-    store.set(panelLayoutAtom, movedLeft("a"));
-
-    renderDock(store);
-    await userEvent.click(screen.getByRole("tab", { name: "Junctions" }));
-
     expect(mounts).toEqual(["network-review", "a"]);
   });
 
@@ -149,7 +87,6 @@ describe("LeftDock", () => {
 
     renderDock(store);
 
-    expect(screen.queryByRole("tab")).not.toBeInTheDocument();
     expect(screen.queryByText(/^content for/)).not.toBeInTheDocument();
   });
 

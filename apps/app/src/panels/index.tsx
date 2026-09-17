@@ -8,6 +8,8 @@ import { BottomDock } from "./bottom-dock/bottom-dock";
 import { LeftDock } from "./left-dock/left-dock";
 import { RightDock } from "./right-dock/right-dock";
 
+export { ActivityBar } from "./activity-bar/activity-bar";
+
 export const SidePanel = memo(function SidePanelInner() {
   const splits = useAtomValue(splitsAtom);
   if (!splits.rightOpen) return null;

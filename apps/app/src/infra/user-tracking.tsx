@@ -1711,7 +1711,7 @@ export type UserEvent =
       name: "leftPanel.toggled";
       open: boolean;
       activePanelType: string | null;
-      source: "toolbar" | "shortcut";
+      source: "toolbar" | "shortcut" | "activityBar";
     }
   | { name: "leftPanel.tabSwitched"; panelType: string }
   | { name: "rightPanel.tabSwitched"; panelType: string }

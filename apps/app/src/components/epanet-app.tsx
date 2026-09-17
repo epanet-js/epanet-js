@@ -18,6 +18,7 @@ import React, {
 import { Resizer, useWindowResizeSplits } from "src/components/resizer";
 import {
   BottomPanel,
+  ActivityBar,
   LeftSidePanel,
   RelocatedSidePanel,
   SidePanel,
@@ -188,37 +189,45 @@ export function EpanetApp() {
             "pb-10",
           )}
         >
-          {layout === "HORIZONTAL" && <LeftSidePanel />}
-          <div className="flex-auto flex flex-col relative min-w-0">
-            <DndContext
-              sensors={sensor}
-              modifiers={[restrictToWindowEdges]}
-              onDragEnd={(end) => {
-                setPersistentTransform((transform) => {
-                  return {
-                    x: transform.x + end.delta.x,
-                    y: transform.y + end.delta.y,
-                  };
-                });
-              }}
-            >
-              <DraggableMap
-                persistentTransform={persistentTransform}
-                setMap={setMap}
-                layout={layout}
-                readonly={isEditionBlocked}
-              />
-            </DndContext>
-            {layout === "HORIZONTAL" && <BottomPanel />}
-            {layout === "VERTICAL" && <RelocatedSidePanel />}
+          {layout === "HORIZONTAL" && <ActivityBar />}
+          <div
+            className={clsx(
+              layout === "VERTICAL" && "flex-col",
+              "flex grow relative min-w-0 min-h-0",
+            )}
+          >
+            {layout === "HORIZONTAL" && <LeftSidePanel />}
+            <div className="flex-auto flex flex-col relative min-w-0">
+              <DndContext
+                sensors={sensor}
+                modifiers={[restrictToWindowEdges]}
+                onDragEnd={(end) => {
+                  setPersistentTransform((transform) => {
+                    return {
+                      x: transform.x + end.delta.x,
+                      y: transform.y + end.delta.y,
+                    };
+                  });
+                }}
+              >
+                <DraggableMap
+                  persistentTransform={persistentTransform}
+                  setMap={setMap}
+                  layout={layout}
+                  readonly={isEditionBlocked}
+                />
+              </DndContext>
+              {layout === "HORIZONTAL" && <BottomPanel />}
+              {layout === "VERTICAL" && <RelocatedSidePanel />}
+            </div>
+            {layout === "HORIZONTAL" && (
+              <>
+                <SidePanel />
+                <Resizer side="left" isToggleAllowed={false} />
+                <Resizer side="right" isToggleAllowed={false} />
+              </>
+            )}
           </div>
-          {layout === "HORIZONTAL" && (
-            <>
-              <SidePanel />
-              <Resizer side="left" isToggleAllowed={false} />
-              <Resizer side="right" isToggleAllowed={false} />
-            </>
-          )}
         </div>
         <Drop />
         <Dialogs />

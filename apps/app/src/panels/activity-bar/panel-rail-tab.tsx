@@ -9,11 +9,13 @@ export const PanelRailTab = memo(function PanelRailTab({
   label,
   icon,
   side,
+  onToggle,
 }: {
   id: string;
   label: string;
   icon: ReactNode;
   side?: RailSide;
+  onToggle: (id: string) => void;
 }) {
   const { listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id });
@@ -31,6 +33,7 @@ export const PanelRailTab = memo(function PanelRailTab({
         isDragging && "z-10 opacity-60",
       )}
       {...listeners}
+      onClick={() => onToggle(id)}
     />
   );
 });
