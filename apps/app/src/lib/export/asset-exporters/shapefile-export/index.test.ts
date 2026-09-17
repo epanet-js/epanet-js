@@ -260,6 +260,34 @@ describe("exportShapefiles", () => {
     expect(await dbfText("pumps.dbf")).not.toContain("LENGTH");
   });
 
+  describe("valve target node", () => {
+    const valvesDbf = async (options?: { includeValveTargetNode: boolean }) => {
+      const files = await exportShapefiles(
+        aModelWithValveTargets(),
+        WGS84,
+        translate,
+        options,
+      );
+      return blobBytes(files.find((f) => f.fileName === "valves.dbf")!.blob);
+    };
+
+    it("writes the target node label when asked to", async () => {
+      const bytes = await valvesDbf({ includeValveTargetNode: true });
+
+      expect(
+        [0, 1, 2].map((record) => readDbfField(bytes, record, "TARGETNODE")),
+      ).toEqual(["TARGET", "", ""]);
+    });
+
+    it("omits the field otherwise", async () => {
+      const bytes = await valvesDbf();
+
+      expect(new TextDecoder("latin1").decode(bytes)).not.toContain(
+        "TARGETNODE",
+      );
+    });
+  });
+
   it("writes EPANET defaults for unmapped optional fields, blank for required nulls", async () => {
     const model = HydraulicModelBuilder.with()
       .aJunction(1, { coordinates: [0, 0] })
@@ -508,3 +536,13 @@ describe("exportShapefiles", () => {
     expect(text).toContain("My Local Grid");
   });
 });
+
+const aModelWithValveTargets = () =>
+  HydraulicModelBuilder.with()
+    .aJunction(1, { label: "UP", coordinates: [0, 0] })
+    .aJunction(2, { label: "DOWN", coordinates: [1, 1] })
+    .aJunction(3, { label: "TARGET", coordinates: [2, 2] })
+    .aValve(4, { startNodeId: 1, endNodeId: 2, kind: "prv", targetNodeId: 3 })
+    .aValve(5, { startNodeId: 1, endNodeId: 2, kind: "fcv", targetNodeId: 3 })
+    .aValve(6, { startNodeId: 1, endNodeId: 2, kind: "prv", targetNodeId: 99 })
+    .build();

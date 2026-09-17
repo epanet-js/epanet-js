@@ -15,6 +15,15 @@ describe("excluded-fields", () => {
     expect(isExportableField("pump", "power")).toBe(true);
   });
 
+  it("exports the valve target node only when asked to", () => {
+    expect(isExportableField("valve", "targetNodeId")).toBe(false);
+    expect(
+      isExportableField("valve", "targetNodeId", {
+        includeValveTargetNode: true,
+      }),
+    ).toBe(true);
+  });
+
   it("filters excluded keys out of a property list", () => {
     expect(
       exportableProperties("valve", ["diameter", "length", "setting"]),

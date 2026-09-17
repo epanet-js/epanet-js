@@ -49,7 +49,7 @@ const ASSET_TYPE_KEY_ALIASES: Partial<
   Record<CustomAttributeAssetType, Record<string, string>>
 > = {
   pump: { curveId: "libraryCurve" },
-  valve: { curveId: "valveCurve" },
+  valve: { curveId: "valveCurve", targetNodeId: "targetNode" },
 };
 
 const translationKeyFor = (

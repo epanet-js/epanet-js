@@ -16,7 +16,11 @@ import {
   resolveExportProperties,
   type ExportDefaults,
 } from "./optional-field-defaults";
-import { isExportableField } from "./excluded-fields";
+import { isExportableField, type ExportFieldOptions } from "./excluded-fields";
+import {
+  VALVE_TARGET_NODE_FIELD,
+  valveTargetNodeLabel,
+} from "./valve-target-node";
 import {
   buildPropertyNameResolver,
   PropertyNameResolver,
@@ -98,6 +102,7 @@ export const exportGeoJson = (
       simulationValues,
       transformCoord,
       defaults,
+      { includeValveTargetNode: options?.includeValveTargetNode },
     );
 
     const textContent = `${geoJson},`;
@@ -254,6 +259,7 @@ const assetToGeoJson = (
   simulationResults: Record<string, unknown> = {},
   transformCoord: (p: Position) => Position = (p) => p,
   defaults?: ExportDefaults,
+  fieldOptions: ExportFieldOptions = {},
 ) => {
   const buildConnection = (connection: number) => {
     const asset = hydraulicModel.assets.get(connection);
@@ -302,7 +308,13 @@ const assetToGeoJson = (
 
   if (mapped.properties !== null) {
     for (const key of Object.keys(mapped.properties)) {
-      if (!isExportableField(asset.type, key)) delete mapped.properties[key];
+      if (!isExportableField(asset.type, key, fieldOptions)) {
+        delete mapped.properties[key];
+      }
+    }
+    if (VALVE_TARGET_NODE_FIELD in mapped.properties) {
+      mapped.properties[VALVE_TARGET_NODE_FIELD] =
+        valveTargetNodeLabel(hydraulicModel, asset) || null;
     }
   }
 

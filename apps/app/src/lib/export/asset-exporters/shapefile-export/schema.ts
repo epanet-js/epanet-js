@@ -61,6 +61,7 @@ const PROPERTY_SCHEMA: Record<string, PropertyDef> = {
   positionY: { dbfKey: "POSY", type: "N" },
   startNode: { dbfKey: "STARTNODE", type: "C", length: 50 },
   endNode: { dbfKey: "ENDNODE", type: "C", length: 50 },
+  targetNodeId: { dbfKey: "TARGETNODE", type: "C", length: 50 },
 };
 
 export function buildSchema(

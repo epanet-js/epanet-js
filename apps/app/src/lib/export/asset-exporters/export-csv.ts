@@ -11,6 +11,10 @@ import {
   resolveExportValue,
 } from "./optional-field-defaults";
 import { exportableProperties } from "./excluded-fields";
+import {
+  VALVE_TARGET_NODE_FIELD,
+  valveTargetNodeLabel,
+} from "./valve-target-node";
 import { buildPropertyNameResolver } from "./property-names";
 import { Position } from "geojson";
 
@@ -62,6 +66,7 @@ export const exportCsv = (
     properties[asset.type] = exportableProperties(
       asset.type,
       asset.listProperties(),
+      { includeValveTargetNode: options?.includeValveTargetNode },
     );
     if (asset.isNode) {
       properties[asset.type].unshift("positionX", "positionY");
@@ -178,6 +183,11 @@ export const exportCsv = (
     };
 
     properties[asset.type].forEach((property) => {
+      if (property === VALVE_TARGET_NODE_FIELD) {
+        parts[partIdx++] = valveTargetNodeLabel(hydraulicModel, asset);
+        return;
+      }
+
       const isPosition = property === "positionX" || property === "positionY";
       const isConnections = property === "connections";
 
