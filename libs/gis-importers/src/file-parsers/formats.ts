@@ -55,6 +55,11 @@ export const isGisSecondaryPart = (name: string): boolean =>
     ),
   );
 
+export const isGisAuxiliaryFile = (name: string): boolean =>
+  gisFormats.some((format) =>
+    format.auxiliaryExtensions.some((extension) => named(name, extension)),
+  );
+
 export const gisSourceExtensions: readonly string[] = gisFormats.flatMap(
   (format) => [...format.primaryExtensions, ...format.sidecarExtensions],
 );

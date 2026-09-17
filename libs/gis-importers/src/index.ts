@@ -14,4 +14,8 @@ export { scanSource } from "./scan-source";
 export { parseGisSource } from "./file-parsers/parse-gis-source";
 export type { ParsedGisSource } from "./file-parsers/parse-gis-source";
 export { summarizeFeatures } from "./file-parsers/summarize";
-export { gisFormatOf, gisSourceExtensions } from "./file-parsers/formats";
+export {
+  gisFormatOf,
+  gisSourceExtensions,
+  isGisAuxiliaryFile,
+} from "./file-parsers/formats";
