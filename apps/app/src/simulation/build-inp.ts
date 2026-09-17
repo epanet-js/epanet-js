@@ -1,4 +1,5 @@
 import {
+  Asset,
   HydraulicModel,
   LinkAsset,
   NodeAsset,
@@ -415,8 +416,8 @@ export const buildInpToFile = withDebugInstrumentation(
 );
 
 export const willRequireLsx = (hydraulicModel: HydraulicModel): boolean => {
-  for (const control of hydraulicModel.controls) {
-    if (control.type === "target-node") return true;
+  for (const asset of hydraulicModel.assets.values()) {
+    if (remoteSetpointTargetOf(hydraulicModel, asset) !== null) return true;
   }
   return false;
 };
@@ -1453,13 +1454,13 @@ function* scriptRows(
 ): Generator<string> {
   const builder = LuaScriptBuilder();
 
-  for (const control of hydraulicModel.controls) {
-    if (control.type !== "target-node") continue;
-    const valve = hydraulicModel.assets.get(control.linkId) as Valve;
-    if (!valve) continue;
+  for (const asset of hydraulicModel.assets.values()) {
+    const target = remoteSetpointTargetOf(hydraulicModel, asset);
+    if (target === null) continue;
+    const valve = asset as Valve;
 
-    const linkId = resolveLinkId(hydraulicModel, idMap, control.linkId);
-    const targetId = resolveNodeId(hydraulicModel, idMap, control.targetId);
+    const linkId = idMap.linkId(valve);
+    const targetId = idMap.nodeId(target);
     const setting = valve.setting ?? 0;
     const [upstreamNodeId] = getLinkConnectionIds(hydraulicModel, idMap, valve);
 
@@ -1580,6 +1581,19 @@ const valveFixedStatusFor = (valve: Valve): SimulationValveStatus => {
 
 const kindFor = (valve: Valve): EpanetValveType => {
   return valve.kind.toUpperCase() as EpanetValveType;
+};
+
+const remoteSetpointTargetOf = (
+  hydraulicModel: HydraulicModel,
+  asset: Asset,
+): NodeAsset | null => {
+  if (asset.type !== "valve" || !asset.isActive) return null;
+  const valve = asset as Valve;
+  if (valve.kind !== "prv" || valve.targetNodeId === undefined) return null;
+
+  const target = hydraulicModel.assets.get(valve.targetNodeId);
+  if (!target || !target.isNode || !target.isActive) return null;
+  return target as NodeAsset;
 };
 
 const isAssetInSimulation = (

@@ -421,7 +421,7 @@ describe("build inp", () => {
     expect(inp).not.toContain("[SCRIPT]");
   });
 
-  it("adds the [SCRIPT] section when a target-node control is present and includeScript is set", () => {
+  it("adds the [SCRIPT] section when a PRV has a target node and includeScript is set", () => {
     const IDS = { NODE1: 1, NODE2: 2, VALVE1: 3 };
     const hydraulicModel = HydraulicModelBuilder.with()
       .aNode(IDS.NODE1)
@@ -431,8 +431,8 @@ describe("build inp", () => {
         endNodeId: IDS.NODE2,
         kind: "prv",
         setting: 30,
+        targetNodeId: IDS.NODE2,
       })
-      .aTargetNodeControl({ linkId: IDS.VALVE1, targetId: IDS.NODE2 })
       .build();
 
     const inp = buildInp(hydraulicModel, {
