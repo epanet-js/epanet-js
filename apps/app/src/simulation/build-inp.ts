@@ -422,6 +422,17 @@ export const willRequireLsx = (hydraulicModel: HydraulicModel): boolean => {
   return false;
 };
 
+export const remoteSetpointValves = (
+  hydraulicModel: HydraulicModel,
+): string[] => {
+  const valves: string[] = [];
+  for (const asset of hydraulicModel.assets.values()) {
+    if (remoteSetpointTargetOf(hydraulicModel, asset) === null) continue;
+    valves.push(asset.label);
+  }
+  return valves;
+};
+
 type ResolvedBuildOptions = BuildOptions &
   Required<
     Pick<
