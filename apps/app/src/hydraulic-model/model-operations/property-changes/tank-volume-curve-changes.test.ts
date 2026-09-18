@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import { applyMomentToModel } from "src/hydraulic-model/mutations/apply-moment";
+import { applyOperation } from "src/__helpers__/apply-operation";
 import { changeProperties } from "src/hydraulic-model/model-operations/change-property";
 import { tankVolumeCurveChanges } from "src/hydraulic-model/model-operations/property-changes/tank-volume-curve-changes";
 import { buildTestFactories } from "src/__helpers__/test-factories";
@@ -37,7 +37,7 @@ describe("tank volume curve changes", () => {
       changes: changes!,
     });
 
-    applyMomentToModel(model, moment, labelManager);
+    applyOperation(model, moment, labelManager);
 
     const updatedTank = model.assets.get(IDS.TANK) as Tank;
     expect(updatedTank.volumeCurveId).toBe(IDS.CURVE);

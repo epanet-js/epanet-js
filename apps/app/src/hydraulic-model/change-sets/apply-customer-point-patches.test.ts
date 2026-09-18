@@ -1,9 +1,9 @@
 import { describe, it, expect } from "vitest";
 import { getActiveCustomerPoints } from "@epanet-js/hydraulic-model";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { applyOperation } from "src/__helpers__/apply-operation";
 import { buildTestFactories } from "src/__helpers__/test-factories";
 import { changeCustomerPointProperty } from "../model-operations/change-customer-point-property";
-import { applyMomentToModel } from "./apply-moment";
 
 const IDS = { J1: 1, P1: 2, CP1: 3 } as const;
 
@@ -19,7 +19,7 @@ const buildConnectedModel = (
     })
     .build();
 
-describe("applyMomentToModel with customer point patches", () => {
+describe("change sets from customer point patches", () => {
   it("applies a label patch and keeps the connection", () => {
     const { labelManager } = buildTestFactories();
     const model = buildConnectedModel(labelManager);
@@ -30,7 +30,7 @@ describe("applyMomentToModel with customer point patches", () => {
       value: "new",
     });
 
-    applyMomentToModel(model, moment, labelManager);
+    applyOperation(model, moment, labelManager);
 
     expect(model.customerPoints.get(IDS.CP1)!.label).toBe("new");
     expect(labelManager.isLabelAvailable("new", "customerPoint")).toBe(false);
@@ -44,7 +44,7 @@ describe("applyMomentToModel with customer point patches", () => {
     expect(connected.map((cp) => cp.label)).toEqual(["new"]);
   });
 
-  it("restores the previous label on reverse (undo)", () => {
+  it("restores the previous label on undo", () => {
     const { labelManager } = buildTestFactories();
     const model = buildConnectedModel(labelManager);
 
@@ -53,22 +53,12 @@ describe("applyMomentToModel with customer point patches", () => {
       property: "label",
       value: "new",
     });
-    const reverse = applyMomentToModel(model, forward, labelManager);
+    const { undo } = applyOperation(model, forward, labelManager);
 
-    expect(reverse.patchCustomerPointsAttributes).toEqual([
-      { id: IDS.CP1, properties: { label: "old" } },
-    ]);
-
-    applyMomentToModel(
-      model,
-      {
-        note: reverse.note,
-        patchCustomerPointsAttributes: reverse.patchCustomerPointsAttributes,
-      },
-      labelManager,
-    );
+    undo();
 
     expect(model.customerPoints.get(IDS.CP1)!.label).toBe("old");
+    expect(labelManager.isLabelAvailable("old", "customerPoint")).toBe(false);
   });
 
   it("does not mutate the original customer point object", () => {
@@ -81,7 +71,7 @@ describe("applyMomentToModel with customer point patches", () => {
       property: "label",
       value: "new",
     });
-    applyMomentToModel(model, moment, labelManager);
+    applyOperation(model, moment, labelManager);
 
     expect(original.label).toBe("old");
     expect(model.customerPoints.get(IDS.CP1)).not.toBe(original);

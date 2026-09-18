@@ -4,7 +4,7 @@ import {
   HydraulicModelBuilder,
   buildCustomerPoint,
 } from "src/__helpers__/hydraulic-model-builder";
-import { applyMomentToModel } from "../mutations/apply-moment";
+import { applyOperation } from "src/__helpers__/apply-operation";
 import { buildTestFactories } from "src/__helpers__/test-factories";
 
 describe("removeCustomerPoints", () => {
@@ -172,7 +172,7 @@ describe("removeCustomerPoints", () => {
     expect(result.deleteCustomerPoints).toEqual([IDS.CP1]);
   });
 
-  it("produces correct reverse moment for undo", () => {
+  it("restores the customer point and its demands on undo", () => {
     const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4 } as const;
     const { labelManager } = buildTestFactories();
     const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
@@ -198,36 +198,17 @@ describe("removeCustomerPoints", () => {
       customerPointIds: [IDS.CP1],
     });
 
-    const reverseMoment = applyMomentToModel(
-      hydraulicModel,
-      moment,
-      labelManager,
-    );
+    const { undo } = applyOperation(hydraulicModel, moment, labelManager);
 
-    // CP should be removed from model
     expect(hydraulicModel.customerPoints.has(IDS.CP1)).toBe(false);
 
-    // Reverse moment should restore the CP
-    expect(reverseMoment.putCustomerPoints).toHaveLength(1);
-    expect(reverseMoment.putCustomerPoints[0].id).toBe(originalCP.id);
-    expect(reverseMoment.putCustomerPoints[0].coordinates).toEqual(
-      originalCP.coordinates,
-    );
+    undo();
 
-    // Reverse moment should restore demands
-    expect(reverseMoment.putDemands).toBeDefined();
-    expect(reverseMoment.putDemands!.assignments).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          customerPointId: IDS.CP1,
-          demands: [{ baseDemand: 25 }],
-        }),
-      ]),
-    );
-
-    // Applying reverse should restore the CP
-    applyMomentToModel(hydraulicModel, reverseMoment, labelManager);
-    expect(hydraulicModel.customerPoints.has(IDS.CP1)).toBe(true);
-    expect(hydraulicModel.customerPoints.get(IDS.CP1)!.id).toBe(IDS.CP1);
+    const restoredCP = hydraulicModel.customerPoints.get(IDS.CP1);
+    expect(restoredCP).toBeDefined();
+    expect(restoredCP!.coordinates).toEqual(originalCP.coordinates);
+    expect(hydraulicModel.demands.customerPoints.get(IDS.CP1)).toEqual([
+      { baseDemand: 25 },
+    ]);
   });
 });

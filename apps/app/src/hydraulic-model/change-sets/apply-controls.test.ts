@@ -1,11 +1,11 @@
 import { describe, it, expect } from "vitest";
 import { getLinkTimedSetting } from "@epanet-js/hydraulic-model";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import { applyMomentToModel } from "./apply-moment";
+import { applyOperation } from "src/__helpers__/apply-operation";
 import { ModelMoment } from "../model-operation";
 import { buildTestFactories } from "src/__helpers__/test-factories";
 
-describe("applyMomentToModel with putControls", () => {
+describe("change sets from putControls", () => {
   const IDS = { N1: 1, N2: 2, P1: 3, T1: 4 } as const;
 
   const aModel = (
@@ -17,7 +17,20 @@ describe("applyMomentToModel with putControls", () => {
       .aPump(IDS.P1, { startNodeId: IDS.N1, endNodeId: IDS.N2 })
       .build();
 
-  it("applies controls and returns the previous controls in the reverse moment", () => {
+  const aModelWithTimedControl = (
+    labelManager: ReturnType<typeof buildTestFactories>["labelManager"],
+  ) =>
+    HydraulicModelBuilder.with({ labelManager })
+      .aJunction(IDS.N1)
+      .aJunction(IDS.N2)
+      .aPump(IDS.P1, { startNodeId: IDS.N1, endNodeId: IDS.N2 })
+      .aTimedSettingControl({
+        linkId: IDS.P1,
+        steps: [{ time: 3600, status: "off", setting: 1 }],
+      })
+      .build();
+
+  it("applies controls and removes them on undo", () => {
     const { labelManager } = buildTestFactories();
     const model = aModel(labelManager);
 
@@ -36,36 +49,29 @@ describe("applyMomentToModel with putControls", () => {
       ],
     };
 
-    const reverse = applyMomentToModel(model, moment, labelManager);
+    const { undo } = applyOperation(model, moment, labelManager);
 
     expect(getLinkTimedSetting(model.controls, IDS.P1)?.steps).toEqual([
       { time: 3600, status: "off", setting: 1 },
       { time: 7200, status: "on", setting: 1.5 },
     ]);
-    expect(reverse.putControls).toEqual([]);
+
+    undo();
+    expect(model.controls).toEqual([]);
   });
 
-  it("round-trips through the reverse moment (undo)", () => {
+  it("round-trips a removal through undo", () => {
     const { labelManager } = buildTestFactories();
-    const model = HydraulicModelBuilder.with({ labelManager })
-      .aJunction(IDS.N1)
-      .aJunction(IDS.N2)
-      .aPump(IDS.P1, { startNodeId: IDS.N1, endNodeId: IDS.N2 })
-      .aTimedSettingControl({
-        linkId: IDS.P1,
-        steps: [{ time: 3600, status: "off", setting: 1 }],
-      })
-      .build();
+    const model = aModelWithTimedControl(labelManager);
 
-    const moment: ModelMoment = {
-      note: "Change controls",
-      putControls: [],
-    };
-
-    const reverse = applyMomentToModel(model, moment, labelManager);
+    const { undo } = applyOperation(
+      model,
+      { note: "Change controls", putControls: [] },
+      labelManager,
+    );
     expect(model.controls).toEqual([]);
 
-    applyMomentToModel(model, reverse, labelManager);
+    undo();
     expect(getLinkTimedSetting(model.controls, IDS.P1)?.steps).toEqual([
       { time: 3600, status: "off", setting: 1 },
     ]);
@@ -84,7 +90,7 @@ describe("applyMomentToModel with putControls", () => {
       off: { level: 5 },
     };
 
-    applyMomentToModel(
+    applyOperation(
       model,
       { note: "Change controls", putControls: [control] },
       labelManager,
@@ -98,26 +104,18 @@ describe("applyMomentToModel with putControls", () => {
     );
   });
 
-  it("restores the lookup when applying the reverse moment", () => {
+  it("restores the lookup on undo", () => {
     const { labelManager } = buildTestFactories();
-    const model = HydraulicModelBuilder.with({ labelManager })
-      .aJunction(IDS.N1)
-      .aJunction(IDS.N2)
-      .aPump(IDS.P1, { startNodeId: IDS.N1, endNodeId: IDS.N2 })
-      .aTimedSettingControl({
-        linkId: IDS.P1,
-        steps: [{ time: 3600, status: "off", setting: 1 }],
-      })
-      .build();
+    const model = aModelWithTimedControl(labelManager);
 
-    const reverse = applyMomentToModel(
+    const { undo } = applyOperation(
       model,
       { note: "Change controls", putControls: [] },
       labelManager,
     );
     expect(model.controlsLookup.hasControls(IDS.P1)).toBe(false);
 
-    applyMomentToModel(model, reverse, labelManager);
+    undo();
     expect(model.controlsLookup.hasControls(IDS.P1)).toBe(true);
   });
 });

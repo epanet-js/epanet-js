@@ -8,11 +8,10 @@ need the asset classes, which is why they are here and not in the package.
 
 Edits and undo/redo go through `toChangeSet` and `applyChange`
 (`src/lib/persistence/transaction-helpers.ts`) and land in a `SessionHistory`.
-**Main's rows are written from the
-change set**, and the mapping happens in the DB worker: `applyChangeSetToDb` posts
-`changeSet.bytes`, and `@epanet-js/ejsdb`'s `src/change-set/` turns records into
-rows without consulting the model, which is what makes field-bag completeness a
-property every edit exercises. Nothing here maps rows — this directory's job ends
+**Main's rows are written from the change set**, and the mapping happens in the
+DB worker: `applyChangeSetToDb` posts `changeSet.bytes`, and `@epanet-js/ejsdb`'s
+`src/change-set/` turns records into rows without consulting the model, which is
+what makes field-bag completeness a property every edit exercises. Nothing here maps rows — this directory's job ends
 at the change set.
 
 ## The shape of an edit
@@ -67,31 +66,27 @@ stops being true and undo will restore an intermediate value.
 
 ## Intent order in `from-moment.ts` is load-bearing
 
-It reproduces the order `applyMomentToModel` applies a moment in, which is
-**asymmetric** and easy to get backwards:
+It is **asymmetric** and easy to get backwards:
 
 - **Assets: never in both lists.** Nothing checks for an id in both
   `deleteAssets` and `putAssets`, and it corrupts silently: both intents read the
   unmutated model, so the put is a diff-only `update`; merged with the drop's
   full `before`, every field the diff omits decodes as removed. An operation that
   keeps an asset's identity puts it and never deletes it.
-- **Customer points: put before drop.** The moment applier does the opposite for
-  customer points — puts at step 8, deletes at step 9 — so an id in both ends up
-  *deleted*. Emitting `putCustomerPoints` first folds update-then-delete into a
-  `delete`.
+- **Customer points: put before drop.** An id in both `putCustomerPoints` and
+  `deleteCustomerPoints` must end up *deleted*. Emitting `putCustomerPoints` first
+  folds update-then-delete into a `delete`.
 - Patches come after puts, so the patch's `after` wins while `mergeRecords` keeps
   the put's `before`.
 
 Get either of these backwards and the entity survives when it should not, or
-vice versa. The differential test is what catches it.
+vice versa.
 
 ## One record per entity, per change set
 
 `ChangeSet.of` runs `mergeRecords` before encoding, so a change set can never
-hold two records for the same entity — first `before`, last `after`.
-
-The old applier needed a debug-only `assertNoPutPatchOverlap` to catch an
-operation that touched an asset twice. That case is now handled by construction.
+hold two records for the same entity — first `before`, last `after`. An
+operation that touches an asset twice is handled by construction.
 
 ## Apply order is fixed, not stored
 
@@ -109,8 +104,8 @@ guard.
 ## `diffFields` walks the union, not just the next side
 
 A put carries a whole asset, so a field the replacing asset no longer has must be
-recorded as removed — otherwise the new path silently keeps a value the moment
-path drops. Walking only `next` misses that. The removal travels as
+recorded as removed — otherwise the model silently keeps a value the operation
+dropped. Walking only `next` misses that. The removal travels as
 `after[field] = undefined`, which encodes as `Presence.Absent`.
 
 ## Build assets with the constructor, never the factory
@@ -150,8 +145,7 @@ inside `applyChangeSet` anyway. Keep the applier ignorant of the generator.
 
 Curves and patterns reach operations as whole replacement collections, because
 that is how the dialogs edit them. `diffKeyed` turns them into per-entity
-records, which is a size win over the moment path (it costs every curve on both
-sides of a one-curve edit).
+records, so a one-curve edit does not carry every curve on both sides.
 
 **Controls and the custom-attributes definition do not get that treatment**, and
 the reason is the database rather than this directory. Each is persisted as a
@@ -230,40 +224,35 @@ rides in one cell. An owner with no demands reads as `[]`, not absent.
 `pipeLibrary`, `rawControls`, `allControls` and `customAttributesDefinition` are
 the same idea with no owner either, so they sit at a synthetic `id: 0`.
 
-## Known differences from the moment path
+## Behaviour the applier must keep
 
-These are deliberate. They are asserted by `differential.test.ts`, which runs
-each operation down both paths and compares the resulting models.
-
-- **Instance identity.** The moment applier stores the caller's `Asset` object;
-  this one rebuilds from the field bag. The rebuild is what makes the map and the
-  panels re-render, and it removes the aliasing between the undo stack and live
-  model objects.
-- **Label registration on a re-put node.** `putAsset` in the moment applier only
-  de-registers the old label when the old version was a link already in the
-  topology, so re-putting a *node* with a changed label leaks the old
-  registration. This path de-registers whenever `label` is among the changed
-  fields. Do not reproduce the leak.
+- **Instance identity.** The applier rebuilds an asset from the field bag rather
+  than storing the caller's `Asset` object. The rebuild is what makes the map and
+  the panels re-render, and it removes the aliasing between the undo stack and
+  live model objects.
+- **Label registration on a re-put node.** The old label is de-registered
+  whenever `label` is among the changed fields, for nodes as well as links.
+  Limiting it to links leaks the old registration of a renamed node.
 - **A restored asset keeps its position.** Undoing a delete re-puts the asset
-  with the `at` it had, so it returns to where it was in the order. The moment
-  path re-keys it instead: `ensureAtValues` sees an id the model no longer holds,
-  finds its `at` collides with the assets still there, and hands it a key that
-  sorts to the **front**. Both leave the same model; only the row order in the
-  data grid differs. `use-undoable-transactions.test.tsx` pins it.
+  with the `at` it had, so it returns to where it was in the data grid's order.
+  Do not run a restored asset through `ensureAtValues`: it sees an id the model no
+  longer holds, finds its `at` colliding, and re-keys it to the **front**.
+  `use-undoable-transactions.test.tsx` pins it.
 - **`mergeMoments` drops `putPipeMaterials` and `putCustomAttributesDefinition`.**
-  Not a difference — it happens upstream, so both paths see the same merged
-  moment. It is a latent bug that disappears when operations emit records
-  directly.
+  It happens upstream of this directory, so a merged edit never reaches
+  `toChangeSet` with them. It is a latent bug that disappears when operations emit
+  records directly.
 
-## What the differential test covers
+## What `operations.test.ts` covers
 
-`differential.test.ts` runs an operation down both paths and compares the
-resulting models, in both directions. It is organised by **the items this
-directory supports** — every entity kind and every `ModelMoment` field — using the
-cheapest operation that reaches each one, not by enumerating operations.
+`operations.test.ts` runs each operation through `toChangeSet` and
+`applyChangeSet`, asserts the effect forwards, and asserts that reversing gives
+back the original model. It is organised by **the items this directory
+supports** — every entity kind and every `ModelMoment` field — using the cheapest
+operation that reaches each one, not by enumerating operations.
 
-That split is deliberate. What can be wrong here is the *format and the two
-appliers*: whether a customer point's connection survives a rebuild, whether a
+That split is deliberate. What can be wrong here is the *format and the
+applier*: whether a customer point's connection survives a rebuild, whether a
 whole-collection replacement diffs down correctly, whether an optional key comes
 back absent rather than explicitly `undefined`. An operation's own contract —
 that `splitPipe` produces the right four pipes — is the operation's to prove, in
@@ -271,7 +260,7 @@ its own test, when it changes.
 
 So the elaborate structural operations (`splitPipe`, `mergeNodes`, `replaceNode`,
 `replaceLink`, `addLink`, `moveNode`, `applyCustomerPointAllocation`) have no case
-here. They exercise the same moment fields the simple operations already cover,
+here. They exercise the same `ModelMoment` fields the simple operations already cover,
 and a fixture elaborate enough to drive them proves something about the operation
 rather than about this directory.
 
@@ -283,9 +272,8 @@ rather than about this directory.
   `Presence` exists to protect.
 - `withoutIndexOrder` compares `AssetIndex` membership rather than position. Use
   it **only** for round-trip assertions: deleting an asset and putting it back
-  moves it to the end of the index's insertion order. The moment path does this
-  too, so it is pre-existing undo behaviour, not a regression. Forward
-  comparisons keep the full ordered snapshot.
+  moves it to the end of the index's insertion order, which is existing undo
+  behaviour. Forward comparisons keep the full ordered snapshot.
 - A fixture must pass **one** `idGenerator` to both `buildTestFactories()` and
   `HydraulicModelBuilder.with()`. Two generators mint the same ids, so an
   operation that creates an asset collides with one the builder already made.

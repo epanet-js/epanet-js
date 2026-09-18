@@ -5,14 +5,14 @@ import {
   setAttributes,
 } from "@epanet-js/hydraulic-model";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { applyOperation } from "src/__helpers__/apply-operation";
 import { buildTestFactories } from "src/__helpers__/test-factories";
 import { changeProperty } from "../model-operations/change-property";
 import type { ChangeableProperty } from "../model-operations/change-property";
 import { changeCustomAttributesDefinition } from "../model-operations/change-custom-attributes-definition";
-import { applyMomentToModel } from "./apply-moment";
 
-describe("applyMomentToModel with custom attributes definition", () => {
-  it("applies the definition and restores it on reverse", () => {
+describe("change sets for custom attributes", () => {
+  it("applies the definition and restores it on undo", () => {
     const { labelManager } = buildTestFactories();
     const model = HydraulicModelBuilder.with({ labelManager })
       .aJunction(1)
@@ -21,22 +21,17 @@ describe("applyMomentToModel with custom attributes definition", () => {
     const next = setAttributes(emptyCustomAttributesDefinition(), "junction", [
       { id: "custom-1", label: "Zone", type: "text" },
     ]);
-    const moment = changeCustomAttributesDefinition(model, next);
-
-    const reverse = applyMomentToModel(model, moment, labelManager);
+    const { undo } = applyOperation(
+      model,
+      changeCustomAttributesDefinition(model, next),
+      labelManager,
+    );
 
     expect(getAttributes(model.customAttributes, "junction")).toEqual([
       { id: "custom-1", label: "Zone", type: "text" },
     ]);
 
-    applyMomentToModel(
-      model,
-      {
-        note: reverse.note,
-        putCustomAttributesDefinition: reverse.putCustomAttributesDefinition,
-      },
-      labelManager,
-    );
+    undo();
 
     expect(getAttributes(model.customAttributes, "junction")).toEqual([]);
   });
@@ -59,25 +54,14 @@ describe("applyMomentToModel with custom attributes definition", () => {
       property: key,
       value: "north" as never,
     });
-    const reverse = applyMomentToModel(model, forward, labelManager);
+    const { undo, redo } = applyOperation(model, forward, labelManager);
 
     expect(model.assets.get(IDS.J1)!.getProperty(key)).toBe("north");
 
-    const redo = applyMomentToModel(
-      model,
-      {
-        note: reverse.note,
-        patchAssetsAttributes: reverse.patchAssetsAttributes,
-      },
-      labelManager,
-    );
+    undo();
     expect(model.assets.get(IDS.J1)!.getProperty(key)).toBeUndefined();
 
-    applyMomentToModel(
-      model,
-      { note: redo.note, patchAssetsAttributes: redo.patchAssetsAttributes },
-      labelManager,
-    );
+    redo();
     expect(model.assets.get(IDS.J1)!.getProperty(key)).toBe("north");
   });
 
@@ -95,11 +79,14 @@ describe("applyMomentToModel with custom attributes definition", () => {
       .build();
     model.assets.get(IDS.J1)!.setProperty(key, "north");
 
-    const moment = changeCustomAttributesDefinition(
+    applyOperation(
       model,
-      emptyCustomAttributesDefinition(),
+      changeCustomAttributesDefinition(
+        model,
+        emptyCustomAttributesDefinition(),
+      ),
+      labelManager,
     );
-    applyMomentToModel(model, moment, labelManager);
 
     expect(model.assets.get(IDS.J1)!.getProperty(key)).toBeNull();
     expect(getAttributes(model.customAttributes, "junction")).toEqual([]);

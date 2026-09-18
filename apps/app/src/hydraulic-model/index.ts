@@ -19,7 +19,6 @@ export type {
   ModelOperation,
   OptionalMomentFields,
   ModelMoment,
-  ReverseMoment,
   AssetPatch,
 } from "./model-operation";
 export { BaseAsset } from "@epanet-js/hydraulic-model";
@@ -69,4 +68,3 @@ export {
   averagePatternMultiplier as calculatePatternAverage,
   getTotalCustomerDemand,
 } from "@epanet-js/hydraulic-model";
-export { applyMomentToModel } from "./mutations/apply-moment";

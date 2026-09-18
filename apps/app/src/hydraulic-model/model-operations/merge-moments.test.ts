@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { mergeMoments } from "./merge-moments";
 import { deleteAssets } from "./delete-assets";
 import { removeCustomerPoints } from "./remove-customer-points";
-import { applyMomentToModel } from "src/hydraulic-model/mutations/apply-moment";
+import { applyOperation } from "src/__helpers__/apply-operation";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { buildTestFactories } from "src/__helpers__/test-factories";
 
@@ -140,12 +140,12 @@ describe("mergeMoments", () => {
     );
     expect(merged).not.toBeNull();
 
-    const reverse = applyMomentToModel(model, merged!, labelManager);
+    const { undo } = applyOperation(model, merged!, labelManager);
 
     expect(model.assets.has(IDS.J1)).toBe(false);
     expect(model.customerPoints.has(IDS.CP1)).toBe(false);
 
-    applyMomentToModel(model, reverse, labelManager);
+    undo();
 
     expect(model.assets.has(IDS.J1)).toBe(true);
     const restoredCp = model.customerPoints.get(IDS.CP1);

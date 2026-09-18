@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { changeCustomerPointLabel } from "./change-customer-point-label";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import { applyMomentToModel } from "../mutations/apply-moment";
+import { applyOperation } from "src/__helpers__/apply-operation";
 import { buildTestFactories } from "src/__helpers__/test-factories";
 
 describe("changeCustomerPointLabel", () => {
@@ -58,7 +58,7 @@ describe("changeCustomerPointLabel", () => {
       customerPointId: IDS.CP1,
       newLabel: "Renamed",
     });
-    applyMomentToModel(hydraulicModel, moment, labelManager);
+    applyOperation(hydraulicModel, moment, labelManager);
 
     const updated = hydraulicModel.customerPoints.get(IDS.CP1)!;
     expect(updated.label).toBe("Renamed");
@@ -104,7 +104,7 @@ describe("changeCustomerPointLabel", () => {
       customerPointId: IDS.CP1,
       newLabel: "NewLabel",
     });
-    applyMomentToModel(hydraulicModel, moment, labelManager);
+    applyOperation(hydraulicModel, moment, labelManager);
 
     expect(hydraulicModel.customerPoints.get(IDS.CP1)!.label).toBe("NewLabel");
     expect(
@@ -115,7 +115,7 @@ describe("changeCustomerPointLabel", () => {
     );
   });
 
-  it("produces correct reverse moment for undo", () => {
+  it("restores the previous label on undo", () => {
     const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4 } as const;
     const { labelManager } = buildTestFactories();
     const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
@@ -140,15 +140,11 @@ describe("changeCustomerPointLabel", () => {
       customerPointId: IDS.CP1,
       newLabel: "Changed",
     });
-    const reverseMoment = applyMomentToModel(
-      hydraulicModel,
-      moment,
-      labelManager,
-    );
+    const { undo } = applyOperation(hydraulicModel, moment, labelManager);
 
     expect(hydraulicModel.customerPoints.get(IDS.CP1)!.label).toBe("Changed");
 
-    applyMomentToModel(hydraulicModel, reverseMoment, labelManager);
+    undo();
     expect(hydraulicModel.customerPoints.get(IDS.CP1)!.label).toBe("Original");
   });
 });

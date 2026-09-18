@@ -77,13 +77,4 @@ export type ModelMoment = OptionalMomentFields & {
   patchCustomerPointsAttributes?: CustomerPointPatch[];
 };
 
-export type ReverseMoment = OptionalMomentFields & {
-  note: string;
-  deleteAssets: AssetId[];
-  putAssets: Asset[];
-  patchAssetsAttributes: AssetPatch[];
-  putCustomerPoints: CustomerPoint[];
-  patchCustomerPointsAttributes: CustomerPointPatch[];
-};
-
 export type ModelOperation<T> = (model: HydraulicModel, data: T) => ModelMoment;

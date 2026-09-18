@@ -12,7 +12,6 @@ import {
   withoutIndexOrder,
   type ModelFixture,
 } from "src/__helpers__/model-snapshot";
-import { applyMomentToModel } from "../mutations/apply-moment";
 import type { ModelMoment } from "../model-operation";
 import {
   addNode,
@@ -34,7 +33,12 @@ import {
 } from "../model-operations";
 import { deactivateAssets } from "../model-operations/deactivate-assets";
 import { reverseLink } from "../model-operations/reverse-link";
-import { emptyCustomAttributesDefinition } from "@epanet-js/hydraulic-model";
+import {
+  emptyCustomAttributesDefinition,
+  getAttributes,
+  getLinkTimedSetting,
+} from "@epanet-js/hydraulic-model";
+import type { HydraulicModel } from "src/hydraulic-model";
 import { applyChangeSet } from "./apply";
 import { toChangeSet } from "./from-moment";
 
@@ -102,13 +106,25 @@ const aNetwork = (): Fixture => {
   return { model, labelManager, assetFactory };
 };
 
-type DifferentialCase = {
+type OperationCase = {
   name: string;
   fixture: () => Fixture;
   run: (fixture: Fixture) => ModelMoment;
+  expectApplied: (fixture: Fixture) => void;
 };
 
-const cases: DifferentialCase[] = [
+const prop = (model: HydraulicModel, id: number, name: string) =>
+  model.assets.get(id)?.getProperty(name);
+
+const linkBetween = (model: HydraulicModel, start: number, end: number) =>
+  [...model.assets.values()].find(
+    (asset): asset is LinkAsset =>
+      asset.isLink &&
+      (asset as LinkAsset).connections[0] === start &&
+      (asset as LinkAsset).connections[1] === end,
+  );
+
+const cases: OperationCase[] = [
   {
     name: "changeProperty",
     fixture: aNetwork,
@@ -118,6 +134,9 @@ const cases: DifferentialCase[] = [
         property: "diameter",
         value: 300,
       }),
+    expectApplied: ({ model }) => {
+      expect(prop(model, IDS.P1, "diameter")).toBe(300);
+    },
   },
   {
     name: "changeProperty over several assets",
@@ -128,12 +147,21 @@ const cases: DifferentialCase[] = [
         property: "elevation",
         value: 55,
       }),
+    expectApplied: ({ model }) => {
+      for (const id of [IDS.J1, IDS.J2, IDS.J3]) {
+        expect(prop(model, id, "elevation")).toBe(55);
+      }
+    },
   },
   {
     name: "changeLabel",
     fixture: aNetwork,
     run: ({ model }) =>
       changeLabel(model, { assetId: IDS.J1, newLabel: "RENAMED" }),
+    expectApplied: ({ model, labelManager }) => {
+      expect(prop(model, IDS.J1, "label")).toBe("RENAMED");
+      expect(labelManager.getIdByLabel("RENAMED", "junction")).toBe(IDS.J1);
+    },
   },
   {
     name: "addNode",
@@ -147,6 +175,16 @@ const cases: DifferentialCase[] = [
         assetFactory,
         labelManager,
       }),
+    expectApplied: ({ model }) => {
+      const added = [...model.assets.values()].find(
+        (asset) =>
+          !asset.isLink &&
+          (asset as NodeAsset).coordinates[0] === 40 &&
+          (asset as NodeAsset).coordinates[1] === 40,
+      );
+      expect(added?.type).toBe("junction");
+      expect(added?.getProperty("elevation")).toBe(12);
+    },
   },
   {
     name: "deleteAssets on a link",
@@ -156,6 +194,10 @@ const cases: DifferentialCase[] = [
         assetIds: [IDS.P1],
         shouldUpdateCustomerPoints: true,
       }),
+    expectApplied: ({ model }) => {
+      expect(model.assets.has(IDS.P1)).toBe(false);
+      expect(model.customerPoints.get(IDS.CP1)?.connection).toBeNull();
+    },
   },
   {
     name: "deleteAssets on a node with links",
@@ -165,6 +207,10 @@ const cases: DifferentialCase[] = [
         assetIds: [IDS.J1],
         shouldUpdateCustomerPoints: true,
       }),
+    expectApplied: ({ model }) => {
+      expect(model.assets.has(IDS.J1)).toBe(false);
+      expect(model.assets.has(IDS.P1)).toBe(false);
+    },
   },
   {
     name: "changeCurves",
@@ -174,6 +220,14 @@ const cases: DifferentialCase[] = [
       curves.set(99, { id: 99, label: "C99", type: "volume", points: [] });
       return changeCurves(model, { curves });
     },
+    expectApplied: ({ model }) => {
+      expect(model.curves.get(99)).toEqual({
+        id: 99,
+        label: "C99",
+        type: "volume",
+        points: [],
+      });
+    },
   },
   {
     name: "changeDemandAssignment",
@@ -182,6 +236,9 @@ const cases: DifferentialCase[] = [
       changeDemandAssignment(model, [
         { junctionId: IDS.J2, demands: [{ baseDemand: 7 }] },
       ]),
+    expectApplied: ({ model }) => {
+      expect(model.demands.junctions.get(IDS.J2)).toEqual([{ baseDemand: 7 }]);
+    },
   },
   {
     name: "changeDemandAssignment on a customer point",
@@ -190,6 +247,11 @@ const cases: DifferentialCase[] = [
       changeDemandAssignment(model, [
         { customerPointId: IDS.CP1, demands: [{ baseDemand: 8 }] },
       ]),
+    expectApplied: ({ model }) => {
+      expect(model.demands.customerPoints.get(IDS.CP1)).toEqual([
+        { baseDemand: 8 },
+      ]);
+    },
   },
   {
     name: "changeProperty on a tank",
@@ -200,16 +262,28 @@ const cases: DifferentialCase[] = [
         property: "maxLevel",
         value: 12,
       }),
+    expectApplied: ({ model }) => {
+      expect(prop(model, IDS.T1, "maxLevel")).toBe(12);
+    },
   },
   {
     name: "deactivateAssets",
     fixture: aNetwork,
     run: ({ model }) => deactivateAssets(model, { assetIds: [IDS.P1] }),
+    expectApplied: ({ model }) => {
+      expect(prop(model, IDS.P1, "isActive")).toBe(false);
+    },
   },
   {
     name: "reverseLink",
     fixture: aNetwork,
     run: ({ model }) => reverseLink(model, { linkId: IDS.P1 }),
+    expectApplied: ({ model }) => {
+      expect((model.assets.get(IDS.P1) as LinkAsset).connections).toEqual([
+        IDS.J2,
+        IDS.J1,
+      ]);
+    },
   },
   {
     name: "moveCustomerPoint",
@@ -219,12 +293,18 @@ const cases: DifferentialCase[] = [
         customerPointId: IDS.CP1,
         newCoordinates: [6, 2],
       }),
+    expectApplied: ({ model }) => {
+      expect(model.customerPoints.get(IDS.CP1)?.coordinates).toEqual([6, 2]);
+    },
   },
   {
     name: "disconnectCustomers",
     fixture: aNetwork,
     run: ({ model }) =>
       disconnectCustomers(model, { customerPointIds: [IDS.CP1] }),
+    expectApplied: ({ model }) => {
+      expect(model.customerPoints.get(IDS.CP1)?.connection).toBeNull();
+    },
   },
   {
     name: "changeCustomerPointLabel",
@@ -234,12 +314,22 @@ const cases: DifferentialCase[] = [
         customerPointId: IDS.CP1,
         newLabel: "CP-RENAMED",
       }),
+    expectApplied: ({ model, labelManager }) => {
+      expect(model.customerPoints.get(IDS.CP1)?.label).toBe("CP-RENAMED");
+      expect(labelManager.isLabelAvailable("CP-RENAMED", "customerPoint")).toBe(
+        false,
+      );
+    },
   },
   {
     name: "removeCustomerPoints",
     fixture: aNetwork,
     run: ({ model }) =>
       removeCustomerPoints(model, { customerPointIds: [IDS.CP1] }),
+    expectApplied: ({ model }) => {
+      expect(model.customerPoints.has(IDS.CP1)).toBe(false);
+      expect(model.demands.customerPoints.has(IDS.CP1)).toBe(false);
+    },
   },
   {
     name: "changePatterns",
@@ -248,6 +338,9 @@ const cases: DifferentialCase[] = [
       const patterns = new Map(model.patterns);
       patterns.set(99, { id: 99, label: "P99", multipliers: [4, 5] });
       return changePatterns(model, patterns);
+    },
+    expectApplied: ({ model }) => {
+      expect(model.patterns.get(99)?.multipliers).toEqual([4, 5]);
     },
   },
   {
@@ -263,6 +356,11 @@ const cases: DifferentialCase[] = [
           steps: [{ time: 0, status: "off", setting: 1 }],
         },
       }),
+    expectApplied: ({ model }) => {
+      expect(getLinkTimedSetting(model.controls, IDS.P1)?.steps).toEqual([
+        { time: 0, status: "off", setting: 1 },
+      ]);
+    },
   },
   {
     name: "changeRawControls",
@@ -272,6 +370,11 @@ const cases: DifferentialCase[] = [
         simple: [{ template: "LINK 3 OPEN", assetReferences: [] }],
         rules: [],
       }),
+    expectApplied: ({ model }) => {
+      expect(model.rawControls.simple).toEqual([
+        { template: "LINK 3 OPEN", assetReferences: [] },
+      ]);
+    },
   },
   {
     name: "changePipeMaterials",
@@ -280,6 +383,11 @@ const cases: DifferentialCase[] = [
       changePipeMaterials(model, [
         { label: "PVC", entries: [{ age: 0, roughness: 140 }] },
       ]),
+    expectApplied: ({ model }) => {
+      expect(model.pipeMaterials).toEqual([
+        { label: "PVC", entries: [{ age: 0, roughness: 140 }] },
+      ]);
+    },
   },
   {
     name: "changeProperty on a reservoir",
@@ -290,6 +398,9 @@ const cases: DifferentialCase[] = [
         property: "head",
         value: 120,
       }),
+    expectApplied: ({ model }) => {
+      expect(prop(model, IDS.R1, "head")).toBe(120);
+    },
   },
   {
     name: "changeProperty on a pump",
@@ -300,6 +411,9 @@ const cases: DifferentialCase[] = [
         property: "speed",
         value: 2,
       }),
+    expectApplied: ({ model }) => {
+      expect(prop(model, IDS.PU1, "speed")).toBe(2);
+    },
   },
   {
     name: "changeProperty on a valve",
@@ -310,21 +424,34 @@ const cases: DifferentialCase[] = [
         property: "setting",
         value: 9,
       }),
+    expectApplied: ({ model }) => {
+      expect(prop(model, IDS.V1, "setting")).toBe(9);
+    },
   },
   {
     name: "deleteAssets on a pump, carrying its curve",
     fixture: aNetwork,
     run: ({ model }) => deleteAssets(model, { assetIds: [IDS.PU1] }),
+    expectApplied: ({ model }) => {
+      expect(model.assets.has(IDS.PU1)).toBe(false);
+    },
   },
   {
     name: "deleteAssets on a valve",
     fixture: aNetwork,
     run: ({ model }) => deleteAssets(model, { assetIds: [IDS.V1] }),
+    expectApplied: ({ model }) => {
+      expect(model.assets.has(IDS.V1)).toBe(false);
+    },
   },
   {
     name: "deleteAssets on a reservoir",
     fixture: aNetwork,
     run: ({ model }) => deleteAssets(model, { assetIds: [IDS.R1] }),
+    expectApplied: ({ model }) => {
+      expect(model.assets.has(IDS.R1)).toBe(false);
+      expect(model.assets.has(IDS.PU1)).toBe(false);
+    },
   },
   {
     name: "changeCustomAttributesDefinition removing an attribute in use",
@@ -334,6 +461,10 @@ const cases: DifferentialCase[] = [
         model,
         emptyCustomAttributesDefinition(),
       ),
+    expectApplied: ({ model }) => {
+      expect(getAttributes(model.customAttributes, "junction")).toEqual([]);
+      expect(prop(model, IDS.J1, "custom-1")).toBeNull();
+    },
   },
   {
     name: "replaceLink redrawing a pipe between the same nodes",
@@ -356,6 +487,14 @@ const cases: DifferentialCase[] = [
         labelManager,
       });
     },
+    expectApplied: ({ model }) => {
+      expect(linkBetween(model, IDS.J1, IDS.J2)?.coordinates).toEqual([
+        [0, 0],
+        [3, 3],
+        [7, 3],
+        [10, 0],
+      ]);
+    },
   },
   {
     name: "replaceLink redrawing a pipe to another end node",
@@ -377,55 +516,44 @@ const cases: DifferentialCase[] = [
         labelManager,
       });
     },
+    expectApplied: ({ model }) => {
+      expect(linkBetween(model, IDS.J1, IDS.J2)).toBeUndefined();
+      expect(linkBetween(model, IDS.J1, IDS.J3)?.coordinates).toEqual([
+        [0, 0],
+        [10, 5],
+        [20, 0],
+      ]);
+    },
   },
 ];
 
-const runCase = (testCase: DifferentialCase) => {
-  const viaMoment = testCase.fixture();
-  const viaChangeSet = testCase.fixture();
+const runCase = (testCase: OperationCase) => {
+  const applied = testCase.fixture();
   const pristine = testCase.fixture();
 
-  const moment = testCase.run(viaMoment);
-  const changeSet = toChangeSet(viaChangeSet.model, moment);
+  const moment = testCase.run(applied);
+  const changeSet = toChangeSet(applied.model, moment);
+  applyChangeSet(applied.model, changeSet, "forward", applied.labelManager);
 
-  applyMomentToModel(viaMoment.model, moment, viaMoment.labelManager);
-  applyChangeSet(
-    viaChangeSet.model,
-    changeSet,
-    "forward",
-    viaChangeSet.labelManager,
-  );
+  const probe = [...modelLabels(pristine.model), ...modelLabels(applied.model)];
 
-  const probe = [
-    ...modelLabels(pristine.model),
-    ...modelLabels(viaMoment.model),
-    ...modelLabels(viaChangeSet.model),
-  ];
-
-  return { viaMoment, viaChangeSet, pristine, changeSet, probe };
+  return { applied, pristine, changeSet, probe };
 };
 
-describe("change sets match the moment path", () => {
+describe("change sets per operation", () => {
   it.each(cases)("$name", (testCase) => {
-    const { viaMoment, viaChangeSet, changeSet, probe } = runCase(testCase);
+    const { applied, changeSet } = runCase(testCase);
 
     expect(changeSet.isEmpty).toBe(false);
-    expect(withoutIndexOrder(snapshot(viaChangeSet, probe))).toEqual(
-      withoutIndexOrder(snapshot(viaMoment, probe)),
-    );
+    testCase.expectApplied(applied);
   });
 
   it.each(cases)("$name reverses back to the original", (testCase) => {
-    const { viaChangeSet, pristine, changeSet, probe } = runCase(testCase);
+    const { applied, pristine, changeSet, probe } = runCase(testCase);
 
-    applyChangeSet(
-      viaChangeSet.model,
-      changeSet,
-      "reverse",
-      viaChangeSet.labelManager,
-    );
+    applyChangeSet(applied.model, changeSet, "reverse", applied.labelManager);
 
-    expect(withoutIndexOrder(snapshot(viaChangeSet, probe))).toEqual(
+    expect(withoutIndexOrder(snapshot(applied, probe))).toEqual(
       withoutIndexOrder(snapshot(pristine, probe)),
     );
   });

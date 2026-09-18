@@ -4,7 +4,7 @@ import {
   getLinkTimedSetting,
 } from "@epanet-js/hydraulic-model";
 import { deleteAssets } from "./delete-assets";
-import { applyMomentToModel } from "../mutations/apply-moment";
+import { applyOperation } from "src/__helpers__/apply-operation";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { buildTestFactories } from "src/__helpers__/test-factories";
 
@@ -398,13 +398,13 @@ describe("deleteAssets", () => {
         .build();
 
       const moment = deleteAssets(hydraulicModel, { assetIds: [IDS.T1] });
-      const reverse = applyMomentToModel(hydraulicModel, moment, labelManager);
+      const { undo } = applyOperation(hydraulicModel, moment, labelManager);
 
       expect(getLinkLevelSetting(hydraulicModel.controls, IDS.P1)).toBeNull();
       expect(hydraulicModel.controlsLookup.hasControls(IDS.P1)).toBe(false);
       expect(hydraulicModel.controlsLookup.hasControls(IDS.T1)).toBe(false);
 
-      applyMomentToModel(hydraulicModel, reverse, labelManager);
+      undo();
 
       expect(
         getLinkLevelSetting(hydraulicModel.controls, IDS.P1),
@@ -600,11 +600,11 @@ describe("deleteAssets", () => {
         assetIds: [IDS.T1],
         shouldRemoveRawControls: true,
       });
-      const reverse = applyMomentToModel(hydraulicModel, moment, labelManager);
+      const { undo } = applyOperation(hydraulicModel, moment, labelManager);
 
       expect(hydraulicModel.rawControls.simple).toHaveLength(0);
 
-      applyMomentToModel(hydraulicModel, reverse, labelManager);
+      undo();
 
       expect(hydraulicModel.rawControls.simple).toHaveLength(1);
       expect(hydraulicModel.assets.has(IDS.T1)).toBe(true);
