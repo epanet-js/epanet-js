@@ -13,6 +13,12 @@ import { setInitialState } from "src/__helpers__/state";
 import { stubElevation } from "src/map/test/__helpers__/elevations";
 import { Store } from "src/state";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
+import { modelFactoriesAtom } from "src/state/model-factories";
+import {
+  LabelManager,
+  initializeModelFactories,
+} from "@epanet-js/hydraulic-model";
+import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
 import { selectionAtom } from "src/state/selection";
 import { CrossingPipes } from "./crossing-pipes";
 
@@ -43,6 +49,16 @@ beforeEach(() => {
 });
 
 const renderPanel = (store: Store) => {
+  const highestSeededId = Math.max(
+    ...store.get(stagingModelDerivedAtom).assets.keys(),
+  );
+  store.set(
+    modelFactoriesAtom,
+    initializeModelFactories({
+      idGenerator: new ConsecutiveIdsGenerator(highestSeededId),
+      labelManager: new LabelManager(),
+    }),
+  );
   render(
     <JotaiProvider store={store}>
       <TooltipProvider>

@@ -1,4 +1,10 @@
-import { render, screen, waitFor, act } from "@testing-library/react";
+import {
+  render,
+  renderHook,
+  screen,
+  waitFor,
+  act,
+} from "@testing-library/react";
 import { selectionAtom } from "src/state/selection";
 import { projectSettingsAtom } from "src/state/project-settings";
 import {
@@ -18,11 +24,8 @@ import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { createMockResultsReader, SimulationData } from "src/__helpers__/state";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { Persistence } from "src/lib/persistence/persistence";
-import {
-  stagingModelDerivedAtom,
-  momentLogDerivedAtom,
-} from "src/state/derived-branch-state";
-import { applyMoment } from "src/lib/persistence/transaction-helpers";
+import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
+import { useUndoableTransactions } from "src/hooks/persistence/use-undoable-transactions";
 import userEvent, { type UserEvent } from "@testing-library/user-event";
 import { AssetId, getLink, getPipe } from "@epanet-js/hydraulic-model";
 import { getLinkTargetNode } from "@epanet-js/hydraulic-model";
@@ -2140,23 +2143,13 @@ describe("AssetPanel", () => {
       </QueryClientProvider>,
     );
 
+    const { result } = renderHook(() => useUndoableTransactions(), {
+      wrapper: ({ children }: { children: React.ReactNode }) => (
+        <JotaiProvider store={store}>{children}</JotaiProvider>
+      ),
+    });
     const historyControl = (direction: "undo" | "redo") => {
-      const isUndo = direction === "undo";
-      const momentLog = store.get(momentLogDerivedAtom).copy();
-      const action = isUndo ? momentLog.nextUndo() : momentLog.nextRedo();
-      if (!action) return;
-
-      applyMoment(
-        store.get,
-        store.set,
-        action.stateId,
-        action.moment,
-        stagingModelDerivedAtom,
-      );
-
-      isUndo ? momentLog.undo() : momentLog.redo();
-
-      store.set(momentLogDerivedAtom, momentLog);
+      result.current.historyControl(direction);
     };
     return historyControl;
   };

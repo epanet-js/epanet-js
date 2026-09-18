@@ -1,12 +1,11 @@
 import { act, renderHook } from "@testing-library/react";
 import { Provider as JotaiProvider } from "jotai";
-import { Mock, vi } from "vitest";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
 import { addNode } from "src/hydraulic-model/model-operations/add-node";
+import { deleteAssets } from "src/hydraulic-model/model-operations/delete-assets";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import { useUndoableTransactions } from "src/hooks/persistence/use-undoable-transactions";
-import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import {
   LabelManager,
@@ -15,24 +14,12 @@ import {
 import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { historyPendingAtom } from "src/state/transactions";
-import * as transactionHelpers from "src/lib/persistence/transaction-helpers";
 import { useInProcessDb } from "src/lib/db/__test-helpers__/in-process-db";
 import * as db from "src/lib/db";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import type { Store } from "src/state";
 
-vi.mock("src/lib/persistence/transaction-helpers", async (importOriginal) => {
-  const actual =
-    await importOriginal<
-      typeof import("src/lib/persistence/transaction-helpers")
-    >();
-  return {
-    ...actual,
-    prepareHistoryAction: vi.fn(actual.prepareHistoryAction),
-  };
-});
-
-const IDS = { J1: 1, J2: 2, J3: 3 } as const;
+const IDS = { J1: 1, J2: 2 } as const;
 
 const withStore = (store: Store) => ({
   wrapper: ({ children }: { children: React.ReactNode }) => (
@@ -83,28 +70,12 @@ const addJunction = (store: Store) => {
 const assetIds = (store: Store) =>
   [...store.get(stagingModelDerivedAtom).assets.keys()].sort((a, b) => a - b);
 
-const holdPrepare = () => {
-  let release!: () => void;
-  const gate = new Promise<void>((resolve) => {
-    release = resolve;
-  });
-  (transactionHelpers.prepareHistoryAction as Mock).mockImplementation(
-    async (action: transactionHelpers.HistoryAction) => {
-      await gate;
-      return action;
-    },
-  );
-  return release;
-};
+const assetOrder = (store: Store) => [
+  ...store.get(stagingModelDerivedAtom).assets.keys(),
+];
 
 describe("undoable transactions", () => {
   useInProcessDb();
-
-  beforeEach(() => {
-    (transactionHelpers.prepareHistoryAction as Mock).mockImplementation(
-      (action: transactionHelpers.HistoryAction) => Promise.resolve(action),
-    );
-  });
 
   it("undoes an edit", async () => {
     const store = await aProject();
@@ -116,8 +87,8 @@ describe("undoable transactions", () => {
       withStore(store),
     );
 
-    await act(async () => {
-      await result.current.historyControl("undo");
+    act(() => {
+      result.current.historyControl("undo");
     });
 
     expect(assetIds(store)).toEqual([IDS.J1]);
@@ -133,136 +104,76 @@ describe("undoable transactions", () => {
       withStore(store),
     );
 
-    await act(async () => {
-      await result.current.historyControl("undo");
+    act(() => {
+      result.current.historyControl("undo");
     });
-    await act(async () => {
-      await result.current.historyControl("redo");
+    act(() => {
+      result.current.historyControl("redo");
     });
 
     expect(assetIds(store)).toEqual([IDS.J1, IDS.J2]);
   });
 
-  it("marks history as pending while preparing", async () => {
+  it("restores a deleted asset to the position it had", async () => {
     const store = await aProject();
     addJunction(store);
-    const release = holdPrepare();
+    const orderBeforeDelete = assetOrder(store);
 
     const { result } = renderHook(
-      () => useUndoableTransactions(),
+      () => ({ ...useMomentTransaction(), ...useUndoableTransactions() }),
       withStore(store),
     );
 
-    let pending!: Promise<boolean>;
     act(() => {
-      pending = result.current.historyControl("undo");
+      result.current.transact(
+        deleteAssets(store.get(stagingModelDerivedAtom), {
+          assetIds: [IDS.J2],
+        }),
+      );
     });
-
-    expect(store.get(historyPendingAtom)).toBe(true);
-    expect(assetIds(store)).toEqual([IDS.J1, IDS.J2]);
-
-    release();
-    await act(async () => {
-      await pending;
-    });
-
-    expect(store.get(historyPendingAtom)).toBe(false);
     expect(assetIds(store)).toEqual([IDS.J1]);
-  });
 
-  it("blocks edition while preparing", async () => {
-    const store = await aProject();
-    addJunction(store);
-    const release = holdPrepare();
-
-    const { result } = renderHook(
-      () => ({
-        ...useUndoableTransactions(),
-        isEditionBlocked: useIsEditionBlocked(),
-      }),
-      withStore(store),
-    );
-
-    expect(result.current.isEditionBlocked).toBe(false);
-
-    let pending!: Promise<boolean>;
     act(() => {
-      pending = result.current.historyControl("undo");
+      result.current.historyControl("undo");
     });
 
-    expect(result.current.isEditionBlocked).toBe(true);
-
-    release();
-    await act(async () => {
-      await pending;
-    });
-
-    expect(result.current.isEditionBlocked).toBe(false);
+    expect(assetOrder(store)).toEqual(orderBeforeDelete);
   });
 
-  it("rejects a second history action while one is pending", async () => {
+  it("rejects a history action while one is pending", async () => {
     const store = await aProject();
     addJunction(store);
-    addJunction(store);
-    const release = holdPrepare();
+    store.set(historyPendingAtom, true);
 
     const { result } = renderHook(
       () => useUndoableTransactions(),
       withStore(store),
     );
 
-    let pending!: Promise<boolean>;
+    let applied!: boolean;
     act(() => {
-      pending = result.current.historyControl("undo");
+      applied = result.current.historyControl("undo");
     });
 
-    let rejected!: boolean;
-    await act(async () => {
-      rejected = await result.current.historyControl("undo");
-    });
-
-    expect(rejected).toBe(false);
-    expect(assetIds(store)).toEqual([IDS.J1, IDS.J2, IDS.J3]);
-
-    release();
-    await act(async () => {
-      await pending;
-    });
-
+    expect(applied).toBe(false);
     expect(assetIds(store)).toEqual([IDS.J1, IDS.J2]);
   });
 
   it("rejects an edit while a history action is pending", async () => {
     const store = await aProject();
-    addJunction(store);
-    const release = holdPrepare();
+    store.set(historyPendingAtom, true);
 
     const { result } = renderHook(
-      () => ({
-        ...useUndoableTransactions(),
-        ...useMomentTransaction(),
-      }),
+      () => useMomentTransaction(),
       withStore(store),
     );
 
-    const moment = buildAddJunctionMoment(store);
-
-    let pending!: Promise<boolean>;
-    act(() => {
-      pending = result.current.historyControl("undo");
-    });
-
     let applied!: boolean;
     act(() => {
-      applied = result.current.transact(moment);
+      applied = result.current.transact(buildAddJunctionMoment(store));
     });
 
     expect(applied).toBe(false);
-    expect(assetIds(store)).toEqual([IDS.J1, IDS.J2]);
-
-    release();
-    await act(async () => {
-      await pending;
-    });
+    expect(assetIds(store)).toEqual([IDS.J1]);
   });
 });

@@ -12,6 +12,12 @@ import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
 import { Store } from "src/state";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
+import { modelFactoriesAtom } from "src/state/model-factories";
+import {
+  LabelManager,
+  initializeModelFactories,
+} from "@epanet-js/hydraulic-model";
+import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
 import { proximityDistanceAtom } from "src/state/network-review";
 import { ProximityAnomalies } from "./proximity-anomalies";
 
@@ -41,6 +47,16 @@ beforeEach(() => {
 });
 
 const renderPanel = (store: Store) => {
+  const highestSeededId = Math.max(
+    ...store.get(stagingModelDerivedAtom).assets.keys(),
+  );
+  store.set(
+    modelFactoriesAtom,
+    initializeModelFactories({
+      idGenerator: new ConsecutiveIdsGenerator(highestSeededId),
+      labelManager: new LabelManager(),
+    }),
+  );
   render(
     <JotaiProvider store={store}>
       <TooltipProvider>

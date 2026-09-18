@@ -137,6 +137,8 @@ describe("Drawing a pipe", () => {
 
     await waitFor(() => {
       expect(getSourceFeatures(map, "delta-features")).toEqual([
+        matchPoint({ coordinates: [10, 20] }),
+        matchPoint({ coordinates: [40, 50] }),
         matchLineString({
           coordinates: [
             [10, 20],
@@ -144,8 +146,6 @@ describe("Drawing a pipe", () => {
             [40, 50],
           ],
         }),
-        matchPoint({ coordinates: [10, 20] }),
-        matchPoint({ coordinates: [40, 50] }),
       ]);
     });
 
@@ -280,11 +280,10 @@ describe("Drawing a pipe", () => {
 
     await waitFor(() => {
       expect(getSourceFeatures(map, "delta-features")).toEqual([
+        matchPoint({ coordinates: [50, 60] }),
         matchLineString({
           coordinates: [existingNodeCoords, [50, 60]],
         }),
-        matchPoint({ coordinates: existingNodeCoords }),
-        matchPoint({ coordinates: [50, 60] }),
       ]);
     });
 
@@ -356,11 +355,11 @@ describe("Drawing a pipe", () => {
 
     await waitFor(() => {
       expect(getSourceFeatures(map, "delta-features")).toEqual([
+        matchPoint({ coordinates: [10, 20] }),
+        matchPoint({ coordinates: existingNodeCoords }),
         matchLineString({
           coordinates: [[10, 20], existingNodeCoords],
         }),
-        matchPoint({ coordinates: [10, 20] }),
-        matchPoint({ coordinates: existingNodeCoords }),
       ]);
     });
 
@@ -440,14 +439,14 @@ describe("Drawing a pipe", () => {
 
     await waitFor(() => {
       expect(getSourceFeatures(map, "delta-features")).toEqual([
+        matchPoint({ coordinates: [10, 20] }),
+        matchPoint({ coordinates: [30, 40] }),
         matchLineString({
           coordinates: [
             [10, 20],
             [30, 40],
           ],
         }),
-        matchPoint({ coordinates: [10, 20] }),
-        matchPoint({ coordinates: [30, 40] }),
       ]);
     });
 
@@ -469,21 +468,21 @@ describe("Drawing a pipe", () => {
 
     await waitFor(() => {
       expect(getSourceFeatures(map, "delta-features")).toEqual([
+        matchPoint({ coordinates: [10, 20] }),
+        matchPoint({ coordinates: [30, 40] }),
         matchLineString({
           coordinates: [
             [10, 20],
             [30, 40],
           ],
         }),
-        matchPoint({ coordinates: [10, 20] }),
-        matchPoint({ coordinates: [30, 40] }),
+        matchPoint({ coordinates: [50, 60] }),
         matchLineString({
           coordinates: [
             [30, 40],
             [50, 60],
           ],
         }),
-        matchPoint({ coordinates: [50, 60] }),
       ]);
     });
 

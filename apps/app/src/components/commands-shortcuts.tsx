@@ -224,7 +224,7 @@ export const CommandShortcuts = () => {
         name: "operation.undone",
         source: "shortcut",
       });
-      void undo();
+      undo();
     },
     [undoShortcut, undo, isEditionBlocked],
     "Undo",
@@ -240,7 +240,7 @@ export const CommandShortcuts = () => {
         name: "operation.redone",
         source: "shortcut",
       });
-      void redo();
+      redo();
     },
     [redoShortcut, redo, isEditionBlocked],
     "Redo",
@@ -256,7 +256,7 @@ export const CommandShortcuts = () => {
         name: "operation.redone",
         source: "shortcut",
       });
-      void redo();
+      redo();
     },
     [redoShortcut, redo, isEditionBlocked],
     "Redo",

@@ -5,7 +5,6 @@ import { nanoid } from "nanoid";
 import type { Moment } from "src/lib/persistence/moment";
 import {
   stagingModelDerivedAtom,
-  momentLogDerivedAtom,
   sessionHistoryDerivedAtom,
 } from "src/state/derived-branch-state";
 import { worktreeAtom } from "src/state/scenarios";
@@ -15,18 +14,12 @@ import { modeAtom, MODE_INFO } from "src/state/mode";
 import { trackMoment } from "src/lib/persistence/shared";
 import {
   applyChange,
-  applyMoment,
   processMoment,
 } from "src/lib/persistence/transaction-helpers";
 import { toChangeSet } from "src/hydraulic-model/change-sets";
 import type { ChangeSet } from "@epanet-js/change-set";
 import { timedSync, timedWithSync } from "@epanet-js/ejsdb";
-import {
-  applyChangeSetToDb,
-  applyMomentToDb,
-  buildMomentPayload,
-} from "src/lib/db";
-import type { WriteBatch } from "@epanet-js/ejsdb";
+import { applyChangeSetToDb } from "src/lib/db";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { captureError, captureWarning } from "src/infra/error-tracking";
 import {
@@ -191,52 +184,8 @@ const transactWithChangeSet = (
   return true;
 };
 
-const transactWithMoment = (
-  get: Getter,
-  set: Setter,
-  moment: Moment,
-  willPersist: boolean,
-  onWriteFailure: WriteFailureHandler,
-): boolean => {
-  let payload: WriteBatch | undefined;
-  if (willPersist) {
-    try {
-      payload = timedSync("moment:build", () => buildMomentPayload(moment), {
-        note: moment.note,
-      });
-    } catch (error) {
-      return rejectChange(set, error);
-    }
-  }
-
-  reportOrphanLinks(get, moment);
-
-  trackMoment(moment);
-  const newStateId = nanoid();
-  const momentLog = get(momentLogDerivedAtom).copy();
-
-  const reverseMoment = timedSync(
-    "moment:apply",
-    () => applyMoment(get, set, newStateId, moment, stagingModelDerivedAtom),
-    { note: moment.note },
-  );
-
-  reportAppliedIntegrity(get, moment);
-
-  momentLog.append(moment, reverseMoment, newStateId);
-
-  if (payload) {
-    writeQueue.enqueue(() => applyMomentToDb(payload), onWriteFailure);
-  }
-
-  set(momentLogDerivedAtom, momentLog);
-
-  return true;
-};
-
 export const useMomentTransaction = () => {
   const onWriteFailure = useWriteFailureHandler();
-  const isChangeSetsOn = useFeatureFlag("FLAG_CHANGE_SETS");
   const isIdPoolsOn = useFeatureFlag("FLAG_ID_POOLS");
 
   const transact = useAtomCallback(
@@ -252,18 +201,16 @@ export const useMomentTransaction = () => {
         const worktree = get(worktreeAtom);
         const willPersist = worktree.activeBranchId === worktree.mainId;
 
-        return isChangeSetsOn
-          ? transactWithChangeSet(
-              get,
-              set,
-              moment,
-              willPersist,
-              isIdPoolsOn,
-              onWriteFailure,
-            )
-          : transactWithMoment(get, set, moment, willPersist, onWriteFailure);
+        return transactWithChangeSet(
+          get,
+          set,
+          moment,
+          willPersist,
+          isIdPoolsOn,
+          onWriteFailure,
+        );
       },
-      [onWriteFailure, isChangeSetsOn, isIdPoolsOn],
+      [onWriteFailure, isIdPoolsOn],
     ),
   );
 

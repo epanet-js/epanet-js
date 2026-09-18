@@ -131,7 +131,7 @@ export const Toolbar = ({
             source: "toolbar",
           });
 
-          void undo();
+          undo();
         }}
         readOnlyHotkey={"ctrl+z"}
         disabled={readonly || !canUndo}
@@ -146,7 +146,7 @@ export const Toolbar = ({
             name: "operation.redone",
             source: "toolbar",
           });
-          void redo();
+          redo();
         }}
         readOnlyHotkey={"ctrl+y"}
         disabled={readonly || !canRedo}

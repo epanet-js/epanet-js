@@ -6,10 +6,9 @@ directory connects it to the model: the **builder** that reads a `HydraulicModel
 to fill in `before`, and the **applier** that writes a change set into one. Both
 need the asset classes, which is why they are here and not in the package.
 
-The app runs this behind `FLAG_CHANGE_SETS`. With the flag on, edits and
-undo/redo go through `toChangeSet` and `applyChange`
-(`src/lib/persistence/transaction-helpers.ts`) and land in a `SessionHistory`;
-with it off the moment path is untouched. **Main's rows are written from the
+Edits and undo/redo go through `toChangeSet` and `applyChange`
+(`src/lib/persistence/transaction-helpers.ts`) and land in a `SessionHistory`.
+**Main's rows are written from the
 change set**, and the mapping happens in the DB worker: `applyChangeSetToDb` posts
 `changeSet.bytes`, and `@epanet-js/ejsdb`'s `src/change-set/` turns records into
 rows without consulting the model, which is what makes field-bag completeness a
@@ -251,7 +250,7 @@ each operation down both paths and compares the resulting models.
   path re-keys it instead: `ensureAtValues` sees an id the model no longer holds,
   finds its `at` collides with the assets still there, and hands it a key that
   sorts to the **front**. Both leave the same model; only the row order in the
-  data grid differs. `change-sets-parity.test.tsx` pins both behaviours.
+  data grid differs. `use-undoable-transactions.test.tsx` pins it.
 - **`mergeMoments` drops `putPipeMaterials` and `putCustomAttributesDefinition`.**
   Not a difference — it happens upstream, so both paths see the same merged
   moment. It is a latent bug that disappears when operations emit records

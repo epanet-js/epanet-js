@@ -61,14 +61,14 @@ const addJunction = (store: Store, coordinates: number[]) => {
   });
 };
 
-const undo = async (store: Store) => {
+const undo = (store: Store) => {
   const { result } = renderHook(
     () => useUndoableTransactions(),
     withStore(store),
   );
 
-  await act(async () => {
-    await result.current.historyControl("undo");
+  act(() => {
+    result.current.historyControl("undo");
   });
 };
 
@@ -161,7 +161,7 @@ describe("unsaved changes", () => {
     const store = await aSavedProject();
 
     addJunction(store, [10, 20]);
-    await undo(store);
+    undo(store);
 
     expect(hasUnsavedChanges(store)).toBe(false);
   });
@@ -178,7 +178,7 @@ describe("unsaved changes", () => {
     const store = await aSavedProject();
 
     await renameProject(store, "Another name");
-    await undo(store);
+    undo(store);
 
     expect(hasUnsavedChanges(store)).toBe(true);
   });
