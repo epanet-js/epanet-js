@@ -38,7 +38,9 @@ import {
 import {
   type CollectionDraftSource,
   type CollectionKind,
+  type SelectionSetId,
   largestContainedSet,
+  matchesSelectionExactly,
 } from "src/lib/collections";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { useStartCollectionDraft } from "src/commands/collection-draft";
@@ -70,10 +72,15 @@ export const CollectionsPanel = () => {
   const { assets, customerPoints } = USelection.countByKind(selection);
   const canSaveSelection = assets + customerPoints >= MIN_SELECTION_SET_SIZE;
 
-  const selectedSetId = useMemo(
-    () => largestContainedSet(selectionSets, selection, hydraulicModel),
-    [selectionSets, selection, hydraulicModel],
-  );
+  const [appliedSetId, setAppliedSetId] = useState<SelectionSetId | null>(null);
+
+  const selectedSetId = useMemo(() => {
+    const applied = selectionSets.find((set) => set.id === appliedSetId);
+    if (applied && matchesSelectionExactly(applied, selection, hydraulicModel))
+      return applied.id;
+
+    return largestContainedSet(selectionSets, selection, hydraulicModel);
+  }, [selectionSets, selection, hydraulicModel, appliedSetId]);
 
   const saveSelectionSet = useSaveSelectionSet();
   const applySelectionSet = useApplySelectionSet();
@@ -168,6 +175,7 @@ export const CollectionsPanel = () => {
   const runRow = useCallback(
     (row: Row) => {
       if (row.section === "selectionSets") {
+        setAppliedSetId(row.id);
         applySelectionSet({ setId: row.id, zoom: true, source: "panel" });
       } else {
         goToBookmark({ bookmarkId: row.id, source: "panel" });
@@ -200,6 +208,7 @@ export const CollectionsPanel = () => {
       setFocusedAddRow(null);
       setFocusedRow({ section: row.section, id: row.id });
       if (row.section === "selectionSets") {
+        setAppliedSetId(row.id);
         applySelectionSet({ setId: row.id, zoom: false, source: "panel" });
       }
     },
@@ -246,6 +255,7 @@ export const CollectionsPanel = () => {
 
   const handleSelectOnly = (row: Row) => {
     clearKeyboardFocus();
+    setAppliedSetId(row.id);
     applySelectionSet({ setId: row.id, zoom: false, source: "panel" });
   };
 

@@ -295,6 +295,21 @@ describe("CollectionsPanel", () => {
       expect(rowOf("Pump feeders")).toHaveAttribute("aria-selected", "false");
     });
 
+    it("selects the duplicate that was clicked, not the first of the two", async () => {
+      store = aStore();
+      renderPanel(store);
+      await saveSet("Downtown loop", [IDS.J1, IDS.J2]);
+      await saveSet("Downtown loop", [IDS.J1, IDS.J2]);
+      act(() => store.set(selectionAtom, USelection.none()));
+
+      const [first, second] = screen.getAllByText("Downtown loop");
+
+      await userEvent.click(second);
+
+      expect(second.closest("li")).toHaveAttribute("aria-selected", "true");
+      expect(first.closest("li")).toHaveAttribute("aria-selected", "false");
+    });
+
     it("selects a set without zooming when the arrow keys reach it", async () => {
       await aPanelWithSets();
       focusList("Downtown loop");

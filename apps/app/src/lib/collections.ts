@@ -2,7 +2,7 @@ import { nanoid } from "nanoid";
 import type { HydraulicModel } from "src/hydraulic-model";
 import { USelection } from "src/selection";
 import type { Sel } from "src/selection";
-import type { BBox } from "src/types";
+import type { BBox, IWrappedFeature } from "src/types";
 
 export type CollectionKind = "selectionSets" | "bookmarks";
 
@@ -82,6 +82,16 @@ export const existingSelection = (
     ),
   );
 
+const isContainedBy = (
+  members: Sel,
+  selectedAssets: ReadonlySet<IWrappedFeature["id"]>,
+  selectedCustomerPoints: ReadonlySet<number>,
+): boolean =>
+  USelection.getAssetIds(members).every((id) => selectedAssets.has(id)) &&
+  USelection.getCustomerPointIds(members).every((id) =>
+    selectedCustomerPoints.has(id),
+  );
+
 export const largestContainedSet = (
   selectionSets: readonly SelectionSet[],
   selection: Sel,
@@ -100,16 +110,29 @@ export const largestContainedSet = (
     const size = countSelected(members);
     if (size === 0) continue;
 
-    const isContained =
-      USelection.getAssetIds(members).every((id) => selectedAssets.has(id)) &&
-      USelection.getCustomerPointIds(members).every((id) =>
-        selectedCustomerPoints.has(id),
-      );
-
-    if (isContained && (largest === null || size > largest.size)) {
+    if (
+      isContainedBy(members, selectedAssets, selectedCustomerPoints) &&
+      (largest === null || size > largest.size)
+    ) {
       largest = { id: selectionSet.id, size };
     }
   }
 
   return largest?.id ?? null;
+};
+
+export const matchesSelectionExactly = (
+  selectionSet: SelectionSet,
+  selection: Sel,
+  hydraulicModel: HydraulicModel,
+): boolean => {
+  const members = existingSelection(selectionSet.selection, hydraulicModel);
+  const size = countSelected(members);
+  if (size === 0 || size !== countSelected(selection)) return false;
+
+  return isContainedBy(
+    members,
+    new Set(USelection.getAssetIds(selection)),
+    new Set(USelection.getCustomerPointIds(selection)),
+  );
 };
