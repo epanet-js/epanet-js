@@ -1,10 +1,6 @@
 import { expect, describe, it } from "vitest";
 import { ControlsLookup, buildControlsLookup } from "./lookup";
-import {
-  LevelSettingControl,
-  TimedSettingControl,
-  Controls,
-} from "./types";
+import { LevelSettingControl, TimedSettingControl, Controls } from "./types";
 
 const aTimedControl = (id: string, linkId: number): TimedSettingControl => ({
   id,
