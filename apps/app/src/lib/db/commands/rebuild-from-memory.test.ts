@@ -54,7 +54,6 @@ const anInput = () => ({
   projectSettings: defaultProjectSettings,
   simulationSettings: defaultSimulationSettings,
   zones: initializeZones(),
-  idPools: null,
 });
 
 beforeEach(() => {

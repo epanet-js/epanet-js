@@ -78,7 +78,6 @@ describe("open integration", () => {
       .build();
 
     await importProject({
-      idPools: null,
       newDb: true,
       hydraulicModel,
       projectSettings,
@@ -144,37 +143,8 @@ describe("open integration", () => {
     expect(project.hydraulicModel.pipeMaterials).toEqual(pipeLibrary);
   });
 
-  it("carries the stored id pools through a saved file", async () => {
-    const idPools = {
-      asset: 11,
-      customerPoint: 12,
-      pattern: 13,
-      curve: 14,
-      zone: 15,
-    };
-    await importProject({
-      idPools,
-      newDb: true,
-      hydraulicModel: HydraulicModelBuilder.with().aJunction(1).build(),
-      projectSettings: defaultProjectSettings,
-      simulationSettings: defaultSimulationSettings,
-    });
-
-    const blob = await exportDb();
-    const file = new File([blob], "id-pools.epnt", {
-      type: "application/octet-stream",
-    });
-    expect((await openProject(file)).status).toBe("ok");
-
-    const { factories } = await fetchProject({ idPools: true });
-
-    expect(factories.idPools.newId("asset")).toBe(12);
-    expect(factories.idPools.newId("zone")).toBe(16);
-  });
-
   it("opens a project without a uniqueId as undefined (optional field)", async () => {
     await importProject({
-      idPools: null,
       newDb: true,
       hydraulicModel: HydraulicModelBuilder.with().aJunction(1).build(),
       projectSettings: defaultProjectSettings,
@@ -193,7 +163,6 @@ describe("open integration", () => {
 
   it("preserves the uniqueId across a newDb=false rebuild that leaves settings untouched", async () => {
     await importProject({
-      idPools: null,
       newDb: true,
       hydraulicModel: HydraulicModelBuilder.with().aJunction(1).build(),
       projectSettings: defaultProjectSettings,
@@ -202,7 +171,6 @@ describe("open integration", () => {
     const id = await ensureUniqueId();
 
     await importProject({
-      idPools: null,
       newDb: false,
       hydraulicModel: HydraulicModelBuilder.with().aJunction(2).build(),
       simulationSettings: defaultSimulationSettings,
@@ -213,7 +181,6 @@ describe("open integration", () => {
 
   it("carries the uniqueId when a newDb=false rebuild rewrites settings that include it", async () => {
     await importProject({
-      idPools: null,
       newDb: true,
       hydraulicModel: HydraulicModelBuilder.with().aJunction(1).build(),
       projectSettings: defaultProjectSettings,
@@ -223,7 +190,6 @@ describe("open integration", () => {
     const settingsWithId = (await fetchProject()).projectSettings;
 
     await importProject({
-      idPools: null,
       newDb: false,
       hydraulicModel: HydraulicModelBuilder.with().aJunction(2).build(),
       projectSettings: { ...settingsWithId, name: "renamed" },
@@ -237,7 +203,6 @@ describe("open integration", () => {
 
   it("starts a fresh newDb=true project with no uniqueId", async () => {
     await importProject({
-      idPools: null,
       newDb: true,
       hydraulicModel: HydraulicModelBuilder.with().aJunction(1).build(),
       projectSettings: defaultProjectSettings,
@@ -246,7 +211,6 @@ describe("open integration", () => {
     await ensureUniqueId();
 
     await importProject({
-      idPools: null,
       newDb: true,
       hydraulicModel: HydraulicModelBuilder.with().aJunction(2).build(),
       projectSettings: defaultProjectSettings,

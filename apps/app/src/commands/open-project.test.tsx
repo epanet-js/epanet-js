@@ -64,7 +64,6 @@ describe("openProjectFile", () => {
 
 const seedDb = async (hydraulicModel: HydraulicModel) => {
   await db.importProject({
-    idPools: null,
     newDb: true,
     hydraulicModel,
     projectSettings: defaultProjectSettings,

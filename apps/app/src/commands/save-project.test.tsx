@@ -22,7 +22,6 @@ import { userSettingsAtom } from "src/state/user-settings";
 
 const seedDb = async (hydraulicModel: HydraulicModel) => {
   await db.importProject({
-    idPools: null,
     newDb: true,
     hydraulicModel,
     simulationSettings: defaultSimulationSettings,

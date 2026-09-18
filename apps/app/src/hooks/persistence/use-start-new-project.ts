@@ -13,7 +13,7 @@ import {
   initializeModelFactoriesWithPools,
   LabelManager,
 } from "@epanet-js/hydraulic-model";
-import { buildIdPools, idPoolsToPersist } from "src/lib/id-pools";
+import { buildIdPools } from "src/lib/id-pools";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   type ProjectSettings,
@@ -206,7 +206,6 @@ export const withDatabaseBusy = async <T>(
 
 export const useStartNewProject = () => {
   const defaultPanelsFor = useDefaultPanels();
-  const isIdPoolsOn = useFeatureFlag("FLAG_ID_POOLS");
   const startNewProject = useAtomCallback(
     useCallback(
       async (
@@ -230,7 +229,6 @@ export const useStartNewProject = () => {
             projectSettings: mergedProjectSettings,
             hydraulicModel: input.hydraulicModel,
             simulationSettings: input.simulationSettings,
-            idPools: idPoolsToPersist(isIdPoolsOn, input.factories.idPools),
             ...(input.zones === undefined ? {} : { zones: input.zones }),
           });
           resetAppState(set, defaultPanelsFor());
@@ -240,7 +238,7 @@ export const useStartNewProject = () => {
 
         return started ?? false;
       },
-      [defaultPanelsFor, isIdPoolsOn],
+      [defaultPanelsFor],
     ),
   );
 
@@ -309,12 +307,11 @@ export const useSeedDefaultProjectDb = () => {
         };
         const hydraulicModel = get(stagingModelDerivedAtom);
         const simulationSettings = get(simulationSettingsDerivedAtom);
-        const factories = withIdPools(get(modelFactoriesAtom), isIdPoolsOn);
 
         resetAppState(set, defaultPanelsFor());
         loadModel(set, {
           hydraulicModel,
-          factories,
+          factories: withIdPools(get(modelFactoriesAtom), isIdPoolsOn),
           projectSettings,
           simulationSettings,
         });
@@ -325,7 +322,6 @@ export const useSeedDefaultProjectDb = () => {
             projectSettings,
             hydraulicModel,
             simulationSettings,
-            idPools: idPoolsToPersist(isIdPoolsOn, factories.idPools),
           })
           .catch((e: unknown) => {
             const error = e instanceof Error ? e : new Error(String(e));

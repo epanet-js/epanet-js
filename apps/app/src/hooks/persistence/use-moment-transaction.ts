@@ -20,7 +20,6 @@ import { toChangeSet } from "src/hydraulic-model/change-sets";
 import type { ChangeSet } from "@epanet-js/change-set";
 import { timedSync, timedWithSync } from "@epanet-js/ejsdb";
 import { applyChangeSetToDb } from "src/lib/db";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { captureError, captureWarning } from "src/infra/error-tracking";
 import {
   findOrphanLinkConnections,
@@ -33,8 +32,6 @@ import {
   type WriteFailureHandler,
 } from "src/lib/persistence/write-queue";
 import { useWriteFailureHandler } from "src/hooks/persistence/use-write-failure-handler";
-import { modelFactoriesAtom } from "src/state/model-factories";
-import { idPoolsToPersist } from "src/lib/id-pools";
 
 const maxReportedIds = 20;
 
@@ -126,7 +123,6 @@ const transactWithChangeSet = (
   set: Setter,
   moment: Moment,
   willPersist: boolean,
-  withIdPools: boolean,
   onWriteFailure: WriteFailureHandler,
 ): boolean => {
   let changeSet: ChangeSet;
@@ -171,12 +167,8 @@ const transactWithChangeSet = (
   set(sessionHistoryDerivedAtom, sessionHistory);
 
   if (willPersist) {
-    const idPools = idPoolsToPersist(
-      withIdPools,
-      get(modelFactoriesAtom).idPools,
-    );
     writeQueue.enqueue(
-      () => applyChangeSetToDb(changeSet, "forward", idPools),
+      () => applyChangeSetToDb(changeSet, "forward"),
       onWriteFailure,
     );
   }
@@ -186,7 +178,6 @@ const transactWithChangeSet = (
 
 export const useMomentTransaction = () => {
   const onWriteFailure = useWriteFailureHandler();
-  const isIdPoolsOn = useFeatureFlag("FLAG_ID_POOLS");
 
   const transact = useAtomCallback(
     useCallback(
@@ -206,11 +197,10 @@ export const useMomentTransaction = () => {
           set,
           moment,
           willPersist,
-          isIdPoolsOn,
           onWriteFailure,
         );
       },
-      [onWriteFailure, isIdPoolsOn],
+      [onWriteFailure],
     ),
   );
 

@@ -18,8 +18,6 @@ import { serializeSimulationSettings } from "../mappers/simulation-settings/to-r
 import { fetchProject } from "./fetch-project";
 import { importProject } from "./import-project";
 import { useInProcessDb } from "../__test-helpers__/in-process-db";
-import { getWorker } from "@epanet-js/ejsdb";
-import { buildIdPoolsData } from "@epanet-js/ejsdb-mappers";
 
 describe("import-project integration", () => {
   useInProcessDb();
@@ -27,7 +25,6 @@ describe("import-project integration", () => {
   it("replaces network data in the open db when newDb is false", async () => {
     const IDS = { J1: 1, J2: 2 } as const;
     await importProject({
-      idPools: null,
       newDb: true,
       hydraulicModel: HydraulicModelBuilder.with().aJunction(IDS.J1).build(),
       projectSettings: { ...defaultProjectSettings, name: "original" },
@@ -35,7 +32,6 @@ describe("import-project integration", () => {
     });
 
     await importProject({
-      idPools: null,
       hydraulicModel: HydraulicModelBuilder.with().aJunction(IDS.J2).build(),
       simulationSettings: defaultSimulationSettings,
     });
@@ -46,42 +42,9 @@ describe("import-project integration", () => {
     expect(project.projectSettings.name).toBe("original");
   });
 
-  it("stores the id pools with the project", async () => {
-    const idPools = {
-      asset: 1,
-      customerPoint: 2,
-      pattern: 3,
-      curve: 4,
-      zone: 5,
-    };
-
-    await importProject({
-      idPools,
-      newDb: true,
-      hydraulicModel: HydraulicModelBuilder.with().aJunction(1).build(),
-      projectSettings: defaultProjectSettings,
-      simulationSettings: defaultSimulationSettings,
-    });
-
-    expect(buildIdPoolsData(await getWorker().getIdPools())).toEqual(idPools);
-  });
-
-  it("stores no id pools without a snapshot", async () => {
-    await importProject({
-      idPools: null,
-      newDb: true,
-      hydraulicModel: HydraulicModelBuilder.with().aJunction(1).build(),
-      projectSettings: defaultProjectSettings,
-      simulationSettings: defaultSimulationSettings,
-    });
-
-    expect(await getWorker().getIdPools()).toBeNull();
-  });
-
   it("rolls back every write when one write fails", async () => {
     const IDS = { J1: 1, J2: 2, J3: 3 } as const;
     await importProject({
-      idPools: null,
       newDb: true,
       hydraulicModel: HydraulicModelBuilder.with()
         .aJunction(IDS.J1)
@@ -109,7 +72,6 @@ const payloadFor = (hydraulicModel: HydraulicModel): ImportProjectPayload => ({
   newDb: false,
   projectSettings: null,
   pipeLibrary: null,
-  idPools: null,
   zones: null,
   assets: assetsToRows(hydraulicModel.assets.values()),
   customerPoints: customerPointsToRows(

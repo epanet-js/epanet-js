@@ -17,24 +17,9 @@ import { applyChangeSetToDb } from "./apply-change-set";
 import { fetchProject } from "./fetch-project";
 import { importProject } from "./import-project";
 import { useInProcessDb } from "../__test-helpers__/in-process-db";
-import { getWorker } from "@epanet-js/ejsdb";
-import { buildIdPoolsData } from "@epanet-js/ejsdb-mappers";
-import type { IdPoolSeeds } from "@epanet-js/id-generator";
-
-const storedIdPools = async () =>
-  buildIdPoolsData(await getWorker().getIdPools());
-
-const somePools: IdPoolSeeds = {
-  asset: 10,
-  customerPoint: 20,
-  pattern: 30,
-  curve: 40,
-  zone: 50,
-};
 
 const seed = (hydraulicModel: HydraulicModel) =>
   importProject({
-    idPools: null,
     newDb: true,
     hydraulicModel,
     projectSettings: defaultProjectSettings,
@@ -80,7 +65,6 @@ describe("apply-change-set integration", () => {
         dropAssets([IDS.J2]),
       ]),
       "forward",
-      null,
     );
 
     const { hydraulicModel } = await fetchProject();
@@ -100,8 +84,8 @@ describe("apply-change-set integration", () => {
       setAsset(IDS.P1, { diameter: 300 }),
     ]);
 
-    await applyChangeSetToDb(built, "forward", null);
-    await applyChangeSetToDb(built, "reverse", null);
+    await applyChangeSetToDb(built, "forward");
+    await applyChangeSetToDb(built, "reverse");
 
     const { hydraulicModel } = await fetchProject();
 
@@ -121,7 +105,6 @@ describe("apply-change-set integration", () => {
         setDemands([{ junctionId: IDS.J1, demands: [{ baseDemand: 7 }] }]),
       ]),
       "forward",
-      null,
     );
 
     const { hydraulicModel } = await fetchProject();
@@ -130,56 +113,5 @@ describe("apply-change-set integration", () => {
     expect(hydraulicModel.demands.junctions.get(IDS.J1)).toEqual([
       { baseDemand: 7 },
     ]);
-  });
-
-  describe("id pools", () => {
-    const aDiameterEdit = (model: HydraulicModel) =>
-      changeSet(model, "changeProperty", [setAsset(IDS.P1, { diameter: 300 })]);
-
-    it("stores the pools with the change set", async () => {
-      const { model } = aNetwork();
-      await seed(model);
-
-      await applyChangeSetToDb(aDiameterEdit(model), "forward", somePools);
-
-      expect(await storedIdPools()).toEqual(somePools);
-    });
-
-    it("replaces the stored pools with a later snapshot", async () => {
-      const { model } = aNetwork();
-      await seed(model);
-      const built = aDiameterEdit(model);
-      const later = { ...somePools, asset: 11, zone: 99 };
-
-      await applyChangeSetToDb(built, "forward", somePools);
-      await applyChangeSetToDb(built, "reverse", later);
-
-      expect(await storedIdPools()).toEqual(later);
-    });
-
-    it("leaves the stored pools untouched without a snapshot", async () => {
-      const { model } = aNetwork();
-      await seed(model);
-
-      await applyChangeSetToDb(aDiameterEdit(model), "forward", null);
-
-      expect(await storedIdPools()).toBeNull();
-    });
-
-    it("rolls back the change set when the pools cannot be stored", async () => {
-      const { model } = aNetwork();
-      await seed(model);
-
-      await expect(
-        getWorker().applyChangeSet(
-          aDiameterEdit(model).bytes,
-          "forward",
-          JSON.stringify({ asset: -1 }),
-        ),
-      ).rejects.toThrow(/Id pools: data does not match schema/);
-
-      const { hydraulicModel } = await fetchProject();
-      expect((hydraulicModel.assets.get(IDS.P1) as Pipe).diameter).toBe(200);
-    });
   });
 });

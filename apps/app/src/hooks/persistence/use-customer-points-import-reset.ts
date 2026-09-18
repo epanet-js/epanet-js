@@ -26,8 +26,6 @@ import { worktreeAtom } from "src/state/scenarios";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { initializeModelFactoriesWithPools } from "@epanet-js/hydraulic-model";
 import { withPool, type IdGenerator } from "@epanet-js/id-generator";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { idPoolsToPersist } from "src/lib/id-pools";
 
 type CustomerPointsImportResetInput = {
   hydraulicModel: HydraulicModel;
@@ -51,7 +49,6 @@ const loadModel = (
   get: Getter,
   set: Setter,
   { hydraulicModel, idGenerator }: CustomerPointsImportResetInput,
-  withIdPools: boolean,
 ) => {
   const importedModel = { ...hydraulicModel, version: nanoid() };
   const sessionHistory = new SessionHistory(importedModel.version);
@@ -73,7 +70,6 @@ const loadModel = (
     .importProject({
       hydraulicModel: importedModel,
       simulationSettings: get(simulationSettingsDerivedAtom),
-      idPools: idPoolsToPersist(withIdPools, get(modelFactoriesAtom).idPools),
     })
     .catch((error) =>
       handleError(error, {
@@ -88,7 +84,6 @@ const loadModel = (
 };
 
 export const useCustomerPointsImportReset = () => {
-  const isIdPoolsOn = useFeatureFlag("FLAG_ID_POOLS");
   const customerPointsImportReset = useAtomCallback(
     useCallback(
       async (
@@ -98,9 +93,9 @@ export const useCustomerPointsImportReset = () => {
       ) => {
         resetAppState(set);
         await clearSimulationStorage();
-        loadModel(get, set, input, isIdPoolsOn);
+        loadModel(get, set, input);
       },
-      [isIdPoolsOn],
+      [],
     ),
   );
 

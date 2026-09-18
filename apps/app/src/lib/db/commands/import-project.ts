@@ -2,7 +2,6 @@ import type { HydraulicModel } from "src/hydraulic-model";
 import type { ProjectSettings } from "@epanet-js/project-settings";
 import type { Zones } from "src/lib/zones";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
-import type { IdPoolSeeds } from "@epanet-js/id-generator";
 import { getWorker, timed } from "@epanet-js/ejsdb";
 import {
   assetsToRows,
@@ -12,7 +11,6 @@ import {
   serializeRawControls,
   serializeControls,
   serializePipeLibrary,
-  serializeIdPools,
   junctionDemandsToRows,
 } from "@epanet-js/ejsdb-mappers";
 import { serializeProjectSettings } from "../mappers/project-settings/to-rows";
@@ -25,7 +23,6 @@ export type ImportProjectInput = {
   zones?: Zones;
   hydraulicModel: HydraulicModel;
   simulationSettings: SimulationSettings;
-  idPools: IdPoolSeeds | null;
 };
 
 export const importProject = async (
@@ -46,7 +43,6 @@ export const importProject = async (
       newDb: input.newDb ?? false,
       projectSettings,
       pipeLibrary,
-      idPools: input.idPools === null ? null : serializeIdPools(input.idPools),
       zones,
       assets,
       customerPoints: customerPointsToRows(

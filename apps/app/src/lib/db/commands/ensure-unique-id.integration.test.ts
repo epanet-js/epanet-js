@@ -14,7 +14,6 @@ const UUID_REGEX =
 
 const seedProject = async () => {
   await importProject({
-    idPools: null,
     newDb: true,
     hydraulicModel: HydraulicModelBuilder.with().aJunction(1).build(),
     projectSettings: defaultProjectSettings,

@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useSetAtom } from "jotai";
 import { nanoid } from "nanoid";
 import type { Zones } from "src/lib/zones";
 import { zonesAtom } from "src/state/zones";
@@ -9,17 +9,12 @@ import { saveZones, serializeZones } from "src/lib/db";
 import { captureError } from "src/infra/error-tracking";
 import { writeQueue } from "src/lib/persistence/write-queue";
 import { useWriteFailureHandler } from "src/hooks/persistence/use-write-failure-handler";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { modelFactoriesAtom } from "src/state/model-factories";
-import { idPoolsToPersist } from "src/lib/id-pools";
 
 export const useZonesTransaction = () => {
   const setZones = useSetAtom(zonesAtom);
   const setProjectDataVersion = useSetAtom(projectDataVersionAtom);
   const setDialog = useSetAtom(dialogAtom);
   const onWriteFailure = useWriteFailureHandler();
-  const isIdPoolsOn = useFeatureFlag("FLAG_ID_POOLS");
-  const { idPools } = useAtomValue(modelFactoriesAtom);
 
   const transact = useCallback(
     (next: Zones): Promise<boolean> => {
@@ -34,22 +29,11 @@ export const useZonesTransaction = () => {
       setZones(next);
       setProjectDataVersion(nanoid());
 
-      const idPoolsSnapshot = idPoolsToPersist(isIdPoolsOn, idPools);
-      writeQueue.enqueue(
-        () => saveZones(next, idPoolsSnapshot),
-        onWriteFailure,
-      );
+      writeQueue.enqueue(() => saveZones(next), onWriteFailure);
 
       return Promise.resolve(true);
     },
-    [
-      setZones,
-      setProjectDataVersion,
-      setDialog,
-      onWriteFailure,
-      isIdPoolsOn,
-      idPools,
-    ],
+    [setZones, setProjectDataVersion, setDialog, onWriteFailure],
   );
 
   return { transact };

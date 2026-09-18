@@ -15,14 +15,11 @@ import type {
 import { applyChangeSetToDb } from "src/lib/db";
 import type { Direction } from "@epanet-js/change-set";
 import { timedSync } from "@epanet-js/ejsdb";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   writeQueue,
   type WriteFailureHandler,
 } from "src/lib/persistence/write-queue";
 import { useWriteFailureHandler } from "src/hooks/persistence/use-write-failure-handler";
-import { modelFactoriesAtom } from "src/state/model-factories";
-import { idPoolsToPersist } from "src/lib/id-pools";
 
 const commitHistoryEntry = (
   get: Getter,
@@ -30,7 +27,6 @@ const commitHistoryEntry = (
   direction: "undo" | "redo",
   entry: HistoryEntry,
   sessionHistory: SessionHistory,
-  withIdPools: boolean,
   onWriteFailure: WriteFailureHandler,
 ) => {
   const isUndo = direction === "undo";
@@ -56,12 +52,8 @@ const commitHistoryEntry = (
   isUndo ? sessionHistory.undo() : sessionHistory.redo();
 
   if (willPersist) {
-    const idPools = idPoolsToPersist(
-      withIdPools,
-      get(modelFactoriesAtom).idPools,
-    );
     writeQueue.enqueue(
-      () => applyChangeSetToDb(entry.changeSet, changeDirection, idPools),
+      () => applyChangeSetToDb(entry.changeSet, changeDirection),
       onWriteFailure,
     );
   }
@@ -77,7 +69,6 @@ const nextEntry = (
 
 export const useUndoableTransactions = () => {
   const onWriteFailure = useWriteFailureHandler();
-  const isIdPoolsOn = useFeatureFlag("FLAG_ID_POOLS");
 
   const historyControl = useAtomCallback(
     useCallback(
@@ -96,7 +87,6 @@ export const useUndoableTransactions = () => {
             direction,
             entry,
             sessionHistory,
-            isIdPoolsOn,
             onWriteFailure,
           );
           return true;
@@ -104,7 +94,7 @@ export const useUndoableTransactions = () => {
           set(historyPendingAtom, false);
         }
       },
-      [onWriteFailure, isIdPoolsOn],
+      [onWriteFailure],
     ),
   );
 
