@@ -2000,7 +2000,7 @@
     "title": "Collections",
     "selectionSets": {
       "title": "Selection sets",
-      "current": "Current selection",
+      "saveCurrent": "Save current selection",
       "nothingSelected": "Nothing selected",
       "save": "Save selection",
       "selectOnly": "Select only",
@@ -2009,7 +2009,7 @@
     },
     "bookmarks": {
       "title": "Bookmarks",
-      "current": "Current map area",
+      "saveCurrent": "Save current map area",
       "add": "Add bookmark",
       "newName": "New bookmark name",
       "namePlaceholder": "Bookmark name"

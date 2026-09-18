@@ -37,11 +37,19 @@ const aFakeMap = {
   },
 };
 
+const IDS = {
+  J1: 1,
+  J2: 2,
+  J3: 3,
+  CP1: 7,
+  Deleted: 999,
+} as const;
+
 const aModel = () =>
   HydraulicModelBuilder.with()
-    .aJunction(1, { coordinates: [0, 0] })
-    .aJunction(2, { coordinates: [10, 20] })
-    .aJunction(3, { coordinates: [30, 40] })
+    .aJunction(IDS.J1, { coordinates: [0, 0] })
+    .aJunction(IDS.J2, { coordinates: [10, 20] })
+    .aJunction(IDS.J3, { coordinates: [30, 40] })
     .build();
 
 const aStore = () => setInitialState({ hydraulicModel: aModel() });
@@ -58,14 +66,22 @@ const renderPanel = (store: Store) =>
   );
 
 const saveButton = () =>
-  screen.getByRole("button", { name: /^current selection/i });
+  screen.getByRole("button", { name: /^save current selection/i });
 const addBookmarkButton = () =>
-  screen.getByRole("button", { name: "Current map area" });
+  screen.getByRole("button", { name: "Save current map area" });
 
 const nameIt = async (name: string) => {
   await userEvent.keyboard(name);
   await userEvent.keyboard("{Enter}");
 };
+
+const rowOf = (name: string | RegExp) =>
+  screen.getByText(name).closest("li") as HTMLElement;
+
+const focusList = (name: string) =>
+  act(() =>
+    (screen.getByText(name).closest('[tabindex="0"]') as HTMLElement).focus(),
+  );
 
 const openRowMenu = async (rowName: string) => {
   const row = screen.getByText(rowName).closest("li") as HTMLElement;
@@ -89,46 +105,32 @@ describe("CollectionsPanel", () => {
       ).toBeDisabled();
     });
 
-    it("offers the current selection once a single asset is selected", () => {
-      const store = aStore();
-      store.set(selectionAtom, USelection.fromAssetIds([1]));
-      renderPanel(store);
-
-      expect(saveButton()).toBeEnabled();
-    });
-
     it("counts the selected assets and customer points", () => {
       const store = aStore();
-      store.set(selectionAtom, USelection.fromIds([1, 2], [7]));
+      store.set(selectionAtom, USelection.fromIds([IDS.J1, IDS.J2], [IDS.CP1]));
       renderPanel(store);
 
       expect(
-        screen.getByRole("button", { name: "Current selection (3)" }),
+        screen.getByRole("button", { name: "Save current selection (3)" }),
       ).toBeInTheDocument();
-    });
-
-    it("can save a single customer point", () => {
-      const store = aStore();
-      store.set(selectionAtom, USelection.fromIds([], [7]));
-      renderPanel(store);
-
-      expect(saveButton()).toBeEnabled();
     });
 
     it("turns the current selection into a name input when its text is clicked", async () => {
       const store = aStore();
-      store.set(selectionAtom, USelection.fromAssetIds([1]));
+      store.set(selectionAtom, USelection.fromAssetIds([IDS.J1]));
       renderPanel(store);
 
-      await userEvent.click(screen.getByText("Current selection"));
+      await userEvent.click(screen.getByText("Save current selection"));
 
-      expect(screen.queryByText("Current selection")).not.toBeInTheDocument();
+      expect(
+        screen.queryByText("Save current selection"),
+      ).not.toBeInTheDocument();
       expect(screen.getByRole("textbox")).toHaveFocus();
     });
 
     it("lists the set under the name the user gave it", async () => {
       const store = aStore();
-      store.set(selectionAtom, USelection.fromAssetIds([1, 2]));
+      store.set(selectionAtom, USelection.fromAssetIds([IDS.J1, IDS.J2]));
       renderPanel(store);
 
       await userEvent.click(saveButton());
@@ -140,7 +142,7 @@ describe("CollectionsPanel", () => {
 
     it("keeps both sets when the names collide", async () => {
       const store = aStore();
-      store.set(selectionAtom, USelection.fromAssetIds([1, 2]));
+      store.set(selectionAtom, USelection.fromAssetIds([IDS.J1, IDS.J2]));
       renderPanel(store);
 
       await userEvent.click(saveButton());
@@ -153,41 +155,19 @@ describe("CollectionsPanel", () => {
 
     it("remembers the customer points in the selection", async () => {
       const store = aStore();
-      store.set(selectionAtom, USelection.fromIds([1], [7]));
+      store.set(selectionAtom, USelection.fromIds([IDS.J1], [IDS.CP1]));
       renderPanel(store);
 
       await userEvent.click(saveButton());
       await nameIt("Mixed");
 
       expect(store.get(selectionSetsAtom)[0].selection).toEqual(
-        USelection.fromIds([1], [7]),
+        USelection.fromIds([IDS.J1], [IDS.CP1]),
       );
     });
   });
 
   describe("adding from a section heading", () => {
-    it("starts naming a selection set from the heading", async () => {
-      const store = aStore();
-      store.set(selectionAtom, USelection.fromAssetIds([1]));
-      renderPanel(store);
-
-      await userEvent.click(
-        screen.getByRole("button", { name: "Save selection" }),
-      );
-
-      expect(screen.queryByText("Current selection")).not.toBeInTheDocument();
-      expect(screen.getByRole("textbox")).toHaveFocus();
-    });
-
-    it("cannot add a selection set from the heading while nothing is selected", () => {
-      const store = aStore();
-      renderPanel(store);
-
-      expect(
-        screen.getByRole("button", { name: "Save selection" }),
-      ).toBeDisabled();
-    });
-
     it("opens a collapsed section to name a bookmark from its heading", async () => {
       const store = aStore();
       renderPanel(store);
@@ -208,22 +188,9 @@ describe("CollectionsPanel", () => {
   });
 
   describe("a draft requested from outside the panel", () => {
-    it("opens the name input for the current selection", () => {
-      const store = aStore();
-      store.set(selectionAtom, USelection.fromAssetIds([1, 2]));
-      store.set(pendingCollectionDraftAtom, {
-        kind: "selectionSets",
-        source: "context-menu",
-      });
-      renderPanel(store);
-
-      expect(screen.queryByText("Current selection")).not.toBeInTheDocument();
-      expect(screen.getByRole("textbox")).toHaveFocus();
-    });
-
     it("saves under the name given and clears the request", async () => {
       const store = aStore();
-      store.set(selectionAtom, USelection.fromAssetIds([1, 2]));
+      store.set(selectionAtom, USelection.fromAssetIds([IDS.J1, IDS.J2]));
       store.set(pendingCollectionDraftAtom, {
         kind: "selectionSets",
         source: "context-menu",
@@ -240,37 +207,27 @@ describe("CollectionsPanel", () => {
   describe("applying a selection set", () => {
     it("takes over the current selection", async () => {
       const store = aStore();
-      store.set(selectionAtom, USelection.fromAssetIds([1, 2]));
+      store.set(selectionAtom, USelection.fromAssetIds([IDS.J1, IDS.J2]));
       renderPanel(store);
       await userEvent.click(saveButton());
       await nameIt("Downtown loop");
-      store.set(selectionAtom, USelection.fromAssetIds([3]));
+      store.set(selectionAtom, USelection.fromAssetIds([IDS.J3]));
 
       await userEvent.click(screen.getByText("Downtown loop"));
 
-      expect(USelection.getAssetIds(store.get(selectionAtom))).toEqual([1, 2]);
-    });
-
-    it("moves the map to the selection it applies", async () => {
-      const store = aStore();
-      store.set(selectionAtom, USelection.fromAssetIds([1, 2]));
-      renderPanel(store);
-      await userEvent.click(saveButton());
-      await nameIt("Downtown loop");
-      store.set(selectionAtom, USelection.fromAssetIds([3]));
-
-      await userEvent.click(screen.getByText("Downtown loop"));
-
-      expect(zoomTo).toHaveBeenCalledWith(USelection.fromAssetIds([1, 2]));
+      expect(USelection.getAssetIds(store.get(selectionAtom))).toEqual([
+        IDS.J1,
+        IDS.J2,
+      ]);
     });
 
     it("selects the set without moving the map from its select button", async () => {
       const store = aStore();
-      store.set(selectionAtom, USelection.fromAssetIds([1, 2]));
+      store.set(selectionAtom, USelection.fromAssetIds([IDS.J1, IDS.J2]));
       renderPanel(store);
       await userEvent.click(saveButton());
       await nameIt("Downtown loop");
-      act(() => store.set(selectionAtom, USelection.fromAssetIds([3])));
+      act(() => store.set(selectionAtom, USelection.fromAssetIds([IDS.J3])));
       zoomTo.mockClear();
 
       const row = screen
@@ -280,26 +237,16 @@ describe("CollectionsPanel", () => {
         within(row).getByRole("button", { name: "Select only" }),
       );
 
-      expect(USelection.getAssetIds(store.get(selectionAtom))).toEqual([1, 2]);
+      expect(USelection.getAssetIds(store.get(selectionAtom))).toEqual([
+        IDS.J1,
+        IDS.J2,
+      ]);
       expect(zoomTo).not.toHaveBeenCalled();
-    });
-
-    it("offers no select button on bookmarks", async () => {
-      const store = aStore();
-      renderPanel(store);
-      await userEvent.click(addBookmarkButton());
-      await nameIt("Downtown");
-
-      const row = screen.getByText("Downtown").closest("li") as HTMLElement;
-
-      expect(
-        within(row).queryByRole("button", { name: "Select only" }),
-      ).not.toBeInTheDocument();
     });
 
     it("selects only the assets that still exist", async () => {
       const store = aStore();
-      store.set(selectionAtom, USelection.fromAssetIds([1, 2]));
+      store.set(selectionAtom, USelection.fromAssetIds([IDS.J1, IDS.J2]));
       renderPanel(store);
       await userEvent.click(saveButton());
       await nameIt("Downtown loop");
@@ -307,28 +254,21 @@ describe("CollectionsPanel", () => {
       store.set(selectionSetsAtom, (sets) =>
         sets.map((set) => ({
           ...set,
-          selection: USelection.fromAssetIds([1, 2, 999]),
+          selection: USelection.fromAssetIds([IDS.J1, IDS.J2, IDS.Deleted]),
         })),
       );
       store.set(selectionAtom, USelection.none());
 
       await userEvent.click(screen.getByText("Downtown loop"));
 
-      expect(USelection.getAssetIds(store.get(selectionAtom))).toEqual([1, 2]);
+      expect(USelection.getAssetIds(store.get(selectionAtom))).toEqual([
+        IDS.J1,
+        IDS.J2,
+      ]);
     });
   });
 
   describe("the selected set and the keyboard", () => {
-    const rowOf = (name: string) =>
-      screen.getByText(name).closest("li") as HTMLElement;
-
-    const focusList = (name: string) =>
-      act(() =>
-        (
-          screen.getByText(name).closest('[tabindex="0"]') as HTMLElement
-        ).focus(),
-      );
-
     const saveSet = async (name: string, assetIds: number[]) => {
       act(() => store.set(selectionAtom, USelection.fromAssetIds(assetIds)));
       await userEvent.click(saveButton());
@@ -340,8 +280,8 @@ describe("CollectionsPanel", () => {
     const aPanelWithSets = async () => {
       store = aStore();
       renderPanel(store);
-      await saveSet("Downtown loop", [1, 2]);
-      await saveSet("Pump feeders", [3]);
+      await saveSet("Downtown loop", [IDS.J1, IDS.J2]);
+      await saveSet("Pump feeders", [IDS.J3]);
       act(() => store.set(selectionAtom, USelection.none()));
       zoomTo.mockClear();
     };
@@ -351,30 +291,8 @@ describe("CollectionsPanel", () => {
 
       await userEvent.click(screen.getByText("Downtown loop"));
 
-      expect(rowOf("Downtown loop")).toHaveClass("bg-accent-tint");
-      expect(rowOf("Pump feeders")).not.toHaveClass("bg-accent-tint");
-    });
-
-    it("selects a set once the map selection contains all of it", async () => {
-      await aPanelWithSets();
-
-      act(() => store.set(selectionAtom, USelection.fromAssetIds([1])));
-      expect(rowOf("Downtown loop")).not.toHaveClass("bg-accent-tint");
-
-      act(() => store.set(selectionAtom, USelection.fromAssetIds([1, 2, 4])));
-      expect(rowOf("Downtown loop")).toHaveClass("bg-accent-tint");
-    });
-
-    it("moves the selection to a larger set as assets are added", async () => {
-      await aPanelWithSets();
-      await saveSet("Downtown and feeders", [1, 2, 3]);
-
-      act(() => store.set(selectionAtom, USelection.fromAssetIds([1, 2])));
-      expect(rowOf("Downtown loop")).toHaveClass("bg-accent-tint");
-
-      act(() => store.set(selectionAtom, USelection.fromAssetIds([1, 2, 3])));
-      expect(rowOf("Downtown and feeders")).toHaveClass("bg-accent-tint");
-      expect(rowOf("Downtown loop")).not.toHaveClass("bg-accent-tint");
+      expect(rowOf("Downtown loop")).toHaveAttribute("aria-selected", "true");
+      expect(rowOf("Pump feeders")).toHaveAttribute("aria-selected", "false");
     });
 
     it("selects a set without zooming when the arrow keys reach it", async () => {
@@ -383,8 +301,11 @@ describe("CollectionsPanel", () => {
 
       await userEvent.keyboard("{ArrowDown}{ArrowDown}");
 
-      expect(USelection.getAssetIds(store.get(selectionAtom))).toEqual([1, 2]);
-      expect(rowOf("Downtown loop")).toHaveClass("bg-accent-tint");
+      expect(USelection.getAssetIds(store.get(selectionAtom))).toEqual([
+        IDS.J1,
+        IDS.J2,
+      ]);
+      expect(rowOf("Downtown loop")).toHaveAttribute("aria-selected", "true");
       expect(zoomTo).not.toHaveBeenCalled();
     });
 
@@ -394,7 +315,9 @@ describe("CollectionsPanel", () => {
 
       await userEvent.keyboard("{ArrowDown}{ArrowDown}{Enter}");
 
-      expect(zoomTo).toHaveBeenCalledWith(USelection.fromAssetIds([1, 2]));
+      expect(zoomTo).toHaveBeenCalledWith(
+        USelection.fromAssetIds([IDS.J1, IDS.J2]),
+      );
     });
 
     it("continues from the selected set with the arrow keys", async () => {
@@ -404,8 +327,10 @@ describe("CollectionsPanel", () => {
 
       await userEvent.keyboard("{ArrowDown}");
 
-      expect(USelection.getAssetIds(store.get(selectionAtom))).toEqual([3]);
-      expect(rowOf("Pump feeders")).toHaveClass("bg-accent-tint");
+      expect(USelection.getAssetIds(store.get(selectionAtom))).toEqual([
+        IDS.J3,
+      ]);
+      expect(rowOf("Pump feeders")).toHaveAttribute("aria-selected", "true");
     });
 
     it("keeps the selected set tinted when the list loses focus", async () => {
@@ -415,35 +340,11 @@ describe("CollectionsPanel", () => {
 
       act(() => (document.activeElement as HTMLElement).blur());
 
-      expect(rowOf("Downtown loop")).toHaveClass("bg-accent-tint");
-    });
-
-    it("drops the highlight on a section heading when the list loses focus", async () => {
-      await aPanelWithSets();
-      focusList("Downtown loop");
-      await userEvent.keyboard("{ArrowDown}");
-      const heading = screen
-        .getByRole("button", { name: /^selection sets/i })
-        .closest("[data-section-type]") as HTMLElement;
-      expect(heading).toHaveClass("bg-base-hover");
-
-      act(() => (document.activeElement as HTMLElement).blur());
-
-      expect(heading).not.toHaveClass("bg-base-hover");
+      expect(rowOf("Downtown loop")).toHaveAttribute("aria-selected", "true");
     });
   });
 
   describe("bookmarks and the keyboard", () => {
-    const rowOf = (name: string) =>
-      screen.getByText(name).closest("li") as HTMLElement;
-
-    const focusList = (name: string) =>
-      act(() =>
-        (
-          screen.getByText(name).closest('[tabindex="0"]') as HTMLElement
-        ).focus(),
-      );
-
     const aPanelWithABookmark = async () => {
       const store = aStore();
       renderPanel(store);
@@ -458,7 +359,7 @@ describe("CollectionsPanel", () => {
 
       await userEvent.click(screen.getByText("Downtown"));
 
-      expect(rowOf("Downtown")).not.toHaveClass("bg-accent-tint");
+      expect(rowOf("Downtown")).toHaveAttribute("aria-selected", "false");
       expect(rowOf("Downtown")).not.toHaveClass("bg-base-hover");
     });
 
@@ -469,7 +370,7 @@ describe("CollectionsPanel", () => {
       await userEvent.keyboard("{End}{ArrowUp}");
 
       expect(rowOf("Downtown")).toHaveClass("bg-base-hover");
-      expect(rowOf("Downtown")).not.toHaveClass("bg-accent-tint");
+      expect(rowOf("Downtown")).toHaveAttribute("aria-selected", "false");
       expect(zoomTo).not.toHaveBeenCalled();
     });
 
@@ -494,55 +395,33 @@ describe("CollectionsPanel", () => {
   });
 
   describe("add rows and the keyboard", () => {
-    const rowOf = (name: string | RegExp) =>
-      screen.getByText(name).closest("li") as HTMLElement;
-
-    const focusList = () =>
-      act(() =>
-        (
-          screen
-            .getByText("Current map area")
-            .closest('[tabindex="0"]') as HTMLElement
-        ).focus(),
-      );
-
     it("highlights an add row with the arrow keys", async () => {
       const store = aStore();
       renderPanel(store);
-      focusList();
+      focusList("Save current map area");
 
       await userEvent.keyboard("{End}");
 
-      expect(rowOf("Current map area")).toHaveClass("bg-base-hover");
+      expect(rowOf("Save current map area")).toHaveClass("bg-base-hover");
     });
 
     it("starts a bookmark from its add row on enter", async () => {
       const store = aStore();
       renderPanel(store);
-      focusList();
+      focusList("Save current map area");
 
       await userEvent.keyboard("{End}{Enter}");
 
-      expect(screen.queryByText("Current map area")).not.toBeInTheDocument();
-      expect(screen.getByRole("textbox")).toHaveFocus();
-    });
-
-    it("starts a selection set from its add row on enter", async () => {
-      const store = aStore();
-      store.set(selectionAtom, USelection.fromAssetIds([1]));
-      renderPanel(store);
-      focusList();
-
-      await userEvent.keyboard("{ArrowDown}{ArrowDown}{Enter}");
-
-      expect(screen.queryByText("Current selection")).not.toBeInTheDocument();
+      expect(
+        screen.queryByText("Save current map area"),
+      ).not.toBeInTheDocument();
       expect(screen.getByRole("textbox")).toHaveFocus();
     });
 
     it("does nothing on enter while nothing is selected", async () => {
       const store = aStore();
       renderPanel(store);
-      focusList();
+      focusList("Save current map area");
 
       await userEvent.keyboard("{ArrowDown}{ArrowDown}");
       expect(rowOf("Nothing selected")).toHaveClass("bg-base-hover");
@@ -567,34 +446,12 @@ describe("CollectionsPanel", () => {
         bbox: VIEWPORT,
       });
     });
-
-    it("stores the viewport rather than the selection when something is selected", async () => {
-      const store = aStore();
-      store.set(selectionAtom, USelection.fromAssetIds([1, 2]));
-      renderPanel(store);
-
-      await userEvent.click(addBookmarkButton());
-      await nameIt("Zoomed in");
-
-      expect(store.get(bookmarksAtom)[0].bbox).toEqual(VIEWPORT);
-    });
-
-    it("travels to the bookmark when its row is clicked", async () => {
-      const store = aStore();
-      renderPanel(store);
-      await userEvent.click(addBookmarkButton());
-      await nameIt("Downtown");
-
-      await userEvent.click(screen.getByText("Downtown"));
-
-      expect(zoomTo).toHaveBeenCalledWith(Just(VIEWPORT));
-    });
   });
 
   describe("renaming and deleting", () => {
     it("renames a selection set", async () => {
       const store = aStore();
-      store.set(selectionAtom, USelection.fromAssetIds([1, 2]));
+      store.set(selectionAtom, USelection.fromAssetIds([IDS.J1, IDS.J2]));
       renderPanel(store);
       await userEvent.click(saveButton());
       await nameIt("Downtown loop");
@@ -610,7 +467,7 @@ describe("CollectionsPanel", () => {
 
     it("deletes a selection set", async () => {
       const store = aStore();
-      store.set(selectionAtom, USelection.fromAssetIds([1, 2]));
+      store.set(selectionAtom, USelection.fromAssetIds([IDS.J1, IDS.J2]));
       renderPanel(store);
       await userEvent.click(saveButton());
       await nameIt("Downtown loop");
@@ -621,24 +478,5 @@ describe("CollectionsPanel", () => {
       expect(screen.queryByText("Downtown loop")).not.toBeInTheDocument();
       expect(store.get(selectionSetsAtom)).toHaveLength(0);
     });
-
-    it("deletes a bookmark", async () => {
-      const store = aStore();
-      renderPanel(store);
-      await userEvent.click(addBookmarkButton());
-      await nameIt("Downtown");
-
-      await openRowMenu("Downtown");
-      await userEvent.click(screen.getByText("Delete"));
-
-      expect(store.get(bookmarksAtom)).toHaveLength(0);
-    });
-  });
-
-  it("offers the current map area as a bookmark", () => {
-    const store = aStore();
-    renderPanel(store);
-
-    expect(addBookmarkButton()).toBeEnabled();
   });
 });

@@ -390,7 +390,7 @@ export const CollectionsPanel = () => {
             <CurrentStateRow
               label={
                 canSaveSelection
-                  ? translate("collections.selectionSets.current")
+                  ? translate("collections.selectionSets.saveCurrent")
                   : translate("collections.selectionSets.nothingSelected")
               }
               count={canSaveSelection ? assets + customerPoints : undefined}
@@ -424,7 +424,7 @@ export const CollectionsPanel = () => {
             />
           ) : (
             <CurrentStateRow
-              label={translate("collections.bookmarks.current")}
+              label={translate("collections.bookmarks.saveCurrent")}
               navId={addRowNavIds.bookmarks}
               isFocused={focusedAddRow === "bookmarks"}
               onAdd={() => handleNew("bookmarks", "collections-add-row")}

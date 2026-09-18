@@ -44,6 +44,7 @@ export const ListItem = <T extends LabelledItem>({
   return (
     <li
       data-item-id={item.id}
+      aria-selected={isSelected}
       className={`group flex items-center justify-between text-sm cursor-pointer h-8 min-w-0 rounded-sm ${
         isSelected
           ? "bg-accent-tint"
