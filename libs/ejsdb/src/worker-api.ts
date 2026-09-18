@@ -1569,11 +1569,6 @@ export const api = {
     });
   },
 
-  async applyMoment(payload: WriteBatch): Promise<void> {
-    if (isEmptyWriteBatch(payload)) return;
-    return applyWriteBatch("moment:write", payload, null);
-  },
-
   async applyChangeSet(
     bytes: Uint8Array,
     direction: Direction,

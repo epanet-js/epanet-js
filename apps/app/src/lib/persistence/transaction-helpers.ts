@@ -5,7 +5,6 @@ import {
   type HydraulicModel,
   type Asset,
   updateHydraulicModelAssets,
-  applyMomentToModel,
 } from "src/hydraulic-model";
 import { CustomerPoints } from "@epanet-js/hydraulic-model";
 import type { ChangeSet, Direction } from "@epanet-js/change-set";
@@ -59,38 +58,6 @@ export function processMoment(
     note: moment.note || "Update",
     putAssets: ensureAtValues(moment.putAssets, hydraulicModel),
   };
-}
-
-export function applyMoment(
-  get: Getter,
-  set: Setter,
-  stateId: string,
-  forwardMoment: Moment,
-  modelAtom: WritableAtom<HydraulicModel, [HydraulicModel], void>,
-): Moment {
-  const hydraulicModel = get(modelAtom);
-
-  const processedMoment = processMoment(forwardMoment, hydraulicModel);
-
-  const factories = get(modelFactoriesAtom);
-  const reverseMoment = applyMomentToModel(
-    hydraulicModel,
-    processedMoment,
-    factories.labelManager,
-  );
-
-  commitModel(set, stateId, hydraulicModel, modelAtom, {
-    rebuildCustomerPoints:
-      (forwardMoment.putCustomerPoints || []).length > 0 ||
-      (forwardMoment.deleteCustomerPoints || []).length > 0,
-    rebuildCurves: Boolean(
-      forwardMoment.putCurves && forwardMoment.putCurves.size > 0,
-    ),
-  });
-
-  set(mapEditionsTrackerAtom, (prev) => prev.record(processedMoment));
-
-  return reverseMoment;
 }
 
 export function applyChange(
@@ -151,12 +118,4 @@ function commitModel(
     customerPoints,
     curves,
   });
-}
-
-export type HistoryAction = { moment: Moment; stateId: string };
-
-export function prepareHistoryAction(
-  action: HistoryAction,
-): Promise<HistoryAction> {
-  return Promise.resolve(action);
 }

@@ -129,12 +129,11 @@ existed rather than creating a new one.
 
 `applyChangeSet` mutates **the model and the label manager, and nothing else.**
 It does not touch the id generator, does not re-sort assets, and does not set
-`version`. Those belong to the caller, exactly as they do for the moment applier
-today (see `applyMoment` in `src/lib/persistence/transaction-helpers.ts`).
+`version`. Those belong to the caller (`applyChange` in
+`src/lib/persistence/transaction-helpers.ts`).
 
 `ApplyReport.touchedEntities` is what a caller needs to decide what to
-re-instantiate — the two conditionals in `applyMoment` that today read the moment
-directly. `touchedAssetIds` is what the map's edition tracker needs.
+re-instantiate. `touchedAssetIds` is what the map's edition tracker needs.
 
 ## The id generator is not this directory's problem
 

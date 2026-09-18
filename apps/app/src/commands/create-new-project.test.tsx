@@ -74,10 +74,7 @@ describe("create new project", () => {
       fileInfo: previousFileInfo,
       isProjectSaved: false,
     });
-    const previousEditions = new MapEditionsTracker().record({
-      note: "Edit",
-      deleteAssets: [IDS.J1],
-    });
+    const previousEditions = new MapEditionsTracker().recordAssetIds([IDS.J1]);
     store.set(mapEditionsTrackerAtom, previousEditions);
 
     renderComponent({ store });

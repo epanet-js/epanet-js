@@ -1,6 +1,5 @@
 import { nanoid } from "nanoid";
 import type { AssetId } from "src/hydraulic-model";
-import type { Moment } from "src/lib/persistence/moment";
 
 const INITIAL_SEQ = 0;
 const INITIAL_SYNC_SEQ = -1;
@@ -21,14 +20,6 @@ export class MapEditionsTracker {
     this.seq = INITIAL_SEQ;
     this.syncSeq = INITIAL_SYNC_SEQ;
     this.lastChangedAt = new Map();
-  }
-
-  record(moment: Moment): MapEditionsTracker {
-    return this.recordAssetIds([
-      ...(moment.deleteAssets || []),
-      ...(moment.putAssets || []).map((asset) => asset.id),
-      ...(moment.patchAssetsAttributes || []).map((patch) => patch.id),
-    ]);
   }
 
   recordAssetIds(assetIds: Iterable<AssetId>): MapEditionsTracker {

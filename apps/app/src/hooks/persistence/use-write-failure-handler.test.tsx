@@ -117,7 +117,7 @@ describe("useWriteFailureHandler", () => {
       const { result } = renderHandler(store);
 
       await act(async () => {
-        result.current(new Error("[applyMoment] No database open"));
+        result.current(new Error("[applyChangeSet] No database open"));
         await flush();
       });
 

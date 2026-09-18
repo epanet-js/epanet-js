@@ -39,7 +39,7 @@ Key pieces:
   schemas, and `APP_VERSION`.
 - `src/worker-api.ts` — the `DbWorkerApi` implementation: `newDb`, `openDb`,
   `exportDb`, per-table getters (`getJunctions`, `getPipes`, …), bulk setters
-  (`setAllAssets`, …), and `applyMoment` for incremental edits.
+  (`setAllAssets`, …), and `applyChangeSet` for incremental edits.
 - `src/get-worker.ts` — lazily spawns the worker and wraps it with Comlink.
   Provides test hooks (`setWorkerForTest`, `resetWorkerForTest`).
 - `src/migrations/` — sequential, forward-only `NNNN_*.sql` files plus an `index.ts`

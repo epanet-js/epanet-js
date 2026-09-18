@@ -65,35 +65,30 @@ With it on, one edit prints the whole pipeline, `db [main]` and `db [worker]` in
     db [worker] changeSet:toRows  direction=forward bytes=512 records=3
     db [worker] changeSet:write   upJ=1 patP=1 ...
 
-`moment:build` / `moment:apply` / `moment:save` / `moment:write` are the same four stages on
-the other path, so a flag-on and a flag-off run of the same edit line up. `changeSet:save`
-brackets the whole worker round trip, so `save − (toRows + write)` is what the boundary
-costs.
+`changeSet:save` brackets the whole worker round trip, so `save − (toRows + write)` is what
+the boundary costs.
 
 ## `src/change-set/` — rows from a change set
 
 `applyChangeSet(bytes, direction)` decodes a `@epanet-js/change-set` blob and maps its
-records to the same rows `applyMoment` writes, then runs the identical transaction. The
-mapping lives here, in the worker, so a change set crosses the boundary as one
-`Uint8Array` rather than as a cloned row set.
+records to rows, then writes them in one transaction. The mapping lives here, in the
+worker, so a change set crosses the boundary as one `Uint8Array` rather than as a cloned
+row set.
 
 - **`columns.ts` is the single source of truth for what gets persisted**, for creates and
-  updates, on both write paths — the app's moment patches import the same maps. A property
-  with a matching column is silently not written until it has an entry.
+  updates. A property with a matching column is silently not written until it has an
+  entry.
 - A map entry is a function from one field value to a partial row, so one field can fan out
   to several columns (`coordinates` → `coord_x`/`coord_y`, `connections` →
   `start_node_id`/`end_node_id`). `patchFrom` iterates the fields (partial bag → patch),
   `rowFrom` iterates the map (complete bag → full row, absent optionals becoming `null`).
 - **`to-payload.ts` does not validate.** A change set arrives already checked — and, for the
   whole values stored as a single JSON column, already normalised to its schema — so the
-  mapping trusts it and the row Zod schemas are not run on this path. They still guard the
-  moment path and every read. See `public/apps/app/guidelines/persistence.md`.
+  mapping trusts it and the row Zod schemas are not run on this path. They still guard
+  every read. See `public/apps/app/guidelines/persistence.md`.
 - `CUSTOM_ATTRIBUTE_KEY_PREFIX` (`src/schema/custom-attributes-data.ts`) must stay equal to
   the model's `CUSTOM_PROPERTY_PREFIX`; an app test asserts it, because this package does
   not depend on `@epanet-js/hydraulic-model` and should not start.
-
-None of this is a file-format change: the rows and their column lists are the same ones the
-moment path writes.
 
 ## Migration procedure
 

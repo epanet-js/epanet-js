@@ -52,12 +52,3 @@ export type AssetPatchRows = {
   pumps: PumpPatchRow[];
   valves: ValvePatchRow[];
 };
-
-export const emptyAssetPatchRows = (): AssetPatchRows => ({
-  junctions: [],
-  reservoirs: [],
-  tanks: [],
-  pipes: [],
-  pumps: [],
-  valves: [],
-});
