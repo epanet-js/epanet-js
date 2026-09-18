@@ -14,6 +14,7 @@ import {
 } from "@epanet-js/converters";
 import type { GisInput } from "../importer";
 import { gisFormatOf, isGisSecondaryPart } from "./formats";
+import { readDxf } from "./parse-dxf";
 
 export type ParsedGisSource = {
   features: Feature[];
@@ -131,7 +132,34 @@ const decode = async (input: GisInput): Promise<DecodedSource> => {
   const primary = files.find((file) => !isGisSecondaryPart(file.name));
   if (primary === undefined) return failure("sourceFilesIncomplete");
 
-  return parseGeoJson(primary, input);
+  if (gisFormatOf(primary.name)?.id === "dxf") {
+    return parseDxf(await primary.arrayBuffer(), input);
+  }
+
+  const content = await textOf(primary);
+
+  return looksLikeDxf(content)
+    ? parseDxf(await primary.arrayBuffer(), input)
+    : parseGeoJson(content, input);
+};
+
+const DXF_START = /^(?:\s*999[^\n]*\n[^\n]*\n)*\s*0[^\S\n]*\r?\n\s*SECTION/;
+
+const looksLikeDxf = (content: string): boolean => DXF_START.test(content);
+
+const parseDxf = (
+  bytes: ArrayBuffer,
+  { crs, projections }: GisInput,
+): DecodedSource => {
+  const parsed = readDxf(bytes);
+  if (parsed === null) return failure("sourceUnreadable");
+  if (!parsed.features.some(hasGeometry)) return failure("sourceEmpty");
+
+  return placeFeatures({
+    features: parsed.features,
+    epsg: suppliedEpsg(crs),
+    projections,
+  });
 };
 
 const parseShapefile = async (
@@ -232,11 +260,11 @@ const projectionOfWkt = (
   return { type: "proj4", id: name, name, code: text };
 };
 
-const parseGeoJson = async (
-  file: SourceFile,
+const parseGeoJson = (
+  content: string,
   { crs, projections }: GisInput,
-): Promise<DecodedSource> => {
-  const parsed = featuresFromText(await textOf(file));
+): DecodedSource => {
+  const parsed = featuresFromText(content);
   if (parsed === null) return failure("sourceUnreadable");
   if (!parsed.features.some(hasGeometry)) return failure("sourceEmpty");
 

@@ -1,0 +1,368 @@
+// eslint-disable-next-line @typescript-eslint/triple-slash-reference -- reaches consumers that compile this file with their own tsconfig
+/// <reference path="./dxf.d.ts" />
+import type { Feature, Geometry, Position } from "geojson";
+import { parseString, type DxfBlock, type DxfEntity } from "dxf";
+import entityToPolyline from "dxf/lib/entityToPolyline";
+
+export type ParsedDxf = { features: Feature[] };
+
+export const readDxf = (bytes: ArrayBuffer): ParsedDxf | null => {
+  const content = decodeDxf(bytes);
+  if (content === null) return null;
+
+  const document = parseDocument(content);
+  if (document === null) return null;
+
+  const features: Feature[] = [];
+  collect(document.entities, {
+    blocks: new Map(document.blocks.map((block) => [block.name, block])),
+    matrix: IDENTITY,
+    layer: DEFAULT_LAYER,
+    expanding: new Set<string>(),
+    scale: unitScaleOf(document.header.insUnits),
+    features,
+  });
+
+  return { features };
+};
+
+const parseDocument = (content: string) => {
+  try {
+    return parseString(content);
+  } catch {
+    return null;
+  }
+};
+
+const BINARY_SENTINEL = "AutoCAD Binary DXF";
+const HEADER_BYTES = 4096;
+const UTF8_FROM_VERSION = "AC1021";
+const DEFAULT_CODE_PAGE = "windows-1252";
+
+const codePages: Record<string, string> = {
+  "932": "shift_jis",
+  "936": "gbk",
+  "949": "euc-kr",
+  "950": "big5",
+};
+
+const decodeDxf = (bytes: ArrayBuffer): string | null => {
+  const head = new TextDecoder("latin1").decode(
+    new Uint8Array(bytes, 0, Math.min(bytes.byteLength, HEADER_BYTES)),
+  );
+  if (head.startsWith(BINARY_SENTINEL)) return null;
+
+  return decodeWith(bytes, encodingOf(head));
+};
+
+const decodeWith = (bytes: ArrayBuffer, encoding: string): string => {
+  try {
+    return new TextDecoder(encoding).decode(bytes);
+  } catch {
+    return new TextDecoder(DEFAULT_CODE_PAGE).decode(bytes);
+  }
+};
+
+const encodingOf = (head: string): string => {
+  const version = headerValue(head, "ACADVER");
+  if (version !== null && version >= UTF8_FROM_VERSION) return "utf-8";
+
+  const codePage = (headerValue(head, "DWGCODEPAGE") ?? "").replace(
+    /^ANSI_/i,
+    "",
+  );
+  if (codePages[codePage]) return codePages[codePage];
+
+  return /^\d+$/.test(codePage) ? `windows-${codePage}` : DEFAULT_CODE_PAGE;
+};
+
+const headerValue = (head: string, name: string): string | null => {
+  const match = new RegExp(`\\$${name}\\s*\\r?\\n\\s*\\d+\\s*\\r?\\n(.*)`).exec(
+    head,
+  );
+  return match === null ? null : match[1].trim();
+};
+
+const unitScales: Record<number, number> = { 4: 0.001, 5: 0.01, 14: 0.1 };
+
+const unitScaleOf = (insUnits: number | undefined): number =>
+  insUnits === undefined ? 1 : (unitScales[insUnits] ?? 1);
+
+const unicodeEscape = /\\U\+([0-9A-Fa-f]{4})/g;
+
+const decodeEscapes = (value: string): string =>
+  value.replace(unicodeEscape, (_, code: string) =>
+    String.fromCharCode(parseInt(code, 16)),
+  );
+
+type Matrix = readonly [number, number, number, number, number, number];
+
+const IDENTITY: Matrix = [1, 0, 0, 1, 0, 0];
+const MIRROR_X: Matrix = [-1, 0, 0, 1, 0, 0];
+
+const apply = (matrix: Matrix, [x, y]: Position): Position => [
+  matrix[0] * x + matrix[2] * y + matrix[4],
+  matrix[1] * x + matrix[3] * y + matrix[5],
+];
+
+const compose = (outer: Matrix, inner: Matrix): Matrix => [
+  outer[0] * inner[0] + outer[2] * inner[1],
+  outer[1] * inner[0] + outer[3] * inner[1],
+  outer[0] * inner[2] + outer[2] * inner[3],
+  outer[1] * inner[2] + outer[3] * inner[3],
+  outer[0] * inner[4] + outer[2] * inner[5] + outer[4],
+  outer[1] * inner[4] + outer[3] * inner[5] + outer[5],
+];
+
+const translation = (x: number, y: number): Matrix => [1, 0, 0, 1, x, y];
+
+const isMirrored = (entity: DxfEntity): boolean =>
+  entity.extrusionZ !== undefined && entity.extrusionZ < 0;
+
+const DEFAULT_LAYER = "0";
+
+type Walk = {
+  blocks: Map<string, DxfBlock>;
+  matrix: Matrix;
+  layer: string;
+  expanding: Set<string>;
+  scale: number;
+  features: Feature[];
+};
+
+const collect = (entities: DxfEntity[], walk: Walk): void => {
+  entities.forEach((entity, index) => {
+    if (entity.paperSpace) return;
+
+    if (entity.type === "INSERT") {
+      collectInsert(entity, attributesAfter(entities, index), walk);
+      return;
+    }
+    if (entity.type === "ATTRIB") return;
+
+    const feature = featureOf(entity, walk);
+    if (feature !== null) walk.features.push(feature);
+  });
+};
+
+const collectInsert = (
+  insert: DxfEntity,
+  attributes: Record<string, string>,
+  walk: Walk,
+): void => {
+  const block = walk.blocks.get(insert.block ?? "");
+  if (block === undefined || walk.expanding.has(block.name)) return;
+
+  const layer = layerOf(insert, walk);
+
+  for (const offset of arrayOffsets(insert)) {
+    const matrix = compose(walk.matrix, insertMatrix(insert, block, offset));
+
+    if (isContainer(block.name)) {
+      collect(block.entities, {
+        ...walk,
+        matrix,
+        layer,
+        expanding: new Set([...walk.expanding, block.name]),
+      });
+      continue;
+    }
+
+    walk.features.push(
+      featureWith(
+        {
+          type: "Point",
+          coordinates: scaled(
+            apply(matrix, [block.x ?? 0, block.y ?? 0]),
+            walk.scale,
+          ),
+        },
+        {
+          ...attributes,
+          Layer: layer,
+          BlockName: decodeEscapes(block.name),
+        },
+      ),
+    );
+  }
+};
+
+const ANONYMOUS_BLOCK = /^(\*|A\$C)/;
+
+const isContainer = (name: string): boolean => ANONYMOUS_BLOCK.test(name);
+
+const insertMatrix = (
+  insert: DxfEntity,
+  block: DxfBlock,
+  [offsetX, offsetY]: Position,
+): Matrix => {
+  const angle = ((insert.rotation ?? 0) * Math.PI) / 180;
+  const cos = Math.cos(angle);
+  const sin = Math.sin(angle);
+  const scaleX = insert.scaleX ?? 1;
+  const scaleY = insert.scaleY ?? 1;
+  const rotateAndScale: Matrix = [
+    cos * scaleX,
+    sin * scaleX,
+    -sin * scaleY,
+    cos * scaleY,
+    0,
+    0,
+  ];
+
+  const placed = compose(
+    translation((insert.x ?? 0) + offsetX, (insert.y ?? 0) + offsetY),
+    compose(rotateAndScale, translation(-(block.x ?? 0), -(block.y ?? 0))),
+  );
+
+  return isMirrored(insert) ? compose(MIRROR_X, placed) : placed;
+};
+
+const arrayOffsets = (insert: DxfEntity): Position[] => {
+  const rows = insert.rowCount ?? 1;
+  const columns = insert.columnCount ?? 1;
+  if (rows <= 1 && columns <= 1) return [[0, 0]];
+
+  const angle = ((insert.rotation ?? 0) * Math.PI) / 180;
+  const cos = Math.cos(angle);
+  const sin = Math.sin(angle);
+  const rowSpacing = insert.rowSpacing ?? 0;
+  const columnSpacing = insert.columnSpacing ?? 0;
+
+  const offsets: Position[] = [];
+  for (let row = 0; row < rows; row++) {
+    for (let column = 0; column < columns; column++) {
+      offsets.push([
+        -sin * rowSpacing * row + cos * columnSpacing * column,
+        cos * rowSpacing * row + sin * columnSpacing * column,
+      ]);
+    }
+  }
+  return offsets;
+};
+
+const attributesAfter = (
+  entities: DxfEntity[],
+  index: number,
+): Record<string, string> => {
+  const attributes: Record<string, string> = {};
+
+  for (let next = index + 1; next < entities.length; next++) {
+    const attrib = entities[next];
+    if (attrib.type !== "ATTRIB") break;
+    if (attrib.tag === undefined) continue;
+
+    attributes[decodeEscapes(attrib.tag)] = decodeEscapes(
+      attrib.text?.string ?? "",
+    );
+  }
+
+  return attributes;
+};
+
+const layerOf = (entity: DxfEntity, walk: Walk): string => {
+  const own = entity.layer ?? DEFAULT_LAYER;
+  return own === DEFAULT_LAYER ? walk.layer : decodeEscapes(own);
+};
+
+const drawnTypes = new Set([
+  "POINT",
+  "LINE",
+  "LWPOLYLINE",
+  "POLYLINE",
+  "CIRCLE",
+  "ARC",
+  "ELLIPSE",
+  "SPLINE",
+]);
+
+const featureOf = (entity: DxfEntity, walk: Walk): Feature | null => {
+  if (!drawnTypes.has(entity.type)) return null;
+
+  const matrix = isMirrored(entity)
+    ? compose(walk.matrix, MIRROR_X)
+    : walk.matrix;
+  const properties = { Layer: layerOf(entity, walk) };
+
+  if (entity.type === "POINT") {
+    return featureWith(
+      {
+        type: "Point",
+        coordinates: scaled(
+          apply(matrix, [entity.x ?? 0, entity.y ?? 0]),
+          walk.scale,
+        ),
+      },
+      properties,
+    );
+  }
+
+  const polyline = polylineOf(entity);
+  if (polyline.length < 2) return null;
+
+  const positions = polyline.map((position) =>
+    scaled(apply(matrix, position), walk.scale),
+  );
+
+  return featureWith(geometryOf(entity, positions), properties);
+};
+
+const polylineOf = (entity: DxfEntity): [number, number][] => {
+  if (entity.type !== "LWPOLYLINE" && entity.type !== "POLYLINE") {
+    return entityToPolyline(entity);
+  }
+  if (entity.polygonMesh || entity.polyfaceMesh) return [];
+
+  return entityToPolyline({
+    ...entity,
+    vertices: [...(entity.vertices ?? [])],
+  });
+};
+
+const FULL_TURN = Math.PI * 2;
+const FULL_TURN_TOLERANCE = 1e-9;
+
+const isClosed = (entity: DxfEntity): boolean => {
+  if (entity.type === "CIRCLE") return true;
+  if (entity.type === "ELLIPSE") {
+    return (
+      Math.abs((entity.endAngle ?? 0) - (entity.startAngle ?? 0)) >=
+      FULL_TURN - FULL_TURN_TOLERANCE
+    );
+  }
+
+  return entity.closed === true;
+};
+
+const geometryOf = (entity: DxfEntity, positions: Position[]): Geometry => {
+  if (!isClosed(entity)) return { type: "LineString", coordinates: positions };
+
+  const ring = asRing(positions);
+  return ring === null
+    ? { type: "LineString", coordinates: positions }
+    : { type: "Polygon", coordinates: [ring] };
+};
+
+const asRing = (positions: Position[]): Position[] | null => {
+  const closed = samePosition(positions[0], positions[positions.length - 1])
+    ? positions
+    : [...positions, positions[0]];
+
+  return distinctCount(closed) < 3 ? null : closed;
+};
+
+const distinctCount = (positions: Position[]): number => {
+  const seen = new Set(positions.map(([x, y]) => `${x},${y}`));
+  return seen.size;
+};
+
+const samePosition = (one: Position, other: Position): boolean =>
+  one[0] === other[0] && one[1] === other[1];
+
+const scaled = ([x, y]: Position, scale: number): Position =>
+  scale === 1 ? [x, y] : [x * scale, y * scale];
+
+const featureWith = (
+  geometry: Geometry,
+  properties: Record<string, string>,
+): Feature => ({ type: "Feature", geometry, properties });

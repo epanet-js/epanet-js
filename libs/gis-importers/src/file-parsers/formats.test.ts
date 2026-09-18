@@ -6,6 +6,7 @@ describe("gisSourceExtensions", () => {
       ".geojson",
       ".json",
       ".geojsonl",
+      ".dxf",
       ".shp",
       ".dbf",
       ".prj",

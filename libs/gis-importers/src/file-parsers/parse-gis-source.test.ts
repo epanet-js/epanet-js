@@ -56,6 +56,175 @@ const aBinaryFile = (name: string): SourceFile => ({
   arrayBuffer: () => Promise.resolve(new ArrayBuffer(8)),
 });
 
+type DxfPair = [number, string | number];
+
+const anEntity = (type: string, pairs: DxfPair[]): DxfPair[] => [
+  [0, type],
+  ...pairs,
+];
+
+const aBlock = (name: string, entities: DxfPair[]): DxfPair[] => [
+  [0, "BLOCK"],
+  [2, name],
+  [10, 0],
+  [20, 0],
+  ...entities,
+  [0, "ENDBLK"],
+];
+
+const anInsert = ({
+  block,
+  layer = "0",
+  x = 0,
+  y = 0,
+  rotation,
+  scale,
+}: {
+  block: string;
+  layer?: string;
+  x?: number;
+  y?: number;
+  rotation?: number;
+  scale?: number;
+}): DxfPair[] =>
+  anEntity("INSERT", [
+    [8, layer],
+    [2, block],
+    [10, x],
+    [20, y],
+    ...(scale === undefined
+      ? []
+      : ([
+          [41, scale],
+          [42, scale],
+        ] as DxfPair[])),
+    ...(rotation === undefined ? [] : ([[50, rotation]] as DxfPair[])),
+  ]);
+
+const anAttribute = (tag: string, value: string): DxfPair[] =>
+  anEntity("ATTRIB", [
+    [100, "AcDbText"],
+    [1, value],
+    [100, "AcDbAttribute"],
+    [2, tag],
+  ]);
+
+const aLine = ({
+  layer,
+  from = [0, 0],
+  to = [1, 1],
+  paperSpace = false,
+}: {
+  layer: string;
+  from?: Position;
+  to?: Position;
+  paperSpace?: boolean;
+}): DxfPair[] =>
+  anEntity("LINE", [
+    [8, layer],
+    ...(paperSpace ? ([[67, 1]] as DxfPair[]) : []),
+    [10, from[0]],
+    [20, from[1]],
+    [11, to[0]],
+    [21, to[1]],
+  ]);
+
+const aPolyline = ({
+  layer,
+  vertices,
+  closed = false,
+  bulge,
+}: {
+  layer: string;
+  vertices: Position[];
+  closed?: boolean;
+  bulge?: number;
+}): DxfPair[] =>
+  anEntity("LWPOLYLINE", [
+    [8, layer],
+    [70, closed ? 1 : 0],
+    ...vertices.flatMap(([x, y], index): DxfPair[] => [
+      [10, x],
+      [20, y],
+      ...(bulge !== undefined && index === 0
+        ? ([[42, bulge]] as DxfPair[])
+        : []),
+    ]),
+  ]);
+
+const aDxf = (
+  {
+    header = [],
+    blocks = [],
+    entities = [],
+  }: { header?: DxfPair[]; blocks?: DxfPair[]; entities?: DxfPair[] },
+  name = "drawing.dxf",
+): SourceFile =>
+  aTextFile(
+    [
+      ...dxfSection("HEADER", header),
+      ...dxfSection("BLOCKS", blocks),
+      ...dxfSection("ENTITIES", entities),
+      [0, "EOF"] as DxfPair,
+    ]
+      .map(([code, value]) => `${code}\n${value}`)
+      .join("\n"),
+    name,
+  );
+
+const dxfSection = (name: string, pairs: DxfPair[]): DxfPair[] => [
+  [0, "SECTION"],
+  [2, name],
+  ...pairs,
+  [0, "ENDSEC"],
+];
+
+const aBinaryDxf = (name = "drawing.dxf"): SourceFile => ({
+  name,
+  arrayBuffer: () =>
+    Promise.resolve(
+      new Uint8Array([
+        ...[..."AutoCAD Binary DXF\r\n"].map((character) =>
+          character.charCodeAt(0),
+        ),
+        0x1a,
+        0x00,
+        0x01,
+        0x02,
+      ]).buffer as ArrayBuffer,
+    ),
+});
+
+const inCodePage1250 = (
+  file: SourceFile,
+  placeholder: string,
+  replacement: number[],
+): SourceFile => ({
+  name: file.name,
+  arrayBuffer: async () => {
+    const content = new TextDecoder().decode(await file.arrayBuffer());
+    const bytes = [...content].flatMap((character) => character.charCodeAt(0));
+    const start = content.indexOf(placeholder);
+
+    return new Uint8Array([
+      ...bytes.slice(0, start),
+      ...replacement,
+      ...bytes.slice(start + placeholder.length),
+    ]).buffer as ArrayBuffer;
+  },
+});
+
+const coordinatesOf = (feature: Feature) =>
+  (feature.geometry as { coordinates: unknown }).coordinates;
+
+const expectClose = (positions: Position[], expected: Position[]) => {
+  expect(positions).toHaveLength(expected.length);
+  positions.forEach((position, index) => {
+    expect(position[0]).toBeCloseTo(expected[index][0], 6);
+    expect(position[1]).toBeCloseTo(expected[index][1], 6);
+  });
+};
+
 const codesOf = async (input: Parameters<typeof parseGisSource>[0]) => {
   const { issues } = await parseGisSource(input);
   return issues.build().map(({ code }) => code);
@@ -870,6 +1039,273 @@ describe("parseGisSource", () => {
       await parseGisSource({ files: [file], crs: { type: "unknown" } });
 
       expect(readBytes).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe("DXF", () => {
+    it("reads a block reference as a point carrying its layer, block and attributes", async () => {
+      const { features } = await parseGisSource({
+        files: [
+          aDxf({
+            blocks: aBlock(
+              "VALVE",
+              anEntity("POINT", [
+                [10, 0],
+                [20, 0],
+              ]),
+            ),
+            entities: [
+              ...anInsert({ block: "VALVE", layer: "valves", x: 1, y: 2 }),
+              ...anAttribute("ID", "V-12"),
+            ],
+          }),
+        ],
+      });
+
+      expect(features).toEqual([
+        {
+          type: "Feature",
+          geometry: { type: "Point", coordinates: [1, 2] },
+          properties: { ID: "V-12", Layer: "valves", BlockName: "VALVE" },
+        },
+      ]);
+    });
+
+    it("opens up an anonymous block, placing what it holds", async () => {
+      const { features } = await parseGisSource({
+        files: [
+          aDxf({
+            blocks: aBlock(
+              "*U1",
+              anEntity("LINE", [
+                [8, "pipes"],
+                [10, 0],
+                [20, 0],
+                [11, 1],
+                [21, 0],
+              ]),
+            ),
+            entities: [
+              ...anInsert({
+                block: "*U1",
+                x: 10,
+                y: 20,
+                rotation: 90,
+                scale: 2,
+              }),
+            ],
+          }),
+        ],
+      });
+
+      expect(features).toHaveLength(1);
+      expect(features[0].properties).toEqual({ Layer: "pipes" });
+      expectClose(coordinatesOf(features[0]) as Position[], [
+        [10, 20],
+        [10, 22],
+      ]);
+    });
+
+    it("gives what a block holds on layer 0 the layer of the reference", async () => {
+      const { features } = await parseGisSource({
+        files: [
+          aDxf({
+            blocks: aBlock(
+              "*U1",
+              anEntity("LINE", [
+                [8, "0"],
+                [10, 0],
+                [20, 0],
+                [11, 1],
+                [21, 1],
+              ]),
+            ),
+            entities: [...anInsert({ block: "*U1", layer: "mains" })],
+          }),
+        ],
+      });
+
+      expect(features[0].properties).toEqual({ Layer: "mains" });
+    });
+
+    it("leaves out what is drawn on paper space", async () => {
+      const { features } = await parseGisSource({
+        files: [
+          aDxf({
+            entities: [
+              ...aLine({ layer: "pipes" }),
+              ...aLine({ layer: "frame", paperSpace: true }),
+            ],
+          }),
+        ],
+      });
+
+      expect(features).toHaveLength(1);
+      expect(features[0].properties).toEqual({ Layer: "pipes" });
+    });
+
+    it("reads a closed polyline as a polygon and an open one as a line", async () => {
+      const { features } = await parseGisSource({
+        files: [
+          aDxf({
+            entities: [
+              ...aPolyline({
+                layer: "zones",
+                closed: true,
+                vertices: [
+                  [0, 0],
+                  [1, 0],
+                  [1, 1],
+                ],
+              }),
+              ...aPolyline({
+                layer: "pipes",
+                vertices: [
+                  [0, 0],
+                  [1, 0],
+                ],
+              }),
+            ],
+          }),
+        ],
+      });
+
+      expect(features.map((feature) => feature.geometry.type)).toEqual([
+        "Polygon",
+        "LineString",
+      ]);
+      expect(coordinatesOf(features[0])).toEqual([
+        [
+          [0, 0],
+          [1, 0],
+          [1, 1],
+          [0, 0],
+        ],
+      ]);
+    });
+
+    it("draws a curved polyline segment as straight segments", async () => {
+      const { features } = await parseGisSource({
+        files: [
+          aDxf({
+            entities: [
+              ...aPolyline({
+                layer: "pipes",
+                vertices: [
+                  [0, 0],
+                  [2, 0],
+                ],
+                bulge: 1,
+              }),
+            ],
+          }),
+        ],
+      });
+
+      expect((coordinatesOf(features[0]) as Position[]).length).toBeGreaterThan(
+        2,
+      );
+    });
+
+    it("converts a drawing in millimetres to metres", async () => {
+      const { features } = await parseGisSource({
+        files: [
+          aDxf({
+            header: [
+              [9, "$INSUNITS"],
+              [70, 4],
+            ],
+            entities: [
+              ...aLine({
+                layer: "pipes",
+                from: [1000, 2000],
+                to: [3000, 2000],
+              }),
+            ],
+          }),
+        ],
+      });
+
+      expect(coordinatesOf(features[0])).toEqual([
+        [1, 2],
+        [3, 2],
+      ]);
+    });
+
+    it("reads names in the code page an older drawing states", async () => {
+      const drawing = aDxf({
+        header: [
+          [9, "$ACADVER"],
+          [1, "AC1015"],
+          [9, "$DWGCODEPAGE"],
+          [3, "ANSI_1250"],
+        ],
+        entities: [...aLine({ layer: "PLACEHOLDER" })],
+      });
+
+      const { features } = await parseGisSource({
+        files: [inCodePage1250(drawing, "PLACEHOLDER", [0xc8, 0x65, 0x76])],
+      });
+
+      expect(features[0].properties).toEqual({ Layer: "Čev" });
+    });
+
+    it("cannot read a binary drawing", async () => {
+      const codes = await codesOf({
+        files: [aBinaryDxf()],
+      });
+
+      expect(codes).toEqual(["sourceUnreadable"]);
+    });
+
+    it("reads a drawing whose extension says nothing", async () => {
+      const drawing = aDxf({ entities: [...aLine({ layer: "pipes" })] });
+
+      const { features } = await parseGisSource({
+        files: [{ ...drawing, name: "drawing.txt" }],
+      });
+
+      expect(features).toHaveLength(1);
+    });
+
+    it("places a drawing in the projection the caller supplies", async () => {
+      const { features, issues } = await parseGisSource({
+        files: [
+          aDxf({
+            entities: [
+              ...aLine({
+                layer: "pipes",
+                from: [500000, 6000000],
+                to: [500100, 6000000],
+              }),
+            ],
+          }),
+        ],
+        crs: { type: "epsg", code: 3857 },
+        projections,
+      });
+
+      expect(issues.build()).toEqual([]);
+      const [longitude] = (coordinatesOf(features[0]) as Position[])[0];
+      expect(longitude).toBeCloseTo(4.4915, 3);
+    });
+
+    it("says nobody stated a projection when the coordinates are not degrees", async () => {
+      const codes = await codesOf({
+        files: [
+          aDxf({
+            entities: [
+              ...aLine({
+                layer: "pipes",
+                from: [500000, 6000000],
+                to: [500100, 6000000],
+              }),
+            ],
+          }),
+        ],
+      });
+
+      expect(codes).toEqual(["coordinateSystemUnknown"]);
     });
   });
 });
