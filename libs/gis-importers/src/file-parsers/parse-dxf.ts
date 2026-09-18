@@ -4,7 +4,15 @@ import type { Feature, Geometry, Position } from "geojson";
 import { parseString, type DxfBlock, type DxfEntity } from "dxf";
 import entityToPolyline from "dxf/lib/entityToPolyline";
 
-export type ParsedDxf = { features: Feature[] };
+export type DxfBounds = [number, number, number, number];
+
+export type DxfStatedCrs = {
+  epsg?: number;
+  wkt?: string;
+  bounds?: DxfBounds;
+};
+
+export type ParsedDxf = { features: Feature[]; stated?: DxfStatedCrs };
 
 export const readDxf = (bytes: ArrayBuffer): ParsedDxf | null => {
   const content = decodeDxf(bytes);
@@ -13,17 +21,20 @@ export const readDxf = (bytes: ArrayBuffer): ParsedDxf | null => {
   const document = parseDocument(content);
   if (document === null) return null;
 
+  const scale = unitScaleOf(document.header.insUnits);
   const features: Feature[] = [];
   collect(document.entities, {
     blocks: new Map(document.blocks.map((block) => [block.name, block])),
     matrix: IDENTITY,
     layer: DEFAULT_LAYER,
     expanding: new Set<string>(),
-    scale: unitScaleOf(document.header.insUnits),
+    scale,
     features,
   });
 
-  return { features };
+  const stated = statedCrsOf(content, scale);
+
+  return { features, ...(stated === undefined ? {} : { stated }) };
 };
 
 const parseDocument = (content: string) => {
@@ -94,6 +105,127 @@ const decodeEscapes = (value: string): string =>
   value.replace(unicodeEscape, (_, code: string) =>
     String.fromCharCode(parseInt(code, 16)),
   );
+
+const GEODATA = "GEODATA";
+const GEODATA_VERSIONS = new Set([2, 3]);
+const PLACED_COORDINATE_TYPES = new Set([2, 3]);
+
+const VERSION_CODE = 90;
+const COORDINATE_TYPE_CODE = 70;
+const DEFINITION_CODES = new Set([301, 303]);
+const MESH_X_CODE = 13;
+const MESH_Y_CODE = 23;
+
+type Pair = [number, string];
+
+const statedCrsOf = (
+  content: string,
+  scale: number,
+): DxfStatedCrs | undefined => {
+  if (!content.includes(GEODATA)) return undefined;
+
+  const fields = geoDataFields(content);
+  if (fields === null) return undefined;
+
+  const version = numberField(fields, VERSION_CODE);
+  const coordinateType = numberField(fields, COORDINATE_TYPE_CODE);
+  if (version === null || !GEODATA_VERSIONS.has(version)) return undefined;
+  if (coordinateType === null || !PLACED_COORDINATE_TYPES.has(coordinateType)) {
+    return undefined;
+  }
+
+  const definition = definitionOf(
+    fields
+      .filter(([code]) => DEFINITION_CODES.has(code))
+      .map(([, value]) => value)
+      .join(""),
+  );
+  if (definition === undefined) return undefined;
+
+  const bounds = meshBounds(fields, scale);
+
+  return { ...definition, ...(bounds === undefined ? {} : { bounds }) };
+};
+
+const geoDataFields = (content: string): Pair[] | null => {
+  const pairs = pairsOf(content);
+  const start = pairs.findIndex(
+    ([code, value]) => code === 0 && value === GEODATA,
+  );
+  if (start === -1) return null;
+
+  const fields: Pair[] = [];
+  for (let index = start + 1; index < pairs.length; index++) {
+    if (pairs[index][0] === 0) break;
+    fields.push(pairs[index]);
+  }
+
+  return fields;
+};
+
+const pairsOf = (content: string): Pair[] => {
+  const lines = content.split("\n");
+  const pairs: Pair[] = [];
+
+  for (let index = 0; index + 1 < lines.length; index += 2) {
+    pairs.push([Number(lines[index].trim()), lines[index + 1].trim()]);
+  }
+
+  return pairs;
+};
+
+const numberField = (fields: Pair[], code: number): number | null => {
+  const field = fields.find(([its]) => its === code);
+  return field === undefined ? null : Number(field[1]);
+};
+
+const definitionOf = (
+  definition: string,
+): { epsg?: number; wkt?: string } | undefined => {
+  const text = definition.trim();
+  if (text === "") return undefined;
+  if (!text.startsWith("<")) return { wkt: text };
+
+  const epsg = epsgFromCoordinateSystemXml(text);
+  return epsg === null ? {} : { epsg };
+};
+
+const ALIAS = /<Alias\s+([^>]*)>([\s\S]*?)<\/Alias>/g;
+
+const epsgFromCoordinateSystemXml = (xml: string): number | null => {
+  ALIAS.lastIndex = 0;
+  let alias: RegExpExecArray | null;
+
+  while ((alias = ALIAS.exec(xml)) !== null) {
+    const [, attributes, body] = alias;
+    if (!/type="CoordinateSystem"/i.test(attributes)) continue;
+    if (!/EPSG/i.test(body)) continue;
+
+    const id = /id="(\d+)"/i.exec(attributes)?.[1];
+    if (id !== undefined) return Number(id);
+  }
+
+  return null;
+};
+
+const meshBounds = (fields: Pair[], scale: number): DxfBounds | undefined => {
+  const xs = coordinates(fields, MESH_X_CODE);
+  const ys = coordinates(fields, MESH_Y_CODE);
+  if (xs.length === 0 || ys.length === 0) return undefined;
+
+  return [
+    Math.min(...xs) * scale,
+    Math.min(...ys) * scale,
+    Math.max(...xs) * scale,
+    Math.max(...ys) * scale,
+  ];
+};
+
+const coordinates = (fields: Pair[], code: number): number[] =>
+  fields
+    .filter(([its]) => its === code)
+    .map(([, value]) => Number(value))
+    .filter((value) => !Number.isNaN(value));
 
 type Matrix = readonly [number, number, number, number, number, number];
 
@@ -300,12 +432,18 @@ const featureOf = (entity: DxfEntity, walk: Walk): Feature | null => {
   const polyline = polylineOf(entity);
   if (polyline.length < 2) return null;
 
-  const positions = polyline.map((position) =>
-    scaled(apply(matrix, position), walk.scale),
+  return featureWith(
+    geometryOf(entity, placed(polyline, matrix, walk.scale)),
+    properties,
   );
-
-  return featureWith(geometryOf(entity, positions), properties);
 };
+
+const placed = (
+  positions: Position[],
+  matrix: Matrix,
+  scale: number,
+): Position[] =>
+  positions.map((position) => scaled(apply(matrix, position), scale));
 
 const polylineOf = (entity: DxfEntity): [number, number][] => {
   if (entity.type !== "LWPOLYLINE" && entity.type !== "POLYLINE") {
@@ -343,18 +481,18 @@ const geometryOf = (entity: DxfEntity, positions: Position[]): Geometry => {
     : { type: "Polygon", coordinates: [ring] };
 };
 
+const MINIMUM_RING_POSITIONS = 3;
+
 const asRing = (positions: Position[]): Position[] | null => {
   const closed = samePosition(positions[0], positions[positions.length - 1])
     ? positions
     : [...positions, positions[0]];
 
-  return distinctCount(closed) < 3 ? null : closed;
+  return distinctCount(closed) < MINIMUM_RING_POSITIONS ? null : closed;
 };
 
-const distinctCount = (positions: Position[]): number => {
-  const seen = new Set(positions.map(([x, y]) => `${x},${y}`));
-  return seen.size;
-};
+const distinctCount = (positions: Position[]): number =>
+  new Set(positions.map(([x, y]) => `${x},${y}`)).size;
 
 const samePosition = (one: Position, other: Position): boolean =>
   one[0] === other[0] && one[1] === other[1];

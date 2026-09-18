@@ -1,4 +1,4 @@
-import type { Feature, FeatureCollection } from "geojson";
+import type { Feature, FeatureCollection, Geometry, Position } from "geojson";
 import shp from "shpjs";
 import {
   convertGeoJsonToWGS84,
@@ -14,7 +14,7 @@ import {
 } from "@epanet-js/converters";
 import type { GisInput } from "../importer";
 import { gisFormatOf, isGisSecondaryPart } from "./formats";
-import { readDxf } from "./parse-dxf";
+import { readDxf, type DxfBounds, type DxfStatedCrs } from "./parse-dxf";
 
 export type ParsedGisSource = {
   features: Feature[];
@@ -155,11 +155,72 @@ const parseDxf = (
   if (parsed === null) return failure("sourceUnreadable");
   if (!parsed.features.some(hasGeometry)) return failure("sourceEmpty");
 
-  return placeFeatures({
-    features: parsed.features,
-    epsg: suppliedEpsg(crs),
-    projections,
-  });
+  const supplied = suppliedEpsg(crs);
+  if (supplied !== null || parsed.stated === undefined) {
+    return placeFeatures({
+      features: parsed.features,
+      epsg: supplied,
+      projections,
+    });
+  }
+
+  return placeAsDrawingStates(parsed.features, parsed.stated, projections);
+};
+
+const placeAsDrawingStates = (
+  features: Feature[],
+  stated: DxfStatedCrs,
+  projections: Map<string, Proj4Projection> | undefined,
+): DecodedSource => {
+  if (stated.bounds !== undefined && !mostlyInside(features, stated.bounds)) {
+    return unplaced(features, "coordinateSystemMismatch");
+  }
+
+  if (stated.wkt === undefined) {
+    return stated.epsg === undefined
+      ? unplaced(features, "coordinateSystemUnsupported")
+      : placeFeatures({ features, epsg: stated.epsg, projections });
+  }
+
+  const projection = projectionOfWkt(stated.wkt, projections);
+  if (projection === null) {
+    return placeFeatures({ features, epsg: WGS84_EPSG, projections });
+  }
+
+  const attempt = placeWith(features, projection);
+  return typeof attempt === "string" ? unplaced(features, attempt) : attempt;
+};
+
+const mostlyInside = (
+  features: Feature[],
+  [minX, minY, maxX, maxY]: DxfBounds,
+): boolean => {
+  let located = 0;
+  let inside = 0;
+
+  for (const feature of features) {
+    const position = firstPosition(feature.geometry);
+    if (position === null) continue;
+
+    located += 1;
+    const [x, y] = position;
+    if (x >= minX && x <= maxX && y >= minY && y <= maxY) inside += 1;
+  }
+
+  return located === 0 || inside * 2 > located;
+};
+
+const firstPosition = (geometry: Geometry | null): Position | null => {
+  if (geometry === null || geometry.type === "GeometryCollection") return null;
+
+  let coordinates: unknown = geometry.coordinates;
+  while (Array.isArray(coordinates) && Array.isArray(coordinates[0])) {
+    coordinates = coordinates[0];
+  }
+
+  return Array.isArray(coordinates) && typeof coordinates[0] === "number"
+    ? (coordinates as Position)
+    : null;
 };
 
 const parseShapefile = async (
@@ -240,12 +301,12 @@ const projectionOfWkt = (
   projections: Map<string, Proj4Projection> | undefined,
 ): Proj4Projection | null => {
   const text = wkt.trim();
-  const name = /^(?:PROJCS|GEOGCS|PROJCRS|GEOGCRS)\["([^"]+)"/.exec(text)?.[1];
+  const name = /^(?:PROJCS|GEOGCS|PROJCRS|GEOGCRS)\["([^"]+)"/i.exec(text)?.[1];
   if (name === undefined || WGS84_WKT_NAMES.has(name.toLowerCase())) {
     return null;
   }
 
-  const epsg = /AUTHORITY\["EPSG",\s*"?(\d+)"?\]\]$/.exec(text)?.[1];
+  const epsg = epsgFromWkt(text);
   if (epsg === String(WGS84_EPSG)) return null;
 
   const listed =
@@ -258,6 +319,35 @@ const projectionOfWkt = (
   if (listed !== null) return listed;
 
   return { type: "proj4", id: name, name, code: text };
+};
+
+const AUTHORITY = /AUTHORITY\s*\[\s*"epsg"\s*,\s*"?(\d+)"?\s*\]/gi;
+
+const epsgFromWkt = (text: string): string | undefined => {
+  AUTHORITY.lastIndex = 0;
+  let authority: RegExpExecArray | null;
+  let epsg: string | undefined;
+
+  while ((authority = AUTHORITY.exec(text)) !== null) {
+    if (depthAt(text, authority.index) === 1) epsg = authority[1];
+  }
+
+  return epsg;
+};
+
+const depthAt = (text: string, index: number): number => {
+  let depth = 0;
+  let quoted = false;
+
+  for (let at = 0; at < index; at++) {
+    const character = text[at];
+    if (character === '"') quoted = !quoted;
+    else if (quoted) continue;
+    else if (character === "[") depth += 1;
+    else if (character === "]") depth -= 1;
+  }
+
+  return depth;
 };
 
 const parseGeoJson = (
@@ -320,6 +410,13 @@ const placeIn = (
   );
   if (projection === null) return "coordinateSystemUnsupported";
 
+  return placeWith(features, projection);
+};
+
+const placeWith = (
+  features: Feature[],
+  projection: Proj4Projection,
+): DecodedSource | PlacementError => {
   let converted: FeatureCollection;
   try {
     converted = convertGeoJsonToWGS84(

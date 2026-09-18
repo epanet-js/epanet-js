@@ -152,12 +152,54 @@ const aPolyline = ({
     ]),
   ]);
 
+const aGeoData = ({
+  definition,
+  mesh,
+  version = 3,
+  coordinateType = 2,
+}: {
+  definition: string;
+  mesh?: Position[];
+  version?: number;
+  coordinateType?: number;
+}): DxfPair[] => [
+  [0, "GEODATA"],
+  [90, version],
+  [70, coordinateType],
+  ...(mesh === undefined
+    ? []
+    : ([
+        [93, mesh.length],
+        ...mesh.flatMap(([x, y]): DxfPair[] => [
+          [13, x],
+          [23, y],
+        ]),
+      ] as DxfPair[])),
+  ...definition
+    .match(/[\s\S]{1,250}/g)!
+    .map(
+      (chunk, index, chunks): DxfPair => [
+        index === chunks.length - 1 ? 301 : 303,
+        chunk,
+      ],
+    ),
+];
+
+const anEpsgAliasXml = (code: number, name = "Drawing CS") =>
+  `<Dictionary><ProjectedCoordinateSystem id="${name}"><Description>${name}</Description><Alias id="${code}" type="CoordinateSystem"><Namespace>EPSG Code</Namespace></Alias></ProjectedCoordinateSystem></Dictionary>`;
+
 const aDxf = (
   {
     header = [],
     blocks = [],
     entities = [],
-  }: { header?: DxfPair[]; blocks?: DxfPair[]; entities?: DxfPair[] },
+    objects = [],
+  }: {
+    header?: DxfPair[];
+    blocks?: DxfPair[];
+    entities?: DxfPair[];
+    objects?: DxfPair[];
+  },
   name = "drawing.dxf",
 ): SourceFile =>
   aTextFile(
@@ -165,6 +207,7 @@ const aDxf = (
       ...dxfSection("HEADER", header),
       ...dxfSection("BLOCKS", blocks),
       ...dxfSection("ENTITIES", entities),
+      ...dxfSection("OBJECTS", objects),
       [0, "EOF"] as DxfPair,
     ]
       .map(([code, value]) => `${code}\n${value}`)
@@ -615,6 +658,41 @@ describe("parseGisSource", () => {
       });
 
       expect(sourceProjection).toEqual(WEB_MERCATOR);
+    });
+
+    it("finds the code a .prj states before the parts that follow it", async () => {
+      const files = [
+        aBinaryFile("a.shp"),
+        aTextFile(
+          'PROJCS["Web Mercator",AUTHORITY["epsg","3857"],UNIT["Meter",1],AXIS["Easting",East]]',
+          "a.prj",
+        ),
+      ];
+
+      const { sourceProjection } = await parseGisSource({
+        files,
+        projections,
+      });
+
+      expect(sourceProjection).toEqual(WEB_MERCATOR);
+    });
+
+    it("keeps reading a nested code as the projection it belongs to, not the file's", async () => {
+      const wkt =
+        'PROJCS["Site grid",GEOGCS["GCS",SPHEROID["WGS84",6378137,298.257223563,AUTHORITY["EPSG","7030"]]]]';
+      const files = [aBinaryFile("a.shp"), aTextFile(wkt, "a.prj")];
+
+      const { sourceProjection } = await parseGisSource({
+        files,
+        projections,
+      });
+
+      expect(sourceProjection).toEqual({
+        type: "proj4",
+        id: "Site grid",
+        name: "Site grid",
+        code: wkt,
+      });
     });
 
     it("names a .prj with no listed projection as a projection of its own", async () => {
@@ -1288,6 +1366,150 @@ describe("parseGisSource", () => {
       expect(issues.build()).toEqual([]);
       const [longitude] = (coordinatesOf(features[0]) as Position[])[0];
       expect(longitude).toBeCloseTo(4.4915, 3);
+    });
+
+    it("places a drawing in the projection it states itself", async () => {
+      const { features, issues, sourceProjection } = await parseGisSource({
+        files: [
+          aDxf({
+            entities: aLine({
+              layer: "pipes",
+              from: [500000, 6000000],
+              to: [500100, 6000000],
+            }),
+            objects: aGeoData({
+              definition: anEpsgAliasXml(3857),
+              mesh: [
+                [0, 5000000],
+                [1000000, 7000000],
+              ],
+            }),
+          }),
+        ],
+        projections,
+      });
+
+      expect(issues.build()).toEqual([]);
+      expect(sourceProjection?.id).toEqual("EPSG:3857");
+      const [longitude] = (coordinatesOf(features[0]) as Position[])[0];
+      expect(longitude).toBeCloseTo(4.4915, 3);
+    });
+
+    it("keeps a drawing its own mesh does not cover as written, so another projection can be picked", async () => {
+      const { features, issues } = await parseGisSource({
+        files: [
+          aDxf({
+            entities: aLine({
+              layer: "pipes",
+              from: [9000000, 9000000],
+              to: [9000100, 9000000],
+            }),
+            objects: aGeoData({
+              definition: anEpsgAliasXml(3857),
+              mesh: [
+                [0, 5000000],
+                [1000000, 7000000],
+              ],
+            }),
+          }),
+        ],
+        projections,
+      });
+
+      expect(issues.build()).toEqual([
+        { code: "coordinateSystemMismatch", severity: "error" },
+      ]);
+      expect(coordinatesOf(features[0])).toEqual([
+        [9000000, 9000000],
+        [9000100, 9000000],
+      ]);
+    });
+
+    it("reads a projection the drawing states as well known text", async () => {
+      const { issues, sourceProjection } = await parseGisSource({
+        files: [
+          aDxf({
+            entities: aLine({
+              layer: "pipes",
+              from: [500000, 6000000],
+              to: [500100, 6000000],
+            }),
+            objects: aGeoData({
+              definition:
+                'PROJCS["Pseudo-Mercator",AUTHORITY["epsg","3857"],UNIT["Meter",1],AXIS["Easting",East]]',
+            }),
+          }),
+        ],
+        projections,
+      });
+
+      expect(issues.build()).toEqual([]);
+      expect(sourceProjection?.id).toEqual("EPSG:3857");
+    });
+
+    it("cannot use a projection the drawing states without a code", async () => {
+      const codes = await codesOf({
+        files: [
+          aDxf({
+            entities: aLine({
+              layer: "pipes",
+              from: [500000, 6000000],
+              to: [500100, 6000000],
+            }),
+            objects: aGeoData({
+              definition:
+                '<Dictionary><ProjectedCoordinateSystem id="Site grid"><Description>Site grid</Description></ProjectedCoordinateSystem></Dictionary>',
+            }),
+          }),
+        ],
+        projections,
+      });
+
+      expect(codes).toEqual(["coordinateSystemUnsupported"]);
+    });
+
+    it("lets a supplied projection replace the one the drawing states", async () => {
+      const { issues, sourceProjection } = await parseGisSource({
+        files: [
+          aDxf({
+            entities: aLine({
+              layer: "pipes",
+              from: [500000, 6000000],
+              to: [500100, 6000000],
+            }),
+            objects: aGeoData({
+              definition: anEpsgAliasXml(99999),
+              mesh: [
+                [0, 0],
+                [1, 1],
+              ],
+            }),
+          }),
+        ],
+        crs: { type: "epsg", code: 3857 },
+        projections,
+      });
+
+      expect(issues.build()).toEqual([]);
+      expect(sourceProjection?.id).toEqual("EPSG:3857");
+    });
+
+    it("ignores geographic data a drawing states in a version it does not know", async () => {
+      const codes = await codesOf({
+        files: [
+          aDxf({
+            entities: aLine({
+              layer: "pipes",
+              from: [500000, 6000000],
+              to: [500100, 6000000],
+            }),
+            objects: aGeoData({ definition: anEpsgAliasXml(3857), version: 1 }),
+          }),
+        ],
+        projections,
+      });
+
+      expect(codes).toEqual(["coordinateSystemUnknown"]);
     });
 
     it("says nobody stated a projection when the coordinates are not degrees", async () => {
