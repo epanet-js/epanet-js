@@ -25,6 +25,7 @@ export type {
   AssetCustomAttributeUpdates,
   CustomerPointDemandUpdate,
   JunctionDemandUpdate,
+  IdPoolMaxima,
 } from "./types";
 export {
   emptyAssetCustomAttributeUpdates,

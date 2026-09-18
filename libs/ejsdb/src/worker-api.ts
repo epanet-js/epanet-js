@@ -40,6 +40,7 @@ import type {
   ImportProjectPayload,
   NewDbResult,
   OpenDbResult,
+  IdPoolMaxima,
 } from "./types";
 import { isEmptyWriteBatch } from "./types";
 import { ChangeSet, type Direction } from "@epanet-js/change-set";
@@ -1469,66 +1470,34 @@ export const api = {
     });
   },
 
-  async getMaxAssetId(): Promise<number> {
-    return timed("getMaxAssetId", async () => {
+  async getIdPools(): Promise<IdPoolMaxima> {
+    return timed("getIdPools", async () => {
       await ready;
       if (!db) throw new Error("No database open");
       const rows = db.exec(
-        `SELECT MAX(m) AS m FROM (
-           SELECT MAX(id) AS m FROM junctions UNION ALL
-           SELECT MAX(id) FROM reservoirs UNION ALL
-           SELECT MAX(id) FROM tanks UNION ALL
-           SELECT MAX(id) FROM pipes UNION ALL
-           SELECT MAX(id) FROM pumps UNION ALL
-           SELECT MAX(id) FROM valves
-         )`,
+        `SELECT
+           (SELECT MAX(m) FROM (
+              SELECT MAX(id) AS m FROM junctions UNION ALL
+              SELECT MAX(id) FROM reservoirs UNION ALL
+              SELECT MAX(id) FROM tanks UNION ALL
+              SELECT MAX(id) FROM pipes UNION ALL
+              SELECT MAX(id) FROM pumps UNION ALL
+              SELECT MAX(id) FROM valves
+            )),
+           (SELECT MAX(id) FROM customer_points),
+           (SELECT MAX(id) FROM patterns),
+           (SELECT MAX(id) FROM curves),
+           (SELECT MAX(id) FROM zones)`,
         { returnValue: "resultRows" },
       ) as Array<Array<number | null>>;
-      return rows[0]?.[0] ?? 0;
-    });
-  },
-
-  async getMaxPatternId(): Promise<number> {
-    return timed("getMaxPatternId", async () => {
-      await ready;
-      if (!db) throw new Error("No database open");
-      const rows = db.exec("SELECT MAX(id) AS m FROM patterns", {
-        returnValue: "resultRows",
-      }) as Array<Array<number | null>>;
-      return rows[0]?.[0] ?? 0;
-    });
-  },
-
-  async getMaxCurveId(): Promise<number> {
-    return timed("getMaxCurveId", async () => {
-      await ready;
-      if (!db) throw new Error("No database open");
-      const rows = db.exec("SELECT MAX(id) AS m FROM curves", {
-        returnValue: "resultRows",
-      }) as Array<Array<number | null>>;
-      return rows[0]?.[0] ?? 0;
-    });
-  },
-
-  async getMaxZoneId(): Promise<number> {
-    return timed("getMaxZoneId", async () => {
-      await ready;
-      if (!db) throw new Error("No database open");
-      const rows = db.exec("SELECT MAX(id) AS m FROM zones", {
-        returnValue: "resultRows",
-      }) as Array<Array<number | null>>;
-      return rows[0]?.[0] ?? 0;
-    });
-  },
-
-  async getMaxCustomerPointId(): Promise<number> {
-    return timed("getMaxCustomerPointId", async () => {
-      await ready;
-      if (!db) throw new Error("No database open");
-      const rows = db.exec("SELECT MAX(id) AS m FROM customer_points", {
-        returnValue: "resultRows",
-      }) as Array<Array<number | null>>;
-      return rows[0]?.[0] ?? 0;
+      const [asset, customerPoint, pattern, curve, zone] = rows[0];
+      return {
+        asset: asset ?? 0,
+        customerPoint: customerPoint ?? 0,
+        pattern: pattern ?? 0,
+        curve: curve ?? 0,
+        zone: zone ?? 0,
+      };
     });
   },
 

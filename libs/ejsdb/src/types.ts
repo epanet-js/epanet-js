@@ -66,6 +66,14 @@ export const emptyAssetCustomAttributeUpdates =
     valves: [],
   });
 
+export type IdPoolMaxima = {
+  asset: number;
+  customerPoint: number;
+  pattern: number;
+  curve: number;
+  zone: number;
+};
+
 export type ImportProjectPayload = {
   newDb: boolean;
   projectSettings: string | null;

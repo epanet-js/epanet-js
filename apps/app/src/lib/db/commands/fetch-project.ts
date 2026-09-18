@@ -50,14 +50,11 @@ export type FetchProjectOptions = {
   idPools?: boolean;
 };
 
-const buildFactories = (
-  maxima: IdPoolSeeds,
-  withPools: boolean,
-): ModelFactories => {
+const buildFactories = (maxima: IdPoolSeeds | number): ModelFactories => {
   const labelManager = new LabelManager();
-  if (!withPools) {
+  if (typeof maxima === "number") {
     return initializeModelFactories({
-      idGenerator: new ConsecutiveIdsGenerator(maxima.asset),
+      idGenerator: new ConsecutiveIdsGenerator(maxima),
       labelManager,
     });
   }
@@ -117,11 +114,7 @@ export const fetchProject = async (
       rawControlsData,
       controlsData,
       simulationSettingsData,
-      maxAssetId,
-      maxPatternId,
-      maxCurveId,
-      maxZoneId,
-      maxCustomerPointId,
+      idMaxima,
     ] = await timed("fetchProject.readSettings", () =>
       Promise.all([
         worker.getProjectSettings(),
@@ -134,11 +127,7 @@ export const fetchProject = async (
         worker.getRawControls(),
         worker.getControls(),
         worker.getSimulationSettings(),
-        withPools ? worker.getMaxAssetId() : worker.getMaxId(),
-        worker.getMaxPatternId(),
-        worker.getMaxCurveId(),
-        worker.getMaxZoneId(),
-        worker.getMaxCustomerPointId(),
+        withPools ? worker.getIdPools() : worker.getMaxId(),
       ]),
     );
     if (!settingsJson) {
@@ -155,16 +144,7 @@ export const fetchProject = async (
           buildCustomAttributesDefinition(customAttributesJson);
         const zones = buildZonesData(zonesRaw);
 
-        const factories = buildFactories(
-          {
-            asset: maxAssetId,
-            customerPoint: maxCustomerPointId,
-            pattern: maxPatternId,
-            curve: maxCurveId,
-            zone: maxZoneId,
-          },
-          withPools,
-        );
+        const factories = buildFactories(idMaxima);
         const { idGenerator } = factories;
 
         const { assets, assetIndex, topology } = buildAssetsData(
