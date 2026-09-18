@@ -87,6 +87,38 @@ describe("parse valves", () => {
     expect(v3.initialStatus).toEqual("active");
   });
 
+  it("keeps valve active when status section has a setting or ACTIVE", () => {
+    const anyNumber = 10;
+    const inp = `
+    [JUNCTIONS]
+    j1\t${anyNumber}
+    j2\t${anyNumber}
+    j3\t${anyNumber}
+
+    [VALVES]
+    v1\tj1\tj2\t10\tPRV\t30\t0
+    v2\tj2\tj3\t10\tPRV\t30\t0
+
+    [STATUS]
+    v1\t45
+    v2\tActive
+
+    [COORDINATES]
+    j1\t${10}\t${20}
+    j2\t${30}\t${40}
+    j3\t${30}\t${40}
+    `;
+
+    const { hydraulicModel } = parseInp(inp);
+
+    const v1 = getByLabel(hydraulicModel.assets, "v1") as Valve;
+    expect(v1.initialStatus).toEqual("active");
+    expect(v1.setting).toEqual(45);
+    const v2 = getByLabel(hydraulicModel.assets, "v2") as Valve;
+    expect(v2.initialStatus).toEqual("active");
+    expect(v2.setting).toEqual(30);
+  });
+
   it("is case insensitive", () => {
     const anyNumber = 10;
     const inp = `

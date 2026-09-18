@@ -858,9 +858,16 @@ const addValve = (
   const { connections, coordinates } = linkProperties;
 
   let initialStatus: ValveStatus = "active";
+  let setting = valveData.setting;
   if (inpData.status.has(valveData.id)) {
     const statusValue = inpData.status.get(valveData.id) as string;
-    initialStatus = statusValue === "CLOSED" ? "closed" : "open";
+    if (statusValue === "CLOSED") {
+      initialStatus = "closed";
+    } else if (statusValue === "OPEN") {
+      initialStatus = "open";
+    } else if (!isNaN(parseFloat(statusValue))) {
+      setting = parseFloat(statusValue);
+    }
   }
 
   let resolvedCurveId: CurveId | undefined;
@@ -880,7 +887,7 @@ const addValve = (
     diameter: valveData.diameter,
     minorLoss: valveData.minorLoss,
     kind: valveData.kind,
-    setting: valveData.kind === "gpv" ? undefined : valveData.setting,
+    setting: valveData.kind === "gpv" ? undefined : setting,
     initialStatus,
     connections,
     coordinates,
