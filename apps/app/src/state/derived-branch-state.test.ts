@@ -2,7 +2,6 @@ import { createStore } from "jotai";
 import { describe, expect, it } from "vitest";
 import { LabelManager } from "@epanet-js/hydraulic-model";
 import { ChangeSet } from "@epanet-js/change-set";
-import { MomentLog } from "src/lib/persistence/moment-log";
 import { SessionHistory } from "src/lib/persistence/session-history";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { branchStateAtom, type BranchState } from "src/state/branch-state";
@@ -18,25 +17,6 @@ describe("canUndo/canRedo derived atoms", () => {
 
     expect(store.get(canUndoDerivedAtom)).toBe(false);
     expect(store.get(canRedoDerivedAtom)).toBe(false);
-  });
-
-  it("canUndo becomes true after an action is appended", () => {
-    const momentLog = new MomentLog();
-    momentLog.append({ note: "fwd" }, { note: "rev" });
-    const store = setInitialStore({ momentLog });
-
-    expect(store.get(canUndoDerivedAtom)).toBe(true);
-    expect(store.get(canRedoDerivedAtom)).toBe(false);
-  });
-
-  it("canRedo becomes true after undoing back to the boundary", () => {
-    const momentLog = new MomentLog();
-    momentLog.append({ note: "fwd" }, { note: "rev" });
-    momentLog.undo();
-    const store = setInitialStore({ momentLog });
-
-    expect(store.get(canUndoDerivedAtom)).toBe(false);
-    expect(store.get(canRedoDerivedAtom)).toBe(true);
   });
 
   it("canUndo becomes true after a change set is appended", () => {
@@ -59,10 +39,8 @@ describe("canUndo/canRedo derived atoms", () => {
   });
 
   const setInitialStore = ({
-    momentLog = new MomentLog(),
     sessionHistory = new SessionHistory(),
   }: {
-    momentLog?: MomentLog;
     sessionHistory?: SessionHistory;
   }) => {
     const store = createStore();
@@ -71,7 +49,6 @@ describe("canUndo/canRedo derived atoms", () => {
       version: hydraulicModel.version,
       hydraulicModel,
       labelManager: new LabelManager(),
-      momentLog,
       sessionHistory,
       simulation: null,
       simulationSourceId: "main",

@@ -6,12 +6,12 @@ import { selectionAtom } from "src/state/selection";
 import { inpFileInfoAtom } from "src/state/file-system";
 import {
   stagingModelDerivedAtom,
+  sessionHistoryDerivedAtom,
   simulationDerivedAtom,
 } from "src/state/derived-branch-state";
-import { momentLogAtom } from "src/state/model-changes";
 import { SimulationFinished } from "src/state/simulation";
 import { Store } from "src/state";
-import { MomentLog } from "src/lib/persistence/moment-log";
+import { SessionHistory } from "src/lib/persistence/session-history";
 import userEvent from "@testing-library/user-event";
 import { aTestFile } from "src/__helpers__/file";
 import { aFileInfo, setInitialState } from "src/__helpers__/state";
@@ -149,10 +149,10 @@ describe("openInpFromFs", () => {
       settingsVersion: "",
     };
     const previousSelection = USelection.fromAssetIds([IDS.ANY]);
-    const previousMomentLog = new MomentLog();
+    const previousSessionHistory = new SessionHistory();
     const store = setInitialState({
       hydraulicModel: HydraulicModelBuilder.empty(),
-      momentLog: previousMomentLog,
+      sessionHistory: previousSessionHistory,
       simulation: previousSimulation,
       selection: previousSelection,
       fileInfo: aFileInfo({
@@ -182,8 +182,8 @@ describe("openInpFromFs", () => {
     expect(getByLabel(hydraulicModel.assets, "J1")).toBeTruthy();
     expect(getByLabel(hydraulicModel.assets, "P1")).toBeFalsy();
 
-    const updatedMomentLog = store.get(momentLogAtom);
-    expect(updatedMomentLog.id).not.toEqual(previousMomentLog.id);
+    const updatedSessionHistory = store.get(sessionHistoryDerivedAtom);
+    expect(updatedSessionHistory.id).not.toEqual(previousSessionHistory.id);
 
     const simulation = store.get(simulationDerivedAtom);
     expect(simulation.status).toEqual("idle");

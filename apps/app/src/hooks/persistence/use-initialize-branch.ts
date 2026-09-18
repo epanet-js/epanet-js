@@ -2,7 +2,6 @@ import { useCallback } from "react";
 import { useAtomCallback } from "jotai/utils";
 import type { Getter, Setter } from "jotai";
 import { copyModel } from "src/hydraulic-model";
-import { MomentLog } from "src/lib/persistence/moment-log";
 import { SessionHistory } from "src/lib/persistence/session-history";
 import { branchStateAtom } from "src/state/branch-state";
 import { modelFactoriesAtom } from "src/state/model-factories";
@@ -29,7 +28,6 @@ export const useInitializeBranch = () => {
         version: mainState.version,
         hydraulicModel: copyModel(mainState.hydraulicModel),
         labelManager,
-        momentLog: new MomentLog(mainState.hydraulicModel.version),
         sessionHistory: new SessionHistory(mainState.hydraulicModel.version),
         simulation: mainState.simulation,
         simulationSourceId: mainState.simulationSourceId,

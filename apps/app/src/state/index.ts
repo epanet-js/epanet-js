@@ -93,9 +93,6 @@ export {
   lastTraceSelectModeAtom,
 } from "src/state/mode";
 
-// Model changes
-export { momentLogAtom } from "src/state/model-changes";
-
 // Model factories
 export type { ModelFactories } from "src/state/model-factories";
 export { modelFactoriesAtom } from "src/state/model-factories";

@@ -26,7 +26,6 @@ import { initializeZones } from "src/lib/zones";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
 import { OPFSStorage } from "src/infra/storage";
 import { getAppId } from "src/infra/app-instance";
-import { MomentLog } from "src/lib/persistence/moment-log";
 import { SessionHistory } from "src/lib/persistence/session-history";
 import { MapEditionsTracker } from "src/map/map-editions-tracker";
 import { writeQueue } from "src/lib/persistence/write-queue";
@@ -40,7 +39,6 @@ import { initializeWorktree } from "@epanet-js/worktree";
 import { dialogAtom } from "src/state/dialog";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { projectSettingsAtom } from "src/state/project-settings";
-import { momentLogAtom } from "src/state/model-changes";
 import { resetProjectRevision } from "src/state/project-revision";
 import {
   archivedNetworkReviewItemsAtom,
@@ -140,7 +138,6 @@ export const loadModel = (
     simulationSettings,
     autoElevations,
   } = input;
-  const momentLog = new MomentLog(hydraulicModel.version);
   const sessionHistory = new SessionHistory(hydraulicModel.version);
 
   resetProjectRevision(set, hydraulicModel.version);
@@ -160,7 +157,6 @@ export const loadModel = (
   };
   set(projectSettingsAtom, mergedProjectSettings);
   set(zonesAtom, zones ?? initializeZones());
-  set(momentLogAtom, momentLog);
   if (autoElevations !== undefined) {
     set(autoElevationsAtom, autoElevations);
   }
@@ -176,7 +172,6 @@ export const loadModel = (
           version: hydraulicModel.version,
           hydraulicModel,
           labelManager: factories.labelManager,
-          momentLog,
           sessionHistory,
           simulation: null,
           simulationSourceId: "main",

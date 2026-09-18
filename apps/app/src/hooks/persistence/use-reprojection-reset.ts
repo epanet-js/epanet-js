@@ -9,7 +9,6 @@ import { mapEditionsTrackerAtom } from "src/state/map";
 import { initialSimulationState } from "src/state/simulation";
 import {
   stagingModelDerivedAtom,
-  momentLogDerivedAtom,
   sessionHistoryDerivedAtom,
   simulationDerivedAtom,
   simulationSettingsDerivedAtom,
@@ -21,7 +20,6 @@ import { modeAtom, Mode } from "src/state/mode";
 import { ephemeralStateAtom, autoElevationsAtom } from "src/state/drawing";
 import { OPFSStorage, opfsUnavailableErrors } from "src/infra/storage";
 import { getAppId } from "src/infra/app-instance";
-import { MomentLog } from "src/lib/persistence/moment-log";
 import { SessionHistory } from "src/lib/persistence/session-history";
 import { MapEditionsTracker } from "src/map/map-editions-tracker";
 import { initializeWorktree } from "@epanet-js/worktree";
@@ -55,7 +53,6 @@ const loadModel = (
   { hydraulicModel, projectSettings, autoElevations }: ReprojectionResetInput,
   withIdPools: boolean,
 ) => {
-  const momentLog = new MomentLog(hydraulicModel.version);
   const sessionHistory = new SessionHistory(hydraulicModel.version);
 
   set(stagingModelDerivedAtom, hydraulicModel);
@@ -74,7 +71,6 @@ const loadModel = (
         onUnexpected: "capture",
       }),
     );
-  set(momentLogDerivedAtom, momentLog);
   set(sessionHistoryDerivedAtom, sessionHistory);
   if (autoElevations !== undefined) {
     set(autoElevationsAtom, autoElevations);

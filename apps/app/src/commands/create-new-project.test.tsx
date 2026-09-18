@@ -2,20 +2,27 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import userEvent from "@testing-library/user-event";
 import { inpFileInfoAtom } from "src/state/file-system";
-import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
+import {
+  sessionHistoryDerivedAtom,
+  stagingModelDerivedAtom,
+} from "src/state/derived-branch-state";
 import { projectSettingsAtom } from "src/state/project-settings";
-import { momentLogAtom } from "src/state/model-changes";
 import { mapEditionsTrackerAtom } from "src/state/map";
 import { MapEditionsTracker } from "src/map/map-editions-tracker";
 import { Store } from "src/state";
-import { MomentLog } from "src/lib/persistence/moment-log";
+import { SessionHistory } from "src/lib/persistence/session-history";
+import { ChangeSet } from "@epanet-js/change-set";
 import { useNewProject } from "./create-new-project";
 import { aFileInfo, setInitialState } from "src/__helpers__/state";
 import { CommandContainer } from "./__helpers__/command-container";
 import { useInProcessDb } from "src/lib/db/__test-helpers__/in-process-db";
 import { modelFactoriesAtom } from "src/state/model-factories";
 
-const aMoment = (name: string) => ({ note: name });
+const aHistoryWithChanges = () => {
+  const sessionHistory = new SessionHistory();
+  sessionHistory.append(ChangeSet.of("A", []));
+  return sessionHistory;
+};
 
 describe("create new project", () => {
   useInProcessDb();
@@ -56,9 +63,6 @@ describe("create new project", () => {
 
   it("erases the previous state", async () => {
     const IDS = { J1: 1 } as const;
-    const momentLogWithChanges = new MomentLog();
-    momentLogWithChanges.append(aMoment("A"), aMoment("B"));
-
     const previousFileInfo = aFileInfo({
       name: "previous-file",
       options: { type: "inp" },
@@ -66,7 +70,7 @@ describe("create new project", () => {
 
     const store = setInitialState({
       hydraulicModel: HydraulicModelBuilder.with().aJunction(IDS.J1).build(),
-      momentLog: momentLogWithChanges,
+      sessionHistory: aHistoryWithChanges(),
       fileInfo: previousFileInfo,
       isProjectSaved: false,
     });
@@ -91,8 +95,7 @@ describe("create new project", () => {
     expect(hydraulicModel.assets.size).toEqual(0);
     expect(store.get(projectSettingsAtom).units.flow).toEqual("l/s");
 
-    const momentLog = store.get(momentLogAtom);
-    expect(momentLog.getDeltas().length).toEqual(0);
+    expect(store.get(sessionHistoryDerivedAtom).nextUndo()).toBeNull();
 
     const editionsTracker = store.get(mapEditionsTrackerAtom);
     expect(editionsTracker.editedCount()).toEqual(0);
@@ -104,12 +107,9 @@ describe("create new project", () => {
 
   it("preseves state when canceled", async () => {
     const IDS = { J1: 1 } as const;
-    const momentLogWithChanges = new MomentLog();
-    momentLogWithChanges.append(aMoment("A"), aMoment("B"));
-
     const store = setInitialState({
       hydraulicModel: HydraulicModelBuilder.with().aJunction(IDS.J1).build(),
-      momentLog: momentLogWithChanges,
+      sessionHistory: aHistoryWithChanges(),
       isProjectSaved: false,
     });
     renderComponent({ store });

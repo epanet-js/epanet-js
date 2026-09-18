@@ -349,7 +349,7 @@ A loop over the whole dataset (building a paste, building edit moments, serializ
 ### Memory / OOM
 
 - **Don't retain large derived payloads.** Holding a multi-MB string/array in a closure or module var keeps it alive (defeats GC). The "add headers to last copy" path deliberately does **not** cache the copied body — it reads it back from the clipboard and prepends, caching only small fingerprints (selection, header row, body length) to detect change.
-- **Bulk edits/pastes build an undo moment retained in history**, so one huge operation can OOM via the moment log. `maxClipboardRows` (unset = no cap) bounds a single copy/paste; callers get `rows`/`requestedRows` on the copy/paste info to notify on truncation.
+- **Bulk edits/pastes build an undo change set retained in history**, so one huge operation can OOM via the session history. `maxClipboardRows` (unset = no cap) bounds a single copy/paste; callers get `rows`/`requestedRows` on the copy/paste info to notify on truncation.
 - **The model commit is an O(n) floor you can't chunk.** A bulk `onChange` should build **one** merged moment and `transact` once (never one transaction per row). The transaction clones model state immutably — proportional to the model and unavoidable — so keep the *moment-building* loop sliced, then commit once.
 
 ### One model: lazy-only
