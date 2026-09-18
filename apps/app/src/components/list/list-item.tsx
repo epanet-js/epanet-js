@@ -62,7 +62,7 @@ export const ListItem = <T extends LabelledItem>({
         <span className="truncate">{item.label}</span>
       </Button>
       {!readOnly && secondaryAction && (
-        <div className="self-stretch flex">
+        <div className="self-stretch flex shrink-0">
           <Tooltip.Root>
             <Tooltip.Trigger asChild>
               <Button

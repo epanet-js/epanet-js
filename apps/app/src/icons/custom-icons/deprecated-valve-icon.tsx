@@ -1,4 +1,5 @@
 import * as React from "react";
+import { iconClassName } from "../index";
 
 export const DeprecatedValveIcon = React.forwardRef<
   SVGSVGElement,
@@ -9,6 +10,7 @@ export const DeprecatedValveIcon = React.forwardRef<
     xmlns="http://www.w3.org/2000/svg"
     viewBox="0 0 780 780"
     {...props}
+    className={iconClassName(props.className)}
   >
     <g>
       <path

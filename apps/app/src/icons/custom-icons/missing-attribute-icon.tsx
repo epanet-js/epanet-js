@@ -1,5 +1,5 @@
 import * as React from "react";
-import { CustomIconProps, getPixels } from "../index";
+import { CustomIconProps, getPixels, iconClassName } from "../index";
 
 export const CustomMissingAttributeIcon = React.forwardRef<
   SVGSVGElement,
@@ -19,6 +19,7 @@ export const CustomMissingAttributeIcon = React.forwardRef<
       strokeLinecap="round"
       strokeLinejoin="round"
       {...props}
+      className={iconClassName(props.className)}
     >
       <g stroke="currentColor" strokeWidth={2} fill="none">
         <path d="M21,5l-18,0" fillRule="nonzero" />

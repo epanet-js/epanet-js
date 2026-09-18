@@ -1,5 +1,5 @@
 import * as React from "react";
-import { CustomIconProps, getPixels } from "../index";
+import { CustomIconProps, getPixels, iconClassName } from "../index";
 
 export const CustomValveIcon = React.forwardRef<SVGSVGElement, CustomIconProps>(
   ({ size: rawSize = "md", ...props }, ref) => {
@@ -12,6 +12,7 @@ export const CustomValveIcon = React.forwardRef<SVGSVGElement, CustomIconProps>(
         width={size}
         height={size}
         {...props}
+        className={iconClassName(props.className)}
       >
         <g>
           <path

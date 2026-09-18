@@ -1,5 +1,5 @@
 import * as React from "react";
-import { CustomIconProps, getPixels } from "../index";
+import { CustomIconProps, getPixels, iconClassName } from "../index";
 
 export const CustomPipesCrossingIcon = React.forwardRef<
   SVGSVGElement,
@@ -19,6 +19,7 @@ export const CustomPipesCrossingIcon = React.forwardRef<
       strokeLinecap="round"
       strokeLinejoin="round"
       {...props}
+      className={iconClassName(props.className)}
     >
       <g id="crossing">
         <circle

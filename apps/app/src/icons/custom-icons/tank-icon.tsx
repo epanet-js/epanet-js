@@ -1,4 +1,5 @@
 import * as React from "react";
+import { iconClassName } from "../index";
 
 export const TankIcon = React.forwardRef<
   SVGSVGElement,
@@ -21,6 +22,7 @@ export const TankIcon = React.forwardRef<
       fill="none"
       stroke="currentColor"
       {...props}
+      className={iconClassName(props.className)}
     >
       <rect
         x={rectX}

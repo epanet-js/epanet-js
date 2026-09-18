@@ -1,4 +1,5 @@
 import * as React from "react";
+import { iconClassName } from "../index";
 
 export const DeprecatedPumpIcon = React.forwardRef<
   SVGSVGElement,
@@ -11,6 +12,7 @@ export const DeprecatedPumpIcon = React.forwardRef<
     fill="none"
     stroke="currentColor"
     {...props}
+    className={iconClassName(props.className)}
   >
     <g transform="translate(-79.236495,-225.92998)">
       <circle

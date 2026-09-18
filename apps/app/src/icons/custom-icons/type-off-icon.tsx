@@ -1,5 +1,5 @@
 import * as React from "react";
-import { CustomIconProps, getPixels } from "../index";
+import { CustomIconProps, getPixels, iconClassName } from "../index";
 
 export const CustomTypeOffIcon = React.forwardRef<
   SVGSVGElement,
@@ -14,6 +14,7 @@ export const CustomTypeOffIcon = React.forwardRef<
       width={size}
       height={size}
       {...props}
+      className={iconClassName(props.className)}
     >
       <g>
         <path

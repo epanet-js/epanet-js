@@ -1,4 +1,5 @@
 import * as React from "react";
+import { iconClassName } from "../index";
 
 export const ReservoirIcon = React.forwardRef<
   SVGSVGElement,
@@ -27,6 +28,7 @@ export const ReservoirIcon = React.forwardRef<
       fill="none"
       stroke="currentColor"
       {...props}
+      className={iconClassName(props.className)}
     >
       <polygon
         points={`${p1x},${p1y} ${p2x},${p2y} ${p3x},${p3y}`}

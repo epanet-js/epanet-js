@@ -1,5 +1,5 @@
 import * as React from "react";
-import { CustomIconProps, getPixels } from "../index";
+import { CustomIconProps, getPixels, iconClassName } from "../index";
 
 export const CustomUnsavedChangesIcon = React.forwardRef<
   SVGSVGElement,
@@ -14,6 +14,7 @@ export const CustomUnsavedChangesIcon = React.forwardRef<
       width={size}
       height={size}
       {...props}
+      className={iconClassName(props.className)}
     >
       <circle cx="12" cy="12" r="3.5" />
     </svg>

@@ -29,7 +29,7 @@ export const ItemActions = ({
   return (
     <div
       onClick={(e) => e.stopPropagation()}
-      className="self-stretch flex pr-1"
+      className="self-stretch flex shrink-0 pr-1"
     >
       <DD.Root modal={false} onOpenChange={handleOpenChange}>
         <DD.Trigger asChild>

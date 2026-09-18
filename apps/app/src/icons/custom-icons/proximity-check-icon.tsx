@@ -1,5 +1,5 @@
 import * as React from "react";
-import { CustomIconProps, getPixels } from "../index";
+import { CustomIconProps, getPixels, iconClassName } from "../index";
 
 export const CustomProximityCheckIcon = React.forwardRef<
   SVGSVGElement,
@@ -19,6 +19,7 @@ export const CustomProximityCheckIcon = React.forwardRef<
       strokeLinecap="round"
       strokeLinejoin="round"
       {...props}
+      className={iconClassName(props.className)}
     >
       <g id="proximity">
         <g>

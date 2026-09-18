@@ -1,5 +1,5 @@
 import * as React from "react";
-import { CustomIconProps, getPixels } from "../index";
+import { CustomIconProps, getPixels, iconClassName } from "../index";
 
 export const CustomPipeIcon = React.forwardRef<SVGSVGElement, CustomIconProps>(
   ({ size: rawSize = "md", ...props }, ref) => {
@@ -13,6 +13,7 @@ export const CustomPipeIcon = React.forwardRef<SVGSVGElement, CustomIconProps>(
         width={size}
         height={size}
         {...props}
+        className={iconClassName(props.className)}
       >
         <path d="M4 15v6a.997.997 0 0 1-1 1 .997.997 0 0 1-1-1V3a.997.997 0 0 1 1-1 .997.997 0 0 1 1 1v6h16V3a.997.997 0 0 1 1-1 .997.997 0 0 1 1 1v18a.997.997 0 0 1-1 1 .997.997 0 0 1-1-1v-6H4Z" />
       </svg>

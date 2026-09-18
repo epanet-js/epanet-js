@@ -1,5 +1,5 @@
 import * as React from "react";
-import { CustomIconProps, getPixels } from "../index";
+import { CustomIconProps, getPixels, iconClassName } from "../index";
 
 export const CustomPanelLeftActive = React.forwardRef<
   SVGSVGElement,
@@ -19,6 +19,7 @@ export const CustomPanelLeftActive = React.forwardRef<
       width={size}
       height={size}
       {...props}
+      className={iconClassName(props.className)}
     >
       <path d="M3,5l0,14c0,1.104 0.896,2 2,2l14,0c1.104,0 2,-0.896 2,-2l0,-14c0,-1.104 -0.896,-2 -2,-2l-14,0c-1.104,0 -2,0.896 -2,2Z" />
       <path

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { CustomIconProps, getPixels } from "../index";
+import { CustomIconProps, getPixels, iconClassName } from "../index";
 
 export const CustomBoundaryTraceIcon = React.forwardRef<
   SVGSVGElement,
@@ -18,6 +18,7 @@ export const CustomBoundaryTraceIcon = React.forwardRef<
       stroke="currentColor"
       fill="none"
       {...props}
+      className={iconClassName(props.className)}
     >
       <path d="M16,20l0,-16" />
       <path d="M21,16l-5,5l-5,-5" />

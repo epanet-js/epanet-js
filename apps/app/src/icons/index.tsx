@@ -113,6 +113,7 @@ import {
   FolderDown,
   FolderUp,
 } from "lucide-react";
+import clsx from "clsx";
 
 export const iconSizes = {
   sm: 12,
@@ -138,11 +139,20 @@ export const getPixels = (rawSize: IconSizeKey | number) => {
   return iconSizes[rawSize];
 };
 
+export const iconClassName = (className?: string) =>
+  clsx("shrink-0", className);
+
 const icon = (Icon: LucideIcon): React.FC<IconProps> => {
   return ({ size: rawSize = "md", ...props }) => {
     const pixels = getPixels(rawSize);
 
-    return <Icon size={pixels} {...props} />;
+    return (
+      <Icon
+        size={pixels}
+        {...props}
+        className={iconClassName(props.className)}
+      />
+    );
   };
 };
 
@@ -275,6 +285,7 @@ export const ReverseIcon: React.FC<IconProps> = ({
     <ArrowDownUp
       size={pixels}
       {...props}
+      className={iconClassName(props.className)}
       style={{ transform: "rotate(90deg)", ...props.style }}
     />
   );
@@ -290,6 +301,7 @@ export const AnalysisToolsIcon: React.FC<IconProps> = ({
     <ScanText
       size={pixels}
       {...props}
+      className={iconClassName(props.className)}
       style={{ transform: "rotate(-90deg)", ...props.style }}
     />
   );

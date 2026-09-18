@@ -1,5 +1,5 @@
 import * as React from "react";
-import { CustomIconProps, getPixels } from "../index";
+import { CustomIconProps, getPixels, iconClassName } from "../index";
 
 export const CustomCurvesIcon = React.forwardRef<
   SVGSVGElement,
@@ -19,6 +19,7 @@ export const CustomCurvesIcon = React.forwardRef<
       width={size}
       height={size}
       {...props}
+      className={iconClassName(props.className)}
     >
       <path d="M3 3v16c0 1.097.903 2 2 2h16" />
       <path d="M7 7.5c7.464.062 9.248 1.743 12 7" />

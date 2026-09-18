@@ -59,7 +59,7 @@ export const CollapsibleListSection = ({
             aria-label={action.label}
             disabled={action.disabled}
             onClick={() => onAction(sectionType)}
-            className="h-6 w-6 justify-center hover:bg-base-hover"
+            className="h-6 w-6 shrink-0 justify-center hover:bg-base-hover"
           >
             {action.icon}
           </Button>
