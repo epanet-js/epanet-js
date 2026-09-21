@@ -12,7 +12,8 @@ import {
   type Issue,
   type SourceFile,
 } from "@epanet-js/converters";
-import type { GisInput } from "../importer";
+import type { GisInput, SourceContents } from "../importer";
+import { contentsOf } from "./contents";
 import { gisFormatOf, isGisSecondaryPart } from "./formats";
 import { readDxf, type DxfBounds, type DxfStatedCrs } from "./parse-dxf";
 
@@ -20,12 +21,14 @@ export type ParsedGisSource = {
   features: Feature[];
   sourceProjection?: Proj4Projection;
   issues: IssueCollector;
+  contents: SourceContents;
 };
 
 type DecodedSource = {
   features: Feature[];
   sourceProjection?: Proj4Projection;
   issues: Issue[];
+  contents?: SourceContents;
 };
 
 type CacheEntry = {
@@ -96,6 +99,9 @@ const resultOf = (decoded: DecodedSource): ParsedGisSource => {
       ? {}
       : { sourceProjection: decoded.sourceProjection }),
     issues,
+    get contents() {
+      return (decoded.contents ??= contentsOf(decoded.features));
+    },
   };
 };
 

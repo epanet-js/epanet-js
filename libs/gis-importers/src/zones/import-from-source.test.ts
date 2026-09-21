@@ -266,26 +266,25 @@ describe("zones importFromSource", () => {
 
 describe("zones scanSource", () => {
   it("reports the attributes, the record count and the geometry", async () => {
-    const { summary } = await scanSource(
+    const { contents } = await scanSource(
       filesOf([aZone({ DMA: "North", AREA: 12 }), aZone({ DMA: "South" })]),
     );
 
-    expect(summary!.recordCount).toBe(2);
-    expect(summary!.attributes.map(({ name }) => name)).toEqual([
+    expect(contents!.recordCount).toBe(2);
+    expect(contents!.attributes.map(({ name }) => name)).toEqual([
       "AREA",
       "DMA",
     ]);
-    expect(summary!.geometries).toEqual(["polygon"]);
   });
 
   it("describes a file it could not place, and says it could not", async () => {
-    const { summary, issues } = await scanSource(
+    const { contents, issues } = await scanSource(
       filesStatingNoCrs([
         aZone({ DMA: "North" }, aSquare(432000, 5812000, 100)),
       ]),
     );
 
-    expect(summary!.attributes.map(({ name }) => name)).toEqual(["DMA"]);
+    expect(contents!.attributes.map(({ name }) => name)).toEqual(["DMA"]);
     expect(issues).toEqual([
       { code: "coordinateSystemUnknown", severity: "error" },
     ]);

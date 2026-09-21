@@ -1,5 +1,5 @@
 import type { Feature } from "geojson";
-import { summarizeFeatures } from "./summarize";
+import { contentsOf } from "./contents";
 
 const aPoint = (properties: Record<string, unknown>): Feature => ({
   type: "Feature",
@@ -7,66 +7,66 @@ const aPoint = (properties: Record<string, unknown>): Feature => ({
   properties,
 });
 
-describe("summarizeFeatures", () => {
+describe("contentsOf", () => {
   it("offers an attribute any record states", () => {
-    const summary = summarizeFeatures([
+    const contents = contentsOf([
       aPoint({ NAME: "north" }),
       aPoint({ CODE: "a" }),
     ]);
 
-    expect(summary.attributes.map((a) => a.name)).toEqual(["CODE", "NAME"]);
+    expect(contents.attributes.map((a) => a.name)).toEqual(["CODE", "NAME"]);
   });
 
   it("sorts attributes by name", () => {
-    const summary = summarizeFeatures([aPoint({ b: 1, a: 2, C: 3 })]);
+    const contents = contentsOf([aPoint({ b: 1, a: 2, C: 3 })]);
 
-    expect(summary.attributes.map((a) => a.name)).toEqual(["a", "b", "C"]);
+    expect(contents.attributes.map((a) => a.name)).toEqual(["a", "b", "C"]);
   });
 
   it("marks an attribute every record states", () => {
-    const summary = summarizeFeatures([
+    const contents = contentsOf([
       aPoint({ NAME: "north", CODE: "a" }),
       aPoint({ NAME: "south" }),
     ]);
 
-    const byName = new Map(summary.attributes.map((a) => [a.name, a]));
+    const byName = new Map(contents.attributes.map((a) => [a.name, a]));
     expect(byName.get("NAME")!.onEveryRecord).toBe(true);
     expect(byName.get("CODE")!.onEveryRecord).toBe(false);
   });
 
   it("ignores a blank value when deciding what a record states", () => {
-    const summary = summarizeFeatures([
+    const contents = contentsOf([
       aPoint({ NAME: "north" }),
       aPoint({ NAME: "  " }),
     ]);
 
-    expect(summary.attributes[0].onEveryRecord).toBe(false);
+    expect(contents.attributes[0].onEveryRecord).toBe(false);
   });
 
   it("leaves out an attribute no record states", () => {
-    const summary = summarizeFeatures([aPoint({ NAME: null })]);
+    const contents = contentsOf([aPoint({ NAME: null })]);
 
-    expect(summary.attributes).toEqual([]);
+    expect(contents.attributes).toEqual([]);
   });
 
   it("is a number only when every stated value reads as one", () => {
-    const summary = summarizeFeatures([
+    const contents = contentsOf([
       aPoint({ DEMAND: 10, SIZE: 4 }),
       aPoint({ DEMAND: "12.5", SIZE: "INS" }),
     ]);
 
-    const byName = new Map(summary.attributes.map((a) => [a.name, a]));
+    const byName = new Map(contents.attributes.map((a) => [a.name, a]));
     expect(byName.get("DEMAND")!.type).toBe("number");
     expect(byName.get("SIZE")!.type).toBe("text");
   });
 
   it("counts every record, including one with no properties", () => {
-    const summary = summarizeFeatures([
+    const contents = contentsOf([
       aPoint({ NAME: "north" }),
       { ...aPoint({}), properties: null },
     ]);
 
-    expect(summary.recordCount).toBe(2);
+    expect(contents.recordCount).toBe(2);
   });
 
   it("reports one geometry kind, normalising the single and multi forms", () => {
@@ -76,9 +76,9 @@ describe("summarizeFeatures", () => {
       properties: {},
     };
 
-    expect(summarizeFeatures([aPoint({}), multi]).geometries).toEqual([
-      "point",
-    ]);
+    expect(
+      contentsOf([aPoint({}), multi]).groups.map((group) => group.geometry),
+    ).toEqual(["point"]);
   });
 
   it("lists every kind of a source of mixed geometry, once and in order", () => {
@@ -94,18 +94,10 @@ describe("summarizeFeatures", () => {
       properties: {},
     };
 
-    expect(summarizeFeatures([line, aPoint({}), line]).geometries).toEqual([
-      "point",
-      "line",
-    ]);
-  });
-
-  it("carries the name of the projection a reader converted out of, when it says", () => {
-    const summary = summarizeFeatures([aPoint({})], "OSGB 1936");
-
-    expect(summary.sourceProjectionName).toBe("OSGB 1936");
     expect(
-      summarizeFeatures([aPoint({})]).sourceProjectionName,
-    ).toBeUndefined();
+      contentsOf([line, aPoint({}), line]).groups.map(
+        (group) => group.geometry,
+      ),
+    ).toEqual(["point", "line"]);
   });
 });

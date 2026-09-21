@@ -1,8 +1,8 @@
 import type { Feature } from "geojson";
 import type {
   SourceAttribute,
+  SourceContents,
   SourceGeometry,
-  SourceSummary,
 } from "../importer";
 
 const isBlank = (value: unknown): boolean =>
@@ -18,13 +18,33 @@ const isNumeric = (value: unknown): boolean =>
 
 type Tally = { stated: number; numeric: number };
 
-export const summarizeFeatures = (
-  features: Feature[],
-  sourceProjectionName?: string,
-): SourceSummary => {
+const GEOMETRY_ORDER: SourceGeometry[] = [
+  "point",
+  "line",
+  "polygon",
+  "unknown",
+];
+
+const geometryKindOf = (type: string): SourceGeometry => {
+  if (type === "Point" || type === "MultiPoint") return "point";
+  if (type === "LineString" || type === "MultiLineString") return "line";
+  if (type === "Polygon" || type === "MultiPolygon") return "polygon";
+  return "unknown";
+};
+
+export const contentsOf = (features: Feature[]): SourceContents => {
   const tallies = new Map<string, Tally>();
+  const byKind = new Map<SourceGeometry, Feature[]>();
 
   for (const feature of features) {
+    const type = feature.geometry?.type;
+    if (type) {
+      const kind = geometryKindOf(type);
+      const group = byKind.get(kind);
+      if (group) group.push(feature);
+      else byKind.set(kind, [feature]);
+    }
+
     const properties = feature.properties;
     if (!properties) continue;
 
@@ -46,33 +66,17 @@ export const summarizeFeatures = (
     }))
     .sort((a, b) => a.name.localeCompare(b.name));
 
+  const geometries = GEOMETRY_ORDER.filter((kind) => byKind.has(kind));
+
   return {
     attributes,
     recordCount: features.length,
-    ...(sourceProjectionName === undefined ? {} : { sourceProjectionName }),
-    geometries: geometriesOf(features),
+    groups: geometries.map((geometry) => ({
+      geometry,
+      features:
+        geometries.length === 1
+          ? features
+          : (byKind.get(geometry) as Feature[]),
+    })),
   };
-};
-
-const GEOMETRY_ORDER: SourceGeometry[] = [
-  "point",
-  "line",
-  "polygon",
-  "unknown",
-];
-
-const kindOf = (type: string): SourceGeometry => {
-  if (type === "Point" || type === "MultiPoint") return "point";
-  if (type === "LineString" || type === "MultiLineString") return "line";
-  if (type === "Polygon" || type === "MultiPolygon") return "polygon";
-  return "unknown";
-};
-
-const geometriesOf = (features: Feature[]): SourceGeometry[] => {
-  const kinds = new Set<SourceGeometry>();
-  for (const feature of features) {
-    const type = feature.geometry?.type;
-    if (type) kinds.add(kindOf(type));
-  }
-  return GEOMETRY_ORDER.filter((kind) => kinds.has(kind));
 };

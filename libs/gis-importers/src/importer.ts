@@ -17,11 +17,15 @@ export type SourceAttribute = {
 
 export type SourceGeometry = "point" | "line" | "polygon" | "unknown";
 
-export type SourceSummary = {
+export type GeometryGroup = {
+  geometry: SourceGeometry;
+  features: Feature[];
+};
+
+export type SourceContents = {
   attributes: SourceAttribute[];
   recordCount: number;
-  sourceProjectionName?: string;
-  geometries?: SourceGeometry[];
+  groups: GeometryGroup[];
 };
 
 export type GisInput = ParserInput & {
@@ -35,7 +39,8 @@ export type ImportResult = {
 };
 
 export type ScanSourceResult = {
-  summary: SourceSummary | null;
+  contents: SourceContents | null;
+  sourceProjection?: Proj4Projection;
   issues: Issue[];
 };
 

@@ -22,11 +22,12 @@ export const readZonesWithImporter = async (
   ].filter((file): file is File => file != null);
 
   const source = { files, projections: projections ?? undefined };
-  const { summary, issues } = await zonesImporter.scanSource(source);
+  const { contents, sourceProjection, issues } =
+    await zonesImporter.scanSource(source);
 
   const blocking = issues.find(({ severity }) => severity === "error");
 
-  if (summary === null || blocking !== undefined) {
+  if (contents === null || blocking !== undefined) {
     return anError(errorFor(blocking));
   }
 
@@ -34,18 +35,16 @@ export const readZonesWithImporter = async (
   const polygons = features.filter(isPolygon);
   if (polygons.length === 0) return anError("noPolygons");
 
-  const { sourceProjectionName } = summary;
-
   return {
     features: polygons,
-    uniqueProperties: new Set(summary.attributes.map(({ name }) => name)),
-    ...(sourceProjectionName === undefined
+    uniqueProperties: new Set(contents.attributes.map(({ name }) => name)),
+    ...(sourceProjection === undefined
       ? {}
       : {
           coordinateConversion: {
-            detected: sourceProjectionName,
+            detected: sourceProjection.name,
             converted: true,
-            fromCRS: sourceProjectionName,
+            fromCRS: sourceProjection.name,
           },
         }),
   };

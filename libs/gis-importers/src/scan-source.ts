@@ -1,17 +1,15 @@
 import type { GisInput, ScanSourceResult } from "./importer";
 import { parseGisSource } from "./file-parsers/parse-gis-source";
-import { summarizeFeatures } from "./file-parsers/summarize";
 
 export const scanSource = async (
   input: GisInput,
 ): Promise<ScanSourceResult> => {
-  const { features, sourceProjection, issues } = await parseGisSource(input);
+  const parsed = await parseGisSource(input);
+  const { features, sourceProjection, issues } = parsed;
 
   return {
-    summary:
-      features.length === 0
-        ? null
-        : summarizeFeatures(features, sourceProjection?.name),
+    contents: features.length === 0 ? null : parsed.contents,
+    ...(sourceProjection === undefined ? {} : { sourceProjection }),
     issues: issues.build(),
   };
 };

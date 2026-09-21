@@ -68,14 +68,15 @@ export const DataInputStep: React.FC<{
       setLoading(true);
 
       try {
-        const { summary, issues } = await customerPointsImporter.scanSource({
-          files,
-          projections: projections ?? undefined,
-        });
+        const { contents, sourceProjection, issues } =
+          await customerPointsImporter.scanSource({
+            files,
+            projections: projections ?? undefined,
+          });
 
         const blocking = issues.find(({ severity }) => severity === "error");
 
-        if (summary === null || blocking !== undefined) {
+        if (contents === null || blocking !== undefined) {
           userTracking.capture({
             name: "importCustomerPoints.dataInput.parseError",
             fileName: primary.name,
@@ -87,22 +88,22 @@ export const DataInputStep: React.FC<{
         }
 
         setInputData({
-          properties: new Set(summary.attributes.map(({ name }) => name)),
+          properties: new Set(contents.attributes.map(({ name }) => name)),
         });
         setLoading(false);
 
         userTracking.capture({
           name: "importCustomerPoints.dataInput.fileLoaded",
           fileName: primary.name,
-          propertiesCount: summary.attributes.length,
-          featuresCount: summary.recordCount,
+          propertiesCount: contents.attributes.length,
+          featuresCount: contents.recordCount,
           coordinateConversion:
-            summary.sourceProjectionName === undefined
+            sourceProjection === undefined
               ? null
               : {
-                  detected: summary.sourceProjectionName,
+                  detected: sourceProjection.name,
                   converted: true,
-                  fromCRS: summary.sourceProjectionName,
+                  fromCRS: sourceProjection.name,
                 },
         });
 

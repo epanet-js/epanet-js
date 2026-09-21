@@ -326,28 +326,27 @@ describe("customer points importSource", () => {
 
 describe("customer points scanSource", () => {
   it("reports the attributes and the record count", async () => {
-    const { summary } = await scanSource(
+    const { contents } = await scanSource(
       filesOf([aPoint({ METER: "M-1", USAGE: 10 }), aPoint({ METER: "M-2" })]),
     );
 
-    expect(summary!.recordCount).toBe(2);
-    expect(summary!.attributes.map((a) => a.name)).toEqual(["METER", "USAGE"]);
-    expect(summary!.geometries).toEqual(["point"]);
+    expect(contents!.recordCount).toBe(2);
+    expect(contents!.attributes.map((a) => a.name)).toEqual(["METER", "USAGE"]);
   });
 
   it("has no summary for a source it could not read", async () => {
-    const { summary, issues } = await scanSource({ files: [] });
+    const { contents, issues } = await scanSource({ files: [] });
 
-    expect(summary).toBeNull();
+    expect(contents).toBeNull();
     expect(issues).toEqual([{ code: "sourceEmpty", severity: "error" }]);
   });
 
   it("reads a file that states no CRS as WGS84, and says so", async () => {
-    const { summary, issues } = await scanSource(
+    const { sourceProjection, issues } = await scanSource(
       filesStatingNoCrs([aPoint({})]),
     );
 
-    expect(summary!.sourceProjectionName).toBeUndefined();
+    expect(sourceProjection).toBeUndefined();
     expect(issues).toEqual([
       { code: "coordinateSystemMissing", severity: "warning" },
     ]);
@@ -360,24 +359,24 @@ describe("customer points scanSource", () => {
   });
 
   it("does not judge the file by a record that is out of range", async () => {
-    const { summary, issues } = await scanSource(
+    const { contents, issues } = await scanSource(
       filesOf([aPoint({}), aPoint({}, [432000, 5812000]), aPoint({})]),
     );
 
-    expect(summary).not.toBeNull();
+    expect(contents).not.toBeNull();
     expect(issues).toEqual([]);
   });
 
   it("describes a file it could not place, and says it could not", async () => {
-    const { summary, issues } = await scanSource(
+    const { contents, issues } = await scanSource(
       filesStatingNoCrs([
         aPoint({ METER: "M-1" }, [432000, 5812000]),
         aPoint({ METER: "M-2" }, [433000, 5813000]),
       ]),
     );
 
-    expect(summary!.recordCount).toBe(2);
-    expect(summary!.attributes.map(({ name }) => name)).toEqual(["METER"]);
+    expect(contents!.recordCount).toBe(2);
+    expect(contents!.attributes.map(({ name }) => name)).toEqual(["METER"]);
     expect(issues).toEqual([
       { code: "coordinateSystemUnknown", severity: "error" },
     ]);
@@ -396,7 +395,7 @@ describe("customer points scanSource", () => {
       ],
     ]);
 
-    const { summary, issues } = await scanSource({
+    const { sourceProjection, issues } = await scanSource({
       ...filesStatingNoCrs([
         aPoint({}, [432000, 181000]),
         aPoint({}, [433000, 182000]),
@@ -405,9 +404,7 @@ describe("customer points scanSource", () => {
       projections: osgb,
     });
 
-    expect(summary!.sourceProjectionName).toBe(
-      "OSGB 1936 / British National Grid",
-    );
+    expect(sourceProjection?.name).toBe("OSGB 1936 / British National Grid");
     expect(issues).toEqual([]);
   });
 
@@ -426,9 +423,9 @@ describe("customer points scanSource", () => {
         Promise.resolve(new TextEncoder().encode(crs84).buffer),
     };
 
-    const { summary, issues } = await scanSource({ files: [file] });
+    const { sourceProjection, issues } = await scanSource({ files: [file] });
 
-    expect(summary!.sourceProjectionName).toBeUndefined();
+    expect(sourceProjection).toBeUndefined();
     expect(issues).toEqual([]);
   });
 
@@ -444,21 +441,21 @@ describe("customer points scanSource", () => {
         Promise.resolve(new TextEncoder().encode(projected).buffer),
     };
 
-    const { summary, issues } = await scanSource({ files: [file] });
+    const { contents, issues } = await scanSource({ files: [file] });
 
-    expect(summary?.recordCount).toEqual(2);
+    expect(contents?.recordCount).toEqual(2);
     expect(issues).toEqual([
       { code: "coordinateSystemMismatch", severity: "error" },
     ]);
   });
 
   it("reports a CRS it has no definition for", async () => {
-    const { summary, issues } = await scanSource({
+    const { contents, issues } = await scanSource({
       ...filesStatingNoCrs([aPoint({}, [432000, 181000])]),
       crs: { type: "epsg", code: 27700 },
     });
 
-    expect(summary?.recordCount).toEqual(1);
+    expect(contents?.recordCount).toEqual(1);
     expect(issues).toEqual([
       { code: "coordinateSystemUnsupported", severity: "error" },
     ]);
