@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { ChangeSet, squash } from "./change-set";
-import type { ChangeRecord } from "./types";
+import { ChangeSet, invert, squash } from "./change-set";
+import { effective } from "./direction";
+import type { ChangeKind, ChangeRecord } from "./types";
 
 describe("codec", () => {
   it("round-trips scalars, nulls and absents", () => {
@@ -331,5 +332,74 @@ describe("one record per entity", () => {
       },
     ]);
     expect(cs.records).toHaveLength(2);
+  });
+});
+
+describe("invert", () => {
+  const cs = (records: ChangeRecord[]) => ChangeSet.of("edit", records);
+
+  it("agrees with reading the reverse column", () => {
+    const kinds: ChangeKind[] = ["create", "update", "delete"];
+
+    for (const kind of kinds) {
+      const record: ChangeRecord = {
+        entity: "pipe",
+        id: 1,
+        kind,
+        before: kind === "create" ? {} : { diameter: 100 },
+        after: kind === "delete" ? {} : { diameter: 200 },
+      };
+
+      const inverted = invert(cs([record])).records[0];
+
+      expect(inverted.kind).toBe(effective(record, "reverse").kind);
+      expect(inverted.before).toEqual(record.after);
+      expect(inverted.after).toEqual(record.before);
+    }
+  });
+
+  it("cancels an update when squashed onto it", () => {
+    const change = cs([
+      {
+        entity: "pipe",
+        id: 1,
+        kind: "update",
+        before: { diameter: 100 },
+        after: { diameter: 200 },
+      },
+    ]);
+
+    const folded = squash("", [change, invert(change)]);
+
+    expect(folded.records[0].before.diameter).toBe(100);
+    expect(folded.records[0].after.diameter).toBe(100);
+  });
+
+  it("cancels a create when squashed onto it", () => {
+    const change = cs([
+      {
+        entity: "pipe",
+        id: 1,
+        kind: "create",
+        before: {},
+        after: { diameter: 200 },
+      },
+    ]);
+
+    expect(squash("", [change, invert(change)]).records).toEqual([]);
+  });
+
+  it("keeps the version it was given", () => {
+    const change = ChangeSet.atVersion(1, "edit", [
+      {
+        entity: "pipe",
+        id: 1,
+        kind: "update",
+        before: { diameter: 100 },
+        after: { diameter: 200 },
+      },
+    ]);
+
+    expect(invert(change).version).toBe(1);
   });
 });
