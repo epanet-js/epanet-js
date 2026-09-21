@@ -22,13 +22,13 @@ export type BookmarkId = string;
 
 export type SelectionSet = {
   id: SelectionSetId;
-  name: string;
+  label: string;
   selection: Sel;
 };
 
 export type Bookmark = {
   id: BookmarkId;
-  name: string;
+  label: string;
   bbox: BBox;
 };
 
@@ -37,29 +37,29 @@ export const initializeSelectionSets = (): SelectionSet[] => [];
 export const initializeBookmarks = (): Bookmark[] => [];
 
 export const newSelectionSet = (
-  name: string,
+  label: string,
   selection: Sel,
 ): SelectionSet => ({
   id: nanoid(),
-  name,
+  label,
   selection,
 });
 
-export const newBookmark = (name: string, bbox: BBox): Bookmark => ({
+export const newBookmark = (label: string, bbox: BBox): Bookmark => ({
   id: nanoid(),
-  name,
+  label,
   bbox,
 });
 
-type Named = { id: string; name: string };
+type Labeled = { id: string; label: string };
 
-export const renameItem = <T extends Named>(
+export const renameItem = <T extends Labeled>(
   items: readonly T[],
   id: string,
-  name: string,
-): T[] => items.map((item) => (item.id === id ? { ...item, name } : item));
+  label: string,
+): T[] => items.map((item) => (item.id === id ? { ...item, label } : item));
 
-export const removeItem = <T extends Named>(
+export const removeItem = <T extends Labeled>(
   items: readonly T[],
   id: string,
 ): T[] => items.filter((item) => item.id !== id);

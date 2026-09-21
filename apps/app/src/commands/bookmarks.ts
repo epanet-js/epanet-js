@@ -23,7 +23,7 @@ export const useAddBookmark = () => {
       (
         get,
         set,
-        { name, source }: { name: string; source: CollectionDraftSource },
+        { label, source }: { label: string; source: CollectionDraftSource },
       ) => {
         const bounds = map?.map.getBounds();
         if (!bounds) return;
@@ -38,7 +38,7 @@ export const useAddBookmark = () => {
         });
         set(bookmarksAtom, (bookmarks) => [
           ...bookmarks,
-          newBookmark(name, bbox),
+          newBookmark(label, bbox),
         ]);
       },
       [map, userTracking],
@@ -80,13 +80,13 @@ export const useRenameBookmark = () => {
         set,
         {
           bookmarkId,
-          name,
+          label,
           source,
-        }: { bookmarkId: BookmarkId; name: string; source: "panel" },
+        }: { bookmarkId: BookmarkId; label: string; source: "panel" },
       ) => {
         userTracking.capture({ name: "bookmark.renamed", source });
         set(bookmarksAtom, (bookmarks) =>
-          renameItem(bookmarks, bookmarkId, name),
+          renameItem(bookmarks, bookmarkId, label),
         );
       },
       [userTracking],

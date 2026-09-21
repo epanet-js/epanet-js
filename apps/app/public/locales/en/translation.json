@@ -2007,15 +2007,15 @@
       "nothingSelected": "Nothing selected",
       "save": "Save selection",
       "selectOnly": "Select only",
-      "newName": "New selection set name",
-      "namePlaceholder": "Selection set name"
+      "newLabel": "New selection set name",
+      "labelPlaceholder": "Selection set name"
     },
     "bookmarks": {
       "title": "Bookmarks",
       "saveCurrent": "Save current map area",
       "add": "Add bookmark",
-      "newName": "New bookmark name",
-      "namePlaceholder": "Bookmark name"
+      "newLabel": "New bookmark name",
+      "labelPlaceholder": "Bookmark name"
     }
   },
   "tabs": {

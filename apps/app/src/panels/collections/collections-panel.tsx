@@ -57,7 +57,7 @@ const SECTIONS: readonly SectionType[] = ["selectionSets", "bookmarks"];
 
 type Row = RowKey & {
   navId: number;
-  name: string;
+  label: string;
 };
 
 export const CollectionsPanel = () => {
@@ -108,13 +108,13 @@ export const CollectionsPanel = () => {
       navId: index + 1,
       section: "selectionSets",
       id: set.id,
-      name: set.name,
+      label: set.label,
     }));
     const bookmarkRows: Row[] = bookmarks.map((bookmark, index) => ({
       navId: selectionSets.length + index + 2,
       section: "bookmarks",
       id: bookmark.id,
-      name: bookmark.name,
+      label: bookmark.label,
     }));
     const addRowNavIds: Record<SectionType, number> = {
       selectionSets: selectionSets.length + 1,
@@ -259,28 +259,28 @@ export const CollectionsPanel = () => {
     applySelectionSet({ setId: row.id, zoom: false, source: "panel" });
   };
 
-  const handleNameChange = (name: string): boolean => {
+  const handleLabelChange = (label: string): boolean => {
     if (!actionState) return true;
 
-    const trimmedName = name.trim();
-    if (!trimmedName) return true;
+    const trimmedLabel = label.trim();
+    if (!trimmedLabel) return true;
 
     if (actionState.action === "creating") {
       if (actionState.section === "selectionSets") {
-        saveSelectionSet({ name: trimmedName, source: actionState.source });
+        saveSelectionSet({ label: trimmedLabel, source: actionState.source });
       } else {
-        addBookmark({ name: trimmedName, source: actionState.source });
+        addBookmark({ label: trimmedLabel, source: actionState.source });
       }
     } else if (actionState.section === "selectionSets") {
       renameSelectionSet({
         setId: actionState.id,
-        name: trimmedName,
+        label: trimmedLabel,
         source: "panel",
       });
     } else {
       renameBookmark({
         bookmarkId: actionState.id,
-        name: trimmedName,
+        label: trimmedLabel,
         source: "panel",
       });
     }
@@ -341,7 +341,7 @@ export const CollectionsPanel = () => {
   const renderRow = (row: Row) => (
     <EditableListItem
       key={row.id}
-      item={{ id: row.navId, label: row.name }}
+      item={{ id: row.navId, label: row.label }}
       isSelected={row.section === "selectionSets" && row.id === selectedSetId}
       isFocused={focusedRow !== null && isSameRow(row, focusedRow)}
       onSelect={() => handleClickRow(row)}
@@ -358,7 +358,7 @@ export const CollectionsPanel = () => {
           : undefined
       }
       editLabelMode={getEditMode(actionState, row)}
-      onLabelChange={handleNameChange}
+      onLabelChange={handleLabelChange}
       onCancel={clearActionState}
     />
   );
@@ -388,12 +388,12 @@ export const CollectionsPanel = () => {
           {selectionRows.map(renderRow)}
           {isCreatingIn(actionState, "selectionSets") ? (
             <ItemInput
-              label={translate("collections.selectionSets.newName")}
+              label={translate("collections.selectionSets.newLabel")}
               value=""
               placeholder={translate(
-                "collections.selectionSets.namePlaceholder",
+                "collections.selectionSets.labelPlaceholder",
               )}
-              onCommit={handleNameChange}
+              onCommit={handleLabelChange}
               onCancel={clearActionState}
             />
           ) : (
@@ -426,10 +426,10 @@ export const CollectionsPanel = () => {
           {bookmarkRows.map(renderRow)}
           {isCreatingIn(actionState, "bookmarks") ? (
             <ItemInput
-              label={translate("collections.bookmarks.newName")}
+              label={translate("collections.bookmarks.newLabel")}
               value=""
-              placeholder={translate("collections.bookmarks.namePlaceholder")}
-              onCommit={handleNameChange}
+              placeholder={translate("collections.bookmarks.labelPlaceholder")}
+              onCommit={handleLabelChange}
               onCancel={clearActionState}
             />
           ) : (

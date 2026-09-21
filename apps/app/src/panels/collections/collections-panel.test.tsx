@@ -457,7 +457,7 @@ describe("CollectionsPanel", () => {
       await nameIt("Downtown");
 
       expect(store.get(bookmarksAtom)[0]).toMatchObject({
-        name: "Downtown",
+        label: "Downtown",
         bbox: VIEWPORT,
       });
     });

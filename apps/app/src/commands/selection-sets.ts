@@ -25,7 +25,7 @@ export const useSaveSelectionSet = () => {
       (
         get,
         set,
-        { name, source }: { name: string; source: CollectionDraftSource },
+        { label, source }: { label: string; source: CollectionDraftSource },
       ) => {
         const selection = get(selectionAtom);
         const count = countSelected(selection);
@@ -39,7 +39,7 @@ export const useSaveSelectionSet = () => {
         });
         set(selectionSetsAtom, (sets) => [
           ...sets,
-          newSelectionSet(name, selection),
+          newSelectionSet(label, selection),
         ]);
       },
       [userTracking],
@@ -98,12 +98,12 @@ export const useRenameSelectionSet = () => {
         set,
         {
           setId,
-          name,
+          label,
           source,
-        }: { setId: SelectionSetId; name: string; source: "panel" },
+        }: { setId: SelectionSetId; label: string; source: "panel" },
       ) => {
         userTracking.capture({ name: "selectionSet.renamed", source });
-        set(selectionSetsAtom, (sets) => renameItem(sets, setId, name));
+        set(selectionSetsAtom, (sets) => renameItem(sets, setId, label));
       },
       [userTracking],
     ),
