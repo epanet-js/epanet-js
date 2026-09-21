@@ -18,6 +18,7 @@ import m0017 from "./0017_rebuild_broken_valve_geometry";
 import m0018 from "./0018_id_pools.sql?raw";
 import m0019 from "./0019_valve_target_node.sql?raw";
 import m0020 from "./0020_drop_id_pools.sql?raw";
+import m0021 from "./0021_collections.sql?raw";
 
 export type MigrationDB = Parameters<typeof m0006>[0];
 
@@ -44,6 +45,7 @@ export const migrations: Migration[] = [
   m0018,
   m0019,
   m0020,
+  m0021,
 ];
 
 export const APP_VERSION = migrations.length;
