@@ -66,28 +66,88 @@ export const parseGisSource = async (
   return resultOf(decoded);
 };
 
-/** A multi-part point or line is several records of one kind, so every
- *  consumer would otherwise split them itself. A MultiPolygon is left whole:
- *  it is one area with several rings, not several areas. */
-const asSingleParts = (decoded: DecodedSource): DecodedSource => ({
-  ...decoded,
-  features: decoded.features.flatMap((feature) => {
-    const geometry = feature.geometry;
-    if (geometry?.type === "MultiPoint") {
-      return geometry.coordinates.map((coordinates) => ({
-        ...feature,
-        geometry: { type: "Point" as const, coordinates },
-      }));
+const POSITION_NUMBERS = 2;
+const LINE_POSITIONS = 2;
+
+const asSingleParts = (decoded: DecodedSource): DecodedSource => {
+  const features: Feature[] = [];
+  const skipped: Issue[] = [];
+  let ref = 0;
+
+  for (const feature of decoded.features) {
+    const parts = singlePartsOf(feature);
+
+    if (parts.length === 0) {
+      skipped.push({
+        code: "featureCoordinatesInvalid",
+        severity: "warning",
+        ref: String(ref),
+        raw: feature,
+      });
+      ref += 1;
+      continue;
     }
-    if (geometry?.type === "MultiLineString") {
-      return geometry.coordinates.map((coordinates) => ({
-        ...feature,
-        geometry: { type: "LineString" as const, coordinates },
-      }));
-    }
-    return [feature];
-  }),
-});
+
+    features.push(...parts);
+    ref += parts.length;
+  }
+
+  if (skipped.length === 0) return { ...decoded, features };
+
+  return { ...decoded, features, issues: [...decoded.issues, ...skipped] };
+};
+
+const singlePartsOf = (feature: Feature): Feature[] => {
+  const geometry = feature.geometry;
+
+  if (geometry?.type === "MultiPoint") {
+    return geometry.coordinates.filter(isPosition).map((coordinates) => ({
+      ...feature,
+      geometry: { type: "Point" as const, coordinates },
+    }));
+  }
+
+  if (geometry?.type === "MultiLineString") {
+    return geometry.coordinates.filter(isLine).map((coordinates) => ({
+      ...feature,
+      geometry: { type: "LineString" as const, coordinates },
+    }));
+  }
+
+  if (geometry?.type === "Point") {
+    return isPosition(geometry.coordinates) ? [feature] : [];
+  }
+
+  if (geometry?.type === "LineString") {
+    return isLine(geometry.coordinates) ? [feature] : [];
+  }
+
+  if (geometry?.type === "Polygon") {
+    return geometry.coordinates.every(isRing) ? [feature] : [];
+  }
+
+  if (geometry?.type === "MultiPolygon") {
+    return geometry.coordinates.every((rings) => rings.every(isRing))
+      ? [feature]
+      : [];
+  }
+
+  return [feature];
+};
+
+const isPosition = (position: Position): boolean =>
+  Array.isArray(position) &&
+  position.length >= POSITION_NUMBERS &&
+  Number.isFinite(position[0]) &&
+  Number.isFinite(position[1]);
+
+const isLine = (positions: Position[]): boolean =>
+  Array.isArray(positions) &&
+  positions.length >= LINE_POSITIONS &&
+  positions.every(isPosition);
+
+const isRing = (ring: Position[]): boolean =>
+  Array.isArray(ring) && ring.every(isPosition);
 
 const resultOf = (decoded: DecodedSource): ParsedGisSource => {
   const issues = new IssueCollector();

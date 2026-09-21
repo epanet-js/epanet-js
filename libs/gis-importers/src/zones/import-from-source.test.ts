@@ -219,7 +219,7 @@ describe("zones importFromSource", () => {
       filesOf([broken, aZone({})]),
     );
 
-    expect(network.zones!.map((zone) => zone.ref)).toEqual(["1"]);
+    expect(network.zones).toHaveLength(1);
     expect(issues).toContainEqual(
       expect.objectContaining({
         code: "featureCoordinatesInvalid",

@@ -601,6 +601,44 @@ describe("parseGisSource", () => {
       expect(issues.build()).toEqual([]);
     });
 
+    it("skips a polyline record that holds no points, and reports it", async () => {
+      const line = {
+        type: "Feature",
+        geometry: {
+          type: "LineString",
+          coordinates: [
+            [0.001, 0.001],
+            [0.002, 0.002],
+          ],
+        },
+        properties: { NAME: "north" },
+      } as Feature;
+      const empty = {
+        type: "Feature",
+        geometry: { type: "LineString", coordinates: [] },
+        properties: { NAME: "nowhere" },
+      } as unknown as Feature;
+
+      shp.mockResolvedValue({
+        type: "FeatureCollection",
+        features: [empty, line],
+      });
+
+      const { features, issues } = await parseGisSource(
+        shapefileOf(["a.shp", "a.dbf"]),
+      );
+
+      expect(features).toEqual([line]);
+      expect(issues.build()).toContainEqual(
+        expect.objectContaining({
+          code: "featureCoordinatesInvalid",
+          severity: "warning",
+          ref: "0",
+          raw: empty,
+        }),
+      );
+    });
+
     it("names what the .prj was authored in", async () => {
       const files = [
         aBinaryFile("a.shp"),
@@ -976,6 +1014,93 @@ describe("parseGisSource", () => {
       ).toEqual([
         ["LineString", parts[0]],
         ["LineString", parts[1]],
+      ]);
+    });
+
+    it("leaves out a part with too few positions to be a line", async () => {
+      const part = [
+        [0.001, 0.001],
+        [0.002, 0.002],
+      ];
+
+      const { features, issues } = await parseGisSource({
+        files: [aCollection([multiOf("MultiLineString", [[], part])])],
+      });
+
+      expect(
+        features.map(({ geometry }) => [
+          geometry.type,
+          (geometry as { coordinates: Position[] }).coordinates,
+        ]),
+      ).toEqual([["LineString", part]]);
+      expect(issues.build().map(({ code }) => code)).not.toContain(
+        "featureCoordinatesInvalid",
+      );
+    });
+
+    it("reports a multi-part line record that yielded no line", async () => {
+      const line = multiOf("MultiLineString", [
+        [
+          [0.001, 0.001],
+          [0.002, 0.002],
+        ],
+      ]);
+      const nothing = multiOf("MultiLineString", []);
+
+      const { features, issues } = await parseGisSource({
+        files: [aCollection([line, nothing])],
+      });
+
+      expect(features).toHaveLength(1);
+      expect(issues.build()).toContainEqual(
+        expect.objectContaining({
+          code: "featureCoordinatesInvalid",
+          severity: "warning",
+          ref: "1",
+          raw: nothing,
+        }),
+      );
+    });
+
+    it("reports a record whose coordinates are not numbers, whatever its shape", async () => {
+      const notANumber = "notanumber";
+      const point = {
+        type: "Feature",
+        properties: {},
+        geometry: { type: "Point", coordinates: [notANumber, notANumber] },
+      } as unknown as Feature;
+      const polygon = {
+        type: "Feature",
+        properties: {},
+        geometry: {
+          type: "Polygon",
+          coordinates: [
+            [
+              [0, 0],
+              [notANumber, 0.001],
+              [0.001, 0.001],
+              [0, 0],
+            ],
+          ],
+        },
+      } as unknown as Feature;
+
+      const { features, issues } = await parseGisSource({
+        files: [aCollection([point, polygon, aPoint(IN_DEGREES)])],
+      });
+
+      expect(features).toEqual([aPoint(IN_DEGREES)]);
+      expect(
+        issues
+          .build()
+          .filter(({ code }) => code === "featureCoordinatesInvalid"),
+      ).toEqual([
+        expect.objectContaining({ severity: "warning", ref: "0", raw: point }),
+        expect.objectContaining({
+          severity: "warning",
+          ref: "1",
+          raw: polygon,
+        }),
       ]);
     });
 
