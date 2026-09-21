@@ -87,15 +87,20 @@ export const DataInputStep: React.FC<{
           return;
         }
 
+        const importablePoints = contents.groups.find(
+          ({ geometry }) => geometry === "point",
+        );
+        const attributes = importablePoints?.attributes ?? [];
+
         setInputData({
-          properties: new Set(contents.attributes.map(({ name }) => name)),
+          properties: new Set(attributes.map(({ name }) => name)),
         });
         setLoading(false);
 
         userTracking.capture({
           name: "importCustomerPoints.dataInput.fileLoaded",
           fileName: primary.name,
-          propertiesCount: contents.attributes.length,
+          propertiesCount: attributes.length,
           featuresCount: contents.recordCount,
           coordinateConversion:
             sourceProjection === undefined

@@ -212,7 +212,7 @@ describe("DataInputStep", () => {
       expect(userTracking.capture).toHaveBeenCalledWith({
         name: "importCustomerPoints.dataInput.fileLoaded",
         fileName: "no-points.geojson",
-        propertiesCount: 2,
+        propertiesCount: 0,
         featuresCount: 1,
         coordinateConversion: null,
       });

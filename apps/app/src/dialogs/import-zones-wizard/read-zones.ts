@@ -35,9 +35,14 @@ export const readZonesWithImporter = async (
   const polygons = features.filter(isPolygon);
   if (polygons.length === 0) return anError("noPolygons");
 
+  const importableContents = contents.groups.find(
+    ({ geometry }) => geometry === "polygon",
+  );
+  const attributes = importableContents?.attributes ?? [];
+
   return {
     features: polygons,
-    uniqueProperties: new Set(contents.attributes.map(({ name }) => name)),
+    uniqueProperties: new Set(attributes.map(({ name }) => name)),
     ...(sourceProjection === undefined
       ? {}
       : {

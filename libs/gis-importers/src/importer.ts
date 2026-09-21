@@ -20,6 +20,7 @@ export type SourceGeometry = "point" | "line" | "polygon" | "unknown";
 export type GeometryGroup = {
   geometry: SourceGeometry;
   features: Feature[];
+  attributes: SourceAttribute[];
 };
 
 export type SourceContents = {
