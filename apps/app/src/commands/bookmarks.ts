@@ -10,6 +10,7 @@ import {
   removeItem,
   renameItem,
 } from "src/lib/collections";
+import { useBookmarksTransaction } from "src/hooks/persistence/use-bookmarks-transaction";
 import { MapContext } from "src/map";
 import { bookmarksAtom } from "src/state/collections";
 import type { BBox } from "src/types";
@@ -17,12 +18,13 @@ import type { BBox } from "src/types";
 export const useAddBookmark = () => {
   const map = useContext(MapContext);
   const userTracking = useUserTracking();
+  const { transact } = useBookmarksTransaction();
 
   return useAtomCallback(
     useCallback(
       (
         get,
-        set,
+        _set,
         { label, source }: { label: string; source: CollectionDraftSource },
       ) => {
         const bounds = map?.map.getBounds();
@@ -30,18 +32,17 @@ export const useAddBookmark = () => {
 
         const [[west, south], [east, north]] = bounds.toArray();
         const bbox: BBox = [west, south, east, north];
+        const bookmarks = [...get(bookmarksAtom), newBookmark(label, bbox)];
+
+        if (!transact(bookmarks)) return;
 
         userTracking.capture({
           name: "bookmark.created",
-          totalBookmarks: get(bookmarksAtom).length + 1,
+          totalBookmarks: bookmarks.length,
           source,
         });
-        set(bookmarksAtom, (bookmarks) => [
-          ...bookmarks,
-          newBookmark(label, bbox),
-        ]);
       },
-      [map, userTracking],
+      [map, userTracking, transact],
     ),
   );
 };
@@ -72,42 +73,45 @@ export const useGoToBookmark = () => {
 
 export const useRenameBookmark = () => {
   const userTracking = useUserTracking();
+  const { transact } = useBookmarksTransaction();
 
   return useAtomCallback(
     useCallback(
       (
-        _get,
-        set,
+        get,
+        _set,
         {
           bookmarkId,
           label,
           source,
         }: { bookmarkId: BookmarkId; label: string; source: "panel" },
       ) => {
+        if (!transact(renameItem(get(bookmarksAtom), bookmarkId, label)))
+          return;
+
         userTracking.capture({ name: "bookmark.renamed", source });
-        set(bookmarksAtom, (bookmarks) =>
-          renameItem(bookmarks, bookmarkId, label),
-        );
       },
-      [userTracking],
+      [userTracking, transact],
     ),
   );
 };
 
 export const useDeleteBookmark = () => {
   const userTracking = useUserTracking();
+  const { transact } = useBookmarksTransaction();
 
   return useAtomCallback(
     useCallback(
       (
-        _get,
-        set,
+        get,
+        _set,
         { bookmarkId, source }: { bookmarkId: BookmarkId; source: "panel" },
       ) => {
+        if (!transact(removeItem(get(bookmarksAtom), bookmarkId))) return;
+
         userTracking.capture({ name: "bookmark.deleted", source });
-        set(bookmarksAtom, (bookmarks) => removeItem(bookmarks, bookmarkId));
       },
-      [userTracking],
+      [userTracking, transact],
     ),
   );
 };

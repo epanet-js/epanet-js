@@ -8,6 +8,18 @@ export { serializeProjectSettings } from "./mappers/project-settings/to-rows";
 export { saveCustomAttributes } from "./commands/save-custom-attributes";
 export { saveZones } from "./commands/save-zones";
 export { serializeZones } from "./mappers/zones/to-rows";
+export {
+  insertSelectionSet,
+  renameSelectionSet,
+  deleteSelectionSet,
+  replaceSelectionSetMembers,
+} from "./commands/selection-sets";
+export {
+  serializeSelectionSet,
+  serializeSelectionSets,
+} from "./mappers/selection-sets/to-rows";
+export { saveBookmarks } from "./commands/save-bookmarks";
+export { serializeBookmarks } from "./mappers/bookmarks/to-rows";
 export { setAllSimulationSettings } from "./commands/set-all-simulation-settings";
 export { serializeSimulationSettings } from "./mappers/simulation-settings/to-rows";
 export { applyChangeSetToDb } from "./commands/apply-change-set";

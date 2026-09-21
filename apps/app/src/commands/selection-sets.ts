@@ -8,9 +8,8 @@ import {
   countSelected,
   existingSelection,
   newSelectionSet,
-  removeItem,
-  renameItem,
 } from "src/lib/collections";
+import { useSelectionSetsTransaction } from "src/hooks/persistence/use-selection-sets-transaction";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { selectionAtom } from "src/state/selection";
 import { selectionSetsAtom } from "src/state/collections";
@@ -19,30 +18,29 @@ export const MIN_SELECTION_SET_SIZE = 1;
 
 export const useSaveSelectionSet = () => {
   const userTracking = useUserTracking();
+  const { create } = useSelectionSetsTransaction();
 
   return useAtomCallback(
     useCallback(
       (
         get,
-        set,
+        _set,
         { label, source }: { label: string; source: CollectionDraftSource },
       ) => {
         const selection = get(selectionAtom);
         const count = countSelected(selection);
         if (count < MIN_SELECTION_SET_SIZE) return;
 
+        if (!create(newSelectionSet(label, selection))) return;
+
         userTracking.capture({
           name: "selectionSet.created",
           count,
-          totalSets: get(selectionSetsAtom).length + 1,
+          totalSets: get(selectionSetsAtom).length,
           source,
         });
-        set(selectionSetsAtom, (sets) => [
-          ...sets,
-          newSelectionSet(label, selection),
-        ]);
       },
-      [userTracking],
+      [userTracking, create],
     ),
   );
 };
@@ -90,40 +88,35 @@ export const useApplySelectionSet = () => {
 
 export const useRenameSelectionSet = () => {
   const userTracking = useUserTracking();
+  const { rename } = useSelectionSetsTransaction();
 
-  return useAtomCallback(
-    useCallback(
-      (
-        _get,
-        set,
-        {
-          setId,
-          label,
-          source,
-        }: { setId: SelectionSetId; label: string; source: "panel" },
-      ) => {
-        userTracking.capture({ name: "selectionSet.renamed", source });
-        set(selectionSetsAtom, (sets) => renameItem(sets, setId, label));
-      },
-      [userTracking],
-    ),
+  return useCallback(
+    ({
+      setId,
+      label,
+      source,
+    }: {
+      setId: SelectionSetId;
+      label: string;
+      source: "panel";
+    }) => {
+      if (!rename({ id: setId, label })) return;
+
+      userTracking.capture({ name: "selectionSet.renamed", source });
+    },
+    [userTracking, rename],
   );
 };
 
 export const useDeleteSelectionSet = () => {
   const userTracking = useUserTracking();
+  const { remove } = useSelectionSetsTransaction();
 
-  return useAtomCallback(
-    useCallback(
-      (
-        _get,
-        set,
-        { setId, source }: { setId: SelectionSetId; source: "panel" },
-      ) => {
-        userTracking.capture({ name: "selectionSet.deleted", source });
-        set(selectionSetsAtom, (sets) => removeItem(sets, setId));
-      },
-      [userTracking],
-    ),
+  return useCallback(
+    ({ setId, source }: { setId: SelectionSetId; source: "panel" }) => {
+      userTracking.capture({ name: "selectionSet.deleted", source });
+      remove(setId);
+    },
+    [userTracking, remove],
   );
 };
