@@ -1909,7 +1909,7 @@
     "dataInputStep": {
       "title": "Data input",
       "addFromFile": "Add from file",
-      "noProjectionWarning": "The selected GeoJSON file does not contain projection data. Assuming {{1}} as default."
+      "noProjectionWarning": "The selected file does not state a coordinate system, so its coordinates were read as longitude and latitude (WGS84)."
     },
     "dataMappingStep": {
       "title": "Data mapping",

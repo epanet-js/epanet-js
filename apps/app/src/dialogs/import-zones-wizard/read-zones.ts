@@ -40,9 +40,14 @@ export const readZonesWithImporter = async (
   );
   const attributes = importableContents?.attributes ?? [];
 
+  const assumedCoordinateSystem = issues.some(
+    ({ code }) => code === "coordinateSystemMissing",
+  );
+
   return {
     features: polygons,
     uniqueProperties: new Set(attributes.map(({ name }) => name)),
+    assumedCoordinateSystem,
     ...(sourceProjection === undefined
       ? {}
       : {

@@ -7,7 +7,6 @@ import { WizardContent } from "src/components/wizard/wizard-content";
 import { WizardActions } from "src/components/wizard/wizard-actions";
 import { useDialogState } from "src/components/dialog";
 import { useProjections } from "src/hooks/use-projections";
-import { projectSettingsAtom } from "src/state/project-settings";
 import {
   getLabelProperties,
   type ReadZoneFeaturesResult,
@@ -43,7 +42,6 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
   const { closeDialog } = useDialogState();
   const importZones = useImportZones();
   const { projections } = useProjections();
-  const networkProjection = useAtomValue(projectSettingsAtom).projection;
   const [currentStep, setCurrentStep] = useState(DATA_INPUT_STEP_NUMBER);
   const [selectedGisFiles, setSelectedGisFiles] = useState<GisFiles>({});
   const [selectedLabel, setSelectedLabel] = useState<string>("none");
@@ -235,9 +233,8 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
             onGisFilesDrop={handleGisFilesDrop}
             error={fileError}
             showNoProjectionWarning={
-              readResult !== null && !readResult.coordinateConversion
+              readResult?.assumedCoordinateSystem === true
             }
-            networkProjectionName={networkProjection.name}
           />
         )}
         {currentStep === DATA_MAPPING_STEP_NUMBER && (

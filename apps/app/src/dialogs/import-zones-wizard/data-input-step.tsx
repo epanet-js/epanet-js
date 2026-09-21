@@ -5,14 +5,12 @@ import { ErrorIcon } from "src/icons";
 type DataInputStepProps = {
   error: string | null;
   showNoProjectionWarning: boolean;
-  networkProjectionName: string;
   gisFiles: GisFiles;
   onGisFilesDrop: (gisFiles: GisFiles) => void;
 };
 
 export const DataInputStep = (props: DataInputStepProps) => {
-  const { error, showNoProjectionWarning, networkProjectionName, gisFiles } =
-    props;
+  const { error, showNoProjectionWarning, gisFiles } = props;
   const translate = useTranslate();
 
   return (
@@ -33,10 +31,7 @@ export const DataInputStep = (props: DataInputStepProps) => {
       )}
       {showNoProjectionWarning && (
         <div className="flex items-center gap-2 mt-3 p-3 rounded-md bg-info-subtle text-blue-700 text-size-base dark:text-blue-300">
-          {translate(
-            "importZones.dataInputStep.noProjectionWarning",
-            networkProjectionName,
-          )}
+          {translate("importZones.dataInputStep.noProjectionWarning")}
         </div>
       )}
     </>

@@ -14,4 +14,5 @@ export type ReadZoneFeaturesResult = {
   features: ZoneFeature[];
   uniqueProperties: Set<string>;
   coordinateConversion?: CoordinateConversion;
+  assumedCoordinateSystem?: boolean;
 };

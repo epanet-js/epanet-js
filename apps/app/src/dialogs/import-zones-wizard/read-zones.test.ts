@@ -56,6 +56,27 @@ describe("readZonesWithImporter", () => {
     expect([...result.uniqueProperties]).toEqual(["DMA"]);
   });
 
+  it("assumes a coordinate system only for a file that names none", async () => {
+    const zones = [aZone(aSquare(0.001, 0.001, 0.001), { DMA: "North" })];
+
+    const stated = await readZonesWithImporter(
+      {
+        geojson: aFile(zones, {
+          type: "name",
+          properties: { name: "urn:ogc:def:crs:OGC:1.3:CRS84" },
+        }),
+      },
+      options,
+    );
+    const silent = await readZonesWithImporter(
+      { geojson: aFile(zones) },
+      options,
+    );
+
+    expect(stated.assumedCoordinateSystem).toBe(false);
+    expect(silent.assumedCoordinateSystem).toBe(true);
+  });
+
   it("keeps only the polygons of a mixed file", async () => {
     const result = await readZonesWithImporter(
       {
