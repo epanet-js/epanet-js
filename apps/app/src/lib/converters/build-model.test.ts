@@ -840,6 +840,33 @@ describe("valve setting units", () => {
       settingOf("tcv", 3600, { flow: "gal/min", pressure: "mwc" }),
     ).toEqual(3600);
   });
+
+  it("leaves a positional valve setting unconverted", () => {
+    expect(settingOf("pcv", 5.5, { flow: "gal/min", pressure: "mwc" })).toEqual(
+      5.5,
+    );
+  });
+
+  it("carries the valve minor loss", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        junctions: twoJunctions,
+        valves: [
+          aValve({
+            ref: "10",
+            label: "V1",
+            kind: "pcv",
+            setting: 5.5,
+            minorLoss: 1,
+          }),
+        ],
+      }),
+      { projections: aCatalogue() },
+    );
+
+    const valve = getByLabel(hydraulicModel.assets, "V1") as Valve;
+    expect(valve.minorLoss).toEqual(1);
+  });
 });
 
 const aPump = (data: Partial<PumpData> & { ref: string }): PumpData => ({

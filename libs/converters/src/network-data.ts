@@ -94,6 +94,7 @@ export type ValveData = LinkData & {
   kind: SourceValveKind;
   diameter?: number;
   setting?: number;
+  minorLoss?: number;
   initialStatus?: ValveStatus;
 };
 

@@ -673,6 +673,7 @@ const addValve = (
     kind,
     setting: converted(valveData.setting, settingConverterFor(kind, context)),
     diameter: converted(valveData.diameter, context.toDiameter),
+    minorLoss: valveData.minorLoss,
     initialStatus: valveData.initialStatus,
   });
 
