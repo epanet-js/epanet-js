@@ -77,6 +77,8 @@ export const useOpenPersistedProject = () => {
         const {
           projectSettings,
           zones,
+          selectionSets,
+          bookmarks,
           hydraulicModel,
           factories,
           simulationSettings,
@@ -92,6 +94,8 @@ export const useOpenPersistedProject = () => {
           factories,
           projectSettings,
           zones,
+          selectionSets,
+          bookmarks,
           simulationSettings,
           autoElevations: projectSettings.projection.type !== "xy-grid",
         });

@@ -11,6 +11,7 @@ import { collectDbDiagnostics } from "src/lib/db/commands/collect-diagnostics";
 import { dialogAtom, type DialogState } from "src/state/dialog";
 import { withProgressDialog } from "src/dialogs/progress-dialog";
 import { zonesAtom } from "src/state/zones";
+import { bookmarksAtom, selectionSetsAtom } from "src/state/collections";
 import { projectSettingsAtom } from "src/state/project-settings";
 import {
   stagingModelDerivedAtom,
@@ -50,6 +51,8 @@ export const useRebuildDb = (): (() => Promise<void>) =>
               rebuildDbFromMemory(
                 {
                   zones: get(zonesAtom),
+                  selectionSets: get(selectionSetsAtom),
+                  bookmarks: get(bookmarksAtom),
                   projectSettings: get(projectSettingsAtom),
                   hydraulicModel: get(stagingModelDerivedAtom),
                   simulationSettings: get(simulationSettingsDerivedAtom),

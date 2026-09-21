@@ -83,6 +83,8 @@ import {
 import { zonesAtom } from "src/state/zones";
 import { bookmarksAtom, selectionSetsAtom } from "src/state/collections";
 import {
+  type Bookmark,
+  type SelectionSet,
   initializeBookmarks,
   initializeSelectionSets,
 } from "src/lib/collections";
@@ -96,6 +98,8 @@ export type ProjectLoadInput = {
   factories: ModelFactories;
   projectSettings: ProjectSettings;
   zones?: Zones;
+  selectionSets?: SelectionSet[];
+  bookmarks?: Bookmark[];
   simulationSettings: SimulationSettings;
   autoElevations?: boolean;
 };
@@ -135,6 +139,8 @@ export const loadModel = (
     factories,
     projectSettings,
     zones,
+    selectionSets,
+    bookmarks,
     simulationSettings,
     autoElevations,
   } = input;
@@ -157,6 +163,8 @@ export const loadModel = (
   };
   set(projectSettingsAtom, mergedProjectSettings);
   set(zonesAtom, zones ?? initializeZones());
+  set(selectionSetsAtom, selectionSets ?? initializeSelectionSets());
+  set(bookmarksAtom, bookmarks ?? initializeBookmarks());
   if (autoElevations !== undefined) {
     set(autoElevationsAtom, autoElevations);
   }
@@ -229,7 +237,9 @@ export const useStartNewProject = () => {
             projectSettings: mergedProjectSettings,
             hydraulicModel: input.hydraulicModel,
             simulationSettings: input.simulationSettings,
-            ...(input.zones === undefined ? {} : { zones: input.zones }),
+            zones: input.zones,
+            selectionSets: input.selectionSets,
+            bookmarks: input.bookmarks,
           });
           resetAppState(set, defaultPanelsFor());
           loadModel(set, { ...input, projectSettings: mergedProjectSettings });

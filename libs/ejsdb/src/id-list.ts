@@ -2,7 +2,7 @@ const BYTES_PER_ID = 4;
 const MIN_ID = -(2 ** 31);
 const MAX_ID = 2 ** 31 - 1;
 
-export const encodeIdList = (ids: readonly number[]): Uint8Array | null => {
+export const encodeIdList = (ids: readonly number[]) => {
   if (ids.length === 0) return null;
 
   const bytes = new Uint8Array(ids.length * BYTES_PER_ID);

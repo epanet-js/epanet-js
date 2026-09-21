@@ -1,6 +1,7 @@
 import type { ProjectSettings } from "@epanet-js/project-settings";
 import type { CustomAttributesDefinition } from "@epanet-js/hydraulic-model";
 import type { Zones } from "src/lib/zones";
+import type { Bookmark, SelectionSet } from "src/lib/collections";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
 import { HydraulicModel, initializeHydraulicModel } from "src/hydraulic-model";
 import {
@@ -29,11 +30,15 @@ import {
 import { buildSimulationSettingsData } from "../mappers/simulation-settings/builders";
 import { buildProjectSettingsData } from "../mappers/project-settings/builders";
 import { buildZonesData } from "../mappers/zones/builders";
+import { buildSelectionSetsData } from "../mappers/selection-sets/builders";
+import { buildBookmarksData } from "../mappers/bookmarks/builders";
 
 export type Project = {
   projectSettings: ProjectSettings;
   customAttributes: CustomAttributesDefinition;
   zones: Zones;
+  selectionSets: SelectionSet[];
+  bookmarks: Bookmark[];
   hydraulicModel: HydraulicModel;
   factories: ModelFactories;
   simulationSettings: SimulationSettings;
@@ -108,6 +113,8 @@ export const fetchProject = async (
       pipeLibraryJson,
       customAttributesJson,
       zonesRaw,
+      selectionSetsRaw,
+      bookmarksJson,
       patternsRaw,
       junctionDemandsRaw,
       curvesRaw,
@@ -121,6 +128,8 @@ export const fetchProject = async (
         worker.getPipeLibrary(),
         worker.getCustomAttributesDefinition(),
         worker.getZones(),
+        worker.getSelectionSets(),
+        worker.getBookmarks(),
         worker.getPatterns(),
         worker.getJunctionDemands(),
         worker.getCurves(),
@@ -143,6 +152,8 @@ export const fetchProject = async (
         const customAttributes =
           buildCustomAttributesDefinition(customAttributesJson);
         const zones = buildZonesData(zonesRaw);
+        const selectionSets = buildSelectionSetsData(selectionSetsRaw);
+        const bookmarks = buildBookmarksData(bookmarksJson);
 
         const factories = buildFactories(idMaxima);
         const { idGenerator } = factories;
@@ -198,6 +209,8 @@ export const fetchProject = async (
           projectSettings,
           customAttributes,
           zones,
+          selectionSets,
+          bookmarks,
           hydraulicModel,
           factories,
           simulationSettings,

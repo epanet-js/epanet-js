@@ -3,6 +3,9 @@ import { Provider as JotaiProvider } from "jotai";
 import { setInitialState } from "src/__helpers__/state";
 import { Store } from "src/state";
 import { dialogAtom } from "src/state/dialog";
+import { bookmarksAtom, selectionSetsAtom } from "src/state/collections";
+import type { Bookmark } from "src/lib/collections";
+import { USelection } from "src/selection";
 import {
   dbAvailabilityAtom,
   dbStorageModeAtom,
@@ -55,6 +58,32 @@ beforeEach(() => {
 });
 
 describe("useRebuildDb", () => {
+  it("carries the collections into the rebuilt db", async () => {
+    const store = setInitialState({});
+    const selectionSets = [
+      {
+        id: "set-1",
+        label: "Downtown loop",
+        selection: USelection.fromIds([1], []),
+      },
+    ];
+    const bookmarks: Bookmark[] = [
+      { id: "bookmark-1", label: "North reservoir", bbox: [-1, -2, 3, 4] },
+    ];
+    store.set(selectionSetsAtom, selectionSets);
+    store.set(bookmarksAtom, bookmarks);
+    const { result } = renderRebuild(store);
+
+    await act(async () => {
+      await result.current();
+    });
+
+    expect(rebuildDbFromMemory).toHaveBeenCalledWith(
+      expect.objectContaining({ selectionSets, bookmarks }),
+      expect.anything(),
+    );
+  });
+
   it("restores availability and records where the db ended up", async () => {
     const store = setInitialState({});
     store.set(dbAvailabilityAtom, "rebuilding");

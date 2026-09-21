@@ -13,7 +13,7 @@ export type RebuildOptions = {
 };
 
 type RebuildInput = ImportProjectInput &
-  Required<Pick<ImportProjectInput, "zones">>;
+  Required<Pick<ImportProjectInput, "zones" | "selectionSets" | "bookmarks">>;
 
 export const rebuildDbFromMemory = async (
   input: RebuildInput,

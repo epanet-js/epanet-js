@@ -1,5 +1,11 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { initializeZones } from "src/lib/zones";
+import {
+  type Bookmark,
+  initializeBookmarks,
+  initializeSelectionSets,
+} from "src/lib/collections";
+import { USelection } from "src/selection";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { defaultProjectSettings } from "@epanet-js/project-settings";
 
@@ -54,6 +60,8 @@ const anInput = () => ({
   projectSettings: defaultProjectSettings,
   simulationSettings: defaultSimulationSettings,
   zones: initializeZones(),
+  selectionSets: initializeSelectionSets(),
+  bookmarks: initializeBookmarks(),
 });
 
 beforeEach(() => {
@@ -111,6 +119,32 @@ describe("rebuildDbFromMemory", () => {
 
     expect(importProject).toHaveBeenCalledWith(
       expect.objectContaining({ zones: input.zones }),
+    );
+  });
+
+  it("includes the collections, which every other importProject call site omits", async () => {
+    reinstallSahpool.mockResolvedValue("sahpool");
+    const input = {
+      ...anInput(),
+      selectionSets: [
+        {
+          id: "set-1",
+          label: "Downtown loop",
+          selection: USelection.fromIds([1], []),
+        },
+      ],
+      bookmarks: [
+        { id: "bookmark-1", label: "North reservoir", bbox: [-1, -2, 3, 4] },
+      ] as Bookmark[],
+    };
+
+    await rebuildDbFromMemory(input);
+
+    expect(importProject).toHaveBeenCalledWith(
+      expect.objectContaining({
+        selectionSets: input.selectionSets,
+        bookmarks: input.bookmarks,
+      }),
     );
   });
 

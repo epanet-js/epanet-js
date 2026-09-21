@@ -20,6 +20,8 @@ import {
   setAttributes,
 } from "@epanet-js/hydraulic-model";
 import { useInProcessDb } from "../__test-helpers__/in-process-db";
+import { USelection } from "src/selection";
+import { api } from "@epanet-js/ejsdb/worker-api";
 import type { MultiPolygon } from "geojson";
 import type { BBox } from "@turf/helpers";
 
@@ -417,5 +419,94 @@ describe("fetch-project id pools", () => {
 
     expect(factories.idPools.newId("zone")).toBe(IDS.ZONE2 + 1);
     expect(factories.idPools.newId("asset")).toBe(IDS.J1 + 1);
+  });
+});
+
+describe("fetch-project collections", () => {
+  useInProcessDb();
+
+  const importWithCollections = async () =>
+    importProject({
+      newDb: true,
+      hydraulicModel: HydraulicModelBuilder.with()
+        .aJunction(1)
+        .aJunction(2)
+        .build(),
+      projectSettings: defaultProjectSettings,
+      simulationSettings: defaultSimulationSettings,
+      selectionSets: [
+        {
+          id: "set-1",
+          label: "Downtown loop",
+          selection: USelection.fromIds([1, 2], []),
+        },
+        {
+          id: "set-2",
+          label: "Alpha zone",
+          selection: USelection.fromIds([2], []),
+        },
+      ],
+      bookmarks: [
+        { id: "bookmark-1", label: "North reservoir", bbox: [-1, -2, 3, 4] },
+        { id: "bookmark-2", label: "Pump station", bbox: [10, 20, 11, 21] },
+      ],
+    });
+
+  it("returns a project with no collections when none were stored", async () => {
+    await importProject({
+      newDb: true,
+      hydraulicModel: HydraulicModelBuilder.with().aJunction(1).build(),
+      projectSettings: defaultProjectSettings,
+      simulationSettings: defaultSimulationSettings,
+    });
+
+    const project = await fetchProject();
+
+    expect(project.selectionSets).toEqual([]);
+    expect(project.bookmarks).toEqual([]);
+  });
+
+  it("round-trips selection sets in the order they were created", async () => {
+    await importWithCollections();
+
+    const project = await fetchProject();
+
+    expect(project.selectionSets).toEqual([
+      {
+        id: "set-1",
+        label: "Downtown loop",
+        selection: USelection.fromIds([1, 2], []),
+      },
+      {
+        id: "set-2",
+        label: "Alpha zone",
+        selection: USelection.fromIds([2], []),
+      },
+    ]);
+  });
+
+  it("round-trips bookmarks in the order they were created", async () => {
+    await importWithCollections();
+
+    const project = await fetchProject();
+
+    expect(project.bookmarks).toEqual([
+      { id: "bookmark-1", label: "North reservoir", bbox: [-1, -2, 3, 4] },
+      { id: "bookmark-2", label: "Pump station", bbox: [10, 20, 11, 21] },
+    ]);
+  });
+
+  it("refuses to load a project holding a selection set it cannot read", async () => {
+    await importWithCollections();
+    await api.insertSelectionSet({
+      id: "set-3",
+      label: "Damaged",
+      assets: new Uint8Array(6),
+      customer_points: null,
+    });
+
+    await expect(fetchProject()).rejects.toThrow(
+      /Selection set: row data does not match schema/,
+    );
   });
 });
