@@ -12,7 +12,7 @@ import type {
   HistoryEntry,
   SessionHistory,
 } from "src/lib/persistence/session-history";
-import { applyChangeSetToDb } from "src/lib/db";
+import { persistBranchChange } from "src/lib/persistence/persist-branch-change";
 import type { Direction } from "@epanet-js/change-set";
 import { timedSync } from "@epanet-js/ejsdb";
 import {
@@ -20,6 +20,7 @@ import {
   type WriteFailureHandler,
 } from "src/lib/persistence/write-queue";
 import { useWriteFailureHandler } from "src/hooks/persistence/use-write-failure-handler";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const commitHistoryEntry = (
   get: Getter,
@@ -27,13 +28,15 @@ const commitHistoryEntry = (
   direction: "undo" | "redo",
   entry: HistoryEntry,
   sessionHistory: SessionHistory,
+  isPersistScenariosOn: boolean,
   onWriteFailure: WriteFailureHandler,
 ) => {
   const isUndo = direction === "undo";
   const changeDirection: Direction = isUndo ? "reverse" : "forward";
 
   const worktree = get(worktreeAtom);
-  const willPersist = worktree.activeBranchId === worktree.mainId;
+  const willPersist =
+    worktree.activeBranchId === worktree.mainId || isPersistScenariosOn;
 
   timedSync(
     "changeSet:apply",
@@ -53,7 +56,7 @@ const commitHistoryEntry = (
 
   if (willPersist) {
     writeQueue.enqueue(
-      () => applyChangeSetToDb(entry.changeSet, changeDirection),
+      () => persistBranchChange(worktree, entry.changeSet, changeDirection),
       onWriteFailure,
     );
   }
@@ -69,6 +72,7 @@ const nextEntry = (
 
 export const useUndoableTransactions = () => {
   const onWriteFailure = useWriteFailureHandler();
+  const isPersistScenariosOn = useFeatureFlag("FLAG_PERSIST_SCENARIOS");
 
   const historyControl = useAtomCallback(
     useCallback(
@@ -87,6 +91,7 @@ export const useUndoableTransactions = () => {
             direction,
             entry,
             sessionHistory,
+            isPersistScenariosOn,
             onWriteFailure,
           );
           return true;
@@ -94,7 +99,7 @@ export const useUndoableTransactions = () => {
           set(historyPendingAtom, false);
         }
       },
-      [onWriteFailure],
+      [onWriteFailure, isPersistScenariosOn],
     ),
   );
 

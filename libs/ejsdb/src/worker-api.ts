@@ -4,6 +4,8 @@ import { APP_VERSION, migrations } from "./migrations";
 import { setPerfLogging, timed, timedSync } from "./perf-log";
 import { sahpoolDirectory, sahpoolPoolName } from "./sahpool-storage";
 import { normalizeError } from "./worker-api-errors";
+
+export { withErrorNormalization } from "./worker-api-errors";
 import type {
   AssetRows,
   JunctionRow,
@@ -288,7 +290,7 @@ const readAll = async (sql: string): Promise<unknown[]> => {
   }) as unknown[];
 };
 
-const withTransaction = <T>(
+export const withTransaction = <T>(
   command: string,
   fn: (db: OoDb) => T,
   meta?: Record<string, unknown>,

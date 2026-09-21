@@ -19,7 +19,7 @@ import {
 import { toChangeSet } from "src/hydraulic-model/change-sets";
 import type { ChangeSet } from "@epanet-js/change-set";
 import { timedSync, timedWithSync } from "@epanet-js/ejsdb";
-import { applyChangeSetToDb } from "src/lib/db";
+import { persistBranchChange } from "src/lib/persistence/persist-branch-change";
 import { captureError, captureWarning } from "src/infra/error-tracking";
 import {
   findOrphanLinkConnections,
@@ -32,6 +32,7 @@ import {
   type WriteFailureHandler,
 } from "src/lib/persistence/write-queue";
 import { useWriteFailureHandler } from "src/hooks/persistence/use-write-failure-handler";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const maxReportedIds = 20;
 
@@ -167,8 +168,9 @@ const transactWithChangeSet = (
   set(sessionHistoryDerivedAtom, sessionHistory);
 
   if (willPersist) {
+    const worktree = get(worktreeAtom);
     writeQueue.enqueue(
-      () => applyChangeSetToDb(changeSet, "forward"),
+      () => persistBranchChange(worktree, changeSet, "forward"),
       onWriteFailure,
     );
   }
@@ -178,6 +180,7 @@ const transactWithChangeSet = (
 
 export const useMomentTransaction = () => {
   const onWriteFailure = useWriteFailureHandler();
+  const isPersistScenariosOn = useFeatureFlag("FLAG_PERSIST_SCENARIOS");
 
   const transact = useAtomCallback(
     useCallback(
@@ -190,7 +193,8 @@ export const useMomentTransaction = () => {
         }
 
         const worktree = get(worktreeAtom);
-        const willPersist = worktree.activeBranchId === worktree.mainId;
+        const willPersist =
+          worktree.activeBranchId === worktree.mainId || isPersistScenariosOn;
 
         return transactWithChangeSet(
           get,
@@ -200,7 +204,7 @@ export const useMomentTransaction = () => {
           onWriteFailure,
         );
       },
-      [onWriteFailure],
+      [onWriteFailure, isPersistScenariosOn],
     ),
   );
 

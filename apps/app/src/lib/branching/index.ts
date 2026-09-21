@@ -1,1 +1,6 @@
-export { registerBranchingRules, getBranchingRules } from "./registry";
+export {
+  registerBranchingRules,
+  getBranchingRules,
+  registerBranchStore,
+  getBranchStore,
+} from "./registry";

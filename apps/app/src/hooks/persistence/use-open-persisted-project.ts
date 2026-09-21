@@ -13,6 +13,18 @@ import {
 } from "./use-start-new-project";
 import { captureError } from "src/infra/error-tracking";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { getBranchStore } from "src/lib/branching";
+import { seedStoredBranches } from "./use-initialize-branch";
+import type { StoredBranches } from "@epanet-js/worktree";
+
+const loadStoredBranches = async (): Promise<StoredBranches | null> => {
+  try {
+    return await getBranchStore().load();
+  } catch (error) {
+    captureError(error as Error);
+    return null;
+  }
+};
 
 export type OpenPersistedProjectPhase = FetchProjectPhase | "finalizing";
 
@@ -40,10 +52,11 @@ export type OpenPersistedProjectResult =
 export const useOpenPersistedProject = () => {
   const defaultPanelsFor = useDefaultPanels();
   const isIdPoolsOn = useFeatureFlag("FLAG_ID_POOLS");
+  const isPersistScenariosOn = useFeatureFlag("FLAG_PERSIST_SCENARIOS");
   const openPersistedProject = useAtomCallback(
     useCallback(
       async (
-        _get: Getter,
+        get: Getter,
         set: Setter,
         { file, onProgress }: OpenPersistedProjectInput,
       ): Promise<OpenPersistedProjectResult> => {
@@ -68,6 +81,9 @@ export const useOpenPersistedProject = () => {
           factories,
           simulationSettings,
         } = await fetchProject({ onProgress, idPools: isIdPoolsOn });
+        const storedBranches = isPersistScenariosOn
+          ? await loadStoredBranches()
+          : null;
         onProgress?.("finalizing");
         await clearSimulationStorage();
         resetAppState(set, defaultPanelsFor());
@@ -79,6 +95,13 @@ export const useOpenPersistedProject = () => {
           simulationSettings,
           autoElevations: projectSettings.projection.type !== "xy-grid",
         });
+        if (storedBranches) {
+          try {
+            seedStoredBranches(get, set, storedBranches);
+          } catch (error) {
+            captureError(error as Error);
+          }
+        }
         return {
           status: "ok",
           hydraulicModel,
@@ -86,7 +109,7 @@ export const useOpenPersistedProject = () => {
           uniqueId,
         };
       },
-      [defaultPanelsFor, isIdPoolsOn],
+      [defaultPanelsFor, isIdPoolsOn, isPersistScenariosOn],
     ),
   );
 

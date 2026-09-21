@@ -5,7 +5,8 @@ The vocabulary for the set of branches a project is edited through, and the
 
 It is a **no-build source package** — the `.ts` is consumed directly by the
 importing app's bundler (the same convention as the other `@epanet-js/*`
-workspace libraries). It has no dependencies.
+workspace libraries). Its only dependency is `@epanet-js/change-set`, for the
+types `BranchStore` speaks in.
 
 ## What it holds
 
@@ -28,6 +29,12 @@ workspace libraries). It has no dependencies.
   them with `highestScenarioNumber`. That is the vocabulary of the only
   implementation today; a second kind of branching would need those fields
   generalised.
+- **`BranchStore`** — the interface for persisting branches other than main:
+  loading them with the change each one holds against main, and recording
+  creates, renames, deletes and every change made on one. The host seeds and
+  writes main itself; this contract never sees main. The default
+  `nullBranchStore` loads nothing and writes nothing, so without an
+  implementation branches live only as long as the session.
 
 ## Usage
 

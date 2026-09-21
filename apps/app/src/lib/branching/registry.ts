@@ -1,6 +1,12 @@
-import { nullBranchingRules, type BranchingRules } from "@epanet-js/worktree";
+import {
+  nullBranchingRules,
+  nullBranchStore,
+  type BranchingRules,
+  type BranchStore,
+} from "@epanet-js/worktree";
 
 let rules: BranchingRules = nullBranchingRules;
+let store: BranchStore = nullBranchStore;
 
 export const registerBranchingRules = (
   implementation: BranchingRules,
@@ -9,3 +15,9 @@ export const registerBranchingRules = (
 };
 
 export const getBranchingRules = (): BranchingRules => rules;
+
+export const registerBranchStore = (implementation: BranchStore): void => {
+  store = implementation;
+};
+
+export const getBranchStore = (): BranchStore => store;

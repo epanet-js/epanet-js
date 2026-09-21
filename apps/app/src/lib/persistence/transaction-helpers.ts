@@ -78,10 +78,7 @@ export function applyChange(
     factories.labelManager,
   );
 
-  commitModel(set, stateId, hydraulicModel, modelAtom, {
-    rebuildCustomerPoints: report.touchedEntities.has("customerPoint"),
-    rebuildCurves: report.touchedEntities.has("curve"),
-  });
+  set(modelAtom, settleAppliedModel(hydraulicModel, stateId, report));
 
   set(mapEditionsTrackerAtom, (prev) =>
     prev.recordAssetIds(report.touchedAssetIds),
@@ -90,32 +87,27 @@ export function applyChange(
   return report;
 }
 
-function commitModel(
-  set: Setter,
-  stateId: string,
+export function settleAppliedModel(
   hydraulicModel: HydraulicModel,
-  modelAtom: WritableAtom<HydraulicModel, [HydraulicModel], void>,
-  {
-    rebuildCustomerPoints,
-    rebuildCurves,
-  }: { rebuildCustomerPoints: boolean; rebuildCurves: boolean },
-): void {
+  stateId: string,
+  report: ApplyReport,
+): HydraulicModel {
   const updatedHydraulicModel = updateHydraulicModelAssets(hydraulicModel);
 
-  const customerPoints = rebuildCustomerPoints
+  const customerPoints = report.touchedEntities.has("customerPoint")
     ? new CustomerPoints(
         [...hydraulicModel.customerPoints].sort(([a], [b]) => a - b),
       )
     : hydraulicModel.customerPoints;
 
-  const curves = rebuildCurves
+  const curves = report.touchedEntities.has("curve")
     ? new Map(hydraulicModel.curves)
     : hydraulicModel.curves;
 
-  set(modelAtom, {
+  return {
     ...updatedHydraulicModel,
     version: stateId,
     customerPoints,
     curves,
-  });
+  };
 }

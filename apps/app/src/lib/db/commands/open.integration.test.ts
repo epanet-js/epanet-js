@@ -17,6 +17,7 @@ import { fetchProject } from "./fetch-project";
 import { importProject } from "./import-project";
 import { openProject } from "./open-project";
 import { useInProcessDb } from "../__test-helpers__/in-process-db";
+import { withTransaction } from "@epanet-js/ejsdb/worker-api";
 
 describe("open integration", () => {
   useInProcessDb();
@@ -218,5 +219,34 @@ describe("open integration", () => {
     });
 
     expect((await fetchProject()).projectSettings.uniqueId).toBeUndefined();
+  });
+
+  it("migrates a file saved before the scenario_deltas table existed", async () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction(1, { label: "J1" })
+      .build();
+    await importProject({
+      newDb: true,
+      hydraulicModel,
+      projectSettings: defaultProjectSettings,
+      simulationSettings: defaultSimulationSettings,
+    });
+    await withTransaction("downgrade", (db) => {
+      db.exec("DROP TABLE scenario_deltas");
+      db.exec("PRAGMA user_version = 21");
+    });
+    const blob = await exportDb();
+
+    const result = await openProject(new File([blob], "before.epnt"));
+
+    expect(result).toMatchObject({ status: "migrated", fileVersion: 21 });
+    const rows = await withTransaction("count", (db) =>
+      db.exec("SELECT COUNT(*) FROM scenario_deltas", {
+        returnValue: "resultRows",
+      }),
+    );
+    expect(rows).toEqual([[0]]);
+    const project = await fetchProject();
+    expect(project.hydraulicModel.assets.size).toBe(1);
   });
 });

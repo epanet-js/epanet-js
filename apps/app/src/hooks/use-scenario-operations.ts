@@ -5,7 +5,10 @@ import type { Worktree } from "@epanet-js/worktree";
 import { useInitializeBranch } from "src/hooks/persistence/use-initialize-branch";
 import { useSwitchBranch } from "src/hooks/persistence/use-switch-branch";
 import { useDeleteBranch } from "src/hooks/persistence/use-delete-branch";
-import { getBranchingRules } from "src/lib/branching";
+import { getBranchingRules, getBranchStore } from "src/lib/branching";
+import { writeQueue } from "src/lib/persistence/write-queue";
+import { useWriteFailureHandler } from "src/hooks/persistence/use-write-failure-handler";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { worktreeAtom } from "src/state/scenarios";
 import { modeAtom, Mode } from "src/state/mode";
 
@@ -26,6 +29,8 @@ export const useScenarioOperations = () => {
   const { deleteBranch } = useDeleteBranch();
   const setWorktree = useSetAtom(worktreeAtom);
   const setMode = useSetAtom(modeAtom);
+  const onWriteFailure = useWriteFailureHandler();
+  const isPersistScenariosOn = useFeatureFlag("FLAG_PERSIST_SCENARIOS");
 
   const performSwitch = useCallback(
     (worktree: Worktree, branchId: string) => {
@@ -80,6 +85,13 @@ export const useScenarioOperations = () => {
           getBranchingRules().createBranch(worktree);
         if (!scenario) return null;
 
+        if (isPersistScenariosOn) {
+          writeQueue.enqueue(
+            () => getBranchStore().createBranch(withScenario, scenario),
+            onWriteFailure,
+          );
+        }
+
         initializeBranch(scenario);
         switchBranch(scenario.id);
 
@@ -91,7 +103,13 @@ export const useScenarioOperations = () => {
 
         return { scenarioId: scenario.id, scenarioName: scenario.name };
       },
-      [initializeBranch, switchBranch, setWorktree],
+      [
+        initializeBranch,
+        switchBranch,
+        setWorktree,
+        onWriteFailure,
+        isPersistScenariosOn,
+      ],
     ),
   );
 
@@ -101,11 +119,18 @@ export const useScenarioOperations = () => {
         const worktree = get(worktreeAtom);
         const result = getBranchingRules().deleteBranch(worktree, scenarioId);
 
+        if (isPersistScenariosOn) {
+          writeQueue.enqueue(
+            () => getBranchStore().deleteBranch(scenarioId),
+            onWriteFailure,
+          );
+        }
+
         deleteBranch(scenarioId, result.nextActive?.id ?? null);
 
         setWorktree(result.worktree);
       },
-      [deleteBranch, setWorktree],
+      [deleteBranch, setWorktree, onWriteFailure, isPersistScenariosOn],
     ),
   );
 
@@ -116,8 +141,14 @@ export const useScenarioOperations = () => {
         setWorktree(
           getBranchingRules().renameBranch(worktree, scenarioId, newName),
         );
+        if (isPersistScenariosOn) {
+          writeQueue.enqueue(
+            () => getBranchStore().renameBranch(scenarioId, newName),
+            onWriteFailure,
+          );
+        }
       },
-      [setWorktree],
+      [setWorktree, onWriteFailure, isPersistScenariosOn],
     ),
   );
 
