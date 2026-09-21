@@ -22,6 +22,7 @@ import type { JunctionDemandRow } from "./schema/junction-demands";
 import type { PatternRow } from "./schema/patterns";
 import type { CurveRow } from "./schema/curves";
 import type { ZoneRow } from "./schema/zones";
+import type { SelectionSetRow } from "./schema/collections";
 import type {
   AssetPatchRow,
   CustomerPointPatchRow,
@@ -346,6 +347,12 @@ const upsertProjectSettings = (json: string) => {
   );
 };
 
+const updateBookmarks = (json: string) => {
+  db!.exec("UPDATE project SET bookmarks = ? WHERE id = 1", {
+    bind: [json],
+  });
+};
+
 const updatePipeLibrary = (json: string) => {
   db!.exec("UPDATE project SET pipe_library = ? WHERE id = 1", {
     bind: [json],
@@ -387,6 +394,7 @@ const BULK_TABLES = [
   "customer_point_demands",
   "junction_demands",
   "zones",
+  "selection_sets",
 ] as const;
 
 const BULK_CHUNK_SIZES = {
@@ -400,6 +408,7 @@ const BULK_CHUNK_SIZES = {
   customer_point_demands: 7500, //  4 cols × 7500 = 30000 params
   junction_demands: 7500, //  4 cols × 7500 = 30000 params
   zones: 6000, // 5 cols × 6000 = 30000 params
+  selection_sets: 500, // 4 cols, rows carry id-list blobs
 } as const satisfies Record<(typeof BULK_TABLES)[number], number>;
 
 const buildBulkInsertSql = (
@@ -938,11 +947,30 @@ const bulkInsertZones = (rows: readonly ZoneRow[]) => {
   );
 };
 
+const bulkInsertSelectionSets = (rows: readonly SelectionSetRow[]) => {
+  bulkInsert(
+    "selection_sets",
+    ["id", "label", "assets", "customer_points"],
+    rows,
+    (row, params) => {
+      params.push(row.id, row.label, row.assets, row.customer_points);
+    },
+    BULK_CHUNK_SIZES.selection_sets,
+  );
+};
+
+const replaceSelectionSets = (rows: readonly SelectionSetRow[]) => {
+  db!.exec("DELETE FROM selection_sets");
+  bulkInsertSelectionSets(rows);
+};
+
 const countImportProject = (payload: ImportProjectPayload) => ({
   newDb: payload.newDb ? 1 : 0,
   settings: payload.projectSettings !== null ? 1 : 0,
   pipeLib: payload.pipeLibrary !== null ? 1 : 0,
   zones: payload.zones?.length ?? 0,
+  selSets: payload.selectionSets?.length ?? 0,
+  bookmarks: payload.bookmarks !== null ? 1 : 0,
   j: payload.assets.junctions.length,
   r: payload.assets.reservoirs.length,
   t: payload.assets.tanks.length,
@@ -1450,6 +1478,73 @@ export const api = {
     );
   },
 
+  async getSelectionSets(): Promise<unknown[]> {
+    return timed("getSelectionSets", () =>
+      readAll("SELECT * FROM selection_sets ORDER BY rowid"),
+    );
+  },
+
+  async insertSelectionSet(row: SelectionSetRow): Promise<void> {
+    return withTransaction("insertSelectionSet", () => {
+      bulkInsertSelectionSets([row]);
+    });
+  },
+
+  async renameSelectionSet(id: string, label: string): Promise<void> {
+    return withTransaction("renameSelectionSet", (db) => {
+      db.exec("UPDATE selection_sets SET label = ? WHERE id = ?", {
+        bind: [label, id],
+      });
+    });
+  },
+
+  async deleteSelectionSet(id: string): Promise<void> {
+    return withTransaction("deleteSelectionSet", (db) => {
+      db.exec("DELETE FROM selection_sets WHERE id = ?", { bind: [id] });
+    });
+  },
+
+  async replaceSelectionSetMembers(
+    id: string,
+    assets: Uint8Array | null,
+    customerPoints: Uint8Array | null,
+  ): Promise<void> {
+    return withTransaction("replaceSelectionSetMembers", (db) => {
+      db.exec(
+        "UPDATE selection_sets SET assets = ?, customer_points = ? WHERE id = ?",
+        { bind: [assets, customerPoints, id] },
+      );
+    });
+  },
+
+  async setAllSelectionSets(rows: SelectionSetRow[]): Promise<void> {
+    return withTransaction(
+      "setAllSelectionSets",
+      () => {
+        replaceSelectionSets(rows);
+      },
+      { rows: rows.length },
+    );
+  },
+
+  async getBookmarks(): Promise<string | null> {
+    return timed("getBookmarks", async () => {
+      await ready;
+      if (!db) throw new Error("No database open");
+      const rows = db.exec("SELECT bookmarks FROM project WHERE id = 1", {
+        returnValue: "resultRows",
+      }) as (string | null)[][];
+      if (rows.length === 0) return null;
+      return rows[0][0];
+    });
+  },
+
+  async saveBookmarks(json: string): Promise<void> {
+    return withTransaction("saveBookmarks", () => {
+      updateBookmarks(json);
+    });
+  },
+
   async getMaxId(): Promise<number> {
     return timed("getMaxId", async () => {
       await ready;
@@ -1534,6 +1629,12 @@ export const api = {
         if (payload.zones !== null) {
           db.exec("DELETE FROM zones");
           bulkInsertZones(payload.zones);
+        }
+        if (payload.selectionSets !== null) {
+          replaceSelectionSets(payload.selectionSets);
+        }
+        if (payload.bookmarks !== null) {
+          updateBookmarks(payload.bookmarks);
         }
 
         for (const table of ASSET_TYPE_TABLES) {

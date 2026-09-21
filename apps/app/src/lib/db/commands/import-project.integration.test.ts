@@ -73,6 +73,8 @@ const payloadFor = (hydraulicModel: HydraulicModel): ImportProjectPayload => ({
   projectSettings: null,
   pipeLibrary: null,
   zones: null,
+  selectionSets: null,
+  bookmarks: null,
   assets: assetsToRows(hydraulicModel.assets.values()),
   customerPoints: customerPointsToRows(
     hydraulicModel.customerPoints,

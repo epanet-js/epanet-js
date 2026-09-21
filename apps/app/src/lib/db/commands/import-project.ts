@@ -44,6 +44,8 @@ export const importProject = async (
       projectSettings,
       pipeLibrary,
       zones,
+      selectionSets: null,
+      bookmarks: null,
       assets,
       customerPoints: customerPointsToRows(
         input.hydraulicModel.customerPoints,

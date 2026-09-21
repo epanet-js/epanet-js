@@ -14,6 +14,7 @@ import type { JunctionDemandRow } from "./schema/junction-demands";
 import type { PatternRow } from "./schema/patterns";
 import type { CurveRow } from "./schema/curves";
 import type { ZoneRow } from "./schema/zones";
+import type { SelectionSetRow } from "./schema/collections";
 
 export type NewDbResult =
   | { status: "ok" }
@@ -79,6 +80,8 @@ export type ImportProjectPayload = {
   projectSettings: string | null;
   pipeLibrary: string | null;
   zones: ZoneRow[] | null;
+  selectionSets: SelectionSetRow[] | null;
+  bookmarks: string | null;
   assets: AssetRows;
   customerPoints: CustomerPointsData;
   patterns: PatternRow[];
