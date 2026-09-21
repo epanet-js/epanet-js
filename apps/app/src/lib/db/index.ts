@@ -12,7 +12,6 @@ export {
   insertSelectionSet,
   renameSelectionSet,
   deleteSelectionSet,
-  replaceSelectionSetMembers,
 } from "./commands/selection-sets";
 export {
   serializeSelectionSet,
