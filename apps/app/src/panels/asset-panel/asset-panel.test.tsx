@@ -715,14 +715,19 @@ describe("AssetPanel", () => {
       expectPropertyDisplayed("setting (l/s)", "10");
     });
 
-    it("sets the target node when a node is selected", async () => {
+    it("sets the target node when a downstream node is selected", async () => {
       stubFeatureOn("FLAG_REMOTE_SETPOINT_PRV");
-      const IDS = { V1: 1, up: 2, down: 3, other: 4 };
+      const IDS = { V1: 1, up: 2, down: 3, other: 4, P1: 5 };
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.up, { label: "UPSTREAM" })
         .aJunction(IDS.down, { label: "DOWNSTREAM" })
         .aJunction(IDS.other, { label: "OTHER" })
-        .aValve(IDS.V1, { kind: "prv", connections: [IDS.up, IDS.down] })
+        .aValve(IDS.V1, {
+          kind: "prv",
+          startNodeId: IDS.up,
+          endNodeId: IDS.down,
+        })
+        .aPipe(IDS.P1, { startNodeId: IDS.down, endNodeId: IDS.other })
         .build();
       const store = setInitialState({
         hydraulicModel,
@@ -736,7 +741,7 @@ describe("AssetPanel", () => {
         name: /target node/i,
       });
       await user.click(selector);
-      await user.click(screen.getByText("OTHER"));
+      await user.click(await screen.findByText("OTHER"));
 
       const updated = store.get(stagingModelDerivedAtom);
       const valve = getLink(updated.assets, IDS.V1) as Valve;

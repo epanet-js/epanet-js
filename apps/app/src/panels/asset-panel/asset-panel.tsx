@@ -49,6 +49,11 @@ import {
 } from "@epanet-js/hydraulic-model";
 import { UnitsSpec } from "@epanet-js/project-settings";
 import { getMinorLossUnit } from "@epanet-js/project-settings";
+import { useAsyncCompute } from "src/hooks/use-async-compute";
+import {
+  findTargetNodeOptions,
+  type TargetNodeOption,
+} from "src/lib/valve-target-nodes";
 import { useTranslate } from "src/hooks/use-translate";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
@@ -130,6 +135,8 @@ type OnPropertyChange = <P extends ChangeableProperty>(
   oldValue: ChangeablePropertyValue<P>,
 ) => void;
 type OnStatusChange<T> = (newStatus: T, oldStatus: T) => void;
+
+const EMPTY_TARGET_NODE_OPTIONS: TargetNodeOption[] = [];
 
 const controlTrackingData = (
   control: Control | null,
@@ -2152,15 +2159,11 @@ const ValveEditor = ({
     targetNodeId,
   );
 
-  const endNodeId = endNode?.id;
-  const nodeOptions = useMemo(() => {
-    const options: { value: number; label: string }[] = [];
-    for (const candidate of hydraulicModel.assets.values()) {
-      if (!candidate.isNode || candidate.id === endNodeId) continue;
-      options.push({ value: candidate.id, label: candidate.label });
-    }
-    return options;
-  }, [hydraulicModel.assets, endNodeId]);
+  const { data: tracedNodeOptions } = useAsyncCompute<
+    [HydraulicModel, Valve],
+    TargetNodeOption[]
+  >(findTargetNodeOptions, [hydraulicModel, valve], showTargetNode);
+  const targetNodeOptions = tracedNodeOptions ?? EMPTY_TARGET_NODE_OPTIONS;
 
   const handleTargetNodeChange = (_name: string, newValue: number | null) => {
     onPropertyChange("targetNodeId", newValue ?? undefined, valve.targetNodeId);
@@ -2250,7 +2253,7 @@ const ValveEditor = ({
           <SelectRow
             name="targetNode"
             selected={targetNodeId}
-            options={nodeOptions}
+            options={targetNodeOptions}
             nullable
             enableVirtualization={true}
             placeholder={endNode ? endNode.label : translate("select") + "..."}
