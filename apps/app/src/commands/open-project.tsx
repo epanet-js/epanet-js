@@ -139,6 +139,28 @@ export const useOpenProjectFile = () => {
             });
             return;
           }
+          if (result.status === "scenarios-failed") {
+            notify({
+              variant: "warning",
+              size: "md",
+              title: "Couldn't open project",
+              description:
+                "The scenarios saved in this file couldn't be restored. The project was left closed on purpose: editing it without them would overwrite the work they hold.",
+              details: result.errorDetails,
+              Icon: WarningIcon,
+            });
+            captureError(
+              new Error(
+                `openProject scenarios-failed (${file.name}): ${result.errorDetails}`,
+              ),
+            );
+            userTracking.capture({
+              name: "projectFile.openFailed",
+              source,
+              reason: "scenariosFailed",
+            });
+            return;
+          }
           notify({
             variant: "warning",
             size: "md",

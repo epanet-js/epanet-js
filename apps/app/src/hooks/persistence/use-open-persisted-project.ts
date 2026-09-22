@@ -1,29 +1,45 @@
 import { useCallback } from "react";
 import { useAtomCallback } from "jotai/utils";
 import { useDefaultPanels } from "src/panels/use-default-panels";
-import type { Getter, Setter } from "jotai";
+import type { Setter } from "jotai";
 import * as db from "src/lib/db";
 import type { HydraulicModel } from "src/hydraulic-model";
 import type { ProjectSettings } from "@epanet-js/project-settings";
 import type { FetchProjectPhase } from "src/lib/db";
 import {
+  buildMainBranchState,
   clearSimulationStorage,
   loadModel,
   resetAppState,
+  type ProjectLoadInput,
 } from "./use-start-new-project";
 import { captureError } from "src/infra/error-tracking";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { getBranchStore } from "src/lib/branching";
-import { seedStoredBranches } from "./use-initialize-branch";
-import type { StoredBranches } from "@epanet-js/worktree";
+import {
+  buildStoredBranchStates,
+  commitStoredBranches,
+} from "./use-initialize-branch";
+import type { Worktree } from "@epanet-js/worktree";
+import type { BranchState } from "src/state/branch-state";
 
-const loadStoredBranches = async (): Promise<StoredBranches | null> => {
-  try {
-    return await getBranchStore().load();
-  } catch (error) {
-    captureError(error as Error);
-    return null;
-  }
+type RestoredBranches = {
+  worktree: Worktree;
+  branchStates: Map<string, BranchState>;
+};
+
+const restoreBranches = async (
+  loadInput: ProjectLoadInput,
+): Promise<RestoredBranches> => {
+  const storedBranches = await getBranchStore().load();
+  return {
+    worktree: storedBranches.worktree,
+    branchStates: buildStoredBranchStates(
+      buildMainBranchState(loadInput),
+      loadInput.factories,
+      storedBranches,
+    ),
+  };
 };
 
 export type OpenPersistedProjectPhase = FetchProjectPhase | "finalizing";
@@ -42,6 +58,7 @@ export type OpenPersistedProjectResult =
     }
   | { status: "too-new"; fileVersion: number; appVersion: number }
   | { status: "corrupt" | "internal"; errorDetails: string }
+  | { status: "scenarios-failed"; errorDetails: string }
   | {
       status: "migration-failed";
       errorDetails: string;
@@ -56,7 +73,7 @@ export const useOpenPersistedProject = () => {
   const openPersistedProject = useAtomCallback(
     useCallback(
       async (
-        get: Getter,
+        _get,
         set: Setter,
         { file, onProgress }: OpenPersistedProjectInput,
       ): Promise<OpenPersistedProjectResult> => {
@@ -83,13 +100,9 @@ export const useOpenPersistedProject = () => {
           factories,
           simulationSettings,
         } = await fetchProject({ onProgress, idPools: isIdPoolsOn });
-        const storedBranches = isPersistScenariosOn
-          ? await loadStoredBranches()
-          : null;
         onProgress?.("finalizing");
-        await clearSimulationStorage();
-        resetAppState(set, defaultPanelsFor());
-        loadModel(set, {
+
+        const loadInput: ProjectLoadInput = {
           hydraulicModel,
           factories,
           projectSettings,
@@ -98,13 +111,26 @@ export const useOpenPersistedProject = () => {
           bookmarks,
           simulationSettings,
           autoElevations: projectSettings.projection.type !== "xy-grid",
-        });
-        if (storedBranches) {
+        };
+
+        let restored: RestoredBranches | null = null;
+        if (isPersistScenariosOn) {
           try {
-            seedStoredBranches(get, set, storedBranches);
+            restored = await restoreBranches(loadInput);
           } catch (error) {
             captureError(error as Error);
+            return {
+              status: "scenarios-failed",
+              errorDetails: (error as Error).message,
+            };
           }
+        }
+
+        await clearSimulationStorage();
+        resetAppState(set, defaultPanelsFor());
+        loadModel(set, loadInput);
+        if (restored) {
+          commitStoredBranches(set, restored.worktree, restored.branchStates);
         }
         return {
           status: "ok",

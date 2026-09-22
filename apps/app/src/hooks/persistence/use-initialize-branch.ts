@@ -2,14 +2,16 @@ import { useCallback } from "react";
 import { useAtomCallback } from "jotai/utils";
 import type { Getter, Setter } from "jotai";
 import { nanoid } from "nanoid";
+import type { ModelFactories } from "@epanet-js/hydraulic-model";
 import { copyModel } from "src/hydraulic-model";
 import { applyChangeSet } from "src/hydraulic-model/change-sets";
 import { SessionHistory } from "src/lib/persistence/session-history";
 import { settleAppliedModel } from "src/lib/persistence/transaction-helpers";
+import { observeIds } from "src/lib/id-pools";
 import { branchStateAtom, type BranchState } from "src/state/branch-state";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { worktreeAtom } from "src/state/scenarios";
-import type { Branch, StoredBranches } from "@epanet-js/worktree";
+import type { Branch, StoredBranches, Worktree } from "@epanet-js/worktree";
 
 const getMainState = (get: Getter): BranchState => {
   const worktree = get(worktreeAtom);
@@ -20,10 +22,12 @@ const getMainState = (get: Getter): BranchState => {
   return mainState;
 };
 
-const branchFromMain = (get: Getter, mainState: BranchState): BranchState => {
-  const currentFactories = get(modelFactoriesAtom);
+const branchFromMain = (
+  mainState: BranchState,
+  factories: ModelFactories,
+): BranchState => {
   const labelManager = mainState.labelManager.copy(
-    new Map(currentFactories.labelCounters),
+    new Map(factories.labelCounters),
   );
 
   return {
@@ -37,17 +41,17 @@ const branchFromMain = (get: Getter, mainState: BranchState): BranchState => {
   };
 };
 
-export const seedStoredBranches = (
-  get: Getter,
-  set: Setter,
-  { worktree, deltas }: StoredBranches,
-): void => {
-  const mainState = getMainState(get);
-  const updatedBranchStates = new Map(get(branchStateAtom));
+export const buildStoredBranchStates = (
+  mainState: BranchState,
+  factories: ModelFactories,
+  { deltas }: StoredBranches,
+): Map<string, BranchState> => {
+  const branchStates = new Map<string, BranchState>();
 
   for (const [branchId, delta] of deltas) {
-    const state = branchFromMain(get, mainState);
+    const state = branchFromMain(mainState, factories);
     if (!delta.isEmpty) {
+      observeIds(factories.idPools, delta);
       const report = applyChangeSet(
         state.hydraulicModel,
         delta,
@@ -63,20 +67,29 @@ export const seedStoredBranches = (
       state.version = version;
       state.sessionHistory = new SessionHistory(version);
     }
-    updatedBranchStates.set(branchId, state);
+    branchStates.set(branchId, state);
   }
 
-  set(branchStateAtom, updatedBranchStates);
+  return branchStates;
+};
+
+export const commitStoredBranches = (
+  set: Setter,
+  worktree: Worktree,
+  branchStates: Map<string, BranchState>,
+): void => {
+  set(branchStateAtom, (previous) => new Map([...previous, ...branchStates]));
   set(worktreeAtom, worktree);
 };
 
 export const useInitializeBranch = () => {
   const initializeBranch = useAtomCallback(
     useCallback((get: Getter, set: Setter, branch: Branch) => {
-      const mainState = getMainState(get);
-
       const updatedBranchStates = new Map(get(branchStateAtom));
-      updatedBranchStates.set(branch.id, branchFromMain(get, mainState));
+      updatedBranchStates.set(
+        branch.id,
+        branchFromMain(getMainState(get), get(modelFactoriesAtom)),
+      );
 
       set(branchStateAtom, updatedBranchStates);
     }, []),

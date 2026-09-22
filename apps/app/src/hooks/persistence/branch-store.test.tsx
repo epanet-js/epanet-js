@@ -15,7 +15,10 @@ import { useMomentTransaction } from "src/hooks/persistence/use-moment-transacti
 import { useUndoableTransactions } from "src/hooks/persistence/use-undoable-transactions";
 import { useInitializeBranch } from "src/hooks/persistence/use-initialize-branch";
 import { useSwitchBranch } from "src/hooks/persistence/use-switch-branch";
-import { useOpenPersistedProject } from "src/hooks/persistence/use-open-persisted-project";
+import {
+  useOpenPersistedProject,
+  type OpenPersistedProjectResult,
+} from "src/hooks/persistence/use-open-persisted-project";
 import { registerBranchStore } from "src/lib/branching";
 import { writeQueue } from "src/lib/persistence/write-queue";
 import { useInProcessDb } from "src/lib/db/__test-helpers__/in-process-db";
@@ -156,12 +159,17 @@ const reopen = async (store: Store) => {
     withStore(store),
   );
 
+  let outcome!: OpenPersistedProjectResult;
   await act(async () => {
-    await result.current.openPersistedProject({
+    outcome = await result.current.openPersistedProject({
       file: new File([bytes], "project.ejs"),
     });
   });
+  return outcome;
 };
+
+const maxAssetId = (store: Store) =>
+  Math.max(...store.get(stagingModelDerivedAtom).assets.keys());
 
 const persistedAssetCount = async () =>
   (await db.fetchProject({})).hydraulicModel.assets.size;
@@ -216,6 +224,36 @@ describe("branch store", () => {
     expect(branchStates.get("scenario-1")!.hydraulicModel.assets.size).toEqual(
       scenarioAssets,
     );
+  });
+
+  it("keeps the id pools above every id a stored delta holds", async () => {
+    const { store: branchStore } = aRecordingStore();
+    registerBranchStore(branchStore);
+    const store = await aSavedProject();
+    switchToScenario(store);
+    addJunction(store);
+    const scenarioMaxId = maxAssetId(store);
+    await writeQueue.whenIdle();
+
+    await reopen(store);
+
+    expect(
+      store.get(modelFactoriesAtom).idPools.newId("asset"),
+    ).toBeGreaterThan(scenarioMaxId);
+  });
+
+  it("refuses to open when the stored branches cannot be read", async () => {
+    const store = await aSavedProject();
+    const beforeBranchStates = store.get(branchStateAtom);
+    registerBranchStore({
+      ...nullBranchStore,
+      load: () => Promise.reject(new Error("delta unreadable")),
+    });
+
+    const result = await reopen(store);
+
+    expect(result.status).toEqual("scenarios-failed");
+    expect(store.get(branchStateAtom)).toBe(beforeBranchStates);
   });
 
   it("opens main only when nothing is registered", async () => {

@@ -71,7 +71,7 @@ import {
 } from "src/state/drawing";
 import { selectionAtom } from "src/state/selection";
 import { USelection } from "src/selection";
-import { branchStateAtom } from "src/state/branch-state";
+import { branchStateAtom, type BranchState } from "src/state/branch-state";
 import {
   sourceRebuildDurationsAtom,
   resultsFetchDurationsAtom,
@@ -130,6 +130,20 @@ export const resetAppState = (set: Setter, panels: Panel[]) => {
   set(proximityDistanceAtom, null);
 };
 
+export const buildMainBranchState = ({
+  hydraulicModel,
+  factories,
+  simulationSettings,
+}: ProjectLoadInput): BranchState => ({
+  version: hydraulicModel.version,
+  hydraulicModel,
+  labelManager: factories.labelManager,
+  sessionHistory: new SessionHistory(hydraulicModel.version),
+  simulation: null,
+  simulationSourceId: "main",
+  simulationSettings,
+});
+
 export const loadModel = (
   set: Setter,
   input: ProjectLoadInput,
@@ -144,7 +158,6 @@ export const loadModel = (
     simulationSettings,
     autoElevations,
   } = input;
-  const sessionHistory = new SessionHistory(hydraulicModel.version);
 
   resetProjectRevision(set, hydraulicModel.version);
   writeQueue.reset();
@@ -171,24 +184,7 @@ export const loadModel = (
 
   set(worktreeAtom, initializeWorktree());
 
-  set(
-    branchStateAtom,
-    new Map([
-      [
-        "main",
-        {
-          version: hydraulicModel.version,
-          hydraulicModel,
-          labelManager: factories.labelManager,
-          sessionHistory,
-          simulation: null,
-          simulationSourceId: "main",
-          simulationSettings,
-          simulationResults: null,
-        },
-      ],
-    ]),
-  );
+  set(branchStateAtom, new Map([["main", buildMainBranchState(input)]]));
 
   return mergedProjectSettings;
 };

@@ -12,8 +12,12 @@ workspace libraries). It has no dependencies.
 Import from the package root (`@epanet-js/id-generator`):
 
 - **`IdGenerator`** — the interface every id source implements:
-  `newId(): number` and `get totalGenerated(): number`. Accept this type when a
-  component should be handed an id source rather than creating its own.
+  `newId(): number`, `get totalGenerated(): number` and `observe(id: number)`.
+  Accept this type when a component should be handed an id source rather than
+  creating its own. `observe` is how an id that was minted elsewhere — read back
+  from storage, or replayed out of a stored change set — is kept out of the
+  sequence: it raises the mark and never lowers it, so `totalGenerated` is the
+  highest id known rather than a count of calls.
 - **`ConsecutiveIdsGenerator`** — the default implementation: hands out
   sequential integers (optionally seeded with a starting value), and reports how
   many it has generated.

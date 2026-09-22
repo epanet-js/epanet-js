@@ -137,13 +137,13 @@ export class WritableIdGenerator implements IdGenerator {
     return this.last;
   }
 
-  addId(id: number) {
+  observe(id: number): void {
     if (id > this.last) this.last = id;
   }
 
   copy(): IdGenerator {
     const copy = new WritableIdGenerator();
-    copy.addId(this.last);
+    copy.observe(this.last);
     return copy;
   }
 }
@@ -221,7 +221,7 @@ export class HydraulicModelBuilder {
       id,
     });
     this.assets.set(id, node);
-    this.idGenerator.addId(id);
+    this.idGenerator.observe(id);
     return this;
   }
 
@@ -237,7 +237,7 @@ export class HydraulicModelBuilder {
       ) as JunctionBuildData),
     });
     this.assets.set(id, junction);
-    this.idGenerator.addId(id);
+    this.idGenerator.observe(id);
     return this;
   }
 
@@ -260,7 +260,7 @@ export class HydraulicModelBuilder {
       ) as ReservoirBuildData),
     });
     this.assets.set(id, reservoir);
-    this.idGenerator.addId(id);
+    this.idGenerator.observe(id);
     return this;
   }
 
@@ -278,7 +278,7 @@ export class HydraulicModelBuilder {
       ...(stripNulls(data, NULLABLE_BUILD_FIELDS.tank) as TankBuildData),
     });
     this.assets.set(id, tank);
-    this.idGenerator.addId(id);
+    this.idGenerator.observe(id);
     return this;
   }
 
@@ -302,7 +302,7 @@ export class HydraulicModelBuilder {
       ...(stripNulls(rest, NULLABLE_BUILD_FIELDS.pipe) as PipeBuildData),
     });
     this.assets.set(id, pipe);
-    this.idGenerator.addId(id);
+    this.idGenerator.observe(id);
     this.topology.addLink(id, startNode.id, endNode.id);
     return this;
   }
@@ -331,7 +331,7 @@ export class HydraulicModelBuilder {
       curve,
     });
     this.assets.set(id, pump);
-    this.idGenerator.addId(id);
+    this.idGenerator.observe(id);
     this.topology.addLink(id, startNode.id, endNode.id);
     return this;
   }
@@ -359,7 +359,7 @@ export class HydraulicModelBuilder {
       ) as ValveBuildData),
     });
     this.assets.set(id, valve);
-    this.idGenerator.addId(id);
+    this.idGenerator.observe(id);
     this.topology.addLink(id, startNode.id, endNode.id);
     return this;
   }
@@ -436,7 +436,7 @@ export class HydraulicModelBuilder {
     }
 
     this.customerPointsMap.set(id, customerPoint);
-    this.customerPointIdGenerator.addId(id);
+    this.customerPointIdGenerator.observe(id);
     return this;
   }
 

@@ -3,6 +3,7 @@ export type IdPool = "asset" | "customerPoint" | "pattern" | "curve" | "zone";
 export interface IdGenerator {
   get totalGenerated(): number;
   newId(): number;
+  observe(id: number): void;
   copy(): IdGenerator;
 }
 
@@ -15,6 +16,10 @@ export class ConsecutiveIdsGenerator implements IdGenerator {
   newId(): number {
     this.last = this.last + 1;
     return this.last;
+  }
+
+  observe(id: number): void {
+    if (id > this.last) this.last = id;
   }
 
   get totalGenerated(): number {

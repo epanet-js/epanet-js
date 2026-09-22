@@ -509,7 +509,13 @@ export type ProjectFileOpened = {
 export type ProjectFileOpenFailed = {
   name: "projectFile.openFailed";
   source: string;
-  reason: "tooNew" | "corrupt" | "migrationFailed" | "internal" | "exception";
+  reason:
+    | "tooNew"
+    | "corrupt"
+    | "migrationFailed"
+    | "scenariosFailed"
+    | "internal"
+    | "exception";
   fileVersion?: number;
   appVersion?: number;
 };

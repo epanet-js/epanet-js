@@ -19,6 +19,28 @@ describe("ConsecutiveIdsGenerator", () => {
     expect(gen.newId()).toBe(12);
     expect(gen.totalGenerated).toBe(12);
   });
+
+  it("never hands out an observed id", () => {
+    const gen = new ConsecutiveIdsGenerator();
+    gen.observe(50);
+
+    expect(gen.newId()).toBe(51);
+    expect(gen.totalGenerated).toBe(51);
+  });
+
+  it("ignores an observed id below the mark", () => {
+    const gen = new ConsecutiveIdsGenerator(10);
+    gen.observe(3);
+
+    expect(gen.newId()).toBe(11);
+  });
+
+  it("carries the observed mark into a copy", () => {
+    const gen = new ConsecutiveIdsGenerator();
+    gen.observe(7);
+
+    expect(gen.copy().newId()).toBe(8);
+  });
 });
 
 describe("IdPoolsGenerator", () => {
@@ -72,6 +94,15 @@ describe("IdPoolsGenerator", () => {
     expect(patterns.newId()).toBe(1);
     expect(pools.newId("pattern")).toBe(2);
     expect(patterns.totalGenerated).toBe(2);
+  });
+
+  it("raises only the pool an id was observed on", () => {
+    const pools = new IdPoolsGenerator(seeds);
+
+    pools.forPool("asset").observe(40);
+
+    expect(pools.newId("asset")).toBe(41);
+    expect(pools.newId("pattern")).toBe(1);
   });
 });
 

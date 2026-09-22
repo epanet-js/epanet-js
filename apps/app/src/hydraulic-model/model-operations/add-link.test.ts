@@ -27,6 +27,9 @@ class TestIdGenerator implements IdGenerator {
   get totalGenerated(): number {
     return this.last;
   }
+  observe(id: number): void {
+    if (id > this.last) this.last = id;
+  }
   copy(): IdGenerator {
     return new TestIdGenerator(this.last);
   }
