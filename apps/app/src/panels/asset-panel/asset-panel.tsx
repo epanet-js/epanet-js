@@ -1,5 +1,5 @@
-import { useMemo, useCallback, useState } from "react";
-import { useAtomValue } from "jotai";
+import { useEffect, useMemo, useCallback, useState } from "react";
+import { useAtomValue, useSetAtom } from "jotai";
 import {
   Asset,
   Junction,
@@ -81,6 +81,8 @@ import {
 } from "src/lib/model-attributes-validation";
 import { getLinkNodes } from "@epanet-js/hydraulic-model";
 import { type AssetId, type Control } from "@epanet-js/hydraulic-model";
+import { isNodeAsset } from "@epanet-js/hydraulic-model";
+import { highlightsAtom } from "src/state/highlights";
 import { changeAssetControl } from "src/hydraulic-model/model-operations";
 import {
   AssetEditorContent,
@@ -2165,6 +2167,31 @@ const ValveEditor = ({
   >(findTargetNodeOptions, [hydraulicModel, valve], showTargetNode);
   const targetNodeOptions = tracedNodeOptions ?? EMPTY_TARGET_NODE_OPTIONS;
 
+  const setHighlights = useSetAtom(highlightsAtom);
+
+  const highlightTargetNodeById = useCallback(
+    (nodeId: AssetId | null) => {
+      const node = nodeId === null ? null : hydraulicModel.assets.get(nodeId);
+
+      if (!node || !isNodeAsset(node)) {
+        setHighlights([]);
+        return;
+      }
+      const [lng, lat] = node.coordinates;
+      const nodeType = node.feature.properties.type;
+      setHighlights([
+        {
+          type: "marker",
+          coordinates: [lng, lat],
+          nodeType,
+        },
+      ]);
+    },
+    [hydraulicModel, setHighlights],
+  );
+
+  useEffect(() => () => setHighlights([]), [setHighlights]);
+
   const handleTargetNodeChange = (_name: string, newValue: number | null) => {
     onPropertyChange("targetNodeId", newValue ?? undefined, valve.targetNodeId);
   };
@@ -2259,6 +2286,7 @@ const ValveEditor = ({
             placeholder={endNode ? endNode.label : translate("select") + "..."}
             comparison={targetNodeComparison}
             onChange={handleTargetNodeChange}
+            onHighlightChange={highlightTargetNodeById}
             readOnly={readonly}
             clearLabel={endNode ? endNode.label : translate("select") + "..."}
           />

@@ -586,6 +586,7 @@ type SelectRowPropsBase<P extends string, T extends SelectRowValue> = {
   paywall?: PaywallFeature;
   isOptional?: boolean;
   enableVirtualization?: boolean;
+  onHighlightChange?: (value: T | null) => void;
 };
 
 type SelectRowPropsNonNullable<
@@ -631,6 +632,7 @@ export function SelectRow<P extends string, T extends SelectRowValue>({
   onChange,
   isOptional = true,
   enableVirtualization = false,
+  onHighlightChange,
 }: SelectorRowProps<P, T>) {
   const translate = useTranslate();
   const actualLabel = label || translate(name);
@@ -658,7 +660,15 @@ export function SelectRow<P extends string, T extends SelectRowValue>({
       {readOnly ? (
         <TextField padding="md">{selectedOption?.label ?? ""}</TextField>
       ) : (
-        <div className="w-full">
+        <div
+          className="w-full"
+          onMouseEnter={
+            onHighlightChange ? () => onHighlightChange(selected) : undefined
+          }
+          onMouseLeave={
+            onHighlightChange ? () => onHighlightChange(null) : undefined
+          }
+        >
           <Selector
             ariaLabel={actualLabel}
             options={options}
@@ -673,6 +683,7 @@ export function SelectRow<P extends string, T extends SelectRowValue>({
             listClassName={listClassName}
             actionLabel={actionLabel}
             onActionClick={onActionClick}
+            onActiveOptionChange={onHighlightChange}
             enableVirtualization={
               enableVirtualization || isVirtualizationEnabled
             }
