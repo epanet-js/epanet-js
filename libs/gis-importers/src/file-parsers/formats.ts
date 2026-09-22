@@ -1,4 +1,4 @@
-export type GisFormatId = "geojson" | "geojsonl" | "shapefile" | "dxf";
+type GisFormatId = "geojson" | "geojsonl" | "shapefile" | "dxf";
 
 export type GisFormat = {
   id: GisFormatId;

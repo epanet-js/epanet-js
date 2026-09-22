@@ -17,7 +17,7 @@ import { contentsOf } from "./contents";
 import { gisFormatOf, isGisSecondaryPart } from "./formats";
 import { readDxf, type DxfBounds, type DxfStatedCrs } from "./parse-dxf";
 
-export type ParsedGisSource = {
+type ParsedGisSource = {
   features: Feature[];
   sourceProjection?: Proj4Projection;
   issues: IssueCollector;

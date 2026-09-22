@@ -45,22 +45,22 @@ export type ScanSourceResult = {
   issues: Issue[];
 };
 
-export type ScanSource = (input: GisInput) => Promise<ScanSourceResult>;
+type ScanSource = (input: GisInput) => Promise<ScanSourceResult>;
 
 export type ImportOptions = {
   signal?: AbortSignal;
 };
 
-export type ImportFromSourceInput<Role extends string = string> = GisInput &
+type ImportFromSourceInput<Role extends string = string> = GisInput &
   ImportOptions & {
     config?: ImportConfig<Role>;
   };
 
-export type ImportFromSource<Role extends string = string> = (
+type ImportFromSource<Role extends string = string> = (
   input: ImportFromSourceInput<Role>,
 ) => Promise<ImportResult>;
 
-export type ImportFromFeatures<Role extends string = string> = (
+type ImportFromFeatures<Role extends string = string> = (
   features: Feature[],
   config?: ImportConfig<Role>,
   options?: ImportOptions,

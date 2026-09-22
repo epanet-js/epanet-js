@@ -12,7 +12,7 @@ export type DxfStatedCrs = {
   bounds?: DxfBounds;
 };
 
-export type ParsedDxf = { features: Feature[]; stated?: DxfStatedCrs };
+type ParsedDxf = { features: Feature[]; stated?: DxfStatedCrs };
 
 export const readDxf = (bytes: ArrayBuffer): ParsedDxf | null => {
   const content = decodeDxf(bytes);
