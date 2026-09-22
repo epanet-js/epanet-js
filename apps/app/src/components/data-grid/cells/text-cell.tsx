@@ -88,11 +88,7 @@ export function TextCell<TData = unknown>({
   if (readonly) {
     return (
       <div className="w-full h-full flex items-center px-2 text-size-base tabular-nums text-subtle bg-panel overflow-hidden">
-        {value == null && placeholder != null ? (
-          <span className="truncate italic">{placeholder}</span>
-        ) : (
-          <span className="truncate">{value ?? ""}</span>
-        )}
+        <span className="truncate">{value ?? placeholder ?? ""}</span>
       </div>
     );
   }
