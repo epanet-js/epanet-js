@@ -78,10 +78,13 @@ export const useOpenProjectFile = () => {
             notify({
               variant: "warning",
               size: "md",
-              title: "Project file is too new",
-              description:
-                "This file was created by a newer version of the app. Please update to open it.",
-              details: `File version ${result.fileVersion}, app version ${result.appVersion}.`,
+              title: translate("openProjectFailure.tooNew"),
+              description: translate("openProjectFailure.tooNewDetail"),
+              details: translate(
+                "openProjectFailure.versions",
+                String(result.fileVersion),
+                String(result.appVersion),
+              ),
               Icon: WarningIcon,
             });
             userTracking.capture({
@@ -97,9 +100,8 @@ export const useOpenProjectFile = () => {
             notify({
               variant: "warning",
               size: "md",
-              title: "Project file is invalid",
-              description:
-                "The file couldn't be read as a project. It may be corrupt or saved in a different format.",
+              title: translate("openProjectFailure.corrupt"),
+              description: translate("openProjectFailure.corruptDetail"),
               details: result.errorDetails,
               Icon: WarningIcon,
             });
@@ -119,10 +121,15 @@ export const useOpenProjectFile = () => {
             notify({
               variant: "warning",
               size: "md",
-              title: "Couldn't open project",
-              description:
-                "The project file couldn't be upgraded to this version of the app.",
-              details: `File version ${result.fileVersion}, app version ${result.appVersion}.\n${result.errorDetails}`,
+              title: translate("projectOpenFailed"),
+              description: translate(
+                "openProjectFailure.migrationFailedDetail",
+              ),
+              details: `${translate(
+                "openProjectFailure.versions",
+                String(result.fileVersion),
+                String(result.appVersion),
+              )}\n${result.errorDetails}`,
               Icon: WarningIcon,
             });
             captureError(
@@ -143,9 +150,8 @@ export const useOpenProjectFile = () => {
             notify({
               variant: "warning",
               size: "md",
-              title: "Couldn't open project",
-              description:
-                "The scenarios saved in this file couldn't be restored. The project was left closed on purpose: editing it without them would overwrite the work they hold.",
+              title: translate("projectOpenFailed"),
+              description: translate("openProjectFailure.scenariosDetail"),
               details: result.errorDetails,
               Icon: WarningIcon,
             });
@@ -164,8 +170,8 @@ export const useOpenProjectFile = () => {
           notify({
             variant: "warning",
             size: "md",
-            title: "Couldn't open project",
-            description: "Something went wrong while opening the file.",
+            title: translate("projectOpenFailed"),
+            description: translate("openProjectFailure.unexpectedDetail"),
             details: result.errorDetails,
             Icon: WarningIcon,
           });
@@ -257,8 +263,8 @@ export const useOpenProjectFile = () => {
         notify({
           variant: "warning",
           size: "md",
-          title: "Couldn't open project",
-          description: "Something went wrong while opening the file.",
+          title: translate("projectOpenFailed"),
+          description: translate("openProjectFailure.unexpectedDetail"),
           details: formatErrorDetails(error),
           Icon: WarningIcon,
         });
