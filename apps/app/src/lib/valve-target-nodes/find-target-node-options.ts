@@ -20,11 +20,27 @@ export const findTargetNodeOptions = async (
   );
 
   const options: TargetNodeOption[] = [];
+  const currentTargetId = valve.targetNodeId;
+  let currentTargetIsOffered = false;
+
   for (const id of traced) {
     if (id === endNodeId) continue;
     const asset = hydraulicModel.assets.get(id);
     if (!asset?.isNode) continue;
     options.push({ value: asset.id, label: asset.label });
+    if (asset.id === currentTargetId) currentTargetIsOffered = true;
   }
+
+  if (
+    currentTargetId !== undefined &&
+    currentTargetId !== endNodeId &&
+    !currentTargetIsOffered
+  ) {
+    const target = hydraulicModel.assets.get(currentTargetId);
+    if (target?.isNode) {
+      options.push({ value: target.id, label: target.label });
+    }
+  }
+
   return options;
 };

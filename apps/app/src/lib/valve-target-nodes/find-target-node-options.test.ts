@@ -140,4 +140,66 @@ describe("findTargetNodeOptions", () => {
 
     expect(await labelsOf(model, IDS.V1)).toEqual(["A"]);
   });
+
+  it("keeps the node the valve already targets when it is no longer downstream", async () => {
+    const IDS = { IN: 1, OUT: 2, A: 3, AWAY: 4, V1: 5, P1: 6, P2: 7 } as const;
+    const model = HydraulicModelBuilder.with()
+      .aJunction(IDS.IN, { label: "IN" })
+      .aJunction(IDS.OUT, { label: "OUT" })
+      .aJunction(IDS.A, { label: "A" })
+      .aJunction(IDS.AWAY, { label: "AWAY" })
+      .aValve(IDS.V1, {
+        kind: "prv",
+        startNodeId: IDS.IN,
+        endNodeId: IDS.OUT,
+        targetNodeId: IDS.AWAY,
+      })
+      .aPipe(IDS.P1, { startNodeId: IDS.OUT, endNodeId: IDS.A })
+      .aPipe(IDS.P2, {
+        startNodeId: IDS.A,
+        endNodeId: IDS.AWAY,
+        initialStatus: "closed",
+      })
+      .build();
+
+    expect(await labelsOf(model, IDS.V1)).toEqual(["A", "AWAY"]);
+  });
+
+  it("does not repeat the target when it is still downstream", async () => {
+    const IDS = { IN: 1, OUT: 2, A: 3, B: 4, V1: 5, P1: 6, P2: 7 } as const;
+    const model = HydraulicModelBuilder.with()
+      .aJunction(IDS.IN, { label: "IN" })
+      .aJunction(IDS.OUT, { label: "OUT" })
+      .aJunction(IDS.A, { label: "A" })
+      .aJunction(IDS.B, { label: "B" })
+      .aValve(IDS.V1, {
+        kind: "prv",
+        startNodeId: IDS.IN,
+        endNodeId: IDS.OUT,
+        targetNodeId: IDS.B,
+      })
+      .aPipe(IDS.P1, { startNodeId: IDS.OUT, endNodeId: IDS.A })
+      .aPipe(IDS.P2, { startNodeId: IDS.A, endNodeId: IDS.B })
+      .build();
+
+    expect(await labelsOf(model, IDS.V1)).toEqual(["A", "B"]);
+  });
+
+  it("drops the target once the node it pointed at is gone", async () => {
+    const IDS = { IN: 1, OUT: 2, A: 3, V1: 5, P1: 6, MISSING: 99 } as const;
+    const model = HydraulicModelBuilder.with()
+      .aJunction(IDS.IN, { label: "IN" })
+      .aJunction(IDS.OUT, { label: "OUT" })
+      .aJunction(IDS.A, { label: "A" })
+      .aValve(IDS.V1, {
+        kind: "prv",
+        startNodeId: IDS.IN,
+        endNodeId: IDS.OUT,
+        targetNodeId: IDS.MISSING,
+      })
+      .aPipe(IDS.P1, { startNodeId: IDS.OUT, endNodeId: IDS.A })
+      .build();
+
+    expect(await labelsOf(model, IDS.V1)).toEqual(["A"]);
+  });
 });
