@@ -27,7 +27,7 @@ export const MapContextMenu = memo(function MapContextMenu({
 
   return (
     <CM.Portal>
-      <CMContent>
+      <CMContent onCloseAutoFocus={(event) => event.preventDefault()}>
         <GeometryActions as="context-item" />
       </CMContent>
     </CM.Portal>
