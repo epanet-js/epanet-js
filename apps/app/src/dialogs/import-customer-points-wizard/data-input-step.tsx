@@ -3,7 +3,9 @@ import { WizardState, WizardActions } from "./types";
 import { useUserTracking } from "src/infra/user-tracking";
 import { captureError } from "src/infra/error-tracking";
 import { useTranslate } from "src/hooks/use-translate";
+import { Callout } from "@epanet-js/ui-kit";
 import { GisDropZone, type GisFiles } from "src/components/gis-drop-zone";
+import { ErrorIcon } from "src/icons";
 import type { Proj4Projection } from "@epanet-js/projections";
 import { customerPointsImporter } from "@epanet-js/gis-importers";
 import type { Issue } from "@epanet-js/converters";
@@ -159,14 +161,17 @@ export const DataInputStep: React.FC<{
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 overflow-y-auto grow">
         {/* Left Column - File Input */}
         <div className="bg-base dark:bg-slate-800 space-y-6 h-full md:p-6 p-2">
-          <h2 className="text-size-heading-3 font-semibold text-slate-900 dark:text-white">
+          <h2 className="text-size-heading-3 font-semibold text-slate-900 px-3 dark:text-white">
             {translate("importCustomerPoints.dataSource.title")}
           </h2>
 
           {error && (
-            <div className="bg-error-subtle border border-red-200 rounded-md p-3">
-              <p className="text-red-700 text-size-base">{error}</p>
-            </div>
+            <Callout
+              variant="error"
+              description={error}
+              Icon={ErrorIcon}
+              className="mx-3 border rounded-md"
+            />
           )}
 
           <div className="space-y-4">

@@ -1,4 +1,6 @@
 import React from "react";
+import { Callout } from "@epanet-js/ui-kit";
+import { ErrorIcon } from "src/icons";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";
 import { WizardState, WizardActions } from "./types";
@@ -22,9 +24,12 @@ export const DemandOptionsStep: React.FC<{
         </h2>
 
         {error && (
-          <div className="bg-error-subtle border border-red-200 rounded-md p-3">
-            <p className="text-red-700 text-size-base">{error}</p>
-          </div>
+          <Callout
+            variant="error"
+            description={error}
+            Icon={ErrorIcon}
+            className="border rounded-md"
+          />
         )}
 
         <div className="space-y-4">

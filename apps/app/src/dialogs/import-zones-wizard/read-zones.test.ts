@@ -77,6 +77,28 @@ describe("readZonesWithImporter", () => {
     expect(silent.assumedCoordinateSystem).toBe(true);
   });
 
+  it("counts the records it will not import as zones", async () => {
+    const mixed = await readZonesWithImporter(
+      {
+        geojson: aFile([
+          aZone(aSquare(0.001, 0.001, 0.001), { DMA: "North" }),
+          aPoint([0.002, 0.002]),
+          aPoint([0.003, 0.003]),
+        ]),
+      },
+      options,
+    );
+    const onlyZones = await readZonesWithImporter(
+      {
+        geojson: aFile([aZone(aSquare(0.001, 0.001, 0.001), { DMA: "North" })]),
+      },
+      options,
+    );
+
+    expect(mixed.skippedRecordCount).toBe(2);
+    expect(onlyZones.skippedRecordCount).toBe(0);
+  });
+
   it("keeps only the polygons of a mixed file", async () => {
     const result = await readZonesWithImporter(
       {

@@ -1,5 +1,7 @@
 import React, { useCallback } from "react";
 import { useAtomValue } from "jotai";
+import { Callout } from "@epanet-js/ui-kit";
+import { ErrorIcon } from "src/icons";
 import {
   WizardContainer,
   WizardHeader,
@@ -234,11 +236,14 @@ export const ImportCustomerPointsWizard: React.FC<
         )}
 
         {projectionsError && (
-          <div className="bg-error-subtle border border-red-200 rounded-md p-4 mb-6">
-            <p className="text-red-700 text-size-base">
-              {translate("importCustomerPoints.wizard.somethingWentWrong")}
-            </p>
-          </div>
+          <Callout
+            variant="error"
+            description={translate(
+              "importCustomerPoints.wizard.somethingWentWrong",
+            )}
+            Icon={ErrorIcon}
+            className="mb-6 border rounded-md"
+          />
         )}
 
         {!projectionsLoading && !projectionsError && (

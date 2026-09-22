@@ -15,4 +15,5 @@ export type ReadZoneFeaturesResult = {
   uniqueProperties: Set<string>;
   coordinateConversion?: CoordinateConversion;
   assumedCoordinateSystem?: boolean;
+  skippedRecordCount?: number;
 };

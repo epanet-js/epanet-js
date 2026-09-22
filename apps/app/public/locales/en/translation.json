@@ -1917,7 +1917,8 @@
     "dataInputStep": {
       "title": "Data input",
       "addFromFile": "Add from file",
-      "noProjectionWarning": "The selected file does not state a coordinate system, so its coordinates were read as longitude and latitude (WGS84)."
+      "noProjectionWarning": "The selected file does not state a coordinate system, so its coordinates were read as longitude and latitude (WGS84).",
+      "skippedRecordsWarning": "{{1}} records are not polygons and will not be imported as zones."
     },
     "dataMappingStep": {
       "title": "Data mapping",

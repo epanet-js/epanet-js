@@ -38,8 +38,8 @@ import { WizardState, WizardActions, ParsedDataSummary } from "./types";
 import { UnitsSpec } from "@epanet-js/project-settings";
 import { WizardActions as WizardActionsComponent } from "src/components/wizard";
 import { convertTo } from "@epanet-js/quantity";
-import { ChevronDownIcon, ChevronRightIcon } from "src/icons";
-import { Selector } from "@epanet-js/ui-kit";
+import { ChevronDownIcon, ChevronRightIcon, ErrorIcon } from "src/icons";
+import { Callout, Selector } from "@epanet-js/ui-kit";
 import { NumericField } from "src/components/form/numeric-field";
 const CONSTANT_PATTERN_ID = 0;
 
@@ -494,9 +494,12 @@ export const DataMappingStep: React.FC<{
         )}
 
         {error && (
-          <div className="bg-error-subtle border border-red-200 rounded-md p-3">
-            <p className="text-red-700 text-size-base">{error}</p>
-          </div>
+          <Callout
+            variant="error"
+            description={error}
+            Icon={ErrorIcon}
+            className="border rounded-md"
+          />
         )}
 
         {showDataPreview && (

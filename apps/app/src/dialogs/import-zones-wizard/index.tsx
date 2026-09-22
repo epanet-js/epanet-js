@@ -235,6 +235,7 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
             showNoProjectionWarning={
               readResult?.assumedCoordinateSystem === true
             }
+            skippedRecordCount={readResult?.skippedRecordCount ?? 0}
           />
         )}
         {currentStep === DATA_MAPPING_STEP_NUMBER && (

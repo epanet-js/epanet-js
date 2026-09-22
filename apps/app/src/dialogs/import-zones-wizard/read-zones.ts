@@ -48,6 +48,7 @@ export const readZonesWithImporter = async (
     features: polygons,
     uniqueProperties: new Set(attributes.map(({ name }) => name)),
     assumedCoordinateSystem,
+    skippedRecordCount: contents.recordCount - polygons.length,
     ...(sourceProjection === undefined
       ? {}
       : {
