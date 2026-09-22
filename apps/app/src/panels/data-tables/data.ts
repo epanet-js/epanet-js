@@ -141,12 +141,15 @@ function computeAssetComputedField(
     }
     case "targetNodeId": {
       const valve = model.assets.get(id) as Valve | undefined;
-      if (!valve || valve.kind !== "prv" || valve.targetNodeId === undefined) {
+      if (!valve || valve.kind !== "prv") {
         return null;
       }
-      return model.assets.get(valve.targetNodeId)?.isNode
+      const hasTargetNode = valve.targetNodeId !== undefined;
+      const targetId = hasTargetNode
         ? valve.targetNodeId
-        : null;
+        : valve.connections[1];
+      const target = model.assets.get(targetId);
+      return target?.isNode ? target.label : "";
     }
     default: {
       const asset = model.assets.get(id);

@@ -10,6 +10,7 @@ const VALIDATION_DEBOUNCE_MS = 150;
 type TextCellProps<TData = unknown> = CellProps<string | null> & {
   emptyValue?: string | null;
   readonly?: boolean;
+  placeholder?: string;
   validate?: (value: string, row: TData) => boolean;
   sanitize?: (raw: string) => string;
 };
@@ -22,6 +23,7 @@ export function TextCell<TData = unknown>({
   stopEditing,
   emptyValue,
   readonly,
+  placeholder,
   validate,
   sanitize,
 }: TextCellProps<TData>) {
@@ -86,7 +88,11 @@ export function TextCell<TData = unknown>({
   if (readonly) {
     return (
       <div className="w-full h-full flex items-center px-2 text-size-base tabular-nums text-subtle bg-panel overflow-hidden">
-        <span className="truncate">{value ?? ""}</span>
+        {value == null && placeholder != null ? (
+          <span className="truncate italic">{placeholder}</span>
+        ) : (
+          <span className="truncate">{value ?? ""}</span>
+        )}
       </div>
     );
   }
@@ -124,23 +130,29 @@ export function textColumn<TData extends RowData = RowData>(
     size?: number;
     emptyValue?: string | null;
     isReadOnly?: boolean | ((rowIndex: number) => boolean);
+    placeholder?: string;
     validate?: (value: string, row: TData) => boolean;
     cleanLabel?: (raw: string) => string;
   },
 ): GridColumn<TData> {
-  const { emptyValue, isReadOnly, validate, cleanLabel } = options;
+  const { emptyValue, isReadOnly, placeholder, validate, cleanLabel } = options;
   const resolveReadOnly = (rowIndex: number) =>
     typeof isReadOnly === "function"
       ? isReadOnly(rowIndex)
       : (isReadOnly ?? false);
 
   const CellComponent =
-    emptyValue !== undefined || isReadOnly || validate || cleanLabel
+    emptyValue !== undefined ||
+    isReadOnly ||
+    placeholder !== undefined ||
+    validate ||
+    cleanLabel
       ? (props: CellProps<string | null>) => (
           <TextCell<TData>
             {...props}
             emptyValue={emptyValue}
             readonly={resolveReadOnly(props.rowIndex)}
+            placeholder={placeholder}
             validate={validate}
             sanitize={cleanLabel}
           />
@@ -162,6 +174,7 @@ export function textColumn<TData extends RowData = RowData>(
         return cleaned;
       },
       deleteValue: emptyValue,
+      placeholder,
       isReadOnly,
     },
   };

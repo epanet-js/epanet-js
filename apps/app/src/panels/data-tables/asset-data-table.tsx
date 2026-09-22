@@ -404,17 +404,6 @@ export const AssetDataTable = memo(function AssetDataTableInner({
               ),
             );
           }
-
-          if (newRow.targetNodeId !== oldRow.targetNodeId) {
-            changes.push({
-              property: "targetNodeId",
-              value: (newRow.targetNodeId as AssetId | null) ?? undefined,
-            });
-            editedProperties.set(
-              "targetNodeId",
-              (editedProperties.get("targetNodeId") ?? 0) + 1,
-            );
-          }
         }
 
         const sourceTypeIdx = changes.findIndex(

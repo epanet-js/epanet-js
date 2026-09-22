@@ -83,32 +83,6 @@ describe("filterableSelectColumn", () => {
     });
   });
 
-  describe("isOptionAvailable", () => {
-    const rowAwareColumn = filterableSelectColumn<
-      number,
-      { category: number; excluded: number }
-    >("category", {
-      header: "Category",
-      options,
-      isOptionAvailable: (value, row) => value !== row.excluded,
-    });
-
-    it("does not paste an option unavailable for the row", () => {
-      expect(
-        rowAwareColumn.meta!.pasteValue!("Pattern A", {
-          category: 0,
-          excluded: 1,
-        }),
-      ).toBeUndefined();
-      expect(
-        rowAwareColumn.meta!.pasteValue!("Pattern A", {
-          category: 0,
-          excluded: 2,
-        }),
-      ).toBe(1);
-    });
-  });
-
   describe("copy/paste round-trip", () => {
     it("preserves value through copy then paste", () => {
       const originalValue = 1;
@@ -186,28 +160,6 @@ describe("FilterableSelectCell", () => {
     render(<FilterableSelectCell {...defaultProps} value="cast iron" />);
 
     expect(screen.getByText("Select...")).toBeInTheDocument();
-  });
-
-  it("hides options unavailable for the row but still shows the selected label", async () => {
-    render(
-      <FilterableSelectCell
-        {...defaultProps}
-        value={1}
-        editMode="full"
-        isOptionAvailable={(value) => value !== 1}
-      />,
-    );
-    await waitFor(() => {
-      expect(screen.getByRole("listbox")).toBeInTheDocument();
-    });
-
-    const listed = screen
-      .getAllByRole("option")
-      .map((option) => option.textContent);
-    expect(listed).toEqual(["CONSTANT", "Pattern B"]);
-    expect(
-      screen.getByRole("button", { name: /Pattern A/ }),
-    ).toBeInTheDocument();
   });
 
   it("renders only the rows in view for long lists", async () => {

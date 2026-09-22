@@ -38,10 +38,6 @@ type FilterableSelectCellProps<
   createLabel?: (query: string) => string;
   validateNew?: (query: string) => boolean;
   enableVirtualization?: boolean;
-  isOptionAvailable?: (
-    value: string | number | boolean,
-    row: unknown,
-  ) => boolean;
 };
 
 // Creatable columns hold free text, where a value differing only in case is the
@@ -63,7 +59,6 @@ const findOption = <T extends string | number | boolean>(
 
 export function FilterableSelectCell({
   value,
-  row,
   onChange,
   stopEditing,
   startEditing,
@@ -80,31 +75,22 @@ export function FilterableSelectCell({
   createLabel,
   validateNew,
   enableVirtualization = false,
-  isOptionAvailable,
 }: CellProps<string | number | boolean | null> &
   FilterableSelectCellProps<string | number | boolean>) {
   const isOpen = !!editMode;
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [initialQuery, setInitialQuery] = useState("");
 
-  const availableOptions = useMemo(
-    () =>
-      isOpen && isOptionAvailable
-        ? options.filter((o) => isOptionAvailable(o.value, row))
-        : options,
-    [options, isOptionAvailable, isOpen, row],
-  );
-
   const listOptions: SelectorListOption<string | number | boolean>[] = useMemo(
     () =>
       isOpen
-        ? availableOptions.map((o) => ({
+        ? options.map((o) => ({
             value: o.value,
             label: o.label,
             disabled: o.enabled === false,
           }))
         : [],
-    [availableOptions, isOpen],
+    [options, isOpen],
   );
 
   const selectedOption = useMemo(
@@ -251,8 +237,8 @@ export function filterableSelectColumn<
     header: string;
     size?: number;
     options: FilterableSelectOption<T>[];
-    placeholder?: string | ((rowIndex: number) => string);
-    emptyOptionLabel?: string | ((rowIndex: number) => string);
+    placeholder?: string;
+    emptyOptionLabel?: string;
     emptyValue?: T | null;
     minOptionsForSearch?: number;
     isReadOnly?: boolean | ((rowIndex: number) => boolean);
@@ -262,7 +248,6 @@ export function filterableSelectColumn<
     createLabel?: (query: string) => string;
     validateNew?: (query: string) => boolean;
     enableVirtualization?: boolean;
-    isOptionAvailable?: (value: T, row: TData) => boolean;
   },
 ): GridColumn<TData> {
   const isEmpty = isSelectorEmpty(options.options, {
@@ -291,20 +276,16 @@ export function filterableSelectColumn<
     },
     meta: {
       autoSizeExtraWidth: 32,
-      placeholder:
-        typeof options.placeholder === "string"
-          ? options.placeholder
-          : undefined,
+      placeholder: options.placeholder,
       copyValue: (v: T | null) => {
         const match = findOption(options.options, v, options.allowNew);
         if (match) return match.label;
         return options.allowNew && v != null && v !== "" ? String(v) : "";
       },
-      pasteValue: (v: string, row: TData) => {
+      pasteValue: (v: string) => {
         const match = options.options.find(
           (opt) =>
             opt.enabled !== false &&
-            (options.isOptionAvailable?.(opt.value, row) ?? true) &&
             (String(opt.value) === v ||
               opt.label.toLowerCase() === v.toLowerCase()),
         );
@@ -325,16 +306,8 @@ export function filterableSelectColumn<
               string | number | boolean
             >[]
           }
-          placeholder={
-            typeof options.placeholder === "function"
-              ? options.placeholder(props.rowIndex)
-              : (options.placeholder ?? "")
-          }
-          emptyOptionLabel={
-            typeof options.emptyOptionLabel === "function"
-              ? options.emptyOptionLabel(props.rowIndex)
-              : options.emptyOptionLabel
-          }
+          placeholder={options.placeholder ?? ""}
+          emptyOptionLabel={options.emptyOptionLabel}
           minOptionsForSearch={options.minOptionsForSearch}
           actionLabel={options.actionLabel}
           onActionClick={options.onActionClick}
@@ -342,9 +315,6 @@ export function filterableSelectColumn<
           createLabel={options.createLabel}
           validateNew={options.validateNew}
           enableVirtualization={options.enableVirtualization}
-          isOptionAvailable={
-            options.isOptionAvailable as FilterableSelectCellProps["isOptionAvailable"]
-          }
         />
       ),
     },
