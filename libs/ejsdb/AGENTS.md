@@ -28,7 +28,8 @@ Any of these breaks file compatibility unless a migration ships with it:
 - Changing the shape of any JSON blob persisted as a string column. Today these are:
   - `raw_controls.data` (raw controls JSON)
   - `controls.data` (controls JSON)
-  - `simulation_settings.data`
+  - `simulation_settings.data` — and `scenarios.simulation_settings`, which holds
+    the same shape for a branch that overrides it. Both columns migrate together.
   - `project.settings`
   - `project.pipe_library`
   - `pumps.curve_points`

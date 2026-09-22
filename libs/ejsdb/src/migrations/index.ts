@@ -19,7 +19,7 @@ import m0018 from "./0018_id_pools.sql?raw";
 import m0019 from "./0019_valve_target_node.sql?raw";
 import m0020 from "./0020_drop_id_pools.sql?raw";
 import m0021 from "./0021_collections.sql?raw";
-import m0022 from "./0022_scenario_deltas.sql?raw";
+import m0022 from "./0022_scenarios.sql?raw";
 
 export type MigrationDB = Parameters<typeof m0006>[0];
 

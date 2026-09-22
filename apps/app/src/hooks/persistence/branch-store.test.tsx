@@ -43,10 +43,15 @@ type Recorded = {
 
 const aRecordingStore = () => {
   const recorded: Recorded[] = [];
+  const recordedSettings = new Map<string, string>();
   const store: BranchStore = {
     ...nullBranchStore,
     recordChange: (branchId, changeSet, direction) => {
       recorded.push({ branchId, changeSet, direction });
+      return Promise.resolve();
+    },
+    recordSimulationSettings: (branchId, data) => {
+      recordedSettings.set(branchId, data);
       return Promise.resolve();
     },
     load: () => {
@@ -54,10 +59,14 @@ const aRecordingStore = () => {
       const deltas = new Map<string, ChangeSet>();
       const branches = new Map(worktree.branches);
       branches.set("main", { ...branches.get("main")!, status: "locked" });
-      let number = 0;
-      for (const { branchId } of recorded) {
-        if (!branches.has(branchId)) number += 1;
-        branches.set(branchId, aScenarioBranch(branchId, number));
+      const branchIds = [
+        ...new Set([
+          ...recorded.map((entry) => entry.branchId),
+          ...recordedSettings.keys(),
+        ]),
+      ];
+      branchIds.forEach((branchId, index) => {
+        branches.set(branchId, aScenarioBranch(branchId, index + 1));
         deltas.set(
           branchId,
           squash(
@@ -67,7 +76,7 @@ const aRecordingStore = () => {
               .map((entry) => entry.changeSet),
           ),
         );
-      }
+      });
       return Promise.resolve({
         worktree: {
           ...worktree,
@@ -76,10 +85,11 @@ const aRecordingStore = () => {
           highestScenarioNumber: deltas.size,
         },
         deltas,
+        simulationSettings: new Map(recordedSettings),
       });
     },
   };
-  return { store, recorded };
+  return { store, recorded, recordedSettings };
 };
 
 const aScenarioBranch = (id: string, number: number): Branch => ({
@@ -278,6 +288,43 @@ describe("branch store", () => {
     expect(await persistedDemandMultiplier()).toEqual(1.5);
   });
 
+  it("restores a scenario's simulation settings on open", async () => {
+    const { store: branchStore } = aRecordingStore();
+    registerBranchStore(branchStore);
+    const store = await aSavedProject();
+    switchToScenario(store);
+
+    setDemandMultiplier(store, 1.5);
+    await writeQueue.whenIdle();
+
+    await reopen(store);
+
+    const branchStates = store.get(branchStateAtom);
+    expect(
+      branchStates.get("scenario-1")!.simulationSettings.globalDemandMultiplier,
+    ).toEqual(1.5);
+    expect(
+      branchStates.get("main")!.simulationSettings.globalDemandMultiplier,
+    ).toEqual(1);
+  });
+
+  it("leaves a scenario on main's simulation settings when it changed none", async () => {
+    const { store: branchStore } = aRecordingStore();
+    registerBranchStore(branchStore);
+    const store = await aSavedProject();
+    setDemandMultiplier(store, 2);
+    switchToScenario(store);
+    addJunction(store);
+    await writeQueue.whenIdle();
+
+    await reopen(store);
+
+    expect(
+      store.get(branchStateAtom).get("scenario-1")!.simulationSettings
+        .globalDemandMultiplier,
+    ).toEqual(2);
+  });
+
   it("restores a scenario from its stored delta on open", async () => {
     const { store: branchStore } = aRecordingStore();
     registerBranchStore(branchStore);
@@ -384,6 +431,19 @@ describe("branch store", () => {
 
       expect(recorded).toEqual([]);
       expect(await persistedAssetCount()).toEqual(1);
+    });
+
+    it("skips persisting a scenario's simulation settings", async () => {
+      const { store: branchStore, recordedSettings } = aRecordingStore();
+      registerBranchStore(branchStore);
+      const store = await aSavedProject();
+      switchToScenario(store);
+
+      setDemandMultiplier(store, 1.5);
+      await writeQueue.whenIdle();
+
+      expect(recordedSettings.size).toEqual(0);
+      expect(await persistedDemandMultiplier()).toEqual(1);
     });
 
     it("opens main only, whatever the store holds", async () => {

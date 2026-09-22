@@ -11,6 +11,7 @@ import type { ChangeSet, EntityKind } from "@epanet-js/change-set";
 import type { IdPool } from "@epanet-js/id-generator";
 import { copyModel } from "src/hydraulic-model";
 import { applyChangeSet } from "src/hydraulic-model/change-sets";
+import { buildSimulationSettingsData } from "src/lib/db";
 import { SessionHistory } from "src/lib/persistence/session-history";
 import { settleAppliedModel } from "src/lib/persistence/transaction-helpers";
 import { branchStateAtom, type BranchState } from "src/state/branch-state";
@@ -93,7 +94,7 @@ const branchFromMain = (
 export const buildStoredBranchStates = (
   mainState: BranchState,
   factories: ModelFactories,
-  { deltas }: StoredBranches,
+  { deltas, simulationSettings }: StoredBranches,
 ): Map<string, BranchState> => {
   const branchStates = new Map<string, BranchState>();
 
@@ -116,6 +117,12 @@ export const buildStoredBranchStates = (
       state.version = version;
       state.sessionHistory = new SessionHistory(version);
     }
+
+    const storedSettings = simulationSettings.get(branchId);
+    if (storedSettings !== undefined) {
+      state.simulationSettings = buildSimulationSettingsData(storedSettings);
+    }
+
     branchStates.set(branchId, state);
   }
 

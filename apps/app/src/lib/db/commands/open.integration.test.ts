@@ -221,7 +221,7 @@ describe("open integration", () => {
     expect((await fetchProject()).projectSettings.uniqueId).toBeUndefined();
   });
 
-  it("migrates a file saved before the scenario_deltas table existed", async () => {
+  it("migrates a file saved before the scenarios table existed", async () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction(1, { label: "J1" })
       .build();
@@ -232,7 +232,7 @@ describe("open integration", () => {
       simulationSettings: defaultSimulationSettings,
     });
     await withTransaction("downgrade", (db) => {
-      db.exec("DROP TABLE scenario_deltas");
+      db.exec("DROP TABLE scenarios");
       db.exec("PRAGMA user_version = 21");
     });
     const blob = await exportDb();
@@ -241,7 +241,7 @@ describe("open integration", () => {
 
     expect(result).toMatchObject({ status: "migrated", fileVersion: 21 });
     const rows = await withTransaction("count", (db) =>
-      db.exec("SELECT COUNT(*) FROM scenario_deltas", {
+      db.exec("SELECT COUNT(*) FROM scenarios", {
         returnValue: "resultRows",
       }),
     );

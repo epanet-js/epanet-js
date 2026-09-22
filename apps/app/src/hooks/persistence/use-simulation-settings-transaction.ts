@@ -13,14 +13,17 @@ import {
   serializeSimulationSettings,
 } from "src/lib/db";
 import { captureError } from "src/infra/error-tracking";
+import { getBranchStore } from "src/lib/branching";
 import { writeQueue } from "src/lib/persistence/write-queue";
 import { useWriteFailureHandler } from "src/hooks/persistence/use-write-failure-handler";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const useSimulationSettingsTransaction = () => {
   const setSettings = useSetAtom(simulationSettingsDerivedAtom);
   const setProjectDataVersion = useSetAtom(projectDataVersionAtom);
   const setDialog = useSetAtom(dialogAtom);
   const onWriteFailure = useWriteFailureHandler();
+  const isPersistScenariosOn = useFeatureFlag("FLAG_PERSIST_SCENARIOS");
 
   const transact = useAtomCallback(
     useCallback(
@@ -45,11 +48,23 @@ export const useSimulationSettingsTransaction = () => {
             () => setAllSimulationSettings(data),
             onWriteFailure,
           );
+        } else if (isPersistScenariosOn) {
+          const branchId = worktree.activeBranchId;
+          writeQueue.enqueue(
+            () => getBranchStore().recordSimulationSettings(branchId, data),
+            onWriteFailure,
+          );
         }
 
         return true;
       },
-      [setSettings, setProjectDataVersion, setDialog, onWriteFailure],
+      [
+        setSettings,
+        setProjectDataVersion,
+        setDialog,
+        onWriteFailure,
+        isPersistScenariosOn,
+      ],
     ),
   );
 

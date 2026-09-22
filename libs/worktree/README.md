@@ -30,8 +30,9 @@ types `BranchStore` speaks in.
   implementation today; a second kind of branching would need those fields
   generalised.
 - **`BranchStore`** — the interface for persisting branches other than main:
-  loading them with the change each one holds against main, and recording
-  creates, renames, deletes and every change made on one. The host seeds and
+  loading them with the change each one holds against main and whatever state a
+  branch carries in its own right, and recording creates, renames, deletes and
+  every change made on one. The host seeds and
   writes main itself; this contract never sees main. The default
   `nullBranchStore` loads nothing and writes nothing, so without an
   implementation branches live only as long as the session.

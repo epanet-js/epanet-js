@@ -21,6 +21,7 @@ export { saveBookmarks } from "./commands/save-bookmarks";
 export { serializeBookmarks } from "./mappers/bookmarks/to-rows";
 export { setAllSimulationSettings } from "./commands/set-all-simulation-settings";
 export { serializeSimulationSettings } from "./mappers/simulation-settings/to-rows";
+export { buildSimulationSettingsData } from "./mappers/simulation-settings/builders";
 export { applyChangeSetToDb } from "./commands/apply-change-set";
 export { importProject } from "./commands/import-project";
 export type { ImportProjectInput } from "./commands/import-project";

@@ -5,6 +5,7 @@ import { initializeWorktree } from "./initialize-worktree";
 export type StoredBranches = {
   worktree: Worktree;
   deltas: Map<string, ChangeSet>;
+  simulationSettings: Map<string, string>;
 };
 
 export interface BranchStore {
@@ -17,13 +18,19 @@ export interface BranchStore {
     changeSet: ChangeSet,
     direction: Direction,
   ): Promise<void>;
+  recordSimulationSettings(branchId: string, data: string): Promise<void>;
 }
 
 export const nullBranchStore: BranchStore = {
   load: () =>
-    Promise.resolve({ worktree: initializeWorktree(), deltas: new Map() }),
+    Promise.resolve({
+      worktree: initializeWorktree(),
+      deltas: new Map(),
+      simulationSettings: new Map(),
+    }),
   createBranch: () => Promise.resolve(),
   renameBranch: () => Promise.resolve(),
   deleteBranch: () => Promise.resolve(),
   recordChange: () => Promise.resolve(),
+  recordSimulationSettings: () => Promise.resolve(),
 };
