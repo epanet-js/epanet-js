@@ -12,6 +12,7 @@ import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
 import { addNode } from "src/hydraulic-model/model-operations/add-node";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
+import { useSimulationSettingsTransaction } from "src/hooks/persistence/use-simulation-settings-transaction";
 import { useUndoableTransactions } from "src/hooks/persistence/use-undoable-transactions";
 import { useInitializeBranch } from "src/hooks/persistence/use-initialize-branch";
 import { useSwitchBranch } from "src/hooks/persistence/use-switch-branch";
@@ -25,7 +26,10 @@ import { useInProcessDb } from "src/lib/db/__test-helpers__/in-process-db";
 import * as db from "src/lib/db";
 import { branchStateAtom } from "src/state/branch-state";
 import { modelFactoriesAtom } from "src/state/model-factories";
-import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
+import {
+  simulationSettingsDerivedAtom,
+  stagingModelDerivedAtom,
+} from "src/state/derived-branch-state";
 import { worktreeAtom } from "src/state/scenarios";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { defaultProjectSettings } from "@epanet-js/project-settings";
@@ -201,6 +205,23 @@ const labelsIn = (store: Store) =>
 const persistedAssetCount = async () =>
   (await db.fetchProject({})).hydraulicModel.assets.size;
 
+const setDemandMultiplier = (store: Store, multiplier: number) => {
+  const { result } = renderHook(
+    () => useSimulationSettingsTransaction(),
+    withStore(store),
+  );
+
+  act(() => {
+    result.current.transact({
+      ...store.get(simulationSettingsDerivedAtom),
+      globalDemandMultiplier: multiplier,
+    });
+  });
+};
+
+const persistedDemandMultiplier = async () =>
+  (await db.fetchProject({})).simulationSettings.globalDemandMultiplier;
+
 describe("branch store", () => {
   useInProcessDb();
 
@@ -229,6 +250,32 @@ describe("branch store", () => {
       ["scenario-1", "reverse"],
     ]);
     expect(await persistedAssetCount()).toEqual(1);
+  });
+
+  it("keeps a scenario's simulation settings out of main's rows", async () => {
+    const store = await aSavedProject();
+    switchToScenario(store);
+
+    setDemandMultiplier(store, 1.5);
+    await writeQueue.whenIdle();
+
+    expect(
+      store.get(simulationSettingsDerivedAtom).globalDemandMultiplier,
+    ).toEqual(1.5);
+    expect(
+      store.get(branchStateAtom).get("main")!.simulationSettings
+        .globalDemandMultiplier,
+    ).toEqual(1);
+    expect(await persistedDemandMultiplier()).toEqual(1);
+  });
+
+  it("persists simulation settings changed on main", async () => {
+    const store = await aSavedProject();
+
+    setDemandMultiplier(store, 1.5);
+    await writeQueue.whenIdle();
+
+    expect(await persistedDemandMultiplier()).toEqual(1.5);
   });
 
   it("restores a scenario from its stored delta on open", async () => {
