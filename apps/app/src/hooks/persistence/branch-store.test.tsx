@@ -50,8 +50,10 @@ const aRecordingStore = () => {
       const deltas = new Map<string, ChangeSet>();
       const branches = new Map(worktree.branches);
       branches.set("main", { ...branches.get("main")!, status: "locked" });
+      let number = 0;
       for (const { branchId } of recorded) {
-        branches.set(branchId, scenarioBranch);
+        if (!branches.has(branchId)) number += 1;
+        branches.set(branchId, aScenarioBranch(branchId, number));
         deltas.set(
           branchId,
           squash(
@@ -76,12 +78,14 @@ const aRecordingStore = () => {
   return { store, recorded };
 };
 
-const scenarioBranch: Branch = {
-  id: "scenario-1",
-  name: "Scenario #1",
+const aScenarioBranch = (id: string, number: number): Branch => ({
+  id,
+  name: `Scenario #${number}`,
   parentId: "main",
   status: "open",
-};
+});
+
+const scenarioBranch = aScenarioBranch("scenario-1", 1);
 
 const withStore = (store: Store) => ({
   wrapper: ({ children }: { children: React.ReactNode }) => (
@@ -103,24 +107,27 @@ const aSavedProject = async (): Promise<Store> => {
   return store;
 };
 
-const switchToScenario = (store: Store) => {
+const switchToScenario = (store: Store, branch: Branch = scenarioBranch) => {
   const { result } = renderHook(
     () => ({ ...useInitializeBranch(), ...useSwitchBranch() }),
     withStore(store),
   );
 
   act(() => {
-    result.current.initializeBranch(scenarioBranch);
-    result.current.switchBranch(scenarioBranch.id);
+    result.current.initializeBranch(branch);
+    result.current.switchBranch(branch.id);
   });
 
   const worktree = store.get(worktreeAtom);
+  const scenarios = worktree.scenarios.includes(branch.id)
+    ? worktree.scenarios
+    : [...worktree.scenarios, branch.id];
   store.set(worktreeAtom, {
     ...worktree,
-    branches: new Map(worktree.branches).set(scenarioBranch.id, scenarioBranch),
-    scenarios: [scenarioBranch.id],
-    activeBranchId: scenarioBranch.id,
-    highestScenarioNumber: 1,
+    branches: new Map(worktree.branches).set(branch.id, branch),
+    scenarios,
+    activeBranchId: branch.id,
+    highestScenarioNumber: scenarios.length,
   });
 };
 
@@ -170,6 +177,26 @@ const reopen = async (store: Store) => {
 
 const maxAssetId = (store: Store) =>
   Math.max(...store.get(stagingModelDerivedAtom).assets.keys());
+
+const activateScenario = (store: Store, branch: Branch) => {
+  const { result } = renderHook(() => useSwitchBranch(), withStore(store));
+
+  act(() => {
+    result.current.switchBranch(branch.id);
+  });
+
+  store.set(worktreeAtom, {
+    ...store.get(worktreeAtom),
+    activeBranchId: branch.id,
+  });
+};
+
+const labelsIn = (store: Store) =>
+  new Set(
+    [...store.get(stagingModelDerivedAtom).assets.values()].map(
+      (asset) => asset.label,
+    ),
+  );
 
 const persistedAssetCount = async () =>
   (await db.fetchProject({})).hydraulicModel.assets.size;
@@ -254,6 +281,31 @@ describe("branch store", () => {
 
     expect(result.status).toEqual("scenarios-failed");
     expect(store.get(branchStateAtom)).toBe(beforeBranchStates);
+  });
+
+  it("suggests a label no sibling scenario has already used", async () => {
+    const { store: branchStore } = aRecordingStore();
+    registerBranchStore(branchStore);
+    const first = aScenarioBranch("scenario-1", 1);
+    const second = aScenarioBranch("scenario-2", 2);
+    const store = await aSavedProject();
+    await reopen(store);
+
+    switchToScenario(store, first);
+    addJunction(store);
+    switchToScenario(store, second);
+    addJunction(store);
+    const siblingLabels = labelsIn(store);
+    await writeQueue.whenIdle();
+
+    await reopen(store);
+    activateScenario(store, first);
+    const before = labelsIn(store);
+    addJunction(store);
+    const added = [...labelsIn(store)].filter((label) => !before.has(label));
+
+    expect(added).toHaveLength(1);
+    expect(siblingLabels).not.toContain(added[0]);
   });
 
   it("opens main only when nothing is registered", async () => {

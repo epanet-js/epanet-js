@@ -672,4 +672,24 @@ describe("label manager", () => {
       ]);
     });
   });
+
+  describe("generatedIndex", () => {
+    it("reads the index off a generated label", () => {
+      expect(LabelManager.generatedIndex("P12", "pipe")).toEqual(12);
+      expect(LabelManager.generatedIndex("PAT3", "pattern")).toEqual(3);
+      expect(LabelManager.generatedIndex("CP7", "customerPoint")).toEqual(7);
+    });
+
+    it("ignores a label that was not generated for that type", () => {
+      expect(LabelManager.generatedIndex("MAIN-STREET", "pipe")).toBeNull();
+      expect(LabelManager.generatedIndex("P1", "pump")).toBeNull();
+      expect(LabelManager.generatedIndex("C1", "customerPoint")).toBeNull();
+      expect(LabelManager.generatedIndex("P", "pipe")).toBeNull();
+      expect(LabelManager.generatedIndex("P1A", "pipe")).toBeNull();
+    });
+
+    it("reads a label whatever its case", () => {
+      expect(LabelManager.generatedIndex("p12", "pipe")).toEqual(12);
+    });
+  });
 });

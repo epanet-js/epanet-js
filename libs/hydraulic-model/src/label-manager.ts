@@ -199,6 +199,16 @@ export class LabelManager {
     return next;
   }
 
+  static generatedIndex(label: string, type: LabelType): number | null {
+    const prefix = labelPrefixes[type];
+    const normalized = label.toUpperCase();
+    if (!normalized.startsWith(prefix)) return null;
+    const digits = normalized.slice(prefix.length);
+    if (!/^\d+$/.test(digits)) return null;
+    const index = Number(digits);
+    return Number.isSafeInteger(index) ? index : null;
+  }
+
   getIdByLabel(label: string, type: LabelType): number | undefined {
     const normalizedLabel = this.normalizeLabel(label);
     const entries = this.labelToEntries.get(normalizedLabel) || [];

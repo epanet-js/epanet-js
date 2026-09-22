@@ -2,16 +2,65 @@ import { useCallback } from "react";
 import { useAtomCallback } from "jotai/utils";
 import type { Getter, Setter } from "jotai";
 import { nanoid } from "nanoid";
-import type { ModelFactories } from "@epanet-js/hydraulic-model";
+import {
+  LabelManager,
+  type LabelType,
+  type ModelFactories,
+} from "@epanet-js/hydraulic-model";
+import type { ChangeSet, EntityKind } from "@epanet-js/change-set";
+import type { IdPool } from "@epanet-js/id-generator";
 import { copyModel } from "src/hydraulic-model";
 import { applyChangeSet } from "src/hydraulic-model/change-sets";
 import { SessionHistory } from "src/lib/persistence/session-history";
 import { settleAppliedModel } from "src/lib/persistence/transaction-helpers";
-import { observeIds } from "src/lib/id-pools";
 import { branchStateAtom, type BranchState } from "src/state/branch-state";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { worktreeAtom } from "src/state/scenarios";
 import type { Branch, StoredBranches, Worktree } from "@epanet-js/worktree";
+
+type Identifiers = { pool: IdPool; labelType: LabelType };
+
+const identifiersByEntity: Record<EntityKind, Identifiers | null> = {
+  junction: { pool: "asset", labelType: "junction" },
+  reservoir: { pool: "asset", labelType: "reservoir" },
+  tank: { pool: "asset", labelType: "tank" },
+  pipe: { pool: "asset", labelType: "pipe" },
+  pump: { pool: "asset", labelType: "pump" },
+  valve: { pool: "asset", labelType: "valve" },
+  customerPoint: { pool: "customerPoint", labelType: "customerPoint" },
+  pattern: { pool: "pattern", labelType: "pattern" },
+  curve: { pool: "curve", labelType: "curve" },
+  junctionDemand: null,
+  customerDemand: null,
+  allControls: null,
+  customAttributesDefinition: null,
+  pipeLibrary: null,
+  rawControls: null,
+};
+
+const observeIdentifiers = (
+  factories: ModelFactories,
+  changeSet: ChangeSet,
+): void => {
+  const counters = factories.labelCounters;
+
+  for (const record of changeSet.read().records) {
+    const identifiers = identifiersByEntity[record.entity];
+    if (!identifiers) continue;
+    const { pool, labelType } = identifiers;
+
+    if (typeof record.id === "number") {
+      factories.idPools.forPool(pool).observe(record.id);
+    }
+
+    const label = record.after.label;
+    if (typeof label !== "string") continue;
+    const index = LabelManager.generatedIndex(label, labelType);
+    if (index !== null && index + 1 > (counters.get(labelType) ?? 0)) {
+      counters.set(labelType, index + 1);
+    }
+  }
+};
 
 const getMainState = (get: Getter): BranchState => {
   const worktree = get(worktreeAtom);
@@ -51,7 +100,7 @@ export const buildStoredBranchStates = (
   for (const [branchId, delta] of deltas) {
     const state = branchFromMain(mainState, factories);
     if (!delta.isEmpty) {
-      observeIds(factories.idPools, delta);
+      observeIdentifiers(factories, delta);
       const report = applyChangeSet(
         state.hydraulicModel,
         delta,
