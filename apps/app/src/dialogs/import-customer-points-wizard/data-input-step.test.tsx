@@ -9,8 +9,35 @@ import { stubProjectionsReady } from "src/__helpers__/projections";
 import shp from "shpjs";
 import { setWizardState } from "./__helpers__/wizard-state";
 import { renderWizard } from "./__helpers__/render-wizard";
+import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
 
 vi.mock("shpjs");
+
+/** The smallest DXF we can write by hand: an ENTITIES section whose records
+ *  are already in lng/lat, so no projection has to be picked. */
+const aDxf = (entities: string[]): string =>
+  [
+    "0",
+    "SECTION",
+    "2",
+    "ENTITIES",
+    ...entities,
+    "0",
+    "ENDSEC",
+    "0",
+    "EOF",
+  ].join("\n");
+
+const aDxfPoint = (layer: string, [x, y]: [number, number]): string[] => [
+  "0",
+  "POINT",
+  "8",
+  layer,
+  "10",
+  String(x),
+  "20",
+  String(y),
+];
 
 describe("DataInputStep", () => {
   beforeEach(() => {
@@ -71,6 +98,59 @@ describe("DataInputStep", () => {
         featuresCount: 2,
         coordinateConversion: null,
       });
+    });
+
+    it("processes a DXF drawing when they are enabled", async () => {
+      stubFeatureOn("FLAG_IMPORT_DXF");
+      const userTracking = stubUserTracking();
+      const store = setInitialState({
+        hydraulicModel: HydraulicModelBuilder.with().build(),
+      });
+      setWizardState(store, { currentStep: 1 });
+      renderWizard(store);
+
+      await uploadFileInStep(
+        aTestFile({
+          filename: "customers.dxf",
+          content: aDxf([
+            ...aDxfPoint("meters", [-3.7, 40.4]),
+            ...aDxfPoint("meters", [-3.6, 40.5]),
+          ]),
+        }),
+      );
+
+      await waitFor(() => {
+        expect(
+          screen.getByRole("tab", { name: /data preview/i, current: "step" }),
+        ).toBeInTheDocument();
+      });
+      expect(userTracking.capture).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: "importCustomerPoints.dataInput.fileLoaded",
+          fileName: "customers.dxf",
+          featuresCount: 2,
+        }),
+      );
+    });
+
+    it("refuses a DXF drawing while they are not enabled", async () => {
+      stubFeatureOff("FLAG_IMPORT_DXF");
+      const store = setInitialState({
+        hydraulicModel: HydraulicModelBuilder.with().build(),
+      });
+      setWizardState(store, { currentStep: 1 });
+      renderWizard(store);
+
+      await uploadFileInStep(
+        aTestFile({
+          filename: "customers.dxf",
+          content: aDxf([...aDxfPoint("meters", [-3.7, 40.4])]),
+        }),
+      );
+
+      expect(
+        screen.queryByRole("tab", { name: /data preview/i, current: "step" }),
+      ).not.toBeInTheDocument();
     });
 
     it("processes valid GeoJSONL file successfully", async () => {
@@ -147,6 +227,26 @@ describe("DataInputStep", () => {
         fileName: "invalid.geojson",
         errorCode: "sourceUnreadable",
       });
+    });
+
+    it("asks for a coordinate system in words that fit any format", async () => {
+      stubFeatureOn("FLAG_IMPORT_DXF");
+      const store = setInitialState({
+        hydraulicModel: HydraulicModelBuilder.with().build(),
+      });
+      setWizardState(store, { currentStep: 1 });
+      renderWizard(store);
+
+      await uploadFileInStep(
+        aTestFile({
+          filename: "site.dxf",
+          content: aDxf([...aDxfPoint("meters", [440000, 4474000])]),
+        }),
+      );
+
+      const error = await screen.findByText(/WGS84 \(EPSG:4326\)/i);
+      expect(error).toBeInTheDocument();
+      expect(error.textContent).not.toMatch(/geojson/i);
     });
 
     it("shows unsupported CRS error for unknown projections", async () => {

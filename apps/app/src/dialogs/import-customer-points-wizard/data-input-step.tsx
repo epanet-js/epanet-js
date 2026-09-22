@@ -4,7 +4,12 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { captureError } from "src/infra/error-tracking";
 import { useTranslate } from "src/hooks/use-translate";
 import { Callout } from "@epanet-js/ui-kit";
-import { GisDropZone, type GisFiles } from "src/components/gis-drop-zone";
+import {
+  GisDropZone,
+  type GisFiles,
+  type GisFormat,
+} from "src/components/gis-drop-zone";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { ErrorIcon } from "src/icons";
 import type { Proj4Projection } from "@epanet-js/projections";
 import { customerPointsImporter } from "@epanet-js/gis-importers";
@@ -25,6 +30,10 @@ export const DataInputStep: React.FC<{
   const userTracking = useUserTracking();
   const translate = useTranslate();
   const [gisFiles, setGisFiles] = useState<GisFiles>({});
+  const readsDxf = useFeatureFlag("FLAG_IMPORT_DXF");
+  const supportedFormats: GisFormat[] = readsDxf
+    ? ["geojson", "geojsonl", "shapefile", "dxf"]
+    : ["geojson", "geojsonl", "shapefile"];
 
   const {
     error,
@@ -143,9 +152,9 @@ export const DataInputStep: React.FC<{
     (files: GisFiles) => {
       setGisFiles(files);
 
-      const geojson = files.geojson ?? files.geojsonl;
-      if (geojson) {
-        void scanWithImporter([geojson], geojson);
+      const single = files.geojson ?? files.geojsonl ?? files.dxf;
+      if (single) {
+        void scanWithImporter([single], single);
       } else if (files.shp && files.dbf && files.prj) {
         const bundle = [files.shp, files.dbf, files.prj, files.cpg].filter(
           (f): f is File => f != null,
@@ -177,7 +186,7 @@ export const DataInputStep: React.FC<{
           <div className="space-y-4">
             <GisDropZone
               onFileDrop={handleGisFilesDrop}
-              supportedFormats={["geojson", "geojsonl", "shapefile"]}
+              supportedFormats={supportedFormats}
               selectedFiles={gisFiles}
               disabled={isLoading}
               testId="customer-points-drop-zone"

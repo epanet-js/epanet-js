@@ -15,6 +15,7 @@ export const readZonesWithImporter = async (
 ): Promise<ReadZoneFeaturesResult> => {
   const files = [
     gisFiles.geojson,
+    gisFiles.dxf,
     gisFiles.shp,
     gisFiles.dbf,
     gisFiles.prj,

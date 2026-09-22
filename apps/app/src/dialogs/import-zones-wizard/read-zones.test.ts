@@ -37,9 +37,64 @@ const aFile = (features: Feature[], crs?: unknown) =>
     { type: "application/json" },
   );
 
+/** The smallest DXF we can write by hand: an ENTITIES section whose records
+ *  are already in lng/lat, so no projection has to be picked. */
+const aDxf = (entities: string[]): string =>
+  [
+    "0",
+    "SECTION",
+    "2",
+    "ENTITIES",
+    ...entities,
+    "0",
+    "ENDSEC",
+    "0",
+    "EOF",
+  ].join("\n");
+
+const aDxfSquare = (layer: string, [x, y]: [number, number], size: number) => [
+  "0",
+  "LWPOLYLINE",
+  "8",
+  layer,
+  "90",
+  "4",
+  "70",
+  "1",
+  "10",
+  String(x),
+  "20",
+  String(y),
+  "10",
+  String(x + size),
+  "20",
+  String(y),
+  "10",
+  String(x + size),
+  "20",
+  String(y + size),
+  "10",
+  String(x),
+  "20",
+  String(y + size),
+];
+
 const options = {};
 
 describe("readZonesWithImporter", () => {
+  it("reads the polygons of a DXF drawing", async () => {
+    const dxf = new File(
+      [aDxf([...aDxfSquare("DMA", [0.001, 0.001], 0.001)])],
+      "zones.dxf",
+    );
+
+    const result = await readZonesWithImporter({ dxf }, options);
+
+    expect(result.error).toBeUndefined();
+    expect(result.features).toHaveLength(1);
+    expect([...(result.uniqueProperties ?? [])]).toContain("Layer");
+  });
+
   it("reads the polygons and the properties to map", async () => {
     const result = await readZonesWithImporter(
       {

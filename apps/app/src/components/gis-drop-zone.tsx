@@ -3,7 +3,7 @@ import { useDropZone } from "src/hooks/use-drop-zone";
 import { useTranslate } from "src/hooks/use-translate";
 import { UploadIcon, CloseIcon, CheckIcon } from "src/icons";
 
-export type GisFormat = "geojson" | "geojsonl" | "shapefile";
+export type GisFormat = "geojson" | "geojsonl" | "shapefile" | "dxf";
 
 export interface GisFiles {
   shp?: File;
@@ -13,6 +13,7 @@ export interface GisFiles {
   dbf?: File;
   geojson?: File;
   geojsonl?: File;
+  dxf?: File;
 }
 
 interface GisDropZoneProps {
@@ -196,6 +197,7 @@ const FORMAT_EXTENSIONS: Record<GisFormat, string[]> = {
   geojson: [".geojson"],
   geojsonl: [".geojsonl"],
   shapefile: SHAPEFILE_EXTENSIONS,
+  dxf: [".dxf"],
 };
 
 const getAcceptString = (formats: GisFormat[]): string =>
@@ -206,6 +208,7 @@ const getFormatLabel = (formats: GisFormat[]): string =>
     .map((f) => {
       if (f === "geojson") return "GeoJSON";
       if (f === "geojsonl") return "GeoJSONL";
+      if (f === "dxf") return "DXF";
       return "Shapefile";
     })
     .join(", ");
@@ -213,6 +216,7 @@ const getFormatLabel = (formats: GisFormat[]): string =>
 const GIS_FILE_EXTENSIONS: Record<string, keyof GisFiles> = {
   ".geojson": "geojson",
   ".geojsonl": "geojsonl",
+  ".dxf": "dxf",
   ".shp": "shp",
   ".shx": "shx",
   ".prj": "prj",
@@ -266,15 +270,17 @@ const getBaseName = (files: GisFiles): string => {
 
 const getFileGroupType = (
   files: GisFiles,
-): "geojson" | "geojsonl" | "shapefile" => {
+): "geojson" | "geojsonl" | "dxf" | "shapefile" => {
   if (files.geojson) return "geojson";
   if (files.geojsonl) return "geojsonl";
+  if (files.dxf) return "dxf";
   return "shapefile";
 };
 
 const PRIMARY_EXTENSION: Record<ReturnType<typeof getFileGroupType>, string> = {
   geojson: ".geojson",
   geojsonl: ".geojsonl",
+  dxf: ".dxf",
   shapefile: ".shp",
 };
 
@@ -445,6 +451,7 @@ const SelectedFileList = ({
           {groupType === "geojsonl" && (
             <Badge label="GEOJSONL" variant="green" />
           )}
+          {groupType === "dxf" && <Badge label="DXF" variant="green" />}
           {groupType === "shapefile" && (
             <>
               {SHAPEFILE_REQUIRED_BADGES.map(({ key, label }) => (

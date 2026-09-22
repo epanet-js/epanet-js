@@ -1390,7 +1390,7 @@
       "title": "Add from file",
       "noValidPointsError": "No valid customer points found in the selected file.",
       "parseFileError": "Failed to parse file",
-      "coordinateValidationError": "All coordinates must be expressed in WGS84 (EPSG:4326) projection, or include a CRS definition in the GeoJSON",
+      "coordinateValidationError": "All coordinates must be expressed in WGS84 (EPSG:4326) projection, or the file must state the coordinate system it uses",
       "unsupportedCrsError": "Unsupported coordinate reference system",
       "projectionConversionError": "Failed to convert coordinate system",
       "fileFormatNotSupported": "File format not supported",
@@ -1929,14 +1929,13 @@
     },
     "completeStep": {
       "title": "Complete",
-      "summary": "Imported {{1}} zones from GeoJSON.",
-      "summaryShapefile": "Imported {{1}} zones from Shapefile.",
+      "summary": "Imported {{1}} zones.",
       "mergedSummary": "Merged {{1}} zones from multiple features:",
       "mergedLabelHeader": "Zone",
       "mergedFeaturesHeader": "Number of merged features"
     },
     "errors": {
-      "invalidFile": "The selected file is not a valid GeoJSON file.",
+      "invalidFile": "The selected file could not be read.",
       "noPolygons": "The file does not contain any Polygon or MultiPolygon geometries.",
       "unsupportedProjection": "The file contains an unsupported coordinate projection.",
       "invalidProjection": "The file contains coordinates that are not in a recognized projection."

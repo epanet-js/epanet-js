@@ -2,7 +2,12 @@ import { Info, TriangleAlert } from "lucide-react";
 import { useTranslate } from "src/hooks/use-translate";
 import { localizeDecimal } from "@epanet-js/i18n";
 import { Callout } from "@epanet-js/ui-kit";
-import { GisDropZone, type GisFiles } from "src/components/gis-drop-zone";
+import {
+  GisDropZone,
+  type GisFiles,
+  type GisFormat,
+} from "src/components/gis-drop-zone";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { ErrorIcon } from "src/icons";
 
 type DataInputStepProps = {
@@ -17,6 +22,10 @@ export const DataInputStep = (props: DataInputStepProps) => {
   const { error, showNoProjectionWarning, skippedRecordCount, gisFiles } =
     props;
   const translate = useTranslate();
+  const readsDxf = useFeatureFlag("FLAG_IMPORT_DXF");
+  const supportedFormats: GisFormat[] = readsDxf
+    ? ["geojson", "shapefile", "dxf"]
+    : ["geojson", "shapefile"];
 
   return (
     <>
@@ -25,7 +34,7 @@ export const DataInputStep = (props: DataInputStepProps) => {
       </h2>
       <GisDropZone
         onFileDrop={props.onGisFilesDrop}
-        supportedFormats={["geojson", "shapefile"]}
+        supportedFormats={supportedFormats}
         selectedFiles={gisFiles}
       />
       {error && (

@@ -77,7 +77,7 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
       setReadResult(null);
       setIsProcessing(true);
 
-      const primaryFile = gisFiles.geojson ?? gisFiles.shp;
+      const primaryFile = gisFiles.geojson ?? gisFiles.dxf ?? gisFiles.shp;
       const result = await readZonesWithImporter(gisFiles, { projections });
 
       setIsProcessing(false);
@@ -109,10 +109,10 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
     (gisFiles: GisFiles) => {
       setSelectedGisFiles(gisFiles);
 
-      const hasGeojson = !!gisFiles.geojson;
+      const hasSingleFile = !!(gisFiles.geojson ?? gisFiles.dxf);
       const hasShapefile = !!(gisFiles.shp && gisFiles.dbf && gisFiles.prj);
 
-      if (hasGeojson || hasShapefile) {
+      if (hasSingleFile || hasShapefile) {
         void processGisFiles(gisFiles);
       } else {
         setReadResult(null);
@@ -250,7 +250,6 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
           <CompleteStep
             numZones={importedZoneCount}
             mergedZones={mergedZones}
-            sourceType={selectedGisFiles.shp ? "shapefile" : "geojson"}
           />
         )}
       </WizardContent>

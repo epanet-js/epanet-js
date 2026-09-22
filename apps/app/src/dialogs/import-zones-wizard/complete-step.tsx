@@ -5,25 +5,18 @@ import type { MergedZoneInfo } from "src/lib/zones";
 export const CompleteStep = ({
   numZones,
   mergedZones,
-  sourceType,
 }: {
   numZones: number;
   mergedZones: MergedZoneInfo[];
-  sourceType: "geojson" | "shapefile";
 }) => {
   const translate = useTranslate();
-
-  const summaryKey =
-    sourceType === "shapefile"
-      ? "importZones.completeStep.summaryShapefile"
-      : "importZones.completeStep.summary";
 
   return (
     <div className="flex flex-col flex-1 min-h-0 gap-4 py-8">
       <div className="flex flex-col items-center gap-4">
         <SuccessIcon size="xl" className="text-success" />
         <p className="text-size-base text-default">
-          {translate(summaryKey, numZones.toString())}
+          {translate("importZones.completeStep.summary", numZones.toString())}
         </p>
       </div>
       {mergedZones.length > 0 && (
