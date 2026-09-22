@@ -459,6 +459,8 @@ type InpExported = {
   name: "inp.exported";
   source: string;
   isSaveAs?: boolean;
+  lsxRequired?: boolean;
+  includesRemoteSetpointPrvs?: boolean;
 };
 
 type ProjectSaved = {

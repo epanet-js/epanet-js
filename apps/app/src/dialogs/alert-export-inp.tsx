@@ -3,11 +3,10 @@ import { useMemo, useState } from "react";
 import { BaseDialog, SimpleDialogActions } from "src/components/dialog";
 import { Button } from "src/components/elements";
 import { ChevronDownIcon, ChevronRightIcon } from "src/icons";
-import type { HydraulicModel } from "src/hydraulic-model";
 import { useTranslate } from "src/hooks/use-translate";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
-import { remoteSetpointValves, willRequireLsx } from "src/simulation";
+import { getLsxRequirements } from "src/simulation";
 
 export const AlertExportInpDialog = ({
   onSaveProject,
@@ -21,7 +20,11 @@ export const AlertExportInpDialog = ({
   const translate = useTranslate();
   const isScriptingOn = useFeatureFlag("FLAG_REMOTE_SETPOINT_PRV");
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
-  const showLsxWarning = isScriptingOn && willRequireLsx(hydraulicModel);
+  const lsxRequirements = useMemo(() => {
+    if (!isScriptingOn) return undefined;
+    return getLsxRequirements(hydraulicModel);
+  }, [hydraulicModel, isScriptingOn]);
+  const showLsxWarning = isScriptingOn && lsxRequirements?.isRequired;
 
   return (
     <BaseDialog
@@ -48,7 +51,9 @@ export const AlertExportInpDialog = ({
     >
       <div className="p-4 text-size-base text-default">
         {showLsxWarning && (
-          <LsxRequiredWarning hydraulicModel={hydraulicModel} />
+          <LsxRequiredWarning
+            remoteSetpointPrvs={lsxRequirements.remoteSetpointPrvs}
+          />
         )}
         <p className="pb-2">{translate("alertExportInpDetail")}</p>
         <p className="pb-2">{translate("alertExportInpLabels")}</p>
@@ -59,16 +64,12 @@ export const AlertExportInpDialog = ({
 };
 
 export const LsxRequiredWarning = ({
-  hydraulicModel,
+  remoteSetpointPrvs,
 }: {
-  hydraulicModel: HydraulicModel;
+  remoteSetpointPrvs: string[];
 }) => {
   const translate = useTranslate();
   const [isExpanded, setExpanded] = useState(false);
-  const valveLabels = useMemo(
-    () => remoteSetpointValves(hydraulicModel),
-    [hydraulicModel],
-  );
 
   return (
     <div className="mb-4 p-3 rounded-md space-y-1 bg-yellow-50 border border-yellow-200">
@@ -105,7 +106,7 @@ export const LsxRequiredWarning = ({
         <ul className="list-disc pl-8 text-size-base">
           <li>
             {translate("alertExportInpLsxRemoteSetpointPrvs")} (
-            {summarizeLabels(valveLabels)})
+            {summarizeLabels(remoteSetpointPrvs)})
           </li>
         </ul>
       )}

@@ -1,5 +1,5 @@
 export { runSimulation, cancelSimulation } from "./epanet/main";
-export { willRequireLsx, remoteSetpointValves } from "./build-inp";
+export { getLsxRequirements } from "./build-inp";
 export type { SimulationProgress, ProgressCallback } from "./epanet/worker";
 export { EPSResultsReader } from "./epanet/eps-results-reader";
 export type { SimulationIds } from "./epanet/eps-results-reader";

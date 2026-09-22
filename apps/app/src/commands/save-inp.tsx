@@ -11,7 +11,7 @@ import { ExportOptions } from "src/types/export";
 import { useAtomCallback } from "jotai/utils";
 import { useCallback, useContext } from "react";
 import { MapContext, captureThumbnail } from "src/map";
-import { buildInpToFile } from "src/simulation/build-inp";
+import { buildInpToFile, getLsxRequirements } from "src/simulation/build-inp";
 import { FileSystemHelpers } from "src/infra/storage";
 import { useTranslate } from "src/hooks/use-translate";
 import { useAtomValue, useSetAtom } from "jotai";
@@ -43,11 +43,6 @@ export const useSaveInp = () => {
         set,
         { source, isSaveAs = false }: { source: string; isSaveAs?: boolean },
       ) {
-        userTracking.capture({
-          name: "inp.exported",
-          source,
-          isSaveAs,
-        });
         const exportOptions: ExportOptions = { type: "inp" };
         const asyncSave = async () => {
           const fileInfo = get(inpFileInfoAtom);
@@ -72,6 +67,18 @@ export const useSaveInp = () => {
             headlossFormula: projectSettings.headlossFormula,
             includeScript: isScriptingOn,
           };
+
+          const lsxRequirements = isScriptingOn
+            ? getLsxRequirements(hydraulicModel)
+            : undefined;
+          userTracking.capture({
+            name: "inp.exported",
+            source,
+            isSaveAs,
+            lsxRequired: lsxRequirements?.isRequired ?? false,
+            includesRemoteSetpointPrvs:
+              (lsxRequirements?.remoteSetpointPrvs ?? []).length > 0,
+          });
 
           const suggestedName = fileInfo
             ? fileInfo.name

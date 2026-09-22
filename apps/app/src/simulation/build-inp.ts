@@ -415,22 +415,28 @@ export const buildInpToFile = withDebugInstrumentation(
   { name: "BUILD_INP_TO_FILE", maxDurationMs: 1000 },
 );
 
-export const willRequireLsx = (hydraulicModel: HydraulicModel): boolean => {
-  for (const asset of hydraulicModel.assets.values()) {
-    if (remoteSetpointTargetOf(hydraulicModel, asset) !== null) return true;
-  }
-  return false;
+export type LsxRequirements = {
+  isRequired: boolean;
+  remoteSetpointPrvs: string[];
 };
 
-export const remoteSetpointValves = (
+export const getLsxRequirements = (
   hydraulicModel: HydraulicModel,
-): string[] => {
-  const valves: string[] = [];
+): LsxRequirements => {
+  const requirements: LsxRequirements = {
+    isRequired: false,
+    remoteSetpointPrvs: [],
+  };
+
   for (const asset of hydraulicModel.assets.values()) {
-    if (remoteSetpointTargetOf(hydraulicModel, asset) === null) continue;
-    valves.push(asset.label);
+    const remoteSetpoint = remoteSetpointTargetOf(hydraulicModel, asset);
+    if (remoteSetpoint !== null) {
+      requirements.isRequired = true;
+      requirements.remoteSetpointPrvs.push(asset.label);
+    }
   }
-  return valves;
+
+  return requirements;
 };
 
 type ResolvedBuildOptions = BuildOptions &
