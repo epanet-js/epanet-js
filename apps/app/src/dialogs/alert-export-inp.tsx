@@ -5,6 +5,7 @@ import { Button } from "src/components/elements";
 import { ChevronDownIcon, ChevronRightIcon } from "src/icons";
 import { useTranslate } from "src/hooks/use-translate";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { useUserTracking } from "src/infra/user-tracking";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { getLsxRequirements } from "src/simulation";
 
@@ -69,6 +70,7 @@ export const LsxRequiredWarning = ({
   remoteSetpointPrvs: string[];
 }) => {
   const translate = useTranslate();
+  const userTracking = useUserTracking();
   const [isExpanded, setExpanded] = useState(false);
 
   return (
@@ -86,6 +88,9 @@ export const LsxRequiredWarning = ({
           target="_blank"
           rel="noreferrer"
           className="underline"
+          onClick={() => {
+            userTracking.capture({ name: "inpExport.lsxLinkClicked" });
+          }}
         >
           {translate("alertExportInpLsxLinkLabel")}
         </a>

@@ -463,6 +463,10 @@ type InpExported = {
   includesRemoteSetpointPrvs?: boolean;
 };
 
+type InpExportLsxLinkClicked = {
+  name: "inpExport.lsxLinkClicked";
+};
+
 type ProjectSaved = {
   name: "project.saved";
   source: string;
@@ -1438,6 +1442,7 @@ export type UserEvent =
   | NewModelCompleted
   | ModelSaved
   | InpExported
+  | InpExportLsxLinkClicked
   | ProjectSaved
   | OpenProjectStarted
   | ProjectFileOpened
