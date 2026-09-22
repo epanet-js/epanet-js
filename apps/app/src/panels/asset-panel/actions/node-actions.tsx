@@ -3,7 +3,8 @@ import { useTranslate } from "src/hooks/use-translate";
 import { useZoomToSelection } from "src/commands/zoom-to-selection";
 import { useDeleteSelection } from "src/commands/delete-selection";
 import { ChartLineIcon, DeleteIcon, ZoomToIcon } from "src/icons";
-import { ActionButton, Action } from "src/components/action-button";
+import { Action } from "src/components/action-button";
+import { ActionsBar } from "src/components/actions-bar";
 import { useCustomGraph } from "src/hooks/use-custom-graph";
 
 export function useNodeActions(readonly = false): Action[] {
@@ -49,13 +50,5 @@ export function useNodeActions(readonly = false): Action[] {
 export function NodeActions({ readonly = false }: { readonly?: boolean }) {
   const actions = useNodeActions(readonly);
 
-  return (
-    <div className="flex gap-1 h-8 -my-2">
-      {actions
-        .filter((action) => action.applicable)
-        .map((action, i) => (
-          <ActionButton key={i} action={action} />
-        ))}
-    </div>
-  );
+  return <ActionsBar actions={actions} className="h-8 -my-2" />;
 }

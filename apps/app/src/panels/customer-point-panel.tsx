@@ -9,7 +9,8 @@ import { USelection } from "src/selection";
 import type { PropertyComparison } from "src/hooks/use-asset-comparison";
 import { useCustomerPointComparison } from "src/hooks/use-customer-point-comparison";
 import { useCustomerPointActions } from "src/components/context-actions/customer-point-actions";
-import { ActionButton } from "src/components/action-button";
+import { Action } from "src/components/action-button";
+import { ActionsBar } from "src/components/actions-bar";
 import { SectionList } from "src/components/form/fields";
 import { SectionWrapper } from "./asset-panel/ui-components";
 import { useZoomTo } from "src/hooks/use-zoom-to";
@@ -203,6 +204,17 @@ export function CustomerPointPanel() {
     ? hydraulicModel.assets.get(connection.junctionId)
     : null;
 
+  const zoomToAction: Action = {
+    icon: <ZoomToIcon />,
+    applicable: true,
+    label: translate("zoomTo"),
+    onSelect: function doZoomTo() {
+      const [lng, lat] = customerPoint.coordinates;
+      userTracking.capture({ name: "customerPointPanel.zoomTo" });
+      return Promise.resolve(zoomTo(Maybe.of([lng, lat, lng, lat] as BBox)));
+    },
+  };
+
   return (
     <div className="flex flex-col grow overflow-hidden">
       <div className="px-3 pt-4 pb-3 relative">
@@ -229,27 +241,7 @@ export function CustomerPointPanel() {
               }}
             />
           </div>
-          <div className="flex gap-1 h-8 shrink-0">
-            <ActionButton
-              action={{
-                icon: <ZoomToIcon />,
-                applicable: true,
-                label: translate("zoomTo"),
-                onSelect: function doZoomTo() {
-                  const [lng, lat] = customerPoint.coordinates;
-                  userTracking.capture({ name: "customerPointPanel.zoomTo" });
-                  return Promise.resolve(
-                    zoomTo(Maybe.of([lng, lat, lng, lat] as BBox)),
-                  );
-                },
-              }}
-            />
-            {actions
-              .filter((action) => action.applicable)
-              .map((action, i) => (
-                <ActionButton key={i} action={action} />
-              ))}
-          </div>
+          <ActionsBar actions={[zoomToAction, ...actions]} className="h-8" />
         </div>
         {labelError && (
           <span className="text-size-small text-warning block mt-1 pl-1">

@@ -17,7 +17,8 @@ import {
   DisconnectIcon,
 } from "src/icons";
 import { selectionAtom } from "src/state/selection";
-import { ActionButton, Action } from "src/components/action-button";
+import { Action } from "src/components/action-button";
+import { ActionsBar } from "src/components/actions-bar";
 import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
 import { useCustomGraph } from "src/hooks/use-custom-graph";
 import { USelection } from "src/selection";
@@ -128,13 +129,5 @@ export function MultiAssetActions() {
   const isEditionBlocked = useIsEditionBlocked();
   const actions = useMultiAssetActions(isEditionBlocked);
 
-  return (
-    <div className="flex gap-1">
-      {actions
-        .filter((action) => action.applicable)
-        .map((action, i) => (
-          <ActionButton key={i} action={action} />
-        ))}
-    </div>
-  );
+  return <ActionsBar actions={actions} />;
 }

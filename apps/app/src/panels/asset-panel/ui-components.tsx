@@ -157,26 +157,26 @@ const Header = ({
         <div className="absolute left-0 top-0 bottom-0 w-1 bg-accent rounded-full" />
       )}
       <div className="flex items-center justify-between gap-2">
-        <div className="min-w-0 flex-1">
-          <EditableTextField
-            label={label}
-            value={label}
-            onChangeValue={handleChange}
-            onReset={clearError}
-            onDirty={clearError}
-            hasError={!!error}
-            readOnly={readOnly}
-            sanitize={(raw) =>
-              LabelManager.sanitizeLabel(raw, labelType, labelMaxLength)
-            }
-            styleOptions={{
-              padding: "sm",
-              ghostBorder: true,
-              fontWeight: "semibold",
-              textSize: "sm",
-            }}
-          />
-        </div>
+        <EditableTextField
+          label={label}
+          value={label}
+          onChangeValue={handleChange}
+          onReset={clearError}
+          onDirty={clearError}
+          hasError={!!error}
+          readOnly={readOnly}
+          className="shrink-0 max-w-[calc(100%-2.5rem)]"
+          sanitize={(raw) =>
+            LabelManager.sanitizeLabel(raw, labelType, labelMaxLength)
+          }
+          styleOptions={{
+            padding: "sm",
+            ghostBorder: true,
+            fontWeight: "semibold",
+            textSize: "sm",
+            width: "content",
+          }}
+        />
         <PanelActions />
       </div>
       {error && (

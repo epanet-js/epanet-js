@@ -486,8 +486,8 @@ const Header = ({
 
   return (
     <div className="px-4 pt-4 pb-3">
-      <div className="flex items-start justify-between">
-        <span className="font-semibold mt-1">
+      <div className="flex items-start justify-between gap-2">
+        <span className="font-semibold mt-1 shrink-0">
           {translate("selection")} (
           <span className="text-nowrap">
             {pluralize(translate, "asset", totalCount)})

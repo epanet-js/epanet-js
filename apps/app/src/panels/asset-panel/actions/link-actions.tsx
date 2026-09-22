@@ -15,7 +15,8 @@ import {
   ChartLineIcon,
 } from "src/icons";
 import { Mode, modeAtom } from "src/state/mode";
-import { ActionButton, Action } from "src/components/action-button";
+import { Action } from "src/components/action-button";
+import { ActionsBar } from "src/components/actions-bar";
 import {
   changeActiveTopologyShortcut,
   useChangeSelectedAssetsActiveTopologyStatus,
@@ -116,13 +117,5 @@ export function useLinkActions(readonly = false): Action[] {
 export function LinkActions({ readonly = false }: { readonly?: boolean }) {
   const actions = useLinkActions(readonly);
 
-  return (
-    <div className="flex gap-1 h-8 -my-2">
-      {actions
-        .filter((action) => action.applicable)
-        .map((action, i) => (
-          <ActionButton key={i} action={action} />
-        ))}
-    </div>
-  );
+  return <ActionsBar actions={actions} className="h-8 -my-2" />;
 }

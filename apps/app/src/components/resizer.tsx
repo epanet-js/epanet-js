@@ -180,20 +180,23 @@ export const Resizer = memo(function ResizerInner({
     onToggle,
   );
 
+  if (!showPanel) {
+    return isToggleAllowed ? <PanelToggle side={side} /> : null;
+  }
+
   return (
-    <>
-      <button
-        {...moveProps}
-        type="button"
-        role="separator"
-        aria-orientation="vertical"
-        aria-label="Resize panel"
-        tabIndex={-1}
-        style={{
-          cursor: "col-resize",
-          [side]: showPanel ? splits[side] : 0,
-        }}
-        className="absolute top-0 bottom-0 z-10
+    <button
+      {...moveProps}
+      type="button"
+      role="separator"
+      aria-orientation="vertical"
+      aria-label="Resize panel"
+      tabIndex={-1}
+      style={{
+        cursor: "col-resize",
+        [side]: splits[side],
+      }}
+      className="absolute top-0 bottom-0 z-10
         touch-none
         flex items-center
         justify-center
@@ -205,18 +208,16 @@ export const Resizer = memo(function ResizerInner({
         hover-hover:hover:bg-purple-700
         hover-hover:dark:hover:bg-purple-700
         "
-      >
-        <div
-          className="
+    >
+      <div
+        className="
         hover-hover:hidden
         h-16
         w-1
         rounded
         bg-white"
-        />
-      </button>
-      {showPanel ? null : isToggleAllowed && <PanelToggle side={side} />}
-    </>
+      />
+    </button>
   );
 });
 

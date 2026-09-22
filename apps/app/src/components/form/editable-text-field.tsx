@@ -10,6 +10,7 @@ import clsx from "clsx";
 type StyleOptions = {
   textSize?: "xs" | "sm" | "md";
   padding?: "md" | "sm";
+  width?: "full" | "content";
   border?: "sm" | "none";
   ghostBorder?: boolean;
   variant?: "default" | "warning";
@@ -32,6 +33,7 @@ export const EditableTextField = ({
   hasError = false,
   allowEmpty = false,
   placeholder,
+  className,
 }: {
   label: string;
   value: string;
@@ -46,6 +48,7 @@ export const EditableTextField = ({
   hasError?: boolean;
   allowEmpty?: boolean;
   placeholder?: string;
+  className?: string;
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [inputValue, setInputValue] = useState(value);
@@ -125,7 +128,7 @@ export const EditableTextField = ({
   if (readOnly) {
     return (
       <span
-        className={styledReadOnlyText(styleOptions)}
+        className={clsx(styledReadOnlyText(styleOptions), className)}
         aria-label={`Value for: ${label}`}
       >
         {value}
@@ -149,12 +152,15 @@ export const EditableTextField = ({
       placeholder={placeholder}
       onFocus={handleFocus}
       tabIndex={tabIndex}
-      className={styledInput({
-        ...styleOptions,
-        variant,
-        disabled,
-        readOnly,
-      })}
+      className={clsx(
+        styledInput({
+          ...styleOptions,
+          variant,
+          disabled,
+          readOnly,
+        }),
+        className,
+      )}
     />
   );
 };
@@ -163,6 +169,7 @@ function styledReadOnlyText({
   padding = "md",
   textSize = "xs",
   fontWeight = "normal",
+  width = "full",
 }: Partial<StyleOptions> = {}) {
   return clsx(
     "text-default",
@@ -179,7 +186,8 @@ function styledReadOnlyText({
       "font-normal": fontWeight === "normal",
       "font-semibold": fontWeight === "semibold",
     },
-    "block overflow-hidden whitespace-nowrap text-ellipsis w-full border border-transparent",
+    "block overflow-hidden whitespace-nowrap text-ellipsis border border-transparent",
+    width === "content" ? "w-fit" : "w-full",
   );
 }
 
@@ -188,6 +196,7 @@ function styledInput({
   border = "sm",
   variant = "default",
   textSize = "xs",
+  width = "full",
   ghostBorder = false,
   disabled = false,
   readOnly = false,
@@ -231,7 +240,8 @@ function styledInput({
       "font-normal": fontWeight === "normal",
       "font-semibold": fontWeight === "semibold",
     },
-    "rounded-xs block overflow-hidden whitespace-nowrap text-ellipsis w-full",
+    "rounded-xs block overflow-hidden whitespace-nowrap text-ellipsis",
+    width === "content" ? "field-sizing-content w-fit min-w-16" : "w-full",
     isInteractive && "focus-visible:ring-inset",
   );
 }
