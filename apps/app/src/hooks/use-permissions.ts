@@ -18,6 +18,7 @@ export type Permissions = {
   canValidateModelAttributes: boolean;
   canUsePipeLibrary: boolean;
   canUseCustomAttributes: boolean;
+  canManageCollections: boolean;
   canImportSynergi: boolean;
   canUpgrade: boolean;
   canManageOrganization: boolean;
@@ -43,6 +44,7 @@ export const resolvePermissions = (
     canValidateModelAttributes: hasPaidAccess,
     canUsePipeLibrary: hasPaidAccess || isDemoNetwork,
     canUseCustomAttributes: hasPaidAccess || isDemoNetwork,
+    canManageCollections: hasPaidAccess || isDemoNetwork,
     canImportSynergi: hasPaidAccess,
     canUpgrade: plan === "free",
     canManageOrganization: isOrgAdmin,

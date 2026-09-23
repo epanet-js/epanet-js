@@ -238,6 +238,7 @@ export type PaywallFeature =
   | "zones"
   | "pipeLibrary"
   | "customAttributes"
+  | "selectionSets"
   | "modelAttributesValidation"
   | "modelBuilder"
   | "convertModel";

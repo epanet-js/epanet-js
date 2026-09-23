@@ -32,10 +32,13 @@ Any of these breaks file compatibility unless a migration ships with it:
     the same shape for a branch that overrides it. Both columns migrate together.
   - `project.settings`
   - `project.pipe_library`
+  - `project.bookmarks`
   - `pumps.curve_points`
   - `patterns.multipliers`
   - `curves.points`
   - `pipes.coords`, `pumps.coords`, `valves.coords`
+  - `zones.geometry`, `zones.bbox`
+- Changing the byte layout of a binary blob column. Today: `selection_sets.assets` and `selection_sets.customer_points` — little-endian int32, 4 bytes per id, no header, length implied by the blob size. `NULL` means "none of that kind", and a zero-length blob reads the same. `src/id-list.ts` is the only definition of that layout; a new selectable kind is added as another nullable BLOB column, never by changing the encoding.
 
 If your change is in the list, it is a file-format change. Migration required.
 

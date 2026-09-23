@@ -1753,10 +1753,18 @@ export type UserEvent =
       zoom: boolean;
       source: "panel";
     }
-  | { name: "selectionSet.draftStarted"; source: CollectionDraftSource }
+  | {
+      name: "selectionSet.draftStarted";
+      source: CollectionDraftSource;
+      canManageCollections: boolean;
+    }
   | { name: "selectionSet.renamed"; source: "panel" }
   | { name: "selectionSet.deleted"; source: "panel" }
-  | { name: "bookmark.draftStarted"; source: CollectionDraftSource }
+  | {
+      name: "bookmark.draftStarted";
+      source: CollectionDraftSource;
+      canManageCollections: boolean;
+    }
   | {
       name: "bookmark.created";
       totalBookmarks: number;

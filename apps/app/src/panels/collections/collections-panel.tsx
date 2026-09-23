@@ -27,7 +27,14 @@ import type {
   NavigableListHandle,
 } from "src/components/list";
 import { useTranslate } from "src/hooks/use-translate";
-import { AddIcon, CloseIcon, PointerClickIcon, RenameIcon } from "src/icons";
+import {
+  AddIcon,
+  CloseIcon,
+  PaywallLockIcon,
+  PointerClickIcon,
+  RenameIcon,
+} from "src/icons";
+import { PaywallUpgradeBox, useFeatureLock } from "src/components/form/paywall";
 import { USelection } from "src/selection";
 import { selectionAtom } from "src/state/selection";
 import {
@@ -64,6 +71,7 @@ export const CollectionsPanel = () => {
   const translate = useTranslate();
   const moreActionsLabel = translate("moreActions");
   const selectOnlyLabel = translate("collections.selectionSets.selectOnly");
+  const { isLocked, openPaywall } = useFeatureLock("selectionSets");
   const selectionSets = useAtomValue(selectionSetsAtom);
   const bookmarks = useAtomValue(bookmarksAtom);
   const selection = useAtomValue(selectionAtom);
@@ -310,6 +318,8 @@ export const CollectionsPanel = () => {
     const row = byNavId.get(item.id);
     if (!row) return;
 
+    if (isLocked) return openPaywall();
+
     if (action === "rename") {
       setActionState({ action: "renaming", section: row.section, id: row.id });
       return;
@@ -407,6 +417,7 @@ export const CollectionsPanel = () => {
               navId={addRowNavIds.selectionSets}
               isFocused={focusedAddRow === "selectionSets"}
               isDisabled={!canSaveSelection}
+              isLocked={isLocked}
               onAdd={() => handleNew("selectionSets", "collections-add-row")}
             />
           )}
@@ -437,11 +448,21 @@ export const CollectionsPanel = () => {
               label={translate("collections.bookmarks.saveCurrent")}
               navId={addRowNavIds.bookmarks}
               isFocused={focusedAddRow === "bookmarks"}
+              isLocked={isLocked}
               onAdd={() => handleNew("bookmarks", "collections-add-row")}
             />
           )}
         </CollapsibleListSection>
       </NavigableList>
+      {isLocked && (
+        <div className="shrink-0">
+          <PaywallUpgradeBox
+            feature="selectionSets"
+            title={translate("collections.upgrade.title")}
+            description={translate("collections.upgrade.description")}
+          />
+        </div>
+      )}
     </div>
   );
 };
@@ -452,6 +473,7 @@ const CurrentStateRow = ({
   navId,
   isFocused,
   isDisabled = false,
+  isLocked = false,
   onAdd,
 }: {
   label: string;
@@ -459,6 +481,7 @@ const CurrentStateRow = ({
   navId: number;
   isFocused: boolean;
   isDisabled?: boolean;
+  isLocked?: boolean;
   onAdd: () => void;
 }) => (
   <li
@@ -477,7 +500,7 @@ const CurrentStateRow = ({
       className="flex-1 min-w-0 self-stretch justify-start hover:bg-transparent dark:hover:bg-transparent"
     >
       <span className="flex items-center gap-1 min-w-0 text-subtle">
-        <AddIcon />
+        {isLocked && !isDisabled ? <PaywallLockIcon size="sm" /> : <AddIcon />}
         <span className="truncate">{label}</span>
         {count !== undefined && (
           <span className="shrink-0">({count.toLocaleString()})</span>

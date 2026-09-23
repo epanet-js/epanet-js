@@ -2,6 +2,8 @@ import { useAtomCallback } from "jotai/utils";
 import { useCallback } from "react";
 import { useZoomTo } from "src/hooks/use-zoom-to";
 import { useUserTracking } from "src/infra/user-tracking";
+import { useFeatureLock } from "src/components/form/paywall";
+import { usePermissions } from "src/hooks/use-permissions";
 import {
   type CollectionDraftSource,
   type SelectionSetId,
@@ -89,6 +91,8 @@ export const useApplySelectionSet = () => {
 export const useRenameSelectionSet = () => {
   const userTracking = useUserTracking();
   const { rename } = useSelectionSetsTransaction();
+  const { canManageCollections } = usePermissions();
+  const { openPaywall } = useFeatureLock("selectionSets");
 
   return useCallback(
     ({
@@ -100,23 +104,28 @@ export const useRenameSelectionSet = () => {
       label: string;
       source: "panel";
     }) => {
+      if (!canManageCollections) return openPaywall();
       if (!rename({ id: setId, label })) return;
 
       userTracking.capture({ name: "selectionSet.renamed", source });
     },
-    [userTracking, rename],
+    [userTracking, rename, canManageCollections, openPaywall],
   );
 };
 
 export const useDeleteSelectionSet = () => {
   const userTracking = useUserTracking();
   const { remove } = useSelectionSetsTransaction();
+  const { canManageCollections } = usePermissions();
+  const { openPaywall } = useFeatureLock("selectionSets");
 
   return useCallback(
     ({ setId, source }: { setId: SelectionSetId; source: "panel" }) => {
+      if (!canManageCollections) return openPaywall();
+
       userTracking.capture({ name: "selectionSet.deleted", source });
       remove(setId);
     },
-    [userTracking, remove],
+    [userTracking, remove, canManageCollections, openPaywall],
   );
 };

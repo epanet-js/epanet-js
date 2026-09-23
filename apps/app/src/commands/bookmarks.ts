@@ -3,6 +3,8 @@ import { Just } from "purify-ts/Maybe";
 import { useCallback, useContext } from "react";
 import { useZoomTo } from "src/hooks/use-zoom-to";
 import { useUserTracking } from "src/infra/user-tracking";
+import { useFeatureLock } from "src/components/form/paywall";
+import { usePermissions } from "src/hooks/use-permissions";
 import {
   type BookmarkId,
   type CollectionDraftSource,
@@ -74,6 +76,8 @@ export const useGoToBookmark = () => {
 export const useRenameBookmark = () => {
   const userTracking = useUserTracking();
   const { transact } = useBookmarksTransaction();
+  const { canManageCollections } = usePermissions();
+  const { openPaywall } = useFeatureLock("selectionSets");
 
   return useAtomCallback(
     useCallback(
@@ -86,12 +90,13 @@ export const useRenameBookmark = () => {
           source,
         }: { bookmarkId: BookmarkId; label: string; source: "panel" },
       ) => {
+        if (!canManageCollections) return openPaywall();
         if (!transact(renameItem(get(bookmarksAtom), bookmarkId, label)))
           return;
 
         userTracking.capture({ name: "bookmark.renamed", source });
       },
-      [userTracking, transact],
+      [userTracking, transact, canManageCollections, openPaywall],
     ),
   );
 };
@@ -99,6 +104,8 @@ export const useRenameBookmark = () => {
 export const useDeleteBookmark = () => {
   const userTracking = useUserTracking();
   const { transact } = useBookmarksTransaction();
+  const { canManageCollections } = usePermissions();
+  const { openPaywall } = useFeatureLock("selectionSets");
 
   return useAtomCallback(
     useCallback(
@@ -107,11 +114,12 @@ export const useDeleteBookmark = () => {
         _set,
         { bookmarkId, source }: { bookmarkId: BookmarkId; source: "panel" },
       ) => {
+        if (!canManageCollections) return openPaywall();
         if (!transact(removeItem(get(bookmarksAtom), bookmarkId))) return;
 
         userTracking.capture({ name: "bookmark.deleted", source });
       },
-      [userTracking, transact],
+      [userTracking, transact, canManageCollections, openPaywall],
     ),
   );
 };

@@ -7,6 +7,10 @@ import { Just } from "purify-ts/Maybe";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import "src/__helpers__/locale";
 import { setInitialState } from "src/__helpers__/state";
+import {
+  resolvePermissions,
+  type Permissions,
+} from "src/hooks/use-permissions";
 import { MapContext } from "src/map";
 import { USelection } from "src/selection";
 import { Store } from "src/state";
@@ -17,6 +21,31 @@ import {
   selectionSetsAtom,
 } from "src/state/collections";
 import { CollectionsPanel } from "./collections-panel";
+
+const permissionsRef: { current: Permissions } = {
+  current: resolvePermissions("pro", false, false, false),
+};
+
+vi.mock("src/hooks/use-permissions", async () => {
+  const actual = await vi.importActual<
+    typeof import("src/hooks/use-permissions")
+  >("src/hooks/use-permissions");
+  return {
+    ...actual,
+    usePermissions: () => permissionsRef.current,
+  };
+});
+
+const startUpgrade = vi.fn();
+vi.mock("src/hooks/use-paywall", async () => {
+  const actual = await vi.importActual<typeof import("src/hooks/use-paywall")>(
+    "src/hooks/use-paywall",
+  );
+  return {
+    ...actual,
+    useStartUpgrade: () => startUpgrade,
+  };
+});
 
 const zoomTo = vi.fn();
 vi.mock("src/hooks/use-zoom-to", () => ({ useZoomTo: () => zoomTo }));
@@ -92,6 +121,8 @@ const openRowMenu = async (rowName: string) => {
 
 beforeEach(() => {
   zoomTo.mockClear();
+  startUpgrade.mockClear();
+  permissionsRef.current = resolvePermissions("pro", false, false, false);
 });
 
 describe("CollectionsPanel", () => {
@@ -492,6 +523,123 @@ describe("CollectionsPanel", () => {
 
       expect(screen.queryByText("Downtown loop")).not.toBeInTheDocument();
       expect(store.get(selectionSetsAtom)).toHaveLength(0);
+    });
+  });
+
+  describe("without a plan that covers collections", () => {
+    const asFreeUser = () => {
+      permissionsRef.current = resolvePermissions("free", false, false, false);
+    };
+
+    const aStoreWithASet = () => {
+      const store = aStore();
+      store.set(selectionAtom, USelection.fromAssetIds([IDS.J1]));
+      store.set(bookmarksAtom, [
+        { id: "bookmark-1", label: "North reservoir", bbox: [-1, -2, 3, 4] },
+      ]);
+      store.set(selectionSetsAtom, [
+        {
+          id: "set-1",
+          label: "Downtown loop",
+          selection: USelection.fromAssetIds([IDS.J1, IDS.J2]),
+        },
+      ]);
+      return store;
+    };
+
+    it("offers an upgrade instead of saving the current selection", async () => {
+      asFreeUser();
+      const store = aStoreWithASet();
+      renderPanel(store);
+
+      await userEvent.click(saveButton());
+
+      expect(startUpgrade).toHaveBeenCalledWith("selectionSets");
+      expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+      expect(store.get(selectionSetsAtom)).toHaveLength(1);
+    });
+
+    it("offers an upgrade instead of saving the current map area", async () => {
+      asFreeUser();
+      const store = aStoreWithASet();
+      renderPanel(store);
+
+      await userEvent.click(addBookmarkButton());
+
+      expect(startUpgrade).toHaveBeenCalledWith("selectionSets");
+      expect(store.get(bookmarksAtom)).toHaveLength(1);
+    });
+
+    it("offers an upgrade instead of renaming a set", async () => {
+      asFreeUser();
+      const store = aStoreWithASet();
+      renderPanel(store);
+
+      await openRowMenu("Downtown loop");
+      await userEvent.click(screen.getByText("Rename"));
+
+      expect(startUpgrade).toHaveBeenCalledWith("selectionSets");
+      expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+      expect(screen.getByText("Downtown loop")).toBeInTheDocument();
+    });
+
+    it("offers an upgrade instead of deleting a set", async () => {
+      asFreeUser();
+      const store = aStoreWithASet();
+      renderPanel(store);
+
+      await openRowMenu("Downtown loop");
+      await userEvent.click(screen.getByText("Delete"));
+
+      expect(startUpgrade).toHaveBeenCalledWith("selectionSets");
+      expect(store.get(selectionSetsAtom)).toHaveLength(1);
+    });
+
+    it("still applies a set that is already saved", async () => {
+      asFreeUser();
+      const store = aStoreWithASet();
+      store.set(selectionAtom, USelection.none());
+      renderPanel(store);
+
+      await userEvent.click(screen.getByText("Downtown loop"));
+
+      expect(store.get(selectionAtom)).toEqual(
+        USelection.fromAssetIds([IDS.J1, IDS.J2]),
+      );
+      expect(startUpgrade).not.toHaveBeenCalled();
+    });
+
+    it("still visits a bookmark that is already saved", async () => {
+      asFreeUser();
+      const store = aStoreWithASet();
+      renderPanel(store);
+
+      await userEvent.click(screen.getByText("North reservoir"));
+
+      expect(zoomTo).toHaveBeenCalled();
+      expect(startUpgrade).not.toHaveBeenCalled();
+    });
+
+    it("offers an upgrade from the box pinned under the lists", async () => {
+      asFreeUser();
+      const store = aStoreWithASet();
+      renderPanel(store);
+
+      await userEvent.click(screen.getByRole("button", { name: "Upgrade" }));
+
+      expect(startUpgrade).toHaveBeenCalledWith("selectionSets");
+    });
+
+    it("lets the demo network create collections", async () => {
+      permissionsRef.current = resolvePermissions("free", false, false, true);
+      const store = aStoreWithASet();
+      renderPanel(store);
+
+      await userEvent.click(saveButton());
+      await nameIt("Uptown loop");
+
+      expect(startUpgrade).not.toHaveBeenCalled();
+      expect(store.get(selectionSetsAtom)).toHaveLength(2);
     });
   });
 });

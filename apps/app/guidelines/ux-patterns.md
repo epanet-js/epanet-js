@@ -16,6 +16,16 @@
 
 **An open dialog disables every keyboard shortcut.** `useHotkeys` binds nothing while `dialogAtom` is non-null, so a modal already blocks keyboard commands app-wide — a dialog never needs to gate them itself, and no shortcut should be expected to work while one is up. It also ignores events that are already `defaultPrevented`, which is how components that handle their own keys (the data grid, for one) take precedence.
 
+### Unavailable Actions
+- Always show an action the current user cannot perform; never hide it
+- Hide only unreleased features
+- Disable when the user can lift the block themselves
+- Never disable a block the user cannot lift from here — a dead-end control gives no way forward; keep it live, mark it, and let the click explain
+- Let a satisfiable precondition outrank any other marking — a row with nothing selected reads as disabled
+- Mark at rest, never on hover alone — hover-only marks don't exist for keyboard or touch users
+- Carry the state in the accessible name, not only in the icon
+- Block at the first irreversible step, never at commit — don't let a user name something they can't save
+
 ### Visual Consistency
 - Style with the semantic theme tokens documented in the `src/styles` module.
   Avoid raw `gray-*` / `dark:gray-*` utilities; the tokens handle light/dark
