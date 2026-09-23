@@ -69,6 +69,24 @@ describe("ActionsBar", () => {
     expect(labels).toEqual(["Redraw", "Delete", "More actions"]);
   });
 
+  it("keeps three buttons on screen however narrow the header is", () => {
+    renderHeader(40);
+
+    expect(button("Redraw")).toBeInTheDocument();
+    expect(button("Delete")).toBeInTheDocument();
+    expect(button("Zoom to")).not.toBeInTheDocument();
+    expect(moreActions()).toBeInTheDocument();
+  });
+
+  it("spends the floor on actions when none of them overflow", () => {
+    renderHeader(40, { only: ["Reverse", "Redraw", "Delete"] });
+
+    expect(button("Reverse")).toBeInTheDocument();
+    expect(button("Redraw")).toBeInTheDocument();
+    expect(button("Delete")).toBeInTheDocument();
+    expect(moreActions()).not.toBeInTheDocument();
+  });
+
   it("hides an action with no usage ranking before any ranked one", async () => {
     const user = userEvent.setup();
     renderHeader(100, { extra: "Save selection set" });
@@ -154,14 +172,18 @@ const renderHeader = (
     titleWidth = 0,
     onZoomTo = () => Promise.resolve(),
     extra,
+    only,
   }: {
     titleFloor?: number;
     titleWidth?: number;
     onZoomTo?: () => Promise<void>;
     extra?: string;
+    only?: string[];
   } = {},
 ) => {
-  const actions = buildActions(onZoomTo);
+  const actions = buildActions(onZoomTo).filter(
+    (action) => !only || only.includes(action.label),
+  );
   if (extra) {
     actions.unshift({
       label: extra,
