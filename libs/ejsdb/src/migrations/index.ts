@@ -20,6 +20,7 @@ import m0019 from "./0019_valve_target_node.sql?raw";
 import m0020 from "./0020_drop_id_pools.sql?raw";
 import m0021 from "./0021_collections.sql?raw";
 import m0022 from "./0022_scenarios.sql?raw";
+import m0023 from "./0023_rename_scenario_deltas_to_scenarios";
 
 export type MigrationDB = Parameters<typeof m0006>[0];
 
@@ -48,6 +49,7 @@ export const migrations: Migration[] = [
   m0020,
   m0021,
   m0022,
+  m0023,
 ];
 
 export const APP_VERSION = migrations.length;
