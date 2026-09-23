@@ -13,6 +13,7 @@ import {
   DeactivateTopologyIcon,
   ActivateTopologyIcon,
   ChartLineIcon,
+  BookmarkIcon,
 } from "src/icons";
 import { Mode, modeAtom } from "src/state/mode";
 import { Action } from "src/components/action-button";
@@ -22,6 +23,10 @@ import {
   useChangeSelectedAssetsActiveTopologyStatus,
 } from "src/commands/change-selected-assets-active-topology-status";
 import { useCustomGraph } from "src/hooks/use-custom-graph";
+import {
+  useIsCollectionsAvailable,
+  useStartCollectionDraft,
+} from "src/commands/collection-draft";
 
 export function useLinkActions(readonly = false): Action[] {
   const translate = useTranslate();
@@ -33,6 +38,8 @@ export function useLinkActions(readonly = false): Action[] {
   const { changeSelectedAssetsActiveTopologyStatus, allActive } =
     useChangeSelectedAssetsActiveTopologyStatus();
   const { openCustomGraph } = useCustomGraph();
+  const startCollectionDraft = useStartCollectionDraft();
+  const isCollectionsAvailable = useIsCollectionsAvailable();
 
   const onDelete = useCallback(() => {
     deleteSelection({ source: "toolbar" });
@@ -110,8 +117,19 @@ export function useLinkActions(readonly = false): Action[] {
     onSelect: onChangeActiveTopology,
   };
 
+  const saveSelectionSetAction = {
+    icon: <BookmarkIcon />,
+    applicable: isCollectionsAvailable,
+    label: translate("collections.selectionSets.save"),
+    onSelect: function saveSelectionSet() {
+      startCollectionDraft({ kind: "selectionSets", source: "toolbar" });
+      return Promise.resolve();
+    },
+  };
+
   return [
     zoomToAction,
+    saveSelectionSetAction,
     reverseAction,
     redrawAction,
     changeActiveTopologyActionItem,
