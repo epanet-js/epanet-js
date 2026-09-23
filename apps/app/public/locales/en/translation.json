@@ -76,7 +76,8 @@
       "attributeValueUnreadable_other": "{{count}} Records have values we could not read, so those values were skipped",
       "coordinateSystemUnknown": "The file does not state a coordinate system and its coordinates are not longitude and latitude, so nothing was imported.",
       "coordinateSystemUnsupported": "The file names a coordinate system we cannot apply, so nothing was imported.",
-      "coordinateSystemMismatch": "The coordinate system does not match the coordinates in the file, so nothing was imported."
+      "coordinateSystemMismatch": "The coordinate system does not match the coordinates in the file, so nothing was imported.",
+      "coordinateAttributesUnknown": "We could not tell which attributes hold the coordinates, so nothing was imported."
     },
     "paywall": {
       "title": "Upgrade to convert models",
@@ -105,6 +106,7 @@
     "fileDescriptions": {
       "geojson": "GeoJSON file",
       "geojsonl": "GeoJSONL file",
+      "dxf": "DXF drawing",
       "shp": "Shapefile geometry file",
       "shx": "Shapefile index file",
       "dbf": "Shapefile property database",

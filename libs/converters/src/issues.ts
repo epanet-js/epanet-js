@@ -34,6 +34,7 @@ export const issueCodes = [
   "coordinateSystemUnknown",
   "coordinateSystemUnsupported",
   "coordinateSystemMismatch",
+  "coordinateAttributesUnknown",
   "sourceUnreadable",
   "sourceEmpty",
   "sourceFilesIncomplete",

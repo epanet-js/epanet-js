@@ -29,8 +29,11 @@ export type SourceContents = {
   groups: GeometryGroup[];
 };
 
+export type CoordinateAttributes = { x: string; y: string };
+
 export type GisInput = ParserInput & {
   crs?: SourceCrs;
+  coordinateAttributes?: CoordinateAttributes;
   projections?: Map<string, Proj4Projection>;
 };
 

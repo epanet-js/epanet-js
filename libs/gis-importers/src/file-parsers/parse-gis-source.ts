@@ -12,10 +12,15 @@ import {
   type Issue,
   type SourceFile,
 } from "@epanet-js/converters";
-import type { GisInput, SourceContents } from "../importer";
+import type {
+  CoordinateAttributes,
+  GisInput,
+  SourceContents,
+} from "../importer";
 import { contentsOf } from "./contents";
 import { gisFormatOf, isGisSecondaryPart } from "./formats";
 import { readDxf, type DxfBounds, type DxfStatedCrs } from "./parse-dxf";
+import { readCsv } from "./parse-csv";
 
 type ParsedGisSource = {
   features: Feature[];
@@ -34,6 +39,7 @@ type DecodedSource = {
 type CacheEntry = {
   files: SourceFile[];
   suppliedEpsg: number | null;
+  suppliedAttributes: string | null;
   decoded: DecodedSource;
 };
 const cache = new WeakMap<SourceFile, CacheEntry>();
@@ -41,12 +47,19 @@ const cache = new WeakMap<SourceFile, CacheEntry>();
 const suppliedEpsg = (crs: GisInput["crs"]): number | null =>
   crs?.type === "epsg" ? crs.code : null;
 
+const suppliedAttributes = (
+  attributes?: CoordinateAttributes,
+): string | null =>
+  attributes === undefined ? null : `${attributes.x}\u0000${attributes.y}`;
+
 const sameInput = (
   entry: CacheEntry,
   files: SourceFile[],
   epsg: number | null,
+  attributes: string | null,
 ): boolean =>
   entry.suppliedEpsg === epsg &&
+  entry.suppliedAttributes === attributes &&
   entry.files.length === files.length &&
   entry.files.every((file, index) => file === files[index]);
 
@@ -58,11 +71,19 @@ export const parseGisSource = async (
   if (key === undefined) return resultOf(failure("sourceEmpty"));
 
   const epsg = suppliedEpsg(input.crs);
+  const attributes = suppliedAttributes(input.coordinateAttributes);
   const cached = cache.get(key);
-  if (cached && sameInput(cached, files, epsg)) return resultOf(cached.decoded);
+  if (cached && sameInput(cached, files, epsg, attributes)) {
+    return resultOf(cached.decoded);
+  }
 
   const decoded = asSingleParts(await decode(input));
-  cache.set(key, { files, suppliedEpsg: epsg, decoded });
+  cache.set(key, {
+    files,
+    suppliedEpsg: epsg,
+    suppliedAttributes: attributes,
+    decoded,
+  });
   return resultOf(decoded);
 };
 
@@ -204,9 +225,34 @@ const decode = async (input: GisInput): Promise<DecodedSource> => {
 
   const content = await textOf(primary);
 
+  if (gisFormatOf(primary.name)?.id === "csv") return parseCsv(content, input);
+
   return looksLikeDxf(content)
     ? parseDxf(await primary.arrayBuffer(), input)
     : parseGeoJson(content, input);
+};
+
+const parseCsv = (content: string, input: GisInput): DecodedSource => {
+  const parsed = readCsv(content, input.coordinateAttributes);
+  if (parsed === null) return failure("sourceUnreadable");
+  if (parsed.features.length === 0) return failure("sourceEmpty");
+
+  if (parsed.attributes === null) {
+    return {
+      features: parsed.features,
+      issues: [{ code: "coordinateAttributesUnknown", severity: "error" }],
+    };
+  }
+
+  const placed = placeFeatures({
+    features: parsed.features,
+    epsg: suppliedEpsg(input.crs),
+    projections: input.projections,
+  });
+
+  return parsed.skipped.length === 0
+    ? placed
+    : { ...placed, issues: [...placed.issues, ...parsed.skipped] };
 };
 
 const DXF_START = /^(?:\s*999[^\n]*\n[^\n]*\n)*\s*0[^\S\n]*\r?\n\s*SECTION/;

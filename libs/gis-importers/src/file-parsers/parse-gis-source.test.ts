@@ -1655,4 +1655,230 @@ describe("parseGisSource", () => {
       expect(codes).toEqual(["coordinateSystemUnknown"]);
     });
   });
+  describe("CSV", () => {
+    const aCsv = (content: string, name = "source.csv"): SourceFile =>
+      aTextFile(content, name);
+
+    it("reads a row as a point carrying every column", async () => {
+      const { features, issues } = await parseGisSource({
+        files: [
+          aCsv(
+            [
+              "Id,Longitude,Latitude,Diameter",
+              "J-1,0.001,0.002,150",
+              "J-2,0.003,0.004,200",
+            ].join("\n"),
+          ),
+        ],
+      });
+
+      expect(features).toEqual([
+        {
+          type: "Feature",
+          geometry: { type: "Point", coordinates: [0.001, 0.002] },
+          properties: {
+            Id: "J-1",
+            Longitude: "0.001",
+            Latitude: "0.002",
+            Diameter: "150",
+          },
+        },
+        {
+          type: "Feature",
+          geometry: { type: "Point", coordinates: [0.003, 0.004] },
+          properties: {
+            Id: "J-2",
+            Longitude: "0.003",
+            Latitude: "0.004",
+            Diameter: "200",
+          },
+        },
+      ]);
+      expect(issues.build()).toEqual([
+        { code: "coordinateSystemMissing", severity: "warning" },
+      ]);
+    });
+
+    it("finds the coordinate attributes however they are written", async () => {
+      for (const [x, y] of [
+        ["lon", "lat"],
+        ["LONGITUDE", "LATITUDE"],
+        ["X", "Y"],
+        ["POINT_X", "POINT_Y"],
+        ["x_coord", "y_coord"],
+        ["Easting", "Northing"],
+      ]) {
+        const { features } = await parseGisSource({
+          files: [aCsv(`Id,${x},${y}\nJ-1,0.001,0.002`)],
+        });
+
+        expect(coordinatesOf(features[0])).toEqual([0.001, 0.002]);
+      }
+    });
+
+    it("prefers longitude and latitude over projected attributes", async () => {
+      const { features } = await parseGisSource({
+        files: [aCsv("Easting,Northing,Lon,Lat\n500000,6000000,0.001,0.002")],
+      });
+
+      expect(coordinatesOf(features[0])).toEqual([0.001, 0.002]);
+    });
+
+    it("keeps the records unplaced when no attribute names a coordinate", async () => {
+      const { features, issues, contents } = await parseGisSource({
+        files: [aCsv("Id,First,Second\nJ-1,0.001,0.002")],
+      });
+
+      expect(issues.build()).toEqual([
+        { code: "coordinateAttributesUnknown", severity: "error" },
+      ]);
+      expect(features[0].geometry).toBeNull();
+      expect(contents.recordCount).toEqual(1);
+      expect(contents.attributes.map(({ name }) => name)).toEqual([
+        "First",
+        "Id",
+        "Second",
+      ]);
+      expect(contents.groups).toEqual([]);
+    });
+
+    it("reads the attributes the caller named instead of looking for them", async () => {
+      const { features } = await parseGisSource({
+        files: [aCsv("Id,First,Second\nJ-1,0.001,0.002")],
+        coordinateAttributes: { x: "First", y: "Second" },
+      });
+
+      expect(coordinatesOf(features[0])).toEqual([0.001, 0.002]);
+    });
+
+    it("takes the caller's attributes over the ones it would have found", async () => {
+      const { features } = await parseGisSource({
+        files: [aCsv("Lon,Lat,East,North\n0.001,0.002,0.003,0.004")],
+        coordinateAttributes: { x: "East", y: "North" },
+      });
+
+      expect(coordinatesOf(features[0])).toEqual([0.003, 0.004]);
+    });
+
+    it("keeps the records unplaced when the caller names an attribute the file has not", async () => {
+      const codes = await codesOf({
+        files: [aCsv("Lon,Lat\n0.001,0.002")],
+        coordinateAttributes: { x: "East", y: "North" },
+      });
+
+      expect(codes).toEqual(["coordinateAttributesUnknown"]);
+    });
+
+    it("leaves out the records it cannot read, reporting each one", async () => {
+      const { features, contents, issues } = await parseGisSource({
+        files: [
+          aCsv(
+            [
+              "Id,Lon,Lat",
+              "J-1,0.001,0.002",
+              "J-2,,0.004",
+              "J-3,not a number,0.006",
+            ].join("\n"),
+          ),
+        ],
+      });
+
+      expect(features).toHaveLength(1);
+      expect(coordinatesOf(features[0])).toEqual([0.001, 0.002]);
+      expect(contents.recordCount).toEqual(1);
+      expect(issues.build()).toEqual([
+        { code: "coordinateSystemMissing", severity: "warning" },
+        {
+          code: "featureCoordinatesInvalid",
+          severity: "warning",
+          ref: "1",
+          raw: { Id: "J-2", Lon: "", Lat: "0.004" },
+        },
+        {
+          code: "featureCoordinatesInvalid",
+          severity: "warning",
+          ref: "2",
+          raw: { Id: "J-3", Lon: "not a number", Lat: "0.006" },
+        },
+      ]);
+    });
+
+    it("asks for the attributes when no record could be read from the ones it found", async () => {
+      const { features, contents, issues } = await parseGisSource({
+        files: [aCsv("Id,X,Y\nJ-1,north,west\nJ-2,south,east")],
+      });
+
+      expect(issues.build()).toEqual([
+        { code: "coordinateAttributesUnknown", severity: "error" },
+      ]);
+      expect(features).toHaveLength(2);
+      expect(contents.recordCount).toEqual(2);
+      expect(contents.attributes.map(({ name }) => name)).toEqual([
+        "Id",
+        "X",
+        "Y",
+      ]);
+    });
+
+    it("reads a semicolon separated file written with decimal commas", async () => {
+      const { features } = await parseGisSource({
+        files: [aCsv("Id;Lon;Lat\nJ-1;0,001;0,002")],
+      });
+
+      expect(coordinatesOf(features[0])).toEqual([0.001, 0.002]);
+    });
+
+    it("reads a tab separated file", async () => {
+      const { features } = await parseGisSource({
+        files: [aCsv("Id\tLon\tLat\nJ-1\t0.001\t0.002", "source.tsv")],
+      });
+
+      expect(coordinatesOf(features[0])).toEqual([0.001, 0.002]);
+    });
+
+    it("says nobody stated a projection when the coordinates are not degrees", async () => {
+      const codes = await codesOf({
+        files: [aCsv("Id,Easting,Northing\nJ-1,500000,6000000")],
+      });
+
+      expect(codes).toEqual(["coordinateSystemUnknown"]);
+    });
+
+    it("places projected coordinates with the CRS the caller supplies", async () => {
+      const { features, issues } = await parseGisSource({
+        files: [aCsv("Id,Easting,Northing\nJ-1,500000,6000000")],
+        crs: { type: "epsg", code: 3857 },
+        projections,
+      });
+
+      expect(issues.build()).toEqual([]);
+      const [longitude] = coordinatesOf(features[0]) as Position;
+      expect(longitude).toBeCloseTo(4.4915, 3);
+    });
+
+    it("is empty when the file holds nothing but a header", async () => {
+      const codes = await codesOf({ files: [aCsv("Id,Lon,Lat\n")] });
+
+      expect(codes).toEqual(["sourceEmpty"]);
+    });
+
+    it("is unreadable when the file has no header at all", async () => {
+      const codes = await codesOf({ files: [aCsv("")] });
+
+      expect(codes).toEqual(["sourceUnreadable"]);
+    });
+
+    it("reads again once the attributes to read them from differ", async () => {
+      const file = aCsv("Id,First,Second\nJ-1,0.001,0.002");
+      const readBytes = vi.spyOn(file, "arrayBuffer");
+
+      await parseGisSource({ files: [file] });
+      await parseGisSource({
+        files: [file],
+        coordinateAttributes: { x: "First", y: "Second" },
+      });
+
+      expect(readBytes).toHaveBeenCalledTimes(2);
+    });
+  });
 });

@@ -1,4 +1,4 @@
-type GisFormatId = "geojson" | "geojsonl" | "shapefile" | "dxf";
+type GisFormatId = "geojson" | "geojsonl" | "shapefile" | "dxf" | "csv";
 
 export type GisFormat = {
   id: GisFormatId;
@@ -23,6 +23,12 @@ const gisFormats: readonly GisFormat[] = [
   {
     id: "dxf",
     primaryExtensions: [".dxf"],
+    sidecarExtensions: [],
+    auxiliaryExtensions: [],
+  },
+  {
+    id: "csv",
+    primaryExtensions: [".csv", ".tsv"],
     sidecarExtensions: [],
     auxiliaryExtensions: [],
   },

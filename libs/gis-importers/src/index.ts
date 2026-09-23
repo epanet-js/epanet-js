@@ -1,6 +1,7 @@
 export { customerPointsImporter } from "./customer-points/importer";
 export { zonesImporter } from "./zones/importer";
 export type {
+  CoordinateAttributes,
   GeometryGroup,
   SourceAttribute,
   SourceGeometry,
