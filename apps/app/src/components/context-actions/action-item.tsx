@@ -16,6 +16,7 @@ export interface Action {
   label: string;
   variant?: B3Variant;
   applicable: boolean;
+  priority?: number;
   shortcut?: string;
   selected?: boolean;
 }

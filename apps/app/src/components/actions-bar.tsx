@@ -17,26 +17,36 @@ export function ActionsBar({
   const translate = useTranslate();
   const moreActionsLabel = translate("moreActions");
   const applicable = actions.filter((action) => action.applicable);
+  const byUsage = mostUsedFirst(applicable);
   const { containerRef, visibleCount } = useActionsThatFit(
-    applicable,
+    byUsage,
     moreActionsLabel,
   );
-  const overflowing = applicable.slice(visibleCount);
+  const kept = new Set(byUsage.slice(0, visibleCount));
+  const overflowing = applicable.filter((action) => !kept.has(action));
 
   return (
     <div
       ref={containerRef}
       className={clsx("flex gap-1 shrink-0 justify-end", className)}
     >
-      {applicable.slice(0, visibleCount).map((action) => (
-        <ActionButton key={action.label} action={action} />
-      ))}
+      {applicable
+        .filter((action) => kept.has(action))
+        .map((action) => (
+          <ActionButton key={action.label} action={action} />
+        ))}
       {overflowing.length > 0 && (
         <MoreActions actions={overflowing} label={moreActionsLabel} />
       )}
     </div>
   );
 }
+
+export const mostUsedFirst = (actions: Action[]): Action[] =>
+  [...actions].sort(
+    (one, other) =>
+      (one.priority ?? HIDDEN_FIRST) - (other.priority ?? HIDDEN_FIRST),
+  );
 
 export const actionsThatFit = (
   widths: number[],
@@ -95,6 +105,8 @@ function MoreActions({ actions, label }: { actions: Action[]; label: string }) {
 }
 
 const WIDTH_TOLERANCE = 1;
+
+const HIDDEN_FIRST = Number.MAX_SAFE_INTEGER;
 
 const useActionsThatFit = (actions: Action[], moreActionsLabel: string) => {
   const containerRef = useRef<HTMLDivElement>(null);

@@ -43,6 +43,7 @@ export function useLinkActions(readonly = false): Action[] {
     label: translate("delete"),
     variant: "danger-quiet" as const,
     applicable: true,
+    priority: 1,
     disabled: readonly,
     icon: <DeleteIcon />,
     onSelect: onDelete,
@@ -51,6 +52,7 @@ export function useLinkActions(readonly = false): Action[] {
   const zoomToAction = {
     icon: <ZoomToIcon />,
     applicable: true,
+    priority: 6,
     label: translate("zoomTo"),
     onSelect: function doZoomTo() {
       zoomToSelection({ source: "toolbar" });
@@ -61,6 +63,7 @@ export function useLinkActions(readonly = false): Action[] {
   const redrawAction = {
     icon: <RedrawIcon />,
     applicable: true,
+    priority: 3,
     disabled: readonly,
     label: translate("redraw"),
     selected: currentMode === Mode.REDRAW_LINK,
@@ -73,6 +76,7 @@ export function useLinkActions(readonly = false): Action[] {
   const reverseAction = {
     icon: <ReverseIcon />,
     applicable: true,
+    priority: 5,
     disabled: readonly,
     label: translate("reverse"),
     onSelect: function reverseLinkActionHandler() {
@@ -84,6 +88,7 @@ export function useLinkActions(readonly = false): Action[] {
   const customGraphAction = {
     icon: <ChartLineIcon />,
     applicable: true,
+    priority: 2,
     label: translate("customGraph.menuTitle"),
     onSelect: openCustomGraph,
   };
@@ -96,6 +101,7 @@ export function useLinkActions(readonly = false): Action[] {
   const changeActiveTopologyActionItem = {
     icon: allActive ? <DeactivateTopologyIcon /> : <ActivateTopologyIcon />,
     applicable: true,
+    priority: 4,
     disabled: readonly,
     label: allActive
       ? translate("deactivateAssets")

@@ -44,28 +44,51 @@ describe("ActionsBar", () => {
     expect(moreActions()).not.toBeInTheDocument();
   });
 
-  it("moves the actions that do not fit into the more actions menu", async () => {
+  it("moves the least used actions into the more actions menu", async () => {
     const user = userEvent.setup();
     renderHeader(100);
 
-    expect(button("Zoom to")).toBeInTheDocument();
-    expect(button("Reverse")).toBeInTheDocument();
-    expect(button("Redraw")).not.toBeInTheDocument();
-    expect(button("Delete")).not.toBeInTheDocument();
+    expect(button("Redraw")).toBeInTheDocument();
+    expect(button("Delete")).toBeInTheDocument();
+    expect(button("Zoom to")).not.toBeInTheDocument();
+    expect(button("Reverse")).not.toBeInTheDocument();
 
     await user.click(moreActions() as HTMLElement);
 
-    expect(screen.getByRole("menuitem", { name: "Redraw" })).toBeVisible();
-    expect(screen.getByRole("menuitem", { name: "Delete" })).toBeVisible();
+    expect(screen.getByRole("menuitem", { name: "Zoom to" })).toBeVisible();
+    expect(screen.getByRole("menuitem", { name: "Reverse" })).toBeVisible();
+  });
+
+  it("keeps the actions it shows in their declared order", () => {
+    renderHeader(100);
+
+    const labels = screen
+      .getAllByRole("button")
+      .map((each) => each.getAttribute("aria-label"));
+
+    expect(labels).toEqual(["Redraw", "Delete", "More actions"]);
+  });
+
+  it("hides an action with no usage ranking before any ranked one", async () => {
+    const user = userEvent.setup();
+    renderHeader(100, { extra: "Save selection set" });
+
+    expect(button("Save selection set")).not.toBeInTheDocument();
+
+    await user.click(moreActions() as HTMLElement);
+
+    expect(
+      screen.getByRole("menuitem", { name: "Save selection set" }),
+    ).toBeVisible();
   });
 
   it("runs an action selected from the more actions menu", async () => {
     const user = userEvent.setup();
     const onSelect = vi.fn().mockResolvedValue(undefined);
-    renderHeader(100, { onDelete: onSelect });
+    renderHeader(100, { onZoomTo: onSelect });
 
     await user.click(moreActions() as HTMLElement);
-    await user.click(screen.getByRole("menuitem", { name: "Delete" }));
+    await user.click(screen.getByRole("menuitem", { name: "Zoom to" }));
 
     expect(onSelect).toHaveBeenCalled();
   });
@@ -73,16 +96,16 @@ describe("ActionsBar", () => {
   it("leaves the title the floor it declares", () => {
     renderHeader(200, { titleFloor: 100 });
 
-    expect(button("Reverse")).toBeInTheDocument();
-    expect(button("Redraw")).not.toBeInTheDocument();
+    expect(button("Redraw")).toBeInTheDocument();
+    expect(button("Reverse")).not.toBeInTheDocument();
     expect(moreActions()).toBeInTheDocument();
   });
 
   it("leaves a title that cannot shrink the width it takes", () => {
     renderHeader(200, { titleWidth: 100 });
 
-    expect(button("Reverse")).toBeInTheDocument();
-    expect(button("Redraw")).not.toBeInTheDocument();
+    expect(button("Redraw")).toBeInTheDocument();
+    expect(button("Reverse")).not.toBeInTheDocument();
     expect(moreActions()).toBeInTheDocument();
   });
 
@@ -96,24 +119,32 @@ describe("ActionsBar", () => {
   it("gives the actions back when the header grows", () => {
     renderHeader(100);
 
-    expect(button("Delete")).not.toBeInTheDocument();
+    expect(button("Zoom to")).not.toBeInTheDocument();
 
     stubWidths(500);
     layOut();
 
-    expect(button("Delete")).toBeInTheDocument();
+    expect(button("Zoom to")).toBeInTheDocument();
     expect(moreActions()).not.toBeInTheDocument();
   });
 });
 
 const BUTTON_WIDTH = 32;
 
-const buildActions = (onDelete: () => Promise<void>): Action[] =>
+const priorities: Record<string, number> = {
+  Delete: 1,
+  Redraw: 2,
+  Reverse: 3,
+  "Zoom to": 4,
+};
+
+const buildActions = (onZoomTo: () => Promise<void>): Action[] =>
   ["Zoom to", "Reverse", "Redraw", "Delete"].map((label) => ({
     label,
     applicable: true,
+    priority: priorities[label],
     icon: <svg />,
-    onSelect: label === "Delete" ? onDelete : () => Promise.resolve(),
+    onSelect: label === "Zoom to" ? onZoomTo : () => Promise.resolve(),
   }));
 
 const renderHeader = (
@@ -121,13 +152,24 @@ const renderHeader = (
   {
     titleFloor = 0,
     titleWidth = 0,
-    onDelete = () => Promise.resolve(),
+    onZoomTo = () => Promise.resolve(),
+    extra,
   }: {
     titleFloor?: number;
     titleWidth?: number;
-    onDelete?: () => Promise<void>;
+    onZoomTo?: () => Promise<void>;
+    extra?: string;
   } = {},
 ) => {
+  const actions = buildActions(onZoomTo);
+  if (extra) {
+    actions.unshift({
+      label: extra,
+      applicable: true,
+      icon: <svg />,
+      onSelect: () => Promise.resolve(),
+    });
+  }
   stubWidths(headerWidth, titleWidth);
   return render(
     <Tooltip.Provider>
@@ -140,7 +182,7 @@ const renderHeader = (
             Pipe
           </span>
         )}
-        <ActionsBar actions={buildActions(onDelete)} />
+        <ActionsBar actions={actions} />
       </div>
     </Tooltip.Provider>,
   );

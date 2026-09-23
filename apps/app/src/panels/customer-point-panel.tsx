@@ -207,6 +207,7 @@ export function CustomerPointPanel() {
   const zoomToAction: Action = {
     icon: <ZoomToIcon />,
     applicable: true,
+    priority: 2,
     label: translate("zoomTo"),
     onSelect: function doZoomTo() {
       const [lng, lat] = customerPoint.coordinates;

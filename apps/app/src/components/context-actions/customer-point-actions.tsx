@@ -75,6 +75,7 @@ export function useCustomerPointActions(
   const deleteAction: Action = {
     label: translate("delete"),
     applicable: true,
+    priority: 1,
     variant: "danger-quiet",
     icon: <DeleteIcon />,
     onSelect: onDelete,

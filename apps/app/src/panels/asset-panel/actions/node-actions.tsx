@@ -22,6 +22,7 @@ export function useNodeActions(readonly = false): Action[] {
     label: translate("delete"),
     variant: "danger-quiet" as const,
     applicable: true,
+    priority: 1,
     disabled: readonly,
     icon: <DeleteIcon />,
     onSelect: onDelete,
@@ -30,6 +31,7 @@ export function useNodeActions(readonly = false): Action[] {
   const zoomToAction = {
     icon: <ZoomToIcon />,
     applicable: true,
+    priority: 3,
     label: translate("zoomTo"),
     onSelect: function doZoomTo() {
       zoomToSelection({ source: "toolbar" });
@@ -40,6 +42,7 @@ export function useNodeActions(readonly = false): Action[] {
   const customGraphAction = {
     icon: <ChartLineIcon />,
     applicable: true,
+    priority: 2,
     label: translate("customGraph.menuTitle"),
     onSelect: openCustomGraph,
   };

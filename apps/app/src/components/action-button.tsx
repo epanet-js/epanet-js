@@ -14,6 +14,7 @@ export interface Action {
   icon: React.ReactNode;
   label: string;
   applicable: boolean;
+  priority?: number;
   variant?: B3Variant;
   shortcut?: string;
   selected?: boolean;

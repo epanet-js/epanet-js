@@ -59,6 +59,7 @@ export function useMultiAssetActions(readonly = false): Action[] {
   const customGraphAction = {
     icon: <ChartLineIcon />,
     applicable: hasAssets,
+    priority: 2,
     label: translate("customGraph.menuTitle"),
     onSelect: openCustomGraph,
   };
@@ -67,6 +68,7 @@ export function useMultiAssetActions(readonly = false): Action[] {
     label: translate("delete"),
     variant: "danger-quiet" as const,
     applicable: true,
+    priority: 1,
     disabled: readonly,
     icon: <DeleteIcon />,
     onSelect: onDelete,
@@ -75,6 +77,7 @@ export function useMultiAssetActions(readonly = false): Action[] {
   const zoomToAction = {
     icon: <ZoomToIcon />,
     applicable: true,
+    priority: 4,
     label: translate("zoomTo"),
     onSelect: function doZoomTo() {
       zoomToSelection({ source: "toolbar" });
@@ -107,6 +110,7 @@ export function useMultiAssetActions(readonly = false): Action[] {
   const changeActiveTopologyActionItem = {
     icon: allActive ? <DeactivateTopologyIcon /> : <ActivateTopologyIcon />,
     applicable: hasAssets,
+    priority: 3,
     disabled: readonly,
     label: allActive
       ? translate("deactivateAssets")
