@@ -1,5 +1,9 @@
 const readFromLocalStorage = (
-  key: "DEBUG_MODE" | "DEBUG_APP_STATE" | "DEBUG_MAP_HANDLERS",
+  key:
+    | "DEBUG_MODE"
+    | "DEBUG_APP_STATE"
+    | "DEBUG_MAP_HANDLERS"
+    | "DEBUG_TRACE_PROJECT_OPEN",
 ) => {
   if (typeof window === "undefined") return false;
 
@@ -11,6 +15,10 @@ export const isDebugOn =
   readFromLocalStorage("DEBUG_MODE");
 
 export const isDebugMapHandlers = readFromLocalStorage("DEBUG_MAP_HANDLERS");
+
+export const isTraceProjectOpenOn = readFromLocalStorage(
+  "DEBUG_TRACE_PROJECT_OPEN",
+);
 
 export const isDebugAppStateOn =
   isDebugOn || readFromLocalStorage("DEBUG_APP_STATE");

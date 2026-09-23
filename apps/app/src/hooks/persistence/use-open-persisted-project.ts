@@ -22,6 +22,8 @@ import {
 } from "./use-initialize-branch";
 import type { Worktree } from "@epanet-js/worktree";
 import type { BranchState } from "src/state/branch-state";
+import { startTrace, type Trace } from "src/infra/trace";
+import { isTraceProjectOpenOn } from "src/infra/debug-mode";
 
 type RestoredBranches = {
   worktree: Worktree;
@@ -30,14 +32,21 @@ type RestoredBranches = {
 
 const restoreBranches = async (
   loadInput: ProjectLoadInput,
+  trace: Trace,
 ): Promise<RestoredBranches> => {
-  const storedBranches = await getBranchStore().load();
+  const storedBranches = await trace.measureAsync("load-scenarios", () =>
+    getBranchStore().load(),
+  );
+  const mainState = trace.measure("build-main-state", () =>
+    buildMainBranchState(loadInput),
+  );
   return {
     worktree: storedBranches.worktree,
     branchStates: buildStoredBranchStates(
-      buildMainBranchState(loadInput),
+      mainState,
       loadInput.factories,
       storedBranches,
+      trace,
     ),
   };
 };
@@ -77,15 +86,21 @@ export const useOpenPersistedProject = () => {
         set: Setter,
         { file, onProgress }: OpenPersistedProjectInput,
       ): Promise<OpenPersistedProjectResult> => {
-        const result = await db.openProject(file);
+        const trace = startTrace("open-project", isTraceProjectOpenOn);
+        const result = await trace.measureAsync("open-db", () =>
+          db.openProject(file),
+        );
 
         if (result.status !== "ok" && result.status !== "migrated") {
+          trace.end();
           return result;
         }
 
         let uniqueId: string | null = null;
         try {
-          uniqueId = await db.ensureUniqueId();
+          uniqueId = await trace.measureAsync("ensure-unique-id", () =>
+            db.ensureUniqueId(),
+          );
         } catch (error) {
           captureError(error as Error);
         }
@@ -99,7 +114,9 @@ export const useOpenPersistedProject = () => {
           hydraulicModel,
           factories,
           simulationSettings,
-        } = await fetchProject({ onProgress, idPools: isIdPoolsOn });
+        } = await trace.measureAsync("fetch-project", () =>
+          fetchProject({ onProgress, idPools: isIdPoolsOn }),
+        );
         onProgress?.("finalizing");
 
         const loadInput: ProjectLoadInput = {
@@ -116,8 +133,9 @@ export const useOpenPersistedProject = () => {
         let restored: RestoredBranches | null = null;
         if (isPersistScenariosOn) {
           try {
-            restored = await restoreBranches(loadInput);
+            restored = await restoreBranches(loadInput, trace);
           } catch (error) {
+            trace.end();
             captureError(error as Error);
             return {
               status: "scenarios-failed",
@@ -126,12 +144,20 @@ export const useOpenPersistedProject = () => {
           }
         }
 
-        await clearSimulationStorage();
-        resetAppState(set, defaultPanelsFor());
-        loadModel(set, loadInput);
+        await trace.measureAsync("clear-simulation-storage", () =>
+          clearSimulationStorage(),
+        );
+        trace.measure("reset-app-state", () =>
+          resetAppState(set, defaultPanelsFor()),
+        );
+        trace.measure("load-model", () => loadModel(set, loadInput));
         if (restored) {
-          commitStoredBranches(set, restored.worktree, restored.branchStates);
+          const { worktree, branchStates } = restored;
+          trace.measure("commit-scenarios", () =>
+            commitStoredBranches(set, worktree, branchStates),
+          );
         }
+        trace.end();
         return {
           status: "ok",
           hydraulicModel,

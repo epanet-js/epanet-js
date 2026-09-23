@@ -17,6 +17,7 @@ import { settleAppliedModel } from "src/lib/persistence/transaction-helpers";
 import { branchStateAtom, type BranchState } from "src/state/branch-state";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { worktreeAtom } from "src/state/scenarios";
+import type { Trace } from "src/infra/trace";
 import type { Branch, StoredBranches, Worktree } from "@epanet-js/worktree";
 
 type Identifiers = { pool: IdPool; labelType: LabelType };
@@ -95,24 +96,40 @@ export const buildStoredBranchStates = (
   mainState: BranchState,
   factories: ModelFactories,
   { deltas, simulationSettings }: StoredBranches,
+  trace: Trace,
 ): Map<string, BranchState> => {
   const branchStates = new Map<string, BranchState>();
 
   for (const [branchId, delta] of deltas) {
-    const state = branchFromMain(mainState, factories);
-    if (!delta.isEmpty) {
-      observeIdentifiers(factories, delta);
-      const report = applyChangeSet(
-        state.hydraulicModel,
-        delta,
-        "forward",
-        state.labelManager,
+    const state = trace.measure(`${branchId}:copy-main`, () =>
+      branchFromMain(mainState, factories),
+    );
+    const { records } = trace.measure(
+      `${branchId}:decode-delta`,
+      () => delta.read(),
+      `${delta.byteLength} bytes`,
+    );
+    if (records.length > 0) {
+      const detail = `${records.length} records`;
+      trace.measure(
+        `${branchId}:observe-identifiers`,
+        () => observeIdentifiers(factories, delta),
+        detail,
+      );
+      const report = trace.measure(
+        `${branchId}:apply-delta`,
+        () =>
+          applyChangeSet(
+            state.hydraulicModel,
+            delta,
+            "forward",
+            state.labelManager,
+          ),
+        detail,
       );
       const version = nanoid();
-      state.hydraulicModel = settleAppliedModel(
-        state.hydraulicModel,
-        version,
-        report,
+      state.hydraulicModel = trace.measure(`${branchId}:settle-model`, () =>
+        settleAppliedModel(state.hydraulicModel, version, report),
       );
       state.version = version;
       state.sessionHistory = new SessionHistory(version);
