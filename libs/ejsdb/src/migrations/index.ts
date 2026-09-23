@@ -21,6 +21,7 @@ import m0020 from "./0020_drop_id_pools.sql?raw";
 import m0021 from "./0021_collections.sql?raw";
 import m0022 from "./0022_scenarios.sql?raw";
 import m0023 from "./0023_rename_scenario_deltas_to_scenarios";
+import m0024 from "./0024_attach_detached_link_endpoints";
 
 export type MigrationDB = Parameters<typeof m0006>[0];
 
@@ -50,6 +51,7 @@ export const migrations: Migration[] = [
   m0021,
   m0022,
   m0023,
+  m0024,
 ];
 
 export const APP_VERSION = migrations.length;
