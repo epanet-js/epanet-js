@@ -8,7 +8,7 @@
     "test": "turbo run test"
   },
   "engines": {
-    "node": "20.x || 21.x",
+    "node": "24.x",
     "pnpm": ">=9.0.0"
   },
   "pnpm": {
