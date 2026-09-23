@@ -28,7 +28,7 @@ export function ActionsBar({
   return (
     <div
       ref={containerRef}
-      className={clsx("flex gap-1 shrink-0 justify-end", className)}
+      className={clsx("flex shrink-0 justify-end", className)}
     >
       {applicable
         .filter((action) => kept.has(action))

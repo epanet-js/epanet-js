@@ -105,7 +105,7 @@ export const TimestepSelectorUI = ({
   const controls = (
     <div
       className={clsx(
-        "flex items-center gap-1",
+        "flex items-center",
         !isInline &&
           "p-1 bg-base rounded-xs border shadow-[0_2px_10px_2px_rgba(0,0,0,0.1)]",
       )}

@@ -250,7 +250,7 @@ export const Toolbar = ({
           </>
         )}
       </div>
-      <div className="flex flex-row items-center justify-end gap-2">
+      <div className="flex flex-row items-center justify-end">
         <CommandBarButton />
         {isSmOrLarger && <LayoutActions />}
       </div>
