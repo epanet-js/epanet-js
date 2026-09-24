@@ -42,9 +42,10 @@ import { Locale } from "@epanet-js/i18n/locale";
 import { localeAtom } from "src/state/locale";
 import { branchStateAtom } from "src/state/branch-state";
 import {
+  markProjectUnsavedAtom,
   resetProjectRevision,
-  savedProjectRevisionAtom,
 } from "src/state/project-revision";
+import { worktreeAtom } from "src/state/scenarios";
 import { LabelManager } from "@epanet-js/hydraulic-model";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 
@@ -120,28 +121,26 @@ export const setInitialState = (
         } as unknown as SimulationState)
       : simulation;
 
-  resetProjectRevision(store.set, hydraulicModel.version);
-  if (!isProjectSaved) {
-    store.set(savedProjectRevisionAtom, null);
-  }
+  const branchStates = new Map([
+    [
+      "main",
+      {
+        version: hydraulicModel.version,
+        hydraulicModel,
+        labelManager,
+        sessionHistory,
+        simulation: branchSimulation,
+        simulationSourceId: "main",
+        simulationSettings: simulationSettings ?? defaultSimulationSettings,
+      },
+    ],
+  ]);
+  store.set(branchStateAtom, branchStates);
 
-  store.set(
-    branchStateAtom,
-    new Map([
-      [
-        "main",
-        {
-          version: hydraulicModel.version,
-          hydraulicModel,
-          labelManager,
-          sessionHistory,
-          simulation: branchSimulation,
-          simulationSourceId: "main",
-          simulationSettings: simulationSettings ?? defaultSimulationSettings,
-        },
-      ],
-    ]),
-  );
+  resetProjectRevision(store.set, store.get(worktreeAtom), branchStates);
+  if (!isProjectSaved) {
+    store.set(markProjectUnsavedAtom);
+  }
 
   return store;
 };

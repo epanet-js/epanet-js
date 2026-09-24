@@ -7,10 +7,7 @@ import {
   projectFileInfoAtom,
   isDemoNetworkAtom,
 } from "src/state/file-system";
-import {
-  projectRevisionAtom,
-  savedProjectRevisionAtom,
-} from "src/state/project-revision";
+import { markProjectSavedAtom } from "src/state/project-revision";
 import { dialogAtom } from "src/state/dialog";
 import { userSettingsAtom } from "src/state/user-settings";
 import { projectSettingsAtom } from "src/state/project-settings";
@@ -92,7 +89,7 @@ export const useSaveProject = ({
               handle: newHandle,
               lastSavedAt: Date.now(),
             });
-            set(savedProjectRevisionAtom, get(projectRevisionAtom));
+            set(markProjectSavedAtom);
             if (!isDemo) {
               const thumbnail = map
                 ? (captureThumbnail(map) ?? undefined)

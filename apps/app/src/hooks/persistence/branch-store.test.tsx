@@ -20,6 +20,7 @@ import {
   useOpenPersistedProject,
   type OpenPersistedProjectResult,
 } from "src/hooks/persistence/use-open-persisted-project";
+import { useHasUnsavedChanges } from "src/hooks/use-has-unsaved-changes";
 import { registerBranchStore } from "src/lib/branching";
 import { writeQueue } from "src/lib/persistence/write-queue";
 import { useInProcessDb } from "src/lib/db/__test-helpers__/in-process-db";
@@ -306,6 +307,24 @@ describe("branch store", () => {
     expect(
       branchStates.get("main")!.simulationSettings.globalDemandMultiplier,
     ).toEqual(1);
+  });
+
+  it("reopens with no unsaved changes when scenarios are restored", async () => {
+    const { store: branchStore } = aRecordingStore();
+    registerBranchStore(branchStore);
+    const store = await aSavedProject();
+    switchToScenario(store);
+    addJunction(store);
+    await writeQueue.whenIdle();
+
+    await reopen(store);
+
+    const { result } = renderHook(
+      () => useHasUnsavedChanges(),
+      withStore(store),
+    );
+    expect(store.get(worktreeAtom).scenarios).toEqual(["scenario-1"]);
+    expect(result.current).toBe(false);
   });
 
   it("leaves a scenario on main's simulation settings when it changed none", async () => {

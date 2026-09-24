@@ -149,7 +149,6 @@ export const loadModel = (
   input: ProjectLoadInput,
 ): ProjectSettings => {
   const {
-    hydraulicModel,
     factories,
     projectSettings,
     zones,
@@ -159,7 +158,6 @@ export const loadModel = (
     autoElevations,
   } = input;
 
-  resetProjectRevision(set, hydraulicModel.version);
   writeQueue.reset();
   set(dbAvailabilityAtom, "available");
   set(rebuildAttemptsAtom, 0);
@@ -182,9 +180,11 @@ export const loadModel = (
     set(autoElevationsAtom, autoElevations);
   }
 
-  set(worktreeAtom, initializeWorktree());
-
-  set(branchStateAtom, new Map([["main", buildMainBranchState(input)]]));
+  const worktree = initializeWorktree();
+  const branchStates = new Map([["main", buildMainBranchState(input)]]);
+  set(worktreeAtom, worktree);
+  set(branchStateAtom, branchStates);
+  resetProjectRevision(set, worktree, branchStates);
 
   return mergedProjectSettings;
 };

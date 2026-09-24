@@ -40,7 +40,9 @@ export const useSimulationSettingsTransaction = () => {
         }
 
         setSettings(next);
-        setProjectDataVersion(nanoid());
+        if (!isPersistScenariosOn) {
+          setProjectDataVersion(nanoid());
+        }
 
         const worktree = get(worktreeAtom);
         if (worktree.activeBranchId === worktree.mainId) {

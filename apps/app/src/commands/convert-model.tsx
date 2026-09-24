@@ -14,7 +14,7 @@ import {
 } from "src/lib/converters";
 import { dialogAtom } from "src/state/dialog";
 import { inpFileInfoAtom, projectFileInfoAtom } from "src/state/file-system";
-import { savedProjectRevisionAtom } from "src/state/project-revision";
+import { markProjectUnsavedAtom } from "src/state/project-revision";
 import { captureError } from "src/infra/error-tracking";
 import { handleError } from "src/infra/errors";
 import { ConvertModelStarted, useUserTracking } from "src/infra/user-tracking";
@@ -41,7 +41,7 @@ export const useConvertFile = () => {
   const setDialogState = useSetAtom(dialogAtom);
   const setInpFileInfo = useSetAtom(inpFileInfoAtom);
   const setProjectFileInfo = useSetAtom(projectFileInfoAtom);
-  const setSavedProjectRevision = useSetAtom(savedProjectRevisionAtom);
+  const markProjectUnsaved = useSetAtom(markProjectUnsavedAtom);
   const map = useContext(MapContext);
 
   const convertFile = useCallback(
@@ -127,7 +127,7 @@ export const useConvertFile = () => {
 
         setInpFileInfo(null);
         setProjectFileInfo(null);
-        setSavedProjectRevision(null);
+        markProjectUnsaved();
 
         userTracking.capture({
           name: "convertModel.completed",
@@ -172,7 +172,7 @@ export const useConvertFile = () => {
       setDialogState,
       setInpFileInfo,
       setProjectFileInfo,
-      setSavedProjectRevision,
+      markProjectUnsaved,
       userTracking,
     ],
   );

@@ -24,6 +24,7 @@ import type { Worktree } from "@epanet-js/worktree";
 import type { BranchState } from "src/state/branch-state";
 import { startTrace, type Trace } from "src/infra/trace";
 import { isTraceProjectOpenOn } from "src/infra/debug-mode";
+import { markProjectSavedAtom } from "src/state/project-revision";
 
 type RestoredBranches = {
   worktree: Worktree;
@@ -156,6 +157,7 @@ export const useOpenPersistedProject = () => {
           trace.measure("commit-scenarios", () =>
             commitStoredBranches(set, worktree, branchStates),
           );
+          set(markProjectSavedAtom);
         }
         trace.end();
         return {
