@@ -28,7 +28,6 @@ export function ActionsBar({
   return (
     <div
       ref={containerRef}
-      style={{ minWidth: MIN_BAR_WIDTH }}
       className={clsx("flex shrink-0 justify-end", className)}
     >
       {applicable
@@ -105,12 +104,6 @@ function MoreActions({ actions, label }: { actions: Action[]; label: string }) {
   );
 }
 
-const BUTTON_WIDTH = 32;
-
-const MIN_BUTTONS = 3;
-
-const MIN_BAR_WIDTH = MIN_BUTTONS * BUTTON_WIDTH;
-
 const WIDTH_TOLERANCE = 1;
 
 const HIDDEN_FIRST = Number.MAX_SAFE_INTEGER;
@@ -145,7 +138,7 @@ const useActionsThatFit = (actions: Action[], moreActionsLabel: string) => {
         if (rowWidth <= 0) return;
 
         const available = Math.max(
-          MIN_BAR_WIDTH,
+          0,
           rowWidth -
             keepTheirWidth.reduce(
               (total, sibling) => total + sibling.offsetWidth,
