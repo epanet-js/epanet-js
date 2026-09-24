@@ -78,6 +78,7 @@ export type OpenPersistedProjectResult =
 
 export const useOpenPersistedProject = () => {
   const defaultPanelsFor = useDefaultPanels();
+  const isIdPoolsOn = useFeatureFlag("FLAG_ID_POOLS");
   const isPersistScenariosOn = useFeatureFlag("FLAG_PERSIST_SCENARIOS");
   const openPersistedProject = useAtomCallback(
     useCallback(
@@ -115,7 +116,7 @@ export const useOpenPersistedProject = () => {
           factories,
           simulationSettings,
         } = await trace.measureAsync("fetch-project", () =>
-          fetchProject({ onProgress }),
+          fetchProject({ onProgress, idPools: isIdPoolsOn }),
         );
         onProgress?.("finalizing");
 
@@ -166,7 +167,7 @@ export const useOpenPersistedProject = () => {
           uniqueId,
         };
       },
-      [defaultPanelsFor, isPersistScenariosOn],
+      [defaultPanelsFor, isIdPoolsOn, isPersistScenariosOn],
     ),
   );
 

@@ -6,10 +6,15 @@ import type { SimulationSettings } from "src/simulation/simulation-settings";
 import { HydraulicModel, initializeHydraulicModel } from "src/hydraulic-model";
 import {
   ModelFactories,
+  initializeModelFactories,
   initializeModelFactoriesWithPools,
   LabelManager,
 } from "@epanet-js/hydraulic-model";
-import { IdPoolsGenerator, type IdPoolSeeds } from "@epanet-js/id-generator";
+import {
+  ConsecutiveIdsGenerator,
+  IdPoolsGenerator,
+  type IdPoolSeeds,
+} from "@epanet-js/id-generator";
 import { getWorker, timed } from "@epanet-js/ejsdb";
 import {
   buildAssetsData,
@@ -47,18 +52,29 @@ export type FetchProjectPhase =
 
 export type FetchProjectOptions = {
   onProgress?: (phase: FetchProjectPhase) => void;
+  idPools?: boolean;
 };
 
-const buildFactories = (maxima: IdPoolSeeds): ModelFactories =>
-  initializeModelFactoriesWithPools({
+const buildFactories = (maxima: IdPoolSeeds | number): ModelFactories => {
+  const labelManager = new LabelManager();
+  if (typeof maxima === "number") {
+    return initializeModelFactories({
+      idGenerator: new ConsecutiveIdsGenerator(maxima),
+      labelManager,
+    });
+  }
+
+  return initializeModelFactoriesWithPools({
     idPools: new IdPoolsGenerator(maxima),
-    labelManager: new LabelManager(),
+    labelManager,
   });
+};
 
 export const fetchProject = async (
   options: FetchProjectOptions = {},
 ): Promise<Project> => {
   const { onProgress } = options;
+  const withPools = options.idPools ?? false;
   return timed("fetchProject", async () => {
     const worker = getWorker();
 
@@ -120,7 +136,7 @@ export const fetchProject = async (
         worker.getRawControls(),
         worker.getControls(),
         worker.getSimulationSettings(),
-        worker.getIdPools(),
+        withPools ? worker.getIdPools() : worker.getMaxId(),
       ]),
     );
     if (!settingsJson) {

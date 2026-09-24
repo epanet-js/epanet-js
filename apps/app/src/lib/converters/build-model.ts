@@ -59,7 +59,7 @@ import {
   initializeModelFactoriesWithPools,
   setAttributes,
 } from "@epanet-js/hydraulic-model";
-import { IdGenerator } from "@epanet-js/id-generator";
+import { ConsecutiveIdsGenerator, IdGenerator } from "@epanet-js/id-generator";
 import { buildIdPools } from "src/lib/id-pools";
 import { inferNodeIsActive } from "src/hydraulic-model/utilities/active-topology";
 import {
@@ -92,6 +92,7 @@ import { getExtent } from "@epanet-js/geometry";
 export type BuildModelOptions = {
   projections: Map<string, Proj4Projection>;
   labelMaxLength?: number;
+  idPools?: boolean;
 };
 
 export type BuildModelResult = {
@@ -109,7 +110,7 @@ export type BuildModelResult = {
 
 export const buildModel = (
   network: NetworkData,
-  { projections, labelMaxLength }: BuildModelOptions,
+  { projections, labelMaxLength, idPools: withIdPools }: BuildModelOptions,
 ): BuildModelResult => {
   const headlossFormula: HeadlossFormula = network.headlossFormula ?? "H-W";
   const baseSpec = presets[chooseUnitSystem(network.units.flow)];
@@ -118,7 +119,7 @@ export const buildModel = (
     : baseSpec;
   const defaults = withHeadlossDefaults(spec.defaults, headlossFormula);
 
-  const idPools = buildIdPools();
+  const idPools = buildIdPools(withIdPools ?? false);
   const labelManager = new LabelManager();
   const factories = initializeModelFactoriesWithPools({
     idPools,
@@ -211,7 +212,11 @@ export const buildModel = (
 
   return {
     hydraulicModel,
-    zones: buildZones(network.zones, toWgs84, idPools.forPool("zone")),
+    zones: buildZones(
+      network.zones,
+      toWgs84,
+      withIdPools ? idPools.forPool("zone") : new ConsecutiveIdsGenerator(),
+    ),
     issues: issues.build(),
     factories,
     idGenerator,

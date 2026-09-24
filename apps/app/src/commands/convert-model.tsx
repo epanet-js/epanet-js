@@ -21,6 +21,7 @@ import { ConvertModelStarted, useUserTracking } from "src/infra/user-tracking";
 import { useFileOpen } from "src/hooks/use-file-open";
 import { useProjections } from "src/hooks/use-projections";
 import { useLabelMaxLength } from "src/hooks/use-label-max-length";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { usePermissions } from "src/hooks/use-permissions";
 import {
   defaultSimulationSettings,
@@ -34,6 +35,7 @@ export const useConvertFile = () => {
   const userTracking = useUserTracking();
   const { projections } = useProjections();
   const labelMaxLength = useLabelMaxLength();
+  const isIdPoolsOn = useFeatureFlag("FLAG_ID_POOLS");
   const { startNewProject } = useStartNewProject();
   const { canImportSynergi } = usePermissions();
   const setDialogState = useSetAtom(dialogAtom);
@@ -89,6 +91,7 @@ export const useConvertFile = () => {
         } = buildModel(network, {
           projections,
           labelMaxLength,
+          idPools: isIdPoolsOn,
         });
         const allIssues = [...issues, ...builderIssues];
 
@@ -163,6 +166,7 @@ export const useConvertFile = () => {
       canImportSynergi,
       projections,
       labelMaxLength,
+      isIdPoolsOn,
       startNewProject,
       map,
       setDialogState,

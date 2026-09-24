@@ -11,6 +11,7 @@ import {
   Pattern,
   PatternId,
   PatternType,
+  getNextPatternId,
   deepClonePatterns,
   differentPatternsCount,
 } from "src/hydraulic-model";
@@ -24,6 +25,7 @@ import { HydraulicModel } from "src/hydraulic-model/hydraulic-model";
 import { Reservoir, Pump } from "@epanet-js/hydraulic-model";
 import { notify } from "src/components/notifications";
 import { useUserTracking } from "src/infra/user-tracking";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { changePatterns } from "src/hydraulic-model/model-operations";
 import { VerticalResizer } from "../vertical-resizer";
@@ -48,6 +50,7 @@ export const PatternsDialog = ({
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const userTracking = useUserTracking();
   const isEditionBlocked = useIsEditionBlocked();
+  const isIdPoolsOn = useFeatureFlag("FLAG_ID_POOLS");
   const { idPools } = useAtomValue(modelFactoriesAtom);
   const [selectedPatternId, setSelectedPatternId] = useState<PatternId | null>(
     initialPatternId ?? null,
@@ -57,6 +60,13 @@ export const PatternsDialog = ({
   );
   const [sidebarWidth, setSidebarWidth] = useState(224);
   const dialogActions = useRef<DialogActionsHandle>(null);
+  const nextPatternIdRef = useRef<PatternId>(
+    getNextPatternId(editedPatterns, editedPatterns.size),
+  );
+  nextPatternIdRef.current = getNextPatternId(
+    editedPatterns,
+    nextPatternIdRef.current,
+  );
 
   const { timing, energyGlobalPatternId } = useAtomValue(
     simulationSettingsDerivedAtom,
@@ -116,7 +126,9 @@ export const PatternsDialog = ({
       source: "new" | "clone",
       type: PatternType = "demand",
     ): PatternId => {
-      const id = idPools.newId("pattern");
+      const id = isIdPoolsOn
+        ? idPools.newId("pattern")
+        : nextPatternIdRef.current;
       setEditedPatterns((prev) => {
         const patterns = new Map(prev);
         patterns.set(id, { id, label, multipliers, type });
@@ -125,7 +137,7 @@ export const PatternsDialog = ({
       userTracking.capture({ name: "pattern.added", source });
       return id;
     },
-    [userTracking, idPools],
+    [userTracking, isIdPoolsOn, idPools],
   );
 
   const handleDeletePattern = useCallback(

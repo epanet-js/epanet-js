@@ -33,6 +33,7 @@ import {
 import { transformCoordinates } from "src/hydraulic-model/mutations/transform-coordinates";
 import { useStartNewProject } from "src/hooks/persistence/use-start-new-project";
 import { useLabelMaxLength } from "src/hooks/use-label-max-length";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const inpExtension = ".inp";
 
@@ -49,6 +50,7 @@ export const useImportInp = () => {
   const { startNewProject } = useStartNewProject();
   const { addRecent } = useRecentFiles();
   const labelMaxLength = useLabelMaxLength();
+  const isIdPoolsOn = useFeatureFlag("FLAG_ID_POOLS");
 
   const handleImportComplete = useAtomCallback(
     useCallback((get, set, issues: ParserIssues | null) => {
@@ -207,6 +209,7 @@ export const useImportInp = () => {
           inactiveAssets: true,
           populateAssetIndex: true,
           labelMaxLength,
+          idPools: isIdPoolsOn,
         };
 
         const result = parseInp(content, parseOptions);
@@ -298,6 +301,7 @@ export const useImportInp = () => {
       userTracking,
       validateAndPrepare,
       labelMaxLength,
+      isIdPoolsOn,
     ],
   );
 

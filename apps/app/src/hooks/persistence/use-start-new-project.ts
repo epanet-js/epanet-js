@@ -14,6 +14,7 @@ import {
   LabelManager,
 } from "@epanet-js/hydraulic-model";
 import { buildIdPools } from "src/lib/id-pools";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   type ProjectSettings,
   defaultProjectSettings,
@@ -254,6 +255,7 @@ export const useStartBlankProject = () => {
   const { startNewProject } = useStartNewProject();
   const setInpFileInfo = useSetAtom(inpFileInfoAtom);
   const setProjectFileInfo = useSetAtom(projectFileInfoAtom);
+  const isIdPoolsOn = useFeatureFlag("FLAG_ID_POOLS");
   return useCallback(
     async ({
       projectSettings = defaultProjectSettings,
@@ -262,7 +264,7 @@ export const useStartBlankProject = () => {
       projectSettings?: ProjectSettings;
       autoElevations?: boolean;
     } = {}): Promise<boolean> => {
-      const idPools = buildIdPools();
+      const idPools = buildIdPools(isIdPoolsOn);
       const factories = initializeModelFactoriesWithPools({
         idPools,
         labelManager: new LabelManager(),
@@ -283,19 +285,25 @@ export const useStartBlankProject = () => {
       setProjectFileInfo(null);
       return true;
     },
-    [startNewProject, setInpFileInfo, setProjectFileInfo],
+    [startNewProject, setInpFileInfo, setProjectFileInfo, isIdPoolsOn],
   );
 };
 
-const withIdPools = (factories: ModelFactories): ModelFactories =>
-  initializeModelFactoriesWithPools({
-    idPools: buildIdPools(),
-    labelManager: factories.labelManager,
-    labelCounters: factories.labelCounters,
-  });
+const withIdPools = (
+  factories: ModelFactories,
+  withPools: boolean,
+): ModelFactories =>
+  withPools
+    ? initializeModelFactoriesWithPools({
+        idPools: buildIdPools(true),
+        labelManager: factories.labelManager,
+        labelCounters: factories.labelCounters,
+      })
+    : factories;
 
 export const useSeedDefaultProjectDb = () => {
   const defaultPanelsFor = useDefaultPanels();
+  const isIdPoolsOn = useFeatureFlag("FLAG_ID_POOLS");
   return useAtomCallback(
     useCallback(
       (get: Getter, set: Setter): Promise<void> => {
@@ -309,7 +317,7 @@ export const useSeedDefaultProjectDb = () => {
         resetAppState(set, defaultPanelsFor());
         loadModel(set, {
           hydraulicModel,
-          factories: withIdPools(get(modelFactoriesAtom)),
+          factories: withIdPools(get(modelFactoriesAtom), isIdPoolsOn),
           projectSettings,
           simulationSettings,
         });
@@ -330,7 +338,7 @@ export const useSeedDefaultProjectDb = () => {
             });
           });
       },
-      [defaultPanelsFor],
+      [defaultPanelsFor, isIdPoolsOn],
     ),
   );
 };

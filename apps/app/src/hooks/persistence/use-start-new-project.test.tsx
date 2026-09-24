@@ -18,6 +18,7 @@ import { inpFileInfoAtom, projectFileInfoAtom } from "src/state/file-system";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { Store } from "src/state";
 import { modelFactoriesAtom } from "src/state/model-factories";
+import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
 import { panelContentStateAtom, panelsAtom, panelsIn } from "src/state/panels";
 import { createAssetTablePanel } from "src/panels/data-tables/create-panel";
 import {
@@ -209,7 +210,8 @@ describe("useSeedDefaultProjectDb", () => {
     expect((await fetchProject()).simulationSettings.statusReport).toBe("YES");
   });
 
-  it("installs a pool per kind", async () => {
+  it("installs a pool per kind when the flag is on", async () => {
+    stubFeatureOn("FLAG_ID_POOLS");
     const store = setInitialState();
 
     const { result } = renderSeedDefaultProjectDb(store);
@@ -221,5 +223,21 @@ describe("useSeedDefaultProjectDb", () => {
     expect(idPools.newId("asset")).toBe(1);
     expect(idPools.newId("pattern")).toBe(1);
     expect(idPools.newId("curve")).toBe(1);
+  });
+
+  it("keeps the factories untouched when the flag is off", async () => {
+    stubFeatureOff("FLAG_ID_POOLS");
+    const store = setInitialState();
+    const before = store.get(modelFactoriesAtom);
+
+    const { result } = renderSeedDefaultProjectDb(store);
+    await act(async () => {
+      await result.current();
+    });
+
+    expect(store.get(modelFactoriesAtom)).toBe(before);
+    const { idPools } = store.get(modelFactoriesAtom);
+    expect(idPools.newId("asset")).toBe(1);
+    expect(idPools.newId("pattern")).toBe(2);
   });
 });

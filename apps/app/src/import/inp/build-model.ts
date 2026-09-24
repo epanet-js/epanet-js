@@ -48,7 +48,7 @@ import {
 import type { Unit } from "@epanet-js/quantity";
 import { Position } from "geojson";
 import { ParseInpOptions } from "./parse-inp";
-import { IdGenerator } from "@epanet-js/id-generator";
+import { ConsecutiveIdsGenerator, IdGenerator } from "@epanet-js/id-generator";
 import { buildIdPools } from "src/lib/id-pools";
 import {
   LabelResolver,
@@ -107,7 +107,8 @@ export const buildModel = (
   const nodeIds = new ItemData<AssetId>();
   const linkIds = new ItemData<AssetId>();
 
-  const idPools = buildIdPools();
+  const withIdPools = options?.idPools ?? false;
+  const idPools = buildIdPools(withIdPools);
   const labelManager = new LabelManager();
   const factories = initializeModelFactoriesWithPools({
     idPools,
@@ -124,13 +125,13 @@ export const buildModel = (
   const curvesContext: CurvesContext = initializeCurvesContext(
     labelManager,
     inpData.curves,
-    idPools.forPool("curve"),
+    withIdPools ? idPools.forPool("curve") : new ConsecutiveIdsGenerator(),
   );
 
   const patternContext: PatternsContext = initializeBuildPatternContext(
     labelManager,
     inpData.patterns,
-    idPools.forPool("pattern"),
+    withIdPools ? idPools.forPool("pattern") : new ConsecutiveIdsGenerator(),
     inpData.options.defaultPattern,
   );
 

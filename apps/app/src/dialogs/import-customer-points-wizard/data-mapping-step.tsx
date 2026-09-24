@@ -14,6 +14,7 @@ import { useAtomValue } from "jotai";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { modelFactoriesAtom } from "src/state/model-factories";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   buildCustomerPointPreviewFactory,
   CustomerPoint,
@@ -65,6 +66,7 @@ export const DataMappingStep: React.FC<{
   const projectSettings = useAtomValue(projectSettingsAtom);
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const { labelManager, idPools } = useAtomValue(modelFactoriesAtom);
+  const isIdPoolsOn = useFeatureFlag("FLAG_ID_POOLS");
   const labelMaxLength = useLabelMaxLength();
   const patterns = hydraulicModel.patterns;
   const customerDemandPerDayUnit = projectSettings.units.customerDemandPerDay;
@@ -167,7 +169,9 @@ export const DataMappingStep: React.FC<{
         const demandImportUnit = projectSettings.units.customerDemandPerDay;
         const demandTargetUnit = projectSettings.units.customerDemand;
 
-        const previewIdGenerator = idPools.forPool("customerPoint").copy();
+        const previewIdGenerator = isIdPoolsOn
+          ? idPools.forPool("customerPoint").copy()
+          : undefined;
 
         const built = await buildCustomerPoints(
           network.customerPoints ?? [],
@@ -234,6 +238,7 @@ export const DataMappingStep: React.FC<{
       projectSettings.units,
       labelManager,
       idPools,
+      isIdPoolsOn,
       labelMaxLength,
       setParsedDataSummary,
       setLoading,

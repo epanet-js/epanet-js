@@ -28,7 +28,7 @@ const aStore = (): Store => {
   store.set(
     modelFactoriesAtom,
     initializeModelFactoriesWithPools({
-      idPools: buildIdPools({ ...SEEDS }),
+      idPools: buildIdPools(true, { ...SEEDS }),
       labelManager: new LabelManager(),
     }),
   );

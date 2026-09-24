@@ -283,10 +283,19 @@ describe("fetch-project id pools", () => {
   it("continues the pattern pool from the patterns table, not the asset maximum", async () => {
     await seed();
 
-    const { factories } = await fetchProject();
+    const { factories } = await fetchProject({ idPools: true });
 
     expect(factories.idPools.newId("pattern")).toBe(IDS.PAT2 + 1);
     expect(factories.idPools.newId("asset")).toBe(IDS.J1 + 1);
+  });
+
+  it("draws patterns from the asset pool when the flag is off", async () => {
+    await seed();
+
+    const { factories } = await fetchProject();
+
+    expect(factories.idPools.newId("pattern")).toBe(IDS.J1 + 1);
+    expect(factories.idPools.forPool("pattern")).toBe(factories.idGenerator);
   });
 
   it("continues the curve pool from the curves table, not the asset maximum", async () => {
@@ -311,7 +320,7 @@ describe("fetch-project id pools", () => {
       simulationSettings: defaultSimulationSettings,
     });
 
-    const { factories } = await fetchProject();
+    const { factories } = await fetchProject({ idPools: true });
 
     expect(factories.idPools.newId("curve")).toBe(IDS.CUR2 + 1);
     expect(factories.idPools.newId("asset")).toBe(IDS.J1 + 1);
@@ -329,7 +338,7 @@ describe("fetch-project id pools", () => {
       simulationSettings: defaultSimulationSettings,
     });
 
-    const { factories } = await fetchProject();
+    const { factories } = await fetchProject({ idPools: true });
 
     expect(factories.idPools.newId("customerPoint")).toBe(IDS.CP2 + 1);
   });
@@ -348,7 +357,7 @@ describe("fetch-project id pools", () => {
   it("continues the asset pool from the asset tables, not customer point ids", async () => {
     await aJunctionWithACustomerPointAbove();
 
-    const { factories } = await fetchProject();
+    const { factories } = await fetchProject({ idPools: true });
 
     expect(factories.idPools.newId("asset")).toBe(IDS.J1 + 1);
   });
@@ -365,9 +374,17 @@ describe("fetch-project id pools", () => {
       simulationSettings: defaultSimulationSettings,
     });
 
-    const { factories } = await fetchProject();
+    const { factories } = await fetchProject({ idPools: true });
 
     expect(factories.idPools.newId("asset")).toBe(IDS.VALVE1 + 1);
+  });
+
+  it("seeds the shared sequence above customer point ids when the flag is off", async () => {
+    await aJunctionWithACustomerPointAbove();
+
+    const { factories } = await fetchProject();
+
+    expect(factories.idPools.newId("asset")).toBe(IDS.CP2 + 1);
   });
 
   it("continues the zone pool from the zones table, not the asset maximum", async () => {
@@ -398,7 +415,7 @@ describe("fetch-project id pools", () => {
       ]),
     });
 
-    const { factories } = await fetchProject();
+    const { factories } = await fetchProject({ idPools: true });
 
     expect(factories.idPools.newId("zone")).toBe(IDS.ZONE2 + 1);
     expect(factories.idPools.newId("asset")).toBe(IDS.J1 + 1);

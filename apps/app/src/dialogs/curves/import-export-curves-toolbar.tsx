@@ -4,7 +4,9 @@ import {
   type CurveType,
   type Curves,
 } from "@epanet-js/hydraulic-model";
+import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
 import { useAtomValue } from "jotai";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { useTranslate } from "src/hooks/use-translate";
 import { ImportExportToolbar } from "src/components/import-export-toolbar";
@@ -50,6 +52,7 @@ export const ImportExportCurvesToolbar = ({
   const translate = useTranslate();
   const { exportToCsv, exportToXlsx } = useExportCurves(fileSuffix);
   const importCurves = useImportCurves();
+  const isIdPoolsOn = useFeatureFlag("FLAG_ID_POOLS");
   const { idPools } = useAtomValue(modelFactoriesAtom);
 
   const options = useMemo(
@@ -102,13 +105,17 @@ export const ImportExportCurvesToolbar = ({
     }
 
     const labelManager = new LabelManager();
+    let maxId = 0;
     for (const curve of curves.values()) {
       labelManager.register(curve.label, "curve", curve.id);
+      if (curve.id > maxId) maxId = curve.id;
     }
 
     const merged = mergeCurves(curves, parsed.curves, {
       labelManager,
-      idGenerator: idPools.forPool("curve"),
+      idGenerator: isIdPoolsOn
+        ? idPools.forPool("curve")
+        : new ConsecutiveIdsGenerator(maxId),
       scope: options.scope,
     });
 
@@ -129,6 +136,7 @@ export const ImportExportCurvesToolbar = ({
     curves,
     onImported,
     translate,
+    isIdPoolsOn,
     idPools,
   ]);
 
