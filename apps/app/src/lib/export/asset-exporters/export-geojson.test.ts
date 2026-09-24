@@ -49,30 +49,6 @@ describe("export-geojson", () => {
     });
   });
 
-  describe("valve target node", () => {
-    it("writes the target node label when asked to", async () => {
-      const files = exportGeoJson(aModelWithValveTargets(), WGS84, translate, {
-        includeValveTargetNode: true,
-      });
-
-      const geoJson = await parseGeoJson(findFile(files, "valves.geojson"));
-      expect(
-        geoJson.features.map(
-          (feature: { properties: Record<string, unknown> }) =>
-            feature.properties.targetNode,
-        ),
-      ).toEqual(["TARGET", undefined, undefined]);
-    });
-
-    it("omits the property otherwise", async () => {
-      const files = exportGeoJson(aModelWithValveTargets(), WGS84, translate);
-
-      const geoJson = await parseGeoJson(findFile(files, "valves.geojson"));
-      expect(geoJson.features[0].properties).not.toHaveProperty("targetNode");
-      expect(geoJson.features[0].properties).not.toHaveProperty("targetNodeId");
-    });
-  });
-
   it("transforms connections to use labels and not IDs", async () => {
     const model = HydraulicModelBuilder.with()
       .aJunction(10, { label: "J1" })
@@ -463,13 +439,3 @@ const mockResultsReader = (pressure: number, demand: number) =>
     getPump: vi.fn().mockReturnValue({}),
     getValve: vi.fn().mockReturnValue({}),
   }) as unknown as ResultsReader;
-
-const aModelWithValveTargets = () =>
-  HydraulicModelBuilder.with()
-    .aJunction(1, { label: "UP", coordinates: [0, 0] })
-    .aJunction(2, { label: "DOWN", coordinates: [1, 1] })
-    .aJunction(3, { label: "TARGET", coordinates: [2, 2] })
-    .aValve(4, { startNodeId: 1, endNodeId: 2, kind: "prv", targetNodeId: 3 })
-    .aValve(5, { startNodeId: 1, endNodeId: 2, kind: "fcv", targetNodeId: 3 })
-    .aValve(6, { startNodeId: 1, endNodeId: 2, kind: "prv", targetNodeId: 99 })
-    .build();

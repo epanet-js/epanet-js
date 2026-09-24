@@ -55,7 +55,6 @@ import {
   type TargetNodeOption,
 } from "src/lib/valve-target-nodes";
 import { useTranslate } from "src/hooks/use-translate";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import { useUserTracking } from "src/infra/user-tracking";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
@@ -2088,7 +2087,6 @@ const ValveEditor = ({
   readonly?: boolean;
 }) => {
   const translate = useTranslate();
-  const isRemoteSetpointPrvOn = useFeatureFlag("FLAG_REMOTE_SETPOINT_PRV");
   const { footer } = useQuickGraph(valve.id, "valve");
   const { getComparison, getCurveComparison, isNew } =
     useAssetComparison(valve);
@@ -2150,7 +2148,7 @@ const ValveEditor = ({
     return null;
   };
 
-  const showTargetNode = isRemoteSetpointPrvOn && valve.kind === "prv";
+  const showTargetNode = valve.kind === "prv";
   const targetNode =
     valve.targetNodeId !== undefined
       ? hydraulicModel.assets.get(valve.targetNodeId)

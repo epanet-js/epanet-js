@@ -377,7 +377,6 @@ type BuildOptions = {
   usedPatterns?: boolean;
   usedCurves?: boolean;
   includeQuality?: boolean;
-  includeScript?: boolean;
   projection?: Projection;
 };
 
@@ -451,7 +450,6 @@ type ResolvedBuildOptions = BuildOptions &
       | "usedPatterns"
       | "usedCurves"
       | "includeQuality"
-      | "includeScript"
     >
   >;
 
@@ -470,7 +468,6 @@ function* generateInp(
     usedPatterns: false,
     usedCurves: false,
     includeQuality: false,
-    includeScript: false,
     ...options,
   };
   const idMap = new EpanetIds({
@@ -748,9 +745,7 @@ function* generateInp(
   }
   yield* emitSection(state, ["[CONTROLS]"], controlRows(hydraulicModel, idMap));
   yield* emitSection(state, ["[RULES]"], ruleRows(hydraulicModel, idMap));
-  if (opts.includeScript) {
-    yield* emitSection(state, ["[SCRIPT]"], scriptRows(hydraulicModel, idMap));
-  }
+  yield* emitSection(state, ["[SCRIPT]"], scriptRows(hydraulicModel, idMap));
   yield* emitSection(state, ["[END]"], [], { alwaysWrite: true });
 }
 

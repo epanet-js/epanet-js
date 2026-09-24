@@ -19,14 +19,13 @@ export const AlertExportInpDialog = ({
   onClose: () => void;
 }) => {
   const translate = useTranslate();
-  const isScriptingOn = useFeatureFlag("FLAG_REMOTE_SETPOINT_PRV");
   const isPersistScenariosOn = useFeatureFlag("FLAG_PERSIST_SCENARIOS");
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
-  const lsxRequirements = useMemo(() => {
-    if (!isScriptingOn) return undefined;
-    return getLsxRequirements(hydraulicModel);
-  }, [hydraulicModel, isScriptingOn]);
-  const showLsxWarning = isScriptingOn && lsxRequirements?.isRequired;
+  const lsxRequirements = useMemo(
+    () => getLsxRequirements(hydraulicModel),
+    [hydraulicModel],
+  );
+  const showLsxWarning = lsxRequirements.isRequired;
 
   return (
     <BaseDialog

@@ -12,10 +12,7 @@ import {
   resolveExportValue,
   type ExportDefaults,
 } from "./optional-field-defaults";
-import {
-  exportableProperties,
-  type ExportFieldOptions,
-} from "./excluded-fields";
+import { exportableProperties } from "./excluded-fields";
 import {
   VALVE_TARGET_NODE_FIELD,
   valveTargetNodeLabel,
@@ -50,10 +47,6 @@ export const exportXlsx = async (
   const selectedCustomerPoints = options?.customerPointIdFilter ?? null;
   const resultsReader = options?.resultsReader;
   const defaults = buildExportDefaults(hydraulicModel);
-  const fieldOptions: ExportFieldOptions = {
-    includeValveTargetNode: options?.includeValveTargetNode,
-  };
-
   const assetTypeCounts = new Map<string, number>();
   hydraulicModel.assets.forEach((asset) => {
     if (selectedAssets && !selectedAssets.has(asset.id)) return;
@@ -127,12 +120,7 @@ export const exportXlsx = async (
               pushRow(
                 sheetEntry,
                 1,
-                buildHeader(
-                  asset,
-                  simValues,
-                  resolvePropertyName,
-                  fieldOptions,
-                ),
+                buildHeader(asset, simValues, resolvePropertyName),
               );
               headerWritten = true;
               rowCount = 1;
@@ -152,7 +140,6 @@ export const exportXlsx = async (
                 simValues,
                 hydraulicModel,
                 transformCoord,
-                fieldOptions,
                 defaults,
               ),
             );
@@ -337,13 +324,8 @@ const buildHeader = (
   asset: Asset,
   simValues: Record<string, unknown>,
   resolvePropertyName: PropertyNameResolver,
-  fieldOptions: ExportFieldOptions,
 ): string[] => {
-  const propertyKeys = exportableProperties(
-    asset.type,
-    asset.listProperties(),
-    fieldOptions,
-  );
+  const propertyKeys = exportableProperties(asset.type, asset.listProperties());
   if (asset.isNode) propertyKeys.unshift("positionX", "positionY");
 
   const simKeys = new Set(Object.keys(simValues).map((k) => `sim_${k}`));
@@ -371,14 +353,9 @@ const buildRow = (
   simValues: Record<string, unknown>,
   hydraulicModel: HydraulicModel,
   transformCoord: (p: Position) => Position,
-  fieldOptions: ExportFieldOptions,
   defaults?: ExportDefaults,
 ): unknown[] => {
-  const propertyKeys = exportableProperties(
-    asset.type,
-    asset.listProperties(),
-    fieldOptions,
-  );
+  const propertyKeys = exportableProperties(asset.type, asset.listProperties());
   if (asset.isNode) propertyKeys.unshift("positionX", "positionY");
 
   const simKeys = new Set(Object.keys(simValues).map((k) => `sim_${k}`));

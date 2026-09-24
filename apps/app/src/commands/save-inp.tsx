@@ -34,7 +34,6 @@ export const useSaveInp = () => {
   const { addRecent } = useRecentFiles();
   const userTracking = useUserTracking();
   const map = useContext(MapContext);
-  const isScriptingOn = useFeatureFlag("FLAG_REMOTE_SETPOINT_PRV");
 
   const saveInp = useAtomCallback(
     useCallback(
@@ -65,19 +64,16 @@ export const useSaveInp = () => {
             simulationSettings,
             units: projectSettings.units,
             headlossFormula: projectSettings.headlossFormula,
-            includeScript: isScriptingOn,
           };
 
-          const lsxRequirements = isScriptingOn
-            ? getLsxRequirements(hydraulicModel)
-            : undefined;
+          const lsxRequirements = getLsxRequirements(hydraulicModel);
           userTracking.capture({
             name: "inp.exported",
             source,
             isSaveAs,
-            lsxRequired: lsxRequirements?.isRequired ?? false,
+            lsxRequired: lsxRequirements.isRequired,
             includesRemoteSetpointPrvs:
-              (lsxRequirements?.remoteSetpointPrvs ?? []).length > 0,
+              lsxRequirements.remoteSetpointPrvs.length > 0,
           });
 
           const suggestedName = fileInfo
@@ -181,7 +177,7 @@ export const useSaveInp = () => {
           return false;
         }
       },
-      [userTracking, translate, isScriptingOn, map, addRecent],
+      [userTracking, translate, map, addRecent],
     ),
   );
 

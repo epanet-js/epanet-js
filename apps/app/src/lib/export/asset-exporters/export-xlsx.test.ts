@@ -321,28 +321,6 @@ describe("exportXlsx", () => {
     expect(sheetRows(wb, "pumps")[0]).not.toContain("length");
   });
 
-  describe("valve target node", () => {
-    it("writes the target node label when asked to", async () => {
-      const { handle, getWorkbook } = makeMockHandle();
-      await exportXlsx(handle, aModelWithValveTargets(), WGS84, translate, {
-        includeValveTargetNode: true,
-      });
-
-      const [header, ...rows] = sheetRows(getWorkbook(), "valves");
-      const idx = header.indexOf("targetNode");
-      expect(idx).toBeGreaterThan(-1);
-      expect(rows.map((row) => row[idx] ?? "")).toEqual(["TARGET", "", ""]);
-    });
-
-    it("omits the column otherwise", async () => {
-      const { handle, getWorkbook } = makeMockHandle();
-      await exportXlsx(handle, aModelWithValveTargets(), WGS84, translate);
-
-      const [header] = sheetRows(getWorkbook(), "valves");
-      expect(header).not.toContain("targetNode");
-    });
-  });
-
   it("exports EPANET defaults for unmapped optional fields, blank for required nulls", async () => {
     const model = HydraulicModelBuilder.with()
       .aPipe(1, { label: "P1", diameter: null })
@@ -486,13 +464,3 @@ describe("exportXlsx", () => {
     expect(wb.SheetNames).toEqual(["Assets  network", "Assets  network 2"]);
   });
 });
-
-const aModelWithValveTargets = () =>
-  HydraulicModelBuilder.with()
-    .aJunction(1, { label: "UP", coordinates: [0, 0] })
-    .aJunction(2, { label: "DOWN", coordinates: [1, 1] })
-    .aJunction(3, { label: "TARGET", coordinates: [2, 2] })
-    .aValve(4, { startNodeId: 1, endNodeId: 2, kind: "prv", targetNodeId: 3 })
-    .aValve(5, { startNodeId: 1, endNodeId: 2, kind: "fcv", targetNodeId: 3 })
-    .aValve(6, { startNodeId: 1, endNodeId: 2, kind: "prv", targetNodeId: 99 })
-    .build();

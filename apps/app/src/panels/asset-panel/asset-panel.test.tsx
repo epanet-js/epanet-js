@@ -27,7 +27,6 @@ import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { useUndoableTransactions } from "src/hooks/persistence/use-undoable-transactions";
 import userEvent, { type UserEvent } from "@testing-library/user-event";
 import { AssetId, getLink, getPipe } from "@epanet-js/hydraulic-model";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import FeatureEditor from "../feature-editor";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
@@ -716,7 +715,6 @@ describe("AssetPanel", () => {
     });
 
     it("sets the target node when a downstream node is selected", async () => {
-      stubFeatureOn("FLAG_REMOTE_SETPOINT_PRV");
       const IDS = { V1: 1, up: 2, down: 3, other: 4, P1: 5 };
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.up, { label: "UPSTREAM" })

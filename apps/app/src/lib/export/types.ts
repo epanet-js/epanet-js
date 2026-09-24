@@ -44,7 +44,6 @@ export type AssetExportOptions = {
   assetIdsFilter?: Set<number> | null;
   customerPointIdFilter?: Set<number> | null;
   resultsReader?: ResultsReader;
-  includeValveTargetNode?: boolean;
 };
 
 export type SimulationResultsOptions = {

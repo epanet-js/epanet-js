@@ -466,7 +466,6 @@ type BuildColumnsArgs = [
   customAttributesLock?: AttributesLock,
   labelMaxLength?: number,
   inferRoughness?: RoughnessInferrer,
-  isRemoteSetpointPrvOn?: boolean,
 ];
 
 type ExtraPipeColsFn = (
@@ -592,7 +591,6 @@ function _buildColumns(
   customAttributesLock?: AttributesLock,
   labelMaxLength?: number,
   inferRoughness?: RoughnessInferrer,
-  isRemoteSetpointPrvOn = false,
 ): GridColumn<AssetRow>[] {
   const ck = makeCk(type, accessorCtx);
   const energyGlobalPatternId = simulationSettings.energyGlobalPatternId;
@@ -1002,15 +1000,11 @@ function _buildColumns(
             return kind !== "gpv" && kind !== "pcv";
           },
         }),
-        ...(isRemoteSetpointPrvOn
-          ? [
-              textColumn(ck("targetNodeId"), {
-                header: translate("targetNode"),
-                placeholder: translate("none"),
-                isReadOnly: true,
-              }),
-            ]
-          : []),
+        textColumn(ck("targetNodeId"), {
+          header: translate("targetNode"),
+          placeholder: translate("none"),
+          isReadOnly: true,
+        }),
         filterableSelectColumn("initialStatus", {
           header: translate("initialStatus"),
           options: valveStatuses.map((s) => ({

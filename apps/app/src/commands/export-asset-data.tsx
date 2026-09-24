@@ -12,7 +12,6 @@ import { currentFileNameAtom } from "src/state/file-system";
 import type { ResultsReader } from "@epanet-js/simulation";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { useUserTracking } from "src/infra/user-tracking";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export type DataExportOptions = {
   format: ExportFormat;
@@ -26,7 +25,6 @@ export type DataExportOptions = {
 export const useExportAssetData = () => {
   const translate = useTranslate();
   const { capture } = useUserTracking();
-  const isRemoteSetpointPrvOn = useFeatureFlag("FLAG_REMOTE_SETPOINT_PRV");
 
   const exportNetwork = useAtomCallback(
     useCallback(
@@ -79,7 +77,6 @@ export const useExportAssetData = () => {
               assetIdsFilter: options.assetIdFilter,
               customerPointIdFilter: options.customerPointIdFilter,
               resultsReader,
-              includeValveTargetNode: isRemoteSetpointPrvOn,
             },
           );
         };
@@ -100,7 +97,7 @@ export const useExportAssetData = () => {
           });
         } catch {}
       },
-      [translate, capture, isRemoteSetpointPrvOn],
+      [translate, capture],
     ),
   );
 

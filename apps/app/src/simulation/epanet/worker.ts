@@ -10,7 +10,6 @@ import {
 } from "epanet-js";
 import { Workspace } from "epanet-js/slim";
 import { EpanetEngine as EpanetEngineWithLsx } from "epanet-js/engines/v2.3.5-lsx";
-import { EpanetEngine } from "epanet-js/engines/v2.3.5";
 import { SimulationStatus } from "../result";
 import { OPFSStorage } from "src/infra/storage";
 import { PROLOG_SIZE, EPILOG_SIZE } from "./simulation-metadata";
@@ -43,21 +42,18 @@ type WorkerProgressCallback = (
 
 let sharedWorkspace: Workspace | null = null;
 
-export const warmupSimulationEngine = async (
-  enableLsx: boolean,
-): Promise<void> => {
-  await getSharedWorkspace(enableLsx);
+export const warmupSimulationEngine = async (): Promise<void> => {
+  await getSharedWorkspace();
 };
 
 export const resetSimulationWorkerForTest = (): void => {
   sharedWorkspace = null;
 };
 
-const getSharedWorkspace = async (enableLsx: boolean): Promise<Workspace> => {
+const getSharedWorkspace = async (): Promise<Workspace> => {
   if (!sharedWorkspace) {
     sharedWorkspace = new Workspace();
-    const module = enableLsx ? EpanetEngineWithLsx : EpanetEngine;
-    await sharedWorkspace.loadModuleVersion(module);
+    await sharedWorkspace.loadModuleVersion(EpanetEngineWithLsx);
   }
   return sharedWorkspace;
 };
@@ -90,8 +86,7 @@ export const runSimulation = async (
   // eslint-disable-next-line no-console
   if (Object.keys(flags).length) console.log("Running with flags", flags);
 
-  const enableLsx = flags["enableLsx"];
-  const ws = await getSharedWorkspace(enableLsx);
+  const ws = await getSharedWorkspace();
 
   const model = new Project(ws);
   ws.writeFile("net.inp", inp);

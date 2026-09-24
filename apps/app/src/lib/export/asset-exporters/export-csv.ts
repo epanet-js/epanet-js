@@ -66,7 +66,6 @@ export const exportCsv = (
     properties[asset.type] = exportableProperties(
       asset.type,
       asset.listProperties(),
-      { includeValveTargetNode: options?.includeValveTargetNode },
     );
     if (asset.isNode) {
       properties[asset.type].unshift("positionX", "positionY");

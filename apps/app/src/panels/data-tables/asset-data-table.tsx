@@ -83,7 +83,6 @@ import {
 } from "./asset-data-table-columns";
 import { useLabelMaxLength } from "src/hooks/use-label-max-length";
 import { useRoughnessInferrer } from "src/hooks/use-roughness-inferrer";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 interface AssetDataTableProps {
   id: string;
@@ -131,7 +130,6 @@ export const AssetDataTable = memo(function AssetDataTableInner({
   const zoomTo = useZoomTo();
   const deleteAssetsAction = useDeleteAssets();
   const userTracking = useUserTracking();
-  const isRemoteSetpointPrvOn = useFeatureFlag("FLAG_REMOTE_SETPOINT_PRV");
 
   const scopedIds = useMemo(
     () => (assetIds ? new Set(assetIds) : undefined),
@@ -240,7 +238,6 @@ export const AssetDataTable = memo(function AssetDataTableInner({
       customAttributesLock,
       labelMaxLength,
       inferRoughness,
-      isRemoteSetpointPrvOn,
     );
   }, [
     assetType,
@@ -263,7 +260,6 @@ export const AssetDataTable = memo(function AssetDataTableInner({
     customAttributes,
     labelMaxLength,
     inferRoughness,
-    isRemoteSetpointPrvOn,
   ]);
 
   const onChange = useCallback(

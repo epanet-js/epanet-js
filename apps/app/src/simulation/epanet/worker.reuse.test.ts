@@ -68,9 +68,8 @@ describe("simulation worker reuse", () => {
 
   it("warms the engine once and reuses the warmed workspace", async () => {
     const loadSpy = vi.spyOn(Workspace.prototype, "loadModuleVersion");
-    const enableLsx = true;
 
-    await warmupSimulationEngine(enableLsx);
+    await warmupSimulationEngine();
     const inp = buildSimpleInp();
     const result = await runSimulation(inp, "warmup-1", () => {});
 

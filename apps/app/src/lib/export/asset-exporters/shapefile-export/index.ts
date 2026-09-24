@@ -21,7 +21,7 @@ import {
   buildExportDefaults,
   resolveExportProperties,
 } from "../optional-field-defaults";
-import { isExportableField, type ExportFieldOptions } from "../excluded-fields";
+import { isExportableField } from "../excluded-fields";
 import {
   VALVE_TARGET_NODE_FIELD,
   valveTargetNodeLabel,
@@ -52,9 +52,6 @@ export const exportShapefiles = async (
   const selectedCustomerPoints = options?.customerPointIdFilter ?? null;
   const resultsReader = options?.resultsReader;
   const defaults = buildExportDefaults(hydraulicModel);
-  const fieldOptions: ExportFieldOptions = {
-    includeValveTargetNode: options?.includeValveTargetNode,
-  };
   const writers: Record<ExportedAssetTypes, AssetWriter> = {
     junction: new AssetWriter(SHAPE_POINT),
     reservoir: new AssetWriter(SHAPE_POINT),
@@ -94,7 +91,7 @@ export const exportShapefiles = async (
     const props = asset.feature.properties as Record<string, unknown>;
     for (const key in props) {
       if (key === "type") continue;
-      if (!isExportableField(asset.type, key, fieldOptions)) continue;
+      if (!isExportableField(asset.type, key)) continue;
       if (key === "connections") {
         seenFields[asset.type].add("startNode");
         seenFields[asset.type].add("endNode");
