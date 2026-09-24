@@ -45,6 +45,14 @@ import { sourceErrorKey } from "./source-error-key";
 import { awaitsCoordinates } from "./use-wizard-state";
 const CONSTANT_PATTERN_ID = 0;
 
+/** Failures the attributes the user named are answerable for. */
+const COORDINATE_CODES = new Set([
+  "coordinateAttributesUnknown",
+  "coordinateSystemUnknown",
+  "coordinateSystemUnsupported",
+  "coordinateSystemMismatch",
+]);
+
 export const DataMappingStep: React.FC<{
   onNext: () => void;
   onBack: () => void;
@@ -85,6 +93,7 @@ export const DataMappingStep: React.FC<{
 
   const namesCoordinates = !!inputData?.needsCoordinates;
   const awaitingCoordinates = awaitsCoordinates(wizardState);
+  const [coordinatesRejected, setCoordinatesRejected] = useState(false);
   const [namedAxes, setNamedAxes] = useState<{
     x: string | null;
     y: string | null;
@@ -135,10 +144,15 @@ export const DataMappingStep: React.FC<{
           .find(({ severity }) => severity === "error");
 
         if (blocking) {
+          setCoordinatesRejected(
+            namesCoordinates && COORDINATE_CODES.has(blocking.code),
+          );
           setError(translate(sourceErrorKey(blocking.code)));
           setLoading(false);
           return;
         }
+
+        setCoordinatesRejected(false);
 
         const { network, issues: importIssues } =
           await customerPointsImporter.importFromFeatures(
@@ -219,6 +233,7 @@ export const DataMappingStep: React.FC<{
       primaryFile,
       projections,
       awaitingCoordinates,
+      namesCoordinates,
       coordinateAttributes,
       projectSettings.units,
       labelManager,
@@ -319,6 +334,7 @@ export const DataMappingStep: React.FC<{
       setNamedAxes(next);
       setParsedDataSummary(null);
       setError(null);
+      setCoordinatesRejected(false);
 
       setCoordinateAttributes(
         next.x === null || next.y === null ? null : { x: next.x, y: next.y },
@@ -459,6 +475,11 @@ export const DataMappingStep: React.FC<{
                             (prop) => ({ label: prop, value: prop }),
                           )}
                           selected={namedAxes[axis]}
+                          styleOptions={
+                            coordinatesRejected
+                              ? { variant: "warning" }
+                              : undefined
+                          }
                           onChange={(value) =>
                             handleCoordinateChange(axis, value ?? null)
                           }
