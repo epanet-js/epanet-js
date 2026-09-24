@@ -5,7 +5,6 @@ export type UIConfig = {
   selectorAddNewValueTemplate: string;
   noResultsLabel: string;
   searchingLabel: string;
-  isSelectorVirtualizationEnabled: boolean;
 };
 
 const defaultUIConfig: UIConfig = {
@@ -13,7 +12,6 @@ const defaultUIConfig: UIConfig = {
   selectorAddNewValueTemplate: 'Add "{{1}}"',
   noResultsLabel: "No results",
   searchingLabel: "Loading...",
-  isSelectorVirtualizationEnabled: false,
 };
 
 const UIConfigContext = createContext<UIConfig>(defaultUIConfig);

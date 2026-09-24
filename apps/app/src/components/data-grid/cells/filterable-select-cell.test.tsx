@@ -168,7 +168,7 @@ describe("FilterableSelectCell", () => {
       label: `Pattern ${i}`,
     }));
     render(
-      <UIProvider config={{ isSelectorVirtualizationEnabled: true }}>
+      <UIProvider>
         <FilterableSelectCell
           {...defaultProps}
           value={0}

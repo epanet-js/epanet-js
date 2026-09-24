@@ -2282,7 +2282,6 @@ const ValveEditor = ({
             selected={targetNodeId}
             options={targetNodeOptions}
             nullable
-            enableVirtualization={true}
             placeholder={endNode ? endNode.label : translate("select") + "..."}
             comparison={targetNodeComparison}
             onChange={handleTargetNodeChange}

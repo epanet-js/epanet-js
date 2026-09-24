@@ -828,10 +828,7 @@ describe("Selector", () => {
   });
 
   describe("virtualization", () => {
-    const renderSelector = (
-      optionCount: number,
-      enableVirtualization: boolean,
-    ) => {
+    const renderSelector = (optionCount: number) => {
       const onChange = vi.fn();
       render(
         <Selector
@@ -841,21 +838,20 @@ describe("Selector", () => {
           onChange={onChange}
           nullable
           placeholder="Choose…"
-          enableVirtualization={enableVirtualization}
         />,
       );
       return onChange;
     };
 
     it("renders only the rows in view above 100 options", async () => {
-      renderSelector(500, true);
+      renderSelector(500);
       await openSelector();
 
       expect(screen.getAllByRole("option").length).toBeLessThan(500);
     });
 
     it("commits a row outside the rendered window from the keyboard", async () => {
-      const onChange = renderSelector(500, true);
+      const onChange = renderSelector(500);
       const user = await openSelector();
 
       expect(screen.queryByText("Option 500")).not.toBeInTheDocument();

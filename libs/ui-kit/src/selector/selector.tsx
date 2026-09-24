@@ -29,8 +29,6 @@ type SelectorPropsBase<T extends string | number> = {
   listClassName?: string;
   validateNew?: (query: string) => boolean;
   onActiveOptionChange?: (value: T | null) => void;
-  /** Virtualize the dropdown list when it has more than 100 options. */
-  enableVirtualization?: boolean;
   /** Where the dropdown opens: "auto" (default) lets it flip to fit the
    *  viewport; "top"/"bottom" pin it to that side and never flip. */
   side?: "top" | "bottom" | "auto";
@@ -87,7 +85,6 @@ export function BaseSelector<T extends string | number>({
   listClassName,
   validateNew,
   onActiveOptionChange,
-  enableVirtualization = false,
   side = "auto",
 }: SelectorProps<T>) {
   const [open, setOpen] = useState(false);
@@ -207,7 +204,6 @@ export function BaseSelector<T extends string | number>({
               listClassName={listClassName}
               validateNew={validateNew}
               onActiveOptionChange={onActiveOptionChange}
-              enableVirtualization={enableVirtualization}
             />
           )}
         </Popover.Content>

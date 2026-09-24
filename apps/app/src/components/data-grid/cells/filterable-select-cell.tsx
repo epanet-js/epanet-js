@@ -37,7 +37,6 @@ type FilterableSelectCellProps<
   allowNew?: boolean;
   createLabel?: (query: string) => string;
   validateNew?: (query: string) => boolean;
-  enableVirtualization?: boolean;
 };
 
 // Creatable columns hold free text, where a value differing only in case is the
@@ -74,7 +73,6 @@ export function FilterableSelectCell({
   allowNew,
   createLabel,
   validateNew,
-  enableVirtualization = false,
 }: CellProps<string | number | boolean | null> &
   FilterableSelectCellProps<string | number | boolean>) {
   const isOpen = !!editMode;
@@ -218,7 +216,6 @@ export function FilterableSelectCell({
                 minOptionsForSearch={minOptionsForSearch}
                 validateNew={validateNew}
                 initialQuery={initialQuery}
-                enableVirtualization={enableVirtualization}
               />
             )}
           </Popover.Content>
@@ -247,7 +244,6 @@ export function filterableSelectColumn<
     allowNew?: boolean;
     createLabel?: (query: string) => string;
     validateNew?: (query: string) => boolean;
-    enableVirtualization?: boolean;
   },
 ): GridColumn<TData> {
   const isEmpty = isSelectorEmpty(options.options, {
@@ -314,7 +310,6 @@ export function filterableSelectColumn<
           allowNew={options.allowNew}
           createLabel={options.createLabel}
           validateNew={options.validateNew}
-          enableVirtualization={options.enableVirtualization}
         />
       ),
     },

@@ -64,7 +64,6 @@ import {
   PaywallOverlay,
   useFeatureLock,
 } from "src/components/form/paywall";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const AssetEditorContent = ({
   label,
@@ -585,7 +584,6 @@ type SelectRowPropsBase<P extends string, T extends SelectRowValue> = {
   readOnly?: boolean;
   paywall?: PaywallFeature;
   isOptional?: boolean;
-  enableVirtualization?: boolean;
   onHighlightChange?: (value: T | null) => void;
 };
 
@@ -631,7 +629,6 @@ export function SelectRow<P extends string, T extends SelectRowValue>({
   clearLabel,
   onChange,
   isOptional = true,
-  enableVirtualization = false,
   onHighlightChange,
 }: SelectorRowProps<P, T>) {
   const translate = useTranslate();
@@ -647,7 +644,6 @@ export function SelectRow<P extends string, T extends SelectRowValue>({
     : undefined;
 
   const selectedOption = options.find((o) => o.value === selected);
-  const isVirtualizationEnabled = useFeatureFlag("FLAG_VIRT_SELECTOR");
 
   return (
     <PaywalledInlineField
@@ -684,9 +680,6 @@ export function SelectRow<P extends string, T extends SelectRowValue>({
             actionLabel={actionLabel}
             onActionClick={onActionClick}
             onActiveOptionChange={onHighlightChange}
-            enableVirtualization={
-              enableVirtualization || isVirtualizationEnabled
-            }
             styleOptions={{
               border: true,
               textSize: "text-size-base",
