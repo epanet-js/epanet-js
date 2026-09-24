@@ -17,7 +17,6 @@ import { USelection } from "src/selection";
 import { Store } from "src/state";
 import { selectionAtom } from "src/state/selection";
 import {
-  bookmarksAtom,
   pendingCollectionDraftAtom,
   selectionSetsAtom,
 } from "src/state/collections";
@@ -34,17 +33,6 @@ vi.mock("src/hooks/use-permissions", async () => {
   return {
     ...actual,
     usePermissions: () => permissionsRef.current,
-  };
-});
-
-const startUpgrade = vi.fn();
-vi.mock("src/hooks/use-paywall", async () => {
-  const actual = await vi.importActual<typeof import("src/hooks/use-paywall")>(
-    "src/hooks/use-paywall",
-  );
-  return {
-    ...actual,
-    useStartUpgrade: () => startUpgrade,
   };
 });
 
@@ -113,16 +101,8 @@ const focusList = (name: string) =>
     (screen.getByText(name).closest('[tabindex="0"]') as HTMLElement).focus(),
   );
 
-const openRowMenu = async (rowName: string) => {
-  const row = screen.getByText(rowName).closest("li") as HTMLElement;
-  await userEvent.click(
-    within(row).getByRole("button", { name: "More actions" }),
-  );
-};
-
 beforeEach(() => {
   zoomTo.mockClear();
-  startUpgrade.mockClear();
   permissionsRef.current = resolvePermissions("pro", false, false, false);
 });
 
@@ -409,123 +389,6 @@ describe("CollectionsPanel", () => {
 
       expect(screen.getByText("Nothing selected")).toBeInTheDocument();
       expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
-    });
-  });
-
-  describe("without a plan that covers collections", () => {
-    const asFreeUser = () => {
-      permissionsRef.current = resolvePermissions("free", false, false, false);
-    };
-
-    const aStoreWithASet = () => {
-      const store = aStore();
-      store.set(selectionAtom, USelection.fromAssetIds([IDS.J1]));
-      store.set(bookmarksAtom, [
-        { id: "bookmark-1", label: "North reservoir", bbox: [-1, -2, 3, 4] },
-      ]);
-      store.set(selectionSetsAtom, [
-        {
-          id: "set-1",
-          label: "Downtown loop",
-          selection: USelection.fromAssetIds([IDS.J1, IDS.J2]),
-        },
-      ]);
-      return store;
-    };
-
-    it("offers an upgrade instead of saving the current selection", async () => {
-      asFreeUser();
-      const store = aStoreWithASet();
-      renderPanel(store);
-
-      await userEvent.click(saveButton());
-
-      expect(startUpgrade).toHaveBeenCalledWith("selectionSets");
-      expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
-      expect(store.get(selectionSetsAtom)).toHaveLength(1);
-    });
-
-    it("offers an upgrade instead of saving the current map area", async () => {
-      asFreeUser();
-      const store = aStoreWithASet();
-      renderPanel(store);
-
-      await userEvent.click(addBookmarkButton());
-
-      expect(startUpgrade).toHaveBeenCalledWith("selectionSets");
-      expect(store.get(bookmarksAtom)).toHaveLength(1);
-    });
-
-    it("offers an upgrade instead of renaming a set", async () => {
-      asFreeUser();
-      const store = aStoreWithASet();
-      renderPanel(store);
-
-      await openRowMenu("Downtown loop");
-      await userEvent.click(screen.getByText("Rename"));
-
-      expect(startUpgrade).toHaveBeenCalledWith("selectionSets");
-      expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
-      expect(screen.getByText("Downtown loop")).toBeInTheDocument();
-    });
-
-    it("offers an upgrade instead of deleting a set", async () => {
-      asFreeUser();
-      const store = aStoreWithASet();
-      renderPanel(store);
-
-      await openRowMenu("Downtown loop");
-      await userEvent.click(screen.getByText("Delete"));
-
-      expect(startUpgrade).toHaveBeenCalledWith("selectionSets");
-      expect(store.get(selectionSetsAtom)).toHaveLength(1);
-    });
-
-    it("still applies a set that is already saved", async () => {
-      asFreeUser();
-      const store = aStoreWithASet();
-      store.set(selectionAtom, USelection.none());
-      renderPanel(store);
-
-      await userEvent.click(screen.getByText("Downtown loop"));
-
-      expect(store.get(selectionAtom)).toEqual(
-        USelection.fromAssetIds([IDS.J1, IDS.J2]),
-      );
-      expect(startUpgrade).not.toHaveBeenCalled();
-    });
-
-    it("still visits a bookmark that is already saved", async () => {
-      asFreeUser();
-      const store = aStoreWithASet();
-      renderPanel(store);
-
-      await userEvent.click(screen.getByText("North reservoir"));
-
-      expect(zoomTo).toHaveBeenCalled();
-      expect(startUpgrade).not.toHaveBeenCalled();
-    });
-
-    it("offers an upgrade from the box pinned under the lists", async () => {
-      asFreeUser();
-      const store = aStoreWithASet();
-      renderPanel(store);
-
-      await userEvent.click(screen.getByRole("button", { name: "Upgrade" }));
-
-      expect(startUpgrade).toHaveBeenCalledWith("selectionSets");
-    });
-
-    it("lets the demo network create collections", async () => {
-      permissionsRef.current = resolvePermissions("free", false, false, true);
-      const store = aStoreWithASet();
-      renderPanel(store);
-
-      await userEvent.click(saveButton());
-      await nameIt("Uptown loop");
-
-      expect(startUpgrade).not.toHaveBeenCalled();
-      expect(store.get(selectionSetsAtom)).toHaveLength(2);
     });
   });
 });

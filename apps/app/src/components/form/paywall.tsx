@@ -6,6 +6,9 @@ import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
 import { PaywallLockIcon } from "src/icons";
 import { Button, TContent, StyledTooltipArrow } from "src/components/elements";
+import { useAuth } from "src/hooks/use-auth";
+import { useIsTrialEmailRefused } from "src/hooks/use-activate-trial";
+import { isTrialAvailable } from "src/lib/account-plans";
 
 export const useFeatureLock = (feature: PaywallFeature | undefined) => {
   const paywallDialog = usePaywall(feature);
@@ -127,13 +130,16 @@ export const PaywallUpgradeBox = ({
 }) => {
   const translate = useTranslate();
   const { openPaywall } = useFeatureLock(feature);
+  const { user } = useAuth();
+  const isTrialEmailRefused = useIsTrialEmailRefused();
+  const canStartTrial = isTrialAvailable(user) && !isTrialEmailRefused;
 
   return (
     <div className="mx-3 mb-3 rounded-lg border border-purple-200 bg-base p-4 shadow-md dark:border-purple-900">
       <h3 className="font-bold text-size-base">{title}</h3>
       <p className="mt-1 mb-3 text-subtle text-size-base">{description}</p>
       <Button variant="primary" onClick={openPaywall}>
-        {translate("upgrade")}
+        {canStartTrial ? translate("trial.startFree") : translate("upgrade")}
       </Button>
     </div>
   );
