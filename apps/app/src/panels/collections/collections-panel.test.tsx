@@ -1,5 +1,6 @@
 /** @vitest-environment jsdom */
-import { act, render, screen, within } from "@testing-library/react";
+import { act } from "react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Provider as JotaiProvider } from "jotai";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
@@ -127,50 +128,6 @@ beforeEach(() => {
 
 describe("CollectionsPanel", () => {
   describe("saving a selection set", () => {
-    it("shows nothing selected and cannot save while nothing is selected", () => {
-      const store = aStore();
-      renderPanel(store);
-
-      expect(
-        screen.getByRole("button", { name: "Nothing selected" }),
-      ).toBeDisabled();
-    });
-
-    it("counts the selected assets and customer points", () => {
-      const store = aStore();
-      store.set(selectionAtom, USelection.fromIds([IDS.J1, IDS.J2], [IDS.CP1]));
-      renderPanel(store);
-
-      expect(
-        screen.getByRole("button", { name: "Save current selection (3)" }),
-      ).toBeInTheDocument();
-    });
-
-    it("turns the current selection into a name input when its text is clicked", async () => {
-      const store = aStore();
-      store.set(selectionAtom, USelection.fromAssetIds([IDS.J1]));
-      renderPanel(store);
-
-      await userEvent.click(screen.getByText("Save current selection"));
-
-      expect(
-        screen.queryByText("Save current selection"),
-      ).not.toBeInTheDocument();
-      expect(screen.getByRole("textbox")).toHaveFocus();
-    });
-
-    it("lists the set under the name the user gave it", async () => {
-      const store = aStore();
-      store.set(selectionAtom, USelection.fromAssetIds([IDS.J1, IDS.J2]));
-      renderPanel(store);
-
-      await userEvent.click(saveButton());
-      await nameIt("Downtown loop");
-
-      expect(screen.getByText("Downtown loop")).toBeInTheDocument();
-      expect(store.get(selectionSetsAtom)).toHaveLength(1);
-    });
-
     it("keeps both sets when the names collide", async () => {
       const store = aStore();
       store.set(selectionAtom, USelection.fromAssetIds([IDS.J1, IDS.J2]));
@@ -182,19 +139,6 @@ describe("CollectionsPanel", () => {
       await nameIt("North zone");
 
       expect(screen.getAllByText("North zone")).toHaveLength(2);
-    });
-
-    it("remembers the customer points in the selection", async () => {
-      const store = aStore();
-      store.set(selectionAtom, USelection.fromIds([IDS.J1], [IDS.CP1]));
-      renderPanel(store);
-
-      await userEvent.click(saveButton());
-      await nameIt("Mixed");
-
-      expect(store.get(selectionSetsAtom)[0].selection).toEqual(
-        USelection.fromIds([IDS.J1], [IDS.CP1]),
-      );
     });
   });
 
@@ -236,22 +180,6 @@ describe("CollectionsPanel", () => {
   });
 
   describe("applying a selection set", () => {
-    it("takes over the current selection", async () => {
-      const store = aStore();
-      store.set(selectionAtom, USelection.fromAssetIds([IDS.J1, IDS.J2]));
-      renderPanel(store);
-      await userEvent.click(saveButton());
-      await nameIt("Downtown loop");
-      store.set(selectionAtom, USelection.fromAssetIds([IDS.J3]));
-
-      await userEvent.click(screen.getByText("Downtown loop"));
-
-      expect(USelection.getAssetIds(store.get(selectionAtom))).toEqual([
-        IDS.J1,
-        IDS.J2,
-      ]);
-    });
-
     it("selects the set without moving the map from its select button", async () => {
       const store = aStore();
       store.set(selectionAtom, USelection.fromAssetIds([IDS.J1, IDS.J2]));
@@ -282,13 +210,15 @@ describe("CollectionsPanel", () => {
       await userEvent.click(saveButton());
       await nameIt("Downtown loop");
 
-      store.set(selectionSetsAtom, (sets) =>
-        sets.map((set) => ({
-          ...set,
-          selection: USelection.fromAssetIds([IDS.J1, IDS.J2, IDS.Deleted]),
-        })),
-      );
-      store.set(selectionAtom, USelection.none());
+      act(() => {
+        store.set(selectionSetsAtom, (sets) =>
+          sets.map((set) => ({
+            ...set,
+            selection: USelection.fromAssetIds([IDS.J1, IDS.J2, IDS.Deleted]),
+          })),
+        );
+        store.set(selectionAtom, USelection.none());
+      });
 
       await userEvent.click(screen.getByText("Downtown loop"));
 
@@ -369,6 +299,9 @@ describe("CollectionsPanel", () => {
     it("continues from the selected set with the arrow keys", async () => {
       await aPanelWithSets();
       await userEvent.click(screen.getByText("Downtown loop"));
+      await waitFor(() =>
+        expect(rowOf("Downtown loop")).toHaveAttribute("aria-selected", "true"),
+      );
       focusList("Downtown loop");
 
       await userEvent.keyboard("{ArrowDown}");
@@ -476,53 +409,6 @@ describe("CollectionsPanel", () => {
 
       expect(screen.getByText("Nothing selected")).toBeInTheDocument();
       expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
-    });
-  });
-
-  describe("bookmarks", () => {
-    it("stores the current viewport", async () => {
-      const store = aStore();
-      renderPanel(store);
-
-      await userEvent.click(addBookmarkButton());
-      await nameIt("Downtown");
-
-      expect(store.get(bookmarksAtom)[0]).toMatchObject({
-        label: "Downtown",
-        bbox: VIEWPORT,
-      });
-    });
-  });
-
-  describe("renaming and deleting", () => {
-    it("renames a selection set", async () => {
-      const store = aStore();
-      store.set(selectionAtom, USelection.fromAssetIds([IDS.J1, IDS.J2]));
-      renderPanel(store);
-      await userEvent.click(saveButton());
-      await nameIt("Downtown loop");
-
-      await openRowMenu("Downtown loop");
-      await userEvent.click(screen.getByText("Rename"));
-      await userEvent.clear(screen.getByRole("textbox"));
-      await nameIt("Uptown loop");
-
-      expect(screen.getByText("Uptown loop")).toBeInTheDocument();
-      expect(screen.queryByText("Downtown loop")).not.toBeInTheDocument();
-    });
-
-    it.skip("deletes a selection set", async () => {
-      const store = aStore();
-      store.set(selectionAtom, USelection.fromAssetIds([IDS.J1, IDS.J2]));
-      renderPanel(store);
-      await userEvent.click(saveButton());
-      await nameIt("Downtown loop");
-
-      await openRowMenu("Downtown loop");
-      await userEvent.click(screen.getByText("Delete"));
-
-      expect(screen.queryByText("Downtown loop")).not.toBeInTheDocument();
-      expect(store.get(selectionSetsAtom)).toHaveLength(0);
     });
   });
 

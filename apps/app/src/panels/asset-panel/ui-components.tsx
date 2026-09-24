@@ -164,7 +164,7 @@ const Header = ({
           onDirty={clearError}
           hasError={!!error}
           readOnly={readOnly}
-          className="shrink-0 max-w-[calc(100%-2.5rem)]"
+          className="shrink-0 max-w-[calc(100%-6.5rem)]"
           sanitize={(raw) =>
             LabelManager.sanitizeLabel(raw, labelType, labelMaxLength)
           }
