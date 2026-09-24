@@ -48,7 +48,7 @@ const FEATURE_CONFIG: Record<PaywallFeature, FeatureConfig> = {
   },
   selectionSets: {
     permission: "canManageCollections",
-    dialog: { type: "featurePaywall", feature: "selectionSets" },
+    dialog: { type: "upgrade", feature: "selectionSets" },
   },
   modelAttributesValidation: {
     permission: "canValidateModelAttributes",

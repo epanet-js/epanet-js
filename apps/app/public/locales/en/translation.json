@@ -2034,13 +2034,6 @@
       "newLabel": "New bookmark name",
       "labelPlaceholder": "Bookmark name"
     },
-    "paywall": {
-      "title": "Upgrade to use collections",
-      "description1": "Save any group of assets as a reusable selection set, and any map view as a bookmark.",
-      "description2": "Come back to the same group of assets or the same area in one click, without reselecting or navigating again.",
-      "plans": "Collections are available on paid plans.",
-      "trial": "Collections are a paid feature. Activate your free trial to get full access for 14 days—no credit card required."
-    },
     "upgrade": {
       "title": "Save your own collections",
       "description": "Keep any group of assets or map area to come back to it in one click"
