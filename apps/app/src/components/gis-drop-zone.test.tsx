@@ -9,7 +9,7 @@ const renderDropZone = (selectedFiles: GisFiles = {}) => {
   render(
     <GisDropZone
       onFileDrop={onFileDrop}
-      supportedFormats={["geojson", "shapefile", "dxf"]}
+      supportedFormats={["geojson", "shapefile", "dxf", "csv"]}
       selectedFiles={selectedFiles}
     />,
   );
@@ -38,6 +38,25 @@ describe("GisDropZone", () => {
     expect(screen.getByText("DXF")).toBeInTheDocument();
     expect(screen.queryByText(/\.shp/)).not.toBeInTheDocument();
     expect(screen.queryByText(/dbf/i)).not.toBeInTheDocument();
+  });
+
+  it("takes a table as a source of its own", async () => {
+    const { onFileDrop } = renderDropZone();
+    const csv = aTestFile({
+      filename: "customers.csv",
+      content: "Lon,Lat\n0,0",
+    });
+
+    await upload(csv);
+
+    expect(onFileDrop).toHaveBeenCalledWith({ csv });
+  });
+
+  it("names a selected table by the extension it arrived under", () => {
+    renderDropZone({ csv: aTestFile({ filename: "customers.tsv" }) });
+
+    expect(screen.getByText("customers.tsv")).toBeInTheDocument();
+    expect(screen.getByText("CSV")).toBeInTheDocument();
   });
 
   it("still waits for the parts of a shapefile", () => {

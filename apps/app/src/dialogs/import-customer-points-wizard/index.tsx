@@ -9,7 +9,7 @@ import {
   WizardActions,
   type Step,
 } from "src/components/wizard";
-import { useWizardState } from "./use-wizard-state";
+import { awaitsCoordinates, useWizardState } from "./use-wizard-state";
 import { DataInputStep } from "./data-input-step";
 import { DataMappingStep } from "./data-mapping-step";
 import { DemandOptionsStep } from "./demand-options-step";
@@ -167,8 +167,14 @@ export const ImportCustomerPointsWizard: React.FC<
     },
   ];
 
-  const { currentStep, inputData, isLoading, parsedDataSummary, isProcessing } =
-    wizardState;
+  const {
+    currentStep,
+    inputData,
+    isLoading,
+    parsedDataSummary,
+    isProcessing,
+    error,
+  } = wizardState;
 
   const footer = (() => {
     switch (currentStep) {
@@ -186,6 +192,8 @@ export const ImportCustomerPointsWizard: React.FC<
               onClick: handleNext,
               disabled:
                 isLoading ||
+                awaitsCoordinates(wizardState) ||
+                !!error ||
                 (parsedDataSummary
                   ? parsedDataSummary.validCustomerPoints.length === 0
                   : !inputData),

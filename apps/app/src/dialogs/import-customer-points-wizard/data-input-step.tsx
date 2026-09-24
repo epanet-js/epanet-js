@@ -20,6 +20,7 @@ import {
 } from "src/global-config";
 import { Trans } from "react-i18next";
 import { WizardActions as WizardActionsComponent } from "src/components/wizard";
+import { sourceErrorKey } from "./source-error-key";
 
 export const DataInputStep: React.FC<{
   onNext: () => void;
@@ -31,9 +32,14 @@ export const DataInputStep: React.FC<{
   const translate = useTranslate();
   const [gisFiles, setGisFiles] = useState<GisFiles>({});
   const readsDxf = useFeatureFlag("FLAG_IMPORT_DXF");
-  const supportedFormats: GisFormat[] = readsDxf
-    ? ["geojson", "geojsonl", "shapefile", "dxf"]
-    : ["geojson", "geojsonl", "shapefile"];
+  const readsCsv = useFeatureFlag("FLAG_IMPORT_CSV");
+  const supportedFormats: GisFormat[] = [
+    "geojson",
+    "geojsonl",
+    "shapefile",
+    ...(readsDxf ? (["dxf"] as const) : []),
+    ...(readsCsv ? (["csv"] as const) : []),
+  ];
 
   const {
     error,
@@ -47,28 +53,8 @@ export const DataInputStep: React.FC<{
   } = wizardState;
 
   const messageFor = useCallback(
-    (issue: Issue | undefined): string => {
-      switch (issue?.code) {
-        case "coordinateSystemUnsupported":
-          return translate(
-            "importCustomerPoints.dataSource.unsupportedCrsError",
-          );
-        case "coordinateSystemMismatch":
-          return translate(
-            "importCustomerPoints.dataSource.projectionConversionError",
-          );
-        case "coordinateSystemUnknown":
-          return translate(
-            "importCustomerPoints.dataSource.coordinateValidationError",
-          );
-        case "sourceEmpty":
-          return translate(
-            "importCustomerPoints.dataSource.noValidPointsError",
-          );
-        default:
-          return translate("importCustomerPoints.dataSource.parseFileError");
-      }
-    },
+    (issue: Issue | undefined): string =>
+      translate(sourceErrorKey(issue?.code)),
     [translate],
   );
 
@@ -86,8 +72,13 @@ export const DataInputStep: React.FC<{
           });
 
         const blocking = issues.find(({ severity }) => severity === "error");
+        const needsCoordinates =
+          blocking?.code === "coordinateAttributesUnknown";
 
-        if (contents === null || blocking !== undefined) {
+        if (
+          contents === null ||
+          (blocking !== undefined && !needsCoordinates)
+        ) {
           userTracking.capture({
             name: "importCustomerPoints.dataInput.parseError",
             fileName: primary.name,
@@ -101,10 +92,13 @@ export const DataInputStep: React.FC<{
         const importablePoints = contents.groups.find(
           ({ geometry }) => geometry === "point",
         );
-        const attributes = importablePoints?.attributes ?? [];
+        const attributes = needsCoordinates
+          ? contents.attributes
+          : (importablePoints?.attributes ?? []);
 
         setInputData({
           properties: new Set(attributes.map(({ name }) => name)),
+          ...(needsCoordinates ? { needsCoordinates } : {}),
         });
         setLoading(false);
 
@@ -152,7 +146,7 @@ export const DataInputStep: React.FC<{
     (files: GisFiles) => {
       setGisFiles(files);
 
-      const single = files.geojson ?? files.geojsonl ?? files.dxf;
+      const single = files.geojson ?? files.geojsonl ?? files.dxf ?? files.csv;
       if (single) {
         void scanWithImporter([single], single);
       } else if (files.shp && files.dbf && files.prj) {

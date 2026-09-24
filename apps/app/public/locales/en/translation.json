@@ -1305,6 +1305,11 @@
           "label": "Default demand",
           "description": "Used when no demand attribute is selected."
         },
+        "coordinateSelector": {
+          "x": "Longitude / X",
+          "y": "Latitude / Y",
+          "choose": "Select an attribute..."
+        },
         "labelSelector": {
           "label": "Label",
           "placeholder": "Select label property...",
@@ -1394,6 +1399,7 @@
       "noValidPointsError": "No valid customer points found in the selected file.",
       "parseFileError": "Failed to parse file",
       "coordinateValidationError": "All coordinates must be expressed in WGS84 (EPSG:4326) projection, or the file must state the coordinate system it uses",
+      "coordinateAttributesError": "No coordinates could be read from the selected attributes. Select the ones holding the coordinates",
       "unsupportedCrsError": "Unsupported coordinate reference system",
       "projectionConversionError": "Failed to convert coordinate system",
       "fileFormatNotSupported": "File format not supported",

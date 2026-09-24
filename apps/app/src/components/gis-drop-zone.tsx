@@ -3,7 +3,7 @@ import { useDropZone } from "src/hooks/use-drop-zone";
 import { useTranslate } from "src/hooks/use-translate";
 import { UploadIcon, CloseIcon, CheckIcon } from "src/icons";
 
-export type GisFormat = "geojson" | "geojsonl" | "shapefile" | "dxf";
+export type GisFormat = "geojson" | "geojsonl" | "shapefile" | "dxf" | "csv";
 
 export interface GisFiles {
   shp?: File;
@@ -14,6 +14,7 @@ export interface GisFiles {
   geojson?: File;
   geojsonl?: File;
   dxf?: File;
+  csv?: File;
 }
 
 interface GisDropZoneProps {
@@ -198,6 +199,7 @@ const FORMAT_EXTENSIONS: Record<GisFormat, string[]> = {
   geojsonl: [".geojsonl"],
   shapefile: SHAPEFILE_EXTENSIONS,
   dxf: [".dxf"],
+  csv: [".csv", ".tsv"],
 };
 
 const getAcceptString = (formats: GisFormat[]): string =>
@@ -209,6 +211,7 @@ const getFormatLabel = (formats: GisFormat[]): string =>
       if (f === "geojson") return "GeoJSON";
       if (f === "geojsonl") return "GeoJSONL";
       if (f === "dxf") return "DXF";
+      if (f === "csv") return "CSV";
       return "Shapefile";
     })
     .join(", ");
@@ -217,6 +220,8 @@ const GIS_FILE_EXTENSIONS: Record<string, keyof GisFiles> = {
   ".geojson": "geojson",
   ".geojsonl": "geojsonl",
   ".dxf": "dxf",
+  ".csv": "csv",
+  ".tsv": "csv",
   ".shp": "shp",
   ".shx": "shx",
   ".prj": "prj",
@@ -270,10 +275,11 @@ const getBaseName = (files: GisFiles): string => {
 
 const getFileGroupType = (
   files: GisFiles,
-): "geojson" | "geojsonl" | "dxf" | "shapefile" => {
+): "geojson" | "geojsonl" | "dxf" | "csv" | "shapefile" => {
   if (files.geojson) return "geojson";
   if (files.geojsonl) return "geojsonl";
   if (files.dxf) return "dxf";
+  if (files.csv) return "csv";
   return "shapefile";
 };
 
@@ -281,13 +287,16 @@ const PRIMARY_EXTENSION: Record<ReturnType<typeof getFileGroupType>, string> = {
   geojson: ".geojson",
   geojsonl: ".geojsonl",
   dxf: ".dxf",
+  csv: ".csv",
   shapefile: ".shp",
 };
 
 const getDisplayName = (files: GisFiles): string => {
-  const baseName = getBaseName(files);
-  const ext = PRIMARY_EXTENSION[getFileGroupType(files)];
-  return baseName + ext;
+  const groupType = getFileGroupType(files);
+  const single = groupType === "shapefile" ? undefined : files[groupType];
+  if (single) return single.name;
+
+  return getBaseName(files) + PRIMARY_EXTENSION[groupType];
 };
 
 const Badge = ({
@@ -452,6 +461,7 @@ const SelectedFileList = ({
             <Badge label="GEOJSONL" variant="green" />
           )}
           {groupType === "dxf" && <Badge label="DXF" variant="green" />}
+          {groupType === "csv" && <Badge label="CSV" variant="green" />}
           {groupType === "shapefile" && (
             <>
               {SHAPEFILE_REQUIRED_BADGES.map(({ key, label }) => (

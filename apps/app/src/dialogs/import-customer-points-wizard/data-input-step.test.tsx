@@ -153,6 +153,86 @@ describe("DataInputStep", () => {
       ).not.toBeInTheDocument();
     });
 
+    it("processes a table whose columns name the coordinates", async () => {
+      stubFeatureOn("FLAG_IMPORT_CSV");
+      const userTracking = stubUserTracking();
+      const store = setInitialState({
+        hydraulicModel: HydraulicModelBuilder.with().build(),
+      });
+      setWizardState(store, { currentStep: 1 });
+      renderWizard(store);
+
+      await uploadFileInStep(
+        aTestFile({
+          filename: "customers.csv",
+          content: [
+            "Id,Longitude,Latitude,Demand",
+            "C-1,-3.7,40.4,120",
+            "C-2,-3.6,40.5,80",
+          ].join("\n"),
+        }),
+      );
+
+      await waitFor(() => {
+        expect(
+          screen.getByRole("tab", { name: /data preview/i, current: "step" }),
+        ).toBeInTheDocument();
+      });
+      expect(userTracking.capture).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: "importCustomerPoints.dataInput.fileLoaded",
+          fileName: "customers.csv",
+          featuresCount: 2,
+        }),
+      );
+    });
+
+    it("refuses a table while they are not enabled", async () => {
+      stubFeatureOff("FLAG_IMPORT_CSV");
+      const store = setInitialState({
+        hydraulicModel: HydraulicModelBuilder.with().build(),
+      });
+      setWizardState(store, { currentStep: 1 });
+      renderWizard(store);
+
+      await uploadFileInStep(
+        aTestFile({
+          filename: "customers.csv",
+          content: "Id,Longitude,Latitude\nC-1,-3.7,40.4",
+        }),
+      );
+
+      expect(
+        screen.queryByRole("tab", { name: /data preview/i, current: "step" }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("goes on to the mapping step when a table does not name its coordinates", async () => {
+      stubFeatureOn("FLAG_IMPORT_CSV");
+      const store = setInitialState({
+        hydraulicModel: HydraulicModelBuilder.with().build(),
+      });
+      setWizardState(store, { currentStep: 1 });
+      renderWizard(store);
+
+      await uploadFileInStep(
+        aTestFile({
+          filename: "customers.csv",
+          content: "Id,First,Second\nC-1,-3.7,40.4",
+        }),
+      );
+
+      await waitFor(() => {
+        expect(
+          screen.getByRole("tab", { name: /data preview/i, current: "step" }),
+        ).toBeInTheDocument();
+      });
+      expect(
+        screen.getByRole("combobox", { name: /longitude \/ x/i }),
+      ).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /next/i })).toBeDisabled();
+    });
+
     it("processes valid GeoJSONL file successfully", async () => {
       const userTracking = stubUserTracking();
       const store = setInitialState({

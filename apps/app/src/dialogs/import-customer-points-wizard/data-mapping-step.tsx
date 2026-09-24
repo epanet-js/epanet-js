@@ -41,6 +41,8 @@ import { convertTo } from "@epanet-js/quantity";
 import { ChevronDownIcon, ChevronRightIcon, ErrorIcon } from "src/icons";
 import { Callout, Selector } from "@epanet-js/ui-kit";
 import { NumericField } from "src/components/form/numeric-field";
+import { sourceErrorKey } from "./source-error-key";
+import { awaitsCoordinates } from "./use-wizard-state";
 const CONSTANT_PATTERN_ID = 0;
 
 export const DataMappingStep: React.FC<{
@@ -76,8 +78,20 @@ export const DataMappingStep: React.FC<{
     setSelectedLabelProperty,
     setSelectedPatternId,
     setDefaultDemand,
+    coordinateAttributes,
+    setCoordinateAttributes,
     isLoading,
   } = wizardState;
+
+  const namesCoordinates = !!inputData?.needsCoordinates;
+  const awaitingCoordinates = awaitsCoordinates(wizardState);
+  const [namedAxes, setNamedAxes] = useState<{
+    x: string | null;
+    y: string | null;
+  }>({
+    x: coordinateAttributes?.x ?? null,
+    y: coordinateAttributes?.y ?? null,
+  });
 
   const constantLabel = translate("constant");
   const realPatternOptions = useMemo(() => {
@@ -100,6 +114,8 @@ export const DataMappingStep: React.FC<{
       patternId: number | null,
       defaultDemandValue: number,
     ) => {
+      if (awaitingCoordinates) return;
+
       setLoading(true);
       setError(null);
 
@@ -109,10 +125,21 @@ export const DataMappingStep: React.FC<{
       const source = {
         files: sourceFiles,
         projections: projections ?? undefined,
+        ...(coordinateAttributes ? { coordinateAttributes } : {}),
       };
 
       try {
-        const { features } = await parseGisSource(source);
+        const { features, issues: parseIssues } = await parseGisSource(source);
+        const blocking = parseIssues
+          .build()
+          .find(({ severity }) => severity === "error");
+
+        if (blocking) {
+          setError(translate(sourceErrorKey(blocking.code)));
+          setLoading(false);
+          return;
+        }
+
         const { network, issues: importIssues } =
           await customerPointsImporter.importFromFeatures(
             features,
@@ -191,6 +218,8 @@ export const DataMappingStep: React.FC<{
       sourceFiles,
       primaryFile,
       projections,
+      awaitingCoordinates,
+      coordinateAttributes,
       projectSettings.units,
       labelManager,
       idPools,
@@ -284,6 +313,20 @@ export const DataMappingStep: React.FC<{
     ],
   );
 
+  const handleCoordinateChange = useCallback(
+    (axis: "x" | "y", property: string | null) => {
+      const next = { ...namedAxes, [axis]: property };
+      setNamedAxes(next);
+      setParsedDataSummary(null);
+      setError(null);
+
+      setCoordinateAttributes(
+        next.x === null || next.y === null ? null : { x: next.x, y: next.y },
+      );
+    },
+    [namedAxes, setCoordinateAttributes, setParsedDataSummary, setError],
+  );
+
   const handlePatternChange = useCallback(
     (rawPatternId: number) => {
       const patternId = rawPatternId ? rawPatternId : null;
@@ -316,7 +359,13 @@ export const DataMappingStep: React.FC<{
   );
 
   useEffect(() => {
-    if (inputData && !parsedDataSummary && !isLoading && !error) {
+    if (
+      inputData &&
+      !awaitingCoordinates &&
+      !parsedDataSummary &&
+      !isLoading &&
+      !error
+    ) {
       void importSelection(
         selectedDemandProperty,
         selectedLabelProperty,
@@ -325,17 +374,21 @@ export const DataMappingStep: React.FC<{
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [inputData]);
+  }, [inputData, coordinateAttributes]);
 
   const showAttributesMapping = !!inputData;
-  const showLoading = inputData && isLoading && !parsedDataSummary;
+  const showLoading =
+    inputData && isLoading && !parsedDataSummary && !awaitingCoordinates;
   const showDataPreview = parsedDataSummary;
   const showNoDataMessage = !inputData;
   const validCount = parsedDataSummary?.validCustomerPoints.length || 0;
   const MAX_PREVIEW_ROWS = 15;
 
   const isNextDisabled =
-    isLoading || (parsedDataSummary ? validCount === 0 : !inputData);
+    isLoading ||
+    awaitingCoordinates ||
+    !!error ||
+    (parsedDataSummary ? validCount === 0 : !inputData);
 
   return (
     <>
@@ -353,7 +406,7 @@ export const DataMappingStep: React.FC<{
                 )}
               </p>
               <div className="@container space-y-4">
-                <div className="@lg:grid @lg:grid-cols-3 @lg:gap-x-4">
+                <div className="@lg:grid @lg:grid-cols-3 @lg:gap-x-4 @lg:items-start space-y-4 @lg:space-y-0">
                   <div className="space-y-2">
                     <label className="block text-size-base text-default">
                       {translate(
@@ -389,6 +442,32 @@ export const DataMappingStep: React.FC<{
                       )}
                     </p>
                   </div>
+                  {namesCoordinates &&
+                    (["x", "y"] as const).map((axis) => (
+                      <div key={axis} className="space-y-2">
+                        <label className="block text-size-base text-default">
+                          {translate(
+                            `importCustomerPoints.wizard.dataMapping.coordinateSelector.${axis}`,
+                          )}
+                        </label>
+                        <Selector
+                          nullable
+                          placeholder={translate(
+                            "importCustomerPoints.wizard.dataMapping.coordinateSelector.choose",
+                          )}
+                          options={Array.from(inputData.properties).map(
+                            (prop) => ({ label: prop, value: prop }),
+                          )}
+                          selected={namedAxes[axis]}
+                          onChange={(value) =>
+                            handleCoordinateChange(axis, value ?? null)
+                          }
+                          ariaLabel={translate(
+                            `importCustomerPoints.wizard.dataMapping.coordinateSelector.${axis}`,
+                          )}
+                        />
+                      </div>
+                    ))}
                 </div>
 
                 <div className="space-y-4 @lg:grid @lg:gap-x-4 @lg:gap-y-2 @lg:space-y-0 @lg:grid-cols-3 @lg:grid-rows-[repeat(3,auto)]">
@@ -498,7 +577,7 @@ export const DataMappingStep: React.FC<{
             variant="error"
             description={error}
             Icon={ErrorIcon}
-            className="border rounded-md"
+            className="border rounded-md mt-4"
           />
         )}
 

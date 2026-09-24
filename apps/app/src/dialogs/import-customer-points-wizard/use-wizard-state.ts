@@ -2,6 +2,7 @@ import { atom, useAtom } from "jotai";
 import { useAtomValue } from "jotai";
 import { UnitsSpec } from "@epanet-js/project-settings";
 import { projectSettingsAtom } from "src/state/project-settings";
+import type { CoordinateAttributes } from "@epanet-js/gis-importers";
 import {
   WizardState,
   WizardActions,
@@ -17,6 +18,7 @@ const initialState: WizardState = {
   inputData: null,
   selectedDemandProperty: null,
   selectedLabelProperty: null,
+  coordinateAttributes: null,
   isLoading: false,
   error: null,
   isProcessing: false,
@@ -26,6 +28,9 @@ const initialState: WizardState = {
 };
 
 export const wizardStateAtom = atom<WizardState>(initialState);
+
+export const awaitsCoordinates = (state: WizardState): boolean =>
+  !!state.inputData?.needsCoordinates && state.coordinateAttributes === null;
 
 export const useWizardState = (): WizardState & {
   units: UnitsSpec;
@@ -75,6 +80,10 @@ export const useWizardState = (): WizardState & {
 
   const setSelectedLabelProperty = (property: string | null) => {
     setWizardState((prev) => ({ ...prev, selectedLabelProperty: property }));
+  };
+
+  const setCoordinateAttributes = (attributes: CoordinateAttributes | null) => {
+    setWizardState((prev) => ({ ...prev, coordinateAttributes: attributes }));
   };
 
   const resetWizardData = () => {
@@ -128,6 +137,7 @@ export const useWizardState = (): WizardState & {
     setInputData,
     setSelectedDemandProperty,
     setSelectedLabelProperty,
+    setCoordinateAttributes,
     resetWizardData,
     setError,
     setLoading,
