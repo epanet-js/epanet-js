@@ -70,6 +70,8 @@ const start = async (store: Store, draft: CollectionDraft) => {
 
 beforeEach(() => {
   stubUserTracking();
+  startUpgrade.mockClear();
+  permissionsRef.current = resolvePermissions("pro", false, false, false);
 });
 
 describe("useStartCollectionDraft", () => {
@@ -108,14 +110,29 @@ describe("useStartCollectionDraft", () => {
     });
   });
 
-  it("offers an upgrade instead of a draft without a plan", async () => {
+  it("shows the panel instead of a draft without a plan", async () => {
     permissionsRef.current = resolvePermissions("free", false, false, false);
     const store = aStore();
+    store.set(splitsAtom, (splits) => ({ ...splits, leftOpen: false }));
+    store.set(activatePanelAtom, "network-review");
+
+    await start(store, { kind: "selectionSets", source: "context-menu" });
+
+    expect(store.get(splitsAtom).leftOpen).toBe(true);
+    expect(store.get(activePanelIn("left"))?.id).toEqual("collections");
+    expect(startUpgrade).not.toHaveBeenCalled();
+    expect(store.get(pendingCollectionDraftAtom)).toBeNull();
+  });
+
+  it("offers an upgrade when the panel is already on screen", async () => {
+    permissionsRef.current = resolvePermissions("free", false, false, false);
+    const store = aStore();
+    store.set(splitsAtom, (splits) => ({ ...splits, leftOpen: true }));
+    store.set(activatePanelAtom, "collections");
 
     await start(store, { kind: "selectionSets", source: "context-menu" });
 
     expect(startUpgrade).toHaveBeenCalledWith("selectionSets");
     expect(store.get(pendingCollectionDraftAtom)).toBeNull();
-    expect(store.get(splitsAtom).leftOpen).toBe(false);
   });
 });
