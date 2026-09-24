@@ -187,12 +187,13 @@ export const useSaveInp = () => {
 
   const worktree = useAtomValue(worktreeAtom);
   const hasScenarios = worktree.scenarios.length > 0;
+  const isPersistScenariosOn = useFeatureFlag("FLAG_PERSIST_SCENARIOS");
 
   const saveAlerting = useCallback(
     ({ source, isSaveAs = false }: { source: string; isSaveAs?: boolean }) => {
       const proceedWithSave = () => saveInp({ source, isSaveAs });
 
-      if (hasScenarios) {
+      if (hasScenarios && !isPersistScenariosOn) {
         setDialogState({
           type: "alertScenariosNotSaved",
           onContinue: proceedWithSave,
@@ -201,7 +202,7 @@ export const useSaveInp = () => {
         return proceedWithSave();
       }
     },
-    [setDialogState, saveInp, hasScenarios],
+    [setDialogState, saveInp, hasScenarios, isPersistScenariosOn],
   );
 
   return saveAlerting;

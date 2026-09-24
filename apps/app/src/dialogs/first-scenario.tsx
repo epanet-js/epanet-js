@@ -6,6 +6,7 @@ import { Trans } from "react-i18next";
 import { useUserTracking } from "src/infra/user-tracking";
 import { userSettingsAtom } from "src/state/user-settings";
 import { EarlyAccessBadge } from "../components/early-access-badge";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const FirstScenarioDialog = ({
   onConfirm,
@@ -17,6 +18,7 @@ export const FirstScenarioDialog = ({
   const translate = useTranslate();
   const [userSettings, setUserSettings] = useAtom(userSettingsAtom);
   const userTracking = useUserTracking();
+  const isPersistScenariosOn = useFeatureFlag("FLAG_PERSIST_SCENARIOS");
 
   const handleCreate = () => {
     onConfirm();
@@ -50,12 +52,14 @@ export const FirstScenarioDialog = ({
                 components={{ bold: <strong /> }}
               />
             </li>
-            <li>
-              <Trans
-                i18nKey="scenarios.firstScenario.bullet2"
-                components={{ bold: <strong /> }}
-              />
-            </li>
+            {!isPersistScenariosOn && (
+              <li>
+                <Trans
+                  i18nKey="scenarios.firstScenario.bullet2"
+                  components={{ bold: <strong /> }}
+                />
+              </li>
+            )}
             <li>{translate("scenarios.firstScenario.bullet3")}</li>
             <li>
               <Trans

@@ -20,6 +20,7 @@ export const AlertExportInpDialog = ({
 }) => {
   const translate = useTranslate();
   const isScriptingOn = useFeatureFlag("FLAG_REMOTE_SETPOINT_PRV");
+  const isPersistScenariosOn = useFeatureFlag("FLAG_PERSIST_SCENARIOS");
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const lsxRequirements = useMemo(() => {
     if (!isScriptingOn) return undefined;
@@ -56,7 +57,13 @@ export const AlertExportInpDialog = ({
             remoteSetpointPrvs={lsxRequirements.remoteSetpointPrvs}
           />
         )}
-        <p className="pb-2">{translate("alertExportInpDetail")}</p>
+        <p className="pb-2">
+          {translate(
+            isPersistScenariosOn
+              ? "alertExportInpDetailWithScenarios"
+              : "alertExportInpDetail",
+          )}
+        </p>
         <p className="pb-2">{translate("alertExportInpLabels")}</p>
         <p>{translate("alertExportInpRecommendation")}</p>
       </div>
