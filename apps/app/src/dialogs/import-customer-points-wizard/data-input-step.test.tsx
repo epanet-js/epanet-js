@@ -100,8 +100,7 @@ describe("DataInputStep", () => {
       });
     });
 
-    it("processes a DXF drawing when they are enabled", async () => {
-      stubFeatureOn("FLAG_IMPORT_DXF");
+    it("processes a DXF drawing", async () => {
       const userTracking = stubUserTracking();
       const store = setInitialState({
         hydraulicModel: HydraulicModelBuilder.with().build(),
@@ -131,26 +130,6 @@ describe("DataInputStep", () => {
           featuresCount: 2,
         }),
       );
-    });
-
-    it("refuses a DXF drawing while they are not enabled", async () => {
-      stubFeatureOff("FLAG_IMPORT_DXF");
-      const store = setInitialState({
-        hydraulicModel: HydraulicModelBuilder.with().build(),
-      });
-      setWizardState(store, { currentStep: 1 });
-      renderWizard(store);
-
-      await uploadFileInStep(
-        aTestFile({
-          filename: "customers.dxf",
-          content: aDxf([...aDxfPoint("meters", [-3.7, 40.4])]),
-        }),
-      );
-
-      expect(
-        screen.queryByRole("tab", { name: /data preview/i, current: "step" }),
-      ).not.toBeInTheDocument();
     });
 
     it("processes a table whose columns name the coordinates", async () => {
@@ -310,7 +289,6 @@ describe("DataInputStep", () => {
     });
 
     it("asks for a coordinate system in words that fit any format", async () => {
-      stubFeatureOn("FLAG_IMPORT_DXF");
       const store = setInitialState({
         hydraulicModel: HydraulicModelBuilder.with().build(),
       });

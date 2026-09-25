@@ -31,13 +31,12 @@ export const DataInputStep: React.FC<{
   const userTracking = useUserTracking();
   const translate = useTranslate();
   const [gisFiles, setGisFiles] = useState<GisFiles>({});
-  const readsDxf = useFeatureFlag("FLAG_IMPORT_DXF");
   const readsCsv = useFeatureFlag("FLAG_IMPORT_CSV");
   const supportedFormats: GisFormat[] = [
     "geojson",
     "geojsonl",
     "shapefile",
-    ...(readsDxf ? (["dxf"] as const) : []),
+    "dxf",
     ...(readsCsv ? (["csv"] as const) : []),
   ];
 

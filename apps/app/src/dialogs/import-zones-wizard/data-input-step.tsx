@@ -7,7 +7,6 @@ import {
   type GisFiles,
   type GisFormat,
 } from "src/components/gis-drop-zone";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { ErrorIcon } from "src/icons";
 
 type DataInputStepProps = {
@@ -22,10 +21,7 @@ export const DataInputStep = (props: DataInputStepProps) => {
   const { error, showNoProjectionWarning, skippedRecordCount, gisFiles } =
     props;
   const translate = useTranslate();
-  const readsDxf = useFeatureFlag("FLAG_IMPORT_DXF");
-  const supportedFormats: GisFormat[] = readsDxf
-    ? ["geojson", "shapefile", "dxf"]
-    : ["geojson", "shapefile"];
+  const supportedFormats: GisFormat[] = ["geojson", "shapefile", "dxf"];
 
   return (
     <>
