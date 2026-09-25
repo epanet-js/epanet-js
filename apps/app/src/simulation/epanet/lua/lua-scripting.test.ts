@@ -41,4 +41,57 @@ describe("LuaScriptBuilder", () => {
 
     expect(script.join("\n")).toBe(luaScriptWithRemoteSetpointPrvs);
   });
+
+  describe("variable speed pumps", () => {
+    it("invokes vsp2_step and vsp2_solved with the pump row, its lagged pumps and its schedule", () => {
+      const builder = LuaScriptBuilder();
+      builder.withVariableSpeedPump(
+        "PU1",
+        "level",
+        "T1",
+        4.5,
+        0.3,
+        1,
+        ["PU2", "PU3"],
+        1,
+        [
+          { time: 0, target: 3 },
+          { time: 21600, target: 4.5 },
+        ],
+      );
+
+      const script = builder.build().join("\n");
+
+      expect(script).toContain("function vsp2_step(pumps, schedules)");
+      expect(script).toContain("function on_hydraulic_step()");
+      expect(script).toContain("function on_hydraulics_solved()");
+
+      const invocation =
+        '{{"PU1","level","T1",4.5,0.3,1,{"PU2","PU3"},1}}, {["PU1"]={{0,3},{21600,4.5}}}';
+      expect(script).toContain(`vsp2_step(${invocation})`);
+      expect(script).toContain(`vsp2_solved(${invocation})`);
+    });
+
+    it("combines every pump into one call and passes empty tables when there are no lagged pumps or schedules", () => {
+      const builder = LuaScriptBuilder();
+      builder.withVariableSpeedPump("PU1", "level", "T1", 4.5, 0.3, 1, [], 1);
+      builder.withVariableSpeedPump(
+        "PU4",
+        "pressure",
+        "J9",
+        30,
+        0.5,
+        1,
+        ["PU5"],
+        -1,
+      );
+
+      const script = builder.build().join("\n");
+
+      const invocation =
+        '{{"PU1","level","T1",4.5,0.3,1,{},1},{"PU4","pressure","J9",30,0.5,1,{"PU5"},-1}}, {}';
+      expect(script).toContain(`vsp2_step(${invocation})`);
+      expect(script).toContain(`vsp2_solved(${invocation})`);
+    });
+  });
 });
