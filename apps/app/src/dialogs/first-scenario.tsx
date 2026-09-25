@@ -41,7 +41,11 @@ export const FirstScenarioDialog = ({
   const content = (
     <>
       <div className="space-y-4 text-size-base text-default">
-        <p>{translate("scenarios.firstScenario.earlyAccess")}</p>
+        <p>
+          {isPersistScenariosOn
+            ? 'Scenarios let you explore "what-if" changes without duplicating your model. Create alternative versions of your network and compare results against your baseline.'
+            : translate("scenarios.firstScenario.earlyAccess")}
+        </p>
 
         <div>
           <p>{translate("scenarios.firstScenario.pleaseNote")}</p>
@@ -61,12 +65,14 @@ export const FirstScenarioDialog = ({
               </li>
             )}
             <li>{translate("scenarios.firstScenario.bullet3")}</li>
-            <li>
-              <Trans
-                i18nKey="scenarios.firstScenario.bullet4"
-                components={{ bold: <strong /> }}
-              />
-            </li>
+            {!isPersistScenariosOn && (
+              <li>
+                <Trans
+                  i18nKey="scenarios.firstScenario.bullet4"
+                  components={{ bold: <strong /> }}
+                />
+              </li>
+            )}
           </ul>
         </div>
       </div>
