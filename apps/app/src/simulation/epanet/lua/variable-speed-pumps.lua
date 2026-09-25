@@ -415,23 +415,51 @@ end
 -- about the model.
 -- ================================================================
 
--- vsp2: example vsp2-level: A pump holds a tank at 4.5 m for 24 h under a daily demand pattern: the level lands on the target at the end of every step and the net inflow sits at zero.
--- Each entry is { pump id, "pressure" | "level" | "flow", measured element,
--- target, minimum speed, maximum speed, { lag pump ids }, direction }.
--- The measured element is a junction id for "pressure", a tank id for "level",
--- a link id for "flow" ("" for the pump's own flow). The target is in the
--- .inp's units: a pressure, a level above the tank's base, or a flow. The
--- lags open in the order listed, each at the running pumps' speed, while
--- every running pump sits at maximum speed short of the target. The
--- direction is 1 when the measured link's positive flow (node1 to node2) is
--- the way the pump feeds it, -1 when the opposite; 1 for every other row.
--- A schedule, keyed by the pump id, is { { time of day in seconds, target },
--- … } in clock order: the latest entry at or before the time of day is in
--- force, on every day of the run, and a time of day before the first entry
--- takes the last one. A row with a schedule never uses its own target.
+-- VSP2_PUMPS holds one row per pump the script controls, written in the .inp's
+-- units. Edit these rows by hand to change what is held; the functions above
+-- read nothing else about the model.
+--
+-- A row is a list of 8 fields. Taking the example row below field by field:
+--
+--     { "PU1", "level", "T1", 4.5, 0.3, 1, {}, 1 }
+--
+--   1. pump id        "PU1"    EPANET link id of the lead pump the search drives.
+--   2. control type   "level"  what to hold: "pressure", "level", or "flow".
+--   3. measured       "T1"     where the controlled value is read: a junction id
+--      element                 for "pressure", a tank id for "level", or a link
+--                              id for "flow" ("" means the lead pump's own flow).
+--   4. target         4.5      value to hold, in the .inp's units: a pressure, a
+--                              level above the tank's base, or a flow. Ignored
+--                              when this pump has a VSP2_SCHEDULES entry.
+--   5. minimum speed  0.3      lowest relative speed the search may set (1.0 is
+--                              the pump's rated speed).
+--   6. maximum speed  1        highest relative speed the search may set.
+--   7. lag pumps      {}       link ids of follower pumps, e.g. { "PU2", "PU3" },
+--                              opened in this order behind the lead once every
+--                              running pump is at max speed and still short of
+--                              the target. {} means the lead pump runs alone.
+--   8. direction      1        only matters for a "flow" row measured on another
+--                              link: 1 if that link's positive flow (node1 ->
+--                              node2) is the way the pump feeds it, -1 if the
+--                              opposite. Use 1 for every other row.
+--
+-- The example row holds tank "T1" at 4.5 m by varying pump "PU1" between 0.3 and
+-- 1.0 speed, with no lag pumps.
 VSP2_PUMPS = {
     { "PU1", "level", "T1", 4.5, 0.3, 1, {}, 1 },
 }
+
+-- VSP2_SCHEDULES gives time-of-day targets, keyed by pump id. A pump listed here
+-- ignores its row's own target (field 4) and follows the schedule instead. Each
+-- schedule is a list of { time-of-day in seconds, target } pairs in clock order:
+-- the latest pair at or before the current time of day is in force, every day of
+-- the run, and a time of day before the first pair wraps to the last one. Leave
+-- it as {} when no pump is scheduled. Example holding "PU1" at 3.0 from midnight,
+-- 4.5 from 06:00 (21600 s), then 3.5 from 20:00 (72000 s):
+--
+--     VSP2_SCHEDULES = {
+--         ["PU1"] = { { 0, 3.0 }, { 21600, 4.5 }, { 72000, 3.5 } },
+--     }
 VSP2_SCHEDULES = {}
 
 -- ================================================================
