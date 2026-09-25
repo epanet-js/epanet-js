@@ -1479,6 +1479,41 @@ function* scriptRows(
     builder.withRemoteSetpointPrv(linkId, targetId, setting, upstreamNodeId);
   }
 
+  for (const control of hydraulicModel.controls) {
+    if (control.type !== "variable-speed-pump") continue;
+    if (
+      !isAssetInSimulation(hydraulicModel, control.linkId) ||
+      !isAssetInSimulation(hydraulicModel, control.targetId)
+    ) {
+      continue;
+    }
+
+    const pumpId = resolveLinkId(hydraulicModel, idMap, control.linkId);
+    const targetId =
+      control.quantity === "flow"
+        ? resolveLinkId(hydraulicModel, idMap, control.targetId)
+        : resolveNodeId(hydraulicModel, idMap, control.targetId);
+
+    const laggedPumpIds = control.laggedPumpIds
+      .filter((id) => isAssetInSimulation(hydraulicModel, id))
+      .map((id) => resolveLinkId(hydraulicModel, idMap, id));
+
+    // TODO: derive the remote flow direction from the topology; hardcoded for now.
+    const remoteFlowDirection = 1;
+
+    builder.withVariableSpeedPump(
+      pumpId,
+      control.quantity,
+      targetId,
+      control.target,
+      control.minSpeed,
+      control.maxSpeed,
+      laggedPumpIds,
+      remoteFlowDirection,
+      control.schedule,
+    );
+  }
+
   const script = builder.build();
 
   for (const line of script) {

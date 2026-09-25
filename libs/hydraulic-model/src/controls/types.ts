@@ -29,7 +29,28 @@ export type LevelSettingControl = {
   off: { level: number };
 };
 
-export type Control = TimedSettingControl | LevelSettingControl;
+export type VariableSpeedPumpSchedulePoint = {
+  time: number;
+  target: number;
+};
+
+export type VariableSpeedPumpControl = {
+  id: ControlId;
+  type: "variable-speed-pump";
+  linkId: AssetId;
+  quantity: "pressure" | "level" | "flow";
+  targetId: AssetId;
+  target: number;
+  minSpeed: number;
+  maxSpeed: number;
+  laggedPumpIds: AssetId[];
+  schedule: VariableSpeedPumpSchedulePoint[];
+};
+
+export type Control =
+  | TimedSettingControl
+  | LevelSettingControl
+  | VariableSpeedPumpControl;
 
 export type Controls = Control[];
 
@@ -51,6 +72,15 @@ export const getLinkLevelSetting = (
   controls.find(
     (control): control is LevelSettingControl =>
       control.type === "level-setting" && control.linkId === linkId,
+  ) ?? null;
+
+export const getLinkVariableSpeedPump = (
+  controls: Controls,
+  linkId: AssetId,
+): VariableSpeedPumpControl | null =>
+  controls.find(
+    (control): control is VariableSpeedPumpControl =>
+      control.type === "variable-speed-pump" && control.linkId === linkId,
   ) ?? null;
 
 export const buildTimedSetting = (
@@ -78,6 +108,15 @@ export const buildDefaultLevelSetting = (
   tankId,
   on: { level: minLevel, setting: initialSpeed },
   off: { level: maxLevel },
+});
+
+export const buildVariableSpeedPump = (
+  data: Omit<VariableSpeedPumpControl, "id" | "type">,
+  id: ControlId = createControlId(),
+): VariableSpeedPumpControl => ({
+  id,
+  type: "variable-speed-pump",
+  ...data,
 });
 
 export const setAssetControl = (

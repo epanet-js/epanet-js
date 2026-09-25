@@ -3,6 +3,8 @@ export type {
   TimedSettingStep,
   TimedSettingControl,
   LevelSettingControl,
+  VariableSpeedPumpControl,
+  VariableSpeedPumpSchedulePoint,
   Control,
   Controls,
 } from "./types";
@@ -12,8 +14,10 @@ export {
   createEmptyControls,
   getLinkTimedSetting,
   getLinkLevelSetting,
+  getLinkVariableSpeedPump,
   buildTimedSetting,
   buildDefaultLevelSetting,
+  buildVariableSpeedPump,
   setAssetControl,
 } from "./types";
 

@@ -446,6 +446,54 @@ describe("build inp", () => {
     );
   });
 
+  describe("variable speed pump controls", () => {
+    const buildModelWithVsp = () => {
+      const IDS = { N1: 1, N2: 2, T1: 3, PU1: 4, PU2: 5 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aNode(IDS.N1)
+        .aNode(IDS.N2)
+        .aTank(IDS.T1)
+        .aPump(IDS.PU1, { startNodeId: IDS.N1, endNodeId: IDS.N2 })
+        .aPump(IDS.PU2, { startNodeId: IDS.N1, endNodeId: IDS.N2 })
+        .aVariableSpeedPumpControl({
+          linkId: IDS.PU1,
+          quantity: "level",
+          targetId: IDS.T1,
+          target: 4.5,
+          minSpeed: 0.3,
+          maxSpeed: 1,
+          laggedPumpIds: [IDS.PU2],
+          schedule: [
+            { time: 0, target: 3 },
+            { time: 21600, target: 4.5 },
+          ],
+        })
+        .build();
+
+      return { IDS, hydraulicModel };
+    };
+
+    it("emits a variable speed pump script call in the [SCRIPT] section for each control", () => {
+      const { IDS, hydraulicModel } = buildModelWithVsp();
+
+      const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
+        simulationSettings: defaultSimulationSettings,
+      });
+
+      expect(inp).toContain("[SCRIPT]");
+      expect(inp).toContain("function on_hydraulic_step()");
+      expect(inp).toContain("function on_hydraulics_solved()");
+
+      const invocation =
+        `{{"${IDS.PU1}","level","${IDS.T1}",4.5,0.3,1,{"${IDS.PU2}"},1}}, ` +
+        `{["${IDS.PU1}"]={{0,3},{21600,4.5}}}`;
+      expect(inp).toContain(`vsp2_step(${invocation})`);
+      expect(inp).toContain(`vsp2_solved(${invocation})`);
+      expect(inp).not.toContain("[CONTROLS]");
+    });
+  });
+
   it("adds pumps with a curve", () => {
     const IDS = { NODE1: 1, NODE2: 2, NODE3: 3, PUMP1: 4 };
     const hydraulicModel = HydraulicModelBuilder.with()
