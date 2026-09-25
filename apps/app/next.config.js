@@ -37,6 +37,12 @@ const nextConfig = {
     });
 
     config.module.rules.push({
+      test: /\.lua$/,
+      resourceQuery: /raw/,
+      type: "asset/source",
+    });
+
+    config.module.rules.push({
       test: /\.wasm$/,
       type: "asset/resource",
       generator: {
