@@ -5,7 +5,6 @@ import { LabelManager } from "@epanet-js/hydraulic-model";
 import { initializeModelFactoriesWithPools } from "@epanet-js/hydraulic-model";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
-import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
 import { buildIdPools } from "src/lib/id-pools";
 import { Persistence } from "src/lib/persistence/persistence";
 import { PersistenceContext } from "src/lib/persistence/context";
@@ -16,7 +15,7 @@ import { PatternsDialog } from "./patterns-dialog";
 
 const IDS = { J1: 1, PAT1: 1, PAT3: 3 } as const;
 
-const aProjectWithAPatternIdGap = (withPools: boolean): Store => {
+const aProjectWithAPatternIdGap = (): Store => {
   const hydraulicModel = HydraulicModelBuilder.with()
     .aJunction(IDS.J1)
     .aDemandPattern(IDS.PAT1, "PAT1", [1])
@@ -26,7 +25,7 @@ const aProjectWithAPatternIdGap = (withPools: boolean): Store => {
   store.set(
     modelFactoriesAtom,
     initializeModelFactoriesWithPools({
-      idPools: buildIdPools(withPools, {
+      idPools: buildIdPools({
         asset: IDS.J1,
         customerPoint: IDS.J1,
         pattern: IDS.PAT3,
@@ -62,22 +61,11 @@ const patternIdsOf = (store: Store) => [
 
 describe("PatternsDialog id pools", () => {
   it("draws a new pattern from the pattern pool", async () => {
-    stubFeatureOn("FLAG_ID_POOLS");
-    const store = aProjectWithAPatternIdGap(true);
+    const store = aProjectWithAPatternIdGap();
     renderDialog(store);
 
     await addAPattern("NEW");
 
     expect(patternIdsOf(store)).toEqual([IDS.PAT1, IDS.PAT3, IDS.PAT3 + 1]);
-  });
-
-  it("refills the gap left by a deleted pattern when the flag is off", async () => {
-    stubFeatureOff("FLAG_ID_POOLS");
-    const store = aProjectWithAPatternIdGap(false);
-    renderDialog(store);
-
-    await addAPattern("NEW");
-
-    expect(patternIdsOf(store)).toEqual([IDS.PAT1, IDS.PAT3, 2]);
   });
 });

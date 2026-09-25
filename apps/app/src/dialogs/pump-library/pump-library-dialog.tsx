@@ -25,7 +25,6 @@ import { useMomentTransaction } from "src/hooks/persistence/use-moment-transacti
 import { changeCurves } from "src/hydraulic-model/model-operations/change-curves";
 import { notify } from "src/components/notifications";
 import { useUserTracking } from "src/infra/user-tracking";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { getCurveTypeConfig } from "../curves/curve-type-config";
 import { DialogActions, DialogActionsHandle } from "../dialog-actions-row";
@@ -57,7 +56,6 @@ export const PumpLibraryDialog = ({
   const projectSettings = useAtomValue(projectSettingsAtom);
   const userTracking = useUserTracking();
   const isEditionBlocked = useIsEditionBlocked();
-  const isIdPoolsOn = useFeatureFlag("FLAG_ID_POOLS");
   const { idPools } = useAtomValue(modelFactoriesAtom);
   const [selectedCurveId, setSelectedCurveId] = useState<CurveId | null>(
     initialCurveId ?? null,
@@ -131,7 +129,7 @@ export const PumpLibraryDialog = ({
         labelManagerRef.current,
         label,
         type,
-        isIdPoolsOn ? idPools.forPool("curve") : undefined,
+        idPools.forPool("curve"),
       );
       newCurve.points = points;
       setEditedCurves((prev) => {
@@ -144,7 +142,7 @@ export const PumpLibraryDialog = ({
       userTracking.capture({ name: "curve.added", source });
       return newCurve.id;
     },
-    [editedCurves, userTracking, isIdPoolsOn, idPools],
+    [editedCurves, userTracking, idPools],
   );
 
   const handleDeleteCurve = useCallback(

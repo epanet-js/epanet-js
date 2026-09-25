@@ -15,17 +15,6 @@ export type Pattern = {
 
 export type Patterns = Map<PatternId, Pattern>;
 
-export const getNextPatternId = (
-  patterns: Patterns,
-  startId?: number,
-): PatternId => {
-  let nextId = Math.max(startId ?? patterns.size, 1);
-  while (patterns.has(nextId)) {
-    nextId += 1;
-  }
-  return nextId;
-};
-
 export const deepClonePatterns = (patterns: Patterns): Patterns => {
   const cloned = new Map<PatternId, Pattern>();
   for (const [id, pattern] of patterns) {

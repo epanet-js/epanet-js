@@ -51,7 +51,6 @@ export type {
   Patterns,
 } from "@epanet-js/hydraulic-model";
 export {
-  getNextPatternId,
   deepClonePatterns,
   differentPatternsCount,
 } from "@epanet-js/hydraulic-model";

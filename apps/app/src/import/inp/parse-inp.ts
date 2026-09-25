@@ -45,7 +45,6 @@ export type ParseInpOptions = {
   inactiveAssets?: boolean;
   populateAssetIndex?: boolean;
   labelMaxLength?: number;
-  idPools?: boolean;
 };
 
 export type ParseInpResult = {
