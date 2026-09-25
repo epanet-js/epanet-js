@@ -36,7 +36,7 @@ export const useCreateScenario = () => {
 
       const isFirstTimeEnabling = scenariosList.length === 0;
 
-      if (isFirstTimeEnabling && !canUseScenarios && !isDemoNetwork) {
+      if (!canUseScenarios) {
         setDialog({ type: "featurePaywall", feature: "scenarios" });
         return null;
       }

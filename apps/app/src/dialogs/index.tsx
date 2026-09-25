@@ -57,6 +57,7 @@ import { CurveLibraryDialog } from "src/dialogs/curves";
 import { CustomAttributesDialog } from "src/dialogs/custom-attributes";
 import { DeleteScenarioConfirmationDialog } from "src/dialogs/delete-scenario-confirmation";
 import { RenameScenarioDialog } from "src/dialogs/rename-scenario";
+import { ScenarioSignInDialog } from "src/dialogs/scenario-sign-in";
 import { ScenariosPaywallConnector } from "src/dialogs/paywall/scenarios-connector";
 import { ElevationsPaywallConnector } from "src/dialogs/paywall/elevations-connector";
 import { CustomLayersPaywallConnector } from "src/dialogs/paywall/custom-layers-connector";
@@ -305,6 +306,14 @@ export const Dialogs = memo(function Dialogs() {
     if (dialog.feature === "scenarios") {
       return <ScenariosPaywallConnector onClose={onClose} />;
     }
+    if (dialog.feature === "manageScenarios") {
+      return (
+        <ScenariosPaywallConnector
+          feature="manageScenarios"
+          onClose={onClose}
+        />
+      );
+    }
     if (dialog.feature === "customLayers") {
       return <CustomLayersPaywallConnector onClose={onClose} />;
     }
@@ -501,6 +510,9 @@ export const Dialogs = memo(function Dialogs() {
         />
       ),
     )
+    .with({ type: "scenarioSignIn" }, () => (
+      <ScenarioSignInDialog onClose={onClose} />
+    ))
     .with({ type: "profileNoPath" }, () => (
       <ProfileNoPathDialog onClose={onClose} />
     ))

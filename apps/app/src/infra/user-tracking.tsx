@@ -671,7 +671,7 @@ type FoundersPartnerLinkVisited = {
 
 type SignInStarted = {
   name: "signIn.started";
-  source: "menu";
+  source: "menu" | "scenarioSwitcher";
 };
 
 type SignUpStarted = {

@@ -74,8 +74,8 @@ describe("resolvePermissions", () => {
     expect(p.canUseControls).toBe(true);
     expect(p.canUsePipeLibrary).toBe(true);
     expect(p.canUseCustomAttributes).toBe(true);
+    expect(p.canUseScenarios).toBe(true);
     expect(p.canAddCustomLayers).toBe(false);
-    expect(p.canUseScenarios).toBe(false);
     expect(p.canUseElevations).toBe(false);
     expect(p.canValidateModelAttributes).toBe(false);
     expect(p.canImportSynergi).toBe(false);

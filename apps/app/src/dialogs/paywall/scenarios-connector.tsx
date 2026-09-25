@@ -29,8 +29,10 @@ const SCENARIOS_CAPTIONS = [
 ] as const;
 
 export const ScenariosPaywallConnector = ({
+  feature = "scenarios",
   onClose,
 }: {
+  feature?: "scenarios" | "manageScenarios";
   onClose: () => void;
 }) => {
   const setDialog = useSetAtom(dialogAtom);
@@ -94,7 +96,7 @@ export const ScenariosPaywallConnector = ({
   );
 
   const config: FeaturePaywallConfig = {
-    feature: "scenarios",
+    feature,
     videoSrc: SCENARIOS_VIDEO_SRC,
     captions: SCENARIOS_CAPTIONS,
     titleKey: "scenarios.paywall.title",
@@ -106,7 +108,8 @@ export const ScenariosPaywallConnector = ({
       trial: "scenarios.paywall.trial",
       plans: "scenarios.paywall.plans",
     },
-    onTrialActivated: runSimulationThenProceed,
+    onTrialActivated:
+      feature === "scenarios" ? runSimulationThenProceed : onClose,
   };
 
   return <FeaturePaywall config={config} onClose={onClose} />;

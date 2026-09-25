@@ -1615,6 +1615,11 @@
       "errorDuplicate": "This name is already in use",
       "errorReserved": "This name is reserved"
     },
+    "signIn": {
+      "title": "Sign in to view scenarios",
+      "description": "This project has scenarios. Sign in to view them.",
+      "action": "Sign in"
+    },
     "deleteConfirmation": {
       "title": "Delete Scenario",
       "message": "Are you sure you want to delete scenario \"{{1}}\"?",

@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { Provider as JotaiProvider, createStore } from "jotai";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
@@ -19,7 +19,18 @@ import { SessionHistory } from "src/lib/persistence/session-history";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { Persistence } from "src/lib/persistence/persistence";
 import { USelection } from "src/selection";
+import { resolvePermissions } from "src/hooks/use-permissions";
 import FeatureEditor from "../feature-editor";
+
+vi.mock("src/hooks/use-permissions", async () => {
+  const actual = await vi.importActual<
+    typeof import("src/hooks/use-permissions")
+  >("src/hooks/use-permissions");
+  return {
+    ...actual,
+    usePermissions: () => resolvePermissions("pro", false, false, false),
+  };
+});
 
 const IDS = { P1: 1 };
 

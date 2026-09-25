@@ -227,6 +227,10 @@ export type DeleteScenarioConfirmationDialogState = {
   onConfirm: (scenarioId: string) => void;
 };
 
+export type ScenarioSignInDialogState = {
+  type: "scenarioSignIn";
+};
+
 export type RenameScenarioDialogState = {
   type: "renameScenario";
   scenarioId: string;
@@ -236,6 +240,7 @@ export type RenameScenarioDialogState = {
 
 export type PaywallFeature =
   | "scenarios"
+  | "manageScenarios"
   | "elevations"
   | "refreshElevations"
   | "customLayers"
@@ -412,6 +417,7 @@ export type DialogState =
   | CustomAttributesDialogState
   | DeleteScenarioConfirmationDialogState
   | RenameScenarioDialogState
+  | ScenarioSignInDialogState
   | FeaturePaywallDialogState
   | ElevationTileErrorsDialogState
   | GisImportErrorsDialogState

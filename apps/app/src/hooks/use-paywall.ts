@@ -18,6 +18,10 @@ const FEATURE_CONFIG: Record<PaywallFeature, FeatureConfig> = {
     permission: "canUseScenarios",
     dialog: { type: "featurePaywall", feature: "scenarios" },
   },
+  manageScenarios: {
+    permission: "canUseScenarios",
+    dialog: { type: "featurePaywall", feature: "manageScenarios" },
+  },
   elevations: {
     permission: "canUseElevations",
     dialog: { type: "featurePaywall", feature: "elevations" },

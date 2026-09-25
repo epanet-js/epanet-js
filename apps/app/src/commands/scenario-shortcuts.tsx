@@ -1,6 +1,7 @@
 import { useAtomValue } from "jotai";
 import { useCallback } from "react";
 import { useScenarioOperations } from "src/hooks/use-scenario-operations";
+import { useSwitchToBranch } from "src/commands/switch-scenario";
 import { worktreeAtom } from "src/state/scenarios";
 import { isPlayingAtom } from "src/state/simulation-playback";
 
@@ -10,7 +11,7 @@ export const goToMainShortcut = "shift+y";
 export const useToggleBranch = () => {
   const worktree = useAtomValue(worktreeAtom);
   const isPlaying = useAtomValue(isPlayingAtom);
-  const { switchToBranch } = useScenarioOperations();
+  const switchToBranch = useSwitchToBranch();
 
   return useCallback(() => {
     if (isPlaying) return;

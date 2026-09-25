@@ -18,6 +18,8 @@ import { useScenarioOperations } from "src/hooks/use-scenario-operations";
 import { worktreeAtom, scenariosListAtom } from "src/state/scenarios";
 import { dialogAtom } from "src/state/dialog";
 import { useCreateScenario } from "src/commands/create-scenario";
+import { useSwitchToBranch } from "src/commands/switch-scenario";
+import { useFeatureLock } from "src/components/form/paywall";
 import {
   Button,
   DDContent,
@@ -38,10 +40,12 @@ export const ScenarioSwitcher = () => {
   const {
     scenariosAvailable,
     switchToMain,
-    switchToBranch,
     deleteScenarioById,
     renameScenarioById,
   } = useScenarioOperations();
+  const switchToBranch = useSwitchToBranch();
+  const { isLocked: isManageLocked, openPaywall: openManagePaywall } =
+    useFeatureLock("manageScenarios");
 
   const isPlaying = useAtomValue(isPlayingAtom);
 
@@ -87,6 +91,7 @@ export const ScenarioSwitcher = () => {
   };
 
   const openDeleteConfirmation = (scenarioId: string, scenarioName: string) => {
+    if (isManageLocked) return openManagePaywall();
     setDialog({
       type: "deleteScenarioConfirmation",
       scenarioId,
@@ -100,6 +105,7 @@ export const ScenarioSwitcher = () => {
   };
 
   const openRenameDialog = (scenarioId: string, scenarioName: string) => {
+    if (isManageLocked) return openManagePaywall();
     setDialog({
       type: "renameScenario",
       scenarioId,

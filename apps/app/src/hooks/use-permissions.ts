@@ -34,7 +34,7 @@ export const resolvePermissions = (
     ["pro", "education", "personal", "teams"].includes(plan) || trialActive;
   return {
     canAddCustomLayers: hasPaidAccess,
-    canUseScenarios: hasPaidAccess,
+    canUseScenarios: hasPaidAccess || isDemoNetwork,
     canUseElevations: hasPaidAccess,
     canRefreshElevations: hasPaidAccess,
     canUseZones: hasPaidAccess || isDemoNetwork,
