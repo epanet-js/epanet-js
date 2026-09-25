@@ -1,20 +1,36 @@
 import type { MapEngine } from "@epanet-js/map";
 
+export type ThumbnailFormat = "jpeg" | "png";
+
+export type CaptureThumbnailOptions = {
+  width?: number;
+  height?: number;
+  crop?: number;
+  format?: ThumbnailFormat;
+  quality?: number;
+  allowUpscale?: boolean;
+};
+
 export function captureThumbnail(
   mapEngine: MapEngine,
-  width = 320,
-  height = 256,
-  crop = 0.6,
+  options: CaptureThumbnailOptions = {},
 ): string | null {
+  const {
+    width = 320,
+    height = 256,
+    crop = 0.6,
+    format = "jpeg",
+    quality = 0.85,
+    allowUpscale = false,
+  } = options;
+
   try {
     const sourceCanvas = mapEngine.map?.getCanvas();
     if (!sourceCanvas) return null;
     // Scale output to fit within source canvas size while preserving aspect ratio
-    const scale = Math.min(
-      1,
-      sourceCanvas.width / width,
-      sourceCanvas.height / height,
-    );
+    const scale = allowUpscale
+      ? 1
+      : Math.min(1, sourceCanvas.width / width, sourceCanvas.height / height);
     const outW = Math.round(width * scale);
     const outH = Math.round(height * scale);
     const offscreen = document.createElement("canvas");
@@ -46,8 +62,19 @@ export function captureThumbnail(
     const sy = regionY + (regionH - sh) / 2;
 
     ctx.drawImage(sourceCanvas, sx, sy, sw, sh, 0, 0, outW, outH);
-    return offscreen.toDataURL("image/jpeg", 0.85);
+    return offscreen.toDataURL(`image/${format}`, quality);
   } catch {
     return null;
   }
 }
+
+export const sourceRegionWidthFor = (
+  sourceCanvas: HTMLCanvasElement,
+  width: number,
+  height: number,
+): number => {
+  const targetRatio = width / height;
+  return sourceCanvas.width / sourceCanvas.height > targetRatio
+    ? sourceCanvas.height * targetRatio
+    : sourceCanvas.width;
+};

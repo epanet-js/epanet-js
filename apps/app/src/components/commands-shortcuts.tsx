@@ -104,6 +104,11 @@ import {
   createScenarioShortcut,
   useCreateScenario,
 } from "src/commands/create-scenario";
+import {
+  captureDemoThumbnailShortcut,
+  useCaptureDemoThumbnail,
+} from "src/commands/capture-demo-thumbnail";
+import { isDebugOn } from "src/infra/debug-mode";
 
 const IGNORE_ROLES = new Set(["menuitem"]);
 
@@ -141,6 +146,19 @@ export const CommandShortcuts = () => {
   const createScenario = useCreateScenario();
   const toggleBranch = useToggleBranch();
   const goToMain = useGoToMain();
+  const captureDemoThumbnail = useCaptureDemoThumbnail();
+
+  useHotkeys(
+    captureDemoThumbnailShortcut,
+    (e) => {
+      if (e.preventDefault) e.preventDefault();
+
+      captureDemoThumbnail();
+    },
+    [captureDemoThumbnailShortcut, captureDemoThumbnail],
+    "Capture demo thumbnail",
+    !isDebugOn,
+  );
 
   useHotkeys(
     showReportShorcut,

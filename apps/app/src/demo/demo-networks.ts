@@ -13,3 +13,5 @@ export const WATERDOWN = {
 };
 
 export const DEMO_NETWORKS = [DRUMCHAPEL, WATERDOWN];
+
+export const DEMO_THUMBNAIL_SIZE = { width: 800, height: 640 };
