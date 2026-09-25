@@ -107,7 +107,12 @@ export type ProjectSavedInfoState = {
   onCancel?: () => void;
 };
 
-export type UpgradeOrigin = "paywall" | "upgrade" | "priorityAccess" | "menu";
+export type UpgradeOrigin =
+  | "paywall"
+  | "upgrade"
+  | "priorityAccess"
+  | "menu"
+  | "panel";
 
 export type UpgradeDialogState = {
   type: "upgrade";

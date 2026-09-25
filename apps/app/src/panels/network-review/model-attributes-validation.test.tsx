@@ -8,6 +8,7 @@ import {
 import { vi } from "vitest";
 import { Provider as JotaiProvider } from "jotai";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
+import { AuthMockProvider } from "src/__helpers__/auth-mock";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
 import { Store } from "src/state";
@@ -44,11 +45,13 @@ beforeAll(() => {
 
 const renderPanel = (store: Store) => {
   render(
-    <JotaiProvider store={store}>
-      <TooltipProvider>
-        <ModelAttributesValidation onGoBack={vi.fn()} />
-      </TooltipProvider>
-    </JotaiProvider>,
+    <AuthMockProvider>
+      <JotaiProvider store={store}>
+        <TooltipProvider>
+          <ModelAttributesValidation onGoBack={vi.fn()} />
+        </TooltipProvider>
+      </JotaiProvider>
+    </AuthMockProvider>,
   );
 };
 

@@ -1,14 +1,21 @@
 import { useCallback } from "react";
+import { useSetAtom } from "jotai";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { type PaywallFeature } from "src/state/dialog";
 import { usePaywall, useStartUpgrade } from "src/hooks/use-paywall";
 import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
-import { PaywallLockIcon } from "src/icons";
+import { PaywallLockIcon, RefreshIcon } from "src/icons";
 import { Button, TContent, StyledTooltipArrow } from "src/components/elements";
 import { useAuth } from "src/hooks/use-auth";
-import { useIsTrialEmailRefused } from "src/hooks/use-activate-trial";
+import {
+  trialAfterSignInAtom,
+  useActivateTrial,
+  useIsTrialEmailRefused,
+} from "src/hooks/use-activate-trial";
 import { isTrialAvailable } from "src/lib/account-plans";
+import { SignInButton } from "src/components/auth/sign-in-button";
+import { buildAfterSignupUrl } from "src/hooks/use-early-access";
 
 export const useFeatureLock = (feature: PaywallFeature | undefined) => {
   const paywallDialog = usePaywall(feature);
@@ -130,17 +137,60 @@ export const PaywallUpgradeBox = ({
 }) => {
   const translate = useTranslate();
   const { openPaywall } = useFeatureLock(feature);
-  const { user } = useAuth();
+  const { user, isSignedIn } = useAuth();
+  const userTracking = useUserTracking();
   const isTrialEmailRefused = useIsTrialEmailRefused();
+  const { activateTrial, isLoading } = useActivateTrial();
+  const setTrialAfterSignIn = useSetAtom(trialAfterSignInAtom);
   const canStartTrial = isTrialAvailable(user) && !isTrialEmailRefused;
+
+  const captureStart = () =>
+    userTracking.capture({
+      name: "trial.clickedStart",
+      source: "panel",
+      feature,
+    });
+
+  const startTrial = async () => {
+    captureStart();
+    await activateTrial();
+  };
+
+  const signInToStartTrial = () => {
+    captureStart();
+    setTrialAfterSignIn(true);
+  };
 
   return (
     <div className="mx-3 mb-3 rounded-lg border border-purple-200 bg-base p-4 shadow-md dark:border-purple-900">
       <h3 className="font-bold text-size-base">{title}</h3>
       <p className="mt-1 mb-3 text-subtle text-size-base">{description}</p>
-      <Button variant="primary" onClick={openPaywall}>
-        {canStartTrial ? translate("trial.startFree") : translate("upgrade")}
-      </Button>
+      {!canStartTrial ? (
+        <Button variant="primary" onClick={openPaywall}>
+          {translate("upgrade")}
+        </Button>
+      ) : isSignedIn ? (
+        <Button
+          variant="primary"
+          className="relative"
+          onClick={() => void startTrial()}
+          disabled={isLoading}
+        >
+          <span className={isLoading ? "invisible" : undefined}>
+            {translate("trial.startFree")}
+          </span>
+          {isLoading && <RefreshIcon className="animate-spin absolute" />}
+        </Button>
+      ) : (
+        <SignInButton
+          forceRedirectUrl={buildAfterSignupUrl("activatingTrial")}
+          signUpForceRedirectUrl={buildAfterSignupUrl("activatingTrial")}
+        >
+          <Button variant="primary" onClick={signInToStartTrial}>
+            {translate("trial.startFree")}
+          </Button>
+        </SignInButton>
+      )}
     </div>
   );
 };
