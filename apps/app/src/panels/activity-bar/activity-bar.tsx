@@ -17,7 +17,6 @@ import {
 import { TabRoot } from "src/components/tab";
 import { RailTabList } from "src/components/rail-tab";
 import { useTranslate } from "src/hooks/use-translate";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { activePanelIn, panelsIn } from "src/state/panels";
 import { splitsAtom } from "src/state/layout";
 import { useReorderPanel } from "src/commands/reorder-panel";
@@ -30,7 +29,6 @@ const activeLeftPanelAtom = activePanelIn("left");
 const leftOpenAtom = selectAtom(splitsAtom, (splits) => splits.leftOpen);
 
 export const ActivityBar = memo(function ActivityBarInner() {
-  const isActivityBarOn = useFeatureFlag("FLAG_ACTIVITY_BAR_SWITCHER");
   const panels = useAtomValue(leftPanelsAtom);
   const activePanel = useAtomValue(activeLeftPanelAtom);
   const isOpen = useAtomValue(leftOpenAtom);
@@ -50,7 +48,7 @@ export const ActivityBar = memo(function ActivityBarInner() {
     [reorderPanel],
   );
 
-  if (!isActivityBarOn || panels.length < 2) return null;
+  if (panels.length < 2) return null;
 
   return (
     <TabRoot

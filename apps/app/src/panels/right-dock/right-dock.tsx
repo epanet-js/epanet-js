@@ -22,12 +22,10 @@ import { useReorderPanel } from "src/commands/reorder-panel";
 import { useClosePanel } from "src/commands/close-panel";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { useUserTracking } from "src/infra/user-tracking";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { panelTrackingName } from "../panel";
 import { panelDescription, panelLabel } from "../panel-template";
 import { PanelContent } from "../panel-template";
 import { PanelTab } from "../bottom-dock/panel-tab";
-import { SideTabList } from "./side-tab-list";
 
 const rightPanelsAtom = panelsIn("right");
 const activeRightPanelAtom = activePanelIn("right");
@@ -41,7 +39,6 @@ export const RightDock = memo(function RightDockInner() {
   const reorderPanel = useReorderPanel();
   const closePanel = useClosePanel();
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
-  const isActivityBarSwitcher = useFeatureFlag("FLAG_ACTIVITY_BAR_SWITCHER");
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
@@ -96,24 +93,6 @@ export const RightDock = memo(function RightDockInner() {
       </DefaultErrorBoundary>
     </div>
   );
-
-  if (!isActivityBarSwitcher) {
-    return (
-      <div className="absolute inset-0 flex flex-col">
-        {panels.length > 1 && (
-          <SideTabList
-            tabs={panels.map((entry) => ({
-              id: entry.id,
-              label: labelOf(entry),
-            }))}
-            activeId={activePanel?.id}
-            onSelect={handleTabChange}
-          />
-        )}
-        {content}
-      </div>
-    );
-  }
 
   return (
     <TabRoot

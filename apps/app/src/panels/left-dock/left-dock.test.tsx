@@ -1,7 +1,6 @@
 /** @vitest-environment jsdom */
 import { useEffect } from "react";
 import { act, render, screen } from "@testing-library/react";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import "src/__helpers__/locale";
 import { setInitialState } from "src/__helpers__/state";
@@ -52,7 +51,6 @@ const renderDock = (store: Store) =>
 
 beforeEach(() => {
   stubUserTracking();
-  stubFeatureOn("FLAG_ACTIVITY_BAR_SWITCHER");
   mounts.length = 0;
 });
 
