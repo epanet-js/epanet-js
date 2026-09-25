@@ -65,7 +65,7 @@ const MISSING_VALUE = "MISSING";
 const CURVE_TANK_DIAMETER = 1;
 
 import type { EpanetUnitSystem } from "@epanet-js/project-settings";
-import { LuaScriptBuilder } from "./epanet/lua-scripting";
+import { LuaScriptBuilder } from "./epanet/lua";
 export type { EpanetUnitSystem };
 
 export const defaultAccuracy = 0.001;
