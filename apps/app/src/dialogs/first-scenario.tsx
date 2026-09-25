@@ -95,7 +95,7 @@ export const FirstScenarioDialog = ({
       size="md"
       isOpen={true}
       onClose={onClose}
-      badge={<EarlyAccessBadge />}
+      badge={isPersistScenariosOn ? undefined : <EarlyAccessBadge />}
       footer={
         <SimpleDialogActions
           action={translate("scenarios.firstScenario.createButton")}
