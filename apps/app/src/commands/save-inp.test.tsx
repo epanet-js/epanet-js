@@ -8,6 +8,9 @@ import { aFileInfo, setInitialState } from "src/__helpers__/state";
 import { CommandContainer } from "./__helpers__/command-container";
 import { FileSystemHelpers } from "src/infra/storage";
 import { waitForNotLoading } from "src/__helpers__/ui-expects";
+import { worktreeAtom } from "src/state/scenarios";
+import { stubUserTracking } from "src/__helpers__/user-tracking";
+import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("save inp", () => {
   beforeEach(() => {
@@ -151,6 +154,37 @@ describe("save inp", () => {
     );
     expect(store.get(inpFileInfoAtom)).toBeNull();
     expect(screen.getByText(/exported as inp/i)).toBeInTheDocument();
+  });
+
+  it("tracks how many scenarios the exported project has", async () => {
+    stubFeatureOn("FLAG_PERSIST_SCENARIOS");
+    const userTracking = stubUserTracking();
+    const { handle } = buildWritableHandleMock();
+    vi.spyOn(FileSystemHelpers, "openFileInFileSystem").mockResolvedValue(
+      handle,
+    );
+    const store = setInitialState({
+      hydraulicModel: HydraulicModelBuilder.with().aJunction(1).build(),
+    });
+    const worktree = store.get(worktreeAtom);
+    store.set(worktreeAtom, {
+      ...worktree,
+      branches: new Map(worktree.branches).set("scenario-1", {
+        id: "scenario-1",
+        name: "Scenario #1",
+        parentId: worktree.mainId,
+        status: "open",
+      }),
+      scenarios: ["scenario-1"],
+      highestScenarioNumber: 1,
+    });
+
+    renderComponent({ store });
+    await triggerSave();
+
+    expect(userTracking.capture).toHaveBeenCalledWith(
+      expect.objectContaining({ name: "inp.exported", scenariosCount: 1 }),
+    );
   });
 
   it("displays an error when not saved", async () => {

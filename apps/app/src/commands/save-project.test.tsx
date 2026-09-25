@@ -19,12 +19,29 @@ import * as db from "src/lib/db";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import type { HydraulicModel } from "src/hydraulic-model";
 import { userSettingsAtom } from "src/state/user-settings";
+import { worktreeAtom } from "src/state/scenarios";
+import { stubUserTracking } from "src/__helpers__/user-tracking";
 
 const seedDb = async (hydraulicModel: HydraulicModel) => {
   await db.importProject({
     newDb: true,
     hydraulicModel,
     simulationSettings: defaultSimulationSettings,
+  });
+};
+
+const addScenario = (store: Store) => {
+  const worktree = store.get(worktreeAtom);
+  store.set(worktreeAtom, {
+    ...worktree,
+    branches: new Map(worktree.branches).set("scenario-1", {
+      id: "scenario-1",
+      name: "Scenario #1",
+      parentId: worktree.mainId,
+      status: "open",
+    }),
+    scenarios: ["scenario-1"],
+    highestScenarioNumber: 1,
   });
 };
 
@@ -66,6 +83,26 @@ describe("save project", () => {
     await triggerSave();
 
     expect(store.get(hasUnsavedChangesRevisionAtom)).toBe(false);
+  });
+
+  it("tracks how many scenarios the saved project has", async () => {
+    const userTracking = stubUserTracking();
+    stubFileSave({ fileName: "my-project.ejsdb" });
+    const hydraulicModel = HydraulicModelBuilder.with().aJunction(1).build();
+    const store = setInitialState({ hydraulicModel });
+    skipProjectSavedInfo(store);
+    addScenario(store);
+    await seedDb(hydraulicModel);
+
+    renderComponent({ store });
+    await triggerSave();
+
+    expect(userTracking.capture).toHaveBeenCalledWith({
+      name: "project.saved",
+      source: "test",
+      isSaveAs: false,
+      scenariosCount: 1,
+    });
   });
 
   it("shows the cancel warning when the user dismisses the save dialog", async () => {

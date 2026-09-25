@@ -461,6 +461,7 @@ type InpExported = {
   isSaveAs?: boolean;
   lsxRequired?: boolean;
   includesRemoteSetpointPrvs?: boolean;
+  scenariosCount: number;
 };
 
 type InpExportLsxLinkClicked = {
@@ -471,6 +472,7 @@ type ProjectSaved = {
   name: "project.saved";
   source: string;
   isSaveAs?: boolean;
+  scenariosCount: number;
 };
 
 export type OpenProjectStarted = {
@@ -507,6 +509,7 @@ export type ProjectFileOpened = {
   counts: Record<string, number>;
   headlossFormula: HeadlossFormula;
   units: EpanetUnitSystem;
+  scenariosCount: number;
   uniqueId?: string;
   filename?: string;
   projectName?: string;

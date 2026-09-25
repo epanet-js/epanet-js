@@ -74,6 +74,7 @@ export const useSaveInp = () => {
             lsxRequired: lsxRequirements.isRequired,
             includesRemoteSetpointPrvs:
               lsxRequirements.remoteSetpointPrvs.length > 0,
+            scenariosCount: worktree.scenarios.length,
           });
 
           const suggestedName = fileInfo

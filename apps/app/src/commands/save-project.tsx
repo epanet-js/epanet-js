@@ -11,6 +11,7 @@ import { markProjectSavedAtom } from "src/state/project-revision";
 import { dialogAtom } from "src/state/dialog";
 import { userSettingsAtom } from "src/state/user-settings";
 import { projectSettingsAtom } from "src/state/project-settings";
+import { worktreeAtom } from "src/state/scenarios";
 import { notify } from "src/components/notifications";
 import { SpinnerIcon, SuccessIcon, WarningIcon } from "src/icons";
 import { useTranslate } from "src/hooks/use-translate";
@@ -165,7 +166,12 @@ export const useSaveProject = ({
         set,
         { source, isSaveAs = false }: { source: string; isSaveAs?: boolean },
       ) => {
-        userTracking.capture({ name: "project.saved", source, isSaveAs });
+        userTracking.capture({
+          name: "project.saved",
+          source,
+          isSaveAs,
+          scenariosCount: get(worktreeAtom).scenarios.length,
+        });
 
         const projectInfo = get(projectFileInfoAtom);
         if (!projectInfo && get(userSettingsAtom).showProjectSavedInfo) {

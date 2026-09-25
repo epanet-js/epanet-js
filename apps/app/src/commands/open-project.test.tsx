@@ -28,12 +28,19 @@ import type { FileWithHandle } from "browser-fs-access";
 import { useOpenProject, useOpenProjectFile } from "./open-project";
 import { recentFilesStoreAtom } from "src/state/file-system";
 import { dialogAtom } from "src/state/dialog";
+import { initializeWorktree, nullBranchStore } from "@epanet-js/worktree";
+import { registerBranchStore } from "src/lib/branching";
+import { stubUserTracking } from "src/__helpers__/user-tracking";
 
 describe("openProjectFile", () => {
   useInProcessDb();
 
   beforeEach(() => {
     stubProjectionsReady();
+  });
+
+  afterEach(() => {
+    registerBranchStore(nullBranchStore);
   });
 
   it("adds the opened project to recent files", async () => {
@@ -58,6 +65,48 @@ describe("openProjectFile", () => {
       expect(entries).toHaveLength(1);
       expect(entries[0].name).toBe("my-project.ejsdb");
       expect(entries[0].handle).toBe(handle);
+    });
+  });
+
+  it("tracks how many scenarios the opened project has", async () => {
+    stubFeatureOn("FLAG_PERSIST_SCENARIOS");
+    const userTracking = stubUserTracking();
+    const worktree = initializeWorktree();
+    registerBranchStore({
+      ...nullBranchStore,
+      load: () =>
+        Promise.resolve({
+          worktree: {
+            ...worktree,
+            branches: new Map(worktree.branches).set("scenario-1", {
+              id: "scenario-1",
+              name: "Scenario #1",
+              parentId: worktree.mainId,
+              status: "open",
+            }),
+            scenarios: ["scenario-1"],
+            highestScenarioNumber: 1,
+          },
+          deltas: new Map(),
+          simulationSettings: new Map(),
+        }),
+    });
+    const hydraulicModel = HydraulicModelBuilder.with().aJunction(1).build();
+    await seedDb(hydraulicModel);
+    const blob = await db.exportDb();
+    const file = new File([blob], "my-project.ejsdb") as FileWithHandle;
+    const store = setInitialState({ hydraulicModel });
+
+    renderComponent({ store, file });
+    await triggerOpen();
+
+    await waitFor(() => {
+      expect(userTracking.capture).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: "projectFile.opened",
+          scenariosCount: 1,
+        }),
+      );
     });
   });
 });

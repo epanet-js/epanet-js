@@ -23,9 +23,11 @@ import { useTranslate } from "src/hooks/use-translate";
 import { useRecentFiles } from "src/hooks/use-recent-files";
 
 import { useSetAtom } from "jotai";
+import { useAtomCallback } from "jotai/utils";
 import { inpFileInfoAtom, projectFileInfoAtom } from "src/state/file-system";
 import { markProjectUnsavedAtom } from "src/state/project-revision";
 import { dialogAtom } from "src/state/dialog";
+import { worktreeAtom } from "src/state/scenarios";
 import { MapContext, captureThumbnail } from "src/map";
 import { getExtent } from "@epanet-js/geometry";
 import { projectExtension } from "./save-project";
@@ -54,6 +56,9 @@ export const useOpenProjectFile = () => {
   const translate = useTranslate();
   const userTracking = useUserTracking();
   const { addRecent } = useRecentFiles();
+  const readWorktree = useAtomCallback(
+    useCallback((get) => get(worktreeAtom), []),
+  );
 
   const openProjectFile = useCallback(
     async (
@@ -241,6 +246,7 @@ export const useOpenProjectFile = () => {
           counts: tallyAssetCounts(result.hydraulicModel.assets),
           headlossFormula: result.projectSettings.headlossFormula,
           units: chooseUnitSystem(result.projectSettings.units),
+          scenariosCount: readWorktree().scenarios.length,
           ...(result.uniqueId
             ? {
                 uniqueId: result.uniqueId,
@@ -285,6 +291,7 @@ export const useOpenProjectFile = () => {
       translate,
       userTracking,
       addRecent,
+      readWorktree,
     ],
   );
 
