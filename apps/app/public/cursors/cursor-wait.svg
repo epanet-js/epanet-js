@@ -1,0 +1,13 @@
+<svg width="40" height="40" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg"
+  xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve"
+  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-miterlimit:5;">
+  <defs>
+    <filter id="a" width="300%" height="300%" x="-150%" y="-150%"><feDropShadow dx="0" dy="2" flood-color="#000" flood-opacity=".25" stdDeviation="2"/></filter>
+  </defs>
+  <g filter="url(#a)">
+    <path d="M7.316,3.316c-0.053,-0.053 -0.133,-0.069 -0.202,-0.041c-0.069,0.029 -0.114,0.097 -0.114,0.171c-0,1.845 -0,8.944 -0,12.486c0,0.377 0.216,0.721 0.555,0.885c0.34,0.164 0.743,0.119 1.038,-0.115c1.464,-1.161 3.407,-2.702 3.407,-2.702l3.519,-0c0.416,-0 0.791,-0.25 0.95,-0.634c0.159,-0.384 0.071,-0.826 -0.223,-1.12c-2.685,-2.685 -7.637,-7.637 -8.93,-8.93Z" style="stroke:#fff;stroke-width:1px;"/>
+    <circle cx="16" cy="26" r="9" style="fill:#fff;"/>
+    <circle cx="16" cy="26" r="5.5" style="fill:none;stroke:#98999b;stroke-width:2px;"/>
+    <path d="M16,20.5a5.5,5.5 0 0 1 5.5,5.5" style="fill:none;stroke:#000;stroke-width:2px;"/>
+  </g>
+</svg>

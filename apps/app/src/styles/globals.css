@@ -86,6 +86,7 @@ details > summary {
   --cursor-true-default: url('/cursors/cursor-true-default.svg') 4 2, auto;
   --cursor-pointer: url('/cursors/cursor-pointer.svg') 8 1, pointer;
   --cursor-not-allowed: url('/cursors/cursor-not-allowed.svg') 7 3, not-allowed;
+  --cursor-wait: url('/cursors/cursor-wait.svg') 7 3, wait;
   --cursor-allscroll: url('/cursors/cursor-allscroll.svg') 10 10, all-scroll;
   --cursor-crosshair: url('/cursors/cursor-crosshair.svg') 10 10, crosshair;
   --cursor-crosshair-add: url('/cursors/cursor-crosshair-add.svg') 10 10, crosshair;
@@ -192,6 +193,10 @@ body:has(.custom-cursor-family) .cursor-move .mapboxgl-canvas-container {
 }
 
 .cursor-wait .mapboxgl-canvas-container {
+  cursor: var(--cursor-wait) !important;
+}
+
+.cursor-wait-deprecated .mapboxgl-canvas-container {
   cursor: wait !important;
 }
 
