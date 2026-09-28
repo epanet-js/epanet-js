@@ -12,6 +12,14 @@ export type PipeStatus = (typeof pipeStatuses)[number];
 export const pumpStatuses = ["on", "off"] as const;
 export type PumpStatus = (typeof pumpStatuses)[number];
 
+export const variableSpeedPumpQuantities = [
+  "pressure",
+  "level",
+  "flow",
+] as const;
+export type VariableSpeedPumpQuantity =
+  (typeof variableSpeedPumpQuantities)[number];
+
 export const pumpDefinitionTypes = [
   "power",
   "designPointCurve",

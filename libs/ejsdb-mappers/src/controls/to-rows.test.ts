@@ -38,6 +38,28 @@ describe("serializeControls", () => {
     expect(JSON.parse(data)).toEqual(controls);
   });
 
+  it("round-trips a variable speed pump control", () => {
+    const IDS = { PU1: 7, PU2: 8, J1: 12 } as const;
+    const controls: Controls = [
+      {
+        id: "ctrl-1",
+        type: "variable-speed-pump",
+        linkId: IDS.PU1,
+        quantity: "pressure",
+        targetId: IDS.J1,
+        target: 30,
+        minSpeed: 0.5,
+        maxSpeed: 1,
+        laggedPumpIds: [IDS.PU2],
+        schedule: [{ time: 3600, target: 35 }],
+      },
+    ];
+
+    const data = serializeControls(controls);
+
+    expect(JSON.parse(data)).toEqual(controls);
+  });
+
   it("serializes empty controls as an empty array", () => {
     const data = serializeControls(createEmptyControls());
     expect(JSON.parse(data)).toEqual([]);

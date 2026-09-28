@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { pumpStatuses } from "./enums";
+import { pumpStatuses, variableSpeedPumpQuantities } from "./enums";
 
 const timedSettingStepSchema = z.object({
   time: z.number(),
@@ -23,9 +23,28 @@ const levelSettingControlSchema = z.object({
   off: z.object({ level: z.number() }),
 });
 
+const variableSpeedPumpSchedulePointSchema = z.object({
+  time: z.number(),
+  target: z.number(),
+});
+
+const variableSpeedPumpControlSchema = z.object({
+  id: z.string(),
+  type: z.literal("variable-speed-pump"),
+  linkId: z.number(),
+  quantity: z.enum(variableSpeedPumpQuantities),
+  targetId: z.number(),
+  target: z.number(),
+  minSpeed: z.number(),
+  maxSpeed: z.number(),
+  laggedPumpIds: z.array(z.number()),
+  schedule: z.array(variableSpeedPumpSchedulePointSchema),
+});
+
 export const controlSchema = z.discriminatedUnion("type", [
   timedSettingControlSchema,
   levelSettingControlSchema,
+  variableSpeedPumpControlSchema,
 ]);
 
 export const controlsSchema = z.array(controlSchema);
