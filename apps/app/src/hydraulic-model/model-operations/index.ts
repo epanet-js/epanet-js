@@ -14,7 +14,7 @@ export { mergeNodes } from "./merge-nodes";
 export { changeRawControls } from "./change-raw-controls";
 export { changeAssetControl } from "./change-asset-control";
 export { changeCurves, changeCurvesDeprecated } from "./change-curves";
-export { changePatterns } from "./change-patterns";
+export { changePatterns, changePatternsDeprecated } from "./change-patterns";
 export { changePipeMaterials } from "./change-pipe-materials";
 export { changeCustomAttributesDefinition } from "./change-custom-attributes-definition";
 export { changeDemandAssignment } from "./change-demand-assignment";
