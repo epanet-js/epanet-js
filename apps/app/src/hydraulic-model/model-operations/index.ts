@@ -31,7 +31,10 @@ export { changeCurves, changeCurvesDeprecated } from "./change-curves";
 export { changePatterns, changePatternsDeprecated } from "./change-patterns";
 export { changePipeMaterials } from "./change-pipe-materials";
 export { changeCustomAttributesDefinition } from "./change-custom-attributes-definition";
-export { changeDemandAssignment } from "./change-demand-assignment";
+export {
+  changeDemandAssignment,
+  changeDemandAssignmentDeprecated,
+} from "./change-demand-assignment";
 export { addCustomerPoint } from "./add-customer-point";
 export { removeCustomerPoints } from "./remove-customer-points";
 export { moveCustomerPoint } from "./move-customer-point";

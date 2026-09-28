@@ -10,7 +10,7 @@ import { useMomentTransaction } from "src/hooks/persistence/use-moment-transacti
 import {
   changePropertiesDeprecated,
   changeLabelDeprecated,
-  changeDemandAssignment,
+  changeDemandAssignmentDeprecated,
   mergeMoments,
 } from "src/hydraulic-model/model-operations";
 import { getJunctionDemands } from "src/hydraulic-model";
@@ -438,7 +438,9 @@ export const AssetDataTable = memo(function AssetDataTableInner({
       }
 
       if (demandAssignments.length > 0) {
-        moments.push(changeDemandAssignment(hydraulicModel, demandAssignments));
+        moments.push(
+          changeDemandAssignmentDeprecated(hydraulicModel, demandAssignments),
+        );
       }
 
       const merged = mergeMoments(moments, "Edit asset table");

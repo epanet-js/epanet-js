@@ -69,6 +69,7 @@ import {
   changePropertyDeprecated,
   changePropertiesDeprecated,
   changeDemandAssignment,
+  changeDemandAssignmentDeprecated,
   changeLabel,
   changeLabelDeprecated,
 } from "src/hydraulic-model/model-operations";
@@ -365,10 +366,12 @@ export function AssetPanel({
   const handleDemandsChange = useCallback(
     (newDemands: Demand[]) => {
       const oldDemands = getJunctionDemands(hydraulicModel.demands, asset.id);
-      const moment = changeDemandAssignment(hydraulicModel, [
-        { junctionId: asset.id, demands: newDemands },
-      ]);
-      transact(moment);
+      const assignments = [{ junctionId: asset.id, demands: newDemands }];
+      if (isOpsChangeSetsOn) {
+        transactChangeSet(changeDemandAssignment(hydraulicModel, assignments));
+      } else {
+        transact(changeDemandAssignmentDeprecated(hydraulicModel, assignments));
+      }
       userTracking.capture({
         name: "assetProperty.edited",
         type: asset.type,
@@ -377,7 +380,14 @@ export function AssetPanel({
         oldValue: oldDemands.length,
       });
     },
-    [asset, hydraulicModel, transact, userTracking],
+    [
+      asset,
+      hydraulicModel,
+      isOpsChangeSetsOn,
+      transact,
+      transactChangeSet,
+      userTracking,
+    ],
   );
 
   const handleLabelChange = useCallback(

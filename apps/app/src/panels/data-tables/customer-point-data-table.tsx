@@ -11,7 +11,7 @@ import { useMomentTransaction } from "src/hooks/persistence/use-moment-transacti
 import {
   changeCustomerPointLabel,
   changeCustomerPointProperties,
-  changeDemandAssignment,
+  changeDemandAssignmentDeprecated,
   mergeMoments,
 } from "src/hydraulic-model/model-operations";
 import { getAttribute, getAttributes } from "@epanet-js/hydraulic-model";
@@ -266,7 +266,7 @@ export const CustomerPointDataTable = memo(
 
         if (demandAssignments.length > 0) {
           moments.push(
-            changeDemandAssignment(hydraulicModel, demandAssignments),
+            changeDemandAssignmentDeprecated(hydraulicModel, demandAssignments),
           );
         }
 
