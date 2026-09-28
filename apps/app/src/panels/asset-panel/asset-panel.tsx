@@ -77,8 +77,14 @@ import type {
   ChangeablePropertyValue,
   PropertyChange,
 } from "src/hydraulic-model/model-operations/change-property";
-import { activateAssets } from "src/hydraulic-model/model-operations/activate-assets";
-import { deactivateAssets } from "src/hydraulic-model/model-operations/deactivate-assets";
+import {
+  activateAssets,
+  activateAssetsDeprecated,
+} from "src/hydraulic-model/model-operations/activate-assets";
+import {
+  deactivateAssets,
+  deactivateAssetsDeprecated,
+} from "src/hydraulic-model/model-operations/deactivate-assets";
 import {
   fieldValidator,
   numericChecks,
@@ -222,10 +228,20 @@ export function AssetPanel({
 
   const handleActiveTopologyStatusChange = useCallback(
     (_property: string, newValue: boolean, oldValue: boolean) => {
-      const moment = newValue
-        ? activateAssets(hydraulicModel, { assetIds: [asset.id] })
-        : deactivateAssets(hydraulicModel, { assetIds: [asset.id] });
-      transact(moment);
+      const data = { assetIds: [asset.id] };
+      if (isOpsChangeSetsOn) {
+        transactChangeSet(
+          newValue
+            ? activateAssets(hydraulicModel, data)
+            : deactivateAssets(hydraulicModel, data),
+        );
+      } else {
+        transact(
+          newValue
+            ? activateAssetsDeprecated(hydraulicModel, data)
+            : deactivateAssetsDeprecated(hydraulicModel, data),
+        );
+      }
       userTracking.capture({
         name: "assetProperty.edited",
         type: asset.type,
@@ -234,7 +250,15 @@ export function AssetPanel({
         oldValue: Number(oldValue),
       });
     },
-    [hydraulicModel, asset.id, asset.type, transact, userTracking],
+    [
+      hydraulicModel,
+      asset.id,
+      asset.type,
+      isOpsChangeSetsOn,
+      transact,
+      transactChangeSet,
+      userTracking,
+    ],
   );
 
   const handleStatusChange = useCallback(

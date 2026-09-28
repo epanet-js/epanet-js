@@ -38,8 +38,14 @@ import {
   changePropertyDeprecated,
 } from "src/hydraulic-model/model-operations";
 import type { ChangeableProperty } from "src/hydraulic-model/model-operations/change-property";
-import { activateAssets } from "src/hydraulic-model/model-operations/activate-assets";
-import { deactivateAssets } from "src/hydraulic-model/model-operations/deactivate-assets";
+import {
+  activateAssets,
+  activateAssetsDeprecated,
+} from "src/hydraulic-model/model-operations/activate-assets";
+import {
+  deactivateAssets,
+  deactivateAssetsDeprecated,
+} from "src/hydraulic-model/model-operations/deactivate-assets";
 import { useSelection } from "src/selection";
 import { useShowPumpLibrary } from "src/commands/show-pump-library";
 import { useShowPatternsLibrary } from "src/commands/show-patterns-library";
@@ -138,16 +144,22 @@ export function MultiAssetPanel({
     ) => {
       const assetIds = assetIdsByType[assetType];
       const data = { assetIds, property: modelProperty, value };
-      if (modelProperty === "isActive") {
-        transact(
-          value
-            ? activateAssets(hydraulicModel, { assetIds })
-            : deactivateAssets(hydraulicModel, { assetIds }),
+      if (isOpsChangeSetsOn) {
+        transactChangeSet(
+          modelProperty === "isActive"
+            ? value
+              ? activateAssets(hydraulicModel, { assetIds })
+              : deactivateAssets(hydraulicModel, { assetIds })
+            : changeProperty(hydraulicModel, data),
         );
-      } else if (isOpsChangeSetsOn) {
-        transactChangeSet(changeProperty(hydraulicModel, data));
       } else {
-        transact(changePropertyDeprecated(hydraulicModel, data));
+        transact(
+          modelProperty === "isActive"
+            ? value
+              ? activateAssetsDeprecated(hydraulicModel, { assetIds })
+              : deactivateAssetsDeprecated(hydraulicModel, { assetIds })
+            : changePropertyDeprecated(hydraulicModel, data),
+        );
       }
       userTracking.capture({
         name: "assetProperty.batchEdited",

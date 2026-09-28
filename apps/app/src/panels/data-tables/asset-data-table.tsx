@@ -22,8 +22,8 @@ import {
   valveKindChanges,
   pumpDefinitionTypeChanges,
 } from "src/hydraulic-model/model-operations";
-import { activateAssets } from "src/hydraulic-model/model-operations/activate-assets";
-import { deactivateAssets } from "src/hydraulic-model/model-operations/deactivate-assets";
+import { activateAssetsDeprecated } from "src/hydraulic-model/model-operations/activate-assets";
+import { deactivateAssetsDeprecated } from "src/hydraulic-model/model-operations/deactivate-assets";
 import type { PropertyChange } from "src/hydraulic-model/model-operations/change-property";
 import { createTimeSlicer } from "src/infra/yield-to-main";
 import { modelFactoriesAtom } from "src/state/model-factories";
@@ -346,7 +346,9 @@ export const AssetDataTable = memo(function AssetDataTableInner({
         }
 
         if (newRow.isActive !== oldRow.isActive) {
-          const op = newRow.isActive ? activateAssets : deactivateAssets;
+          const op = newRow.isActive
+            ? activateAssetsDeprecated
+            : deactivateAssetsDeprecated;
           moments.push(op(hydraulicModel, { assetIds: [assetId] }));
           editedProperties.set(
             "isActive",

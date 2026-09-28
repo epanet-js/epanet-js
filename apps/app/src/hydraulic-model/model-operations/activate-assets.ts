@@ -1,28 +1,50 @@
 import { AssetId } from "@epanet-js/hydraulic-model";
 import type { AssetPatch } from "../model-operation";
-import { ModelOperationDeprecated } from "../model-operation";
+import { ModelOperation, ModelOperationDeprecated } from "../model-operation";
+import { HydraulicModel } from "../hydraulic-model";
+import { changeSet, setAsset } from "../change-sets";
 
 type InputData = {
   assetIds: AssetId[];
 };
 
-export const activateAssets: ModelOperationDeprecated<InputData> = (
-  { assets, topology },
+export const activateAssets: ModelOperation<InputData> = (
+  model,
+  { assetIds },
+) =>
+  changeSet(model, "Activate assets", [
+    setAsset(idsToActivate(model, assetIds), { isActive: true }),
+  ]);
+
+export const activateAssetsDeprecated: ModelOperationDeprecated<InputData> = (
+  model,
   { assetIds },
 ) => {
-  const seen = new Set<AssetId>();
-  const patches: AssetPatch[] = [];
+  const patches = idsToActivate(model, assetIds).map(
+    (id) =>
+      ({
+        id,
+        type: model.assets.get(id)!.type,
+        properties: { isActive: true },
+      }) as AssetPatch,
+  );
 
-  const addPatch = (id: AssetId) => {
+  return { note: "Activate assets", patchAssetsAttributes: patches };
+};
+
+const idsToActivate = (
+  { assets, topology }: HydraulicModel,
+  assetIds: AssetId[],
+): AssetId[] => {
+  const ids: AssetId[] = [];
+  const seen = new Set<AssetId>();
+
+  const add = (id: AssetId) => {
     if (seen.has(id)) return;
     const asset = assets.get(id);
     if (!asset || asset.isActive) return;
     seen.add(id);
-    patches.push({
-      id,
-      type: asset.type,
-      properties: { isActive: true },
-    } as AssetPatch);
+    ids.push(id);
   };
 
   for (const assetId of assetIds) {
@@ -31,12 +53,12 @@ export const activateAssets: ModelOperationDeprecated<InputData> = (
 
     if (!asset.isLink) continue;
 
-    addPatch(assetId);
+    add(assetId);
 
     const [startNodeId, endNodeId] = topology.getNodes(assetId);
-    addPatch(startNodeId);
-    addPatch(endNodeId);
+    add(startNodeId);
+    add(endNodeId);
   }
 
-  return { note: "Activate assets", patchAssetsAttributes: patches };
+  return ids;
 };

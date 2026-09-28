@@ -2,7 +2,12 @@ import { useAtomValue } from "jotai";
 import { useCallback } from "react";
 import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
-import { deactivateAssets } from "src/hydraulic-model/model-operations/deactivate-assets";
+import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import {
+  deactivateAssets,
+  deactivateAssetsDeprecated,
+} from "src/hydraulic-model/model-operations/deactivate-assets";
 import { useUserTracking } from "src/infra/user-tracking";
 import { SubNetwork } from "src/lib/network-review";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
@@ -18,14 +23,19 @@ export const useFixSubnetwork = () => {
   const userTracking = useUserTracking();
   const isEditionBlocked = useIsEditionBlocked();
   const { transact } = useMomentTransaction();
+  const { transact: transactChangeSet } = useModelTransaction();
+  const isOpsChangeSetsOn = useFeatureFlag("FLAG_OPS_CHANGE_SETS");
 
   const fix = useCallback(
     (subnetwork: SubNetwork) => {
       if (isEditionBlocked || !canDisableSubnetwork(subnetwork)) return;
 
-      transact(
-        deactivateAssets(hydraulicModel, { assetIds: subnetwork.linkIds }),
-      );
+      const data = { assetIds: subnetwork.linkIds };
+      if (isOpsChangeSetsOn) {
+        transactChangeSet(deactivateAssets(hydraulicModel, data));
+      } else {
+        transact(deactivateAssetsDeprecated(hydraulicModel, data));
+      }
 
       userTracking.capture({
         name: "networkReview.connectivityTrace.fixed",
@@ -33,7 +43,14 @@ export const useFixSubnetwork = () => {
         nodeCount: subnetwork.nodeIds.length,
       });
     },
-    [hydraulicModel, transact, userTracking, isEditionBlocked],
+    [
+      hydraulicModel,
+      isOpsChangeSetsOn,
+      transact,
+      transactChangeSet,
+      userTracking,
+      isEditionBlocked,
+    ],
   );
 
   return { fix };

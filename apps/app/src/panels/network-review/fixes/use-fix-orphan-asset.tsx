@@ -7,7 +7,12 @@ import {
 } from "@epanet-js/hydraulic-model";
 import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
-import { deactivateAssets } from "src/hydraulic-model/model-operations/deactivate-assets";
+import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import {
+  deactivateAssets,
+  deactivateAssetsDeprecated,
+} from "src/hydraulic-model/model-operations/deactivate-assets";
 import { deleteAssets } from "src/hydraulic-model/model-operations/delete-assets";
 import {
   ActiveAssetIndex,
@@ -23,6 +28,8 @@ export const useFixOrphanAsset = () => {
   const userTracking = useUserTracking();
   const isEditionBlocked = useIsEditionBlocked();
   const { transact } = useMomentTransaction();
+  const { transact: transactChangeSet } = useModelTransaction();
+  const isOpsChangeSetsOn = useFeatureFlag("FLAG_OPS_CHANGE_SETS");
 
   const { topology, assetIndex } = useMemo(
     () => ({
@@ -52,15 +59,22 @@ export const useFixOrphanAsset = () => {
       const asset = hydraulicModel.assets.get(assetId);
       if (!kind || !asset) return;
 
-      const moment =
-        kind === "isolatedLink"
-          ? deactivateAssets(hydraulicModel, { assetIds: [assetId] })
-          : deleteAssets(hydraulicModel, {
-              assetIds: [assetId],
-              shouldUpdateCustomerPoints: true,
-            });
-
-      transact(moment);
+      if (kind !== "isolatedLink") {
+        transact(
+          deleteAssets(hydraulicModel, {
+            assetIds: [assetId],
+            shouldUpdateCustomerPoints: true,
+          }),
+        );
+      } else if (isOpsChangeSetsOn) {
+        transactChangeSet(
+          deactivateAssets(hydraulicModel, { assetIds: [assetId] }),
+        );
+      } else {
+        transact(
+          deactivateAssetsDeprecated(hydraulicModel, { assetIds: [assetId] }),
+        );
+      }
 
       userTracking.capture({
         name: "networkReview.orphanAssets.fixed",
@@ -69,7 +83,15 @@ export const useFixOrphanAsset = () => {
         type: asset.type,
       });
     },
-    [kindOf, hydraulicModel, transact, userTracking, isEditionBlocked],
+    [
+      kindOf,
+      hydraulicModel,
+      isOpsChangeSetsOn,
+      transact,
+      transactChangeSet,
+      userTracking,
+      isEditionBlocked,
+    ],
   );
 
   return { kindOf, fix };
