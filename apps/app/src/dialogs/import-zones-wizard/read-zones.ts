@@ -71,6 +71,8 @@ const errorFor = (
       return "unsupportedProjection";
     case "coordinateSystemUnknown":
       return "invalidProjection";
+    case "sourceEmpty":
+      return "noPolygons";
     default:
       return "invalidFile";
   }

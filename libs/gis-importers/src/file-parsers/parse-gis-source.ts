@@ -78,7 +78,7 @@ export const parseGisSource = async (
     return resultOf(cached.decoded);
   }
 
-  const decoded = asSingleParts(await decode(input));
+  const decoded = await decode(input);
   cache.set(key, {
     files,
     suppliedEpsg: epsg,
@@ -91,12 +91,28 @@ export const parseGisSource = async (
 const POSITION_NUMBERS = 2;
 const LINE_POSITIONS = 2;
 
-const asSingleParts = (decoded: DecodedSource): DecodedSource => {
+const placeUsable = async (
+  records: Feature[],
+  place: (features: Feature[]) => DecodedSource | Promise<DecodedSource>,
+): Promise<DecodedSource> => {
+  const { features, skipped } = asSingleParts(records);
+  const decoded = features.some(hasGeometry)
+    ? await place(features)
+    : failure("sourceEmpty");
+
+  return skipped.length === 0
+    ? decoded
+    : { ...decoded, issues: [...decoded.issues, ...skipped] };
+};
+
+const asSingleParts = (
+  records: Feature[],
+): { features: Feature[]; skipped: Issue[] } => {
   const features: Feature[] = [];
   const skipped: Issue[] = [];
   let ref = 0;
 
-  for (const feature of decoded.features) {
+  for (const feature of records) {
     const parts = singlePartsOf(feature);
 
     if (parts.length === 0) {
@@ -114,9 +130,7 @@ const asSingleParts = (decoded: DecodedSource): DecodedSource => {
     ref += parts.length;
   }
 
-  if (skipped.length === 0) return { ...decoded, features };
-
-  return { ...decoded, features, issues: [...decoded.issues, ...skipped] };
+  return { features, skipped };
 };
 
 const singlePartsOf = (feature: Feature): Feature[] => {
@@ -290,24 +304,21 @@ const DXF_START = /^(?:\s*999[^\n]*\n[^\n]*\n)*\s*0[^\S\n]*\r?\n\s*SECTION/;
 
 const looksLikeDxf = (content: string): boolean => DXF_START.test(content);
 
-const parseDxf = (
+const parseDxf = async (
   bytes: ArrayBuffer,
   { crs, projections }: GisInput,
-): DecodedSource => {
+): Promise<DecodedSource> => {
   const parsed = readDxf(bytes);
   if (parsed === null) return failure("sourceUnreadable");
-  if (!parsed.features.some(hasGeometry)) return failure("sourceEmpty");
 
   const supplied = suppliedEpsg(crs);
-  if (supplied !== null || parsed.stated === undefined) {
-    return placeFeatures({
-      features: parsed.features,
-      epsg: supplied,
-      projections,
-    });
-  }
+  const { stated } = parsed;
 
-  return placeAsDrawingStates(parsed.features, parsed.stated, projections);
+  return placeUsable(parsed.features, (features) =>
+    supplied !== null || stated === undefined
+      ? placeFeatures({ features, epsg: supplied, projections })
+      : placeAsDrawingStates(features, stated, projections),
+  );
 };
 
 const placeAsDrawingStates = (
@@ -385,32 +396,36 @@ const parseShapefile = async (
   if (prj && supplied === null) input.prj = await textOf(prj);
   if (cpg) input.cpg = await textOf(cpg);
 
-  const features = await decodeBundle(input);
-  if (features === null) return failure("sourceUnreadable");
-  if (!features.some(hasGeometry)) return failure("sourceEmpty");
+  const records = await decodeBundle(input);
+  if (records === null) return failure("sourceUnreadable");
 
-  if (input.prj === undefined) {
-    return placeFeatures({ features, epsg: supplied, projections });
-  }
+  return placeUsable(records, async (features) => {
+    const prj = input.prj;
+    if (prj === undefined) {
+      return placeFeatures({ features, epsg: supplied, projections });
+    }
 
-  if (mostlyLatLng(features)) {
-    const sourceProjection = projectionOfWkt(input.prj, projections);
+    if (mostlyLatLng(features)) {
+      const sourceProjection = projectionOfWkt(prj, projections);
 
-    return {
-      features,
-      ...(sourceProjection === null ? {} : { sourceProjection }),
-      issues: [],
-    };
-  }
+      return {
+        features,
+        ...(sourceProjection === null ? {} : { sourceProjection }),
+        issues: [],
+      };
+    }
 
-  const withoutPrj = { ...input };
-  delete withoutPrj.prj;
-  const written = (await decodeBundle(withoutPrj)) ?? features;
-  const error = sameFirstGeometry(written, features)
-    ? "coordinateSystemUnsupported"
-    : "coordinateSystemMismatch";
+    const withoutPrj = { ...input };
+    delete withoutPrj.prj;
+    const rewritten = await decodeBundle(withoutPrj);
+    const written =
+      rewritten === null ? features : asSingleParts(rewritten).features;
+    const error = sameFirstGeometry(written, features)
+      ? "coordinateSystemUnsupported"
+      : "coordinateSystemMismatch";
 
-  return unplaced(written, error);
+    return unplaced(written, error);
+  });
 };
 
 type ShapefileInput = {
@@ -493,19 +508,17 @@ const depthAt = (text: string, index: number): number => {
   return depth;
 };
 
-const parseGeoJson = (
+const parseGeoJson = async (
   content: string,
   { crs, projections }: GisInput,
-): DecodedSource => {
+): Promise<DecodedSource> => {
   const parsed = featuresFromText(content);
   if (parsed === null) return failure("sourceUnreadable");
-  if (!parsed.features.some(hasGeometry)) return failure("sourceEmpty");
 
-  return placeFeatures({
-    features: parsed.features,
-    epsg: suppliedEpsg(crs) ?? parsed.stated,
-    projections,
-  });
+  const epsg = suppliedEpsg(crs) ?? parsed.stated;
+  return placeUsable(parsed.features, (features) =>
+    placeFeatures({ features, epsg, projections }),
+  );
 };
 
 type Placement = {

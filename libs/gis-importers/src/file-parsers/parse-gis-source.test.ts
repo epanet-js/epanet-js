@@ -1165,6 +1165,80 @@ describe("parseGisSource", () => {
     });
   });
 
+  describe("records with no usable coordinates", () => {
+    const anEmptyPoint = (): Feature =>
+      ({
+        type: "Feature",
+        geometry: { type: "Point" },
+        properties: { NAME: "nowhere" },
+      }) as unknown as Feature;
+
+    it("is sourceEmpty, not a CRS question, when no record has coordinates", async () => {
+      const { features, issues } = await parseGisSource({
+        files: [aCollection([anEmptyPoint(), anEmptyPoint()], "EPSG:3857")],
+        projections,
+      });
+
+      expect(features).toEqual([]);
+      expect(issues.build().map(({ code }) => code)).toEqual([
+        "sourceEmpty",
+        "featureCoordinatesInvalid",
+        "featureCoordinatesInvalid",
+      ]);
+    });
+
+    it("places the other records in the CRS the file states", async () => {
+      const { features, issues } = await parseGisSource({
+        files: [aCollection([aPoint(IN_METRES), anEmptyPoint()], "EPSG:3857")],
+        projections,
+      });
+
+      expect(features).toHaveLength(1);
+      expect(issues.build().map(({ code }) => code)).toEqual([
+        "featureCoordinatesInvalid",
+      ]);
+    });
+
+    it("leaves them out of judging whether the file is in degrees", async () => {
+      const codes = await codesOf({
+        files: [
+          aCollection([
+            aPoint(IN_DEGREES),
+            anEmptyPoint(),
+            anEmptyPoint(),
+            anEmptyPoint(),
+          ]),
+        ],
+      });
+
+      expect(codes).toEqual([
+        "coordinateSystemMissing",
+        "featureCoordinatesInvalid",
+        "featureCoordinatesInvalid",
+        "featureCoordinatesInvalid",
+      ]);
+    });
+
+    it("leaves them out of a shapefile's placement", async () => {
+      const shapes = [aPoint(IN_METRES), anEmptyPoint()];
+      shp.mockResolvedValueOnce({
+        type: "FeatureCollection",
+        features: shapes,
+      });
+
+      const { features, issues } = await parseGisSource({
+        files: [aBinaryFile("a.shp")],
+        crs: { type: "epsg", code: 3857 },
+        projections,
+      });
+
+      expect(features).toHaveLength(1);
+      expect(issues.build().map(({ code }) => code)).toEqual([
+        "featureCoordinatesInvalid",
+      ]);
+    });
+  });
+
   describe("decoding the same input twice", () => {
     it("reads the bytes once", async () => {
       const file = aCollection([aPoint(IN_DEGREES)]);

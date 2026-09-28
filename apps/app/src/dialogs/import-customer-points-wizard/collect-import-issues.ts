@@ -23,7 +23,7 @@ export const collectImportIssues = (
         into.addSkippedMissingCoordinates(feature);
         break;
       case "featureCoordinatesInvalid":
-        into.addSkippedInvalidProjection(feature);
+        into.addSkippedInvalidCoordinates(feature);
         break;
       case "attributeValueUnreadable":
         into.addSkippedInvalidDemand(feature);
