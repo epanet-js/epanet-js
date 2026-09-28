@@ -1,4 +1,4 @@
-VSP2_TOL         = 0.05   -- acceptable error in a held pressure
+VSP2_TOL         = 0.05   -- acceptable error in a held pressure, in metres of water
 VSP2_FLOW_TOL    = 0.05   -- acceptable error in a held flow, and in a level row's net inflow, in L/s
 VSP2_LEVEL_TOL   = 0.01   -- how close a level row lands its tank on the target at the end of a step
 VSP2_SPEED_TOL   = 0.0001   -- smallest speed change worth writing
@@ -22,10 +22,21 @@ VSP2_UNIT_FACTORS = {
     IMGD = { 1 / 0.5382,  0.5382 / 28.317 },
     AFD  = { 1 / 1.9837,  1.9837 / 28.317 },
 }
+
+-- Per options().pressure_units code: the pressure units in one metre of
+-- water, on EPANET's own factors (psi per ft, kPa per psi)
+VSP2_PRESSURE_PER_METER = {
+    [0] = 0.4333 / 0.3048,                -- psi
+    [1] = 0.4333 / 0.3048 * 6.895,        -- kPa
+    [2] = 1,                              -- m
+    [3] = 0.4333 / 0.3048 * 6.895 / 100,  -- bar
+    [4] = 1 / 0.3048,                     -- ft
+}
 -- ================================================================
 
 vsp2_flow_to_volume = 0.001  -- VSP2_UNIT_FACTORS' first column for the run's flow units
 vsp2_flow_tol    = VSP2_FLOW_TOL   -- VSP2_FLOW_TOL in the run's flow units
+vsp2_pressure_tol = VSP2_TOL       -- VSP2_TOL in the run's pressure units
 vsp2_state       = {}     -- per row: the search's memory
 vsp2_step_time   = -1     -- the clock at the latest on_hydraulic_step
 vsp2_solved_time = 0      -- the time of the step on_hydraulics_solved reports next
@@ -122,7 +133,7 @@ function vsp2Read(p, st, t, schedules)
         return value, required, tol
     end
     if p[2] == "flow" then return value, vsp2Target(p, t, schedules), vsp2_flow_tol end
-    return value, vsp2Target(p, t, schedules), VSP2_TOL
+    return value, vsp2Target(p, t, schedules), vsp2_pressure_tol
 end
 
 -- A head an isolated node reports is not a measurement
@@ -373,7 +384,7 @@ function vsp2Refresh(p, t, skipped, schedules)
     local speed = link(p[1]).setting
     local value = vsp2Value(p)
     local st = vsp2_state[p[1]]
-    local target, tol = vsp2Target(p, t, schedules), VSP2_TOL
+    local target, tol = vsp2Target(p, t, schedules), vsp2_pressure_tol
     if p[2] == "flow" then tol = vsp2_flow_tol end
     local shown, extra = value, ""
     if p[2] == "level" then
@@ -411,6 +422,17 @@ function vsp2SetUnits(units)
     if factors == nil then error("VSP2: unknown flow units " .. tostring(units)) end
     vsp2_flow_to_volume = factors[1]
     vsp2_flow_tol = VSP2_FLOW_TOL * factors[2]
+    vsp2_pressure_tol = VSP2_TOL * VSP2_PRESSURE_PER_METER[options().pressure_units]
+end
+
+-- A lead pump the .inp starts closed is the search's to run: a closed
+-- pump is otherwise left alone as a control's. It starts at maximum
+-- speed, the only one known to deliver
+function vsp2_open(pumps, schedules, units)
+    vsp2SetUnits(units)
+    for _, p in ipairs(pumps) do
+        if link(p[1]).init_status == 0 then link(p[1]).setting = p[6] end
+    end
 end
 
 function vsp2_step(pumps, schedules, units)
@@ -496,9 +518,13 @@ VSP2_SCHEDULES = {}
 VSP2_FLOW_UNITS = "LPS"
 
 -- ================================================================
--- EPANET-LSX's two entry points, defined once. Each hands every
+-- EPANET-LSX's three entry points, defined once. Each hands every
 -- table above to its control type's functions, in the order written.
 -- ================================================================
+-- function on_open()
+--     vsp2_open(VSP2_PUMPS, VSP2_SCHEDULES, VSP2_FLOW_UNITS)
+-- end
+
 -- function on_hydraulic_step()
 --     vsp2_step(VSP2_PUMPS, VSP2_SCHEDULES, VSP2_FLOW_UNITS)
 -- end

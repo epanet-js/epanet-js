@@ -34,6 +34,10 @@ const VARIABLE_SPEED_PUMPS_FUNCTION = variableSpeedPumpsScript
   .trimEnd()
   .split("\n");
 
+const onOpenCallback = (inner: string[]) => `function on_open()
+${inner.join("\n")}
+end`;
+
 const onHydraulicStepCallback = (
   inner: string[],
 ) => `function on_hydraulic_step()
@@ -94,6 +98,9 @@ export const LuaScriptBuilder = (flowUnits: EpanetUnitSystem) => {
   const generateVspArguments = () =>
     `${generateVspPumps()}, ${generateVspSchedules()}, "${flowUnits}"`;
 
+  const generateVspOnOpenLine = () =>
+    `    vsp2_open(${generateVspArguments()})`;
+
   const generateVspOnHydraulicStepLine = () =>
     `    vsp2_step(${generateVspArguments()})`;
 
@@ -102,6 +109,7 @@ export const LuaScriptBuilder = (flowUnits: EpanetUnitSystem) => {
 
   const build = () => {
     const script = [];
+    const onOpenInner = [];
     const onHydraulicStepInner = [];
     const onHydraulicsSolvedInner = [];
     const hasRemoteSetpointPrvs = remoteSetpointPrvs.length > 0;
@@ -114,8 +122,13 @@ export const LuaScriptBuilder = (flowUnits: EpanetUnitSystem) => {
 
     if (hasVariableSpeedPumps) {
       script.push(...VARIABLE_SPEED_PUMPS_FUNCTION);
+      onOpenInner.push(generateVspOnOpenLine());
       onHydraulicStepInner.push(generateVspOnHydraulicStepLine());
       onHydraulicsSolvedInner.push(generateVspOnHydraulicsSolvedLine());
+    }
+
+    if (onOpenInner.length > 0) {
+      script.push(onOpenCallback(onOpenInner));
     }
 
     if (onHydraulicStepInner.length > 0) {

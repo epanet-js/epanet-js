@@ -1,4 +1,8 @@
-import { presets, Presets } from "@epanet-js/project-settings";
+import {
+  presets,
+  Presets,
+  withPressureUnit,
+} from "@epanet-js/project-settings";
 import { HydraulicModel } from "src/hydraulic-model";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { SimulationSettingsBuilder } from "src/__helpers__/simulation-settings-builder";
@@ -8,8 +12,12 @@ import { buildInp } from "../../build-inp";
 import { runSimulation, resetSimulationWorkerForTest } from "../worker";
 import { EPSResultsReader } from "../eps-results-reader";
 
+type PressureUnit = "mwc" | "kPa" | "bar" | "fwc" | "psi";
+
 type Units = {
+  name: string;
   preset: keyof Presets;
+  pressureUnit: PressureUnit;
   flow: (litersPerSecond: number) => number;
   length: (meters: number) => number;
   diameter: (millimeters: number) => number;
@@ -21,312 +29,355 @@ const METERS_PER_FOOT = 0.3048;
 const PSI_PER_FOOT = 0.4333;
 const MILLIMETERS_PER_INCH = 25.4;
 
-const metric: Units = {
-  preset: "LPS",
-  flow: (value) => value,
-  length: (value) => value,
-  diameter: (value) => value,
-  pressure: (value) => value,
+const PER_METER_OF_WATER: Record<PressureUnit, number> = {
+  mwc: 1,
+  kPa: 9.80665,
+  bar: 0.0980665,
+  fwc: 1 / METERS_PER_FOOT,
+  psi: PSI_PER_FOOT / METERS_PER_FOOT,
 };
 
-const usCustomary = (preset: keyof Presets, perCfs: number): Units => ({
+const metric = (
+  preset: keyof Presets,
+  perLps: number,
+  pressureUnit: Exclude<PressureUnit, "psi">,
+): Units => ({
+  name: `${preset} and ${pressureUnit}`,
   preset,
+  pressureUnit,
+  flow: (value) => value * perLps,
+  length: (value) => value,
+  diameter: (value) => value,
+  pressure: (value) => value * PER_METER_OF_WATER[pressureUnit],
+});
+
+const usCustomary = (preset: keyof Presets, perCfs: number): Units => ({
+  name: `${preset} and psi`,
+  preset,
+  pressureUnit: "psi",
   flow: (value) => (value * perCfs) / LPS_PER_CFS,
   length: (value) => value / METERS_PER_FOOT,
   diameter: (value) => value / MILLIMETERS_PER_INCH,
-  pressure: (value) => (value / METERS_PER_FOOT) * PSI_PER_FOOT,
+  pressure: (value) => value * PER_METER_OF_WATER.psi,
 });
 
-const LPS = metric;
-const CFS = usCustomary("CFS", 1);
-const GPM = usCustomary("GPM", 448.831);
-const MGD = usCustomary("MGD", 0.64632);
-const IMGD = usCustomary("IMGD", 0.5382);
-const AFD = usCustomary("AFD", 1.9837);
+const UNIT_SYSTEMS = [
+  metric("LPS", 1, "mwc"),
+  metric("LPM", 60, "kPa"),
+  metric("MLD", 0.0864, "bar"),
+  metric("CMH", 3.6, "fwc"),
+  metric("CMD", 86.4, "mwc"),
+  usCustomary("CFS", 1),
+  usCustomary("GPM", 448.831),
+  usCustomary("MGD", 0.64632),
+  usCustomary("IMGD", 0.5382),
+  usCustomary("AFD", 1.9837),
+];
 
-describe.each([LPS, CFS, GPM, MGD, IMGD, AFD])(
-  "variable speed pumps in $preset",
-  (units) => {
-    beforeAll(() => patchEpanetLoader());
+describe.each(UNIT_SYSTEMS)("variable speed pumps in $name", (units) => {
+  beforeAll(() => patchEpanetLoader());
 
-    afterEach(() => {
-      resetSimulationWorkerForTest();
-      InMemoryStorage.resetAll();
+  afterEach(() => {
+    resetSimulationWorkerForTest();
+    InMemoryStorage.resetAll();
+  });
+
+  describe("pressure", () => {
+    it("starts a lead pump that is initially off", async () => {
+      const reader = await simulate(
+        units,
+        pressureNetwork(units, {
+          targetId: IDS.J2,
+          target: 30,
+          initialStatus: "off",
+        }),
+      );
+
+      const pressures = await junctionPressures(reader, IDS.J2);
+      const speeds = await pumpSettings(reader, IDS.PU1);
+
+      expectAllNear(
+        pressures,
+        units.pressure(30),
+        units.pressure(PRESSURE_TOL),
+      );
+      expectSameOrder(speeds, demandsAt(DEMAND_FACTORS));
     });
 
-    describe("pressure", () => {
-      it("holds a remote node on target, speeding up with demand", async () => {
-        const reader = await simulate(
-          units,
-          pressureNetwork(units, { targetId: IDS.J2, target: 30 }),
-        );
+    it("holds a remote node on target, speeding up with demand", async () => {
+      const reader = await simulate(
+        units,
+        pressureNetwork(units, { targetId: IDS.J2, target: 30 }),
+      );
 
-        const pressures = await junctionPressures(reader, IDS.J2);
-        const speeds = await pumpSettings(reader, IDS.PU1);
+      const pressures = await junctionPressures(reader, IDS.J2);
+      const speeds = await pumpSettings(reader, IDS.PU1);
 
-        expectAllNear(
-          pressures,
-          units.pressure(30),
-          units.pressure(PRESSURE_TOL),
-        );
-        expectSameOrder(speeds, demandsAt(DEMAND_FACTORS));
-      });
-
-      it("holds the pump's own discharge node on target", async () => {
-        const reader = await simulate(
-          units,
-          pressureNetwork(units, { targetId: IDS.J1, target: 40 }),
-        );
-
-        const pressures = await junctionPressures(reader, IDS.J1);
-        const speeds = await pumpSettings(reader, IDS.PU1);
-
-        expectAllNear(
-          pressures,
-          units.pressure(40),
-          units.pressure(PRESSURE_TOL),
-        );
-        expectSameOrder(speeds, demandsAt(DEMAND_FACTORS));
-      });
-
-      it("follows a scheduled target", async () => {
-        const reader = await simulate(
-          units,
-          pressureNetwork(units, {
-            targetId: IDS.J2,
-            target: 30,
-            factors: [1],
-            schedule: [
-              { time: 0, target: 30 },
-              { time: 3 * HOUR, target: 40 },
-            ],
-          }),
-        );
-
-        const pressures = await junctionPressures(reader, IDS.J2);
-        const speeds = await pumpSettings(reader, IDS.PU1);
-
-        expectAllNear(
-          pressures.slice(0, 3),
-          units.pressure(30),
-          units.pressure(PRESSURE_TOL),
-        );
-        expectAllNear(
-          pressures.slice(3),
-          units.pressure(40),
-          units.pressure(PRESSURE_TOL),
-        );
-        expect(Math.min(...speeds.slice(3))).toBeGreaterThan(
-          Math.max(...speeds.slice(0, 3)),
-        );
-      });
-
-      it("stays at minimum speed when the target needs less", async () => {
-        const minSpeed = 0.72;
-        const reader = await simulate(
-          units,
-          pressureNetwork(units, {
-            targetId: IDS.J2,
-            target: 30,
-            factors: [0.2, 1.4],
-            minSpeed,
-          }),
-        );
-
-        const pressures = await junctionPressures(reader, IDS.J2);
-        const speeds = await pumpSettings(reader, IDS.PU1);
-
-        for (const step of stepsWithFactor([0.2, 1.4], 0.2)) {
-          expect(speeds[step]).toBeCloseTo(minSpeed, 3);
-          expect(pressures[step]).toBeGreaterThan(
-            units.pressure(30 + PRESSURE_TOL),
-          );
-        }
-        for (const step of stepsWithFactor([0.2, 1.4], 1.4)) {
-          expect(speeds[step]).toBeGreaterThan(minSpeed);
-          expect(Math.abs(pressures[step] - units.pressure(30))).toBeLessThan(
-            units.pressure(PRESSURE_TOL),
-          );
-        }
-      });
-
-      it("stays at maximum speed when the target needs more", async () => {
-        const maxSpeed = 0.72;
-        const reader = await simulate(
-          units,
-          pressureNetwork(units, {
-            targetId: IDS.J2,
-            target: 30,
-            factors: [0.2, 1.4],
-            maxSpeed,
-          }),
-          { allowWarnings: true },
-        );
-
-        const pressures = await junctionPressures(reader, IDS.J2);
-        const speeds = await pumpSettings(reader, IDS.PU1);
-
-        for (const step of stepsWithFactor([0.2, 1.4], 1.4)) {
-          expect(speeds[step]).toBeCloseTo(maxSpeed, 3);
-          expect(pressures[step]).toBeLessThan(
-            units.pressure(30 - PRESSURE_TOL),
-          );
-        }
-        for (const step of stepsWithFactor([0.2, 1.4], 0.2)) {
-          expect(speeds[step]).toBeLessThan(maxSpeed);
-          expect(Math.abs(pressures[step] - units.pressure(30))).toBeLessThan(
-            units.pressure(PRESSURE_TOL),
-          );
-        }
-      });
+      expectAllNear(
+        pressures,
+        units.pressure(30),
+        units.pressure(PRESSURE_TOL),
+      );
+      expectSameOrder(speeds, demandsAt(DEMAND_FACTORS));
     });
 
-    describe("level", () => {
-      it("lands the tank on target and keeps it there, pumping with demand", async () => {
-        const reader = await simulate(
-          units,
-          levelNetwork(units, { target: 3 }),
-        );
+    it("holds the pump's own discharge node on target", async () => {
+      const reader = await simulate(
+        units,
+        pressureNetwork(units, { targetId: IDS.J1, target: 40 }),
+      );
 
-        const levels = await tankLevels(reader, IDS.T1);
-        const speeds = await pumpSettings(reader, IDS.PU1);
+      const pressures = await junctionPressures(reader, IDS.J1);
+      const speeds = await pumpSettings(reader, IDS.PU1);
 
-        expectAllNear(
-          levels.slice(1),
-          units.length(3),
-          units.length(LEVEL_TOL),
-        );
-        expectSameOrder(speeds.slice(1), demandsAt(DEMAND_FACTORS).slice(1));
-      });
-
-      it("follows a scheduled target", async () => {
-        const reader = await simulate(
-          units,
-          levelNetwork(units, {
-            target: 3,
-            schedule: [
-              { time: 0, target: 2.5 },
-              { time: 3 * HOUR, target: 3.5 },
-            ],
-          }),
-        );
-
-        const levels = await tankLevels(reader, IDS.T1);
-
-        expectAllNear(
-          levels.slice(1, 4),
-          units.length(2.5),
-          units.length(LEVEL_TOL),
-        );
-        expectAllNear(
-          levels.slice(4),
-          units.length(3.5),
-          units.length(LEVEL_TOL),
-        );
-      });
+      expectAllNear(
+        pressures,
+        units.pressure(40),
+        units.pressure(PRESSURE_TOL),
+      );
+      expectSameOrder(speeds, demandsAt(DEMAND_FACTORS));
     });
 
-    describe("flow", () => {
-      it("holds the pump's own flow, slowing down as demand relieves the pipe", async () => {
-        const reader = await simulate(
-          units,
-          localFlowNetwork(units, { target: 15 }),
-        );
+    it("follows a scheduled target", async () => {
+      const reader = await simulate(
+        units,
+        pressureNetwork(units, {
+          targetId: IDS.J2,
+          target: 30,
+          factors: [1],
+          schedule: [
+            { time: 0, target: 30 },
+            { time: 3 * HOUR, target: 40 },
+          ],
+        }),
+      );
 
-        const flows = await pumpFlows(reader, IDS.PU1);
-        const speeds = await pumpSettings(reader, IDS.PU1);
+      const pressures = await junctionPressures(reader, IDS.J2);
+      const speeds = await pumpSettings(reader, IDS.PU1);
 
-        expectAllNear(flows, units.flow(15), units.flow(FLOW_TOL));
-        expectSameOrder(
-          speeds,
-          demandsAt(DEMAND_FACTORS).map((demand) => -demand),
-        );
-      });
-
-      it("holds the flow of a remote link, speeding up with demand", async () => {
-        const reader = await simulate(
-          units,
-          remoteFlowNetwork(units, { target: 10 }),
-        );
-
-        const flows = await pipeFlows(reader, IDS.P1);
-        const speeds = await pumpSettings(reader, IDS.PU1);
-
-        expectAllNear(flows, units.flow(10), units.flow(FLOW_TOL));
-        expectSameOrder(speeds, demandsAt(DEMAND_FACTORS));
-      });
-
-      it("holds a tank inlet's flow as it reverses to fill and empty the tank", async () => {
-        const fillSteps = [0, 1, 2, 6, 7, 8];
-        const drainSteps = [3, 4, 5, 9, 10, 11];
-        const reader = await simulate(
-          units,
-          tankInletFlowNetwork(units, {
-            schedule: [
-              { time: 0, target: 5 },
-              { time: 3 * HOUR, target: -5 },
-              { time: 6 * HOUR, target: 5 },
-              { time: 9 * HOUR, target: -5 },
-            ],
-          }),
-          { duration: 12 * HOUR },
-        );
-
-        const flows = await pipeFlows(reader, IDS.P1);
-        const levels = await tankLevels(reader, IDS.T1);
-        const speeds = await pumpSettings(reader, IDS.PU1);
-
-        expectAllNear(
-          fillSteps.map((step) => flows[step]),
-          units.flow(5),
-          units.flow(FLOW_TOL),
-        );
-        expectAllNear(
-          drainSteps.map((step) => flows[step]),
-          units.flow(-5),
-          units.flow(FLOW_TOL),
-        );
-        for (const step of fillSteps) {
-          expect(levels[step + 1]).toBeGreaterThan(levels[step]);
-        }
-        for (const step of drainSteps) {
-          expect(levels[step + 1]).toBeLessThan(levels[step]);
-        }
-        expect(
-          Math.min(...fillSteps.map((step) => speeds[step])),
-        ).toBeGreaterThan(Math.max(...drainSteps.map((step) => speeds[step])));
-      });
+      expectAllNear(
+        pressures.slice(0, 3),
+        units.pressure(30),
+        units.pressure(PRESSURE_TOL),
+      );
+      expectAllNear(
+        pressures.slice(3),
+        units.pressure(40),
+        units.pressure(PRESSURE_TOL),
+      );
+      expect(Math.min(...speeds.slice(3))).toBeGreaterThan(
+        Math.max(...speeds.slice(0, 3)),
+      );
     });
 
-    describe("lagged pumps", () => {
-      it("opens the lag only when the lead alone cannot hold the target", async () => {
-        const reader = await simulate(
-          units,
-          laggedPumpsNetwork(units, { target: 40 }),
+    it("stays at minimum speed when the target needs less", async () => {
+      const minSpeed = 0.72;
+      const reader = await simulate(
+        units,
+        pressureNetwork(units, {
+          targetId: IDS.J2,
+          target: 30,
+          factors: [0.2, 1.4],
+          minSpeed,
+        }),
+      );
+
+      const pressures = await junctionPressures(reader, IDS.J2);
+      const speeds = await pumpSettings(reader, IDS.PU1);
+
+      for (const step of stepsWithFactor([0.2, 1.4], 0.2)) {
+        expect(speeds[step]).toBeCloseTo(minSpeed, 3);
+        expect(pressures[step]).toBeGreaterThan(
+          units.pressure(30 + PRESSURE_TOL),
         );
-
-        const pressures = await junctionPressures(reader, IDS.J2);
-        const leadSpeeds = await pumpSettings(reader, IDS.PU1);
-        const lagSpeeds = await pumpSettings(reader, IDS.PU2);
-        const lagFlows = await pumpFlows(reader, IDS.PU2);
-
-        expectAllNear(
-          pressures,
-          units.pressure(40),
+      }
+      for (const step of stepsWithFactor([0.2, 1.4], 1.4)) {
+        expect(speeds[step]).toBeGreaterThan(minSpeed);
+        expect(Math.abs(pressures[step] - units.pressure(30))).toBeLessThan(
           units.pressure(PRESSURE_TOL),
         );
-
-        for (const step of stepsWithFactor(LAG_FACTORS, LAG_LOW)) {
-          expect(Math.abs(lagFlows[step])).toBeLessThan(units.flow(0.01));
-        }
-        for (const step of stepsWithFactor(LAG_FACTORS, LAG_HIGH)) {
-          expect(lagFlows[step]).toBeGreaterThan(units.flow(1));
-          expect(lagSpeeds[step]).toBeCloseTo(leadSpeeds[step], 4);
-        }
-      });
+      }
     });
-  },
-);
+
+    it("stays at maximum speed when the target needs more", async () => {
+      const maxSpeed = 0.72;
+      const reader = await simulate(
+        units,
+        pressureNetwork(units, {
+          targetId: IDS.J2,
+          target: 30,
+          factors: [0.2, 1.4],
+          maxSpeed,
+        }),
+        { allowWarnings: true },
+      );
+
+      const pressures = await junctionPressures(reader, IDS.J2);
+      const speeds = await pumpSettings(reader, IDS.PU1);
+
+      for (const step of stepsWithFactor([0.2, 1.4], 1.4)) {
+        expect(speeds[step]).toBeCloseTo(maxSpeed, 3);
+        expect(pressures[step]).toBeLessThan(units.pressure(30 - PRESSURE_TOL));
+      }
+      for (const step of stepsWithFactor([0.2, 1.4], 0.2)) {
+        expect(speeds[step]).toBeLessThan(maxSpeed);
+        expect(Math.abs(pressures[step] - units.pressure(30))).toBeLessThan(
+          units.pressure(PRESSURE_TOL),
+        );
+      }
+    });
+  });
+
+  describe("level", () => {
+    it("lands the tank on target and keeps it there, pumping with demand", async () => {
+      const reader = await simulate(units, levelNetwork(units, { target: 3 }));
+
+      const levels = await tankLevels(
+        reader,
+        IDS.T1,
+        units.length(TANK_ELEVATION),
+      );
+      const speeds = await pumpSettings(reader, IDS.PU1);
+
+      expectAllNear(levels.slice(1), units.length(3), units.length(LEVEL_TOL));
+      expectSameOrder(speeds.slice(1), demandsAt(DEMAND_FACTORS).slice(1));
+    });
+
+    it("follows a scheduled target", async () => {
+      const reader = await simulate(
+        units,
+        levelNetwork(units, {
+          target: 3,
+          schedule: [
+            { time: 0, target: 2.5 },
+            { time: 3 * HOUR, target: 3.5 },
+          ],
+        }),
+      );
+
+      const levels = await tankLevels(
+        reader,
+        IDS.T1,
+        units.length(TANK_ELEVATION),
+      );
+
+      expectAllNear(
+        levels.slice(1, 4),
+        units.length(2.5),
+        units.length(LEVEL_TOL),
+      );
+      expectAllNear(
+        levels.slice(4),
+        units.length(3.5),
+        units.length(LEVEL_TOL),
+      );
+    });
+  });
+
+  describe("flow", () => {
+    it("holds the pump's own flow, slowing down as demand relieves the pipe", async () => {
+      const reader = await simulate(
+        units,
+        localFlowNetwork(units, { target: 15 }),
+      );
+
+      const flows = await pumpFlows(reader, IDS.PU1);
+      const speeds = await pumpSettings(reader, IDS.PU1);
+
+      expectAllNear(flows, units.flow(15), units.flow(FLOW_TOL));
+      expectSameOrder(
+        speeds,
+        demandsAt(DEMAND_FACTORS).map((demand) => -demand),
+      );
+    });
+
+    it("holds the flow of a remote link, speeding up with demand", async () => {
+      const reader = await simulate(
+        units,
+        remoteFlowNetwork(units, { target: 10 }),
+      );
+
+      const flows = await pipeFlows(reader, IDS.P1);
+      const speeds = await pumpSettings(reader, IDS.PU1);
+
+      expectAllNear(flows, units.flow(10), units.flow(FLOW_TOL));
+      expectSameOrder(speeds, demandsAt(DEMAND_FACTORS));
+    });
+
+    it("holds a tank inlet's flow as it reverses to fill and empty the tank", async () => {
+      const fillSteps = [0, 1, 2, 6, 7, 8];
+      const drainSteps = [3, 4, 5, 9, 10, 11];
+      const reader = await simulate(
+        units,
+        tankInletFlowNetwork(units, {
+          schedule: [
+            { time: 0, target: 5 },
+            { time: 3 * HOUR, target: -5 },
+            { time: 6 * HOUR, target: 5 },
+            { time: 9 * HOUR, target: -5 },
+          ],
+        }),
+        { duration: 12 * HOUR },
+      );
+
+      const flows = await pipeFlows(reader, IDS.P1);
+      const levels = await tankLevels(
+        reader,
+        IDS.T1,
+        units.length(TANK_ELEVATION),
+      );
+      const speeds = await pumpSettings(reader, IDS.PU1);
+
+      expectAllNear(
+        fillSteps.map((step) => flows[step]),
+        units.flow(5),
+        units.flow(FLOW_TOL),
+      );
+      expectAllNear(
+        drainSteps.map((step) => flows[step]),
+        units.flow(-5),
+        units.flow(FLOW_TOL),
+      );
+      for (const step of fillSteps) {
+        expect(levels[step + 1]).toBeGreaterThan(levels[step]);
+      }
+      for (const step of drainSteps) {
+        expect(levels[step + 1]).toBeLessThan(levels[step]);
+      }
+      expect(
+        Math.min(...fillSteps.map((step) => speeds[step])),
+      ).toBeGreaterThan(Math.max(...drainSteps.map((step) => speeds[step])));
+    });
+  });
+
+  describe("lagged pumps", () => {
+    it("opens the lag only when the lead alone cannot hold the target", async () => {
+      const reader = await simulate(
+        units,
+        laggedPumpsNetwork(units, { target: 40 }),
+      );
+
+      const pressures = await junctionPressures(reader, IDS.J2);
+      const leadSpeeds = await pumpSettings(reader, IDS.PU1);
+      const lagSpeeds = await pumpSettings(reader, IDS.PU2);
+      const lagFlows = await pumpFlows(reader, IDS.PU2);
+
+      expectAllNear(
+        pressures,
+        units.pressure(40),
+        units.pressure(PRESSURE_TOL),
+      );
+
+      for (const step of stepsWithFactor(LAG_FACTORS, LAG_LOW)) {
+        expect(Math.abs(lagFlows[step])).toBeLessThan(units.flow(0.01));
+      }
+      for (const step of stepsWithFactor(LAG_FACTORS, LAG_HIGH)) {
+        expect(lagFlows[step]).toBeGreaterThan(units.flow(1));
+        expect(lagSpeeds[step]).toBeCloseTo(leadSpeeds[step], 4);
+      }
+    });
+  });
+});
 
 const IDS = {
   R1: 1,
@@ -349,6 +400,8 @@ const DEMAND_FACTORS = [0.6, 1.4, 1.0, 0.8, 1.2, 0.7];
 const LAG_LOW = 0.4;
 const LAG_HIGH = 1.4;
 const LAG_FACTORS = [LAG_LOW, LAG_HIGH, LAG_LOW, LAG_HIGH, LAG_LOW, LAG_HIGH];
+
+const TANK_ELEVATION = 20;
 
 const PRESSURE_TOL = 0.1;
 const FLOW_TOL = 0.1;
@@ -373,6 +426,7 @@ const pressureNetwork = (
     minSpeed = 0.3,
     maxSpeed = 1,
     schedule = [],
+    initialStatus = "on",
   }: {
     targetId: number;
     target: number;
@@ -380,6 +434,7 @@ const pressureNetwork = (
     minSpeed?: number;
     maxSpeed?: number;
     schedule?: Schedule;
+    initialStatus?: "on" | "off";
   },
 ) =>
   HydraulicModelBuilder.with()
@@ -394,6 +449,7 @@ const pressureNetwork = (
       startNodeId: IDS.R1,
       endNodeId: IDS.J1,
       curve: pumpCurve(units, 20, 50),
+      initialStatus,
     })
     .aPipe(IDS.P1, {
       startNodeId: IDS.J1,
@@ -429,7 +485,7 @@ const levelNetwork = (
     .aReservoir(IDS.R1, { head: 0 })
     .aJunction(IDS.J1, { elevation: 0 })
     .aTank(IDS.T1, {
-      elevation: units.length(20),
+      elevation: units.length(TANK_ELEVATION),
       initialLevel: units.length(2),
       minLevel: 0,
       maxLevel: units.length(5),
@@ -560,7 +616,7 @@ const tankInletFlowNetwork = (
     .aJunction(IDS.J1, { elevation: 0 })
     .aJunctionDemand(IDS.J1, [{ baseDemand: units.flow(20) }])
     .aTank(IDS.T1, {
-      elevation: units.length(20),
+      elevation: units.length(TANK_ELEVATION),
       initialLevel: units.length(2),
       minLevel: 0,
       maxLevel: units.length(5),
@@ -645,7 +701,7 @@ const simulate = async (
     .build();
 
   const inp = buildInp(hydraulicModel, {
-    units: presets[units.preset].units,
+    units: withPressureUnit(presets[units.preset], units.pressureUnit).units,
     simulationSettings,
   });
 
@@ -664,8 +720,15 @@ const simulate = async (
 const junctionPressures = async (reader: EPSResultsReader, id: number) =>
   Array.from((await reader.getTimeSeries(id, "junction", "pressure"))!.values);
 
-const tankLevels = async (reader: EPSResultsReader, id: number) =>
-  Array.from((await reader.getTimeSeries(id, "tank", "level"))!.values);
+const tankLevels = async (
+  reader: EPSResultsReader,
+  id: number,
+  elevation: number,
+) =>
+  Array.from(
+    (await reader.getTimeSeries(id, "tank", "head"))!.values,
+    (head) => head - elevation,
+  );
 
 const pipeFlows = async (reader: EPSResultsReader, id: number) =>
   Array.from((await reader.getTimeSeries(id, "pipe", "flow"))!.values);
