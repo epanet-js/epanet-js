@@ -20,7 +20,7 @@ import {
   BottomPanel,
   ActivityBar,
   LeftSidePanel,
-  RelocatedSidePanel,
+  VerticalPanel,
   SidePanel,
 } from "src/panels";
 import { MapContext } from "src/map";
@@ -220,7 +220,7 @@ export function EpanetApp() {
                 />
               </DndContext>
               {layout === "HORIZONTAL" && <BottomPanel />}
-              {layout === "VERTICAL" && <RelocatedSidePanel />}
+              {layout === "VERTICAL" && <VerticalPanel />}
             </div>
             {layout === "HORIZONTAL" && (
               <>

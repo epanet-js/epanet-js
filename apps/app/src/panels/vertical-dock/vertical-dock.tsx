@@ -111,7 +111,7 @@ export const VerticalDock = memo(function VerticalDockInner() {
           </SortableContext>
         </TabList>
       </DndContext>
-      <div className="flex-1 min-h-0 flex flex-col relative">
+      <div className="flex-1 min-h-0 min-w-0 flex flex-col relative">
         <DefaultErrorBoundary>
           {activePanel && (
             <PanelContent

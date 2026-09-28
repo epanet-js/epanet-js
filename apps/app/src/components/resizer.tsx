@@ -5,6 +5,7 @@ import {
   Side,
   splitsAtom,
   Splits,
+  MAX_SPLIT,
   MIN_SPLITS,
   OTHER_SIDE,
 } from "src/state/layout";
@@ -86,7 +87,11 @@ export function solveSplits(
       onToggle?.(false);
     }
   } else {
-    newSplits[side] = Math.min(newValue, windowWidth - MIN_MAP_WIDTH);
+    newSplits[side] = Math.min(
+      newValue,
+      MAX_SPLIT,
+      windowWidth - MIN_MAP_WIDTH,
+    );
   }
 
   const thisPane = newSplits[side];
@@ -122,9 +127,8 @@ function useResize(
     },
     onMove(e) {
       if (rawSplit.current === null) return;
-      rawSplit.current -= Math.round(e.deltaX * (side === "left" ? -1 : 1));
-      if (rawSplit.current === null) return;
-      const raw = rawSplit.current;
+      rawSplit.current += side === "left" ? e.deltaX : -e.deltaX;
+      const raw = Math.round(rawSplit.current);
       setSplits((splits) => {
         return solveSplits(splits, side, raw, isCollapseAllowed, onToggle);
       });
@@ -139,6 +143,18 @@ function useResize(
 
 const MIN_BOTTOM_HEIGHT = 80;
 
+export const accumulateResize = (
+  accumulated: number,
+  growth: number,
+  { min, max }: { min: number; max: number },
+) => {
+  const next = accumulated + growth;
+  return { accumulated: next, value: Math.round(clamp(next, min, max)) };
+};
+
+const clamp = (value: number, min: number, max: number) =>
+  Math.max(min, Math.min(max, value));
+
 function useResizeBottom() {
   const [splits, setSplits] = useAtom(splitsAtom);
   const rawSplit = useRef<number | null>(null);
@@ -150,12 +166,13 @@ function useResizeBottom() {
     },
     onMove(e) {
       if (rawSplit.current === null) return;
-      rawSplit.current -= Math.round(e.deltaY);
-      const clamped = Math.max(
-        MIN_BOTTOM_HEIGHT,
-        Math.min(window.innerHeight - 200, rawSplit.current),
+      const { accumulated, value } = accumulateResize(
+        rawSplit.current,
+        -e.deltaY,
+        { min: MIN_BOTTOM_HEIGHT, max: window.innerHeight - 200 },
       );
-      setSplits((splits) => ({ ...splits, bottom: clamped }));
+      rawSplit.current = accumulated;
+      setSplits((splits) => ({ ...splits, bottom: value }));
     },
     onMoveEnd() {
       rawSplit.current = null;
@@ -268,32 +285,47 @@ function PanelToggle({
   );
 }
 
+const RowResizer = ({
+  moveProps,
+}: {
+  moveProps: ReturnType<typeof useMove>["moveProps"];
+}) => (
+  <button
+    {...moveProps}
+    type="button"
+    role="separator"
+    aria-orientation="horizontal"
+    aria-label="Resize panel"
+    tabIndex={-1}
+    style={{ cursor: "row-resize" }}
+    className="absolute top-0 left-0 right-0 -translate-y-full z-20
+      touch-none
+      flex items-center
+      justify-center
+      h-1
+      hover-none:h-3
+      bg-purple-700/0
+      hover-none:bg-white/40
+      hover-none:dark:bg-black/40
+      hover-hover:hover:bg-purple-700
+      hover-hover:dark:hover:bg-purple-700
+      "
+  >
+    <div
+      className="
+      hover-hover:hidden
+      w-16
+      h-1
+      rounded
+      bg-white"
+    />
+  </button>
+);
+
 export const BottomResizer = memo(function BottomResizerInner() {
   const { moveProps } = useResizeBottom();
 
-  return (
-    <button
-      {...moveProps}
-      type="button"
-      role="separator"
-      aria-orientation="horizontal"
-      aria-label="Resize panel"
-      tabIndex={-1}
-      style={{ cursor: "row-resize" }}
-      className="absolute top-0 left-0 right-0 h-3 -translate-y-1/2 z-20
-        touch-none
-        flex items-center justify-center
-        group"
-    >
-      <div
-        className="w-full h-1
-          bg-purple-700 dark:bg-purple-700
-          opacity-0
-          group-hover:opacity-100
-          pointer-events-none"
-      />
-    </button>
-  );
+  return <RowResizer moveProps={moveProps} />;
 });
 
 const MIN_VERTICAL_HEIGHT = 80;
@@ -309,12 +341,13 @@ function useResizeVertical() {
     },
     onMove(e) {
       if (rawSplit.current === null) return;
-      rawSplit.current -= Math.round(e.deltaY);
-      const clamped = Math.max(
-        MIN_VERTICAL_HEIGHT,
-        Math.min(window.innerHeight - 200, rawSplit.current),
+      const { accumulated, value } = accumulateResize(
+        rawSplit.current,
+        -e.deltaY,
+        { min: MIN_VERTICAL_HEIGHT, max: window.innerHeight - 200 },
       );
-      setSplits((splits) => ({ ...splits, vertical: clamped }));
+      rawSplit.current = accumulated;
+      setSplits((splits) => ({ ...splits, vertical: value }));
     },
     onMoveEnd() {
       rawSplit.current = null;
@@ -327,29 +360,7 @@ function useResizeVertical() {
 export const VerticalResizer = memo(function VerticalResizerInner() {
   const { moveProps } = useResizeVertical();
 
-  return (
-    <button
-      {...moveProps}
-      type="button"
-      role="separator"
-      aria-orientation="horizontal"
-      aria-label="Resize panel"
-      tabIndex={-1}
-      style={{ cursor: "row-resize" }}
-      className="absolute top-0 left-0 right-0 h-3 -translate-y-1/2 z-20
-        touch-none
-        flex items-center justify-center
-        group"
-    >
-      <div
-        className="w-full h-1
-          bg-purple-700 dark:bg-purple-700
-          opacity-0
-          group-hover:opacity-100
-          pointer-events-none"
-      />
-    </button>
-  );
+  return <RowResizer moveProps={moveProps} />;
 });
 
 const MIN_FOOTER_HEIGHT = 205;

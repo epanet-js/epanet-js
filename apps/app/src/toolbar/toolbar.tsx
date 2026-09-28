@@ -286,12 +286,13 @@ const CommandBarButton = () => {
 };
 
 const VerticalLayoutActions = () => {
+  const translate = useTranslate();
   const splits = useAtomValue(splitsAtom);
   const toggleVerticalPanel = useToggleVerticalPanel();
 
   return (
     <MenuAction
-      label="Toggle panel"
+      label={translate("toggleBottomPanel")}
       role="button"
       onClick={() => {
         toggleVerticalPanel({ source: "toolbar" });

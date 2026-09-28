@@ -19,7 +19,7 @@ export const SidePanel = memo(function SidePanelInner() {
       style={{
         width: splits.right,
       }}
-      className="bg-popover border-l relative"
+      className="bg-popover border-l relative shrink-0"
     >
       <RightSide />
     </div>
@@ -33,7 +33,7 @@ const RightSide = memo(function RightSideInner() {
   return <RightDock />;
 });
 
-export const RelocatedSidePanel = memo(function RelocatedSidePanelInner() {
+export const VerticalPanel = memo(function VerticalPanelInner() {
   const splits = useAtomValue(splitsAtom);
 
   if (!splits.verticalOpen) return null;
@@ -44,7 +44,7 @@ export const RelocatedSidePanel = memo(function RelocatedSidePanelInner() {
       className="relative shrink-0 bg-popover border-t flex flex-col"
     >
       <VerticalResizer />
-      <div className="flex-1 min-h-0 relative">
+      <div className="flex-1 min-h-0 min-w-0 relative overflow-hidden">
         <VerticalSide />
       </div>
     </div>
@@ -69,7 +69,7 @@ export const BottomPanel = memo(function BottomPanelInner() {
       className="relative shrink-0 bg-popover border-t flex flex-col"
     >
       <BottomResizer />
-      <div className="flex-1 min-h-0 relative">
+      <div className="flex-1 min-h-0 min-w-0 relative overflow-hidden">
         <BottomDock />
       </div>
     </div>
@@ -84,7 +84,7 @@ export const LeftSidePanel = memo(function LeftSidePanelInner() {
       style={{
         width: splits.left,
       }}
-      className="bg-popover border-r relative"
+      className="bg-popover border-r relative shrink-0"
     >
       <LeftDock />
     </div>
