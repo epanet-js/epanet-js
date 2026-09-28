@@ -4,9 +4,14 @@ import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { modeAtom, Mode } from "src/state/mode";
 import { selectionAtom } from "src/state/selection";
 import { USelection } from "src/selection";
-import { disconnectCustomers } from "src/hydraulic-model/model-operations";
+import {
+  disconnectCustomers,
+  disconnectCustomersDeprecated,
+} from "src/hydraulic-model/model-operations";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
+import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const connectCustomersShortcut = "shift+c";
 export const disconnectCustomersShortcut = "shift+d";
@@ -51,6 +56,8 @@ export const useDisconnectCustomerPoints = () => {
   const selection = useAtomValue(selectionAtom);
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const { transact } = useMomentTransaction();
+  const { transact: transactChangeSet } = useModelTransaction();
+  const isOpsChangeSetsOn = useFeatureFlag("FLAG_OPS_CHANGE_SETS");
   const userTracking = useUserTracking();
 
   const disconnectCustomerPoints = useCallback(
@@ -63,10 +70,24 @@ export const useDisconnectCustomerPoints = () => {
         source,
       });
 
-      const moment = disconnectCustomers(hydraulicModel, { customerPointIds });
-      transact(moment);
+      if (isOpsChangeSetsOn) {
+        transactChangeSet(
+          disconnectCustomers(hydraulicModel, { customerPointIds }),
+        );
+      } else {
+        transact(
+          disconnectCustomersDeprecated(hydraulicModel, { customerPointIds }),
+        );
+      }
     },
-    [selection, hydraulicModel, transact, userTracking],
+    [
+      selection,
+      hydraulicModel,
+      isOpsChangeSetsOn,
+      transact,
+      transactChangeSet,
+      userTracking,
+    ],
   );
 
   return disconnectCustomerPoints;

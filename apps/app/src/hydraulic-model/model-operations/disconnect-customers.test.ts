@@ -4,11 +4,27 @@ import {
   HydraulicModelBuilder,
   buildCustomerPoint,
 } from "src/__helpers__/hydraulic-model-builder";
+import { buildTestFactories } from "src/__helpers__/test-factories";
+import { applyOperation } from "src/__helpers__/apply-operation";
+import type { HydraulicModel } from "src/hydraulic-model";
 
 describe("disconnectCustomers", () => {
+  const { labelManager } = buildTestFactories();
+
+  const disconnect = (
+    hydraulicModel: HydraulicModel,
+    customerPointIds: number[],
+  ) => {
+    const changeSet = disconnectCustomers(hydraulicModel, {
+      customerPointIds,
+    });
+    applyOperation(hydraulicModel, changeSet, labelManager);
+    return changeSet;
+  };
+
   it("disconnects a single connected customer point", () => {
     const IDS = { J1: 1, P1: 2, CP1: 3 } as const;
-    const hydraulicModel = HydraulicModelBuilder.with()
+    const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .aPipe(IDS.P1, {
         startNodeId: IDS.J1,
@@ -25,22 +41,16 @@ describe("disconnectCustomers", () => {
       .aCustomerPointDemand(IDS.CP1, [{ baseDemand: 25 }])
       .build();
 
-    const { putCustomerPoints } = disconnectCustomers(hydraulicModel, {
-      customerPointIds: [IDS.CP1],
-    });
+    disconnect(hydraulicModel, [IDS.CP1]);
 
-    expect(putCustomerPoints).toBeDefined();
-    expect(putCustomerPoints!.length).toBe(1);
-
-    const disconnectedCP = putCustomerPoints![0];
-    expect(disconnectedCP.id).toBe(IDS.CP1);
+    const disconnectedCP = hydraulicModel.customerPoints.get(IDS.CP1)!;
     expect(disconnectedCP.coordinates).toEqual([2, 1]);
     expect(disconnectedCP.connection).toBeNull();
   });
 
   it("disconnects multiple connected customer points", () => {
     const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4, CP2: 5 } as const;
-    const hydraulicModel = HydraulicModelBuilder.with()
+    const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .aJunction(IDS.J2, { coordinates: [10, 0] })
       .aPipe(IDS.P1, {
@@ -63,18 +73,10 @@ describe("disconnectCustomers", () => {
       .aCustomerPointDemand(IDS.CP2, [{ baseDemand: 50 }])
       .build();
 
-    const { putCustomerPoints } = disconnectCustomers(hydraulicModel, {
-      customerPointIds: [IDS.CP1, IDS.CP2],
-    });
+    disconnect(hydraulicModel, [IDS.CP1, IDS.CP2]);
 
-    expect(putCustomerPoints).toBeDefined();
-    expect(putCustomerPoints!.length).toBe(2);
-
-    const disconnectedCP1 = putCustomerPoints!.find((cp) => cp.id === IDS.CP1)!;
-    const disconnectedCP2 = putCustomerPoints!.find((cp) => cp.id === IDS.CP2)!;
-
-    expect(disconnectedCP1.connection).toBeNull();
-    expect(disconnectedCP2.connection).toBeNull();
+    expect(hydraulicModel.customerPoints.get(IDS.CP1)!.connection).toBeNull();
+    expect(hydraulicModel.customerPoints.get(IDS.CP2)!.connection).toBeNull();
   });
 
   it("handles already disconnected customer points", () => {
@@ -83,28 +85,22 @@ describe("disconnectCustomers", () => {
       coordinates: [2, 1],
     });
 
-    const hydraulicModel = HydraulicModelBuilder.with()
+    const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .build();
 
     hydraulicModel.customerPoints.set(IDS.CP1, disconnectedCP);
     hydraulicModel.demands.customerPoints.set(IDS.CP1, [{ baseDemand: 25 }]);
 
-    const { putCustomerPoints } = disconnectCustomers(hydraulicModel, {
-      customerPointIds: [IDS.CP1],
-    });
+    const changeSet = disconnect(hydraulicModel, [IDS.CP1]);
 
-    expect(putCustomerPoints).toBeDefined();
-    expect(putCustomerPoints!.length).toBe(1);
-
-    const resultCP = putCustomerPoints![0];
-    expect(resultCP.id).toBe(IDS.CP1);
-    expect(resultCP.connection).toBeNull();
+    expect(changeSet.isEmpty).toBe(true);
+    expect(hydraulicModel.customerPoints.get(IDS.CP1)!.connection).toBeNull();
   });
 
   it("throws error for non-existent customer point", () => {
     const IDS = { J1: 1 } as const;
-    const hydraulicModel = HydraulicModelBuilder.with()
+    const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .build();
 
@@ -115,7 +111,7 @@ describe("disconnectCustomers", () => {
     }).toThrow("Customer point with id 999 not found");
   });
 
-  it("ensures immutability by creating new instances", () => {
+  it("does not mutate the original customer point", () => {
     const IDS = { J1: 1, CP1: 2 } as const;
     const originalCP = buildCustomerPoint(IDS.CP1, {
       coordinates: [2, 1],
@@ -126,20 +122,16 @@ describe("disconnectCustomers", () => {
       junctionId: IDS.J1,
     });
 
-    const hydraulicModel = HydraulicModelBuilder.with()
+    const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .build();
 
     hydraulicModel.customerPoints.set(IDS.CP1, originalCP);
 
-    const { putCustomerPoints } = disconnectCustomers(hydraulicModel, {
-      customerPointIds: [IDS.CP1],
-    });
+    disconnect(hydraulicModel, [IDS.CP1]);
 
-    const disconnectedCP = putCustomerPoints![0];
-
+    const disconnectedCP = hydraulicModel.customerPoints.get(IDS.CP1)!;
     expect(disconnectedCP).not.toBe(originalCP);
-    expect(disconnectedCP.id).toBe(originalCP.id);
     expect(disconnectedCP.coordinates).toEqual(originalCP.coordinates);
     expect(disconnectedCP.connection).toBeNull();
     expect(originalCP.connection).not.toBeNull();
@@ -160,44 +152,39 @@ describe("disconnectCustomers", () => {
       coordinates: [8, 1],
     });
 
-    const hydraulicModel = HydraulicModelBuilder.with()
+    const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .build();
 
     hydraulicModel.customerPoints.set(IDS.CP1, connectedCP);
     hydraulicModel.customerPoints.set(IDS.CP2, disconnectedCP);
 
-    const { putCustomerPoints } = disconnectCustomers(hydraulicModel, {
-      customerPointIds: [IDS.CP1, IDS.CP2],
-    });
+    disconnect(hydraulicModel, [IDS.CP1, IDS.CP2]);
 
-    expect(putCustomerPoints!.length).toBe(2);
-
-    putCustomerPoints!.forEach((cp) => {
-      expect(cp.connection).toBeNull();
-    });
+    expect(hydraulicModel.customerPoints.get(IDS.CP1)!.connection).toBeNull();
+    expect(hydraulicModel.customerPoints.get(IDS.CP2)!.connection).toBeNull();
   });
 
-  it("returns correct note", () => {
+  it("names the change", () => {
     const IDS = { J1: 1, CP1: 2 } as const;
     const cp = buildCustomerPoint(IDS.CP1, {
       coordinates: [0, 0],
     });
 
-    const hydraulicModel = HydraulicModelBuilder.with()
+    const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .build();
 
     hydraulicModel.customerPoints.set(IDS.CP1, cp);
 
-    const result = disconnectCustomers(hydraulicModel, {
+    const changeSet = disconnectCustomers(hydraulicModel, {
       customerPointIds: [IDS.CP1],
     });
 
-    expect(result.note).toBe("Disconnect customers");
+    expect(changeSet.name).toBe("Disconnect customers");
   });
 
-  it("handles customer points with no junction connection", () => {
+  it("only changes customer points", () => {
     const IDS = { J1: 1, CP1: 2 } as const;
     const cp = buildCustomerPoint(IDS.CP1, {
       coordinates: [2, 1],
@@ -208,22 +195,17 @@ describe("disconnectCustomers", () => {
       junctionId: IDS.J1,
     });
 
-    const hydraulicModel = HydraulicModelBuilder.with()
+    const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .build();
 
     hydraulicModel.customerPoints.set(IDS.CP1, cp);
 
-    const { putAssets, putCustomerPoints } = disconnectCustomers(
-      hydraulicModel,
-      {
-        customerPointIds: [IDS.CP1],
-      },
-    );
+    const changeSet = disconnect(hydraulicModel, [IDS.CP1]);
 
-    expect(putCustomerPoints).toBeDefined();
-    expect(putCustomerPoints!.length).toBe(1);
-    expect(putAssets).toBeUndefined();
-    expect(putCustomerPoints![0].connection).toBeNull();
+    expect(changeSet.summary()).toEqual([
+      { entity: "customerPoint", kind: "update", count: 1 },
+    ]);
+    expect(hydraulicModel.customerPoints.get(IDS.CP1)!.connection).toBeNull();
   });
 });

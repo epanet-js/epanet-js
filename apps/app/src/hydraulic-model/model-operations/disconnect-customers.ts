@@ -1,14 +1,34 @@
 import { CustomerPoint } from "@epanet-js/hydraulic-model";
-import { ModelOperationDeprecated } from "../model-operation";
+import { ModelOperation, ModelOperationDeprecated } from "../model-operation";
+import { changeSet, putCustomerPoints } from "../change-sets";
 
 type InputData = {
   customerPointIds: readonly number[];
 };
 
-export const disconnectCustomers: ModelOperationDeprecated<InputData> = (
-  { customerPoints },
+export const disconnectCustomers: ModelOperation<InputData> = (
+  model,
   { customerPointIds },
-) => {
+) =>
+  changeSet(model, "Disconnect customers", [
+    putCustomerPoints(
+      disconnectedCopies(model.customerPoints, customerPointIds),
+    ),
+  ]);
+
+export const disconnectCustomersDeprecated: ModelOperationDeprecated<
+  InputData
+> = ({ customerPoints }, { customerPointIds }) => {
+  return {
+    note: "Disconnect customers",
+    putCustomerPoints: disconnectedCopies(customerPoints, customerPointIds),
+  };
+};
+
+const disconnectedCopies = (
+  customerPoints: ReadonlyMap<number, CustomerPoint>,
+  customerPointIds: readonly number[],
+): CustomerPoint[] => {
   const disconnectedCustomerPoints: CustomerPoint[] = [];
 
   for (const id of customerPointIds) {
@@ -21,8 +41,5 @@ export const disconnectCustomers: ModelOperationDeprecated<InputData> = (
     disconnectedCustomerPoints.push(disconnectedCopy);
   }
 
-  return {
-    note: "Disconnect customers",
-    putCustomerPoints: disconnectedCustomerPoints,
-  };
+  return disconnectedCustomerPoints;
 };
