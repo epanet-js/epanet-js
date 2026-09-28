@@ -22,7 +22,7 @@ import {
 } from "src/state/branch-state";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { worktreeAtom } from "src/state/scenarios";
-import type { Trace } from "src/infra/trace";
+import { nullTrace, type Trace } from "src/infra/trace";
 import type { Branch, StoredBranches, Worktree } from "@epanet-js/worktree";
 
 type Identifiers = { pool: IdPool; labelType: LabelType };
@@ -196,21 +196,31 @@ export const materializeBranch = (
   factories: ModelFactories,
   unloaded: UnloadedBranchState,
   delta: ChangeSet,
+  trace: Trace = nullTrace,
 ): BranchState => {
   const state: BranchState = {
-    ...branchFromMain(mainState, factories),
+    ...trace.measure("copy-main", () => branchFromMain(mainState, factories)),
     ...unloaded,
   };
-  const report = applyChangeSet(
-    state.hydraulicModel,
-    delta,
-    "forward",
-    state.labelManager,
+  const { records } = trace.measure(
+    "decode-delta",
+    () => delta.read(),
+    `${delta.byteLength} bytes`,
   );
-  state.hydraulicModel = settleAppliedModel(
-    state.hydraulicModel,
-    unloaded.version,
-    report,
+  const detail = `${records.length} records`;
+  const report = trace.measure(
+    "apply-delta",
+    () =>
+      applyChangeSet(
+        state.hydraulicModel,
+        delta,
+        "forward",
+        state.labelManager,
+      ),
+    detail,
+  );
+  state.hydraulicModel = trace.measure("settle-model", () =>
+    settleAppliedModel(state.hydraulicModel, unloaded.version, report),
   );
   return state;
 };

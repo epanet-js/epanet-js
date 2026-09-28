@@ -8,6 +8,8 @@ import { useDeleteBranch } from "src/hooks/persistence/use-delete-branch";
 import { useLoadBranch } from "src/hooks/persistence/use-load-branch";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { captureError } from "src/infra/error-tracking";
+import { startTrace } from "src/infra/trace";
+import { isTraceScenarioSwitchOn } from "src/infra/debug-mode";
 import { getBranchingRules, getBranchStore } from "src/lib/branching";
 import { writeQueue } from "src/lib/persistence/write-queue";
 import { useWriteFailureHandler } from "src/hooks/persistence/use-write-failure-handler";
@@ -75,9 +77,11 @@ export const useScenarioOperations = () => {
             scenarioName: get(worktreeAtom).branches.get(branchId)?.name ?? "",
           });
         }
+        const trace = startTrace("switch-scenario", isTraceScenarioSwitchOn);
         try {
-          await loadBranch(branchId);
+          await loadBranch(branchId, trace);
         } catch (error) {
+          trace.end();
           captureError(error as Error);
           return;
         } finally {
@@ -86,7 +90,8 @@ export const useScenarioOperations = () => {
             dialog?.type === "loadingScenario" ? null : dialog,
           );
         }
-        then();
+        trace.measure("activate", then);
+        trace.end();
       },
       [loadBranch],
     ),
