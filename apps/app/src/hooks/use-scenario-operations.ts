@@ -12,6 +12,8 @@ import { getBranchingRules, getBranchStore } from "src/lib/branching";
 import { writeQueue } from "src/lib/persistence/write-queue";
 import { useWriteFailureHandler } from "src/hooks/persistence/use-write-failure-handler";
 import { branchSwitchInFlightAtom, worktreeAtom } from "src/state/scenarios";
+import { branchStateAtom, isBranchLoaded } from "src/state/branch-state";
+import { dialogAtom } from "src/state/dialog";
 import { modeAtom, Mode } from "src/state/mode";
 
 const DRAWING_MODES: Mode[] = [
@@ -66,6 +68,13 @@ export const useScenarioOperations = () => {
         if (get(branchSwitchInFlightAtom)) return;
 
         set(branchSwitchInFlightAtom, true);
+        const state = get(branchStateAtom).get(branchId);
+        if (state && !isBranchLoaded(state)) {
+          set(dialogAtom, {
+            type: "loadingScenario",
+            scenarioName: get(worktreeAtom).branches.get(branchId)?.name ?? "",
+          });
+        }
         try {
           await loadBranch(branchId);
         } catch (error) {
@@ -73,6 +82,9 @@ export const useScenarioOperations = () => {
           return;
         } finally {
           set(branchSwitchInFlightAtom, false);
+          set(dialogAtom, (dialog) =>
+            dialog?.type === "loadingScenario" ? null : dialog,
+          );
         }
         then();
       },

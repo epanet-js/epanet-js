@@ -1608,6 +1608,7 @@
     "delete": "Delete",
     "rename": "Rename",
     "ignoreAndCreate": "Ignore and create scenario",
+    "loadingScenario": "Loading {{1}}...",
     "renameDialog": {
       "title": "Rename Scenario",
       "label": "Scenario name",

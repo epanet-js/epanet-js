@@ -188,6 +188,11 @@ export type OpenProjectProgressDialogState = {
   phase: OpenProjectPhase;
 };
 
+export type LoadingScenarioDialogState = {
+  type: "loadingScenario";
+  scenarioName: string;
+};
+
 export type PatternsLibraryDialog = {
   type: "patternsLibrary";
   initialPatternId?: number;
@@ -401,6 +406,7 @@ export type DialogState =
   | EarlyAccessDialogState
   | SimulationProgressDialogState
   | OpenProjectProgressDialogState
+  | LoadingScenarioDialogState
   | RecalculateAllElevationsConfirmDialogState
   | RecomputeElevationsProgressDialogState
   | { type: "simulationSettings" }

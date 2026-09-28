@@ -29,7 +29,12 @@ import {
 } from "src/hooks/persistence/use-open-persisted-project";
 import { useHasUnsavedChanges } from "src/hooks/use-has-unsaved-changes";
 import { useScenarioOperations } from "src/hooks/use-scenario-operations";
-import { registerBranchingRules, registerBranchStore } from "src/lib/branching";
+import {
+  getBranchStore,
+  registerBranchingRules,
+  registerBranchStore,
+} from "src/lib/branching";
+import { dialogAtom } from "src/state/dialog";
 import { writeQueue } from "src/lib/persistence/write-queue";
 import { useInProcessDb } from "src/lib/db/__test-helpers__/in-process-db";
 import * as db from "src/lib/db";
@@ -588,6 +593,43 @@ describe("branch store", () => {
         withStore(store),
       );
       expect(result.current).toBe(false);
+    });
+
+    it("blocks the app with a loading dialog while a scenario loads", async () => {
+      const store = await aProjectWithTwoScenarios();
+      const branchStore = getBranchStore();
+      let release!: () => void;
+      const released = new Promise<void>((resolve) => (release = resolve));
+      registerBranchStore({
+        ...branchStore,
+        loadDelta: async (branchId) => {
+          await released;
+          return branchStore.loadDelta(branchId);
+        },
+      });
+      const { result } = renderHook(
+        () => useScenarioOperations(),
+        withStore(store),
+      );
+
+      act(() => {
+        result.current.switchToBranch("scenario-1");
+      });
+
+      expect(store.get(dialogAtom)).toEqual({
+        type: "loadingScenario",
+        scenarioName: "Scenario #1",
+      });
+
+      release();
+      await waitFor(() =>
+        expect(store.get(worktreeAtom).activeBranchId).toEqual("scenario-1"),
+      );
+      expect(store.get(dialogAtom)).toBeNull();
+
+      await switchTo(store, "main");
+
+      expect(store.get(dialogAtom)).toBeNull();
     });
 
     it("loads the next scenario when the active one is deleted", async () => {

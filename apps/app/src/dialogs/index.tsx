@@ -48,6 +48,7 @@ import { ImportCustomerPointsWarningDialog } from "src/dialogs/import-customer-p
 import { ImportZonesWarningDialog } from "src/dialogs/import-zones-warning";
 import { SimulationProgressDialog } from "src/dialogs/simulation-progress";
 import { OpenProjectProgressDialog } from "src/dialogs/open-project-progress";
+import { LoadingScenarioDialog } from "src/dialogs/loading-scenario";
 import { ControlsDialog } from "src/dialogs/controls-dialog";
 import { PatternsDialog } from "src/dialogs/patterns";
 import { PipeLibraryDialog } from "src/dialogs/pipe-library";
@@ -257,6 +258,9 @@ export const Dialogs = memo(function Dialogs() {
   }
   if (dialog.type === "openProjectProgress") {
     return <OpenProjectProgressDialog modal={dialog} />;
+  }
+  if (dialog.type === "loadingScenario") {
+    return <LoadingScenarioDialog modal={dialog} />;
   }
   if (dialog.type === "rebuildStorageProgress") {
     return <RebuildStorageProgressDialog modal={dialog} onClose={onClose} />;
