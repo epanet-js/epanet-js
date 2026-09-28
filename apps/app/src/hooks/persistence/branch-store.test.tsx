@@ -25,6 +25,7 @@ import { useInitializeBranch } from "src/hooks/persistence/use-initialize-branch
 import { useSwitchBranch } from "src/hooks/persistence/use-switch-branch";
 import {
   useOpenPersistedProject,
+  type OpenPersistedProjectPhase,
   type OpenPersistedProjectResult,
 } from "src/hooks/persistence/use-open-persisted-project";
 import { useHasUnsavedChanges } from "src/hooks/use-has-unsaved-changes";
@@ -193,7 +194,10 @@ const undo = (store: Store) => {
   });
 };
 
-const reopen = async (store: Store) => {
+const reopen = async (
+  store: Store,
+  onProgress?: (phase: OpenPersistedProjectPhase) => void,
+) => {
   const bytes = await db.exportDb();
   const { result } = renderHook(
     () => useOpenPersistedProject(),
@@ -204,6 +208,7 @@ const reopen = async (store: Store) => {
   await act(async () => {
     outcome = await result.current.openPersistedProject({
       file: new File([bytes], "project.ejs"),
+      onProgress,
     });
   });
   return outcome;
@@ -448,6 +453,24 @@ describe("branch store", () => {
     expect(worktree.branches.get("main")!.status).toEqual("locked");
     expect(modelOf(store, "main").assets.size).toEqual(1);
     expect(modelOf(store, "scenario-1").assets.size).toEqual(scenarioAssets);
+  });
+
+  it("reports reading the scenarios as its own phase on open", async () => {
+    const { store: branchStore } = aRecordingStore();
+    registerBranchStore(branchStore);
+    const store = await aSavedProject();
+    switchToScenario(store);
+    addJunction(store);
+    await writeQueue.whenIdle();
+    const phases: OpenPersistedProjectPhase[] = [];
+
+    await reopen(store, (phase) => phases.push(phase));
+
+    expect(phases.slice(-3)).toEqual([
+      "building",
+      "reading-scenarios",
+      "finalizing",
+    ]);
   });
 
   it("keeps the id pools above every id a stored delta holds", async () => {

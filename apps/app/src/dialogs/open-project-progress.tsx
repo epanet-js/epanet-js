@@ -18,6 +18,8 @@ const phaseTranslationKey = (phase: OpenProjectPhase): string => {
       return "openProjectProgress.readingSettings";
     case "building":
       return "openProjectProgress.building";
+    case "reading-scenarios":
+      return "openProjectProgress.readingScenarios";
     case "finalizing":
       return "openProjectProgress.finalizing";
   }
@@ -34,6 +36,8 @@ const phasePercent = (phase: OpenProjectPhase): number => {
     case "reading-settings":
       return 80;
     case "building":
+      return 90;
+    case "reading-scenarios":
       return 95;
     case "finalizing":
       return 100;

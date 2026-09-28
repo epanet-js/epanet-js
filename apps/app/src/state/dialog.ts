@@ -181,6 +181,7 @@ export type OpenProjectPhase =
   | "reading-customer-points"
   | "reading-settings"
   | "building"
+  | "reading-scenarios"
   | "finalizing";
 
 export type OpenProjectProgressDialogState = {

@@ -57,7 +57,10 @@ const restoreBranches = async (
   };
 };
 
-export type OpenPersistedProjectPhase = FetchProjectPhase | "finalizing";
+export type OpenPersistedProjectPhase =
+  | FetchProjectPhase
+  | "reading-scenarios"
+  | "finalizing";
 
 type OpenPersistedProjectInput = {
   file: File;
@@ -122,7 +125,7 @@ export const useOpenPersistedProject = () => {
         } = await trace.measureAsync("fetch-project", () =>
           fetchProject({ onProgress }),
         );
-        onProgress?.("finalizing");
+        onProgress?.("reading-scenarios");
 
         const loadInput: ProjectLoadInput = {
           hydraulicModel,
@@ -147,6 +150,7 @@ export const useOpenPersistedProject = () => {
           };
         }
 
+        onProgress?.("finalizing");
         await trace.measureAsync("clear-simulation-storage", () =>
           clearSimulationStorage(),
         );

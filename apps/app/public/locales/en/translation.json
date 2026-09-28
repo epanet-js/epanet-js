@@ -419,6 +419,7 @@
   "openProjectProgress.readingCustomerPoints": "Reading customer points...",
   "openProjectProgress.readingSettings": "Reading settings...",
   "openProjectProgress.building": "Building model...",
+  "openProjectProgress.readingScenarios": "Reading scenarios...",
   "openProjectProgress.finalizing": "Finalizing...",
   "openProjectFailure.tooNew": "Project file is too new",
   "openProjectFailure.tooNewDetail": "This file was created by a newer version of the app. Please update to open it.",
