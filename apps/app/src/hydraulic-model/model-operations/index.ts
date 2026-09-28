@@ -38,7 +38,10 @@ export {
 export { addCustomerPoint } from "./add-customer-point";
 export { removeCustomerPoints } from "./remove-customer-points";
 export { moveCustomerPoint } from "./move-customer-point";
-export { changeCustomerPointLabel } from "./change-customer-point-label";
+export {
+  changeCustomerPointLabel,
+  changeCustomerPointLabelDeprecated,
+} from "./change-customer-point-label";
 export {
   changeCustomerPointProperty,
   changeCustomerPointProperties,

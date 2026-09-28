@@ -91,19 +91,24 @@ describe("changeCustomerPointProperties", () => {
 });
 
 describe("changeCustomerPointLabel", () => {
-  it("delegates to the patch channel", () => {
-    const model = HydraulicModelBuilder.with()
+  it("only changes the label", () => {
+    const model = HydraulicModelBuilder.with({ labelManager })
       .aCustomerPoint(IDS.CP1, { label: "old" })
       .build();
 
-    const moment = changeCustomerPointLabel(model, {
+    const changeSet = changeCustomerPointLabel(model, {
       customerPointId: IDS.CP1,
       newLabel: "new",
     });
 
-    expect(moment.patchCustomerPointsAttributes).toEqual([
-      { id: IDS.CP1, properties: { label: "new" } },
+    expect(changeSet.records).toEqual([
+      {
+        entity: "customerPoint",
+        id: IDS.CP1,
+        kind: "update",
+        before: { label: "old" },
+        after: { label: "new" },
+      },
     ]);
-    expect(moment.putCustomerPoints).toBeUndefined();
   });
 });

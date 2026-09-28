@@ -7,7 +7,8 @@ import { buildTestFactories } from "src/__helpers__/test-factories";
 describe("changeCustomerPointLabel", () => {
   it("changes a customer point label", () => {
     const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4 } as const;
-    const hydraulicModel = HydraulicModelBuilder.with()
+    const { labelManager } = buildTestFactories();
+    const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .aJunction(IDS.J2, { coordinates: [10, 0] })
       .aPipe(IDS.P1, {
@@ -24,14 +25,15 @@ describe("changeCustomerPointLabel", () => {
       })
       .build();
 
-    const result = changeCustomerPointLabel(hydraulicModel, {
+    const changeSet = changeCustomerPointLabel(hydraulicModel, {
       customerPointId: IDS.CP1,
       newLabel: "MyCustomer",
     });
+    applyOperation(hydraulicModel, changeSet, labelManager);
 
-    expect(result.patchCustomerPointsAttributes).toEqual([
-      { id: IDS.CP1, properties: { label: "MyCustomer" } },
-    ]);
+    expect(hydraulicModel.customerPoints.get(IDS.CP1)!.label).toBe(
+      "MyCustomer",
+    );
   });
 
   it("preserves connection data after apply", () => {
@@ -54,11 +56,11 @@ describe("changeCustomerPointLabel", () => {
       })
       .build();
 
-    const moment = changeCustomerPointLabel(hydraulicModel, {
+    const changeSet = changeCustomerPointLabel(hydraulicModel, {
       customerPointId: IDS.CP1,
       newLabel: "Renamed",
     });
-    applyOperation(hydraulicModel, moment, labelManager);
+    applyOperation(hydraulicModel, changeSet, labelManager);
 
     const updated = hydraulicModel.customerPoints.get(IDS.CP1)!;
     expect(updated.label).toBe("Renamed");
@@ -100,11 +102,11 @@ describe("changeCustomerPointLabel", () => {
       })
       .build();
 
-    const moment = changeCustomerPointLabel(hydraulicModel, {
+    const changeSet = changeCustomerPointLabel(hydraulicModel, {
       customerPointId: IDS.CP1,
       newLabel: "NewLabel",
     });
-    applyOperation(hydraulicModel, moment, labelManager);
+    applyOperation(hydraulicModel, changeSet, labelManager);
 
     expect(hydraulicModel.customerPoints.get(IDS.CP1)!.label).toBe("NewLabel");
     expect(
@@ -136,11 +138,11 @@ describe("changeCustomerPointLabel", () => {
       })
       .build();
 
-    const moment = changeCustomerPointLabel(hydraulicModel, {
+    const changeSet = changeCustomerPointLabel(hydraulicModel, {
       customerPointId: IDS.CP1,
       newLabel: "Changed",
     });
-    const { undo } = applyOperation(hydraulicModel, moment, labelManager);
+    const { undo } = applyOperation(hydraulicModel, changeSet, labelManager);
 
     expect(hydraulicModel.customerPoints.get(IDS.CP1)!.label).toBe("Changed");
 

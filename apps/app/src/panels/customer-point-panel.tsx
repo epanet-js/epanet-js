@@ -36,6 +36,7 @@ import {
   changeDemandAssignment,
   changeDemandAssignmentDeprecated,
   changeCustomerPointLabel,
+  changeCustomerPointLabelDeprecated,
 } from "src/hydraulic-model/model-operations";
 import { convertTo } from "@epanet-js/quantity";
 
@@ -180,11 +181,12 @@ export function CustomerPointPanel() {
         return true;
       }
 
-      const moment = changeCustomerPointLabel(hydraulicModel, {
-        customerPointId: customerPoint.id,
-        newLabel,
-      });
-      transact(moment);
+      const data = { customerPointId: customerPoint.id, newLabel };
+      if (isOpsChangeSetsOn) {
+        transactChangeSet(changeCustomerPointLabel(hydraulicModel, data));
+      } else {
+        transact(changeCustomerPointLabelDeprecated(hydraulicModel, data));
+      }
       userTracking.capture({
         name: "customerPointActions.labelChanged",
         oldLabel,
@@ -197,7 +199,9 @@ export function CustomerPointPanel() {
       customerPoint,
       hydraulicModel,
       labelManager,
+      isOpsChangeSetsOn,
       transact,
+      transactChangeSet,
       translate,
       userTracking,
     ],

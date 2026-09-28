@@ -9,7 +9,7 @@ import {
 import { dialogAtom } from "src/state/dialog";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import {
-  changeCustomerPointLabel,
+  changeCustomerPointLabelDeprecated,
   changeCustomerPointPropertiesDeprecated,
   changeDemandAssignmentDeprecated,
   mergeMoments,
@@ -201,7 +201,7 @@ export const CustomerPointDataTable = memo(
             )
           ) {
             moments.push(
-              changeCustomerPointLabel(hydraulicModel, {
+              changeCustomerPointLabelDeprecated(hydraulicModel, {
                 customerPointId: newRow.id,
                 newLabel: newRow.label,
               }),
