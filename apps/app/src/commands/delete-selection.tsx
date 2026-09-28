@@ -3,7 +3,7 @@ import { useCallback } from "react";
 import {
   deleteAssets,
   mergeMoments,
-  removeCustomerPoints,
+  removeCustomerPointsDeprecated,
 } from "src/hydraulic-model/model-operations";
 import type { ModelMoment } from "src/hydraulic-model/model-operation";
 import { AssetDeleted, useUserTracking } from "src/infra/user-tracking";
@@ -74,7 +74,7 @@ export const useDeleteSelection = () => {
       }
       if (customerPointIds.length > 0) {
         moments.push(
-          removeCustomerPoints(hydraulicModel, {
+          removeCustomerPointsDeprecated(hydraulicModel, {
             customerPointIds: customerPointIds.slice(),
           }),
         );

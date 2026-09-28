@@ -1,14 +1,52 @@
 import { CustomerPointId } from "@epanet-js/hydraulic-model";
-import { ModelOperationDeprecated, DemandAssignment } from "../model-operation";
+import {
+  ModelOperation,
+  ModelOperationDeprecated,
+  DemandAssignment,
+} from "../model-operation";
 import { getCustomerPointDemands } from "@epanet-js/hydraulic-model";
+import { HydraulicModel } from "../hydraulic-model";
+import { changeSet, dropCustomerPoints, setDemands } from "../change-sets";
 
 type InputData = {
   customerPointIds: readonly CustomerPointId[];
 };
 
-export const removeCustomerPoints: ModelOperationDeprecated<InputData> = (
+export const removeCustomerPoints: ModelOperation<InputData> = (
   hydraulicModel,
   { customerPointIds },
+) => {
+  const { idsToDelete, demandAssignments } = planRemoval(
+    hydraulicModel,
+    customerPointIds,
+  );
+
+  return changeSet(hydraulicModel, "Remove customer points", [
+    dropCustomerPoints(idsToDelete),
+    setDemands(demandAssignments),
+  ]);
+};
+
+export const removeCustomerPointsDeprecated: ModelOperationDeprecated<
+  InputData
+> = (hydraulicModel, { customerPointIds }) => {
+  const { idsToDelete, demandAssignments } = planRemoval(
+    hydraulicModel,
+    customerPointIds,
+  );
+
+  return {
+    note: "Remove customer points",
+    deleteCustomerPoints: idsToDelete,
+    ...(demandAssignments.length > 0 && {
+      putDemands: { assignments: demandAssignments },
+    }),
+  };
+};
+
+const planRemoval = (
+  hydraulicModel: HydraulicModel,
+  customerPointIds: readonly CustomerPointId[],
 ) => {
   const idsToDelete: CustomerPointId[] = [];
   const demandAssignments: DemandAssignment[] = [];
@@ -27,11 +65,5 @@ export const removeCustomerPoints: ModelOperationDeprecated<InputData> = (
     }
   }
 
-  return {
-    note: "Remove customer points",
-    deleteCustomerPoints: idsToDelete,
-    ...(demandAssignments.length > 0 && {
-      putDemands: { assignments: demandAssignments },
-    }),
-  };
+  return { idsToDelete, demandAssignments };
 };

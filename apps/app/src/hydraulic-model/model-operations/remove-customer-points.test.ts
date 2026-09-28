@@ -6,11 +6,24 @@ import {
 } from "src/__helpers__/hydraulic-model-builder";
 import { applyOperation } from "src/__helpers__/apply-operation";
 import { buildTestFactories } from "src/__helpers__/test-factories";
+import type { HydraulicModel } from "src/hydraulic-model";
+import { getCustomerPointDemands } from "@epanet-js/hydraulic-model";
+
+const { labelManager } = buildTestFactories();
+
+const remove = (hydraulicModel: HydraulicModel, customerPointIds: number[]) => {
+  const changeSet = removeCustomerPoints(hydraulicModel, { customerPointIds });
+  applyOperation(hydraulicModel, changeSet, labelManager);
+  return changeSet;
+};
+
+const changedEntities = (changeSet: ReturnType<typeof remove>) =>
+  changeSet.summary().map(({ entity, kind }) => `${entity}:${kind}`);
 
 describe("removeCustomerPoints", () => {
   it("removes a single connected customer point", () => {
     const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4 } as const;
-    const hydraulicModel = HydraulicModelBuilder.with()
+    const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .aJunction(IDS.J2, { coordinates: [10, 0] })
       .aPipe(IDS.P1, {
@@ -27,18 +40,15 @@ describe("removeCustomerPoints", () => {
       })
       .build();
 
-    const result = removeCustomerPoints(hydraulicModel, {
-      customerPointIds: [IDS.CP1],
-    });
+    const changeSet = remove(hydraulicModel, [IDS.CP1]);
 
-    expect(result.deleteCustomerPoints).toEqual([IDS.CP1]);
-    expect(result.putAssets).toBeUndefined();
-    expect(result.deleteAssets).toBeUndefined();
+    expect(hydraulicModel.customerPoints.has(IDS.CP1)).toBe(false);
+    expect(changedEntities(changeSet)).toEqual(["customerPoint:delete"]);
   });
 
   it("removes multiple customer points", () => {
     const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4, CP2: 5 } as const;
-    const hydraulicModel = HydraulicModelBuilder.with()
+    const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .aJunction(IDS.J2, { coordinates: [10, 0] })
       .aPipe(IDS.P1, {
@@ -59,16 +69,15 @@ describe("removeCustomerPoints", () => {
       })
       .build();
 
-    const result = removeCustomerPoints(hydraulicModel, {
-      customerPointIds: [IDS.CP1, IDS.CP2],
-    });
+    remove(hydraulicModel, [IDS.CP1, IDS.CP2]);
 
-    expect(result.deleteCustomerPoints).toEqual([IDS.CP1, IDS.CP2]);
+    expect(hydraulicModel.customerPoints.has(IDS.CP1)).toBe(false);
+    expect(hydraulicModel.customerPoints.has(IDS.CP2)).toBe(false);
   });
 
   it("clears demands when removing a CP with demands", () => {
     const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4 } as const;
-    const hydraulicModel = HydraulicModelBuilder.with()
+    const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .aJunction(IDS.J2, { coordinates: [10, 0] })
       .aPipe(IDS.P1, {
@@ -86,19 +95,17 @@ describe("removeCustomerPoints", () => {
       .aCustomerPointDemand(IDS.CP1, [{ baseDemand: 25 }])
       .build();
 
-    const result = removeCustomerPoints(hydraulicModel, {
-      customerPointIds: [IDS.CP1],
-    });
+    const changeSet = remove(hydraulicModel, [IDS.CP1]);
 
-    expect(result.putDemands).toBeDefined();
-    expect(result.putDemands!.assignments).toEqual([
-      { customerPointId: IDS.CP1, demands: [] },
-    ]);
+    expect(changedEntities(changeSet)).toContain("customerDemand:update");
+    expect(getCustomerPointDemands(hydraulicModel.demands, IDS.CP1)).toEqual(
+      [],
+    );
   });
 
-  it("does not include putDemands when CP has no demands", () => {
+  it("does not change demands when CP has no demands", () => {
     const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4 } as const;
-    const hydraulicModel = HydraulicModelBuilder.with()
+    const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .aJunction(IDS.J2, { coordinates: [10, 0] })
       .aPipe(IDS.P1, {
@@ -115,15 +122,13 @@ describe("removeCustomerPoints", () => {
       })
       .build();
 
-    const result = removeCustomerPoints(hydraulicModel, {
-      customerPointIds: [IDS.CP1],
-    });
+    const changeSet = remove(hydraulicModel, [IDS.CP1]);
 
-    expect(result.putDemands).toBeUndefined();
+    expect(changedEntities(changeSet)).toEqual(["customerPoint:delete"]);
   });
 
   it("throws error for non-existent customer point", () => {
-    const hydraulicModel = HydraulicModelBuilder.with()
+    const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
       .aJunction(1, { coordinates: [0, 0] })
       .build();
 
@@ -134,23 +139,23 @@ describe("removeCustomerPoints", () => {
     }).toThrow("Customer point with id 999 not found");
   });
 
-  it("returns correct note", () => {
+  it("names the change", () => {
     const IDS = { J1: 1, CP1: 2 } as const;
     const cp = buildCustomerPoint(IDS.CP1, {
       coordinates: [0, 0],
     });
 
-    const hydraulicModel = HydraulicModelBuilder.with()
+    const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .build();
 
     hydraulicModel.customerPoints.set(IDS.CP1, cp);
 
-    const result = removeCustomerPoints(hydraulicModel, {
+    const changeSet = removeCustomerPoints(hydraulicModel, {
       customerPointIds: [IDS.CP1],
     });
 
-    expect(result.note).toBe("Remove customer points");
+    expect(changeSet.name).toBe("Remove customer points");
   });
 
   it("removes already-disconnected customer point", () => {
@@ -159,22 +164,19 @@ describe("removeCustomerPoints", () => {
       coordinates: [2, 1],
     });
 
-    const hydraulicModel = HydraulicModelBuilder.with()
+    const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .build();
 
     hydraulicModel.customerPoints.set(IDS.CP1, disconnectedCP);
 
-    const result = removeCustomerPoints(hydraulicModel, {
-      customerPointIds: [IDS.CP1],
-    });
+    remove(hydraulicModel, [IDS.CP1]);
 
-    expect(result.deleteCustomerPoints).toEqual([IDS.CP1]);
+    expect(hydraulicModel.customerPoints.has(IDS.CP1)).toBe(false);
   });
 
   it("restores the customer point and its demands on undo", () => {
     const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4 } as const;
-    const { labelManager } = buildTestFactories();
     const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .aJunction(IDS.J2, { coordinates: [10, 0] })
@@ -194,11 +196,11 @@ describe("removeCustomerPoints", () => {
       .build();
 
     const originalCP = hydraulicModel.customerPoints.get(IDS.CP1)!;
-    const moment = removeCustomerPoints(hydraulicModel, {
+    const changeSet = removeCustomerPoints(hydraulicModel, {
       customerPointIds: [IDS.CP1],
     });
 
-    const { undo } = applyOperation(hydraulicModel, moment, labelManager);
+    const { undo } = applyOperation(hydraulicModel, changeSet, labelManager);
 
     expect(hydraulicModel.customerPoints.has(IDS.CP1)).toBe(false);
 

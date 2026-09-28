@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { mergeMoments } from "./merge-moments";
 import { deleteAssets } from "./delete-assets";
-import { removeCustomerPoints } from "./remove-customer-points";
+import { removeCustomerPointsDeprecated } from "./remove-customer-points";
 import { applyOperation } from "src/__helpers__/apply-operation";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { buildTestFactories } from "src/__helpers__/test-factories";
@@ -99,7 +99,7 @@ describe("mergeMoments", () => {
     const merged = mergeMoments(
       [
         deleteMoment,
-        removeCustomerPoints(model, { customerPointIds: [IDS.CP1] }),
+        removeCustomerPointsDeprecated(model, { customerPointIds: [IDS.CP1] }),
       ],
       "Delete pump + CP",
     );
@@ -134,7 +134,7 @@ describe("mergeMoments", () => {
           assetIds: [IDS.J1],
           shouldUpdateCustomerPoints: true,
         }),
-        removeCustomerPoints(model, { customerPointIds: [IDS.CP1] }),
+        removeCustomerPointsDeprecated(model, { customerPointIds: [IDS.CP1] }),
       ],
       "Delete junction + CP",
     );

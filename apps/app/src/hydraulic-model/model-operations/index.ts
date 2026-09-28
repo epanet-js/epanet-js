@@ -36,7 +36,10 @@ export {
   changeDemandAssignmentDeprecated,
 } from "./change-demand-assignment";
 export { addCustomerPoint } from "./add-customer-point";
-export { removeCustomerPoints } from "./remove-customer-points";
+export {
+  removeCustomerPoints,
+  removeCustomerPointsDeprecated,
+} from "./remove-customer-points";
 export { moveCustomerPoint } from "./move-customer-point";
 export {
   changeCustomerPointLabel,
