@@ -16,7 +16,7 @@ export const useToggleVerticalPanel = () => {
   const userTracking = useUserTracking();
 
   const toggleVerticalPanel = useCallback(
-    ({ source }: { source: "toolbar" | "handle" }) => {
+    ({ source }: { source: "toolbar" }) => {
       if (splits.verticalOpen) {
         deactivatePanel(activeVerticalPanel?.panel);
       }

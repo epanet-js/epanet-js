@@ -1735,7 +1735,7 @@ export type UserEvent =
       name: "verticalPanel.toggled";
       open: boolean;
       activePanelType: string | null;
-      source: "toolbar" | "handle";
+      source: "toolbar";
     }
   | { name: "verticalPanel.tabSwitched"; panelType: string }
   | {
