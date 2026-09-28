@@ -166,6 +166,46 @@ describe("variable speed pumps", () => {
         demandsAt(DEMAND_FACTORS).map((demand) => -demand),
       );
     });
+
+    it("holds a tank inlet's flow as it reverses to fill and empty the tank", async () => {
+      const fillSteps = [0, 1, 2, 6, 7, 8];
+      const drainSteps = [3, 4, 5, 9, 10, 11];
+      const reader = await simulate(
+        tankInletFlowNetwork({
+          schedule: [
+            { time: 0, target: 5 },
+            { time: 3 * HOUR, target: -5 },
+            { time: 6 * HOUR, target: 5 },
+            { time: 9 * HOUR, target: -5 },
+          ],
+        }),
+        { duration: 12 * HOUR },
+      );
+
+      const flows = await pipeFlows(reader, IDS.P1);
+      const levels = await tankLevels(reader, IDS.T1);
+      const speeds = await pumpSettings(reader, IDS.PU1);
+
+      expectAllNear(
+        fillSteps.map((step) => flows[step]),
+        5,
+        FLOW_TOL,
+      );
+      expectAllNear(
+        drainSteps.map((step) => flows[step]),
+        -5,
+        FLOW_TOL,
+      );
+      for (const step of fillSteps) {
+        expect(levels[step + 1]).toBeGreaterThan(levels[step]);
+      }
+      for (const step of drainSteps) {
+        expect(levels[step + 1]).toBeLessThan(levels[step]);
+      }
+      expect(
+        Math.min(...fillSteps.map((step) => speeds[step])),
+      ).toBeGreaterThan(Math.max(...drainSteps.map((step) => speeds[step])));
+    });
   });
 
   describe("lagged pumps", () => {
@@ -401,6 +441,43 @@ const localFlowNetwork = ({ target }: { target: number }) =>
     })
     .build();
 
+//   R1 --PU1-- J1 (demand) ---P1---> T1
+const tankInletFlowNetwork = ({ schedule }: { schedule: Schedule }) =>
+  HydraulicModelBuilder.with()
+    .aReservoir(IDS.R1, { head: 15 })
+    .aJunction(IDS.J1, { elevation: 0 })
+    .aJunctionDemand(IDS.J1, [{ baseDemand: 20 }])
+    .aTank(IDS.T1, {
+      elevation: 20,
+      initialLevel: 2,
+      minLevel: 0,
+      maxLevel: 5,
+      diameter: 10,
+    })
+    .aPump(IDS.PU1, {
+      startNodeId: IDS.R1,
+      endNodeId: IDS.J1,
+      curve: [{ x: 30, y: 30 }],
+    })
+    .aPipe(IDS.P1, {
+      startNodeId: IDS.J1,
+      endNodeId: IDS.T1,
+      length: 500,
+      diameter: 200,
+      roughness: 100,
+    })
+    .aVariableSpeedPumpControl({
+      linkId: IDS.PU1,
+      quantity: "flow",
+      targetId: IDS.P1,
+      target: 5,
+      minSpeed: 0.3,
+      maxSpeed: 1,
+      laggedPumpIds: [],
+      schedule,
+    })
+    .build();
+
 //   R1 --PU1--+
 //             J1 --------P1-------- J2 (demand + pattern)
 //   R1 --PU2--+
@@ -445,10 +522,13 @@ const laggedPumpsNetwork = ({ target }: { target: number }) =>
 
 const simulate = async (
   hydraulicModel: HydraulicModel,
-  { allowWarnings = false }: { allowWarnings?: boolean } = {},
+  {
+    allowWarnings = false,
+    duration = DURATION,
+  }: { allowWarnings?: boolean; duration?: number } = {},
 ): Promise<EPSResultsReader> => {
   const simulationSettings = SimulationSettingsBuilder.with()
-    .timing({ duration: DURATION })
+    .timing({ duration })
     .build();
 
   const inp = buildInp(hydraulicModel, {
