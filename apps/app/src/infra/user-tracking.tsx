@@ -461,6 +461,7 @@ type InpExported = {
   isSaveAs?: boolean;
   lsxRequired?: boolean;
   includesRemoteSetpointPrvs?: boolean;
+  includesVariableSpeedPumps?: boolean;
   scenariosCount: number;
 };
 

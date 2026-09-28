@@ -52,6 +52,7 @@ export const AlertExportInpDialog = ({
         {showLsxWarning && (
           <LsxRequiredWarning
             remoteSetpointPrvs={lsxRequirements.remoteSetpointPrvs}
+            variableSpeedPumps={lsxRequirements.variableSpeedPumps}
           />
         )}
         <p className="pb-2">{translate("alertExportInpDetailWithScenarios")}</p>
@@ -64,8 +65,10 @@ export const AlertExportInpDialog = ({
 
 export const LsxRequiredWarning = ({
   remoteSetpointPrvs,
+  variableSpeedPumps,
 }: {
   remoteSetpointPrvs: string[];
+  variableSpeedPumps: string[];
 }) => {
   const translate = useTranslate();
   const userTracking = useUserTracking();
@@ -107,10 +110,18 @@ export const LsxRequiredWarning = ({
       </Button>
       {isExpanded && (
         <ul className="list-disc pl-8 text-size-base">
-          <li>
-            {translate("alertExportInpLsxRemoteSetpointPrvs")} (
-            {summarizeLabels(remoteSetpointPrvs)})
-          </li>
+          {remoteSetpointPrvs.length > 0 && (
+            <li>
+              {translate("alertExportInpLsxRemoteSetpointPrvs")} (
+              {summarizeLabels(remoteSetpointPrvs)})
+            </li>
+          )}
+          {variableSpeedPumps.length > 0 && (
+            <li>
+              {translate("alertExportInpLsxVariableSpeedPumps")} (
+              {summarizeLabels(variableSpeedPumps)})
+            </li>
+          )}
         </ul>
       )}
     </div>

@@ -746,6 +746,7 @@
   "alertExportInpLsxDownloadAfter": " to run this file.",
   "alertExportInpLsxKnowMore": "Know more",
   "alertExportInpLsxRemoteSetpointPrvs": "Remote set-point PRVs",
+  "alertExportInpLsxVariableSpeedPumps": "Variable speed pumps",
   "saveAsProject": "Save as Project",
   "exportToInp": "Export to INP",
   "newBadge": "new",

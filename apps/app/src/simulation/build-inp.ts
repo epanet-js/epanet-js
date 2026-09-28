@@ -33,6 +33,7 @@ import {
   DEFAULT_MIXING_FRACTION,
   DEFAULT_SPEED,
   DEFAULT_INITIAL_QUALITY,
+  type VariableSpeedPumpControl,
 } from "@epanet-js/hydraulic-model";
 import {
   type Projection,
@@ -423,6 +424,7 @@ export const buildInpToFile = withDebugInstrumentation(
 export type LsxRequirements = {
   isRequired: boolean;
   remoteSetpointPrvs: string[];
+  variableSpeedPumps: string[];
 };
 
 export const getLsxRequirements = (
@@ -431,6 +433,7 @@ export const getLsxRequirements = (
   const requirements: LsxRequirements = {
     isRequired: false,
     remoteSetpointPrvs: [],
+    variableSpeedPumps: [],
   };
 
   for (const asset of hydraulicModel.assets.values()) {
@@ -439,6 +442,13 @@ export const getLsxRequirements = (
       requirements.isRequired = true;
       requirements.remoteSetpointPrvs.push(asset.label);
     }
+  }
+
+  for (const control of scriptedVariableSpeedPumps(hydraulicModel)) {
+    requirements.isRequired = true;
+    requirements.variableSpeedPumps.push(
+      hydraulicModel.assets.get(control.linkId)!.label,
+    );
   }
 
   return requirements;
@@ -1490,15 +1500,7 @@ function* scriptRows(
     builder.withRemoteSetpointPrv(linkId, targetId, setting, upstreamNodeId);
   }
 
-  for (const control of hydraulicModel.controls) {
-    if (control.type !== "variable-speed-pump") continue;
-    if (
-      !isAssetInSimulation(hydraulicModel, control.linkId) ||
-      !isAssetInSimulation(hydraulicModel, control.targetId)
-    ) {
-      continue;
-    }
-
+  for (const control of scriptedVariableSpeedPumps(hydraulicModel)) {
     const pumpId = resolveLinkId(hydraulicModel, idMap, control.linkId);
     const targetId =
       control.quantity === "flow"
@@ -1704,6 +1706,16 @@ const alongSimulatedLinksExcept = (
         : allowed.getAllowedFlowDirection(linkId),
   };
 };
+
+const scriptedVariableSpeedPumps = (
+  hydraulicModel: HydraulicModel,
+): VariableSpeedPumpControl[] =>
+  hydraulicModel.controls.filter(
+    (control): control is VariableSpeedPumpControl =>
+      control.type === "variable-speed-pump" &&
+      isAssetInSimulation(hydraulicModel, control.linkId) &&
+      isAssetInSimulation(hydraulicModel, control.targetId),
+  );
 
 const isAssetInSimulation = (
   hydraulicModel: HydraulicModel,
