@@ -1,4 +1,7 @@
+import { useEffect, useState } from "react";
 import * as DD from "@radix-ui/react-dropdown-menu";
+import { useVirtualizer } from "@tanstack/react-virtual";
+import type { Branch } from "@epanet-js/worktree";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { useAtomValue, useSetAtom } from "jotai";
 import { isPlayingAtom } from "src/state/simulation-playback";
@@ -182,56 +185,13 @@ export const ScenarioSwitcher = () => {
                 </div>
               </StyledItem>
 
-              {scenariosList.map((scenario, index) => (
-                <StyledItem
-                  key={scenario.id}
-                  onSelect={() => handleSelectScenario(scenario.id)}
-                  className="group/scenario"
-                >
-                  <div
-                    className={`flex items-center w-full gap-2 ${activeBranchId === scenario.id ? "text-accent-hover" : ""}`}
-                  >
-                    <span
-                      className={`font-mono text-size-base pl-1 ${activeBranchId === scenario.id ? "text-purple-400" : "text-subtle"}`}
-                    >
-                      {index === scenariosList.length - 1 ? "└──" : "├──"}
-                    </span>
-                    <div className="flex-1">{scenario.name}</div>
-                    <DD.Root>
-                      <DD.Trigger asChild>
-                        <button
-                          className="opacity-0 group-hover/scenario:opacity-100 data-[state=open]:opacity-100 p-1 rounded-sm hover:bg-gray-300 dark:hover:bg-gray-500 text-subtle"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <MoreActionsIcon size="sm" />
-                        </button>
-                      </DD.Trigger>
-                      <DD.Portal>
-                        <DDContent side="right" align="start" sideOffset={4}>
-                          <StyledItem
-                            onSelect={() =>
-                              openRenameDialog(scenario.id, scenario.name)
-                            }
-                          >
-                            <RenameIcon size="sm" />
-                            <span>{translate("scenarios.rename")}</span>
-                          </StyledItem>
-
-                          <StyledItem
-                            onSelect={() =>
-                              openDeleteConfirmation(scenario.id, scenario.name)
-                            }
-                            className="text-error"
-                          >
-                            <DeleteIcon size="sm" />
-                            <span>{translate("scenarios.delete")}</span>
-                          </StyledItem>
-                        </DDContent>
-                      </DD.Portal>
-                    </DD.Root>
-                  </div>
-                </StyledItem>
-              ))}
+              <ScenarioList
+                scenarios={scenariosList}
+                activeBranchId={activeBranchId}
+                onSelect={handleSelectScenario}
+                onRename={openRenameDialog}
+                onDelete={openDeleteConfirmation}
+              />
 
               <DDSeparator />
 
@@ -250,5 +210,142 @@ export const ScenarioSwitcher = () => {
         {translate("scenarios.switcherTooltip")}
       </TContent>
     </Tooltip.Root>
+  );
+};
+
+const ROW_HEIGHT = 32;
+const LIST_MAX_HEIGHT = 320;
+
+type ScenarioActions = {
+  onSelect: (scenarioId: string) => void;
+  onRename: (scenarioId: string, scenarioName: string) => void;
+  onDelete: (scenarioId: string, scenarioName: string) => void;
+};
+
+const ScenarioList = ({
+  scenarios,
+  activeBranchId,
+  ...actions
+}: {
+  scenarios: Branch[];
+  activeBranchId: string;
+} & ScenarioActions) => {
+  const [scrollElement, setScrollElement] = useState<HTMLDivElement | null>(
+    null,
+  );
+
+  const virtualizer = useVirtualizer({
+    count: scenarios.length,
+    getScrollElement: () => scrollElement,
+    estimateSize: () => ROW_HEIGHT,
+    overscan: 8,
+  });
+
+  const activeIndex = scenarios.findIndex(
+    (scenario) => scenario.id === activeBranchId,
+  );
+
+  useEffect(
+    function showActiveScenario() {
+      if (!scrollElement || activeIndex < 0) return;
+      virtualizer.scrollToIndex(activeIndex, { align: "center" });
+    },
+    [scrollElement, activeIndex, virtualizer],
+  );
+
+  return (
+    <div
+      ref={setScrollElement}
+      className="overflow-y-auto"
+      style={{ maxHeight: LIST_MAX_HEIGHT }}
+    >
+      <div
+        style={{
+          height: virtualizer.getTotalSize(),
+          position: "relative",
+          width: "100%",
+        }}
+      >
+        {virtualizer.getVirtualItems().map((virtualRow) => {
+          const scenario = scenarios[virtualRow.index];
+          return (
+            <div
+              key={scenario.id}
+              className="absolute left-0 right-0"
+              style={{
+                height: ROW_HEIGHT,
+                transform: `translateY(${virtualRow.start}px)`,
+              }}
+            >
+              <ScenarioRow
+                scenario={scenario}
+                isActive={scenario.id === activeBranchId}
+                isLast={virtualRow.index === scenarios.length - 1}
+                {...actions}
+              />
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+const ScenarioRow = ({
+  scenario,
+  isActive,
+  isLast,
+  onSelect,
+  onRename,
+  onDelete,
+}: {
+  scenario: Branch;
+  isActive: boolean;
+  isLast: boolean;
+} & ScenarioActions) => {
+  const translate = useTranslate();
+
+  return (
+    <StyledItem
+      onSelect={() => onSelect(scenario.id)}
+      className="group/scenario"
+    >
+      <div
+        className={`flex items-center w-full gap-2 ${isActive ? "text-accent-hover" : ""}`}
+      >
+        <span
+          className={`font-mono text-size-base pl-1 ${isActive ? "text-purple-400" : "text-subtle"}`}
+        >
+          {isLast ? "└──" : "├──"}
+        </span>
+        <div className="flex-1">{scenario.name}</div>
+        <DD.Root>
+          <DD.Trigger asChild>
+            <button
+              className="opacity-0 group-hover/scenario:opacity-100 data-[state=open]:opacity-100 p-1 rounded-sm hover:bg-gray-300 dark:hover:bg-gray-500 text-subtle"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <MoreActionsIcon size="sm" />
+            </button>
+          </DD.Trigger>
+          <DD.Portal>
+            <DDContent side="right" align="start" sideOffset={4}>
+              <StyledItem onSelect={() => onRename(scenario.id, scenario.name)}>
+                <RenameIcon size="sm" />
+                <span>{translate("scenarios.rename")}</span>
+              </StyledItem>
+
+              <StyledItem
+                onSelect={() => onDelete(scenario.id, scenario.name)}
+                className="text-error"
+              >
+                <DeleteIcon size="sm" />
+                <span>{translate("scenarios.delete")}</span>
+              </StyledItem>
+            </DDContent>
+          </DD.Portal>
+        </DD.Root>
+      </div>
+    </StyledItem>
   );
 };
