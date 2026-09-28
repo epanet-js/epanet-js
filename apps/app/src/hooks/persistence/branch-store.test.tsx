@@ -1,12 +1,20 @@
-import { act, renderHook } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import { Provider as JotaiProvider } from "jotai";
-import { ChangeSet, squash, type Direction } from "@epanet-js/change-set";
+import {
+  ChangeSet,
+  invert,
+  squash,
+  type Direction,
+} from "@epanet-js/change-set";
 import {
   initializeWorktree,
+  nullBranchingRules,
   nullBranchStore,
   type Branch,
+  type BranchingRules,
   type BranchStore,
 } from "@epanet-js/worktree";
+import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
 import { addNode } from "src/hydraulic-model/model-operations/add-node";
@@ -20,16 +28,19 @@ import {
   type OpenPersistedProjectResult,
 } from "src/hooks/persistence/use-open-persisted-project";
 import { useHasUnsavedChanges } from "src/hooks/use-has-unsaved-changes";
-import { registerBranchStore } from "src/lib/branching";
+import { useScenarioOperations } from "src/hooks/use-scenario-operations";
+import { registerBranchingRules, registerBranchStore } from "src/lib/branching";
 import { writeQueue } from "src/lib/persistence/write-queue";
 import { useInProcessDb } from "src/lib/db/__test-helpers__/in-process-db";
 import * as db from "src/lib/db";
-import { branchStateAtom } from "src/state/branch-state";
+import { branchStateAtom, isBranchLoaded } from "src/state/branch-state";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import {
+  simulationDerivedAtom,
   simulationSettingsDerivedAtom,
   stagingModelDerivedAtom,
 } from "src/state/derived-branch-state";
+import type { SimulationState } from "src/state/simulation";
 import { worktreeAtom } from "src/state/scenarios";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { defaultProjectSettings } from "@epanet-js/project-settings";
@@ -44,8 +55,20 @@ type Recorded = {
 const aRecordingStore = () => {
   const recorded: Recorded[] = [];
   const recordedSettings = new Map<string, string>();
+  const deltaOf = (branchId: string) =>
+    squash(
+      "",
+      recorded
+        .filter((entry) => entry.branchId === branchId)
+        .map((entry) =>
+          entry.direction === "forward"
+            ? entry.changeSet
+            : invert(entry.changeSet),
+        ),
+    );
   const store: BranchStore = {
     ...nullBranchStore,
+    loadDelta: (branchId) => Promise.resolve(deltaOf(branchId)),
     recordChange: (branchId, changeSet, direction) => {
       recorded.push({ branchId, changeSet, direction });
       return Promise.resolve();
@@ -67,15 +90,7 @@ const aRecordingStore = () => {
       ];
       branchIds.forEach((branchId, index) => {
         branches.set(branchId, aScenarioBranch(branchId, index + 1));
-        deltas.set(
-          branchId,
-          squash(
-            "",
-            recorded
-              .filter((entry) => entry.branchId === branchId)
-              .map((entry) => entry.changeSet),
-          ),
-        );
+        deltas.set(branchId, deltaOf(branchId));
       });
       return Promise.resolve({
         worktree: {
@@ -229,11 +244,83 @@ const setDemandMultiplier = (store: Store, multiplier: number) => {
   });
 };
 
+const modelOf = (store: Store, branchId: string) => {
+  const state = store.get(branchStateAtom).get(branchId)!;
+  if (!isBranchLoaded(state)) throw new Error(`${branchId} is not loaded`);
+  return state.hydraulicModel;
+};
+
+const isLoaded = (store: Store, branchId: string) =>
+  isBranchLoaded(store.get(branchStateAtom).get(branchId)!);
+
+const testBranchingRules: BranchingRules = {
+  ...nullBranchingRules,
+  isAvailable: true,
+  switchToBranch: (worktree, branchId) => ({
+    worktree: {
+      ...worktree,
+      activeBranchId: branchId,
+      lastActiveBranchId: worktree.activeBranchId,
+    },
+    activated: worktree.branches.get(branchId) ?? null,
+  }),
+  deleteBranch: (worktree, branchId) => {
+    const branches = new Map(worktree.branches);
+    branches.delete(branchId);
+    const scenarios = worktree.scenarios.filter((id) => id !== branchId);
+    const nextActiveId = scenarios[0] ?? worktree.mainId;
+    return {
+      worktree: {
+        ...worktree,
+        branches,
+        scenarios,
+        activeBranchId: nextActiveId,
+      },
+      nextActive: branches.get(nextActiveId) ?? null,
+    };
+  },
+};
+
+const switchTo = async (store: Store, branchId: string) => {
+  const { result } = renderHook(
+    () => useScenarioOperations(),
+    withStore(store),
+  );
+
+  act(() => {
+    result.current.switchToBranch(branchId);
+  });
+  await waitFor(() =>
+    expect(store.get(worktreeAtom).activeBranchId).toEqual(branchId),
+  );
+};
+
+const aProjectWithTwoScenarios = async () => {
+  const { store: branchStore } = aRecordingStore();
+  registerBranchStore(branchStore);
+  const first = aScenarioBranch("scenario-1", 1);
+  const second = aScenarioBranch("scenario-2", 2);
+  const store = await aSavedProject();
+  await reopen(store);
+  switchToScenario(store, first);
+  addJunction(store);
+  addJunction(store);
+  switchToScenario(store, second);
+  addJunction(store);
+  await writeQueue.whenIdle();
+  await reopen(store);
+  return store;
+};
+
 const persistedDemandMultiplier = async () =>
   (await db.fetchProject({})).simulationSettings.globalDemandMultiplier;
 
 describe("branch store", () => {
   useInProcessDb();
+
+  beforeEach(() => {
+    stubFeatureOff("FLAG_LAZY_SCENARIOS");
+  });
 
   afterEach(() => {
     registerBranchStore(nullBranchStore);
@@ -354,11 +441,8 @@ describe("branch store", () => {
     expect(worktree.scenarios).toEqual(["scenario-1"]);
     expect(worktree.activeBranchId).toEqual("main");
     expect(worktree.branches.get("main")!.status).toEqual("locked");
-    const branchStates = store.get(branchStateAtom);
-    expect(branchStates.get("main")!.hydraulicModel.assets.size).toEqual(1);
-    expect(branchStates.get("scenario-1")!.hydraulicModel.assets.size).toEqual(
-      scenarioAssets,
-    );
+    expect(modelOf(store, "main").assets.size).toEqual(1);
+    expect(modelOf(store, "scenario-1").assets.size).toEqual(scenarioAssets);
   });
 
   it("keeps the id pools above every id a stored delta holds", async () => {
@@ -414,6 +498,116 @@ describe("branch store", () => {
 
     expect(added).toHaveLength(1);
     expect(siblingLabels).not.toContain(added[0]);
+  });
+
+  describe("with lazy scenarios", () => {
+    beforeEach(() => {
+      stubFeatureOn("FLAG_LAZY_SCENARIOS");
+      registerBranchingRules(testBranchingRules);
+    });
+
+    afterEach(() => {
+      stubFeatureOff("FLAG_LAZY_SCENARIOS");
+      registerBranchingRules(nullBranchingRules);
+    });
+
+    it("opens with only main's model in memory", async () => {
+      const store = await aProjectWithTwoScenarios();
+
+      expect(isLoaded(store, "main")).toBe(true);
+      expect(isLoaded(store, "scenario-1")).toBe(false);
+      expect(isLoaded(store, "scenario-2")).toBe(false);
+      expect(
+        store.get(modelFactoriesAtom).idPools.newId("asset"),
+      ).toBeGreaterThan(4);
+    });
+
+    it("builds a scenario's model from its stored delta when switched to", async () => {
+      const store = await aProjectWithTwoScenarios();
+
+      await switchTo(store, "scenario-1");
+
+      expect(isLoaded(store, "scenario-1")).toBe(true);
+      expect(store.get(stagingModelDerivedAtom).assets.size).toEqual(3);
+      expect(modelOf(store, "main").assets.size).toEqual(1);
+    });
+
+    it("frees the scenario it leaves and keeps what is costly to rebuild", async () => {
+      const store = await aProjectWithTwoScenarios();
+      await switchTo(store, "scenario-1");
+      addJunction(store);
+      setDemandMultiplier(store, 1.5);
+      const simulation: SimulationState = {
+        status: "success",
+        report: "",
+        modelVersion: store.get(stagingModelDerivedAtom).version,
+        settingsVersion: store.get(simulationSettingsDerivedAtom).version,
+      };
+      store.set(simulationDerivedAtom, simulation);
+      const version = store.get(stagingModelDerivedAtom).version;
+
+      await switchTo(store, "scenario-2");
+
+      const left = store.get(branchStateAtom).get("scenario-1")!;
+      expect(isBranchLoaded(left)).toBe(false);
+      expect(left.version).toEqual(version);
+      expect(left.simulation).toBe(simulation);
+      expect(left.simulationSettings.globalDemandMultiplier).toEqual(1.5);
+
+      await switchTo(store, "scenario-1");
+
+      expect(store.get(stagingModelDerivedAtom).version).toEqual(version);
+      expect(store.get(stagingModelDerivedAtom).assets.size).toEqual(4);
+      expect(store.get(simulationDerivedAtom)).toBe(simulation);
+      expect(isLoaded(store, "scenario-2")).toBe(false);
+
+      undo(store);
+
+      expect(store.get(stagingModelDerivedAtom).assets.size).toEqual(3);
+    });
+
+    it("keeps main loaded when leaving it", async () => {
+      const store = await aProjectWithTwoScenarios();
+      await switchTo(store, "scenario-1");
+      await switchTo(store, "main");
+
+      expect(isLoaded(store, "main")).toBe(true);
+      expect(isLoaded(store, "scenario-1")).toBe(false);
+      expect(store.get(stagingModelDerivedAtom).assets.size).toEqual(1);
+    });
+
+    it("reports no unsaved changes after switching back and forth", async () => {
+      const store = await aProjectWithTwoScenarios();
+
+      await switchTo(store, "scenario-1");
+      await switchTo(store, "scenario-2");
+      await switchTo(store, "scenario-1");
+
+      const { result } = renderHook(
+        () => useHasUnsavedChanges(),
+        withStore(store),
+      );
+      expect(result.current).toBe(false);
+    });
+
+    it("loads the next scenario when the active one is deleted", async () => {
+      const store = await aProjectWithTwoScenarios();
+      await switchTo(store, "scenario-1");
+      const { result } = renderHook(
+        () => useScenarioOperations(),
+        withStore(store),
+      );
+
+      act(() => {
+        result.current.deleteScenarioById("scenario-1");
+      });
+      await waitFor(() =>
+        expect(store.get(worktreeAtom).activeBranchId).toEqual("scenario-2"),
+      );
+
+      expect(store.get(branchStateAtom).has("scenario-1")).toBe(false);
+      expect(store.get(stagingModelDerivedAtom).assets.size).toEqual(2);
+    });
   });
 
   it("opens main only when nothing is registered", async () => {

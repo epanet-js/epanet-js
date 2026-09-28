@@ -14,7 +14,12 @@ import { applyChangeSet } from "src/hydraulic-model/change-sets";
 import { buildSimulationSettingsData } from "src/lib/db";
 import { SessionHistory } from "src/lib/persistence/session-history";
 import { settleAppliedModel } from "src/lib/persistence/transaction-helpers";
-import { branchStateAtom, type BranchState } from "src/state/branch-state";
+import {
+  branchStateAtom,
+  isBranchLoaded,
+  type BranchState,
+  type UnloadedBranchState,
+} from "src/state/branch-state";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { worktreeAtom } from "src/state/scenarios";
 import type { Trace } from "src/infra/trace";
@@ -64,10 +69,10 @@ const observeIdentifiers = (
   }
 };
 
-const getMainState = (get: Getter): BranchState => {
+export const getMainState = (get: Getter): BranchState => {
   const worktree = get(worktreeAtom);
   const mainState = get(branchStateAtom).get(worktree.mainId);
-  if (!mainState) {
+  if (!mainState || !isBranchLoaded(mainState)) {
     throw new Error("Main branch state not found");
   }
   return mainState;
@@ -146,10 +151,88 @@ export const buildStoredBranchStates = (
   return branchStates;
 };
 
+export const buildUnloadedBranchStates = (
+  mainState: BranchState,
+  factories: ModelFactories,
+  { deltas, simulationSettings }: StoredBranches,
+  trace: Trace,
+): Map<string, UnloadedBranchState> => {
+  const branchStates = new Map<string, UnloadedBranchState>();
+
+  for (const [branchId, delta] of deltas) {
+    const { records } = trace.measure(
+      `${branchId}:decode-delta`,
+      () => delta.read(),
+      `${delta.byteLength} bytes`,
+    );
+    let version = mainState.version;
+    if (records.length > 0) {
+      trace.measure(
+        `${branchId}:observe-identifiers`,
+        () => observeIdentifiers(factories, delta),
+        `${records.length} records`,
+      );
+      version = nanoid();
+    }
+
+    const storedSettings = simulationSettings.get(branchId);
+    branchStates.set(branchId, {
+      version,
+      sessionHistory: new SessionHistory(version),
+      simulation: mainState.simulation,
+      simulationSourceId: mainState.simulationSourceId,
+      simulationSettings:
+        storedSettings !== undefined
+          ? buildSimulationSettingsData(storedSettings)
+          : mainState.simulationSettings,
+    });
+  }
+
+  return branchStates;
+};
+
+export const materializeBranch = (
+  mainState: BranchState,
+  factories: ModelFactories,
+  unloaded: UnloadedBranchState,
+  delta: ChangeSet,
+): BranchState => {
+  const state: BranchState = {
+    ...branchFromMain(mainState, factories),
+    ...unloaded,
+  };
+  const report = applyChangeSet(
+    state.hydraulicModel,
+    delta,
+    "forward",
+    state.labelManager,
+  );
+  state.hydraulicModel = settleAppliedModel(
+    state.hydraulicModel,
+    unloaded.version,
+    report,
+  );
+  return state;
+};
+
+export const unloadBranch = ({
+  version,
+  sessionHistory,
+  simulation,
+  simulationSourceId,
+  simulationSettings,
+}: BranchState | UnloadedBranchState): UnloadedBranchState => ({
+  version,
+  sessionHistory,
+  simulation,
+  simulationSourceId,
+  simulationSettings,
+});
+
 export const commitStoredBranches = (
   set: Setter,
   worktree: Worktree,
-  branchStates: Map<string, BranchState>,
+  branchStates: Map<string, BranchState | UnloadedBranchState>,
 ): void => {
   set(branchStateAtom, (previous) => new Map([...previous, ...branchStates]));
   set(worktreeAtom, worktree);

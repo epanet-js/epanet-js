@@ -15,4 +15,15 @@ export type BranchState = {
   simulationSettings: SimulationSettings;
 };
 
-export const branchStateAtom = atom(new Map<string, BranchState>());
+export type UnloadedBranchState = Omit<
+  BranchState,
+  "hydraulicModel" | "labelManager"
+>;
+
+export const isBranchLoaded = (
+  state: BranchState | UnloadedBranchState,
+): state is BranchState => "hydraulicModel" in state;
+
+export const branchStateAtom = atom(
+  new Map<string, BranchState | UnloadedBranchState>(),
+);

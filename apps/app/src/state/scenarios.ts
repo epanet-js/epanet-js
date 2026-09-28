@@ -7,6 +7,8 @@ import {
 
 export const worktreeAtom = atom<Worktree>(initializeWorktree());
 
+export const branchSwitchInFlightAtom = atom(false);
+
 export const scenariosListAtom = atom((get) => {
   const state = get(worktreeAtom);
   return state.scenarios

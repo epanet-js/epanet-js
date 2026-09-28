@@ -10,6 +10,7 @@ export type StoredBranches = {
 
 export interface BranchStore {
   load(): Promise<StoredBranches>;
+  loadDelta(branchId: string): Promise<ChangeSet>;
   createBranch(worktree: Worktree, branch: Branch): Promise<void>;
   renameBranch(branchId: string, name: string): Promise<void>;
   deleteBranch(branchId: string): Promise<void>;
@@ -28,6 +29,8 @@ export const nullBranchStore: BranchStore = {
       deltas: new Map(),
       simulationSettings: new Map(),
     }),
+  loadDelta: (branchId) =>
+    Promise.reject(new Error(`No stored delta for ${branchId}`)),
   createBranch: () => Promise.resolve(),
   renameBranch: () => Promise.resolve(),
   deleteBranch: () => Promise.resolve(),

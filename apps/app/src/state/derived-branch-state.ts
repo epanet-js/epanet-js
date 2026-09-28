@@ -5,7 +5,11 @@ import {
   type HydraulicModel,
   initializeHydraulicModel,
 } from "src/hydraulic-model";
-import type { BranchState } from "src/state/branch-state";
+import {
+  isBranchLoaded,
+  type BranchState,
+  type UnloadedBranchState,
+} from "src/state/branch-state";
 import { SessionHistory } from "src/lib/persistence/session-history";
 import { catchErrors } from "src/infra/errors";
 import { captureWarning } from "src/infra/error-tracking";
@@ -27,7 +31,9 @@ import {
 export const emptyHydraulicModel = (): HydraulicModel =>
   initializeHydraulicModel({});
 
-function getActiveBranchState(get: Getter): BranchState | undefined {
+function getActiveBranchState(
+  get: Getter,
+): BranchState | UnloadedBranchState | undefined {
   const worktree = get(worktreeAtom);
   return get(branchStateAtom).get(worktree.activeBranchId);
 }
@@ -57,7 +63,10 @@ function updateActiveBranchState(
 
 export const stagingModelDerivedAtom = atom(
   (get): HydraulicModel => {
-    return getActiveBranchState(get)?.hydraulicModel ?? emptyHydraulicModel();
+    const state = getActiveBranchState(get);
+    return state && isBranchLoaded(state)
+      ? state.hydraulicModel
+      : emptyHydraulicModel();
   },
   (get, set, value: HydraulicModel) => {
     updateActiveBranchState(get, set, {
@@ -69,10 +78,10 @@ export const stagingModelDerivedAtom = atom(
 
 export const baseModelDerivedAtom = atom((get): HydraulicModel => {
   const worktree = get(worktreeAtom);
-  const branchStates = get(branchStateAtom);
-  return (
-    branchStates.get(worktree.mainId)?.hydraulicModel ?? emptyHydraulicModel()
-  );
+  const mainState = get(branchStateAtom).get(worktree.mainId);
+  return mainState && isBranchLoaded(mainState)
+    ? mainState.hydraulicModel
+    : emptyHydraulicModel();
 });
 
 export const baseSimulationDerivedAtom = atom((get): SimulationState => {

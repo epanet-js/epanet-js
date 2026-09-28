@@ -6,7 +6,10 @@ import {
   initializeModelFactoriesWithPools,
   type LabelManager,
 } from "@epanet-js/hydraulic-model";
-import { branchStateAtom } from "src/state/branch-state";
+import { branchStateAtom, isBranchLoaded } from "src/state/branch-state";
+import { worktreeAtom } from "src/state/scenarios";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { unloadBranch } from "./use-initialize-branch";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { mapEditionsTrackerAtom } from "src/state/map";
 import { MapEditionsTracker } from "src/map/map-editions-tracker";
@@ -43,20 +46,38 @@ function validateSelection(
   set(selectionAtom, { ...validatedSelection });
 }
 
+function unloadPreviousBranch(get: Getter, set: Setter, branchId: string) {
+  const { activeBranchId, mainId } = get(worktreeAtom);
+  if (activeBranchId === mainId || activeBranchId === branchId) return;
+
+  const branchStates = get(branchStateAtom);
+  const previousState = branchStates.get(activeBranchId);
+  if (!previousState) return;
+
+  const updated = new Map(branchStates);
+  updated.set(activeBranchId, unloadBranch(previousState));
+  set(branchStateAtom, updated);
+}
+
 export const useSwitchBranch = () => {
+  const isLazyScenariosOn = useFeatureFlag("FLAG_LAZY_SCENARIOS");
+
   const switchBranch = useAtomCallback(
-    useCallback((get: Getter, set: Setter, branchId: string) => {
-      const branchStates = get(branchStateAtom);
+    useCallback(
+      (get: Getter, set: Setter, branchId: string) => {
+        const targetState = get(branchStateAtom).get(branchId);
+        if (!targetState || !isBranchLoaded(targetState)) {
+          throw new Error(`Branch state not found for ${branchId}`);
+        }
 
-      const targetState = branchStates.get(branchId);
-      if (!targetState) {
-        throw new Error(`Branch state not found for ${branchId}`);
-      }
+        if (isLazyScenariosOn) unloadPreviousBranch(get, set, branchId);
 
-      updateFactories(get, set, targetState.labelManager);
-      set(mapEditionsTrackerAtom, new MapEditionsTracker());
-      validateSelection(get, set, targetState.hydraulicModel);
-    }, []),
+        updateFactories(get, set, targetState.labelManager);
+        set(mapEditionsTrackerAtom, new MapEditionsTracker());
+        validateSelection(get, set, targetState.hydraulicModel);
+      },
+      [isLazyScenariosOn],
+    ),
   );
 
   return { switchBranch };

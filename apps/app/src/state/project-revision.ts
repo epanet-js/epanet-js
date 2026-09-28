@@ -2,13 +2,17 @@ import { atom } from "jotai";
 import type { Setter } from "jotai";
 import { nanoid } from "nanoid";
 import type { Worktree } from "@epanet-js/worktree";
-import { branchStateAtom, type BranchState } from "src/state/branch-state";
+import {
+  branchStateAtom,
+  type BranchState,
+  type UnloadedBranchState,
+} from "src/state/branch-state";
 import { worktreeAtom } from "src/state/scenarios";
 
 export const buildProjectRevision = (
   dataVersion: string,
   worktree: Worktree,
-  branchStates: Map<string, BranchState>,
+  branchStates: Map<string, BranchState | UnloadedBranchState>,
 ): string => {
   const branches = [...worktree.branches.values()]
     .map((branch) => {
@@ -49,7 +53,7 @@ export const markProjectUnsavedAtom = atom(null, (_get, set) => {
 export const resetProjectRevision = (
   set: Setter,
   worktree: Worktree,
-  branchStates: Map<string, BranchState>,
+  branchStates: Map<string, BranchState | UnloadedBranchState>,
 ): void => {
   const dataVersion = nanoid();
   set(projectDataVersionAtom, dataVersion);
