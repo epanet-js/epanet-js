@@ -5,8 +5,6 @@ import { useTranslate } from "src/hooks/use-translate";
 import { Trans } from "react-i18next";
 import { useUserTracking } from "src/infra/user-tracking";
 import { userSettingsAtom } from "src/state/user-settings";
-import { EarlyAccessBadge } from "../components/early-access-badge";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const FirstScenarioDialog = ({
   onConfirm,
@@ -18,7 +16,6 @@ export const FirstScenarioDialog = ({
   const translate = useTranslate();
   const [userSettings, setUserSettings] = useAtom(userSettingsAtom);
   const userTracking = useUserTracking();
-  const isPersistScenariosOn = useFeatureFlag("FLAG_PERSIST_SCENARIOS");
 
   const handleCreate = () => {
     onConfirm();
@@ -42,9 +39,9 @@ export const FirstScenarioDialog = ({
     <>
       <div className="space-y-4 text-size-base text-default">
         <p>
-          {isPersistScenariosOn
-            ? 'Scenarios let you explore "what-if" changes without duplicating your model. Create alternative versions of your network and compare results against your baseline.'
-            : translate("scenarios.firstScenario.earlyAccess")}
+          Scenarios let you explore "what-if" changes without duplicating your
+          model. Create alternative versions of your network and compare results
+          against your baseline.
         </p>
 
         <div>
@@ -56,23 +53,7 @@ export const FirstScenarioDialog = ({
                 components={{ bold: <strong /> }}
               />
             </li>
-            {!isPersistScenariosOn && (
-              <li>
-                <Trans
-                  i18nKey="scenarios.firstScenario.bullet2"
-                  components={{ bold: <strong /> }}
-                />
-              </li>
-            )}
             <li>{translate("scenarios.firstScenario.bullet3")}</li>
-            {!isPersistScenariosOn && (
-              <li>
-                <Trans
-                  i18nKey="scenarios.firstScenario.bullet4"
-                  components={{ bold: <strong /> }}
-                />
-              </li>
-            )}
           </ul>
         </div>
       </div>
@@ -95,7 +76,6 @@ export const FirstScenarioDialog = ({
       size="md"
       isOpen={true}
       onClose={onClose}
-      badge={isPersistScenariosOn ? undefined : <EarlyAccessBadge />}
       footer={
         <SimpleDialogActions
           action={translate("scenarios.firstScenario.createButton")}

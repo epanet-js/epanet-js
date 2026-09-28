@@ -32,7 +32,6 @@ import {
   type WriteFailureHandler,
 } from "src/lib/persistence/write-queue";
 import { useWriteFailureHandler } from "src/hooks/persistence/use-write-failure-handler";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const maxReportedIds = 20;
 
@@ -123,7 +122,6 @@ const transactWithChangeSet = (
   get: Getter,
   set: Setter,
   moment: Moment,
-  willPersist: boolean,
   onWriteFailure: WriteFailureHandler,
 ): boolean => {
   let changeSet: ChangeSet;
@@ -167,20 +165,17 @@ const transactWithChangeSet = (
   sessionHistory.append(changeSet, newStateId);
   set(sessionHistoryDerivedAtom, sessionHistory);
 
-  if (willPersist) {
-    const worktree = get(worktreeAtom);
-    writeQueue.enqueue(
-      () => persistBranchChange(worktree, changeSet, "forward"),
-      onWriteFailure,
-    );
-  }
+  const worktree = get(worktreeAtom);
+  writeQueue.enqueue(
+    () => persistBranchChange(worktree, changeSet, "forward"),
+    onWriteFailure,
+  );
 
   return true;
 };
 
 export const useMomentTransaction = () => {
   const onWriteFailure = useWriteFailureHandler();
-  const isPersistScenariosOn = useFeatureFlag("FLAG_PERSIST_SCENARIOS");
 
   const transact = useAtomCallback(
     useCallback(
@@ -192,19 +187,9 @@ export const useMomentTransaction = () => {
           return false;
         }
 
-        const worktree = get(worktreeAtom);
-        const willPersist =
-          worktree.activeBranchId === worktree.mainId || isPersistScenariosOn;
-
-        return transactWithChangeSet(
-          get,
-          set,
-          moment,
-          willPersist,
-          onWriteFailure,
-        );
+        return transactWithChangeSet(get, set, moment, onWriteFailure);
       },
-      [onWriteFailure, isPersistScenariosOn],
+      [onWriteFailure],
     ),
   );
 

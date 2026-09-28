@@ -35,7 +35,6 @@ import { AlertInpOutputDialog } from "src/dialogs/alert-inp-output";
 import { AlertExportInpDialog } from "src/dialogs/alert-export-inp";
 import { ProjectSavedInfoDialog } from "src/dialogs/project-saved-info";
 import { FileFormatUpdatedDialog } from "src/dialogs/file-format-updated";
-import { AlertScenariosNotSavedDialog } from "src/dialogs/alert-scenarios-not-saved";
 import { AlertNetworkRequiredDialog } from "src/dialogs/alert-network-required";
 import { CheatsheetDialog } from "src/dialogs/cheatsheet";
 import { UnexpectedErrorDialog } from "src/dialogs/unexpected-error";
@@ -441,9 +440,6 @@ export const Dialogs = memo(function Dialogs() {
     ))
     .with({ type: "fileFormatUpdated" }, () => (
       <FileFormatUpdatedDialog onClose={onClose} />
-    ))
-    .with({ type: "alertScenariosNotSaved" }, ({ onContinue }) => (
-      <AlertScenariosNotSavedDialog onContinue={onContinue} onClose={onClose} />
     ))
     .with({ type: "alertNetworkRequired" }, () => (
       <AlertNetworkRequiredDialog onClose={onClose} />

@@ -1,4 +1,3 @@
-import { dialogAtom } from "src/state/dialog";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { inpFileInfoAtom, projectFileInfoAtom } from "src/state/file-system";
 import {
@@ -14,14 +13,12 @@ import { MapContext, captureThumbnail } from "src/map";
 import { buildInpToFile, getLsxRequirements } from "src/simulation/build-inp";
 import { FileSystemHelpers } from "src/infra/storage";
 import { useTranslate } from "src/hooks/use-translate";
-import { useAtomValue, useSetAtom } from "jotai";
 import { notify } from "src/components/notifications";
 import { handleError } from "src/infra/errors";
 import { SpinnerIcon, SuccessIcon, WarningIcon, ErrorIcon } from "src/icons";
 import { useUserTracking } from "src/infra/user-tracking";
 import { worktreeAtom } from "src/state/scenarios";
 import { useRecentFiles } from "src/hooks/use-recent-files";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const saveShortcut = "ctrl+s";
 export const saveAsShortcut = "ctrl+shift+s";
@@ -30,7 +27,6 @@ const exportInpToastId = "export-inp";
 
 export const useSaveInp = () => {
   const translate = useTranslate();
-  const setDialogState = useSetAtom(dialogAtom);
   const { addRecent } = useRecentFiles();
   const userTracking = useUserTracking();
   const map = useContext(MapContext);
@@ -182,25 +178,5 @@ export const useSaveInp = () => {
     ),
   );
 
-  const worktree = useAtomValue(worktreeAtom);
-  const hasScenarios = worktree.scenarios.length > 0;
-  const isPersistScenariosOn = useFeatureFlag("FLAG_PERSIST_SCENARIOS");
-
-  const saveAlerting = useCallback(
-    ({ source, isSaveAs = false }: { source: string; isSaveAs?: boolean }) => {
-      const proceedWithSave = () => saveInp({ source, isSaveAs });
-
-      if (hasScenarios && !isPersistScenariosOn) {
-        setDialogState({
-          type: "alertScenariosNotSaved",
-          onContinue: proceedWithSave,
-        });
-      } else {
-        return proceedWithSave();
-      }
-    },
-    [setDialogState, saveInp, hasScenarios, isPersistScenariosOn],
-  );
-
-  return saveAlerting;
+  return saveInp;
 };

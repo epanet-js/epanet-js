@@ -69,7 +69,6 @@ describe("openProjectFile", () => {
   });
 
   it("tracks how many scenarios the opened project has", async () => {
-    stubFeatureOn("FLAG_PERSIST_SCENARIOS");
     const userTracking = stubUserTracking();
     const worktree = initializeWorktree();
     registerBranchStore({

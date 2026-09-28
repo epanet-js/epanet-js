@@ -4,7 +4,6 @@ import { BaseDialog, SimpleDialogActions } from "src/components/dialog";
 import { Button } from "src/components/elements";
 import { ChevronDownIcon, ChevronRightIcon } from "src/icons";
 import { useTranslate } from "src/hooks/use-translate";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useUserTracking } from "src/infra/user-tracking";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { getLsxRequirements } from "src/simulation";
@@ -19,7 +18,6 @@ export const AlertExportInpDialog = ({
   onClose: () => void;
 }) => {
   const translate = useTranslate();
-  const isPersistScenariosOn = useFeatureFlag("FLAG_PERSIST_SCENARIOS");
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const lsxRequirements = useMemo(
     () => getLsxRequirements(hydraulicModel),
@@ -56,13 +54,7 @@ export const AlertExportInpDialog = ({
             remoteSetpointPrvs={lsxRequirements.remoteSetpointPrvs}
           />
         )}
-        <p className="pb-2">
-          {translate(
-            isPersistScenariosOn
-              ? "alertExportInpDetailWithScenarios"
-              : "alertExportInpDetail",
-          )}
-        </p>
+        <p className="pb-2">{translate("alertExportInpDetailWithScenarios")}</p>
         <p className="pb-2">{translate("alertExportInpLabels")}</p>
         <p>{translate("alertExportInpRecommendation")}</p>
       </div>

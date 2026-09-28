@@ -7,7 +7,6 @@ import {
   type Branch,
   type BranchStore,
 } from "@epanet-js/worktree";
-import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
 import { addNode } from "src/hydraulic-model/model-operations/add-node";
@@ -236,10 +235,6 @@ const persistedDemandMultiplier = async () =>
 describe("branch store", () => {
   useInProcessDb();
 
-  beforeEach(() => {
-    stubFeatureOn("FLAG_PERSIST_SCENARIOS");
-  });
-
   afterEach(() => {
     registerBranchStore(nullBranchStore);
   });
@@ -431,54 +426,5 @@ describe("branch store", () => {
 
     expect(store.get(worktreeAtom).scenarios).toEqual([]);
     expect([...store.get(branchStateAtom).keys()]).toEqual(["main"]);
-  });
-
-  describe("with FLAG_PERSIST_SCENARIOS off", () => {
-    beforeEach(() => {
-      stubFeatureOff("FLAG_PERSIST_SCENARIOS");
-    });
-
-    it("skips persisting a scenario's edits", async () => {
-      const { store: branchStore, recorded } = aRecordingStore();
-      registerBranchStore(branchStore);
-      const store = await aSavedProject();
-      switchToScenario(store);
-
-      addJunction(store);
-      undo(store);
-      await writeQueue.whenIdle();
-
-      expect(recorded).toEqual([]);
-      expect(await persistedAssetCount()).toEqual(1);
-    });
-
-    it("skips persisting a scenario's simulation settings", async () => {
-      const { store: branchStore, recordedSettings } = aRecordingStore();
-      registerBranchStore(branchStore);
-      const store = await aSavedProject();
-      switchToScenario(store);
-
-      setDemandMultiplier(store, 1.5);
-      await writeQueue.whenIdle();
-
-      expect(recordedSettings.size).toEqual(0);
-      expect(await persistedDemandMultiplier()).toEqual(1);
-    });
-
-    it("opens main only, whatever the store holds", async () => {
-      const { store: branchStore } = aRecordingStore();
-      registerBranchStore(branchStore);
-      await branchStore.recordChange(
-        "scenario-1",
-        ChangeSet.empty(),
-        "forward",
-      );
-      const store = await aSavedProject();
-
-      await reopen(store);
-
-      expect(store.get(worktreeAtom).scenarios).toEqual([]);
-      expect([...store.get(branchStateAtom).keys()]).toEqual(["main"]);
-    });
   });
 });

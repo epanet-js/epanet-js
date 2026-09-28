@@ -275,11 +275,6 @@ export type FirstScenarioDialogState = {
   onConfirm: () => void;
 };
 
-export type AlertScenariosNotSavedState = {
-  type: "alertScenariosNotSaved";
-  onContinue: () => void;
-};
-
 export type AlertNetworkRequiredState = {
   type: "alertNetworkRequired";
 };
@@ -422,7 +417,6 @@ export type DialogState =
   | ElevationTileErrorsDialogState
   | GisImportErrorsDialogState
   | FirstScenarioDialogState
-  | AlertScenariosNotSavedState
   | AlertNetworkRequiredState
   | ActivatingTrialDialogState
   | WaitingForPaymentDialogState

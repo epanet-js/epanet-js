@@ -14,7 +14,6 @@ import {
   type ProjectLoadInput,
 } from "./use-start-new-project";
 import { captureError } from "src/infra/error-tracking";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { getBranchStore } from "src/lib/branching";
 import {
   buildStoredBranchStates,
@@ -78,7 +77,6 @@ export type OpenPersistedProjectResult =
 
 export const useOpenPersistedProject = () => {
   const defaultPanelsFor = useDefaultPanels();
-  const isPersistScenariosOn = useFeatureFlag("FLAG_PERSIST_SCENARIOS");
   const openPersistedProject = useAtomCallback(
     useCallback(
       async (
@@ -130,18 +128,16 @@ export const useOpenPersistedProject = () => {
           autoElevations: projectSettings.projection.type !== "xy-grid",
         };
 
-        let restored: RestoredBranches | null = null;
-        if (isPersistScenariosOn) {
-          try {
-            restored = await restoreBranches(loadInput, trace);
-          } catch (error) {
-            trace.end();
-            captureError(error as Error);
-            return {
-              status: "scenarios-failed",
-              errorDetails: (error as Error).message,
-            };
-          }
+        let restored: RestoredBranches;
+        try {
+          restored = await restoreBranches(loadInput, trace);
+        } catch (error) {
+          trace.end();
+          captureError(error as Error);
+          return {
+            status: "scenarios-failed",
+            errorDetails: (error as Error).message,
+          };
         }
 
         await trace.measureAsync("clear-simulation-storage", () =>
@@ -151,13 +147,11 @@ export const useOpenPersistedProject = () => {
           resetAppState(set, defaultPanelsFor()),
         );
         trace.measure("load-model", () => loadModel(set, loadInput));
-        if (restored) {
-          const { worktree, branchStates } = restored;
-          trace.measure("commit-scenarios", () =>
-            commitStoredBranches(set, worktree, branchStates),
-          );
-          set(markProjectSavedAtom);
-        }
+        const { worktree, branchStates } = restored;
+        trace.measure("commit-scenarios", () =>
+          commitStoredBranches(set, worktree, branchStates),
+        );
+        set(markProjectSavedAtom);
         trace.end();
         return {
           status: "ok",
@@ -166,7 +160,7 @@ export const useOpenPersistedProject = () => {
           uniqueId,
         };
       },
-      [defaultPanelsFor, isPersistScenariosOn],
+      [defaultPanelsFor],
     ),
   );
 

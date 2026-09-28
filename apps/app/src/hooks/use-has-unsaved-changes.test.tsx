@@ -6,16 +6,12 @@ import { addNode } from "src/hydraulic-model/model-operations/add-node";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import { useUndoableTransactions } from "src/hooks/persistence/use-undoable-transactions";
 import { useProjectSettingsTransaction } from "src/hooks/persistence/use-project-settings-transaction";
-import { useInitializeBranch } from "src/hooks/persistence/use-initialize-branch";
-import { useSwitchBranch } from "src/hooks/persistence/use-switch-branch";
-import { worktreeAtom } from "src/state/scenarios";
 import {
   nullBranchingRules,
   type Branch,
   type BranchingRules,
 } from "@epanet-js/worktree";
 import { nanoid } from "nanoid";
-import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
 import { registerBranchingRules } from "src/lib/branching";
 import { useScenarioOperations } from "src/hooks/use-scenario-operations";
 import { useSimulationSettingsTransaction } from "src/hooks/persistence/use-simulation-settings-transaction";
@@ -92,38 +88,6 @@ const renameProject = async (store: Store, name: string) => {
 
   await act(async () => {
     await result.current.transact({ ...store.get(projectSettingsAtom), name });
-  });
-};
-
-const createScenario = (store: Store) => {
-  const { result } = renderHook(
-    () => ({
-      ...useInitializeBranch(),
-      ...useSwitchBranch(),
-    }),
-    withStore(store),
-  );
-
-  const branch: Branch = {
-    id: "scenario-1",
-    name: "Scenario #1",
-    parentId: "main",
-    status: "open",
-  };
-
-  act(() => {
-    result.current.initializeBranch(branch);
-    result.current.switchBranch(branch.id);
-  });
-
-  const worktree = store.get(worktreeAtom);
-  store.set(worktreeAtom, {
-    ...worktree,
-    branches: new Map(worktree.branches).set(branch.id, branch),
-    scenarios: [branch.id],
-    activeBranchId: branch.id,
-    lastActiveBranchId: worktree.activeBranchId,
-    highestScenarioNumber: 1,
   });
 };
 
@@ -251,97 +215,70 @@ const hasUnsavedChanges = (store: Store): boolean => {
 describe("unsaved changes", () => {
   useInProcessDb();
 
-  describe.each([{ flag: "on" }, { flag: "off" }])(
-    "with FLAG_PERSIST_SCENARIOS $flag",
-    ({ flag }) => {
-      beforeEach(() => {
-        flag === "on"
-          ? stubFeatureOn("FLAG_PERSIST_SCENARIOS")
-          : stubFeatureOff("FLAG_PERSIST_SCENARIOS");
-      });
+  it("reports saved when nothing changed since the last save", async () => {
+    const store = await aSavedProject();
 
-      it("reports saved when nothing changed since the last save", async () => {
-        const store = await aSavedProject();
-
-        expect(hasUnsavedChanges(store)).toBe(false);
-      });
-
-      it("reports unsaved when the project was never saved", async () => {
-        const store = await aSavedProject({ isProjectSaved: false });
-
-        expect(hasUnsavedChanges(store)).toBe(true);
-      });
-
-      it("reports unsaved after a model edit", async () => {
-        const store = await aSavedProject();
-
-        addJunction(store, [10, 20]);
-
-        expect(hasUnsavedChanges(store)).toBe(true);
-      });
-
-      it("goes back to saved when the edit is undone", async () => {
-        const store = await aSavedProject();
-
-        addJunction(store, [10, 20]);
-        undo(store);
-
-        expect(hasUnsavedChanges(store)).toBe(false);
-      });
-
-      it("reports unsaved after a project settings change", async () => {
-        const store = await aSavedProject();
-
-        await renameProject(store, "Another name");
-
-        expect(hasUnsavedChanges(store)).toBe(true);
-      });
-
-      it("keeps unsaved after a settings change even when undo is triggered", async () => {
-        const store = await aSavedProject();
-
-        await renameProject(store, "Another name");
-        undo(store);
-
-        expect(hasUnsavedChanges(store)).toBe(true);
-      });
-
-      it("reports unsaved after importing customer points", async () => {
-        const store = await aSavedProject();
-
-        await importCustomerPoints(store);
-
-        expect(hasUnsavedChanges(store)).toBe(true);
-      });
-
-      it("reports unsaved after changing main's simulation settings", async () => {
-        const store = await aSavedProject();
-
-        changeDemandMultiplier(store, 1.5);
-
-        expect(hasUnsavedChanges(store)).toBe(true);
-      });
-    },
-  );
-
-  describe("with FLAG_PERSIST_SCENARIOS off", () => {
-    beforeEach(() => {
-      stubFeatureOff("FLAG_PERSIST_SCENARIOS");
-    });
-
-    it("ignores edits made on a scenario", async () => {
-      const store = await aSavedProject();
-
-      createScenario(store);
-      addJunction(store, [10, 20]);
-
-      expect(hasUnsavedChanges(store)).toBe(false);
-    });
+    expect(hasUnsavedChanges(store)).toBe(false);
   });
 
-  describe("with FLAG_PERSIST_SCENARIOS on", () => {
+  it("reports unsaved when the project was never saved", async () => {
+    const store = await aSavedProject({ isProjectSaved: false });
+
+    expect(hasUnsavedChanges(store)).toBe(true);
+  });
+
+  it("reports unsaved after a model edit", async () => {
+    const store = await aSavedProject();
+
+    addJunction(store, [10, 20]);
+
+    expect(hasUnsavedChanges(store)).toBe(true);
+  });
+
+  it("goes back to saved when the edit is undone", async () => {
+    const store = await aSavedProject();
+
+    addJunction(store, [10, 20]);
+    undo(store);
+
+    expect(hasUnsavedChanges(store)).toBe(false);
+  });
+
+  it("reports unsaved after a project settings change", async () => {
+    const store = await aSavedProject();
+
+    await renameProject(store, "Another name");
+
+    expect(hasUnsavedChanges(store)).toBe(true);
+  });
+
+  it("keeps unsaved after a settings change even when undo is triggered", async () => {
+    const store = await aSavedProject();
+
+    await renameProject(store, "Another name");
+    undo(store);
+
+    expect(hasUnsavedChanges(store)).toBe(true);
+  });
+
+  it("reports unsaved after importing customer points", async () => {
+    const store = await aSavedProject();
+
+    await importCustomerPoints(store);
+
+    expect(hasUnsavedChanges(store)).toBe(true);
+  });
+
+  it("reports unsaved after changing main's simulation settings", async () => {
+    const store = await aSavedProject();
+
+    changeDemandMultiplier(store, 1.5);
+
+    expect(hasUnsavedChanges(store)).toBe(true);
+  });
+
+  describe("with scenarios", () => {
     beforeEach(() => {
-      stubFeatureOn("FLAG_PERSIST_SCENARIOS");
       registerBranchingRules(testBranchingRules);
     });
 

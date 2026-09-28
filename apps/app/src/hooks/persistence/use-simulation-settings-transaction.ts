@@ -2,10 +2,8 @@ import { useCallback } from "react";
 import { useSetAtom } from "jotai";
 import { useAtomCallback } from "jotai/utils";
 import type { Getter } from "jotai";
-import { nanoid } from "nanoid";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
 import { simulationSettingsDerivedAtom } from "src/state/derived-branch-state";
-import { projectDataVersionAtom } from "src/state/project-revision";
 import { dialogAtom } from "src/state/dialog";
 import { worktreeAtom } from "src/state/scenarios";
 import {
@@ -16,14 +14,11 @@ import { captureError } from "src/infra/error-tracking";
 import { getBranchStore } from "src/lib/branching";
 import { writeQueue } from "src/lib/persistence/write-queue";
 import { useWriteFailureHandler } from "src/hooks/persistence/use-write-failure-handler";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const useSimulationSettingsTransaction = () => {
   const setSettings = useSetAtom(simulationSettingsDerivedAtom);
-  const setProjectDataVersion = useSetAtom(projectDataVersionAtom);
   const setDialog = useSetAtom(dialogAtom);
   const onWriteFailure = useWriteFailureHandler();
-  const isPersistScenariosOn = useFeatureFlag("FLAG_PERSIST_SCENARIOS");
 
   const transact = useAtomCallback(
     useCallback(
@@ -40,9 +35,6 @@ export const useSimulationSettingsTransaction = () => {
         }
 
         setSettings(next);
-        if (!isPersistScenariosOn) {
-          setProjectDataVersion(nanoid());
-        }
 
         const worktree = get(worktreeAtom);
         if (worktree.activeBranchId === worktree.mainId) {
@@ -50,7 +42,7 @@ export const useSimulationSettingsTransaction = () => {
             () => setAllSimulationSettings(data),
             onWriteFailure,
           );
-        } else if (isPersistScenariosOn) {
+        } else {
           const branchId = worktree.activeBranchId;
           writeQueue.enqueue(
             () => getBranchStore().recordSimulationSettings(branchId, data),
@@ -60,13 +52,7 @@ export const useSimulationSettingsTransaction = () => {
 
         return true;
       },
-      [
-        setSettings,
-        setProjectDataVersion,
-        setDialog,
-        onWriteFailure,
-        isPersistScenariosOn,
-      ],
+      [setSettings, setDialog, onWriteFailure],
     ),
   );
 

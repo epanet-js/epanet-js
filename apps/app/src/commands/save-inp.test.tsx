@@ -10,7 +10,6 @@ import { FileSystemHelpers } from "src/infra/storage";
 import { waitForNotLoading } from "src/__helpers__/ui-expects";
 import { worktreeAtom } from "src/state/scenarios";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("save inp", () => {
   beforeEach(() => {
@@ -157,7 +156,6 @@ describe("save inp", () => {
   });
 
   it("tracks how many scenarios the exported project has", async () => {
-    stubFeatureOn("FLAG_PERSIST_SCENARIOS");
     const userTracking = stubUserTracking();
     const { handle } = buildWritableHandleMock();
     vi.spyOn(FileSystemHelpers, "openFileInFileSystem").mockResolvedValue(

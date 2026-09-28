@@ -20,7 +20,6 @@ import {
   type WriteFailureHandler,
 } from "src/lib/persistence/write-queue";
 import { useWriteFailureHandler } from "src/hooks/persistence/use-write-failure-handler";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const commitHistoryEntry = (
   get: Getter,
@@ -28,15 +27,12 @@ const commitHistoryEntry = (
   direction: "undo" | "redo",
   entry: HistoryEntry,
   sessionHistory: SessionHistory,
-  isPersistScenariosOn: boolean,
   onWriteFailure: WriteFailureHandler,
 ) => {
   const isUndo = direction === "undo";
   const changeDirection: Direction = isUndo ? "reverse" : "forward";
 
   const worktree = get(worktreeAtom);
-  const willPersist =
-    worktree.activeBranchId === worktree.mainId || isPersistScenariosOn;
 
   timedSync(
     "changeSet:apply",
@@ -54,12 +50,10 @@ const commitHistoryEntry = (
 
   isUndo ? sessionHistory.undo() : sessionHistory.redo();
 
-  if (willPersist) {
-    writeQueue.enqueue(
-      () => persistBranchChange(worktree, entry.changeSet, changeDirection),
-      onWriteFailure,
-    );
-  }
+  writeQueue.enqueue(
+    () => persistBranchChange(worktree, entry.changeSet, changeDirection),
+    onWriteFailure,
+  );
 
   set(sessionHistoryDerivedAtom, sessionHistory);
 };
@@ -72,7 +66,6 @@ const nextEntry = (
 
 export const useUndoableTransactions = () => {
   const onWriteFailure = useWriteFailureHandler();
-  const isPersistScenariosOn = useFeatureFlag("FLAG_PERSIST_SCENARIOS");
 
   const historyControl = useAtomCallback(
     useCallback(
@@ -91,7 +84,6 @@ export const useUndoableTransactions = () => {
             direction,
             entry,
             sessionHistory,
-            isPersistScenariosOn,
             onWriteFailure,
           );
           return true;
@@ -99,7 +91,7 @@ export const useUndoableTransactions = () => {
           set(historyPendingAtom, false);
         }
       },
-      [onWriteFailure, isPersistScenariosOn],
+      [onWriteFailure],
     ),
   );
 
