@@ -4,17 +4,34 @@ import {
   getLinkTimedSetting,
 } from "@epanet-js/hydraulic-model";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { buildTestFactories } from "src/__helpers__/test-factories";
+import { applyOperation } from "src/__helpers__/apply-operation";
+import type { HydraulicModel } from "src/hydraulic-model";
 import { changeAssetControl } from "./change-asset-control";
 
 describe("changeAssetControl", () => {
   const IDS = { J1: 1, J2: 2, P1: 3, P2: 4 } as const;
 
+  const { labelManager } = buildTestFactories();
+
   const aModel = () =>
-    HydraulicModelBuilder.with()
+    HydraulicModelBuilder.with({ labelManager })
       .aJunction(IDS.J1)
       .aJunction(IDS.J2)
       .aPump(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
       .aPump(IDS.P2, { startNodeId: IDS.J1, endNodeId: IDS.J2 });
+
+  const change = (
+    hydraulicModel: HydraulicModel,
+    data: Parameters<typeof changeAssetControl>[1],
+  ) => {
+    applyOperation(
+      hydraulicModel,
+      changeAssetControl(hydraulicModel, data),
+      labelManager,
+    );
+    return hydraulicModel.controls;
+  };
 
   it("assigns a control to the asset", () => {
     const hydraulicModel = aModel().build();
@@ -25,12 +42,12 @@ describe("changeAssetControl", () => {
       steps: [{ time: 3600, status: "off", setting: 1 }],
     };
 
-    const { putControls } = changeAssetControl(hydraulicModel, {
+    const controls = change(hydraulicModel, {
       assetId: IDS.P1,
       control,
     });
 
-    expect(getLinkTimedSetting(putControls!, IDS.P1)?.steps).toEqual([
+    expect(getLinkTimedSetting(controls, IDS.P1)?.steps).toEqual([
       { time: 3600, status: "off", setting: 1 },
     ]);
   });
@@ -43,7 +60,7 @@ describe("changeAssetControl", () => {
       })
       .build();
 
-    const { putControls } = changeAssetControl(hydraulicModel, {
+    const controls = change(hydraulicModel, {
       assetId: IDS.P1,
       control: {
         id: "ctrl-1",
@@ -53,8 +70,8 @@ describe("changeAssetControl", () => {
       },
     });
 
-    expect(putControls!.filter((c) => c.linkId === IDS.P1)).toHaveLength(1);
-    expect(getLinkTimedSetting(putControls!, IDS.P1)?.steps).toEqual([
+    expect(controls.filter((c) => c.linkId === IDS.P1)).toHaveLength(1);
+    expect(getLinkTimedSetting(controls, IDS.P1)?.steps).toEqual([
       { time: 7200, status: "on", setting: 1.5 },
     ]);
   });
@@ -67,7 +84,7 @@ describe("changeAssetControl", () => {
       })
       .build();
 
-    const { putControls } = changeAssetControl(hydraulicModel, {
+    const controls = change(hydraulicModel, {
       assetId: IDS.P1,
       control: {
         id: "ctrl-1",
@@ -77,7 +94,7 @@ describe("changeAssetControl", () => {
       },
     });
 
-    expect(getLinkTimedSetting(putControls!, IDS.P2)?.steps).toEqual([
+    expect(getLinkTimedSetting(controls, IDS.P2)?.steps).toEqual([
       { time: 3600, status: "off", setting: 1 },
     ]);
   });
@@ -90,7 +107,7 @@ describe("changeAssetControl", () => {
       })
       .build();
 
-    const { putControls } = changeAssetControl(hydraulicModel, {
+    const controls = change(hydraulicModel, {
       assetId: IDS.P1,
       control: {
         id: "ctrl-1",
@@ -102,9 +119,9 @@ describe("changeAssetControl", () => {
       },
     });
 
-    expect(putControls!.filter((c) => c.linkId === IDS.P1)).toHaveLength(1);
-    expect(getLinkTimedSetting(putControls!, IDS.P1)).toBeNull();
-    expect(getLinkLevelSetting(putControls!, IDS.P1)).toEqual({
+    expect(controls.filter((c) => c.linkId === IDS.P1)).toHaveLength(1);
+    expect(getLinkTimedSetting(controls, IDS.P1)).toBeNull();
+    expect(getLinkLevelSetting(controls, IDS.P1)).toEqual({
       id: "ctrl-1",
       type: "level-setting",
       linkId: IDS.P1,
@@ -122,11 +139,11 @@ describe("changeAssetControl", () => {
       })
       .build();
 
-    const { putControls } = changeAssetControl(hydraulicModel, {
+    const controls = change(hydraulicModel, {
       assetId: IDS.P1,
       control: null,
     });
 
-    expect(getLinkTimedSetting(putControls!, IDS.P1)).toBeNull();
+    expect(getLinkTimedSetting(controls, IDS.P1)).toBeNull();
   });
 });

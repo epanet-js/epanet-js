@@ -85,7 +85,10 @@ import { getLinkNodes } from "@epanet-js/hydraulic-model";
 import { type AssetId, type Control } from "@epanet-js/hydraulic-model";
 import { isNodeAsset } from "@epanet-js/hydraulic-model";
 import { highlightsAtom } from "src/state/highlights";
-import { changeAssetControl } from "src/hydraulic-model/model-operations";
+import {
+  changeAssetControl,
+  changeAssetControlDeprecated,
+} from "src/hydraulic-model/model-operations";
 import {
   AssetEditorContent,
   QuantityRow,
@@ -252,11 +255,15 @@ export function AssetPanel({
       control: Control | null,
       previousControl: Control | null,
     ) => {
-      const moment = changeAssetControl(hydraulicModel, {
-        assetId,
-        control,
-      });
-      transact(moment);
+      if (isOpsChangeSetsOn) {
+        transactChangeSet(
+          changeAssetControl(hydraulicModel, { assetId, control }),
+        );
+      } else {
+        transact(
+          changeAssetControlDeprecated(hydraulicModel, { assetId, control }),
+        );
+      }
       if (control === null) {
         userTracking.capture({
           name: "assetControl.removed",
@@ -274,7 +281,14 @@ export function AssetPanel({
         });
       }
     },
-    [hydraulicModel, asset.type, transact, userTracking],
+    [
+      hydraulicModel,
+      asset.type,
+      isOpsChangeSetsOn,
+      transact,
+      transactChangeSet,
+      userTracking,
+    ],
   );
 
   const handleBatchPropertyChange = useCallback(
