@@ -42,6 +42,8 @@ export { changeCustomerPointLabel } from "./change-customer-point-label";
 export {
   changeCustomerPointProperty,
   changeCustomerPointProperties,
+  changeCustomerPointPropertyDeprecated,
+  changeCustomerPointPropertiesDeprecated,
 } from "./change-customer-point-property";
 export { applyCustomerPointAllocation } from "./apply-customer-point-allocation";
 export * from "./property-changes";

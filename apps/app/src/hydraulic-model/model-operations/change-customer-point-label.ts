@@ -1,6 +1,6 @@
 import { CustomerPointId } from "@epanet-js/hydraulic-model";
 import { ModelOperationDeprecated } from "../model-operation";
-import { changeCustomerPointProperty } from "./change-customer-point-property";
+import { changeCustomerPointPropertyDeprecated } from "./change-customer-point-property";
 
 type InputData = {
   customerPointId: CustomerPointId;
@@ -11,7 +11,7 @@ export const changeCustomerPointLabel: ModelOperationDeprecated<InputData> = (
   hydraulicModel,
   { customerPointId, newLabel },
 ) => {
-  return changeCustomerPointProperty(hydraulicModel, {
+  return changeCustomerPointPropertyDeprecated(hydraulicModel, {
     customerPointIds: [customerPointId],
     property: "label",
     value: newLabel,

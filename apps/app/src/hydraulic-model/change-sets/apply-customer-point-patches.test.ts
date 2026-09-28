@@ -24,13 +24,13 @@ describe("change sets from customer point patches", () => {
     const { labelManager } = buildTestFactories();
     const model = buildConnectedModel(labelManager);
 
-    const moment = changeCustomerPointProperty(model, {
+    const changeSet = changeCustomerPointProperty(model, {
       customerPointIds: [IDS.CP1],
       property: "label",
       value: "new",
     });
 
-    applyOperation(model, moment, labelManager);
+    applyOperation(model, changeSet, labelManager);
 
     expect(model.customerPoints.get(IDS.CP1)!.label).toBe("new");
     expect(labelManager.isLabelAvailable("new", "customerPoint")).toBe(false);
@@ -66,12 +66,12 @@ describe("change sets from customer point patches", () => {
     const model = buildConnectedModel(labelManager);
     const original = model.customerPoints.get(IDS.CP1)!;
 
-    const moment = changeCustomerPointProperty(model, {
+    const changeSet = changeCustomerPointProperty(model, {
       customerPointIds: [IDS.CP1],
       property: "label",
       value: "new",
     });
-    applyOperation(model, moment, labelManager);
+    applyOperation(model, changeSet, labelManager);
 
     expect(original.label).toBe("old");
     expect(model.customerPoints.get(IDS.CP1)).not.toBe(original);

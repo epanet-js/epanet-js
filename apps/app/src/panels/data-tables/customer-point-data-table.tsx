@@ -10,7 +10,7 @@ import { dialogAtom } from "src/state/dialog";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import {
   changeCustomerPointLabel,
-  changeCustomerPointProperties,
+  changeCustomerPointPropertiesDeprecated,
   changeDemandAssignmentDeprecated,
   mergeMoments,
 } from "src/hydraulic-model/model-operations";
@@ -255,7 +255,7 @@ export const CustomerPointDataTable = memo(
             }
             if (customChanges.length > 0) {
               moments.push(
-                changeCustomerPointProperties(hydraulicModel, {
+                changeCustomerPointPropertiesDeprecated(hydraulicModel, {
                   customerPointIds: [newRow.id],
                   changes: customChanges,
                 }),

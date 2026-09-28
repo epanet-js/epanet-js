@@ -10,7 +10,12 @@ import {
 import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
-import { changeCustomerPointProperty } from "src/hydraulic-model/model-operations";
+import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import {
+  changeCustomerPointProperty,
+  changeCustomerPointPropertyDeprecated,
+} from "src/hydraulic-model/model-operations";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { Section, InlineField } from "src/components/form/fields";
@@ -43,17 +48,22 @@ export function MultiCustomerPointCustomAttributesSection({
   const translate = useTranslate();
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const { transact } = useMomentTransaction();
+  const { transact: transactChangeSet } = useModelTransaction();
+  const isOpsChangeSetsOn = useFeatureFlag("FLAG_OPS_CHANGE_SETS");
   const userTracking = useUserTracking();
 
   const handleChange = useCallback(
     (attributeId: CustomAttributeId, value: CustomAttributeValue) => {
-      transact(
-        changeCustomerPointProperty(hydraulicModel, {
-          customerPointIds,
-          property: attributeId,
-          value,
-        }),
-      );
+      const data = {
+        customerPointIds,
+        property: attributeId,
+        value,
+      };
+      if (isOpsChangeSetsOn) {
+        transactChangeSet(changeCustomerPointProperty(hydraulicModel, data));
+      } else {
+        transact(changeCustomerPointPropertyDeprecated(hydraulicModel, data));
+      }
       const attribute = getAttribute(
         hydraulicModel.customAttributes,
         "customerPoint",
@@ -68,7 +78,14 @@ export function MultiCustomerPointCustomAttributesSection({
         count: customerPointIds.length,
       });
     },
-    [transact, customerPointIds, hydraulicModel, userTracking],
+    [
+      transact,
+      transactChangeSet,
+      isOpsChangeSetsOn,
+      customerPointIds,
+      hydraulicModel,
+      userTracking,
+    ],
   );
 
   const attributes = getAttributes(
