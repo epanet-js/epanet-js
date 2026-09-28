@@ -1,5 +1,6 @@
 import { IWrappedFeature } from "src/types";
 import { isDebugOn } from "src/infra/debug-mode";
+import type { ChangeSet } from "@epanet-js/change-set";
 import { HydraulicModel, ModelMoment } from "src/hydraulic-model";
 
 export function trackMoment(moment: ModelMoment) {
@@ -9,6 +10,16 @@ export function trackMoment(moment: ModelMoment) {
       "TRANSACT",
       // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       JSON.stringify(moment, (_, v) => (v === undefined ? "__undefined__" : v)),
+    );
+  }
+}
+
+export function trackChangeSet(changeSet: ChangeSet) {
+  if (isDebugOn) {
+    // eslint-disable-next-line no-console
+    console.log(
+      "TRANSACT",
+      JSON.stringify({ name: changeSet.name, summary: changeSet.summary() }),
     );
   }
 }

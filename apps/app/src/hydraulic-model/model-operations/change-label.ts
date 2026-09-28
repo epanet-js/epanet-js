@@ -1,6 +1,7 @@
 import { AssetId } from "@epanet-js/hydraulic-model";
 import type { AssetPatch } from "../model-operation";
-import { ModelOperation } from "../model-operation";
+import { ModelOperation, ModelOperationDeprecated } from "../model-operation";
+import { changeSet, setAsset } from "../change-sets";
 
 type InputData = {
   assetId: AssetId;
@@ -8,6 +9,19 @@ type InputData = {
 };
 
 export const changeLabel: ModelOperation<InputData> = (
+  model,
+  { assetId, newLabel },
+) => {
+  if (!model.assets.has(assetId)) {
+    throw new Error(`Invalid asset id ${assetId}`);
+  }
+
+  return changeSet(model, "Change asset label", [
+    setAsset(assetId, { label: newLabel }),
+  ]);
+};
+
+export const changeLabelDeprecated: ModelOperationDeprecated<InputData> = (
   { assets },
   { assetId, newLabel },
 ) => {

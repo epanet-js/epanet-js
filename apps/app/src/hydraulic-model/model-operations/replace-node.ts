@@ -7,7 +7,7 @@ import {
   Pipe,
   isNodeAsset,
 } from "@epanet-js/hydraulic-model";
-import { ModelOperation } from "../model-operation";
+import { ModelOperationDeprecated } from "../model-operation";
 import { Position } from "src/types";
 import { updateLinkConnections } from "../mutations/update-link-connections";
 import { reassignCustomerPoints } from "../mutations/reassign-customer-points";
@@ -22,7 +22,7 @@ type InputData = {
   elevation?: number | null;
 };
 
-export const replaceNode: ModelOperation<InputData> = (
+export const replaceNode: ModelOperationDeprecated<InputData> = (
   hydraulicModel,
   { oldNodeId, newNodeType, assetFactory, elevation },
 ) => {

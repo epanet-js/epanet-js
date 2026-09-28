@@ -1,11 +1,11 @@
 import { AssetId, LinkAsset } from "@epanet-js/hydraulic-model";
-import { ModelOperation } from "../model-operation";
+import { ModelOperationDeprecated } from "../model-operation";
 
 type ReverseLinkData = {
   linkId: AssetId;
 };
 
-export const reverseLink: ModelOperation<ReverseLinkData> = (
+export const reverseLink: ModelOperationDeprecated<ReverseLinkData> = (
   hydraulicModel,
   { linkId },
 ) => {

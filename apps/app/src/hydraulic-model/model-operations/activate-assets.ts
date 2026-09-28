@@ -1,12 +1,12 @@
 import { AssetId } from "@epanet-js/hydraulic-model";
 import type { AssetPatch } from "../model-operation";
-import { ModelOperation } from "../model-operation";
+import { ModelOperationDeprecated } from "../model-operation";
 
 type InputData = {
   assetIds: AssetId[];
 };
 
-export const activateAssets: ModelOperation<InputData> = (
+export const activateAssets: ModelOperationDeprecated<InputData> = (
   { assets, topology },
   { assetIds },
 ) => {

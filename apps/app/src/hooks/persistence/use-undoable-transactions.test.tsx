@@ -4,7 +4,9 @@ import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
 import { addNode } from "src/hydraulic-model/model-operations/add-node";
 import { deleteAssets } from "src/hydraulic-model/model-operations/delete-assets";
+import { changeLabel } from "src/hydraulic-model/model-operations/change-label";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
+import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import { useUndoableTransactions } from "src/hooks/persistence/use-undoable-transactions";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import {
@@ -68,6 +70,9 @@ const addJunction = (store: Store) => {
 
 const assetIds = (store: Store) =>
   [...store.get(stagingModelDerivedAtom).assets.keys()].sort((a, b) => a - b);
+
+const labelOf = (store: Store, id: number) =>
+  store.get(stagingModelDerivedAtom).assets.get(id)!.label;
 
 const assetOrder = (store: Store) => [
   ...store.get(stagingModelDerivedAtom).assets.keys(),
@@ -137,6 +142,40 @@ describe("undoable transactions", () => {
     });
 
     expect(assetOrder(store)).toEqual(orderBeforeDelete);
+  });
+
+  it("undoes and redoes an edit transacted as a change set", async () => {
+    const store = await aProject();
+    const originalLabel = labelOf(store, IDS.J1);
+    const { labelManager } = store.get(modelFactoriesAtom);
+
+    const { result } = renderHook(
+      () => ({ ...useModelTransaction(), ...useUndoableTransactions() }),
+      withStore(store),
+    );
+
+    act(() => {
+      result.current.transact(
+        changeLabel(store.get(stagingModelDerivedAtom), {
+          assetId: IDS.J1,
+          newLabel: "RENAMED",
+        }),
+      );
+    });
+    expect(labelOf(store, IDS.J1)).toBe("RENAMED");
+    expect(labelManager.getIdByLabel("RENAMED", "junction")).toBe(IDS.J1);
+
+    act(() => {
+      result.current.historyControl("undo");
+    });
+    expect(labelOf(store, IDS.J1)).toBe(originalLabel);
+    expect(labelManager.count("RENAMED")).toBe(0);
+
+    act(() => {
+      result.current.historyControl("redo");
+    });
+    expect(labelOf(store, IDS.J1)).toBe("RENAMED");
+    expect(labelManager.getIdByLabel("RENAMED", "junction")).toBe(IDS.J1);
   });
 
   it("rejects a history action while one is pending", async () => {

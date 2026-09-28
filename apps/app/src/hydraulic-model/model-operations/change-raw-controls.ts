@@ -1,7 +1,7 @@
 import { RawControls } from "@epanet-js/hydraulic-model";
-import { ModelOperation } from "../model-operation";
+import { ModelOperationDeprecated } from "../model-operation";
 
-export const changeRawControls: ModelOperation<RawControls> = (
+export const changeRawControls: ModelOperationDeprecated<RawControls> = (
   _,
   rawControls,
 ) => {

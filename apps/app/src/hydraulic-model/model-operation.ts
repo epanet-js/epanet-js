@@ -1,3 +1,4 @@
+import type { ChangeSet } from "@epanet-js/change-set";
 import { HydraulicModel } from "./hydraulic-model";
 import {
   Asset,
@@ -77,4 +78,9 @@ export type ModelMoment = OptionalMomentFields & {
   patchCustomerPointsAttributes?: CustomerPointPatch[];
 };
 
-export type ModelOperation<T> = (model: HydraulicModel, data: T) => ModelMoment;
+export type ModelOperationDeprecated<T> = (
+  model: HydraulicModel,
+  data: T,
+) => ModelMoment;
+
+export type ModelOperation<T> = (model: HydraulicModel, data: T) => ChangeSet;

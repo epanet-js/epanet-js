@@ -1,11 +1,11 @@
 import { CustomerPoint } from "@epanet-js/hydraulic-model";
-import { ModelOperation } from "../model-operation";
+import { ModelOperationDeprecated } from "../model-operation";
 
 type InputData = {
   customerPointIds: readonly number[];
 };
 
-export const disconnectCustomers: ModelOperation<InputData> = (
+export const disconnectCustomers: ModelOperationDeprecated<InputData> = (
   { customerPoints },
   { customerPointIds },
 ) => {

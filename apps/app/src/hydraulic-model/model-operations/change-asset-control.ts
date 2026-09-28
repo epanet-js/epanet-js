@@ -1,7 +1,7 @@
 import { AssetId, Control, setAssetControl } from "@epanet-js/hydraulic-model";
-import { ModelOperation } from "../model-operation";
+import { ModelOperationDeprecated } from "../model-operation";
 
-export const changeAssetControl: ModelOperation<{
+export const changeAssetControl: ModelOperationDeprecated<{
   assetId: AssetId;
   control: Control | null;
 }> = (hydraulicModel, { assetId, control }) => {

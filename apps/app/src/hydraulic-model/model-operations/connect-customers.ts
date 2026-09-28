@@ -4,7 +4,7 @@ import {
   NodeAsset,
   AssetId,
 } from "@epanet-js/hydraulic-model";
-import { ModelOperation } from "../model-operation";
+import { ModelOperationDeprecated } from "../model-operation";
 import { Position } from "src/types";
 import { findJunctionForCustomerPoint } from "../utilities/junction-assignment";
 
@@ -14,7 +14,7 @@ type InputData = {
   snapPoints: readonly Position[];
 };
 
-export const connectCustomers: ModelOperation<InputData> = (
+export const connectCustomers: ModelOperationDeprecated<InputData> = (
   { customerPoints, assets },
   { customerPointIds, pipeId, snapPoints },
 ) => {

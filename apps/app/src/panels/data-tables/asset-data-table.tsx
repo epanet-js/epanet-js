@@ -9,7 +9,7 @@ import {
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import {
   changeProperties,
-  changeLabel,
+  changeLabelDeprecated,
   changeDemandAssignment,
   mergeMoments,
 } from "src/hydraulic-model/model-operations";
@@ -334,7 +334,10 @@ export const AssetDataTable = memo(function AssetDataTableInner({
           labelManager.isLabelAvailable(newRow.label, assetType, assetId)
         ) {
           moments.push(
-            changeLabel(hydraulicModel, { assetId, newLabel: newRow.label }),
+            changeLabelDeprecated(hydraulicModel, {
+              assetId,
+              newLabel: newRow.label,
+            }),
           );
           editedProperties.set(
             "label",

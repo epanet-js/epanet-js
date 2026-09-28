@@ -7,7 +7,7 @@ import {
   AssetFactory,
   LabelManager,
 } from "@epanet-js/hydraulic-model";
-import { ModelOperation, ModelMoment } from "../model-operation";
+import { ModelOperationDeprecated, ModelMoment } from "../model-operation";
 import { addLink } from "./add-link";
 import { findJunctionForCustomerPoint } from "../utilities/junction-assignment";
 import { HydraulicModel } from "../hydraulic-model";
@@ -30,7 +30,7 @@ type InputData = {
   precision?: number;
 };
 
-export const replaceLink: ModelOperation<InputData> = (
+export const replaceLink: ModelOperationDeprecated<InputData> = (
   hydraulicModel,
   {
     sourceLinkId,

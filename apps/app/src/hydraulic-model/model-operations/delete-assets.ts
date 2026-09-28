@@ -14,7 +14,7 @@ import type {
   DemandAssignment,
   DemandSettingsChange,
 } from "../model-operation";
-import { ModelOperation } from "../model-operation";
+import { ModelOperationDeprecated } from "../model-operation";
 import { HydraulicModel } from "../hydraulic-model";
 import { inferNodeIsActive } from "../utilities/active-topology";
 import { Demands, getJunctionDemands } from "@epanet-js/hydraulic-model";
@@ -25,7 +25,7 @@ type InputData = {
   shouldRemoveRawControls?: boolean;
 };
 
-export const deleteAssets: ModelOperation<InputData> = (
+export const deleteAssets: ModelOperationDeprecated<InputData> = (
   hydraulicModel,
   {
     assetIds,

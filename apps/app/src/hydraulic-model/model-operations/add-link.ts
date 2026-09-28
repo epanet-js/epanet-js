@@ -9,7 +9,7 @@ import {
   CustomerPoint,
   computeLinkLength,
 } from "@epanet-js/hydraulic-model";
-import { ModelOperation } from "../model-operation";
+import { ModelOperationDeprecated } from "../model-operation";
 import { Position } from "geojson";
 import { splitPipe } from "./split-pipe";
 import { AssetsMap } from "@epanet-js/hydraulic-model";
@@ -29,7 +29,10 @@ type InputData = {
   labelManager: LabelManager;
 };
 
-export const addLink: ModelOperation<InputData> = (hydraulicModel, data) => {
+export const addLink: ModelOperationDeprecated<InputData> = (
+  hydraulicModel,
+  data,
+) => {
   const {
     link,
     startNode,

@@ -1,6 +1,6 @@
 import { CustomerPointAllocationResult } from "@epanet-js/hydraulic-model";
 import { HydraulicModel } from "../hydraulic-model";
-import { ModelMoment, ModelOperation } from "../model-operation";
+import { ModelMoment, ModelOperationDeprecated } from "../model-operation";
 import { connectCustomers } from "./connect-customers";
 import { Position } from "src/types";
 
@@ -8,10 +8,9 @@ type InputData = {
   allocationResult: CustomerPointAllocationResult;
 };
 
-export const applyCustomerPointAllocation: ModelOperation<InputData> = (
-  hydraulicModel,
-  { allocationResult },
-) => {
+export const applyCustomerPointAllocation: ModelOperationDeprecated<
+  InputData
+> = (hydraulicModel, { allocationResult }) => {
   const customerPointsByPipe = new Map<
     number,
     { customerPointIds: number[]; snapPoints: Position[] }

@@ -1,13 +1,13 @@
 import { Position } from "src/types";
 import { CustomerPointFactory } from "@epanet-js/hydraulic-model";
-import { ModelOperation } from "../model-operation";
+import { ModelOperationDeprecated } from "../model-operation";
 
 type InputData = {
   coordinates: Position;
   customerPointFactory: CustomerPointFactory;
 };
 
-export const addCustomerPoint: ModelOperation<InputData> = (
+export const addCustomerPoint: ModelOperationDeprecated<InputData> = (
   _model,
   { coordinates, customerPointFactory },
 ) => {

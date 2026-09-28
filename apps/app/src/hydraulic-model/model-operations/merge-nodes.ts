@@ -8,7 +8,7 @@ import {
   isNodeAsset,
   computeLinkLength,
 } from "@epanet-js/hydraulic-model";
-import { DemandAssignment, ModelOperation } from "../model-operation";
+import { DemandAssignment, ModelOperationDeprecated } from "../model-operation";
 import { HydraulicModel } from "../hydraulic-model";
 import { AssetsMap } from "@epanet-js/hydraulic-model";
 import { Topology } from "@epanet-js/hydraulic-model";
@@ -41,7 +41,7 @@ const determineWinner = (
   return { winnerNode: sourceNode, loserNode: targetNode };
 };
 
-export const mergeNodes: ModelOperation<InputData> = (
+export const mergeNodes: ModelOperationDeprecated<InputData> = (
   hydraulicModel,
   { sourceNodeId, targetNodeId, lengthUnit },
 ) => {

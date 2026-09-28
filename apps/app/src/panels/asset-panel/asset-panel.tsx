@@ -56,6 +56,8 @@ import {
 } from "src/lib/valve-target-nodes";
 import { useTranslate } from "src/hooks/use-translate";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
+import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useUserTracking } from "src/infra/user-tracking";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { modelFactoriesAtom } from "src/state/model-factories";
@@ -66,6 +68,7 @@ import {
   changeProperties,
   changeDemandAssignment,
   changeLabel,
+  changeLabelDeprecated,
 } from "src/hydraulic-model/model-operations";
 import type {
   ChangeableProperty,
@@ -161,6 +164,8 @@ export function AssetPanel({
   const { labelManager } = useAtomValue(modelFactoriesAtom);
   const projectSettings = useAtomValue(projectSettingsAtom);
   const { transact } = useMomentTransaction();
+  const { transact: transactChangeSet } = useModelTransaction();
+  const isOpsChangeSetsOn = useFeatureFlag("FLAG_OPS_CHANGE_SETS");
   const userTracking = useUserTracking();
   const translate = useTranslate();
 
@@ -320,11 +325,18 @@ export function AssetPanel({
         return translate("labelDuplicate");
       }
 
-      const moment = changeLabel(hydraulicModel, {
-        assetId: asset.id,
-        newLabel,
-      });
-      transact(moment);
+      if (isOpsChangeSetsOn) {
+        transactChangeSet(
+          changeLabel(hydraulicModel, { assetId: asset.id, newLabel }),
+        );
+      } else {
+        transact(
+          changeLabelDeprecated(hydraulicModel, {
+            assetId: asset.id,
+            newLabel,
+          }),
+        );
+      }
       userTracking.capture({
         name: "assetProperty.edited",
         type: asset.type,
@@ -339,8 +351,10 @@ export function AssetPanel({
       asset.label,
       asset.type,
       hydraulicModel,
+      isOpsChangeSetsOn,
       labelManager,
       transact,
+      transactChangeSet,
       translate,
       userTracking,
     ],

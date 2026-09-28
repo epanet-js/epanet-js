@@ -11,7 +11,7 @@ import {
   computeLinkLength,
 } from "@epanet-js/hydraulic-model";
 import { AssetsMap, getNode } from "@epanet-js/hydraulic-model";
-import { ModelOperation } from "../model-operation";
+import { ModelOperationDeprecated } from "../model-operation";
 import { findJunctionForCustomerPoint } from "../utilities/junction-assignment";
 import { lineString, point } from "@turf/helpers";
 import { findNearestPointOnLine } from "@epanet-js/geometry";
@@ -32,7 +32,7 @@ type InputData = {
   precision?: number;
 };
 
-export const moveNode: ModelOperation<InputData> = (
+export const moveNode: ModelOperationDeprecated<InputData> = (
   hydraulicModel,
   {
     nodeId,
@@ -73,7 +73,9 @@ export const moveNode: ModelOperation<InputData> = (
   });
 };
 
-const moveNodeStandard: ModelOperation<Omit<InputData, "pipeIdToSplit">> = (
+const moveNodeStandard: ModelOperationDeprecated<
+  Omit<InputData, "pipeIdToSplit">
+> = (
   hydraulicModel,
   {
     nodeId,

@@ -1,25 +1,15 @@
 import { useCallback } from "react";
 import { useAtomCallback } from "jotai/utils";
 import type { Getter, Setter } from "jotai";
-import { nanoid } from "nanoid";
 import type { Moment } from "src/lib/persistence/moment";
-import {
-  stagingModelDerivedAtom,
-  sessionHistoryDerivedAtom,
-} from "src/state/derived-branch-state";
-import { worktreeAtom } from "src/state/scenarios";
-import { historyPendingAtom } from "src/state/transactions";
+import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { dialogAtom } from "src/state/dialog";
 import { modeAtom, MODE_INFO } from "src/state/mode";
 import { trackMoment } from "src/lib/persistence/shared";
-import {
-  applyChange,
-  processMoment,
-} from "src/lib/persistence/transaction-helpers";
+import { processMoment } from "src/lib/persistence/transaction-helpers";
 import { toChangeSet } from "src/hydraulic-model/change-sets";
 import type { ChangeSet } from "@epanet-js/change-set";
-import { timedSync, timedWithSync } from "@epanet-js/ejsdb";
-import { persistBranchChange } from "src/lib/persistence/persist-branch-change";
+import { timedWithSync } from "@epanet-js/ejsdb";
 import { captureError, captureWarning } from "src/infra/error-tracking";
 import {
   findOrphanLinkConnections,
@@ -27,11 +17,12 @@ import {
   findTopologyConnectionMismatches,
   type OrphanLinkConnection,
 } from "src/hydraulic-model/validate-moment-integrity";
-import {
-  writeQueue,
-  type WriteFailureHandler,
-} from "src/lib/persistence/write-queue";
+import type { WriteFailureHandler } from "src/lib/persistence/write-queue";
 import { useWriteFailureHandler } from "src/hooks/persistence/use-write-failure-handler";
+import {
+  commitChangeSet,
+  isHistoryPending,
+} from "src/hooks/persistence/use-model-transaction";
 
 const maxReportedIds = 20;
 
@@ -143,33 +134,9 @@ const transactWithChangeSet = (
   reportOrphanLinks(get, moment);
 
   trackMoment(moment);
-  const newStateId = nanoid();
-  const sessionHistory = get(sessionHistoryDerivedAtom).copy();
-
-  timedSync(
-    "changeSet:apply",
-    () =>
-      applyChange(
-        get,
-        set,
-        newStateId,
-        changeSet,
-        "forward",
-        stagingModelDerivedAtom,
-      ),
-    { note: moment.note },
-  );
+  commitChangeSet(get, set, changeSet, onWriteFailure);
 
   reportAppliedIntegrity(get, moment);
-
-  sessionHistory.append(changeSet, newStateId);
-  set(sessionHistoryDerivedAtom, sessionHistory);
-
-  const worktree = get(worktreeAtom);
-  writeQueue.enqueue(
-    () => persistBranchChange(worktree, changeSet, "forward"),
-    onWriteFailure,
-  );
 
   return true;
 };
@@ -180,12 +147,7 @@ export const useMomentTransaction = () => {
   const transact = useAtomCallback(
     useCallback(
       (get: Getter, set: Setter, moment: Moment) => {
-        if (get(historyPendingAtom)) {
-          captureWarning(
-            `Edit "${moment.note}" rejected: a history action is pending`,
-          );
-          return false;
-        }
+        if (isHistoryPending(get, moment.note)) return false;
 
         return transactWithChangeSet(get, set, moment, onWriteFailure);
       },

@@ -12,6 +12,7 @@ import {
   withoutIndexOrder,
   type ModelFixture,
 } from "src/__helpers__/model-snapshot";
+import { ChangeSet } from "@epanet-js/change-set";
 import type { ModelMoment } from "../model-operation";
 import {
   addNode,
@@ -109,7 +110,7 @@ const aNetwork = (): Fixture => {
 type OperationCase = {
   name: string;
   fixture: () => Fixture;
-  run: (fixture: Fixture) => ModelMoment;
+  run: (fixture: Fixture) => ModelMoment | ChangeSet;
   expectApplied: (fixture: Fixture) => void;
 };
 
@@ -531,8 +532,9 @@ const runCase = (testCase: OperationCase) => {
   const applied = testCase.fixture();
   const pristine = testCase.fixture();
 
-  const moment = testCase.run(applied);
-  const changeSet = toChangeSet(applied.model, moment);
+  const result = testCase.run(applied);
+  const changeSet =
+    result instanceof ChangeSet ? result : toChangeSet(applied.model, result);
   applyChangeSet(applied.model, changeSet, "forward", applied.labelManager);
 
   const probe = [...modelLabels(pristine.model), ...modelLabels(applied.model)];

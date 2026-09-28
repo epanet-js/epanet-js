@@ -2,7 +2,7 @@ export { moveNode } from "./move-node";
 export { changeProperty, changeProperties } from "./change-property";
 export { mergeMoments } from "./merge-moments";
 export type { PropertyChange } from "./change-property";
-export { changeLabel } from "./change-label";
+export { changeLabel, changeLabelDeprecated } from "./change-label";
 export { disconnectCustomers } from "./disconnect-customers";
 export { connectCustomers } from "./connect-customers";
 export { addNode } from "./add-node";

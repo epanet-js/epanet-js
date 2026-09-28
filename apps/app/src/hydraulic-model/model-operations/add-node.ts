@@ -5,7 +5,7 @@ import {
   LabelManager,
   AssetFactory,
 } from "@epanet-js/hydraulic-model";
-import { ModelOperation } from "../model-operation";
+import { ModelOperationDeprecated } from "../model-operation";
 import { Position } from "src/types";
 import { HydraulicModel } from "../hydraulic-model";
 import { splitPipe } from "./split-pipe";
@@ -23,7 +23,7 @@ type InputData = {
   labelManager: LabelManager;
 };
 
-export const addNode: ModelOperation<InputData> = (
+export const addNode: ModelOperationDeprecated<InputData> = (
   hydraulicModel,
   {
     nodeType,

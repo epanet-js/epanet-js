@@ -1,9 +1,9 @@
 import { PipeMaterial } from "@epanet-js/hydraulic-model";
-import { ModelOperation } from "../model-operation";
+import { ModelOperationDeprecated } from "../model-operation";
 
 type InputData = PipeMaterial[];
 
-export const changePipeMaterials: ModelOperation<InputData> = (
+export const changePipeMaterials: ModelOperationDeprecated<InputData> = (
   _model,
   pipeMaterials,
 ) => {

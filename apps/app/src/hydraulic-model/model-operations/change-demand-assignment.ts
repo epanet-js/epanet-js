@@ -1,8 +1,8 @@
-import { DemandAssignment, ModelOperation } from "../model-operation";
+import { DemandAssignment, ModelOperationDeprecated } from "../model-operation";
 
 type InputData = DemandAssignment[];
 
-export const changeDemandAssignment: ModelOperation<InputData> = (
+export const changeDemandAssignment: ModelOperationDeprecated<InputData> = (
   _model,
   assignments,
 ) => {

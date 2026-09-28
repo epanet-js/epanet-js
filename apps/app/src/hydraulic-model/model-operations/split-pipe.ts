@@ -7,7 +7,7 @@ import {
   CustomerPoint,
   computeLinkLength,
 } from "@epanet-js/hydraulic-model";
-import { ModelOperation } from "../model-operation";
+import { ModelOperationDeprecated } from "../model-operation";
 import { HydraulicModel } from "../hydraulic-model";
 import { findJunctionForCustomerPoint } from "../utilities/junction-assignment";
 import { lineString, point } from "@turf/helpers";
@@ -37,7 +37,7 @@ type SplitPipeInput = {
   labelManager: LabelManager;
 };
 
-export const splitPipe: ModelOperation<SplitPipeInput> = (
+export const splitPipe: ModelOperationDeprecated<SplitPipeInput> = (
   hydraulicModel,
   { pipe, splits, lengthUnit, assetFactory, labelManager },
 ) => {
