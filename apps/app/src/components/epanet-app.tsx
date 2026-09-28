@@ -45,6 +45,7 @@ import { TimestepSpeedWarning } from "./timestep-selector";
 import { MapLoading } from "src/map/map-loader";
 import { Toolbar } from "src/toolbar/";
 import { MapToolbar } from "src/toolbar/map-toolbar";
+import { useIsDrawingAvailable } from "src/hooks/use-is-drawing-available";
 import { Footer } from "./footer";
 import { useHydrateAtoms } from "jotai/utils";
 import { TabCloseGuard } from "./tab-close-guard";
@@ -266,7 +267,7 @@ function DraggableMap({
   const { setNodeRef, transform } = useDraggable({
     id: "map",
   });
-  const isSmOrLarger = useBreakpoint("sm");
+  const isDrawingAvailable = useIsDrawingAvailable();
 
   useMapResize(containerRef.current, layout);
 
@@ -301,7 +302,7 @@ function DraggableMap({
         <TimestepSpeedWarning />
         <MapLoading />
       </div>
-      {isSmOrLarger && <MapToolbar readonly={readonly} />}
+      {isDrawingAvailable && <MapToolbar readonly={readonly} />}
     </div>
   );
 }

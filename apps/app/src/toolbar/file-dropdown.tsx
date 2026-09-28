@@ -41,6 +41,8 @@ import { useOpenZonesImport } from "src/commands/open-zones-import";
 import { useImportZonesDisabled } from "src/hooks/use-import-zones-disabled";
 import { useImportCustomerPointsDisabled } from "src/hooks/use-import-customer-points-disabled";
 import { useRecentFiles } from "src/hooks/use-recent-files";
+import { useIsDrawingAvailable } from "src/hooks/use-is-drawing-available";
+import { useIsModelBuilderAvailable } from "src/hooks/use-is-model-builder-available";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   Button,
@@ -176,6 +178,8 @@ const NewProjectSubmenu = () => {
   const openInpFromFs = useOpenInpFromFs();
   const userTracking = useUserTracking();
   const translate = useTranslate();
+  const isDrawingAvailable = useIsDrawingAvailable();
+  const isModelBuilderAvailable = useIsModelBuilderAvailable();
 
   return (
     <DD.Sub>
@@ -186,28 +190,32 @@ const NewProjectSubmenu = () => {
       </DDSubTriggerItem>
       <DD.Portal>
         <DDSubContent sideOffset={4} alignOffset={-4}>
-          <StyledItem
-            onSelect={() => {
-              userTracking.capture({
-                name: "newModel.started",
-                source: "toolbar",
-              });
-              void createNewProject({ source: "toolbar" });
-            }}
-          >
-            <FileIcon />
-            {translate("newProject.blank")}
-          </StyledItem>
+          {isDrawingAvailable && (
+            <StyledItem
+              onSelect={() => {
+                userTracking.capture({
+                  name: "newModel.started",
+                  source: "toolbar",
+                });
+                void createNewProject({ source: "toolbar" });
+              }}
+            >
+              <FileIcon />
+              {translate("newProject.blank")}
+            </StyledItem>
+          )}
 
-          <StyledItem
-            onSelect={() => {
-              openModelBuilder({ source: "toolbar" });
-            }}
-          >
-            <GlobeIcon />
-            {translate("newProject.fromGIS")}
-            <EarlyAccessIcon size="sm" />
-          </StyledItem>
+          {isModelBuilderAvailable && (
+            <StyledItem
+              onSelect={() => {
+                openModelBuilder({ source: "toolbar" });
+              }}
+            >
+              <GlobeIcon />
+              {translate("newProject.fromGIS")}
+              <EarlyAccessIcon size="sm" />
+            </StyledItem>
+          )}
 
           <StyledItem
             onSelect={() => {

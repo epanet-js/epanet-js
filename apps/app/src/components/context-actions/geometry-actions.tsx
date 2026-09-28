@@ -29,6 +29,7 @@ import {
 import { useAtomValue } from "jotai";
 import { Mode, modeAtom } from "src/state/mode";
 import { useSetRedrawMode } from "src/commands/set-redraw-mode";
+import { useIsDrawingAvailable } from "src/hooks/use-is-drawing-available";
 import { useReverseLink } from "src/commands/reverse-link";
 import { useCustomGraph } from "src/hooks/use-custom-graph";
 import {
@@ -60,6 +61,7 @@ function useSelectionActions(source: ActionProps["as"]): Action[] {
   } = useChangeSelectedAssetsActiveTopologyStatus();
   const { mode: currentMode } = useAtomValue(modeAtom);
   const setRedrawMode = useSetRedrawMode();
+  const isDrawingAvailable = useIsDrawingAvailable();
   const reverseLinkAction = useReverseLink();
   const { openCustomGraph } = useCustomGraph();
   const startCollectionDraft = useStartCollectionDraft();
@@ -119,7 +121,7 @@ function useSelectionActions(source: ActionProps["as"]): Action[] {
 
   const redrawAction = {
     icon: <RedrawIcon />,
-    applicable: Boolean(isOneLinkSelected),
+    applicable: isDrawingAvailable && Boolean(isOneLinkSelected),
     label: translate("redraw"),
     selected: currentMode === Mode.REDRAW_LINK,
     onSelect: function redrawLink() {

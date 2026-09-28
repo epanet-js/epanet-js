@@ -38,6 +38,8 @@ import affinityWaterLogoUrl from "src/assets/images/logos/affinity-water-logo.sv
 import anglianWaterLogoUrl from "src/assets/images/logos/anglian-water-logo.webp";
 import atkinsRealisLogoUrl from "src/assets/images/logos/atkins-realis-logo.svg";
 import iteratingLogoUrl from "src/assets/images/logos/iterating-logo-muted-padded.svg";
+import { useIsDrawingAvailable } from "src/hooks/use-is-drawing-available";
+import { useIsModelBuilderAvailable } from "src/hooks/use-is-model-builder-available";
 import type { RecentFileEntry } from "src/lib/recent-files";
 import Image from "next/image";
 
@@ -47,6 +49,8 @@ export const WelcomeDialog = () => {
   const openProject = useOpenProject();
   const openModelBuilder = useOpenModelBuilder();
   const userTracking = useUserTracking();
+  const isDrawingAvailable = useIsDrawingAvailable();
+  const isModelBuilderAvailable = useIsModelBuilderAvailable();
 
   const currentLocale = useLocale();
   const currentLanguage = languageConfig.find(
@@ -71,17 +75,18 @@ export const WelcomeDialog = () => {
               <SmallDeviceWarning />
             </div>
             <div className="h-full flex flex-col gap-2">
-              <Button
-                variant="quiet"
-                onClick={() => {
-                  void createNew({ source: "welcome" });
-                }}
-                className="hidden sm:flex"
-                style={{ width: "100%" }}
-              >
-                <FileIcon />
-                {translate("startBlankProject")}
-              </Button>
+              {isDrawingAvailable && (
+                <Button
+                  variant="quiet"
+                  onClick={() => {
+                    void createNew({ source: "welcome" });
+                  }}
+                  style={{ width: "100%" }}
+                >
+                  <FileIcon />
+                  {translate("startBlankProject")}
+                </Button>
+              )}
               <Button
                 variant="quiet"
                 onClick={() => {
@@ -92,18 +97,20 @@ export const WelcomeDialog = () => {
                 <FolderOpenIcon />
                 {translate("openModel")}
               </Button>
-              <Button
-                variant="quiet"
-                onClick={() => {
-                  openModelBuilder({ source: "welcome" });
-                }}
-                style={{ width: "100%" }}
-                className="mt-4"
-              >
-                <GlobeIcon />
-                {translate("importFromGIS")}
-                <EarlyAccessIcon size="sm" />
-              </Button>
+              {isModelBuilderAvailable && (
+                <Button
+                  variant="quiet"
+                  onClick={() => {
+                    openModelBuilder({ source: "welcome" });
+                  }}
+                  style={{ width: "100%" }}
+                  className="mt-4"
+                >
+                  <GlobeIcon />
+                  {translate("importFromGIS")}
+                  <EarlyAccessIcon size="sm" />
+                </Button>
+              )}
 
               <div className="mt-4 flex items-start flex-col gap-2">
                 <a

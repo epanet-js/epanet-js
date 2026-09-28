@@ -23,6 +23,7 @@ import {
   useChangeSelectedAssetsActiveTopologyStatus,
 } from "src/commands/change-selected-assets-active-topology-status";
 import { useCustomGraph } from "src/hooks/use-custom-graph";
+import { useIsDrawingAvailable } from "src/hooks/use-is-drawing-available";
 import {
   useIsCollectionsAvailable,
   useStartCollectionDraft,
@@ -40,6 +41,7 @@ export function useLinkActions(readonly = false): Action[] {
   const { openCustomGraph } = useCustomGraph();
   const startCollectionDraft = useStartCollectionDraft();
   const isCollectionsAvailable = useIsCollectionsAvailable();
+  const isDrawingAvailable = useIsDrawingAvailable();
 
   const onDelete = useCallback(() => {
     deleteSelection({ source: "toolbar" });
@@ -69,7 +71,7 @@ export function useLinkActions(readonly = false): Action[] {
 
   const redrawAction = {
     icon: <RedrawIcon />,
-    applicable: true,
+    applicable: isDrawingAvailable,
     priority: 3,
     disabled: readonly,
     label: translate("redraw"),
