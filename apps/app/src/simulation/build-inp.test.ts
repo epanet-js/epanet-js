@@ -487,7 +487,7 @@ describe("build inp", () => {
 
       const invocation =
         `{{"${IDS.PU1}","level","${IDS.T1}",4.5,0.3,1,{"${IDS.PU2}"},1}}, ` +
-        `{["${IDS.PU1}"]={{0,3},{21600,4.5}}}`;
+        `{["${IDS.PU1}"]={{0,3},{21600,4.5}}}, "LPS"`;
       expect(inp).toContain(`vsp2_step(${invocation})`);
       expect(inp).toContain(`vsp2_solved(${invocation})`);
       expect(inp).not.toContain("[CONTROLS]");

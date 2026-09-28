@@ -27,13 +27,13 @@ end`;
 
 describe("LuaScriptBuilder", () => {
   it("emits an empty script when no remote setpoint PRVs are added", () => {
-    const builder = LuaScriptBuilder();
+    const builder = LuaScriptBuilder("LPS");
 
     expect(builder.build()).toEqual([]);
   });
 
   it("emits the function and both invocations inside on_hydraulic_step", () => {
-    const builder = LuaScriptBuilder();
+    const builder = LuaScriptBuilder("LPS");
     builder.withRemoteSetpointPrv("1", "2", 30, "3");
     builder.withRemoteSetpointPrv("4", "5", 40, "6");
 
@@ -44,7 +44,7 @@ describe("LuaScriptBuilder", () => {
 
   describe("variable speed pumps", () => {
     it("invokes vsp2_step and vsp2_solved with the pump row, its lagged pumps and its schedule", () => {
-      const builder = LuaScriptBuilder();
+      const builder = LuaScriptBuilder("GPM");
       builder.withVariableSpeedPump(
         "PU1",
         "level",
@@ -62,18 +62,18 @@ describe("LuaScriptBuilder", () => {
 
       const script = builder.build().join("\n");
 
-      expect(script).toContain("function vsp2_step(pumps, schedules)");
+      expect(script).toContain("function vsp2_step(pumps, schedules, units)");
       expect(script).toContain("function on_hydraulic_step()");
       expect(script).toContain("function on_hydraulics_solved()");
 
       const invocation =
-        '{{"PU1","level","T1",4.5,0.3,1,{"PU2","PU3"},1}}, {["PU1"]={{0,3},{21600,4.5}}}';
+        '{{"PU1","level","T1",4.5,0.3,1,{"PU2","PU3"},1}}, {["PU1"]={{0,3},{21600,4.5}}}, "GPM"';
       expect(script).toContain(`vsp2_step(${invocation})`);
       expect(script).toContain(`vsp2_solved(${invocation})`);
     });
 
     it("combines every pump into one call and passes empty tables when there are no lagged pumps or schedules", () => {
-      const builder = LuaScriptBuilder();
+      const builder = LuaScriptBuilder("LPS");
       builder.withVariableSpeedPump("PU1", "level", "T1", 4.5, 0.3, 1, [], 1);
       builder.withVariableSpeedPump(
         "PU4",
@@ -89,7 +89,7 @@ describe("LuaScriptBuilder", () => {
       const script = builder.build().join("\n");
 
       const invocation =
-        '{{"PU1","level","T1",4.5,0.3,1,{},1},{"PU4","pressure","J9",30,0.5,1,{"PU5"},-1}}, {}';
+        '{{"PU1","level","T1",4.5,0.3,1,{},1},{"PU4","pressure","J9",30,0.5,1,{"PU5"},-1}}, {}, "LPS"';
       expect(script).toContain(`vsp2_step(${invocation})`);
       expect(script).toContain(`vsp2_solved(${invocation})`);
     });

@@ -1,14 +1,31 @@
 VSP2_TOL         = 0.05   -- acceptable error in a held pressure
-VSP2_FLOW_TOL    = 0.05   -- acceptable error in a held flow, and in a level row's net inflow
+VSP2_FLOW_TOL    = 0.05   -- acceptable error in a held flow, and in a level row's net inflow, in L/s
 VSP2_LEVEL_TOL   = 0.01   -- how close a level row lands its tank on the target at the end of a step
-VSP2_FLOW_TO_VOLUME_PER_S = 0.001   -- one unit of flow for one second, in tank_volume's unit (LPS)
 VSP2_SPEED_TOL   = 0.0001   -- smallest speed change worth writing
 VSP2_MIN_STEP    = 0.0002   -- the step taken outside the tolerance when the search's own is too small to write
 VSP2_RATIO_STEP  = 0.1      -- largest speed change a step without a slope takes
 VSP2_WARM_STEP   = 0.25     -- largest speed change a step on the slope learned earlier takes
 VSP2_TRIAL_SPEED_DROP = 0.01   -- how far the speed falls below a failed trial's before a lag is tried closed again
+
+-- Per .inp flow unit: the tank_volume one unit of flow moves in a second
+-- (m^3 under SI flow units, ft^3 under US ones), and the units in one L/s.
+-- Built on EPANET's own factors per CFS
+VSP2_UNIT_FACTORS = {
+    LPS  = { 0.001,       1 },
+    LPM  = { 0.001 / 60,  60 },
+    MLD  = { 1 / 86.4,    0.0864 },
+    CMH  = { 1 / 3600,    3.6 },
+    CMD  = { 1 / 86400,   86.4 },
+    CFS  = { 1,           1 / 28.317 },
+    GPM  = { 1 / 448.831, 448.831 / 28.317 },
+    MGD  = { 1 / 0.64632, 0.64632 / 28.317 },
+    IMGD = { 1 / 0.5382,  0.5382 / 28.317 },
+    AFD  = { 1 / 1.9837,  1.9837 / 28.317 },
+}
 -- ================================================================
 
+vsp2_flow_to_volume = 0.001  -- VSP2_UNIT_FACTORS' first column for the run's flow units
+vsp2_flow_tol    = VSP2_FLOW_TOL   -- VSP2_FLOW_TOL in the run's flow units
 vsp2_state       = {}     -- per row: the search's memory
 vsp2_step_time   = -1     -- the clock at the latest on_hydraulic_step
 vsp2_solved_time = 0      -- the time of the step on_hydraulics_solved reports next
@@ -81,18 +98,18 @@ end
 -- next_event holds only a tank limit's cut, not a control's or a pattern
 -- boundary's, and an advance shorter than Δt lands short, which the next
 -- step corrects), and the inflow tolerance that keeps the landing within
--- VSP2_LEVEL_TOL. It is never looser than half VSP2_FLOW_TOL: a held step's
--- inflow is the search's error plus the correction of the last landing,
--- itself within a tolerance, so the inflow at a held level stays within
--- VSP2_FLOW_TOL of zero
+-- VSP2_LEVEL_TOL. It is never looser than half the flow tolerance: a held
+-- step's inflow is the search's error plus the correction of the last
+-- landing, itself within a tolerance, so the inflow at a held level stays
+-- within the flow tolerance of zero
 function vsp2Required(p, st, t, schedules)
     local tank   = node(p[3])
     local level  = vsp2Level(tank)
     local target = vsp2LevelTarget(p, tank, t, schedules)
     local area   = vsp2Area(st, tank, level)
-    local per_unit = area / (times().hydraulic_step * VSP2_FLOW_TO_VOLUME_PER_S)
+    local per_unit = area / (times().hydraulic_step * vsp2_flow_to_volume)
     local tol = VSP2_LEVEL_TOL * per_unit
-    if tol > VSP2_FLOW_TOL / 2 then tol = VSP2_FLOW_TOL / 2 end
+    if tol > vsp2_flow_tol / 2 then tol = vsp2_flow_tol / 2 end
     return (target - level) * per_unit, tol
 end
 
@@ -104,7 +121,7 @@ function vsp2Read(p, st, t, schedules)
         st.required = required
         return value, required, tol
     end
-    if p[2] == "flow" then return value, vsp2Target(p, t, schedules), VSP2_FLOW_TOL end
+    if p[2] == "flow" then return value, vsp2Target(p, t, schedules), vsp2_flow_tol end
     return value, vsp2Target(p, t, schedules), VSP2_TOL
 end
 
@@ -357,7 +374,7 @@ function vsp2Refresh(p, t, skipped, schedules)
     local value = vsp2Value(p)
     local st = vsp2_state[p[1]]
     local target, tol = vsp2Target(p, t, schedules), VSP2_TOL
-    if p[2] == "flow" then tol = VSP2_FLOW_TOL end
+    if p[2] == "flow" then tol = vsp2_flow_tol end
     local shown, extra = value, ""
     if p[2] == "level" then
         -- The tank's head has already moved to the end of the step here, so
@@ -381,13 +398,23 @@ function vsp2Refresh(p, t, skipped, schedules)
     --    vsp2Print(p, id, t, link(id).setting, shown, target, extra, running, skipped)
     --end
     local short = shown < target - tol
-    if p[2] == "level" and st then short = value < st.required - VSP2_FLOW_TOL end
+    if p[2] == "level" and st then short = value < st.required - vsp2_flow_tol end
     if speed > 0 and speed >= p[6] - VSP2_SPEED_TOL and running > #p[7] and short then
         print(string.format("WARNING: VSP run for pump %s: maximum pump capacity insufficient to meet target", p[1]))
     end
 end
 
-function vsp2_step(pumps, schedules)
+-- The engine exposes the pressure units but not the flow units, so the
+-- entry points are handed them
+function vsp2SetUnits(units)
+    local factors = VSP2_UNIT_FACTORS[units]
+    if factors == nil then error("VSP2: unknown flow units " .. tostring(units)) end
+    vsp2_flow_to_volume = factors[1]
+    vsp2_flow_tol = VSP2_FLOW_TOL * factors[2]
+end
+
+function vsp2_step(pumps, schedules, units)
+    vsp2SetUnits(units)
     local t = times().hydraulic_time
     if t ~= vsp2_step_time then vsp2_calls = 0 end
     vsp2_calls = vsp2_calls + 1
@@ -397,7 +424,8 @@ end
 
 -- The clock here has already moved on to the next step, so this step's
 -- time is the one read at the step before
-function vsp2_solved(pumps, schedules)
+function vsp2_solved(pumps, schedules, units)
+    vsp2SetUnits(units)
     local t = vsp2_solved_time
     local skipped = 0
     if vsp2_step_time ~= t then
@@ -462,14 +490,19 @@ VSP2_PUMPS = {
 --     }
 VSP2_SCHEDULES = {}
 
+-- VSP2_FLOW_UNITS names the .inp's flow units, as its [OPTIONS] Units line
+-- does: one of the keys of VSP2_UNIT_FACTORS. The engine does not expose them,
+-- and a level row's inflow and every flow tolerance depend on them.
+VSP2_FLOW_UNITS = "LPS"
+
 -- ================================================================
 -- EPANET-LSX's two entry points, defined once. Each hands every
 -- table above to its control type's functions, in the order written.
 -- ================================================================
 -- function on_hydraulic_step()
---     vsp2_step(VSP2_PUMPS, VSP2_SCHEDULES)
+--     vsp2_step(VSP2_PUMPS, VSP2_SCHEDULES, VSP2_FLOW_UNITS)
 -- end
 
 -- function on_hydraulics_solved()
---     vsp2_solved(VSP2_PUMPS, VSP2_SCHEDULES)
+--     vsp2_solved(VSP2_PUMPS, VSP2_SCHEDULES, VSP2_FLOW_UNITS)
 -- end
