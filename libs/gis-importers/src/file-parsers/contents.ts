@@ -4,6 +4,7 @@ import type {
   SourceContents,
   SourceGeometry,
 } from "../importer";
+import { numberOf } from "../number-value";
 
 const isBlank = (value: unknown): boolean =>
   value === null ||
@@ -11,10 +12,7 @@ const isBlank = (value: unknown): boolean =>
   (typeof value === "string" && value.replace(/[\s\0]+/g, "") === "") ||
   (typeof value === "number" && Number.isNaN(value));
 
-const isNumeric = (value: unknown): boolean =>
-  typeof value === "number"
-    ? Number.isFinite(value)
-    : typeof value === "string" && value.trim() !== "" && !isNaN(Number(value));
+const isNumeric = (value: unknown): boolean => numberOf(value) !== null;
 
 type Tally = { stated: number; numeric: number };
 type Tallies = Map<string, Tally>;

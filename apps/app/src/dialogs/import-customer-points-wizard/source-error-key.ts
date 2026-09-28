@@ -11,6 +11,10 @@ export const sourceErrorKey = (code: string | undefined): string => {
       return "importCustomerPoints.dataSource.coordinateValidationError";
     case "coordinateAttributesUnknown":
       return "importCustomerPoints.dataSource.coordinateAttributesError";
+    case "coordinateAttributesMissing":
+      return "importCustomerPoints.dataSource.noCoordinateAttributesError";
+    case "sourceHeaderMissing":
+      return "importCustomerPoints.dataSource.headerMissingError";
     case "sourceEmpty":
       return "importCustomerPoints.dataSource.noValidPointsError";
     default:

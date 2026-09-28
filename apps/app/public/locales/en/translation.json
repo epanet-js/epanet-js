@@ -77,7 +77,9 @@
       "coordinateSystemUnknown": "The file does not state a coordinate system and its coordinates are not longitude and latitude, so nothing was imported.",
       "coordinateSystemUnsupported": "The file names a coordinate system we cannot apply, so nothing was imported.",
       "coordinateSystemMismatch": "The coordinate system does not match the coordinates in the file, so nothing was imported.",
-      "coordinateAttributesUnknown": "We could not tell which attributes hold the coordinates, so nothing was imported."
+      "coordinateAttributesUnknown": "We could not tell which attributes hold the coordinates, so nothing was imported.",
+      "coordinateAttributesMissing": "No attribute in the file holds coordinates, so nothing was imported.",
+      "sourceHeaderMissing": "The first row does not name the columns, so nothing was imported."
     },
     "paywall": {
       "title": "Upgrade to convert models",
@@ -1400,6 +1402,8 @@
       "parseFileError": "Failed to parse file",
       "coordinateValidationError": "All coordinates must be expressed in WGS84 (EPSG:4326) projection, or the file must state the coordinate system it uses",
       "coordinateAttributesError": "No coordinates could be read from the selected attributes. Select the ones holding the coordinates",
+      "noCoordinateAttributesError": "No attribute in the file holds coordinates, so nothing could be imported.",
+      "headerMissingError": "The first row does not name the columns. A CSV needs a header row naming each column.",
       "unsupportedCrsError": "Unsupported coordinate reference system",
       "projectionConversionError": "Failed to convert coordinate system",
       "fileFormatNotSupported": "File format not supported",

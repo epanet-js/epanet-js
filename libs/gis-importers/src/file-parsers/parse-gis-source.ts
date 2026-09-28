@@ -186,9 +186,14 @@ const resultOf = (decoded: DecodedSource): ParsedGisSource => {
   };
 };
 
-const failure = (
-  code: "sourceEmpty" | "sourceUnreadable" | "sourceFilesIncomplete",
-): DecodedSource => ({
+type ReadError =
+  | "sourceEmpty"
+  | "sourceUnreadable"
+  | "sourceFilesIncomplete"
+  | "sourceHeaderMissing"
+  | "coordinateAttributesMissing";
+
+const failure = (code: ReadError): DecodedSource => ({
   features: [],
   issues: [{ code, severity: "error" }],
 });
@@ -234,14 +239,11 @@ const decode = async (input: GisInput): Promise<DecodedSource> => {
 
 const parseCsv = (content: string, input: GisInput): DecodedSource => {
   const parsed = readCsv(content, input.coordinateAttributes);
-  if (parsed === null) return failure("sourceUnreadable");
+  if (typeof parsed === "string") return failure(parsed);
   if (parsed.features.length === 0) return failure("sourceEmpty");
 
-  if (parsed.attributes === null) {
-    return {
-      features: parsed.features,
-      issues: [{ code: "coordinateAttributesUnknown", severity: "error" }],
-    };
+  if (!parsed.features.some(hasGeometry)) {
+    return unnamedCoordinates(parsed.features);
   }
 
   const placed = placeFeatures({
@@ -253,6 +255,21 @@ const parseCsv = (content: string, input: GisInput): DecodedSource => {
   return parsed.skipped.length === 0
     ? placed
     : { ...placed, issues: [...placed.issues, ...parsed.skipped] };
+};
+
+const COORDINATE_ATTRIBUTES = 2;
+
+const unnamedCoordinates = (features: Feature[]): DecodedSource => {
+  const contents = contentsOf(features);
+  const numeric = contents.attributes.filter(({ type }) => type === "number");
+
+  return numeric.length < COORDINATE_ATTRIBUTES
+    ? failure("coordinateAttributesMissing")
+    : {
+        features,
+        contents,
+        issues: [{ code: "coordinateAttributesUnknown", severity: "error" }],
+      };
 };
 
 const DXF_START = /^(?:\s*999[^\n]*\n[^\n]*\n)*\s*0[^\S\n]*\r?\n\s*SECTION/;

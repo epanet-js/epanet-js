@@ -95,7 +95,7 @@ describe("customer points wizard, on the importer", () => {
     });
   });
 
-  it("reads a table, finding its coordinates again on the second parse", async () => {
+  it("reads a table with the coordinate attributes it was given", async () => {
     const store = setInitialState({
       hydraulicModel: HydraulicModelBuilder.with().build(),
     });
@@ -111,7 +111,8 @@ describe("customer points wizard, on the importer", () => {
 
     setWizardState(store, {
       sourceFiles: [csv],
-      inputData: { properties: new Set(["METER"]) },
+      inputData: { properties: new Set(["METER"]), needsCoordinates: true },
+      coordinateAttributes: { x: "Longitude", y: "Latitude" },
     });
     renderWizard(store);
 
@@ -230,7 +231,7 @@ describe("customer points wizard, on the importer", () => {
       expect(screen.getByRole("button", { name: /next/i })).toBeDisabled();
     });
 
-    it("refuses attributes that hold no coordinates at all", async () => {
+    it("refuses attributes no record states together", async () => {
       const store = setInitialState({
         hydraulicModel: HydraulicModelBuilder.with().build(),
       });
@@ -238,7 +239,7 @@ describe("customer points wizard, on the importer", () => {
       setWizardState(store, {
         sourceFiles: [
           new File(
-            [["METER,First,Second", "M-1,north,west"].join("\n")],
+            [["METER,First,Second", "M-1,0.001,", "M-2,,0.002"].join("\n")],
             "customers.csv",
             { type: "text/csv" },
           ),
@@ -249,7 +250,7 @@ describe("customer points wizard, on the importer", () => {
         },
       });
       renderWizard(store);
-      await nameAttributes("METER", "First");
+      await nameAttributes("First", "Second");
 
       await waitFor(() => {
         expect(

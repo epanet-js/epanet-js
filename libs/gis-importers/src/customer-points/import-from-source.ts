@@ -9,6 +9,7 @@ import type { GisInput, ImportOptions, ImportResult } from "../importer";
 import type { ImportConfig } from "../import-config";
 import { parseGisSource } from "../file-parsers/parse-gis-source";
 import { createTimeSlicer, throwIfAborted } from "../time-slice";
+import { numberOf } from "../number-value";
 
 export type CustomerPointRole = "label" | "demand";
 
@@ -181,10 +182,9 @@ const readDemand = (
 ): number | null => {
   if (property === null) return null;
 
-  const value: unknown = feature.properties?.[property];
-  const blank = value === null || value === undefined || value === "";
+  const demand = numberOf(feature.properties?.[property]);
 
-  if (blank || typeof value === "boolean" || isNaN(Number(value))) {
+  if (demand === null) {
     issues.add({
       code: "attributeValueUnreadable",
       severity: "warning",
@@ -195,7 +195,7 @@ const readDemand = (
     return null;
   }
 
-  return Number(value);
+  return demand;
 };
 
 const readCustomAttributes = (

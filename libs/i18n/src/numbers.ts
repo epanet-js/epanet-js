@@ -58,3 +58,50 @@ const applyRounding = (value: number, decimals = 0): number => {
   const scale = 10 ** decimals;
   return Math.round((value + Number.EPSILON) * scale) / scale;
 };
+
+type Notation = { shape: RegExp; decimal: string; group: string };
+
+// A grouped whole part never starts with a zero, which is what tells "0.001"
+// apart from a grouping that happens to fit.
+const DOT_DECIMAL: Notation = {
+  shape: /^[+-]?(?:\d+|[1-9]\d{0,2}(?:,\d{3})+)?(?:\.\d+)?(?:[eE][+-]?\d+)?$/,
+  decimal: ".",
+  group: ",",
+};
+
+const COMMA_DECIMAL: Notation = {
+  shape: /^[+-]?(?:\d+|[1-9]\d{0,2}(?:\.\d{3})+)?(?:,\d+)?(?:[eE][+-]?\d+)?$/,
+  decimal: ",",
+  group: ".",
+};
+
+export const parseDecimal = (
+  value: string,
+  {
+    locale = getLocale(),
+    decimal,
+  }: { locale?: Locale; decimal?: "." | "," } = {},
+): number | null => {
+  const text = value.trim();
+  if (text === "") return null;
+  if (!text.includes(",") && !text.includes(".")) return finite(Number(text));
+
+  const stated = decimal ?? symbols[locale].decimals;
+  const [preferred, other] =
+    stated === ","
+      ? [COMMA_DECIMAL, DOT_DECIMAL]
+      : [DOT_DECIMAL, COMMA_DECIMAL];
+
+  return readAs(text, preferred) ?? readAs(text, other);
+};
+
+const readAs = (
+  text: string,
+  { shape, decimal, group }: Notation,
+): number | null =>
+  shape.test(text)
+    ? finite(Number(text.split(group).join("").replace(decimal, ".")))
+    : null;
+
+const finite = (number: number): number | null =>
+  Number.isFinite(number) ? number : null;

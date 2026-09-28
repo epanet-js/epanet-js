@@ -1,4 +1,4 @@
-import { localizeDecimal } from "./numbers";
+import { localizeDecimal, parseDecimal } from "./numbers";
 
 describe("localize decimal", () => {
   it("shows decimals when available", () => {
@@ -54,5 +54,64 @@ describe("localize decimal", () => {
     expect(localizeDecimal(1234567800.91, { locale: "es" })).toEqual(
       "1,235e+9",
     );
+  });
+});
+
+describe("parse decimal", () => {
+  it("reads a plain number", () => {
+    expect(parseDecimal("1234")).toEqual(1234);
+    expect(parseDecimal("1234.5")).toEqual(1234.5);
+    expect(parseDecimal("-3.5")).toEqual(-3.5);
+    expect(parseDecimal(".5")).toEqual(0.5);
+    expect(parseDecimal("  12  ")).toEqual(12);
+    expect(parseDecimal("1.5e-3")).toEqual(0.0015);
+  });
+
+  it("reads the separators off the number when only one of them can be the point", () => {
+    for (const locale of ["en", "es"] as const) {
+      expect(parseDecimal("1.234,56", { locale })).toEqual(1234.56);
+      expect(parseDecimal("1,234.56", { locale })).toEqual(1234.56);
+      expect(parseDecimal("1.234.567,89", { locale })).toEqual(1234567.89);
+      expect(parseDecimal("1,234,567.89", { locale })).toEqual(1234567.89);
+      expect(parseDecimal("0,002", { locale })).toEqual(0.002);
+      expect(parseDecimal("1,5e-3", { locale })).toEqual(0.0015);
+    }
+  });
+
+  it("takes a separator that repeats for grouping, since decimals do not", () => {
+    expect(parseDecimal("1,234,567", { locale: "es" })).toEqual(1234567);
+    expect(parseDecimal("1.234.567", { locale: "en" })).toEqual(1234567);
+  });
+
+  it("never reads a grouping that would start with a zero", () => {
+    expect(parseDecimal("0.001", { locale: "es" })).toEqual(0.001);
+    expect(parseDecimal("0,002", { locale: "en" })).toEqual(0.002);
+  });
+
+  it("leaves a lone separator to the locale", () => {
+    expect(parseDecimal("1,234", { locale: "en" })).toEqual(1234);
+    expect(parseDecimal("1,234", { locale: "es" })).toEqual(1.234);
+    expect(parseDecimal("1.234", { locale: "en" })).toEqual(1.234);
+    expect(parseDecimal("1.234", { locale: "es" })).toEqual(1234);
+  });
+
+  it("takes a stated decimal separator over the locale's", () => {
+    expect(parseDecimal("1,234", { locale: "en", decimal: "," })).toEqual(
+      1.234,
+    );
+    expect(parseDecimal("1.234", { locale: "es", decimal: "." })).toEqual(
+      1.234,
+    );
+  });
+
+  it("is nothing when no number can be read", () => {
+    expect(parseDecimal("north")).toBeNull();
+    expect(parseDecimal("")).toBeNull();
+    expect(parseDecimal("Infinity")).toBeNull();
+  });
+
+  it("is nothing when the separators make no number", () => {
+    expect(parseDecimal("1,2,3")).toBeNull();
+    expect(parseDecimal("1,234,567.89.12")).toBeNull();
   });
 });
