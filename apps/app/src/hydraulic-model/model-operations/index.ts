@@ -1,5 +1,10 @@
 export { moveNode } from "./move-node";
-export { changeProperty, changeProperties } from "./change-property";
+export {
+  changeProperty,
+  changeProperties,
+  changePropertyDeprecated,
+  changePropertiesDeprecated,
+} from "./change-property";
 export { mergeMoments } from "./merge-moments";
 export type { PropertyChange } from "./change-property";
 export { changeLabel, changeLabelDeprecated } from "./change-label";

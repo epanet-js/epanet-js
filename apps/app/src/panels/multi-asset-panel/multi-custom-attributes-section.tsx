@@ -11,7 +11,12 @@ import {
 import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
-import { changeProperty } from "src/hydraulic-model/model-operations";
+import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import {
+  changeProperty,
+  changePropertyDeprecated,
+} from "src/hydraulic-model/model-operations";
 import type { ChangeableProperty } from "src/hydraulic-model/model-operations/change-property";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { projectSettingsAtom } from "src/state/project-settings";
@@ -44,17 +49,22 @@ export function MultiCustomAttributesSection({
   const translate = useTranslate();
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const { transact } = useMomentTransaction();
+  const { transact: transactChangeSet } = useModelTransaction();
+  const isOpsChangeSetsOn = useFeatureFlag("FLAG_OPS_CHANGE_SETS");
   const userTracking = useUserTracking();
 
   const handleChange = useCallback(
     (attributeId: CustomAttributeId, value: CustomAttributeValue) => {
-      transact(
-        changeProperty(hydraulicModel, {
-          assetIds,
-          property: attributeId as ChangeableProperty,
-          value: value as never,
-        }),
-      );
+      const data = {
+        assetIds,
+        property: attributeId as ChangeableProperty,
+        value: value as never,
+      };
+      if (isOpsChangeSetsOn) {
+        transactChangeSet(changeProperty(hydraulicModel, data));
+      } else {
+        transact(changePropertyDeprecated(hydraulicModel, data));
+      }
       const attribute = getAttribute(
         hydraulicModel.customAttributes,
         assetType,
@@ -69,7 +79,15 @@ export function MultiCustomAttributesSection({
         count: assetIds.length,
       });
     },
-    [transact, assetIds, assetType, hydraulicModel, userTracking],
+    [
+      transact,
+      transactChangeSet,
+      isOpsChangeSetsOn,
+      assetIds,
+      assetType,
+      hydraulicModel,
+      userTracking,
+    ],
   );
 
   const attributes = getAttributes(hydraulicModel.customAttributes, assetType);

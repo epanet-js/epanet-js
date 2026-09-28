@@ -3,6 +3,8 @@ import { isCustomProperty } from "@epanet-js/hydraulic-model";
 import type { AssetPatch, ModelMoment } from "../model-operation";
 import { HydraulicModel } from "../hydraulic-model";
 import { AssetsMap } from "@epanet-js/hydraulic-model";
+import type { ChangeSet } from "@epanet-js/change-set";
+import { changeSet, setAsset, type Fields } from "../change-sets";
 
 type NonChangeableKeys = "type" | "connections";
 
@@ -32,34 +34,59 @@ export type PropertyChange = {
   };
 }[ChangeableProperty];
 
+type ChangePropertyData<P extends ChangeableProperty> = {
+  assetIds: AssetId[];
+  property: P;
+  value: ChangeablePropertyValue<P>;
+};
+
+type ChangePropertiesData = {
+  assetIds: AssetId[];
+  changes: PropertyChange[];
+};
+
 export function changeProperty<P extends ChangeableProperty>(
+  model: HydraulicModel,
+  { assetIds, property, value }: ChangePropertyData<P>,
+): ChangeSet {
+  const patches = buildPatches(model.assets, assetIds, [{ property, value }]);
+  return patchesChangeSet(model, "Change asset property", patches);
+}
+
+export function changeProperties(
+  model: HydraulicModel,
+  { assetIds, changes }: ChangePropertiesData,
+): ChangeSet {
+  const patches = buildPatches(model.assets, assetIds, changes);
+  return patchesChangeSet(model, "Change asset properties", patches);
+}
+
+export function changePropertyDeprecated<P extends ChangeableProperty>(
   { assets }: HydraulicModel,
-  {
-    assetIds,
-    property,
-    value,
-  }: {
-    assetIds: AssetId[];
-    property: P;
-    value: ChangeablePropertyValue<P>;
-  },
+  { assetIds, property, value }: ChangePropertyData<P>,
 ): ModelMoment {
   const patches = buildPatches(assets, assetIds, [{ property, value }]);
   return { note: "Change asset property", patchAssetsAttributes: patches };
 }
 
-export function changeProperties(
+export function changePropertiesDeprecated(
   { assets }: HydraulicModel,
-  {
-    assetIds,
-    changes,
-  }: {
-    assetIds: AssetId[];
-    changes: PropertyChange[];
-  },
+  { assetIds, changes }: ChangePropertiesData,
 ): ModelMoment {
   const patches = buildPatches(assets, assetIds, changes);
   return { note: "Change asset properties", patchAssetsAttributes: patches };
+}
+
+function patchesChangeSet(
+  model: HydraulicModel,
+  name: string,
+  patches: AssetPatch[],
+): ChangeSet {
+  return changeSet(
+    model,
+    name,
+    patches.map((patch) => setAsset(patch.id, patch.properties as Fields)),
+  );
 }
 
 function buildPatches(

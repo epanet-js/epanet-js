@@ -5,7 +5,7 @@ import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
 import { getAssetsByType } from "src/__helpers__/asset-queries";
 import { addNode } from "src/hydraulic-model/model-operations/add-node";
-import { changeProperty } from "src/hydraulic-model/model-operations/change-property";
+import { changePropertyDeprecated } from "src/hydraulic-model/model-operations/change-property";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import { useUndoableTransactions } from "src/hooks/persistence/use-undoable-transactions";
 import { modelFactoriesAtom } from "src/state/model-factories";
@@ -143,7 +143,7 @@ const addJunction = (store: Store, coordinates: number[]) => {
 
 const changeElevation = (store: Store, assetIds: AssetId[]) => {
   const { result } = renderHook(() => useMomentTransaction(), withStore(store));
-  const moment = changeProperty(store.get(stagingModelDerivedAtom), {
+  const moment = changePropertyDeprecated(store.get(stagingModelDerivedAtom), {
     assetIds,
     property: "elevation",
     value: 42,

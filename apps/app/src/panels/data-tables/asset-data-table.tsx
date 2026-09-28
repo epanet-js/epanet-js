@@ -8,7 +8,7 @@ import {
 } from "src/state/derived-branch-state";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import {
-  changeProperties,
+  changePropertiesDeprecated,
   changeLabelDeprecated,
   changeDemandAssignment,
   mergeMoments,
@@ -427,7 +427,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
 
         if (normalizedChanges.length > 0) {
           moments.push(
-            changeProperties(hydraulicModel, {
+            changePropertiesDeprecated(hydraulicModel, {
               assetIds: [assetId],
               changes: normalizedChanges,
             }),

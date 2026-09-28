@@ -6,7 +6,7 @@ import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import { selectedMaterialLabelAtom } from "src/state/pipe-library";
-import { changeProperty } from "src/hydraulic-model/model-operations/change-property";
+import { changePropertyDeprecated } from "src/hydraulic-model/model-operations/change-property";
 import { changePipeMaterials } from "src/hydraulic-model/model-operations";
 import { renameAssignments } from "./rename-materials";
 import {
@@ -75,7 +75,7 @@ export const usePipeLibraryHandlers = () => {
       renames.size > 0
         ? renameAssignments(hydraulicModel, renames).flatMap(
             ({ assetIds, material }) =>
-              changeProperty(hydraulicModel, {
+              changePropertyDeprecated(hydraulicModel, {
                 assetIds,
                 property: "material",
                 value: material,
