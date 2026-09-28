@@ -100,16 +100,6 @@ const SHARED_INTIAL_VALUES = {
 } as const;
 
 /**
- * LayersPopover
- * --> AddLayer
- * ----> DefaultLayerItem
- * ----> XYZLayer
- * ----> MapboxLayer
- * ------> MapboxLayerList
- * --------> DefaultLayerItem
- */
-
-/**
  * Layers with lower ats stack on top,
  * so this finds the lowest at possible.
  */

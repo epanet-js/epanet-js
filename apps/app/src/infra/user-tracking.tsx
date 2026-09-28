@@ -701,11 +701,6 @@ type PageReloaded = {
   source: "errorFallback";
 };
 
-type LayersPopoverOpened = {
-  name: "layersPopover.opened";
-  source: "toolbar";
-};
-
 type LayerOpacityChanged = {
   name: "layerOpacity.changed";
   oldValue: number;
@@ -1485,7 +1480,6 @@ export type UserEvent =
   | LogOutCompleted
   | SubscriptionStarted
   | PageReloaded
-  | LayersPopoverOpened
   | LayerOpacityChanged
   | LanguageListOpened
   | LanguageChanged

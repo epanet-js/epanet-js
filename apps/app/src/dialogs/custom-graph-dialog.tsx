@@ -176,8 +176,8 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
 
   const linkValueFormatter = useMemo(() => {
     if (linkProperty !== "status") return undefined;
-    const closed = translate("customGraph.statusClosed");
-    const open = translate("customGraph.statusOpen");
+    const closed = translate("statusClosed");
+    const open = translate("statusOpen");
     return (value: number) => (value < 1 ? closed : open);
   }, [linkProperty, translate]);
 
