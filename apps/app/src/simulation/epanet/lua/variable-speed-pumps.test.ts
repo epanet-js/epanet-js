@@ -134,7 +134,6 @@ describe("variable speed pumps", () => {
             { time: 3 * HOUR, target: 3.5 },
           ],
         }),
-        { allowWarnings: true },
       );
 
       const levels = await tankLevels(reader, IDS.T1);
@@ -171,9 +170,7 @@ describe("variable speed pumps", () => {
 
   describe("lagged pumps", () => {
     it("opens the lag only when the lead alone cannot hold the target", async () => {
-      const reader = await simulate(laggedPumpsNetwork({ target: 40 }), {
-        allowWarnings: true,
-      });
+      const reader = await simulate(laggedPumpsNetwork({ target: 40 }));
 
       const pressures = await junctionPressures(reader, IDS.J2);
       const leadSpeeds = await pumpSettings(reader, IDS.PU1);
@@ -212,7 +209,7 @@ const DURATION = 6 * HOUR;
 const BASE_DEMAND = 10;
 const DEMAND_FACTORS = [0.6, 1.4, 1.0, 0.8, 1.2, 0.7];
 const LAG_LOW = 0.4;
-const LAG_HIGH = 1.8;
+const LAG_HIGH = 1.4;
 const LAG_FACTORS = [LAG_LOW, LAG_HIGH, LAG_LOW, LAG_HIGH, LAG_LOW, LAG_HIGH];
 
 const PRESSURE_TOL = 0.1;
@@ -298,6 +295,7 @@ const levelNetwork = ({
       startNodeId: IDS.R1,
       endNodeId: IDS.J1,
       curve: PUMP_CURVE,
+      speed: 0.7,
     })
     .aPipe(IDS.P1, {
       startNodeId: IDS.J1,
