@@ -11,7 +11,10 @@ export { addLink } from "./add-link";
 export { replaceNode as replaceNode } from "./replace-node";
 export { replaceLink } from "./replace-link";
 export { mergeNodes } from "./merge-nodes";
-export { changeRawControls } from "./change-raw-controls";
+export {
+  changeRawControls,
+  changeRawControlsDeprecated,
+} from "./change-raw-controls";
 export { changeAssetControl } from "./change-asset-control";
 export { changeCurves, changeCurvesDeprecated } from "./change-curves";
 export { changePatterns, changePatternsDeprecated } from "./change-patterns";
