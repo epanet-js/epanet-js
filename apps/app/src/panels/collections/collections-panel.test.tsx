@@ -4,7 +4,6 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Provider as JotaiProvider } from "jotai";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
-import { Just } from "purify-ts/Maybe";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import "src/__helpers__/locale";
 import { setInitialState } from "src/__helpers__/state";
@@ -44,8 +43,11 @@ vi.mock("src/infra/user-tracking", () => ({
 
 const VIEWPORT = [-1, -2, 3, 4];
 
+const fitBounds = vi.fn();
+
 const aFakeMap = {
   map: {
+    fitBounds,
     getBounds: () => ({
       toArray: () => [
         [VIEWPORT[0], VIEWPORT[1]],
@@ -103,6 +105,7 @@ const focusList = (name: string) =>
 
 beforeEach(() => {
   zoomTo.mockClear();
+  fitBounds.mockClear();
   permissionsRef.current = resolvePermissions("pro", false, false, false);
 });
 
@@ -309,7 +312,7 @@ describe("CollectionsPanel", () => {
       renderPanel(store);
       await userEvent.click(addBookmarkButton());
       await nameIt("Downtown");
-      zoomTo.mockClear();
+      fitBounds.mockClear();
       return store;
     };
 
@@ -330,7 +333,7 @@ describe("CollectionsPanel", () => {
 
       expect(rowOf("Downtown")).toHaveClass("bg-base-hover");
       expect(rowOf("Downtown")).toHaveAttribute("aria-selected", "false");
-      expect(zoomTo).not.toHaveBeenCalled();
+      expect(fitBounds).not.toHaveBeenCalled();
     });
 
     it("drops the highlight when the list loses focus", async () => {
@@ -343,13 +346,16 @@ describe("CollectionsPanel", () => {
       expect(rowOf("Downtown")).not.toHaveClass("bg-base-hover");
     });
 
-    it("travels to the highlighted bookmark on enter", async () => {
+    it("returns to the saved map area unpadded on enter", async () => {
       await aPanelWithABookmark();
       focusList("Downtown");
 
       await userEvent.keyboard("{End}{ArrowUp}{Enter}");
 
-      expect(zoomTo).toHaveBeenCalledWith(Just(VIEWPORT));
+      expect(fitBounds).toHaveBeenCalledWith(
+        VIEWPORT,
+        expect.objectContaining({ padding: 0 }),
+      );
     });
   });
 

@@ -1,7 +1,6 @@
 import { useAtomCallback } from "jotai/utils";
-import { Just } from "purify-ts/Maybe";
+import type { LngLatBoundsLike } from "mapbox-gl";
 import { useCallback, useContext } from "react";
-import { useZoomTo } from "src/hooks/use-zoom-to";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useFeatureLock } from "src/components/form/paywall";
 import { usePermissions } from "src/hooks/use-permissions";
@@ -50,7 +49,7 @@ export const useAddBookmark = () => {
 };
 
 export const useGoToBookmark = () => {
-  const zoomTo = useZoomTo();
+  const map = useContext(MapContext);
   const userTracking = useUserTracking();
 
   return useAtomCallback(
@@ -66,9 +65,12 @@ export const useGoToBookmark = () => {
         if (!bookmark) return;
 
         userTracking.capture({ name: "bookmark.visited", source });
-        zoomTo(Just(bookmark.bbox));
+        map?.map.fitBounds(bookmark.bbox as LngLatBoundsLike, {
+          padding: 0,
+          animate: false,
+        });
       },
-      [zoomTo, userTracking],
+      [map, userTracking],
     ),
   );
 };

@@ -1,6 +1,5 @@
 import { renderHook, act } from "@testing-library/react";
 import { Provider as JotaiProvider } from "jotai";
-import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
 import { setInitialState } from "src/__helpers__/state";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { useInProcessDb } from "src/lib/db/__test-helpers__/in-process-db";
@@ -46,92 +45,62 @@ const storedBookmarks = async () => {
 describe("useBookmarksTransaction", () => {
   useInProcessDb();
 
-  describe("when collections are on", () => {
-    beforeEach(() => {
-      stubFeatureOn("FLAG_SELECTION_SETS");
+  it("stores the bookmarks in the project", async () => {
+    await anEmptyProject();
+    const store = setInitialState({});
+    const { result } = renderTransaction(store);
+
+    await act(async () => {
+      result.current.transact([aBookmark()]);
+      await writeQueue.whenIdle();
     });
 
-    it("stores the bookmarks in the project", async () => {
-      await anEmptyProject();
-      const store = setInitialState({});
-      const { result } = renderTransaction(store);
-
-      await act(async () => {
-        result.current.transact([aBookmark()]);
-        await writeQueue.whenIdle();
-      });
-
-      expect(store.get(bookmarksAtom)).toEqual([aBookmark()]);
-      expect(await storedBookmarks()).toEqual([aBookmark()]);
-    });
-
-    it("marks the project as having changes to save", async () => {
-      await anEmptyProject();
-      const store = setInitialState({});
-      const versionBefore = store.get(projectDataVersionAtom);
-      const { result } = renderTransaction(store);
-
-      await act(async () => {
-        result.current.transact([aBookmark()]);
-        await writeQueue.whenIdle();
-      });
-
-      expect(store.get(projectDataVersionAtom)).not.toEqual(versionBefore);
-    });
-
-    it("stores the document left after a deletion", async () => {
-      await anEmptyProject();
-      const store = setInitialState({});
-      const { result } = renderTransaction(store);
-
-      await act(async () => {
-        result.current.transact([aBookmark(), aBookmark({ id: "bookmark-2" })]);
-        result.current.transact([aBookmark({ id: "bookmark-2" })]);
-        await writeQueue.whenIdle();
-      });
-
-      expect(await storedBookmarks()).toEqual([
-        aBookmark({ id: "bookmark-2" }),
-      ]);
-    });
-
-    it("refuses a document it could not store and tells the user", async () => {
-      await anEmptyProject();
-      const store = setInitialState({});
-      const { result } = renderTransaction(store);
-
-      let accepted = true;
-      await act(async () => {
-        accepted = result.current.transact([aBookmark({ label: "" })]);
-        await writeQueue.whenIdle();
-      });
-
-      expect(accepted).toBe(false);
-      expect(store.get(bookmarksAtom)).toEqual([]);
-      expect(store.get(dialogAtom)).toEqual({ type: "changeNotApplied" });
-      expect(await storedBookmarks()).toEqual([]);
-    });
+    expect(store.get(bookmarksAtom)).toEqual([aBookmark()]);
+    expect(await storedBookmarks()).toEqual([aBookmark()]);
   });
 
-  describe("when collections are off", () => {
-    beforeEach(() => {
-      stubFeatureOff("FLAG_SELECTION_SETS");
+  it("marks the project as having changes to save", async () => {
+    await anEmptyProject();
+    const store = setInitialState({});
+    const versionBefore = store.get(projectDataVersionAtom);
+    const { result } = renderTransaction(store);
+
+    await act(async () => {
+      result.current.transact([aBookmark()]);
+      await writeQueue.whenIdle();
     });
 
-    it("keeps the bookmarks for the session without storing them", async () => {
-      await anEmptyProject();
-      const store = setInitialState({});
-      const versionBefore = store.get(projectDataVersionAtom);
-      const { result } = renderTransaction(store);
+    expect(store.get(projectDataVersionAtom)).not.toEqual(versionBefore);
+  });
 
-      await act(async () => {
-        result.current.transact([aBookmark()]);
-        await writeQueue.whenIdle();
-      });
+  it("stores the document left after a deletion", async () => {
+    await anEmptyProject();
+    const store = setInitialState({});
+    const { result } = renderTransaction(store);
 
-      expect(store.get(bookmarksAtom)).toEqual([aBookmark()]);
-      expect(store.get(projectDataVersionAtom)).toEqual(versionBefore);
-      expect(await storedBookmarks()).toEqual([]);
+    await act(async () => {
+      result.current.transact([aBookmark(), aBookmark({ id: "bookmark-2" })]);
+      result.current.transact([aBookmark({ id: "bookmark-2" })]);
+      await writeQueue.whenIdle();
     });
+
+    expect(await storedBookmarks()).toEqual([aBookmark({ id: "bookmark-2" })]);
+  });
+
+  it("refuses a document it could not store and tells the user", async () => {
+    await anEmptyProject();
+    const store = setInitialState({});
+    const { result } = renderTransaction(store);
+
+    let accepted = true;
+    await act(async () => {
+      accepted = result.current.transact([aBookmark({ label: "" })]);
+      await writeQueue.whenIdle();
+    });
+
+    expect(accepted).toBe(false);
+    expect(store.get(bookmarksAtom)).toEqual([]);
+    expect(store.get(dialogAtom)).toEqual({ type: "changeNotApplied" });
+    expect(await storedBookmarks()).toEqual([]);
   });
 });

@@ -43,7 +43,6 @@ export function CheatsheetDialog() {
   const { closeDialog } = useDialogState();
   const translate = useTranslate();
   const isMac = useFeatureFlag("FLAG_MAC");
-  const isSelectionSetsOn = useFeatureFlag("FLAG_SELECTION_SETS");
 
   const BINDINGS: ShortcutSection[] = [
     {
@@ -64,9 +63,7 @@ export function CheatsheetDialog() {
         { binding: "B", description: "toggleSatellite" },
         {
           binding: toggleLeftPanelShortcut,
-          description: isSelectionSetsOn
-            ? "toggleLeftPanel"
-            : "networkReview.toggle",
+          description: "toggleLeftPanel",
         },
         {
           binding: toggleBottomPanelShortcut,

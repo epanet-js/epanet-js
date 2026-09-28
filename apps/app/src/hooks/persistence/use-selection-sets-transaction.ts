@@ -5,7 +5,6 @@ import { useAtomCallback } from "jotai/utils";
 import { nanoid } from "nanoid";
 import * as db from "src/lib/db";
 import { captureError } from "src/infra/error-tracking";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   type SelectionSet,
   type SelectionSetId,
@@ -30,7 +29,6 @@ const markUnsaved = (
 export const useSelectionSetsTransaction = () => {
   const setDialog = useSetAtom(dialogAtom);
   const onWriteFailure = useWriteFailureHandler();
-  const isCollectionsOn = useFeatureFlag("FLAG_SELECTION_SETS");
 
   const isStorable = useCallback(
     (selectionSet: SelectionSet): boolean => {
@@ -55,17 +53,15 @@ export const useSelectionSetsTransaction = () => {
           ...selectionSets,
           selectionSet,
         ]);
-        if (isCollectionsOn) {
-          markUnsaved(
-            set,
-            () => db.insertSelectionSet(selectionSet),
-            onWriteFailure,
-          );
-        }
+        markUnsaved(
+          set,
+          () => db.insertSelectionSet(selectionSet),
+          onWriteFailure,
+        );
 
         return true;
       },
-      [isStorable, isCollectionsOn, onWriteFailure],
+      [isStorable, onWriteFailure],
     ),
   );
 
@@ -85,17 +81,15 @@ export const useSelectionSetsTransaction = () => {
         set(selectionSetsAtom, (selectionSets) =>
           renameItem(selectionSets, id, label),
         );
-        if (isCollectionsOn) {
-          markUnsaved(
-            set,
-            () => db.renameSelectionSet(id, label),
-            onWriteFailure,
-          );
-        }
+        markUnsaved(
+          set,
+          () => db.renameSelectionSet(id, label),
+          onWriteFailure,
+        );
 
         return true;
       },
-      [isStorable, isCollectionsOn, onWriteFailure],
+      [isStorable, onWriteFailure],
     ),
   );
 
@@ -105,11 +99,9 @@ export const useSelectionSetsTransaction = () => {
         set(selectionSetsAtom, (selectionSets) =>
           removeItem(selectionSets, id),
         );
-        if (isCollectionsOn) {
-          markUnsaved(set, () => db.deleteSelectionSet(id), onWriteFailure);
-        }
+        markUnsaved(set, () => db.deleteSelectionSet(id), onWriteFailure);
       },
-      [isCollectionsOn, onWriteFailure],
+      [onWriteFailure],
     ),
   );
 

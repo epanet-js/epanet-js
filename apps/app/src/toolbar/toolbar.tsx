@@ -1,5 +1,4 @@
 import { useTranslate } from "src/hooks/use-translate";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import MenuAction, { DisabledMenuAction } from "src/components/menu-action";
 import {
   FileTextIcon,
@@ -309,7 +308,6 @@ const LayoutActions = () => {
   const toggleLeftPanel = useToggleLeftPanel();
   const toggleBottomPanel = useToggleBottomPanel();
   const toggleSidePanel = useToggleSidePanel();
-  const isSelectionSetsOn = useFeatureFlag("FLAG_SELECTION_SETS");
 
   const leftPanelIcon = splits.leftOpen ? (
     <PanelLeftActiveIcon />
@@ -330,9 +328,7 @@ const LayoutActions = () => {
   return (
     <>
       <MenuAction
-        label={translate(
-          isSelectionSetsOn ? "toggleLeftPanel" : "networkReview.toggle",
-        )}
+        label={translate("toggleLeftPanel")}
         role="button"
         onClick={() => {
           toggleLeftPanel({ source: "toolbar" });
