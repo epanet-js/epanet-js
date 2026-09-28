@@ -22,6 +22,8 @@ export interface Splits {
   layout: PanelLayout;
   bottom: number | string;
   bottomOpen: boolean;
+  vertical: number | string;
+  verticalOpen: boolean;
   rightOpen: boolean;
   right: number;
   leftOpen: boolean;
@@ -34,12 +36,16 @@ export const defaultSplits: Splits = {
   layout: "AUTO",
   bottom: 300,
   bottomOpen: false,
+  vertical: 300,
+  verticalOpen: true,
   rightOpen: true,
   right: 320,
   leftOpen: false,
   left: 300,
 };
 export const splitsAtom = atom<Splits>(defaultSplits);
+
+export const isNarrowViewportAtom = atom(false);
 
 export type MultiAssetPanelCollapse = {
   junction: boolean;

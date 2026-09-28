@@ -1732,6 +1732,19 @@ export type UserEvent =
   | { name: "leftPanel.tabSwitched"; panelType: string }
   | { name: "rightPanel.tabSwitched"; panelType: string }
   | {
+      name: "verticalPanel.toggled";
+      open: boolean;
+      activePanelType: string | null;
+      source: "toolbar" | "handle";
+    }
+  | { name: "verticalPanel.tabSwitched"; panelType: string }
+  | {
+      name: "verticalPanel.tabReordered";
+      panelType: string;
+      fromIndex: number;
+      toIndex: number;
+    }
+  | {
       name: "rightPanel.tabReordered";
       panelType: string;
       fromIndex: number;

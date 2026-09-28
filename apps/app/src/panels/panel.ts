@@ -1,11 +1,11 @@
 import { nanoid } from "nanoid";
 import type { AssetId, AssetType } from "@epanet-js/hydraulic-model";
-import type { Dock } from "./docks";
+import type { HorizontalDock } from "./docks";
 
 type Common = {
   id: string;
   closable: boolean;
-  initialDock: Dock;
+  initialDock: HorizontalDock;
   availableInVerticalLayout: boolean;
 };
 

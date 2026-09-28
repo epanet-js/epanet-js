@@ -43,4 +43,5 @@ const reorderedEventFor = {
   right: "rightPanel.tabReordered",
   center: "bottomPanel.tabReordered",
   bottom: "bottomPanel.tabReordered",
+  vertical: "verticalPanel.tabReordered",
 } as const;

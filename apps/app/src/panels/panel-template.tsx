@@ -3,7 +3,7 @@ import type { Getter, Setter } from "jotai";
 import type { TranslateFn } from "src/hooks/use-translate";
 import type { HydraulicModel } from "src/hydraulic-model";
 import type { useUserTracking } from "src/infra/user-tracking";
-import type { Dock } from "./docks";
+import type { Dock, HorizontalDock } from "./docks";
 import { PanelDockContext } from "./panel-dock-context";
 import type { Panel, PanelOfType, PanelType } from "./panel";
 import type { DataGridState } from "src/components/data-grid";
@@ -46,7 +46,7 @@ export type PanelTemplate<T extends PanelType> = {
 };
 
 export type PanelLayout = {
-  movedToDock?: Dock;
+  movedToDock?: HorizontalDock;
   renamedTo?: string;
 };
 

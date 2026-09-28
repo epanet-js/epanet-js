@@ -1,18 +1,26 @@
 import { atom, type Atom } from "jotai";
 import { selectAtom } from "jotai/utils";
-import { splitsAtom } from "src/state/layout";
+import { isNarrowViewportAtom, splitsAtom } from "src/state/layout";
 import type { Panel } from "src/panels/panel";
 import type { PanelContentState, PanelLayout } from "src/panels/panel-template";
 import {
   type Dock,
+  type HorizontalDock,
   type ResolvedLayout,
   VERTICAL_DOCK,
+  bySidePriority,
   resolveLayout,
 } from "src/panels/docks";
 
-export type { ResolvedLayout, Dock, PanelLayout };
+export type { ResolvedLayout, Dock, HorizontalDock, PanelLayout };
 
-export const DOCKS: readonly Dock[] = ["left", "right", "center", "bottom"];
+export const DOCKS: readonly Dock[] = [
+  "left",
+  "right",
+  "center",
+  "bottom",
+  "vertical",
+];
 
 export type PlacedPanel = {
   id: string;
@@ -61,19 +69,28 @@ export const resetPanelsAtom = atom(null, (_get, set, panels: Panel[]) => {
   set(panelOrderAtom, {});
 });
 
-const resolvedLayoutAtom = selectAtom(splitsAtom, (splits) =>
-  resolveLayout(splits.layout),
+const layoutPreferenceAtom = selectAtom(splitsAtom, (splits) => splits.layout);
+
+const resolvedLayoutAtom = atom<ResolvedLayout>((get) =>
+  resolveLayout(get(layoutPreferenceAtom), get(isNarrowViewportAtom)),
 );
+
+export function horizontalDock(
+  panel: Panel,
+  movedToDock: HorizontalDock | undefined,
+): HorizontalDock {
+  return movedToDock ?? panel.initialDock;
+}
 
 export function currentDock(
   panel: Panel,
-  movedToDock: Dock | undefined,
+  movedToDock: HorizontalDock | undefined,
   layout: ResolvedLayout,
 ): Dock | undefined {
   if (layout === "vertical") {
     return panel.availableInVerticalLayout ? VERTICAL_DOCK : undefined;
   }
-  return movedToDock ?? panel.initialDock;
+  return horizontalDock(panel, movedToDock);
 }
 
 export const placedPanelsAtom = atom<PlacedPanel[]>((get) => {
@@ -90,15 +107,23 @@ export const placedPanelsAtom = atom<PlacedPanel[]>((get) => {
 
 export const panelsByDockAtom = atom<Record<Dock, PlacedPanel[]>>((get) => {
   const order = get(panelOrderAtom);
+  const layout = get(panelLayoutAtom);
   const byDock: Record<Dock, PlacedPanel[]> = {
     left: [],
     right: [],
     center: [],
     bottom: [],
+    vertical: [],
   };
   for (const entry of get(placedPanelsAtom)) {
     if (entry.dock) byDock[entry.dock].push(entry);
   }
+  byDock[VERTICAL_DOCK].sort((a, b) =>
+    bySidePriority(
+      horizontalDock(a.panel, layout[a.id]?.movedToDock),
+      horizontalDock(b.panel, layout[b.id]?.movedToDock),
+    ),
+  );
   for (const dock of DOCKS) {
     const ids = order[dock];
     if (!ids) continue;

@@ -3,10 +3,11 @@ import { dialogAtom } from "src/state/dialog";
 import { splitsAtom } from "src/state/layout";
 import { useAtomValue } from "jotai";
 
-import { BottomResizer } from "src/components/resizer";
+import { BottomResizer, VerticalResizer } from "src/components/resizer";
 import { BottomDock } from "./bottom-dock/bottom-dock";
 import { LeftDock } from "./left-dock/left-dock";
 import { RightDock } from "./right-dock/right-dock";
+import { VerticalDock } from "./vertical-dock/vertical-dock";
 
 export { ActivityBar } from "./activity-bar/activity-bar";
 
@@ -33,11 +34,28 @@ const RightSide = memo(function RightSideInner() {
 });
 
 export const RelocatedSidePanel = memo(function RelocatedSidePanelInner() {
+  const splits = useAtomValue(splitsAtom);
+
+  if (!splits.verticalOpen) return null;
+
   return (
-    <div className="bg-popover border-t relative flex-auto min-h-0">
-      <RightSide />
+    <div
+      style={{ height: splits.vertical }}
+      className="relative shrink-0 bg-popover border-t flex flex-col"
+    >
+      <VerticalResizer />
+      <div className="flex-1 min-h-0 relative">
+        <VerticalSide />
+      </div>
     </div>
   );
+});
+
+const VerticalSide = memo(function VerticalSideInner() {
+  const dialog = useAtomValue(dialogAtom);
+
+  if (dialog && dialog.type === "welcome") return null;
+  return <VerticalDock />;
 });
 
 export const BottomPanel = memo(function BottomPanelInner() {

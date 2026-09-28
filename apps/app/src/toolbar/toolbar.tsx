@@ -61,6 +61,7 @@ import {
   toggleSidePanelShortcut,
   useToggleSidePanel,
 } from "src/commands/toggle-side-panel";
+import { useToggleVerticalPanel } from "src/commands/toggle-vertical-panel";
 import {
   toggleBottomPanelShortcut,
   useToggleBottomPanel,
@@ -252,7 +253,7 @@ export const Toolbar = ({
       </div>
       <div className="flex flex-row items-center justify-end">
         <CommandBarButton />
-        {isSmOrLarger && <LayoutActions />}
+        {isSmOrLarger ? <LayoutActions /> : <VerticalLayoutActions />}
       </div>
     </div>
   );
@@ -281,6 +282,23 @@ const CommandBarButton = () => {
       readOnlyHotkey="ctrl+k"
     >
       <SearchIcon />
+    </MenuAction>
+  );
+};
+
+const VerticalLayoutActions = () => {
+  const splits = useAtomValue(splitsAtom);
+  const toggleVerticalPanel = useToggleVerticalPanel();
+
+  return (
+    <MenuAction
+      label="Toggle panel"
+      role="button"
+      onClick={() => {
+        toggleVerticalPanel({ source: "toolbar" });
+      }}
+    >
+      {splits.verticalOpen ? <PanelBottomActiveIcon /> : <PanelBottomIcon />}
     </MenuAction>
   );
 };

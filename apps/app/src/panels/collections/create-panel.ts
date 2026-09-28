@@ -6,6 +6,6 @@ export const createCollectionsPanel = (): PanelOfType<"collections"> => ({
   id: COLLECTIONS_PANEL_ID,
   type: "collections",
   initialDock: "left",
-  availableInVerticalLayout: false,
+  availableInVerticalLayout: true,
   closable: false,
 });

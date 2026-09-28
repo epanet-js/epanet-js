@@ -6,6 +6,6 @@ export const createMapStylingPanel = (): PanelOfType<"map-styling"> => ({
   id: MAP_STYLING_PANEL_ID,
   type: "map-styling",
   initialDock: "right",
-  availableInVerticalLayout: false,
+  availableInVerticalLayout: true,
   closable: false,
 });

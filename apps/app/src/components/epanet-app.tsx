@@ -57,6 +57,7 @@ import { useEffectivePlan } from "src/hooks/use-effective-plan";
 import { dialogFromUrl } from "src/state/dialog";
 import { OfflineGuard } from "./offline-guard";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
+import { useNarrowViewport } from "src/hooks/use-narrow-viewport";
 import { NotificationFromUrl } from "./notification-from-url";
 import { setUserContext } from "src/infra/error-tracking";
 import { useAppReady } from "src/hooks/use-app-ready";
@@ -143,10 +144,10 @@ export function EpanetApp() {
     lastReportedPlanRef.current = effectivePlan;
   }, [isSignedIn, effectivePlan, userTracking]);
 
-  const isSmOrLarger = useBreakpoint("sm");
+  const isNarrowViewport = useNarrowViewport();
   const isMdOrLarger = useBreakpoint("md");
 
-  const layout: ResolvedLayout = isSmOrLarger ? "HORIZONTAL" : "VERTICAL";
+  const layout: ResolvedLayout = isNarrowViewport ? "VERTICAL" : "HORIZONTAL";
 
   const sensor = useSensors(
     useSensor(PointerSensor, {
@@ -292,7 +293,7 @@ function DraggableMap({
           : {}
       }
     >
-      <div className="flex-auto relative">
+      <div className="flex-auto relative overflow-hidden">
         <MapCanvas setMap={setMap} />
       </div>
       <Legends />

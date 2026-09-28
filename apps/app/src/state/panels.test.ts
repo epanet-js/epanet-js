@@ -1,6 +1,6 @@
 import { createStore } from "jotai";
 import type { AssetType } from "@epanet-js/hydraulic-model";
-import { splitsAtom } from "src/state/layout";
+import { isNarrowViewportAtom, splitsAtom } from "src/state/layout";
 import type { Panel } from "src/panels/panel";
 import { createAssetTablePanel } from "src/panels/data-tables/create-panel";
 import {
@@ -71,7 +71,7 @@ describe("placedPanelsAtom", () => {
     store.set(panelLayoutAtom, { a: { movedToDock: "right" } });
     store.set(splitsAtom, (s) => ({ ...s, layout: "VERTICAL" }));
 
-    expect(store.get(placedPanelsAtom)[0].dock).toEqual("bottom");
+    expect(store.get(placedPanelsAtom)[0].dock).toEqual("vertical");
   });
 });
 
@@ -94,7 +94,7 @@ describe("panelsByDockAtom", () => {
     ]);
     store.set(splitsAtom, (s) => ({ ...s, layout: "VERTICAL" }));
 
-    expect(store.get(panelsByDockAtom).bottom).toEqual([]);
+    expect(store.get(panelsByDockAtom).vertical).toEqual([]);
   });
 });
 
@@ -296,12 +296,128 @@ describe("currentDock", () => {
   it("puts every available panel in the one vertical dock", () => {
     const panel = { ...aPanel("a"), initialDock: "left" as const };
 
-    expect(currentDock(panel, "right", "vertical")).toEqual("bottom");
+    expect(currentDock(panel, "right", "vertical")).toEqual("vertical");
   });
 
   it("has no dock when unavailable in vertical layout", () => {
     const panel = { ...aPanel("a"), availableInVerticalLayout: false };
 
     expect(currentDock(panel, undefined, "vertical")).toBeUndefined();
+  });
+});
+
+describe("the vertical dock", () => {
+  const aPanelIn = (id: string, dock: "left" | "right" | "bottom"): Panel => ({
+    ...aPanel(id),
+    initialDock: dock,
+  });
+
+  const aNarrowStore = (panels: Panel[]) => {
+    const store = createStore();
+    store.set(panelsAtom, panels);
+    store.set(isNarrowViewportAtom, true);
+    return store;
+  };
+
+  const verticalIds = (store: ReturnType<typeof createStore>) =>
+    store.get(panelsIn("vertical")).map((entry) => entry.id);
+
+  it("collects the panels once the viewport turns narrow", () => {
+    const store = aNarrowStore([aPanelIn("a", "right")]);
+
+    expect(verticalIds(store)).toEqual(["a"]);
+    expect(store.get(panelsIn("right"))).toEqual([]);
+  });
+
+  it("keeps the horizontal docks while the viewport is wide", () => {
+    const store = createStore();
+    store.set(panelsAtom, [aPanelIn("a", "right")]);
+
+    expect(store.get(panelsIn("vertical"))).toEqual([]);
+    expect(store.get(panelsIn("right")).map((entry) => entry.id)).toEqual([
+      "a",
+    ]);
+  });
+
+  it("orders panels by side: right, then left, then bottom", () => {
+    const store = aNarrowStore([
+      aPanelIn("from-bottom", "bottom"),
+      aPanelIn("from-left", "left"),
+      aPanelIn("from-right", "right"),
+    ]);
+
+    expect(verticalIds(store)).toEqual([
+      "from-right",
+      "from-left",
+      "from-bottom",
+    ]);
+  });
+
+  it("keeps open order within a side", () => {
+    const store = aNarrowStore([
+      aPanelIn("first-right", "right"),
+      aPanelIn("from-left", "left"),
+      aPanelIn("second-right", "right"),
+    ]);
+
+    expect(verticalIds(store)).toEqual([
+      "first-right",
+      "second-right",
+      "from-left",
+    ]);
+  });
+
+  it("orders by where the user moved a panel, not where it opened", () => {
+    const store = aNarrowStore([
+      aPanelIn("from-right", "right"),
+      aPanelIn("moved-to-right", "bottom"),
+    ]);
+    store.set(panelLayoutAtom, { "moved-to-right": { movedToDock: "right" } });
+
+    expect(verticalIds(store)).toEqual(["from-right", "moved-to-right"]);
+  });
+
+  it("activates the leading panel of the highest-priority side", () => {
+    const store = aNarrowStore([
+      aPanelIn("from-bottom", "bottom"),
+      aPanelIn("from-right", "right"),
+    ]);
+
+    expect(store.get(activePanelIn("vertical"))?.id).toEqual("from-right");
+  });
+
+  it("holds a single active panel across the collected sides", () => {
+    const store = aNarrowStore([
+      aPanelIn("from-right", "right"),
+      aPanelIn("from-left", "left"),
+    ]);
+    store.set(activatePanelAtom, "from-left");
+
+    expect(store.get(activePanelIn("vertical"))?.id).toEqual("from-left");
+    expect(store.get(activePanelsAtom).right).toBeNull();
+    expect(store.get(activePanelsAtom).left).toBeNull();
+  });
+
+  it("lets a user reorder override the side order", () => {
+    const store = aNarrowStore([
+      aPanelIn("from-right", "right"),
+      aPanelIn("from-bottom", "bottom"),
+    ]);
+    store.set(reorderPanelAtom, {
+      dock: "vertical",
+      activeId: "from-bottom",
+      overId: "from-right",
+    });
+
+    expect(verticalIds(store)).toEqual(["from-bottom", "from-right"]);
+  });
+
+  it("leaves out panels that are unavailable in vertical layout", () => {
+    const store = aNarrowStore([
+      { ...aPanelIn("a", "right"), availableInVerticalLayout: false },
+      aPanelIn("b", "bottom"),
+    ]);
+
+    expect(verticalIds(store)).toEqual(["b"]);
   });
 });

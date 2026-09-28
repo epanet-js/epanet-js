@@ -296,6 +296,62 @@ export const BottomResizer = memo(function BottomResizerInner() {
   );
 });
 
+const MIN_VERTICAL_HEIGHT = 80;
+
+function useResizeVertical() {
+  const [splits, setSplits] = useAtom(splitsAtom);
+  const rawSplit = useRef<number | null>(null);
+
+  const { moveProps } = useMove({
+    onMoveStart() {
+      rawSplit.current =
+        typeof splits.vertical === "number" ? splits.vertical : 300;
+    },
+    onMove(e) {
+      if (rawSplit.current === null) return;
+      rawSplit.current -= Math.round(e.deltaY);
+      const clamped = Math.max(
+        MIN_VERTICAL_HEIGHT,
+        Math.min(window.innerHeight - 200, rawSplit.current),
+      );
+      setSplits((splits) => ({ ...splits, vertical: clamped }));
+    },
+    onMoveEnd() {
+      rawSplit.current = null;
+    },
+  });
+
+  return { moveProps };
+}
+
+export const VerticalResizer = memo(function VerticalResizerInner() {
+  const { moveProps } = useResizeVertical();
+
+  return (
+    <button
+      {...moveProps}
+      type="button"
+      role="separator"
+      aria-orientation="horizontal"
+      aria-label="Resize panel"
+      tabIndex={-1}
+      style={{ cursor: "row-resize" }}
+      className="absolute top-0 left-0 right-0 h-3 -translate-y-1/2 z-20
+        touch-none
+        flex items-center justify-center
+        group"
+    >
+      <div
+        className="w-full h-1
+          bg-purple-700 dark:bg-purple-700
+          opacity-0
+          group-hover:opacity-100
+          pointer-events-none"
+      />
+    </button>
+  );
+});
+
 const MIN_FOOTER_HEIGHT = 205;
 const MAX_FOOTER_HEIGHT = 400;
 

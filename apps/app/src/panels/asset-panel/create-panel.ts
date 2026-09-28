@@ -6,6 +6,6 @@ export const createAssetPanel = (): PanelOfType<"asset"> => ({
   id: ASSET_PANEL_ID,
   type: "asset",
   initialDock: "right",
-  availableInVerticalLayout: false,
+  availableInVerticalLayout: true,
   closable: false,
 });
