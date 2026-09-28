@@ -1711,8 +1711,8 @@ describe("parseGisSource", () => {
       expect(features[0].geometry).toBeNull();
       expect(contents.recordCount).toEqual(1);
       expect(contents.attributes.map(({ name }) => name)).toEqual([
-        "First",
         "Id",
+        "First",
         "Second",
       ]);
       expect(contents.groups).toEqual([]);
@@ -1785,6 +1785,80 @@ describe("parseGisSource", () => {
       });
 
       expect(codes).toEqual(["coordinateAttributesMissing"]);
+    });
+
+    it("names a column the header leaves blank after its position", async () => {
+      const { features, contents } = await parseGisSource({
+        files: [aCsv("Id,,Lat,\nJ-1,0.001,0.002,150")],
+        coordinateAttributes: { x: "#2", y: "Lat" },
+      });
+
+      expect(contents.attributes.map(({ name }) => name)).toEqual([
+        "Id",
+        "#2",
+        "Lat",
+        "#4",
+      ]);
+      expect(coordinatesOf(features[0])).toEqual([0.001, 0.002]);
+    });
+
+    it("keeps every blank header apart rather than collapsing them", async () => {
+      const { features } = await parseGisSource({
+        files: [aCsv("Id,,,Lat\nJ-1,0.001,0.002,0.003")],
+        coordinateAttributes: { x: "#2", y: "Lat" },
+      });
+
+      expect(features[0].properties).toEqual({
+        Id: "J-1",
+        "#2": "0.001",
+        "#3": "0.002",
+        Lat: "0.003",
+      });
+    });
+
+    it("names the values a header leaves unnamed after their position", async () => {
+      const { features, contents } = await parseGisSource({
+        files: [
+          aCsv(
+            [
+              "Id,Lon,Lat",
+              "J-1,0.001,0.002,PVC,150",
+              "J-2,0.003,0.004,Steel",
+            ].join("\n"),
+          ),
+        ],
+        coordinateAttributes: { x: "Lon", y: "Lat" },
+      });
+
+      expect(contents.attributes.map(({ name }) => name)).toEqual([
+        "Id",
+        "Lon",
+        "Lat",
+        "#4",
+        "#5",
+      ]);
+      expect(features[0].properties).toEqual({
+        Id: "J-1",
+        Lon: "0.001",
+        Lat: "0.002",
+        "#4": "PVC",
+        "#5": "150",
+      });
+      expect(features[1].properties).toEqual({
+        Id: "J-2",
+        Lon: "0.003",
+        Lat: "0.004",
+        "#4": "Steel",
+      });
+    });
+
+    it("reads coordinates from a column the header left unnamed", async () => {
+      const { features } = await parseGisSource({
+        files: [aCsv("Id\nJ-1,0.001,0.002")],
+        coordinateAttributes: { x: "#2", y: "#3" },
+      });
+
+      expect(coordinatesOf(features[0])).toEqual([0.001, 0.002]);
     });
 
     it("refuses a file whose first row does not name the columns", async () => {

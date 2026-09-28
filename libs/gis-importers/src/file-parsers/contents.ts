@@ -61,6 +61,7 @@ const merged = (all: Iterable<Tallies>): Tallies => {
 const attributesOf = (
   tallies: Tallies,
   recordCount: number,
+  statedOrder?: string[],
 ): SourceAttribute[] =>
   [...tallies.entries()]
     .map(([name, { stated, numeric }]) => ({
@@ -68,11 +69,29 @@ const attributesOf = (
       type: numeric === stated ? ("number" as const) : ("text" as const),
       onEveryRecord: stated === recordCount,
     }))
-    .sort((a, b) => a.name.localeCompare(b.name));
+    .sort(ordering(statedOrder));
+
+const byName = (a: SourceAttribute, b: SourceAttribute): number =>
+  a.name.localeCompare(b.name);
+
+const ordering = (
+  statedOrder?: string[],
+): ((a: SourceAttribute, b: SourceAttribute) => number) => {
+  if (statedOrder === undefined) return byName;
+
+  const positions = new Map(statedOrder.map((name, index) => [name, index]));
+  const positionOf = ({ name }: SourceAttribute): number =>
+    positions.get(name) ?? statedOrder.length;
+
+  return (a, b) => positionOf(a) - positionOf(b) || byName(a, b);
+};
 
 const NO_GEOMETRY = null;
 
-export const contentsOf = (features: Feature[]): SourceContents => {
+export const contentsOf = (
+  features: Feature[],
+  statedOrder?: string[],
+): SourceContents => {
   const byKind = new Map<SourceGeometry, Feature[]>();
   const talliesByKind = new Map<SourceGeometry | typeof NO_GEOMETRY, Tallies>();
 
@@ -97,6 +116,7 @@ export const contentsOf = (features: Feature[]): SourceContents => {
   const attributes = attributesOf(
     merged(talliesByKind.values()),
     features.length,
+    statedOrder,
   );
   const geometries = GEOMETRY_ORDER.filter((kind) => byKind.has(kind));
 
@@ -114,6 +134,7 @@ export const contentsOf = (features: Feature[]): SourceContents => {
               attributes: attributesOf(
                 talliesByKind.get(geometry) ?? new Map<string, Tally>(),
                 held.length,
+                statedOrder,
               ),
             };
           }),

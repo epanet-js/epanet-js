@@ -8,6 +8,7 @@ type Row = Record<string, string>;
 
 type ParsedCsv = {
   features: Feature[];
+  headers: string[];
   skipped: Issue[];
 };
 
@@ -20,14 +21,14 @@ export const readCsv = (
   const table = parseTable(content);
   if (table === null) return "sourceUnreadable";
 
-  const { headers, rows } = table;
-  if (!namesItsColumns(headers)) return "sourceHeaderMissing";
+  const { headers, statedHeaders: stated, rows } = table;
+  if (!namesItsColumns(stated)) return "sourceHeaderMissing";
 
   const coordinatAttributes = checkGeometryAttributes(
     headers,
     geometryAttributes,
   );
-  if (coordinatAttributes === null) return unplaced(rows);
+  if (coordinatAttributes === null) return unplaced(headers, rows);
 
   const features: Feature[] = [];
   const skipped: Issue[] = [];
@@ -51,33 +52,92 @@ export const readCsv = (
     });
   });
 
-  return features.length === 0 ? unplaced(rows) : { features, skipped };
+  return features.length === 0
+    ? unplaced(headers, rows)
+    : { features, headers, skipped };
 };
 
-const unplaced = (rows: Row[]): ParsedCsv => ({
+const unplaced = (headers: string[], rows: Row[]): ParsedCsv => ({
   features: rows.map(withoutGeometry),
+  headers,
   skipped: [],
 });
 
-type Table = { headers: string[]; rows: Row[] };
+type Columns = { headers: string[]; rows: Row[] };
+
+type Table = Columns & { statedHeaders: string[] };
 
 const parseTable = (content: string): Table | null => {
+  const stated: string[] = [];
+
   const parsed = Papa.parse<Row>(content, {
     header: true,
     skipEmptyLines: "greedy",
-    transformHeader: (header) => header.trim(),
+    transformHeader: (header, index) => {
+      if (stated[index] === undefined) stated[index] = header.trim();
+      return stated[index] === "" ? columnName(index) : stated[index];
+    },
   });
 
-  const headers = parsed.meta.fields ?? [];
-  if (headers.length === 0 || headers.every((header) => header === "")) {
-    return null;
-  }
+  if (stated.every((header) => header === "")) return null;
 
-  return { headers, rows: parsed.data };
+  return {
+    statedHeaders: stated,
+    ...named({ headers: parsed.meta.fields ?? [], rows: parsed.data }),
+  };
 };
 
-const namesItsColumns = (headers: string[]): boolean =>
-  headers.every((header) => header === "" || /\p{L}/u.test(header));
+const columnName = (index: number): string => `#${index + 1}`;
+
+const UNNAMED_VALUES = "__parsed_extra";
+
+const named = ({ headers, rows }: Columns): Columns => {
+  let unnamed = 0;
+  for (const row of rows) {
+    unnamed = Math.max(unnamed, extraValuesOf(row).length);
+  }
+  if (unnamed === 0) return { headers, rows };
+
+  const taken = new Set(headers);
+  const names = Array.from({ length: unnamed }, (_, index) => {
+    const name = unusedName(columnName(headers.length + index), taken);
+    taken.add(name);
+    return name;
+  });
+
+  return {
+    headers: [...headers, ...names],
+    rows: rows.map((row) => withNamedValues(row, names)),
+  };
+};
+
+const unusedName = (base: string, taken: Set<string>): string => {
+  let name = base;
+  let attempt = 2;
+  while (taken.has(name)) name = `${base} (${attempt++})`;
+  return name;
+};
+
+const extraValuesOf = (row: Row): string[] => {
+  const values: unknown = row[UNNAMED_VALUES];
+  return Array.isArray(values) ? (values as string[]) : [];
+};
+
+const withNamedValues = (row: Row, names: string[]): Row => {
+  const { [UNNAMED_VALUES]: unnamed, ...rest } = row;
+  void unnamed;
+  const values = extraValuesOf(row);
+
+  names.forEach((name, index) => {
+    const value = values[index];
+    if (value !== undefined) rest[name] = value;
+  });
+
+  return rest;
+};
+
+const namesItsColumns = (stated: string[]): boolean =>
+  stated.every((header) => header === "" || /\p{L}/u.test(header));
 
 const positionOf = (
   row: Row,

@@ -34,6 +34,7 @@ type DecodedSource = {
   sourceProjection?: Proj4Projection;
   issues: Issue[];
   contents?: SourceContents;
+  summarise?: (features: Feature[]) => SourceContents;
 };
 
 type CacheEntry = {
@@ -181,7 +182,9 @@ const resultOf = (decoded: DecodedSource): ParsedGisSource => {
       : { sourceProjection: decoded.sourceProjection }),
     issues,
     get contents() {
-      return (decoded.contents ??= contentsOf(decoded.features));
+      return (decoded.contents ??= (decoded.summarise ?? contentsOf)(
+        decoded.features,
+      ));
     },
   };
 };
@@ -243,7 +246,7 @@ const parseCsv = (content: string, input: GisInput): DecodedSource => {
   if (parsed.features.length === 0) return failure("sourceEmpty");
 
   if (!parsed.features.some(hasGeometry)) {
-    return unnamedCoordinates(parsed.features);
+    return unnamedCoordinates(parsed.features, parsed.headers);
   }
 
   const placed = placeFeatures({
@@ -252,15 +255,25 @@ const parseCsv = (content: string, input: GisInput): DecodedSource => {
     projections: input.projections,
   });
 
-  return parsed.skipped.length === 0
-    ? placed
-    : { ...placed, issues: [...placed.issues, ...parsed.skipped] };
+  return {
+    ...placed,
+    summarise: inHeaderOrder(parsed.headers),
+    issues: [...placed.issues, ...parsed.skipped],
+  };
 };
 
 const COORDINATE_ATTRIBUTES = 2;
 
-const unnamedCoordinates = (features: Feature[]): DecodedSource => {
-  const contents = contentsOf(features);
+const inHeaderOrder =
+  (headers: string[]) =>
+  (features: Feature[]): SourceContents =>
+    contentsOf(features, headers);
+
+const unnamedCoordinates = (
+  features: Feature[],
+  headers: string[],
+): DecodedSource => {
+  const contents = contentsOf(features, headers);
   const numeric = contents.attributes.filter(({ type }) => type === "number");
 
   return numeric.length < COORDINATE_ATTRIBUTES
@@ -268,6 +281,7 @@ const unnamedCoordinates = (features: Feature[]): DecodedSource => {
     : {
         features,
         contents,
+        summarise: inHeaderOrder(headers),
         issues: [{ code: "coordinateAttributesUnknown", severity: "error" }],
       };
 };
