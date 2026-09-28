@@ -1,4 +1,5 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { HydraulicModel } from "src/hydraulic-model";
 import { SimulationSettingsBuilder } from "src/__helpers__/simulation-settings-builder";
 import { buildInp, buildInpToFile } from "./build-inp";
 import { presets } from "@epanet-js/project-settings";
@@ -491,6 +492,168 @@ describe("build inp", () => {
       expect(inp).toContain(`vsp2_step(${invocation})`);
       expect(inp).toContain(`vsp2_solved(${invocation})`);
       expect(inp).not.toContain("[CONTROLS]");
+    });
+
+    describe("remote flow direction", () => {
+      const IDS = {
+        R1: 1,
+        J1: 2,
+        J2: 3,
+        J3: 4,
+        PU1: 5,
+        P1: 6,
+        P2: 7,
+        P3: 8,
+        V1: 9,
+      } as const;
+
+      const withFlowControl = (
+        builder: HydraulicModelBuilder,
+        targetId: number,
+      ) =>
+        builder
+          .aVariableSpeedPumpControl({
+            linkId: IDS.PU1,
+            quantity: "flow",
+            targetId,
+            target: 10,
+            minSpeed: 0.3,
+            maxSpeed: 1,
+            laggedPumpIds: [],
+            schedule: [],
+          })
+          .build();
+
+      const emittedDirection = (hydraulicModel: HydraulicModel) => {
+        const inp = buildInp(hydraulicModel, {
+          units: presets.LPS.units,
+          simulationSettings: defaultSimulationSettings,
+        });
+        const row = inp.match(
+          /vsp2_step\(\{\{"\d+","flow","\d+",[\d.]+,[\d.]+,[\d.]+,\{[^}]*\},(-?1)\}\}/,
+        );
+        return Number(row![1]);
+      };
+
+      //   R1 --PU1--> J1
+      const dischargeSide = () =>
+        HydraulicModelBuilder.with()
+          .aReservoir(IDS.R1)
+          .aNode(IDS.J1)
+          .aNode(IDS.J2)
+          .aNode(IDS.J3)
+          .aPump(IDS.PU1, { startNodeId: IDS.R1, endNodeId: IDS.J1 });
+
+      it("is 1 for the pump's own flow", () => {
+        const hydraulicModel = withFlowControl(dischargeSide(), IDS.PU1);
+
+        expect(emittedDirection(hydraulicModel)).toBe(1);
+      });
+
+      it("is 1 for a discharge link drawn away from the pump", () => {
+        const hydraulicModel = withFlowControl(
+          dischargeSide().aPipe(IDS.P1, {
+            startNodeId: IDS.J1,
+            endNodeId: IDS.J2,
+          }),
+          IDS.P1,
+        );
+
+        expect(emittedDirection(hydraulicModel)).toBe(1);
+      });
+
+      it("is -1 for a discharge link drawn towards the pump", () => {
+        const hydraulicModel = withFlowControl(
+          dischargeSide().aPipe(IDS.P1, {
+            startNodeId: IDS.J2,
+            endNodeId: IDS.J1,
+          }),
+          IDS.P1,
+        );
+
+        expect(emittedDirection(hydraulicModel)).toBe(-1);
+      });
+
+      it("follows the network to a link further from the pump", () => {
+        const hydraulicModel = withFlowControl(
+          dischargeSide()
+            .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
+            .aPipe(IDS.P2, { startNodeId: IDS.J3, endNodeId: IDS.J2 }),
+          IDS.P2,
+        );
+
+        expect(emittedDirection(hydraulicModel)).toBe(-1);
+      });
+
+      it.each([
+        { name: "closed", properties: { initialStatus: "closed" as const } },
+        { name: "inactive", properties: { isActive: false } },
+      ])("does not reach the link through a $name pipe", ({ properties }) => {
+        const hydraulicModel = withFlowControl(
+          dischargeSide()
+            .aPipe(IDS.P1, {
+              startNodeId: IDS.J1,
+              endNodeId: IDS.J2,
+              ...properties,
+            })
+            .aPipe(IDS.P2, { startNodeId: IDS.J2, endNodeId: IDS.J3 })
+            .aPipe(IDS.P3, { startNodeId: IDS.J1, endNodeId: IDS.J3 }),
+          IDS.P2,
+        );
+
+        expect(emittedDirection(hydraulicModel)).toBe(-1);
+      });
+
+      //   R1 --P1-- J1 --PU1--> J2
+      const suctionSide = (drawnTowardsPump: boolean) =>
+        HydraulicModelBuilder.with()
+          .aReservoir(IDS.R1)
+          .aNode(IDS.J1)
+          .aNode(IDS.J2)
+          .aPipe(IDS.P1, {
+            startNodeId: drawnTowardsPump ? IDS.R1 : IDS.J1,
+            endNodeId: drawnTowardsPump ? IDS.J1 : IDS.R1,
+          })
+          .aPump(IDS.PU1, { startNodeId: IDS.J1, endNodeId: IDS.J2 });
+
+      it("is 1 for a suction link drawn towards the pump", () => {
+        const hydraulicModel = withFlowControl(suctionSide(true), IDS.P1);
+
+        expect(emittedDirection(hydraulicModel)).toBe(1);
+      });
+
+      it("is -1 for a suction link drawn away from the pump", () => {
+        const hydraulicModel = withFlowControl(suctionSide(false), IDS.P1);
+
+        expect(emittedDirection(hydraulicModel)).toBe(-1);
+      });
+
+      it("keeps 1 for a link in a loop, which the pump reaches from both ends", () => {
+        const hydraulicModel = withFlowControl(
+          dischargeSide()
+            .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
+            .aPipe(IDS.P2, { startNodeId: IDS.J1, endNodeId: IDS.J3 })
+            .aPipe(IDS.P3, { startNodeId: IDS.J3, endNodeId: IDS.J2 }),
+          IDS.P3,
+        );
+
+        expect(emittedDirection(hydraulicModel)).toBe(1);
+      });
+
+      it("keeps 1 for a link beyond a directional valve", () => {
+        const hydraulicModel = withFlowControl(
+          dischargeSide()
+            .aValve(IDS.V1, {
+              startNodeId: IDS.J1,
+              endNodeId: IDS.J2,
+              kind: "prv",
+            })
+            .aPipe(IDS.P1, { startNodeId: IDS.J3, endNodeId: IDS.J2 }),
+          IDS.P1,
+        );
+
+        expect(emittedDirection(hydraulicModel)).toBe(1);
+      });
     });
   });
 

@@ -304,6 +304,35 @@ describe.each(UNIT_SYSTEMS)("variable speed pumps in $name", (units) => {
       expectSameOrder(speeds, demandsAt(DEMAND_FACTORS));
     });
 
+    it("holds the flow of a remote link drawn towards the pump", async () => {
+      const reader = await simulate(
+        units,
+        remoteFlowNetwork(units, { target: 10, drawnTowardsPump: true }),
+      );
+
+      const flows = await pipeFlows(reader, IDS.P1);
+      const speeds = await pumpSettings(reader, IDS.PU1);
+
+      expectAllNear(flows, units.flow(-10), units.flow(FLOW_TOL));
+      expectSameOrder(speeds, demandsAt(DEMAND_FACTORS));
+    });
+
+    it("holds the flow of a suction link drawn away from the pump", async () => {
+      const reader = await simulate(
+        units,
+        suctionFlowNetwork(units, { target: 15 }),
+      );
+
+      const flows = await pipeFlows(reader, IDS.P2);
+      const speeds = await pumpSettings(reader, IDS.PU1);
+
+      expectAllNear(flows, units.flow(-15), units.flow(FLOW_TOL));
+      expectSameOrder(
+        speeds,
+        demandsAt(DEMAND_FACTORS).map((demand) => -demand),
+      );
+    });
+
     it("holds a tank inlet's flow as it reverses to fill and empty the tank", async () => {
       const fillSteps = [0, 1, 2, 6, 7, 8];
       const drainSteps = [3, 4, 5, 9, 10, 11];
@@ -531,7 +560,13 @@ const levelNetwork = (
 //                   +---P1--- R2
 //   R1 --PU1-- J1 --+
 //                   +---P2--- J2 (demand + pattern)
-const remoteFlowNetwork = (units: Units, { target }: { target: number }) =>
+const remoteFlowNetwork = (
+  units: Units,
+  {
+    target,
+    drawnTowardsPump = false,
+  }: { target: number; drawnTowardsPump?: boolean },
+) =>
   HydraulicModelBuilder.with()
     .aReservoir(IDS.R1, { head: 0 })
     .aReservoir(IDS.R2, { head: units.length(30) })
@@ -547,8 +582,8 @@ const remoteFlowNetwork = (units: Units, { target }: { target: number }) =>
       curve: pumpCurve(units, 20, 50),
     })
     .aPipe(IDS.P1, {
-      startNodeId: IDS.J1,
-      endNodeId: IDS.R2,
+      startNodeId: drawnTowardsPump ? IDS.R2 : IDS.J1,
+      endNodeId: drawnTowardsPump ? IDS.J1 : IDS.R2,
       length: units.length(500),
       diameter: units.diameter(200),
       roughness: 100,
@@ -598,6 +633,48 @@ const localFlowNetwork = (units: Units, { target }: { target: number }) =>
       linkId: IDS.PU1,
       quantity: "flow",
       targetId: IDS.PU1,
+      target: units.flow(target),
+      minSpeed: 0.3,
+      maxSpeed: 1,
+      laggedPumpIds: [],
+      schedule: [],
+    })
+    .build();
+
+//   R1 <--P2-- J2 --PU1-- J1 (demand + pattern) ---P1--- R2
+const suctionFlowNetwork = (units: Units, { target }: { target: number }) =>
+  HydraulicModelBuilder.with()
+    .aReservoir(IDS.R1, { head: units.length(10) })
+    .aReservoir(IDS.R2, { head: units.length(30) })
+    .aJunction(IDS.J2, { elevation: 0 })
+    .aJunction(IDS.J1, { elevation: 0 })
+    .aJunctionDemand(IDS.J1, [
+      { baseDemand: units.flow(BASE_DEMAND), patternId: IDS.DEMAND_PATTERN },
+    ])
+    .aDemandPattern(IDS.DEMAND_PATTERN, "DEM", DEMAND_FACTORS)
+    .aPipe(IDS.P2, {
+      startNodeId: IDS.J2,
+      endNodeId: IDS.R1,
+      length: units.length(50),
+      diameter: units.diameter(300),
+      roughness: 100,
+    })
+    .aPump(IDS.PU1, {
+      startNodeId: IDS.J2,
+      endNodeId: IDS.J1,
+      curve: pumpCurve(units, 20, 50),
+    })
+    .aPipe(IDS.P1, {
+      startNodeId: IDS.J1,
+      endNodeId: IDS.R2,
+      length: units.length(500),
+      diameter: units.diameter(100),
+      roughness: 100,
+    })
+    .aVariableSpeedPumpControl({
+      linkId: IDS.PU1,
+      quantity: "flow",
+      targetId: IDS.P2,
       target: units.flow(target),
       minSpeed: 0.3,
       maxSpeed: 1,

@@ -55,6 +55,12 @@ import {
   getJunctionDemands,
 } from "src/hydraulic-model";
 import { effectiveRoughness } from "src/hydraulic-model/pipe-materials";
+import { boundaryTrace } from "src/lib/trace/boundary-trace";
+import { AllowedFlowDirection } from "src/lib/trace/allowed-flow-direction";
+import {
+  AllowedFlowDirection as AllowedFlowDirections,
+  type AllowedFlowDirectionQueries,
+} from "src/lib/trace/types";
 
 type SimulationPipeStatus = "Open" | "Closed" | "CV";
 type SimulationPumpStatus = "Open" | "Closed";
@@ -1503,8 +1509,14 @@ function* scriptRows(
       .filter((id) => isAssetInSimulation(hydraulicModel, id))
       .map((id) => resolveLinkId(hydraulicModel, idMap, id));
 
-    // TODO: derive the remote flow direction from the topology; hardcoded for now.
-    const remoteFlowDirection = 1;
+    const remoteFlowDirection =
+      control.quantity === "flow"
+        ? remoteFlowDirectionOf(
+            hydraulicModel,
+            control.linkId,
+            control.targetId,
+          )
+        : 1;
 
     builder.withVariableSpeedPump(
       pumpId,
@@ -1646,6 +1658,51 @@ const remoteSetpointTargetOf = (
   const target = hydraulicModel.assets.get(valve.targetNodeId);
   if (!target || !target.isNode || !target.isActive) return null;
   return target as NodeAsset;
+};
+
+const remoteFlowDirectionOf = (
+  hydraulicModel: HydraulicModel,
+  pumpId: AssetId,
+  linkId: AssetId,
+): 1 | -1 => {
+  if (pumpId === linkId) return 1;
+
+  const [suctionNodeId, dischargeNodeId] =
+    hydraulicModel.topology.getNodes(pumpId);
+  const [linkStartId, linkEndId] = hydraulicModel.topology.getNodes(linkId);
+
+  const reachedEnd = (fromNodeId: AssetId) => {
+    const { nodeIds } = boundaryTrace(
+      { nodeIds: [fromNodeId], linkIds: [] },
+      hydraulicModel.topology,
+      hydraulicModel.assetIndex,
+      alongSimulatedLinksExcept(hydraulicModel, linkId),
+    );
+    const reached = new Set(nodeIds);
+    if (reached.has(linkStartId) === reached.has(linkEndId)) return null;
+    return reached.has(linkStartId) ? "start" : "end";
+  };
+
+  const fromDischarge = reachedEnd(dischargeNodeId);
+  if (fromDischarge !== null) return fromDischarge === "start" ? 1 : -1;
+
+  const fromSuction = reachedEnd(suctionNodeId);
+  if (fromSuction !== null) return fromSuction === "end" ? 1 : -1;
+
+  return 1;
+};
+
+const alongSimulatedLinksExcept = (
+  hydraulicModel: HydraulicModel,
+  excludedLinkId: AssetId,
+): AllowedFlowDirectionQueries => {
+  const allowed = new AllowedFlowDirection(hydraulicModel.assets, null);
+  return {
+    getAllowedFlowDirection: (linkId) =>
+      linkId === excludedLinkId || !isAssetInSimulation(hydraulicModel, linkId)
+        ? AllowedFlowDirections.NONE
+        : allowed.getAllowedFlowDirection(linkId),
+  };
 };
 
 const isAssetInSimulation = (
