@@ -122,10 +122,12 @@ export const FileDropdown = () => {
           </DD.Portal>
         </DD.Root>
       </div>
-      <TContent side="bottom">
-        <StyledTooltipArrow />
-        {translate("file")}
-      </TContent>
+      <Tooltip.Portal>
+        <TContent side="bottom">
+          <StyledTooltipArrow />
+          {translate("file")}
+        </TContent>
+      </Tooltip.Portal>
     </Tooltip.Root>
   );
 };

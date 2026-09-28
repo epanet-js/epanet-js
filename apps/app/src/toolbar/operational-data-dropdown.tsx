@@ -96,10 +96,12 @@ export const OperationalDataDropdown = () => {
           </DD.Portal>
         </DD.Root>
       </div>
-      <TContent side="bottom">
-        <StyledTooltipArrow />
-        {translate("operationalData")}
-      </TContent>
+      <Tooltip.Portal>
+        <TContent side="bottom">
+          <StyledTooltipArrow />
+          {translate("operationalData")}
+        </TContent>
+      </Tooltip.Portal>
     </Tooltip.Root>
   );
 };
