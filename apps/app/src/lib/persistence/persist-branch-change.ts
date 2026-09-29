@@ -1,5 +1,5 @@
 import type { ChangeSet, Direction } from "@epanet-js/change-set";
-import type { Worktree } from "@epanet-js/worktree";
+import type { BranchStore, Worktree } from "@epanet-js/worktree";
 import { applyChangeSetToDb, applyChangeSetToDbDeprecated } from "src/lib/db";
 import { getBranchStore } from "src/lib/branching";
 
@@ -8,8 +8,13 @@ type ApplyToMain = (
   direction: Direction,
 ) => Promise<void>;
 
+type RecordChange = keyof Pick<
+  BranchStore,
+  "recordChange" | "recordChangeDeprecated"
+>;
+
 const persistWith =
-  (applyToMain: ApplyToMain) =>
+  (applyToMain: ApplyToMain, recordChange: RecordChange) =>
   (
     worktree: Worktree,
     changeSet: ChangeSet,
@@ -17,16 +22,20 @@ const persistWith =
   ): Promise<void> =>
     worktree.activeBranchId === worktree.mainId
       ? applyToMain(changeSet, direction)
-      : getBranchStore().recordChange(
+      : getBranchStore()[recordChange](
           worktree.activeBranchId,
           changeSet,
           direction,
         );
 
-export const persistBranchChange = persistWith(applyChangeSetToDb);
+export const persistBranchChange = persistWith(
+  applyChangeSetToDb,
+  "recordChange",
+);
 
 export const persistBranchChangeDeprecated = persistWith(
   applyChangeSetToDbDeprecated,
+  "recordChangeDeprecated",
 );
 
 export type PersistBranchChange = typeof persistBranchChange;

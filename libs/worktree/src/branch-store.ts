@@ -19,6 +19,11 @@ export interface BranchStore {
     changeSet: ChangeSet,
     direction: Direction,
   ): Promise<void>;
+  recordChangeDeprecated(
+    branchId: string,
+    changeSet: ChangeSet,
+    direction: Direction,
+  ): Promise<void>;
   recordSimulationSettings(branchId: string, data: string): Promise<void>;
 }
 
@@ -35,5 +40,6 @@ export const nullBranchStore: BranchStore = {
   renameBranch: () => Promise.resolve(),
   deleteBranch: () => Promise.resolve(),
   recordChange: () => Promise.resolve(),
+  recordChangeDeprecated: () => Promise.resolve(),
   recordSimulationSettings: () => Promise.resolve(),
 };

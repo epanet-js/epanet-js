@@ -72,13 +72,19 @@ const aRecordingStore = () => {
             : invert(entry.changeSet),
         ),
     );
+  const recordChange: BranchStore["recordChange"] = (
+    branchId,
+    changeSet,
+    direction,
+  ) => {
+    recorded.push({ branchId, changeSet, direction });
+    return Promise.resolve();
+  };
   const store: BranchStore = {
     ...nullBranchStore,
     loadDelta: (branchId) => Promise.resolve(deltaOf(branchId)),
-    recordChange: (branchId, changeSet, direction) => {
-      recorded.push({ branchId, changeSet, direction });
-      return Promise.resolve();
-    },
+    recordChange,
+    recordChangeDeprecated: recordChange,
     recordSimulationSettings: (branchId, data) => {
       recordedSettings.set(branchId, data);
       return Promise.resolve();

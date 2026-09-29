@@ -1,4 +1,10 @@
-export { ChangeSet, invert, mergeRecords, squash } from "./change-set";
+export {
+  ChangeSet,
+  invert,
+  mergeRecords,
+  squash,
+  squashOnto,
+} from "./change-set";
 export { ChangeSetVersionError, isOutdated, migrateChangeSet } from "./migrate";
 export {
   CURRENT_VERSION,

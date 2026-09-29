@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { ChangeSet, invert, squash } from "./change-set";
+import { ChangeSet, invert, squash, squashOnto } from "./change-set";
 import { effective, effectiveChanges, effectiveSide } from "./direction";
 import type { ChangeKind, ChangeRecord } from "./types";
 
@@ -539,5 +539,150 @@ describe("entries", () => {
   it("counts entities", () => {
     expect(stored().size).toBe(records.length);
     expect(ChangeSet.fromBytes(ChangeSet.empty().bytes).size).toBe(0);
+  });
+});
+
+describe("squashOnto", () => {
+  const cs = (records: ChangeRecord[]) => ChangeSet.of("edit", records);
+
+  const pipe = (
+    id: number,
+    kind: ChangeKind,
+    before: ChangeRecord["before"],
+    after: ChangeRecord["after"],
+  ): ChangeRecord => ({ entity: "pipe", id, kind, before, after });
+
+  const untouched: ChangeRecord[] = [
+    pipe(10, "update", { diameter: 100 }, { diameter: 150 }),
+    pipe(11, "update", { diameter: 100 }, { diameter: 150 }),
+    pipe(12, "update", { diameter: 100 }, { diameter: 150 }),
+    {
+      entity: "junction",
+      id: 20,
+      kind: "create",
+      before: {},
+      after: {
+        label: "J20",
+        coordinates: [1, 2],
+        elevation: null,
+        emitter: undefined,
+        isActive: true,
+      },
+    },
+    {
+      entity: "junctionDemand",
+      id: 20,
+      kind: "update",
+      before: { $value: [] },
+      after: { $value: [{ baseDemand: 3, patternId: 1 }] },
+    },
+  ];
+
+  const stored = (...records: ChangeRecord[]) =>
+    ChangeSet.fromBytes(cs([...untouched, ...records]).bytes);
+
+  const byEntity = (records: ChangeRecord[]) =>
+    [...records].sort((a, b) =>
+      `${a.entity}|${a.id}`.localeCompare(`${b.entity}|${b.id}`),
+    );
+
+  const expectSameAsSquash = (base: ChangeSet, change: ChangeSet) => {
+    for (const direction of ["forward", "reverse"] as const) {
+      const expected = squash("", [
+        base,
+        direction === "forward" ? change : invert(change),
+      ]);
+      const actual = squashOnto(base, change, direction);
+
+      expect(byEntity(actual.records)).toStrictEqual(
+        byEntity(expected.records),
+      );
+      expect(actual.name).toBe("");
+      expect(actual.version).toBe(expected.version);
+    }
+  };
+
+  it.each([
+    [
+      "keeps the first before and the last after",
+      [pipe(1, "update", { diameter: 100 }, { diameter: 200 })],
+      [pipe(1, "update", { diameter: 200 }, { diameter: 300 })],
+    ],
+    [
+      "update then delete restores the pre-update value",
+      [pipe(1, "update", { diameter: 100 }, { diameter: 200 })],
+      [pipe(1, "delete", { diameter: 200, label: "P1" }, {})],
+    ],
+    [
+      "create then delete cancels out",
+      [pipe(1, "create", {}, { diameter: 100 })],
+      [pipe(1, "delete", { diameter: 100 }, {})],
+    ],
+    [
+      "create then update stays a create",
+      [pipe(1, "create", {}, { diameter: 100 })],
+      [pipe(1, "update", { diameter: 100 }, { diameter: 250 })],
+    ],
+    [
+      "delete then create reads as an update",
+      [pipe(1, "delete", { diameter: 100 }, {})],
+      [pipe(1, "create", {}, { diameter: 400 })],
+    ],
+    [
+      "does not merge entities with different field sets",
+      [pipe(1, "update", { diameter: 1 }, { diameter: 2 })],
+      [pipe(2, "update", { roughness: 3 }, { roughness: 4 })],
+    ],
+    [
+      "adds an entity the stored set does not hold",
+      [],
+      [pipe(1, "create", {}, { diameter: 100, label: "P1" })],
+    ],
+  ] as [string, ChangeRecord[], ChangeRecord[]][])("%s", (_, base, change) => {
+    expectSameAsSquash(stored(...base), cs(change));
+  });
+
+  it("keeps the rest of a collapsed column when one entity changes", () => {
+    const change = cs([
+      pipe(11, "update", { diameter: 150 }, { diameter: 175 }),
+    ]);
+
+    expectSameAsSquash(stored(), change);
+    const byId = new Map(
+      squashOnto(stored(), change, "forward").records.map((record) => [
+        `${record.entity}|${record.id}`,
+        record,
+      ]),
+    );
+    expect(byId.get("pipe|10")!.after.diameter).toBe(150);
+    expect(byId.get("pipe|11")!.after.diameter).toBe(175);
+    expect(byId.get("pipe|12")!.after.diameter).toBe(150);
+  });
+
+  it("keeps both values when a field meets a value of another type", () => {
+    const change = cs([
+      pipe(13, "update", { diameter: 100 }, { diameter: "wide" }),
+    ]);
+
+    expectSameAsSquash(stored(), change);
+    const after = squashOnto(stored(), change, "forward").records.find(
+      (record) => record.entity === "pipe" && record.id === 13,
+    )!.after;
+    expect(after.diameter).toBe("wide");
+  });
+
+  it("moves a merged entity to the op matching its new field set", () => {
+    const change = cs([pipe(10, "update", { roughness: 1 }, { roughness: 2 })]);
+
+    expectSameAsSquash(stored(), change);
+  });
+
+  it("carries every untouched entity across exactly", () => {
+    const change = cs([pipe(1, "create", {}, { diameter: 100 })]);
+    const records = byEntity(
+      squashOnto(stored(), change, "forward").records,
+    ).filter((record) => !(record.entity === "pipe" && record.id === 1));
+
+    expect(records).toStrictEqual(byEntity(stored().records));
   });
 });

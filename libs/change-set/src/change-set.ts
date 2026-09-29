@@ -6,8 +6,10 @@ import {
   readEntries,
   readName,
   readVersion,
+  squashEncoded,
   type ChangeEntry,
 } from "./codec";
+import type { Direction } from "./direction";
 import { CURRENT_VERSION } from "./versioning";
 import {
   type Cell,
@@ -213,4 +215,36 @@ export const squash = (
     for (const record of changeSet.records) all.push(record);
   }
   return ChangeSet.of(name, all);
+};
+
+export const squashOnto = (
+  base: ChangeSet,
+  change: ChangeSet,
+  direction: Direction,
+): ChangeSet => {
+  const records: ChangeRecord[] = [];
+  for (const entry of change.entries()) {
+    const before = entry.fields("before");
+    const after = entry.fields("after");
+    records.push(
+      direction === "forward"
+        ? {
+            entity: entry.entity,
+            id: entry.id,
+            kind: entry.kind,
+            before,
+            after,
+          }
+        : {
+            entity: entry.entity,
+            id: entry.id,
+            kind: inverseKind[entry.kind],
+            before: after,
+            after: before,
+          },
+    );
+  }
+  return ChangeSet.fromBytes(
+    squashEncoded(base.bytes, records, mergeRecords, "", CURRENT_VERSION),
+  );
 };

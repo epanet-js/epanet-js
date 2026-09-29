@@ -232,57 +232,70 @@ const writeValues = (
   return { type: Values.Json, offset: Json.endJson(builder) };
 };
 
-export const encode = (
-  name: string,
-  records: readonly ChangeRecord[],
-  version: number,
-): Uint8Array => {
-  const builder = new flatbuffers.Builder(1024);
-  const ops = groupRecords(records);
+type RawColumn = {
+  field: string;
+  before: Encoded | null;
+  after: Encoded | null;
+};
 
-  const opOffsets = ops.map((op) => {
-    const count = op.ids.length + op.keys.length;
+type RawOp = {
+  entity: EntityKind;
+  kind: ChangeKind;
+  ids: number[];
+  keys: string[];
+  columns: RawColumn[];
+};
 
-    const columnOffsets = op.columns.map((column) => {
-      const fieldOffset = builder.createString(column.field);
-      const before =
-        op.kind === "create"
-          ? null
-          : writeValues(builder, collapse(encodeCells(column.before), count));
-      const after =
-        op.kind === "delete"
-          ? null
-          : writeValues(builder, collapse(encodeCells(column.after), count));
+const writeOp = (
+  builder: flatbuffers.Builder,
+  op: RawOp,
+): flatbuffers.Offset => {
+  const count = op.ids.length + op.keys.length;
 
-      Column.startColumn(builder);
-      Column.addField(builder, fieldOffset);
-      if (before) {
-        Column.addBeforeType(builder, before.type);
-        Column.addBefore(builder, before.offset);
-      }
-      if (after) {
-        Column.addAfterType(builder, after.type);
-        Column.addAfter(builder, after.offset);
-      }
-      return Column.endColumn(builder);
-    });
+  const columnOffsets = op.columns.map((column) => {
+    const fieldOffset = builder.createString(column.field);
+    const before = column.before
+      ? writeValues(builder, collapse(column.before, count))
+      : null;
+    const after = column.after
+      ? writeValues(builder, collapse(column.after, count))
+      : null;
 
-    const colsOffset = Op.createColsVector(builder, columnOffsets);
-    const idsOffset = Op.createIdsVector(builder, op.ids);
-    const keysOffset = Op.createKeysVector(
-      builder,
-      op.keys.map((key) => builder.createString(key)),
-    );
-
-    Op.startOp(builder);
-    Op.addEntity(builder, entityToFb[op.entity]);
-    Op.addKind(builder, kindToFb[op.kind]);
-    Op.addIds(builder, idsOffset);
-    Op.addKeys(builder, keysOffset);
-    Op.addCols(builder, colsOffset);
-    return Op.endOp(builder);
+    Column.startColumn(builder);
+    Column.addField(builder, fieldOffset);
+    if (before) {
+      Column.addBeforeType(builder, before.type);
+      Column.addBefore(builder, before.offset);
+    }
+    if (after) {
+      Column.addAfterType(builder, after.type);
+      Column.addAfter(builder, after.offset);
+    }
+    return Column.endColumn(builder);
   });
 
+  const colsOffset = Op.createColsVector(builder, columnOffsets);
+  const idsOffset = Op.createIdsVector(builder, op.ids);
+  const keysOffset = Op.createKeysVector(
+    builder,
+    op.keys.map((key) => builder.createString(key)),
+  );
+
+  Op.startOp(builder);
+  Op.addEntity(builder, entityToFb[op.entity]);
+  Op.addKind(builder, kindToFb[op.kind]);
+  Op.addIds(builder, idsOffset);
+  Op.addKeys(builder, keysOffset);
+  Op.addCols(builder, colsOffset);
+  return Op.endOp(builder);
+};
+
+const finish = (
+  builder: flatbuffers.Builder,
+  name: string,
+  opOffsets: flatbuffers.Offset[],
+  version: number,
+): Uint8Array => {
   const nameOffset = builder.createString(name);
   const opsOffset = FbChangeSet.createOpsVector(builder, opOffsets);
   FbChangeSet.startChangeSet(builder);
@@ -292,6 +305,30 @@ export const encode = (
   builder.finish(FbChangeSet.endChangeSet(builder));
 
   return builder.asUint8Array().slice();
+};
+
+const draftToRaw = (op: OpDraft): RawOp => ({
+  entity: op.entity,
+  kind: op.kind,
+  ids: op.ids,
+  keys: op.keys,
+  columns: op.columns.map((column) => ({
+    field: column.field,
+    before: op.kind === "create" ? null : encodeCells(column.before),
+    after: op.kind === "delete" ? null : encodeCells(column.after),
+  })),
+});
+
+export const encode = (
+  name: string,
+  records: readonly ChangeRecord[],
+  version: number,
+): Uint8Array => {
+  const builder = new flatbuffers.Builder(1024);
+  const opOffsets = groupRecords(records).map((op) =>
+    writeOp(builder, draftToRaw(op)),
+  );
+  return finish(builder, name, opOffsets, version);
 };
 
 const readCell = (
@@ -513,4 +550,243 @@ export const decode = (bytes: Uint8Array): DecodedChangeSet => {
   }
 
   return { name: root.name() ?? "", version: root.version(), records };
+};
+
+const emptyEncoded: Encoded = { tag: "doubles", values: [], nulls: [] };
+
+const makeEncoded = (
+  tag: Encoded["tag"],
+  values: (number | string)[],
+  nulls: number[],
+): Encoded => ({ tag, values, nulls }) as Encoded;
+
+const absentEncoded = (count: number): Encoded =>
+  makeEncoded(
+    "doubles",
+    new Array<number>(count).fill(0),
+    new Array<number>(count).fill(Presence.Absent),
+  );
+
+const readRawSide = (
+  column: Column,
+  side: Side,
+  indices: readonly number[],
+): Encoded => {
+  const read = <T extends Doubles | Bools | Texts | Json>(obj: T): T | null =>
+    (side === "before" ? column.before(obj) : column.after(obj)) as T | null;
+
+  const rawOf = (
+    tag: Encoded["tag"],
+    values: Doubles | Bools | Texts | Json | null,
+    valueAt: (index: number) => number | string,
+  ): Encoded => {
+    if (!values) return absentEncoded(indices.length);
+    const vLength = values.vLength();
+    const nullsLength = values.nullsLength();
+    return makeEncoded(
+      tag,
+      indices.map((i) => valueAt(vLength === 1 ? 0 : i)),
+      indices.map(
+        (i) => values.nulls(nullsLength === 1 ? 0 : i) ?? Presence.Present,
+      ),
+    );
+  };
+
+  switch (typeOf(column, side)) {
+    case Values.Doubles: {
+      const values = read(new Doubles());
+      return rawOf("doubles", values, (i) => values?.v(i) ?? 0);
+    }
+    case Values.Bools: {
+      const values = read(new Bools());
+      return rawOf("bools", values, (i) => values?.v(i) ?? 0);
+    }
+    case Values.Texts: {
+      const values = read(new Texts());
+      return rawOf("texts", values, (i) => values?.v(i) ?? "");
+    }
+    case Values.Json: {
+      const values = read(new Json());
+      return rawOf("json", values, (i) => values?.v(i) ?? "");
+    }
+    default:
+      return absentEncoded(indices.length);
+  }
+};
+
+const hasPresent = (encoded: Encoded): boolean =>
+  encoded.nulls.some((presence) => presence === (Presence.Present as number));
+
+const retag = (encoded: Encoded, tag: Encoded["tag"]): Encoded =>
+  makeEncoded(
+    tag,
+    encoded.values.map(() => (tag === "doubles" || tag === "bools" ? 0 : "")),
+    encoded.nulls,
+  );
+
+const toJson = (encoded: Encoded): Encoded =>
+  makeEncoded(
+    "json",
+    (encoded.values as (number | string)[]).map((value, i) => {
+      if (encoded.nulls[i] !== (Presence.Present as number)) return "";
+      if (encoded.tag === "json") return value;
+      if (encoded.tag === "bools") return value === 1 ? "true" : "false";
+      return JSON.stringify(value);
+    }),
+    encoded.nulls,
+  );
+
+const concatEncoded = (first: Encoded, second: Encoded): Encoded => {
+  if (second.values.length === 0) return first;
+  if (first.values.length === 0) return second;
+
+  let a = first;
+  let b = second;
+  if (a.tag !== b.tag) {
+    if (!hasPresent(a)) a = retag(a, b.tag);
+    else if (!hasPresent(b)) b = retag(b, a.tag);
+    else {
+      a = toJson(a);
+      b = toJson(b);
+    }
+  }
+  return makeEncoded(
+    a.tag,
+    [
+      ...(a.values as (number | string)[]),
+      ...(b.values as (number | string)[]),
+    ],
+    [...a.nulls, ...b.nulls],
+  );
+};
+
+const entityKey = (entity: EntityKind, id: number | string): string =>
+  `${entity}|${isStringKeyed(entity) ? String(id) : Number(id)}`;
+
+const opKey = (
+  entity: EntityKind,
+  kind: ChangeKind,
+  fields: readonly string[],
+): string => `${entity}|${kind}|${[...fields].sort().join(",")}`;
+
+type StoredOp = {
+  reader: OpReader;
+  kept: number[];
+  fields: string[];
+  key: string;
+};
+
+const keptOp = (stored: StoredOp, added: OpDraft | undefined): RawOp => {
+  const { reader, kept, fields } = stored;
+  const { op } = reader;
+  const useKeys = op.keysLength() > 0;
+  const addedRaw = added ? draftToRaw(added) : null;
+
+  const columns = fields.map((field) => {
+    const column = reader.columnsByField().get(field)!;
+    const addedColumn = addedRaw?.columns.find(
+      (candidate) => candidate.field === field,
+    );
+    const side = (which: Side): Encoded | null =>
+      reader.hasSide(which)
+        ? concatEncoded(
+            readRawSide(column, which, kept),
+            addedColumn?.[which] ?? emptyEncoded,
+          )
+        : null;
+    return { field, before: side("before"), after: side("after") };
+  });
+
+  return {
+    entity: reader.entity,
+    kind: reader.kind,
+    ids: [
+      ...(useKeys ? [] : kept.map((i) => op.ids(i) ?? 0)),
+      ...(added?.ids ?? []),
+    ],
+    keys: [
+      ...(useKeys ? kept.map((i) => op.keys(i) ?? "") : []),
+      ...(added?.keys ?? []),
+    ],
+    columns,
+  };
+};
+
+export const squashEncoded = (
+  bytes: Uint8Array,
+  changeRecords: readonly ChangeRecord[],
+  merge: (records: readonly ChangeRecord[]) => ChangeRecord[],
+  name: string,
+  version: number,
+): Uint8Array => {
+  const changes = new Map<string, ChangeRecord>();
+  for (const record of changeRecords) {
+    changes.set(entityKey(record.entity, record.id), record);
+  }
+
+  const storedOps: StoredOp[] = [];
+  const touched = new Map<string, ChangeRecord>();
+  for (const reader of readOps(bytes)) {
+    const { op } = reader;
+    const useKeys = op.keysLength() > 0;
+    const count = entityCount(op);
+    const kept: number[] = [];
+    for (let i = 0; i < count; i++) {
+      const id = useKeys ? (op.keys(i) ?? "") : (op.ids(i) ?? 0);
+      const key = entityKey(reader.entity, id);
+      if (!changes.has(key)) {
+        kept.push(i);
+        continue;
+      }
+      const entry = new OpEntry(reader, i, id);
+      touched.set(key, {
+        entity: reader.entity,
+        id,
+        kind: reader.kind,
+        before: entry.fields("before"),
+        after: entry.fields("after"),
+      });
+    }
+    const fields = [...reader.columnsByField().keys()];
+    storedOps.push({
+      reader,
+      kept,
+      fields,
+      key: opKey(reader.entity, reader.kind, fields),
+    });
+  }
+
+  const merged: ChangeRecord[] = [];
+  for (const [key, change] of changes) {
+    const stored = touched.get(key);
+    for (const record of merge(stored ? [stored, change] : [change])) {
+      merged.push(record);
+    }
+  }
+
+  const groups = new Map<string, OpDraft>();
+  for (const group of groupRecords(merged)) {
+    groups.set(
+      opKey(
+        group.entity,
+        group.kind,
+        group.columns.map((column) => column.field),
+      ),
+      group,
+    );
+  }
+
+  const builder = new flatbuffers.Builder(1024);
+  const opOffsets: flatbuffers.Offset[] = [];
+  for (const stored of storedOps) {
+    const added = groups.get(stored.key);
+    if (added) groups.delete(stored.key);
+    if (stored.kept.length === 0 && !added) continue;
+    opOffsets.push(writeOp(builder, keptOp(stored, added)));
+  }
+  for (const group of groups.values()) {
+    opOffsets.push(writeOp(builder, draftToRaw(group)));
+  }
+
+  return finish(builder, name, opOffsets, version);
 };
