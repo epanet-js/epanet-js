@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
+import { getDefaultStore } from "jotai";
 import {
   Control,
   NodeAsset,
@@ -13,6 +14,7 @@ import {
   resolvePermissions,
   type Permissions,
 } from "src/hooks/use-permissions";
+import { highlightsAtom } from "src/state/highlights";
 import { PumpControlsEditor } from "./pump-controls-editor";
 import { VariableSpeedPumpTargets } from "./variable-speed-pump-controls-editor";
 
@@ -44,7 +46,14 @@ beforeEach(() => {
 const IDS = { J1: 1, J2: 2, T1: 3, PU1: 4, PU2: 5, PU3: 6, P1: 7 } as const;
 
 const aNode = (id: number, label: string, type: NodeAsset["type"]) =>
-  ({ id, label, type, isNode: true }) as unknown as NodeAsset;
+  ({
+    id,
+    label,
+    type,
+    isNode: true,
+    coordinates: [0, 0],
+    feature: { properties: { type } },
+  }) as unknown as NodeAsset;
 
 const aLink = <T,>(id: number, label: string, type: string) =>
   ({ id, label, type, isNode: false }) as unknown as T;
@@ -139,6 +148,14 @@ describe("VariableSpeedPumpControlsEditor", () => {
     });
     expect(screen.getByText("Level (m)")).toBeInTheDocument();
 
+    const atNode = screen.getByRole("combobox", { name: "At node" });
+    await user.hover(atNode);
+    expect(getDefaultStore().get(highlightsAtom)).toEqual([
+      { type: "marker", coordinates: [0, 0], nodeType: "tank" },
+    ]);
+    await user.unhover(atNode);
+    expect(getDefaultStore().get(highlightsAtom)).toEqual([]);
+
     await user.click(
       screen.getByRole("checkbox", { name: "Vary by time of day" }),
     );
@@ -208,6 +225,11 @@ describe("VariableSpeedPumpControlsEditor", () => {
       quantity: "flow",
       targetId: IDS.P1,
     });
+
+    await user.hover(screen.getByRole("combobox", { name: "Flow through" }));
+    expect(getDefaultStore().get(highlightsAtom)).toEqual([
+      { type: "asset", assetId: IDS.P1 },
+    ]);
 
     await user.click(
       screen.getByRole("checkbox", { name: "Vary by time of day" }),

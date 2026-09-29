@@ -1,4 +1,5 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
+import { useSetAtom } from "jotai";
 import { Selector } from "@epanet-js/ui-kit";
 import {
   AssetId,
@@ -29,6 +30,7 @@ import {
 import { NumericField } from "src/components/form/numeric-field";
 import { TextField } from "src/components/form/text-field";
 import { Checkbox } from "src/components/form/Checkbox";
+import { highlightsAtom } from "src/state/highlights";
 
 export type VariableSpeedPumpTargets = {
   nodes: NodeAsset[];
@@ -124,6 +126,8 @@ export const VariableSpeedPumpControlsEditor = ({
   const update = (changes: Partial<VariableSpeedPumpControl>) =>
     onControlChange({ ...control, ...changes });
 
+  const highlightAsset = useAssetHighlight(targets);
+
   const lagCandidates = useMemo(
     () => targets.pumps.filter((pump) => pump.id !== control.linkId),
     [targets.pumps, control.linkId],
@@ -151,6 +155,7 @@ export const VariableSpeedPumpControlsEditor = ({
           control={control}
           pipes={targets.pipes}
           onChange={(targetId) => update({ targetId })}
+          onHighlightChange={highlightAsset}
           readOnly={readOnly}
         />
       ) : (
@@ -164,6 +169,7 @@ export const VariableSpeedPumpControlsEditor = ({
               quantity: node.type === "tank" ? "level" : "pressure",
             })
           }
+          onHighlightChange={highlightAsset}
           readOnly={readOnly}
         />
       )}
@@ -256,6 +262,7 @@ export const VariableSpeedPumpControlsEditor = ({
           laggedPumpIds={control.laggedPumpIds}
           candidates={lagCandidates}
           onChange={(laggedPumpIds) => update({ laggedPumpIds })}
+          onHighlightChange={highlightAsset}
           readOnly={readOnly}
         />
       )}
@@ -268,12 +275,14 @@ const NodeTargetField = ({
   nodes,
   outletNodeId,
   onChange,
+  onHighlightChange,
   readOnly,
 }: {
   control: VariableSpeedPumpControl;
   nodes: NodeAsset[];
   outletNodeId: AssetId | null;
   onChange: (node: NodeAsset) => void;
+  onHighlightChange: (assetId: AssetId | null) => void;
   readOnly: boolean;
 }) => {
   const translate = useTranslate();
@@ -290,10 +299,14 @@ const NodeTargetField = ({
 
   return (
     <InlineField name={atNodeLabel} labelSize="md">
-      {readOnly ? (
-        <TextField padding="md">{selected?.label ?? ""}</TextField>
-      ) : (
-        <div className="w-full">
+      <div
+        className="w-full"
+        onMouseEnter={() => onHighlightChange(control.targetId)}
+        onMouseLeave={() => onHighlightChange(null)}
+      >
+        {readOnly ? (
+          <TextField padding="md">{selected?.label ?? ""}</TextField>
+        ) : (
           <Selector
             ariaLabel={atNodeLabel}
             options={options}
@@ -302,10 +315,11 @@ const NodeTargetField = ({
               const node = nodes.find((n) => n.id === nodeId);
               if (node) onChange(node);
             }}
+            onActiveOptionChange={onHighlightChange}
             styleOptions={selectorStyleOptions}
           />
-        </div>
-      )}
+        )}
+      </div>
     </InlineField>
   );
 };
@@ -314,11 +328,13 @@ const FlowTargetField = ({
   control,
   pipes,
   onChange,
+  onHighlightChange,
   readOnly,
 }: {
   control: VariableSpeedPumpControl;
   pipes: Pipe[];
   onChange: (targetId: AssetId) => void;
+  onHighlightChange: (assetId: AssetId | null) => void;
   readOnly: boolean;
 }) => {
   const translate = useTranslate();
@@ -337,19 +353,24 @@ const FlowTargetField = ({
 
   return (
     <InlineField name={flowThroughLabel} labelSize="md">
-      {readOnly ? (
-        <TextField padding="md">{selected?.label ?? ""}</TextField>
-      ) : (
-        <div className="w-full">
+      <div
+        className="w-full"
+        onMouseEnter={() => onHighlightChange(control.targetId)}
+        onMouseLeave={() => onHighlightChange(null)}
+      >
+        {readOnly ? (
+          <TextField padding="md">{selected?.label ?? ""}</TextField>
+        ) : (
           <Selector
             ariaLabel={flowThroughLabel}
             options={options}
             selected={control.targetId}
             onChange={onChange}
+            onActiveOptionChange={onHighlightChange}
             styleOptions={selectorStyleOptions}
           />
-        </div>
-      )}
+        )}
+      </div>
     </InlineField>
   );
 };
@@ -487,11 +508,13 @@ const LagPumpsGrid = ({
   laggedPumpIds,
   candidates,
   onChange,
+  onHighlightChange,
   readOnly,
 }: {
   laggedPumpIds: AssetId[];
   candidates: Pump[];
   onChange: (laggedPumpIds: AssetId[]) => void;
+  onHighlightChange: (assetId: AssetId | null) => void;
   readOnly: boolean;
 }) => {
   const translate = useTranslate();
@@ -523,9 +546,10 @@ const LagPumpsGrid = ({
         options,
         placeholder: translate("pump"),
         emptyValue: null,
+        onHighlightChange,
       }),
     ],
-    [translate, options],
+    [translate, options, onHighlightChange],
   );
 
   const createRow = useCallback((): LagRow => {
@@ -560,6 +584,37 @@ const LagPumpsGrid = ({
       readOnly={readOnly}
     />
   );
+};
+
+const useAssetHighlight = (targets: VariableSpeedPumpTargets) => {
+  const setHighlights = useSetAtom(highlightsAtom);
+
+  const highlightAsset = useCallback(
+    (assetId: AssetId | null) => {
+      if (assetId === null) {
+        setHighlights([]);
+        return;
+      }
+      const node = targets.nodes.find((n) => n.id === assetId);
+      if (node) {
+        const [lng, lat] = node.coordinates;
+        setHighlights([
+          {
+            type: "marker",
+            coordinates: [lng, lat],
+            nodeType: node.feature.properties.type,
+          },
+        ]);
+        return;
+      }
+      setHighlights([{ type: "asset", assetId }]);
+    },
+    [targets.nodes, setHighlights],
+  );
+
+  useEffect(() => () => setHighlights([]), [setHighlights]);
+
+  return highlightAsset;
 };
 
 const nodeOptionLabel = (
