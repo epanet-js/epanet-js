@@ -26,7 +26,13 @@ import {
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { worktreeAtom } from "src/state/scenarios";
 import { nullTrace, type Trace } from "src/infra/trace";
-import type { Branch, StoredBranches, Worktree } from "@epanet-js/worktree";
+import type {
+  Branch,
+  StoredBranch,
+  StoredBranches,
+  StoredBranchesDeprecated,
+  Worktree,
+} from "@epanet-js/worktree";
 
 type Identifiers = { pool: IdPool; labelType: LabelType };
 
@@ -127,7 +133,7 @@ const branchFromMain = (
 export const buildStoredBranchStates = (
   mainState: BranchState,
   factories: ModelFactories,
-  { deltas, simulationSettings }: StoredBranches,
+  { deltas, simulationSettings }: StoredBranchesDeprecated,
   trace: Trace,
 ): Map<string, BranchState> => {
   const branchStates = new Map<string, BranchState>();
@@ -178,15 +184,20 @@ export const buildStoredBranchStates = (
   return branchStates;
 };
 
-export const buildUnloadedBranchStates = (
+export const buildUnloadedBranchStates = async (
   mainState: BranchState,
   factories: ModelFactories,
-  { deltas, simulationSettings }: StoredBranches,
+  { worktree }: StoredBranches,
+  loadBranch: (branchId: string) => Promise<StoredBranch>,
   trace: Trace,
-): Map<string, UnloadedBranchState> => {
+): Promise<Map<string, UnloadedBranchState>> => {
   const branchStates = new Map<string, UnloadedBranchState>();
 
-  for (const [branchId, delta] of deltas) {
+  for (const branchId of worktree.scenarios) {
+    const { delta, simulationSettings } = await trace.measureAsync(
+      `${branchId}:read-branch`,
+      () => loadBranch(branchId),
+    );
     let version = mainState.version;
     if (delta.size > 0) {
       trace.measure(
@@ -197,15 +208,14 @@ export const buildUnloadedBranchStates = (
       version = nanoid();
     }
 
-    const storedSettings = simulationSettings.get(branchId);
     branchStates.set(branchId, {
       version,
       sessionHistory: new SessionHistory(version),
       simulation: mainState.simulation,
       simulationSourceId: mainState.simulationSourceId,
       simulationSettings:
-        storedSettings !== undefined
-          ? buildSimulationSettingsData(storedSettings)
+        simulationSettings !== null
+          ? buildSimulationSettingsData(simulationSettings)
           : mainState.simulationSettings,
     });
   }

@@ -35,20 +35,39 @@ type RestoredBranches = {
 const restoreBranches = async (
   loadInput: ProjectLoadInput,
   trace: Trace,
-  isLazyScenariosOn: boolean,
 ): Promise<RestoredBranches> => {
+  const branchStore = getBranchStore();
   const storedBranches = await trace.measureAsync("load-scenarios", () =>
-    getBranchStore().load(),
+    branchStore.load(),
   );
   const mainState = trace.measure("build-main-state", () =>
     buildMainBranchState(loadInput),
   );
-  const buildBranchStates = isLazyScenariosOn
-    ? buildUnloadedBranchStates
-    : buildStoredBranchStates;
   return {
     worktree: storedBranches.worktree,
-    branchStates: buildBranchStates(
+    branchStates: await buildUnloadedBranchStates(
+      mainState,
+      loadInput.factories,
+      storedBranches,
+      (branchId) => branchStore.loadBranch(branchId),
+      trace,
+    ),
+  };
+};
+
+const restoreBranchesDeprecated = async (
+  loadInput: ProjectLoadInput,
+  trace: Trace,
+): Promise<RestoredBranches> => {
+  const storedBranches = await trace.measureAsync("load-scenarios", () =>
+    getBranchStore().loadDeprecated(),
+  );
+  const mainState = trace.measure("build-main-state", () =>
+    buildMainBranchState(loadInput),
+  );
+  return {
+    worktree: storedBranches.worktree,
+    branchStates: buildStoredBranchStates(
       mainState,
       loadInput.factories,
       storedBranches,
@@ -140,7 +159,9 @@ export const useOpenPersistedProject = () => {
 
         let restored: RestoredBranches;
         try {
-          restored = await restoreBranches(loadInput, trace, isLazyScenariosOn);
+          restored = isLazyScenariosOn
+            ? await restoreBranches(loadInput, trace)
+            : await restoreBranchesDeprecated(loadInput, trace);
         } catch (error) {
           trace.end();
           captureError(error as Error);

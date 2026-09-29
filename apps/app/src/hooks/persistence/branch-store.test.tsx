@@ -13,6 +13,7 @@ import {
   type Branch,
   type BranchingRules,
   type BranchStore,
+  type Worktree,
 } from "@epanet-js/worktree";
 import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
@@ -80,38 +81,47 @@ const aRecordingStore = () => {
     recorded.push({ branchId, changeSet, direction });
     return Promise.resolve();
   };
+  const loadWorktree = (): Worktree => {
+    const worktree = initializeWorktree();
+    const branches = new Map(worktree.branches);
+    branches.set("main", { ...branches.get("main")!, status: "locked" });
+    const branchIds = [
+      ...new Set([
+        ...recorded.map((entry) => entry.branchId),
+        ...recordedSettings.keys(),
+      ]),
+    ];
+    branchIds.forEach((branchId, index) => {
+      branches.set(branchId, aScenarioBranch(branchId, index + 1));
+    });
+    return {
+      ...worktree,
+      branches,
+      scenarios: branchIds,
+      highestScenarioNumber: branchIds.length,
+    };
+  };
   const store: BranchStore = {
     ...nullBranchStore,
-    loadDelta: (branchId) => Promise.resolve(deltaOf(branchId)),
+    loadBranch: (branchId) =>
+      Promise.resolve({
+        delta: deltaOf(branchId),
+        simulationSettings: recordedSettings.get(branchId) ?? null,
+      }),
     recordChange,
     recordChangeDeprecated: recordChange,
     recordSimulationSettings: (branchId, data) => {
       recordedSettings.set(branchId, data);
       return Promise.resolve();
     },
-    load: () => {
-      const worktree = initializeWorktree();
-      const deltas = new Map<string, ChangeSet>();
-      const branches = new Map(worktree.branches);
-      branches.set("main", { ...branches.get("main")!, status: "locked" });
-      const branchIds = [
-        ...new Set([
-          ...recorded.map((entry) => entry.branchId),
-          ...recordedSettings.keys(),
-        ]),
-      ];
-      branchIds.forEach((branchId, index) => {
-        branches.set(branchId, aScenarioBranch(branchId, index + 1));
-        deltas.set(branchId, deltaOf(branchId));
-      });
+    load: () => Promise.resolve({ worktree: loadWorktree() }),
+    loadDeprecated: () => {
+      const worktree = loadWorktree();
       return Promise.resolve({
-        worktree: {
-          ...worktree,
-          branches,
-          scenarios: [...deltas.keys()],
-          highestScenarioNumber: deltas.size,
-        },
-        deltas,
+        worktree,
+        deltas: new Map(
+          worktree.scenarios.map((branchId) => [branchId, deltaOf(branchId)]),
+        ),
         simulationSettings: new Map(recordedSettings),
       });
     },
@@ -500,7 +510,7 @@ describe("branch store", () => {
     const beforeBranchStates = store.get(branchStateAtom);
     registerBranchStore({
       ...nullBranchStore,
-      load: () => Promise.reject(new Error("delta unreadable")),
+      loadDeprecated: () => Promise.reject(new Error("delta unreadable")),
     });
 
     const result = await reopen(store);
@@ -662,9 +672,9 @@ describe("branch store", () => {
       const released = new Promise<void>((resolve) => (release = resolve));
       registerBranchStore({
         ...branchStore,
-        loadDelta: async (branchId) => {
+        loadBranch: async (branchId) => {
           await released;
-          return branchStore.loadDelta(branchId);
+          return branchStore.loadBranch(branchId);
         },
       });
       const { result } = renderHook(

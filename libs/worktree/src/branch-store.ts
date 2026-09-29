@@ -4,13 +4,23 @@ import { initializeWorktree } from "./initialize-worktree";
 
 export type StoredBranches = {
   worktree: Worktree;
+};
+
+export type StoredBranch = {
+  delta: ChangeSet;
+  simulationSettings: string | null;
+};
+
+export type StoredBranchesDeprecated = {
+  worktree: Worktree;
   deltas: Map<string, ChangeSet>;
   simulationSettings: Map<string, string>;
 };
 
 export interface BranchStore {
   load(): Promise<StoredBranches>;
-  loadDelta(branchId: string): Promise<ChangeSet>;
+  loadDeprecated(): Promise<StoredBranchesDeprecated>;
+  loadBranch(branchId: string): Promise<StoredBranch>;
   createBranch(worktree: Worktree, branch: Branch): Promise<void>;
   renameBranch(branchId: string, name: string): Promise<void>;
   deleteBranch(branchId: string): Promise<void>;
@@ -28,14 +38,15 @@ export interface BranchStore {
 }
 
 export const nullBranchStore: BranchStore = {
-  load: () =>
+  load: () => Promise.resolve({ worktree: initializeWorktree() }),
+  loadDeprecated: () =>
     Promise.resolve({
       worktree: initializeWorktree(),
       deltas: new Map(),
       simulationSettings: new Map(),
     }),
-  loadDelta: (branchId) =>
-    Promise.reject(new Error(`No stored delta for ${branchId}`)),
+  loadBranch: (branchId) =>
+    Promise.reject(new Error(`No stored branch ${branchId}`)),
   createBranch: () => Promise.resolve(),
   renameBranch: () => Promise.resolve(),
   deleteBranch: () => Promise.resolve(),

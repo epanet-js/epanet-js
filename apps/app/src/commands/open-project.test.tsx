@@ -73,7 +73,7 @@ describe("openProjectFile", () => {
     const worktree = initializeWorktree();
     registerBranchStore({
       ...nullBranchStore,
-      load: () =>
+      loadDeprecated: () =>
         Promise.resolve({
           worktree: {
             ...worktree,

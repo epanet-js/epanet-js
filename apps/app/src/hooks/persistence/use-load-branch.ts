@@ -24,8 +24,8 @@ export const useLoadBranch = () => {
         if (isBranchLoaded(state)) return;
 
         await trace.measureAsync("wait-writes", () => writeQueue.whenIdle());
-        const delta = await trace.measureAsync("read-delta", () =>
-          getBranchStore().loadDelta(branchId),
+        const { delta } = await trace.measureAsync("read-delta", () =>
+          getBranchStore().loadBranch(branchId),
         );
 
         const branchStates = get(branchStateAtom);
