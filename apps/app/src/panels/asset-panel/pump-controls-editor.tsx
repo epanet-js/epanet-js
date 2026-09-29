@@ -15,6 +15,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { usePermissions } from "src/hooks/use-permissions";
 import { useShowPriorityAccessDialog } from "src/hooks/use-priority-access";
 import { useShowControls } from "src/commands/show-controls";
+import { useSelectAssetsInApp } from "src/commands/select-assets-in-app";
 import { ExternalLinkIcon } from "src/icons";
 import { InlineField } from "src/components/form/fields";
 import { TextField } from "src/components/form/text-field";
@@ -57,6 +58,7 @@ export const PumpControlsEditor = ({
   levelUnit,
   onControlChange,
   variableSpeedPumpTargets,
+  controllingPump = null,
   hasRawControls = false,
   readOnly = false,
 }: {
@@ -68,6 +70,7 @@ export const PumpControlsEditor = ({
   levelUnit: Unit;
   onControlChange: (control: Control | null) => void;
   variableSpeedPumpTargets?: VariableSpeedPumpTargets;
+  controllingPump?: { id: AssetId; label: string } | null;
   hasRawControls?: boolean;
   readOnly?: boolean;
 }) => {
@@ -75,6 +78,7 @@ export const PumpControlsEditor = ({
   const { canUseControls } = usePermissions();
   const showPriorityAccess = useShowPriorityAccessDialog();
   const showControls = useShowControls();
+  const selectAssets = useSelectAssetsInApp();
   const controlType = controlTypeFor(control);
 
   const typeOptions = useMemo(
@@ -201,6 +205,22 @@ export const PumpControlsEditor = ({
           onStepsChange={handleStepsChange}
           readOnly={readOnly}
         />
+      )}
+
+      {controllingPump && (
+        <button
+          type="button"
+          onClick={() => selectAssets([controllingPump.id])}
+          className="flex items-center gap-x-1.5 py-1 text-size-base font-semibold text-orange-800 cursor-pointer"
+        >
+          <ExternalLinkIcon size="md" />
+          <span>
+            {translate(
+              "controls.variableSpeed.controlledByPump",
+              controllingPump.label,
+            )}
+          </span>
+        </button>
       )}
 
       {hasRawControls && (

@@ -1164,7 +1164,8 @@
       "addPump": "Add pump",
       "tankLevels": "Start/stop at tank level",
       "offAbove": "Off above",
-      "onBelow": "On below"
+      "onBelow": "On below",
+      "controlledByPump": "Controlled by pump {{1}}"
     }
   },
   "demandMultiplier": "Demand multiplier",

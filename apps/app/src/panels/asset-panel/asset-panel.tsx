@@ -2574,6 +2574,17 @@ const PumpEditor = ({
       (c) => c.linkId === pump.id,
     ) ?? null;
 
+  const controllingPump = useMemo(() => {
+    const lead = hydraulicModel.controls.find(
+      (c) =>
+        c.type === "variable-speed-pump" &&
+        c.linkId !== pump.id &&
+        c.laggedPumpIds.includes(pump.id),
+    );
+    const leadPump = lead && hydraulicModel.assets.get(lead.linkId);
+    return leadPump ? { id: leadPump.id, label: leadPump.label } : null;
+  }, [hydraulicModel.controls, hydraulicModel.assets, pump.id]);
+
   const { rawControls } = hydraulicModel;
   const hasRawControls =
     rawControls.simple.some((c) =>
@@ -2704,6 +2715,7 @@ const PumpEditor = ({
           levelUnit={units.minLevel}
           onControlChange={handleControlChangeForPump}
           variableSpeedPumpTargets={variableSpeedPumpTargets}
+          controllingPump={controllingPump}
           hasRawControls={hasRawControls}
           readOnly={readonly}
         />
