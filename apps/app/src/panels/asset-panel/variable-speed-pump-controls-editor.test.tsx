@@ -45,7 +45,12 @@ beforeEach(() => {
 
 const IDS = { J1: 1, J2: 2, T1: 3, PU1: 4, PU2: 5, PU3: 6, P1: 7 } as const;
 
-const aNode = (id: number, label: string, type: NodeAsset["type"]) =>
+const aNode = (
+  id: number,
+  label: string,
+  type: NodeAsset["type"],
+  levels: { minLevel?: number; maxLevel?: number } = {},
+) =>
   ({
     id,
     label,
@@ -53,6 +58,7 @@ const aNode = (id: number, label: string, type: NodeAsset["type"]) =>
     isNode: true,
     coordinates: [0, 0],
     feature: { properties: { type } },
+    ...levels,
   }) as unknown as NodeAsset;
 
 const aLink = <T,>(id: number, label: string, type: string) =>
@@ -62,7 +68,7 @@ const TARGETS: VariableSpeedPumpTargets = {
   nodes: [
     aNode(IDS.J1, "J1", "junction"),
     aNode(IDS.J2, "J2", "junction"),
-    aNode(IDS.T1, "T1", "tank"),
+    aNode(IDS.T1, "T1", "tank", { minLevel: 1, maxLevel: 5 }),
   ],
   pipes: [aLink<Pipe>(IDS.P1, "P1", "pipe")],
   pumps: [
@@ -116,6 +122,16 @@ const selectOption = async (
   await user.click(await screen.findByRole("option", { name: option }));
 };
 
+const typeValue = async (
+  user: ReturnType<typeof userEvent.setup>,
+  label: string,
+  value: string,
+) => {
+  const input = screen.getByRole("textbox", { name: `Value for: ${label}` });
+  await user.clear(input);
+  await user.type(input, `${value}{Enter}`);
+};
+
 describe("VariableSpeedPumpControlsEditor", () => {
   it("edits a pressure target", async () => {
     const user = userEvent.setup();
@@ -156,6 +172,33 @@ describe("VariableSpeedPumpControlsEditor", () => {
     await user.unhover(atNode);
     expect(getDefaultStore().get(highlightsAtom)).toEqual([]);
 
+    await user.click(
+      screen.getByRole("checkbox", { name: "Start/stop at tank level" }),
+    );
+    expect(lastControl(onChange)!.tankLevels).toEqual({
+      tankId: IDS.T1,
+      offLevel: 5,
+      onLevel: 1,
+    });
+    expect(
+      screen.queryByRole("combobox", { name: "Tank" }),
+    ).not.toBeInTheDocument();
+
+    const callsBeforeInvalid = onChange.mock.calls.length;
+    await typeValue(user, "On below (m)", "6");
+    expect(onChange.mock.calls.length).toBe(callsBeforeInvalid);
+    expect(
+      screen.getByText("On level must be below the off level.", {
+        exact: false,
+      }),
+    ).toBeInTheDocument();
+    await typeValue(user, "On below (m)", "2");
+    expect(lastControl(onChange)!.tankLevels).toEqual({
+      tankId: IDS.T1,
+      offLevel: 5,
+      onLevel: 2,
+    });
+
     await user.click(atNode);
     await user.click(
       await screen.findByRole("button", { name: "J2 (outlet of this pump)" }),
@@ -163,7 +206,11 @@ describe("VariableSpeedPumpControlsEditor", () => {
     expect(lastControl(onChange)).toMatchObject({
       quantity: "pressure",
       targetId: IDS.J2,
+      tankLevels: undefined,
     });
+    expect(
+      screen.queryByRole("checkbox", { name: "Start/stop at tank level" }),
+    ).not.toBeInTheDocument();
 
     await user.click(
       screen.getByRole("checkbox", { name: "Vary by time of day" }),
@@ -228,6 +275,18 @@ describe("VariableSpeedPumpControlsEditor", () => {
       schedule: [],
     });
     expect(screen.getByText("Flow (l/s)")).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole("checkbox", { name: "Start/stop at tank level" }),
+    );
+    expect(lastControl(onChange)!.tankLevels).toEqual({
+      tankId: IDS.T1,
+      offLevel: 5,
+      onLevel: 1,
+    });
+    expect(screen.getByRole("combobox", { name: "Tank" })).toHaveTextContent(
+      "T1",
+    );
 
     await selectOption(user, "Flow through", "P1");
     expect(lastControl(onChange)).toMatchObject({

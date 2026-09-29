@@ -26,7 +26,7 @@ type LevelField = "onLevel" | "offLevel";
 
 type LevelSettingError = "onOutOfRange" | "offOutOfRange" | "order";
 
-const validateLevelSetting = (params: {
+export const validateLevelSetting = (params: {
   onLevel: number;
   offLevel: number;
   minLevel: number;

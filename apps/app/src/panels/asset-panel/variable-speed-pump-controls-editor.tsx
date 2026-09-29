@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSetAtom } from "jotai";
 import { Selector } from "@epanet-js/ui-kit";
 import {
@@ -6,8 +6,10 @@ import {
   NodeAsset,
   Pipe,
   Pump,
+  Tank,
   VariableSpeedPumpControl,
   VariableSpeedPumpSchedulePoint,
+  VariableSpeedPumpTankLevels,
 } from "@epanet-js/hydraulic-model";
 import type { UnitsSpec } from "@epanet-js/project-settings";
 import { localizeDecimal } from "@epanet-js/i18n";
@@ -31,6 +33,7 @@ import { NumericField } from "src/components/form/numeric-field";
 import { TextField } from "src/components/form/text-field";
 import { Checkbox } from "src/components/form/Checkbox";
 import { highlightsAtom } from "src/state/highlights";
+import { validateLevelSetting } from "./pump-level-based-controls";
 
 export type VariableSpeedPumpTargets = {
   nodes: NodeAsset[];
@@ -69,6 +72,7 @@ export const buildDefaultPressureTarget = (
     maxSpeed: base?.maxSpeed ?? 1,
     laggedPumpIds: base?.laggedPumpIds ?? [],
     schedule: [],
+    tankLevels: tankLevelsOn(node, base?.tankLevels),
   };
 };
 
@@ -84,7 +88,16 @@ export const buildDefaultFlowTarget = (
   maxSpeed: base?.maxSpeed ?? 1,
   laggedPumpIds: base?.laggedPumpIds ?? [],
   schedule: [],
+  tankLevels: base?.tankLevels,
 });
+
+const tankLevelsOn = (
+  node: NodeAsset,
+  tankLevels: VariableSpeedPumpTankLevels | undefined,
+) =>
+  node.type === "tank" && tankLevels?.tankId === node.id
+    ? tankLevels
+    : undefined;
 
 export const VariableSpeedPumpControlsEditor = ({
   control,
@@ -128,6 +141,11 @@ export const VariableSpeedPumpControlsEditor = ({
 
   const highlightAsset = useAssetHighlight(targets);
 
+  const tanks = useMemo(
+    () => targets.nodes.filter((node): node is Tank => node.type === "tank"),
+    [targets.nodes],
+  );
+
   const lagCandidates = useMemo(
     () => targets.pumps.filter((pump) => pump.id !== control.linkId),
     [targets.pumps, control.linkId],
@@ -167,6 +185,7 @@ export const VariableSpeedPumpControlsEditor = ({
             update({
               targetId: node.id,
               quantity: node.type === "tank" ? "level" : "pressure",
+              tankLevels: tankLevelsOn(node, control.tankLevels),
             })
           }
           onHighlightChange={highlightAsset}
@@ -266,9 +285,236 @@ export const VariableSpeedPumpControlsEditor = ({
           readOnly={readOnly}
         />
       )}
+
+      {control.quantity !== "pressure" && (
+        <TankLevelsSection
+          tankLevels={control.tankLevels}
+          tanks={tanks}
+          fixedTankId={control.quantity === "level" ? control.targetId : null}
+          levelUnit={translateUnit(targets.units.minLevel)}
+          onChange={(tankLevels) => update({ tankLevels })}
+          onHighlightChange={highlightAsset}
+          readOnly={readOnly}
+        />
+      )}
     </NestedSection>
   );
 };
+
+type LevelsDraft = { tankId: AssetId; offLevel: number; onLevel: number };
+
+const defaultLevelsFor = (tank: Tank): LevelsDraft => ({
+  tankId: tank.id,
+  offLevel: tank.maxLevel ?? 0,
+  onLevel: tank.minLevel ?? 0,
+});
+
+const TankLevelsSection = ({
+  tankLevels,
+  tanks,
+  fixedTankId,
+  levelUnit,
+  onChange,
+  onHighlightChange,
+  readOnly,
+}: {
+  tankLevels: VariableSpeedPumpTankLevels | undefined;
+  tanks: Tank[];
+  fixedTankId: AssetId | null;
+  levelUnit: string;
+  onChange: (tankLevels: VariableSpeedPumpTankLevels | undefined) => void;
+  onHighlightChange: (assetId: AssetId | null) => void;
+  readOnly: boolean;
+}) => {
+  const translate = useTranslate();
+  const [synced, setSynced] = useState(tankLevels);
+  const [draft, setDraft] = useState<LevelsDraft | null>(tankLevels ?? null);
+  if (tankLevels !== synced) {
+    setSynced(tankLevels);
+    setDraft(tankLevels ?? null);
+  }
+
+  const tank = draft ? tanks.find((t) => t.id === draft.tankId) : undefined;
+  const errors =
+    draft && tank
+      ? validateLevelSetting({
+          onLevel: draft.onLevel,
+          offLevel: draft.offLevel,
+          minLevel: tank.minLevel ?? 0,
+          maxLevel: tank.maxLevel ?? 0,
+        })
+      : [];
+
+  const commit = (next: LevelsDraft) => {
+    setDraft(next);
+    const nextTank = tanks.find((t) => t.id === next.tankId);
+    if (!nextTank) return;
+    const nextErrors = validateLevelSetting({
+      onLevel: next.onLevel,
+      offLevel: next.offLevel,
+      minLevel: nextTank.minLevel ?? 0,
+      maxLevel: nextTank.maxLevel ?? 0,
+    });
+    if (nextErrors.length === 0) onChange(next);
+  };
+
+  const defaultTank =
+    fixedTankId !== null ? tanks.find((t) => t.id === fixedTankId) : tanks[0];
+
+  const handleEnabledChange = (checked: boolean) => {
+    if (!checked) {
+      setDraft(null);
+      onChange(undefined);
+      return;
+    }
+    if (defaultTank) commit(defaultLevelsFor(defaultTank));
+  };
+
+  const withUnit = (label: string) =>
+    levelUnit ? `${label} (${levelUnit})` : label;
+  const offLabel = withUnit(translate("controls.variableSpeed.offAbove"));
+  const onLabel = withUnit(translate("controls.variableSpeed.onBelow"));
+  const tankLabel = translate("tank");
+
+  const tankOptions = useMemo(
+    () => tanks.map((t) => ({ value: t.id, label: t.label })),
+    [tanks],
+  );
+
+  const hasOrderError = errors.includes("order");
+  const hasOffError = errors.includes("offOutOfRange") || hasOrderError;
+  const hasOnError = errors.includes("onOutOfRange") || hasOrderError;
+
+  const messageParts: string[] = [];
+  if (
+    tank &&
+    (errors.includes("onOutOfRange") || errors.includes("offOutOfRange"))
+  ) {
+    messageParts.push(
+      translate(
+        "controls.levelValidation.outOfRange",
+        localizeDecimal(tank.minLevel ?? 0),
+        localizeDecimal(tank.maxLevel ?? 0),
+      ),
+    );
+  }
+  if (hasOrderError) {
+    messageParts.push(translate("controls.levelValidation.onBelowOff"));
+  }
+
+  return (
+    <div className="pt-2">
+      <CheckboxRow
+        label={translate("controls.variableSpeed.tankLevels")}
+        checked={draft !== null}
+        onChange={handleEnabledChange}
+        disabled={readOnly || (draft === null && !defaultTank)}
+      />
+      {draft && (
+        <>
+          <div className="w-full grid grid-cols-[auto_1fr] items-center">
+            {fixedTankId === null && (
+              <>
+                <div className="pt-2 text-size-base text-subtle">
+                  {tankLabel}
+                </div>
+                <div
+                  className="pl-2 pt-2 min-w-0"
+                  onMouseEnter={() => onHighlightChange(draft.tankId)}
+                  onMouseLeave={() => onHighlightChange(null)}
+                >
+                  {readOnly ? (
+                    <ReadOnlyCell>{tank?.label ?? ""}</ReadOnlyCell>
+                  ) : (
+                    <Selector
+                      ariaLabel={tankLabel}
+                      options={tankOptions}
+                      selected={draft.tankId}
+                      onChange={(tankId) => {
+                        const next = tanks.find((t) => t.id === tankId);
+                        if (next) commit(defaultLevelsFor(next));
+                      }}
+                      onActiveOptionChange={onHighlightChange}
+                      styleOptions={compactSelectorStyleOptions}
+                    />
+                  )}
+                </div>
+              </>
+            )}
+            <LevelRow
+              label={offLabel}
+              value={draft.offLevel}
+              hasError={hasOffError}
+              onChange={(offLevel) => commit({ ...draft, offLevel })}
+              readOnly={readOnly}
+            />
+            <LevelRow
+              label={onLabel}
+              value={draft.onLevel}
+              hasError={hasOnError}
+              onChange={(onLevel) => commit({ ...draft, onLevel })}
+              readOnly={readOnly}
+            />
+          </div>
+          {messageParts.length > 0 && (
+            <p className="pt-2 text-size-base font-semibold text-orange-800">
+              {messageParts.join(" ")}
+            </p>
+          )}
+        </>
+      )}
+    </div>
+  );
+};
+
+const compactSelectorStyleOptions = {
+  border: true,
+  textSize: "text-size-base",
+  paddingX: 1,
+  paddingY: 1,
+} as const;
+
+const ReadOnlyCell = ({ children }: { children: React.ReactNode }) => (
+  <span className="block p-1 text-size-base text-default tabular-nums border border-transparent">
+    {children}
+  </span>
+);
+
+const LevelRow = ({
+  label,
+  value,
+  hasError,
+  onChange,
+  readOnly,
+}: {
+  label: string;
+  value: number;
+  hasError: boolean;
+  onChange: (value: number) => void;
+  readOnly: boolean;
+}) => (
+  <>
+    <div className="pt-2 text-size-base text-subtle">{label}</div>
+    <div className="pl-2 pt-2">
+      {readOnly ? (
+        <ReadOnlyCell>{localizeDecimal(value)}</ReadOnlyCell>
+      ) : (
+        <NumericField
+          label={label}
+          displayValue={localizeDecimal(value)}
+          onChangeValue={(newValue, isEmpty) => {
+            if (!isEmpty) onChange(newValue);
+          }}
+          styleOptions={{
+            padding: "sm",
+            textSize: "sm",
+            variant: hasError ? "warning" : "default",
+          }}
+        />
+      )}
+    </div>
+  </>
+);
 
 const NodeTargetField = ({
   control,

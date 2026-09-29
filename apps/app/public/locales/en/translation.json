@@ -1161,7 +1161,10 @@
       "maxSpeed": "Max speed",
       "speedRangeError": "Min speed must not be above max speed.",
       "lagPumps": "Lag pumps",
-      "addPump": "Add pump"
+      "addPump": "Add pump",
+      "tankLevels": "Start/stop at tank level",
+      "offAbove": "Off above",
+      "onBelow": "On below"
     }
   },
   "demandMultiplier": "Demand multiplier",
