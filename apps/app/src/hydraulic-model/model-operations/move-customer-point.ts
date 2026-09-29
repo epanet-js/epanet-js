@@ -1,25 +1,42 @@
 import { Position } from "src/types";
-import { CustomerPointId } from "@epanet-js/hydraulic-model";
-import { ModelOperationDeprecated } from "../model-operation";
+import { CustomerPoint, CustomerPointId } from "@epanet-js/hydraulic-model";
+import { ModelOperation, ModelOperationDeprecated } from "../model-operation";
+import { HydraulicModel } from "../hydraulic-model";
+import { changeSet, putCustomerPoints } from "../change-sets";
 
 type InputData = {
   customerPointId: CustomerPointId;
   newCoordinates: Position;
 };
 
-export const moveCustomerPoint: ModelOperationDeprecated<InputData> = (
-  { customerPoints },
+export const moveCustomerPoint: ModelOperation<InputData> = (
+  hydraulicModel,
   { customerPointId, newCoordinates },
-) => {
+) =>
+  changeSet(hydraulicModel, "Move customer point", [
+    putCustomerPoints([
+      buildMovedCopy(hydraulicModel, customerPointId, newCoordinates),
+    ]),
+  ]);
+
+export const moveCustomerPointDeprecated: ModelOperationDeprecated<
+  InputData
+> = (hydraulicModel, { customerPointId, newCoordinates }) => ({
+  note: "Move customer point",
+  putCustomerPoints: [
+    buildMovedCopy(hydraulicModel, customerPointId, newCoordinates),
+  ],
+});
+
+const buildMovedCopy = (
+  { customerPoints }: HydraulicModel,
+  customerPointId: CustomerPointId,
+  newCoordinates: Position,
+): CustomerPoint => {
   const customerPoint = customerPoints.get(customerPointId);
   if (!customerPoint) {
     throw new Error(`Customer point ${customerPointId} not found`);
   }
 
-  const movedCopy = customerPoint.copyWithCoordinates(newCoordinates);
-
-  return {
-    note: "Move customer point",
-    putCustomerPoints: [movedCopy],
-  };
+  return customerPoint.copyWithCoordinates(newCoordinates);
 };

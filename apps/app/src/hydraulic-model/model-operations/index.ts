@@ -40,7 +40,10 @@ export {
   removeCustomerPoints,
   removeCustomerPointsDeprecated,
 } from "./remove-customer-points";
-export { moveCustomerPoint } from "./move-customer-point";
+export {
+  moveCustomerPoint,
+  moveCustomerPointDeprecated,
+} from "./move-customer-point";
 export {
   changeCustomerPointLabel,
   changeCustomerPointLabelDeprecated,

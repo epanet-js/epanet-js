@@ -15,6 +15,7 @@ import {
   moveNode,
   mergeNodes,
   moveCustomerPoint,
+  moveCustomerPointDeprecated,
 } from "src/hydraulic-model/model-operations";
 import { nodesShareLink } from "@epanet-js/hydraulic-model";
 import { useMoveState } from "./move-state";
@@ -27,6 +28,8 @@ import throttle from "lodash/throttle";
 import { useClickedAsset } from "../utils";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
+import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const stateUpdateTime = 16;
 
@@ -86,6 +89,8 @@ export function useNoneHandlers({
     units.elevation,
   );
   const { transact } = useMomentTransaction();
+  const { transact: transactChangeSet } = useModelTransaction();
+  const isOpsChangeSetsOn = useFeatureFlag("FLAG_OPS_CHANGE_SETS");
   const { findSnappingCandidate } = useSnapping(map, hydraulicModel.assets);
   const {
     setStartPoint: setCustomerPointStartPoint,
@@ -187,11 +192,12 @@ export function useNoneHandlers({
       const movingCustomerPointId = USelection.singleCustomerPointId(selection);
       if (customerPointMoveActivated && movingCustomerPointId !== null) {
         const newCoordinates = getMapCoord(e);
-        const moment = moveCustomerPoint(hydraulicModel, {
-          customerPointId: movingCustomerPointId,
-          newCoordinates,
-        });
-        transact(moment);
+        const data = { customerPointId: movingCustomerPointId, newCoordinates };
+        if (isOpsChangeSetsOn) {
+          transactChangeSet(moveCustomerPoint(hydraulicModel, data));
+        } else {
+          transact(moveCustomerPointDeprecated(hydraulicModel, data));
+        }
       }
       resetCustomerPointMove();
       return;
