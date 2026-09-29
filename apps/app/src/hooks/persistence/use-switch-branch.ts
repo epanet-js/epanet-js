@@ -46,16 +46,18 @@ function validateSelection(
   set(selectionAtom, { ...validatedSelection });
 }
 
-function unloadPreviousBranch(get: Getter, set: Setter, branchId: string) {
-  const { activeBranchId, mainId } = get(worktreeAtom);
-  if (activeBranchId === mainId || activeBranchId === branchId) return;
+function unloadOtherScenarios(get: Getter, set: Setter, branchId: string) {
+  const { mainId } = get(worktreeAtom);
+  if (branchId === mainId) return;
 
   const branchStates = get(branchStateAtom);
-  const previousState = branchStates.get(activeBranchId);
-  if (!previousState) return;
+  const toUnload = [...branchStates].filter(
+    ([id, state]) => id !== mainId && id !== branchId && isBranchLoaded(state),
+  );
+  if (toUnload.length === 0) return;
 
   const updated = new Map(branchStates);
-  updated.set(activeBranchId, unloadBranch(previousState));
+  for (const [id, state] of toUnload) updated.set(id, unloadBranch(state));
   set(branchStateAtom, updated);
 }
 
@@ -70,7 +72,7 @@ export const useSwitchBranch = () => {
           throw new Error(`Branch state not found for ${branchId}`);
         }
 
-        if (isLazyScenariosOn) unloadPreviousBranch(get, set, branchId);
+        if (isLazyScenariosOn) unloadOtherScenarios(get, set, branchId);
 
         updateFactories(get, set, targetState.labelManager);
         set(mapEditionsTrackerAtom, new MapEditionsTracker());

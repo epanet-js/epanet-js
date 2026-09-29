@@ -611,11 +611,28 @@ describe("branch store", () => {
     it("keeps main loaded when leaving it", async () => {
       const store = await aProjectWithTwoScenarios();
       await switchTo(store, "scenario-1");
-      await switchTo(store, "main");
 
       expect(isLoaded(store, "main")).toBe(true);
-      expect(isLoaded(store, "scenario-1")).toBe(false);
+    });
+
+    it("keeps the scenario it leaves for main loaded", async () => {
+      const store = await aProjectWithTwoScenarios();
+      await switchTo(store, "scenario-1");
+      await switchTo(store, "main");
+
+      expect(isLoaded(store, "scenario-1")).toBe(true);
       expect(store.get(stagingModelDerivedAtom).assets.size).toEqual(1);
+    });
+
+    it("frees the scenario kept over main when another one loads", async () => {
+      const store = await aProjectWithTwoScenarios();
+      await switchTo(store, "scenario-1");
+      await switchTo(store, "main");
+
+      await switchTo(store, "scenario-2");
+
+      expect(isLoaded(store, "scenario-1")).toBe(false);
+      expect(isLoaded(store, "scenario-2")).toBe(true);
     });
 
     it("reports no unsaved changes after switching back and forth", async () => {
@@ -665,6 +682,12 @@ describe("branch store", () => {
       expect(store.get(dialogAtom)).toBeNull();
 
       await switchTo(store, "main");
+
+      expect(store.get(dialogAtom)).toBeNull();
+
+      act(() => {
+        result.current.switchToBranch("scenario-1");
+      });
 
       expect(store.get(dialogAtom)).toBeNull();
     });
