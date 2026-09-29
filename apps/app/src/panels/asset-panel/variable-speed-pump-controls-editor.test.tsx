@@ -156,6 +156,15 @@ describe("VariableSpeedPumpControlsEditor", () => {
     await user.unhover(atNode);
     expect(getDefaultStore().get(highlightsAtom)).toEqual([]);
 
+    await user.click(atNode);
+    await user.click(
+      await screen.findByRole("button", { name: "J2 (outlet of this pump)" }),
+    );
+    expect(lastControl(onChange)).toMatchObject({
+      quantity: "pressure",
+      targetId: IDS.J2,
+    });
+
     await user.click(
       screen.getByRole("checkbox", { name: "Vary by time of day" }),
     );
@@ -226,10 +235,15 @@ describe("VariableSpeedPumpControlsEditor", () => {
       targetId: IDS.P1,
     });
 
-    await user.hover(screen.getByRole("combobox", { name: "Flow through" }));
+    const flowThrough = screen.getByRole("combobox", { name: "Flow through" });
+    await user.hover(flowThrough);
     expect(getDefaultStore().get(highlightsAtom)).toEqual([
       { type: "asset", assetId: IDS.P1 },
     ]);
+
+    await user.click(flowThrough);
+    await user.click(await screen.findByRole("button", { name: "This pump" }));
+    expect(lastControl(onChange)).toMatchObject({ targetId: IDS.PU1 });
 
     await user.click(
       screen.getByRole("checkbox", { name: "Vary by time of day" }),

@@ -287,15 +287,24 @@ const NodeTargetField = ({
 }) => {
   const translate = useTranslate();
   const atNodeLabel = translate("controls.variableSpeed.atNode");
+  const outletNode = nodes.find((node) => node.id === outletNodeId);
+  const outletLabel = outletNode
+    ? translate("controls.variableSpeed.outletOfThisPump", outletNode.label)
+    : undefined;
   const options = useMemo(
     () =>
-      nodes.map((node) => ({
-        value: node.id,
-        label: nodeOptionLabel(node, outletNodeId, translate),
-      })),
-    [nodes, outletNodeId, translate],
+      nodes
+        .filter((node) => node.id !== outletNode?.id)
+        .map((node) => ({
+          value: node.id,
+          label: nodeOptionLabel(node, translate),
+        })),
+    [nodes, outletNode, translate],
   );
-  const selected = options.find((option) => option.value === control.targetId);
+  const isOutletSelected = control.targetId === outletNode?.id;
+  const selectedLabel = isOutletSelected
+    ? outletLabel
+    : options.find((option) => option.value === control.targetId)?.label;
 
   return (
     <InlineField name={atNodeLabel} labelSize="md">
@@ -305,14 +314,20 @@ const NodeTargetField = ({
         onMouseLeave={() => onHighlightChange(null)}
       >
         {readOnly ? (
-          <TextField padding="md">{selected?.label ?? ""}</TextField>
+          <TextField padding="md">{selectedLabel ?? ""}</TextField>
         ) : (
           <Selector
             ariaLabel={atNodeLabel}
             options={options}
-            selected={control.targetId}
+            selected={isOutletSelected ? null : control.targetId}
+            nullable
+            placeholder={outletLabel ?? ""}
+            clearLabel={outletLabel}
             onChange={(nodeId) => {
-              const node = nodes.find((n) => n.id === nodeId);
+              const node =
+                nodeId === null
+                  ? outletNode
+                  : nodes.find((n) => n.id === nodeId);
               if (node) onChange(node);
             }}
             onActiveOptionChange={onHighlightChange}
@@ -339,17 +354,15 @@ const FlowTargetField = ({
 }) => {
   const translate = useTranslate();
   const flowThroughLabel = translate("controls.variableSpeed.flowThrough");
+  const thisPumpLabel = translate("controls.variableSpeed.thisPump");
   const options = useMemo(
-    () => [
-      {
-        value: control.linkId,
-        label: translate("controls.variableSpeed.thisPump"),
-      },
-      ...pipes.map((pipe) => ({ value: pipe.id, label: pipe.label })),
-    ],
-    [pipes, control.linkId, translate],
+    () => pipes.map((pipe) => ({ value: pipe.id, label: pipe.label })),
+    [pipes],
   );
-  const selected = options.find((option) => option.value === control.targetId);
+  const isPumpSelected = control.targetId === control.linkId;
+  const selectedLabel = isPumpSelected
+    ? thisPumpLabel
+    : options.find((option) => option.value === control.targetId)?.label;
 
   return (
     <InlineField name={flowThroughLabel} labelSize="md">
@@ -359,13 +372,16 @@ const FlowTargetField = ({
         onMouseLeave={() => onHighlightChange(null)}
       >
         {readOnly ? (
-          <TextField padding="md">{selected?.label ?? ""}</TextField>
+          <TextField padding="md">{selectedLabel ?? ""}</TextField>
         ) : (
           <Selector
             ariaLabel={flowThroughLabel}
             options={options}
-            selected={control.targetId}
-            onChange={onChange}
+            selected={isPumpSelected ? null : control.targetId}
+            nullable
+            placeholder={thisPumpLabel}
+            clearLabel={thisPumpLabel}
+            onChange={(pipeId) => onChange(pipeId ?? control.linkId)}
             onActiveOptionChange={onHighlightChange}
             styleOptions={selectorStyleOptions}
           />
@@ -619,11 +635,8 @@ const useAssetHighlight = (targets: VariableSpeedPumpTargets) => {
 
 const nodeOptionLabel = (
   node: NodeAsset,
-  outletNodeId: AssetId | null,
   translate: ReturnType<typeof useTranslate>,
 ): string => {
-  if (node.id === outletNodeId)
-    return translate("controls.variableSpeed.outletOfThisPump", node.label);
   if (node.type === "tank")
     return translate("controls.variableSpeed.tankNode", node.label);
   return node.label;
