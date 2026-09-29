@@ -355,6 +355,119 @@ const readCell = (
 export const readVersion = (bytes: Uint8Array): number =>
   FbChangeSet.getRootAsChangeSet(new flatbuffers.ByteBuffer(bytes)).version();
 
+export type Side = "before" | "after";
+
+export type ChangeEntry = {
+  readonly entity: EntityKind;
+  readonly kind: ChangeKind;
+  readonly id: number | string;
+  get(side: Side, field: string): Cell;
+  fields(side: Side): Record<string, Cell>;
+};
+
+class OpReader {
+  readonly entity: EntityKind;
+  readonly kind: ChangeKind;
+  private columns: Map<string, Column> | null = null;
+
+  constructor(
+    readonly op: Op,
+    entity: EntityKind,
+    kind: ChangeKind,
+  ) {
+    this.entity = entity;
+    this.kind = kind;
+  }
+
+  hasSide(side: Side): boolean {
+    return side === "before" ? this.kind !== "create" : this.kind !== "delete";
+  }
+
+  columnsByField(): Map<string, Column> {
+    if (!this.columns) {
+      this.columns = new Map();
+      for (let c = 0; c < this.op.colsLength(); c++) {
+        const column = this.op.cols(c);
+        if (!column) continue;
+        const field = column.field();
+        if (field === null) continue;
+        this.columns.set(field, column);
+      }
+    }
+    return this.columns;
+  }
+}
+
+const typeOf = (column: Column, side: Side): Values =>
+  side === "before" ? column.beforeType() : column.afterType();
+
+class OpEntry implements ChangeEntry {
+  constructor(
+    private readonly reader: OpReader,
+    private readonly index: number,
+    readonly id: number | string,
+  ) {}
+
+  get entity(): EntityKind {
+    return this.reader.entity;
+  }
+
+  get kind(): ChangeKind {
+    return this.reader.kind;
+  }
+
+  get(side: Side, field: string): Cell {
+    if (!this.reader.hasSide(side)) return undefined;
+    const column = this.reader.columnsByField().get(field);
+    if (!column) return undefined;
+    return readCell(typeOf(column, side), column, side, this.index);
+  }
+
+  fields(side: Side): Record<string, Cell> {
+    const fields: Record<string, Cell> = {};
+    if (!this.reader.hasSide(side)) return fields;
+    for (const [field, column] of this.reader.columnsByField()) {
+      fields[field] = readCell(typeOf(column, side), column, side, this.index);
+    }
+    return fields;
+  }
+}
+
+function* readOps(bytes: Uint8Array): Generator<OpReader> {
+  const root = FbChangeSet.getRootAsChangeSet(
+    new flatbuffers.ByteBuffer(bytes),
+  );
+  for (let o = 0; o < root.opsLength(); o++) {
+    const op = root.ops(o);
+    if (!op) continue;
+    const entity = fbToEntity.get(op.entity());
+    const kind = fbToKind.get(op.kind());
+    if (!entity || !kind) continue;
+    yield new OpReader(op, entity, kind);
+  }
+}
+
+const entityCount = (op: Op): number =>
+  op.keysLength() > 0 ? op.keysLength() : op.idsLength();
+
+export const countEntries = (bytes: Uint8Array): number => {
+  let count = 0;
+  for (const reader of readOps(bytes)) count += entityCount(reader.op);
+  return count;
+};
+
+export function* readEntries(bytes: Uint8Array): Generator<ChangeEntry> {
+  for (const reader of readOps(bytes)) {
+    const { op } = reader;
+    const useKeys = op.keysLength() > 0;
+    const count = entityCount(op);
+    for (let i = 0; i < count; i++) {
+      const id = useKeys ? (op.keys(i) ?? "") : (op.ids(i) ?? 0);
+      yield new OpEntry(reader, i, id);
+    }
+  }
+}
+
 export const decode = (bytes: Uint8Array): DecodedChangeSet => {
   const root = FbChangeSet.getRootAsChangeSet(
     new flatbuffers.ByteBuffer(bytes),

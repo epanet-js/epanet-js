@@ -45,7 +45,7 @@ const identifiersByEntity: Record<EntityKind, Identifiers | null> = {
   rawControls: null,
 };
 
-const observeIdentifiers = (
+const observeIdentifiersDeprecated = (
   factories: ModelFactories,
   changeSet: ChangeSet,
 ): void => {
@@ -61,6 +61,30 @@ const observeIdentifiers = (
     }
 
     const label = record.after.label;
+    if (typeof label !== "string") continue;
+    const index = LabelManager.generatedIndex(label, labelType);
+    if (index !== null && index + 1 > (counters.get(labelType) ?? 0)) {
+      counters.set(labelType, index + 1);
+    }
+  }
+};
+
+const observeIdentifiers = (
+  factories: ModelFactories,
+  changeSet: ChangeSet,
+): void => {
+  const counters = factories.labelCounters;
+
+  for (const entry of changeSet.entries()) {
+    const identifiers = identifiersByEntity[entry.entity];
+    if (!identifiers) continue;
+    const { pool, labelType } = identifiers;
+
+    if (typeof entry.id === "number") {
+      factories.idPools.forPool(pool).observe(entry.id);
+    }
+
+    const label = entry.get("after", "label");
     if (typeof label !== "string") continue;
     const index = LabelManager.generatedIndex(label, labelType);
     if (index !== null && index + 1 > (counters.get(labelType) ?? 0)) {
@@ -118,7 +142,7 @@ export const buildStoredBranchStates = (
       const detail = `${records.length} records`;
       trace.measure(
         `${branchId}:observe-identifiers`,
-        () => observeIdentifiers(factories, delta),
+        () => observeIdentifiersDeprecated(factories, delta),
         detail,
       );
       const report = trace.measure(
@@ -160,17 +184,12 @@ export const buildUnloadedBranchStates = (
   const branchStates = new Map<string, UnloadedBranchState>();
 
   for (const [branchId, delta] of deltas) {
-    const { records } = trace.measure(
-      `${branchId}:decode-delta`,
-      () => delta.read(),
-      `${delta.byteLength} bytes`,
-    );
     let version = mainState.version;
-    if (records.length > 0) {
+    if (delta.size > 0) {
       trace.measure(
         `${branchId}:observe-identifiers`,
         () => observeIdentifiers(factories, delta),
-        `${records.length} records`,
+        `${delta.size} records, ${delta.byteLength} bytes`,
       );
       version = nanoid();
     }

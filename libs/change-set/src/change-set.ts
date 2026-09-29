@@ -1,4 +1,12 @@
-import { decode, encode, isStringKeyed, readVersion } from "./codec";
+import {
+  countEntries,
+  decode,
+  encode,
+  isStringKeyed,
+  readEntries,
+  readVersion,
+  type ChangeEntry,
+} from "./codec";
 import { CURRENT_VERSION } from "./versioning";
 import {
   type Cell,
@@ -63,8 +71,18 @@ export class ChangeSet {
     return this.bytes.byteLength;
   }
 
+  get size(): number {
+    return this.decoded
+      ? this.decoded.records.length
+      : countEntries(this.bytes);
+  }
+
   get isEmpty(): boolean {
     return this.read().records.length === 0;
+  }
+
+  entries(): Iterable<ChangeEntry> {
+    return readEntries(this.bytes);
   }
 
   summary(): { entity: EntityKind; kind: ChangeKind; count: number }[] {

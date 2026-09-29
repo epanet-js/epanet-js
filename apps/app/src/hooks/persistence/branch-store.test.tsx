@@ -560,6 +560,20 @@ describe("branch store", () => {
       expect(modelOf(store, "main").assets.size).toEqual(1);
     });
 
+    it("suggests a label no unloaded sibling scenario has already used", async () => {
+      const store = await aProjectWithTwoScenarios();
+      await switchTo(store, "scenario-2");
+      const siblingLabels = labelsIn(store);
+
+      await switchTo(store, "scenario-1");
+      const before = labelsIn(store);
+      addJunction(store);
+      const added = [...labelsIn(store)].filter((label) => !before.has(label));
+
+      expect(added).toHaveLength(1);
+      expect(siblingLabels).not.toContain(added[0]);
+    });
+
     it("frees the scenario it leaves and keeps what is costly to rebuild", async () => {
       const store = await aProjectWithTwoScenarios();
       await switchTo(store, "scenario-1");

@@ -5,7 +5,7 @@ export {
   migrations,
   type ChangeSetMigration,
 } from "./versioning";
-export { isStringKeyed } from "./codec";
+export { isStringKeyed, type ChangeEntry, type Side } from "./codec";
 export { effective, type Direction, type Effective } from "./direction";
 export {
   WHOLE_VALUE,

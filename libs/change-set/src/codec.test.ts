@@ -403,3 +403,106 @@ describe("invert", () => {
     expect(invert(change).version).toBe(1);
   });
 });
+
+describe("entries", () => {
+  const records: ChangeRecord[] = [
+    {
+      entity: "junction",
+      id: 1,
+      kind: "create",
+      before: {},
+      after: { label: "J1", elevation: 10 },
+    },
+    {
+      entity: "junction",
+      id: 2,
+      kind: "create",
+      before: {},
+      after: { label: "J2", elevation: 10 },
+    },
+    {
+      entity: "pipe",
+      id: 3,
+      kind: "update",
+      before: { label: "P1" },
+      after: { label: "P2" },
+    },
+    {
+      entity: "pipe",
+      id: 4,
+      kind: "update",
+      before: { diameter: 100 },
+      after: { diameter: 200 },
+    },
+    {
+      entity: "tank",
+      id: 5,
+      kind: "update",
+      before: { label: "T1" },
+      after: { label: null },
+    },
+    {
+      entity: "valve",
+      id: 6,
+      kind: "delete",
+      before: { label: "V1" },
+      after: {},
+    },
+    {
+      entity: "pump",
+      id: 7,
+      kind: "create",
+      before: {},
+      after: { label: "PU" },
+    },
+    {
+      entity: "pump",
+      id: 8,
+      kind: "create",
+      before: {},
+      after: { label: "PU" },
+    },
+  ];
+
+  const stored = () => ChangeSet.fromBytes(ChangeSet.of("edit", records).bytes);
+  const decoded = () => ChangeSet.of("edit", records).records;
+
+  it("lists every entity with its stored kind", () => {
+    const entries = [...stored().entries()].map(({ entity, kind, id }) => ({
+      entity,
+      kind,
+      id,
+    }));
+
+    expect(entries).toEqual(
+      decoded().map(({ entity, kind, id }) => ({ entity, kind, id })),
+    );
+  });
+
+  it("reads one cell from either side", () => {
+    const entries = [...stored().entries()];
+
+    expect(entries.map((entry) => entry.get("after", "label"))).toEqual(
+      decoded().map((record) => record.after.label),
+    );
+    expect(entries.map((entry) => entry.get("before", "label"))).toEqual(
+      decoded().map((record) => record.before.label),
+    );
+  });
+
+  it("reads a whole side as the decoded record holds it", () => {
+    const entries = [...stored().entries()];
+
+    expect(entries.map((entry) => entry.fields("after"))).toStrictEqual(
+      decoded().map((record) => record.after),
+    );
+    expect(entries.map((entry) => entry.fields("before"))).toStrictEqual(
+      decoded().map((record) => record.before),
+    );
+  });
+
+  it("counts entities", () => {
+    expect(stored().size).toBe(records.length);
+    expect(ChangeSet.fromBytes(ChangeSet.empty().bytes).size).toBe(0);
+  });
+});
