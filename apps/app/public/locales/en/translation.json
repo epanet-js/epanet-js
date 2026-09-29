@@ -1146,7 +1146,23 @@
       "onBelowOff": "On level must be below the off level."
     },
     "time": "Time",
-    "addTimeStep": "Add time step"
+    "addTimeStep": "Add time step",
+    "variableSpeed": {
+      "pressureTarget": "Pressure target",
+      "flowTarget": "Flow target",
+      "atNode": "At node",
+      "flowThrough": "Flow through",
+      "thisPump": "This pump",
+      "outletOfThisPump": "{{1}} (outlet of this pump)",
+      "tankNode": "{{1}} (tank)",
+      "setBySchedule": "Set by schedule",
+      "varyByTimeOfDay": "Vary by time of day",
+      "minSpeed": "Min speed",
+      "maxSpeed": "Max speed",
+      "speedRangeError": "Min speed must not be above max speed.",
+      "lagPumps": "Lag pumps",
+      "addPump": "Add pump"
+    }
   },
   "demandMultiplier": "Demand multiplier",
   "saveAndRun": "Save & run",

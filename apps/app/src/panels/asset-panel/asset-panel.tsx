@@ -2551,6 +2551,24 @@ const PumpEditor = ({
     [hydraulicModel.assets],
   );
 
+  // const isVariableSpeedPumpsOn = useFeatureFlag("FLAG_VARIABLE_SPEED_PUMPS");
+  // eslint-disable-next-line no-warning-comments
+  // FIXME: Use feature flag when merging to main
+  const isVariableSpeedPumpsOn = true;
+  const outletNodeId = pump.connections[1] ?? null;
+  const variableSpeedPumpTargets = useMemo(() => {
+    if (!isVariableSpeedPumpsOn) return undefined;
+    const nodes: NodeAsset[] = [];
+    const pipes: Pipe[] = [];
+    const pumps: Pump[] = [];
+    for (const asset of hydraulicModel.assets.values()) {
+      if (asset.isNode) nodes.push(asset as NodeAsset);
+      else if (asset.type === "pipe") pipes.push(asset as Pipe);
+      else if (asset.type === "pump") pumps.push(asset as Pump);
+    }
+    return { nodes, pipes, pumps, outletNodeId, units };
+  }, [isVariableSpeedPumpsOn, hydraulicModel.assets, outletNodeId, units]);
+
   const pumpControl =
     [...hydraulicModel.controlsLookup.getControls(pump.id)].find(
       (c) => c.linkId === pump.id,
@@ -2685,6 +2703,7 @@ const PumpEditor = ({
           tanks={tanks}
           levelUnit={units.minLevel}
           onControlChange={handleControlChangeForPump}
+          variableSpeedPumpTargets={variableSpeedPumpTargets}
           hasRawControls={hasRawControls}
           readOnly={readonly}
         />

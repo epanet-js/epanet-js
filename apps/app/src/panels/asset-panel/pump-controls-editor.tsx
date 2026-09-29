@@ -4,6 +4,7 @@ import {
   AssetId,
   buildDefaultLevelSetting,
   buildTimedSetting,
+  buildVariableSpeedPump,
   Control,
   PumpStatus,
   Tank,
@@ -19,8 +20,19 @@ import { InlineField } from "src/components/form/fields";
 import { TextField } from "src/components/form/text-field";
 import { PumpTimeBasedControls } from "./pump-time-based-controls";
 import { PumpLevelBasedControls } from "./pump-level-based-controls";
+import {
+  buildDefaultFlowTarget,
+  buildDefaultPressureTarget,
+  VariableSpeedPumpControlsEditor,
+  type VariableSpeedPumpTargets,
+} from "./variable-speed-pump-controls-editor";
 
-type ControlType = "none" | "levelBased" | "timeBased";
+type ControlType =
+  | "none"
+  | "levelBased"
+  | "timeBased"
+  | "pressureTarget"
+  | "flowTarget";
 
 const selectorStyleOptions = {
   border: true,
@@ -31,6 +43,8 @@ const selectorStyleOptions = {
 const controlTypeFor = (control: Control | null): ControlType => {
   if (control?.type === "level-setting") return "levelBased";
   if (control?.type === "timed-setting") return "timeBased";
+  if (control?.type === "variable-speed-pump")
+    return control.quantity === "flow" ? "flowTarget" : "pressureTarget";
   return "none";
 };
 
@@ -42,6 +56,7 @@ export const PumpControlsEditor = ({
   tanks,
   levelUnit,
   onControlChange,
+  variableSpeedPumpTargets,
   hasRawControls = false,
   readOnly = false,
 }: {
@@ -52,6 +67,7 @@ export const PumpControlsEditor = ({
   tanks: Tank[];
   levelUnit: Unit;
   onControlChange: (control: Control | null) => void;
+  variableSpeedPumpTargets?: VariableSpeedPumpTargets;
   hasRawControls?: boolean;
   readOnly?: boolean;
 }) => {
@@ -70,8 +86,21 @@ export const PumpControlsEditor = ({
         disabled: tanks.length === 0,
       },
       { value: "timeBased" as const, label: translate("controls.timeBased") },
+      ...(variableSpeedPumpTargets
+        ? [
+            {
+              value: "pressureTarget" as const,
+              label: translate("controls.variableSpeed.pressureTarget"),
+              disabled: variableSpeedPumpTargets.nodes.length === 0,
+            },
+            {
+              value: "flowTarget" as const,
+              label: translate("controls.variableSpeed.flowTarget"),
+            },
+          ]
+        : []),
     ],
-    [translate, tanks.length],
+    [translate, tanks.length, variableSpeedPumpTargets],
   );
 
   const selectedTypeOption = typeOptions.find((o) => o.value === controlType);
@@ -79,6 +108,25 @@ export const PumpControlsEditor = ({
   const handleTypeChange = (newValue: ControlType) => {
     if (newValue !== "none" && !canUseControls) {
       showPriorityAccess({ featureName: translate("controls.nativeTitle") });
+      return;
+    }
+    const previousVariableSpeed =
+      control?.type === "variable-speed-pump" ? control : undefined;
+    if (newValue === "pressureTarget" && variableSpeedPumpTargets) {
+      const data = buildDefaultPressureTarget(
+        linkId,
+        variableSpeedPumpTargets,
+        previousVariableSpeed,
+      );
+      if (data) onControlChange(buildVariableSpeedPump(data));
+      return;
+    }
+    if (newValue === "flowTarget") {
+      onControlChange(
+        buildVariableSpeedPump(
+          buildDefaultFlowTarget(linkId, previousVariableSpeed),
+        ),
+      );
       return;
     }
     if (newValue === "timeBased") {
@@ -131,6 +179,15 @@ export const PumpControlsEditor = ({
           control={control}
           tanks={tanks}
           levelUnit={levelUnit}
+          onControlChange={onControlChange}
+          readOnly={readOnly}
+        />
+      )}
+
+      {control?.type === "variable-speed-pump" && variableSpeedPumpTargets && (
+        <VariableSpeedPumpControlsEditor
+          control={control}
+          targets={variableSpeedPumpTargets}
           onControlChange={onControlChange}
           readOnly={readOnly}
         />
