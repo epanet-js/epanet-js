@@ -16,6 +16,18 @@ import { selectionAtom } from "src/state/selection";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import type { ChangeSet } from "@epanet-js/change-set";
+
+const createdCustomerPointId = (
+  changeSet: ChangeSet,
+): CustomerPointId | undefined => {
+  for (const entry of changeSet.entries()) {
+    if (entry.entity === "customerPoint" && entry.kind === "create") {
+      return entry.id as CustomerPointId;
+    }
+  }
+  return undefined;
+};
 
 export function useDrawCustomerPointHandlers({
   hydraulicModel,
@@ -42,10 +54,7 @@ export function useDrawCustomerPointHandlers({
       if (isOpsChangeSetsOn) {
         const changeSet = addCustomerPoint(hydraulicModel, data);
         transactChangeSet(changeSet);
-        createdId = changeSet.records.find(
-          (record) =>
-            record.entity === "customerPoint" && record.kind === "create",
-        )?.id as CustomerPointId | undefined;
+        createdId = createdCustomerPointId(changeSet);
       } else {
         const moment = addCustomerPointDeprecated(hydraulicModel, data);
         transact(moment);

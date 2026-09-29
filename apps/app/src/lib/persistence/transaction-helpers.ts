@@ -9,6 +9,7 @@ import {
 import { CustomerPoints } from "@epanet-js/hydraulic-model";
 import type { ChangeSet, Direction } from "@epanet-js/change-set";
 import {
+  applyChangeSet,
   applyChangeSetDeprecated,
   type ApplyReport,
 } from "src/hydraulic-model/change-sets";
@@ -60,32 +61,40 @@ export function processMoment(
   };
 }
 
-export function applyChange(
-  get: Getter,
-  set: Setter,
-  stateId: string,
-  changeSet: ChangeSet,
-  direction: Direction,
-  modelAtom: WritableAtom<HydraulicModel, [HydraulicModel], void>,
-): ApplyReport {
-  const hydraulicModel = get(modelAtom);
+const applyChangeWith =
+  (applier: typeof applyChangeSet) =>
+  (
+    get: Getter,
+    set: Setter,
+    stateId: string,
+    changeSet: ChangeSet,
+    direction: Direction,
+    modelAtom: WritableAtom<HydraulicModel, [HydraulicModel], void>,
+  ): ApplyReport => {
+    const hydraulicModel = get(modelAtom);
 
-  const factories = get(modelFactoriesAtom);
-  const report = applyChangeSetDeprecated(
-    hydraulicModel,
-    changeSet,
-    direction,
-    factories.labelManager,
-  );
+    const factories = get(modelFactoriesAtom);
+    const report = applier(
+      hydraulicModel,
+      changeSet,
+      direction,
+      factories.labelManager,
+    );
 
-  set(modelAtom, settleAppliedModel(hydraulicModel, stateId, report));
+    set(modelAtom, settleAppliedModel(hydraulicModel, stateId, report));
 
-  set(mapEditionsTrackerAtom, (prev) =>
-    prev.recordAssetIds(report.touchedAssetIds),
-  );
+    set(mapEditionsTrackerAtom, (prev) =>
+      prev.recordAssetIds(report.touchedAssetIds),
+    );
 
-  return report;
-}
+    return report;
+  };
+
+export const applyChange = applyChangeWith(applyChangeSet);
+
+export const applyChangeDeprecated = applyChangeWith(applyChangeSetDeprecated);
+
+export type ApplyChange = typeof applyChange;
 
 export function settleAppliedModel(
   hydraulicModel: HydraulicModel,

@@ -10,9 +10,10 @@ import {
 } from "src/state/derived-branch-state";
 import { worktreeAtom } from "src/state/scenarios";
 import { historyPendingAtom } from "src/state/transactions";
-import { applyChange } from "src/lib/persistence/transaction-helpers";
-import type { PersistBranchChange } from "src/lib/persistence/persist-branch-change";
-import { usePersistBranchChange } from "src/hooks/persistence/use-persist-branch-change";
+import {
+  useChangeSetHandlers,
+  type ChangeSetHandlers,
+} from "src/hooks/persistence/use-change-set-handlers";
 import { trackChangeSet } from "src/lib/persistence/shared";
 import { captureWarning } from "src/infra/error-tracking";
 import {
@@ -32,7 +33,7 @@ export const commitChangeSet = (
   set: Setter,
   changeSet: ChangeSet,
   onWriteFailure: WriteFailureHandler,
-  persist: PersistBranchChange,
+  handlers: ChangeSetHandlers,
 ): void => {
   const newStateId = nanoid();
   const sessionHistory = get(sessionHistoryDerivedAtom).copy();
@@ -40,7 +41,7 @@ export const commitChangeSet = (
   timedSync(
     "changeSet:apply",
     () =>
-      applyChange(
+      handlers.apply(
         get,
         set,
         newStateId,
@@ -56,14 +57,14 @@ export const commitChangeSet = (
 
   const worktree = get(worktreeAtom);
   writeQueue.enqueue(
-    () => persist(worktree, changeSet, "forward"),
+    () => handlers.persist(worktree, changeSet, "forward"),
     onWriteFailure,
   );
 };
 
 export const useModelTransaction = () => {
   const onWriteFailure = useWriteFailureHandler();
-  const persist = usePersistBranchChange();
+  const handlers = useChangeSetHandlers();
 
   const transact = useAtomCallback(
     useCallback(
@@ -71,10 +72,10 @@ export const useModelTransaction = () => {
         if (isHistoryPending(get, changeSet.name)) return false;
 
         trackChangeSet(changeSet);
-        commitChangeSet(get, set, changeSet, onWriteFailure, persist);
+        commitChangeSet(get, set, changeSet, onWriteFailure, handlers);
         return true;
       },
-      [onWriteFailure, persist],
+      [onWriteFailure, handlers],
     ),
   );
 

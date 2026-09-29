@@ -19,8 +19,10 @@ import {
 } from "src/hydraulic-model/validate-moment-integrity";
 import type { WriteFailureHandler } from "src/lib/persistence/write-queue";
 import { useWriteFailureHandler } from "src/hooks/persistence/use-write-failure-handler";
-import { usePersistBranchChange } from "src/hooks/persistence/use-persist-branch-change";
-import type { PersistBranchChange } from "src/lib/persistence/persist-branch-change";
+import {
+  useChangeSetHandlers,
+  type ChangeSetHandlers,
+} from "src/hooks/persistence/use-change-set-handlers";
 import {
   commitChangeSet,
   isHistoryPending,
@@ -116,7 +118,7 @@ const transactWithChangeSet = (
   set: Setter,
   moment: Moment,
   onWriteFailure: WriteFailureHandler,
-  persist: PersistBranchChange,
+  handlers: ChangeSetHandlers,
 ): boolean => {
   let changeSet: ChangeSet;
   try {
@@ -126,7 +128,7 @@ const transactWithChangeSet = (
       () => toChangeSet(hydraulicModel, processMoment(moment, hydraulicModel)),
       (built) => ({
         note: moment.note,
-        records: built.records.length,
+        records: built.size,
         bytes: built.byteLength,
       }),
     );
@@ -137,7 +139,7 @@ const transactWithChangeSet = (
   reportOrphanLinks(get, moment);
 
   trackMoment(moment);
-  commitChangeSet(get, set, changeSet, onWriteFailure, persist);
+  commitChangeSet(get, set, changeSet, onWriteFailure, handlers);
 
   reportAppliedIntegrity(get, moment);
 
@@ -146,16 +148,22 @@ const transactWithChangeSet = (
 
 export const useMomentTransaction = () => {
   const onWriteFailure = useWriteFailureHandler();
-  const persist = usePersistBranchChange();
+  const handlers = useChangeSetHandlers();
 
   const transact = useAtomCallback(
     useCallback(
       (get: Getter, set: Setter, moment: Moment) => {
         if (isHistoryPending(get, moment.note)) return false;
 
-        return transactWithChangeSet(get, set, moment, onWriteFailure, persist);
+        return transactWithChangeSet(
+          get,
+          set,
+          moment,
+          onWriteFailure,
+          handlers,
+        );
       },
-      [onWriteFailure, persist],
+      [onWriteFailure, handlers],
     ),
   );
 

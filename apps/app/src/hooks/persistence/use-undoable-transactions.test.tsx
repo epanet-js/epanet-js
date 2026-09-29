@@ -20,6 +20,7 @@ import { useInProcessDb } from "src/lib/db/__test-helpers__/in-process-db";
 import * as db from "src/lib/db";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import type { Store } from "src/state";
+import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
 
 const IDS = { J1: 1, J2: 2 } as const;
 
@@ -78,8 +79,19 @@ const assetOrder = (store: Store) => [
   ...store.get(stagingModelDerivedAtom).assets.keys(),
 ];
 
-describe("undoable transactions", () => {
+describe.each([
+  ["with lazy scenarios", true],
+  ["without lazy scenarios", false],
+])("undoable transactions %s", (_, isLazyScenariosOn) => {
   useInProcessDb();
+
+  beforeEach(() => {
+    if (isLazyScenariosOn) stubFeatureOn("FLAG_LAZY_SCENARIOS");
+  });
+
+  afterEach(() => {
+    stubFeatureOff("FLAG_LAZY_SCENARIOS");
+  });
 
   it("undoes an edit", async () => {
     const store = await aProject();
