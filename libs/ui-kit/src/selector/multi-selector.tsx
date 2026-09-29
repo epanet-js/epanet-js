@@ -24,6 +24,7 @@ export type MultiSelectorProps<T extends string | number> = {
   ariaLabel?: string;
   tabIndex?: number;
   styleOptions?: StyleOptions;
+  triggerClassName?: string;
   disabled?: boolean;
   searchPlaceholder?: string;
   minOptionsForSearch?: number;
@@ -47,6 +48,7 @@ export function BaseMultiSelector<T extends string | number>({
   ariaLabel,
   tabIndex = 1,
   styleOptions = {},
+  triggerClassName,
   disabled = false,
   searchPlaceholder,
   minOptionsForSearch,
@@ -117,7 +119,7 @@ export function BaseMultiSelector<T extends string | number>({
           disabled={effectiveDisabled}
           onClick={handleTriggerClick}
           onKeyDown={handleTriggerKeyDown}
-          className={triggerStyles}
+          className={clsx(triggerStyles, triggerClassName)}
         >
           <div
             className={clsx(

@@ -19,6 +19,7 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
   disabled = false,
   autoFocus = false,
   wrapperClassName,
+  triggerClassName,
   renderOption,
   side = "auto",
   searchDebounceMs = 0,
@@ -33,6 +34,7 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
   disabled?: boolean;
   autoFocus?: boolean;
   wrapperClassName?: string;
+  triggerClassName?: string;
   renderOption?: (option: T) => React.ReactNode;
   /** Shown inside the input, before the placeholder, while it is empty. */
   placeholderIcon?: React.ReactNode;
@@ -253,11 +255,12 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
                 disabled
                   ? "cursor-not-allowed bg-base-disabled border-strong text-disabled"
                   : "text-default bg-popover focus:ring-inset focus:ring-1 focus:ring-accent focus:bg-purple-300/10 focus:border-transparent",
+                triggerClassName,
               )}
             />
 
             {isSearching && (
-              <div className="absolute right-3 top-2.5">
+              <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-accent"></div>
               </div>
             )}

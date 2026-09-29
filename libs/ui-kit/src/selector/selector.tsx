@@ -18,6 +18,7 @@ type SelectorPropsBase<T extends string | number> = {
   tabIndex?: number;
   invalid?: boolean;
   styleOptions?: StyleOptions;
+  triggerClassName?: string;
   disabled?: boolean;
   searchPlaceholder?: string;
   allowNew?: boolean;
@@ -71,6 +72,7 @@ export function BaseSelector<T extends string | number>({
   tabIndex = 0,
   invalid = false,
   styleOptions = {},
+  triggerClassName,
   disabled = false,
   searchPlaceholder,
   allowNew,
@@ -156,7 +158,7 @@ export function BaseSelector<T extends string | number>({
           disabled={effectiveDisabled}
           onClick={handleTriggerClick}
           onKeyDown={handleTriggerKeyDown}
-          className={triggerStyles}
+          className={clsx(triggerStyles, triggerClassName)}
         >
           <div
             className={clsx(
