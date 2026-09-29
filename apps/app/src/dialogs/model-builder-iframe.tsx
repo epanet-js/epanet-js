@@ -7,6 +7,7 @@ import { useImportInp } from "src/commands/import-inp";
 import { useUserTracking, UserEvent } from "src/infra/user-tracking";
 import { useShowNetworkReview } from "src/commands/show-network-review";
 import { modelBuilderUrl } from "src/global-config";
+import { useAuth } from "src/hooks/use-auth";
 
 interface IframeMessage {
   type: string;
@@ -104,6 +105,7 @@ export const ModelBuilderIframeDialog = ({
   const importInp = useImportInp();
   const userTracking = useUserTracking();
   const showNetworkReview = useShowNetworkReview();
+  const { isSignedIn } = useAuth();
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
@@ -149,7 +151,7 @@ export const ModelBuilderIframeDialog = ({
       height="xxl"
       isOpen={true}
       onClose={_onClose}
-      badge={<EarlyAccessBadge />}
+      badge={isSignedIn ? undefined : <EarlyAccessBadge />}
     >
       <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
         {isLoading && (

@@ -13,6 +13,7 @@ vi.mock("src/global-config", async (importOriginal) => ({
 
 vi.mock("src/hooks/use-feature-flags", () => ({
   useEnabledFeatureFlags: () => enabledFlags.value,
+  useFeatureFlag: (name: string) => enabledFlags.value.includes(name),
 }));
 
 vi.mock("src/commands/open-project", () => ({
