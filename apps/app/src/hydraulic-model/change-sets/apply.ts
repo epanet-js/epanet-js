@@ -1,9 +1,10 @@
 import {
   WHOLE_VALUE,
   effective,
+  effectiveSide,
   entityKinds,
   isAssetEntity,
-  type ChangeRecord,
+  type ChangeEntry,
   type ChangeSet,
   type Direction,
   type Effective,
@@ -83,15 +84,15 @@ const linkConnections = (fields: Fields): [AssetId, AssetId] | null => {
 const applyAsset = (
   model: HydraulicModel,
   labelManager: LabelManager,
-  record: ChangeRecord,
-  step: Effective,
+  entity: EntityKind,
+  entityId: number | string,
+  change: Effective,
 ): void => {
-  const entity = record.entity;
   if (!isAssetEntity(entity)) return;
-  const id = Number(record.id);
+  const id = Number(entityId);
   const type = entityToAssetType(entity);
 
-  if (step.kind === "delete") {
+  if (change.kind === "delete") {
     const asset = model.assets.get(id);
     if (!asset) return;
     if (asset.isLink) model.assetIndex.removeLink(id);
@@ -103,12 +104,12 @@ const applyAsset = (
     return;
   }
 
-  if (step.kind === "create") {
-    const asset = buildAssetFromFields(entity, id, step.fields);
+  if (change.kind === "create") {
+    const asset = buildAssetFromFields(entity, id, change.fields);
     model.assets.set(id, asset);
     if (asset.isLink) {
       model.assetIndex.addLink(id);
-      const connections = linkConnections(step.fields);
+      const connections = linkConnections(change.fields);
       if (connections) {
         model.topology.addLink(id, connections[0], connections[1]);
       }
@@ -124,16 +125,16 @@ const applyAsset = (
 
   const updated = buildAssetFromFields(entity, id, {
     ...assetToFields(existing),
-    ...step.fields,
+    ...change.fields,
   });
   model.assets.set(id, updated);
 
-  if (LABEL_FIELD in step.fields) {
+  if (LABEL_FIELD in change.fields) {
     labelManager.remove(existing.label, type, id);
     labelManager.register(updated.label, type, id);
   }
 
-  if (CONNECTIONS_FIELD in step.fields && updated.isLink) {
+  if (CONNECTIONS_FIELD in change.fields && updated.isLink) {
     model.topology.removeLink(id);
     const connections = (updated as LinkAsset).connections;
     if (connections) model.topology.addLink(id, connections[0], connections[1]);
@@ -143,12 +144,12 @@ const applyAsset = (
 const applyCustomerPoint = (
   model: HydraulicModel,
   labelManager: LabelManager,
-  record: ChangeRecord,
-  step: Effective,
+  entityId: number | string,
+  change: Effective,
 ): void => {
-  const id = Number(record.id);
+  const id = Number(entityId);
 
-  if (step.kind === "delete") {
+  if (change.kind === "delete") {
     const existing = model.customerPoints.get(id);
     if (!existing) return;
     model.customerPointsLookup.removeConnection(existing);
@@ -157,8 +158,8 @@ const applyCustomerPoint = (
     return;
   }
 
-  if (step.kind === "create") {
-    const customerPoint = buildCustomerPointFromFields(id, step.fields);
+  if (change.kind === "create") {
+    const customerPoint = buildCustomerPointFromFields(id, change.fields);
     model.customerPointsLookup.addConnection(customerPoint);
     model.customerPoints.set(id, customerPoint);
     labelManager.register(customerPoint.label, "customerPoint", id);
@@ -170,14 +171,14 @@ const applyCustomerPoint = (
 
   const updated = buildCustomerPointFromFields(id, {
     ...customerPointToFields(existing),
-    ...step.fields,
+    ...change.fields,
   });
 
   model.customerPointsLookup.removeConnection(existing);
   model.customerPointsLookup.addConnection(updated);
   model.customerPoints.set(id, updated);
 
-  if (LABEL_FIELD in step.fields) {
+  if (LABEL_FIELD in change.fields) {
     labelManager.remove(existing.label, "customerPoint", id);
     labelManager.register(updated.label, "customerPoint", id);
   }
@@ -185,20 +186,20 @@ const applyCustomerPoint = (
 
 const applyCurve = (
   labelManager: LabelManager,
-  record: ChangeRecord,
-  step: Effective,
+  entityId: number | string,
+  change: Effective,
   curves: Curves,
 ): void => {
-  const id = Number(record.id);
+  const id = Number(entityId);
   const existing = curves.get(id);
   if (existing) labelManager.remove(existing.label, "curve", id);
 
-  if (step.kind === "delete") {
+  if (change.kind === "delete") {
     curves.delete(id);
     return;
   }
 
-  const source = { ...(existing ?? {}), ...step.fields };
+  const source = { ...(existing ?? {}), ...change.fields };
   const curve: ICurve = {
     id,
     label: source.label as string,
@@ -211,20 +212,20 @@ const applyCurve = (
 
 const applyPattern = (
   labelManager: LabelManager,
-  record: ChangeRecord,
-  step: Effective,
+  entityId: number | string,
+  change: Effective,
   patterns: Map<number, Pattern>,
 ): void => {
-  const id = Number(record.id);
+  const id = Number(entityId);
   const existing = patterns.get(id);
   if (existing) labelManager.remove(existing.label, "pattern", id);
 
-  if (step.kind === "delete") {
+  if (change.kind === "delete") {
     patterns.delete(id);
     return;
   }
 
-  const source = { ...(existing ?? {}), ...step.fields };
+  const source = { ...(existing ?? {}), ...change.fields };
   const pattern: Pattern = {
     id,
     label: source.label as string,
@@ -236,12 +237,12 @@ const applyPattern = (
 };
 
 const applyDemand = (
-  record: ChangeRecord,
-  step: Effective,
+  entityId: number | string,
+  change: Effective,
   owners: Map<number, Demand[]>,
 ): void => {
-  const id = Number(record.id);
-  const demands = wholeValueOf<Demand[]>(step.fields) ?? [];
+  const id = Number(entityId);
+  const demands = wholeValueOf<Demand[]>(change.fields) ?? [];
   if (demands.length === 0) owners.delete(id);
   else owners.set(id, demands);
 };
@@ -249,14 +250,21 @@ const applyDemand = (
 const orderFor = (kind: Effective["kind"]): EntityKind[] =>
   kind === "delete" ? DELETE_ORDER : CREATE_ORDER;
 
-export const applyChangeSet = (
-  model: HydraulicModel,
-  changeSet: ChangeSet,
-  direction: Direction,
-  labelManager: LabelManager,
-): ApplyReport => {
-  const { name, records } = changeSet.read();
+type EntityChange = {
+  entity: EntityKind;
+  id: number | string;
+  change: Effective;
+};
 
+type Applied = Pick<ApplyReport, "touchedEntities" | "touchedAssetIds"> & {
+  count: number;
+};
+
+const applyChanges = (
+  model: HydraulicModel,
+  labelManager: LabelManager,
+  changes: Iterable<EntityChange>,
+): Applied => {
   const touchedEntities = new Set<EntityKind>();
   const touchedAssetIds: AssetId[] = [];
 
@@ -265,14 +273,14 @@ export const applyChangeSet = (
   let junctionDemands: Map<number, Demand[]> | null = null;
   let customerDemands: Map<number, Demand[]> | null = null;
 
-  type Step = { record: ChangeRecord; step: Effective };
-  const buckets = new Map<string, Step[]>();
-  for (const record of records) {
-    const step = effective(record, direction);
-    const key = `${step.kind}|${record.entity}`;
+  let count = 0;
+  const buckets = new Map<string, EntityChange[]>();
+  for (const item of changes) {
+    count += 1;
+    const key = `${item.change.kind}|${item.entity}`;
     const bucket = buckets.get(key);
-    if (bucket) bucket.push({ record, step });
-    else buckets.set(key, [{ record, step }]);
+    if (bucket) bucket.push(item);
+    else buckets.set(key, [item]);
   }
 
   for (const phase of ["create", "update", "delete"] as const) {
@@ -281,7 +289,7 @@ export const applyChangeSet = (
       if (!bucket) continue;
       touchedEntities.add(entity);
 
-      for (const { record, step } of bucket) {
+      for (const { id, change } of bucket) {
         switch (entity) {
           case "junction":
           case "reservoir":
@@ -289,44 +297,44 @@ export const applyChangeSet = (
           case "pipe":
           case "pump":
           case "valve":
-            touchedAssetIds.push(Number(record.id));
-            applyAsset(model, labelManager, record, step);
+            touchedAssetIds.push(Number(id));
+            applyAsset(model, labelManager, entity, id, change);
             break;
           case "customerPoint":
-            applyCustomerPoint(model, labelManager, record, step);
+            applyCustomerPoint(model, labelManager, id, change);
             break;
           case "curve":
             curves ??= new Map(model.curves);
-            applyCurve(labelManager, record, step, curves);
+            applyCurve(labelManager, id, change, curves);
             break;
           case "pattern":
             patterns ??= new Map(model.patterns);
-            applyPattern(labelManager, record, step, patterns);
+            applyPattern(labelManager, id, change, patterns);
             break;
           case "allControls": {
-            const next = wholeValueOf<Controls>(step.fields);
+            const next = wholeValueOf<Controls>(change.fields);
             model.controls = next;
             model.controlsLookup = buildControlsLookup(next);
             break;
           }
           case "customAttributesDefinition":
             model.customAttributes = customAttributesFromPlain(
-              wholeValueOf<PlainCustomAttributes>(step.fields),
+              wholeValueOf<PlainCustomAttributes>(change.fields),
             );
             break;
           case "junctionDemand":
             junctionDemands ??= new Map(model.demands.junctions);
-            applyDemand(record, step, junctionDemands);
+            applyDemand(id, change, junctionDemands);
             break;
           case "customerDemand":
             customerDemands ??= new Map(model.demands.customerPoints);
-            applyDemand(record, step, customerDemands);
+            applyDemand(id, change, customerDemands);
             break;
           case "pipeLibrary":
-            model.pipeMaterials = wholeValueOf<PipeMaterial[]>(step.fields);
+            model.pipeMaterials = wholeValueOf<PipeMaterial[]>(change.fields);
             break;
           case "rawControls":
-            model.rawControls = wholeValueOf<RawControls>(step.fields);
+            model.rawControls = wholeValueOf<RawControls>(change.fields);
             break;
         }
       }
@@ -343,11 +351,64 @@ export const applyChangeSet = (
     };
   }
 
+  return { touchedEntities, touchedAssetIds, count };
+};
+
+const entryChange = (
+  entry: ChangeEntry,
+  direction: Direction,
+): EntityChange => {
+  const { kind, side } = effectiveSide(entry.kind, direction);
+  let fields: Fields | null = null;
   return {
-    name,
-    direction,
-    recordCount: records.length,
-    touchedEntities,
-    touchedAssetIds,
+    entity: entry.entity,
+    id: entry.id,
+    change: {
+      kind,
+      get fields() {
+        fields ??= entry.fields(side);
+        return fields;
+      },
+    },
   };
+};
+
+function* entryChanges(
+  changeSet: ChangeSet,
+  direction: Direction,
+): Generator<EntityChange> {
+  for (const entry of changeSet.entries()) yield entryChange(entry, direction);
+}
+
+export const applyChangeSet = (
+  model: HydraulicModel,
+  changeSet: ChangeSet,
+  direction: Direction,
+  labelManager: LabelManager,
+): ApplyReport => {
+  const { count, ...touched } = applyChanges(
+    model,
+    labelManager,
+    entryChanges(changeSet, direction),
+  );
+  return { name: changeSet.name, direction, recordCount: count, ...touched };
+};
+
+export const applyChangeSetDeprecated = (
+  model: HydraulicModel,
+  changeSet: ChangeSet,
+  direction: Direction,
+  labelManager: LabelManager,
+): ApplyReport => {
+  const { name, records } = changeSet.read();
+  const { count, ...touched } = applyChanges(
+    model,
+    labelManager,
+    records.map((record) => ({
+      entity: record.entity,
+      id: record.id,
+      change: effective(record, direction),
+    })),
+  );
+  return { name, direction, recordCount: count, ...touched };
 };

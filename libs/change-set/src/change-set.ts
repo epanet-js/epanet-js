@@ -4,6 +4,7 @@ import {
   encode,
   isStringKeyed,
   readEntries,
+  readName,
   readVersion,
   type ChangeEntry,
 } from "./codec";
@@ -20,6 +21,7 @@ export class ChangeSet {
   readonly bytes: Uint8Array;
   private decoded: DecodedChangeSet | null = null;
   private schemaVersion: number | null = null;
+  private operationName: string | null = null;
 
   private constructor(bytes: Uint8Array) {
     this.bytes = bytes;
@@ -51,7 +53,12 @@ export class ChangeSet {
   }
 
   get name(): string {
-    return this.read().name;
+    if (this.operationName === null) {
+      this.operationName = this.decoded
+        ? this.decoded.name
+        : readName(this.bytes);
+    }
+    return this.operationName;
   }
 
   get version(): number {

@@ -6,7 +6,12 @@ export {
   type ChangeSetMigration,
 } from "./versioning";
 export { isStringKeyed, type ChangeEntry, type Side } from "./codec";
-export { effective, type Direction, type Effective } from "./direction";
+export {
+  effective,
+  effectiveSide,
+  type Direction,
+  type Effective,
+} from "./direction";
 export {
   WHOLE_VALUE,
   assetEntityKinds,

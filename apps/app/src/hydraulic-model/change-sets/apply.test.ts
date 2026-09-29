@@ -8,7 +8,7 @@ import {
   type ModelFixture,
 } from "src/__helpers__/model-snapshot";
 import type { HydraulicModel } from "../hydraulic-model";
-import { applyChangeSet } from "./apply";
+import { applyChangeSet, applyChangeSetDeprecated } from "./apply";
 import { changeSet, type Intent } from "./build";
 import {
   dropAssets,
@@ -63,29 +63,38 @@ const aNetwork = (): ModelFixture => {
   return { model, labelManager };
 };
 
-const roundTrip = (
-  name: string,
-  intents: (model: HydraulicModel) => Intent[],
-) => {
-  const original = aNetwork();
-  const worked = aNetwork();
+type Apply = typeof applyChangeSet;
 
-  const built = changeSet(worked.model, name, intents(worked.model));
-  expect(built.isEmpty).toBe(false);
+const appliers = [
+  ["applyChangeSet", applyChangeSet],
+  ["applyChangeSetDeprecated", applyChangeSetDeprecated],
+] as const;
 
-  const probe = [...modelLabels(original.model), ...modelLabels(worked.model)];
+const roundTripWith =
+  (apply: Apply) =>
+  (name: string, intents: (model: HydraulicModel) => Intent[]) => {
+    const original = aNetwork();
+    const worked = aNetwork();
 
-  applyChangeSet(worked.model, built, "forward", worked.labelManager);
-  const forward = snapshot(worked, probe);
-  expect(forward).not.toEqual(snapshot(original, probe));
+    const built = changeSet(worked.model, name, intents(worked.model));
+    expect(built.isEmpty).toBe(false);
 
-  applyChangeSet(worked.model, built, "reverse", worked.labelManager);
-  expect(withoutIndexOrder(snapshot(worked, probe))).toEqual(
-    withoutIndexOrder(snapshot(original, probe)),
-  );
+    const probe = [
+      ...modelLabels(original.model),
+      ...modelLabels(worked.model),
+    ];
 
-  return worked;
-};
+    apply(worked.model, built, "forward", worked.labelManager);
+    const forward = snapshot(worked, probe);
+    expect(forward).not.toEqual(snapshot(original, probe));
+
+    apply(worked.model, built, "reverse", worked.labelManager);
+    expect(withoutIndexOrder(snapshot(worked, probe))).toEqual(
+      withoutIndexOrder(snapshot(original, probe)),
+    );
+
+    return worked;
+  };
 
 describe("model snapshot", () => {
   it("matches an untouched pair and separates a single changed property", () => {
@@ -108,7 +117,9 @@ describe("model snapshot", () => {
   });
 });
 
-describe("applyChangeSet", () => {
+describe.each(appliers)("%s", (_, apply) => {
+  const roundTrip = roundTripWith(apply);
+
   it("round-trips an asset property update", () => {
     const worked = roundTrip("changeProperty", () => [
       setAsset(IDS.J1, { elevation: 77 }),
@@ -235,12 +246,7 @@ describe("applyChangeSet", () => {
       setDemands([{ junctionId: IDS.J1, demands: [{ baseDemand: 1 }] }]),
     ]);
 
-    const report = applyChangeSet(
-      fixture.model,
-      built,
-      "forward",
-      fixture.labelManager,
-    );
+    const report = apply(fixture.model, built, "forward", fixture.labelManager);
 
     expect(report.direction).toBe("forward");
     expect(report.name).toBe("changeProperty");
@@ -259,7 +265,7 @@ describe("applyChangeSet", () => {
     fixture.model.assets.delete(IDS.J1);
 
     expect(() =>
-      applyChangeSet(fixture.model, built, "forward", fixture.labelManager),
+      apply(fixture.model, built, "forward", fixture.labelManager),
     ).not.toThrow();
   });
 });

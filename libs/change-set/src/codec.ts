@@ -355,6 +355,10 @@ const readCell = (
 export const readVersion = (bytes: Uint8Array): number =>
   FbChangeSet.getRootAsChangeSet(new flatbuffers.ByteBuffer(bytes)).version();
 
+export const readName = (bytes: Uint8Array): string =>
+  FbChangeSet.getRootAsChangeSet(new flatbuffers.ByteBuffer(bytes)).name() ??
+  "";
+
 export type Side = "before" | "after";
 
 export type ChangeEntry = {

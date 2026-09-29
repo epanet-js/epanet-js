@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { ChangeSet, invert, squash } from "./change-set";
-import { effective } from "./direction";
+import { effective, effectiveSide } from "./direction";
 import type { ChangeKind, ChangeRecord } from "./types";
 
 describe("codec", () => {
@@ -499,6 +499,21 @@ describe("entries", () => {
     expect(entries.map((entry) => entry.fields("before"))).toStrictEqual(
       decoded().map((record) => record.before),
     );
+  });
+
+  it("reads the name without decoding", () => {
+    expect(stored().name).toBe("edit");
+  });
+
+  it("picks the side effective reads, in both directions", () => {
+    for (const record of decoded()) {
+      for (const direction of ["forward", "reverse"] as const) {
+        const { kind, side } = effectiveSide(record.kind, direction);
+        expect({ kind, fields: record[side] }).toStrictEqual(
+          effective(record, direction),
+        );
+      }
+    }
   });
 
   it("counts entities", () => {

@@ -9,7 +9,7 @@ import {
 import { CustomerPoints } from "@epanet-js/hydraulic-model";
 import type { ChangeSet, Direction } from "@epanet-js/change-set";
 import {
-  applyChangeSet,
+  applyChangeSetDeprecated,
   type ApplyReport,
 } from "src/hydraulic-model/change-sets";
 import { modelFactoriesAtom } from "src/state/model-factories";
@@ -71,7 +71,7 @@ export function applyChange(
   const hydraulicModel = get(modelAtom);
 
   const factories = get(modelFactoriesAtom);
-  const report = applyChangeSet(
+  const report = applyChangeSetDeprecated(
     hydraulicModel,
     changeSet,
     direction,

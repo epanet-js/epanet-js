@@ -10,7 +10,10 @@ import {
 import type { ChangeSet, EntityKind } from "@epanet-js/change-set";
 import type { IdPool } from "@epanet-js/id-generator";
 import { copyModel } from "src/hydraulic-model";
-import { applyChangeSet } from "src/hydraulic-model/change-sets";
+import {
+  applyChangeSet,
+  applyChangeSetDeprecated,
+} from "src/hydraulic-model/change-sets";
 import { buildSimulationSettingsData } from "src/lib/db";
 import { SessionHistory } from "src/lib/persistence/session-history";
 import { settleAppliedModel } from "src/lib/persistence/transaction-helpers";
@@ -148,7 +151,7 @@ export const buildStoredBranchStates = (
       const report = trace.measure(
         `${branchId}:apply-delta`,
         () =>
-          applyChangeSet(
+          applyChangeSetDeprecated(
             state.hydraulicModel,
             delta,
             "forward",
@@ -221,12 +224,7 @@ export const materializeBranch = (
     ...trace.measure("copy-main", () => branchFromMain(mainState, factories)),
     ...unloaded,
   };
-  const { records } = trace.measure(
-    "decode-delta",
-    () => delta.read(),
-    `${delta.byteLength} bytes`,
-  );
-  const detail = `${records.length} records`;
+  const detail = `${delta.size} records, ${delta.byteLength} bytes`;
   const report = trace.measure(
     "apply-delta",
     () =>
