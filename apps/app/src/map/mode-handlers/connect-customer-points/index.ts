@@ -5,12 +5,17 @@ import { useEffect, useRef } from "react";
 import { getMapCoord } from "../utils";
 import { useConnectCustomerPointsState } from "./connect-state";
 import { usePipeSnappingForCustomerPoints } from "./pipe-snapping";
-import { connectCustomers } from "src/hydraulic-model/model-operations";
+import {
+  connectCustomers,
+  connectCustomersDeprecated,
+} from "src/hydraulic-model/model-operations";
 import { useUserTracking } from "src/infra/user-tracking";
 import { captureError } from "src/infra/error-tracking";
 import { useKeyboardState } from "src/keyboard/use-keyboard-state";
 import throttle from "lodash/throttle";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
+import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export function useConnectCustomerPointsHandlers({
   hydraulicModel,
@@ -19,6 +24,8 @@ export function useConnectCustomerPointsHandlers({
   const mode = useAtomValue(modeAtom);
   const setMode = useSetAtom(modeAtom);
   const { transact } = useMomentTransaction();
+  const { transact: transactChangeSet } = useModelTransaction();
+  const isOpsChangeSetsOn = useFeatureFlag("FLAG_OPS_CHANGE_SETS");
   const userTracking = useUserTracking();
   const { isShiftHeld } = useKeyboardState();
   const {
@@ -86,11 +93,19 @@ export function useConnectCustomerPointsHandlers({
     }
 
     try {
-      const moment = connectCustomers(hydraulicModel, {
+      const data = {
         customerPointIds: ephemeralState.customerPoints.map((cp) => cp.id),
         pipeId: ephemeralState.targetPipeId,
         snapPoints: ephemeralState.snapPoints,
-      });
+      };
+      let commit: () => void;
+      if (isOpsChangeSetsOn) {
+        const changeSet = connectCustomers(hydraulicModel, data);
+        commit = () => transactChangeSet(changeSet);
+      } else {
+        const moment = connectCustomersDeprecated(hydraulicModel, data);
+        commit = () => transact(moment);
+      }
 
       userTracking.capture({
         name: "customerPoints.connected",
@@ -98,7 +113,7 @@ export function useConnectCustomerPointsHandlers({
         strategy: ephemeralState.strategy,
       });
 
-      transact(moment);
+      commit();
       setMode({ mode: Mode.NONE });
       clearConnectState();
     } catch (error) {

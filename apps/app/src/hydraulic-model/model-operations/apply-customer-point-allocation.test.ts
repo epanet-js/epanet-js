@@ -5,11 +5,25 @@ import {
   buildCustomerPoint,
 } from "src/__helpers__/hydraulic-model-builder";
 import { CustomerPoints } from "@epanet-js/hydraulic-model";
+import { buildTestFactories } from "src/__helpers__/test-factories";
+import { applyOperation } from "src/__helpers__/apply-operation";
+import type { HydraulicModel } from "src/hydraulic-model";
+
+const { labelManager } = buildTestFactories();
+
+const allocate = (
+  hydraulicModel: HydraulicModel,
+  data: Parameters<typeof applyCustomerPointAllocation>[1],
+) => {
+  const changeSet = applyCustomerPointAllocation(hydraulicModel, data);
+  applyOperation(hydraulicModel, changeSet, labelManager);
+  return changeSet;
+};
 
 describe("applyCustomerPointAllocation", () => {
-  it("connects customer points from multiple pipes into a single moment", () => {
+  it("connects customer points from multiple pipes into a single change set", () => {
     const IDS = { J1: 1, J2: 2, J3: 3, J4: 4, P1: 5, P2: 6 } as const;
-    const hydraulicModel = HydraulicModelBuilder.with()
+    const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .aJunction(IDS.J2, { coordinates: [10, 0] })
       .aJunction(IDS.J3, { coordinates: [20, 0] })
@@ -47,7 +61,7 @@ describe("applyCustomerPointAllocation", () => {
       [101, cp2],
     ]);
 
-    const moment = applyCustomerPointAllocation(hydraulicModel, {
+    const changeSet = allocate(hydraulicModel, {
       allocationResult: {
         allocatedCustomerPoints,
         disconnectedCustomerPoints: new Map(),
@@ -56,13 +70,19 @@ describe("applyCustomerPointAllocation", () => {
       },
     });
 
-    expect(moment.putCustomerPoints).toHaveLength(2);
-    expect(moment.note).toBe("Allocate customer points");
+    expect(changeSet.records).toHaveLength(2);
+    expect(changeSet.name).toBe("Allocate customer points");
+    expect(hydraulicModel.customerPoints.get(100)!.connection!.pipeId).toBe(
+      IDS.P1,
+    );
+    expect(hydraulicModel.customerPoints.get(101)!.connection!.pipeId).toBe(
+      IDS.P2,
+    );
   });
 
   it("includes all customer points connected to the same pipe", () => {
     const IDS = { J1: 1, J2: 2, P1: 3 } as const;
-    const hydraulicModel = HydraulicModelBuilder.with()
+    const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .aJunction(IDS.J2, { coordinates: [10, 0] })
       .aPipe(IDS.P1, {
@@ -89,7 +109,7 @@ describe("applyCustomerPointAllocation", () => {
       [101, cp2],
     ]);
 
-    const moment = applyCustomerPointAllocation(hydraulicModel, {
+    const changeSet = allocate(hydraulicModel, {
       allocationResult: {
         allocatedCustomerPoints,
         disconnectedCustomerPoints: new Map(),
@@ -98,12 +118,18 @@ describe("applyCustomerPointAllocation", () => {
       },
     });
 
-    expect(moment.putCustomerPoints).toHaveLength(2);
+    expect(changeSet.records).toHaveLength(2);
+    expect(hydraulicModel.customerPoints.get(100)!.connection!.junctionId).toBe(
+      IDS.J1,
+    );
+    expect(hydraulicModel.customerPoints.get(101)!.connection!.junctionId).toBe(
+      IDS.J2,
+    );
   });
 
-  it("returns empty putCustomerPoints when no customer points were allocated", () => {
+  it("returns an empty change set when no customer points were allocated", () => {
     const IDS = { J1: 1, J2: 2, P1: 3 } as const;
-    const hydraulicModel = HydraulicModelBuilder.with()
+    const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .aJunction(IDS.J2, { coordinates: [10, 0] })
       .aPipe(IDS.P1, {
@@ -117,7 +143,7 @@ describe("applyCustomerPointAllocation", () => {
       })
       .build();
 
-    const moment = applyCustomerPointAllocation(hydraulicModel, {
+    const changeSet = allocate(hydraulicModel, {
       allocationResult: {
         allocatedCustomerPoints: new Map(),
         disconnectedCustomerPoints: new Map(),
@@ -126,12 +152,12 @@ describe("applyCustomerPointAllocation", () => {
       },
     });
 
-    expect(moment.putCustomerPoints).toHaveLength(0);
+    expect(changeSet.isEmpty).toBe(true);
   });
 
   it("ignores disconnected customer points", () => {
     const IDS = { J1: 1, J2: 2, P1: 3 } as const;
-    const hydraulicModel = HydraulicModelBuilder.with()
+    const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .aJunction(IDS.J2, { coordinates: [10, 0] })
       .aPipe(IDS.P1, {
@@ -152,7 +178,7 @@ describe("applyCustomerPointAllocation", () => {
 
     const disconnectedCp = buildCustomerPoint(101, { coordinates: [50, 50] });
 
-    const moment = applyCustomerPointAllocation(hydraulicModel, {
+    const changeSet = allocate(hydraulicModel, {
       allocationResult: {
         allocatedCustomerPoints: new Map([[100, cp1]]),
         disconnectedCustomerPoints: new Map([[101, disconnectedCp]]),
@@ -161,6 +187,7 @@ describe("applyCustomerPointAllocation", () => {
       },
     });
 
-    expect(moment.putCustomerPoints).toHaveLength(1);
+    expect(changeSet.records.map(({ id }) => id)).toEqual([100]);
+    expect(hydraulicModel.customerPoints.get(101)!.connection).toBeNull();
   });
 });

@@ -4,7 +4,9 @@ import {
   NodeAsset,
   AssetId,
 } from "@epanet-js/hydraulic-model";
-import { ModelOperationDeprecated } from "../model-operation";
+import { ModelOperation, ModelOperationDeprecated } from "../model-operation";
+import { HydraulicModel } from "../hydraulic-model";
+import { changeSet, putCustomerPoints } from "../change-sets";
 import { Position } from "src/types";
 import { findJunctionForCustomerPoint } from "../utilities/junction-assignment";
 
@@ -14,10 +16,23 @@ type InputData = {
   snapPoints: readonly Position[];
 };
 
-export const connectCustomers: ModelOperationDeprecated<InputData> = (
-  { customerPoints, assets },
-  { customerPointIds, pipeId, snapPoints },
-) => {
+export const connectCustomers: ModelOperation<InputData> = (model, data) =>
+  changeSet(model, "Connect customers", [
+    putCustomerPoints(connectedCopies(model, data)),
+  ]);
+
+export const connectCustomersDeprecated: ModelOperationDeprecated<InputData> = (
+  model,
+  data,
+) => ({
+  note: "Connect customers",
+  putCustomerPoints: connectedCopies(model, data),
+});
+
+export const connectedCopies = (
+  { customerPoints, assets }: HydraulicModel,
+  { customerPointIds, pipeId, snapPoints }: InputData,
+): CustomerPoint[] => {
   if (customerPointIds.length !== snapPoints.length) {
     throw new Error(
       "Customer point IDs and snap points arrays must have the same length",
@@ -84,8 +99,5 @@ export const connectCustomers: ModelOperationDeprecated<InputData> = (
     connectedCustomerPoints.push(connectedCopy);
   }
 
-  return {
-    note: "Connect customers",
-    putCustomerPoints: connectedCustomerPoints,
-  };
+  return connectedCustomerPoints;
 };

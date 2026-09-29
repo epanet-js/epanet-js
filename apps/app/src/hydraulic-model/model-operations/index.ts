@@ -12,7 +12,10 @@ export {
   disconnectCustomers,
   disconnectCustomersDeprecated,
 } from "./disconnect-customers";
-export { connectCustomers } from "./connect-customers";
+export {
+  connectCustomers,
+  connectCustomersDeprecated,
+} from "./connect-customers";
 export { addNode } from "./add-node";
 export { deleteAssets } from "./delete-assets";
 export { addLink } from "./add-link";
@@ -35,7 +38,10 @@ export {
   changeDemandAssignment,
   changeDemandAssignmentDeprecated,
 } from "./change-demand-assignment";
-export { addCustomerPoint } from "./add-customer-point";
+export {
+  addCustomerPoint,
+  addCustomerPointDeprecated,
+} from "./add-customer-point";
 export {
   removeCustomerPoints,
   removeCustomerPointsDeprecated,
@@ -54,5 +60,8 @@ export {
   changeCustomerPointPropertyDeprecated,
   changeCustomerPointPropertiesDeprecated,
 } from "./change-customer-point-property";
-export { applyCustomerPointAllocation } from "./apply-customer-point-allocation";
+export {
+  applyCustomerPointAllocation,
+  applyCustomerPointAllocationDeprecated,
+} from "./apply-customer-point-allocation";
 export * from "./property-changes";

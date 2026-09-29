@@ -1,15 +1,21 @@
 import type { HandlerContext } from "src/types";
+import type { CustomerPointId } from "@epanet-js/hydraulic-model";
 import { ephemeralStateAtom } from "src/state/drawing";
 import { modeAtom, Mode } from "src/state/mode";
 import noop from "lodash/noop";
 import { useSetAtom, useAtomValue } from "jotai";
 import { getMapCoord } from "../utils";
-import { addCustomerPoint } from "src/hydraulic-model/model-operations";
+import {
+  addCustomerPoint,
+  addCustomerPointDeprecated,
+} from "src/hydraulic-model/model-operations";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useSelection } from "src/selection";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { selectionAtom } from "src/state/selection";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
+import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export function useDrawCustomerPointHandlers({
   hydraulicModel,
@@ -20,6 +26,8 @@ export function useDrawCustomerPointHandlers({
   const selection = useAtomValue(selectionAtom);
   const { customerPointFactory } = useAtomValue(modelFactoriesAtom);
   const { transact } = useMomentTransaction();
+  const { transact: transactChangeSet } = useModelTransaction();
+  const isOpsChangeSetsOn = useFeatureFlag("FLAG_OPS_CHANGE_SETS");
   const userTracking = useUserTracking();
   const { selectCustomerPoint } = useSelection(selection);
 
@@ -28,15 +36,25 @@ export function useDrawCustomerPointHandlers({
       if (readonly) return;
 
       const coordinates = getMapCoord(e);
-      const moment = addCustomerPoint(hydraulicModel, {
-        coordinates,
-        customerPointFactory,
-      });
-      transact(moment);
+      const data = { coordinates, customerPointFactory };
+
+      let createdId: CustomerPointId | undefined;
+      if (isOpsChangeSetsOn) {
+        const changeSet = addCustomerPoint(hydraulicModel, data);
+        transactChangeSet(changeSet);
+        createdId = changeSet.records.find(
+          (record) =>
+            record.entity === "customerPoint" && record.kind === "create",
+        )?.id as CustomerPointId | undefined;
+      } else {
+        const moment = addCustomerPointDeprecated(hydraulicModel, data);
+        transact(moment);
+        createdId = moment.putCustomerPoints?.[0]?.id;
+      }
       userTracking.capture({ name: "customerPointActions.created" });
 
-      if (moment.putCustomerPoints && moment.putCustomerPoints.length > 0) {
-        selectCustomerPoint(moment.putCustomerPoints[0].id);
+      if (createdId !== undefined) {
+        selectCustomerPoint(createdId);
       }
     },
     move: noop,

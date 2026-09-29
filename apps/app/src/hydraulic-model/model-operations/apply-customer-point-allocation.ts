@@ -1,16 +1,36 @@
-import { CustomerPointAllocationResult } from "@epanet-js/hydraulic-model";
+import {
+  CustomerPoint,
+  CustomerPointAllocationResult,
+} from "@epanet-js/hydraulic-model";
 import { HydraulicModel } from "../hydraulic-model";
-import { ModelMoment, ModelOperationDeprecated } from "../model-operation";
-import { connectCustomers } from "./connect-customers";
+import { ModelOperation, ModelOperationDeprecated } from "../model-operation";
+import { changeSet, putCustomerPoints } from "../change-sets";
+import { connectedCopies } from "./connect-customers";
 import { Position } from "src/types";
 
 type InputData = {
   allocationResult: CustomerPointAllocationResult;
 };
 
-export const applyCustomerPointAllocation: ModelOperationDeprecated<
+export const applyCustomerPointAllocation: ModelOperation<InputData> = (
+  hydraulicModel,
+  { allocationResult },
+) =>
+  changeSet(hydraulicModel, "Allocate customer points", [
+    putCustomerPoints(allocatedCopies(hydraulicModel, allocationResult)),
+  ]);
+
+export const applyCustomerPointAllocationDeprecated: ModelOperationDeprecated<
   InputData
-> = (hydraulicModel, { allocationResult }) => {
+> = (hydraulicModel, { allocationResult }) => ({
+  note: "Allocate customer points",
+  putCustomerPoints: allocatedCopies(hydraulicModel, allocationResult),
+});
+
+const allocatedCopies = (
+  hydraulicModel: HydraulicModel,
+  allocationResult: CustomerPointAllocationResult,
+): CustomerPoint[] => {
   const customerPointsByPipe = new Map<
     number,
     { customerPointIds: number[]; snapPoints: Position[] }
@@ -29,34 +49,20 @@ export const applyCustomerPointAllocation: ModelOperationDeprecated<
     entry.snapPoints.push(snapPoint);
   }
 
-  return generateSingleMoment(customerPointsByPipe, hydraulicModel);
-};
-
-const generateSingleMoment = (
-  customerPointsByPipe: Map<
-    number,
-    { customerPointIds: number[]; snapPoints: Position[] }
-  >,
-  hydraulicModel: HydraulicModel,
-): ModelMoment => {
-  const allPutCustomerPoints = [];
+  const allPutCustomerPoints: CustomerPoint[] = [];
 
   for (const [
     pipeId,
     { customerPointIds, snapPoints },
   ] of customerPointsByPipe) {
-    const moment = connectCustomers(hydraulicModel, {
-      customerPointIds,
-      pipeId,
-      snapPoints,
-    });
-    if (moment.putCustomerPoints) {
-      allPutCustomerPoints.push(...moment.putCustomerPoints);
-    }
+    allPutCustomerPoints.push(
+      ...connectedCopies(hydraulicModel, {
+        customerPointIds,
+        pipeId,
+        snapPoints,
+      }),
+    );
   }
 
-  return {
-    note: "Allocate customer points",
-    putCustomerPoints: allPutCustomerPoints,
-  };
+  return allPutCustomerPoints;
 };
