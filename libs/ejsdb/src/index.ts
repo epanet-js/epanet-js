@@ -39,4 +39,7 @@ export {
 } from "./types";
 export * from "./schema";
 export { encodeIdList, decodeIdList } from "./id-list";
-export { buildChangeSetPayload } from "./change-set/to-payload";
+export {
+  buildChangeSetPayload,
+  buildChangeSetPayloadDeprecated,
+} from "./change-set/to-payload";

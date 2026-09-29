@@ -1,5 +1,6 @@
-import type { Side } from "./codec";
-import type { Cell, ChangeKind, ChangeRecord } from "./types";
+import type { ChangeSet } from "./change-set";
+import type { ChangeEntry, Side } from "./codec";
+import type { Cell, ChangeKind, ChangeRecord, EntityKind } from "./types";
 
 export type Direction = "forward" | "reverse";
 
@@ -39,3 +40,37 @@ export const effectiveSide = (
   if (kind === "delete") return { kind: "create", side: "before" };
   return { kind: "update", side: "before" };
 };
+
+export type EntityChange = {
+  entity: EntityKind;
+  id: number | string;
+  change: Effective;
+};
+
+const entityChange = (
+  entry: ChangeEntry,
+  direction: Direction,
+): EntityChange => {
+  const { kind, side } = effectiveSide(entry.kind, direction);
+  let fields: Record<string, Cell> | null = null;
+  return {
+    entity: entry.entity,
+    id: entry.id,
+    change: {
+      kind,
+      get fields() {
+        fields ??= entry.fields(side);
+        return fields;
+      },
+    },
+  };
+};
+
+export function* effectiveChanges(
+  changeSet: ChangeSet,
+  direction: Direction,
+): Generator<EntityChange> {
+  for (const entry of changeSet.entries()) {
+    yield entityChange(entry, direction);
+  }
+}

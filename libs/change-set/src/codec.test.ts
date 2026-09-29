@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { ChangeSet, invert, squash } from "./change-set";
-import { effective, effectiveSide } from "./direction";
+import { effective, effectiveChanges, effectiveSide } from "./direction";
 import type { ChangeKind, ChangeRecord } from "./types";
 
 describe("codec", () => {
@@ -513,6 +513,26 @@ describe("entries", () => {
           effective(record, direction),
         );
       }
+    }
+  });
+
+  it("reads each entity's effective change, in both directions", () => {
+    for (const direction of ["forward", "reverse"] as const) {
+      const changes = [...effectiveChanges(stored(), direction)].map(
+        ({ entity, id, change }) => ({
+          entity,
+          id,
+          change: { kind: change.kind, fields: change.fields },
+        }),
+      );
+
+      expect(changes).toStrictEqual(
+        decoded().map((record) => ({
+          entity: record.entity,
+          id: record.id,
+          change: effective(record, direction),
+        })),
+      );
     }
   });
 

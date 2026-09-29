@@ -2,6 +2,7 @@ import { type DbWorkerApi } from "@epanet-js/ejsdb";
 
 const silentWrites = new Set([
   "applyChangeSet",
+  "applyChangeSetDeprecated",
   "setAllSimulationSettings",
   "saveProjectSettings",
   "setAllZones",

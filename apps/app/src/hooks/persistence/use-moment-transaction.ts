@@ -19,6 +19,8 @@ import {
 } from "src/hydraulic-model/validate-moment-integrity";
 import type { WriteFailureHandler } from "src/lib/persistence/write-queue";
 import { useWriteFailureHandler } from "src/hooks/persistence/use-write-failure-handler";
+import { usePersistBranchChange } from "src/hooks/persistence/use-persist-branch-change";
+import type { PersistBranchChange } from "src/lib/persistence/persist-branch-change";
 import {
   commitChangeSet,
   isHistoryPending,
@@ -114,6 +116,7 @@ const transactWithChangeSet = (
   set: Setter,
   moment: Moment,
   onWriteFailure: WriteFailureHandler,
+  persist: PersistBranchChange,
 ): boolean => {
   let changeSet: ChangeSet;
   try {
@@ -134,7 +137,7 @@ const transactWithChangeSet = (
   reportOrphanLinks(get, moment);
 
   trackMoment(moment);
-  commitChangeSet(get, set, changeSet, onWriteFailure);
+  commitChangeSet(get, set, changeSet, onWriteFailure, persist);
 
   reportAppliedIntegrity(get, moment);
 
@@ -143,15 +146,16 @@ const transactWithChangeSet = (
 
 export const useMomentTransaction = () => {
   const onWriteFailure = useWriteFailureHandler();
+  const persist = usePersistBranchChange();
 
   const transact = useAtomCallback(
     useCallback(
       (get: Getter, set: Setter, moment: Moment) => {
         if (isHistoryPending(get, moment.note)) return false;
 
-        return transactWithChangeSet(get, set, moment, onWriteFailure);
+        return transactWithChangeSet(get, set, moment, onWriteFailure, persist);
       },
-      [onWriteFailure],
+      [onWriteFailure, persist],
     ),
   );
 

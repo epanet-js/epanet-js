@@ -1,12 +1,14 @@
 import {
   WHOLE_VALUE,
   effective,
+  effectiveChanges,
   isAssetEntity,
   type AssetEntityKind,
   type Cell,
   type ChangeSet,
   type Direction,
   type Effective,
+  type EntityChange,
 } from "@epanet-js/change-set";
 import type { CustomAttributesDefinitionData } from "../schema/custom-attributes-definition";
 import {
@@ -71,28 +73,28 @@ const addAsset = (
   payload: WriteBatch,
   entity: AssetEntityKind,
   id: number,
-  step: Effective,
+  change: Effective,
 ): void => {
   const spec = ASSET_SPECS[entity];
 
-  if (step.kind === "delete") {
+  if (change.kind === "delete") {
     payload.assetDeleteIds.push(id);
     return;
   }
 
-  if (step.kind === "create") {
-    const candidate = rowFrom(id, step.fields, spec.map);
-    candidate.custom_attributes = customAttributesFrom(step.fields);
+  if (change.kind === "create") {
+    const candidate = rowFrom(id, change.fields, spec.map);
+    candidate.custom_attributes = customAttributesFrom(change.fields);
     (payload.assetUpserts[spec.table] as unknown[]).push(candidate);
     return;
   }
 
-  const candidate = patchFrom(id, step.fields, spec.map);
+  const candidate = patchFrom(id, change.fields, spec.map);
   if (hasColumns(candidate)) {
     (payload.assetPatches[spec.table] as unknown[]).push(candidate);
   }
 
-  const delta = customAttributesDelta(step.fields);
+  const delta = customAttributesDelta(change.fields);
   if (delta !== null) {
     payload.customAttributeValues[spec.table].push({ id, delta });
   }
@@ -101,75 +103,79 @@ const addAsset = (
 const addCustomerPoint = (
   payload: WriteBatch,
   id: number,
-  step: Effective,
+  change: Effective,
 ): void => {
-  if (step.kind === "delete") {
+  if (change.kind === "delete") {
     payload.customerPointDeleteIds.push(id);
     return;
   }
 
-  if (step.kind === "create") {
-    const candidate = rowFrom(id, step.fields, customerPointMap);
-    candidate.custom_attributes = customAttributesFrom(step.fields);
+  if (change.kind === "create") {
+    const candidate = rowFrom(id, change.fields, customerPointMap);
+    candidate.custom_attributes = customAttributesFrom(change.fields);
     payload.customerPointUpserts.push(
       candidate as (typeof payload.customerPointUpserts)[number],
     );
     return;
   }
 
-  const candidate = patchFrom(id, step.fields, customerPointMap);
+  const candidate = patchFrom(id, change.fields, customerPointMap);
   if (hasColumns(candidate)) {
     payload.customerPointPatches.push(
       candidate as (typeof payload.customerPointPatches)[number],
     );
   }
 
-  const delta = customAttributesDelta(step.fields);
+  const delta = customAttributesDelta(change.fields);
   if (delta !== null) {
     payload.customerPointCustomAttributeValues.push({ id, delta });
   }
 };
 
-const addCurve = (payload: WriteBatch, id: number, step: Effective): void => {
-  if (step.kind === "delete") {
+const addCurve = (payload: WriteBatch, id: number, change: Effective): void => {
+  if (change.kind === "delete") {
     payload.curveDeleteIds.push(id);
     return;
   }
 
-  if (step.kind === "create") {
+  if (change.kind === "create") {
     payload.curveUpserts.push(
       rowFrom(
         id,
-        step.fields,
+        change.fields,
         curveMap,
       ) as (typeof payload.curveUpserts)[number],
     );
     return;
   }
 
-  const candidate = patchFrom(id, step.fields, curveMap);
+  const candidate = patchFrom(id, change.fields, curveMap);
   if (!hasColumns(candidate)) return;
   payload.curvePatches.push(candidate as (typeof payload.curvePatches)[number]);
 };
 
-const addPattern = (payload: WriteBatch, id: number, step: Effective): void => {
-  if (step.kind === "delete") {
+const addPattern = (
+  payload: WriteBatch,
+  id: number,
+  change: Effective,
+): void => {
+  if (change.kind === "delete") {
     payload.patternDeleteIds.push(id);
     return;
   }
 
-  if (step.kind === "create") {
+  if (change.kind === "create") {
     payload.patternUpserts.push(
       rowFrom(
         id,
-        step.fields,
+        change.fields,
         patternMap,
       ) as (typeof payload.patternUpserts)[number],
     );
     return;
   }
 
-  const candidate = patchFrom(id, step.fields, patternMap);
+  const candidate = patchFrom(id, change.fields, patternMap);
   if (!hasColumns(candidate)) return;
   payload.patternPatches.push(
     candidate as (typeof payload.patternPatches)[number],
@@ -191,39 +197,33 @@ const demandRows = <T>(
       }) as T,
   );
 
-export const buildChangeSetPayload = (
-  changeSet: ChangeSet,
-  direction: Direction,
-): WriteBatch => {
+const buildPayload = (changes: readonly EntityChange[]): WriteBatch => {
   const payload = emptyWriteBatch();
-  const { records } = changeSet.read();
 
   const deletedCustomerPointIds = new Set<number>();
-  for (const record of records) {
-    if (record.entity !== "customerPoint") continue;
-    if (effective(record, direction).kind !== "delete") continue;
-    deletedCustomerPointIds.add(Number(record.id));
+  for (const { entity, id, change } of changes) {
+    if (entity !== "customerPoint") continue;
+    if (change.kind !== "delete") continue;
+    deletedCustomerPointIds.add(Number(id));
   }
 
-  for (const record of records) {
-    const step = effective(record, direction);
-    const id = Number(record.id);
-    const entity = record.entity;
+  for (const { entity, id: entityId, change } of changes) {
+    const id = Number(entityId);
 
     if (isAssetEntity(entity)) {
-      addAsset(payload, entity, id, step);
+      addAsset(payload, entity, id, change);
       continue;
     }
 
     switch (entity) {
       case "customerPoint":
-        addCustomerPoint(payload, id, step);
+        addCustomerPoint(payload, id, change);
         break;
       case "curve":
-        addCurve(payload, id, step);
+        addCurve(payload, id, change);
         break;
       case "pattern":
-        addPattern(payload, id, step);
+        addPattern(payload, id, change);
         break;
       case "junctionDemand":
         payload.junctionDemandUpdates.push({
@@ -231,7 +231,7 @@ export const buildChangeSetPayload = (
           demands: demandRows(
             "junction_id",
             id,
-            wholeValueOf(step.fields) ?? [],
+            wholeValueOf(change.fields) ?? [],
           ),
         });
         break;
@@ -242,27 +242,29 @@ export const buildChangeSetPayload = (
           demands: demandRows(
             "customer_point_id",
             id,
-            wholeValueOf(step.fields) ?? [],
+            wholeValueOf(change.fields) ?? [],
           ),
         });
         break;
       case "allControls":
-        payload.controlsReplacement = JSON.stringify(wholeValueOf(step.fields));
+        payload.controlsReplacement = JSON.stringify(
+          wholeValueOf(change.fields),
+        );
         break;
       case "pipeLibrary":
         payload.pipeLibraryReplacement = JSON.stringify(
-          wholeValueOf(step.fields),
+          wholeValueOf(change.fields),
         );
         break;
       case "rawControls":
         payload.rawControlsReplacement = JSON.stringify(
-          wholeValueOf(step.fields),
+          wholeValueOf(change.fields),
         );
         break;
       case "customAttributesDefinition":
         payload.customAttributesDefinition = JSON.stringify(
           groupCustomAttributes(
-            wholeValueOf<Record<string, PlainAttribute>>(step.fields) ?? {},
+            wholeValueOf<Record<string, PlainAttribute>>(change.fields) ?? {},
           ),
         );
         break;
@@ -271,3 +273,20 @@ export const buildChangeSetPayload = (
 
   return payload;
 };
+
+export const buildChangeSetPayload = (
+  changeSet: ChangeSet,
+  direction: Direction,
+): WriteBatch => buildPayload([...effectiveChanges(changeSet, direction)]);
+
+export const buildChangeSetPayloadDeprecated = (
+  changeSet: ChangeSet,
+  direction: Direction,
+): WriteBatch =>
+  buildPayload(
+    changeSet.read().records.map((record) => ({
+      entity: record.entity,
+      id: record.id,
+      change: effective(record, direction),
+    })),
+  );

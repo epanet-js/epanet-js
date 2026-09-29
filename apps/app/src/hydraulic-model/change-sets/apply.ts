@@ -1,13 +1,13 @@
 import {
   WHOLE_VALUE,
   effective,
-  effectiveSide,
+  effectiveChanges,
   entityKinds,
   isAssetEntity,
-  type ChangeEntry,
   type ChangeSet,
   type Direction,
   type Effective,
+  type EntityChange,
   type EntityKind,
 } from "@epanet-js/change-set";
 import {
@@ -250,12 +250,6 @@ const applyDemand = (
 const orderFor = (kind: Effective["kind"]): EntityKind[] =>
   kind === "delete" ? DELETE_ORDER : CREATE_ORDER;
 
-type EntityChange = {
-  entity: EntityKind;
-  id: number | string;
-  change: Effective;
-};
-
 type Applied = Pick<ApplyReport, "touchedEntities" | "touchedAssetIds"> & {
   count: number;
 };
@@ -354,32 +348,6 @@ const applyChanges = (
   return { touchedEntities, touchedAssetIds, count };
 };
 
-const entryChange = (
-  entry: ChangeEntry,
-  direction: Direction,
-): EntityChange => {
-  const { kind, side } = effectiveSide(entry.kind, direction);
-  let fields: Fields | null = null;
-  return {
-    entity: entry.entity,
-    id: entry.id,
-    change: {
-      kind,
-      get fields() {
-        fields ??= entry.fields(side);
-        return fields;
-      },
-    },
-  };
-};
-
-function* entryChanges(
-  changeSet: ChangeSet,
-  direction: Direction,
-): Generator<EntityChange> {
-  for (const entry of changeSet.entries()) yield entryChange(entry, direction);
-}
-
 export const applyChangeSet = (
   model: HydraulicModel,
   changeSet: ChangeSet,
@@ -389,7 +357,7 @@ export const applyChangeSet = (
   const { count, ...touched } = applyChanges(
     model,
     labelManager,
-    entryChanges(changeSet, direction),
+    effectiveChanges(changeSet, direction),
   );
   return { name: changeSet.name, direction, recordCount: count, ...touched };
 };

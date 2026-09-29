@@ -47,7 +47,10 @@ import type {
 } from "./types";
 import { isEmptyWriteBatch } from "./types";
 import { ChangeSet, type Direction } from "@epanet-js/change-set";
-import { buildChangeSetPayload } from "./change-set/to-payload";
+import {
+  buildChangeSetPayload,
+  buildChangeSetPayloadDeprecated,
+} from "./change-set/to-payload";
 
 const formatErrorDetails = (e: unknown): string => {
   if (!(e instanceof Error)) return String(e);
@@ -1147,6 +1150,11 @@ const applyWriteBatch = (label: string, payload: WriteBatch): Promise<void> =>
     countWriteBatch(payload),
   );
 
+const writeChangeSetPayload = async (payload: WriteBatch): Promise<void> => {
+  if (isEmptyWriteBatch(payload)) return;
+  return applyWriteBatch("changeSet:write", payload);
+};
+
 export const api = {
   setPerfLogging(enabled: boolean) {
     setPerfLogging(enabled, "db [worker]");
@@ -1606,11 +1614,27 @@ export const api = {
       {
         direction,
         bytes: bytes.byteLength,
+        records: changeSet.size,
+      },
+    );
+    return writeChangeSetPayload(payload);
+  },
+
+  async applyChangeSetDeprecated(
+    bytes: Uint8Array,
+    direction: Direction,
+  ): Promise<void> {
+    const changeSet = ChangeSet.fromBytes(bytes);
+    const payload = timedSync(
+      "changeSet:toRows",
+      () => buildChangeSetPayloadDeprecated(changeSet, direction),
+      {
+        direction,
+        bytes: bytes.byteLength,
         records: changeSet.read().records.length,
       },
     );
-    if (isEmptyWriteBatch(payload)) return;
-    return applyWriteBatch("changeSet:write", payload);
+    return writeChangeSetPayload(payload);
   },
 
   async importProject(payload: ImportProjectPayload): Promise<NewDbResult> {

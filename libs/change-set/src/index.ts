@@ -8,9 +8,11 @@ export {
 export { isStringKeyed, type ChangeEntry, type Side } from "./codec";
 export {
   effective,
+  effectiveChanges,
   effectiveSide,
   type Direction,
   type Effective,
+  type EntityChange,
 } from "./direction";
 export {
   WHOLE_VALUE,
