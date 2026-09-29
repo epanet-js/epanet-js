@@ -14,6 +14,7 @@ import { DataInputStep } from "./data-input-step";
 import { DataMappingStep } from "./data-mapping-step";
 import { DemandOptionsStep } from "./demand-options-step";
 import { useTranslate } from "src/hooks/use-translate";
+import { useAuth } from "src/hooks/use-auth";
 import { useUserTracking } from "src/infra/user-tracking";
 import { EarlyAccessBadge } from "src/components/early-access-badge";
 import { useProjections } from "src/hooks/use-projections";
@@ -39,6 +40,8 @@ export const ImportCustomerPointsWizard: React.FC<
   const userTracking = useUserTracking();
   const wizardState = useWizardState();
   const translate = useTranslate();
+  const { isSignedIn, isLoaded } = useAuth();
+  const showEarlyAccess = isLoaded && !isSignedIn;
   const {
     projections,
     loading: projectionsLoading,
@@ -230,7 +233,7 @@ export const ImportCustomerPointsWizard: React.FC<
         steps={steps}
         currentStep={wizardState.currentStep}
         onClose={handleCancel}
-        badge={<EarlyAccessBadge />}
+        badge={showEarlyAccess ? <EarlyAccessBadge /> : undefined}
       />
 
       <WizardContent>

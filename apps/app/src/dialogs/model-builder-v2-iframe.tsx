@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { BaseDialog } from "../components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
+import { useAuth } from "src/hooks/use-auth";
 import { useLocale } from "src/hooks/use-locale";
 import { Loading } from "../components/elements";
 import { EarlyAccessBadge } from "../components/early-access-badge";
@@ -8,10 +9,7 @@ import { useOpenProjectFile } from "src/commands/open-project";
 import { projectExtension } from "src/commands/save-project";
 import { useUserTracking, UserEvent } from "src/infra/user-tracking";
 import { useShowNetworkReview } from "src/commands/show-network-review";
-import {
-  useEnabledFeatureFlags,
-  useFeatureFlag,
-} from "src/hooks/use-feature-flags";
+import { useEnabledFeatureFlags } from "src/hooks/use-feature-flags";
 import { modelBuilderV2Url } from "src/global-config";
 
 const buildIframeSrc = (enabledFlags: string[], locale: string): string => {
@@ -120,7 +118,8 @@ export const ModelBuilderV2IframeDialog = ({
   const userTracking = useUserTracking();
   const showNetworkReview = useShowNetworkReview();
   const enabledFlags = useEnabledFeatureFlags();
-  const isModelBuildUiRefreshOn = useFeatureFlag("FLAG_MODEL_BUILD_UI_REFRESH");
+  const { isSignedIn, isLoaded } = useAuth();
+  const showEarlyAccess = isLoaded && !isSignedIn;
   const iframeSrc = useMemo(
     () => buildIframeSrc(enabledFlags, locale),
     [enabledFlags, locale],
@@ -166,7 +165,7 @@ export const ModelBuilderV2IframeDialog = ({
       height="xxl"
       isOpen={true}
       onClose={_onClose}
-      badge={isModelBuildUiRefreshOn ? undefined : <EarlyAccessBadge />}
+      badge={showEarlyAccess ? <EarlyAccessBadge /> : undefined}
     >
       <div className="relative flex-1 flex flex-col min-h-0 overflow-hidden">
         {isLoading && (

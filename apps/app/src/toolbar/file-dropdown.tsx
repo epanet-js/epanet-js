@@ -35,6 +35,7 @@ import { useOpenModelBuilder } from "src/commands/open-model-builder";
 import { useOpenRecentFile } from "src/commands/open-recent-file";
 import { projectExtension } from "src/commands/save-project";
 import { useUserTracking } from "src/infra/user-tracking";
+import { useAuth } from "src/hooks/use-auth";
 import { useTranslate } from "src/hooks/use-translate";
 import { useImportCustomerPoints } from "src/commands/import-customer-points";
 import { useOpenZonesImport } from "src/commands/open-zones-import";
@@ -182,6 +183,8 @@ const NewProjectSubmenu = () => {
   const translate = useTranslate();
   const isDrawingAvailable = useIsDrawingAvailable();
   const isModelBuilderAvailable = useIsModelBuilderAvailable();
+  const { isSignedIn, isLoaded } = useAuth();
+  const showEarlyAccessIcon = isLoaded && !isSignedIn;
 
   return (
     <DD.Sub>
@@ -215,7 +218,7 @@ const NewProjectSubmenu = () => {
             >
               <GlobeIcon />
               {translate("newProject.fromGIS")}
-              <EarlyAccessIcon size="sm" />
+              {showEarlyAccessIcon && <EarlyAccessIcon size="sm" />}
             </StyledItem>
           )}
 
