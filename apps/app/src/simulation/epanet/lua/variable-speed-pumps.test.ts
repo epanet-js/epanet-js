@@ -388,6 +388,52 @@ describe.each(UNIT_SYSTEMS)("variable speed pumps in $name", (units) => {
     });
   });
 
+  describe("tank levels", () => {
+    it("stops a flow row at the off level and starts it again at the on level", async () => {
+      const reader = await simulate(
+        units,
+        tankSwitchNetwork(units, { offLevel: 4, onLevel: 1.5 }),
+        { duration: SWITCH_DURATION },
+      );
+
+      const levels = await tankLevels(
+        reader,
+        IDS.T1,
+        units.length(TANK_ELEVATION),
+      );
+      const speeds = await pumpSettings(reader, IDS.PU1);
+      const flows = await pipeFlows(reader, IDS.P1);
+
+      expectTankSwitching(levels, speeds, units.length(4), units.length(1.5));
+      for (let step = 0; step < speeds.length; step++) {
+        if (speeds[step] > 0) {
+          expect(Math.abs(flows[step] - units.flow(20))).toBeLessThan(
+            units.flow(FLOW_TOL),
+          );
+        }
+      }
+    });
+
+    it("stops a level row on its own tank above the off level", async () => {
+      const reader = await simulate(
+        units,
+        levelNetwork(units, {
+          target: 4.5,
+          tankLevels: { offLevel: 4, onLevel: 2.5 },
+        }),
+      );
+
+      const levels = await tankLevels(
+        reader,
+        IDS.T1,
+        units.length(TANK_ELEVATION),
+      );
+      const speeds = await pumpSettings(reader, IDS.PU1);
+
+      expectTankSwitching(levels, speeds, units.length(4), units.length(2.5));
+    });
+  });
+
   describe("lagged pumps", () => {
     it("opens the lag only when the lead alone cannot hold the target", async () => {
       const reader = await simulate(
@@ -441,6 +487,7 @@ const DEMAND_FACTORS = [0.6, 1.4, 1.0, 0.8, 1.2, 0.7];
 const LAG_LOW = 0.4;
 const LAG_HIGH = 1.4;
 const LAG_FACTORS = [LAG_LOW, LAG_HIGH, LAG_LOW, LAG_HIGH, LAG_LOW, LAG_HIGH];
+const SWITCH_DURATION = 12 * HOUR;
 
 const TANK_ELEVATION = 20;
 
@@ -517,9 +564,11 @@ const levelNetwork = (
   {
     target,
     schedule = [],
+    tankLevels,
   }: {
     target: number;
     schedule?: Schedule;
+    tankLevels?: { offLevel: number; onLevel: number };
   },
 ) =>
   HydraulicModelBuilder.with()
@@ -566,6 +615,64 @@ const levelNetwork = (
       maxSpeed: 1,
       laggedPumpIds: [],
       schedule: inUnits(schedule, units.length),
+      tankLevels: tankLevels && {
+        tankId: IDS.T1,
+        offLevel: units.length(tankLevels.offLevel),
+        onLevel: units.length(tankLevels.onLevel),
+      },
+    })
+    .build();
+
+//   R1 --PU1-- J1 ---P1--- T1 ---P2--- J2 (demand)
+const tankSwitchNetwork = (
+  units: Units,
+  { offLevel, onLevel }: { offLevel: number; onLevel: number },
+) =>
+  HydraulicModelBuilder.with()
+    .aReservoir(IDS.R1, { head: 0 })
+    .aJunction(IDS.J1, { elevation: 0 })
+    .aTank(IDS.T1, {
+      elevation: units.length(TANK_ELEVATION),
+      initialLevel: units.length(2),
+      minLevel: 0,
+      maxLevel: units.length(5),
+      diameter: units.length(8),
+    })
+    .aJunction(IDS.J2, { elevation: 0 })
+    .aJunctionDemand(IDS.J2, [{ baseDemand: units.flow(5) }])
+    .aPump(IDS.PU1, {
+      startNodeId: IDS.R1,
+      endNodeId: IDS.J1,
+      curve: pumpCurve(units, 20, 50),
+    })
+    .aPipe(IDS.P1, {
+      startNodeId: IDS.J1,
+      endNodeId: IDS.T1,
+      length: units.length(500),
+      diameter: units.diameter(200),
+      roughness: 100,
+    })
+    .aPipe(IDS.P2, {
+      startNodeId: IDS.T1,
+      endNodeId: IDS.J2,
+      length: units.length(500),
+      diameter: units.diameter(200),
+      roughness: 100,
+    })
+    .aVariableSpeedPumpControl({
+      linkId: IDS.PU1,
+      quantity: "flow",
+      targetId: IDS.P1,
+      target: units.flow(20),
+      minSpeed: 0.7,
+      maxSpeed: 1.2,
+      laggedPumpIds: [],
+      schedule: [],
+      tankLevels: {
+        tankId: IDS.T1,
+        offLevel: units.length(offLevel),
+        onLevel: units.length(onLevel),
+      },
     })
     .build();
 
@@ -857,6 +964,27 @@ const expectAllNear = (values: number[], target: number, tol: number) => {
   for (const value of values) {
     expect(Math.abs(value - target)).toBeLessThan(Math.abs(tol));
   }
+};
+
+// At every step the pump answers the level the step starts at: closed at or
+// above the off level, running at or below the on level, and as it was in
+// between. The run has to stop the pump and start it again to count
+const expectTankSwitching = (
+  levels: number[],
+  speeds: number[],
+  offLevel: number,
+  onLevel: number,
+) => {
+  let restarts = 0;
+  for (let step = 0; step < speeds.length; step++) {
+    const isRunning = speeds[step] > 0;
+    if (levels[step] >= offLevel) expect(isRunning).toBe(false);
+    else if (levels[step] <= onLevel) expect(isRunning).toBe(true);
+    else if (step > 0) expect(isRunning).toBe(speeds[step - 1] > 0);
+    if (step > 0 && isRunning && speeds[step - 1] === 0) restarts++;
+  }
+  expect(speeds.some((speed) => speed === 0)).toBe(true);
+  expect(restarts).toBeGreaterThan(0);
 };
 
 const expectSameOrder = (values: number[], reference: number[]) => {

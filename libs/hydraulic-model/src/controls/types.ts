@@ -34,6 +34,12 @@ export type VariableSpeedPumpSchedulePoint = {
   target: number;
 };
 
+export type VariableSpeedPumpTankLevels = {
+  tankId: AssetId;
+  offLevel: number;
+  onLevel: number;
+};
+
 export type VariableSpeedPumpControl = {
   id: ControlId;
   type: "variable-speed-pump";
@@ -45,6 +51,7 @@ export type VariableSpeedPumpControl = {
   maxSpeed: number;
   laggedPumpIds: AssetId[];
   schedule: VariableSpeedPumpSchedulePoint[];
+  tankLevels?: VariableSpeedPumpTankLevels;
 };
 
 export type Control =

@@ -39,6 +39,13 @@ const variableSpeedPumpControlSchema = z.object({
   maxSpeed: z.number(),
   laggedPumpIds: z.array(z.number()),
   schedule: z.array(variableSpeedPumpSchedulePointSchema),
+  tankLevels: z
+    .object({
+      tankId: z.number(),
+      offLevel: z.number(),
+      onLevel: z.number(),
+    })
+    .optional(),
 });
 
 export const controlSchema = z.discriminatedUnion("type", [

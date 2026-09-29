@@ -1520,6 +1520,16 @@ function* scriptRows(
           )
         : 1;
 
+    const { tankLevels } = control;
+    const scriptedTankLevels =
+      tankLevels && isAssetInSimulation(hydraulicModel, tankLevels.tankId)
+        ? {
+            tankId: resolveNodeId(hydraulicModel, idMap, tankLevels.tankId),
+            offLevel: tankLevels.offLevel,
+            onLevel: tankLevels.onLevel,
+          }
+        : undefined;
+
     builder.withVariableSpeedPump(
       pumpId,
       control.quantity,
@@ -1530,6 +1540,7 @@ function* scriptRows(
       laggedPumpIds,
       remoteFlowDirection,
       control.schedule,
+      scriptedTankLevels,
     );
   }
 

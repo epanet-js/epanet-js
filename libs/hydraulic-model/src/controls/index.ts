@@ -5,6 +5,7 @@ export type {
   LevelSettingControl,
   VariableSpeedPumpControl,
   VariableSpeedPumpSchedulePoint,
+  VariableSpeedPumpTankLevels,
   Control,
   Controls,
 } from "./types";

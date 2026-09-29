@@ -95,5 +95,27 @@ describe("LuaScriptBuilder", () => {
       expect(script).toContain(`vsp2_step(${invocation})`);
       expect(script).toContain(`vsp2_solved(${invocation})`);
     });
+
+    it("appends the tank and its off and on levels to a row that has them", () => {
+      const builder = LuaScriptBuilder("LPS");
+      builder.withVariableSpeedPump(
+        "PU1",
+        "flow",
+        "P1",
+        10,
+        0.5,
+        1.2,
+        [],
+        1,
+        [],
+        { tankId: "T1", offLevel: 10, onLevel: 3 },
+      );
+
+      const script = builder.build().join("\n");
+
+      expect(script).toContain(
+        'vsp2_step({{"PU1","flow","P1",10,0.5,1.2,{},1,"T1",10,3}}, {}, "LPS")',
+      );
+    });
   });
 });
