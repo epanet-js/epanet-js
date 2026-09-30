@@ -28,7 +28,7 @@ export const triggerStylesFor = (
     "flex items-center gap-x-2 w-full",
     disabled
       ? "text-subtle cursor-not-allowed bg-base-disabled"
-      : "text-default bg-base",
+      : "text-default bg-base cursor-pointer",
     !disabled &&
       !effectiveStyleOptions.disableHoverEffects &&
       "focus:justify-between hover:border hover:rounded-xs hover:justify-between min-w-[90px]",
