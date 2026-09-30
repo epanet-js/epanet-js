@@ -214,7 +214,7 @@ export const ScenarioSwitcher = () => {
 };
 
 const ROW_HEIGHT = 32;
-const LIST_MAX_HEIGHT = 320;
+const LIST_MAX_HEIGHT = "30dvh";
 
 type ScenarioActions = {
   onSelect: (scenarioId: string) => void;
