@@ -1,47 +1,21 @@
-import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { useState } from "react";
 import { getDefaultStore } from "jotai";
 import {
-  Control,
+  buildVariableSpeedPump,
   NodeAsset,
   Pipe,
   Pump,
   VariableSpeedPumpControl,
 } from "@epanet-js/hydraulic-model";
 import type { UnitsSpec } from "@epanet-js/project-settings";
-import {
-  resolvePermissions,
-  type Permissions,
-} from "src/hooks/use-permissions";
 import { highlightsAtom } from "src/state/highlights";
-import { PumpControlsEditor } from "./pump-controls-editor";
-import { VariableSpeedPumpTargets } from "./variable-speed-pump-controls-editor";
-
-const entitledPermissions = resolvePermissions("pro", false, false, false);
-const permissionsRef: { current: Permissions } = {
-  current: entitledPermissions,
-};
-const showPriorityAccessMock = vi.fn();
-
-vi.mock("src/hooks/use-permissions", async () => {
-  const actual = await vi.importActual<
-    typeof import("src/hooks/use-permissions")
-  >("src/hooks/use-permissions");
-  return {
-    ...actual,
-    usePermissions: () => permissionsRef.current,
-  };
-});
-
-vi.mock("src/hooks/use-priority-access", () => ({
-  useShowPriorityAccessDialog: () => showPriorityAccessMock,
-}));
-
-beforeEach(() => {
-  permissionsRef.current = entitledPermissions;
-  showPriorityAccessMock.mockClear();
-});
+import {
+  buildDefaultFlowTarget,
+  buildDefaultPressureTarget,
+  VariableSpeedPumpControlsEditor,
+  VariableSpeedPumpTargets,
+} from "./variable-speed-pump-controls-editor";
 
 const IDS = { J1: 1, J2: 2, T1: 3, PU1: 4, PU2: 5, PU3: 6, P1: 7 } as const;
 
@@ -77,262 +51,334 @@ const TARGETS: VariableSpeedPumpTargets = {
     aLink<Pump>(IDS.PU3, "PU3", "pump"),
   ],
   outletNodeId: IDS.J2,
-  units: {
-    pressure: "m",
-    flow: "l/s",
-    minLevel: "m",
-  } as unknown as UnitsSpec,
+  units: { pressure: "m", flow: "l/s", minLevel: "m" } as unknown as UnitsSpec,
 };
 
+const T1_LEVELS = { tankId: IDS.T1, offLevel: 5, onLevel: 1 };
+
+const aPressureTarget = (changes: Partial<VariableSpeedPumpControl> = {}) =>
+  buildVariableSpeedPump({
+    linkId: IDS.PU1,
+    quantity: "pressure",
+    targetId: IDS.J2,
+    target: 0,
+    minSpeed: 0,
+    maxSpeed: 1,
+    laggedPumpIds: [],
+    schedule: [],
+    ...changes,
+  });
+
+const aLevelTarget = (changes: Partial<VariableSpeedPumpControl> = {}) =>
+  aPressureTarget({ quantity: "level", targetId: IDS.T1, ...changes });
+
+const aFlowTarget = (changes: Partial<VariableSpeedPumpControl> = {}) =>
+  aPressureTarget({ quantity: "flow", targetId: IDS.PU1, ...changes });
+
 const Harness = ({
-  targets = TARGETS,
+  initialControl,
+  targets,
   onChange,
 }: {
-  targets?: VariableSpeedPumpTargets | null;
-  onChange?: (control: Control | null) => void;
+  initialControl: VariableSpeedPumpControl;
+  targets: VariableSpeedPumpTargets;
+  onChange: (control: VariableSpeedPumpControl) => void;
 }) => {
-  const [control, setControl] = useState<Control | null>(null);
+  const [control, setControl] = useState(initialControl);
   return (
-    <PumpControlsEditor
-      linkId={IDS.PU1}
-      initialStatus="on"
-      initialSpeed={1}
+    <VariableSpeedPumpControlsEditor
       control={control}
-      tanks={[]}
-      variableSpeedPumpTargets={targets ?? undefined}
+      targets={targets}
       onControlChange={(next) => {
-        onChange?.(next);
+        onChange(next);
         setControl(next);
       }}
     />
   );
 };
 
+const renderEditor = (
+  initialControl: VariableSpeedPumpControl,
+  targets = TARGETS,
+) => {
+  const onChange = vi.fn();
+  render(
+    <Harness
+      initialControl={initialControl}
+      targets={targets}
+      onChange={onChange}
+    />,
+  );
+  return onChange;
+};
+
 const lastControl = (onChange: ReturnType<typeof vi.fn>) =>
-  onChange.mock.calls[
-    onChange.mock.calls.length - 1
-  ][0] as VariableSpeedPumpControl | null;
+  onChange.mock.lastCall?.[0] as VariableSpeedPumpControl;
 
-const selectOption = async (
-  user: ReturnType<typeof userEvent.setup>,
-  combobox: string,
-  option: string,
-) => {
-  await user.click(screen.getByRole("combobox", { name: combobox }));
-  await user.click(await screen.findByRole("option", { name: option }));
+const combobox = (name: string) => screen.getByLabelText(name);
+const checkbox = (name: string) => screen.getByLabelText(name);
+
+const select = (comboboxName: string, option: string) => {
+  fireEvent.click(combobox(comboboxName));
+  fireEvent.click(screen.getByRole("option", { name: option }));
 };
 
-const typeValue = async (
-  user: ReturnType<typeof userEvent.setup>,
-  label: string,
-  value: string,
-) => {
-  const input = screen.getByRole("textbox", { name: `Value for: ${label}` });
-  await user.clear(input);
-  await user.type(input, `${value}{Enter}`);
+const clearSelection = (comboboxName: string, clearLabel: string) => {
+  fireEvent.click(combobox(comboboxName));
+  fireEvent.click(screen.getByRole("button", { name: clearLabel }));
 };
+
+const toggle = (checkboxName: string) =>
+  fireEvent.click(checkbox(checkboxName));
+
+const enterValue = (label: string, value: string) => {
+  const input = screen.getByLabelText(`Value for: ${label}`);
+  fireEvent.change(input, { target: { value } });
+  fireEvent.keyDown(input, { key: "Enter" });
+};
+
+const pickLaggedPump = (currentLabel: string, pump: string) => {
+  const cell = screen.getByRole("button", { name: currentLabel });
+  fireEvent.mouseDown(cell);
+  fireEvent.click(cell);
+  fireEvent.click(screen.getByRole("option", { name: pump }));
+};
+
+const highlights = () => getDefaultStore().get(highlightsAtom);
 
 describe("VariableSpeedPumpControlsEditor", () => {
-  it("edits a pressure target", async () => {
-    const user = userEvent.setup();
-    const onChange = vi.fn();
-    render(<Harness onChange={onChange} />);
-
-    await user.click(screen.getByRole("combobox", { name: "Type" }));
-    expect(
-      await screen.findByRole("option", { name: "Flow target" }),
-    ).toBeInTheDocument();
-    await user.click(screen.getByRole("option", { name: "Pressure target" }));
-    expect(lastControl(onChange)).toMatchObject({
-      type: "variable-speed-pump",
-      linkId: IDS.PU1,
-      quantity: "pressure",
-      targetId: IDS.J2,
-      minSpeed: 0,
-      maxSpeed: 1,
-      laggedPumpIds: [],
-      schedule: [],
-    });
-    expect(screen.getByRole("combobox", { name: "At node" })).toHaveTextContent(
-      "J2 (outlet of this pump)",
-    );
-
-    await selectOption(user, "At node", "T1 (tank)");
-    expect(lastControl(onChange)).toMatchObject({
-      quantity: "level",
-      targetId: IDS.T1,
-    });
-    expect(screen.getByText("Level (m)")).toBeInTheDocument();
-
-    const atNode = screen.getByRole("combobox", { name: "At node" });
-    await user.hover(atNode);
-    expect(getDefaultStore().get(highlightsAtom)).toEqual([
-      { type: "marker", coordinates: [0, 0], nodeType: "tank" },
-    ]);
-    await user.unhover(atNode);
-    expect(getDefaultStore().get(highlightsAtom)).toEqual([]);
-
-    await user.click(
-      screen.getByRole("checkbox", { name: "Start/stop at tank level" }),
-    );
-    expect(lastControl(onChange)!.tankLevels).toEqual({
-      tankId: IDS.T1,
-      offLevel: 5,
-      onLevel: 1,
-    });
-    expect(
-      screen.queryByRole("combobox", { name: "Tank" }),
-    ).not.toBeInTheDocument();
-
-    const callsBeforeInvalid = onChange.mock.calls.length;
-    await typeValue(user, "On below (m)", "6");
-    expect(onChange.mock.calls.length).toBe(callsBeforeInvalid);
-    expect(
-      screen.getByText("On level must be below the off level.", {
-        exact: false,
-      }),
-    ).toBeInTheDocument();
-    await typeValue(user, "On below (m)", "2");
-    expect(lastControl(onChange)!.tankLevels).toEqual({
-      tankId: IDS.T1,
-      offLevel: 5,
-      onLevel: 2,
+  describe("default targets", () => {
+    it("targets the pressure at the pump outlet", () => {
+      expect(buildDefaultPressureTarget(IDS.PU1, TARGETS)).toEqual({
+        linkId: IDS.PU1,
+        quantity: "pressure",
+        targetId: IDS.J2,
+        target: 0,
+        minSpeed: 0,
+        maxSpeed: 1,
+        laggedPumpIds: [],
+        schedule: [],
+        tankLevels: undefined,
+      });
     });
 
-    await user.click(atNode);
-    await user.click(
-      await screen.findByRole("button", { name: "J2 (outlet of this pump)" }),
-    );
-    expect(lastControl(onChange)).toMatchObject({
-      quantity: "pressure",
-      targetId: IDS.J2,
-      tankLevels: undefined,
+    it("targets the level when the outlet is a tank", () => {
+      expect(
+        buildDefaultPressureTarget(IDS.PU1, {
+          ...TARGETS,
+          outletNodeId: IDS.T1,
+        }),
+      ).toMatchObject({ quantity: "level", targetId: IDS.T1 });
     });
-    expect(
-      screen.queryByRole("checkbox", { name: "Start/stop at tank level" }),
-    ).not.toBeInTheDocument();
 
-    await user.click(
-      screen.getByRole("checkbox", { name: "Vary by time of day" }),
-    );
-    expect(lastControl(onChange)!.schedule).toEqual([{ time: 0, target: 0 }]);
-    expect(screen.getByPlaceholderText("Set by schedule")).toBeDisabled();
-    await user.click(
-      screen.getByRole("checkbox", { name: "Vary by time of day" }),
-    );
-    expect(lastControl(onChange)!.schedule).toEqual([]);
-
-    await user.click(screen.getByRole("checkbox", { name: "Lag pumps" }));
-    expect(lastControl(onChange)!.laggedPumpIds).toEqual([]);
-    expect(screen.getByRole("checkbox", { name: "Lag pumps" })).toBeChecked();
-
-    await user.click(screen.getByRole("button", { name: "None" }));
-    await user.click(await screen.findByRole("option", { name: "PU2" }));
-    expect(lastControl(onChange)!.laggedPumpIds).toEqual([IDS.PU2]);
-
-    const minSpeed = screen.getByRole("textbox", {
-      name: "Value for: Min speed",
+    it("targets the flow through the pump itself", () => {
+      expect(buildDefaultFlowTarget(IDS.PU1)).toMatchObject({
+        quantity: "flow",
+        targetId: IDS.PU1,
+        target: 0,
+        schedule: [],
+      });
     });
-    await user.clear(minSpeed);
-    await user.type(minSpeed, "1.2{Enter}");
-    expect(lastControl(onChange)!.minSpeed).toBe(1.2);
-    expect(
-      screen.getByText("Min speed must not be above max speed."),
-    ).toBeInTheDocument();
 
-    await selectOption(user, "Type", "Flow target");
-    expect(lastControl(onChange)).toMatchObject({
-      quantity: "flow",
-      minSpeed: 1.2,
-      maxSpeed: 1,
-      laggedPumpIds: [IDS.PU2],
+    it("keeps the speed range and lagged pumps when the type changes", () => {
+      const previous = aLevelTarget({
+        minSpeed: 0.5,
+        maxSpeed: 1.2,
+        laggedPumpIds: [IDS.PU2],
+        schedule: [{ time: 0, target: 3 }],
+        tankLevels: T1_LEVELS,
+      });
+
+      expect(buildDefaultFlowTarget(IDS.PU1, previous)).toMatchObject({
+        minSpeed: 0.5,
+        maxSpeed: 1.2,
+        laggedPumpIds: [IDS.PU2],
+        schedule: [],
+        tankLevels: T1_LEVELS,
+      });
+      expect(
+        buildDefaultPressureTarget(IDS.PU1, TARGETS, previous),
+      ).toMatchObject({
+        minSpeed: 0.5,
+        maxSpeed: 1.2,
+        laggedPumpIds: [IDS.PU2],
+        schedule: [],
+        tankLevels: undefined,
+      });
     });
   });
 
-  it("edits a flow target", async () => {
-    permissionsRef.current = resolvePermissions("free", false, false, false);
-    const user = userEvent.setup();
-    const onChange = vi.fn();
-    const { unmount } = render(<Harness onChange={onChange} />);
+  describe("pressure target", () => {
+    it("becomes a level target when a tank is chosen", () => {
+      const onChange = renderEditor(aPressureTarget());
+      expect(combobox("At node")).toHaveTextContent("J2 (outlet of this pump)");
+      expect(screen.getByText("Pressure (m)")).toBeInTheDocument();
 
-    await selectOption(user, "Type", "Flow target");
-    expect(showPriorityAccessMock).toHaveBeenCalled();
-    expect(onChange).not.toHaveBeenCalled();
-    unmount();
+      select("At node", "T1 (tank)");
 
-    permissionsRef.current = entitledPermissions;
-    render(
-      <Harness
-        onChange={onChange}
-        targets={{
-          ...TARGETS,
-          pumps: [aLink<Pump>(IDS.PU1, "PU1", "pump")],
-        }}
-      />,
-    );
-
-    await selectOption(user, "Type", "Flow target");
-    expect(lastControl(onChange)).toMatchObject({
-      type: "variable-speed-pump",
-      quantity: "flow",
-      targetId: IDS.PU1,
-      laggedPumpIds: [],
-      schedule: [],
-    });
-    expect(screen.getByText("Flow (l/s)")).toBeInTheDocument();
-
-    await user.click(
-      screen.getByRole("checkbox", { name: "Start/stop at tank level" }),
-    );
-    expect(lastControl(onChange)!.tankLevels).toBeUndefined();
-    expect(
-      screen.getByRole("checkbox", { name: "Start/stop at tank level" }),
-    ).toBeChecked();
-    expect(screen.getByRole("combobox", { name: "Tank" })).toHaveTextContent(
-      "None",
-    );
-    expect(
-      screen.queryByRole("textbox", { name: "Value for: Off above (m)" }),
-    ).not.toBeInTheDocument();
-
-    await selectOption(user, "Tank", "T1");
-    expect(lastControl(onChange)!.tankLevels).toEqual({
-      tankId: IDS.T1,
-      offLevel: 5,
-      onLevel: 1,
+      expect(lastControl(onChange)).toMatchObject({
+        quantity: "level",
+        targetId: IDS.T1,
+      });
+      expect(screen.getByText("Level (m)")).toBeInTheDocument();
     });
 
-    await user.click(screen.getByRole("combobox", { name: "Tank" }));
-    await user.click(await screen.findByRole("button", { name: "None" }));
-    expect(lastControl(onChange)!.tankLevels).toBeUndefined();
-    expect(
-      screen.getByRole("checkbox", { name: "Start/stop at tank level" }),
-    ).toBeChecked();
+    it("drops the tank levels when it returns to the outlet", () => {
+      const onChange = renderEditor(aLevelTarget({ tankLevels: T1_LEVELS }));
 
-    await selectOption(user, "Tank", "T1");
+      clearSelection("At node", "J2 (outlet of this pump)");
 
-    await selectOption(user, "Flow through", "P1");
-    expect(lastControl(onChange)).toMatchObject({
-      quantity: "flow",
-      targetId: IDS.P1,
+      expect(lastControl(onChange)).toMatchObject({
+        quantity: "pressure",
+        targetId: IDS.J2,
+        tankLevels: undefined,
+      });
+      expect(
+        screen.queryByRole("checkbox", { name: "Start/stop at tank level" }),
+      ).not.toBeInTheDocument();
     });
 
-    const flowThrough = screen.getByRole("combobox", { name: "Flow through" });
-    await user.hover(flowThrough);
-    expect(getDefaultStore().get(highlightsAtom)).toEqual([
-      { type: "asset", assetId: IDS.P1 },
-    ]);
+    it("highlights the target node on hover", () => {
+      renderEditor(aLevelTarget());
 
-    await user.click(flowThrough);
-    await user.click(await screen.findByRole("button", { name: "This pump" }));
-    expect(lastControl(onChange)).toMatchObject({ targetId: IDS.PU1 });
+      fireEvent.mouseEnter(combobox("At node"));
+      expect(highlights()).toEqual([
+        { type: "marker", coordinates: [0, 0], nodeType: "tank" },
+      ]);
 
-    await user.click(
-      screen.getByRole("checkbox", { name: "Vary by time of day" }),
-    );
-    expect(lastControl(onChange)!.schedule).toEqual([{ time: 0, target: 0 }]);
-    expect(screen.getByPlaceholderText("Set by schedule")).toBeDisabled();
+      fireEvent.mouseLeave(combobox("At node"));
+      expect(highlights()).toEqual([]);
+    });
+  });
 
-    expect(screen.getByRole("checkbox", { name: "Lag pumps" })).toBeDisabled();
+  describe("flow target", () => {
+    it("targets the flow through a pipe", () => {
+      const onChange = renderEditor(aFlowTarget());
+      expect(screen.getByText("Flow (l/s)")).toBeInTheDocument();
+
+      select("Flow through", "P1");
+
+      expect(lastControl(onChange)).toMatchObject({
+        quantity: "flow",
+        targetId: IDS.P1,
+      });
+    });
+
+    it("returns to the flow through the pump itself", () => {
+      const onChange = renderEditor(aFlowTarget({ targetId: IDS.P1 }));
+
+      clearSelection("Flow through", "This pump");
+
+      expect(lastControl(onChange)).toMatchObject({ targetId: IDS.PU1 });
+    });
+
+    it("highlights the target pipe on hover", () => {
+      renderEditor(aFlowTarget({ targetId: IDS.P1 }));
+
+      fireEvent.mouseEnter(combobox("Flow through"));
+
+      expect(highlights()).toEqual([{ type: "asset", assetId: IDS.P1 }]);
+    });
+  });
+
+  describe("tank levels", () => {
+    it("starts and stops at the levels of the target tank", () => {
+      const onChange = renderEditor(aLevelTarget());
+
+      toggle("Start/stop at tank level");
+
+      expect(lastControl(onChange).tankLevels).toEqual(T1_LEVELS);
+      expect(
+        screen.queryByRole("combobox", { name: "Tank" }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("keeps an on level above the off level out of the control", () => {
+      const onChange = renderEditor(aLevelTarget({ tankLevels: T1_LEVELS }));
+
+      enterValue("On below (m)", "6");
+      expect(onChange).not.toHaveBeenCalled();
+      expect(
+        screen.getByText(/On level must be below the off level/),
+      ).toBeInTheDocument();
+
+      enterValue("On below (m)", "2");
+      expect(lastControl(onChange).tankLevels).toEqual({
+        ...T1_LEVELS,
+        onLevel: 2,
+      });
+    });
+
+    it("waits for a tank to be chosen on a flow target", () => {
+      const onChange = renderEditor(aFlowTarget());
+
+      toggle("Start/stop at tank level");
+      expect(onChange).not.toHaveBeenCalled();
+      expect(checkbox("Start/stop at tank level")).toBeChecked();
+      expect(combobox("Tank")).toHaveTextContent("None");
+      expect(
+        screen.queryByRole("textbox", { name: "Value for: Off above (m)" }),
+      ).not.toBeInTheDocument();
+
+      select("Tank", "T1");
+      expect(lastControl(onChange).tankLevels).toEqual(T1_LEVELS);
+    });
+
+    it("stays enabled when the tank is cleared", () => {
+      const onChange = renderEditor(aFlowTarget({ tankLevels: T1_LEVELS }));
+
+      clearSelection("Tank", "None");
+
+      expect(lastControl(onChange).tankLevels).toBeUndefined();
+      expect(checkbox("Start/stop at tank level")).toBeChecked();
+    });
+  });
+
+  describe("schedule", () => {
+    it("seeds the schedule from the target and clears it when disabled", () => {
+      const onChange = renderEditor(aPressureTarget({ target: 3 }));
+
+      toggle("Vary by time of day");
+      expect(lastControl(onChange).schedule).toEqual([{ time: 0, target: 3 }]);
+      expect(screen.getByPlaceholderText("Set by schedule")).toBeDisabled();
+
+      toggle("Vary by time of day");
+      expect(lastControl(onChange).schedule).toEqual([]);
+    });
+  });
+
+  describe("lag pumps", () => {
+    it("lags another pump", () => {
+      const onChange = renderEditor(aPressureTarget());
+
+      toggle("Lag pumps");
+      expect(onChange).not.toHaveBeenCalled();
+      expect(checkbox("Lag pumps")).toBeChecked();
+
+      pickLaggedPump("None", "PU2");
+      expect(lastControl(onChange).laggedPumpIds).toEqual([IDS.PU2]);
+    });
+
+    it("is unavailable without other pumps", () => {
+      renderEditor(aPressureTarget(), {
+        ...TARGETS,
+        pumps: [aLink<Pump>(IDS.PU1, "PU1", "pump")],
+      });
+
+      expect(checkbox("Lag pumps")).toBeDisabled();
+    });
+  });
+
+  describe("speed range", () => {
+    it("warns when the min speed exceeds the max speed", () => {
+      const onChange = renderEditor(aPressureTarget());
+
+      enterValue("Min speed", "1.2");
+
+      expect(lastControl(onChange).minSpeed).toBe(1.2);
+      expect(
+        screen.getByText("Min speed must not be above max speed."),
+      ).toBeInTheDocument();
+    });
   });
 });
