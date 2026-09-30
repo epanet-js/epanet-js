@@ -306,46 +306,45 @@ const ScenarioRow = ({
   const translate = useTranslate();
 
   return (
-    <StyledItem
-      onSelect={() => onSelect(scenario.id)}
-      className="group/scenario"
-    >
-      <div
-        className={`flex items-center w-full gap-2 ${isActive ? "text-accent-hover" : ""}`}
+    <div className="relative group/scenario">
+      <StyledItem
+        onSelect={() => onSelect(scenario.id)}
+        className="pr-10 group-hover/scenario:bg-base-hover"
       >
-        <span
-          className={`font-mono text-size-base pl-1 ${isActive ? "text-purple-400" : "text-subtle"}`}
+        <div
+          className={`flex items-center w-full gap-2 ${isActive ? "text-accent-hover" : ""}`}
         >
-          {isLast ? "└──" : "├──"}
-        </span>
-        <div className="flex-1">{scenario.name}</div>
-        <DD.Root>
-          <DD.Trigger asChild>
-            <button
-              className="opacity-0 group-hover/scenario:opacity-100 data-[state=open]:opacity-100 p-1 rounded-sm hover:bg-gray-300 dark:hover:bg-gray-500 text-subtle"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <MoreActionsIcon size="sm" />
-            </button>
-          </DD.Trigger>
-          <DD.Portal>
-            <DDContent side="right" align="start" sideOffset={4}>
-              <StyledItem onSelect={() => onRename(scenario.id, scenario.name)}>
-                <RenameIcon size="sm" />
-                <span>{translate("scenarios.rename")}</span>
-              </StyledItem>
+          <span
+            className={`font-mono text-size-base pl-1 ${isActive ? "text-purple-400" : "text-subtle"}`}
+          >
+            {isLast ? "└──" : "├──"}
+          </span>
+          <div className="flex-1">{scenario.name}</div>
+        </div>
+      </StyledItem>
+      <DD.Root>
+        <DD.Trigger asChild>
+          <button className="absolute right-3 top-1/2 -translate-y-1/2 opacity-0 group-hover/scenario:opacity-100 data-[state=open]:opacity-100 p-1 rounded-sm hover:bg-gray-300 dark:hover:bg-gray-500 text-subtle">
+            <MoreActionsIcon size="sm" />
+          </button>
+        </DD.Trigger>
+        <DD.Portal>
+          <DDContent side="right" align="start" sideOffset={4}>
+            <StyledItem onSelect={() => onRename(scenario.id, scenario.name)}>
+              <RenameIcon size="sm" />
+              <span>{translate("scenarios.rename")}</span>
+            </StyledItem>
 
-              <StyledItem
-                onSelect={() => onDelete(scenario.id, scenario.name)}
-                className="text-error"
-              >
-                <DeleteIcon size="sm" />
-                <span>{translate("scenarios.delete")}</span>
-              </StyledItem>
-            </DDContent>
-          </DD.Portal>
-        </DD.Root>
-      </div>
-    </StyledItem>
+            <StyledItem
+              onSelect={() => onDelete(scenario.id, scenario.name)}
+              className="text-error"
+            >
+              <DeleteIcon size="sm" />
+              <span>{translate("scenarios.delete")}</span>
+            </StyledItem>
+          </DDContent>
+        </DD.Portal>
+      </DD.Root>
+    </div>
   );
 };
