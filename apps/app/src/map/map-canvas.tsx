@@ -34,7 +34,6 @@ import * as CM from "@radix-ui/react-context-menu";
 import { env } from "src/lib/env-client";
 import { ContextInfo, MapContextMenu } from "src/map/context-menu";
 import { useModeHandlers } from "./mode-handlers";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { wrappedFeaturesFromMapFeatures } from "src/lib/map-component-utils";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { usePersistence } from "src/lib/persistence";
@@ -135,7 +134,6 @@ export const MapCanvas = memo(function MapCanvas({
   // Atom state
   const mode = useAtomValue(modeAtom);
   const cursor = useAtomValue(cursorStyleAtom);
-  const isSvgCursorOn = useFeatureFlag("FLAG_SVG_CURSOR");
   const isEditionBlocked = useIsEditionBlocked();
   const [initError, setInitError] = useState<boolean>(false);
 
@@ -379,8 +377,7 @@ export const MapCanvas = memo(function MapCanvas({
     if (cursor === "grab") return "placemark-cursor-grab";
     if (cursor === "not-allowed") return "placemark-cursor-not-allowed";
     if (cursor === "replace") return "placemark-cursor-replace";
-    if (cursor === "wait")
-      return isSvgCursorOn ? "cursor-wait" : "cursor-wait-deprecated";
+    if (cursor === "wait") return "cursor-wait";
 
     if (cursor === "crosshair") return "cursor-crosshair";
     if (cursor === "crosshair-add") return "cursor-crosshair-add";
@@ -401,7 +398,7 @@ export const MapCanvas = memo(function MapCanvas({
       return "cursor-crosshair";
 
     return "placemark-cursor-default";
-  }, [cursor, mode, isSvgCursorOn]);
+  }, [cursor, mode]);
 
   if (initError) return <MapError />;
 
