@@ -176,10 +176,11 @@ export const ScenarioSwitcher = () => {
           </Tooltip.Trigger>
           <DD.Portal>
             <DDContent align="start" side="top" className="min-w-64">
-              <StyledItem onSelect={handleSelectMain}>
-                <div
-                  className={`flex items-center w-full gap-2 ${isMainActive ? "text-accent-hover" : ""}`}
-                >
+              <StyledItem
+                onSelect={handleSelectMain}
+                className={isMainActive ? "bg-accent-tint!" : undefined}
+              >
+                <div className="flex items-center w-full gap-2">
                   <MainModelIcon size="sm" />
                   <div className="flex-1">{translate("scenarios.main")}</div>
                 </div>
@@ -309,13 +310,12 @@ const ScenarioRow = ({
     <div className="relative group/scenario">
       <StyledItem
         onSelect={() => onSelect(scenario.id)}
-        className="pr-10 group-hover/scenario:bg-base-hover"
+        className={`pr-10 ${isActive ? "bg-accent-tint!" : "group-hover/scenario:bg-base-hover"}`}
       >
-        <div
-          className={`flex items-center w-full gap-2 ${isActive ? "text-accent-hover" : ""}`}
-        >
+        <div className="flex items-center w-full gap-2">
           <span
-            className={`font-mono text-size-base pl-1 ${isActive ? "text-purple-400" : "text-subtle"}`}
+            aria-hidden="true"
+            className={`font-mono text-size-base pl-1 ${isActive ? "text-default" : "text-subtle"}`}
           >
             {isLast ? "└──" : "├──"}
           </span>
@@ -324,8 +324,8 @@ const ScenarioRow = ({
       </StyledItem>
       <DD.Root>
         <DD.Trigger asChild>
-          <button className="absolute right-3 top-1/2 -translate-y-1/2 opacity-0 group-hover/scenario:opacity-100 data-[state=open]:opacity-100 p-1 rounded-sm hover:bg-gray-300 dark:hover:bg-gray-500 text-subtle">
-            <MoreActionsIcon size="sm" />
+          <button className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover/scenario:opacity-100 data-[state=open]:opacity-100 p-1 rounded-sm hover:bg-base-hover text-subtle">
+            <MoreActionsIcon size="md" />
           </button>
         </DD.Trigger>
         <DD.Portal>
