@@ -8,11 +8,52 @@ import type {
   ModelMoment,
 } from "../model-operation";
 import { HydraulicModel } from "../hydraulic-model";
+import type { ChangeSet } from "@epanet-js/change-set";
+import {
+  changeSet,
+  replaceCustomAttributes,
+  setAsset,
+  setCustomerPoint,
+  type Fields,
+} from "../change-sets";
 
 export const changeCustomAttributesDefinition = (
-  { assets, customerPoints, customAttributes }: HydraulicModel,
+  model: HydraulicModel,
+  next: CustomAttributesDefinition,
+): ChangeSet => {
+  const { patchAssetsAttributes, patchCustomerPointsAttributes } =
+    planClearedValues(model, next);
+
+  return changeSet(model, "Change custom attributes", [
+    replaceCustomAttributes(next),
+    ...patchAssetsAttributes.map((patch) =>
+      setAsset(patch.id, patch.properties as Fields),
+    ),
+    ...patchCustomerPointsAttributes.map((patch) =>
+      setCustomerPoint(patch.id, patch.properties as Fields),
+    ),
+  ]);
+};
+
+export const changeCustomAttributesDefinitionDeprecated = (
+  model: HydraulicModel,
   next: CustomAttributesDefinition,
 ): ModelMoment => {
+  const { patchAssetsAttributes, patchCustomerPointsAttributes } =
+    planClearedValues(model, next);
+
+  return {
+    note: "Change custom attributes",
+    putCustomAttributesDefinition: next,
+    patchAssetsAttributes,
+    patchCustomerPointsAttributes,
+  };
+};
+
+const planClearedValues = (
+  { assets, customerPoints, customAttributes }: HydraulicModel,
+  next: CustomAttributesDefinition,
+) => {
   const previousIds = getAttributeIds(customAttributes);
   const nextIds = getAttributeIds(next);
   const removedIds = [...previousIds].filter((id) => !nextIds.has(id));
@@ -52,10 +93,5 @@ export const changeCustomAttributesDefinition = (
     }
   }
 
-  return {
-    note: "Change custom attributes",
-    putCustomAttributesDefinition: next,
-    patchAssetsAttributes,
-    patchCustomerPointsAttributes,
-  };
+  return { patchAssetsAttributes, patchCustomerPointsAttributes };
 };

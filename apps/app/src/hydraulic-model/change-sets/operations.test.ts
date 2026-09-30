@@ -381,13 +381,17 @@ const cases: OperationCase[] = [
     name: "changePipeMaterials",
     fixture: aNetwork,
     run: ({ model }) =>
-      changePipeMaterials(model, [
-        { label: "PVC", entries: [{ age: 0, roughness: 140 }] },
-      ]),
+      changePipeMaterials(model, {
+        pipeMaterials: [
+          { label: "PVC", entries: [{ age: 0, roughness: 140 }] },
+        ],
+        materialAssignments: [{ assetIds: [IDS.P1], material: "PVC" }],
+      }),
     expectApplied: ({ model }) => {
       expect(model.pipeMaterials).toEqual([
         { label: "PVC", entries: [{ age: 0, roughness: 140 }] },
       ]);
+      expect(prop(model, IDS.P1, "material")).toBe("PVC");
     },
   },
   {

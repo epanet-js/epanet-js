@@ -32,8 +32,14 @@ export {
 } from "./change-asset-control";
 export { changeCurves, changeCurvesDeprecated } from "./change-curves";
 export { changePatterns, changePatternsDeprecated } from "./change-patterns";
-export { changePipeMaterials } from "./change-pipe-materials";
-export { changeCustomAttributesDefinition } from "./change-custom-attributes-definition";
+export {
+  changePipeMaterials,
+  changePipeMaterialsDeprecated,
+} from "./change-pipe-materials";
+export {
+  changeCustomAttributesDefinition,
+  changeCustomAttributesDefinitionDeprecated,
+} from "./change-custom-attributes-definition";
 export {
   changeDemandAssignment,
   changeDemandAssignmentDeprecated,

@@ -8,7 +8,12 @@ import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
 import { hasScenariosAtom } from "src/state/scenarios";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
-import { changeCustomAttributesDefinition } from "src/hydraulic-model/model-operations";
+import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import {
+  changeCustomAttributesDefinition,
+  changeCustomAttributesDefinitionDeprecated,
+} from "src/hydraulic-model/model-operations";
 import { useUserTracking } from "src/infra/user-tracking";
 import { Callout } from "@epanet-js/ui-kit";
 import { VerticalResizer } from "../vertical-resizer";
@@ -86,6 +91,8 @@ export const CustomAttributesDialog = ({
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const savedDefinition = hydraulicModel.customAttributes;
   const { transact } = useMomentTransaction();
+  const { transact: transactChangeSet } = useModelTransaction();
+  const isOpsChangeSetsOn = useFeatureFlag("FLAG_OPS_CHANGE_SETS");
   const userTracking = useUserTracking();
   const hasScenarios = useAtomValue(hasScenariosAtom);
   const isEditionBlocked = useIsEditionBlocked() || hasScenarios;
@@ -162,9 +169,13 @@ export const CustomAttributesDialog = ({
   );
 
   const handleSave = useCallback(() => {
-    const applied = transact(
-      changeCustomAttributesDefinition(hydraulicModel, edited),
-    );
+    const applied = isOpsChangeSetsOn
+      ? transactChangeSet(
+          changeCustomAttributesDefinition(hydraulicModel, edited),
+        )
+      : transact(
+          changeCustomAttributesDefinitionDeprecated(hydraulicModel, edited),
+        );
     if (!applied) return;
 
     const newAttributes = collectNewAttributes(savedDefinition, edited);
@@ -174,7 +185,15 @@ export const CustomAttributesDialog = ({
       newLabels: newAttributes.map((attribute) => attribute.label),
       newAttributeTypes: newAttributes.map((attribute) => attribute.type),
     });
-  }, [hydraulicModel, savedDefinition, edited, transact, userTracking]);
+  }, [
+    hydraulicModel,
+    savedDefinition,
+    edited,
+    isOpsChangeSetsOn,
+    transact,
+    transactChangeSet,
+    userTracking,
+  ]);
 
   return (
     <BaseDialog
