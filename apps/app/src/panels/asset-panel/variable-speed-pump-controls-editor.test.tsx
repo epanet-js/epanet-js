@@ -284,14 +284,32 @@ describe("VariableSpeedPumpControlsEditor", () => {
     await user.click(
       screen.getByRole("checkbox", { name: "Start/stop at tank level" }),
     );
+    expect(lastControl(onChange)!.tankLevels).toBeUndefined();
+    expect(
+      screen.getByRole("checkbox", { name: "Start/stop at tank level" }),
+    ).toBeChecked();
+    expect(screen.getByRole("combobox", { name: "Tank" })).toHaveTextContent(
+      "None",
+    );
+    expect(
+      screen.queryByRole("textbox", { name: "Value for: Off above (m)" }),
+    ).not.toBeInTheDocument();
+
+    await selectOption(user, "Tank", "T1");
     expect(lastControl(onChange)!.tankLevels).toEqual({
       tankId: IDS.T1,
       offLevel: 5,
       onLevel: 1,
     });
-    expect(screen.getByRole("combobox", { name: "Tank" })).toHaveTextContent(
-      "T1",
-    );
+
+    await user.click(screen.getByRole("combobox", { name: "Tank" }));
+    await user.click(await screen.findByRole("button", { name: "None" }));
+    expect(lastControl(onChange)!.tankLevels).toBeUndefined();
+    expect(
+      screen.getByRole("checkbox", { name: "Start/stop at tank level" }),
+    ).toBeChecked();
+
+    await selectOption(user, "Tank", "T1");
 
     await selectOption(user, "Flow through", "P1");
     expect(lastControl(onChange)).toMatchObject({

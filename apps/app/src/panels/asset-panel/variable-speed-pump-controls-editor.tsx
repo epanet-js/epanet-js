@@ -280,9 +280,13 @@ export const VariableSpeedPumpControlsEditor = ({
   );
 };
 
-type LevelsDraft = { tankId: AssetId; offLevel: number; onLevel: number };
+type LevelsDraft =
+  | { tankId: AssetId; offLevel: number; onLevel: number }
+  | typeof NO_TANK;
 
-const defaultLevelsFor = (tank: Tank): LevelsDraft => ({
+const NO_TANK = { tankId: null } as const;
+
+const defaultLevelsFor = (tank: Tank): VariableSpeedPumpTankLevels => ({
   tankId: tank.id,
   offLevel: tank.maxLevel ?? 0,
   onLevel: tank.minLevel ?? 0,
@@ -310,12 +314,17 @@ const TankLevelsSection = ({
   const [draft, setDraft] = useState<LevelsDraft | null>(tankLevels ?? null);
   if (tankLevels !== synced) {
     setSynced(tankLevels);
-    setDraft(tankLevels ?? null);
+    const isAwaitingTank =
+      tankLevels === undefined && draft === NO_TANK && fixedTankId === null;
+    if (!isAwaitingTank) setDraft(tankLevels ?? null);
   }
 
-  const tank = draft ? tanks.find((t) => t.id === draft.tankId) : undefined;
+  const tank =
+    draft && draft.tankId !== null
+      ? tanks.find((t) => t.id === draft.tankId)
+      : undefined;
   const errors =
-    draft && tank
+    draft && draft.tankId !== null && tank
       ? validateLevelSetting({
           onLevel: draft.onLevel,
           offLevel: draft.offLevel,
@@ -326,6 +335,10 @@ const TankLevelsSection = ({
 
   const commit = (next: LevelsDraft) => {
     setDraft(next);
+    if (next.tankId === null) {
+      if (tankLevels !== undefined) onChange(undefined);
+      return;
+    }
     const nextTank = tanks.find((t) => t.id === next.tankId);
     if (!nextTank) return;
     const nextErrors = validateLevelSetting({
@@ -346,7 +359,8 @@ const TankLevelsSection = ({
       onChange(undefined);
       return;
     }
-    if (defaultTank) commit(defaultLevelsFor(defaultTank));
+    if (fixedTankId === null) commit(NO_TANK);
+    else if (defaultTank) commit(defaultLevelsFor(defaultTank));
   };
 
   const withUnit = (label: string) =>
@@ -354,6 +368,7 @@ const TankLevelsSection = ({
   const offLabel = withUnit(translate("controls.variableSpeed.offAbove"));
   const onLabel = withUnit(translate("controls.variableSpeed.onBelow"));
   const tankLabel = translate("tank");
+  const noTankLabel = translate("none");
 
   const tankOptions = useMemo(
     () => tanks.map((t) => ({ value: t.id, label: t.label })),
@@ -399,15 +414,20 @@ const TankLevelsSection = ({
                 onMouseLeave={() => onHighlightChange(null)}
               >
                 {readOnly ? (
-                  <TextField padding="md">{tank?.label ?? ""}</TextField>
+                  <TextField padding="md">
+                    {tank?.label ?? noTankLabel}
+                  </TextField>
                 ) : (
                   <Selector
                     ariaLabel={tankLabel}
                     options={tankOptions}
                     selected={draft.tankId}
+                    nullable
+                    placeholder={noTankLabel}
+                    clearLabel={noTankLabel}
                     onChange={(tankId) => {
                       const next = tanks.find((t) => t.id === tankId);
-                      if (next) commit(defaultLevelsFor(next));
+                      commit(next ? defaultLevelsFor(next) : NO_TANK);
                     }}
                     onActiveOptionChange={onHighlightChange}
                     styleOptions={selectorStyleOptions}
@@ -416,20 +436,24 @@ const TankLevelsSection = ({
               </div>
             </InlineField>
           )}
-          <LevelField
-            label={offLabel}
-            value={draft.offLevel}
-            hasError={hasOffError}
-            onChange={(offLevel) => commit({ ...draft, offLevel })}
-            readOnly={readOnly}
-          />
-          <LevelField
-            label={onLabel}
-            value={draft.onLevel}
-            hasError={hasOnError}
-            onChange={(onLevel) => commit({ ...draft, onLevel })}
-            readOnly={readOnly}
-          />
+          {draft.tankId !== null && (
+            <>
+              <LevelField
+                label={offLabel}
+                value={draft.offLevel}
+                hasError={hasOffError}
+                onChange={(offLevel) => commit({ ...draft, offLevel })}
+                readOnly={readOnly}
+              />
+              <LevelField
+                label={onLabel}
+                value={draft.onLevel}
+                hasError={hasOnError}
+                onChange={(onLevel) => commit({ ...draft, onLevel })}
+                readOnly={readOnly}
+              />
+            </>
+          )}
           {messageParts.length > 0 && (
             <p className="text-size-base font-semibold text-orange-800">
               {messageParts.join(" ")}
