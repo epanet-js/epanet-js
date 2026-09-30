@@ -13,12 +13,18 @@ import { SuccessIcon } from "src/icons";
 import { TranslateFn, useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
+import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import {
+  changeElevations,
+  changeElevationsDeprecated,
+  type NodeElevation,
+} from "src/hydraulic-model/model-operations";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { elevationSourcesAtom } from "src/state/elevation-sources";
 import { dialogAtom } from "src/state/dialog";
 import { offlineAtom } from "src/state/offline";
 import { projectSettingsAtom } from "src/state/project-settings";
-import type { AssetPatch } from "src/hydraulic-model/model-operation";
 
 export type RecomputeElevationsMode = "missing" | "all";
 
@@ -75,6 +81,8 @@ export const useRecomputeElevations = () => {
   const isOffline = useAtomValue(offlineAtom);
   const { units } = useAtomValue(projectSettingsAtom);
   const { transact } = useMomentTransaction();
+  const { transact: transactChangeSet } = useModelTransaction();
+  const isOpsChangeSetsOn = useFeatureFlag("FLAG_OPS_CHANGE_SETS");
   const userTracking = useUserTracking();
   const translate = useTranslate();
   const setDialog = useSetAtom(dialogAtom);
@@ -165,7 +173,7 @@ export const useRecomputeElevations = () => {
         flushProgress.cancel();
 
         const yieldIfSliceElapsed = createTimeSlicer();
-        const patches: AssetPatch[] = [];
+        const nodeElevations: NodeElevation[] = [];
         let unresolved = 0;
         for (let i = 0; i < nodes.length; i++) {
           await yieldIfSliceElapsed();
@@ -174,20 +182,16 @@ export const useRecomputeElevations = () => {
             unresolved++;
             continue;
           }
-          const node = nodes[i];
-          patches.push({
-            id: node.id,
-            type: node.type,
-            properties: { elevation },
-          } as AssetPatch);
+          nodeElevations.push({ nodeId: nodes[i].id, elevation });
         }
 
-        const resolved = patches.length;
+        const resolved = nodeElevations.length;
         if (resolved > 0) {
-          transact({
-            note: "Recompute elevations",
-            patchAssetsAttributes: patches,
-          });
+          if (isOpsChangeSetsOn) {
+            transactChangeSet(changeElevations(model, { nodeElevations }));
+          } else {
+            transact(changeElevationsDeprecated(model, { nodeElevations }));
+          }
         }
 
         userTracking.capture({
@@ -235,7 +239,9 @@ export const useRecomputeElevations = () => {
       sources,
       isOffline,
       units.elevation,
+      isOpsChangeSetsOn,
       transact,
+      transactChangeSet,
       userTracking,
       translate,
       setDialog,

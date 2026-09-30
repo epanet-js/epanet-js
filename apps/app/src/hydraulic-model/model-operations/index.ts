@@ -41,6 +41,11 @@ export {
   changeCustomAttributesDefinitionDeprecated,
 } from "./change-custom-attributes-definition";
 export {
+  changeElevations,
+  changeElevationsDeprecated,
+  type NodeElevation,
+} from "./change-elevations";
+export {
   changeDemandAssignment,
   changeDemandAssignmentDeprecated,
 } from "./change-demand-assignment";
