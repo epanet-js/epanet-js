@@ -13,7 +13,10 @@ import {
   deactivateAssets,
   deactivateAssetsDeprecated,
 } from "src/hydraulic-model/model-operations/deactivate-assets";
-import { deleteAssets } from "src/hydraulic-model/model-operations/delete-assets";
+import {
+  deleteAssets,
+  deleteAssetsDeprecated,
+} from "src/hydraulic-model/model-operations/delete-assets";
 import {
   ActiveAssetIndex,
   ActiveTopology,
@@ -60,12 +63,12 @@ export const useFixOrphanAsset = () => {
       if (!kind || !asset) return;
 
       if (kind !== "isolatedLink") {
-        transact(
-          deleteAssets(hydraulicModel, {
-            assetIds: [assetId],
-            shouldUpdateCustomerPoints: true,
-          }),
-        );
+        const data = { assetIds: [assetId], shouldUpdateCustomerPoints: true };
+        if (isOpsChangeSetsOn) {
+          transactChangeSet(deleteAssets(hydraulicModel, data));
+        } else {
+          transact(deleteAssetsDeprecated(hydraulicModel, data));
+        }
       } else if (isOpsChangeSetsOn) {
         transactChangeSet(
           deactivateAssets(hydraulicModel, { assetIds: [assetId] }),

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { mergeMoments } from "./merge-moments";
-import { deleteAssets } from "./delete-assets";
+import { deleteAssetsDeprecated } from "./delete-assets";
 import { removeCustomerPointsDeprecated } from "./remove-customer-points";
 import { applyOperation } from "src/__helpers__/apply-operation";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
@@ -90,7 +90,7 @@ describe("mergeMoments", () => {
       })
       .build();
 
-    const deleteMoment = deleteAssets(model, {
+    const deleteMoment = deleteAssetsDeprecated(model, {
       assetIds: [IDS.PUMP1],
       shouldUpdateCustomerPoints: true,
     });
@@ -130,7 +130,7 @@ describe("mergeMoments", () => {
 
     const merged = mergeMoments(
       [
-        deleteAssets(model, {
+        deleteAssetsDeprecated(model, {
           assetIds: [IDS.J1],
           shouldUpdateCustomerPoints: true,
         }),

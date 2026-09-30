@@ -3,7 +3,7 @@ import { Provider as JotaiProvider } from "jotai";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
 import { addNode } from "src/hydraulic-model/model-operations/add-node";
-import { deleteAssets } from "src/hydraulic-model/model-operations/delete-assets";
+import { deleteAssetsDeprecated } from "src/hydraulic-model/model-operations/delete-assets";
 import { changeLabel } from "src/hydraulic-model/model-operations/change-label";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
@@ -142,7 +142,7 @@ describe.each([
 
     act(() => {
       result.current.transact(
-        deleteAssets(store.get(stagingModelDerivedAtom), {
+        deleteAssetsDeprecated(store.get(stagingModelDerivedAtom), {
           assetIds: [IDS.J2],
         }),
       );

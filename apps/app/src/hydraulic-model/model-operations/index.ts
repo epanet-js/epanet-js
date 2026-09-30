@@ -18,7 +18,7 @@ export {
   connectCustomersDeprecated,
 } from "./connect-customers";
 export { addNode } from "./add-node";
-export { deleteAssets } from "./delete-assets";
+export { deleteAssets, deleteAssetsDeprecated } from "./delete-assets";
 export { addLink } from "./add-link";
 export { replaceNode as replaceNode } from "./replace-node";
 export { replaceLink } from "./replace-link";

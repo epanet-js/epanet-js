@@ -9,15 +9,22 @@ import {
   Control,
   AssetReference,
 } from "@epanet-js/hydraulic-model";
-import type {
-  AssetPatch,
-  DemandAssignment,
-  DemandSettingsChange,
-} from "../model-operation";
-import { ModelOperationDeprecated } from "../model-operation";
+import type { AssetPatch, DemandAssignment } from "../model-operation";
+import { ModelOperation, ModelOperationDeprecated } from "../model-operation";
 import { HydraulicModel } from "../hydraulic-model";
 import { inferNodeIsActive } from "../utilities/active-topology";
 import { Demands, getJunctionDemands } from "@epanet-js/hydraulic-model";
+import {
+  changeSet,
+  dropAssets,
+  putCustomerPoints,
+  replaceControls,
+  setAsset,
+  setDemands,
+  setRawControls,
+  type Fields,
+  type Intent,
+} from "../change-sets";
 
 type InputData = {
   assetIds: readonly AssetId[];
@@ -25,20 +32,75 @@ type InputData = {
   shouldRemoveRawControls?: boolean;
 };
 
-export const deleteAssets: ModelOperationDeprecated<InputData> = (
+export const deleteAssets: ModelOperation<InputData> = (
   hydraulicModel,
+  data,
+) => {
+  const {
+    deleteIds,
+    boundaryPatches,
+    disconnectedCustomerPoints,
+    demandAssignments,
+    controls,
+    rawControls,
+  } = planDeletion(hydraulicModel, data);
+
+  const intents: Intent[] = [];
+  if (rawControls) intents.push(setRawControls(rawControls));
+  if (controls) intents.push(replaceControls(controls));
+  intents.push(dropAssets(deleteIds));
+  for (const patch of boundaryPatches) {
+    intents.push(setAsset(patch.id, patch.properties as Fields));
+  }
+  intents.push(putCustomerPoints(disconnectedCustomerPoints));
+  intents.push(setDemands(demandAssignments));
+
+  return changeSet(hydraulicModel, "Delete assets", intents);
+};
+
+export const deleteAssetsDeprecated: ModelOperationDeprecated<InputData> = (
+  hydraulicModel,
+  data,
+) => {
+  const {
+    deleteIds,
+    boundaryPatches,
+    disconnectedCustomerPoints,
+    demandAssignments,
+    controls,
+    rawControls,
+  } = planDeletion(hydraulicModel, data);
+
+  return {
+    note: "Delete assets",
+    deleteAssets: deleteIds,
+    patchAssetsAttributes:
+      boundaryPatches.length > 0 ? boundaryPatches : undefined,
+    putCustomerPoints:
+      disconnectedCustomerPoints.length > 0
+        ? disconnectedCustomerPoints
+        : undefined,
+    ...(demandAssignments.length > 0 && {
+      putDemands: { assignments: demandAssignments },
+    }),
+    ...(controls && { putControls: controls }),
+    ...(rawControls && { putRawControls: rawControls }),
+  };
+};
+
+const planDeletion = (
+  hydraulicModel: HydraulicModel,
   {
     assetIds,
     shouldUpdateCustomerPoints = false,
     shouldRemoveRawControls = false,
-  },
+  }: InputData,
 ) => {
   const {
     topology,
     assets,
     customerPointsLookup,
     controlsLookup,
-    controls,
     rawControls,
   } = hydraulicModel;
   const affectedIds = new Set(assetIds);
@@ -68,41 +130,31 @@ export const deleteAssets: ModelOperationDeprecated<InputData> = (
     });
   });
 
-  const boundaryPatches = reevaluateBoundaryNodes(hydraulicModel, affectedIds);
-
-  const putDemands = removeDemandsFromDeletedJunctions(
-    hydraulicModel.demands,
-    assets,
-    affectedIds,
-  );
-
   const controlsToRemove = new Set<Control>();
   for (const id of affectedIds) {
     for (const control of controlsLookup.getControls(id)) {
       controlsToRemove.add(control);
     }
   }
-  const putControls =
-    controlsToRemove.size > 0
-      ? controls.filter((control) => !controlsToRemove.has(control))
-      : undefined;
-
-  const putRawControls = shouldRemoveRawControls
-    ? removeRawControlsReferencing(rawControls, affectedIds)
-    : undefined;
 
   return {
-    note: "Delete assets",
-    deleteAssets: Array.from(affectedIds),
-    patchAssetsAttributes:
-      boundaryPatches.length > 0 ? boundaryPatches : undefined,
-    putCustomerPoints:
-      shouldUpdateCustomerPoints && disconnectedCustomerPoints.size > 0
-        ? Array.from(disconnectedCustomerPoints.values())
+    deleteIds: Array.from(affectedIds),
+    boundaryPatches: reevaluateBoundaryNodes(hydraulicModel, affectedIds),
+    disconnectedCustomerPoints: Array.from(disconnectedCustomerPoints.values()),
+    demandAssignments: removeDemandsFromDeletedJunctions(
+      hydraulicModel.demands,
+      assets,
+      affectedIds,
+    ),
+    controls:
+      controlsToRemove.size > 0
+        ? hydraulicModel.controls.filter(
+            (control) => !controlsToRemove.has(control),
+          )
         : undefined,
-    ...(putDemands && { putDemands }),
-    ...(putControls && { putControls }),
-    ...(putRawControls && { putRawControls }),
+    rawControls: shouldRemoveRawControls
+      ? removeRawControlsReferencing(rawControls, affectedIds)
+      : undefined,
   };
 };
 
@@ -190,8 +242,8 @@ const removeDemandsFromDeletedJunctions = (
   demands: Demands,
   assets: Map<AssetId, Asset>,
   deletedIds: Set<AssetId>,
-): DemandSettingsChange | undefined => {
-  let updated: DemandAssignment[] | undefined;
+): DemandAssignment[] => {
+  const assignments: DemandAssignment[] = [];
 
   for (const id of deletedIds) {
     const asset = assets.get(id);
@@ -199,9 +251,8 @@ const removeDemandsFromDeletedJunctions = (
     const demand = getJunctionDemands(demands, id);
     if (!demand.length) continue;
 
-    if (!updated) updated = [];
-    updated.push({ junctionId: id, demands: [] });
+    assignments.push({ junctionId: id, demands: [] });
   }
 
-  return updated ? { assignments: updated } : undefined;
+  return assignments;
 };
