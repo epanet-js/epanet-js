@@ -634,7 +634,9 @@ const CheckboxRow = ({
   onChange: (checked: boolean) => void;
   disabled: boolean;
 }) => (
-  <label className="flex items-center justify-between gap-4 py-1 text-size-base text-subtle">
+  <label
+    className={`flex items-center justify-between gap-4 py-1 text-size-base ${disabled ? "text-disabled" : "text-subtle"}`}
+  >
     <span>{label}</span>
     <Checkbox
       checked={checked}
