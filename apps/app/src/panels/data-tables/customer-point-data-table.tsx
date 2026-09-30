@@ -8,12 +8,19 @@ import {
 } from "./table-handles";
 import { dialogAtom } from "src/state/dialog";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
+import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
+  changeCustomerPointLabel,
   changeCustomerPointLabelDeprecated,
+  changeCustomerPointProperties,
   changeCustomerPointPropertiesDeprecated,
+  changeDemandAssignment,
   changeDemandAssignmentDeprecated,
+  mergeChangeSets,
   mergeMoments,
 } from "src/hydraulic-model/model-operations";
+import type { ChangeSet } from "@epanet-js/change-set";
 import { getAttribute, getAttributes } from "@epanet-js/hydraulic-model";
 import { getCustomerPointDemands, type ModelMoment } from "src/hydraulic-model";
 import type { CustomerDemandAssignment } from "src/hydraulic-model/model-operation";
@@ -88,6 +95,8 @@ export const CustomerPointDataTable = memo(
     const { units, formatting } = useAtomValue(projectSettingsAtom);
     const { labelManager } = useAtomValue(modelFactoriesAtom);
     const { transact } = useMomentTransaction();
+    const { transact: transactChangeSet } = useModelTransaction();
+    const isOpsChangeSetsOn = useFeatureFlag("FLAG_OPS_CHANGE_SETS");
     const translate = useTranslate();
     const translateUnit = useTranslateUnit();
     const isEditionBlocked = useIsEditionBlocked();
@@ -176,6 +185,7 @@ export const CustomerPointDataTable = memo(
     const onChange = useCallback(
       async (newRows: CustomerPointRow[]) => {
         const moments: ModelMoment[] = [];
+        const changeSets: ChangeSet[] = [];
         const demandAssignments: CustomerDemandAssignment[] = [];
         const customEditCounts = new Map<string, number>();
         let labelChanges = 0;
@@ -200,12 +210,19 @@ export const CustomerPointDataTable = memo(
               newRow.id,
             )
           ) {
-            moments.push(
-              changeCustomerPointLabelDeprecated(hydraulicModel, {
-                customerPointId: newRow.id,
-                newLabel: newRow.label,
-              }),
-            );
+            const labelData = {
+              customerPointId: newRow.id,
+              newLabel: newRow.label,
+            };
+            if (isOpsChangeSetsOn) {
+              changeSets.push(
+                changeCustomerPointLabel(hydraulicModel, labelData),
+              );
+            } else {
+              moments.push(
+                changeCustomerPointLabelDeprecated(hydraulicModel, labelData),
+              );
+            }
             labelChanges += 1;
           }
 
@@ -254,25 +271,50 @@ export const CustomerPointDataTable = memo(
               customEditCounts.set(key, (customEditCounts.get(key) ?? 0) + 1);
             }
             if (customChanges.length > 0) {
-              moments.push(
-                changeCustomerPointPropertiesDeprecated(hydraulicModel, {
-                  customerPointIds: [newRow.id],
-                  changes: customChanges,
-                }),
-              );
+              const propertiesData = {
+                customerPointIds: [newRow.id],
+                changes: customChanges,
+              };
+              if (isOpsChangeSetsOn) {
+                changeSets.push(
+                  changeCustomerPointProperties(hydraulicModel, propertiesData),
+                );
+              } else {
+                moments.push(
+                  changeCustomerPointPropertiesDeprecated(
+                    hydraulicModel,
+                    propertiesData,
+                  ),
+                );
+              }
             }
           }
         }
 
         if (demandAssignments.length > 0) {
-          moments.push(
-            changeDemandAssignmentDeprecated(hydraulicModel, demandAssignments),
-          );
+          if (isOpsChangeSetsOn) {
+            changeSets.push(
+              changeDemandAssignment(hydraulicModel, demandAssignments),
+            );
+          } else {
+            moments.push(
+              changeDemandAssignmentDeprecated(
+                hydraulicModel,
+                demandAssignments,
+              ),
+            );
+          }
         }
 
-        const merged = mergeMoments(moments, "Edit customer points");
-        if (!merged) return;
-        transact(merged);
+        if (isOpsChangeSetsOn) {
+          const merged = mergeChangeSets(changeSets, "Edit customer points");
+          if (!merged) return;
+          transactChangeSet(merged);
+        } else {
+          const merged = mergeMoments(moments, "Edit customer points");
+          if (!merged) return;
+          transact(merged);
+        }
 
         if (labelChanges > 0) {
           userTracking.capture({
@@ -303,7 +345,15 @@ export const CustomerPointDataTable = memo(
           });
         }
       },
-      [hydraulicModel, labelManager, transact, userTracking, customAttributes],
+      [
+        hydraulicModel,
+        labelManager,
+        isOpsChangeSetsOn,
+        transact,
+        transactChangeSet,
+        userTracking,
+        customAttributes,
+      ],
     );
 
     const getCpIdsFromRange = useCallback(

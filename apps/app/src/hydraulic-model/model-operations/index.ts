@@ -6,6 +6,7 @@ export {
   changePropertiesDeprecated,
 } from "./change-property";
 export { mergeMoments } from "./merge-moments";
+export { mergeChangeSets } from "./merge-change-sets";
 export type { PropertyChange } from "./change-property";
 export { changeLabel, changeLabelDeprecated } from "./change-label";
 export {

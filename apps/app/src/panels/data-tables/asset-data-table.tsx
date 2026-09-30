@@ -7,12 +7,19 @@ import {
   simulationSettingsDerivedAtom,
 } from "src/state/derived-branch-state";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
+import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
+  changeProperties,
   changePropertiesDeprecated,
+  changeLabel,
   changeLabelDeprecated,
+  changeDemandAssignment,
   changeDemandAssignmentDeprecated,
+  mergeChangeSets,
   mergeMoments,
 } from "src/hydraulic-model/model-operations";
+import type { ChangeSet } from "@epanet-js/change-set";
 import { getJunctionDemands } from "src/hydraulic-model";
 import type { JunctionDemandAssignment } from "src/hydraulic-model/model-operation";
 import type { ModelMoment } from "src/hydraulic-model";
@@ -22,8 +29,14 @@ import {
   valveKindChanges,
   pumpDefinitionTypeChanges,
 } from "src/hydraulic-model/model-operations";
-import { activateAssetsDeprecated } from "src/hydraulic-model/model-operations/activate-assets";
-import { deactivateAssetsDeprecated } from "src/hydraulic-model/model-operations/deactivate-assets";
+import {
+  activateAssets,
+  activateAssetsDeprecated,
+} from "src/hydraulic-model/model-operations/activate-assets";
+import {
+  deactivateAssets,
+  deactivateAssetsDeprecated,
+} from "src/hydraulic-model/model-operations/deactivate-assets";
 import type { PropertyChange } from "src/hydraulic-model/model-operations/change-property";
 import { createTimeSlicer } from "src/infra/yield-to-main";
 import { modelFactoriesAtom } from "src/state/model-factories";
@@ -123,6 +136,8 @@ export const AssetDataTable = memo(function AssetDataTableInner({
   const { units, formatting } = useAtomValue(projectSettingsAtom);
   const { labelManager } = useAtomValue(modelFactoriesAtom);
   const { transact } = useMomentTransaction();
+  const { transact: transactChangeSet } = useModelTransaction();
+  const isOpsChangeSetsOn = useFeatureFlag("FLAG_OPS_CHANGE_SETS");
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
   const isEditionBlocked = useIsEditionBlocked();
@@ -270,6 +285,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
         ...customAttributes.map((a) => a.id),
       ];
       const moments: ModelMoment[] = [];
+      const changeSets: ChangeSet[] = [];
       const editedProperties = new Map<string, number>();
       const demandAssignments: JunctionDemandAssignment[] = [];
       const yieldIfSliceElapsed = createTimeSlicer();
@@ -333,12 +349,12 @@ export const AssetDataTable = memo(function AssetDataTableInner({
           newRow.label !== oldRow.label &&
           labelManager.isLabelAvailable(newRow.label, assetType, assetId)
         ) {
-          moments.push(
-            changeLabelDeprecated(hydraulicModel, {
-              assetId,
-              newLabel: newRow.label,
-            }),
-          );
+          const labelData = { assetId, newLabel: newRow.label };
+          if (isOpsChangeSetsOn) {
+            changeSets.push(changeLabel(hydraulicModel, labelData));
+          } else {
+            moments.push(changeLabelDeprecated(hydraulicModel, labelData));
+          }
           editedProperties.set(
             "label",
             (editedProperties.get("label") ?? 0) + 1,
@@ -346,10 +362,15 @@ export const AssetDataTable = memo(function AssetDataTableInner({
         }
 
         if (newRow.isActive !== oldRow.isActive) {
-          const op = newRow.isActive
-            ? activateAssetsDeprecated
-            : deactivateAssetsDeprecated;
-          moments.push(op(hydraulicModel, { assetIds: [assetId] }));
+          if (isOpsChangeSetsOn) {
+            const op = newRow.isActive ? activateAssets : deactivateAssets;
+            changeSets.push(op(hydraulicModel, { assetIds: [assetId] }));
+          } else {
+            const op = newRow.isActive
+              ? activateAssetsDeprecated
+              : deactivateAssetsDeprecated;
+            moments.push(op(hydraulicModel, { assetIds: [assetId] }));
+          }
           editedProperties.set(
             "isActive",
             (editedProperties.get("isActive") ?? 0) + 1,
@@ -428,55 +449,74 @@ export const AssetDataTable = memo(function AssetDataTableInner({
         );
 
         if (normalizedChanges.length > 0) {
-          moments.push(
-            changePropertiesDeprecated(hydraulicModel, {
-              assetIds: [assetId],
-              changes: normalizedChanges,
-            }),
-          );
+          const propertiesData = {
+            assetIds: [assetId],
+            changes: normalizedChanges,
+          };
+          if (isOpsChangeSetsOn) {
+            changeSets.push(changeProperties(hydraulicModel, propertiesData));
+          } else {
+            moments.push(
+              changePropertiesDeprecated(hydraulicModel, propertiesData),
+            );
+          }
         }
       }
 
       if (demandAssignments.length > 0) {
-        moments.push(
-          changeDemandAssignmentDeprecated(hydraulicModel, demandAssignments),
-        );
+        if (isOpsChangeSetsOn) {
+          changeSets.push(
+            changeDemandAssignment(hydraulicModel, demandAssignments),
+          );
+        } else {
+          moments.push(
+            changeDemandAssignmentDeprecated(hydraulicModel, demandAssignments),
+          );
+        }
       }
 
-      const merged = mergeMoments(moments, "Edit asset table");
-      if (merged) {
+      if (isOpsChangeSetsOn) {
+        const merged = mergeChangeSets(changeSets, "Edit asset table");
+        if (!merged) return;
+        transactChangeSet(merged);
+      } else {
+        const merged = mergeMoments(moments, "Edit asset table");
+        if (!merged) return;
         transact(merged);
-        for (const [property, count] of editedProperties) {
-          if (isCustomProperty(property)) {
-            const attribute = getAttribute(
-              hydraulicModel.customAttributes,
-              assetType,
-              property,
-            );
-            userTracking.capture({
-              name: "customAttribute.batchEdited",
-              assetType,
-              attributeType: attribute?.type ?? "text",
-              property,
-              label: attribute?.label ?? "",
-              count,
-            });
-            continue;
-          }
-          userTracking.capture({
-            name: "dataTables.cellEdited",
-            type: assetType,
+      }
+
+      for (const [property, count] of editedProperties) {
+        if (isCustomProperty(property)) {
+          const attribute = getAttribute(
+            hydraulicModel.customAttributes,
+            assetType,
             property,
+          );
+          userTracking.capture({
+            name: "customAttribute.batchEdited",
+            assetType,
+            attributeType: attribute?.type ?? "text",
+            property,
+            label: attribute?.label ?? "",
             count,
           });
+          continue;
         }
+        userTracking.capture({
+          name: "dataTables.cellEdited",
+          type: assetType,
+          property,
+          count,
+        });
       }
     },
     [
       assetType,
       hydraulicModel,
       labelManager,
+      isOpsChangeSetsOn,
       transact,
+      transactChangeSet,
       userTracking,
       customAttributes,
     ],
