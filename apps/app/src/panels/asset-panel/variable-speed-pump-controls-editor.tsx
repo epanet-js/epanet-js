@@ -131,7 +131,6 @@ export const VariableSpeedPumpControlsEditor = ({
     : quantityName;
 
   const isScheduled = control.schedule.length > 0;
-  const hasLagPumps = control.laggedPumpIds.length > 0;
   const hasSpeedRangeError = control.minSpeed > control.maxSpeed;
   const minSpeedLabel = translate("controls.variableSpeed.minSpeed");
   const maxSpeedLabel = translate("controls.variableSpeed.maxSpeed");
@@ -155,15 +154,6 @@ export const VariableSpeedPumpControlsEditor = ({
     update({
       schedule: checked ? [{ time: 0, target: control.target }] : [],
     });
-  };
-
-  const handleLagPumpsChange = (checked: boolean) => {
-    if (!checked) {
-      update({ laggedPumpIds: [] });
-      return;
-    }
-    const first = lagCandidates[0];
-    if (first) update({ laggedPumpIds: [first.id] });
   };
 
   return (
@@ -267,24 +257,13 @@ export const VariableSpeedPumpControlsEditor = ({
         </p>
       )}
 
-      <div className="pt-2">
-        <CheckboxRow
-          label={translate("controls.variableSpeed.lagPumps")}
-          checked={hasLagPumps}
-          onChange={handleLagPumpsChange}
-          disabled={readOnly || (!hasLagPumps && lagCandidates.length === 0)}
-        />
-      </div>
-
-      {hasLagPumps && (
-        <LagPumpsGrid
-          laggedPumpIds={control.laggedPumpIds}
-          candidates={lagCandidates}
-          onChange={(laggedPumpIds) => update({ laggedPumpIds })}
-          onHighlightChange={highlightAsset}
-          readOnly={readOnly}
-        />
-      )}
+      <LagPumpsSection
+        laggedPumpIds={control.laggedPumpIds}
+        candidates={lagCandidates}
+        onChange={(laggedPumpIds) => update({ laggedPumpIds })}
+        onHighlightChange={highlightAsset}
+        readOnly={readOnly}
+      />
 
       {control.quantity !== "pressure" && (
         <TankLevelsSection
@@ -766,7 +745,7 @@ const ScheduleGrid = ({
   );
 };
 
-const LagPumpsGrid = ({
+const LagPumpsSection = ({
   laggedPumpIds,
   candidates,
   onChange,
@@ -780,20 +759,68 @@ const LagPumpsGrid = ({
   readOnly: boolean;
 }) => {
   const translate = useTranslate();
-  const rows = useMemo<LagRow[]>(
-    () => laggedPumpIds.map((pumpId) => ({ pumpId })),
-    [laggedPumpIds],
-  );
+  const [synced, setSynced] = useState(laggedPumpIds);
+  const [rows, setRows] = useState<LagRow[]>(() => toLagRows(laggedPumpIds));
+  if (laggedPumpIds !== synced) {
+    setSynced(laggedPumpIds);
+    if (!haveSamePumps(laggedPumpIds, selectedPumpIds(rows)))
+      setRows(toLagRows(laggedPumpIds));
+  }
 
-  const persist = useCallback(
-    (newRows: LagRow[]) =>
-      onChange(
-        newRows
-          .map((row) => row.pumpId)
-          .filter((id): id is AssetId => id !== null),
-      ),
-    [onChange],
+  const commit = (nextRows: LagRow[]) => {
+    setRows(nextRows);
+    const nextIds = selectedPumpIds(nextRows);
+    if (!haveSamePumps(nextIds, laggedPumpIds)) onChange(nextIds);
+  };
+
+  const isEnabled = rows.length > 0;
+
+  return (
+    <>
+      <div className="pt-2">
+        <CheckboxRow
+          label={translate("controls.variableSpeed.lagPumps")}
+          checked={isEnabled}
+          onChange={(checked) => commit(checked ? [{ pumpId: null }] : [])}
+          disabled={readOnly || (!isEnabled && candidates.length === 0)}
+        />
+      </div>
+      {isEnabled && (
+        <LagPumpsGrid
+          rows={rows}
+          candidates={candidates}
+          onChange={commit}
+          onHighlightChange={onHighlightChange}
+          readOnly={readOnly}
+        />
+      )}
+    </>
   );
+};
+
+const toLagRows = (laggedPumpIds: AssetId[]): LagRow[] =>
+  laggedPumpIds.map((pumpId) => ({ pumpId }));
+
+const selectedPumpIds = (rows: LagRow[]): AssetId[] =>
+  rows.map((row) => row.pumpId).filter((id): id is AssetId => id !== null);
+
+const haveSamePumps = (a: AssetId[], b: AssetId[]) =>
+  a.length === b.length && a.every((id, i) => id === b[i]);
+
+const LagPumpsGrid = ({
+  rows,
+  candidates,
+  onChange,
+  onHighlightChange,
+  readOnly,
+}: {
+  rows: LagRow[];
+  candidates: Pump[];
+  onChange: (rows: LagRow[]) => void;
+  onHighlightChange: (assetId: AssetId | null) => void;
+  readOnly: boolean;
+}) => {
+  const translate = useTranslate();
 
   const options = useMemo(
     () => candidates.map((pump) => ({ value: pump.id, label: pump.label })),
@@ -806,7 +833,8 @@ const LagPumpsGrid = ({
         header: translate("pump"),
         size: 160,
         options,
-        placeholder: translate("pump"),
+        placeholder: translate("none"),
+        emptyOptionLabel: translate("none"),
         emptyValue: null,
         onHighlightChange,
       }),
@@ -814,11 +842,7 @@ const LagPumpsGrid = ({
     [translate, options, onHighlightChange],
   );
 
-  const createRow = useCallback((): LagRow => {
-    const used = new Set(laggedPumpIds);
-    const next = candidates.find((pump) => !used.has(pump.id));
-    return { pumpId: next?.id ?? null };
-  }, [laggedPumpIds, candidates]);
+  const createRow = useCallback((): LagRow => ({ pumpId: null }), []);
 
   const rowActions = useMemo(
     () => [
@@ -826,18 +850,18 @@ const LagPumpsGrid = ({
         label: translate("delete"),
         icon: <DeleteIcon size="sm" />,
         onSelect: (rowIndex: number) =>
-          persist(rows.filter((_, i) => i !== rowIndex)),
+          onChange(rows.filter((_, i) => i !== rowIndex)),
         variant: "destructive" as const,
       },
     ],
-    [translate, rows, persist],
+    [translate, rows, onChange],
   );
 
   return (
     <DataGrid<LagRow>
       data={rows}
       columns={columns}
-      onChange={persist}
+      onChange={onChange}
       createRow={createRow}
       rowActions={rowActions}
       addRowLabel={translate("controls.variableSpeed.addPump")}

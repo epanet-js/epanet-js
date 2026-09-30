@@ -223,6 +223,11 @@ describe("VariableSpeedPumpControlsEditor", () => {
     expect(lastControl(onChange)!.schedule).toEqual([]);
 
     await user.click(screen.getByRole("checkbox", { name: "Lag pumps" }));
+    expect(lastControl(onChange)!.laggedPumpIds).toEqual([]);
+    expect(screen.getByRole("checkbox", { name: "Lag pumps" })).toBeChecked();
+
+    await user.click(screen.getByRole("button", { name: "None" }));
+    await user.click(await screen.findByRole("option", { name: "PU2" }));
     expect(lastControl(onChange)!.laggedPumpIds).toEqual([IDS.PU2]);
 
     const minSpeed = screen.getByRole("textbox", {
