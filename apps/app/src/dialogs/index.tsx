@@ -510,8 +510,8 @@ export const Dialogs = memo(function Dialogs() {
         />
       ),
     )
-    .with({ type: "scenarioSignIn" }, () => (
-      <ScenarioSignInDialog onClose={onClose} />
+    .with({ type: "scenarioSignIn" }, ({ source }) => (
+      <ScenarioSignInDialog source={source} onClose={onClose} />
     ))
     .with({ type: "profileNoPath" }, () => (
       <ProfileNoPathDialog onClose={onClose} />

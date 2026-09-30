@@ -475,10 +475,22 @@ type ProjectSaved = {
   scenariosCount: number;
 };
 
+type ScenarioExportStarted = {
+  name: "scenarioExport.started";
+  source: string;
+  canUseScenarios: boolean;
+};
+
 type ScenarioExportedAsProject = {
   name: "scenario.exportedAsProject";
   source: string;
-  canUseScenarios: boolean;
+  scenariosCount: number;
+  durationMs: number;
+};
+
+type ScenarioExportCanceled = {
+  name: "scenarioExport.canceled";
+  source: string;
 };
 
 export type OpenProjectStarted = {
@@ -680,7 +692,7 @@ type FoundersPartnerLinkVisited = {
 
 type SignInStarted = {
   name: "signIn.started";
-  source: "menu" | "scenarioSwitcher";
+  source: "menu" | "scenarioSwitcher" | "exportScenario";
 };
 
 type SignUpStarted = {
@@ -1448,7 +1460,9 @@ export type UserEvent =
   | InpExported
   | InpExportLsxLinkClicked
   | ProjectSaved
+  | ScenarioExportStarted
   | ScenarioExportedAsProject
+  | ScenarioExportCanceled
   | OpenProjectStarted
   | ProjectFileOpened
   | ProjectFileOpenFailed

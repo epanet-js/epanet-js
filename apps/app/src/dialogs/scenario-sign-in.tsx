@@ -3,8 +3,15 @@ import { SignInButton } from "src/components/auth/sign-in-button";
 import { Button } from "src/components/elements";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";
+import type { ScenarioSignInDialogState } from "src/state/dialog";
 
-export const ScenarioSignInDialog = ({ onClose }: { onClose: () => void }) => {
+export const ScenarioSignInDialog = ({
+  source,
+  onClose,
+}: {
+  source: ScenarioSignInDialogState["source"];
+  onClose: () => void;
+}) => {
   const userTracking = useUserTracking();
   const translate = useTranslate();
 
@@ -25,7 +32,7 @@ export const ScenarioSignInDialog = ({ onClose }: { onClose: () => void }) => {
               onClick={() => {
                 userTracking.capture({
                   name: "signIn.started",
-                  source: "scenarioSwitcher",
+                  source,
                 });
                 onClose();
               }}

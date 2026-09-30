@@ -235,6 +235,7 @@ export type DeleteScenarioConfirmationDialogState = {
 
 export type ScenarioSignInDialogState = {
   type: "scenarioSignIn";
+  source: "scenarioSwitcher" | "exportScenario";
 };
 
 export type RenameScenarioDialogState = {

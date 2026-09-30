@@ -86,7 +86,10 @@ describe("exportScenarioAsProject", () => {
       screen.getByRole("button", { name: "Export scenario" }),
     );
 
-    expect(store.get(dialogAtom)).toEqual({ type: "scenarioSignIn" });
+    expect(store.get(dialogAtom)).toEqual({
+      type: "scenarioSignIn",
+      source: "exportScenario",
+    });
     expect(fileSave).not.toHaveBeenCalled();
     expect(exportBranch).not.toHaveBeenCalled();
   });

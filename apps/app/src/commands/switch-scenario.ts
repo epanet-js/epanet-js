@@ -17,7 +17,8 @@ export const useSwitchToBranch = () => {
       (get, _set, branchId: string) => {
         const isScenario = branchId !== get(worktreeAtom).mainId;
         if (isScenario && isAuthEnabled && !isSignedIn) {
-          if (isLoaded) setDialog({ type: "scenarioSignIn" });
+          if (isLoaded)
+            setDialog({ type: "scenarioSignIn", source: "scenarioSwitcher" });
           return;
         }
         switchToBranch(branchId);

@@ -46,13 +46,15 @@ export const useExportScenarioAsProject = ({
         if (!scenario) return false;
 
         userTracking.capture({
-          name: "scenario.exportedAsProject",
+          name: "scenarioExport.started",
           source,
           canUseScenarios: !isLocked,
         });
 
         if (isAuthEnabled && !isSignedIn) {
-          if (isLoaded) setDialog({ type: "scenarioSignIn" });
+          if (isLoaded) {
+            setDialog({ type: "scenarioSignIn", source: "exportScenario" });
+          }
           return false;
         }
         if (isLocked) {
@@ -63,12 +65,15 @@ export const useExportScenarioAsProject = ({
         const projectSettings = get(projectSettingsAtom);
         const name = `${projectSettings.name} - ${scenario.name}`;
 
+        let durationMs = 0;
         const exportBlob = async () => {
+          const startedAt = performance.now();
           await writeQueue.whenIdle();
           const bytes = await getBranchStore().exportBranch(
             scenario.id,
             serializeProjectSettings({ ...projectSettings, name }),
           );
+          durationMs = Math.round(performance.now() - startedAt);
           return new Blob([bytes], { type: "application/octet-stream" });
         };
 
@@ -89,6 +94,12 @@ export const useExportScenarioAsProject = ({
             description: "EPANET project",
             mimeTypes: ["application/octet-stream"],
           });
+          userTracking.capture({
+            name: "scenario.exportedAsProject",
+            source,
+            scenariosCount: worktree.scenarios.length,
+            durationMs,
+          });
           notify({
             variant: "success",
             title: "Scenario exported",
@@ -100,6 +111,7 @@ export const useExportScenarioAsProject = ({
         } catch (error) {
           const err = error as Error;
           if (err.name === "AbortError") {
+            userTracking.capture({ name: "scenarioExport.canceled", source });
             notify({
               variant: "warning",
               title: translate("saveCanceled"),
