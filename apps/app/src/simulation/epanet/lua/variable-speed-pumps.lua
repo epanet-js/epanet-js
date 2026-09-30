@@ -151,17 +151,6 @@ function vsp2RunningLags(p)
     return n
 end
 
--- A row's tank levels: stopped from the step the tank reaches the off
--- level (field 10) until the step it falls to the on level (field 11), and
--- as it was in between. The level is the one the step starts at, so a tank
--- passes a level by up to one step's change before the pumps answer
-function vsp2Stopped(p, st)
-    local level = vsp2Level(node(p[9]))
-    if level >= p[10] then st.stopped = true
-    elseif level <= p[11] then st.stopped = false end
-    return st.stopped
-end
-
 -- One speed for the lead and its first n lags, remembered as this
 -- fragment's write so a speed found different on the next call is known
 -- to be a control's
@@ -197,8 +186,7 @@ function vsp2Hold(p, schedules)
     local st = vsp2_state[p[1]]
     if st == nil then
         st = { last_speed = speed, last_value = nil, time = -1, trial = 0, trial_speed = speed, fail_speed = -1, slope = nil,
-               settled = speed, written = nil, forced = false, restored = false, fresh = false, required = 0,
-               stopped = false, level_closed = false }
+               settled = speed, written = nil, forced = false, restored = false, fresh = false, required = 0 }
         vsp2ResetBracket(p, st)
         vsp2_state[p[1]] = st
     end
@@ -214,32 +202,6 @@ function vsp2Hold(p, schedules)
         st.fresh    = true
         st.last_speed, st.last_value = speed, nil
         vsp2ResetBracket(p, st)
-    end
-
-    -- A row with tank levels closes its pumps while the tank is stopped, and
-    -- restarts the ones it closed itself at the speed it last settled at: a
-    -- pump a control closed stays the control's
-    if p[9] ~= nil then
-        if vsp2Stopped(p, st) then
-            if speed ~= 0 then
-                link(p[1]).setting = 0
-                st.level_closed = true
-            end
-            for _, id in ipairs(lags) do
-                if link(id).setting ~= 0 then link(id).setting = 0 end
-            end
-            return
-        end
-        if speed == 0 and st.level_closed then
-            st.level_closed = false
-            local restart = st.settled
-            if restart <= 0 then restart = p[6] end
-            vsp2SetSpeed(p, st, restart, 0)
-            st.fresh = false
-            st.last_speed, st.last_value = restart, nil
-            vsp2ResetBracket(p, st)
-            return
-        end
     end
 
     -- A closed pump stays closed, and its lags close with it: writing a
@@ -507,8 +469,7 @@ end
 -- units. Edit these rows by hand to change what is held; the functions above
 -- read nothing else about the model.
 --
--- A row is a list of 8 fields, or 11 with tank levels. Taking the example row
--- below field by field:
+-- A row is a list of 8 fields. Taking the example row below field by field:
 --
 --     { "PU1", "level", "T1", 4.5, 0.3, 1, {}, 1 }
 --
@@ -531,17 +492,6 @@ end
 --                              link: 1 if that link's positive flow (node1 ->
 --                              node2) is the way the pump feeds it, -1 if the
 --                              opposite. Use 1 for every other row.
---
--- Three optional fields stop and start the row's pumps on a tank's level,
--- whatever the search would set:
---
---     { "PU1", "flow", "P1", 10, 0.5, 1.2, {}, 1, "T1", 10, 3 }
---
---   9. tank id        "T1"     EPANET node id of the tank whose level is read.
---  10. off level      10       level above the tank's base at which every pump
---                              of the row closes.
---  11. on level       3        level at which they start again. Between the
---                              two, the pumps stay as they were.
 --
 -- The example row holds tank "T1" at 4.5 m by varying pump "PU1" between 0.3 and
 -- 1.0 speed, with no lag pumps.

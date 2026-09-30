@@ -494,6 +494,45 @@ describe("build inp", () => {
       expect(inp).not.toContain("[CONTROLS]");
     });
 
+    describe("tank levels", () => {
+      const IDS = { N1: 1, N2: 2, T1: 3, PU1: 4 } as const;
+
+      const buildModelWithTankLevels = (tankIsActive = true) =>
+        HydraulicModelBuilder.with()
+          .aNode(IDS.N1)
+          .aNode(IDS.N2)
+          .aTank(IDS.T1, { isActive: tankIsActive })
+          .aPump(IDS.PU1, { startNodeId: IDS.N1, endNodeId: IDS.N2 })
+          .aVariableSpeedPumpControl({
+            linkId: IDS.PU1,
+            quantity: "flow",
+            targetId: IDS.PU1,
+            target: 10,
+            minSpeed: 0.5,
+            maxSpeed: 1.2,
+            laggedPumpIds: [],
+            schedule: [],
+            tankLevels: { tankId: IDS.T1, offLevel: 9, onLevel: 3 },
+          })
+          .build();
+
+      it("emits an on and an off control line and keeps them out of the script row", () => {
+        const inp = buildInp(buildModelWithTankLevels(), {
+          units: presets.LPS.units,
+          simulationSettings: defaultSimulationSettings,
+        });
+
+        expect(inp).toContain("[CONTROLS]");
+        expect(inp).toContain(`LINK ${IDS.PU1} OPEN IF NODE ${IDS.T1} BELOW 3`);
+        expect(inp).toContain(
+          `LINK ${IDS.PU1} CLOSED IF NODE ${IDS.T1} ABOVE 9`,
+        );
+        expect(inp).toContain(
+          `vsp2_step({{"${IDS.PU1}","flow","${IDS.PU1}",10,0.5,1.2,{},1}}, {}, "LPS")`,
+        );
+      });
+    });
+
     describe("remote flow direction", () => {
       const IDS = {
         R1: 1,

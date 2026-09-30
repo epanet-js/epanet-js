@@ -1433,6 +1433,7 @@ function* controlRows(
 
   yield* timedSettingControlRows(hydraulicModel, idMap);
   yield* levelSettingControlRows(hydraulicModel, idMap);
+  yield* variableSpeedPumpTankLevelRows(hydraulicModel, idMap);
 }
 
 function* timedSettingControlRows(
@@ -1480,6 +1481,23 @@ function* levelSettingControlRows(
   }
 }
 
+function* variableSpeedPumpTankLevelRows(
+  hydraulicModel: HydraulicModel,
+  idMap: EpanetIds,
+): Generator<string> {
+  for (const control of scriptedVariableSpeedPumps(hydraulicModel)) {
+    const { tankLevels } = control;
+    if (!tankLevels || !isAssetInSimulation(hydraulicModel, tankLevels.tankId))
+      continue;
+
+    const linkId = resolveLinkId(hydraulicModel, idMap, control.linkId);
+    const tankId = resolveNodeId(hydraulicModel, idMap, tankLevels.tankId);
+
+    yield `LINK ${linkId} OPEN IF NODE ${tankId} BELOW ${tankLevels.onLevel}`;
+    yield `LINK ${linkId} CLOSED IF NODE ${tankId} ABOVE ${tankLevels.offLevel}`;
+  }
+}
+
 function* scriptRows(
   hydraulicModel: HydraulicModel,
   idMap: EpanetIds,
@@ -1520,16 +1538,6 @@ function* scriptRows(
           )
         : 1;
 
-    const { tankLevels } = control;
-    const scriptedTankLevels =
-      tankLevels && isAssetInSimulation(hydraulicModel, tankLevels.tankId)
-        ? {
-            tankId: resolveNodeId(hydraulicModel, idMap, tankLevels.tankId),
-            offLevel: tankLevels.offLevel,
-            onLevel: tankLevels.onLevel,
-          }
-        : undefined;
-
     builder.withVariableSpeedPump(
       pumpId,
       control.quantity,
@@ -1540,7 +1548,6 @@ function* scriptRows(
       laggedPumpIds,
       remoteFlowDirection,
       control.schedule,
-      scriptedTankLevels,
     );
   }
 

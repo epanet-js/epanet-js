@@ -393,7 +393,7 @@ describe.each(UNIT_SYSTEMS)("variable speed pumps in $name", (units) => {
       const reader = await simulate(
         units,
         tankSwitchNetwork(units, { offLevel: 4, onLevel: 1.5 }),
-        { duration: SWITCH_DURATION },
+        { duration: SWITCH_DURATION, reportTimestep: SWITCH_REPORT_STEP },
       );
 
       const levels = await tankLevels(
@@ -421,6 +421,7 @@ describe.each(UNIT_SYSTEMS)("variable speed pumps in $name", (units) => {
           target: 4.5,
           tankLevels: { offLevel: 4, onLevel: 2.5 },
         }),
+        { reportTimestep: SWITCH_REPORT_STEP, allowWarnings: true },
       );
 
       const levels = await tankLevels(
@@ -488,6 +489,7 @@ const LAG_LOW = 0.4;
 const LAG_HIGH = 1.4;
 const LAG_FACTORS = [LAG_LOW, LAG_HIGH, LAG_LOW, LAG_HIGH, LAG_LOW, LAG_HIGH];
 const SWITCH_DURATION = 12 * HOUR;
+const SWITCH_REPORT_STEP = 2 * 60;
 
 const TANK_ELEVATION = 20;
 
@@ -902,10 +904,19 @@ const simulate = async (
   {
     allowWarnings = false,
     duration = DURATION,
-  }: { allowWarnings?: boolean; duration?: number } = {},
+    reportTimestep,
+  }: {
+    allowWarnings?: boolean;
+    duration?: number;
+    reportTimestep?: number;
+  } = {},
 ): Promise<EPSResultsReader> => {
   const simulationSettings = SimulationSettingsBuilder.with()
-    .timing({ duration })
+    .timing(
+      reportTimestep === undefined
+        ? { duration }
+        : { duration, reportTimestep },
+    )
     .build();
 
   const inp = buildInp(hydraulicModel, {
@@ -966,22 +977,30 @@ const expectAllNear = (values: number[], target: number, tol: number) => {
   }
 };
 
-// At every step the pump answers the level the step starts at: closed at or
-// above the off level, running at or below the on level, and as it was in
-// between. The run has to stop the pump and start it again to count
+// The pump is closed at or above the off level and running at or below the
+// on level. The engine cuts its step where the tank reaches a level, so a
+// switch lands inside a report step and is seen with the tank already back
+// in the band: a stop with it in the upper quarter, a restart in the lower
+// quarter. The run has to stop the pump and start it again to count
 const expectTankSwitching = (
   levels: number[],
   speeds: number[],
   offLevel: number,
   onLevel: number,
 ) => {
+  const quarterBand = (offLevel - onLevel) / 4;
   let restarts = 0;
   for (let step = 0; step < speeds.length; step++) {
     const isRunning = speeds[step] > 0;
     if (levels[step] >= offLevel) expect(isRunning).toBe(false);
-    else if (levels[step] <= onLevel) expect(isRunning).toBe(true);
-    else if (step > 0) expect(isRunning).toBe(speeds[step - 1] > 0);
-    if (step > 0 && isRunning && speeds[step - 1] === 0) restarts++;
+    if (levels[step] <= onLevel) expect(isRunning).toBe(true);
+    if (step === 0 || isRunning === speeds[step - 1] > 0) continue;
+    if (isRunning) {
+      expect(levels[step]).toBeLessThan(onLevel + quarterBand);
+      restarts++;
+    } else {
+      expect(levels[step]).toBeGreaterThan(offLevel - quarterBand);
+    }
   }
   expect(speeds.some((speed) => speed === 0)).toBe(true);
   expect(restarts).toBeGreaterThan(0);

@@ -14,12 +14,6 @@ type VspSchedulePoint = {
   target: number;
 };
 
-type VspTankLevels = {
-  tankId: string;
-  offLevel: number;
-  onLevel: number;
-};
-
 type VariableSpeedPump = {
   pumpId: string;
   type: "pressure" | "level" | "flow";
@@ -30,7 +24,6 @@ type VariableSpeedPump = {
   laggedPumpIds: string[];
   remoteFlowDirection: 1 | -1;
   schedule: VspSchedulePoint[];
-  tankLevels?: VspTankLevels;
 };
 
 const REMOTE_SETPOINT_PRV_FUNCTION = remoteSetpointPrvScript
@@ -77,13 +70,8 @@ const variableSpeedPumpStruct = ({
   maxSpeed,
   laggedPumpIds,
   remoteFlowDirection,
-  tankLevels,
-}: VariableSpeedPump) => {
-  const tankFields = tankLevels
-    ? `,"${tankLevels.tankId}",${tankLevels.offLevel},${tankLevels.onLevel}`
-    : "";
-  return `{"${pumpId}","${type}","${targetId}",${target},${minSpeed},${maxSpeed},${luaStringList(laggedPumpIds)},${remoteFlowDirection}${tankFields}}`;
-};
+}: VariableSpeedPump) =>
+  `{"${pumpId}","${type}","${targetId}",${target},${minSpeed},${maxSpeed},${luaStringList(laggedPumpIds)},${remoteFlowDirection}}`;
 
 const variableSpeedPumpSchedule = (schedule: VspSchedulePoint[]) =>
   `{${schedule.map(({ time, target }) => `{${time},${target}}`).join(",")}}`;
@@ -171,7 +159,6 @@ export const LuaScriptBuilder = (flowUnits: EpanetUnitSystem) => {
     laggedPumpIds: string[],
     remoteFlowDirection: 1 | -1,
     schedule: VspSchedulePoint[] = [],
-    tankLevels?: VspTankLevels,
   ) =>
     variableSpeedPumps.push({
       pumpId,
@@ -183,7 +170,6 @@ export const LuaScriptBuilder = (flowUnits: EpanetUnitSystem) => {
       laggedPumpIds,
       remoteFlowDirection,
       schedule,
-      tankLevels,
     });
 
   return {
