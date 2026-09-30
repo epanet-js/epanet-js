@@ -844,6 +844,12 @@ const LagPumpsGrid = ({
 
   const createRow = useCallback((): LagRow => ({ pumpId: null }), []);
 
+  const duplicateRows = useMemo(() => duplicatePumpRows(rows), [rows]);
+  const cellHasWarning = useCallback(
+    (rowIndex: number) => duplicateRows.has(rowIndex),
+    [duplicateRows],
+  );
+
   const rowActions = useMemo(
     () => [
       {
@@ -868,8 +874,24 @@ const LagPumpsGrid = ({
       variant="inline"
       gutterColumn="numbered"
       readOnly={readOnly}
+      cellHasWarning={cellHasWarning}
     />
   );
+};
+
+const duplicatePumpRows = (rows: LagRow[]): Set<number> => {
+  const rowsByPump = new Map<AssetId, number[]>();
+  rows.forEach(({ pumpId }, rowIndex) => {
+    if (pumpId === null) return;
+    const indices = rowsByPump.get(pumpId);
+    if (indices) indices.push(rowIndex);
+    else rowsByPump.set(pumpId, [rowIndex]);
+  });
+  const duplicates = new Set<number>();
+  for (const indices of rowsByPump.values()) {
+    if (indices.length > 1) indices.forEach((i) => duplicates.add(i));
+  }
+  return duplicates;
 };
 
 const useAssetHighlight = (targets: VariableSpeedPumpTargets) => {
