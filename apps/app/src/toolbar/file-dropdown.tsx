@@ -330,7 +330,7 @@ const ExportSubmenu = () => {
               }}
             >
               <FileBoxIcon />
-              Current scenario as project
+              {translate("export.currentScenarioAsProject")}
             </StyledItem>
           )}
           <StyledItem

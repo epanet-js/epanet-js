@@ -491,6 +491,7 @@
   "export.epanetInp": "EPANET INP",
   "export.assetData": "Asset data",
   "export.simulationResults": "Simulation results",
+  "export.currentScenarioAsProject": "Current scenario as project",
   "failedToOpenModel": "Failed to open model",
   "failedToOpenModelDetail": "Make sure to provide a valid {{1}} file.",
   "fileReadError": "Failed to read file",
@@ -1612,6 +1613,12 @@
     "rename": "Rename",
     "ignoreAndCreate": "Ignore and create scenario",
     "loadingScenario": "Loading {{1}}...",
+    "export": {
+      "exporting": "Exporting scenario...",
+      "exported": "Scenario exported",
+      "permissionDenied": "Permission to write the file was denied. The scenario was not exported.",
+      "failed": "Couldn't export scenario"
+    },
     "renameDialog": {
       "title": "Rename Scenario",
       "label": "Scenario name",

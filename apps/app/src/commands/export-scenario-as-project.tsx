@@ -79,7 +79,7 @@ export const useExportScenarioAsProject = ({
 
         notify({
           variant: "default",
-          title: "Exporting scenario…",
+          title: translate("scenarios.export.exporting"),
           Icon: SpinnerIcon,
           id: exportScenarioToastId,
           size: "sm",
@@ -102,7 +102,7 @@ export const useExportScenarioAsProject = ({
           });
           notify({
             variant: "success",
-            title: "Scenario exported",
+            title: translate("scenarios.export.exported"),
             Icon: SuccessIcon,
             id: exportScenarioToastId,
             size: "sm",
@@ -124,8 +124,7 @@ export const useExportScenarioAsProject = ({
           if (err.name === "NotAllowedError") {
             notify({
               variant: "warning",
-              title:
-                "Permission to write the file was denied. The scenario was not exported.",
+              title: translate("scenarios.export.permissionDenied"),
               Icon: WarningIcon,
               id: exportScenarioToastId,
               size: "sm",
@@ -137,7 +136,7 @@ export const useExportScenarioAsProject = ({
           notify({
             variant: "error",
             size: "md",
-            title: "Scenario export failed",
+            title: translate("scenarios.export.failed"),
             description: translate("unexpectedErrorContactSupport"),
             Icon: WarningIcon,
             id: exportScenarioToastId,
