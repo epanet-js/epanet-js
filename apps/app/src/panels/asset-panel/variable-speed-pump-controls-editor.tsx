@@ -184,21 +184,21 @@ export const VariableSpeedPumpControlsEditor = ({
       )}
 
       <InlineField name={quantityLabel} labelSize="md">
-        {isScheduled ? (
-          <TextField padding="md">
-            {translate("controls.variableSpeed.setBySchedule")}
-          </TextField>
-        ) : (
-          <NumericField
-            label={quantityLabel}
-            displayValue={localizeDecimal(control.target)}
-            onChangeValue={(value, isEmpty) => {
-              if (!isEmpty) update({ target: value });
-            }}
-            readOnly={readOnly}
-            styleOptions={{ padding: "md", ghostBorder: readOnly }}
-          />
-        )}
+        <NumericField
+          label={quantityLabel}
+          displayValue={isScheduled ? "" : localizeDecimal(control.target)}
+          placeholder={
+            isScheduled
+              ? translate("controls.variableSpeed.setBySchedule")
+              : undefined
+          }
+          disabled={isScheduled}
+          onChangeValue={(value, isEmpty) => {
+            if (!isEmpty) update({ target: value });
+          }}
+          readOnly={readOnly}
+          styleOptions={{ padding: "md", ghostBorder: readOnly }}
+        />
       </InlineField>
 
       <CheckboxRow

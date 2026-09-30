@@ -216,7 +216,7 @@ describe("VariableSpeedPumpControlsEditor", () => {
       screen.getByRole("checkbox", { name: "Vary by time of day" }),
     );
     expect(lastControl(onChange)!.schedule).toEqual([{ time: 0, target: 0 }]);
-    expect(screen.getByText("Set by schedule")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("Set by schedule")).toBeDisabled();
     await user.click(
       screen.getByRole("checkbox", { name: "Vary by time of day" }),
     );
@@ -331,7 +331,7 @@ describe("VariableSpeedPumpControlsEditor", () => {
       screen.getByRole("checkbox", { name: "Vary by time of day" }),
     );
     expect(lastControl(onChange)!.schedule).toEqual([{ time: 0, target: 0 }]);
-    expect(screen.getByText("Set by schedule")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("Set by schedule")).toBeDisabled();
 
     expect(screen.getByRole("checkbox", { name: "Lag pumps" })).toBeDisabled();
   });
