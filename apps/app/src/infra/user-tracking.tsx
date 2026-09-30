@@ -478,6 +478,7 @@ type ProjectSaved = {
 type ScenarioExportedAsProject = {
   name: "scenario.exportedAsProject";
   source: string;
+  canUseScenarios: boolean;
 };
 
 export type OpenProjectStarted = {

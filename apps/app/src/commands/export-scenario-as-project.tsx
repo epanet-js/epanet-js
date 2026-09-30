@@ -1,13 +1,18 @@
 import { useCallback } from "react";
+import { useSetAtom } from "jotai";
 import { useAtomCallback } from "jotai/utils";
 import type { fileSave as fileSaveType } from "browser-fs-access";
 
 import { projectSettingsAtom } from "src/state/project-settings";
 import { worktreeAtom } from "src/state/scenarios";
+import { dialogAtom } from "src/state/dialog";
 import { notify } from "src/components/notifications";
 import { SpinnerIcon, SuccessIcon, WarningIcon } from "src/icons";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";
+import { useAuth } from "src/hooks/use-auth";
+import { useFeatureLock } from "src/components/form/paywall";
+import { isAuthEnabled } from "src/global-config";
 import { getBranchStore } from "src/lib/branching";
 import { writeQueue } from "src/lib/persistence/write-queue";
 import { serializeProjectSettings } from "src/lib/db";
@@ -28,6 +33,9 @@ export const useExportScenarioAsProject = ({
 }: { getFsAccess?: () => Promise<FileAccess> } = {}) => {
   const translate = useTranslate();
   const userTracking = useUserTracking();
+  const { isSignedIn, isLoaded } = useAuth();
+  const setDialog = useSetAtom(dialogAtom);
+  const { isLocked, openPaywall } = useFeatureLock("manageScenarios");
 
   return useAtomCallback(
     useCallback(
@@ -37,7 +45,20 @@ export const useExportScenarioAsProject = ({
         const scenario = worktree.branches.get(worktree.activeBranchId);
         if (!scenario) return false;
 
-        userTracking.capture({ name: "scenario.exportedAsProject", source });
+        userTracking.capture({
+          name: "scenario.exportedAsProject",
+          source,
+          canUseScenarios: !isLocked,
+        });
+
+        if (isAuthEnabled && !isSignedIn) {
+          if (isLoaded) setDialog({ type: "scenarioSignIn" });
+          return false;
+        }
+        if (isLocked) {
+          openPaywall();
+          return false;
+        }
 
         const projectSettings = get(projectSettingsAtom);
         const name = `${projectSettings.name} - ${scenario.name}`;
@@ -112,7 +133,16 @@ export const useExportScenarioAsProject = ({
           return false;
         }
       },
-      [getFsAccess, translate, userTracking],
+      [
+        getFsAccess,
+        translate,
+        userTracking,
+        isSignedIn,
+        isLoaded,
+        setDialog,
+        isLocked,
+        openPaywall,
+      ],
     ),
   );
 };
