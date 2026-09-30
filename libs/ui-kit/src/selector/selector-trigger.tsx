@@ -35,7 +35,9 @@ export const triggerStylesFor = (
     "border rounded-xs justify-between",
     isWarning
       ? "border-warning"
-      : !effectiveStyleOptions.border && "border-transparent",
+      : effectiveStyleOptions.border
+        ? "border-strong"
+        : "border-transparent",
     `px-${effectiveStyleOptions.paddingX} py-${effectiveStyleOptions.paddingY}`,
     effectiveStyleOptions.textSize,
     "pl-min-2",
