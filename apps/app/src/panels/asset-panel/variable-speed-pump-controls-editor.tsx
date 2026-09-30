@@ -217,46 +217,50 @@ export const VariableSpeedPumpControlsEditor = ({
         />
       )}
 
-      <div className="grid grid-cols-2 gap-2 pt-2">
-        <VerticalField name={minSpeedLabel}>
-          <NumericField
-            label={minSpeedLabel}
-            displayValue={localizeDecimal(control.minSpeed)}
-            validate={numericChecks.nonNegative}
-            onChangeValue={(value, isEmpty) => {
-              if (!isEmpty) update({ minSpeed: value });
-            }}
-            readOnly={readOnly}
-            styleOptions={{
-              padding: "md",
-              ghostBorder: readOnly,
-              variant: hasSpeedRangeError ? "warning" : "default",
-            }}
-          />
-        </VerticalField>
-        <VerticalField name={maxSpeedLabel}>
-          <NumericField
-            label={maxSpeedLabel}
-            displayValue={localizeDecimal(control.maxSpeed)}
-            validate={numericChecks.positive}
-            onChangeValue={(value, isEmpty) => {
-              if (!isEmpty) update({ maxSpeed: value });
-            }}
-            readOnly={readOnly}
-            styleOptions={{
-              padding: "md",
-              ghostBorder: readOnly,
-              variant: hasSpeedRangeError ? "warning" : "default",
-            }}
-          />
-        </VerticalField>
+      <hr className=" my-1" />
+      <div className="flex flex-col gap-1 py-1">
+        <div className="grid grid-cols-2 gap-2">
+          <VerticalField name={minSpeedLabel}>
+            <NumericField
+              label={minSpeedLabel}
+              displayValue={localizeDecimal(control.minSpeed)}
+              validate={numericChecks.nonNegative}
+              onChangeValue={(value, isEmpty) => {
+                if (!isEmpty) update({ minSpeed: value });
+              }}
+              readOnly={readOnly}
+              styleOptions={{
+                padding: "md",
+                ghostBorder: readOnly,
+                variant: hasSpeedRangeError ? "warning" : "default",
+              }}
+            />
+          </VerticalField>
+          <VerticalField name={maxSpeedLabel}>
+            <NumericField
+              label={maxSpeedLabel}
+              displayValue={localizeDecimal(control.maxSpeed)}
+              validate={numericChecks.positive}
+              onChangeValue={(value, isEmpty) => {
+                if (!isEmpty) update({ maxSpeed: value });
+              }}
+              readOnly={readOnly}
+              styleOptions={{
+                padding: "md",
+                ghostBorder: readOnly,
+                variant: hasSpeedRangeError ? "warning" : "default",
+              }}
+            />
+          </VerticalField>
+        </div>
+        {hasSpeedRangeError && (
+          <p className="text-size-base font-semibold text-orange-800">
+            {translate("controls.variableSpeed.speedRangeError")}
+          </p>
+        )}
       </div>
-      {hasSpeedRangeError && (
-        <p className="text-size-base font-semibold text-orange-800">
-          {translate("controls.variableSpeed.speedRangeError")}
-        </p>
-      )}
 
+      <hr className=" my-1" />
       <LagPumpsSection
         laggedPumpIds={control.laggedPumpIds}
         candidates={lagCandidates}
@@ -266,15 +270,18 @@ export const VariableSpeedPumpControlsEditor = ({
       />
 
       {control.quantity !== "pressure" && (
-        <TankLevelsSection
-          tankLevels={control.tankLevels}
-          tanks={tanks}
-          fixedTankId={control.quantity === "level" ? control.targetId : null}
-          levelUnit={translateUnit(targets.units.minLevel)}
-          onChange={(tankLevels) => update({ tankLevels })}
-          onHighlightChange={highlightAsset}
-          readOnly={readOnly}
-        />
+        <>
+          <hr className=" my-1" />
+          <TankLevelsSection
+            tankLevels={control.tankLevels}
+            tanks={tanks}
+            fixedTankId={control.quantity === "level" ? control.targetId : null}
+            levelUnit={translateUnit(targets.units.minLevel)}
+            onChange={(tankLevels) => update({ tankLevels })}
+            onHighlightChange={highlightAsset}
+            readOnly={readOnly}
+          />
+        </>
       )}
     </NestedSection>
   );
@@ -397,7 +404,7 @@ const TankLevelsSection = ({
   }
 
   return (
-    <div className="pt-2 flex flex-col gap-1">
+    <div className="flex flex-col gap-1">
       <CheckboxRow
         label={translate("controls.variableSpeed.tankLevels")}
         checked={draft !== null}
@@ -777,14 +784,12 @@ const LagPumpsSection = ({
 
   return (
     <>
-      <div className="pt-2">
-        <CheckboxRow
-          label={translate("controls.variableSpeed.lagPumps")}
-          checked={isEnabled}
-          onChange={(checked) => commit(checked ? [{ pumpId: null }] : [])}
-          disabled={readOnly || (!isEnabled && candidates.length === 0)}
-        />
-      </div>
+      <CheckboxRow
+        label={translate("controls.variableSpeed.lagPumps")}
+        checked={isEnabled}
+        onChange={(checked) => commit(checked ? [{ pumpId: null }] : [])}
+        disabled={readOnly || (!isEnabled && candidates.length === 0)}
+      />
       {isEnabled && (
         <LagPumpsGrid
           rows={rows}
