@@ -35,6 +35,7 @@ export interface BranchStore {
     direction: Direction,
   ): Promise<void>;
   recordSimulationSettings(branchId: string, data: string): Promise<void>;
+  exportBranch(branchId: string, projectSettings: string): Promise<Uint8Array>;
 }
 
 export const nullBranchStore: BranchStore = {
@@ -53,4 +54,6 @@ export const nullBranchStore: BranchStore = {
   recordChange: () => Promise.resolve(),
   recordChangeDeprecated: () => Promise.resolve(),
   recordSimulationSettings: () => Promise.resolve(),
+  exportBranch: (branchId) =>
+    Promise.reject(new Error(`No stored branch ${branchId}`)),
 };

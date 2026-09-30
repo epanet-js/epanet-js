@@ -475,6 +475,11 @@ type ProjectSaved = {
   scenariosCount: number;
 };
 
+type ScenarioExportedAsProject = {
+  name: "scenario.exportedAsProject";
+  source: string;
+};
+
 export type OpenProjectStarted = {
   name: "openProject.started";
   source: string;
@@ -1442,6 +1447,7 @@ export type UserEvent =
   | InpExported
   | InpExportLsxLinkClicked
   | ProjectSaved
+  | ScenarioExportedAsProject
   | OpenProjectStarted
   | ProjectFileOpened
   | ProjectFileOpenFailed

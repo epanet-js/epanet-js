@@ -22,8 +22,9 @@ import {
   FolderOutputIcon,
   ZonesIcon,
 } from "src/icons";
-import { useSetAtom } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
+import { worktreeAtom } from "src/state/scenarios";
 import { useNewProject } from "src/commands/create-new-project";
 import { useOpenInpFromFs } from "src/commands/open-inp-from-fs";
 import { useConvertModel } from "src/commands/convert-model";
@@ -31,6 +32,7 @@ import { getConverter, type ConverterVendor } from "src/lib/converters";
 import { useOpenProject } from "src/commands/open-project";
 import { useSaveInp } from "src/commands/save-inp";
 import { useSaveProject } from "src/commands/save-project";
+import { useExportScenarioAsProject } from "src/commands/export-scenario-as-project";
 import { useOpenModelBuilder } from "src/commands/open-model-builder";
 import { useOpenRecentFile } from "src/commands/open-recent-file";
 import { projectExtension } from "src/commands/save-project";
@@ -286,6 +288,11 @@ const ImportSubmenu = () => {
 const ExportSubmenu = () => {
   const saveInp = useSaveInp();
   const saveProject = useSaveProject();
+  const exportScenarioAsProject = useExportScenarioAsProject();
+  const isExportScenarioOn = useFeatureFlag("FLAG_EXPORT_SCENARIO");
+  const isLazyScenariosOn = useFeatureFlag("FLAG_LAZY_SCENARIOS");
+  const worktree = useAtomValue(worktreeAtom);
+  const isInScenario = worktree.activeBranchId !== worktree.mainId;
   const setDialogState = useSetAtom(dialogAtom);
   const translate = useTranslate();
 
@@ -314,6 +321,18 @@ const ExportSubmenu = () => {
             <FileSpreadsheetIcon />
             {translate("export.epanetInp")}
           </StyledItem>
+          {isExportScenarioOn && isLazyScenariosOn && (
+            <StyledItem
+              disabled={!isInScenario}
+              className={!isInScenario ? "opacity-60" : undefined}
+              onSelect={() => {
+                void exportScenarioAsProject({ source: "toolbar" });
+              }}
+            >
+              <FileBoxIcon />
+              Current scenario as project
+            </StyledItem>
+          )}
           <StyledItem
             onSelect={() => {
               setDialogState({ type: "exportAssetData" });
