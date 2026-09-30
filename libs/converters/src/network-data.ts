@@ -85,6 +85,7 @@ export type PipeData = LinkData & {
   roughness?: number;
   minorLoss?: number;
   material?: string;
+  year?: number;
   initialStatus?: PipeStatus;
 };
 
