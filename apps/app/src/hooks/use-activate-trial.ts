@@ -5,6 +5,7 @@ import { captureError } from "src/infra/error-tracking";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";
 import { useAuth } from "src/hooks/use-auth";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { billingUrl } from "src/global-config";
 import { ErrorIcon, SuccessIcon, WarningIcon } from "src/icons";
 
@@ -20,8 +21,11 @@ const refusedTrialEmailsAtom = atomWithStorage<string[]>(
 export const useIsTrialEmailRefused = (): boolean => {
   const { user } = useAuth();
   const refusedEmails = useAtomValue(refusedTrialEmailsAtom);
+  const isTrialEligibilityBypassOn = useFeatureFlag(
+    "FLAG_TRIAL_ELIGIBILITY_BYPASS",
+  );
 
-  return refusedEmails.includes(user.email);
+  return !isTrialEligibilityBypassOn && refusedEmails.includes(user.email);
 };
 
 export const useActivateTrial = () => {
