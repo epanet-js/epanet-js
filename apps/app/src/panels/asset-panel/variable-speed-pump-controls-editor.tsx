@@ -382,7 +382,7 @@ const TankLevelsSection = ({
   }
 
   return (
-    <div className="pt-2">
+    <div className="pt-2 flex flex-col gap-1">
       <CheckboxRow
         label={translate("controls.variableSpeed.tankLevels")}
         checked={draft !== null}
@@ -391,52 +391,47 @@ const TankLevelsSection = ({
       />
       {draft && (
         <>
-          <div className="w-full grid grid-cols-[auto_1fr] items-center">
-            {fixedTankId === null && (
-              <>
-                <div className="pt-2 text-size-base text-subtle">
-                  {tankLabel}
-                </div>
-                <div
-                  className="pl-2 pt-2 min-w-0"
-                  onMouseEnter={() => onHighlightChange(draft.tankId)}
-                  onMouseLeave={() => onHighlightChange(null)}
-                >
-                  {readOnly ? (
-                    <ReadOnlyCell>{tank?.label ?? ""}</ReadOnlyCell>
-                  ) : (
-                    <Selector
-                      ariaLabel={tankLabel}
-                      options={tankOptions}
-                      selected={draft.tankId}
-                      onChange={(tankId) => {
-                        const next = tanks.find((t) => t.id === tankId);
-                        if (next) commit(defaultLevelsFor(next));
-                      }}
-                      onActiveOptionChange={onHighlightChange}
-                      styleOptions={compactSelectorStyleOptions}
-                    />
-                  )}
-                </div>
-              </>
-            )}
-            <LevelRow
-              label={offLabel}
-              value={draft.offLevel}
-              hasError={hasOffError}
-              onChange={(offLevel) => commit({ ...draft, offLevel })}
-              readOnly={readOnly}
-            />
-            <LevelRow
-              label={onLabel}
-              value={draft.onLevel}
-              hasError={hasOnError}
-              onChange={(onLevel) => commit({ ...draft, onLevel })}
-              readOnly={readOnly}
-            />
-          </div>
+          {fixedTankId === null && (
+            <InlineField name={tankLabel} labelSize="md">
+              <div
+                className="w-full"
+                onMouseEnter={() => onHighlightChange(draft.tankId)}
+                onMouseLeave={() => onHighlightChange(null)}
+              >
+                {readOnly ? (
+                  <TextField padding="md">{tank?.label ?? ""}</TextField>
+                ) : (
+                  <Selector
+                    ariaLabel={tankLabel}
+                    options={tankOptions}
+                    selected={draft.tankId}
+                    onChange={(tankId) => {
+                      const next = tanks.find((t) => t.id === tankId);
+                      if (next) commit(defaultLevelsFor(next));
+                    }}
+                    onActiveOptionChange={onHighlightChange}
+                    styleOptions={selectorStyleOptions}
+                  />
+                )}
+              </div>
+            </InlineField>
+          )}
+          <LevelField
+            label={offLabel}
+            value={draft.offLevel}
+            hasError={hasOffError}
+            onChange={(offLevel) => commit({ ...draft, offLevel })}
+            readOnly={readOnly}
+          />
+          <LevelField
+            label={onLabel}
+            value={draft.onLevel}
+            hasError={hasOnError}
+            onChange={(onLevel) => commit({ ...draft, onLevel })}
+            readOnly={readOnly}
+          />
           {messageParts.length > 0 && (
-            <p className="pt-2 text-size-base font-semibold text-orange-800">
+            <p className="text-size-base font-semibold text-orange-800">
               {messageParts.join(" ")}
             </p>
           )}
@@ -446,20 +441,7 @@ const TankLevelsSection = ({
   );
 };
 
-const compactSelectorStyleOptions = {
-  border: true,
-  textSize: "text-size-base",
-  paddingX: 1,
-  paddingY: 1,
-} as const;
-
-const ReadOnlyCell = ({ children }: { children: React.ReactNode }) => (
-  <span className="block p-1 text-size-base text-default tabular-nums border border-transparent">
-    {children}
-  </span>
-);
-
-const LevelRow = ({
+const LevelField = ({
   label,
   value,
   hasError,
@@ -472,27 +454,21 @@ const LevelRow = ({
   onChange: (value: number) => void;
   readOnly: boolean;
 }) => (
-  <>
-    <div className="pt-2 text-size-base text-subtle">{label}</div>
-    <div className="pl-2 pt-2">
-      {readOnly ? (
-        <ReadOnlyCell>{localizeDecimal(value)}</ReadOnlyCell>
-      ) : (
-        <NumericField
-          label={label}
-          displayValue={localizeDecimal(value)}
-          onChangeValue={(newValue, isEmpty) => {
-            if (!isEmpty) onChange(newValue);
-          }}
-          styleOptions={{
-            padding: "sm",
-            textSize: "sm",
-            variant: hasError ? "warning" : "default",
-          }}
-        />
-      )}
-    </div>
-  </>
+  <InlineField name={label} labelSize="md">
+    <NumericField
+      label={label}
+      displayValue={localizeDecimal(value)}
+      onChangeValue={(newValue, isEmpty) => {
+        if (!isEmpty) onChange(newValue);
+      }}
+      readOnly={readOnly}
+      styleOptions={{
+        padding: "md",
+        ghostBorder: readOnly,
+        variant: hasError ? "warning" : "default",
+      }}
+    />
+  </InlineField>
 );
 
 const NodeTargetField = ({
