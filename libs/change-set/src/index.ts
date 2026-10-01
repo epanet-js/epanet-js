@@ -1,11 +1,5 @@
-export {
-  ChangeSet,
-  invert,
-  mergeRecords,
-  squash,
-  squashOnto,
-} from "./change-set";
-export { ChangeSetVersionError, isOutdated, migrateChangeSet } from "./migrate";
+export { ChangeSet, mergeRecords, squash, squashOnto } from "./change-set";
+export { ChangeSetVersionError, migrateChangeSet } from "./migrate";
 export {
   CURRENT_VERSION,
   migrations,
@@ -13,7 +7,6 @@ export {
 } from "./versioning";
 export { isStringKeyed, type ChangeEntry, type Side } from "./codec";
 export {
-  effective,
   effectiveChanges,
   effectiveSide,
   type Direction,

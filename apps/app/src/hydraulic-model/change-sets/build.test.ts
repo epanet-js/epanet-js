@@ -72,9 +72,7 @@ describe("change-set builder", () => {
 
     const untouched = model.assets.get(IDS.J1)!.copy();
 
-    expect(changeSet(model, "noop", [putAssets([untouched])]).isEmpty).toBe(
-      true,
-    );
+    expect(changeSet(model, "noop", [putAssets([untouched])]).size).toBe(0);
   });
 
   it("records a patch against only the named fields", () => {
@@ -117,8 +115,8 @@ describe("change-set builder", () => {
       .build();
 
     expect(
-      changeSet(model, "deleteAssets", [dropAssets([IDS.MISSING])]).isEmpty,
-    ).toBe(true);
+      changeSet(model, "deleteAssets", [dropAssets([IDS.MISSING])]).size,
+    ).toBe(0);
   });
 
   it("diffs a whole-collection curve replacement down to the one that changed", () => {
@@ -269,7 +267,7 @@ describe("change-set builder", () => {
       setDemands([{ junctionId: IDS.J1, demands: [] }]),
     ]);
 
-    expect(built.isEmpty).toBe(true);
+    expect(built.size).toBe(0);
   });
 
   it("reads every before against the same unmutated model", () => {

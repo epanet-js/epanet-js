@@ -19,10 +19,9 @@ direction argument, not a second data structure.**
 This is why an operation can produce the whole thing up front, without mutating
 anything and without the database being involved.
 
-`invert` is the one exception, and only off the apply path: folding an undo into
-a **stored** delta needs a change set to `squash` against, and `squash` takes no
-direction. It is safe record by record only because a change set holds one record
-per entity — see the order rule below.
+Folding an undo into a **stored** delta follows the same rule: `squashOnto` takes
+the direction and swaps the columns as it merges, rather than materialising an
+inverse.
 
 ## Records in, columns out
 

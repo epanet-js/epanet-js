@@ -94,7 +94,7 @@ describe("disconnectCustomers", () => {
 
     const changeSet = disconnect(hydraulicModel, [IDS.CP1]);
 
-    expect(changeSet.isEmpty).toBe(true);
+    expect(changeSet.size).toBe(0);
     expect(hydraulicModel.customerPoints.get(IDS.CP1)!.connection).toBeNull();
   });
 

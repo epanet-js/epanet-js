@@ -1,11 +1,6 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { Provider as JotaiProvider } from "jotai";
-import {
-  ChangeSet,
-  invert,
-  squash,
-  type Direction,
-} from "@epanet-js/change-set";
+import { ChangeSet, squashOnto, type Direction } from "@epanet-js/change-set";
 import {
   initializeWorktree,
   nullBranchingRules,
@@ -62,16 +57,12 @@ const aRecordingStore = () => {
   const recorded: Recorded[] = [];
   const recordedSettings = new Map<string, string>();
   const deltaOf = (branchId: string) =>
-    squash(
-      "",
-      recorded
-        .filter((entry) => entry.branchId === branchId)
-        .map((entry) =>
-          entry.direction === "forward"
-            ? entry.changeSet
-            : invert(entry.changeSet),
-        ),
-    );
+    recorded
+      .filter((entry) => entry.branchId === branchId)
+      .reduce(
+        (delta, entry) => squashOnto(delta, entry.changeSet, entry.direction),
+        ChangeSet.empty(),
+      );
   const recordChange: BranchStore["recordChange"] = (
     branchId,
     changeSet,

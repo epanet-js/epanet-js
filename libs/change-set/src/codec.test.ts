@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { ChangeSet, invert, squash, squashOnto } from "./change-set";
-import { effective, effectiveChanges, effectiveSide } from "./direction";
+import { ChangeSet, squash, squashOnto } from "./change-set";
+import { effectiveChanges, effectiveSide } from "./direction";
 import type { ChangeKind, ChangeRecord } from "./types";
 
 describe("codec", () => {
@@ -335,75 +335,6 @@ describe("one record per entity", () => {
   });
 });
 
-describe("invert", () => {
-  const cs = (records: ChangeRecord[]) => ChangeSet.of("edit", records);
-
-  it("agrees with reading the reverse column", () => {
-    const kinds: ChangeKind[] = ["create", "update", "delete"];
-
-    for (const kind of kinds) {
-      const record: ChangeRecord = {
-        entity: "pipe",
-        id: 1,
-        kind,
-        before: kind === "create" ? {} : { diameter: 100 },
-        after: kind === "delete" ? {} : { diameter: 200 },
-      };
-
-      const inverted = invert(cs([record])).records[0];
-
-      expect(inverted.kind).toBe(effective(record, "reverse").kind);
-      expect(inverted.before).toEqual(record.after);
-      expect(inverted.after).toEqual(record.before);
-    }
-  });
-
-  it("cancels an update when squashed onto it", () => {
-    const change = cs([
-      {
-        entity: "pipe",
-        id: 1,
-        kind: "update",
-        before: { diameter: 100 },
-        after: { diameter: 200 },
-      },
-    ]);
-
-    const folded = squash("", [change, invert(change)]);
-
-    expect(folded.records[0].before.diameter).toBe(100);
-    expect(folded.records[0].after.diameter).toBe(100);
-  });
-
-  it("cancels a create when squashed onto it", () => {
-    const change = cs([
-      {
-        entity: "pipe",
-        id: 1,
-        kind: "create",
-        before: {},
-        after: { diameter: 200 },
-      },
-    ]);
-
-    expect(squash("", [change, invert(change)]).records).toEqual([]);
-  });
-
-  it("keeps the version it was given", () => {
-    const change = ChangeSet.atVersion(1, "edit", [
-      {
-        entity: "pipe",
-        id: 1,
-        kind: "update",
-        before: { diameter: 100 },
-        after: { diameter: 200 },
-      },
-    ]);
-
-    expect(invert(change).version).toBe(1);
-  });
-});
-
 describe("entries", () => {
   const records: ChangeRecord[] = [
     {
@@ -505,16 +436,22 @@ describe("entries", () => {
     expect(stored().name).toBe("edit");
   });
 
-  it("picks the side effective reads, in both directions", () => {
-    for (const record of decoded()) {
-      for (const direction of ["forward", "reverse"] as const) {
-        const { kind, side } = effectiveSide(record.kind, direction);
-        expect({ kind, fields: record[side] }).toStrictEqual(
-          effective(record, direction),
-        );
-      }
-    }
-  });
+  it.each([
+    ["create", "forward", "create", "after"],
+    ["update", "forward", "update", "after"],
+    ["delete", "forward", "delete", "before"],
+    ["create", "reverse", "delete", "after"],
+    ["update", "reverse", "update", "before"],
+    ["delete", "reverse", "create", "before"],
+  ] as const)(
+    "reads a %s %s as a %s from the %s side",
+    (kind, direction, effectiveKind, side) => {
+      expect(effectiveSide(kind, direction)).toStrictEqual({
+        kind: effectiveKind,
+        side,
+      });
+    },
+  );
 
   it("reads each entity's effective change, in both directions", () => {
     for (const direction of ["forward", "reverse"] as const) {
@@ -527,11 +464,14 @@ describe("entries", () => {
       );
 
       expect(changes).toStrictEqual(
-        decoded().map((record) => ({
-          entity: record.entity,
-          id: record.id,
-          change: effective(record, direction),
-        })),
+        decoded().map((record) => {
+          const { kind, side } = effectiveSide(record.kind, direction);
+          return {
+            entity: record.entity,
+            id: record.id,
+            change: { kind, fields: record[side] },
+          };
+        }),
       );
     }
   });
@@ -586,11 +526,28 @@ describe("squashOnto", () => {
       `${a.entity}|${a.id}`.localeCompare(`${b.entity}|${b.id}`),
     );
 
+  const inverseKind: Record<ChangeKind, ChangeKind> = {
+    create: "delete",
+    delete: "create",
+    update: "update",
+  };
+
+  const inverted = (changeSet: ChangeSet): ChangeSet =>
+    ChangeSet.of(
+      changeSet.name,
+      changeSet.records.map((record) => ({
+        ...record,
+        kind: inverseKind[record.kind],
+        before: record.after,
+        after: record.before,
+      })),
+    );
+
   const expectSameAsSquash = (base: ChangeSet, change: ChangeSet) => {
     for (const direction of ["forward", "reverse"] as const) {
       const expected = squash("", [
         base,
-        direction === "forward" ? change : invert(change),
+        direction === "forward" ? change : inverted(change),
       ]);
       const actual = squashOnto(base, change, direction);
 

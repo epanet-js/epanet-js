@@ -95,7 +95,7 @@ describe("change property", () => {
       value: false,
     });
 
-    expect(changeSet.isEmpty).toBe(true);
+    expect(changeSet.size).toBe(0);
   });
 });
 

@@ -16,9 +16,6 @@ export class ChangeSetVersionError extends Error {
   }
 }
 
-export const isOutdated = (changeSet: ChangeSet): boolean =>
-  changeSet.version < CURRENT_VERSION;
-
 const stepsFrom = (
   from: number,
   chain: readonly ChangeSetMigration[],

@@ -550,7 +550,7 @@ describe("change sets per operation", () => {
   it.each(cases)("$name", (testCase) => {
     const { applied, changeSet } = runCase(testCase);
 
-    expect(changeSet.isEmpty).toBe(false);
+    expect(changeSet.size).toBeGreaterThan(0);
     testCase.expectApplied(applied);
   });
 

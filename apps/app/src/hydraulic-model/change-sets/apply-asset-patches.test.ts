@@ -107,7 +107,7 @@ describe("change sets from patchAssetsAttributes", () => {
 
     const { changeSet } = applyOperation(model, moment, labelManager);
 
-    expect(changeSet.isEmpty).toBe(true);
+    expect(changeSet.size).toBe(0);
     expect(model.assets.has(999)).toBe(false);
     expect((model.assets.get(1) as Junction).elevation).toBe(10);
   });

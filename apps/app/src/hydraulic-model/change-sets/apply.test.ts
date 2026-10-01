@@ -71,7 +71,7 @@ const roundTrip = (
   const worked = aNetwork();
 
   const built = changeSet(worked.model, name, intents(worked.model));
-  expect(built.isEmpty).toBe(false);
+  expect(built.size).toBeGreaterThan(0);
 
   const probe = [...modelLabels(original.model), ...modelLabels(worked.model)];
 

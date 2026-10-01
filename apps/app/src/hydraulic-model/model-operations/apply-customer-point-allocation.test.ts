@@ -152,7 +152,7 @@ describe("applyCustomerPointAllocation", () => {
       },
     });
 
-    expect(changeSet.isEmpty).toBe(true);
+    expect(changeSet.size).toBe(0);
   });
 
   it("ignores disconnected customer points", () => {

@@ -86,10 +86,6 @@ export class ChangeSet {
       : countEntries(this.bytes);
   }
 
-  get isEmpty(): boolean {
-    return this.read().records.length === 0;
-  }
-
   entries(): Iterable<ChangeEntry> {
     return readEntries(this.bytes);
   }
@@ -185,24 +181,6 @@ const inverseKind: Record<ChangeKind, ChangeKind> = {
   delete: "create",
   update: "update",
 };
-
-// The same swap `effective(record, "reverse")` makes, materialised. Reading the
-// other column is enough to *apply* backwards, but folding an undo into a stored
-// blob needs a change set to squash against, and `squash` takes no direction.
-// Safe record by record only because a change set holds one record per entity:
-// on an unmerged list, invert-then-merge and merge-then-invert disagree, since
-// `mergeRecords` keeps the first `before` and the last `after`.
-export const invert = (changeSet: ChangeSet): ChangeSet =>
-  ChangeSet.atVersion(
-    changeSet.version,
-    changeSet.name,
-    changeSet.records.map((record) => ({
-      ...record,
-      kind: inverseKind[record.kind],
-      before: record.after,
-      after: record.before,
-    })),
-  );
 
 export const squash = (
   name: string,
