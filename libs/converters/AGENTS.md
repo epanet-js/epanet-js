@@ -59,8 +59,8 @@ on, so a consumer can treat the common part uniformly and branch only on what di
 **`ref` is the source's join key; `label` is what a person calls it.** They are separate
 because a vendor's display names are free to collide, be too long, or repeat across
 namespaces, while its internal ids never do. Fusing them turns a naming collision into a
-join bug — the consumer resolves `label ?? ref` against its own label rules and can always
-fall back to `ref`, which is guaranteed unique.
+join bug. `ref` is never shown to a person: a record with no `label` gets a generated one, and
+a `label` already taken is de-duplicated.
 
 `LinkData` (`ref`, `label?`, `startNodeRef`, `endNodeRef`, `vertices?`, `isActive?`) does the
 same for link kinds. **`vertices` are the intermediate points only** — the consumer composes
