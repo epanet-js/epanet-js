@@ -14,8 +14,12 @@ import {
   MoreActionsIcon,
   DeleteIcon,
   RenameIcon,
+  DuplicateIcon,
+  SuccessIcon,
 } from "src/icons";
 import { useTranslate } from "src/hooks/use-translate";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { notify } from "src/components/notifications";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useScenarioOperations } from "src/hooks/use-scenario-operations";
 import { worktreeAtom, scenariosListAtom } from "src/state/scenarios";
@@ -44,6 +48,7 @@ export const ScenarioSwitcher = () => {
     scenariosAvailable,
     switchToMain,
     deleteScenarioById,
+    duplicateScenarioById,
     renameScenarioById,
   } = useScenarioOperations();
   const switchToBranch = useSwitchToBranch();
@@ -114,6 +119,25 @@ export const ScenarioSwitcher = () => {
       scenarioId,
       currentName: scenarioName,
       onConfirm: handleRenameScenario,
+    });
+  };
+
+  const handleDuplicateScenario = (scenarioId: string) => {
+    if (isManageLocked) return openManagePaywall();
+    const duplicated = duplicateScenarioById(scenarioId);
+    if (!duplicated) return;
+
+    userTracking.capture({
+      name: "scenario.duplicated",
+      sourceScenarioId: scenarioId,
+      ...duplicated,
+    });
+
+    notify({
+      variant: "success",
+      title: "Scenario duplicated",
+      Icon: SuccessIcon,
+      duration: 3000,
     });
   };
 
@@ -191,6 +215,7 @@ export const ScenarioSwitcher = () => {
                 activeBranchId={activeBranchId}
                 onSelect={handleSelectScenario}
                 onRename={openRenameDialog}
+                onDuplicate={handleDuplicateScenario}
                 onDelete={openDeleteConfirmation}
               />
 
@@ -220,6 +245,7 @@ const LIST_MAX_HEIGHT = "30dvh";
 type ScenarioActions = {
   onSelect: (scenarioId: string) => void;
   onRename: (scenarioId: string, scenarioName: string) => void;
+  onDuplicate: (scenarioId: string) => void;
   onDelete: (scenarioId: string, scenarioName: string) => void;
 };
 
@@ -298,6 +324,7 @@ const ScenarioRow = ({
   isLast,
   onSelect,
   onRename,
+  onDuplicate,
   onDelete,
 }: {
   scenario: Branch;
@@ -305,6 +332,7 @@ const ScenarioRow = ({
   isLast: boolean;
 } & ScenarioActions) => {
   const translate = useTranslate();
+  const isDuplicateScenarioOn = useFeatureFlag("FLAG_DUPLICATE_SCENARIO");
 
   return (
     <div className="relative group/scenario">
@@ -334,6 +362,13 @@ const ScenarioRow = ({
               <RenameIcon size="sm" />
               <span>{translate("scenarios.rename")}</span>
             </StyledItem>
+
+            {isDuplicateScenarioOn && (
+              <StyledItem onSelect={() => onDuplicate(scenario.id)}>
+                <DuplicateIcon size="sm" />
+                <span>{translate("duplicate")}</span>
+              </StyledItem>
+            )}
 
             <StyledItem
               onSelect={() => onDelete(scenario.id, scenario.name)}

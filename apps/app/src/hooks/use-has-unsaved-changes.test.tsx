@@ -147,6 +147,7 @@ const testBranchingRules: BranchingRules = {
       nextActive: worktree.branches.get(worktree.mainId) ?? null,
     };
   },
+  duplicateBranch: (worktree) => ({ worktree, created: null }),
   renameBranch: (worktree, branchId, name) => ({
     ...worktree,
     branches: new Map(worktree.branches).set(branchId, {

@@ -13,8 +13,8 @@ types `BranchStore` speaks in.
 - **`Worktree` / `Branch`** — a project's branches, which branch is active, and
   which one is main. `initializeWorktree()` returns a worktree containing only
   main, which is the shape an app that edits a single model stays in.
-- **`BranchingRules`** — the interface for creating, switching, renaming and
-  deleting branches other than main. It is deliberately not tied to one kind of
+- **`BranchingRules`** — the interface for creating, duplicating, switching,
+  renaming and deleting branches other than main. It is deliberately not tied to one kind of
   branch: an implementation decides where a new branch comes from, how it is
   named, what happens to main while it exists, and which branch succeeds a
   deleted one. Every method takes a worktree and returns the next one, plus the
@@ -31,7 +31,7 @@ types `BranchStore` speaks in.
   generalised.
 - **`BranchStore`** — the interface for persisting branches other than main:
   loading them with the change each one holds against main and whatever state a
-  branch carries in its own right, and recording creates, renames, deletes and
+  branch carries in its own right, and recording creates, duplicates, renames, deletes and
   every change made on one, and exporting one as a project of its own in
   which it has become main. The host seeds and
   writes main itself; this contract never sees main. The default

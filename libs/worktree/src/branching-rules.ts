@@ -14,6 +14,10 @@ export interface BranchingRules {
     worktree: Worktree,
     branchId: string,
   ): { worktree: Worktree; nextActive: Branch | null };
+  duplicateBranch(
+    worktree: Worktree,
+    branchId: string,
+  ): { worktree: Worktree; created: Branch | null };
   renameBranch(worktree: Worktree, branchId: string, name: string): Worktree;
 }
 
@@ -22,5 +26,6 @@ export const nullBranchingRules: BranchingRules = {
   createBranch: (worktree) => ({ worktree, created: null }),
   switchToBranch: (worktree) => ({ worktree, activated: null }),
   deleteBranch: (worktree) => ({ worktree, nextActive: null }),
+  duplicateBranch: (worktree) => ({ worktree, created: null }),
   renameBranch: (worktree) => worktree,
 };

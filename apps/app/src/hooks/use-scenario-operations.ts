@@ -6,6 +6,8 @@ import { useInitializeBranch } from "src/hooks/persistence/use-initialize-branch
 import { useSwitchBranch } from "src/hooks/persistence/use-switch-branch";
 import { useDeleteBranch } from "src/hooks/persistence/use-delete-branch";
 import { useLoadBranch } from "src/hooks/persistence/use-load-branch";
+import { unloadBranch } from "src/hooks/persistence/use-initialize-branch";
+import { SessionHistory } from "src/lib/persistence/session-history";
 import { captureError } from "src/infra/error-tracking";
 import { startTrace } from "src/infra/trace";
 import { isTraceScenarioSwitchOn } from "src/infra/debug-mode";
@@ -144,6 +146,39 @@ export const useScenarioOperations = () => {
     ),
   );
 
+  const duplicateScenarioById = useAtomCallback(
+    useCallback(
+      (get, set, scenarioId: string) => {
+        const sourceState = get(branchStateAtom).get(scenarioId);
+        if (!sourceState) return null;
+
+        const { worktree: withCopy, created: copy } =
+          getBranchingRules().duplicateBranch(get(worktreeAtom), scenarioId);
+        if (!copy) return null;
+
+        writeQueue.enqueue(
+          () => getBranchStore().duplicateBranch(withCopy, scenarioId, copy),
+          onWriteFailure,
+        );
+
+        set(branchStateAtom, (previous) =>
+          new Map(previous).set(copy.id, {
+            ...unloadBranch(sourceState),
+            sessionHistory: new SessionHistory(sourceState.version),
+          }),
+        );
+        setWorktree(withCopy);
+
+        void withBranchLoaded(copy.id, () =>
+          performSwitch(get(worktreeAtom), copy.id),
+        );
+
+        return { scenarioId: copy.id, scenarioName: copy.name };
+      },
+      [setWorktree, onWriteFailure, withBranchLoaded, performSwitch],
+    ),
+  );
+
   const performDelete = useAtomCallback(
     useCallback(
       (get, _set, scenarioId: string) => {
@@ -202,6 +237,7 @@ export const useScenarioOperations = () => {
     switchToMain,
     createNewScenario,
     deleteScenarioById,
+    duplicateScenarioById,
     renameScenarioById,
   };
 };

@@ -15,6 +15,11 @@ export interface BranchStore {
   load(): Promise<StoredBranches>;
   loadBranch(branchId: string): Promise<StoredBranch>;
   createBranch(worktree: Worktree, branch: Branch): Promise<void>;
+  duplicateBranch(
+    worktree: Worktree,
+    sourceId: string,
+    branch: Branch,
+  ): Promise<void>;
   renameBranch(branchId: string, name: string): Promise<void>;
   deleteBranch(branchId: string): Promise<void>;
   recordChange(
@@ -31,6 +36,7 @@ export const nullBranchStore: BranchStore = {
   loadBranch: (branchId) =>
     Promise.reject(new Error(`No stored branch ${branchId}`)),
   createBranch: () => Promise.resolve(),
+  duplicateBranch: () => Promise.resolve(),
   renameBranch: () => Promise.resolve(),
   deleteBranch: () => Promise.resolve(),
   recordChange: () => Promise.resolve(),

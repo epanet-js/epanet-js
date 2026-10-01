@@ -99,6 +99,14 @@ const aRecordingStore = () => {
         simulationSettings: recordedSettings.get(branchId) ?? null,
       }),
     recordChange,
+    duplicateBranch: (_worktree, sourceId, branch) => {
+      recorded.push({
+        branchId: branch.id,
+        changeSet: deltaOf(sourceId),
+        direction: "forward",
+      });
+      return Promise.resolve();
+    },
     recordSimulationSettings: (branchId, data) => {
       recordedSettings.set(branchId, data);
       return Promise.resolve();
@@ -269,6 +277,21 @@ const testBranchingRules: BranchingRules = {
         activeBranchId: nextActiveId,
       },
       nextActive: branches.get(nextActiveId) ?? null,
+    };
+  },
+  duplicateBranch: (worktree, branchId) => {
+    const created = aScenarioBranch(
+      `${branchId}-copy`,
+      worktree.highestScenarioNumber + 1,
+    );
+    return {
+      worktree: {
+        ...worktree,
+        branches: new Map(worktree.branches).set(created.id, created),
+        scenarios: [...worktree.scenarios, created.id],
+        highestScenarioNumber: worktree.highestScenarioNumber + 1,
+      },
+      created,
     };
   },
 };
@@ -639,6 +662,29 @@ describe("branch store", () => {
       });
 
       expect(store.get(dialogAtom)).toBeNull();
+    });
+
+    it("activates a copy carrying the source's edits", async () => {
+      const store = await aProjectWithTwoScenarios();
+      await switchTo(store, "scenario-1");
+      addJunction(store);
+      const { result } = renderHook(
+        () => useScenarioOperations(),
+        withStore(store),
+      );
+
+      act(() => {
+        result.current.duplicateScenarioById("scenario-1");
+      });
+      await waitFor(() =>
+        expect(store.get(worktreeAtom).activeBranchId).toEqual(
+          "scenario-1-copy",
+        ),
+      );
+
+      expect(store.get(stagingModelDerivedAtom).assets.size).toEqual(4);
+      undo(store);
+      expect(store.get(stagingModelDerivedAtom).assets.size).toEqual(4);
     });
 
     it("loads the next scenario when the active one is deleted", async () => {

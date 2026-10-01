@@ -1198,6 +1198,13 @@ type ScenarioDeleted = {
   scenarioName: string;
 };
 
+type ScenarioDuplicated = {
+  name: "scenario.duplicated";
+  sourceScenarioId: string;
+  scenarioId: string;
+  scenarioName: string;
+};
+
 type ScenarioRenamed = {
   name: "scenario.renamed";
   scenarioId: string;
@@ -1589,6 +1596,7 @@ export type UserEvent =
   | ScenarioCreated
   | ScenarioSwitched
   | ScenarioDeleted
+  | ScenarioDuplicated
   | ScenarioRenamed
   | ScenarioDeleteDialogCancel
   | ScenarioToggled
