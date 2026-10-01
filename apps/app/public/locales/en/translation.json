@@ -755,9 +755,9 @@
   "fileFormatUpdatedFootnote": "Need the old format? You can still export to EPANET INP anytime via the File menu.",
   "fileFormatUpdatedDontShowAgain": "Don't show this again",
   "gotIt": "Got it",
-  "alertNetworkRequired": "Network required",
-  "alertNetworkRequiredDetail": "You need to select or create a network before you can start building a scenario.",
-  "chooseANetwork": "Choose a network",
+  "alertNetworkRequired": "Your model is empty",
+  "alertNetworkRequiredDetail": "Add assets to your model, or open an existing one, before creating a scenario.",
+  "chooseANetwork": "Choose model",
   "label": "Label",
   "login": "Log in",
   "signOut": "Sign out",
@@ -1608,7 +1608,7 @@
     "createNew": "Create new scenario",
     "newScenario": "New",
     "switcherTooltip": "Switch scenario",
-    "enableScenarios": "Enable Scenarios",
+    "enableScenarios": "Enable scenarios",
     "delete": "Delete",
     "rename": "Rename",
     "ignoreAndCreate": "Ignore and create scenario",
@@ -1620,7 +1620,7 @@
       "failed": "Couldn't export scenario"
     },
     "renameDialog": {
-      "title": "Rename Scenario",
+      "title": "Rename scenario",
       "label": "Scenario name",
       "placeholder": "Enter scenario name",
       "errorEmpty": "Scenario name cannot be empty",
@@ -1633,14 +1633,14 @@
       "action": "Sign in"
     },
     "deleteConfirmation": {
-      "title": "Delete Scenario",
+      "title": "Delete scenario",
       "message": "Are you sure you want to delete scenario \"{{1}}\"?",
       "confirm": "Delete scenario"
     },
     "paywall": {
       "title": "Upgrade to access scenarios",
       "description1": "Scenarios let you explore \"what-if\" changes without duplicating your model.",
-      "description2": "Create alternative versions of your network and compare results against your baseline.",
+      "description2": "Create alternative versions and compare their results against the original (Main).",
       "trial": "Scenarios are a paid feature. Activate your free trial to get full access for 14 days—no credit card required.",
       "plans": "Scenarios are available on paid plans.",
       "captions": {
@@ -1654,8 +1654,8 @@
     "firstScenario": {
       "title": "Create scenario",
       "pleaseNote": "Please note:",
-      "bullet1": "The main model becomes <bold>read-only</bold> while scenarios exist.",
-      "bullet3": "You can delete your scenarios at any time to unlock the main model.",
+      "bullet1": "Main becomes <bold>read-only</bold> while scenarios exist.",
+      "bullet3": "Delete your scenarios at any time to unlock Main.",
       "dontShowAgain": "Don't show this again",
       "createButton": "Create scenario"
     }

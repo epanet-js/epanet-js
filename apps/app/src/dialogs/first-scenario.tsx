@@ -39,9 +39,8 @@ export const FirstScenarioDialog = ({
     <>
       <div className="space-y-4 text-size-base text-default">
         <p>
-          Scenarios let you explore "what-if" changes without duplicating your
-          model. Create alternative versions of your network and compare results
-          against your baseline.
+          {translate("scenarios.paywall.description1")}{" "}
+          {translate("scenarios.paywall.description2")}
         </p>
 
         <div>
