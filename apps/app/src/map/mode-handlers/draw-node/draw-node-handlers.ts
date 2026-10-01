@@ -5,9 +5,15 @@ import { modeAtom, Mode } from "src/state/mode";
 import { selectionAtom } from "src/state/selection";
 import noop from "lodash/noop";
 import { useSetAtom, useAtomValue } from "jotai";
-import { useRef } from "react";
+import { useCallback, useRef } from "react";
+import { useAtomCallback } from "jotai/utils";
+import type { ChangeSet } from "@epanet-js/change-set";
 import { getMapCoord } from "../utils";
-import { addNode, replaceNode } from "src/hydraulic-model/model-operations";
+import {
+  addNode,
+  replaceNode,
+  replaceNodeDeprecated,
+} from "src/hydraulic-model/model-operations";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import throttle from "lodash/throttle";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -15,12 +21,29 @@ import { useElevations } from "src/hooks/use-elevations";
 import { useSnapping } from "../hooks/use-snapping";
 import { useSelection } from "src/selection";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
+import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useFocusAssetPanel } from "src/hooks/use-focus-asset-panel";
 import { validateAsset } from "src/lib/model-attributes-validation";
-import { Asset } from "src/hydraulic-model";
+import { Asset, AssetId, HydraulicModel } from "src/hydraulic-model";
+import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { captureWarning } from "src/infra/error-tracking";
 
 type NodeType = "junction" | "reservoir" | "tank";
+
+const createdNodeId = (changeSet: ChangeSet): AssetId | undefined => {
+  for (const entry of changeSet.entries()) {
+    if (
+      entry.kind === "create" &&
+      (entry.entity === "junction" ||
+        entry.entity === "reservoir" ||
+        entry.entity === "tank")
+    ) {
+      return entry.id as AssetId;
+    }
+  }
+  return undefined;
+};
 
 export function useDrawNodeHandlers({
   hydraulicModel,
@@ -35,6 +58,11 @@ export function useDrawNodeHandlers({
   const setCursor = useSetAtom(cursorStyleAtom);
   const selection = useAtomValue(selectionAtom);
   const { transact } = useMomentTransaction();
+  const { transact: transactChangeSet } = useModelTransaction();
+  const isOpsChangeSetsOn = useFeatureFlag("FLAG_OPS_CHANGE_SETS");
+  const readCommittedModel = useAtomCallback(
+    useCallback((get) => get(stagingModelDerivedAtom), []),
+  );
   const userTracking = useUserTracking();
   const { assetFactory, labelManager } = useAtomValue(modelFactoriesAtom);
   const { fetchElevation, prefetchTileThrottled } = useElevations(
@@ -44,9 +72,12 @@ export function useDrawNodeHandlers({
   const { selectAsset } = useSelection(selection);
   const focusAssetPanel = useFocusAssetPanel();
 
-  const selectAndFocusIfInvalid = (asset: Asset) => {
+  const selectAndFocusIfInvalid = (
+    asset: Asset,
+    model: HydraulicModel = hydraulicModel,
+  ) => {
     selectAsset(asset.id);
-    const hasIssues = validateAsset(asset, hydraulicModel).length > 0;
+    const hasIssues = validateAsset(asset, model).length > 0;
     if (hasIssues) focusAssetPanel(true);
   };
 
@@ -87,21 +118,42 @@ export function useDrawNodeHandlers({
     oldNodeId: number,
     elevation: number | null,
   ) => {
-    const moment = replaceNode(hydraulicModel, {
+    const data = {
       oldNodeId,
       newNodeType: nodeType,
       assetFactory,
       elevation,
-    });
-    const applied = transact(moment);
-    if (applied) {
-      userTracking.capture({
-        name: "asset.created",
-        type: nodeType,
-      });
+    };
 
-      if (moment.putAssets && moment.putAssets.length > 0) {
-        selectAndFocusIfInvalid(moment.putAssets[0]);
+    if (isOpsChangeSetsOn) {
+      const changeSet = replaceNode(hydraulicModel, data);
+      const applied = transactChangeSet(changeSet);
+      if (applied) {
+        userTracking.capture({
+          name: "asset.created",
+          type: nodeType,
+        });
+
+        const newNodeId = createdNodeId(changeSet);
+        const committedModel = readCommittedModel();
+        const newNode =
+          newNodeId !== undefined
+            ? committedModel.assets.get(newNodeId)
+            : undefined;
+        if (newNode) selectAndFocusIfInvalid(newNode, committedModel);
+      }
+    } else {
+      const moment = replaceNodeDeprecated(hydraulicModel, data);
+      const applied = transact(moment);
+      if (applied) {
+        userTracking.capture({
+          name: "asset.created",
+          type: nodeType,
+        });
+
+        if (moment.putAssets && moment.putAssets.length > 0) {
+          selectAndFocusIfInvalid(moment.putAssets[0]);
+        }
       }
     }
 

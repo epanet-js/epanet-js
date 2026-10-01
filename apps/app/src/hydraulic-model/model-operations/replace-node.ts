@@ -7,11 +7,23 @@ import {
   Pipe,
   isNodeAsset,
 } from "@epanet-js/hydraulic-model";
-import { ModelOperationDeprecated } from "../model-operation";
+import {
+  DemandAssignment,
+  ModelOperation,
+  ModelOperationDeprecated,
+} from "../model-operation";
+import { HydraulicModel } from "../hydraulic-model";
 import { Position } from "src/types";
 import { updateLinkConnections } from "../mutations/update-link-connections";
 import { reassignCustomerPoints } from "../mutations/reassign-customer-points";
 import { getJunctionDemands } from "@epanet-js/hydraulic-model";
+import {
+  changeSet,
+  dropAssets,
+  putAssets,
+  putCustomerPoints,
+  setDemands,
+} from "../change-sets";
 
 type NodeType = "junction" | "reservoir" | "tank";
 
@@ -22,9 +34,40 @@ type InputData = {
   elevation?: number | null;
 };
 
-export const replaceNode: ModelOperationDeprecated<InputData> = (
+export const replaceNode: ModelOperation<InputData> = (
   hydraulicModel,
-  { oldNodeId, newNodeType, assetFactory, elevation },
+  data,
+) => {
+  const { note, oldNodeId, newNode, updatedLinks, customerPoints, demands } =
+    planReplacement(hydraulicModel, data);
+
+  return changeSet(hydraulicModel, note, [
+    dropAssets(oldNodeId),
+    putAssets([newNode, ...updatedLinks]),
+    putCustomerPoints(customerPoints),
+    setDemands(demands),
+  ]);
+};
+
+export const replaceNodeDeprecated: ModelOperationDeprecated<InputData> = (
+  hydraulicModel,
+  data,
+) => {
+  const { note, oldNodeId, newNode, updatedLinks, customerPoints, demands } =
+    planReplacement(hydraulicModel, data);
+
+  return {
+    note,
+    putAssets: [newNode, ...updatedLinks],
+    deleteAssets: [oldNodeId],
+    putCustomerPoints: customerPoints.length > 0 ? customerPoints : undefined,
+    ...(demands.length > 0 && { putDemands: { assignments: demands } }),
+  };
+};
+
+const planReplacement = (
+  hydraulicModel: HydraulicModel,
+  { oldNodeId, newNodeType, assetFactory, elevation }: InputData,
 ) => {
   const { assets, topology, customerPointsLookup } = hydraulicModel;
 
@@ -69,25 +112,20 @@ export const replaceNode: ModelOperationDeprecated<InputData> = (
     }
   }
 
-  const putDemands =
-    oldNode.type === "junction" && newNodeType !== "junction"
-      ? (() => {
-          const demands = getJunctionDemands(hydraulicModel.demands, oldNodeId);
-          return demands.length > 0
-            ? { assignments: [{ junctionId: oldNodeId, demands: [] }] }
-            : undefined;
-        })()
-      : undefined;
+  const demands: DemandAssignment[] =
+    oldNode.type === "junction" &&
+    newNodeType !== "junction" &&
+    getJunctionDemands(hydraulicModel.demands, oldNodeId).length > 0
+      ? [{ junctionId: oldNodeId, demands: [] }]
+      : [];
 
   return {
     note: `Replace ${oldNode.type} with ${newNodeType}`,
-    putAssets: [newNode, ...updatedLinks],
-    deleteAssets: [oldNodeId],
-    putCustomerPoints:
-      updatedCustomerPoints.size > 0
-        ? [...updatedCustomerPoints.values()]
-        : undefined,
-    ...(putDemands && { putDemands }),
+    oldNodeId,
+    newNode,
+    updatedLinks,
+    customerPoints: [...updatedCustomerPoints.values()],
+    demands,
   };
 };
 
