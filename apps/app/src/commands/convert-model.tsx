@@ -1,13 +1,16 @@
 import { useCallback, useContext } from "react";
 import { useSetAtom } from "jotai";
 import { FileWithHandle } from "browser-fs-access";
-import type { Converter, NetworkData } from "@epanet-js/converters";
+import {
+  buildModel,
+  type Converter,
+  type NetworkData,
+} from "@epanet-js/converters";
 import { LngLatBoundsLike } from "mapbox-gl";
 import { defaultProjectSettings } from "@epanet-js/project-settings";
 import { useUnsavedChangesCheck } from "./check-unsaved-changes";
 import {
   blockingIssues,
-  buildModel,
   getConverter,
   issueCodes,
   type ConverterVendor,

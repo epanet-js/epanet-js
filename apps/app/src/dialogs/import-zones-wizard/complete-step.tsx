@@ -1,6 +1,6 @@
 import { useTranslate } from "src/hooks/use-translate";
 import { SuccessIcon } from "src/icons";
-import type { MergedZoneInfo } from "src/lib/zones";
+import type { MergedZoneInfo } from "@epanet-js/converters";
 
 export const CompleteStep = ({
   numZones,

@@ -7,12 +7,10 @@ import { WizardContent } from "src/components/wizard/wizard-content";
 import { WizardActions } from "src/components/wizard/wizard-actions";
 import { useDialogState } from "src/components/dialog";
 import { useProjections } from "src/hooks/use-projections";
-import {
-  getLabelProperties,
-  type ReadZoneFeaturesResult,
-  type MergedZoneInfo,
-} from "src/lib/zones";
+import { getLabelProperties, type ReadZoneFeaturesResult } from "src/lib/zones";
 import { zonesImporter } from "@epanet-js/gis-importers";
+import { buildZones, type MergedZoneInfo } from "@epanet-js/converters";
+import { ZoneFactory } from "@epanet-js/hydraulic-model";
 import { useImportZones } from "src/commands/import-zones";
 import { useUserTracking } from "src/infra/user-tracking";
 import { modelFactoriesAtom } from "src/state/model-factories";
@@ -21,7 +19,6 @@ import { DataInputStep } from "./data-input-step";
 import { DataMappingStep } from "./data-mapping-step";
 import { CompleteStep } from "./complete-step";
 import { readZonesWithImporter } from "./read-zones";
-import { buildZones } from "./build-zones";
 
 const DATA_INPUT_STEP_NUMBER = 1;
 const DATA_MAPPING_STEP_NUMBER = 2;
@@ -135,7 +132,10 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
       readResult.features,
       { mapping: { label: labelProperty ?? null } },
     );
-    const built = buildZones(network.zones ?? [], idPools.forPool("zone"));
+    const built = buildZones(
+      network.zones ?? [],
+      new ZoneFactory(idPools.forPool("zone")),
+    );
 
     const result = await importZones(built);
     if (!result) return;
