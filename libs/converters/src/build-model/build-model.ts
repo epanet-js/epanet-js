@@ -5,6 +5,7 @@ import type {
   TankLevelControlData,
   TimedSettingControlData,
   CurvePointData,
+  CustomerPointData,
   DemandData,
   JunctionData,
   LinkData,
@@ -47,7 +48,9 @@ import {
   Controls,
   AssetType,
   CustomAttribute,
+  CustomAttributeAssetType,
   CustomAttributeId,
+  CustomerPointFactory,
   CustomAttributesDefinition,
   LevelSettingControl,
   SimpleControl,
@@ -80,21 +83,10 @@ import type { BBox, Position } from "geojson";
 import type { Maybe } from "purify-ts/Maybe";
 import { getExtent } from "@epanet-js/geometry";
 
-export type BuildModelStage =
-  | "customAttributes"
-  | "patterns"
-  | "curves"
-  | "nodes"
-  | "links"
-  | "activeTopology"
-  | "controls"
-  | "zones";
-
 export type BuildModelOptions = {
   projections: Map<string, Proj4Projection>;
   labelMaxLength?: number;
   originalProjection?: Proj4Projection;
-  onProgress?: (stage: BuildModelStage) => void;
 };
 
 export type BuildModelResult = {
@@ -112,12 +104,7 @@ export type BuildModelResult = {
 
 export const buildModel = (
   network: NetworkData,
-  {
-    projections,
-    labelMaxLength,
-    originalProjection,
-    onProgress = () => {},
-  }: BuildModelOptions,
+  { projections, labelMaxLength, originalProjection }: BuildModelOptions,
 ): BuildModelResult => {
   const headlossFormula: HeadlossFormula = network.headlossFormula ?? "H-W";
   const baseSpec = presets[chooseUnitSystem(network.units.flow)];
@@ -140,7 +127,6 @@ export const buildModel = (
   });
   const idGenerator = factories.idGenerator;
 
-  onProgress("customAttributes");
   const customAttributes = planCustomAttributes(network);
   const hydraulicModel = initializeHydraulicModel({
     demands: createEmptyDemands(),
@@ -152,14 +138,12 @@ export const buildModel = (
   const sourceProjection = resolveProjection(network.crs, projections);
   const { toWgs84 } = createProjectionMapper(sourceProjection);
 
-  onProgress("patterns");
   const patternIdByRef = addPatterns(hydraulicModel, network, {
     idGenerator: idPools.forPool("pattern"),
     labelManager,
     labelMaxLength,
   });
 
-  onProgress("curves");
   const curveIdByRef = addCurves(hydraulicModel, network, {
     idGenerator: idPools.forPool("curve"),
     labelManager,
@@ -188,7 +172,6 @@ export const buildModel = (
     curveIdByRef,
   };
 
-  onProgress("nodes");
   for (const junctionData of network.junctions) {
     addJunction(hydraulicModel, factories.assetFactory, junctionData, context);
   }
@@ -217,7 +200,6 @@ export const buildModel = (
     toFlow: converterFor(network.units.flow, spec.units.flow),
   };
 
-  onProgress("links");
   for (const pipeData of network.pipes) {
     addPipe(hydraulicModel, factories.assetFactory, pipeData, linkContext);
   }
@@ -230,13 +212,23 @@ export const buildModel = (
     addValve(hydraulicModel, factories.assetFactory, valveData, linkContext);
   }
 
-  onProgress("activeTopology");
+  addCustomerPoints(hydraulicModel, network.customerPoints, {
+    customerPointFactory: factories.customerPointFactory,
+    labelManager,
+    labelMaxLength,
+    customAttributeIds: customAttributes.ids,
+    toWgs84,
+    toCustomerDemand: converterFor(
+      network.units.customerDemand ?? network.units.flow,
+      spec.units.customerDemand,
+    ),
+    patternIdByRef,
+  });
+
   deactivateStrandedNodes(hydraulicModel, network, linkContext);
 
-  onProgress("controls");
   addControls(hydraulicModel, network, linkContext, issues);
 
-  onProgress("zones");
   const { zones } = buildZones(
     reprojectZones(network.zones, toWgs84),
     factories.zoneFactory,
@@ -261,26 +253,30 @@ export const buildModel = (
   };
 };
 
-type CustomAttributeIds = Map<AssetType, Map<string, CustomAttributeId>>;
+type CustomAttributeIds = Map<
+  CustomAttributeAssetType,
+  Map<string, CustomAttributeId>
+>;
 
-const customAttributeAssetTypes: AssetType[] = [
+const customAttributeAssetTypes: CustomAttributeAssetType[] = [
   "junction",
   "reservoir",
   "tank",
   "pipe",
   "pump",
   "valve",
+  "customerPoint",
 ];
 
 const planCustomAttributes = (
   network: NetworkData,
 ): { definition: CustomAttributesDefinition; ids: CustomAttributeIds } => {
-  const carriedByType = new Map<AssetType, Set<string>>(
+  const carriedByType = new Map<CustomAttributeAssetType, Set<string>>(
     customAttributeAssetTypes.map((type) => [type, new Set<string>()]),
   );
 
   const collect = (
-    type: AssetType,
+    type: CustomAttributeAssetType,
     records: { customAttributes?: CustomAttributeValues }[],
   ) => {
     const carried = carriedByType.get(type) as Set<string>;
@@ -297,6 +293,7 @@ const planCustomAttributes = (
   collect("pipe", network.pipes);
   collect("pump", network.pumps);
   collect("valve", network.valves);
+  collect("customerPoint", network.customerPoints);
 
   let definition = emptyCustomAttributesDefinition();
   const ids: CustomAttributeIds = new Map();
@@ -405,13 +402,14 @@ const addJunction = (
   registerNode(hydraulicModel, junction, junctionData.ref, context);
   hydraulicModel.demands.junctions.set(
     junction.id,
-    demandsOf(junctionData.demands, context),
+    demandsOf(junctionData.demands, context.toDemand, context.patternIdByRef),
   );
 };
 
 const demandsOf = (
   demands: DemandData[] | undefined,
-  { toDemand, patternIdByRef }: NodeContext,
+  toDemand: (value: number) => number,
+  patternIdByRef: Map<string, PatternId>,
 ): Demand[] =>
   (demands ?? []).map(({ baseDemand, patternRef }) => {
     const patternId =
@@ -422,6 +420,54 @@ const demandsOf = (
       ...(patternId === undefined ? {} : { patternId }),
     };
   });
+
+type CustomerPointContext = {
+  customerPointFactory: CustomerPointFactory;
+  labelManager: LabelManager;
+  labelMaxLength?: number;
+  customAttributeIds: CustomAttributeIds;
+  toWgs84: (coordinates: Position) => Position;
+  toCustomerDemand: (value: number) => number;
+  patternIdByRef: Map<string, PatternId>;
+};
+
+const addCustomerPoints = (
+  hydraulicModel: HydraulicModel,
+  customerPoints: CustomerPointData[],
+  context: CustomerPointContext,
+) => {
+  const customAttributeIds = context.customAttributeIds.get("customerPoint");
+
+  for (const customerPointData of customerPoints) {
+    const customerPoint = context.customerPointFactory.create(
+      context.toWgs84(customerPointData.coordinates),
+      resolveLabel(
+        context.labelManager,
+        customerPointData,
+        "customerPoint",
+        context.labelMaxLength,
+      ),
+    );
+
+    const values = resolveCustomAttributes(
+      customerPointData.customAttributes,
+      customAttributeIds,
+    );
+    for (const [id, value] of Object.entries(values ?? {})) {
+      customerPoint.setProperty(id, value);
+    }
+
+    hydraulicModel.customerPoints.set(customerPoint.id, customerPoint);
+    hydraulicModel.demands.customerPoints.set(
+      customerPoint.id,
+      demandsOf(
+        customerPointData.demands,
+        context.toCustomerDemand,
+        context.patternIdByRef,
+      ),
+    );
+  }
+};
 
 type PatternContext = {
   idGenerator: IdGenerator;
@@ -1015,7 +1061,11 @@ const resolveLabel = (
 
   return labelManager.generateNextLabel(
     candidate,
-    labelMaxLength === undefined ? {} : { maxByteLength: labelMaxLength },
+    labelMaxLength === undefined
+      ? {}
+      : type === "customerPoint"
+        ? { maxLength: labelMaxLength }
+        : { maxByteLength: labelMaxLength },
   );
 };
 

@@ -1614,6 +1614,93 @@ describe("build zones from network data", () => {
   });
 });
 
+describe("build customer points from network data", () => {
+  it("builds an unallocated customer point with its label, location and demand", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        customerPoints: [
+          {
+            ref: "0",
+            label: "CUSTOMER",
+            coordinates: [10, 20],
+            demands: [{ baseDemand: 86400 }],
+          },
+        ],
+        units: { flow: "l/s", customerDemand: "l/d" },
+      }),
+      { projections: aCatalogue() },
+    );
+
+    const [customerPoint] = [...hydraulicModel.customerPoints.values()];
+    expect(customerPoint.label).toEqual("CUSTOMER");
+    expect(customerPoint.coordinates).toEqual([10, 20]);
+    expect(customerPoint.connection).toBeNull();
+    expect(hydraulicModel.demands.customerPoints.get(customerPoint.id)).toEqual(
+      [{ baseDemand: 1 }],
+    );
+  });
+
+  it("reads a customer's demand in the flow unit when the source states no unit of its own", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        customerPoints: [
+          {
+            ref: "0",
+            label: "CUSTOMER",
+            coordinates: [0, 0],
+            demands: [{ baseDemand: 2 }],
+          },
+        ],
+        units: { flow: "l/s" },
+      }),
+      { projections: aCatalogue() },
+    );
+
+    const [customerPoint] = [...hydraulicModel.customerPoints.values()];
+    expect(hydraulicModel.demands.customerPoints.get(customerPoint.id)).toEqual(
+      [{ baseDemand: 2 }],
+    );
+  });
+
+  it("generates a label and states no demand when the source gave neither", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        customerPoints: [{ ref: "0", coordinates: [0, 0] }],
+      }),
+      { projections: aCatalogue() },
+    );
+
+    const [customerPoint] = [...hydraulicModel.customerPoints.values()];
+    expect(customerPoint.label).toEqual("CP1");
+    expect(hydraulicModel.demands.customerPoints.get(customerPoint.id)).toEqual(
+      [],
+    );
+  });
+
+  it("defines a customer point's custom attributes on the customer point kind", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        customAttributes: [anAttribute({ ref: "7", name: "METER" })],
+        customerPoints: [
+          {
+            ref: "0",
+            label: "CUSTOMER",
+            coordinates: [0, 0],
+            customAttributes: { "7": "M-001" },
+          },
+        ],
+      }),
+      { projections: aCatalogue() },
+    );
+
+    expect(
+      getAttributes(hydraulicModel.customAttributes, "customerPoint"),
+    ).toEqual([{ id: "custom-1", label: "METER", type: "text" }]);
+    const [customerPoint] = [...hydraulicModel.customerPoints.values()];
+    expect(customerPoint.getProperty("custom-1")).toEqual("M-001");
+  });
+});
+
 describe("labels across node kinds", () => {
   it("keeps labels unique when kinds collide", () => {
     const { hydraulicModel } = buildModel(

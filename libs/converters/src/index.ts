@@ -50,7 +50,6 @@ export { buildModel, buildZones } from "./build-model";
 export type {
   BuildModelOptions,
   BuildModelResult,
-  BuildModelStage,
   BuildZonesResult,
   MergedZoneInfo,
 } from "./build-model";
