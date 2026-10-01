@@ -15,11 +15,7 @@ export interface BranchStore {
   load(): Promise<StoredBranches>;
   loadBranch(branchId: string): Promise<StoredBranch>;
   createBranch(worktree: Worktree, branch: Branch): Promise<void>;
-  duplicateBranch(
-    worktree: Worktree,
-    sourceId: string,
-    branch: Branch,
-  ): Promise<void>;
+  duplicateBranch(sourceId: string, branch: Branch): Promise<void>;
   renameBranch(branchId: string, name: string): Promise<void>;
   deleteBranch(branchId: string): Promise<void>;
   recordChange(

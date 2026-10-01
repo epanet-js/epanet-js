@@ -99,7 +99,7 @@ const aRecordingStore = () => {
         simulationSettings: recordedSettings.get(branchId) ?? null,
       }),
     recordChange,
-    duplicateBranch: (_worktree, sourceId, branch) => {
+    duplicateBranch: (sourceId, branch) => {
       recorded.push({
         branchId: branch.id,
         changeSet: deltaOf(sourceId),

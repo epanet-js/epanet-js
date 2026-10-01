@@ -157,7 +157,7 @@ export const useScenarioOperations = () => {
         if (!copy) return null;
 
         writeQueue.enqueue(
-          () => getBranchStore().duplicateBranch(withCopy, scenarioId, copy),
+          () => getBranchStore().duplicateBranch(scenarioId, copy),
           onWriteFailure,
         );
 
