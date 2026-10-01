@@ -27,6 +27,7 @@ import { checksum } from "src/infra/checksum";
 import { presets } from "@epanet-js/project-settings";
 import { waitForNotLoading } from "src/__helpers__/ui-expects";
 import { getByLabel } from "src/__helpers__/asset-queries";
+import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import { useOpenInpFromFs } from "./open-inp-from-fs";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { userSettingsAtom } from "src/state/user-settings";
@@ -519,6 +520,36 @@ describe("file format updated dialog", () => {
     ).toBeInTheDocument();
     expect(store.get(stagingModelDerivedAtom)).toBe(previousModel);
     expect(screen.queryByText(/file format updated/i)).not.toBeInTheDocument();
+
+    spy.mockRestore();
+  });
+
+  it("leaves a blank project when the db import fails and FLAG_OPEN_CLEAR is on", async () => {
+    stubFeatureOn("FLAG_OPEN_CLEAR");
+    stubFileOpen();
+    const previousModel = HydraulicModelBuilder.with().aJunction(1).build();
+    const store = setInitialState({ hydraulicModel: previousModel });
+    const file = aTestFile({
+      filename: "my-network.inp",
+      content: minimalInp({ junctionId: "J1" }),
+    });
+    const importProject = db.importProject;
+    const spy = vi
+      .spyOn(db, "importProject")
+      .mockImplementationOnce(importProject)
+      .mockRejectedValueOnce(
+        new Error("Junction 1 (J1): row does not match schema"),
+      );
+
+    renderComponent({ store });
+    await triggerCommand();
+    await doFileSelection(file);
+
+    await waitFor(() =>
+      expect(screen.queryByText(/loading/i)).not.toBeInTheDocument(),
+    );
+
+    expect(store.get(stagingModelDerivedAtom).assets.size).toBe(0);
 
     spy.mockRestore();
   });

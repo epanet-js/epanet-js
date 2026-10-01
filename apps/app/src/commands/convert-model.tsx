@@ -26,7 +26,11 @@ import {
   defaultSimulationSettings,
   type SimulationSettings,
 } from "src/simulation/simulation-settings";
-import { useStartNewProject } from "src/hooks/persistence/use-start-new-project";
+import {
+  useStartBlankProject,
+  useStartNewProject,
+} from "src/hooks/persistence/use-start-new-project";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { saveCustomAttributes } from "src/lib/db";
 import { MapContext } from "src/map";
 
@@ -35,6 +39,8 @@ export const useConvertFile = () => {
   const { projections } = useProjections();
   const labelMaxLength = useLabelMaxLength();
   const { startNewProject } = useStartNewProject();
+  const startBlankProject = useStartBlankProject();
+  const isOpenClearOn = useFeatureFlag("FLAG_OPEN_CLEAR");
   const { canImportSynergi } = usePermissions();
   const setDialogState = useSetAtom(dialogAtom);
   const setInpFileInfo = useSetAtom(inpFileInfoAtom);
@@ -63,6 +69,14 @@ export const useConvertFile = () => {
       setDialogState({ type: "loading" });
 
       try {
+        if (isOpenClearOn) {
+          const cleared = await startBlankProject();
+          if (!cleared) {
+            setDialogState(null);
+            return;
+          }
+        }
+
         const { network, issues } = await converter.parseNetworkData({
           files: [file],
         });
@@ -164,6 +178,8 @@ export const useConvertFile = () => {
       projections,
       labelMaxLength,
       startNewProject,
+      startBlankProject,
+      isOpenClearOn,
       map,
       setDialogState,
       setInpFileInfo,

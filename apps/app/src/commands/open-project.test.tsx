@@ -26,7 +26,10 @@ import type { HydraulicModel, Junction } from "src/hydraulic-model";
 import { Store } from "src/state";
 import type { FileWithHandle } from "browser-fs-access";
 import { useOpenProject, useOpenProjectFile } from "./open-project";
-import { recentFilesStoreAtom } from "src/state/file-system";
+import {
+  projectFileInfoAtom,
+  recentFilesStoreAtom,
+} from "src/state/file-system";
 import { dialogAtom } from "src/state/dialog";
 import { ChangeSet } from "@epanet-js/change-set";
 import { initializeWorktree, nullBranchStore } from "@epanet-js/worktree";
@@ -108,6 +111,38 @@ describe("openProjectFile", () => {
         }),
       );
     });
+  });
+
+  it("keeps the previous project when the new one cannot be opened", async () => {
+    stubFeatureOff("FLAG_OPEN_CLEAR");
+    const previousModel = HydraulicModelBuilder.with().aJunction(1).build();
+    const store = setInitialState({ hydraulicModel: previousModel });
+    const file = new File(
+      ["not a project"],
+      "my-project.ejsdb",
+    ) as FileWithHandle;
+
+    renderComponent({ store, file });
+    await triggerOpen();
+
+    expect(store.get(stagingModelDerivedAtom)).toBe(previousModel);
+  });
+
+  it("clears the previous project first when FLAG_OPEN_CLEAR is on", async () => {
+    stubFeatureOn("FLAG_OPEN_CLEAR");
+    const previousModel = HydraulicModelBuilder.with().aJunction(1).build();
+    const store = setInitialState({ hydraulicModel: previousModel });
+    store.set(projectFileInfoAtom, { name: "previous.ejsdb" });
+    const file = new File(
+      ["not a project"],
+      "my-project.ejsdb",
+    ) as FileWithHandle;
+
+    renderComponent({ store, file });
+    await triggerOpen();
+
+    expect(store.get(stagingModelDerivedAtom).assets.size).toBe(0);
+    expect(store.get(projectFileInfoAtom)).toBeNull();
   });
 });
 

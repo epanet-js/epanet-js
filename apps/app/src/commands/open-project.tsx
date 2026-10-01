@@ -9,7 +9,11 @@ import {
   useOpenPersistedProject,
   type OpenPersistedProjectPhase,
 } from "src/hooks/persistence/use-open-persisted-project";
-import { withDatabaseBusy } from "src/hooks/persistence/use-start-new-project";
+import {
+  useClearProject,
+  withDatabaseBusy,
+} from "src/hooks/persistence/use-start-new-project";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { withProgressDialog } from "src/dialogs/progress-dialog";
 import { useUserTracking } from "src/infra/user-tracking";
 import { chooseUnitSystem } from "src/simulation/build-inp";
@@ -48,6 +52,8 @@ type OpenProjectFileOptions = {
 
 export const useOpenProjectFile = () => {
   const { openPersistedProject } = useOpenPersistedProject();
+  const clearProject = useClearProject();
+  const isOpenClearOn = useFeatureFlag("FLAG_OPEN_CLEAR");
   const setInpFileInfo = useSetAtom(inpFileInfoAtom);
   const setProjectFileInfo = useSetAtom(projectFileInfoAtom);
   const markProjectUnsaved = useSetAtom(markProjectUnsavedAtom);
@@ -301,9 +307,12 @@ export const useOpenProjectFile = () => {
       source: string,
       options: OpenProjectFileOptions = {},
     ) => {
-      await withDatabaseBusy(() => openProjectFile(file, source, options));
+      await withDatabaseBusy(async () => {
+        if (isOpenClearOn) await clearProject();
+        await openProjectFile(file, source, options);
+      });
     },
-    [openProjectFile],
+    [isOpenClearOn, clearProject, openProjectFile],
   );
 };
 

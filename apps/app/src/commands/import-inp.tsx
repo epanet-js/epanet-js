@@ -31,7 +31,11 @@ import {
   createProjectionMapper,
 } from "@epanet-js/projections";
 import { transformCoordinates } from "src/hydraulic-model/mutations/transform-coordinates";
-import { useStartNewProject } from "src/hooks/persistence/use-start-new-project";
+import {
+  useStartBlankProject,
+  useStartNewProject,
+} from "src/hooks/persistence/use-start-new-project";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useLabelMaxLength } from "src/hooks/use-label-max-length";
 
 export const inpExtension = ".inp";
@@ -47,6 +51,8 @@ export const useImportInp = () => {
   const markProjectUnsaved = useSetAtom(markProjectUnsavedAtom);
   const userTracking = useUserTracking();
   const { startNewProject } = useStartNewProject();
+  const startBlankProject = useStartBlankProject();
+  const isOpenClearOn = useFeatureFlag("FLAG_OPEN_CLEAR");
   const { addRecent } = useRecentFiles();
   const labelMaxLength = useLabelMaxLength();
 
@@ -200,6 +206,14 @@ export const useImportInp = () => {
       setDialogState({ type: "loading" });
 
       try {
+        if (isOpenClearOn) {
+          const cleared = await startBlankProject();
+          if (!cleared) {
+            setDialogState(null);
+            return;
+          }
+        }
+
         const arrayBuffer = await file.arrayBuffer();
         const content = new TextDecoder().decode(arrayBuffer);
         const parseOptions = {
@@ -294,6 +308,8 @@ export const useImportInp = () => {
     },
     [
       completeImport,
+      startBlankProject,
+      isOpenClearOn,
       setDialogState,
       userTracking,
       validateAndPrepare,

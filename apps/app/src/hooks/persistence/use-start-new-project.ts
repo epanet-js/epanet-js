@@ -1,6 +1,5 @@
 import { useCallback } from "react";
 import { useAtomCallback } from "jotai/utils";
-import { useSetAtom } from "jotai";
 import type { Getter, Setter } from "jotai";
 import * as db from "src/lib/db";
 import { captureWarning } from "src/infra/error-tracking";
@@ -207,6 +206,60 @@ export const withDatabaseBusy = async <T>(
   }
 };
 
+const replaceProject = async (
+  set: Setter,
+  panels: Panel[],
+  input: ProjectLoadInput,
+) => {
+  set(simulationDerivedAtom, initialSimulationState);
+  await clearSimulationStorage();
+  const mergedProjectSettings: ProjectSettings = {
+    ...input.projectSettings,
+    ...{ uniqueId: db.newUniqueId() },
+    units: {
+      ...input.projectSettings.units,
+      chemicalConcentration: input.simulationSettings.qualityMassUnit,
+    },
+  };
+  await db.importProject({
+    newDb: true,
+    projectSettings: mergedProjectSettings,
+    hydraulicModel: input.hydraulicModel,
+    simulationSettings: input.simulationSettings,
+    zones: input.zones,
+    selectionSets: input.selectionSets,
+    bookmarks: input.bookmarks,
+  });
+  resetAppState(set, panels);
+  loadModel(set, { ...input, projectSettings: mergedProjectSettings });
+};
+
+const buildBlankProject = ({
+  projectSettings = defaultProjectSettings,
+  autoElevations,
+}: BlankProjectOptions): ProjectLoadInput => {
+  const idPools = buildIdPools();
+  const factories = initializeModelFactoriesWithPools({
+    idPools,
+    labelManager: new LabelManager(),
+  });
+  const hydraulicModel = initializeHydraulicModel({
+    idGenerator: factories.idGenerator,
+  });
+  return {
+    hydraulicModel,
+    factories,
+    projectSettings,
+    simulationSettings: defaultSimulationSettings,
+    autoElevations,
+  };
+};
+
+type BlankProjectOptions = {
+  projectSettings?: ProjectSettings;
+  autoElevations?: boolean;
+};
+
 export const useStartNewProject = () => {
   const defaultPanelsFor = useDefaultPanels();
   const startNewProject = useAtomCallback(
@@ -217,27 +270,7 @@ export const useStartNewProject = () => {
         input: ProjectLoadInput,
       ): Promise<boolean> => {
         const started = await withDatabaseBusy(async () => {
-          set(simulationDerivedAtom, initialSimulationState);
-          await clearSimulationStorage();
-          const mergedProjectSettings: ProjectSettings = {
-            ...input.projectSettings,
-            ...{ uniqueId: db.newUniqueId() },
-            units: {
-              ...input.projectSettings.units,
-              chemicalConcentration: input.simulationSettings.qualityMassUnit,
-            },
-          };
-          await db.importProject({
-            newDb: true,
-            projectSettings: mergedProjectSettings,
-            hydraulicModel: input.hydraulicModel,
-            simulationSettings: input.simulationSettings,
-            zones: input.zones,
-            selectionSets: input.selectionSets,
-            bookmarks: input.bookmarks,
-          });
-          resetAppState(set, defaultPanelsFor());
-          loadModel(set, { ...input, projectSettings: mergedProjectSettings });
+          await replaceProject(set, defaultPanelsFor(), input);
           return true;
         });
 
@@ -250,40 +283,39 @@ export const useStartNewProject = () => {
   return { startNewProject };
 };
 
-export const useStartBlankProject = () => {
-  const { startNewProject } = useStartNewProject();
-  const setInpFileInfo = useSetAtom(inpFileInfoAtom);
-  const setProjectFileInfo = useSetAtom(projectFileInfoAtom);
-  return useCallback(
-    async ({
-      projectSettings = defaultProjectSettings,
-      autoElevations,
-    }: {
-      projectSettings?: ProjectSettings;
-      autoElevations?: boolean;
-    } = {}): Promise<boolean> => {
-      const idPools = buildIdPools();
-      const factories = initializeModelFactoriesWithPools({
-        idPools,
-        labelManager: new LabelManager(),
-      });
-      const hydraulicModel = initializeHydraulicModel({
-        idGenerator: factories.idGenerator,
-      });
-      const started = await startNewProject({
-        hydraulicModel,
-        factories,
-        projectSettings,
-        simulationSettings: defaultSimulationSettings,
-        autoElevations,
-      });
-      if (!started) return false;
+export const useClearProject = () => {
+  const defaultPanelsFor = useDefaultPanels();
+  return useAtomCallback(
+    useCallback(
+      async (
+        _get: Getter,
+        set: Setter,
+        options: BlankProjectOptions = {},
+      ): Promise<void> => {
+        await replaceProject(
+          set,
+          defaultPanelsFor(),
+          buildBlankProject(options),
+        );
+        set(inpFileInfoAtom, null);
+        set(projectFileInfoAtom, null);
+      },
+      [defaultPanelsFor],
+    ),
+  );
+};
 
-      setInpFileInfo(null);
-      setProjectFileInfo(null);
-      return true;
+export const useStartBlankProject = () => {
+  const clearProject = useClearProject();
+  return useCallback(
+    async (options: BlankProjectOptions = {}): Promise<boolean> => {
+      const started = await withDatabaseBusy(async () => {
+        await clearProject(options);
+        return true;
+      });
+      return started ?? false;
     },
-    [startNewProject, setInpFileInfo, setProjectFileInfo],
+    [clearProject],
   );
 };
 
