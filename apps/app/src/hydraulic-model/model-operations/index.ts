@@ -22,7 +22,7 @@ export { deleteAssets, deleteAssetsDeprecated } from "./delete-assets";
 export { addLink } from "./add-link";
 export { replaceNode, replaceNodeDeprecated } from "./replace-node";
 export { replaceLink } from "./replace-link";
-export { mergeNodes } from "./merge-nodes";
+export { mergeNodes, mergeNodesDeprecated } from "./merge-nodes";
 export {
   changeRawControls,
   changeRawControlsDeprecated,

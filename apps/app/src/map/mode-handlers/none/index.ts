@@ -14,6 +14,7 @@ import { getNode } from "src/hydraulic-model";
 import {
   moveNode,
   mergeNodes,
+  mergeNodesDeprecated,
   moveCustomerPoint,
   moveCustomerPointDeprecated,
 } from "src/hydraulic-model/model-operations";
@@ -232,12 +233,16 @@ export function useNoneHandlers({
       );
 
       if (!shareLink) {
-        const moment = mergeNodes(hydraulicModel, {
+        const data = {
           sourceNodeId: assetId,
           targetNodeId: snappingCandidate.id,
           lengthUnit: units.length,
-        });
-        transact(moment);
+        };
+        if (isOpsChangeSetsOn) {
+          transactChangeSet(mergeNodes(hydraulicModel, data));
+        } else {
+          transact(mergeNodesDeprecated(hydraulicModel, data));
+        }
         selectAsset(assetId);
       }
       clearSelection();

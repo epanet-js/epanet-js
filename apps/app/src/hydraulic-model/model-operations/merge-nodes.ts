@@ -8,7 +8,11 @@ import {
   isNodeAsset,
   computeLinkLength,
 } from "@epanet-js/hydraulic-model";
-import { DemandAssignment, ModelOperationDeprecated } from "../model-operation";
+import {
+  DemandAssignment,
+  ModelOperation,
+  ModelOperationDeprecated,
+} from "../model-operation";
 import { HydraulicModel } from "../hydraulic-model";
 import { AssetsMap } from "@epanet-js/hydraulic-model";
 import { Topology } from "@epanet-js/hydraulic-model";
@@ -16,6 +20,13 @@ import { updateLinkConnections } from "../mutations/update-link-connections";
 import { reassignCustomerPoints } from "../mutations/reassign-customer-points";
 import { getJunctionDemands } from "@epanet-js/hydraulic-model";
 import { Unit } from "@epanet-js/quantity";
+import {
+  changeSet,
+  dropAssets,
+  putAssets,
+  putCustomerPoints,
+  setDemands,
+} from "../change-sets";
 
 type InputData = {
   sourceNodeId: AssetId;
@@ -41,9 +52,49 @@ const determineWinner = (
   return { winnerNode: sourceNode, loserNode: targetNode };
 };
 
-export const mergeNodes: ModelOperationDeprecated<InputData> = (
+export const mergeNodes: ModelOperation<InputData> = (hydraulicModel, data) => {
+  const {
+    note,
+    mergedNode,
+    loserNodeId,
+    updatedLinks,
+    customerPoints,
+    demands,
+  } = planMerge(hydraulicModel, data);
+
+  return changeSet(hydraulicModel, note, [
+    dropAssets(loserNodeId),
+    putAssets([mergedNode, ...updatedLinks]),
+    putCustomerPoints(customerPoints),
+    setDemands(demands),
+  ]);
+};
+
+export const mergeNodesDeprecated: ModelOperationDeprecated<InputData> = (
   hydraulicModel,
-  { sourceNodeId, targetNodeId, lengthUnit },
+  data,
+) => {
+  const {
+    note,
+    mergedNode,
+    loserNodeId,
+    updatedLinks,
+    customerPoints,
+    demands,
+  } = planMerge(hydraulicModel, data);
+
+  return {
+    note,
+    putAssets: [mergedNode, ...updatedLinks],
+    deleteAssets: [loserNodeId],
+    putCustomerPoints: customerPoints.length > 0 ? customerPoints : undefined,
+    putDemands: demands.length > 0 ? { assignments: demands } : undefined,
+  };
+};
+
+const planMerge = (
+  hydraulicModel: HydraulicModel,
+  { sourceNodeId, targetNodeId, lengthUnit }: InputData,
 ) => {
   const { sourceNode, targetNode } = validateAndGetNodes(
     hydraulicModel.assets,
@@ -68,7 +119,7 @@ export const mergeNodes: ModelOperationDeprecated<InputData> = (
     : true;
   mergedNode.setProperty("isActive", shouldBeActive);
 
-  let demandAssignments: DemandAssignment[] | undefined;
+  let demands: DemandAssignment[] = [];
   if (winnerNode.type === "junction" && loserNode.type === "junction") {
     const winnerDemands = getJunctionDemands(
       hydraulicModel.demands,
@@ -79,7 +130,7 @@ export const mergeNodes: ModelOperationDeprecated<InputData> = (
       loserNode.id,
     );
     const mergedDemands = [...winnerDemands, ...loserDemands];
-    demandAssignments = [
+    demands = [
       { junctionId: winnerNode.id, demands: mergedDemands },
       { junctionId: loserNode.id, demands: [] },
     ];
@@ -89,17 +140,18 @@ export const mergeNodes: ModelOperationDeprecated<InputData> = (
       loserNode.id,
     );
     if (loserDemands.length > 0) {
-      demandAssignments = [{ junctionId: loserNode.id, demands: [] }];
+      demands = [{ junctionId: loserNode.id, demands: [] }];
     }
   }
 
-  return buildMergeResult(
+  return {
+    note: `Merge ${loserNode.type} into ${mergedNode.type}`,
     mergedNode,
-    loserNode,
+    loserNodeId: loserNode.id,
     updatedLinks,
-    updatedCustomerPoints,
-    demandAssignments,
-  );
+    customerPoints: [...updatedCustomerPoints.values()],
+    demands,
+  };
 };
 
 const validateAndGetNodes = (
@@ -281,25 +333,4 @@ const updateLoserLinks = (
       updatedCustomerPoints,
     );
   }
-};
-
-const buildMergeResult = (
-  winnerNode: NodeAsset,
-  loserNode: NodeAsset,
-  updatedLinks: LinkAsset[],
-  updatedCustomerPoints: CustomerPoints,
-  demandAssignments?: DemandAssignment[],
-) => {
-  return {
-    note: `Merge ${loserNode.type} into ${winnerNode.type}`,
-    putAssets: [winnerNode, ...updatedLinks],
-    deleteAssets: [loserNode.id],
-    putCustomerPoints:
-      updatedCustomerPoints.size > 0
-        ? [...updatedCustomerPoints.values()]
-        : undefined,
-    putDemands: demandAssignments
-      ? { assignments: demandAssignments }
-      : undefined,
-  };
 };

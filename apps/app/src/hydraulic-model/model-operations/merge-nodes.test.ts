@@ -1,14 +1,50 @@
 import { describe, it, expect } from "vitest";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { applyOperation } from "src/__helpers__/apply-operation";
+import { buildTestFactories } from "src/__helpers__/test-factories";
+import type { HydraulicModel } from "src/hydraulic-model";
+import type { ChangeSet } from "@epanet-js/change-set";
 import { mergeNodes } from "./merge-nodes";
-import { NodeAsset, LinkAsset } from "@epanet-js/hydraulic-model";
-import { JunctionDemandAssignment } from "src/hydraulic-model/model-operation";
+import {
+  AssetId,
+  NodeAsset,
+  LinkAsset,
+  getJunctionDemands,
+} from "@epanet-js/hydraulic-model";
+
+const { labelManager } = buildTestFactories();
+
+const merge = (
+  model: HydraulicModel,
+  sourceNodeId: AssetId,
+  targetNodeId: AssetId,
+) => {
+  const changeSet = mergeNodes(model, {
+    lengthUnit: "m",
+    sourceNodeId,
+    targetNodeId,
+  });
+  applyOperation(model, changeSet, labelManager);
+  return changeSet;
+};
+
+const changedEntities = (changeSet: ChangeSet) =>
+  changeSet
+    .summary()
+    .map(({ entity, kind, count }) => `${entity}:${kind}:${count}`)
+    .sort();
+
+const nodeOf = (model: HydraulicModel, nodeId: AssetId) =>
+  model.assets.get(nodeId) as NodeAsset;
+
+const linkOf = (model: HydraulicModel, linkId: AssetId) =>
+  model.assets.get(linkId) as LinkAsset;
 
 describe("mergeNodes", () => {
   describe("demands merging", () => {
     it("concatenates demands from both junctions", () => {
       const IDS = { J1: 1, J2: 2, PAT1: 3, PAT2: 4 };
-      const model = HydraulicModelBuilder.with()
+      const model = HydraulicModelBuilder.with({ labelManager })
         .aDemandPattern(IDS.PAT1, "PATTERN1", [1.0])
         .aDemandPattern(IDS.PAT2, "PATTERN2", [1.0])
         .aJunction(IDS.J1, {
@@ -29,30 +65,22 @@ describe("mergeNodes", () => {
         ])
         .build();
 
-      const moment = mergeNodes(model, {
-        lengthUnit: "m",
-        sourceNodeId: IDS.J1,
-        targetNodeId: IDS.J2,
-      });
+      merge(model, IDS.J1, IDS.J2);
 
-      const survivingNode = moment.putAssets![0] as NodeAsset;
-      expect(survivingNode.id).toBe(IDS.J1);
-
-      const winnerAssignment = moment.putDemands!.assignments!.find(
-        (a): a is JunctionDemandAssignment =>
-          "junctionId" in a && a.junctionId === IDS.J1,
-      )!;
-      expect(winnerAssignment.demands).toEqual([
+      expect(model.assets.has(IDS.J1)).toBe(true);
+      expect(model.assets.has(IDS.J2)).toBe(false);
+      expect(getJunctionDemands(model.demands, IDS.J1)).toEqual([
         { baseDemand: 20 },
         { baseDemand: 50, patternId: IDS.PAT1 },
         { baseDemand: 30 },
         { baseDemand: 40, patternId: IDS.PAT2 },
       ]);
+      expect(getJunctionDemands(model.demands, IDS.J2)).toEqual([]);
     });
 
     it("handles empty demands arrays", () => {
       const IDS = { J1: 1, J2: 2 };
-      const model = HydraulicModelBuilder.with()
+      const model = HydraulicModelBuilder.with({ labelManager })
         .aJunction(IDS.J1, {
           coordinates: [10, 20],
         })
@@ -63,25 +91,15 @@ describe("mergeNodes", () => {
         .aJunctionDemand(IDS.J2, [])
         .build();
 
-      const moment = mergeNodes(model, {
-        lengthUnit: "m",
-        sourceNodeId: IDS.J1,
-        targetNodeId: IDS.J2,
-      });
+      merge(model, IDS.J1, IDS.J2);
 
-      const survivingNode = moment.putAssets![0] as NodeAsset;
-      expect(survivingNode.id).toBe(IDS.J1);
-
-      const winnerAssignment = moment.putDemands!.assignments!.find(
-        (a): a is JunctionDemandAssignment =>
-          "junctionId" in a && a.junctionId === IDS.J1,
-      )!;
-      expect(winnerAssignment.demands).toEqual([]);
+      expect(model.assets.has(IDS.J1)).toBe(true);
+      expect(getJunctionDemands(model.demands, IDS.J1)).toEqual([]);
     });
 
     it("clears loser junction demands when merging junction into tank", () => {
       const IDS = { J1: 1, T1: 2 };
-      const model = HydraulicModelBuilder.with()
+      const model = HydraulicModelBuilder.with({ labelManager })
         .aJunction(IDS.J1, {
           coordinates: [10, 20],
           elevation: 100,
@@ -90,23 +108,17 @@ describe("mergeNodes", () => {
         .aTank(IDS.T1, { coordinates: [30, 40], elevation: 150 })
         .build();
 
-      const moment = mergeNodes(model, {
-        lengthUnit: "m",
-        sourceNodeId: IDS.J1,
-        targetNodeId: IDS.T1,
-      });
+      const changeSet = merge(model, IDS.J1, IDS.T1);
 
-      const survivingNode = moment.putAssets![0] as NodeAsset;
-      expect(survivingNode.id).toBe(IDS.T1);
-      expect(survivingNode.type).toBe("tank");
-      expect(moment.putDemands).toEqual({
-        assignments: [{ junctionId: IDS.J1, demands: [] }],
-      });
+      expect(nodeOf(model, IDS.T1).type).toBe("tank");
+      expect(model.assets.has(IDS.J1)).toBe(false);
+      expect(changedEntities(changeSet)).toContain("junctionDemand:update:1");
+      expect(getJunctionDemands(model.demands, IDS.J1)).toEqual([]);
     });
 
     it("clears loser junction demands when merging tank into junction", () => {
       const IDS = { T1: 1, J1: 2 };
-      const model = HydraulicModelBuilder.with()
+      const model = HydraulicModelBuilder.with({ labelManager })
         .aTank(IDS.T1, { coordinates: [10, 20], elevation: 100 })
         .aJunction(IDS.J1, {
           coordinates: [30, 40],
@@ -115,40 +127,32 @@ describe("mergeNodes", () => {
         .aJunctionDemand(IDS.J1, [{ baseDemand: 60 }])
         .build();
 
-      const moment = mergeNodes(model, {
-        lengthUnit: "m",
-        sourceNodeId: IDS.T1,
-        targetNodeId: IDS.J1,
-      });
+      const changeSet = merge(model, IDS.T1, IDS.J1);
 
-      const survivingNode = moment.putAssets![0] as NodeAsset;
-      expect(survivingNode.id).toBe(IDS.T1);
-      expect(survivingNode.type).toBe("tank");
-      expect(moment.putDemands).toEqual({
-        assignments: [{ junctionId: IDS.J1, demands: [] }],
-      });
+      expect(nodeOf(model, IDS.T1).type).toBe("tank");
+      expect(model.assets.has(IDS.J1)).toBe(false);
+      expect(changedEntities(changeSet)).toContain("junctionDemand:update:1");
+      expect(getJunctionDemands(model.demands, IDS.J1)).toEqual([]);
     });
 
-    it("does not include putDemands when loser junction has no demands", () => {
+    it("does not touch demands when loser junction has no demands", () => {
       const IDS = { J1: 1, T1: 2 };
-      const model = HydraulicModelBuilder.with()
+      const model = HydraulicModelBuilder.with({ labelManager })
         .aJunction(IDS.J1, { coordinates: [10, 20] })
         .aTank(IDS.T1, { coordinates: [30, 40] })
         .build();
 
-      const moment = mergeNodes(model, {
-        lengthUnit: "m",
-        sourceNodeId: IDS.J1,
-        targetNodeId: IDS.T1,
-      });
+      const changeSet = merge(model, IDS.J1, IDS.T1);
 
-      expect(moment.putDemands).toBeUndefined();
+      expect(changedEntities(changeSet)).not.toContainEqual(
+        expect.stringMatching(/^junctionDemand:/),
+      );
     });
   });
 
   it("merges J1 into J2 position with J1 surviving", () => {
     const IDS = { J1: 1, J2: 2, J3: 3, P1: 4 };
-    const model = HydraulicModelBuilder.with()
+    const model = HydraulicModelBuilder.with({ labelManager })
       .aJunction(IDS.J1, {
         coordinates: [10, 20],
         elevation: 100,
@@ -161,50 +165,42 @@ describe("mergeNodes", () => {
       .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J3, isActive: true })
       .build();
 
-    const moment = mergeNodes(model, {
-      lengthUnit: "m",
-      sourceNodeId: IDS.J1,
-      targetNodeId: IDS.J2,
-    });
+    const changeSet = merge(model, IDS.J1, IDS.J2);
 
-    expect(moment.note).toBe("Merge junction into junction");
-    expect(moment.deleteAssets).toEqual([IDS.J2]);
-    expect(moment.putAssets).toHaveLength(2);
+    expect(changeSet.name).toBe("Merge junction into junction");
+    expect(changedEntities(changeSet)).toEqual([
+      "junction:delete:1",
+      "junction:update:1",
+      "pipe:update:1",
+    ]);
+    expect(model.assets.has(IDS.J2)).toBe(false);
 
-    const survivingNode = moment.putAssets![0] as NodeAsset;
-    expect(survivingNode.id).toBe(IDS.J1);
+    const survivingNode = nodeOf(model, IDS.J1);
     expect(survivingNode.type).toBe("junction");
     expect(survivingNode.coordinates).toEqual([30, 40]);
     expect(survivingNode.elevation).toBe(150);
     expect(survivingNode.isActive).toBe(true);
 
-    const updatedPipe = moment.putAssets![1] as LinkAsset;
-    expect(updatedPipe.id).toBe(IDS.P1);
-    expect(updatedPipe.connections[0]).toBe(IDS.J1);
-    expect(updatedPipe.connections[1]).toBe(IDS.J3);
+    const updatedPipe = linkOf(model, IDS.P1);
+    expect(updatedPipe.connections).toEqual([IDS.J1, IDS.J3]);
     expect(updatedPipe.coordinates[0]).toEqual([30, 40]);
   });
 
   it("merges junction into tank with tank surviving due to priority", () => {
     const IDS = { J1: 1, T1: 2, J2: 3, P1: 4 };
-    const model = HydraulicModelBuilder.with()
+    const model = HydraulicModelBuilder.with({ labelManager })
       .aJunction(IDS.J1, { coordinates: [10, 20], elevation: 100 })
       .aTank(IDS.T1, { coordinates: [30, 40], elevation: 150 })
       .aJunction(IDS.J2, { coordinates: [50, 60] })
       .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
       .build();
 
-    const moment = mergeNodes(model, {
-      lengthUnit: "m",
-      sourceNodeId: IDS.J1,
-      targetNodeId: IDS.T1,
-    });
+    const changeSet = merge(model, IDS.J1, IDS.T1);
 
-    expect(moment.note).toBe("Merge junction into tank");
-    expect(moment.deleteAssets).toEqual([IDS.J1]);
+    expect(changeSet.name).toBe("Merge junction into tank");
+    expect(model.assets.has(IDS.J1)).toBe(false);
 
-    const survivingNode = moment.putAssets![0] as NodeAsset;
-    expect(survivingNode.id).toBe(IDS.T1);
+    const survivingNode = nodeOf(model, IDS.T1);
     expect(survivingNode.type).toBe("tank");
     expect(survivingNode.coordinates).toEqual([30, 40]);
     expect(survivingNode.elevation).toBe(150);
@@ -212,24 +208,19 @@ describe("mergeNodes", () => {
 
   it("merges tank into junction with tank surviving due to priority", () => {
     const IDS = { T1: 1, J1: 2, J2: 3, P1: 4 };
-    const model = HydraulicModelBuilder.with()
+    const model = HydraulicModelBuilder.with({ labelManager })
       .aTank(IDS.T1, { coordinates: [10, 20], elevation: 100 })
       .aJunction(IDS.J1, { coordinates: [30, 40], elevation: 150 })
       .aJunction(IDS.J2, { coordinates: [50, 60] })
       .aPipe(IDS.P1, { startNodeId: IDS.T1, endNodeId: IDS.J2 })
       .build();
 
-    const moment = mergeNodes(model, {
-      lengthUnit: "m",
-      sourceNodeId: IDS.T1,
-      targetNodeId: IDS.J1,
-    });
+    const changeSet = merge(model, IDS.T1, IDS.J1);
 
-    expect(moment.note).toBe("Merge junction into tank");
-    expect(moment.deleteAssets).toEqual([IDS.J1]);
+    expect(changeSet.name).toBe("Merge junction into tank");
+    expect(model.assets.has(IDS.J1)).toBe(false);
 
-    const survivingNode = moment.putAssets![0] as NodeAsset;
-    expect(survivingNode.id).toBe(IDS.T1);
+    const survivingNode = nodeOf(model, IDS.T1);
     expect(survivingNode.type).toBe("tank");
     expect(survivingNode.coordinates).toEqual([30, 40]);
     expect(survivingNode.elevation).toBe(150);
@@ -237,7 +228,7 @@ describe("mergeNodes", () => {
 
   it("merges nodes with multiple connections from both nodes", () => {
     const IDS = { J1: 1, J2: 2, J3: 3, J4: 4, P1: 5, P2: 6 };
-    const model = HydraulicModelBuilder.with()
+    const model = HydraulicModelBuilder.with({ labelManager })
       .aJunction(IDS.J1, { coordinates: [10, 20] })
       .aJunction(IDS.J2, { coordinates: [30, 40] })
       .aJunction(IDS.J3, { coordinates: [50, 60] })
@@ -246,37 +237,30 @@ describe("mergeNodes", () => {
       .aPipe(IDS.P2, { startNodeId: IDS.J2, endNodeId: IDS.J4, isActive: true })
       .build();
 
-    const moment = mergeNodes(model, {
-      lengthUnit: "m",
-      sourceNodeId: IDS.J1,
-      targetNodeId: IDS.J2,
-    });
+    const changeSet = merge(model, IDS.J1, IDS.J2);
 
-    expect(moment.deleteAssets).toEqual([IDS.J2]);
-    expect(moment.putAssets).toHaveLength(3);
+    expect(changedEntities(changeSet)).toEqual([
+      "junction:delete:1",
+      "junction:update:1",
+      "pipe:update:2",
+    ]);
 
-    const survivingNode = moment.putAssets![0] as NodeAsset;
-    expect(survivingNode.id).toBe(IDS.J1);
+    const survivingNode = nodeOf(model, IDS.J1);
     expect(survivingNode.coordinates).toEqual([30, 40]);
     expect(survivingNode.isActive).toBe(true);
 
-    const updatedPipe1 = moment.putAssets!.find(
-      (asset) => asset.id === IDS.P1,
-    ) as LinkAsset;
-    expect(updatedPipe1.connections[0]).toBe(IDS.J1);
-    expect(updatedPipe1.connections[1]).toBe(IDS.J3);
+    const updatedPipe1 = linkOf(model, IDS.P1);
+    expect(updatedPipe1.connections).toEqual([IDS.J1, IDS.J3]);
     expect(updatedPipe1.coordinates[0]).toEqual([30, 40]);
 
-    const updatedPipe2 = moment.putAssets!.find(
-      (asset) => asset.id === IDS.P2,
-    ) as LinkAsset;
-    expect(updatedPipe2.connections[0]).toBe(IDS.J1);
-    expect(updatedPipe2.connections[1]).toBe(IDS.J4);
+    const updatedPipe2 = linkOf(model, IDS.P2);
+    expect(updatedPipe2.connections).toEqual([IDS.J1, IDS.J4]);
+    expect(model.topology.getNodes(IDS.P2)).toEqual([IDS.J1, IDS.J4]);
   });
 
   it("preserves parallel links when merging nodes with shared connections", () => {
     const IDS = { J1: 1, J2: 2, J3: 3, P1: 4, P2: 5 };
-    const model = HydraulicModelBuilder.with()
+    const model = HydraulicModelBuilder.with({ labelManager })
       .aJunction(IDS.J1, { coordinates: [10, 20] })
       .aJunction(IDS.J2, { coordinates: [30, 40] })
       .aJunction(IDS.J3, { coordinates: [50, 60] })
@@ -284,89 +268,63 @@ describe("mergeNodes", () => {
       .aPipe(IDS.P2, { startNodeId: IDS.J2, endNodeId: IDS.J3 })
       .build();
 
-    const moment = mergeNodes(model, {
-      lengthUnit: "m",
-      sourceNodeId: IDS.J1,
-      targetNodeId: IDS.J2,
-    });
+    merge(model, IDS.J1, IDS.J2);
 
-    expect(moment.putAssets).toHaveLength(3);
-
-    const pipe1 = moment.putAssets!.find((asset) => asset.id === IDS.P1);
-    const pipe2 = moment.putAssets!.find((asset) => asset.id === IDS.P2);
-
-    expect(pipe1).toBeDefined();
-    expect(pipe2).toBeDefined();
-
-    expect((pipe1 as LinkAsset).connections).toContain(IDS.J1);
-    expect((pipe2 as LinkAsset).connections).toContain(IDS.J1);
+    expect(linkOf(model, IDS.P1).connections).toContain(IDS.J1);
+    expect(linkOf(model, IDS.P2).connections).toContain(IDS.J1);
   });
 
   it("merges nodes with no connections", () => {
     const IDS = { J1: 1, J2: 2 };
-    const model = HydraulicModelBuilder.with()
+    const model = HydraulicModelBuilder.with({ labelManager })
       .aJunction(IDS.J1, { coordinates: [10, 20] })
       .aJunction(IDS.J2, { coordinates: [30, 40] })
       .build();
 
-    const moment = mergeNodes(model, {
-      lengthUnit: "m",
-      sourceNodeId: IDS.J1,
-      targetNodeId: IDS.J2,
-    });
+    const changeSet = merge(model, IDS.J1, IDS.J2);
 
-    expect(moment.deleteAssets).toEqual([IDS.J2]);
-    expect(moment.putAssets).toHaveLength(1);
-
-    const survivingNode = moment.putAssets![0] as NodeAsset;
-    expect(survivingNode.id).toBe(IDS.J1);
-    expect(survivingNode.coordinates).toEqual([30, 40]);
+    expect(changedEntities(changeSet)).toEqual([
+      "junction:delete:1",
+      "junction:update:1",
+    ]);
+    expect(model.assets.has(IDS.J2)).toBe(false);
+    expect(nodeOf(model, IDS.J1).coordinates).toEqual([30, 40]);
   });
 
   it("merges reservoir into tank with source winning (same priority, default rule)", () => {
     const IDS = { R1: 1, T1: 2, J1: 3, P1: 4 };
-    const model = HydraulicModelBuilder.with()
+    const model = HydraulicModelBuilder.with({ labelManager })
       .aReservoir(IDS.R1, { coordinates: [10, 20], elevation: 100 })
       .aTank(IDS.T1, { coordinates: [30, 40], elevation: 150 })
       .aJunction(IDS.J1, { coordinates: [50, 60] })
       .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
       .build();
 
-    const moment = mergeNodes(model, {
-      lengthUnit: "m",
-      sourceNodeId: IDS.R1,
-      targetNodeId: IDS.T1,
-    });
+    const changeSet = merge(model, IDS.R1, IDS.T1);
 
-    expect(moment.note).toBe("Merge tank into reservoir");
-    expect(moment.deleteAssets).toEqual([IDS.T1]);
+    expect(changeSet.name).toBe("Merge tank into reservoir");
+    expect(model.assets.has(IDS.T1)).toBe(false);
 
-    const survivingNode = moment.putAssets![0] as NodeAsset;
-    expect(survivingNode.id).toBe(IDS.R1);
+    const survivingNode = nodeOf(model, IDS.R1);
     expect(survivingNode.type).toBe("reservoir");
     expect(survivingNode.coordinates).toEqual([30, 40]);
   });
 
   it("merges reservoir into junction with reservoir surviving due to priority", () => {
     const IDS = { R1: 1, J1: 2, J2: 3, P1: 4 };
-    const model = HydraulicModelBuilder.with()
+    const model = HydraulicModelBuilder.with({ labelManager })
       .aReservoir(IDS.R1, { coordinates: [10, 20], elevation: 100 })
       .aJunction(IDS.J1, { coordinates: [30, 40], elevation: 150 })
       .aJunction(IDS.J2, { coordinates: [50, 60] })
       .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J2 })
       .build();
 
-    const moment = mergeNodes(model, {
-      lengthUnit: "m",
-      sourceNodeId: IDS.R1,
-      targetNodeId: IDS.J1,
-    });
+    const changeSet = merge(model, IDS.R1, IDS.J1);
 
-    expect(moment.note).toBe("Merge junction into reservoir");
-    expect(moment.deleteAssets).toEqual([IDS.J1]);
+    expect(changeSet.name).toBe("Merge junction into reservoir");
+    expect(model.assets.has(IDS.J1)).toBe(false);
 
-    const survivingNode = moment.putAssets![0] as NodeAsset;
-    expect(survivingNode.id).toBe(IDS.R1);
+    const survivingNode = nodeOf(model, IDS.R1);
     expect(survivingNode.type).toBe("reservoir");
     expect(survivingNode.coordinates).toEqual([30, 40]);
     expect(survivingNode.elevation).toBe(150);
@@ -374,24 +332,19 @@ describe("mergeNodes", () => {
 
   it("merges junction into reservoir with reservoir surviving due to priority", () => {
     const IDS = { J1: 1, R1: 2, J2: 3, P1: 4 };
-    const model = HydraulicModelBuilder.with()
+    const model = HydraulicModelBuilder.with({ labelManager })
       .aJunction(IDS.J1, { coordinates: [10, 20], elevation: 100 })
       .aReservoir(IDS.R1, { coordinates: [30, 40], elevation: 150 })
       .aJunction(IDS.J2, { coordinates: [50, 60] })
       .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
       .build();
 
-    const moment = mergeNodes(model, {
-      lengthUnit: "m",
-      sourceNodeId: IDS.J1,
-      targetNodeId: IDS.R1,
-    });
+    const changeSet = merge(model, IDS.J1, IDS.R1);
 
-    expect(moment.note).toBe("Merge junction into reservoir");
-    expect(moment.deleteAssets).toEqual([IDS.J1]);
+    expect(changeSet.name).toBe("Merge junction into reservoir");
+    expect(model.assets.has(IDS.J1)).toBe(false);
 
-    const survivingNode = moment.putAssets![0] as NodeAsset;
-    expect(survivingNode.id).toBe(IDS.R1);
+    const survivingNode = nodeOf(model, IDS.R1);
     expect(survivingNode.type).toBe("reservoir");
     expect(survivingNode.coordinates).toEqual([30, 40]);
     expect(survivingNode.elevation).toBe(150);
@@ -399,24 +352,19 @@ describe("mergeNodes", () => {
 
   it("merges tank into tank with source winning (same type, default rule)", () => {
     const IDS = { T1: 1, T2: 2, J1: 3, P1: 4 };
-    const model = HydraulicModelBuilder.with()
+    const model = HydraulicModelBuilder.with({ labelManager })
       .aTank(IDS.T1, { coordinates: [10, 20], elevation: 100 })
       .aTank(IDS.T2, { coordinates: [30, 40], elevation: 150 })
       .aJunction(IDS.J1, { coordinates: [50, 60] })
       .aPipe(IDS.P1, { startNodeId: IDS.T1, endNodeId: IDS.J1 })
       .build();
 
-    const moment = mergeNodes(model, {
-      lengthUnit: "m",
-      sourceNodeId: IDS.T1,
-      targetNodeId: IDS.T2,
-    });
+    const changeSet = merge(model, IDS.T1, IDS.T2);
 
-    expect(moment.note).toBe("Merge tank into tank");
-    expect(moment.deleteAssets).toEqual([IDS.T2]);
+    expect(changeSet.name).toBe("Merge tank into tank");
+    expect(model.assets.has(IDS.T2)).toBe(false);
 
-    const survivingNode = moment.putAssets![0] as NodeAsset;
-    expect(survivingNode.id).toBe(IDS.T1);
+    const survivingNode = nodeOf(model, IDS.T1);
     expect(survivingNode.type).toBe("tank");
     expect(survivingNode.coordinates).toEqual([30, 40]);
     expect(survivingNode.elevation).toBe(150);
@@ -424,24 +372,19 @@ describe("mergeNodes", () => {
 
   it("merges reservoir into reservoir with source winning (same type, default rule)", () => {
     const IDS = { R1: 1, R2: 2, J1: 3, P1: 4 };
-    const model = HydraulicModelBuilder.with()
+    const model = HydraulicModelBuilder.with({ labelManager })
       .aReservoir(IDS.R1, { coordinates: [10, 20], elevation: 100 })
       .aReservoir(IDS.R2, { coordinates: [30, 40], elevation: 150 })
       .aJunction(IDS.J1, { coordinates: [50, 60] })
       .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
       .build();
 
-    const moment = mergeNodes(model, {
-      lengthUnit: "m",
-      sourceNodeId: IDS.R1,
-      targetNodeId: IDS.R2,
-    });
+    const changeSet = merge(model, IDS.R1, IDS.R2);
 
-    expect(moment.note).toBe("Merge reservoir into reservoir");
-    expect(moment.deleteAssets).toEqual([IDS.R2]);
+    expect(changeSet.name).toBe("Merge reservoir into reservoir");
+    expect(model.assets.has(IDS.R2)).toBe(false);
 
-    const survivingNode = moment.putAssets![0] as NodeAsset;
-    expect(survivingNode.id).toBe(IDS.R1);
+    const survivingNode = nodeOf(model, IDS.R1);
     expect(survivingNode.type).toBe("reservoir");
     expect(survivingNode.coordinates).toEqual([30, 40]);
     expect(survivingNode.elevation).toBe(150);
@@ -449,7 +392,7 @@ describe("mergeNodes", () => {
 
   it("updates loser link coordinates when junction merges into reservoir", () => {
     const IDS = { J1: 1, R1: 2, J2: 3, J3: 4, P1: 5, P2: 6 };
-    const model = HydraulicModelBuilder.with()
+    const model = HydraulicModelBuilder.with({ labelManager })
       .aJunction(IDS.J1, { coordinates: [10, 20], elevation: 100 })
       .aReservoir(IDS.R1, { coordinates: [30, 40], elevation: 150 })
       .aJunction(IDS.J2, { coordinates: [50, 60] })
@@ -458,69 +401,55 @@ describe("mergeNodes", () => {
       .aPipe(IDS.P2, { startNodeId: IDS.J3, endNodeId: IDS.J1 })
       .build();
 
-    const moment = mergeNodes(model, {
-      lengthUnit: "m",
-      sourceNodeId: IDS.J1,
-      targetNodeId: IDS.R1,
-    });
+    merge(model, IDS.J1, IDS.R1);
 
-    expect(moment.deleteAssets).toEqual([IDS.J1]);
+    expect(model.assets.has(IDS.J1)).toBe(false);
 
-    const survivingNode = moment.putAssets![0] as NodeAsset;
-    expect(survivingNode.id).toBe(IDS.R1);
+    const survivingNode = nodeOf(model, IDS.R1);
     expect(survivingNode.type).toBe("reservoir");
     expect(survivingNode.coordinates).toEqual([30, 40]);
 
-    const updatedPipe1 = moment.putAssets!.find(
-      (asset) => asset.id === IDS.P1,
-    ) as LinkAsset;
-    expect(updatedPipe1.connections[0]).toBe(IDS.R1);
-    expect(updatedPipe1.connections[1]).toBe(IDS.J2);
-    expect(updatedPipe1.coordinates[0]).toEqual([30, 40]);
-    expect(updatedPipe1.coordinates[1]).toEqual([50, 60]);
+    const updatedPipe1 = linkOf(model, IDS.P1);
+    expect(updatedPipe1.connections).toEqual([IDS.R1, IDS.J2]);
+    expect(updatedPipe1.coordinates).toEqual([
+      [30, 40],
+      [50, 60],
+    ]);
 
-    const updatedPipe2 = moment.putAssets!.find(
-      (asset) => asset.id === IDS.P2,
-    ) as LinkAsset;
-    expect(updatedPipe2.connections[0]).toBe(IDS.J3);
-    expect(updatedPipe2.connections[1]).toBe(IDS.R1);
-    expect(updatedPipe2.coordinates[0]).toEqual([70, 80]);
-    expect(updatedPipe2.coordinates[1]).toEqual([30, 40]);
+    const updatedPipe2 = linkOf(model, IDS.P2);
+    expect(updatedPipe2.connections).toEqual([IDS.J3, IDS.R1]);
+    expect(updatedPipe2.coordinates).toEqual([
+      [70, 80],
+      [30, 40],
+    ]);
   });
 
   it("updates loser link coordinates when junction merges into tank", () => {
     const IDS = { J1: 1, T1: 2, J2: 3, P1: 4 };
-    const model = HydraulicModelBuilder.with()
+    const model = HydraulicModelBuilder.with({ labelManager })
       .aJunction(IDS.J1, { coordinates: [10, 20], elevation: 100 })
       .aTank(IDS.T1, { coordinates: [30, 40], elevation: 150 })
       .aJunction(IDS.J2, { coordinates: [50, 60] })
       .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
       .build();
 
-    const moment = mergeNodes(model, {
-      lengthUnit: "m",
-      sourceNodeId: IDS.J1,
-      targetNodeId: IDS.T1,
-    });
+    merge(model, IDS.J1, IDS.T1);
 
-    expect(moment.deleteAssets).toEqual([IDS.J1]);
+    expect(model.assets.has(IDS.J1)).toBe(false);
+    expect(nodeOf(model, IDS.T1).coordinates).toEqual([30, 40]);
 
-    const survivingNode = moment.putAssets![0] as NodeAsset;
-    expect(survivingNode.id).toBe(IDS.T1);
-    expect(survivingNode.coordinates).toEqual([30, 40]);
-
-    const updatedPipe = moment.putAssets!.find(
-      (asset) => asset.id === IDS.P1,
-    ) as LinkAsset;
-    expect(updatedPipe.connections[0]).toBe(IDS.T1);
-    expect(updatedPipe.connections[1]).toBe(IDS.J2);
-    expect(updatedPipe.coordinates[0]).toEqual([30, 40]);
-    expect(updatedPipe.coordinates[1]).toEqual([50, 60]);
+    const updatedPipe = linkOf(model, IDS.P1);
+    expect(updatedPipe.connections).toEqual([IDS.T1, IDS.J2]);
+    expect(model.topology.getNodes(IDS.P1)).toEqual([IDS.T1, IDS.J2]);
+    expect(updatedPipe.coordinates).toEqual([
+      [30, 40],
+      [50, 60],
+    ]);
   });
 
   it("throws error for invalid source node ID", () => {
     const IDS = { J1: 1 };
-    const model = HydraulicModelBuilder.with()
+    const model = HydraulicModelBuilder.with({ labelManager })
       .aJunction(IDS.J1, { coordinates: [10, 20] })
       .build();
 
@@ -535,7 +464,7 @@ describe("mergeNodes", () => {
 
   it("throws error for invalid target node ID", () => {
     const IDS = { J1: 1 };
-    const model = HydraulicModelBuilder.with()
+    const model = HydraulicModelBuilder.with({ labelManager })
       .aJunction(IDS.J1, { coordinates: [10, 20] })
       .build();
 
@@ -550,22 +479,16 @@ describe("mergeNodes", () => {
 
   it("updates coordinates of pipes connected to source node", () => {
     const IDS = { J1: 1, J2: 2, J3: 3, P1: 4 };
-    const model = HydraulicModelBuilder.with()
+    const model = HydraulicModelBuilder.with({ labelManager })
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .aJunction(IDS.J2, { coordinates: [100, 100] })
       .aJunction(IDS.J3, { coordinates: [200, 0] })
       .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J3 })
       .build();
 
-    const moment = mergeNodes(model, {
-      lengthUnit: "m",
-      sourceNodeId: IDS.J1,
-      targetNodeId: IDS.J2,
-    });
+    merge(model, IDS.J1, IDS.J2);
 
-    const updatedPipe = moment.putAssets!.find(
-      (asset) => asset.id === IDS.P1,
-    ) as LinkAsset;
+    const updatedPipe = linkOf(model, IDS.P1);
     expect(updatedPipe.coordinates[0]).toEqual([100, 100]);
     expect(updatedPipe.coordinates[updatedPipe.coordinates.length - 1]).toEqual(
       [200, 0],
@@ -574,7 +497,7 @@ describe("mergeNodes", () => {
 
   it("handles node with connections at both ends of pipe", () => {
     const IDS = { J1: 1, J2: 2, J3: 3, J4: 4, P1: 5, P2: 6 };
-    const model = HydraulicModelBuilder.with()
+    const model = HydraulicModelBuilder.with({ labelManager })
       .aJunction(IDS.J1, { coordinates: [10, 20] })
       .aJunction(IDS.J2, { coordinates: [30, 40] })
       .aJunction(IDS.J3, { coordinates: [50, 60] })
@@ -583,24 +506,18 @@ describe("mergeNodes", () => {
       .aPipe(IDS.P2, { startNodeId: IDS.J4, endNodeId: IDS.J2 })
       .build();
 
-    const moment = mergeNodes(model, {
-      lengthUnit: "m",
-      sourceNodeId: IDS.J1,
-      targetNodeId: IDS.J2,
-    });
+    merge(model, IDS.J1, IDS.J2);
 
-    const pipe1 = moment.putAssets!.find((a) => a.id === IDS.P1) as LinkAsset;
-    const pipe2 = moment.putAssets!.find((a) => a.id === IDS.P2) as LinkAsset;
-
+    const pipe1 = linkOf(model, IDS.P1);
     expect(pipe1.connections[0]).toBe(IDS.J1);
     expect(pipe1.coordinates[0]).toEqual([30, 40]);
 
-    expect(pipe2.connections[1]).toBe(IDS.J1);
+    expect(linkOf(model, IDS.P2).connections[1]).toBe(IDS.J1);
   });
 
   it("sets merged node active when any connected link is active", () => {
     const IDS = { J1: 1, J2: 2, J3: 3, J4: 4, P1: 5, P2: 6 };
-    const model = HydraulicModelBuilder.with()
+    const model = HydraulicModelBuilder.with({ labelManager })
       .aJunction(IDS.J1, { coordinates: [10, 20] })
       .aJunction(IDS.J2, { coordinates: [30, 40], isActive: false })
       .aJunction(IDS.J3, { coordinates: [50, 60] })
@@ -613,19 +530,14 @@ describe("mergeNodes", () => {
       })
       .build();
 
-    const moment = mergeNodes(model, {
-      lengthUnit: "m",
-      sourceNodeId: IDS.J1,
-      targetNodeId: IDS.J2,
-    });
+    merge(model, IDS.J1, IDS.J2);
 
-    const survivingNode = moment.putAssets![0] as NodeAsset;
-    expect(survivingNode.isActive).toBe(true);
+    expect(nodeOf(model, IDS.J1).isActive).toBe(true);
   });
 
   it("sets merged node inactive when all connected links are inactive", () => {
     const IDS = { J1: 1, J2: 2, J3: 3, J4: 4, P1: 5, P2: 6 };
-    const model = HydraulicModelBuilder.with()
+    const model = HydraulicModelBuilder.with({ labelManager })
       .aJunction(IDS.J1, { coordinates: [10, 20], isActive: false })
       .aJunction(IDS.J2, { coordinates: [30, 40], isActive: false })
       .aJunction(IDS.J3, { coordinates: [50, 60], isActive: false })
@@ -642,30 +554,20 @@ describe("mergeNodes", () => {
       })
       .build();
 
-    const moment = mergeNodes(model, {
-      lengthUnit: "m",
-      sourceNodeId: IDS.J1,
-      targetNodeId: IDS.J2,
-    });
+    merge(model, IDS.J1, IDS.J2);
 
-    const survivingNode = moment.putAssets![0] as NodeAsset;
-    expect(survivingNode.isActive).toBe(false);
+    expect(nodeOf(model, IDS.J1).isActive).toBe(false);
   });
 
   it("sets merged node inactive when merging isolated nodes", () => {
     const IDS = { J1: 1, J2: 2 };
-    const model = HydraulicModelBuilder.with()
+    const model = HydraulicModelBuilder.with({ labelManager })
       .aJunction(IDS.J1, { coordinates: [10, 20], isActive: false })
       .aJunction(IDS.J2, { coordinates: [30, 40], isActive: true })
       .build();
 
-    const moment = mergeNodes(model, {
-      lengthUnit: "m",
-      sourceNodeId: IDS.J1,
-      targetNodeId: IDS.J2,
-    });
+    merge(model, IDS.J1, IDS.J2);
 
-    const survivingNode = moment.putAssets![0] as NodeAsset;
-    expect(survivingNode.isActive).toBe(true);
+    expect(nodeOf(model, IDS.J1).isActive).toBe(true);
   });
 });

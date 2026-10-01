@@ -7,7 +7,13 @@ import { point } from "@turf/helpers";
 import { HydraulicModel } from "src/hydraulic-model";
 import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
-import { mergeNodes, moveNode } from "src/hydraulic-model/model-operations";
+import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import {
+  mergeNodes,
+  mergeNodesDeprecated,
+  moveNode,
+} from "src/hydraulic-model/model-operations";
 import { useUserTracking } from "src/infra/user-tracking";
 import {
   CONNECTED_JUNCTION_TOLERANCE_IN_METERS,
@@ -24,6 +30,8 @@ export const useFixProximityAnomaly = () => {
   const userTracking = useUserTracking();
   const isEditionBlocked = useIsEditionBlocked();
   const { transact } = useMomentTransaction();
+  const { transact: transactChangeSet } = useModelTransaction();
+  const isOpsChangeSetsOn = useFeatureFlag("FLAG_OPS_CHANGE_SETS");
 
   const fix = useCallback(
     (anomaly: ProximityAnomaly) => {
@@ -52,13 +60,16 @@ export const useFixProximityAnomaly = () => {
           return;
         }
 
-        transact(
-          mergeNodes(hydraulicModel, {
-            sourceNodeId: anomaly.nodeId,
-            targetNodeId: endpointNodeId,
-            lengthUnit: units.length,
-          }),
-        );
+        const data = {
+          sourceNodeId: anomaly.nodeId,
+          targetNodeId: endpointNodeId,
+          lengthUnit: units.length,
+        };
+        if (isOpsChangeSetsOn) {
+          transactChangeSet(mergeNodes(hydraulicModel, data));
+        } else {
+          transact(mergeNodesDeprecated(hydraulicModel, data));
+        }
       } else {
         transact(
           moveNode(hydraulicModel, {
@@ -87,6 +98,8 @@ export const useFixProximityAnomaly = () => {
       assetFactory,
       labelManager,
       transact,
+      transactChangeSet,
+      isOpsChangeSetsOn,
       userTracking,
       isEditionBlocked,
     ],
