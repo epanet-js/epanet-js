@@ -15,7 +15,6 @@ import {
   type BranchStore,
   type Worktree,
 } from "@epanet-js/worktree";
-import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
 import { addNode } from "src/hydraulic-model/model-operations/add-node";
@@ -109,22 +108,11 @@ const aRecordingStore = () => {
         simulationSettings: recordedSettings.get(branchId) ?? null,
       }),
     recordChange,
-    recordChangeDeprecated: recordChange,
     recordSimulationSettings: (branchId, data) => {
       recordedSettings.set(branchId, data);
       return Promise.resolve();
     },
     load: () => Promise.resolve({ worktree: loadWorktree() }),
-    loadDeprecated: () => {
-      const worktree = loadWorktree();
-      return Promise.resolve({
-        worktree,
-        deltas: new Map(
-          worktree.scenarios.map((branchId) => [branchId, deltaOf(branchId)]),
-        ),
-        simulationSettings: new Map(recordedSettings),
-      });
-    },
   };
   return { store, recorded, recordedSettings };
 };
@@ -233,19 +221,6 @@ const reopen = async (
 const maxAssetId = (store: Store) =>
   Math.max(...store.get(stagingModelDerivedAtom).assets.keys());
 
-const activateScenario = (store: Store, branch: Branch) => {
-  const { result } = renderHook(() => useSwitchBranch(), withStore(store));
-
-  act(() => {
-    result.current.switchBranch(branch.id);
-  });
-
-  store.set(worktreeAtom, {
-    ...store.get(worktreeAtom),
-    activeBranchId: branch.id,
-  });
-};
-
 const labelsIn = (store: Store) =>
   new Set(
     [...store.get(stagingModelDerivedAtom).assets.values()].map(
@@ -343,10 +318,6 @@ const persistedDemandMultiplier = async () =>
 
 describe("branch store", () => {
   useInProcessDb();
-
-  beforeEach(() => {
-    stubFeatureOff("FLAG_LAZY_SCENARIOS");
-  });
 
   afterEach(() => {
     registerBranchStore(nullBranchStore);
@@ -452,13 +423,12 @@ describe("branch store", () => {
     ).toEqual(2);
   });
 
-  it("restores a scenario from its stored delta on open", async () => {
+  it("restores the stored scenarios on open", async () => {
     const { store: branchStore } = aRecordingStore();
     registerBranchStore(branchStore);
     const store = await aSavedProject();
     switchToScenario(store);
     addJunction(store);
-    const scenarioAssets = store.get(stagingModelDerivedAtom).assets.size;
     await writeQueue.whenIdle();
 
     await reopen(store);
@@ -468,7 +438,6 @@ describe("branch store", () => {
     expect(worktree.activeBranchId).toEqual("main");
     expect(worktree.branches.get("main")!.status).toEqual("locked");
     expect(modelOf(store, "main").assets.size).toEqual(1);
-    expect(modelOf(store, "scenario-1").assets.size).toEqual(scenarioAssets);
   });
 
   it("reports reading the scenarios as its own phase on open", async () => {
@@ -510,7 +479,7 @@ describe("branch store", () => {
     const beforeBranchStates = store.get(branchStateAtom);
     registerBranchStore({
       ...nullBranchStore,
-      loadDeprecated: () => Promise.reject(new Error("delta unreadable")),
+      load: () => Promise.reject(new Error("delta unreadable")),
     });
 
     const result = await reopen(store);
@@ -519,39 +488,12 @@ describe("branch store", () => {
     expect(store.get(branchStateAtom)).toBe(beforeBranchStates);
   });
 
-  it("suggests a label no sibling scenario has already used", async () => {
-    const { store: branchStore } = aRecordingStore();
-    registerBranchStore(branchStore);
-    const first = aScenarioBranch("scenario-1", 1);
-    const second = aScenarioBranch("scenario-2", 2);
-    const store = await aSavedProject();
-    await reopen(store);
-
-    switchToScenario(store, first);
-    addJunction(store);
-    switchToScenario(store, second);
-    addJunction(store);
-    const siblingLabels = labelsIn(store);
-    await writeQueue.whenIdle();
-
-    await reopen(store);
-    activateScenario(store, first);
-    const before = labelsIn(store);
-    addJunction(store);
-    const added = [...labelsIn(store)].filter((label) => !before.has(label));
-
-    expect(added).toHaveLength(1);
-    expect(siblingLabels).not.toContain(added[0]);
-  });
-
-  describe("with lazy scenarios", () => {
+  describe("switching scenarios", () => {
     beforeEach(() => {
-      stubFeatureOn("FLAG_LAZY_SCENARIOS");
       registerBranchingRules(testBranchingRules);
     });
 
     afterEach(() => {
-      stubFeatureOff("FLAG_LAZY_SCENARIOS");
       registerBranchingRules(nullBranchingRules);
     });
 

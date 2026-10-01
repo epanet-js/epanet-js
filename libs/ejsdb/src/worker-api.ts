@@ -47,10 +47,7 @@ import type {
 } from "./types";
 import { isEmptyWriteBatch } from "./types";
 import { ChangeSet, type Direction } from "@epanet-js/change-set";
-import {
-  buildChangeSetPayload,
-  buildChangeSetPayloadDeprecated,
-} from "./change-set/to-payload";
+import { buildChangeSetPayload } from "./change-set/to-payload";
 
 const formatErrorDetails = (e: unknown): string => {
   if (!(e instanceof Error)) return String(e);
@@ -1615,23 +1612,6 @@ export const api = {
         direction,
         bytes: bytes.byteLength,
         records: changeSet.size,
-      },
-    );
-    return writeChangeSetPayload(payload);
-  },
-
-  async applyChangeSetDeprecated(
-    bytes: Uint8Array,
-    direction: Direction,
-  ): Promise<void> {
-    const changeSet = ChangeSet.fromBytes(bytes);
-    const payload = timedSync(
-      "changeSet:toRows",
-      () => buildChangeSetPayloadDeprecated(changeSet, direction),
-      {
-        direction,
-        bytes: bytes.byteLength,
-        records: changeSet.read().records.length,
       },
     );
     return writeChangeSetPayload(payload);

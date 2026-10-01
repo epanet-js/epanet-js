@@ -11,10 +11,8 @@ import type {
   HistoryEntry,
   SessionHistory,
 } from "src/lib/persistence/session-history";
-import {
-  useChangeSetHandlers,
-  type ChangeSetHandlers,
-} from "src/hooks/persistence/use-change-set-handlers";
+import { applyChange } from "src/lib/persistence/transaction-helpers";
+import { persistBranchChange } from "src/lib/persistence/persist-branch-change";
 import type { Direction } from "@epanet-js/change-set";
 import { timedSync } from "@epanet-js/ejsdb";
 import {
@@ -30,7 +28,6 @@ const commitHistoryEntry = (
   entry: HistoryEntry,
   sessionHistory: SessionHistory,
   onWriteFailure: WriteFailureHandler,
-  handlers: ChangeSetHandlers,
 ) => {
   const isUndo = direction === "undo";
   const changeDirection: Direction = isUndo ? "reverse" : "forward";
@@ -40,7 +37,7 @@ const commitHistoryEntry = (
   timedSync(
     "changeSet:apply",
     () =>
-      handlers.apply(
+      applyChange(
         get,
         set,
         entry.stateId,
@@ -54,7 +51,7 @@ const commitHistoryEntry = (
   isUndo ? sessionHistory.undo() : sessionHistory.redo();
 
   writeQueue.enqueue(
-    () => handlers.persist(worktree, entry.changeSet, changeDirection),
+    () => persistBranchChange(worktree, entry.changeSet, changeDirection),
     onWriteFailure,
   );
 
@@ -69,7 +66,6 @@ const nextEntry = (
 
 export const useUndoableTransactions = () => {
   const onWriteFailure = useWriteFailureHandler();
-  const handlers = useChangeSetHandlers();
 
   const historyControl = useAtomCallback(
     useCallback(
@@ -89,14 +85,13 @@ export const useUndoableTransactions = () => {
             entry,
             sessionHistory,
             onWriteFailure,
-            handlers,
           );
           return true;
         } finally {
           set(historyPendingAtom, false);
         }
       },
-      [onWriteFailure, handlers],
+      [onWriteFailure],
     ),
   );
 

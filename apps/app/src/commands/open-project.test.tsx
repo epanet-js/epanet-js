@@ -28,6 +28,7 @@ import type { FileWithHandle } from "browser-fs-access";
 import { useOpenProject, useOpenProjectFile } from "./open-project";
 import { recentFilesStoreAtom } from "src/state/file-system";
 import { dialogAtom } from "src/state/dialog";
+import { ChangeSet } from "@epanet-js/change-set";
 import { initializeWorktree, nullBranchStore } from "@epanet-js/worktree";
 import { registerBranchStore } from "src/lib/branching";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
@@ -73,7 +74,7 @@ describe("openProjectFile", () => {
     const worktree = initializeWorktree();
     registerBranchStore({
       ...nullBranchStore,
-      loadDeprecated: () =>
+      load: () =>
         Promise.resolve({
           worktree: {
             ...worktree,
@@ -86,9 +87,9 @@ describe("openProjectFile", () => {
             scenarios: ["scenario-1"],
             highestScenarioNumber: 1,
           },
-          deltas: new Map(),
-          simulationSettings: new Map(),
         }),
+      loadBranch: () =>
+        Promise.resolve({ delta: ChangeSet.empty(), simulationSettings: null }),
     });
     const hydraulicModel = HydraulicModelBuilder.with().aJunction(1).build();
     await seedDb(hydraulicModel);

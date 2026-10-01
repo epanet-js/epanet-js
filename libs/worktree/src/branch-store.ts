@@ -11,25 +11,13 @@ export type StoredBranch = {
   simulationSettings: string | null;
 };
 
-export type StoredBranchesDeprecated = {
-  worktree: Worktree;
-  deltas: Map<string, ChangeSet>;
-  simulationSettings: Map<string, string>;
-};
-
 export interface BranchStore {
   load(): Promise<StoredBranches>;
-  loadDeprecated(): Promise<StoredBranchesDeprecated>;
   loadBranch(branchId: string): Promise<StoredBranch>;
   createBranch(worktree: Worktree, branch: Branch): Promise<void>;
   renameBranch(branchId: string, name: string): Promise<void>;
   deleteBranch(branchId: string): Promise<void>;
   recordChange(
-    branchId: string,
-    changeSet: ChangeSet,
-    direction: Direction,
-  ): Promise<void>;
-  recordChangeDeprecated(
     branchId: string,
     changeSet: ChangeSet,
     direction: Direction,
@@ -40,19 +28,12 @@ export interface BranchStore {
 
 export const nullBranchStore: BranchStore = {
   load: () => Promise.resolve({ worktree: initializeWorktree() }),
-  loadDeprecated: () =>
-    Promise.resolve({
-      worktree: initializeWorktree(),
-      deltas: new Map(),
-      simulationSettings: new Map(),
-    }),
   loadBranch: (branchId) =>
     Promise.reject(new Error(`No stored branch ${branchId}`)),
   createBranch: () => Promise.resolve(),
   renameBranch: () => Promise.resolve(),
   deleteBranch: () => Promise.resolve(),
   recordChange: () => Promise.resolve(),
-  recordChangeDeprecated: () => Promise.resolve(),
   recordSimulationSettings: () => Promise.resolve(),
   exportBranch: (branchId) =>
     Promise.reject(new Error(`No stored branch ${branchId}`)),

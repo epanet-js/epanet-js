@@ -290,7 +290,6 @@ const ExportSubmenu = () => {
   const saveProject = useSaveProject();
   const exportScenarioAsProject = useExportScenarioAsProject();
   const isExportScenarioOn = useFeatureFlag("FLAG_EXPORT_SCENARIO");
-  const isLazyScenariosOn = useFeatureFlag("FLAG_LAZY_SCENARIOS");
   const worktree = useAtomValue(worktreeAtom);
   const isInScenario = worktree.activeBranchId !== worktree.mainId;
   const setDialogState = useSetAtom(dialogAtom);
@@ -321,7 +320,7 @@ const ExportSubmenu = () => {
             <FileSpreadsheetIcon />
             {translate("export.epanetInp")}
           </StyledItem>
-          {isExportScenarioOn && isLazyScenariosOn && (
+          {isExportScenarioOn && (
             <StyledItem
               disabled={!isInScenario}
               className={!isInScenario ? "opacity-60" : undefined}

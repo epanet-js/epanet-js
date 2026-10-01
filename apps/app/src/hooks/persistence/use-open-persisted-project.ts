@@ -16,13 +16,11 @@ import {
 import { captureError } from "src/infra/error-tracking";
 import { getBranchStore } from "src/lib/branching";
 import {
-  buildStoredBranchStates,
   buildUnloadedBranchStates,
   commitStoredBranches,
 } from "./use-initialize-branch";
 import type { Worktree } from "@epanet-js/worktree";
 import type { BranchState, UnloadedBranchState } from "src/state/branch-state";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { startTrace, type Trace } from "src/infra/trace";
 import { isTraceProjectOpenOn } from "src/infra/debug-mode";
 import { markProjectSavedAtom } from "src/state/project-revision";
@@ -50,27 +48,6 @@ const restoreBranches = async (
       loadInput.factories,
       storedBranches,
       (branchId) => branchStore.loadBranch(branchId),
-      trace,
-    ),
-  };
-};
-
-const restoreBranchesDeprecated = async (
-  loadInput: ProjectLoadInput,
-  trace: Trace,
-): Promise<RestoredBranches> => {
-  const storedBranches = await trace.measureAsync("load-scenarios", () =>
-    getBranchStore().loadDeprecated(),
-  );
-  const mainState = trace.measure("build-main-state", () =>
-    buildMainBranchState(loadInput),
-  );
-  return {
-    worktree: storedBranches.worktree,
-    branchStates: buildStoredBranchStates(
-      mainState,
-      loadInput.factories,
-      storedBranches,
       trace,
     ),
   };
@@ -105,7 +82,6 @@ export type OpenPersistedProjectResult =
 
 export const useOpenPersistedProject = () => {
   const defaultPanelsFor = useDefaultPanels();
-  const isLazyScenariosOn = useFeatureFlag("FLAG_LAZY_SCENARIOS");
   const openPersistedProject = useAtomCallback(
     useCallback(
       async (
@@ -159,9 +135,7 @@ export const useOpenPersistedProject = () => {
 
         let restored: RestoredBranches;
         try {
-          restored = isLazyScenariosOn
-            ? await restoreBranches(loadInput, trace)
-            : await restoreBranchesDeprecated(loadInput, trace);
+          restored = await restoreBranches(loadInput, trace);
         } catch (error) {
           trace.end();
           captureError(error as Error);
@@ -192,7 +166,7 @@ export const useOpenPersistedProject = () => {
           uniqueId,
         };
       },
-      [defaultPanelsFor, isLazyScenariosOn],
+      [defaultPanelsFor],
     ),
   );
 

@@ -13,10 +13,7 @@ import {
   setAsset,
   setDemands,
 } from "src/hydraulic-model/change-sets/intents";
-import {
-  applyChangeSetToDb,
-  applyChangeSetToDbDeprecated,
-} from "./apply-change-set";
+import { applyChangeSetToDb } from "./apply-change-set";
 import { fetchProject } from "./fetch-project";
 import { importProject } from "./import-project";
 import { useInProcessDb } from "../__test-helpers__/in-process-db";
@@ -48,83 +45,73 @@ const aNetwork = () => {
   return { model, assetFactory };
 };
 
-const writers = [
-  ["applyChangeSetToDb", applyChangeSetToDb],
-  ["applyChangeSetToDbDeprecated", applyChangeSetToDbDeprecated],
-] as const;
+describe("apply-change-set integration", () => {
+  useInProcessDb();
 
-describe.each(writers)(
-  "apply-change-set integration (%s)",
-  (_, applyChangeSetToDb) => {
-    useInProcessDb();
+  it("writes a create, an update and a delete from one change set", async () => {
+    const { model, assetFactory } = aNetwork();
+    await seed(model);
 
-    it("writes a create, an update and a delete from one change set", async () => {
-      const { model, assetFactory } = aNetwork();
-      await seed(model);
-
-      const junction = assetFactory.createJunction({
-        id: IDS.J3,
-        coordinates: [20, 5],
-        elevation: 30,
-      });
-
-      await applyChangeSetToDb(
-        changeSet(model, "edit", [
-          putAssets([junction]),
-          setAsset(IDS.P1, { diameter: 300 }),
-          dropAssets([IDS.J2]),
-        ]),
-        "forward",
-      );
-
-      const { hydraulicModel } = await fetchProject();
-
-      expect(
-        (hydraulicModel.assets.get(IDS.J3) as Junction).coordinates,
-      ).toEqual([20, 5]);
-      expect((hydraulicModel.assets.get(IDS.P1) as Pipe).diameter).toBe(300);
-      expect(hydraulicModel.assets.has(IDS.J2)).toBe(false);
+    const junction = assetFactory.createJunction({
+      id: IDS.J3,
+      coordinates: [20, 5],
+      elevation: 30,
     });
 
-    it("undoes a change set by writing it in reverse", async () => {
-      const { model } = aNetwork();
-      await seed(model);
-
-      const built = changeSet(model, "changeProperty", [
+    await applyChangeSetToDb(
+      changeSet(model, "edit", [
+        putAssets([junction]),
         setAsset(IDS.P1, { diameter: 300 }),
-      ]);
+        dropAssets([IDS.J2]),
+      ]),
+      "forward",
+    );
 
-      await applyChangeSetToDb(built, "forward");
-      await applyChangeSetToDb(built, "reverse");
+    const { hydraulicModel } = await fetchProject();
 
-      const { hydraulicModel } = await fetchProject();
+    expect((hydraulicModel.assets.get(IDS.J3) as Junction).coordinates).toEqual(
+      [20, 5],
+    );
+    expect((hydraulicModel.assets.get(IDS.P1) as Pipe).diameter).toBe(300);
+    expect(hydraulicModel.assets.has(IDS.J2)).toBe(false);
+  });
 
-      expect((hydraulicModel.assets.get(IDS.P1) as Pipe).diameter).toBe(200);
-    });
+  it("undoes a change set by writing it in reverse", async () => {
+    const { model } = aNetwork();
+    await seed(model);
 
-    it("writes curves and demands from one change set", async () => {
-      const { model } = aNetwork();
-      await seed(model);
+    const built = changeSet(model, "changeProperty", [
+      setAsset(IDS.P1, { diameter: 300 }),
+    ]);
 
-      const curves = new Map(model.curves);
-      curves.set(IDS.C1, { ...curves.get(IDS.C1)!, points: [{ x: 5, y: 6 }] });
+    await applyChangeSetToDb(built, "forward");
+    await applyChangeSetToDb(built, "reverse");
 
-      await applyChangeSetToDb(
-        changeSet(model, "edit", [
-          replaceCurves(curves),
-          setDemands([{ junctionId: IDS.J1, demands: [{ baseDemand: 7 }] }]),
-        ]),
-        "forward",
-      );
+    const { hydraulicModel } = await fetchProject();
 
-      const { hydraulicModel } = await fetchProject();
+    expect((hydraulicModel.assets.get(IDS.P1) as Pipe).diameter).toBe(200);
+  });
 
-      expect(hydraulicModel.curves.get(IDS.C1)!.points).toEqual([
-        { x: 5, y: 6 },
-      ]);
-      expect(hydraulicModel.demands.junctions.get(IDS.J1)).toEqual([
-        { baseDemand: 7 },
-      ]);
-    });
-  },
-);
+  it("writes curves and demands from one change set", async () => {
+    const { model } = aNetwork();
+    await seed(model);
+
+    const curves = new Map(model.curves);
+    curves.set(IDS.C1, { ...curves.get(IDS.C1)!, points: [{ x: 5, y: 6 }] });
+
+    await applyChangeSetToDb(
+      changeSet(model, "edit", [
+        replaceCurves(curves),
+        setDemands([{ junctionId: IDS.J1, demands: [{ baseDemand: 7 }] }]),
+      ]),
+      "forward",
+    );
+
+    const { hydraulicModel } = await fetchProject();
+
+    expect(hydraulicModel.curves.get(IDS.C1)!.points).toEqual([{ x: 5, y: 6 }]);
+    expect(hydraulicModel.demands.junctions.get(IDS.J1)).toEqual([
+      { baseDemand: 7 },
+    ]);
+  });
+});

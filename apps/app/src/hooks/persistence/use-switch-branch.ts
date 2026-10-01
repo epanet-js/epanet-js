@@ -8,7 +8,6 @@ import {
 } from "@epanet-js/hydraulic-model";
 import { branchStateAtom, isBranchLoaded } from "src/state/branch-state";
 import { worktreeAtom } from "src/state/scenarios";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { unloadBranch } from "./use-initialize-branch";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { mapEditionsTrackerAtom } from "src/state/map";
@@ -62,24 +61,19 @@ function unloadOtherScenarios(get: Getter, set: Setter, branchId: string) {
 }
 
 export const useSwitchBranch = () => {
-  const isLazyScenariosOn = useFeatureFlag("FLAG_LAZY_SCENARIOS");
-
   const switchBranch = useAtomCallback(
-    useCallback(
-      (get: Getter, set: Setter, branchId: string) => {
-        const targetState = get(branchStateAtom).get(branchId);
-        if (!targetState || !isBranchLoaded(targetState)) {
-          throw new Error(`Branch state not found for ${branchId}`);
-        }
+    useCallback((get: Getter, set: Setter, branchId: string) => {
+      const targetState = get(branchStateAtom).get(branchId);
+      if (!targetState || !isBranchLoaded(targetState)) {
+        throw new Error(`Branch state not found for ${branchId}`);
+      }
 
-        if (isLazyScenariosOn) unloadOtherScenarios(get, set, branchId);
+      unloadOtherScenarios(get, set, branchId);
 
-        updateFactories(get, set, targetState.labelManager);
-        set(mapEditionsTrackerAtom, new MapEditionsTracker());
-        validateSelection(get, set, targetState.hydraulicModel);
-      },
-      [isLazyScenariosOn],
-    ),
+      updateFactories(get, set, targetState.labelManager);
+      set(mapEditionsTrackerAtom, new MapEditionsTracker());
+      validateSelection(get, set, targetState.hydraulicModel);
+    }, []),
   );
 
   return { switchBranch };

@@ -14,17 +14,3 @@ export const applyChangeSetToDb = async (
     { direction, bytes: changeSet.byteLength },
   );
 };
-
-export const applyChangeSetToDbDeprecated = async (
-  changeSet: ChangeSet,
-  direction: Direction,
-): Promise<void> => {
-  await timed(
-    "changeSet:save",
-    async () => {
-      const worker = getWorker();
-      await worker.applyChangeSetDeprecated(changeSet.bytes, direction);
-    },
-    { direction, bytes: changeSet.byteLength },
-  );
-};

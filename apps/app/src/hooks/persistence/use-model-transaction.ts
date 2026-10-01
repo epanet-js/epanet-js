@@ -10,10 +10,8 @@ import {
 } from "src/state/derived-branch-state";
 import { worktreeAtom } from "src/state/scenarios";
 import { historyPendingAtom } from "src/state/transactions";
-import {
-  useChangeSetHandlers,
-  type ChangeSetHandlers,
-} from "src/hooks/persistence/use-change-set-handlers";
+import { applyChange } from "src/lib/persistence/transaction-helpers";
+import { persistBranchChange } from "src/lib/persistence/persist-branch-change";
 import { trackChangeSet } from "src/lib/persistence/shared";
 import { captureWarning } from "src/infra/error-tracking";
 import {
@@ -33,7 +31,6 @@ export const commitChangeSet = (
   set: Setter,
   changeSet: ChangeSet,
   onWriteFailure: WriteFailureHandler,
-  handlers: ChangeSetHandlers,
 ): void => {
   const newStateId = nanoid();
   const sessionHistory = get(sessionHistoryDerivedAtom).copy();
@@ -41,7 +38,7 @@ export const commitChangeSet = (
   timedSync(
     "changeSet:apply",
     () =>
-      handlers.apply(
+      applyChange(
         get,
         set,
         newStateId,
@@ -57,14 +54,13 @@ export const commitChangeSet = (
 
   const worktree = get(worktreeAtom);
   writeQueue.enqueue(
-    () => handlers.persist(worktree, changeSet, "forward"),
+    () => persistBranchChange(worktree, changeSet, "forward"),
     onWriteFailure,
   );
 };
 
 export const useModelTransaction = () => {
   const onWriteFailure = useWriteFailureHandler();
-  const handlers = useChangeSetHandlers();
 
   const transact = useAtomCallback(
     useCallback(
@@ -72,10 +68,10 @@ export const useModelTransaction = () => {
         if (isHistoryPending(get, changeSet.name)) return false;
 
         trackChangeSet(changeSet);
-        commitChangeSet(get, set, changeSet, onWriteFailure, handlers);
+        commitChangeSet(get, set, changeSet, onWriteFailure);
         return true;
       },
-      [onWriteFailure, handlers],
+      [onWriteFailure],
     ),
   );
 

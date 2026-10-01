@@ -8,7 +8,6 @@ import {
   type BranchingRules,
   type Worktree,
 } from "@epanet-js/worktree";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { AuthMockProvider, aUser } from "src/__helpers__/auth-mock";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
@@ -23,7 +22,6 @@ import { ScenarioSwitcher } from "./scenario-switcher";
 describe("ScenarioSwitcher", () => {
   beforeEach(() => {
     stubUserTracking();
-    stubFeatureOn("FLAG_LAZY_SCENARIOS");
     registerBranchingRules(switchingRules);
     vi.spyOn(HTMLElement.prototype, "offsetHeight", "get").mockReturnValue(320);
     vi.spyOn(HTMLElement.prototype, "offsetWidth", "get").mockReturnValue(256);

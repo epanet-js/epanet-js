@@ -1,6 +1,5 @@
 import {
   WHOLE_VALUE,
-  effective,
   effectiveChanges,
   isAssetEntity,
   type AssetEntityKind,
@@ -278,15 +277,3 @@ export const buildChangeSetPayload = (
   changeSet: ChangeSet,
   direction: Direction,
 ): WriteBatch => buildPayload([...effectiveChanges(changeSet, direction)]);
-
-export const buildChangeSetPayloadDeprecated = (
-  changeSet: ChangeSet,
-  direction: Direction,
-): WriteBatch =>
-  buildPayload(
-    changeSet.read().records.map((record) => ({
-      entity: record.entity,
-      id: record.id,
-      change: effective(record, direction),
-    })),
-  );

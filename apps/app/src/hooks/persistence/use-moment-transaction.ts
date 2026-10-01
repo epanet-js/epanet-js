@@ -20,10 +20,6 @@ import {
 import type { WriteFailureHandler } from "src/lib/persistence/write-queue";
 import { useWriteFailureHandler } from "src/hooks/persistence/use-write-failure-handler";
 import {
-  useChangeSetHandlers,
-  type ChangeSetHandlers,
-} from "src/hooks/persistence/use-change-set-handlers";
-import {
   commitChangeSet,
   isHistoryPending,
 } from "src/hooks/persistence/use-model-transaction";
@@ -118,7 +114,6 @@ const transactWithChangeSet = (
   set: Setter,
   moment: Moment,
   onWriteFailure: WriteFailureHandler,
-  handlers: ChangeSetHandlers,
 ): boolean => {
   let changeSet: ChangeSet;
   try {
@@ -139,7 +134,7 @@ const transactWithChangeSet = (
   reportOrphanLinks(get, moment);
 
   trackMoment(moment);
-  commitChangeSet(get, set, changeSet, onWriteFailure, handlers);
+  commitChangeSet(get, set, changeSet, onWriteFailure);
 
   reportAppliedIntegrity(get, moment);
 
@@ -148,22 +143,15 @@ const transactWithChangeSet = (
 
 export const useMomentTransaction = () => {
   const onWriteFailure = useWriteFailureHandler();
-  const handlers = useChangeSetHandlers();
 
   const transact = useAtomCallback(
     useCallback(
       (get: Getter, set: Setter, moment: Moment) => {
         if (isHistoryPending(get, moment.note)) return false;
 
-        return transactWithChangeSet(
-          get,
-          set,
-          moment,
-          onWriteFailure,
-          handlers,
-        );
+        return transactWithChangeSet(get, set, moment, onWriteFailure);
       },
-      [onWriteFailure, handlers],
+      [onWriteFailure],
     ),
   );
 

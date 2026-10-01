@@ -40,7 +40,7 @@ import {
   getLinkTimedSetting,
 } from "@epanet-js/hydraulic-model";
 import type { HydraulicModel } from "src/hydraulic-model";
-import { applyChangeSet, applyChangeSetDeprecated } from "./apply";
+import { applyChangeSet } from "./apply";
 import { toChangeSet } from "./from-moment";
 
 const IDS = {
@@ -532,37 +532,32 @@ const cases: OperationCase[] = [
   },
 ];
 
-const appliers = [
-  ["applyChangeSet", applyChangeSet],
-  ["applyChangeSetDeprecated", applyChangeSetDeprecated],
-] as const;
-
-const runCase = (testCase: OperationCase, apply: typeof applyChangeSet) => {
+const runCase = (testCase: OperationCase) => {
   const applied = testCase.fixture();
   const pristine = testCase.fixture();
 
   const result = testCase.run(applied);
   const changeSet =
     result instanceof ChangeSet ? result : toChangeSet(applied.model, result);
-  apply(applied.model, changeSet, "forward", applied.labelManager);
+  applyChangeSet(applied.model, changeSet, "forward", applied.labelManager);
 
   const probe = [...modelLabels(pristine.model), ...modelLabels(applied.model)];
 
   return { applied, pristine, changeSet, probe };
 };
 
-describe.each(appliers)("change sets per operation (%s)", (_, apply) => {
+describe("change sets per operation", () => {
   it.each(cases)("$name", (testCase) => {
-    const { applied, changeSet } = runCase(testCase, apply);
+    const { applied, changeSet } = runCase(testCase);
 
     expect(changeSet.isEmpty).toBe(false);
     testCase.expectApplied(applied);
   });
 
   it.each(cases)("$name reverses back to the original", (testCase) => {
-    const { applied, pristine, changeSet, probe } = runCase(testCase, apply);
+    const { applied, pristine, changeSet, probe } = runCase(testCase);
 
-    apply(applied.model, changeSet, "reverse", applied.labelManager);
+    applyChangeSet(applied.model, changeSet, "reverse", applied.labelManager);
 
     expect(withoutIndexOrder(snapshot(applied, probe))).toEqual(
       withoutIndexOrder(snapshot(pristine, probe)),

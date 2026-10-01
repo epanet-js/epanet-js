@@ -1,6 +1,5 @@
 import {
   WHOLE_VALUE,
-  effective,
   effectiveChanges,
   entityKinds,
   isAssetEntity,
@@ -360,23 +359,4 @@ export const applyChangeSet = (
     effectiveChanges(changeSet, direction),
   );
   return { name: changeSet.name, direction, recordCount: count, ...touched };
-};
-
-export const applyChangeSetDeprecated = (
-  model: HydraulicModel,
-  changeSet: ChangeSet,
-  direction: Direction,
-  labelManager: LabelManager,
-): ApplyReport => {
-  const { name, records } = changeSet.read();
-  const { count, ...touched } = applyChanges(
-    model,
-    labelManager,
-    records.map((record) => ({
-      entity: record.entity,
-      id: record.id,
-      change: effective(record, direction),
-    })),
-  );
-  return { name, direction, recordCount: count, ...touched };
 };

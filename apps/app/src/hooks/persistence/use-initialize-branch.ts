@@ -10,10 +10,7 @@ import {
 import type { ChangeSet, EntityKind } from "@epanet-js/change-set";
 import type { IdPool } from "@epanet-js/id-generator";
 import { copyModel } from "src/hydraulic-model";
-import {
-  applyChangeSet,
-  applyChangeSetDeprecated,
-} from "src/hydraulic-model/change-sets";
+import { applyChangeSet } from "src/hydraulic-model/change-sets";
 import { buildSimulationSettingsData } from "src/lib/db";
 import { SessionHistory } from "src/lib/persistence/session-history";
 import { settleAppliedModel } from "src/lib/persistence/transaction-helpers";
@@ -30,7 +27,6 @@ import type {
   Branch,
   StoredBranch,
   StoredBranches,
-  StoredBranchesDeprecated,
   Worktree,
 } from "@epanet-js/worktree";
 
@@ -52,30 +48,6 @@ const identifiersByEntity: Record<EntityKind, Identifiers | null> = {
   customAttributesDefinition: null,
   pipeLibrary: null,
   rawControls: null,
-};
-
-const observeIdentifiersDeprecated = (
-  factories: ModelFactories,
-  changeSet: ChangeSet,
-): void => {
-  const counters = factories.labelCounters;
-
-  for (const record of changeSet.read().records) {
-    const identifiers = identifiersByEntity[record.entity];
-    if (!identifiers) continue;
-    const { pool, labelType } = identifiers;
-
-    if (typeof record.id === "number") {
-      factories.idPools.forPool(pool).observe(record.id);
-    }
-
-    const label = record.after.label;
-    if (typeof label !== "string") continue;
-    const index = LabelManager.generatedIndex(label, labelType);
-    if (index !== null && index + 1 > (counters.get(labelType) ?? 0)) {
-      counters.set(labelType, index + 1);
-    }
-  }
 };
 
 const observeIdentifiers = (
@@ -128,60 +100,6 @@ const branchFromMain = (
     simulationSourceId: mainState.simulationSourceId,
     simulationSettings: mainState.simulationSettings,
   };
-};
-
-export const buildStoredBranchStates = (
-  mainState: BranchState,
-  factories: ModelFactories,
-  { deltas, simulationSettings }: StoredBranchesDeprecated,
-  trace: Trace,
-): Map<string, BranchState> => {
-  const branchStates = new Map<string, BranchState>();
-
-  for (const [branchId, delta] of deltas) {
-    const state = trace.measure(`${branchId}:copy-main`, () =>
-      branchFromMain(mainState, factories),
-    );
-    const { records } = trace.measure(
-      `${branchId}:decode-delta`,
-      () => delta.read(),
-      `${delta.byteLength} bytes`,
-    );
-    if (records.length > 0) {
-      const detail = `${records.length} records`;
-      trace.measure(
-        `${branchId}:observe-identifiers`,
-        () => observeIdentifiersDeprecated(factories, delta),
-        detail,
-      );
-      const report = trace.measure(
-        `${branchId}:apply-delta`,
-        () =>
-          applyChangeSetDeprecated(
-            state.hydraulicModel,
-            delta,
-            "forward",
-            state.labelManager,
-          ),
-        detail,
-      );
-      const version = nanoid();
-      state.hydraulicModel = trace.measure(`${branchId}:settle-model`, () =>
-        settleAppliedModel(state.hydraulicModel, version, report),
-      );
-      state.version = version;
-      state.sessionHistory = new SessionHistory(version);
-    }
-
-    const storedSettings = simulationSettings.get(branchId);
-    if (storedSettings !== undefined) {
-      state.simulationSettings = buildSimulationSettingsData(storedSettings);
-    }
-
-    branchStates.set(branchId, state);
-  }
-
-  return branchStates;
 };
 
 export const buildUnloadedBranchStates = async (

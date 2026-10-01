@@ -1,4 +1,4 @@
-import { act, renderHook } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import { Provider as JotaiProvider } from "jotai";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
@@ -26,6 +26,7 @@ import {
   stagingModelDerivedAtom,
 } from "src/state/derived-branch-state";
 import { projectSettingsAtom } from "src/state/project-settings";
+import { worktreeAtom } from "src/state/scenarios";
 import { useInProcessDb } from "src/lib/db/__test-helpers__/in-process-db";
 import * as db from "src/lib/db";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
@@ -167,11 +168,14 @@ const createNewScenario = (store: Store): string => {
   return scenarioId;
 };
 
-const deleteScenario = (store: Store, scenarioId: string) => {
+const deleteScenario = async (store: Store, scenarioId: string) => {
   const operations = scenarioOperations(store);
   act(() => {
     operations.current.deleteScenarioById(scenarioId);
   });
+  await waitFor(() =>
+    expect(store.get(worktreeAtom).scenarios).not.toContain(scenarioId),
+  );
 };
 
 const renameScenario = (store: Store, scenarioId: string, name: string) => {
@@ -300,7 +304,7 @@ describe("unsaved changes", () => {
       const scenarioId = createNewScenario(store);
       addJunction(store, [10, 20]);
       changeDemandMultiplier(store, 1.5);
-      deleteScenario(store, scenarioId);
+      await deleteScenario(store, scenarioId);
 
       expect(hasUnsavedChanges(store)).toBe(false);
     });
@@ -363,7 +367,7 @@ describe("unsaved changes", () => {
       const scenarioId = createNewScenario(store);
       save(store);
 
-      deleteScenario(store, scenarioId);
+      await deleteScenario(store, scenarioId);
 
       expect(hasUnsavedChanges(store)).toBe(true);
     });

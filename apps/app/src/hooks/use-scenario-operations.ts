@@ -6,7 +6,6 @@ import { useInitializeBranch } from "src/hooks/persistence/use-initialize-branch
 import { useSwitchBranch } from "src/hooks/persistence/use-switch-branch";
 import { useDeleteBranch } from "src/hooks/persistence/use-delete-branch";
 import { useLoadBranch } from "src/hooks/persistence/use-load-branch";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { captureError } from "src/infra/error-tracking";
 import { startTrace } from "src/infra/trace";
 import { isTraceScenarioSwitchOn } from "src/infra/debug-mode";
@@ -34,7 +33,6 @@ export const useScenarioOperations = () => {
   const { switchBranch } = useSwitchBranch();
   const { deleteBranch } = useDeleteBranch();
   const { loadBranch } = useLoadBranch();
-  const isLazyScenariosOn = useFeatureFlag("FLAG_LAZY_SCENARIOS");
   const setWorktree = useSetAtom(worktreeAtom);
   const setMode = useSetAtom(modeAtom);
   const onWriteFailure = useWriteFailureHandler();
@@ -100,15 +98,11 @@ export const useScenarioOperations = () => {
   const switchToBranch = useAtomCallback(
     useCallback(
       (get, _set, branchId: string) => {
-        if (!isLazyScenariosOn) {
-          void performSwitch(get(worktreeAtom), branchId);
-          return;
-        }
         void withBranchLoaded(branchId, () =>
           performSwitch(get(worktreeAtom), branchId),
         );
       },
-      [performSwitch, withBranchLoaded, isLazyScenariosOn],
+      [performSwitch, withBranchLoaded],
     ),
   );
 
@@ -176,13 +170,13 @@ export const useScenarioOperations = () => {
           get(worktreeAtom),
           scenarioId,
         );
-        if (!isLazyScenariosOn || !nextActive) {
+        if (!nextActive) {
           performDelete(scenarioId);
           return;
         }
         void withBranchLoaded(nextActive.id, () => performDelete(scenarioId));
       },
-      [performDelete, withBranchLoaded, isLazyScenariosOn],
+      [performDelete, withBranchLoaded],
     ),
   );
 
