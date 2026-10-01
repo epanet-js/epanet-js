@@ -1,5 +1,5 @@
 import { useAtom } from "jotai";
-import { useCallback } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { localeAtom } from "src/state/locale";
 import { Locale } from "@epanet-js/i18n/locale";
 import { useAuth } from "src/hooks/use-auth";
@@ -11,48 +11,40 @@ export type UserSettings = {
 
 export type UseUserSettingsHook = () => UserSettings;
 
-const useUserSettingsWithAuth = (): UserSettings => {
+export const useUserSettings: UseUserSettingsHook = () => {
   const { user, isSignedIn } = useAuth();
+  const [localLocale, setLocalLocale] = useAtom(localeAtom);
+  const adoptedForUserId = useRef<string | null>(null);
 
-  const locale = (isSignedIn && user.getLocale?.()) || "en";
+  const accountLocale = isSignedIn ? user.getLocale?.() : undefined;
+  const locale = accountLocale ?? localLocale;
+
+  useEffect(() => {
+    if (!isSignedIn) return;
+
+    if (accountLocale) {
+      if (accountLocale !== localLocale) setLocalLocale(accountLocale);
+      return;
+    }
+
+    if (!user.setLocale || adoptedForUserId.current === user.id) return;
+    adoptedForUserId.current = user.id;
+    void user.setLocale(localLocale);
+  }, [isSignedIn, accountLocale, localLocale, setLocalLocale, user]);
 
   const setLocale = useCallback(
     async (newLocale: Locale) => {
       if (isSignedIn && user.setLocale) {
         await user.setLocale(newLocale);
+      } else {
+        setLocalLocale(newLocale);
       }
     },
-    [isSignedIn, user],
+    [isSignedIn, user, setLocalLocale],
   );
 
   return {
     locale,
     setLocale,
   };
-};
-
-const useUserSettingsWithoutAuth = (): UserSettings => {
-  const [locale, setLocaleAtom] = useAtom(localeAtom);
-
-  const setLocale = useCallback(
-    (newLocale: Locale) => {
-      setLocaleAtom(newLocale);
-      return Promise.resolve();
-    },
-    [setLocaleAtom],
-  );
-
-  return {
-    locale,
-    setLocale,
-  };
-};
-
-export const useUserSettings: UseUserSettingsHook = () => {
-  const { isSignedIn } = useAuth();
-
-  const authSettings = useUserSettingsWithAuth();
-  const localSettings = useUserSettingsWithoutAuth();
-
-  return isSignedIn ? authSettings : localSettings;
 };

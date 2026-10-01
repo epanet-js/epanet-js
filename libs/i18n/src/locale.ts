@@ -32,7 +32,7 @@ export const getLocale = (): Locale => {
   if (typeof window === "undefined") return "en";
 
   try {
-    const savedValue = localStorage.getItem("locale");
+    const savedValue = sessionStorage.getItem("locale");
     if (savedValue) {
       const savedLocale = JSON.parse(savedValue) as Locale;
       if (allSupportedLanguages.includes(savedLocale)) {
