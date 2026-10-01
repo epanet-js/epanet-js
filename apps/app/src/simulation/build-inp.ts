@@ -761,11 +761,7 @@ function* generateInp(
   }
   yield* emitSection(state, ["[CONTROLS]"], controlRows(hydraulicModel, idMap));
   yield* emitSection(state, ["[RULES]"], ruleRows(hydraulicModel, idMap));
-  yield* emitSection(
-    state,
-    ["[SCRIPT]"],
-    scriptRows(hydraulicModel, idMap, units),
-  );
+  yield* emitSection(state, ["[SCRIPT]"], scriptRows(hydraulicModel, idMap));
   yield* emitSection(state, ["[END]"], [], { alwaysWrite: true });
 }
 
@@ -1501,9 +1497,8 @@ function* variableSpeedPumpTankLevelRows(
 function* scriptRows(
   hydraulicModel: HydraulicModel,
   idMap: EpanetIds,
-  flowUnits: EpanetUnitSystem,
 ): Generator<string> {
-  const builder = LuaScriptBuilder(flowUnits);
+  const builder = LuaScriptBuilder();
 
   for (const asset of hydraulicModel.assets.values()) {
     const target = remoteSetpointTargetOf(hydraulicModel, asset);

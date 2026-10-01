@@ -7,30 +7,30 @@ VSP2_RATIO_STEP  = 0.1      -- largest speed change a step without a slope takes
 VSP2_WARM_STEP   = 0.25     -- largest speed change a step on the slope learned earlier takes
 VSP2_TRIAL_SPEED_DROP = 0.01   -- how far the speed falls below a failed trial's before a lag is tried closed again
 
--- Per .inp flow unit: the tank_volume one unit of flow moves in a second
+-- Per units().flow: the tank_volume one unit of flow moves in a second
 -- (m^3 under SI flow units, ft^3 under US ones), and the units in one L/s.
 -- Built on EPANET's own factors per CFS
 VSP2_UNIT_FACTORS = {
-    LPS  = { 0.001,       1 },
-    LPM  = { 0.001 / 60,  60 },
-    MLD  = { 1 / 86.4,    0.0864 },
-    CMH  = { 1 / 3600,    3.6 },
-    CMD  = { 1 / 86400,   86.4 },
-    CFS  = { 1,           1 / 28.317 },
-    GPM  = { 1 / 448.831, 448.831 / 28.317 },
-    MGD  = { 1 / 0.64632, 0.64632 / 28.317 },
-    IMGD = { 1 / 0.5382,  0.5382 / 28.317 },
-    AFD  = { 1 / 1.9837,  1.9837 / 28.317 },
+    lps  = { 0.001,       1 },
+    lpm  = { 0.001 / 60,  60 },
+    mld  = { 1 / 86.4,    0.0864 },
+    cmh  = { 1 / 3600,    3.6 },
+    cmd  = { 1 / 86400,   86.4 },
+    cfs  = { 1,           1 / 28.317 },
+    gpm  = { 1 / 448.831, 448.831 / 28.317 },
+    mgd  = { 1 / 0.64632, 0.64632 / 28.317 },
+    imgd = { 1 / 0.5382,  0.5382 / 28.317 },
+    afd  = { 1 / 1.9837,  1.9837 / 28.317 },
 }
 
--- Per options().pressure_units code: the pressure units in one metre of
--- water, on EPANET's own factors (psi per ft, kPa per psi)
+-- Per units().pressure: the pressure units in one metre of water, on
+-- EPANET's own factors (psi per ft, kPa per psi)
 VSP2_PRESSURE_PER_METER = {
-    [0] = 0.4333 / 0.3048,                -- psi
-    [1] = 0.4333 / 0.3048 * 6.895,        -- kPa
-    [2] = 1,                              -- m
-    [3] = 0.4333 / 0.3048 * 6.895 / 100,  -- bar
-    [4] = 1 / 0.3048,                     -- ft
+    psi = 0.4333 / 0.3048,
+    kpa = 0.4333 / 0.3048 * 6.895,
+    m   = 1,
+    bar = 0.4333 / 0.3048 * 6.895 / 100,
+    ft  = 1 / 0.3048,
 }
 -- ================================================================
 
@@ -415,28 +415,31 @@ function vsp2Refresh(p, t, skipped, schedules)
     end
 end
 
--- The engine exposes the pressure units but not the flow units, so the
--- entry points are handed them
-function vsp2SetUnits(units)
-    local factors = VSP2_UNIT_FACTORS[units]
-    if factors == nil then error("VSP2: unknown flow units " .. tostring(units)) end
+-- The flow and pressure tolerances, and the volume one unit of flow moves,
+-- in the run's own units
+function vsp2SetUnits()
+    local u = units()
+    local factors = VSP2_UNIT_FACTORS[u.flow]
+    if factors == nil then error("VSP2: unknown flow units " .. tostring(u.flow)) end
+    local per_meter = VSP2_PRESSURE_PER_METER[u.pressure]
+    if per_meter == nil then error("VSP2: unknown pressure units " .. tostring(u.pressure)) end
     vsp2_flow_to_volume = factors[1]
     vsp2_flow_tol = VSP2_FLOW_TOL * factors[2]
-    vsp2_pressure_tol = VSP2_TOL * VSP2_PRESSURE_PER_METER[options().pressure_units]
+    vsp2_pressure_tol = VSP2_TOL * per_meter
 end
 
 -- A lead pump the .inp starts closed is the search's to run: a closed
 -- pump is otherwise left alone as a control's. It starts at maximum
 -- speed, the only one known to deliver
-function vsp2_open(pumps, schedules, units)
-    vsp2SetUnits(units)
+function vsp2_open(pumps, schedules)
+    vsp2SetUnits()
     for _, p in ipairs(pumps) do
         if link(p[1]).init_status == 0 then link(p[1]).setting = p[6] end
     end
 end
 
-function vsp2_step(pumps, schedules, units)
-    vsp2SetUnits(units)
+function vsp2_step(pumps, schedules)
+    vsp2SetUnits()
     local t = times().hydraulic_time
     if t ~= vsp2_step_time then vsp2_calls = 0 end
     vsp2_calls = vsp2_calls + 1
@@ -446,8 +449,8 @@ end
 
 -- The clock here has already moved on to the next step, so this step's
 -- time is the one read at the step before
-function vsp2_solved(pumps, schedules, units)
-    vsp2SetUnits(units)
+function vsp2_solved(pumps, schedules)
+    vsp2SetUnits()
     local t = vsp2_solved_time
     local skipped = 0
     if vsp2_step_time ~= t then
@@ -512,23 +515,18 @@ VSP2_PUMPS = {
 --     }
 VSP2_SCHEDULES = {}
 
--- VSP2_FLOW_UNITS names the .inp's flow units, as its [OPTIONS] Units line
--- does: one of the keys of VSP2_UNIT_FACTORS. The engine does not expose them,
--- and a level row's inflow and every flow tolerance depend on them.
-VSP2_FLOW_UNITS = "LPS"
-
 -- ================================================================
 -- EPANET-LSX's three entry points, defined once. Each hands every
 -- table above to its control type's functions, in the order written.
 -- ================================================================
 -- function on_open()
---     vsp2_open(VSP2_PUMPS, VSP2_SCHEDULES, VSP2_FLOW_UNITS)
+--     vsp2_open(VSP2_PUMPS, VSP2_SCHEDULES)
 -- end
 
 -- function on_hydraulic_step()
---     vsp2_step(VSP2_PUMPS, VSP2_SCHEDULES, VSP2_FLOW_UNITS)
+--     vsp2_step(VSP2_PUMPS, VSP2_SCHEDULES)
 -- end
 
 -- function on_hydraulics_solved()
---     vsp2_solved(VSP2_PUMPS, VSP2_SCHEDULES, VSP2_FLOW_UNITS)
+--     vsp2_solved(VSP2_PUMPS, VSP2_SCHEDULES)
 -- end

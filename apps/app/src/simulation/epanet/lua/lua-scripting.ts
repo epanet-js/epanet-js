@@ -1,4 +1,3 @@
-import type { EpanetUnitSystem } from "@epanet-js/project-settings";
 import remoteSetpointPrvScript from "./remote-setpoint-prv.lua?raw";
 import variableSpeedPumpsScript from "./variable-speed-pumps.lua?raw";
 
@@ -76,7 +75,7 @@ const variableSpeedPumpStruct = ({
 const variableSpeedPumpSchedule = (schedule: VspSchedulePoint[]) =>
   `{${schedule.map(({ time, target }) => `{${time},${target}}`).join(",")}}`;
 
-export const LuaScriptBuilder = (flowUnits: EpanetUnitSystem) => {
+export const LuaScriptBuilder = () => {
   const remoteSetpointPrvs: RemoteSetpointPrv[] = [];
   const variableSpeedPumps: VariableSpeedPump[] = [];
 
@@ -96,7 +95,7 @@ export const LuaScriptBuilder = (flowUnits: EpanetUnitSystem) => {
   };
 
   const generateVspArguments = () =>
-    `${generateVspPumps()}, ${generateVspSchedules()}, "${flowUnits}"`;
+    `${generateVspPumps()}, ${generateVspSchedules()}`;
 
   const generateVspOnOpenLine = () =>
     `    vsp2_open(${generateVspArguments()})`;
