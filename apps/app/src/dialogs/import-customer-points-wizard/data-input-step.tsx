@@ -9,7 +9,6 @@ import {
   type GisFiles,
   type GisFormat,
 } from "src/components/gis-drop-zone";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { ErrorIcon } from "src/icons";
 import type { Proj4Projection } from "@epanet-js/projections";
 import { customerPointsImporter } from "@epanet-js/gis-importers";
@@ -22,6 +21,14 @@ import { Trans } from "react-i18next";
 import { WizardActions as WizardActionsComponent } from "src/components/wizard";
 import { sourceErrorKey } from "./source-error-key";
 
+const supportedFormats: GisFormat[] = [
+  "geojson",
+  "geojsonl",
+  "shapefile",
+  "dxf",
+  "csv",
+];
+
 export const DataInputStep: React.FC<{
   onNext: () => void;
   renderActions?: boolean;
@@ -31,14 +38,6 @@ export const DataInputStep: React.FC<{
   const userTracking = useUserTracking();
   const translate = useTranslate();
   const [gisFiles, setGisFiles] = useState<GisFiles>({});
-  const readsCsv = useFeatureFlag("FLAG_IMPORT_CSV");
-  const supportedFormats: GisFormat[] = [
-    "geojson",
-    "geojsonl",
-    "shapefile",
-    "dxf",
-    ...(readsCsv ? (["csv"] as const) : []),
-  ];
 
   const {
     error,

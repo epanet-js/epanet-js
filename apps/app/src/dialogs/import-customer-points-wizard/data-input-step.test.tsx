@@ -9,7 +9,6 @@ import { stubProjectionsReady } from "src/__helpers__/projections";
 import shp from "shpjs";
 import { setWizardState } from "./__helpers__/wizard-state";
 import { renderWizard } from "./__helpers__/render-wizard";
-import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
 
 vi.mock("shpjs");
 
@@ -133,7 +132,6 @@ describe("DataInputStep", () => {
     });
 
     it("processes a table whose columns name the coordinates", async () => {
-      stubFeatureOn("FLAG_IMPORT_CSV");
       const userTracking = stubUserTracking();
       const store = setInitialState({
         hydraulicModel: HydraulicModelBuilder.with().build(),
@@ -166,28 +164,7 @@ describe("DataInputStep", () => {
       );
     });
 
-    it("refuses a table while they are not enabled", async () => {
-      stubFeatureOff("FLAG_IMPORT_CSV");
-      const store = setInitialState({
-        hydraulicModel: HydraulicModelBuilder.with().build(),
-      });
-      setWizardState(store, { currentStep: 1 });
-      renderWizard(store);
-
-      await uploadFileInStep(
-        aTestFile({
-          filename: "customers.csv",
-          content: "Id,Longitude,Latitude\nC-1,-3.7,40.4",
-        }),
-      );
-
-      expect(
-        screen.queryByRole("tab", { name: /data preview/i, current: "step" }),
-      ).not.toBeInTheDocument();
-    });
-
     it("goes on to the mapping step when a table does not name its coordinates", async () => {
-      stubFeatureOn("FLAG_IMPORT_CSV");
       const store = setInitialState({
         hydraulicModel: HydraulicModelBuilder.with().build(),
       });
