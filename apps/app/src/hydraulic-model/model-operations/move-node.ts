@@ -200,8 +200,8 @@ const moveNodeWithPipeSplitting = (
 
   const isActive = inferNodeIsActive(
     updatedNode,
-    new Set(splitResult.deleteAssets || []),
-    splitResult.putAssets || [],
+    new Set([splitResult.removedPipeId]),
+    splitResult.newPipes,
     hydraulicModel.topology,
     hydraulicModel.assets,
   );
@@ -214,11 +214,11 @@ const moveNodeWithPipeSplitting = (
     return nodeCopy;
   });
 
-  const allPutAssets = [...movedAssets, ...(splitResult.putAssets || [])];
+  const allPutAssets = [...movedAssets, ...splitResult.newPipes];
 
   const allPutCustomerPoints = [
     ...(moveResult.putCustomerPoints || []),
-    ...(splitResult.putCustomerPoints || []),
+    ...splitResult.customerPoints,
   ];
 
   return {
@@ -226,7 +226,7 @@ const moveNodeWithPipeSplitting = (
     putAssets: allPutAssets,
     putCustomerPoints:
       allPutCustomerPoints.length > 0 ? allPutCustomerPoints : undefined,
-    deleteAssets: splitResult.deleteAssets,
+    deleteAssets: [splitResult.removedPipeId],
   };
 };
 

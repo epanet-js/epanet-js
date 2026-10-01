@@ -26,7 +26,7 @@ describe("splitPipe", () => {
       coordinates: [5, 0],
     });
 
-    const { putAssets, deleteAssets } = splitPipe(hydraulicModel, {
+    const { newPipes, removedPipeId } = splitPipe(hydraulicModel, {
       assetFactory,
       labelManager,
       lengthUnit: "m",
@@ -34,10 +34,10 @@ describe("splitPipe", () => {
       splits: [splitNode],
     });
 
-    expect(putAssets).toHaveLength(2);
-    expect(deleteAssets).toEqual([IDS.P1]);
+    expect(newPipes).toHaveLength(2);
+    expect(removedPipeId).toBe(IDS.P1);
 
-    const [pipe1, pipe2] = putAssets as Pipe[];
+    const [pipe1, pipe2] = newPipes;
     expect(pipe1.type).toBe("pipe");
     expect(pipe2.type).toBe("pipe");
     expect(pipe1.coordinates).toEqual([
@@ -75,7 +75,7 @@ describe("splitPipe", () => {
       coordinates: [5, 0],
     });
 
-    const { putAssets } = splitPipe(hydraulicModel, {
+    const { newPipes } = splitPipe(hydraulicModel, {
       assetFactory,
       labelManager,
       lengthUnit: "m",
@@ -83,7 +83,7 @@ describe("splitPipe", () => {
       splits: [splitNode],
     });
 
-    const [pipe1, pipe2] = putAssets!;
+    const [pipe1, pipe2] = newPipes;
     expect(pipe1.label).toBe("MainPipe");
     expect(pipe2.label).toBe("MainPipe_1");
   });
@@ -127,7 +127,7 @@ describe("splitPipe", () => {
       coordinates: [5, 0],
     });
 
-    const { putAssets } = splitPipe(hydraulicModel, {
+    const { newPipes } = splitPipe(hydraulicModel, {
       assetFactory,
       labelManager,
       lengthUnit: "m",
@@ -135,7 +135,7 @@ describe("splitPipe", () => {
       splits: [splitNode],
     });
 
-    const [pipe1, pipe2] = putAssets!;
+    const [pipe1, pipe2] = newPipes;
     expect(pipe1.label).toBe("TestPipe");
     expect(pipe2.label).toBe("TestPipe_2");
   });
@@ -163,7 +163,7 @@ describe("splitPipe", () => {
       coordinates: [5, 0],
     });
 
-    const { putAssets } = splitPipe(hydraulicModel, {
+    const { newPipes } = splitPipe(hydraulicModel, {
       assetFactory,
       labelManager,
       lengthUnit: "m",
@@ -171,7 +171,7 @@ describe("splitPipe", () => {
       splits: [splitNode],
     });
 
-    const [pipe1, pipe2] = putAssets!;
+    const [pipe1, pipe2] = newPipes;
     expect(pipe1.label).toBe("MYLABEL_1");
     expect(pipe2.label).toBe("MYLABEL_2");
   });
@@ -211,7 +211,7 @@ describe("splitPipe", () => {
       coordinates: [5, 0],
     });
 
-    const { putAssets } = splitPipe(hydraulicModel, {
+    const { newPipes } = splitPipe(hydraulicModel, {
       assetFactory,
       labelManager,
       lengthUnit: "m",
@@ -219,7 +219,7 @@ describe("splitPipe", () => {
       splits: [splitNode],
     });
 
-    const [pipe1, pipe2] = putAssets!;
+    const [pipe1, pipe2] = newPipes;
 
     expect(pipe1.getProperty("diameter")).toBe(200);
     expect(pipe1.getProperty("roughness")).toBe(0.1);
@@ -269,7 +269,7 @@ describe("splitPipe", () => {
       coordinates: [5, 0],
     });
 
-    const { putAssets } = splitPipe(hydraulicModel, {
+    const { newPipes } = splitPipe(hydraulicModel, {
       assetFactory,
       labelManager,
       lengthUnit: "m",
@@ -277,7 +277,7 @@ describe("splitPipe", () => {
       splits: [splitNode],
     });
 
-    const [pipe1, pipe2] = putAssets!;
+    const [pipe1, pipe2] = newPipes;
 
     expect(pipe1.getProperty("custom-1")).toBe(42);
     expect(pipe1.getProperty("custom-2")).toBe("abc");
@@ -304,7 +304,7 @@ describe("splitPipe", () => {
       coordinates: [5, 0],
     });
 
-    const { putAssets } = splitPipe(hydraulicModel, {
+    const { newPipes } = splitPipe(hydraulicModel, {
       assetFactory,
       labelManager,
       lengthUnit: "m",
@@ -312,10 +312,10 @@ describe("splitPipe", () => {
       splits: [splitNode],
     });
 
-    const [pipe1, pipe2] = putAssets!;
+    const [pipe1, pipe2] = newPipes;
 
-    const length1 = (pipe1 as Pipe).length!;
-    const length2 = (pipe2 as Pipe).length!;
+    const length1 = pipe1.length!;
+    const length2 = pipe2.length!;
 
     expect(length1).toBeGreaterThan(0);
     expect(length2).toBeGreaterThan(0);
@@ -369,7 +369,7 @@ describe("splitPipe", () => {
       coordinates: splitCoordinates,
     });
 
-    const { putAssets } = splitPipe(hydraulicModel, {
+    const { newPipes } = splitPipe(hydraulicModel, {
       assetFactory,
       labelManager,
       lengthUnit: "m",
@@ -377,7 +377,7 @@ describe("splitPipe", () => {
       splits: [splitNode],
     });
 
-    const [pipe1, pipe2] = putAssets!;
+    const [pipe1, pipe2] = newPipes;
 
     expect(pipe1.coordinates[pipe1.coordinates.length - 1]).toEqual(
       splitCoordinates,
@@ -412,7 +412,7 @@ describe("splitPipe", () => {
       coordinates: [0.000063, 0],
     });
 
-    const { putAssets, deleteAssets } = splitPipe(hydraulicModel, {
+    const { newPipes, removedPipeId } = splitPipe(hydraulicModel, {
       assetFactory,
       labelManager,
       lengthUnit: "m",
@@ -420,10 +420,10 @@ describe("splitPipe", () => {
       splits: [splitNode1, splitNode2],
     });
 
-    expect(putAssets).toHaveLength(3);
-    expect(deleteAssets).toEqual([IDS.MY_PIPE]);
+    expect(newPipes).toHaveLength(3);
+    expect(removedPipeId).toBe(IDS.MY_PIPE);
 
-    const [pipe1, pipe2, pipe3] = putAssets as Pipe[];
+    const [pipe1, pipe2, pipe3] = newPipes;
 
     expect(pipe1.label).toBe("MY_PIPE");
     expect(pipe2.label).toBe("MY_PIPE_1");
@@ -484,7 +484,7 @@ describe("splitPipe", () => {
       coordinates: [15, 7.5],
     });
 
-    const { putAssets } = splitPipe(hydraulicModel, {
+    const { newPipes } = splitPipe(hydraulicModel, {
       assetFactory,
       labelManager,
       lengthUnit: "m",
@@ -492,9 +492,9 @@ describe("splitPipe", () => {
       splits: [splitNode1, splitNode2],
     });
 
-    expect(putAssets).toHaveLength(3);
+    expect(newPipes).toHaveLength(3);
 
-    const [pipe1, pipe2, pipe3] = putAssets as Pipe[];
+    const [pipe1, pipe2, pipe3] = newPipes;
 
     expect(pipe1.coordinates).toEqual([
       [0, 0],
@@ -550,7 +550,7 @@ describe("splitPipe", () => {
       coordinates: [7, 0],
     });
 
-    const { putAssets } = splitPipe(hydraulicModel, {
+    const { newPipes } = splitPipe(hydraulicModel, {
       assetFactory,
       labelManager,
       lengthUnit: "m",
@@ -558,7 +558,7 @@ describe("splitPipe", () => {
       splits: [splitNode1, splitNode2],
     });
 
-    const [pipe1, pipe2, pipe3] = putAssets! as Pipe[];
+    const [pipe1, pipe2, pipe3] = newPipes;
 
     [pipe1, pipe2, pipe3].forEach((pipe) => {
       expect(pipe.getProperty("diameter")).toBe(300);
@@ -600,7 +600,7 @@ describe("splitPipe", () => {
       coordinates: [3, 0],
     });
 
-    const { putAssets } = splitPipe(hydraulicModel, {
+    const { newPipes } = splitPipe(hydraulicModel, {
       assetFactory,
       labelManager,
       lengthUnit: "m",
@@ -608,9 +608,9 @@ describe("splitPipe", () => {
       splits: [splitNode1, splitNode2],
     });
 
-    expect(putAssets).toHaveLength(3);
+    expect(newPipes).toHaveLength(3);
 
-    const [pipe1, pipe2, pipe3] = putAssets as Pipe[];
+    const [pipe1, pipe2, pipe3] = newPipes;
 
     expect(pipe1.label).toBe("REVERSE_TEST");
     expect(pipe2.label).toBe("REVERSE_TEST_1");
@@ -664,7 +664,7 @@ describe("splitPipe", () => {
       coordinates: [33, 0],
     });
 
-    const { putAssets } = splitPipe(hydraulicModel, {
+    const { newPipes } = splitPipe(hydraulicModel, {
       assetFactory,
       labelManager,
       lengthUnit: "m",
@@ -672,7 +672,7 @@ describe("splitPipe", () => {
       splits: [splitNode],
     });
 
-    const [pipe1, pipe2] = putAssets! as Pipe[];
+    const [pipe1, pipe2] = newPipes;
 
     expect(pipe1.coordinates).toEqual([
       [0, 0],
@@ -731,7 +731,7 @@ describe("splitPipe", () => {
       coordinates: [5, 0],
     });
 
-    const { putAssets, putCustomerPoints } = splitPipe(hydraulicModel, {
+    const { newPipes, customerPoints } = splitPipe(hydraulicModel, {
       assetFactory,
       labelManager,
       lengthUnit: "m",
@@ -739,13 +739,12 @@ describe("splitPipe", () => {
       splits: [splitNode],
     });
 
-    expect(putAssets).toHaveLength(2);
-    expect(putCustomerPoints).toBeDefined();
-    expect(putCustomerPoints).toHaveLength(2);
+    expect(newPipes).toHaveLength(2);
+    expect(customerPoints).toHaveLength(2);
 
-    const [reconnectedCP1, reconnectedCP2] = putCustomerPoints!;
+    const [reconnectedCP1, reconnectedCP2] = customerPoints;
     const [splitPipeWithActiveTopology1, splitPipeWithActiveTopology2] =
-      putAssets as Pipe[];
+      newPipes;
 
     // Customer point 1 should connect to the first split (closer to J1)
     expect(reconnectedCP1.connection?.pipeId).toBe(
@@ -817,7 +816,7 @@ describe("splitPipe", () => {
       coordinates: [14, 0],
     });
 
-    const { putAssets, putCustomerPoints } = splitPipe(hydraulicModel, {
+    const { newPipes, customerPoints } = splitPipe(hydraulicModel, {
       assetFactory,
       labelManager,
       lengthUnit: "m",
@@ -825,11 +824,11 @@ describe("splitPipe", () => {
       splits: [splitNode1, splitNode2],
     });
 
-    expect(putAssets).toHaveLength(3);
-    expect(putCustomerPoints).toHaveLength(3);
+    expect(newPipes).toHaveLength(3);
+    expect(customerPoints).toHaveLength(3);
 
-    const [pipe1, pipe2, pipe3] = putAssets as Pipe[];
-    const reconnectedPoints = putCustomerPoints!;
+    const [pipe1, pipe2, pipe3] = newPipes;
+    const reconnectedPoints = customerPoints;
 
     // Verify each customer point is connected to the correct split segment
     const cp1Reconnected = reconnectedPoints.find((cp) => cp.id === IDS.CP1);
@@ -860,7 +859,7 @@ describe("splitPipe", () => {
       coordinates: [5, 0],
     });
 
-    const { putAssets, putCustomerPoints } = splitPipe(hydraulicModel, {
+    const { newPipes, customerPoints } = splitPipe(hydraulicModel, {
       assetFactory,
       labelManager,
       lengthUnit: "m",
@@ -868,8 +867,8 @@ describe("splitPipe", () => {
       splits: [splitNode],
     });
 
-    expect(putAssets).toHaveLength(2);
-    expect(putCustomerPoints).toBeUndefined();
+    expect(newPipes).toHaveLength(2);
+    expect(customerPoints).toEqual([]);
   });
 
   it("preserves customer point properties when reconnecting", () => {
@@ -904,7 +903,7 @@ describe("splitPipe", () => {
       coordinates: [5, 0],
     });
 
-    const { putAssets, putCustomerPoints } = splitPipe(hydraulicModel, {
+    const { newPipes, customerPoints } = splitPipe(hydraulicModel, {
       assetFactory,
       labelManager,
       lengthUnit: "m",
@@ -912,10 +911,10 @@ describe("splitPipe", () => {
       splits: [splitNode],
     });
 
-    expect(putAssets).toHaveLength(2);
-    expect(putCustomerPoints).toHaveLength(1);
+    expect(newPipes).toHaveLength(2);
+    expect(customerPoints).toHaveLength(1);
 
-    const reconnectedPoint = putCustomerPoints![0];
+    const reconnectedPoint = customerPoints[0];
     expect(reconnectedPoint.id).toBe(IDS.CP1);
     expect(reconnectedPoint.coordinates).toEqual([3, 1]);
     expect(reconnectedPoint.connection?.snapPoint).toEqual([3, 0]);
@@ -963,7 +962,7 @@ describe("splitPipe", () => {
       coordinates: [5, 0],
     });
 
-    const { putAssets, putCustomerPoints } = splitPipe(hydraulicModel, {
+    const { newPipes, customerPoints } = splitPipe(hydraulicModel, {
       assetFactory,
       labelManager,
       lengthUnit: "m",
@@ -971,12 +970,12 @@ describe("splitPipe", () => {
       splits: [splitReservoir],
     });
 
-    expect(putAssets).toHaveLength(2);
-    expect(putCustomerPoints).toHaveLength(2);
+    expect(newPipes).toHaveLength(2);
+    expect(customerPoints).toHaveLength(2);
 
     const [splitPipeWithActiveTopology1, splitPipeWithActiveTopology2] =
-      putAssets as Pipe[];
-    const [reconnectedCP1, reconnectedCP2] = putCustomerPoints!;
+      newPipes;
+    const [reconnectedCP1, reconnectedCP2] = customerPoints;
 
     expect(splitPipeWithActiveTopology1.connections).toEqual([
       IDS.R1,
@@ -1022,7 +1021,7 @@ describe("splitPipe", () => {
       coordinates: [5, 0],
     });
 
-    const { putAssets } = splitPipe(hydraulicModel, {
+    const { newPipes } = splitPipe(hydraulicModel, {
       assetFactory,
       labelManager,
       lengthUnit: "m",
@@ -1030,7 +1029,7 @@ describe("splitPipe", () => {
       splits: [splitNode],
     });
 
-    const [pipe1, pipe2] = putAssets as Pipe[];
+    const [pipe1, pipe2] = newPipes;
     expect(pipe1.coordinates).toEqual([
       [0, 0],
       [5, 0],
@@ -1070,7 +1069,7 @@ describe("splitPipe", () => {
       coordinates: [10, 0],
     });
 
-    const { putAssets } = splitPipe(hydraulicModel, {
+    const { newPipes } = splitPipe(hydraulicModel, {
       assetFactory,
       labelManager,
       lengthUnit: "m",
@@ -1078,7 +1077,7 @@ describe("splitPipe", () => {
       splits: [splitNode],
     });
 
-    const [pipe1, pipe2] = putAssets as Pipe[];
+    const [pipe1, pipe2] = newPipes;
     expect(pipe1.coordinates).toEqual([
       [0, 0],
       [5, 0],
@@ -1118,7 +1117,7 @@ describe("splitPipe", () => {
       coordinates: [0, 0],
     });
 
-    const { putAssets } = splitPipe(hydraulicModel, {
+    const { newPipes } = splitPipe(hydraulicModel, {
       assetFactory,
       labelManager,
       lengthUnit: "m",
@@ -1126,7 +1125,7 @@ describe("splitPipe", () => {
       splits: [splitNodeAtStart],
     });
 
-    const [pipe1, pipe2] = putAssets as Pipe[];
+    const [pipe1, pipe2] = newPipes;
     expect(pipe1.coordinates.length).toBeGreaterThan(1);
     expect(pipe2.coordinates.length).toBeGreaterThan(1);
   });
@@ -1160,7 +1159,7 @@ describe("splitPipe", () => {
       coordinates: [50, 0],
     });
 
-    const { putAssets } = splitPipe(hydraulicModel, {
+    const { newPipes } = splitPipe(hydraulicModel, {
       assetFactory,
       labelManager,
       lengthUnit: "m",
@@ -1168,7 +1167,7 @@ describe("splitPipe", () => {
       splits: [splitNode],
     });
 
-    const [pipe1, pipe2] = putAssets as Pipe[];
+    const [pipe1, pipe2] = newPipes;
 
     expect(pipe1.coordinates).toEqual([
       [0, 0],
@@ -1211,7 +1210,7 @@ describe("splitPipe", () => {
       coordinates: [0.000049, 0],
     });
 
-    const { putAssets } = splitPipe(hydraulicModel, {
+    const { newPipes } = splitPipe(hydraulicModel, {
       assetFactory,
       labelManager,
       lengthUnit: "m",
@@ -1219,7 +1218,7 @@ describe("splitPipe", () => {
       splits: [splitNode],
     });
 
-    const [pipe1, pipe2] = putAssets as Pipe[];
+    const [pipe1, pipe2] = newPipes;
 
     expect(pipe1.coordinates).toEqual([
       [0, 0],
@@ -1261,7 +1260,7 @@ describe("splitPipe", () => {
       coordinates: [10, 0],
     });
 
-    const { putAssets, deleteAssets } = splitPipe(hydraulicModel, {
+    const { newPipes, removedPipeId } = splitPipe(hydraulicModel, {
       assetFactory,
       labelManager,
       lengthUnit: "m",
@@ -1269,10 +1268,10 @@ describe("splitPipe", () => {
       splits: [splitNode],
     });
 
-    expect(deleteAssets).toEqual([IDS.P1]);
-    expect(putAssets).toHaveLength(2);
+    expect(removedPipeId).toBe(IDS.P1);
+    expect(newPipes).toHaveLength(2);
 
-    const [pipe1, pipe2] = putAssets as Pipe[];
+    const [pipe1, pipe2] = newPipes;
 
     expect(pipe1.coordinates).toEqual([
       [0, 0],
@@ -1304,7 +1303,7 @@ describe("splitPipe", () => {
       coordinates: [50, 0],
     });
 
-    const moment = splitPipe(model, {
+    const split = splitPipe(model, {
       assetFactory,
       labelManager,
       lengthUnit: "m",
@@ -1312,10 +1311,10 @@ describe("splitPipe", () => {
       splits: [splitNode],
     });
 
-    const { putAssets } = moment;
-    expect(putAssets).toHaveLength(2);
+    const { newPipes } = split;
+    expect(newPipes).toHaveLength(2);
 
-    const [pipe1, pipe2] = putAssets as Pipe[];
+    const [pipe1, pipe2] = newPipes;
     expect(pipe1.isActive).toBe(true);
     expect(pipe2.isActive).toBe(true);
   });
@@ -1338,7 +1337,7 @@ describe("splitPipe", () => {
       coordinates: [50, 0],
     });
 
-    const moment = splitPipe(model, {
+    const split = splitPipe(model, {
       assetFactory,
       labelManager,
       lengthUnit: "m",
@@ -1346,10 +1345,10 @@ describe("splitPipe", () => {
       splits: [splitNode],
     });
 
-    const { putAssets } = moment;
-    expect(putAssets).toHaveLength(2);
+    const { newPipes } = split;
+    expect(newPipes).toHaveLength(2);
 
-    const [pipe1, pipe2] = putAssets as Pipe[];
+    const [pipe1, pipe2] = newPipes;
     expect(pipe1.isActive).toBe(false);
     expect(pipe2.isActive).toBe(false);
   });
@@ -1375,7 +1374,7 @@ describe("splitPipe", () => {
       coordinates: [100, 0],
     });
 
-    const moment = splitPipe(model, {
+    const split = splitPipe(model, {
       assetFactory,
       labelManager,
       lengthUnit: "m",
@@ -1383,10 +1382,10 @@ describe("splitPipe", () => {
       splits: [splitNode1, splitNode2],
     });
 
-    const { putAssets } = moment;
-    expect(putAssets).toHaveLength(3);
+    const { newPipes } = split;
+    expect(newPipes).toHaveLength(3);
 
-    const pipes = putAssets as Pipe[];
+    const pipes = newPipes;
     expect(pipes[0].isActive).toBe(false);
     expect(pipes[1].isActive).toBe(false);
     expect(pipes[2].isActive).toBe(false);

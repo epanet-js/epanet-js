@@ -123,14 +123,14 @@ const addNodeWithPipeSplitting = (
   });
 
   const customerPoints = splitResults.flatMap(
-    (result) => result.putCustomerPoints ?? [],
+    (result) => result.customerPoints,
   );
 
   return {
     note: `Add ${node.type} and split pipe`,
-    putAssets: [node, ...splitResults.flatMap((result) => result.putAssets!)],
+    putAssets: [node, ...splitResults.flatMap((result) => result.newPipes)],
     putCustomerPoints: customerPoints.length > 0 ? customerPoints : undefined,
-    deleteAssets: splitResults.flatMap((result) => result.deleteAssets!),
+    deleteAssets: splitResults.map((result) => result.removedPipeId),
   };
 };
 

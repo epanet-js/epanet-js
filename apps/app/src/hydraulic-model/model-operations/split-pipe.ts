@@ -1,4 +1,5 @@
 import {
+  AssetId,
   NodeAsset,
   Pipe,
   PipeProperties,
@@ -7,7 +8,6 @@ import {
   CustomerPoint,
   computeLinkLength,
 } from "@epanet-js/hydraulic-model";
-import { ModelOperationDeprecated } from "../model-operation";
 import { HydraulicModel } from "../hydraulic-model";
 import { findJunctionForCustomerPoint } from "../utilities/junction-assignment";
 import { lineString, point } from "@turf/helpers";
@@ -37,10 +37,16 @@ type SplitPipeInput = {
   labelManager: LabelManager;
 };
 
-export const splitPipe: ModelOperationDeprecated<SplitPipeInput> = (
-  hydraulicModel,
-  { pipe, splits, lengthUnit, assetFactory, labelManager },
-) => {
+export type PipeSplit = {
+  removedPipeId: AssetId;
+  newPipes: Pipe[];
+  customerPoints: CustomerPoint[];
+};
+
+export const splitPipe = (
+  hydraulicModel: HydraulicModel,
+  { pipe, splits, lengthUnit, assetFactory, labelManager }: SplitPipeInput,
+): PipeSplit => {
   if (splits.length === 0) {
     throw new Error("At least one split is required");
   }
@@ -62,13 +68,9 @@ export const splitPipe: ModelOperationDeprecated<SplitPipeInput> = (
   );
 
   return {
-    note: `Split pipe`,
-    putAssets: newPipes,
-    deleteAssets: [pipe.id],
-    putCustomerPoints:
-      reconnectedCustomerPoints.length > 0
-        ? reconnectedCustomerPoints
-        : undefined,
+    removedPipeId: pipe.id,
+    newPipes,
+    customerPoints: reconnectedCustomerPoints,
   };
 };
 

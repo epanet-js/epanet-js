@@ -261,9 +261,9 @@ const handlePipeSplits = ({
       assetFactory,
       labelManager,
     });
-    allPutAssets.push(...splitResult.putAssets!);
-    allPutCustomerPoints.push(...(splitResult.putCustomerPoints || []));
-    allDeleteAssets.push(...splitResult.deleteAssets!);
+    allPutAssets.push(...splitResult.newPipes);
+    allPutCustomerPoints.push(...splitResult.customerPoints);
+    allDeleteAssets.push(splitResult.removedPipeId);
   });
 
   return {
