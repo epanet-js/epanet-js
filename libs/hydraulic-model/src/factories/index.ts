@@ -2,16 +2,19 @@ import { IdGenerator, PooledIdGenerator } from "@epanet-js/id-generator";
 import { CustomerPointFactory } from "./customer-point-factory";
 import { LabelManager, type LabelType } from "../label-manager";
 import { AssetFactory } from "./asset-factory";
+import { ZoneFactory } from "./zone-factory";
 
 export {
   CustomerPointFactory,
   buildCustomerPointPreviewFactory,
 } from "./customer-point-factory";
 export { AssetFactory } from "./asset-factory";
+export { ZoneFactory } from "./zone-factory";
 
 export type ModelFactories = {
   customerPointFactory: CustomerPointFactory;
   assetFactory: AssetFactory;
+  zoneFactory: ZoneFactory;
   labelManager: LabelManager;
   labelCounters: Map<LabelType, number>;
   idGenerator: IdGenerator;
@@ -37,6 +40,7 @@ export const initializeModelFactories = (
       options.labelManager,
     ),
     assetFactory: new AssetFactory(idGenerator, options.labelManager),
+    zoneFactory: new ZoneFactory(options.idPools.forPool("zone")),
     labelManager: options.labelManager,
     labelCounters,
     idGenerator,

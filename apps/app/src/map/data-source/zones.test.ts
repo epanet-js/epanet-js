@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { buildZoneFeatures } from "./zones";
 import type { MultiPolygon } from "geojson";
-import type { Zone } from "src/lib/zones";
+import type { Zone } from "@epanet-js/hydraulic-model";
 
 describe("buildZoneFeatures", () => {
   it("builds a feature from a MultiPolygon zone", () => {

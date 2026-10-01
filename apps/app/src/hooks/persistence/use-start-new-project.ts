@@ -19,8 +19,7 @@ import {
 } from "@epanet-js/project-settings";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { inpFileInfoAtom, projectFileInfoAtom } from "src/state/file-system";
-import type { Zones } from "src/lib/zones";
-import { initializeZones } from "src/lib/zones";
+import type { Zones } from "@epanet-js/hydraulic-model";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
 import { OPFSStorage } from "src/infra/storage";
 import { getAppId } from "src/infra/app-instance";
@@ -120,7 +119,7 @@ export const resetAppState = (set: Setter, panels: Panel[]) => {
   set(sourceRebuildDurationsAtom, []);
   set(resultsFetchDurationsAtom, []);
   set(simulationPlaybackAtom, initialPlaybackState);
-  set(zonesAtom, initializeZones());
+  set(zonesAtom, new Map());
   set(selectionSetsAtom, initializeSelectionSets());
   set(bookmarksAtom, initializeBookmarks());
   set(reviewResultsAtom, {});
@@ -171,7 +170,7 @@ export const loadModel = (
     },
   };
   set(projectSettingsAtom, mergedProjectSettings);
-  set(zonesAtom, zones ?? initializeZones());
+  set(zonesAtom, zones ?? new Map());
   set(selectionSetsAtom, selectionSets ?? initializeSelectionSets());
   set(bookmarksAtom, bookmarks ?? initializeBookmarks());
   if (autoElevations !== undefined) {

@@ -11,7 +11,7 @@ import { enrichWorkerError } from "src/infra/worker";
 import { runAllocation } from "./run-allocation";
 import { AllocationResultsView } from "./allocation-results";
 import { getCustomerPointsWorker } from "./get-worker";
-import type { Zone } from "src/lib/zones";
+import type { Zone } from "@epanet-js/hydraulic-model";
 
 type AllocationOptions = {
   runOnWorker?: boolean;

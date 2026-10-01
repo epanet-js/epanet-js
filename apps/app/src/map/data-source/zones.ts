@@ -1,5 +1,5 @@
 import type { Feature, Polygon, MultiPolygon } from "geojson";
-import type { Zones } from "src/lib/zones";
+import type { Zones } from "@epanet-js/hydraulic-model";
 
 export function buildZoneFeatures(
   zones: Zones,

@@ -1,6 +1,6 @@
 import type { ProjectSettings } from "@epanet-js/project-settings";
 import type { CustomAttributesDefinition } from "@epanet-js/hydraulic-model";
-import type { Zones } from "src/lib/zones";
+import type { Zones } from "@epanet-js/hydraulic-model";
 import type { Bookmark, SelectionSet } from "src/lib/collections";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
 import { HydraulicModel, initializeHydraulicModel } from "src/hydraulic-model";

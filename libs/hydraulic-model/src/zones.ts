@@ -1,5 +1,4 @@
-import type { MultiPolygon } from "geojson";
-import type { BBox } from "@turf/helpers";
+import type { BBox, MultiPolygon } from "geojson";
 
 export type ZoneId = number;
 
@@ -11,5 +10,3 @@ export type Zone = {
 };
 
 export type Zones = Map<ZoneId, Zone>;
-
-export const initializeZones = (): Zones => new Map();

@@ -1,8 +1,3 @@
-export { initializeZones } from "./zones";
-export type { Zone, ZoneId, Zones } from "./zones";
-
-export { ZoneLabelGenerator } from "./zone-label-generator";
-
 export type { ZoneFeature, ReadZoneFeaturesResult } from "./zone-features";
 
 export { importZoneFeatures } from "./import-zone-features";

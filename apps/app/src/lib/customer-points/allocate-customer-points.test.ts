@@ -6,7 +6,7 @@ import {
   buildCustomerPoint,
 } from "src/__helpers__/hydraulic-model-builder";
 import { CustomerPoints } from "@epanet-js/hydraulic-model";
-import type { Zone } from "src/lib/zones";
+import type { Zone } from "@epanet-js/hydraulic-model";
 
 const TURF_EARTH_RADIUS_IN_METERS = 6371008.8;
 const PIPE_LATITUDE = 29.7;

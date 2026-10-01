@@ -9,8 +9,8 @@ describe("importZoneFeatures", () => {
 
     const { zones } = importZoneFeatures(features);
 
-    expect(zones.get(1)!.label).toBe("Z2");
-    expect(zones.get(2)!.label).toBe("Z3");
+    expect(zones.get(1)!.label).toBe("Z1");
+    expect(zones.get(2)!.label).toBe("Z2");
   });
 
   it("uses the specified label property", () => {
@@ -31,7 +31,7 @@ describe("importZoneFeatures", () => {
     const { zones } = importZoneFeatures(features, "name");
 
     expect(zones.get(1)!.label).toBe("Zone A");
-    expect(zones.get(2)!.label).toBe("Z2");
+    expect(zones.get(2)!.label).toBe("Z1");
   });
 
   it("converts Polygon geometry to MultiPolygon", () => {

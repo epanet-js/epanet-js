@@ -1,4 +1,4 @@
-import type { Zones, ZoneId } from "src/lib/zones";
+import type { Zones, ZoneId } from "@epanet-js/hydraulic-model";
 import { computeAdjacency } from "src/lib/zones/zone-adjacency";
 import {
   hexToRgb,

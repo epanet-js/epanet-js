@@ -1,4 +1,4 @@
-import type { Zones } from "src/lib/zones";
+import type { Zones } from "@epanet-js/hydraulic-model";
 import { getWorker, timed } from "@epanet-js/ejsdb";
 import { serializeZones } from "../mappers/zones/to-rows";
 

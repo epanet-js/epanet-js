@@ -1,4 +1,4 @@
-import type { Zones } from "src/lib/zones";
+import type { Zones } from "@epanet-js/hydraulic-model";
 import { parseRows, zoneRowSchema, type ZoneRow } from "@epanet-js/ejsdb";
 
 export const zonesToRows = (zones: Zones): ZoneRow[] =>

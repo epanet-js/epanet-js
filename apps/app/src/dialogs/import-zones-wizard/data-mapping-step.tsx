@@ -1,7 +1,8 @@
 import { useMemo } from "react";
 import { useTranslate } from "src/hooks/use-translate";
 import { Selector } from "@epanet-js/ui-kit";
-import { type ZoneFeature, ZoneLabelGenerator } from "src/lib/zones";
+import type { ZoneFeature } from "src/lib/zones";
+import { ZoneLabelGenerator } from "@epanet-js/hydraulic-model";
 
 const PREVIEW_LIMIT = 7;
 

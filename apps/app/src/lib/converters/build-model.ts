@@ -58,16 +58,12 @@ import {
   emptyCustomAttributesDefinition,
   initializeModelFactories,
   setAttributes,
+  type Zones,
 } from "@epanet-js/hydraulic-model";
 import { IdGenerator } from "@epanet-js/id-generator";
 import { buildIdPools } from "src/lib/id-pools";
 import { inferNodeIsActive } from "src/hydraulic-model/utilities/active-topology";
-import {
-  importZoneFeatures,
-  initializeZones,
-  type ZoneFeature,
-  type Zones,
-} from "src/lib/zones";
+import { importZoneFeatures, type ZoneFeature } from "src/lib/zones";
 import {
   EpanetUnitSystem,
   ProjectSettings,
@@ -315,7 +311,7 @@ const buildZones = (
   toWgs84: (coordinates: Position) => Position,
   idGenerator: IdGenerator,
 ): Zones => {
-  if (zones.length === 0) return initializeZones();
+  if (zones.length === 0) return new Map();
 
   const features: ZoneFeature[] = zones.map(({ ref, label, polygons }) => ({
     type: "Feature",

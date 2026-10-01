@@ -1,5 +1,5 @@
 import type { BBox } from "@turf/helpers";
-import type { Zones, ZoneId } from "./zones";
+import type { Zones, ZoneId } from "@epanet-js/hydraulic-model";
 
 export const bboxOverlaps = (a: BBox, b: BBox): boolean =>
   a[0] < b[2] && a[2] > b[0] && a[1] < b[3] && a[3] > b[1];

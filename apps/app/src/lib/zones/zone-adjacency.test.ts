@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import type { BBox } from "@turf/helpers";
 import { bboxOverlaps, computeAdjacency } from "./zone-adjacency";
-import type { Zones } from "./zones";
+import type { Zones } from "@epanet-js/hydraulic-model";
 
 describe("bboxOverlaps", () => {
   it("returns true for overlapping bboxes", () => {

@@ -29,3 +29,4 @@ export * from "./controls";
 export * from "./topology";
 export * from "./custom-attributes";
 export * from "./hydraulic-model";
+export * from "./zones";

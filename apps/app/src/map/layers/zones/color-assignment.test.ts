@@ -3,7 +3,7 @@ import type { BBox } from "@turf/helpers";
 import { assignZoneColors } from "./color-assignment";
 import { hexToRgb, rgbToHue, hueDistance } from "./hue-distance";
 import { getQualitativePaletteColors } from "./palette-lookup";
-import type { Zones } from "src/lib/zones";
+import type { Zones } from "@epanet-js/hydraulic-model";
 import { computeAdjacency } from "src/lib/zones/zone-adjacency";
 
 const TEST_PALETTE = getQualitativePaletteColors("Bold");

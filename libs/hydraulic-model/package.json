@@ -18,6 +18,7 @@
     "@epanet-js/id-generator": "workspace:*",
     "@epanet-js/model-schema": "workspace:^",
     "@epanet-js/quantity": "workspace:*",
+    "@turf/bbox": "^6.5.0",
     "@turf/length": "^6.5.0",
     "nanoid": "^3.3.7",
     "ngraph.events": "^1.2.2",

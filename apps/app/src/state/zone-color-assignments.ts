@@ -5,7 +5,7 @@ import {
   assignZoneColors,
   getQualitativePaletteColors,
 } from "src/map/layers/zones";
-import type { ZoneId } from "src/lib/zones";
+import type { ZoneId } from "@epanet-js/hydraulic-model";
 
 export const zoneColorAssignmentsAtom = atom<Record<ZoneId, string>>((get) => {
   const zones = get(zonesAtom);

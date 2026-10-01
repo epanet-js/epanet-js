@@ -1,5 +1,4 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import { initializeZones } from "src/lib/zones";
 import {
   type Bookmark,
   initializeBookmarks,
@@ -59,7 +58,7 @@ const anInput = () => ({
   hydraulicModel: HydraulicModelBuilder.with().aJunction(1).build(),
   projectSettings: defaultProjectSettings,
   simulationSettings: defaultSimulationSettings,
-  zones: initializeZones(),
+  zones: new Map(),
   selectionSets: initializeSelectionSets(),
   bookmarks: initializeBookmarks(),
 });

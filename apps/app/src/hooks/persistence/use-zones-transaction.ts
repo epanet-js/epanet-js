@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import { useSetAtom } from "jotai";
 import { nanoid } from "nanoid";
-import type { Zones } from "src/lib/zones";
+import type { Zones } from "@epanet-js/hydraulic-model";
 import { zonesAtom } from "src/state/zones";
 import { projectDataVersionAtom } from "src/state/project-revision";
 import { dialogAtom } from "src/state/dialog";

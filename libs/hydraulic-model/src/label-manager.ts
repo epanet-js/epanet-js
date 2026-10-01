@@ -1,6 +1,7 @@
 import { Asset } from "./asset-types";
 import { MAX_CUSTOMER_POINT_LABEL_LENGTH } from "./customer-points";
 import { sharesIdPool } from "./id-pools";
+import { ConsecutiveIdsGenerator, IdGenerator } from "@epanet-js/id-generator";
 
 export type LabelType = Asset["type"] | "pattern" | "curve" | "customerPoint";
 
@@ -335,3 +336,11 @@ const getLabelUniqueGroup = (type: LabelType): LabelGroup => {
 const isSameLabelGroup = (typeA: LabelType, typeB: LabelType) => {
   return getLabelUniqueGroup(typeA) === getLabelUniqueGroup(typeB);
 };
+
+export class ZoneLabelGenerator {
+  private idGenerator: IdGenerator = new ConsecutiveIdsGenerator();
+
+  next(): string {
+    return `Z${this.idGenerator.newId()}`;
+  }
+}

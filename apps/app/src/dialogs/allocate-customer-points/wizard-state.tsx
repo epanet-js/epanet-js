@@ -4,11 +4,11 @@ import {
   CustomerPointAllocationRule,
   CustomerPointAllocationResult,
   getDefaultAllocationRules,
+  ZoneId,
 } from "@epanet-js/hydraulic-model";
 
 import { projectSettingsAtom } from "src/state/project-settings";
 import { allocationRulesAtom } from "src/state/allocation-rules";
-import { ZoneId } from "src/lib/zones";
 
 export function useAllocateCustomerPointsState() {
   const { units } = useAtomValue(projectSettingsAtom);

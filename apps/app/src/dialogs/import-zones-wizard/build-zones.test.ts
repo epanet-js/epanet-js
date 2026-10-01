@@ -29,7 +29,7 @@ describe("buildZones", () => {
     ]);
 
     expect([...zones.keys()]).toEqual([1, 2]);
-    expect([...zones.values()].map(({ label }) => label)).toEqual(["Z2", "Z3"]);
+    expect([...zones.values()].map(({ label }) => label)).toEqual(["Z1", "Z2"]);
     expect(mergedZones).toEqual([]);
   });
 
@@ -56,7 +56,7 @@ describe("buildZones", () => {
 
     expect([...zones.values()].map(({ label }) => label)).toEqual([
       "North",
-      "Z2",
+      "Z1",
     ]);
   });
 

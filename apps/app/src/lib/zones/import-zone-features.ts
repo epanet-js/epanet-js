@@ -1,8 +1,8 @@
 import type { MultiPolygon, Position } from "geojson";
 import turfGetBbox from "@turf/bbox";
-import type { Zones, ZoneId } from "./zones";
+import type { Zones, ZoneId } from "@epanet-js/hydraulic-model";
 import type { ZoneFeature } from "./zone-features";
-import { ZoneLabelGenerator } from "./zone-label-generator";
+import { ZoneLabelGenerator } from "@epanet-js/hydraulic-model";
 import {
   ConsecutiveIdsGenerator,
   type IdGenerator,

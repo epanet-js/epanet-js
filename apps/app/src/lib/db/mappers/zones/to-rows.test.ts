@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import type { Zones } from "src/lib/zones";
+import type { Zones } from "@epanet-js/hydraulic-model";
 import { serializeZones } from "./to-rows";
 import { buildZonesData } from "./builders";
 
