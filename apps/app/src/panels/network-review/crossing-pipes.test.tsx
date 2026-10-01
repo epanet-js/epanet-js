@@ -18,7 +18,8 @@ import {
   LabelManager,
   initializeModelFactories,
 } from "@epanet-js/hydraulic-model";
-import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
+import { ConsecutiveIdsGenerator, withPool } from "@epanet-js/id-generator";
+import { buildIdPools } from "src/lib/id-pools";
 import { selectionAtom } from "src/state/selection";
 import { CrossingPipes } from "./crossing-pipes";
 
@@ -55,7 +56,11 @@ const renderPanel = (store: Store) => {
   store.set(
     modelFactoriesAtom,
     initializeModelFactories({
-      idGenerator: new ConsecutiveIdsGenerator(highestSeededId),
+      idPools: withPool(
+        buildIdPools(),
+        "asset",
+        new ConsecutiveIdsGenerator(highestSeededId),
+      ),
       labelManager: new LabelManager(),
     }),
   );

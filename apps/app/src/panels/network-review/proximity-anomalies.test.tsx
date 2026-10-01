@@ -17,7 +17,8 @@ import {
   LabelManager,
   initializeModelFactories,
 } from "@epanet-js/hydraulic-model";
-import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
+import { ConsecutiveIdsGenerator, withPool } from "@epanet-js/id-generator";
+import { buildIdPools } from "src/lib/id-pools";
 import { proximityDistanceAtom } from "src/state/network-review";
 import { ProximityAnomalies } from "./proximity-anomalies";
 
@@ -53,7 +54,11 @@ const renderPanel = (store: Store) => {
   store.set(
     modelFactoriesAtom,
     initializeModelFactories({
-      idGenerator: new ConsecutiveIdsGenerator(highestSeededId),
+      idPools: withPool(
+        buildIdPools(),
+        "asset",
+        new ConsecutiveIdsGenerator(highestSeededId),
+      ),
       labelManager: new LabelManager(),
     }),
   );

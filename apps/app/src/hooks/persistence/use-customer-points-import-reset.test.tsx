@@ -2,7 +2,7 @@ import { renderHook, act } from "@testing-library/react";
 import { Provider as JotaiProvider } from "jotai";
 import {
   LabelManager,
-  initializeModelFactoriesWithPools,
+  initializeModelFactories,
 } from "@epanet-js/hydraulic-model";
 import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
@@ -27,7 +27,7 @@ const aStore = (): Store => {
   });
   store.set(
     modelFactoriesAtom,
-    initializeModelFactoriesWithPools({
+    initializeModelFactories({
       idPools: buildIdPools({ ...SEEDS }),
       labelManager: new LabelManager(),
     }),

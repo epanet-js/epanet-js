@@ -6,7 +6,7 @@ import type { SimulationSettings } from "src/simulation/simulation-settings";
 import { HydraulicModel, initializeHydraulicModel } from "src/hydraulic-model";
 import {
   ModelFactories,
-  initializeModelFactoriesWithPools,
+  initializeModelFactories,
   LabelManager,
 } from "@epanet-js/hydraulic-model";
 import { IdPoolsGenerator, type IdPoolSeeds } from "@epanet-js/id-generator";
@@ -50,7 +50,7 @@ export type FetchProjectOptions = {
 };
 
 const buildFactories = (maxima: IdPoolSeeds): ModelFactories =>
-  initializeModelFactoriesWithPools({
+  initializeModelFactories({
     idPools: new IdPoolsGenerator(maxima),
     labelManager: new LabelManager(),
   });

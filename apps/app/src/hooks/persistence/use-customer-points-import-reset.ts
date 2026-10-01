@@ -24,7 +24,7 @@ import { MapEditionsTracker } from "src/map/map-editions-tracker";
 import { initializeWorktree } from "@epanet-js/worktree";
 import { worktreeAtom } from "src/state/scenarios";
 import { modelFactoriesAtom } from "src/state/model-factories";
-import { initializeModelFactoriesWithPools } from "@epanet-js/hydraulic-model";
+import { initializeModelFactories } from "@epanet-js/hydraulic-model";
 import { withPool, type IdGenerator } from "@epanet-js/id-generator";
 
 type CustomerPointsImportResetInput = {
@@ -57,7 +57,7 @@ const loadModel = (
     const factories = get(modelFactoriesAtom);
     set(
       modelFactoriesAtom,
-      initializeModelFactoriesWithPools({
+      initializeModelFactories({
         idPools: withPool(factories.idPools, "customerPoint", idGenerator),
         labelManager: factories.labelManager,
         labelCounters: factories.labelCounters,

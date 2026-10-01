@@ -23,7 +23,7 @@ import {
   LabelManager,
   initializeModelFactories,
 } from "@epanet-js/hydraulic-model";
-import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
+import { buildIdPools } from "src/lib/id-pools";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { getAssetsByType } from "src/__helpers__/asset-queries";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
@@ -65,7 +65,7 @@ const useOwnIdGenerator = (store: ReturnType<typeof setInitialState>) => {
   store.set(
     modelFactoriesAtom,
     initializeModelFactories({
-      idGenerator: new ConsecutiveIdsGenerator(),
+      idPools: buildIdPools(),
       labelManager: new LabelManager(),
     }),
   );

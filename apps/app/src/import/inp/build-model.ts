@@ -6,7 +6,7 @@ import {
 import {
   CustomerPointFactory,
   ModelFactories,
-  initializeModelFactoriesWithPools,
+  initializeModelFactories,
   type TankMixingModel,
   PumpStatus,
   ValveStatus,
@@ -109,7 +109,7 @@ export const buildModel = (
 
   const idPools = buildIdPools();
   const labelManager = new LabelManager();
-  const factories = initializeModelFactoriesWithPools({
+  const factories = initializeModelFactories({
     idPools,
     labelManager,
   });

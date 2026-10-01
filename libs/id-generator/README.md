@@ -42,12 +42,18 @@ keyed in its own map, so a pattern and a curve may both be `7`.
 - **`IdPoolsGenerator`** — a `ConsecutiveIdsGenerator` per pool. Its `seeds` are
   a complete `Record<IdPool, number>`: a pool that silently starts at 0 hands
   out an id something already holds, so there is no default.
-- **`sharedIdPools(generator)`** — every pool aliases one generator, so all four
+- **`sharedIdPools(generator)`** — every pool aliases one generator, so all five
   draw from a single sequence. Use it where the caller has one generator and no
   per-pool seeds.
 
 ```ts
-const pools = new IdPoolsGenerator({ asset: 42, pattern: 7, curve: 0, zone: 0 });
+const pools = new IdPoolsGenerator({
+  asset: 42,
+  customerPoint: 0,
+  pattern: 7,
+  curve: 0,
+  zone: 0,
+});
 pools.newId("asset"); // 43
 pools.newId("pattern"); // 8
 ```

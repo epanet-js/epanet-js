@@ -56,7 +56,7 @@ import {
   buildCustomAttributeId,
   createControlId,
   emptyCustomAttributesDefinition,
-  initializeModelFactoriesWithPools,
+  initializeModelFactories,
   setAttributes,
 } from "@epanet-js/hydraulic-model";
 import { IdGenerator } from "@epanet-js/id-generator";
@@ -120,7 +120,7 @@ export const buildModel = (
 
   const idPools = buildIdPools();
   const labelManager = new LabelManager();
-  const factories = initializeModelFactoriesWithPools({
+  const factories = initializeModelFactories({
     idPools,
     labelManager,
   });

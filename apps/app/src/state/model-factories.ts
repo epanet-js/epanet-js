@@ -4,13 +4,13 @@ import {
   initializeModelFactories,
   LabelManager,
 } from "@epanet-js/hydraulic-model";
-import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
+import { buildIdPools } from "src/lib/id-pools";
 
 export type { ModelFactories };
 
 export const modelFactoriesAtom = atom<ModelFactories>(
   initializeModelFactories({
-    idGenerator: new ConsecutiveIdsGenerator(),
+    idPools: buildIdPools(),
     labelManager: new LabelManager(),
   }),
 );

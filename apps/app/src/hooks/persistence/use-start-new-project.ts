@@ -9,7 +9,7 @@ import {
 } from "src/hydraulic-model";
 import {
   type ModelFactories,
-  initializeModelFactoriesWithPools,
+  initializeModelFactories,
   LabelManager,
 } from "@epanet-js/hydraulic-model";
 import { buildIdPools } from "src/lib/id-pools";
@@ -239,7 +239,7 @@ const buildBlankProject = ({
   autoElevations,
 }: BlankProjectOptions): ProjectLoadInput => {
   const idPools = buildIdPools();
-  const factories = initializeModelFactoriesWithPools({
+  const factories = initializeModelFactories({
     idPools,
     labelManager: new LabelManager(),
   });
@@ -320,7 +320,7 @@ export const useStartBlankProject = () => {
 };
 
 const withIdPools = (factories: ModelFactories): ModelFactories =>
-  initializeModelFactoriesWithPools({
+  initializeModelFactories({
     idPools: buildIdPools(),
     labelManager: factories.labelManager,
     labelCounters: factories.labelCounters,

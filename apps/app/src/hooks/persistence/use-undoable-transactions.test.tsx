@@ -13,7 +13,8 @@ import {
   LabelManager,
   initializeModelFactories,
 } from "@epanet-js/hydraulic-model";
-import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
+import { ConsecutiveIdsGenerator, withPool } from "@epanet-js/id-generator";
+import { buildIdPools } from "src/lib/id-pools";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { historyPendingAtom } from "src/state/transactions";
 import { useInProcessDb } from "src/lib/db/__test-helpers__/in-process-db";
@@ -37,7 +38,11 @@ const aProject = async (): Promise<Store> => {
   store.set(
     modelFactoriesAtom,
     initializeModelFactories({
-      idGenerator: new ConsecutiveIdsGenerator(IDS.J1),
+      idPools: withPool(
+        buildIdPools(),
+        "asset",
+        new ConsecutiveIdsGenerator(IDS.J1),
+      ),
       labelManager: new LabelManager(),
     }),
   );

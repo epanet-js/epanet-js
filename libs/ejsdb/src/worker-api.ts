@@ -1552,26 +1552,6 @@ export const api = {
     });
   },
 
-  async getMaxId(): Promise<number> {
-    return timed("getMaxId", async () => {
-      await ready;
-      if (!db) throw new Error("No database open");
-      const rows = db.exec(
-        `SELECT MAX(m) AS m FROM (
-           SELECT MAX(id) AS m FROM junctions UNION ALL
-           SELECT MAX(id) FROM reservoirs UNION ALL
-           SELECT MAX(id) FROM tanks UNION ALL
-           SELECT MAX(id) FROM pipes UNION ALL
-           SELECT MAX(id) FROM pumps UNION ALL
-           SELECT MAX(id) FROM valves UNION ALL
-           SELECT MAX(id) FROM customer_points
-         )`,
-        { returnValue: "resultRows" },
-      ) as Array<Array<number | null>>;
-      return rows[0]?.[0] ?? 0;
-    });
-  },
-
   async getIdPools(): Promise<IdPoolMaxima> {
     return timed("getIdPools", async () => {
       await ready;

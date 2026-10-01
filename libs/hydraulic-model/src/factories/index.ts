@@ -1,8 +1,4 @@
-import {
-  IdGenerator,
-  PooledIdGenerator,
-  sharedIdPools,
-} from "@epanet-js/id-generator";
+import { IdGenerator, PooledIdGenerator } from "@epanet-js/id-generator";
 import { CustomerPointFactory } from "./customer-point-factory";
 import { LabelManager, type LabelType } from "../label-manager";
 import { AssetFactory } from "./asset-factory";
@@ -23,19 +19,13 @@ export type ModelFactories = {
 };
 
 type ModelFactoriesOptions = {
-  idGenerator: IdGenerator;
-  labelManager: LabelManager;
-  labelCounters?: Map<LabelType, number>;
-};
-
-type PooledModelFactoriesOptions = {
   idPools: PooledIdGenerator;
   labelManager: LabelManager;
   labelCounters?: Map<LabelType, number>;
 };
 
-const buildModelFactories = (
-  options: PooledModelFactoriesOptions,
+export const initializeModelFactories = (
+  options: ModelFactoriesOptions,
 ): ModelFactories => {
   const labelCounters = options.labelCounters ?? new Map<LabelType, number>();
   options.labelManager.adoptCounters(labelCounters);
@@ -53,16 +43,3 @@ const buildModelFactories = (
     idPools: options.idPools,
   };
 };
-
-export const initializeModelFactories = (
-  options: ModelFactoriesOptions,
-): ModelFactories =>
-  buildModelFactories({
-    idPools: sharedIdPools(options.idGenerator),
-    labelManager: options.labelManager,
-    labelCounters: options.labelCounters,
-  });
-
-export const initializeModelFactoriesWithPools = (
-  options: PooledModelFactoriesOptions,
-): ModelFactories => buildModelFactories(options);

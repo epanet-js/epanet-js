@@ -21,9 +21,9 @@ workspace libraries. Import everything from the package root
   status/kind vocabularies, and type guards. Geometry is GeoJSON-based.
 - **Factories** — build assets and customer points with defaults, generated ids,
   and auto labels: `AssetFactory`, `CustomerPointFactory`, the `ModelFactories`
-  container, and `initializeModelFactories(...)`. Factories take an injected
-  `IdGenerator` ([`@epanet-js/id-generator`](../id-generator)) and a
-  `DefaultsSpec`, so callers stay in control of id sequencing and default values.
+  container, and `initializeModelFactories(...)`. Factories draw ids from
+  injected id pools ([`@epanet-js/id-generator`](../id-generator)), so callers
+  stay in control of id sequencing.
 - **Customer points** — the `CustomerPoint` type/collection and
   `CustomerPointsLookup` (the reverse, unidirectional lookup from an asset to its
   customer points).
@@ -38,15 +38,20 @@ workspace libraries. Import everything from the package root
 
 ```ts
 import {
+  LabelManager,
   initializeModelFactories,
-  type DefaultsSpec,
 } from "@epanet-js/hydraulic-model";
-import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
+import { IdPoolsGenerator } from "@epanet-js/id-generator";
 
 const factories = initializeModelFactories({
-  idGenerator: new ConsecutiveIdsGenerator(),
-  labelManager,
-  defaults,
+  idPools: new IdPoolsGenerator({
+    asset: 0,
+    customerPoint: 0,
+    pattern: 0,
+    curve: 0,
+    zone: 0,
+  }),
+  labelManager: new LabelManager(),
 });
 const junction = factories.assetFactory.createJunction({ coordinates: [0, 0] });
 ```

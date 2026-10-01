@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { Provider as JotaiProvider } from "jotai";
 import {
   LabelManager,
-  initializeModelFactoriesWithPools,
+  initializeModelFactories,
 } from "@epanet-js/hydraulic-model";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
@@ -36,7 +36,7 @@ const aProjectWhosePoolIsAhead = (): Store => {
   const store = setInitialState({ hydraulicModel });
   store.set(
     modelFactoriesAtom,
-    initializeModelFactoriesWithPools({
+    initializeModelFactories({
       idPools: buildIdPools({
         asset: IDS.J1,
         customerPoint: IDS.J1,

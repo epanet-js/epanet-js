@@ -21,7 +21,7 @@ import {
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { selectionAtom } from "src/state/selection";
 import { commandBarOpenAtom } from "src/state/command-bar";
-import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
+import { buildIdPools } from "src/lib/id-pools";
 import { Store } from "src/state";
 import { useInitializeBranch } from "src/hooks/persistence/use-initialize-branch";
 import { useSwitchBranch } from "src/hooks/persistence/use-switch-branch";
@@ -136,7 +136,7 @@ describe("CommandBar", () => {
     store.set(
       modelFactoriesAtom,
       initializeModelFactories({
-        idGenerator: new ConsecutiveIdsGenerator(),
+        idPools: buildIdPools(),
         labelManager,
       }),
     );
@@ -224,7 +224,7 @@ const setupWithLabels = (
   store.set(
     modelFactoriesAtom,
     initializeModelFactories({
-      idGenerator: new ConsecutiveIdsGenerator(),
+      idPools: buildIdPools(),
       labelManager,
     }),
   );

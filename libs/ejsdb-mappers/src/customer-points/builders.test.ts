@@ -1,4 +1,4 @@
-import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
+import { buildTestIdPools } from "../__helpers__/id-pools";
 import {
   LabelManager,
   initializeModelFactories,
@@ -17,7 +17,7 @@ const emptyCpData = (): CustomerPointsData => ({
 
 const makeFactories = (maxId = 0) =>
   initializeModelFactories({
-    idGenerator: new ConsecutiveIdsGenerator(maxId),
+    idPools: buildTestIdPools({ customerPoint: maxId }),
     labelManager: new LabelManager(),
   });
 

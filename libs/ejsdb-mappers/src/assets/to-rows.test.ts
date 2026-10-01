@@ -1,4 +1,4 @@
-import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
+import { buildTestIdPools } from "../__helpers__/id-pools";
 import {
   LabelManager,
   initializeModelFactories,
@@ -15,7 +15,7 @@ import { buildAssetsData } from "./builders";
 
 const makeFactories = () =>
   initializeModelFactories({
-    idGenerator: new ConsecutiveIdsGenerator(),
+    idPools: buildTestIdPools(),
     labelManager: new LabelManager(),
   });
 
