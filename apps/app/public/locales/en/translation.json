@@ -1640,7 +1640,7 @@
     "paywall": {
       "title": "Upgrade to access scenarios",
       "description1": "Scenarios let you explore \"what-if\" changes without duplicating your model.",
-      "description2": "Create alternative versions and compare their results against the original (Main).",
+      "description2": "Create alternative versions and compare their results against the base model (Main).",
       "trial": "Scenarios are a paid feature. Activate your free trial to get full access for 14 days—no credit card required.",
       "plans": "Scenarios are available on paid plans.",
       "captions": {
