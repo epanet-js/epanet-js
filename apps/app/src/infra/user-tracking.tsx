@@ -1198,11 +1198,15 @@ type ScenarioDeleted = {
   scenarioName: string;
 };
 
+export type PaywallLockSource = "rename" | "delete" | "duplicate";
+
 type ScenarioDuplicated = {
   name: "scenario.duplicated";
   sourceScenarioId: string;
   scenarioId: string;
   scenarioName: string;
+  isDemoNetwork: boolean;
+  scenariosCount: number;
 };
 
 type ScenarioRenamed = {
@@ -1906,7 +1910,11 @@ export type UserEvent =
       simpleControlsCount: number;
       rulesCount: number;
     }
-  | { name: "paywallLock.clicked"; feature: PaywallFeature }
+  | {
+      name: "paywallLock.clicked";
+      feature: PaywallFeature;
+      source?: PaywallLockSource;
+    }
   | {
       name: "paywall.seen";
       feature: PaywallFeature;

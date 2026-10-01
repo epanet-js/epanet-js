@@ -4,7 +4,10 @@ import * as Tooltip from "@radix-ui/react-tooltip";
 import { type PaywallFeature } from "src/state/dialog";
 import { usePaywall, useStartUpgrade } from "src/hooks/use-paywall";
 import { useTranslate } from "src/hooks/use-translate";
-import { useUserTracking } from "src/infra/user-tracking";
+import {
+  useUserTracking,
+  type PaywallLockSource,
+} from "src/infra/user-tracking";
 import { PaywallLockIcon, RefreshIcon } from "src/icons";
 import { Button, TContent, StyledTooltipArrow } from "src/components/elements";
 import { useAuth } from "src/hooks/use-auth";
@@ -17,15 +20,18 @@ import { isTrialAvailable } from "src/lib/account-plans";
 import { SignInButton } from "src/components/auth/sign-in-button";
 import { buildAfterSignupUrl } from "src/hooks/use-early-access";
 
-export const useFeatureLock = (feature: PaywallFeature | undefined) => {
+export const useFeatureLock = (
+  feature: PaywallFeature | undefined,
+  source?: PaywallLockSource,
+) => {
   const paywallDialog = usePaywall(feature);
   const startUpgrade = useStartUpgrade();
   const userTracking = useUserTracking();
   const openPaywall = useCallback(() => {
     if (!paywallDialog || !feature) return;
-    userTracking.capture({ name: "paywallLock.clicked", feature });
+    userTracking.capture({ name: "paywallLock.clicked", feature, source });
     startUpgrade(feature);
-  }, [paywallDialog, startUpgrade, userTracking, feature]);
+  }, [paywallDialog, startUpgrade, userTracking, feature, source]);
   return { isLocked: paywallDialog !== null, openPaywall };
 };
 

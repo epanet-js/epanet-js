@@ -23,6 +23,7 @@ import { notify } from "src/components/notifications";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useScenarioOperations } from "src/hooks/use-scenario-operations";
 import { worktreeAtom, scenariosListAtom } from "src/state/scenarios";
+import { isDemoNetworkAtom } from "src/state/file-system";
 import { dialogAtom } from "src/state/dialog";
 import { useCreateScenario } from "src/commands/create-scenario";
 import { useSwitchToBranch } from "src/commands/switch-scenario";
@@ -42,6 +43,7 @@ export const ScenarioSwitcher = () => {
   const worktree = useAtomValue(worktreeAtom);
   const scenariosList = useAtomValue(scenariosListAtom);
   const setDialog = useSetAtom(dialogAtom);
+  const isDemoNetwork = useAtomValue(isDemoNetworkAtom);
   const createScenario = useCreateScenario();
 
   const {
@@ -52,8 +54,9 @@ export const ScenarioSwitcher = () => {
     renameScenarioById,
   } = useScenarioOperations();
   const switchToBranch = useSwitchToBranch();
-  const { isLocked: isManageLocked, openPaywall: openManagePaywall } =
-    useFeatureLock("manageScenarios");
+  const renameLock = useFeatureLock("manageScenarios", "rename");
+  const deleteLock = useFeatureLock("manageScenarios", "delete");
+  const duplicateLock = useFeatureLock("manageScenarios", "duplicate");
 
   const isPlaying = useAtomValue(isPlayingAtom);
 
@@ -99,7 +102,7 @@ export const ScenarioSwitcher = () => {
   };
 
   const openDeleteConfirmation = (scenarioId: string, scenarioName: string) => {
-    if (isManageLocked) return openManagePaywall();
+    if (deleteLock.isLocked) return deleteLock.openPaywall();
     setDialog({
       type: "deleteScenarioConfirmation",
       scenarioId,
@@ -113,7 +116,7 @@ export const ScenarioSwitcher = () => {
   };
 
   const openRenameDialog = (scenarioId: string, scenarioName: string) => {
-    if (isManageLocked) return openManagePaywall();
+    if (renameLock.isLocked) return renameLock.openPaywall();
     setDialog({
       type: "renameScenario",
       scenarioId,
@@ -123,7 +126,7 @@ export const ScenarioSwitcher = () => {
   };
 
   const handleDuplicateScenario = (scenarioId: string) => {
-    if (isManageLocked) return openManagePaywall();
+    if (duplicateLock.isLocked) return duplicateLock.openPaywall();
     const duplicated = duplicateScenarioById(scenarioId);
     if (!duplicated) return;
 
@@ -131,6 +134,8 @@ export const ScenarioSwitcher = () => {
       name: "scenario.duplicated",
       sourceScenarioId: scenarioId,
       ...duplicated,
+      isDemoNetwork,
+      scenariosCount: scenariosList.length + 1,
     });
 
     notify({
