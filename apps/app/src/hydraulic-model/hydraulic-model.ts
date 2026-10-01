@@ -1,102 +1,14 @@
-import { Topology } from "@epanet-js/hydraulic-model";
-import { AssetsMap } from "@epanet-js/hydraulic-model";
-import { nanoid } from "nanoid";
-
-import { ConsecutiveIdsGenerator, IdGenerator } from "@epanet-js/id-generator";
-import { Demands, createEmptyDemands } from "@epanet-js/hydraulic-model";
 import {
-  CustomerPoints,
-  initializeCustomerPoints,
-  CustomerPointsLookup,
+  AssetsMap,
   Asset,
-  Curves,
-  Patterns,
-  PipeMaterial,
-} from "@epanet-js/hydraulic-model";
-import { AssetIndex } from "@epanet-js/hydraulic-model";
-import {
-  RawControls,
-  createEmptyRawControls,
-} from "@epanet-js/hydraulic-model";
-import {
-  Controls,
-  createEmptyControls,
-  ControlsLookup,
   buildControlsLookup,
-} from "@epanet-js/hydraulic-model";
-import {
-  CustomAttributesDefinition,
-  emptyCustomAttributesDefinition,
   deepCloneCustomAttributes,
+  type HydraulicModel,
 } from "@epanet-js/hydraulic-model";
 
-export type HydraulicModel = {
-  version: string;
-  assets: AssetsMap;
-  customerPoints: CustomerPoints;
-  customerPointsLookup: CustomerPointsLookup;
-  topology: Topology;
-  assetIndex: AssetIndex;
-  demands: Demands;
-  curves: Curves;
-  patterns: Patterns;
-  pipeMaterials: PipeMaterial[];
-  rawControls: RawControls;
-  controls: Controls;
-  controlsLookup: ControlsLookup;
-  customAttributes: CustomAttributesDefinition;
-};
-
+export type { HydraulicModel };
 export { AssetsMap };
-
-export const initializeHydraulicModel = ({
-  demands = createEmptyDemands(),
-  rawControls = createEmptyRawControls(),
-  controls = createEmptyControls(),
-  idGenerator,
-  assets,
-  topology,
-  assetIndex,
-  customerPoints,
-  customerPointsLookup,
-  patterns,
-  curves,
-  pipeMaterials,
-  customAttributes,
-}: {
-  demands?: Demands;
-  rawControls?: RawControls;
-  controls?: Controls;
-  idGenerator?: IdGenerator;
-  assets?: AssetsMap;
-  topology?: Topology;
-  assetIndex?: AssetIndex;
-  customerPoints?: CustomerPoints;
-  customerPointsLookup?: CustomerPointsLookup;
-  patterns?: Patterns;
-  curves?: Curves;
-  pipeMaterials?: PipeMaterial[];
-  customAttributes?: CustomAttributesDefinition;
-} = {}): HydraulicModel => {
-  const assetIdGenerator = idGenerator ?? new ConsecutiveIdsGenerator();
-  const resolvedAssets = assets ?? new Map();
-  return {
-    version: nanoid(),
-    assets: resolvedAssets,
-    customerPoints: customerPoints ?? initializeCustomerPoints(),
-    customerPointsLookup: customerPointsLookup ?? new CustomerPointsLookup(),
-    topology: topology ?? new Topology(),
-    assetIndex: assetIndex ?? new AssetIndex(assetIdGenerator, resolvedAssets),
-    demands,
-    curves: curves ?? new Map(),
-    patterns: patterns ?? new Map(),
-    pipeMaterials: pipeMaterials ?? [],
-    rawControls,
-    controls,
-    controlsLookup: buildControlsLookup(controls),
-    customAttributes: customAttributes ?? emptyCustomAttributesDefinition(),
-  };
-};
+export { initializeHydraulicModel } from "@epanet-js/hydraulic-model";
 
 export const copyModel = (source: HydraulicModel): HydraulicModel => {
   const assets: AssetsMap = new Map(source.assets);
