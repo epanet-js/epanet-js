@@ -10,6 +10,7 @@ export const issueCodes = [
   "nodeHydraulicsMissing",
   "nodePressureStatusUnknown",
   "nodeFixedHeadUnsupported",
+  "nodeElevationUnresolved",
   "junctionDemandPatternUnreadable",
   "tankHydraulicsMissing",
   "tankVolumeCurveUnsupported",
