@@ -140,7 +140,7 @@ export const ScenarioSwitcher = () => {
 
     notify({
       variant: "success",
-      title: "Scenario duplicated",
+      title: translate("scenarios.duplicated"),
       Icon: SuccessIcon,
       duration: 3000,
     });
@@ -371,7 +371,7 @@ const ScenarioRow = ({
             {isDuplicateScenarioOn && (
               <StyledItem onSelect={() => onDuplicate(scenario.id)}>
                 <DuplicateIcon size="sm" />
-                <span>{translate("duplicate")}</span>
+                <span>{translate("scenarios.duplicate")}</span>
               </StyledItem>
             )}
 

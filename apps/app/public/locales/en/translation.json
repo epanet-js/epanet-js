@@ -1605,12 +1605,14 @@
   "scenarios": {
     "main": "Main",
     "created": "Scenario created",
+    "duplicated": "Scenario duplicated",
     "createNew": "Create new scenario",
     "newScenario": "New",
     "switcherTooltip": "Switch scenario",
     "enableScenarios": "Enable scenarios",
     "delete": "Delete",
     "rename": "Rename",
+    "duplicate": "Duplicate",
     "ignoreAndCreate": "Ignore and create scenario",
     "loadingScenario": "Loading {{1}}...",
     "export": {
