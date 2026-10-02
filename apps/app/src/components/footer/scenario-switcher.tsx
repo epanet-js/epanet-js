@@ -174,7 +174,7 @@ export const ScenarioSwitcher = () => {
 
   return (
     <Tooltip.Root delayDuration={200}>
-      <div className="w-44 h-10 group bn flex items-stretch py-1 focus:outline-hidden">
+      <div className="min-w-44 max-w-80 h-10 group bn flex items-stretch py-1 focus:outline-hidden">
         <DD.Root
           onOpenChange={(open) => {
             if (open) {
@@ -189,13 +189,16 @@ export const ScenarioSwitcher = () => {
                 className="w-full justify-between"
                 disabled={isPlaying}
               >
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 min-w-0">
                   {isMainActive ? (
                     <MainModelIcon size="sm" />
                   ) : (
                     <ScenarioIcon size="sm" />
                   )}
-                  <span className="truncate text-size-base">
+                  <span
+                    className="truncate text-size-base"
+                    title={activeDisplayName}
+                  >
                     {activeDisplayName}
                   </span>
                 </div>
@@ -204,7 +207,7 @@ export const ScenarioSwitcher = () => {
             </DD.Trigger>
           </Tooltip.Trigger>
           <DD.Portal>
-            <DDContent align="start" side="top" className="min-w-64">
+            <DDContent align="start" side="top" className="min-w-64 max-w-80">
               <StyledItem
                 onSelect={handleSelectMain}
                 className={isMainActive ? "bg-accent-tint!" : undefined}
@@ -273,6 +276,12 @@ const ScenarioList = ({
     overscan: 8,
   });
 
+  const longestName = scenarios.reduce(
+    (longest, scenario) =>
+      scenario.name.length > longest.length ? scenario.name : longest,
+    "",
+  );
+
   const activeIndex = scenarios.findIndex(
     (scenario) => scenario.id === activeBranchId,
   );
@@ -291,6 +300,13 @@ const ScenarioList = ({
       className="overflow-y-auto"
       style={{ maxHeight: LIST_MAX_HEIGHT }}
     >
+      <div
+        aria-hidden="true"
+        className="invisible h-0 overflow-hidden flex gap-2 pl-3 pr-10 text-size-base whitespace-nowrap"
+      >
+        <span className="font-mono pl-1">├──</span>
+        <span>{longestName}</span>
+      </div>
       <div
         style={{
           height: virtualizer.getTotalSize(),
@@ -345,14 +361,16 @@ const ScenarioRow = ({
         onSelect={() => onSelect(scenario.id)}
         className={`pr-10 ${isActive ? "bg-accent-tint!" : "group-hover/scenario:bg-base-hover"}`}
       >
-        <div className="flex items-center w-full gap-2">
+        <div className="flex items-center w-full min-w-0 gap-2">
           <span
             aria-hidden="true"
             className={`font-mono text-size-base pl-1 ${isActive ? "text-default" : "text-subtle"}`}
           >
             {isLast ? "└──" : "├──"}
           </span>
-          <div className="flex-1">{scenario.name}</div>
+          <div className="flex-1 min-w-0 truncate" title={scenario.name}>
+            {scenario.name}
+          </div>
         </div>
       </StyledItem>
       <DD.Root>
