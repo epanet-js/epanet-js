@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
 import { getAssetsByType } from "src/__helpers__/asset-queries";
-import { addNode } from "src/hydraulic-model/model-operations/add-node";
+import { addNodeDeprecated } from "src/hydraulic-model/model-operations/add-node";
 import { changePropertyDeprecated } from "src/hydraulic-model/model-operations/change-property";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import { useUndoableTransactions } from "src/hooks/persistence/use-undoable-transactions";
@@ -127,7 +127,7 @@ const withStore = (store: Store) => ({
 const addJunction = (store: Store, coordinates: number[]) => {
   const { result } = renderHook(() => useMomentTransaction(), withStore(store));
   const factories = store.get(modelFactoriesAtom);
-  const moment = addNode(store.get(stagingModelDerivedAtom), {
+  const moment = addNodeDeprecated(store.get(stagingModelDerivedAtom), {
     nodeType: "junction",
     coordinates,
     elevation: 5,

@@ -11,6 +11,7 @@ import type { ChangeSet } from "@epanet-js/change-set";
 import { getMapCoord } from "../utils";
 import {
   addNode,
+  addNodeDeprecated,
   replaceNode,
   replaceNodeDeprecated,
 } from "src/hydraulic-model/model-operations";
@@ -95,7 +96,7 @@ export function useDrawNodeHandlers({
       return;
     }
 
-    const moment = addNode(hydraulicModel, {
+    const data = {
       nodeType,
       coordinates,
       elevation,
@@ -103,14 +104,32 @@ export function useDrawNodeHandlers({
       lengthUnit: units.length,
       assetFactory,
       labelManager,
-    });
-    const applied = transact(moment);
-    if (!applied) return;
+    };
 
-    userTracking.capture({ name: "asset.created", type: nodeType });
+    if (isOpsChangeSetsOn) {
+      const changeSet = addNode(hydraulicModel, data);
+      const applied = transactChangeSet(changeSet);
+      if (!applied) return;
 
-    if (moment.putAssets && moment.putAssets.length > 0) {
-      selectAndFocusIfInvalid(moment.putAssets[0]);
+      userTracking.capture({ name: "asset.created", type: nodeType });
+
+      const newNodeId = createdNodeId(changeSet);
+      const committedModel = readCommittedModel();
+      const newNode =
+        newNodeId !== undefined
+          ? committedModel.assets.get(newNodeId)
+          : undefined;
+      if (newNode) selectAndFocusIfInvalid(newNode, committedModel);
+    } else {
+      const moment = addNodeDeprecated(hydraulicModel, data);
+      const applied = transact(moment);
+      if (!applied) return;
+
+      userTracking.capture({ name: "asset.created", type: nodeType });
+
+      if (moment.putAssets && moment.putAssets.length > 0) {
+        selectAndFocusIfInvalid(moment.putAssets[0]);
+      }
     }
   };
 

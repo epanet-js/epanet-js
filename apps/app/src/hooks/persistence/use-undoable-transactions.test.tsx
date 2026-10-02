@@ -2,7 +2,7 @@ import { act, renderHook } from "@testing-library/react";
 import { Provider as JotaiProvider } from "jotai";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
-import { addNode } from "src/hydraulic-model/model-operations/add-node";
+import { addNodeDeprecated } from "src/hydraulic-model/model-operations/add-node";
 import { deleteAssetsDeprecated } from "src/hydraulic-model/model-operations/delete-assets";
 import { changeLabel } from "src/hydraulic-model/model-operations/change-label";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
@@ -56,7 +56,7 @@ const aProject = async (): Promise<Store> => {
 
 const buildAddJunctionMoment = (store: Store) => {
   const factories = store.get(modelFactoriesAtom);
-  return addNode(store.get(stagingModelDerivedAtom), {
+  return addNodeDeprecated(store.get(stagingModelDerivedAtom), {
     nodeType: "junction",
     coordinates: [10, 10],
     elevation: 5,

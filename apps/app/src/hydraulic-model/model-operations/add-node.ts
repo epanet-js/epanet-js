@@ -5,11 +5,17 @@ import {
   LabelManager,
   AssetFactory,
 } from "@epanet-js/hydraulic-model";
-import { ModelOperationDeprecated } from "../model-operation";
+import { ModelOperation, ModelOperationDeprecated } from "../model-operation";
 import { Position } from "src/types";
 import { HydraulicModel } from "../hydraulic-model";
 import { splitPipe } from "./split-pipe";
 import { Unit } from "@epanet-js/quantity";
+import {
+  changeSet,
+  dropAssets,
+  putAssets,
+  putCustomerPoints,
+} from "../change-sets";
 
 type NodeType = "junction" | "reservoir" | "tank";
 
@@ -23,8 +29,42 @@ type InputData = {
   labelManager: LabelManager;
 };
 
-export const addNode: ModelOperationDeprecated<InputData> = (
+export const addNode: ModelOperation<InputData> = (hydraulicModel, data) => {
+  const { note, node, newPipes, removedPipeIds, customerPoints } = planAddition(
+    hydraulicModel,
+    data,
+  );
+
+  return changeSet(hydraulicModel, note, [
+    dropAssets(removedPipeIds),
+    putAssets([node, ...newPipes]),
+    putCustomerPoints(customerPoints),
+  ]);
+};
+
+export const addNodeDeprecated: ModelOperationDeprecated<InputData> = (
   hydraulicModel,
+  data,
+) => {
+  const { note, node, newPipes, removedPipeIds, customerPoints } = planAddition(
+    hydraulicModel,
+    data,
+  );
+
+  if (removedPipeIds.length === 0) {
+    return { note, putAssets: [node] };
+  }
+
+  return {
+    note,
+    putAssets: [node, ...newPipes],
+    putCustomerPoints: customerPoints.length > 0 ? customerPoints : undefined,
+    deleteAssets: removedPipeIds,
+  };
+};
+
+const planAddition = (
+  hydraulicModel: HydraulicModel,
   {
     nodeType,
     coordinates,
@@ -33,7 +73,7 @@ export const addNode: ModelOperationDeprecated<InputData> = (
     lengthUnit,
     assetFactory,
     labelManager,
-  },
+  }: InputData,
 ) => {
   // Deduplicated: splitting the same pipe twice would run two independent
   // splits over the same base pipe, emitting duplicate segments that all
@@ -51,20 +91,28 @@ export const addNode: ModelOperationDeprecated<InputData> = (
   );
   addMissingLabel(labelManager, node);
 
-  if (pipeIds.length > 0) {
-    return addNodeWithPipeSplitting(
-      hydraulicModel,
-      node,
-      pipeIds,
+  const splitResults = pipeIds.map((pipeId) => {
+    const pipe = hydraulicModel.assets.get(pipeId) as Pipe;
+    if (!pipe || pipe.type !== "pipe") {
+      throw new Error(`Invalid pipe ID: ${pipeId}`);
+    }
+
+    return splitPipe(hydraulicModel, {
+      pipe,
+      splits: [node],
       lengthUnit,
       assetFactory,
       labelManager,
-    );
-  }
+    });
+  });
 
   return {
-    note: `Add ${nodeType}`,
-    putAssets: [node],
+    note:
+      pipeIds.length > 0 ? `Add ${nodeType} and split pipe` : `Add ${nodeType}`,
+    node,
+    newPipes: splitResults.flatMap((result) => result.newPipes),
+    removedPipeIds: splitResults.map((result) => result.removedPipeId),
+    customerPoints: splitResults.flatMap((result) => result.customerPoints),
   };
 };
 
@@ -97,41 +145,6 @@ const createNode = (
     default:
       throw new Error(`Unsupported node type: ${nodeType as string}`);
   }
-};
-
-const addNodeWithPipeSplitting = (
-  hydraulicModel: HydraulicModel,
-  node: NodeAsset,
-  pipeIdsToSplit: AssetId[],
-  lengthUnit: Unit,
-  assetFactory: AssetFactory,
-  labelManager: LabelManager,
-) => {
-  const splitResults = pipeIdsToSplit.map((pipeId) => {
-    const pipe = hydraulicModel.assets.get(pipeId) as Pipe;
-    if (!pipe || pipe.type !== "pipe") {
-      throw new Error(`Invalid pipe ID: ${pipeId}`);
-    }
-
-    return splitPipe(hydraulicModel, {
-      pipe,
-      splits: [node],
-      lengthUnit,
-      assetFactory,
-      labelManager,
-    });
-  });
-
-  const customerPoints = splitResults.flatMap(
-    (result) => result.customerPoints,
-  );
-
-  return {
-    note: `Add ${node.type} and split pipe`,
-    putAssets: [node, ...splitResults.flatMap((result) => result.newPipes)],
-    putCustomerPoints: customerPoints.length > 0 ? customerPoints : undefined,
-    deleteAssets: splitResults.map((result) => result.removedPipeId),
-  };
 };
 
 const getInheritedActiveTopologyStatus = (
