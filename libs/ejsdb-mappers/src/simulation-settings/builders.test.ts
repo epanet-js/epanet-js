@@ -1,5 +1,8 @@
-import { defaultSimulationSettings } from "src/simulation/simulation-settings";
-import { buildSimulationSettingsData } from "./builders";
+import { buildSimulationSettingsData as buildWithDefaults } from "./builders";
+import { aSimulationSettings as defaultSimulationSettings } from "../__helpers__/simulation-settings";
+
+const buildSimulationSettingsData = (data: string | null) =>
+  buildWithDefaults(data, defaultSimulationSettings);
 
 describe("buildSimulationSettingsData", () => {
   it("returns the defaults for null input (fresh project)", () => {
@@ -40,7 +43,7 @@ describe("buildSimulationSettingsData", () => {
   });
 
   it("throws when a required field is missing", () => {
-    const { demandModel: _demandModel, ...partial } = defaultSimulationSettings;
+    const partial = { ...defaultSimulationSettings, demandModel: undefined };
     expect(() => buildSimulationSettingsData(JSON.stringify(partial))).toThrow(
       /Simulation settings: data does not match schema/,
     );

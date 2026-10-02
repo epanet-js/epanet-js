@@ -16,11 +16,11 @@
   "dependencies": {
     "@epanet-js/ejsdb": "workspace:*",
     "@epanet-js/hydraulic-model": "workspace:*",
+    "@epanet-js/project-settings": "workspace:*",
     "zod": "^3.23.8"
   },
   "devDependencies": {
     "@epanet-js/id-generator": "workspace:*",
-    "@epanet-js/project-settings": "workspace:*",
     "@types/geojson": "^7946.0.14",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",

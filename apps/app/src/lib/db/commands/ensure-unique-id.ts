@@ -1,7 +1,9 @@
 import { v4 as uuidv4 } from "uuid";
 import { getWorker, timed } from "@epanet-js/ejsdb";
-import { buildProjectSettingsData } from "../mappers/project-settings/builders";
-import { serializeProjectSettings } from "../mappers/project-settings/to-rows";
+import {
+  buildProjectSettingsData,
+  serializeProjectSettings,
+} from "@epanet-js/ejsdb-mappers";
 
 export const newUniqueId = (): string => uuidv4();
 

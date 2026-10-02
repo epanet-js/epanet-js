@@ -13,12 +13,12 @@ import {
   serializeControls,
   serializePipeLibrary,
   junctionDemandsToRows,
+  serializeProjectSettings,
+  zonesToRows,
+  serializeSimulationSettings,
 } from "@epanet-js/ejsdb-mappers";
-import { serializeProjectSettings } from "../mappers/project-settings/to-rows";
-import { serializeZones } from "../mappers/zones/to-rows";
 import { serializeSelectionSets } from "../mappers/selection-sets/to-rows";
 import { serializeBookmarks } from "../mappers/bookmarks/to-rows";
-import { serializeSimulationSettings } from "../mappers/simulation-settings/to-rows";
 
 export type ImportProjectInput = {
   newDb?: boolean;
@@ -41,7 +41,7 @@ export const importProject = async (
       input.hydraulicModel.pipeMaterials.length > 0
         ? serializePipeLibrary(input.hydraulicModel.pipeMaterials)
         : null;
-    const zones = input.zones ? serializeZones(input.zones) : null;
+    const zones = input.zones ? zonesToRows(input.zones) : null;
     const selectionSets = input.selectionSets
       ? serializeSelectionSets(input.selectionSets)
       : null;

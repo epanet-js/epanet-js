@@ -1,6 +1,6 @@
 import type { ProjectSettings } from "@epanet-js/project-settings";
 import { getWorker, timed } from "@epanet-js/ejsdb";
-import { serializeProjectSettings } from "../mappers/project-settings/to-rows";
+import { serializeProjectSettings } from "@epanet-js/ejsdb-mappers";
 
 export const saveProjectSettings = async (
   settings: ProjectSettings,

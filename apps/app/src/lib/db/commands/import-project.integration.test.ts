@@ -13,8 +13,8 @@ import {
   serializeRawControls,
   serializeControls,
   junctionDemandsToRows,
+  serializeSimulationSettings,
 } from "@epanet-js/ejsdb-mappers";
-import { serializeSimulationSettings } from "../mappers/simulation-settings/to-rows";
 import { fetchProject } from "./fetch-project";
 import { importProject } from "./import-project";
 import { useInProcessDb } from "../__test-helpers__/in-process-db";

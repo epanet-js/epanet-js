@@ -1,5 +1,5 @@
-import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { serializeSimulationSettings } from "./to-rows";
+import { aSimulationSettings as defaultSimulationSettings } from "../__helpers__/simulation-settings";
 
 describe("serializeSimulationSettings", () => {
   it("produces a JSON string that round-trips through JSON.parse", () => {

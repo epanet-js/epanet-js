@@ -1,13 +1,13 @@
 import {
-  defaultSimulationSettings,
-  type SimulationSettings,
-} from "src/simulation/simulation-settings";
-import { simulationSettingsSchema } from "@epanet-js/ejsdb";
+  simulationSettingsSchema,
+  type SimulationSettingsData,
+} from "@epanet-js/ejsdb";
 
 export const buildSimulationSettingsData = (
   data: string | null,
-): SimulationSettings => {
-  if (data === null) return defaultSimulationSettings;
+  defaults: SimulationSettingsData,
+): SimulationSettingsData => {
+  if (data === null) return defaults;
 
   let raw: unknown;
   try {

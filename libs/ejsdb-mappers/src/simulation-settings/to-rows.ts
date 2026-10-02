@@ -1,8 +1,10 @@
-import type { SimulationSettings } from "src/simulation/simulation-settings";
-import { simulationSettingsSchema } from "@epanet-js/ejsdb";
+import {
+  simulationSettingsSchema,
+  type SimulationSettingsData,
+} from "@epanet-js/ejsdb";
 
 export const serializeSimulationSettings = (
-  settings: SimulationSettings,
+  settings: SimulationSettingsData,
 ): string => {
   const result = simulationSettingsSchema.safeParse(settings);
   if (!result.success) {

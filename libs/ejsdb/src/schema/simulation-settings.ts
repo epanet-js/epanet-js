@@ -53,3 +53,5 @@ export const simulationSettingsSchema = z.object({
   energyDemandCharge: finiteNumber,
   statusReport: z.enum(["YES", "NO", "FULL"]),
 });
+
+export type SimulationSettingsData = z.infer<typeof simulationSettingsSchema>;

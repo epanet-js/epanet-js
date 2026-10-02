@@ -12,6 +12,7 @@ import type { IdPool } from "@epanet-js/id-generator";
 import { copyModel } from "src/hydraulic-model";
 import { applyChangeSet } from "src/hydraulic-model/change-sets";
 import { buildSimulationSettingsData } from "src/lib/db";
+import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { SessionHistory } from "src/lib/persistence/session-history";
 import { settleAppliedModel } from "src/lib/persistence/transaction-helpers";
 import {
@@ -133,7 +134,10 @@ export const buildUnloadedBranchStates = async (
       simulationSourceId: mainState.simulationSourceId,
       simulationSettings:
         simulationSettings !== null
-          ? buildSimulationSettingsData(simulationSettings)
+          ? buildSimulationSettingsData(
+              simulationSettings,
+              defaultSimulationSettings,
+            )
           : mainState.simulationSettings,
     });
   }

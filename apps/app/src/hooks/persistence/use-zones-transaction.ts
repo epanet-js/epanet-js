@@ -5,7 +5,7 @@ import type { Zones } from "@epanet-js/hydraulic-model";
 import { zonesAtom } from "src/state/zones";
 import { projectDataVersionAtom } from "src/state/project-revision";
 import { dialogAtom } from "src/state/dialog";
-import { saveZones, serializeZones } from "src/lib/db";
+import { saveZones, zonesToRows } from "src/lib/db";
 import { captureError } from "src/infra/error-tracking";
 import { writeQueue } from "src/lib/persistence/write-queue";
 import { useWriteFailureHandler } from "src/hooks/persistence/use-write-failure-handler";
@@ -19,7 +19,7 @@ export const useZonesTransaction = () => {
   const transact = useCallback(
     (next: Zones): Promise<boolean> => {
       try {
-        serializeZones(next);
+        zonesToRows(next);
       } catch (error) {
         captureError(error instanceof Error ? error : new Error(String(error)));
         setDialog({ type: "changeNotApplied" });
