@@ -1,8 +1,7 @@
-import { colors } from "src/lib/constants";
-import { buildColorRuns, calculateInterval } from "./discrete-series-graph";
+import { calculateInterval } from "./bar-graph";
 
 describe("calculateInterval", () => {
-  describe("startAtZero = true (default behavior)", () => {
+  describe("startAtZero = true (default bar-graph behavior)", () => {
     it("returns default range for empty values", () => {
       const result = calculateInterval([], true);
       expect(result).toEqual({ min: 0, max: 1, interval: 0.2 });
@@ -86,47 +85,5 @@ describe("calculateInterval", () => {
       expect(result.max).toBeGreaterThanOrEqual(-3.2);
       expect(result.interval).toBeGreaterThan(0);
     });
-  });
-});
-
-describe("buildColorRuns", () => {
-  const styled = (value: number, color: string) => ({
-    value,
-    itemStyle: { color },
-  });
-
-  it("colours each segment like the value it starts from", () => {
-    const runs = buildColorRuns([
-      styled(1, colors.purple500),
-      styled(0.8, colors.purple500),
-      styled(1.2, colors.fuchsia500),
-      styled(1, colors.purple300),
-      styled(0.8, colors.purple300),
-    ]);
-
-    expect(runs).toEqual([
-      { start: 0, end: 2, color: colors.purple500 },
-      { start: 2, end: 3, color: colors.fuchsia500 },
-      { start: 3, end: 5, color: colors.purple300 },
-    ]);
-  });
-
-  it("prefers the line colour over the marker colour", () => {
-    const runs = buildColorRuns([
-      {
-        value: 1,
-        itemStyle: { color: colors.fuchsia500 },
-        lineStyle: { color: colors.purple500 },
-      },
-      styled(0.8, colors.purple500),
-    ]);
-
-    expect(runs).toEqual([{ start: 0, end: 2, color: colors.purple500 }]);
-  });
-
-  it("uses the default colour for plain values", () => {
-    expect(buildColorRuns([1, 2])).toEqual([
-      { start: 0, end: 2, color: colors.purple500 },
-    ]);
   });
 });

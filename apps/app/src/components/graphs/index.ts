@@ -1,2 +1,2 @@
-export { DiscreteSeriesGraph } from "./discrete-series-graph";
+export { BarGraph } from "./bar-graph";
 export { LineGraph } from "./line-graph";

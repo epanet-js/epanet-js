@@ -8,28 +8,23 @@ import { colors } from "src/lib/constants";
 export interface StyledBarValue {
   value: number;
   itemStyle: { color: string };
-  lineStyle?: { color: string };
 }
 
 export type BarValue = number | StyledBarValue;
 
-export type DiscreteSeriesGraphVariant = "bar" | "line";
-
-interface DiscreteSeriesGraphProps {
+interface BarGraphProps {
   values: BarValue[];
   labels: string[];
   startYAxisAtZero?: boolean;
   onBarClick?: (index: number | null) => void;
-  variant?: DiscreteSeriesGraphVariant;
 }
 
-export function DiscreteSeriesGraph({
+export function BarGraph({
   values,
   labels,
   startYAxisAtZero = true,
   onBarClick,
-  variant = "bar",
-}: DiscreteSeriesGraphProps) {
+}: BarGraphProps) {
   const translate = useTranslate();
   const chartRef = useRef<ReactECharts>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -40,7 +35,6 @@ export function DiscreteSeriesGraph({
     () => ({
       type: "category",
       data: labels,
-      boundaryGap: variant === "bar",
       axisLine: { show: true, lineStyle: { color: colors.gray300 } },
       axisTick: {
         show: true,
@@ -54,7 +48,7 @@ export function DiscreteSeriesGraph({
         interval: calculateLabelInterval(labels.length),
       },
     }),
-    [labels, variant],
+    [labels],
   );
 
   const yAxis: EChartsOption["yAxis"] = useMemo(() => {
@@ -65,38 +59,17 @@ export function DiscreteSeriesGraph({
   }, [values, startYAxisAtZero]);
 
   const series: EChartsOption["series"] = useMemo(() => {
-    const data = values.map((v) => {
-      const color =
-        typeof v === "number" ? colors.purple500 : v.itemStyle.color;
-      return {
-        value: typeof v === "number" ? v : v.value,
-        itemStyle: { color },
-      };
-    });
-
-    if (variant === "line") {
-      return [
-        {
-          type: "line",
-          data,
-          symbol: "circle",
-          symbolSize: 6,
-          showAllSymbol: true,
-          smooth: true,
-          lineStyle: { width: 2 },
-          emphasis: {
-            itemStyle: {
-              color: colors.fuchsia500,
-            },
-          },
-        },
-      ];
-    }
-
     return [
       {
         type: "bar",
-        data,
+        data: values.map((v) => {
+          const color =
+            typeof v === "number" ? colors.purple500 : v.itemStyle.color;
+          return {
+            value: typeof v === "number" ? v : v.value,
+            itemStyle: { color },
+          };
+        }),
         barMaxWidth: 40,
         emphasis: {
           itemStyle: {
@@ -105,22 +78,7 @@ export function DiscreteSeriesGraph({
         },
       },
     ];
-  }, [values, variant]);
-
-  const visualMap: EChartsOption["visualMap"] = useMemo(() => {
-    if (variant !== "line" || values.length === 0) return undefined;
-    return {
-      show: false,
-      type: "piecewise",
-      dimension: 0,
-      seriesIndex: 0,
-      pieces: buildColorRuns(values).map(({ start, end, color }) => ({
-        gte: start,
-        lt: end,
-        color,
-      })),
-    };
-  }, [values, variant]);
+  }, [values]);
 
   const option: EChartsOption = useMemo(
     () => ({
@@ -135,7 +93,6 @@ export function DiscreteSeriesGraph({
       xAxis,
       yAxis,
       series,
-      visualMap,
       tooltip: {
         trigger: "axis",
         backgroundColor: "white",
@@ -153,7 +110,7 @@ export function DiscreteSeriesGraph({
         },
       },
     }),
-    [xAxis, yAxis, series, visualMap],
+    [xAxis, yAxis, series],
   );
 
   useEffect(() => {
@@ -212,25 +169,6 @@ export function DiscreteSeriesGraph({
     </div>
   );
 }
-
-export const buildColorRuns = (
-  values: BarValue[],
-): { start: number; end: number; color: string }[] => {
-  const runs: { start: number; end: number; color: string }[] = [];
-  values.forEach((v, i) => {
-    const color =
-      typeof v === "number"
-        ? colors.purple500
-        : (v.lineStyle?.color ?? v.itemStyle.color);
-    const last = runs[runs.length - 1];
-    if (last && last.color === color) {
-      last.end = i + 1;
-    } else {
-      runs.push({ start: i, end: i + 1, color });
-    }
-  });
-  return runs;
-};
 
 const calculateLabelInterval = (count: number): number => {
   if (count <= 6) return 0;

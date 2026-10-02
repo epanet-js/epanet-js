@@ -145,10 +145,3 @@ export const mapStylingPanelSectionsExpandedAtom =
       projection: true,
     },
   );
-
-export type PatternGraphType = "bar" | "line";
-
-export const patternGraphTypeAtom = atomWithStorage<PatternGraphType>(
-  "patternGraphType",
-  "bar",
-);
