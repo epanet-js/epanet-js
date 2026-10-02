@@ -1,5 +1,9 @@
 import { useMemo } from "react";
-import { BarGraph, type StyledBarValue } from "src/components/graphs/bar-graph";
+import {
+  DiscreteSeriesGraph,
+  type DiscreteSeriesGraphVariant,
+  type StyledBarValue,
+} from "src/components/graphs/discrete-series-graph";
 import { PatternMultipliers, PatternType } from "src/hydraulic-model";
 import { colors } from "src/lib/constants";
 
@@ -15,6 +19,7 @@ interface PatternGraphProps {
   totalDurationSeconds: number;
   highlightedBarIndices?: number[];
   onBarClick?: (index: number | null) => void;
+  variant?: DiscreteSeriesGraphVariant;
 }
 
 export function PatternGraph({
@@ -24,6 +29,7 @@ export function PatternGraph({
   totalDurationSeconds,
   highlightedBarIndices,
   onBarClick,
+  variant,
 }: PatternGraphProps) {
   const { values, labels } = useMemo(() => {
     return buildPatternData(
@@ -37,11 +43,12 @@ export function PatternGraph({
   const startYAxisAtZero = patternType !== "reservoirHead";
 
   return (
-    <BarGraph
+    <DiscreteSeriesGraph
       values={values}
       labels={labels}
       startYAxisAtZero={startYAxisAtZero}
       onBarClick={onBarClick}
+      variant={variant}
     />
   );
 }
@@ -74,16 +81,15 @@ export function buildPatternData(
   for (let i = 0; i < patternValuesCount; i++) {
     const patternIndex = i % pattern.length;
     const value = pattern[patternIndex];
+    const baseColor = getBaseColor(i, pattern.length, totalSimulationIntervals);
+    const isHighlighted = highlightedSet.has(i);
+    const isSegmentHighlighted = isHighlighted && highlightedSet.has(i + 1);
 
     values.push({
       value,
-      itemStyle: {
-        color: getValueColor(
-          i,
-          highlightedSet,
-          pattern.length,
-          totalSimulationIntervals,
-        ),
+      itemStyle: { color: isHighlighted ? SELECTED_VALUE_COLOR : baseColor },
+      lineStyle: {
+        color: isSegmentHighlighted ? SELECTED_VALUE_COLOR : baseColor,
       },
     });
 
@@ -120,13 +126,11 @@ function buildTimeLabel(i: number, intervalSeconds: number) {
   return `${hours}:${minutes.toString().padStart(2, "0")}`;
 }
 
-function getValueColor(
+function getBaseColor(
   index: number,
-  highlightedIndices: Set<number>,
   patternLength: number,
   intervalsCount: number,
 ) {
-  if (highlightedIndices.has(index)) return SELECTED_VALUE_COLOR;
   if (index >= patternLength) return FILLED_VALUE_COLOR;
   if (index >= intervalsCount) return IGNORED_VALUE_COLOR;
   return VALUE_COLOR;

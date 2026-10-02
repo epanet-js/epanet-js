@@ -270,6 +270,7 @@ export const TableIcon = icon(Table);
 export const CustomAttributesIcon = icon(ListPlus);
 export const SelectPathIcon = icon(SquareDashedMousePointer);
 export const ChartLineIcon = icon(ChartLine);
+export const ChartColumnIcon = icon(ChartColumn);
 export const PipeLibraryIcon = icon(BookText);
 export const NetworkReviewIcon = icon(ListChecks);
 export const BookmarkIcon = icon(Bookmark);

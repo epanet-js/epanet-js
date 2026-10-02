@@ -161,6 +161,32 @@ describe("buildPatternData", () => {
       expect(result.values[5].itemStyle.color).toBe(colors.purple300);
     });
 
+    it("highlights the line only between selected values", () => {
+      const pattern = [1.0, 0.8, 0.6, 0.4];
+      const result = buildPatternData(pattern, HOUR, 4 * HOUR, [1, 2]);
+
+      expect(result.values.map((v) => v.lineStyle?.color)).toEqual([
+        colors.purple500,
+        colors.fuchsia500,
+        colors.purple500,
+        colors.purple500,
+      ]);
+    });
+
+    it("keeps the line unhighlighted around a single selected value", () => {
+      const pattern = [1.0, 0.8, 0.6];
+      const result = buildPatternData(pattern, HOUR, 6 * HOUR, [1]);
+
+      expect(result.values.map((v) => v.lineStyle?.color)).toEqual([
+        colors.purple500,
+        colors.purple500,
+        colors.purple500,
+        colors.purple300,
+        colors.purple300,
+        colors.purple300,
+      ]);
+    });
+
     it("returns normal colors when no indices are highlighted", () => {
       const pattern = [1.0, 0.8, 0.6];
       const result = buildPatternData(pattern, HOUR, 3 * HOUR, []);

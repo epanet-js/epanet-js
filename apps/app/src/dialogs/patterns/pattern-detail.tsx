@@ -3,6 +3,10 @@ import { PatternGraph } from "./pattern-graph";
 import { PatternMultipliers, PatternType } from "src/hydraulic-model";
 import { type GridSelection } from "src/components/data-grid";
 import { PatternTable, type PatternTableRef } from "./pattern-table";
+import { PatternGraphTypeToggle } from "./pattern-graph-type-toggle";
+import { useAtom } from "jotai";
+import { patternGraphTypeAtom } from "src/state/layout";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 interface PatternDetailProps {
   pattern: PatternMultipliers;
@@ -24,6 +28,8 @@ export function PatternDetail({
   const [selectedCells, setSelectedCells] = useState<GridSelection | null>(
     null,
   );
+  const isPatternLineGraphOn = useFeatureFlag("FLAG_PATTERN_LINE_GRAPH");
+  const [graphType, setGraphType] = useAtom(patternGraphTypeAtom);
   const tableRef = useRef<PatternTableRef>(null);
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const graphContainerRef = useRef<HTMLDivElement>(null);
@@ -89,7 +95,15 @@ export function PatternDetail({
         />
       </div>
       <div className="col-span-3 h-full p-2 pt-4">
-        <div ref={graphContainerRef} className="h-full">
+        <div ref={graphContainerRef} className="h-full relative">
+          {isPatternLineGraphOn && (
+            <div className="absolute top-0 right-0 z-10 p-2 rounded-sm bg-base">
+              <PatternGraphTypeToggle
+                graphType={graphType}
+                onChange={setGraphType}
+              />
+            </div>
+          )}
           <PatternGraph
             pattern={pattern}
             patternType={patternType}
@@ -97,6 +111,7 @@ export function PatternDetail({
             totalDurationSeconds={totalDurationSeconds}
             highlightedBarIndices={graphSelectedIndexes}
             onBarClick={handleGraphClick}
+            variant={isPatternLineGraphOn ? graphType : "bar"}
           />
         </div>
       </div>
