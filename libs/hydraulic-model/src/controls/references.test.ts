@@ -9,6 +9,7 @@ import {
 import {
   detachControlReferences,
   remapControlLinkReference,
+  remapControlNodeReference,
 } from "./references";
 import {
   Controls,
@@ -286,5 +287,86 @@ describe("remapControlLinkReference", () => {
     ];
 
     expect(remapControlLinkReference(controls, IDS.PU1, IDS.PU2)).toBeNull();
+  });
+});
+
+describe("remapControlNodeReference", () => {
+  const T3 = 20;
+  const J4 = 21;
+
+  it("turns a pressure target into a level target when the node becomes a tank", () => {
+    const controls: Controls = [aVariableSpeedPump({ targetId: IDS.J3 })];
+
+    const [control] = remapControlNodeReference(
+      controls,
+      IDS.J3,
+      buildTank({ id: T3 }),
+    )! as VariableSpeedPumpControl[];
+
+    expect(control).toEqual({
+      ...controls[0],
+      quantity: "level",
+      targetId: T3,
+    });
+  });
+
+  it("turns a level target into a pressure target and omits its tank levels when the tank becomes a junction", () => {
+    const controls: Controls = [
+      aVariableSpeedPump({
+        quantity: "level",
+        targetId: IDS.T1,
+        tankLevels: T1_LEVELS,
+      }),
+    ];
+
+    const [control] = remapControlNodeReference(
+      controls,
+      IDS.T1,
+      buildJunction({ id: J4 }),
+    )! as VariableSpeedPumpControl[];
+
+    expect(control).toMatchObject({
+      quantity: "pressure",
+      targetId: J4,
+      target: 30,
+      schedule: [{ time: 0, target: 30 }],
+    });
+    expect(control).not.toHaveProperty("tankLevels");
+  });
+
+  it("re-points the tank levels when the tank is replaced by a tank", () => {
+    const controls: Controls = [
+      aVariableSpeedPump({ quantity: "flow", targetId: IDS.PU1 }),
+      aVariableSpeedPump({ linkId: IDS.PU2, tankLevels: T1_LEVELS }),
+    ];
+
+    const [flow, pressure] = remapControlNodeReference(
+      controls,
+      IDS.T1,
+      buildTank({ id: T3 }),
+    )! as VariableSpeedPumpControl[];
+
+    expect(flow).toBe(controls[0]);
+    expect(pressure.tankLevels).toEqual({ ...T1_LEVELS, tankId: T3 });
+  });
+
+  it("re-points a level-setting control to a new tank", () => {
+    const controls: Controls = [
+      buildDefaultLevelSetting(IDS.PU2, IDS.T1, 1, 5, 1, "level-1"),
+    ];
+
+    expect(
+      remapControlNodeReference(controls, IDS.T1, buildTank({ id: T3 })),
+    ).toEqual([{ ...controls[0], tankId: T3 }]);
+  });
+
+  it("drops a level-setting control when its tank becomes a junction", () => {
+    const controls: Controls = [
+      buildDefaultLevelSetting(IDS.PU2, IDS.T1, 1, 5, 1, "level-1"),
+    ];
+
+    expect(
+      remapControlNodeReference(controls, IDS.T1, buildJunction({ id: J4 })),
+    ).toEqual([]);
   });
 });

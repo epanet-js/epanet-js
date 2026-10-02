@@ -6,6 +6,7 @@ import {
   CustomerPoints,
   Pipe,
   isNodeAsset,
+  remapControlNodeReference,
 } from "@epanet-js/hydraulic-model";
 import {
   DemandAssignment,
@@ -22,6 +23,7 @@ import {
   dropAssets,
   putAssets,
   putCustomerPoints,
+  replaceControls,
   setDemands,
 } from "../change-sets";
 
@@ -38,14 +40,22 @@ export const replaceNode: ModelOperation<InputData> = (
   hydraulicModel,
   data,
 ) => {
-  const { note, oldNodeId, newNode, updatedLinks, customerPoints, demands } =
-    planReplacement(hydraulicModel, data);
+  const {
+    note,
+    oldNodeId,
+    newNode,
+    updatedLinks,
+    customerPoints,
+    demands,
+    controls,
+  } = planReplacement(hydraulicModel, data);
 
   return changeSet(hydraulicModel, note, [
     dropAssets(oldNodeId),
     putAssets([newNode, ...updatedLinks]),
     putCustomerPoints(customerPoints),
     setDemands(demands),
+    ...(controls ? [replaceControls(controls)] : []),
   ]);
 };
 
@@ -53,8 +63,15 @@ export const replaceNodeDeprecated: ModelOperationDeprecated<InputData> = (
   hydraulicModel,
   data,
 ) => {
-  const { note, oldNodeId, newNode, updatedLinks, customerPoints, demands } =
-    planReplacement(hydraulicModel, data);
+  const {
+    note,
+    oldNodeId,
+    newNode,
+    updatedLinks,
+    customerPoints,
+    demands,
+    controls,
+  } = planReplacement(hydraulicModel, data);
 
   return {
     note,
@@ -62,6 +79,7 @@ export const replaceNodeDeprecated: ModelOperationDeprecated<InputData> = (
     deleteAssets: [oldNodeId],
     putCustomerPoints: customerPoints.length > 0 ? customerPoints : undefined,
     ...(demands.length > 0 && { putDemands: { assignments: demands } }),
+    ...(controls && { putControls: controls }),
   };
 };
 
@@ -69,7 +87,8 @@ const planReplacement = (
   hydraulicModel: HydraulicModel,
   { oldNodeId, newNodeType, assetFactory, elevation }: InputData,
 ) => {
-  const { assets, topology, customerPointsLookup } = hydraulicModel;
+  const { assets, topology, customerPointsLookup, controlsLookup } =
+    hydraulicModel;
 
   const oldNode = assets.get(oldNodeId) as NodeAsset;
   if (!oldNode || !isNodeAsset(oldNode)) {
@@ -126,6 +145,13 @@ const planReplacement = (
     updatedLinks,
     customerPoints: [...updatedCustomerPoints.values()],
     demands,
+    controls: controlsLookup.hasControls(oldNodeId)
+      ? (remapControlNodeReference(
+          hydraulicModel.controls,
+          oldNodeId,
+          newNode,
+        ) ?? undefined)
+      : undefined,
   };
 };
 

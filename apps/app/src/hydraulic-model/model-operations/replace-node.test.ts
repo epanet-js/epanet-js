@@ -10,6 +10,7 @@ import {
   NodeAsset,
   LinkAsset,
   getJunctionDemands,
+  getLinkLevelSetting,
 } from "@epanet-js/hydraulic-model";
 
 type NodeType = "junction" | "reservoir" | "tank";
@@ -332,5 +333,36 @@ describe("replaceNode", () => {
     expect(changedEntities(changeSet)).not.toContainEqual(
       expect.stringMatching(/^junctionDemand:/),
     );
+  });
+
+  describe("controls", () => {
+    const buildModelWithLevelControl = (
+      builder: ReturnType<typeof setUp>["builder"],
+    ) => {
+      const IDS = { J1: 1, J2: 2, PU1: 3, T1: 4 } as const;
+      const model = builder
+        .aJunction(IDS.J1, { coordinates: [0, 0] })
+        .aJunction(IDS.J2, { coordinates: [10, 0] })
+        .aPump(IDS.PU1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
+        .aTank(IDS.T1, { coordinates: [20, 0] })
+        .aLevelSettingControl({
+          linkId: IDS.PU1,
+          tankId: IDS.T1,
+          on: { level: 1, setting: 1 },
+          off: { level: 5 },
+        })
+        .build();
+      return { IDS, model };
+    };
+
+    it("removes a level-setting control when its tank becomes a junction", () => {
+      const { builder, ...factories } = setUp();
+      const { IDS, model } = buildModelWithLevelControl(builder);
+
+      replace(model, factories, IDS.T1, "junction");
+
+      expect(getLinkLevelSetting(model.controls, IDS.PU1)).toBeNull();
+      expect(model.controlsLookup.hasControls(IDS.PU1)).toBe(false);
+    });
   });
 });

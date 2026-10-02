@@ -28,4 +28,5 @@ export { ControlsLookup, buildControlsLookup } from "./lookup";
 export {
   detachControlReferences,
   remapControlLinkReference,
+  remapControlNodeReference,
 } from "./references";

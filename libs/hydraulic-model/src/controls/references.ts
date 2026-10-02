@@ -37,6 +37,21 @@ export const remapControlLinkReference = (
   return changed ? next : null;
 };
 
+export const remapControlNodeReference = (
+  controls: Controls,
+  from: AssetId,
+  to: NodeAsset,
+): Controls | null => {
+  let changed = false;
+  const next: Controls = [];
+  for (const control of controls) {
+    const remapped = remapNodeReference(control, from, to);
+    if (remapped !== control) changed = true;
+    if (remapped) next.push(remapped);
+  }
+  return changed ? next : null;
+};
+
 const detachControl = (
   control: Control,
   removedIds: ReadonlySet<AssetId>,
@@ -112,6 +127,45 @@ const withoutTankLevels = (
 ): VariableSpeedPumpControl => {
   const next = { ...control };
   delete next.tankLevels;
+  return next;
+};
+
+const remapNodeReference = (
+  control: Control,
+  from: AssetId,
+  to: NodeAsset,
+): Control | null => {
+  const isTank = to.type === "tank";
+  switch (control.type) {
+    case "timed-setting":
+      return control;
+    case "level-setting":
+      if (control.tankId !== from) return control;
+      return isTank ? { ...control, tankId: to.id } : null;
+    case "variable-speed-pump":
+      return remapVariableSpeedPumpNode(control, from, to);
+  }
+};
+
+const remapVariableSpeedPumpNode = (
+  control: VariableSpeedPumpControl,
+  from: AssetId,
+  to: NodeAsset,
+): VariableSpeedPumpControl => {
+  const isTank = to.type === "tank";
+  let next = control;
+  if (next.quantity !== "flow" && next.targetId === from) {
+    next = {
+      ...next,
+      targetId: to.id,
+      quantity: isTank ? "level" : "pressure",
+    };
+  }
+  if (next.tankLevels?.tankId === from) {
+    next = isTank
+      ? { ...next, tankLevels: { ...next.tankLevels, tankId: to.id } }
+      : withoutTankLevels(next);
+  }
   return next;
 };
 
