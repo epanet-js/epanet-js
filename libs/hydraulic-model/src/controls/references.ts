@@ -23,6 +23,20 @@ export const detachControlReferences = (
   return changed ? next : null;
 };
 
+export const remapControlLinkReference = (
+  controls: Controls,
+  from: AssetId,
+  to: AssetId,
+): Controls | null => {
+  let changed = false;
+  const next = controls.map((control) => {
+    const remapped = remapLinkReference(control, from, to);
+    if (remapped !== control) changed = true;
+    return remapped;
+  });
+  return changed ? next : null;
+};
+
 const detachControl = (
   control: Control,
   removedIds: ReadonlySet<AssetId>,
@@ -99,4 +113,22 @@ const withoutTankLevels = (
   const next = { ...control };
   delete next.tankLevels;
   return next;
+};
+
+const remapLinkReference = (
+  control: Control,
+  from: AssetId,
+  to: AssetId,
+): Control => {
+  if (control.type !== "variable-speed-pump") return control;
+  const remapsTarget = control.targetId === from;
+  const remapsLaggedPump = control.laggedPumpIds.includes(from);
+  if (!remapsTarget && !remapsLaggedPump) return control;
+  return {
+    ...control,
+    ...(remapsTarget && { targetId: to }),
+    ...(remapsLaggedPump && {
+      laggedPumpIds: control.laggedPumpIds.map((id) => (id === from ? to : id)),
+    }),
+  };
 };

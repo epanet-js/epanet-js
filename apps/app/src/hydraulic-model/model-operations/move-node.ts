@@ -15,7 +15,7 @@ import { ModelOperation, ModelOperationDeprecated } from "../model-operation";
 import { findJunctionForCustomerPoint } from "../utilities/junction-assignment";
 import { lineString, point } from "@turf/helpers";
 import { findNearestPointOnLine } from "@epanet-js/geometry";
-import { splitPipe } from "./split-pipe";
+import { controlsAfterSplits, splitPipe } from "./split-pipe";
 import { HydraulicModel } from "../hydraulic-model";
 import { inferNodeIsActive } from "../utilities/active-topology";
 import { Unit } from "@epanet-js/quantity";
@@ -24,6 +24,7 @@ import {
   dropAssets,
   putAssets,
   putCustomerPoints,
+  replaceControls,
 } from "../change-sets";
 
 type InputData = {
@@ -39,13 +40,21 @@ type InputData = {
 };
 
 export const moveNode: ModelOperation<InputData> = (hydraulicModel, data) => {
-  const { note, node, links, newPipes, removedPipeIds, customerPoints } =
-    planMove(hydraulicModel, data);
+  const {
+    note,
+    node,
+    links,
+    newPipes,
+    removedPipeIds,
+    customerPoints,
+    controls,
+  } = planMove(hydraulicModel, data);
 
   return changeSet(hydraulicModel, note, [
     dropAssets(removedPipeIds),
     putAssets([node, ...links, ...newPipes]),
     putCustomerPoints(customerPoints),
+    ...(controls ? [replaceControls(controls)] : []),
   ]);
 };
 
@@ -53,14 +62,22 @@ export const moveNodeDeprecated: ModelOperationDeprecated<InputData> = (
   hydraulicModel,
   data,
 ) => {
-  const { note, node, links, newPipes, removedPipeIds, customerPoints } =
-    planMove(hydraulicModel, data);
+  const {
+    note,
+    node,
+    links,
+    newPipes,
+    removedPipeIds,
+    customerPoints,
+    controls,
+  } = planMove(hydraulicModel, data);
 
   return {
     note,
     putAssets: [node, ...links, ...newPipes],
     putCustomerPoints: customerPoints.length > 0 ? customerPoints : undefined,
     ...(removedPipeIds.length > 0 && { deleteAssets: removedPipeIds }),
+    ...(controls && { putControls: controls }),
   };
 };
 
@@ -134,6 +151,7 @@ const planMove = (
       newPipes: [] as Pipe[],
       removedPipeIds: [] as AssetId[],
       customerPoints: movedCustomerPoints,
+      controls: undefined,
     };
   }
 
@@ -155,6 +173,8 @@ const planMove = (
   const activatedNode = node.copy();
   activatedNode.setProperty("isActive", isActive);
 
+  const controls = controlsAfterSplits(hydraulicModel, [split]);
+
   return {
     note: "moveNode" as const,
     node: activatedNode,
@@ -162,6 +182,7 @@ const planMove = (
     newPipes: split.newPipes,
     removedPipeIds: [split.removedPipeId],
     customerPoints: [...movedCustomerPoints, ...split.customerPoints],
+    controls,
   };
 };
 

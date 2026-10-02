@@ -21,6 +21,7 @@ import {
   dropAssets,
   putAssets,
   putCustomerPoints,
+  replaceControls,
 } from "../change-sets";
 
 type InputData = {
@@ -45,12 +46,14 @@ export const replaceLink: ModelOperation<InputData> = (
     putAssets: assets,
     deleteAssets,
     customerPoints,
+    controls,
   } = planReplaceLink(hydraulicModel, data);
 
   return changeSet(hydraulicModel, note, [
     dropAssets(deleteAssets),
     putAssets(assets),
     putCustomerPoints(customerPoints),
+    ...(controls ? [replaceControls(controls)] : []),
   ]);
 };
 
@@ -58,16 +61,15 @@ export const replaceLinkDeprecated: ModelOperationDeprecated<InputData> = (
   hydraulicModel,
   data,
 ) => {
-  const { note, putAssets, deleteAssets, customerPoints } = planReplaceLink(
-    hydraulicModel,
-    data,
-  );
+  const { note, putAssets, deleteAssets, customerPoints, controls } =
+    planReplaceLink(hydraulicModel, data);
 
   return {
     note,
     putAssets,
     deleteAssets: deleteAssets.length > 0 ? deleteAssets : undefined,
     putCustomerPoints: customerPoints.length > 0 ? customerPoints : undefined,
+    ...(controls && { putControls: controls }),
   };
 };
 
@@ -146,6 +148,7 @@ const planReplaceLink = (
     putAssets: [...added.putAssets, ...oldNodesWithChanges],
     deleteAssets: added.deleteAssets,
     customerPoints: [...added.customerPoints, ...reconnectedCustomerPoints],
+    controls: added.controls,
   };
 };
 

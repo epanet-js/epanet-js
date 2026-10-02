@@ -6,7 +6,9 @@ import {
   AssetFactory,
   LabelManager,
   CustomerPoint,
+  Controls,
   computeLinkLength,
+  remapControlLinkReference,
 } from "@epanet-js/hydraulic-model";
 import { HydraulicModel } from "../hydraulic-model";
 import { findJunctionForCustomerPoint } from "../utilities/junction-assignment";
@@ -72,6 +74,23 @@ export const splitPipe = (
     newPipes,
     customerPoints: reconnectedCustomerPoints,
   };
+};
+
+export const controlsAfterSplits = (
+  hydraulicModel: HydraulicModel,
+  splits: PipeSplit[],
+): Controls | undefined => {
+  let controls: Controls | null = null;
+  for (const { removedPipeId, newPipes } of splits) {
+    if (!hydraulicModel.controlsLookup.hasControls(removedPipeId)) continue;
+    controls =
+      remapControlLinkReference(
+        controls ?? hydraulicModel.controls,
+        removedPipeId,
+        newPipes[0].id,
+      ) ?? controls;
+  }
+  return controls ?? undefined;
 };
 
 const updateCustomerPoints = (

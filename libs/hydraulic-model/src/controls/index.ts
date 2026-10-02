@@ -25,4 +25,7 @@ export {
 } from "./types";
 
 export { ControlsLookup, buildControlsLookup } from "./lookup";
-export { detachControlReferences } from "./references";
+export {
+  detachControlReferences,
+  remapControlLinkReference,
+} from "./references";

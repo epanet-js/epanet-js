@@ -6,7 +6,10 @@ import {
   buildPump,
   buildTank,
 } from "../test-helpers";
-import { detachControlReferences } from "./references";
+import {
+  detachControlReferences,
+  remapControlLinkReference,
+} from "./references";
 import {
   Controls,
   VariableSpeedPumpControl,
@@ -244,5 +247,44 @@ describe("detachControlReferences", () => {
     expect(result[0]).toBe(untouched);
     expect(result[1]).not.toBe(controls[1]);
     expect(result[2]).toBe(otherVsp);
+  });
+});
+
+describe("remapControlLinkReference", () => {
+  it("re-points a flow target to the new link", () => {
+    const controls: Controls = [
+      aVariableSpeedPump({ quantity: "flow", targetId: IDS.P1 }),
+    ];
+
+    const [control] = remapControlLinkReference(
+      controls,
+      IDS.P1,
+      IDS.PU3,
+    )! as VariableSpeedPumpControl[];
+
+    expect(control).toEqual({ ...controls[0], targetId: IDS.PU3 });
+  });
+
+  it("re-points a lagged pump in place", () => {
+    const controls: Controls = [
+      aVariableSpeedPump({ laggedPumpIds: [IDS.PU2, IDS.PU3] }),
+    ];
+
+    const [control] = remapControlLinkReference(
+      controls,
+      IDS.PU2,
+      IDS.P1,
+    )! as VariableSpeedPumpControl[];
+
+    expect(control.laggedPumpIds).toEqual([IDS.P1, IDS.PU3]);
+  });
+
+  it("never re-points the control's own link", () => {
+    const controls: Controls = [
+      buildTimedSetting(IDS.PU1, [], "timed-1"),
+      buildDefaultLevelSetting(IDS.PU1, IDS.T1, 1, 5, 1, "level-1"),
+    ];
+
+    expect(remapControlLinkReference(controls, IDS.PU1, IDS.PU2)).toBeNull();
   });
 });

@@ -11,8 +11,8 @@ import {
 } from "@epanet-js/hydraulic-model";
 import { ModelOperation, ModelOperationDeprecated } from "../model-operation";
 import { Position } from "geojson";
-import { splitPipe } from "./split-pipe";
-import { AssetsMap } from "@epanet-js/hydraulic-model";
+import { PipeSplit, controlsAfterSplits, splitPipe } from "./split-pipe";
+import { AssetsMap, Controls } from "@epanet-js/hydraulic-model";
 import { HydraulicModel } from "../hydraulic-model";
 import { inferNodeIsActive } from "../utilities/active-topology";
 import { copyPipePropertiesToLink } from "./mutations/copy-link-properties";
@@ -22,6 +22,7 @@ import {
   dropAssets,
   putAssets,
   putCustomerPoints,
+  replaceControls,
 } from "../change-sets";
 
 type InputData = {
@@ -41,12 +42,14 @@ export const addLink: ModelOperation<InputData> = (hydraulicModel, data) => {
     putAssets: assets,
     deleteAssets,
     customerPoints,
+    controls,
   } = planAddLink(hydraulicModel, data);
 
   return changeSet(hydraulicModel, note, [
     dropAssets(deleteAssets),
     putAssets(assets),
     putCustomerPoints(customerPoints),
+    ...(controls ? [replaceControls(controls)] : []),
   ]);
 };
 
@@ -54,16 +57,15 @@ export const addLinkDeprecated: ModelOperationDeprecated<InputData> = (
   hydraulicModel,
   data,
 ) => {
-  const { note, putAssets, deleteAssets, customerPoints } = planAddLink(
-    hydraulicModel,
-    data,
-  );
+  const { note, putAssets, deleteAssets, customerPoints, controls } =
+    planAddLink(hydraulicModel, data);
 
   return {
     note,
     deleteAssets: deleteAssets.length > 0 ? deleteAssets : undefined,
     putAssets,
     putCustomerPoints: customerPoints,
+    ...(controls && { putControls: controls }),
   };
 };
 
@@ -116,17 +118,18 @@ export const planAddLink = (
     ),
   );
 
-  const { putAssets, deleteAssets, putCustomerPoints } = handlePipeSplits({
-    link: linkCopy,
-    startNode: startNodeCopy,
-    endNode: endNodeCopy,
-    startPipeId,
-    endPipeId,
-    hydraulicModel,
-    lengthUnit,
-    assetFactory,
-    labelManager,
-  });
+  const { putAssets, deleteAssets, putCustomerPoints, controls } =
+    handlePipeSplits({
+      link: linkCopy,
+      startNode: startNodeCopy,
+      endNode: endNodeCopy,
+      startPipeId,
+      endPipeId,
+      hydraulicModel,
+      lengthUnit,
+      assetFactory,
+      labelManager,
+    });
 
   const withoutOverlap = removeOverlappingPipes({
     link: linkCopy,
@@ -141,6 +144,7 @@ export const planAddLink = (
     putAssets: withoutOverlap.putAssets,
     deleteAssets,
     customerPoints: withoutOverlap.putCustomerPoints,
+    controls,
   };
 };
 
@@ -256,6 +260,7 @@ const handlePipeSplits = ({
   putAssets: Asset[];
   deleteAssets: AssetId[];
   putCustomerPoints: CustomerPoint[];
+  controls: Controls | undefined;
 } => {
   const allPutAssets = [link, startNode, endNode];
   const allPutCustomerPoints: CustomerPoint[] = [];
@@ -289,7 +294,7 @@ const handlePipeSplits = ({
     }
   }
 
-  plannedSplits.forEach((splitConfig) => {
+  const splitResults: PipeSplit[] = plannedSplits.map((splitConfig) => {
     const pipe = validatePipeOrThrow(
       hydraulicModel.assets,
       splitConfig.pipeId,
@@ -305,12 +310,14 @@ const handlePipeSplits = ({
     allPutAssets.push(...splitResult.newPipes);
     allPutCustomerPoints.push(...splitResult.customerPoints);
     allDeleteAssets.push(splitResult.removedPipeId);
+    return splitResult;
   });
 
   return {
     deleteAssets: allDeleteAssets,
     putAssets: allPutAssets,
     putCustomerPoints: allPutCustomerPoints,
+    controls: controlsAfterSplits(hydraulicModel, splitResults),
   };
 };
 

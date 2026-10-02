@@ -1,9 +1,13 @@
-import { splitPipe } from "./split-pipe";
+import { controlsAfterSplits, splitPipe } from "./split-pipe";
 import {
   HydraulicModelBuilder,
   buildCustomerPoint,
 } from "src/__helpers__/hydraulic-model-builder";
-import { Pipe } from "@epanet-js/hydraulic-model";
+import {
+  Pipe,
+  VariableSpeedPumpControl,
+  getLinkVariableSpeedPump,
+} from "@epanet-js/hydraulic-model";
 import { buildTestFactories } from "src/__helpers__/test-factories";
 
 describe("splitPipe", () => {
@@ -1389,5 +1393,68 @@ describe("splitPipe", () => {
     expect(pipes[0].isActive).toBe(false);
     expect(pipes[1].isActive).toBe(false);
     expect(pipes[2].isActive).toBe(false);
+  });
+
+  describe("controlsAfterSplits", () => {
+    const aFlowTarget = (linkId: number, targetId: number) => ({
+      linkId,
+      quantity: "flow" as VariableSpeedPumpControl["quantity"],
+      targetId,
+      target: 10,
+      minSpeed: 0,
+      maxSpeed: 1,
+      laggedPumpIds: [],
+      schedule: [],
+    });
+
+    it("re-points every control at the half that keeps the split pipe's label", () => {
+      const IDS = {
+        J1: 1,
+        J2: 2,
+        J3: 3,
+        J4: 4,
+        P1: 5,
+        P2: 6,
+        PU1: 7,
+        PU2: 8,
+      } as const;
+      const { assetFactory, labelManager } = buildTestFactories();
+      const hydraulicModel = HydraulicModelBuilder.with({
+        assetFactory,
+        labelManager,
+      })
+        .aNode(IDS.J1, [0, 0])
+        .aNode(IDS.J2, [10, 0])
+        .aNode(IDS.J3, [0, 10])
+        .aNode(IDS.J4, [10, 10])
+        .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2, label: "P1" })
+        .aPipe(IDS.P2, { startNodeId: IDS.J3, endNodeId: IDS.J4, label: "P2" })
+        .aPump(IDS.PU1, { startNodeId: IDS.J1, endNodeId: IDS.J3 })
+        .aPump(IDS.PU2, { startNodeId: IDS.J2, endNodeId: IDS.J4 })
+        .aVariableSpeedPumpControl(aFlowTarget(IDS.PU1, IDS.P1))
+        .aVariableSpeedPumpControl(aFlowTarget(IDS.PU2, IDS.P2))
+        .build();
+      const split = (pipeId: number, coordinates: [number, number]) =>
+        splitPipe(hydraulicModel, {
+          assetFactory,
+          labelManager,
+          lengthUnit: "m",
+          pipe: hydraulicModel.assets.get(pipeId) as Pipe,
+          splits: [assetFactory.createJunction({ coordinates })],
+        });
+      const splitP1 = split(IDS.P1, [5, 0]);
+      const splitP2 = split(IDS.P2, [5, 10]);
+
+      const controls = controlsAfterSplits(hydraulicModel, [splitP1, splitP2])!;
+
+      expect(splitP1.newPipes[0].label).toBe("P1");
+      expect(getLinkVariableSpeedPump(controls, IDS.PU1)?.targetId).toBe(
+        splitP1.newPipes[0].id,
+      );
+      expect(splitP2.newPipes[0].label).toBe("P2");
+      expect(getLinkVariableSpeedPump(controls, IDS.PU2)?.targetId).toBe(
+        splitP2.newPipes[0].id,
+      );
+    });
   });
 });

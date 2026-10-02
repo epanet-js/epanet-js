@@ -8,13 +8,14 @@ import {
 import { ModelOperation, ModelOperationDeprecated } from "../model-operation";
 import { Position } from "src/types";
 import { HydraulicModel } from "../hydraulic-model";
-import { splitPipe } from "./split-pipe";
+import { controlsAfterSplits, splitPipe } from "./split-pipe";
 import { Unit } from "@epanet-js/quantity";
 import {
   changeSet,
   dropAssets,
   putAssets,
   putCustomerPoints,
+  replaceControls,
 } from "../change-sets";
 
 type NodeType = "junction" | "reservoir" | "tank";
@@ -30,15 +31,14 @@ type InputData = {
 };
 
 export const addNode: ModelOperation<InputData> = (hydraulicModel, data) => {
-  const { note, node, newPipes, removedPipeIds, customerPoints } = planAddition(
-    hydraulicModel,
-    data,
-  );
+  const { note, node, newPipes, removedPipeIds, customerPoints, controls } =
+    planAddition(hydraulicModel, data);
 
   return changeSet(hydraulicModel, note, [
     dropAssets(removedPipeIds),
     putAssets([node, ...newPipes]),
     putCustomerPoints(customerPoints),
+    ...(controls ? [replaceControls(controls)] : []),
   ]);
 };
 
@@ -46,10 +46,8 @@ export const addNodeDeprecated: ModelOperationDeprecated<InputData> = (
   hydraulicModel,
   data,
 ) => {
-  const { note, node, newPipes, removedPipeIds, customerPoints } = planAddition(
-    hydraulicModel,
-    data,
-  );
+  const { note, node, newPipes, removedPipeIds, customerPoints, controls } =
+    planAddition(hydraulicModel, data);
 
   if (removedPipeIds.length === 0) {
     return { note, putAssets: [node] };
@@ -60,6 +58,7 @@ export const addNodeDeprecated: ModelOperationDeprecated<InputData> = (
     putAssets: [node, ...newPipes],
     putCustomerPoints: customerPoints.length > 0 ? customerPoints : undefined,
     deleteAssets: removedPipeIds,
+    ...(controls && { putControls: controls }),
   };
 };
 
@@ -112,6 +111,7 @@ const planAddition = (
     newPipes: splitResults.flatMap((result) => result.newPipes),
     removedPipeIds: splitResults.map((result) => result.removedPipeId),
     customerPoints: splitResults.flatMap((result) => result.customerPoints),
+    controls: controlsAfterSplits(hydraulicModel, splitResults),
   };
 };
 
