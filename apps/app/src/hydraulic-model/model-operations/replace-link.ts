@@ -7,8 +7,8 @@ import {
   AssetFactory,
   LabelManager,
 } from "@epanet-js/hydraulic-model";
-import { ModelOperationDeprecated, ModelMoment } from "../model-operation";
-import { addLinkDeprecated } from "./add-link";
+import { ModelOperation, ModelOperationDeprecated } from "../model-operation";
+import { planAddLink } from "./add-link";
 import { findJunctionForCustomerPoint } from "../utilities/junction-assignment";
 import { HydraulicModel } from "../hydraulic-model";
 import { lineString, point } from "@turf/helpers";
@@ -16,6 +16,12 @@ import { Position } from "geojson";
 import { findNearestPointOnLine } from "@epanet-js/geometry";
 import { inferNodeIsActive } from "../utilities/active-topology";
 import { Unit } from "@epanet-js/quantity";
+import {
+  changeSet,
+  dropAssets,
+  putAssets,
+  putCustomerPoints,
+} from "../change-sets";
 
 type InputData = {
   sourceLinkId: AssetId;
@@ -30,8 +36,43 @@ type InputData = {
   precision?: number;
 };
 
-export const replaceLink: ModelOperationDeprecated<InputData> = (
+export const replaceLink: ModelOperation<InputData> = (
   hydraulicModel,
+  data,
+) => {
+  const {
+    note,
+    putAssets: assets,
+    deleteAssets,
+    customerPoints,
+  } = planReplaceLink(hydraulicModel, data);
+
+  return changeSet(hydraulicModel, note, [
+    dropAssets(deleteAssets),
+    putAssets(assets),
+    putCustomerPoints(customerPoints),
+  ]);
+};
+
+export const replaceLinkDeprecated: ModelOperationDeprecated<InputData> = (
+  hydraulicModel,
+  data,
+) => {
+  const { note, putAssets, deleteAssets, customerPoints } = planReplaceLink(
+    hydraulicModel,
+    data,
+  );
+
+  return {
+    note,
+    putAssets,
+    deleteAssets: deleteAssets.length > 0 ? deleteAssets : undefined,
+    putCustomerPoints: customerPoints.length > 0 ? customerPoints : undefined,
+  };
+};
+
+const planReplaceLink = (
+  hydraulicModel: HydraulicModel,
   {
     sourceLinkId,
     newLink,
@@ -43,7 +84,7 @@ export const replaceLink: ModelOperationDeprecated<InputData> = (
     assetFactory,
     labelManager,
     precision,
-  },
+  }: InputData,
 ) => {
   const sourceLink = hydraulicModel.assets.get(sourceLinkId);
   if (!sourceLink || sourceLink.isNode) {
@@ -70,7 +111,7 @@ export const replaceLink: ModelOperationDeprecated<InputData> = (
 
   newLink.setProperty("isActive", sourceLink.isActive);
 
-  const addLinkResult = addLinkDeprecated(hydraulicModel, {
+  const added = planAddLink(hydraulicModel, {
     link: newLink,
     startNode,
     endNode,
@@ -89,7 +130,7 @@ export const replaceLink: ModelOperationDeprecated<InputData> = (
           newLink,
           startNode,
           endNode,
-          addLinkResult,
+          added.putAssets,
           precision,
         )
       : [];
@@ -97,25 +138,14 @@ export const replaceLink: ModelOperationDeprecated<InputData> = (
   const oldNodesWithChanges = reevaluateAffectedNodes(
     hydraulicModel,
     sourceLinkAsset,
-    addLinkResult.putAssets || [],
+    added.putAssets,
   );
-
-  const allPutAssets = [
-    ...(addLinkResult.putAssets || []),
-    ...oldNodesWithChanges,
-  ];
-
-  const allPutCustomerPoints = [
-    ...(addLinkResult.putCustomerPoints || []),
-    ...reconnectedCustomerPoints,
-  ];
 
   return {
     note: `Replace ${sourceLinkAsset.type}`,
-    putAssets: allPutAssets,
-    deleteAssets: addLinkResult.deleteAssets,
-    putCustomerPoints:
-      allPutCustomerPoints.length > 0 ? allPutCustomerPoints : undefined,
+    putAssets: [...added.putAssets, ...oldNodesWithChanges],
+    deleteAssets: added.deleteAssets,
+    customerPoints: [...added.customerPoints, ...reconnectedCustomerPoints],
   };
 };
 
@@ -125,7 +155,7 @@ const reconnectCustomerPoints = (
   newLink: LinkAsset,
   startNode: NodeAsset,
   endNode: NodeAsset,
-  addLinkResult: ModelMoment,
+  addedAssets: Asset[],
   precision: number | undefined,
 ): CustomerPoint[] => {
   const connectedCustomerPoints =
@@ -135,7 +165,7 @@ const reconnectCustomerPoints = (
     return [];
   }
 
-  const actualNewPipe = addLinkResult.putAssets!.find(
+  const actualNewPipe = addedAssets.find(
     (asset) => asset.type === "pipe" && asset.id === newLink.id,
   );
 

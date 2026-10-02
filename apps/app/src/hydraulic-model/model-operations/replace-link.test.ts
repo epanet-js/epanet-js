@@ -5,6 +5,7 @@ import {
   buildPipe,
 } from "src/__helpers__/hydraulic-model-builder";
 import {
+  AssetId,
   Pipe,
   Pump,
   LinkAsset,
@@ -13,16 +14,46 @@ import {
   CustomerPoint,
 } from "@epanet-js/hydraulic-model";
 import { Position } from "geojson";
+import type { ChangeSet } from "@epanet-js/change-set";
+import { applyOperation } from "src/__helpers__/apply-operation";
 import { buildTestFactories } from "src/__helpers__/test-factories";
+import type { HydraulicModel } from "src/hydraulic-model";
+
+const replace = (
+  hydraulicModel: HydraulicModel,
+  data: Parameters<typeof replaceLink>[1],
+) => {
+  const changeSet = replaceLink(hydraulicModel, data);
+  applyOperation(hydraulicModel, changeSet, data.labelManager);
+  return changeSet;
+};
+
+const changedEntities = (changeSet: ChangeSet) =>
+  changeSet
+    .summary()
+    .map(({ entity, kind, count }) => `${entity}:${kind}:${count}`)
+    .sort();
+
+const assetOf = <T extends LinkAsset | NodeAsset>(
+  model: HydraulicModel,
+  id: AssetId,
+) => model.assets.get(id) as T;
+
+const customerPointOf = (model: HydraulicModel, id: number) =>
+  model.customerPoints.get(id) as CustomerPoint;
+
+const activeStates = (model: HydraulicModel, ids: AssetId[]) =>
+  ids.map((id) => model.assets.get(id)!.isActive);
 
 describe("replaceLink", () => {
   describe("basic functionality", () => {
     it("replaces existing pipe with new pipe", () => {
       const IDS = { J1: 1, J2: 2, P1: 3 } as const;
-      const { assetFactory, labelManager } = buildTestFactories();
+      const { assetFactory, labelManager, idGenerator } = buildTestFactories();
       const hydraulicModel = HydraulicModelBuilder.with({
         assetFactory,
         labelManager,
+        idGenerator,
       })
         .aJunction(IDS.J1, { coordinates: [0, 0] })
         .aJunction(IDS.J2, { coordinates: [10, 0] })
@@ -47,7 +78,7 @@ describe("replaceLink", () => {
       const startNode = hydraulicModel.assets.get(IDS.J1) as NodeAsset;
       const endNode = hydraulicModel.assets.get(IDS.J2) as NodeAsset;
 
-      const { putAssets, deleteAssets } = replaceLink(hydraulicModel, {
+      const changeSet = replace(hydraulicModel, {
         assetFactory,
         labelManager,
         lengthUnit: "m",
@@ -57,24 +88,75 @@ describe("replaceLink", () => {
         endNode,
       });
 
-      expect(deleteAssets).toBeUndefined();
-      expect(putAssets).toBeDefined();
+      expect(changeSet.name).toBe("Replace pipe");
+      expect(changedEntities(changeSet)).toEqual(["pipe:update:1"]);
 
-      const addedPipe = putAssets!.find(
-        (asset) => asset.type === "pipe",
-      ) as Pipe;
-      expect(addedPipe).toBeDefined();
-      expect(addedPipe.id).toBe(IDS.P1);
-      expect(addedPipe.connections).toEqual([IDS.J1, IDS.J2]);
-      expect(addedPipe.isActive).toBe(true);
+      const replacedPipe = assetOf<Pipe>(hydraulicModel, IDS.P1);
+      expect(replacedPipe.connections).toEqual([IDS.J1, IDS.J2]);
+      expect(replacedPipe.coordinates).toEqual([
+        [0, 0],
+        [5, 5],
+        [10, 0],
+      ]);
+      expect(replacedPipe.diameter).toBe(200);
+      expect(replacedPipe.isActive).toBe(true);
+    });
+
+    it("moves the link onto new nodes and detaches it from the old ones", () => {
+      const IDS = { J1: 1, J2: 2, P1: 3, J3: 101, J4: 102 } as const;
+      const { assetFactory, labelManager, idGenerator } = buildTestFactories();
+      const hydraulicModel = HydraulicModelBuilder.with({
+        assetFactory,
+        labelManager,
+        idGenerator,
+      })
+        .aJunction(IDS.J1, { coordinates: [0, 0] })
+        .aJunction(IDS.J2, { coordinates: [10, 0] })
+        .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
+        .build();
+
+      const newPipe = redrawn(hydraulicModel.assets.get(IDS.P1) as Pipe, [
+        [0, 5],
+        [10, 5],
+      ]);
+      const startNode = assetFactory.createJunction({
+        id: IDS.J3,
+        coordinates: [0, 5],
+      });
+      const endNode = assetFactory.createJunction({
+        id: IDS.J4,
+        coordinates: [10, 5],
+      });
+
+      replace(hydraulicModel, {
+        assetFactory,
+        labelManager,
+        lengthUnit: "m",
+        sourceLinkId: IDS.P1,
+        newLink: newPipe,
+        startNode,
+        endNode,
+      });
+
+      expect(assetOf<Pipe>(hydraulicModel, IDS.P1).connections).toEqual([
+        IDS.J3,
+        IDS.J4,
+      ]);
+      expect(hydraulicModel.topology.getNodes(IDS.P1)).toEqual([
+        IDS.J3,
+        IDS.J4,
+      ]);
+      expect(hydraulicModel.topology.getLinks(IDS.J1)).toEqual([]);
+      expect(hydraulicModel.topology.getLinks(IDS.J2)).toEqual([]);
     });
 
     it("throws error for mismatched link types", () => {
       const IDS = { J1: 1, J2: 2, P1: 3 } as const;
-      const { assetFactory, labelManager } = buildTestFactories();
+      const { assetFactory, labelManager, idGenerator } = buildTestFactories();
       const hydraulicModel = HydraulicModelBuilder.with({
         assetFactory,
         labelManager,
+        idGenerator,
       })
         .aJunction(IDS.J1, { coordinates: [0, 0] })
         .aJunction(IDS.J2, { coordinates: [10, 0] })
@@ -100,7 +182,7 @@ describe("replaceLink", () => {
       const endNode = hydraulicModel.assets.get(IDS.J2) as NodeAsset;
 
       expect(() =>
-        replaceLink(hydraulicModel, {
+        replace(hydraulicModel, {
           assetFactory,
           labelManager,
           lengthUnit: "m",
@@ -114,10 +196,11 @@ describe("replaceLink", () => {
 
     it("throws when splitting the link being replaced", () => {
       const IDS = { J1: 1, J2: 2, P1: 3 } as const;
-      const { assetFactory, labelManager } = buildTestFactories();
+      const { assetFactory, labelManager, idGenerator } = buildTestFactories();
       const hydraulicModel = HydraulicModelBuilder.with({
         assetFactory,
         labelManager,
+        idGenerator,
       })
         .aJunction(IDS.J1, { coordinates: [0, 0] })
         .aJunction(IDS.J2, { coordinates: [10, 0] })
@@ -145,7 +228,7 @@ describe("replaceLink", () => {
       });
 
       expect(() =>
-        replaceLink(hydraulicModel, {
+        replace(hydraulicModel, {
           assetFactory,
           labelManager,
           lengthUnit: "m",
@@ -162,11 +245,12 @@ describe("replaceLink", () => {
 
   describe("auto-replace pipe section when redrawing", () => {
     it("replaces middle pipe section when redrawing pipe onto same pipe", () => {
-      const IDS = { J1: 1, J2: 2, P1: 3, P2: 4, J3: 5, J4: 6 } as const;
-      const { assetFactory, labelManager } = buildTestFactories();
+      const IDS = { J1: 1, J2: 2, P1: 3, P2: 4, J3: 101, J4: 102 } as const;
+      const { assetFactory, labelManager, idGenerator } = buildTestFactories();
       const hydraulicModel = HydraulicModelBuilder.with({
         assetFactory,
         labelManager,
+        idGenerator,
       })
         .aJunction(IDS.J1, { coordinates: [0, 0] })
         .aJunction(IDS.J2, { coordinates: [30, 0] })
@@ -208,7 +292,7 @@ describe("replaceLink", () => {
         coordinates: [20, 0],
       });
 
-      const { putAssets, deleteAssets } = replaceLink(hydraulicModel, {
+      const changeSet = replace(hydraulicModel, {
         assetFactory,
         labelManager,
         lengthUnit: "m",
@@ -220,22 +304,26 @@ describe("replaceLink", () => {
         endPipeId: IDS.P1,
       });
 
-      expect(deleteAssets).toContain(IDS.P1);
-      expect(deleteAssets).not.toContain(IDS.P2);
-
-      const pipes = putAssets!.filter((a) => a.type === "pipe") as Pipe[];
-      expect(pipes).toHaveLength(3);
-
-      const redrawnPipe = pipes.find((p) => p.id === IDS.P2);
-      expect(redrawnPipe).toBeDefined();
+      expect(changedEntities(changeSet)).toEqual([
+        "junction:create:2",
+        "pipe:create:2",
+        "pipe:delete:1",
+        "pipe:update:1",
+      ]);
+      expect(hydraulicModel.assets.has(IDS.P1)).toBe(false);
+      expect(assetOf<Pipe>(hydraulicModel, IDS.P2).connections).toEqual([
+        IDS.J3,
+        IDS.J4,
+      ]);
     });
 
     it("replaces section when redrawing pipe as valve onto same pipe", () => {
-      const IDS = { J1: 1, J2: 2, P1: 3, V1: 4, J3: 5, J4: 6 } as const;
-      const { assetFactory, labelManager } = buildTestFactories();
+      const IDS = { J1: 1, J2: 2, P1: 3, V1: 4, J3: 101, J4: 102 } as const;
+      const { assetFactory, labelManager, idGenerator } = buildTestFactories();
       const hydraulicModel = HydraulicModelBuilder.with({
         assetFactory,
         labelManager,
+        idGenerator,
       })
         .aJunction(IDS.J1, { coordinates: [0, 0] })
         .aJunction(IDS.J2, { coordinates: [30, 0] })
@@ -276,7 +364,7 @@ describe("replaceLink", () => {
         coordinates: [20, 0],
       });
 
-      const { putAssets, deleteAssets } = replaceLink(hydraulicModel, {
+      const changeSet = replace(hydraulicModel, {
         assetFactory,
         labelManager,
         lengthUnit: "m",
@@ -288,25 +376,25 @@ describe("replaceLink", () => {
         endPipeId: IDS.P1,
       });
 
-      expect(deleteAssets).toContain(IDS.P1);
-      expect(deleteAssets).not.toContain(IDS.V1);
-
-      const valve = putAssets!.find((a) => a.type === "valve") as Valve;
-      expect(valve).toBeDefined();
-      expect(valve.diameter).toBe(150);
-
-      const pipes = putAssets!.filter((a) => a.type === "pipe") as Pipe[];
-      expect(pipes).toHaveLength(2);
+      expect(changedEntities(changeSet)).toEqual([
+        "junction:create:2",
+        "pipe:create:2",
+        "pipe:delete:1",
+        "valve:update:1",
+      ]);
+      expect(hydraulicModel.assets.has(IDS.P1)).toBe(false);
+      expect(assetOf<Valve>(hydraulicModel, IDS.V1).diameter).toBe(150);
     });
   });
 
   describe("active topology status inheritance", () => {
     it("inherits isActive from source link when replacing active link", () => {
       const IDS = { J1: 1, J2: 2, P1: 3 } as const;
-      const { assetFactory, labelManager } = buildTestFactories();
+      const { assetFactory, labelManager, idGenerator } = buildTestFactories();
       const hydraulicModel = HydraulicModelBuilder.with({
         assetFactory,
         labelManager,
+        idGenerator,
       })
         .aJunction(IDS.J1, { coordinates: [0, 0] })
         .aJunction(IDS.J2, { coordinates: [10, 0] })
@@ -329,7 +417,7 @@ describe("replaceLink", () => {
       const startNode = hydraulicModel.assets.get(IDS.J1) as NodeAsset;
       const endNode = hydraulicModel.assets.get(IDS.J2) as NodeAsset;
 
-      const { putAssets } = replaceLink(hydraulicModel, {
+      replace(hydraulicModel, {
         assetFactory,
         labelManager,
         lengthUnit: "m",
@@ -339,21 +427,20 @@ describe("replaceLink", () => {
         endNode,
       });
 
-      expect(putAssets).toHaveLength(3);
-      const assetsActiveTopologyState = Object.fromEntries(
-        putAssets!.map((asset) => [asset.id, asset.isActive]),
-      );
-      expect(assetsActiveTopologyState[IDS.P1]).toBe(true);
-      expect(assetsActiveTopologyState[IDS.J1]).toBe(true);
-      expect(assetsActiveTopologyState[IDS.J2]).toBe(true);
+      expect(activeStates(hydraulicModel, [IDS.P1, IDS.J1, IDS.J2])).toEqual([
+        true,
+        true,
+        true,
+      ]);
     });
 
     it("inherits isActive from source link when replacing inactive link", () => {
-      const IDS = { J1: 1, J2: 2, P0: 3, P1: 4 } as const;
-      const { assetFactory, labelManager } = buildTestFactories();
+      const IDS = { J1: 1, J2: 2, P1: 4 } as const;
+      const { assetFactory, labelManager, idGenerator } = buildTestFactories();
       const hydraulicModel = HydraulicModelBuilder.with({
         assetFactory,
         labelManager,
+        idGenerator,
       })
         .aJunction(IDS.J1, { coordinates: [0, 0], isActive: false })
         .aJunction(IDS.J2, { coordinates: [10, 0], isActive: false })
@@ -372,7 +459,7 @@ describe("replaceLink", () => {
       const startNode = hydraulicModel.assets.get(IDS.J1) as NodeAsset;
       const endNode = hydraulicModel.assets.get(IDS.J2) as NodeAsset;
 
-      const { putAssets } = replaceLink(hydraulicModel, {
+      replace(hydraulicModel, {
         assetFactory,
         labelManager,
         lengthUnit: "m",
@@ -382,21 +469,20 @@ describe("replaceLink", () => {
         endNode,
       });
 
-      expect(putAssets).toHaveLength(3);
-      const assetsActiveTopologyState = Object.fromEntries(
-        putAssets!.map((asset) => [asset.id, asset.isActive]),
-      );
-      expect(assetsActiveTopologyState[IDS.P1]).toBe(false);
-      expect(assetsActiveTopologyState[IDS.J1]).toBe(false);
-      expect(assetsActiveTopologyState[IDS.J2]).toBe(false);
+      expect(activeStates(hydraulicModel, [IDS.P1, IDS.J1, IDS.J2])).toEqual([
+        false,
+        false,
+        false,
+      ]);
     });
 
     it("re-activates old nodes when removing only non-active link", () => {
-      const IDS = { J1: 1, J2: 2, P1: 3, J3: 4, J4: 5 } as const;
-      const { assetFactory, labelManager } = buildTestFactories();
+      const IDS = { J1: 1, J2: 2, P1: 3, J3: 101, J4: 102 } as const;
+      const { assetFactory, labelManager, idGenerator } = buildTestFactories();
       const hydraulicModel = HydraulicModelBuilder.with({
         assetFactory,
         labelManager,
+        idGenerator,
       })
         .aJunction(IDS.J1, { coordinates: [0, 0], isActive: false })
         .aJunction(IDS.J2, { coordinates: [10, 0], isActive: false })
@@ -420,7 +506,7 @@ describe("replaceLink", () => {
         coordinates: [8, 0],
       });
 
-      const { putAssets } = replaceLink(hydraulicModel, {
+      const changeSet = replace(hydraulicModel, {
         assetFactory,
         labelManager,
         lengthUnit: "m",
@@ -430,22 +516,23 @@ describe("replaceLink", () => {
         endNode: newEndNode,
       });
 
-      expect(putAssets).toHaveLength(5);
-      const assetsActiveTopologyState = Object.fromEntries(
-        putAssets!.map((asset) => [asset.id, asset.isActive]),
-      );
-      expect(assetsActiveTopologyState[IDS.J1]).toBe(true);
-      expect(assetsActiveTopologyState[IDS.J2]).toBe(true);
-      expect(assetsActiveTopologyState[IDS.J3]).toBe(false);
-      expect(assetsActiveTopologyState[IDS.J4]).toBe(false);
+      expect(changedEntities(changeSet)).toEqual([
+        "junction:create:2",
+        "junction:update:2",
+        "pipe:update:1",
+      ]);
+      expect(
+        activeStates(hydraulicModel, [IDS.J1, IDS.J2, IDS.J3, IDS.J4]),
+      ).toEqual([true, true, false, false]);
     });
 
     it("deactivates previous nodes when removing only active link", () => {
-      const IDS = { J1: 1, J2: 2, J3: 3, J4: 4, P0: 5, P1: 6 } as const;
-      const { assetFactory, labelManager } = buildTestFactories();
+      const IDS = { J1: 1, J2: 2, P0: 5, P1: 6, J3: 101, J4: 102 } as const;
+      const { assetFactory, labelManager, idGenerator } = buildTestFactories();
       const hydraulicModel = HydraulicModelBuilder.with({
         assetFactory,
         labelManager,
+        idGenerator,
       })
         .aJunction(IDS.J1, { coordinates: [0, 0], isActive: true })
         .aJunction(IDS.J2, { coordinates: [10, 0], isActive: true })
@@ -476,7 +563,7 @@ describe("replaceLink", () => {
         coordinates: [8, 0],
       });
 
-      const { putAssets } = replaceLink(hydraulicModel, {
+      replace(hydraulicModel, {
         assetFactory,
         labelManager,
         lengthUnit: "m",
@@ -486,12 +573,10 @@ describe("replaceLink", () => {
         endNode: newEndNode,
       });
 
-      expect(putAssets).toHaveLength(5);
-      const assetsActiveTopologyState = Object.fromEntries(
-        putAssets!.map((asset) => [asset.id, asset.isActive]),
-      );
-      expect(assetsActiveTopologyState[IDS.J1]).toBe(false);
-      expect(assetsActiveTopologyState[IDS.J2]).toBe(false);
+      expect(activeStates(hydraulicModel, [IDS.J1, IDS.J2])).toEqual([
+        false,
+        false,
+      ]);
     });
 
     it("sets correct active state for nodes when redrawing inactive pipe splitting inactive and active pipes", () => {
@@ -507,10 +592,11 @@ describe("replaceLink", () => {
         N2: 9,
       } as const;
 
-      const { assetFactory, labelManager } = buildTestFactories();
+      const { assetFactory, labelManager, idGenerator } = buildTestFactories();
       const hydraulicModel = HydraulicModelBuilder.with({
         assetFactory,
         labelManager,
+        idGenerator,
       })
         .aJunction(IDS.J1, { coordinates: [0, 0], isActive: false })
         .aJunction(IDS.J2, { coordinates: [10, 0], isActive: false })
@@ -564,7 +650,7 @@ describe("replaceLink", () => {
         coordinates: [5, 20],
       });
 
-      const { putAssets } = replaceLink(hydraulicModel, {
+      replace(hydraulicModel, {
         assetFactory,
         labelManager,
         lengthUnit: "m",
@@ -576,25 +662,22 @@ describe("replaceLink", () => {
         endPipeId: IDS.P3,
       });
 
-      expect(putAssets).toBeDefined();
-
-      const assetsActiveTopologyState = Object.fromEntries(
-        putAssets!.map((asset) => [asset.id, asset.isActive]),
-      );
-
-      expect(assetsActiveTopologyState[IDS.P1]).toBe(false);
-      expect(assetsActiveTopologyState[IDS.N1]).toBe(false);
-      expect(assetsActiveTopologyState[IDS.N2]).toBe(true);
+      expect(activeStates(hydraulicModel, [IDS.P1, IDS.N1, IDS.N2])).toEqual([
+        false,
+        false,
+        true,
+      ]);
     });
   });
 
   describe("customer points reconnection", () => {
     it("reconnects customer points to closest junction", () => {
       const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4 } as const;
-      const { assetFactory, labelManager } = buildTestFactories();
+      const { assetFactory, labelManager, idGenerator } = buildTestFactories();
       const hydraulicModel = HydraulicModelBuilder.with({
         assetFactory,
         labelManager,
+        idGenerator,
       })
         .aJunction(IDS.J1, { coordinates: [0, 0] })
         .aJunction(IDS.J2, { coordinates: [10, 0] })
@@ -624,7 +707,7 @@ describe("replaceLink", () => {
       const startNode = hydraulicModel.assets.get(IDS.J1) as NodeAsset;
       const endNode = hydraulicModel.assets.get(IDS.J2) as NodeAsset;
 
-      const { putCustomerPoints, putAssets } = replaceLink(hydraulicModel, {
+      replace(hydraulicModel, {
         assetFactory,
         labelManager,
         lengthUnit: "m",
@@ -634,26 +717,20 @@ describe("replaceLink", () => {
         endNode,
       });
 
-      expect(putCustomerPoints).toBeDefined();
-      expect(putCustomerPoints!.length).toBe(1);
-
-      const reconnectedCP = putCustomerPoints![0];
-      expect(reconnectedCP.id).toBe(IDS.CP1);
+      const reconnectedCP = customerPointOf(hydraulicModel, IDS.CP1);
       expect(reconnectedCP.connection).not.toBeNull();
       expect(reconnectedCP.connection!.junctionId).toBe(IDS.J1);
-
-      const newPipeId = putAssets!.find((asset) => asset.type === "pipe")!.id;
-      expect(reconnectedCP.connection!.pipeId).toBe(newPipeId);
-
+      expect(reconnectedCP.connection!.pipeId).toBe(IDS.P1);
       expect(reconnectedCP.connection!.snapPoint).toEqual([2, 0]);
     });
 
     it("recalculates snap point when new pipe has different geometry", () => {
       const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4 } as const;
-      const { assetFactory, labelManager } = buildTestFactories();
+      const { assetFactory, labelManager, idGenerator } = buildTestFactories();
       const hydraulicModel = HydraulicModelBuilder.with({
         assetFactory,
         labelManager,
+        idGenerator,
       })
         .aJunction(IDS.J1, { coordinates: [0, 0] })
         .aJunction(IDS.J2, { coordinates: [10, 0] })
@@ -684,7 +761,7 @@ describe("replaceLink", () => {
       const startNode = hydraulicModel.assets.get(IDS.J1) as NodeAsset;
       const endNode = hydraulicModel.assets.get(IDS.J2) as NodeAsset;
 
-      const { putCustomerPoints } = replaceLink(hydraulicModel, {
+      const changeSet = replace(hydraulicModel, {
         assetFactory,
         labelManager,
         lengthUnit: "m",
@@ -694,22 +771,22 @@ describe("replaceLink", () => {
         endNode,
       });
 
-      expect(putCustomerPoints).toBeDefined();
-      const reconnectedCP = putCustomerPoints![0];
+      expect(changedEntities(changeSet)).toContain("customerPoint:update:1");
 
-      expect(reconnectedCP.connection!.snapPoint).not.toEqual([3, 0]);
-
-      const snapPoint = reconnectedCP.connection!.snapPoint;
+      const snapPoint = customerPointOf(hydraulicModel, IDS.CP1).connection!
+        .snapPoint;
+      expect(snapPoint).not.toEqual([3, 0]);
       expect(snapPoint[0]).toBeCloseTo(2.5, 1);
       expect(snapPoint[1]).toBeCloseTo(2.5, 1);
     });
 
     it("reconnects to farther junction when closer is not junction", () => {
       const IDS = { T1: 1, J2: 2, P1: 3, CP1: 4 } as const;
-      const { assetFactory, labelManager } = buildTestFactories();
+      const { assetFactory, labelManager, idGenerator } = buildTestFactories();
       const hydraulicModel = HydraulicModelBuilder.with({
         assetFactory,
         labelManager,
+        idGenerator,
       })
         .aTank(IDS.T1, { coordinates: [0, 0] })
         .aJunction(IDS.J2, { coordinates: [10, 0] })
@@ -739,7 +816,7 @@ describe("replaceLink", () => {
       const startNode = hydraulicModel.assets.get(IDS.T1) as NodeAsset;
       const endNode = hydraulicModel.assets.get(IDS.J2) as NodeAsset;
 
-      const { putCustomerPoints } = replaceLink(hydraulicModel, {
+      replace(hydraulicModel, {
         assetFactory,
         labelManager,
         lengthUnit: "m",
@@ -749,17 +826,18 @@ describe("replaceLink", () => {
         endNode,
       });
 
-      expect(putCustomerPoints).toBeDefined();
-      const reconnectedCP = putCustomerPoints![0];
-      expect(reconnectedCP.connection!.junctionId).toBe(IDS.J2);
+      expect(
+        customerPointOf(hydraulicModel, IDS.CP1).connection!.junctionId,
+      ).toBe(IDS.J2);
     });
 
     it("disconnects customer points when no junctions available", () => {
       const IDS = { T1: 1, R1: 2, P1: 3, CP1: 4 } as const;
-      const { assetFactory, labelManager } = buildTestFactories();
+      const { assetFactory, labelManager, idGenerator } = buildTestFactories();
       const hydraulicModel = HydraulicModelBuilder.with({
         assetFactory,
         labelManager,
+        idGenerator,
       })
         .aTank(IDS.T1, { coordinates: [0, 0] })
         .aReservoir(IDS.R1, { coordinates: [10, 0] })
@@ -792,7 +870,7 @@ describe("replaceLink", () => {
       const startNode = hydraulicModel.assets.get(IDS.T1) as NodeAsset;
       const endNode = hydraulicModel.assets.get(IDS.R1) as NodeAsset;
 
-      const { putCustomerPoints } = replaceLink(hydraulicModel, {
+      const changeSet = replace(hydraulicModel, {
         assetFactory,
         labelManager,
         lengthUnit: "m",
@@ -802,17 +880,17 @@ describe("replaceLink", () => {
         endNode,
       });
 
-      expect(putCustomerPoints).toBeDefined();
-      const disconnectedCP = putCustomerPoints![0];
-      expect(disconnectedCP.connection).toBeNull();
+      expect(changedEntities(changeSet)).toContain("customerPoint:update:1");
+      expect(customerPointOf(hydraulicModel, IDS.CP1).connection).toBeNull();
     });
 
     it("handles non-pipe links without customer point processing", () => {
       const IDS = { J1: 1, J2: 2, PU1: 3 } as const;
-      const { assetFactory, labelManager } = buildTestFactories();
+      const { assetFactory, labelManager, idGenerator } = buildTestFactories();
       const hydraulicModel = HydraulicModelBuilder.with({
         assetFactory,
         labelManager,
+        idGenerator,
       })
         .aJunction(IDS.J1, { coordinates: [0, 0] })
         .aJunction(IDS.J2, { coordinates: [10, 0] })
@@ -835,22 +913,17 @@ describe("replaceLink", () => {
       const startNode = hydraulicModel.assets.get(IDS.J1) as NodeAsset;
       const endNode = hydraulicModel.assets.get(IDS.J2) as NodeAsset;
 
-      const { putAssets, deleteAssets, putCustomerPoints } = replaceLink(
-        hydraulicModel,
-        {
-          assetFactory,
-          labelManager,
-          lengthUnit: "m",
-          sourceLinkId: IDS.PU1,
-          newLink: newPump,
-          startNode,
-          endNode,
-        },
-      );
+      const changeSet = replace(hydraulicModel, {
+        assetFactory,
+        labelManager,
+        lengthUnit: "m",
+        sourceLinkId: IDS.PU1,
+        newLink: newPump,
+        startNode,
+        endNode,
+      });
 
-      expect(deleteAssets).toBeUndefined();
-      expect(putAssets).toBeDefined();
-      expect(putCustomerPoints).toBeUndefined();
+      expect(changedEntities(changeSet)).toEqual(["pump:update:1"]);
     });
   });
 
@@ -862,10 +935,11 @@ describe("replaceLink", () => {
         { x: 50, y: 80 },
         { x: 100, y: 40 },
       ];
-      const { assetFactory, labelManager } = buildTestFactories();
+      const { assetFactory, labelManager, idGenerator } = buildTestFactories();
       const hydraulicModel = HydraulicModelBuilder.with({
         assetFactory,
         labelManager,
+        idGenerator,
       })
         .aJunction(IDS.J1, { coordinates: [0, 0] })
         .aJunction(IDS.J2, { coordinates: [10, 0] })
@@ -897,7 +971,7 @@ describe("replaceLink", () => {
       const startNode = hydraulicModel.assets.get(IDS.J1) as NodeAsset;
       const endNode = hydraulicModel.assets.get(IDS.J2) as NodeAsset;
 
-      const { putAssets } = replaceLink(hydraulicModel, {
+      replace(hydraulicModel, {
         assetFactory,
         labelManager,
         lengthUnit: "m",
@@ -907,10 +981,7 @@ describe("replaceLink", () => {
         endNode,
       });
 
-      const updatedPump = putAssets!.find(
-        (asset) => asset.type === "pump",
-      ) as Pump;
-      expect(updatedPump).toBeDefined();
+      const updatedPump = assetOf<Pump>(hydraulicModel, IDS.PU1);
       expect(updatedPump.curve).toEqual(customCurve);
       expect(updatedPump.definitionType).toEqual("designPointCurve");
       expect(updatedPump.speed).toEqual(2);
@@ -924,10 +995,11 @@ describe("replaceLink", () => {
 
     it("preserves valve attributes", () => {
       const IDS = { J1: 1, J2: 2, V1: 3 } as const;
-      const { assetFactory, labelManager } = buildTestFactories();
+      const { assetFactory, labelManager, idGenerator } = buildTestFactories();
       const hydraulicModel = HydraulicModelBuilder.with({
         assetFactory,
         labelManager,
+        idGenerator,
       })
         .aJunction(IDS.J1, { coordinates: [0, 0] })
         .aJunction(IDS.J2, { coordinates: [10, 0] })
@@ -958,7 +1030,7 @@ describe("replaceLink", () => {
       const startNode = hydraulicModel.assets.get(IDS.J1) as NodeAsset;
       const endNode = hydraulicModel.assets.get(IDS.J2) as NodeAsset;
 
-      const { putAssets } = replaceLink(hydraulicModel, {
+      replace(hydraulicModel, {
         assetFactory,
         labelManager,
         lengthUnit: "m",
@@ -968,10 +1040,7 @@ describe("replaceLink", () => {
         endNode,
       });
 
-      const updatedValve = putAssets!.find(
-        (asset) => asset.type === "valve",
-      ) as Valve;
-      expect(updatedValve).toBeDefined();
+      const updatedValve = assetOf<Valve>(hydraulicModel, IDS.V1);
       expect(updatedValve.kind).toEqual("fcv");
       expect(updatedValve.setting).toEqual(42);
       expect(updatedValve.diameter).toEqual(250);
@@ -988,10 +1057,11 @@ describe("replaceLink", () => {
   describe("error cases", () => {
     it("throws error when source link not found", () => {
       const IDS = { NONEXISTENT: 999 } as const;
-      const { assetFactory, labelManager } = buildTestFactories();
+      const { assetFactory, labelManager, idGenerator } = buildTestFactories();
       const hydraulicModel = HydraulicModelBuilder.with({
         assetFactory,
         labelManager,
+        idGenerator,
       }).build();
 
       const newPipe = assetFactory.createPipe({
@@ -1010,7 +1080,7 @@ describe("replaceLink", () => {
       });
 
       expect(() =>
-        replaceLink(hydraulicModel, {
+        replace(hydraulicModel, {
           assetFactory,
           labelManager,
           lengthUnit: "m",
@@ -1024,10 +1094,11 @@ describe("replaceLink", () => {
 
     it("throws when the new link does not keep the source id", () => {
       const IDS = { J1: 1, J2: 2, P1: 3, P2: 4 } as const;
-      const { assetFactory, labelManager } = buildTestFactories();
+      const { assetFactory, labelManager, idGenerator } = buildTestFactories();
       const hydraulicModel = HydraulicModelBuilder.with({
         assetFactory,
         labelManager,
+        idGenerator,
       })
         .aJunction(IDS.J1, { coordinates: [0, 0] })
         .aJunction(IDS.J2, { coordinates: [10, 0] })
@@ -1043,7 +1114,7 @@ describe("replaceLink", () => {
       });
 
       expect(() =>
-        replaceLink(hydraulicModel, {
+        replace(hydraulicModel, {
           assetFactory,
           labelManager,
           lengthUnit: "m",

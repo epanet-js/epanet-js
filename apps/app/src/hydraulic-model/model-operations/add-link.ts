@@ -67,7 +67,10 @@ export const addLinkDeprecated: ModelOperationDeprecated<InputData> = (
   };
 };
 
-const planAddLink = (hydraulicModel: HydraulicModel, data: InputData) => {
+export const planAddLink = (
+  hydraulicModel: HydraulicModel,
+  data: InputData,
+) => {
   const {
     link,
     startNode,

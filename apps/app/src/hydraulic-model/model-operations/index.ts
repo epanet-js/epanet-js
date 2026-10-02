@@ -21,7 +21,7 @@ export { addNode, addNodeDeprecated } from "./add-node";
 export { deleteAssets, deleteAssetsDeprecated } from "./delete-assets";
 export { addLink, addLinkDeprecated } from "./add-link";
 export { replaceNode, replaceNodeDeprecated } from "./replace-node";
-export { replaceLink } from "./replace-link";
+export { replaceLink, replaceLinkDeprecated } from "./replace-link";
 export { mergeNodes, mergeNodesDeprecated } from "./merge-nodes";
 export {
   changeRawControls,

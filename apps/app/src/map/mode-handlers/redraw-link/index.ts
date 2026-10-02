@@ -1,15 +1,23 @@
 import type { HandlerContext } from "src/types";
 import { useDrawLinkHandlers, type SubmitLinkParams } from "../draw-link";
 import { useAtomValue, useSetAtom } from "jotai";
+import { useAtomCallback } from "jotai/utils";
+import { useCallback } from "react";
 import { modeAtom, Mode } from "src/state/mode";
 import { selectionAtom } from "src/state/selection";
 import { LinkAsset, NodeAsset } from "src/hydraulic-model";
 import { USelection, useSelection } from "src/selection";
-import { replaceLink } from "src/hydraulic-model/model-operations";
+import {
+  replaceLink,
+  replaceLinkDeprecated,
+} from "src/hydraulic-model/model-operations";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import measureLength from "@turf/length";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
+import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 
 export function useRedrawLinkHandlers(
   handlerContext: HandlerContext,
@@ -17,6 +25,11 @@ export function useRedrawLinkHandlers(
   const selection = useAtomValue(selectionAtom);
   const setMode = useSetAtom(modeAtom);
   const { transact } = useMomentTransaction();
+  const { transact: transactChangeSet } = useModelTransaction();
+  const isOpsChangeSetsOn = useFeatureFlag("FLAG_OPS_CHANGE_SETS");
+  const readCommittedModel = useAtomCallback(
+    useCallback((get) => get(stagingModelDerivedAtom), []),
+  );
   const userTracking = useUserTracking();
   const { hydraulicModel } = handlerContext;
   const { assets } = hydraulicModel;
@@ -46,7 +59,7 @@ export function useRedrawLinkHandlers(
       return;
     }
 
-    const moment = replaceLink(hydraulicModel, {
+    const data = {
       sourceLinkId: sourceLink.id,
       startNode,
       endNode,
@@ -57,8 +70,25 @@ export function useRedrawLinkHandlers(
       assetFactory,
       labelManager,
       precision: handlerContext.map.getPrecision(),
-    });
+    };
 
+    if (isOpsChangeSetsOn) {
+      const applied = transactChangeSet(replaceLink(hydraulicModel, data));
+
+      setMode({ mode: Mode.NONE });
+
+      if (!applied) return undefined;
+
+      userTracking.capture({ name: "asset.redrawed", type: link.type });
+
+      selectAsset(link.id);
+
+      return readCommittedModel().assets.get(endNode.id) as
+        | NodeAsset
+        | undefined;
+    }
+
+    const moment = replaceLinkDeprecated(hydraulicModel, data);
     const applied = transact(moment);
 
     setMode({ mode: Mode.NONE });
