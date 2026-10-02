@@ -7,6 +7,7 @@ import {
   PipeBuildData,
   PumpBuildData,
   ReservoirBuildData,
+  TankBuildData,
 } from "..";
 import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
 
@@ -24,6 +25,9 @@ export const buildJunction = (data: JunctionBuildData = {}) =>
 
 export const buildReservoir = (data: ReservoirBuildData = {}) =>
   factory().createReservoir(data);
+
+export const buildTank = (data: TankBuildData = {}) =>
+  factory().createTank(data);
 
 export const buildCustomerPoint = (
   id: number,

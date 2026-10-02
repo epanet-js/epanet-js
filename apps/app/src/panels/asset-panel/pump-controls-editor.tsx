@@ -2,9 +2,10 @@ import { useMemo } from "react";
 import { Selector } from "@epanet-js/ui-kit";
 import {
   AssetId,
+  buildDefaultVspFlowControl,
   buildDefaultLevelSetting,
+  buildDefaultVspPressureControl,
   buildTimedSetting,
-  buildVariableSpeedPump,
   Control,
   PumpStatus,
   Tank,
@@ -22,8 +23,6 @@ import { TextField } from "src/components/form/text-field";
 import { PumpTimeBasedControls } from "./pump-time-based-controls";
 import { PumpLevelBasedControls } from "./pump-level-based-controls";
 import {
-  buildDefaultFlowTarget,
-  buildDefaultPressureTarget,
   VariableSpeedPumpControlsEditor,
   type VariableSpeedPumpTargets,
 } from "./variable-speed-pump-controls-editor";
@@ -117,19 +116,22 @@ export const PumpControlsEditor = ({
     const previousVariableSpeed =
       control?.type === "variable-speed-pump" ? control : undefined;
     if (newValue === "pressureTarget" && variableSpeedPumpTargets) {
-      const data = buildDefaultPressureTarget(
-        linkId,
-        variableSpeedPumpTargets,
-        previousVariableSpeed,
+      const outletNode = variableSpeedPumpTargets.nodes.find(
+        (node) => node.id === variableSpeedPumpTargets.outletNodeId,
       );
-      if (data) onControlChange(buildVariableSpeedPump(data));
+      if (outletNode)
+        onControlChange(
+          buildDefaultVspPressureControl(
+            linkId,
+            outletNode,
+            previousVariableSpeed,
+          ),
+        );
       return;
     }
     if (newValue === "flowTarget") {
       onControlChange(
-        buildVariableSpeedPump(
-          buildDefaultFlowTarget(linkId, previousVariableSpeed),
-        ),
+        buildDefaultVspFlowControl(linkId, previousVariableSpeed),
       );
       return;
     }

@@ -19,7 +19,10 @@ export {
   buildTimedSetting,
   buildDefaultLevelSetting,
   buildVariableSpeedPump,
+  buildDefaultVspPressureControl,
+  buildDefaultVspFlowControl,
   setAssetControl,
 } from "./types";
 
 export { ControlsLookup, buildControlsLookup } from "./lookup";
+export { detachControlReferences } from "./references";

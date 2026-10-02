@@ -1,6 +1,6 @@
 import { nanoid } from "nanoid";
 
-import { AssetId } from "../asset-types";
+import { AssetId, NodeAsset } from "../asset-types";
 import { PumpStatus } from "../asset-types/pump";
 
 export type ControlId = string;
@@ -124,6 +124,47 @@ export const buildVariableSpeedPump = (
   id,
   type: "variable-speed-pump",
   ...data,
+});
+
+export const buildDefaultVspPressureControl = (
+  linkId: AssetId,
+  outletNode: NodeAsset,
+  base?: VariableSpeedPumpControl,
+  id: ControlId = createControlId(),
+): VariableSpeedPumpControl => {
+  const isTank = outletNode.type === "tank";
+  const keepsTankLevels = isTank && base?.tankLevels?.tankId === outletNode.id;
+  return {
+    id,
+    type: "variable-speed-pump",
+    linkId,
+    quantity: isTank ? "level" : "pressure",
+    targetId: outletNode.id,
+    target: 0,
+    minSpeed: base?.minSpeed ?? 0,
+    maxSpeed: base?.maxSpeed ?? 1,
+    laggedPumpIds: base?.laggedPumpIds ?? [],
+    schedule: [],
+    ...(keepsTankLevels && { tankLevels: base.tankLevels }),
+  };
+};
+
+export const buildDefaultVspFlowControl = (
+  linkId: AssetId,
+  base?: VariableSpeedPumpControl,
+  id: ControlId = createControlId(),
+): VariableSpeedPumpControl => ({
+  id,
+  type: "variable-speed-pump",
+  linkId,
+  quantity: "flow",
+  targetId: linkId,
+  target: 0,
+  minSpeed: base?.minSpeed ?? 0,
+  maxSpeed: base?.maxSpeed ?? 1,
+  laggedPumpIds: base?.laggedPumpIds ?? [],
+  schedule: [],
+  ...(base?.tankLevels && { tankLevels: base.tankLevels }),
 });
 
 export const setAssetControl = (

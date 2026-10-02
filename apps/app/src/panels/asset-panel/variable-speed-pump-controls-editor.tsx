@@ -54,51 +54,6 @@ const selectorStyleOptions = {
   paddingY: 2,
 } as const;
 
-export const buildDefaultPressureTarget = (
-  linkId: AssetId,
-  targets: VariableSpeedPumpTargets,
-  base?: VariableSpeedPumpControl,
-): Omit<VariableSpeedPumpControl, "id" | "type"> | null => {
-  const node =
-    targets.nodes.find((n) => n.id === targets.outletNodeId) ??
-    targets.nodes[0];
-  if (!node) return null;
-  return {
-    linkId,
-    quantity: node.type === "tank" ? "level" : "pressure",
-    targetId: node.id,
-    target: 0,
-    minSpeed: base?.minSpeed ?? 0,
-    maxSpeed: base?.maxSpeed ?? 1,
-    laggedPumpIds: base?.laggedPumpIds ?? [],
-    schedule: [],
-    tankLevels: tankLevelsOn(node, base?.tankLevels),
-  };
-};
-
-export const buildDefaultFlowTarget = (
-  linkId: AssetId,
-  base?: VariableSpeedPumpControl,
-): Omit<VariableSpeedPumpControl, "id" | "type"> => ({
-  linkId,
-  quantity: "flow",
-  targetId: linkId,
-  target: 0,
-  minSpeed: base?.minSpeed ?? 0,
-  maxSpeed: base?.maxSpeed ?? 1,
-  laggedPumpIds: base?.laggedPumpIds ?? [],
-  schedule: [],
-  tankLevels: base?.tankLevels,
-});
-
-const tankLevelsOn = (
-  node: NodeAsset,
-  tankLevels: VariableSpeedPumpTankLevels | undefined,
-) =>
-  node.type === "tank" && tankLevels?.tankId === node.id
-    ? tankLevels
-    : undefined;
-
 export const VariableSpeedPumpControlsEditor = ({
   control,
   targets,
@@ -940,3 +895,11 @@ const nodeOptionLabel = (
     return translate("controls.variableSpeed.tankNode", node.label);
   return node.label;
 };
+
+const tankLevelsOn = (
+  node: NodeAsset,
+  tankLevels: VariableSpeedPumpTankLevels | undefined,
+) =>
+  node.type === "tank" && tankLevels?.tankId === node.id
+    ? tankLevels
+    : undefined;

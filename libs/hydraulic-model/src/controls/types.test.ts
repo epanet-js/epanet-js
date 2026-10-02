@@ -1,5 +1,9 @@
+import { buildJunction, buildTank } from "../test-helpers";
 import {
+  buildDefaultVspFlowControl,
   buildDefaultLevelSetting,
+  buildDefaultVspPressureControl,
+  buildVariableSpeedPump,
   buildTimedSetting,
   createEmptyControls,
   getLinkLevelSetting,
@@ -137,6 +141,111 @@ describe("controls helpers", () => {
       const initial = createEmptyControls();
       setAssetControl(initial, IDS.P1, buildTimedSetting(IDS.P1, []));
       expect(initial).toHaveLength(0);
+    });
+  });
+
+  describe("default variable speed pump controls", () => {
+    const VSP_IDS = { PU1: 1, PU2: 2, J1: 3, T1: 4 } as const;
+    const T1_LEVELS = { tankId: VSP_IDS.T1, offLevel: 5, onLevel: 1 };
+    const previous = buildVariableSpeedPump({
+      linkId: VSP_IDS.PU1,
+      quantity: "level",
+      targetId: VSP_IDS.T1,
+      target: 3,
+      minSpeed: 0.5,
+      maxSpeed: 1.2,
+      laggedPumpIds: [VSP_IDS.PU2],
+      schedule: [{ time: 0, target: 3 }],
+      tankLevels: T1_LEVELS,
+    });
+
+    it("targets the pressure at a junction outlet", () => {
+      const outlet = buildJunction({ id: VSP_IDS.J1 });
+
+      expect(
+        buildDefaultVspPressureControl(
+          VSP_IDS.PU1,
+          outlet,
+          undefined,
+          "ctrl-1",
+        ),
+      ).toStrictEqual({
+        id: "ctrl-1",
+        type: "variable-speed-pump",
+        linkId: VSP_IDS.PU1,
+        quantity: "pressure",
+        targetId: VSP_IDS.J1,
+        target: 0,
+        minSpeed: 0,
+        maxSpeed: 1,
+        laggedPumpIds: [],
+        schedule: [],
+      });
+    });
+
+    it("targets the level when the outlet is a tank", () => {
+      const outlet = buildTank({ id: VSP_IDS.T1 });
+
+      expect(buildDefaultVspPressureControl(VSP_IDS.PU1, outlet)).toMatchObject(
+        {
+          quantity: "level",
+          targetId: VSP_IDS.T1,
+        },
+      );
+    });
+
+    it("keeps the tank levels only when the outlet is that tank", () => {
+      const tank = buildTank({ id: VSP_IDS.T1 });
+      const junction = buildJunction({ id: VSP_IDS.J1 });
+
+      expect(
+        buildDefaultVspPressureControl(VSP_IDS.PU1, tank, previous).tankLevels,
+      ).toEqual(T1_LEVELS);
+      expect(
+        buildDefaultVspPressureControl(VSP_IDS.PU1, junction, previous),
+      ).not.toHaveProperty("tankLevels");
+    });
+
+    it("keeps the speed range and lagged pumps and clears the schedule", () => {
+      const outlet = buildJunction({ id: VSP_IDS.J1 });
+
+      expect(
+        buildDefaultVspPressureControl(VSP_IDS.PU1, outlet, previous),
+      ).toMatchObject({
+        target: 0,
+        minSpeed: 0.5,
+        maxSpeed: 1.2,
+        laggedPumpIds: [VSP_IDS.PU2],
+        schedule: [],
+      });
+    });
+
+    it("targets the flow through the pump itself", () => {
+      expect(
+        buildDefaultVspFlowControl(VSP_IDS.PU1, undefined, "ctrl-1"),
+      ).toStrictEqual({
+        id: "ctrl-1",
+        type: "variable-speed-pump",
+        linkId: VSP_IDS.PU1,
+        quantity: "flow",
+        targetId: VSP_IDS.PU1,
+        target: 0,
+        minSpeed: 0,
+        maxSpeed: 1,
+        laggedPumpIds: [],
+        schedule: [],
+      });
+    });
+
+    it("keeps the tank levels on a flow target", () => {
+      expect(buildDefaultVspFlowControl(VSP_IDS.PU1, previous)).toMatchObject({
+        target: 0,
+        minSpeed: 0.5,
+        maxSpeed: 1.2,
+        laggedPumpIds: [VSP_IDS.PU2],
+        schedule: [],
+        tankLevels: T1_LEVELS,
+      });
     });
   });
 });

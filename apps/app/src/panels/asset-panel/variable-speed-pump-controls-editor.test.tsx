@@ -11,8 +11,6 @@ import {
 import type { UnitsSpec } from "@epanet-js/project-settings";
 import { highlightsAtom } from "src/state/highlights";
 import {
-  buildDefaultFlowTarget,
-  buildDefaultPressureTarget,
   VariableSpeedPumpControlsEditor,
   VariableSpeedPumpTargets,
 } from "./variable-speed-pump-controls-editor";
@@ -147,67 +145,6 @@ const pickLaggedPump = (currentLabel: string, pump: string) => {
 const highlights = () => getDefaultStore().get(highlightsAtom);
 
 describe("VariableSpeedPumpControlsEditor", () => {
-  describe("default targets", () => {
-    it("targets the pressure at the pump outlet", () => {
-      expect(buildDefaultPressureTarget(IDS.PU1, TARGETS)).toEqual({
-        linkId: IDS.PU1,
-        quantity: "pressure",
-        targetId: IDS.J2,
-        target: 0,
-        minSpeed: 0,
-        maxSpeed: 1,
-        laggedPumpIds: [],
-        schedule: [],
-        tankLevels: undefined,
-      });
-    });
-
-    it("targets the level when the outlet is a tank", () => {
-      expect(
-        buildDefaultPressureTarget(IDS.PU1, {
-          ...TARGETS,
-          outletNodeId: IDS.T1,
-        }),
-      ).toMatchObject({ quantity: "level", targetId: IDS.T1 });
-    });
-
-    it("targets the flow through the pump itself", () => {
-      expect(buildDefaultFlowTarget(IDS.PU1)).toMatchObject({
-        quantity: "flow",
-        targetId: IDS.PU1,
-        target: 0,
-        schedule: [],
-      });
-    });
-
-    it("keeps the speed range and lagged pumps when the type changes", () => {
-      const previous = aLevelTarget({
-        minSpeed: 0.5,
-        maxSpeed: 1.2,
-        laggedPumpIds: [IDS.PU2],
-        schedule: [{ time: 0, target: 3 }],
-        tankLevels: T1_LEVELS,
-      });
-
-      expect(buildDefaultFlowTarget(IDS.PU1, previous)).toMatchObject({
-        minSpeed: 0.5,
-        maxSpeed: 1.2,
-        laggedPumpIds: [IDS.PU2],
-        schedule: [],
-        tankLevels: T1_LEVELS,
-      });
-      expect(
-        buildDefaultPressureTarget(IDS.PU1, TARGETS, previous),
-      ).toMatchObject({
-        minSpeed: 0.5,
-        maxSpeed: 1.2,
-        laggedPumpIds: [IDS.PU2],
-        schedule: [],
-        tankLevels: undefined,
-      });
-    });
-  });
-
   describe("pressure target", () => {
     it("becomes a level target when a tank is chosen", () => {
       const onChange = renderEditor(aPressureTarget());

@@ -6,8 +6,8 @@ import {
   LinkAsset,
   CustomerPoint,
   CustomerPointsLookup,
-  Control,
   AssetReference,
+  detachControlReferences,
 } from "@epanet-js/hydraulic-model";
 import type { AssetPatch, DemandAssignment } from "../model-operation";
 import { ModelOperation, ModelOperationDeprecated } from "../model-operation";
@@ -130,12 +130,9 @@ const planDeletion = (
     });
   });
 
-  const controlsToRemove = new Set<Control>();
-  for (const id of affectedIds) {
-    for (const control of controlsLookup.getControls(id)) {
-      controlsToRemove.add(control);
-    }
-  }
+  const referencesControls = [...affectedIds].some((id) =>
+    controlsLookup.hasControls(id),
+  );
 
   return {
     deleteIds: Array.from(affectedIds),
@@ -146,12 +143,13 @@ const planDeletion = (
       assets,
       affectedIds,
     ),
-    controls:
-      controlsToRemove.size > 0
-        ? hydraulicModel.controls.filter(
-            (control) => !controlsToRemove.has(control),
-          )
-        : undefined,
+    controls: referencesControls
+      ? (detachControlReferences(
+          hydraulicModel.controls,
+          affectedIds,
+          assets,
+        ) ?? undefined)
+      : undefined,
     rawControls: shouldRemoveRawControls
       ? removeRawControlsReferencing(rawControls, affectedIds)
       : undefined,

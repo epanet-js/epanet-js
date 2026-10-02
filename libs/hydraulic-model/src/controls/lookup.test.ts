@@ -1,6 +1,11 @@
 import { expect, describe, it } from "vitest";
 import { ControlsLookup, buildControlsLookup } from "./lookup";
-import { LevelSettingControl, TimedSettingControl, Controls } from "./types";
+import {
+  LevelSettingControl,
+  TimedSettingControl,
+  Controls,
+  buildVariableSpeedPump,
+} from "./types";
 
 const aTimedControl = (id: string, linkId: number): TimedSettingControl => ({
   id,
@@ -21,6 +26,32 @@ const aLevelControl = (
   on: { level: 1, setting: 1 },
   off: { level: 5 },
 });
+
+const aVariableSpeedPumpControl = (
+  id: string,
+  references: {
+    linkId: number;
+    targetId: number;
+    tankId?: number;
+    laggedPumpIds?: number[];
+  },
+) =>
+  buildVariableSpeedPump(
+    {
+      linkId: references.linkId,
+      quantity: "pressure",
+      targetId: references.targetId,
+      target: 30,
+      minSpeed: 0,
+      maxSpeed: 1,
+      laggedPumpIds: references.laggedPumpIds ?? [],
+      schedule: [],
+      ...(references.tankId !== undefined && {
+        tankLevels: { tankId: references.tankId, offLevel: 5, onLevel: 1 },
+      }),
+    },
+    id,
+  );
 
 describe("ControlsLookup", () => {
   it("finds a level-setting control by both its link and its tank", () => {
@@ -130,5 +161,55 @@ describe("ControlsLookup", () => {
 
     expect(lookup.hasControls(IDS.P1)).toBe(false);
     expect(lookup.hasControls(IDS.T1)).toBe(false);
+  });
+
+  it("finds a variable speed pump control by every asset it references", () => {
+    const IDS = { PU1: 1, J1: 2, T1: 3, PU2: 4, PU3: 5 } as const;
+    const lookup = new ControlsLookup();
+    const control = aVariableSpeedPumpControl("ctrl-1", {
+      linkId: IDS.PU1,
+      targetId: IDS.J1,
+      tankId: IDS.T1,
+      laggedPumpIds: [IDS.PU2, IDS.PU3],
+    });
+
+    lookup.addControl(control);
+
+    for (const id of Object.values(IDS)) {
+      expect(lookup.getControls(id)).toEqual(new Set([control]));
+    }
+  });
+
+  it("removes a variable speed pump control from every asset it references", () => {
+    const IDS = { PU1: 1, J1: 2, T1: 3, PU2: 4 } as const;
+    const lookup = new ControlsLookup();
+    const control = aVariableSpeedPumpControl("ctrl-1", {
+      linkId: IDS.PU1,
+      targetId: IDS.J1,
+      tankId: IDS.T1,
+      laggedPumpIds: [IDS.PU2],
+    });
+
+    lookup.addControl(control);
+    lookup.removeControl(control);
+
+    for (const id of Object.values(IDS)) {
+      expect(lookup.hasControls(id)).toBe(false);
+    }
+  });
+
+  it("indexes a flow target on its own pump once", () => {
+    const IDS = { PU1: 1 } as const;
+    const lookup = new ControlsLookup();
+    const control = aVariableSpeedPumpControl("ctrl-1", {
+      linkId: IDS.PU1,
+      targetId: IDS.PU1,
+    });
+
+    lookup.addControl(control);
+    expect(lookup.getControls(IDS.PU1)).toEqual(new Set([control]));
+
+    lookup.removeControl(control);
+    expect(lookup.hasControls(IDS.PU1)).toBe(false);
   });
 });

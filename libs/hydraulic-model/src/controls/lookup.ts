@@ -5,16 +5,14 @@ export class ControlsLookup {
   private lookup: Map<AssetId, Set<Control>> = new Map();
 
   addControl(control: Control): void {
-    this.index(control.linkId, control);
-    if (control.type === "level-setting") {
-      this.index(control.tankId, control);
+    for (const assetId of referencedIds(control)) {
+      this.index(assetId, control);
     }
   }
 
   removeControl(control: Control): void {
-    this.unindex(control.linkId, control);
-    if (control.type === "level-setting") {
-      this.unindex(control.tankId, control);
+    for (const assetId of referencedIds(control)) {
+      this.unindex(assetId, control);
     }
   }
 
@@ -71,4 +69,20 @@ export const buildControlsLookup = (controls: Controls): ControlsLookup => {
     lookup.addControl(control);
   }
   return lookup;
+};
+
+const referencedIds = (control: Control): AssetId[] => {
+  switch (control.type) {
+    case "timed-setting":
+      return [control.linkId];
+    case "level-setting":
+      return [control.linkId, control.tankId];
+    case "variable-speed-pump":
+      return [
+        control.linkId,
+        control.targetId,
+        ...(control.tankLevels ? [control.tankLevels.tankId] : []),
+        ...control.laggedPumpIds,
+      ];
+  }
 };
