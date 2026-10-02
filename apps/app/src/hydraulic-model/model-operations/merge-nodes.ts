@@ -7,6 +7,7 @@ import {
   CustomerPointsLookup,
   isNodeAsset,
   computeLinkLength,
+  remapControlNodeReference,
 } from "@epanet-js/hydraulic-model";
 import {
   DemandAssignment,
@@ -25,6 +26,7 @@ import {
   dropAssets,
   putAssets,
   putCustomerPoints,
+  replaceControls,
   setDemands,
 } from "../change-sets";
 
@@ -60,6 +62,7 @@ export const mergeNodes: ModelOperation<InputData> = (hydraulicModel, data) => {
     updatedLinks,
     customerPoints,
     demands,
+    controls,
   } = planMerge(hydraulicModel, data);
 
   return changeSet(hydraulicModel, note, [
@@ -67,6 +70,7 @@ export const mergeNodes: ModelOperation<InputData> = (hydraulicModel, data) => {
     putAssets([mergedNode, ...updatedLinks]),
     putCustomerPoints(customerPoints),
     setDemands(demands),
+    ...(controls ? [replaceControls(controls)] : []),
   ]);
 };
 
@@ -81,6 +85,7 @@ export const mergeNodesDeprecated: ModelOperationDeprecated<InputData> = (
     updatedLinks,
     customerPoints,
     demands,
+    controls,
   } = planMerge(hydraulicModel, data);
 
   return {
@@ -89,6 +94,7 @@ export const mergeNodesDeprecated: ModelOperationDeprecated<InputData> = (
     deleteAssets: [loserNodeId],
     putCustomerPoints: customerPoints.length > 0 ? customerPoints : undefined,
     putDemands: demands.length > 0 ? { assignments: demands } : undefined,
+    ...(controls && { putControls: controls }),
   };
 };
 
@@ -151,6 +157,13 @@ const planMerge = (
     updatedLinks,
     customerPoints: [...updatedCustomerPoints.values()],
     demands,
+    controls: hydraulicModel.controlsLookup.hasControls(loserNode.id)
+      ? (remapControlNodeReference(
+          hydraulicModel.controls,
+          loserNode.id,
+          mergedNode,
+        ) ?? undefined)
+      : undefined,
   };
 };
 

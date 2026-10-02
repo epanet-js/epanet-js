@@ -10,6 +10,7 @@ import {
   NodeAsset,
   LinkAsset,
   getJunctionDemands,
+  getLinkLevelSetting,
 } from "@epanet-js/hydraulic-model";
 
 const { labelManager } = buildTestFactories();
@@ -569,5 +570,42 @@ describe("mergeNodes", () => {
     merge(model, IDS.J1, IDS.J2);
 
     expect(nodeOf(model, IDS.J1).isActive).toBe(true);
+  });
+
+  describe("controls", () => {
+    const IDS = { J1: 1, J2: 2, PU1: 3, T1: 4, T2: 5, R1: 6 } as const;
+
+    const buildModelWithLevelControlOnT2 = () =>
+      HydraulicModelBuilder.with({ labelManager })
+        .aJunction(IDS.J1, { coordinates: [0, 0] })
+        .aJunction(IDS.J2, { coordinates: [10, 0] })
+        .aPump(IDS.PU1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
+        .aTank(IDS.T1, { coordinates: [20, 0] })
+        .aTank(IDS.T2, { coordinates: [30, 0] })
+        .aReservoir(IDS.R1, { coordinates: [40, 0] })
+        .aLevelSettingControl({
+          linkId: IDS.PU1,
+          tankId: IDS.T2,
+          on: { level: 1, setting: 1 },
+          off: { level: 5 },
+        })
+        .build();
+
+    it("re-points a level-setting control to the surviving tank", () => {
+      const model = buildModelWithLevelControlOnT2();
+
+      merge(model, IDS.T1, IDS.T2);
+
+      expect(getLinkLevelSetting(model.controls, IDS.PU1)?.tankId).toBe(IDS.T1);
+      expect(model.controlsLookup.hasControls(IDS.T2)).toBe(false);
+    });
+
+    it("removes a level-setting control when its tank merges into a reservoir", () => {
+      const model = buildModelWithLevelControlOnT2();
+
+      merge(model, IDS.R1, IDS.T2);
+
+      expect(getLinkLevelSetting(model.controls, IDS.PU1)).toBeNull();
+    });
   });
 });
