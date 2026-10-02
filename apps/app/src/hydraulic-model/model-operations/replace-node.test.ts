@@ -70,7 +70,7 @@ describe("replaceNode", () => {
 
     const changeSet = replace(model, factories, IDS.J1, "tank");
 
-    expect(changeSet.name).toBe("Replace junction with tank");
+    expect(changeSet.name).toBe("replaceNode");
     expect(changedEntities(changeSet)).toEqual([
       "junction:delete:1",
       "pipe:update:1",
@@ -124,7 +124,7 @@ describe("replaceNode", () => {
 
     const changeSet = replace(model, factories, IDS.R1, "junction");
 
-    expect(changeSet.name).toBe("Replace reservoir with junction");
+    expect(changeSet.name).toBe("replaceNode");
     expect(model.assets.has(IDS.R1)).toBe(false);
 
     const newNode = createdNode(model, changeSet);
@@ -150,7 +150,7 @@ describe("replaceNode", () => {
 
     const changeSet = replace(model, factories, IDS.T1, "reservoir");
 
-    expect(changeSet.name).toBe("Replace tank with reservoir");
+    expect(changeSet.name).toBe("replaceNode");
     expect(changedEntities(changeSet)).toEqual([
       "pipe:update:3",
       "reservoir:create:1",
@@ -201,7 +201,7 @@ describe("replaceNode", () => {
 
     const changeSet = replace(model, factories, IDS.J1, "reservoir");
 
-    expect(changeSet.name).toBe("Replace junction with reservoir");
+    expect(changeSet.name).toBe("replaceNode");
     expect(changedEntities(changeSet)).toEqual([
       "junction:delete:1",
       "reservoir:create:1",

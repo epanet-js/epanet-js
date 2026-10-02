@@ -36,7 +36,7 @@ describe("mergeChangeSets", () => {
         }),
         removeCustomerPoints(model, { customerPointIds: [IDS.CP1] }),
       ],
-      "Delete junction + CP",
+      "deleteSelection",
     );
     expect(merged).not.toBeNull();
 

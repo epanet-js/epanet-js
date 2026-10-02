@@ -14,7 +14,7 @@ export const deactivateAssets: ModelOperation<InputData> = (
   model,
   { assetIds },
 ) =>
-  changeSet(model, "Deactivate assets", [
+  changeSet(model, "deactivateAssets", [
     setAsset(idsToDeactivate(model, assetIds), { isActive: false }),
   ]);
 
@@ -31,7 +31,7 @@ export const deactivateAssetsDeprecated: ModelOperationDeprecated<InputData> = (
       }) as AssetPatch,
   );
 
-  return { note: "Deactivate assets", patchAssetsAttributes: patches };
+  return { note: "deactivateAssets", patchAssetsAttributes: patches };
 };
 
 const idsToDeactivate = (

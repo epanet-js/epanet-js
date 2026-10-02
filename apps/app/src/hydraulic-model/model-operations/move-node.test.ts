@@ -88,7 +88,7 @@ describe("moveNode", () => {
       newElevation: 10,
     });
 
-    expect(changeSet.name).toBe("Move node");
+    expect(changeSet.name).toBe("moveNode");
     expect(changedEntities(changeSet)).toEqual(["junction:update:1"]);
 
     const movedNode = nodeOf(model, IDS.A);
@@ -360,7 +360,7 @@ describe("moveNode", () => {
       pipeIdToSplit: IDS.P1,
     });
 
-    expect(changeSet.name).toBe("Move node and split pipe");
+    expect(changeSet.name).toBe("moveNode");
     expect(changedEntities(changeSet)).toEqual([
       "junction:update:1",
       "pipe:create:2",

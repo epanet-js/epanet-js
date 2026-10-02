@@ -155,7 +155,7 @@ describe("removeCustomerPoints", () => {
       customerPointIds: [IDS.CP1],
     });
 
-    expect(changeSet.name).toBe("Remove customer points");
+    expect(changeSet.name).toBe("removeCustomerPoints");
   });
 
   it("removes already-disconnected customer point", () => {

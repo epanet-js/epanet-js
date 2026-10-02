@@ -181,7 +181,7 @@ describe("disconnectCustomers", () => {
       customerPointIds: [IDS.CP1],
     });
 
-    expect(changeSet.name).toBe("Disconnect customers");
+    expect(changeSet.name).toBe("disconnectCustomers");
   });
 
   it("only changes customer points", () => {

@@ -13,7 +13,7 @@ export const moveCustomerPoint: ModelOperation<InputData> = (
   hydraulicModel,
   { customerPointId, newCoordinates },
 ) =>
-  changeSet(hydraulicModel, "Move customer point", [
+  changeSet(hydraulicModel, "moveCustomerPoint", [
     putCustomerPoints([
       buildMovedCopy(hydraulicModel, customerPointId, newCoordinates),
     ]),
@@ -22,7 +22,7 @@ export const moveCustomerPoint: ModelOperation<InputData> = (
 export const moveCustomerPointDeprecated: ModelOperationDeprecated<
   InputData
 > = (hydraulicModel, { customerPointId, newCoordinates }) => ({
-  note: "Move customer point",
+  note: "moveCustomerPoint",
   putCustomerPoints: [
     buildMovedCopy(hydraulicModel, customerPointId, newCoordinates),
   ],

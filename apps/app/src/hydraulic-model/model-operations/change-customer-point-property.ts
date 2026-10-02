@@ -1,6 +1,10 @@
 import { CustomerPointId } from "@epanet-js/hydraulic-model";
 import { isCustomProperty } from "@epanet-js/hydraulic-model";
-import type { CustomerPointPatch, ModelMoment } from "../model-operation";
+import type {
+  CustomerPointPatch,
+  ModelMoment,
+  OperationCode,
+} from "../model-operation";
 import { HydraulicModel } from "../hydraulic-model";
 import { CustomerPoints } from "@epanet-js/hydraulic-model";
 import type { ChangeSet } from "@epanet-js/change-set";
@@ -29,7 +33,7 @@ export function changeCustomerPointProperty(
   const patches = buildPatches(model.customerPoints, customerPointIds, [
     { property, value },
   ]);
-  return patchesChangeSet(model, "Change customer point property", patches);
+  return patchesChangeSet(model, "changeCustomerPointProperty", patches);
 }
 
 export function changeCustomerPointProperties(
@@ -37,7 +41,7 @@ export function changeCustomerPointProperties(
   { customerPointIds, changes }: ChangeCustomerPointPropertiesData,
 ): ChangeSet {
   const patches = buildPatches(model.customerPoints, customerPointIds, changes);
-  return patchesChangeSet(model, "Change customer point properties", patches);
+  return patchesChangeSet(model, "changeCustomerPointProperties", patches);
 }
 
 export function changeCustomerPointPropertyDeprecated(
@@ -48,7 +52,7 @@ export function changeCustomerPointPropertyDeprecated(
     { property, value },
   ]);
   return {
-    note: "Change customer point property",
+    note: "changeCustomerPointProperty",
     patchCustomerPointsAttributes: patches,
   };
 }
@@ -59,19 +63,19 @@ export function changeCustomerPointPropertiesDeprecated(
 ): ModelMoment {
   const patches = buildPatches(customerPoints, customerPointIds, changes);
   return {
-    note: "Change customer point properties",
+    note: "changeCustomerPointProperties",
     patchCustomerPointsAttributes: patches,
   };
 }
 
 function patchesChangeSet(
   model: HydraulicModel,
-  name: string,
+  code: OperationCode,
   patches: CustomerPointPatch[],
 ): ChangeSet {
   return changeSet(
     model,
-    name,
+    code,
     patches.map((patch) =>
       setCustomerPoint(patch.id, patch.properties as Fields),
     ),

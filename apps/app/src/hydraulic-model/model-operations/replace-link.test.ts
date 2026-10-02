@@ -88,7 +88,7 @@ describe("replaceLink", () => {
         endNode,
       });
 
-      expect(changeSet.name).toBe("Replace pipe");
+      expect(changeSet.name).toBe("replaceLink");
       expect(changedEntities(changeSet)).toEqual(["pipe:update:1"]);
 
       const replacedPipe = assetOf<Pipe>(hydraulicModel, IDS.P1);

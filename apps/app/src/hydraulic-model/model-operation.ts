@@ -78,6 +78,40 @@ export type ModelMoment = OptionalMomentFields & {
   patchCustomerPointsAttributes?: CustomerPointPatch[];
 };
 
+export type OperationCode =
+  | "activateAssets"
+  | "addCustomerPoint"
+  | "addLink"
+  | "addNode"
+  | "applyCustomerPointAllocation"
+  | "changeAssetControl"
+  | "changeCurves"
+  | "changeCustomAttributesDefinition"
+  | "changeCustomerPointProperties"
+  | "changeCustomerPointProperty"
+  | "changeDemandAssignment"
+  | "changeElevations"
+  | "changeLabel"
+  | "changePatterns"
+  | "changePipeMaterials"
+  | "changeProperties"
+  | "changeProperty"
+  | "changeRawControls"
+  | "connectCustomers"
+  | "deactivateAssets"
+  | "deleteAssets"
+  | "deleteSelection"
+  | "disconnectCustomers"
+  | "editAssetTable"
+  | "editCustomerPointTable"
+  | "mergeNodes"
+  | "moveCustomerPoint"
+  | "moveNode"
+  | "removeCustomerPoints"
+  | "replaceLink"
+  | "replaceNode"
+  | "reverseLink";
+
 export type ModelOperationDeprecated<T> = (
   model: HydraulicModel,
   data: T,

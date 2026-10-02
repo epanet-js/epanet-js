@@ -21,7 +21,7 @@ export const removeCustomerPoints: ModelOperation<InputData> = (
     customerPointIds,
   );
 
-  return changeSet(hydraulicModel, "Remove customer points", [
+  return changeSet(hydraulicModel, "removeCustomerPoints", [
     dropCustomerPoints(idsToDelete),
     setDemands(demandAssignments),
   ]);
@@ -36,7 +36,7 @@ export const removeCustomerPointsDeprecated: ModelOperationDeprecated<
   );
 
   return {
-    note: "Remove customer points",
+    note: "removeCustomerPoints",
     deleteCustomerPoints: idsToDelete,
     ...(demandAssignments.length > 0 && {
       putDemands: { assignments: demandAssignments },

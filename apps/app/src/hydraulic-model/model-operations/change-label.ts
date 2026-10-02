@@ -16,7 +16,7 @@ export const changeLabel: ModelOperation<InputData> = (
     throw new Error(`Invalid asset id ${assetId}`);
   }
 
-  return changeSet(model, "Change asset label", [
+  return changeSet(model, "changeLabel", [
     setAsset(assetId, { label: newLabel }),
   ]);
 };
@@ -29,7 +29,7 @@ export const changeLabelDeprecated: ModelOperationDeprecated<InputData> = (
   if (!asset) throw new Error(`Invalid asset id ${assetId}`);
 
   return {
-    note: "Change asset label",
+    note: "changeLabel",
     patchAssetsAttributes: [
       {
         id: assetId,

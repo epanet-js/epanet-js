@@ -38,7 +38,7 @@ describe("reverse-link", () => {
 
     const changeSet = reverse(model, IDS.P1);
 
-    expect(changeSet.name).toBe("Reverse pipe");
+    expect(changeSet.name).toBe("reverseLink");
     expect(changedEntities(changeSet)).toEqual(["pipe:update"]);
 
     const reversedPipe = linkOf(model, IDS.P1);
@@ -69,7 +69,7 @@ describe("reverse-link", () => {
 
     const changeSet = reverse(model, IDS.PU1);
 
-    expect(changeSet.name).toBe("Reverse pump");
+    expect(changeSet.name).toBe("reverseLink");
     expect(changedEntities(changeSet)).toEqual(["pump:update"]);
 
     const reversedPump = linkOf(model, IDS.PU1);
@@ -100,7 +100,7 @@ describe("reverse-link", () => {
 
     const changeSet = reverse(model, IDS.V1);
 
-    expect(changeSet.name).toBe("Reverse valve");
+    expect(changeSet.name).toBe("reverseLink");
     expect(changedEntities(changeSet)).toEqual(["valve:update"]);
 
     const reversedValve = linkOf(model, IDS.V1);

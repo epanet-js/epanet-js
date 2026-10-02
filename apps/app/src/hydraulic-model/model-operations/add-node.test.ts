@@ -88,7 +88,7 @@ describe("addNode", () => {
         elevation: 100,
       });
 
-      expect(changeSet.name).toBe("Add junction");
+      expect(changeSet.name).toBe("addNode");
       expect(changedEntities(changeSet)).toEqual(["junction:create:1"]);
 
       const junction = createdNode(model, changeSet);
@@ -154,7 +154,7 @@ describe("addNode", () => {
         pipeIdsToSplit: [IDS.P1],
       });
 
-      expect(changeSet.name).toBe("Add junction and split pipe");
+      expect(changeSet.name).toBe("addNode");
       expect(changedEntities(changeSet)).toEqual([
         "junction:create:1",
         "pipe:create:2",

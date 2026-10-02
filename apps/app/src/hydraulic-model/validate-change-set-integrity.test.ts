@@ -33,7 +33,7 @@ describe("findOrphanLinkConnections", () => {
 
     const orphans = findOrphanLinkConnections(
       model,
-      changeSet(model, "Delete junction only", [dropAssets(IDS.J2)]),
+      changeSet(model, "deleteAssets", [dropAssets(IDS.J2)]),
     );
 
     expect(orphans).toHaveLength(1);
@@ -50,9 +50,7 @@ describe("findOrphanLinkConnections", () => {
 
     const orphans = findOrphanLinkConnections(
       model,
-      changeSet(model, "Delete junction and pipe", [
-        dropAssets([IDS.J2, IDS.P1]),
-      ]),
+      changeSet(model, "deleteAssets", [dropAssets([IDS.J2, IDS.P1])]),
     );
 
     expect(orphans).toEqual([]);
@@ -65,7 +63,7 @@ describe("findOrphanLinkConnections", () => {
 
     const orphans = findOrphanLinkConnections(
       model,
-      changeSet(model, "Reconnect pipe", [putAssets([danglingPipe])]),
+      changeSet(model, "replaceLink", [putAssets([danglingPipe])]),
     );
 
     expect(orphans).toHaveLength(1);
@@ -83,7 +81,7 @@ describe("findOrphanLinkConnections", () => {
 
     const orphans = findOrphanLinkConnections(
       model,
-      changeSet(model, "Relabel pipe and delete node", [
+      changeSet(model, "deleteSelection", [
         dropAssets(IDS.J2),
         putAssets([relabelledPipe]),
       ]),
@@ -108,9 +106,7 @@ describe("findOrphanLinkConnections", () => {
 
     const orphans = findOrphanLinkConnections(
       baseModel,
-      changeSet(baseModel, "Add node and pipe", [
-        putAssets([newNode, newPipe]),
-      ]),
+      changeSet(baseModel, "addLink", [putAssets([newNode, newPipe])]),
     );
 
     expect(orphans).toEqual([]);
@@ -122,7 +118,7 @@ describe("findStoreInconsistencies", () => {
     const model = buildModel();
     const relabelledPipe = (model.assets.get(IDS.P1) as LinkAsset).copy();
     relabelledPipe.setProperty("label", "RENAMED");
-    const operation = changeSet(model, "Relabel pipe", [
+    const operation = changeSet(model, "changeLabel", [
       putAssets([relabelledPipe]),
     ]);
 
@@ -133,7 +129,7 @@ describe("findStoreInconsistencies", () => {
 
   it("accepts a consistent delete (asset absent from all stores)", () => {
     const model = buildModel();
-    const operation = changeSet(model, "Delete pipe", [dropAssets(IDS.P1)]);
+    const operation = changeSet(model, "deleteAssets", [dropAssets(IDS.P1)]);
 
     applyOperation(model, operation, labelManager);
 
@@ -144,7 +140,7 @@ describe("findStoreInconsistencies", () => {
     const model = buildModel();
     const relabelledPipe = (model.assets.get(IDS.P1) as LinkAsset).copy();
     relabelledPipe.setProperty("label", "RENAMED");
-    const operation = changeSet(model, "Buggy op", [
+    const operation = changeSet(model, "changeLabel", [
       putAssets([relabelledPipe]),
     ]);
     applyOperation(model, operation, labelManager);
@@ -165,9 +161,7 @@ describe("findStoreInconsistencies", () => {
   it("does not flag an isolated node (present in assets + index, absent from topology)", () => {
     const model = HydraulicModelBuilder.with({ labelManager }).build();
     const isolated = buildModel().assets.get(IDS.J1)!;
-    const operation = changeSet(model, "Add isolated junction", [
-      putAssets([isolated]),
-    ]);
+    const operation = changeSet(model, "addNode", [putAssets([isolated])]);
 
     applyOperation(model, operation, labelManager);
 
@@ -186,7 +180,7 @@ describe("findTopologyConnectionMismatches", () => {
       .build();
     const rewired = (model.assets.get(IDS.P1) as LinkAsset).copy();
     rewired.setConnections(IDS.J1, 4);
-    const operation = changeSet(model, "Rewire pipe", [putAssets([rewired])]);
+    const operation = changeSet(model, "replaceLink", [putAssets([rewired])]);
 
     applyOperation(model, operation, labelManager);
 
@@ -197,7 +191,7 @@ describe("findTopologyConnectionMismatches", () => {
     const model = buildModel();
     const relabelledPipe = (model.assets.get(IDS.P1) as LinkAsset).copy();
     relabelledPipe.setProperty("label", "RENAMED");
-    const operation = changeSet(model, "Buggy op", [
+    const operation = changeSet(model, "changeLabel", [
       putAssets([relabelledPipe]),
     ]);
     applyOperation(model, operation, labelManager);

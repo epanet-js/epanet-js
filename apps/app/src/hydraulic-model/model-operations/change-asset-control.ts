@@ -11,7 +11,7 @@ export const changeAssetControl: ModelOperation<InputData> = (
   model,
   { assetId, control },
 ) =>
-  changeSet(model, "Change controls", [
+  changeSet(model, "changeAssetControl", [
     replaceControls(setAssetControl(model.controls, assetId, control)),
   ]);
 
@@ -19,7 +19,7 @@ export const changeAssetControlDeprecated: ModelOperationDeprecated<
   InputData
 > = (hydraulicModel, { assetId, control }) => {
   return {
-    note: "Change controls",
+    note: "changeAssetControl",
     putControls: setAssetControl(hydraulicModel.controls, assetId, control),
   };
 };

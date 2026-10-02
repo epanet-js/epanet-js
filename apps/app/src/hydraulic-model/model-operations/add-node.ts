@@ -107,8 +107,7 @@ const planAddition = (
   });
 
   return {
-    note:
-      pipeIds.length > 0 ? `Add ${nodeType} and split pipe` : `Add ${nodeType}`,
+    note: "addNode" as const,
     node,
     newPipes: splitResults.flatMap((result) => result.newPipes),
     removedPipeIds: splitResults.map((result) => result.removedPipeId),

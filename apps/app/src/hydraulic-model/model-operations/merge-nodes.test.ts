@@ -167,7 +167,7 @@ describe("mergeNodes", () => {
 
     const changeSet = merge(model, IDS.J1, IDS.J2);
 
-    expect(changeSet.name).toBe("Merge junction into junction");
+    expect(changeSet.name).toBe("mergeNodes");
     expect(changedEntities(changeSet)).toEqual([
       "junction:delete:1",
       "junction:update:1",
@@ -197,7 +197,7 @@ describe("mergeNodes", () => {
 
     const changeSet = merge(model, IDS.J1, IDS.T1);
 
-    expect(changeSet.name).toBe("Merge junction into tank");
+    expect(changeSet.name).toBe("mergeNodes");
     expect(model.assets.has(IDS.J1)).toBe(false);
 
     const survivingNode = nodeOf(model, IDS.T1);
@@ -217,7 +217,7 @@ describe("mergeNodes", () => {
 
     const changeSet = merge(model, IDS.T1, IDS.J1);
 
-    expect(changeSet.name).toBe("Merge junction into tank");
+    expect(changeSet.name).toBe("mergeNodes");
     expect(model.assets.has(IDS.J1)).toBe(false);
 
     const survivingNode = nodeOf(model, IDS.T1);
@@ -302,7 +302,7 @@ describe("mergeNodes", () => {
 
     const changeSet = merge(model, IDS.R1, IDS.T1);
 
-    expect(changeSet.name).toBe("Merge tank into reservoir");
+    expect(changeSet.name).toBe("mergeNodes");
     expect(model.assets.has(IDS.T1)).toBe(false);
 
     const survivingNode = nodeOf(model, IDS.R1);
@@ -321,7 +321,7 @@ describe("mergeNodes", () => {
 
     const changeSet = merge(model, IDS.R1, IDS.J1);
 
-    expect(changeSet.name).toBe("Merge junction into reservoir");
+    expect(changeSet.name).toBe("mergeNodes");
     expect(model.assets.has(IDS.J1)).toBe(false);
 
     const survivingNode = nodeOf(model, IDS.R1);
@@ -341,7 +341,7 @@ describe("mergeNodes", () => {
 
     const changeSet = merge(model, IDS.J1, IDS.R1);
 
-    expect(changeSet.name).toBe("Merge junction into reservoir");
+    expect(changeSet.name).toBe("mergeNodes");
     expect(model.assets.has(IDS.J1)).toBe(false);
 
     const survivingNode = nodeOf(model, IDS.R1);
@@ -361,7 +361,7 @@ describe("mergeNodes", () => {
 
     const changeSet = merge(model, IDS.T1, IDS.T2);
 
-    expect(changeSet.name).toBe("Merge tank into tank");
+    expect(changeSet.name).toBe("mergeNodes");
     expect(model.assets.has(IDS.T2)).toBe(false);
 
     const survivingNode = nodeOf(model, IDS.T1);
@@ -381,7 +381,7 @@ describe("mergeNodes", () => {
 
     const changeSet = merge(model, IDS.R1, IDS.R2);
 
-    expect(changeSet.name).toBe("Merge reservoir into reservoir");
+    expect(changeSet.name).toBe("mergeNodes");
     expect(model.assets.has(IDS.R2)).toBe(false);
 
     const survivingNode = nodeOf(model, IDS.R1);

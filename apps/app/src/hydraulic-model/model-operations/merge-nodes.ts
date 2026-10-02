@@ -145,7 +145,7 @@ const planMerge = (
   }
 
   return {
-    note: `Merge ${loserNode.type} into ${mergedNode.type}`,
+    note: "mergeNodes" as const,
     mergedNode,
     loserNodeId: loserNode.id,
     updatedLinks,

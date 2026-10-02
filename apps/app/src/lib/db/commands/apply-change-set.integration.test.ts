@@ -59,7 +59,7 @@ describe("apply-change-set integration", () => {
     });
 
     await applyChangeSetToDb(
-      changeSet(model, "edit", [
+      changeSet(model, "changeProperties", [
         putAssets([junction]),
         setAsset(IDS.P1, { diameter: 300 }),
         dropAssets([IDS.J2]),
@@ -100,7 +100,7 @@ describe("apply-change-set integration", () => {
     curves.set(IDS.C1, { ...curves.get(IDS.C1)!, points: [{ x: 5, y: 6 }] });
 
     await applyChangeSetToDb(
-      changeSet(model, "edit", [
+      changeSet(model, "changeProperties", [
         replaceCurves(curves),
         setDemands([{ junctionId: IDS.J1, demands: [{ baseDemand: 7 }] }]),
       ]),

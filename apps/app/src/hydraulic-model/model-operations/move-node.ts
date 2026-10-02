@@ -128,7 +128,7 @@ const planMove = (
 
   if (!pipeToSplit) {
     return {
-      note: "Move node",
+      note: "moveNode" as const,
       node,
       links,
       newPipes: [] as Pipe[],
@@ -156,7 +156,7 @@ const planMove = (
   activatedNode.setProperty("isActive", isActive);
 
   return {
-    note: "Move node and split pipe",
+    note: "moveNode" as const,
     node: activatedNode,
     links,
     newPipes: split.newPipes,

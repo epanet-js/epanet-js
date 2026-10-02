@@ -476,11 +476,11 @@ export const AssetDataTable = memo(function AssetDataTableInner({
       }
 
       if (isOpsChangeSetsOn) {
-        const merged = mergeChangeSets(changeSets, "Edit asset table");
+        const merged = mergeChangeSets(changeSets, "editAssetTable");
         if (!merged) return;
         transactChangeSet(merged);
       } else {
-        const merged = mergeMoments(moments, "Edit asset table");
+        const merged = mergeMoments(moments, "editAssetTable");
         if (!merged) return;
         transact(merged);
       }

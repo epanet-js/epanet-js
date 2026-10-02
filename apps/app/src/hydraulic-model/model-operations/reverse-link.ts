@@ -13,9 +13,7 @@ export const reverseLink: ModelOperation<ReverseLinkData> = (
 ) => {
   const linkCopy = buildReversedLink(hydraulicModel, linkId);
 
-  return changeSet(hydraulicModel, `Reverse ${linkCopy.type}`, [
-    putAssets([linkCopy]),
-  ]);
+  return changeSet(hydraulicModel, "reverseLink", [putAssets([linkCopy])]);
 };
 
 export const reverseLinkDeprecated: ModelOperationDeprecated<
@@ -24,7 +22,7 @@ export const reverseLinkDeprecated: ModelOperationDeprecated<
   const linkCopy = buildReversedLink(hydraulicModel, linkId);
 
   return {
-    note: `Reverse ${linkCopy.type}`,
+    note: "reverseLink",
     putAssets: [linkCopy],
   };
 };

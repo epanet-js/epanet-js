@@ -17,7 +17,7 @@ type InputData = {
 };
 
 export const connectCustomers: ModelOperation<InputData> = (model, data) =>
-  changeSet(model, "Connect customers", [
+  changeSet(model, "connectCustomers", [
     putCustomerPoints(connectedCopies(model, data)),
   ]);
 
@@ -25,7 +25,7 @@ export const connectCustomersDeprecated: ModelOperationDeprecated<InputData> = (
   model,
   data,
 ) => ({
-  note: "Connect customers",
+  note: "connectCustomers",
   putCustomerPoints: connectedCopies(model, data),
 });
 

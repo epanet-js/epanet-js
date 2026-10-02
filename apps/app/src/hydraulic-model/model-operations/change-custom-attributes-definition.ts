@@ -24,7 +24,7 @@ export const changeCustomAttributesDefinition = (
   const { patchAssetsAttributes, patchCustomerPointsAttributes } =
     planClearedValues(model, next);
 
-  return changeSet(model, "Change custom attributes", [
+  return changeSet(model, "changeCustomAttributesDefinition", [
     replaceCustomAttributes(next),
     ...patchAssetsAttributes.map((patch) =>
       setAsset(patch.id, patch.properties as Fields),
@@ -43,7 +43,7 @@ export const changeCustomAttributesDefinitionDeprecated = (
     planClearedValues(model, next);
 
   return {
-    note: "Change custom attributes",
+    note: "changeCustomAttributesDefinition",
     putCustomAttributesDefinition: next,
     patchAssetsAttributes,
     patchCustomerPointsAttributes,

@@ -71,7 +71,7 @@ describe("applyCustomerPointAllocation", () => {
     });
 
     expect(changeSet.records).toHaveLength(2);
-    expect(changeSet.name).toBe("Allocate customer points");
+    expect(changeSet.name).toBe("applyCustomerPointAllocation");
     expect(hydraulicModel.customerPoints.get(100)!.connection!.pipeId).toBe(
       IDS.P1,
     );

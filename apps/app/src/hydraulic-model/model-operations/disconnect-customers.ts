@@ -10,7 +10,7 @@ export const disconnectCustomers: ModelOperation<InputData> = (
   model,
   { customerPointIds },
 ) =>
-  changeSet(model, "Disconnect customers", [
+  changeSet(model, "disconnectCustomers", [
     putCustomerPoints(
       disconnectedCopies(model.customerPoints, customerPointIds),
     ),
@@ -20,7 +20,7 @@ export const disconnectCustomersDeprecated: ModelOperationDeprecated<
   InputData
 > = ({ customerPoints }, { customerPointIds }) => {
   return {
-    note: "Disconnect customers",
+    note: "disconnectCustomers",
     putCustomerPoints: disconnectedCopies(customerPoints, customerPointIds),
   };
 };

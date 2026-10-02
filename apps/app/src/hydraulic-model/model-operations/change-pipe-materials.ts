@@ -16,7 +16,7 @@ export const changePipeMaterials: ModelOperation<InputData> = (
   model,
   { pipeMaterials, materialAssignments },
 ) =>
-  changeSet(model, "Change pipe library", [
+  changeSet(model, "changePipeMaterials", [
     setPipeLibrary(pipeMaterials),
     ...materialAssignments.map(({ assetIds, material }) =>
       setAsset(assetIds, { material }),
@@ -27,7 +27,7 @@ export const changePipeMaterialsDeprecated: ModelOperationDeprecated<
   PipeMaterial[]
 > = (_model, pipeMaterials) => {
   return {
-    note: "Change pipe library",
+    note: "changePipeMaterials",
     putPipeMaterials: pipeMaterials,
   };
 };

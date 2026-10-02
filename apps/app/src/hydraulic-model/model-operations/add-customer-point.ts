@@ -12,7 +12,7 @@ export const addCustomerPoint: ModelOperation<InputData> = (
   model,
   { coordinates, customerPointFactory },
 ) =>
-  changeSet(model, "Add customer point", [
+  changeSet(model, "addCustomerPoint", [
     putCustomerPoints([customerPointFactory.create(coordinates)]),
   ]);
 
@@ -23,7 +23,7 @@ export const addCustomerPointDeprecated: ModelOperationDeprecated<InputData> = (
   const customerPoint = customerPointFactory.create(coordinates);
 
   return {
-    note: "Add customer point",
+    note: "addCustomerPoint",
     putCustomerPoints: [customerPoint],
   };
 };

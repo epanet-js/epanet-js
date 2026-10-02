@@ -137,7 +137,7 @@ export const planAddLink = (
   });
 
   return {
-    note: `Add ${link.type}`,
+    note: "addLink" as const,
     putAssets: withoutOverlap.putAssets,
     deleteAssets,
     customerPoints: withoutOverlap.putCustomerPoints,

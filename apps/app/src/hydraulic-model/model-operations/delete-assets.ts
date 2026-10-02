@@ -55,7 +55,7 @@ export const deleteAssets: ModelOperation<InputData> = (
   intents.push(putCustomerPoints(disconnectedCustomerPoints));
   intents.push(setDemands(demandAssignments));
 
-  return changeSet(hydraulicModel, "Delete assets", intents);
+  return changeSet(hydraulicModel, "deleteAssets", intents);
 };
 
 export const deleteAssetsDeprecated: ModelOperationDeprecated<InputData> = (
@@ -72,7 +72,7 @@ export const deleteAssetsDeprecated: ModelOperationDeprecated<InputData> = (
   } = planDeletion(hydraulicModel, data);
 
   return {
-    note: "Delete assets",
+    note: "deleteAssets",
     deleteAssets: deleteIds,
     patchAssetsAttributes:
       boundaryPatches.length > 0 ? boundaryPatches : undefined,

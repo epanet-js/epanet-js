@@ -307,11 +307,11 @@ export const CustomerPointDataTable = memo(
         }
 
         if (isOpsChangeSetsOn) {
-          const merged = mergeChangeSets(changeSets, "Edit customer points");
+          const merged = mergeChangeSets(changeSets, "editCustomerPointTable");
           if (!merged) return;
           transactChangeSet(merged);
         } else {
-          const merged = mergeMoments(moments, "Edit customer points");
+          const merged = mergeMoments(moments, "editCustomerPointTable");
           if (!merged) return;
           transact(merged);
         }

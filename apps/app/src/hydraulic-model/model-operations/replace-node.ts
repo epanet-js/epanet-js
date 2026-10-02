@@ -120,7 +120,7 @@ const planReplacement = (
       : [];
 
   return {
-    note: `Replace ${oldNode.type} with ${newNodeType}`,
+    note: "replaceNode" as const,
     oldNodeId,
     newNode,
     updatedLinks,

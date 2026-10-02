@@ -91,7 +91,7 @@ describe("connectCustomers", () => {
     expect(connectedCP1.connection!.junctionId).toBe(IDS.J1);
     expect(connectedCP2.connection!.junctionId).toBe(IDS.J2);
 
-    expect(changeSet.name).toBe("Connect customers");
+    expect(changeSet.name).toBe("connectCustomers");
   });
 
   it("moves customer point from existing connection", () => {

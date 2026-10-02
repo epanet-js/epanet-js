@@ -1,6 +1,6 @@
 import type { ChangeSet } from "@epanet-js/change-set";
 import type { HydraulicModel } from "../hydraulic-model";
-import type { ModelMoment } from "../model-operation";
+import type { ModelMoment, OperationCode } from "../model-operation";
 import { changeSet, type Intent } from "./build";
 import type { Fields } from "./entities";
 import {
@@ -58,5 +58,5 @@ export const toChangeSet = (
     intents.push(setDemands(moment.putDemands.assignments));
   }
 
-  return changeSet(model, moment.note, intents);
+  return changeSet(model, moment.note as OperationCode, intents);
 };

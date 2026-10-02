@@ -18,7 +18,7 @@ export const changeElevations: ModelOperation<InputData> = (
 ) =>
   changeSet(
     model,
-    "Recompute elevations",
+    "changeElevations",
     nodeElevations.map(({ nodeId, elevation }) =>
       setAsset(nodeId, { elevation }),
     ),
@@ -28,7 +28,7 @@ export const changeElevationsDeprecated: ModelOperationDeprecated<InputData> = (
   { assets },
   { nodeElevations },
 ) => ({
-  note: "Recompute elevations",
+  note: "changeElevations",
   patchAssetsAttributes: nodeElevations.map(
     ({ nodeId, elevation }) =>
       ({

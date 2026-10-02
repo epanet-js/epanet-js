@@ -10,13 +10,13 @@ type InputData = DemandAssignment[];
 export const changeDemandAssignment: ModelOperation<InputData> = (
   model,
   assignments,
-) => changeSet(model, "Change demand assignment", [setDemands(assignments)]);
+) => changeSet(model, "changeDemandAssignment", [setDemands(assignments)]);
 
 export const changeDemandAssignmentDeprecated: ModelOperationDeprecated<
   InputData
 > = (_model, assignments) => {
   return {
-    note: "Change demand assignment",
+    note: "changeDemandAssignment",
     putDemands: { assignments },
   };
 };

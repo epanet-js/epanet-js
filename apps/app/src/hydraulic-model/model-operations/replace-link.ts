@@ -142,7 +142,7 @@ const planReplaceLink = (
   );
 
   return {
-    note: `Replace ${sourceLinkAsset.type}`,
+    note: "replaceLink" as const,
     putAssets: [...added.putAssets, ...oldNodesWithChanges],
     deleteAssets: added.deleteAssets,
     customerPoints: [...added.customerPoints, ...reconnectedCustomerPoints],

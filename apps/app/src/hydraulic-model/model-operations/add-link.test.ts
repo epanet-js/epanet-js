@@ -132,7 +132,7 @@ describe("addLink", () => {
         link,
       });
 
-      expect(changeSet.name).toBe("Add pump");
+      expect(changeSet.name).toBe("addLink");
       expect(changedEntities(changeSet)).toEqual([
         "junction:create:2",
         "pump:create:1",

@@ -7,14 +7,14 @@ type InputData = {
 };
 
 export const changeCurves: ModelOperation<InputData> = (model, { curves }) =>
-  changeSet(model, "Change pump curves", [replaceCurves(curves)]);
+  changeSet(model, "changeCurves", [replaceCurves(curves)]);
 
 export const changeCurvesDeprecated: ModelOperationDeprecated<InputData> = (
   _model,
   { curves },
 ) => {
   return {
-    note: "Change pump curves",
+    note: "changeCurves",
     putCurves: curves,
   };
 };

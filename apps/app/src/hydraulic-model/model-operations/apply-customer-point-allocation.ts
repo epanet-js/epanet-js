@@ -16,14 +16,14 @@ export const applyCustomerPointAllocation: ModelOperation<InputData> = (
   hydraulicModel,
   { allocationResult },
 ) =>
-  changeSet(hydraulicModel, "Allocate customer points", [
+  changeSet(hydraulicModel, "applyCustomerPointAllocation", [
     putCustomerPoints(allocatedCopies(hydraulicModel, allocationResult)),
   ]);
 
 export const applyCustomerPointAllocationDeprecated: ModelOperationDeprecated<
   InputData
 > = (hydraulicModel, { allocationResult }) => ({
-  note: "Allocate customer points",
+  note: "applyCustomerPointAllocation",
   putCustomerPoints: allocatedCopies(hydraulicModel, allocationResult),
 });
 

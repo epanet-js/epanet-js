@@ -206,7 +206,7 @@ describe("buildChangeSetPayload assets", () => {
     reconnected.setConnections(IDS.J2, IDS.J3);
 
     const payload = buildChangeSetPayload(
-      changeSet(model, "reconnect", [putAssets([reconnected])]),
+      changeSet(model, "replaceLink", [putAssets([reconnected])]),
       "forward",
     );
 
@@ -225,7 +225,7 @@ describe("buildChangeSetPayload assets", () => {
     ]);
 
     const payload = buildChangeSetPayload(
-      changeSet(model, "redraw", [putAssets([redrawn])]),
+      changeSet(model, "replaceLink", [putAssets([redrawn])]),
       "forward",
     );
 
@@ -246,7 +246,7 @@ describe("buildChangeSetPayload assets", () => {
     model.assets.get(IDS.J1)!.setProperty("custom-1", "NORTH");
 
     const payload = buildChangeSetPayload(
-      changeSet(model, "changeCustomAttribute", [
+      changeSet(model, "changeProperty", [
         setAsset(IDS.J1, { "custom-1": "SOUTH" }),
       ]),
       "forward",
@@ -263,7 +263,7 @@ describe("buildChangeSetPayload assets", () => {
     model.assets.get(IDS.J1)!.setProperty("custom-1", "NORTH");
 
     const payload = buildChangeSetPayload(
-      changeSet(model, "removeCustomAttribute", [
+      changeSet(model, "changeProperty", [
         setAsset(IDS.J1, { "custom-1": undefined }),
       ]),
       "forward",
@@ -278,7 +278,9 @@ describe("buildChangeSetPayload assets", () => {
     const { model } = aNetwork();
 
     const payload = buildChangeSetPayload(
-      changeSet(model, "hide", [setAsset(IDS.J1, { visibility: false })]),
+      changeSet(model, "changeProperty", [
+        setAsset(IDS.J1, { visibility: false }),
+      ]),
       "forward",
     );
 
@@ -330,7 +332,7 @@ describe("buildChangeSetPayload customer points", () => {
     const { model } = aNetwork();
 
     const payload = buildChangeSetPayload(
-      changeSet(model, "disconnect", [
+      changeSet(model, "disconnectCustomers", [
         setCustomerPoint(IDS.CP1, { connection: null }),
       ]),
       "forward",

@@ -12,7 +12,7 @@ export const activateAssets: ModelOperation<InputData> = (
   model,
   { assetIds },
 ) =>
-  changeSet(model, "Activate assets", [
+  changeSet(model, "activateAssets", [
     setAsset(idsToActivate(model, assetIds), { isActive: true }),
   ]);
 
@@ -29,7 +29,7 @@ export const activateAssetsDeprecated: ModelOperationDeprecated<InputData> = (
       }) as AssetPatch,
   );
 
-  return { note: "Activate assets", patchAssetsAttributes: patches };
+  return { note: "activateAssets", patchAssetsAttributes: patches };
 };
 
 const idsToActivate = (

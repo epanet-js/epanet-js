@@ -8,6 +8,7 @@ import {
   type ModelFixture,
 } from "src/__helpers__/model-snapshot";
 import type { HydraulicModel } from "../hydraulic-model";
+import type { OperationCode } from "../model-operation";
 import { applyChangeSet } from "./apply";
 import { changeSet, type Intent } from "./build";
 import {
@@ -64,7 +65,7 @@ const aNetwork = (): ModelFixture => {
 };
 
 const roundTrip = (
-  name: string,
+  name: OperationCode,
   intents: (model: HydraulicModel) => Intent[],
 ) => {
   const original = aNetwork();
@@ -151,7 +152,7 @@ describe("applyChangeSet", () => {
   });
 
   it("round-trips a customer point property change", () => {
-    roundTrip("changeCustomerPointLabel", () => [
+    roundTrip("changeCustomerPointProperty", () => [
       setCustomerPoint(IDS.CP1, { label: "CP-RENAMED" }),
     ]);
   });

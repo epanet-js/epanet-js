@@ -89,7 +89,7 @@ export const useDeleteSelection = () => {
             removeCustomerPoints(hydraulicModel, removeCustomerPointsData),
           );
         }
-        const merged = mergeChangeSets(changeSets, "Delete selection");
+        const merged = mergeChangeSets(changeSets, "deleteSelection");
         if (merged) transactChangeSet(merged);
       } else {
         const moments: ModelMoment[] = [];
@@ -106,7 +106,7 @@ export const useDeleteSelection = () => {
             ),
           );
         }
-        const merged = mergeMoments(moments, "Delete selection");
+        const merged = mergeMoments(moments, "deleteSelection");
         if (merged) transact(merged);
       }
     },
