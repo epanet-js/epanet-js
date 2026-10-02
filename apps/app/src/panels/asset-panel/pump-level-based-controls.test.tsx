@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import { getDefaultStore } from "jotai";
 import { LevelSettingControl, Tank } from "@epanet-js/hydraulic-model";
+import { Unit } from "@epanet-js/quantity";
 import { highlightsAtom } from "src/state/highlights";
 import { PumpLevelBasedControls } from "./pump-level-based-controls";
 
@@ -37,14 +38,17 @@ const aControl = (): LevelSettingControl => ({
 
 const Harness = ({
   onChange,
+  levelUnit = "m",
 }: {
   onChange?: (control: LevelSettingControl) => void;
+  levelUnit?: Unit;
 }) => {
   const [control, setControl] = useState<LevelSettingControl>(aControl);
   return (
     <PumpLevelBasedControls
       control={control}
       tanks={TANKS}
+      levelUnit={levelUnit}
       onControlChange={(next) => {
         onChange?.(next);
         setControl(next);
@@ -82,6 +86,17 @@ describe("PumpLevelBasedControls", () => {
     expect(
       screen.queryByRole("textbox", { name: /Off Speed/ }),
     ).not.toBeInTheDocument();
+  });
+
+  it("captions the levels in the project's level unit", () => {
+    render(<Harness levelUnit="ft" />);
+
+    expect(
+      screen.getByRole("textbox", { name: /On Level \(ft\)/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("textbox", { name: /Off Level \(ft\)/ }),
+    ).toBeInTheDocument();
   });
 
   it("emits an updated control when a valid on level is entered", async () => {
@@ -226,6 +241,7 @@ describe("PumpLevelBasedControls", () => {
       <PumpLevelBasedControls
         control={aControl()}
         tanks={TANKS}
+        levelUnit="m"
         onControlChange={vi.fn()}
         readOnly
       />,

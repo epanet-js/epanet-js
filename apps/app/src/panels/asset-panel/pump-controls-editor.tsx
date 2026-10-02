@@ -9,6 +9,7 @@ import {
   Tank,
   TimedSettingStep,
 } from "@epanet-js/hydraulic-model";
+import { Unit } from "@epanet-js/quantity";
 import { useTranslate } from "src/hooks/use-translate";
 import { usePermissions } from "src/hooks/use-permissions";
 import { useShowPriorityAccessDialog } from "src/hooks/use-priority-access";
@@ -39,6 +40,7 @@ export const PumpControlsEditor = ({
   initialSpeed,
   control,
   tanks,
+  levelUnit,
   onControlChange,
   hasRawControls = false,
   readOnly = false,
@@ -48,6 +50,7 @@ export const PumpControlsEditor = ({
   initialSpeed: number;
   control: Control | null;
   tanks: Tank[];
+  levelUnit: Unit;
   onControlChange: (control: Control | null) => void;
   hasRawControls?: boolean;
   readOnly?: boolean;
@@ -127,6 +130,7 @@ export const PumpControlsEditor = ({
         <PumpLevelBasedControls
           control={control}
           tanks={tanks}
+          levelUnit={levelUnit}
           onControlChange={onControlChange}
           readOnly={readOnly}
         />

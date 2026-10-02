@@ -7,7 +7,9 @@ import {
   LevelSettingControl,
   Tank,
 } from "@epanet-js/hydraulic-model";
+import { Unit } from "@epanet-js/quantity";
 import { useTranslate } from "src/hooks/use-translate";
+import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { highlightsAtom } from "src/state/highlights";
 import { localizeDecimal } from "@epanet-js/i18n";
 import { InlineField, NestedSection } from "src/components/form/fields";
@@ -42,15 +44,19 @@ const validateLevelSetting = (params: {
 export const PumpLevelBasedControls = ({
   control,
   tanks,
+  levelUnit,
   onControlChange,
   readOnly = false,
 }: {
   control: LevelSettingControl;
   tanks: Tank[];
+  levelUnit: Unit;
   onControlChange: (control: LevelSettingControl) => void;
   readOnly?: boolean;
 }) => {
   const translate = useTranslate();
+  const translateUnit = useTranslateUnit();
+  const levelLabel = `${translate("level")} (${translateUnit(levelUnit)})`;
   const setHighlights = useSetAtom(highlightsAtom);
 
   const tankOptions = useMemo(
@@ -131,7 +137,7 @@ export const PumpLevelBasedControls = ({
   const cells: Array<[Cell, Cell]> = [
     [
       {
-        label: `${translate("pump.on")} ${translate("controls.level")}`,
+        label: `${translate("pump.on")} ${levelLabel}`,
         value: control.on.level,
         hasError: hasOnError,
         handler: (newValue, isEmpty) =>
@@ -148,7 +154,7 @@ export const PumpLevelBasedControls = ({
     ],
     [
       {
-        label: `${translate("pump.off")} ${translate("controls.level")}`,
+        label: `${translate("pump.off")} ${levelLabel}`,
         value: control.off.level,
         hasError: hasOffError,
         handler: (newValue, isEmpty) =>
@@ -204,7 +210,7 @@ export const PumpLevelBasedControls = ({
       </InlineField>
       <NumericTable
         labels={{
-          horizontal: [translate("controls.level"), translate("speed")],
+          horizontal: [levelLabel, translate("speed")],
           vertical: [translate("pump.on"), translate("pump.off")],
         }}
         cells={cells}

@@ -69,6 +69,7 @@ const Harness = ({
       initialSpeed={initialSpeed}
       control={control}
       tanks={tanks}
+      levelUnit="m"
       onControlChange={(next) => {
         onChange?.(next);
         setControl(next);

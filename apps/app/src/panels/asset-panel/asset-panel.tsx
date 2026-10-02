@@ -2683,6 +2683,7 @@ const PumpEditor = ({
           initialSpeed={pump.speed ?? 1}
           control={pumpControl}
           tanks={tanks}
+          levelUnit={units.minLevel}
           onControlChange={handleControlChangeForPump}
           hasRawControls={hasRawControls}
           readOnly={readonly}
