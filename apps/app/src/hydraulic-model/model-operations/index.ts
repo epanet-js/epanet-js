@@ -1,4 +1,4 @@
-export { moveNode } from "./move-node";
+export { moveNode, moveNodeDeprecated, moveNodeAndLinks } from "./move-node";
 export {
   changeProperty,
   changeProperties,

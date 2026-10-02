@@ -13,6 +13,7 @@ import {
   mergeNodes,
   mergeNodesDeprecated,
   moveNode,
+  moveNodeDeprecated,
 } from "src/hydraulic-model/model-operations";
 import { useUserTracking } from "src/infra/user-tracking";
 import {
@@ -71,18 +72,21 @@ export const useFixProximityAnomaly = () => {
           transact(mergeNodesDeprecated(hydraulicModel, data));
         }
       } else {
-        transact(
-          moveNode(hydraulicModel, {
-            nodeId: anomaly.nodeId,
-            newCoordinates: anomaly.nearestPointOnPipe,
-            newElevation: node.elevation,
-            shouldUpdateCustomerPoints: true,
-            pipeIdToSplit: anomaly.pipeId,
-            lengthUnit: units.length,
-            assetFactory,
-            labelManager,
-          }),
-        );
+        const data = {
+          nodeId: anomaly.nodeId,
+          newCoordinates: anomaly.nearestPointOnPipe,
+          newElevation: node.elevation,
+          shouldUpdateCustomerPoints: true,
+          pipeIdToSplit: anomaly.pipeId,
+          lengthUnit: units.length,
+          assetFactory,
+          labelManager,
+        };
+        if (isOpsChangeSetsOn) {
+          transactChangeSet(moveNode(hydraulicModel, data));
+        } else {
+          transact(moveNodeDeprecated(hydraulicModel, data));
+        }
       }
 
       userTracking.capture({

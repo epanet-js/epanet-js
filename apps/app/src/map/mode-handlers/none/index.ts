@@ -13,6 +13,8 @@ import { clickableLayers } from "src/map/layers/layer";
 import { getNode } from "src/hydraulic-model";
 import {
   moveNode,
+  moveNodeDeprecated,
+  moveNodeAndLinks,
   mergeNodes,
   mergeNodesDeprecated,
   moveCustomerPoint,
@@ -278,7 +280,7 @@ export function useNoneHandlers({
 
     fetchElevation(lngLatForElevation)
       .then((newElevationOrFallback) => {
-        const moment = moveNode(hydraulicModel, {
+        const data = {
           nodeId: assetId,
           newCoordinates,
           newElevation: newElevationOrFallback,
@@ -288,8 +290,12 @@ export function useNoneHandlers({
           assetFactory,
           labelManager,
           precision: map.getPrecision(),
-        });
-        transact(moment);
+        };
+        if (isOpsChangeSetsOn) {
+          transactChangeSet(moveNode(hydraulicModel, data));
+        } else {
+          transact(moveNodeDeprecated(hydraulicModel, data));
+        }
         resetMove();
         settleCommit();
       })
@@ -437,26 +443,21 @@ export function useNoneHandlers({
           };
         }
 
-        const { putAssets } = moveNode(hydraulicModel, {
+        const { node, links } = moveNodeAndLinks(hydraulicModel, {
           nodeId: asset.id,
           newCoordinates,
           newElevation: noElevation,
           lengthUnit: units.length,
-          assetFactory,
-          labelManager,
-          precision: map.getPrecision(),
         });
 
-        if (putAssets) {
-          if (!moveActivated) {
-            const significant =
-              startPoint && isMovementSignificant(e.point, startPoint);
-            if (!significant) {
-              return;
-            }
+        if (!moveActivated) {
+          const significant =
+            startPoint && isMovementSignificant(e.point, startPoint);
+          if (!significant) {
+            return;
           }
-          updateMoveWithSnapping(putAssets, snappingInfo);
         }
+        updateMoveWithSnapping([node, ...links], snappingInfo);
       },
       16,
       { trailing: false },
