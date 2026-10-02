@@ -11,13 +11,20 @@ import { modeAtom, Mode } from "src/state/mode";
 import { selectionAtom } from "src/state/selection";
 import { useSetAtom, useAtom, useAtomValue } from "jotai";
 import { getMapCoord } from "../utils";
-import { useRef } from "react";
+import { useCallback, useRef } from "react";
+import { useAtomCallback } from "jotai/utils";
 import { useKeyboardState } from "src/keyboard";
 import measureLength from "@turf/length";
 import { useSnapping } from "../hooks/use-snapping";
 import { captureError } from "src/infra/error-tracking";
 import { nextTick } from "process";
-import { Asset, AssetId, LinkAsset, NodeAsset } from "src/hydraulic-model";
+import {
+  Asset,
+  AssetId,
+  HydraulicModel,
+  LinkAsset,
+  NodeAsset,
+} from "src/hydraulic-model";
 import { useUserTracking } from "src/infra/user-tracking";
 import { LinkType } from "src/hydraulic-model";
 import { useElevations } from "src/hooks/use-elevations";
@@ -26,10 +33,16 @@ import { useSelection } from "src/selection";
 import { useFocusAssetPanel } from "src/hooks/use-focus-asset-panel";
 import { validateAsset } from "src/lib/model-attributes-validation";
 import { DEFAULT_SNAP_DISTANCE_PIXELS } from "../../search";
-import { addLink } from "src/hydraulic-model/model-operations";
+import {
+  addLink,
+  addLinkDeprecated,
+} from "src/hydraulic-model/model-operations";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
+import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 
 const MIN_VERTEX_PIXEL_DISTANCE = 8;
 
@@ -174,12 +187,20 @@ export function useDrawLinkHandlers({
   const { selectAsset } = useSelection(selection);
   const focusAssetPanel = useFocusAssetPanel();
 
-  const selectAndFocusIfInvalid = (asset: Asset) => {
+  const selectAndFocusIfInvalid = (
+    asset: Asset,
+    model: HydraulicModel = hydraulicModel,
+  ) => {
     selectAsset(asset.id);
-    const hasIssues = validateAsset(asset, hydraulicModel).length > 0;
+    const hasIssues = validateAsset(asset, model).length > 0;
     if (hasIssues) focusAssetPanel(true);
   };
   const { transact } = useMomentTransaction();
+  const { transact: transactChangeSet } = useModelTransaction();
+  const isOpsChangeSetsOn = useFeatureFlag("FLAG_OPS_CHANGE_SETS");
+  const readCommittedModel = useAtomCallback(
+    useCallback((get) => get(stagingModelDerivedAtom), []),
+  );
   const userTracking = useUserTracking();
   const usingTouchEvents = useRef<boolean>(false);
   const { assetFactory, labelManager } = useAtomValue(modelFactoriesAtom);
@@ -377,7 +398,7 @@ export function useDrawLinkHandlers({
 
     submittedLinkIdRef.current = link.id;
 
-    const moment = addLink(hydraulicModel, {
+    const data = {
       link: link,
       startNode,
       endNode,
@@ -386,8 +407,22 @@ export function useDrawLinkHandlers({
       lengthUnit,
       assetFactory,
       labelManager,
-    });
+    };
 
+    if (isOpsChangeSetsOn) {
+      const applied = transactChangeSet(addLink(hydraulicModel, data));
+      if (!applied) return undefined;
+
+      userTracking.capture({ name: "asset.created", type: link.type });
+
+      const committedModel = readCommittedModel();
+      const addedLink = committedModel.assets.get(link.id);
+      if (addedLink) selectAndFocusIfInvalid(addedLink, committedModel);
+
+      return committedModel.assets.get(endNode.id) as NodeAsset | undefined;
+    }
+
+    const moment = addLinkDeprecated(hydraulicModel, data);
     const applied = transact(moment);
     if (!applied) return undefined;
 

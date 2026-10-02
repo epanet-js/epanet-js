@@ -5,14 +5,19 @@ import {
   buildCustomerPoint,
 } from "../../__helpers__/hydraulic-model-builder";
 import {
+  Asset,
+  AssetId,
   Pump,
   Pipe,
   Junction,
   Valve,
   AssetFactory,
   LabelManager,
+  CustomerPoint,
 } from "@epanet-js/hydraulic-model";
 import { IdGenerator } from "@epanet-js/id-generator";
+import type { ChangeSet } from "@epanet-js/change-set";
+import { applyOperation } from "src/__helpers__/apply-operation";
 import { HydraulicModel } from "../hydraulic-model";
 
 class TestIdGenerator implements IdGenerator {
@@ -46,6 +51,52 @@ function createTestFactories(
   };
 }
 
+const add = (
+  hydraulicModel: HydraulicModel,
+  data: Parameters<typeof addLink>[1],
+) => {
+  const changeSet = addLink(hydraulicModel, data);
+  applyOperation(hydraulicModel, changeSet, data.labelManager);
+  return changeSet;
+};
+
+const changedEntities = (changeSet: ChangeSet) =>
+  changeSet
+    .summary()
+    .map(({ entity, kind, count }) => `${entity}:${kind}:${count}`)
+    .sort();
+
+const assetOf = <T extends Asset>(model: HydraulicModel, id: AssetId) =>
+  model.assets.get(id) as T;
+
+const customerPointOf = (model: HydraulicModel, id: number) =>
+  model.customerPoints.get(id) as CustomerPoint;
+
+const changedPipes = (model: HydraulicModel, changeSet: ChangeSet) =>
+  [...changeSet.entries()]
+    .filter((entry) => entry.entity === "pipe" && entry.kind !== "delete")
+    .map((entry) => assetOf<Pipe>(model, entry.id as AssetId));
+
+const createdPipes = (model: HydraulicModel, changeSet: ChangeSet) =>
+  [...changeSet.entries()]
+    .filter((entry) => entry.entity === "pipe" && entry.kind === "create")
+    .map((entry) => assetOf<Pipe>(model, entry.id as AssetId));
+
+const pipeBetween = (
+  model: HydraulicModel,
+  changeSet: ChangeSet,
+  startNodeId: AssetId,
+  endNodeId: AssetId,
+) => {
+  const pipe = createdPipes(model, changeSet).find(
+    (candidate) =>
+      candidate.connections[0] === startNodeId &&
+      candidate.connections[1] === endNodeId,
+  );
+  if (!pipe) throw new Error(`No pipe from ${startNodeId} to ${endNodeId}`);
+  return pipe;
+};
+
 describe("addLink", () => {
   describe("basic functionality (no pipe splitting)", () => {
     it("updates connections", () => {
@@ -72,7 +123,7 @@ describe("addLink", () => {
         ],
       });
 
-      const { putAssets } = addLink(hydraulicModel, {
+      const changeSet = add(hydraulicModel, {
         lengthUnit: "m",
         assetFactory,
         labelManager,
@@ -81,13 +132,21 @@ describe("addLink", () => {
         link,
       });
 
-      expect(putAssets![0].id).toEqual(link.id);
-      const pumpToCreate = putAssets![0] as Pump;
-      expect(pumpToCreate.connections).toEqual([startNode.id, endNode.id]);
-      expect(pumpToCreate.coordinates).toEqual([
+      expect(changeSet.name).toBe("Add pump");
+      expect(changedEntities(changeSet)).toEqual([
+        "junction:create:2",
+        "pump:create:1",
+      ]);
+      const pump = assetOf<Pump>(hydraulicModel, link.id);
+      expect(pump.connections).toEqual([startNode.id, endNode.id]);
+      expect(pump.coordinates).toEqual([
         [10, 10],
         [20, 20],
         [30, 30],
+      ]);
+      expect(hydraulicModel.topology.getNodes(link.id)).toEqual([
+        startNode.id,
+        endNode.id,
       ]);
     });
 
@@ -119,7 +178,7 @@ describe("addLink", () => {
         ],
       });
 
-      const { putAssets } = addLink(hydraulicModel, {
+      add(hydraulicModel, {
         lengthUnit: "m",
         assetFactory,
         labelManager,
@@ -128,9 +187,7 @@ describe("addLink", () => {
         link,
       });
 
-      const pumpToCreate = putAssets![0] as Pump;
-      expect(pumpToCreate.id).toEqual(link.id);
-      expect(pumpToCreate.coordinates).toEqual([
+      expect(assetOf<Pump>(hydraulicModel, link.id).coordinates).toEqual([
         [10, 10],
         [20, 20],
         [25, 25],
@@ -162,7 +219,7 @@ describe("addLink", () => {
         ],
       });
 
-      const { putAssets } = addLink(hydraulicModel, {
+      add(hydraulicModel, {
         lengthUnit: "m",
         assetFactory,
         labelManager,
@@ -171,9 +228,7 @@ describe("addLink", () => {
         link,
       });
 
-      const pumpToCreate = putAssets![0] as Pump;
-      expect(pumpToCreate.id).toEqual(link.id);
-      expect(pumpToCreate.coordinates).toEqual([
+      expect(assetOf<Pump>(hydraulicModel, link.id).coordinates).toEqual([
         [0, 1],
         [0, 2],
       ]);
@@ -203,7 +258,7 @@ describe("addLink", () => {
         ],
       });
 
-      const { putAssets } = addLink(hydraulicModel, {
+      add(hydraulicModel, {
         lengthUnit: "m",
         assetFactory,
         labelManager,
@@ -212,9 +267,7 @@ describe("addLink", () => {
         link,
       });
 
-      const pumpToCreate = putAssets![0] as Pump;
-      expect(pumpToCreate.id).toEqual(link.id);
-      expect(pumpToCreate.coordinates).toEqual([
+      expect(assetOf<Pump>(hydraulicModel, link.id).coordinates).toEqual([
         [10, 10],
         [15, 15],
         [19 + 1e-10, 20],
@@ -243,7 +296,7 @@ describe("addLink", () => {
         coordinates: [startCoordinates, endCoordiantes],
       });
 
-      const { putAssets } = addLink(hydraulicModel, {
+      add(hydraulicModel, {
         lengthUnit: "m",
         assetFactory,
         labelManager,
@@ -252,10 +305,8 @@ describe("addLink", () => {
         link,
       });
 
-      const pumpToCreate = putAssets![0] as Pump;
-      expect(pumpToCreate.id).toEqual(link.id);
       // Pumps are zero-length links in EPANET: no geometric length is derived.
-      expect(pumpToCreate.length).toBeNull();
+      expect(assetOf<Pump>(hydraulicModel, link.id).length).toBeNull();
     });
 
     it("adds a label to the pump", () => {
@@ -273,7 +324,7 @@ describe("addLink", () => {
         label: "",
       });
 
-      const { putAssets } = addLink(hydraulicModel, {
+      add(hydraulicModel, {
         lengthUnit: "m",
         assetFactory,
         labelManager,
@@ -282,9 +333,7 @@ describe("addLink", () => {
         link,
       });
 
-      const pumpToCreate = putAssets![0] as Pump;
-      expect(pumpToCreate.id).toEqual(link.id);
-      expect(pumpToCreate.label).toEqual("PU1");
+      expect(assetOf<Pump>(hydraulicModel, link.id).label).toEqual("PU1");
     });
 
     it("keeps the pump curve null when adding a pump", () => {
@@ -309,7 +358,7 @@ describe("addLink", () => {
         ],
       });
 
-      const { putAssets } = addLink(hydraulicModel, {
+      add(hydraulicModel, {
         lengthUnit: "m",
         assetFactory,
         labelManager,
@@ -318,9 +367,7 @@ describe("addLink", () => {
         link,
       });
 
-      const updatedPump = putAssets![0] as Pump;
-
-      expect(updatedPump.curve).toBeNull();
+      expect(assetOf<Pump>(hydraulicModel, link.id).curve).toBeNull();
     });
 
     it("adds a label to the nodes when missing", () => {
@@ -342,7 +389,7 @@ describe("addLink", () => {
         label: "",
       });
 
-      const { putAssets } = addLink(hydraulicModel, {
+      add(hydraulicModel, {
         lengthUnit: "m",
         assetFactory,
         labelManager,
@@ -351,9 +398,12 @@ describe("addLink", () => {
         link,
       });
 
-      const [, nodeA, nodeB] = putAssets || [];
-      expect(nodeA.label).toEqual("J1");
-      expect(nodeB.label).toEqual("CUSTOM");
+      expect(assetOf<Junction>(hydraulicModel, startNode.id).label).toEqual(
+        "J1",
+      );
+      expect(assetOf<Junction>(hydraulicModel, endNode.id).label).toEqual(
+        "CUSTOM",
+      );
     });
   });
 
@@ -391,7 +441,7 @@ describe("addLink", () => {
         ],
       });
 
-      const { putAssets, deleteAssets } = addLink(hydraulicModel, {
+      const changeSet = add(hydraulicModel, {
         lengthUnit: "m",
         assetFactory,
         labelManager,
@@ -401,19 +451,20 @@ describe("addLink", () => {
         startPipeId: IDS.P1,
       });
 
-      expect(putAssets).toHaveLength(5);
-      expect(deleteAssets).toEqual([IDS.P1]);
+      expect(changedEntities(changeSet)).toEqual([
+        "junction:create:2",
+        "pipe:create:2",
+        "pipe:delete:1",
+        "pump:create:1",
+      ]);
+      expect(hydraulicModel.assets.has(IDS.P1)).toBe(false);
 
-      const [newPump, , , splitPipe1, splitPipe2] = putAssets!;
-
-      expect(newPump.type).toBe("pump");
-      expect(newPump.id).toBe(pump.id);
-      expect((newPump as Pump).connections).toEqual([startNode.id, endNode.id]);
-
-      expect(splitPipe1.type).toBe("pipe");
-      expect(splitPipe2.type).toBe("pipe");
-      expect((splitPipe1 as Pipe).connections).toEqual([IDS.J1, startNode.id]);
-      expect((splitPipe2 as Pipe).connections).toEqual([startNode.id, IDS.J2]);
+      expect(assetOf<Pump>(hydraulicModel, pump.id).connections).toEqual([
+        startNode.id,
+        endNode.id,
+      ]);
+      pipeBetween(hydraulicModel, changeSet, IDS.J1, startNode.id);
+      pipeBetween(hydraulicModel, changeSet, startNode.id, IDS.J2);
     });
 
     it("splits end pipe when endPipeId provided", () => {
@@ -449,7 +500,7 @@ describe("addLink", () => {
         ],
       });
 
-      const { putAssets, deleteAssets } = addLink(hydraulicModel, {
+      const changeSet = add(hydraulicModel, {
         lengthUnit: "m",
         assetFactory,
         labelManager,
@@ -459,16 +510,18 @@ describe("addLink", () => {
         endPipeId: IDS.P1,
       });
 
-      expect(putAssets).toHaveLength(5);
-      expect(deleteAssets).toEqual([IDS.P1]);
-
-      const [newPump, , , splitPipe1, splitPipe2] = putAssets!;
-
-      expect(newPump.type).toBe("pump");
-      expect((newPump as Pump).connections).toEqual([startNode.id, endNode.id]);
-
-      expect((splitPipe1 as Pipe).connections).toEqual([IDS.J1, endNode.id]);
-      expect((splitPipe2 as Pipe).connections).toEqual([endNode.id, IDS.J2]);
+      expect(changedEntities(changeSet)).toEqual([
+        "junction:create:2",
+        "pipe:create:2",
+        "pipe:delete:1",
+        "pump:create:1",
+      ]);
+      expect(assetOf<Pump>(hydraulicModel, link.id).connections).toEqual([
+        startNode.id,
+        endNode.id,
+      ]);
+      pipeBetween(hydraulicModel, changeSet, IDS.J1, endNode.id);
+      pipeBetween(hydraulicModel, changeSet, endNode.id, IDS.J2);
     });
 
     it("splits both start and end pipes", () => {
@@ -521,7 +574,7 @@ describe("addLink", () => {
         ],
       });
 
-      const { putAssets, deleteAssets } = addLink(hydraulicModel, {
+      const changeSet = add(hydraulicModel, {
         lengthUnit: "m",
         assetFactory,
         labelManager,
@@ -532,15 +585,18 @@ describe("addLink", () => {
         endPipeId: IDS.P2,
       });
 
-      expect(putAssets).toHaveLength(7);
-      expect(deleteAssets).toEqual([IDS.P1, IDS.P2]);
-
-      const [newPump, , , ...splitPipes] = putAssets!;
-
-      expect(newPump.type).toBe("pump");
-      expect((newPump as Pump).connections).toEqual([startNode.id, endNode.id]);
-      expect(splitPipes).toHaveLength(4);
-      expect(splitPipes.every((pipe) => pipe.type === "pipe")).toBe(true);
+      expect(changedEntities(changeSet)).toEqual([
+        "junction:create:2",
+        "pipe:create:4",
+        "pipe:delete:2",
+        "pump:create:1",
+      ]);
+      expect(hydraulicModel.assets.has(IDS.P1)).toBe(false);
+      expect(hydraulicModel.assets.has(IDS.P2)).toBe(false);
+      expect(assetOf<Pump>(hydraulicModel, link.id).connections).toEqual([
+        startNode.id,
+        endNode.id,
+      ]);
     });
 
     it("handles no pipe splitting (backward compatibility)", () => {
@@ -566,7 +622,7 @@ describe("addLink", () => {
         ],
       });
 
-      const { putAssets, deleteAssets } = addLink(hydraulicModel, {
+      const changeSet = add(hydraulicModel, {
         lengthUnit: "m",
         assetFactory,
         labelManager,
@@ -575,12 +631,14 @@ describe("addLink", () => {
         link,
       });
 
-      expect(putAssets).toHaveLength(3);
-      expect(deleteAssets).toBeUndefined();
-
-      const [newPump] = putAssets!;
-      expect(newPump.type).toBe("pump");
-      expect((newPump as Pump).connections).toEqual([startNode.id, endNode.id]);
+      expect(changedEntities(changeSet)).toEqual([
+        "junction:create:2",
+        "pump:create:1",
+      ]);
+      expect(assetOf<Pump>(hydraulicModel, link.id).connections).toEqual([
+        startNode.id,
+        endNode.id,
+      ]);
     });
 
     it("reconnects customer points when splitting start pipe", () => {
@@ -634,7 +692,7 @@ describe("addLink", () => {
         ],
       });
 
-      const { putAssets, putCustomerPoints } = addLink(hydraulicModel, {
+      const changeSet = add(hydraulicModel, {
         lengthUnit: "m",
         assetFactory,
         labelManager,
@@ -644,16 +702,16 @@ describe("addLink", () => {
         startPipeId: IDS.P1,
       });
 
-      expect(putAssets).toHaveLength(5);
-      expect(putCustomerPoints).toBeDefined();
-      expect(putCustomerPoints).toHaveLength(1);
+      expect(changedEntities(changeSet)).toContain("customerPoint:update:1");
 
-      const reconnectedCP = putCustomerPoints![0];
-      const splitPipes = putAssets!.filter(
-        (asset) => asset.type === "pipe",
-      ) as Pipe[];
-
-      expect(reconnectedCP.connection?.pipeId).toBe(splitPipes[0].id);
+      const reconnectedCP = customerPointOf(hydraulicModel, IDS.CP1);
+      const firstSegment = pipeBetween(
+        hydraulicModel,
+        changeSet,
+        IDS.J1,
+        startNode.id,
+      );
+      expect(reconnectedCP.connection?.pipeId).toBe(firstSegment.id);
       expect(reconnectedCP.coordinates).toEqual([3, 1]);
     });
 
@@ -708,7 +766,7 @@ describe("addLink", () => {
         ],
       });
 
-      const { putAssets, putCustomerPoints } = addLink(hydraulicModel, {
+      const changeSet = add(hydraulicModel, {
         lengthUnit: "m",
         assetFactory,
         labelManager,
@@ -718,14 +776,18 @@ describe("addLink", () => {
         endPipeId: IDS.P1,
       });
 
-      expect(putAssets).toHaveLength(5);
-      expect(putCustomerPoints).toBeDefined();
-      expect(putCustomerPoints).toHaveLength(1);
+      expect(changedEntities(changeSet)).toContain("customerPoint:update:1");
 
-      const reconnectedCP = putCustomerPoints![0];
-
+      const reconnectedCP = customerPointOf(hydraulicModel, IDS.CP1);
+      const secondSegment = pipeBetween(
+        hydraulicModel,
+        changeSet,
+        endNode.id,
+        IDS.J2,
+      );
       expect(reconnectedCP.coordinates).toEqual([7, 1]);
       expect(reconnectedCP.connection?.snapPoint).toEqual([7, 0]);
+      expect(reconnectedCP.connection?.pipeId).toBe(secondSegment.id);
     });
 
     it("reconnects customer points when splitting both pipes", () => {
@@ -803,7 +865,7 @@ describe("addLink", () => {
         ],
       });
 
-      const { putAssets, putCustomerPoints } = addLink(hydraulicModel, {
+      const changeSet = add(hydraulicModel, {
         lengthUnit: "m",
         assetFactory,
         labelManager,
@@ -814,15 +876,18 @@ describe("addLink", () => {
         endPipeId: IDS.P2,
       });
 
-      expect(putAssets).toHaveLength(7);
-      expect(putCustomerPoints).toBeDefined();
-      expect(putCustomerPoints).toHaveLength(2);
+      expect(changedEntities(changeSet)).toContain("customerPoint:update:2");
 
-      const cp1Reconnected = putCustomerPoints!.find((cp) => cp.id === IDS.CP1);
-      const cp2Reconnected = putCustomerPoints!.find((cp) => cp.id === IDS.CP2);
-
-      expect(cp1Reconnected?.coordinates).toEqual([3, 1]);
-      expect(cp2Reconnected?.coordinates).toEqual([7, 11]);
+      const cp1Reconnected = customerPointOf(hydraulicModel, IDS.CP1);
+      const cp2Reconnected = customerPointOf(hydraulicModel, IDS.CP2);
+      expect(cp1Reconnected.coordinates).toEqual([3, 1]);
+      expect(cp2Reconnected.coordinates).toEqual([7, 11]);
+      expect(cp1Reconnected.connection?.pipeId).toBe(
+        pipeBetween(hydraulicModel, changeSet, IDS.J1, startNode.id).id,
+      );
+      expect(cp2Reconnected.connection?.pipeId).toBe(
+        pipeBetween(hydraulicModel, changeSet, endNode.id, IDS.J4).id,
+      );
     });
 
     it("throws error for invalid startPipeId", () => {
@@ -849,7 +914,7 @@ describe("addLink", () => {
       });
 
       expect(() => {
-        addLink(hydraulicModel, {
+        add(hydraulicModel, {
           lengthUnit: "m",
           assetFactory,
           labelManager,
@@ -885,7 +950,7 @@ describe("addLink", () => {
       });
 
       expect(() => {
-        addLink(hydraulicModel, {
+        add(hydraulicModel, {
           lengthUnit: "m",
           assetFactory,
           labelManager,
@@ -934,7 +999,7 @@ describe("addLink", () => {
         ],
       });
 
-      const { putAssets, deleteAssets } = addLink(hydraulicModel, {
+      const changeSet = add(hydraulicModel, {
         lengthUnit: "m",
         assetFactory,
         labelManager,
@@ -945,21 +1010,22 @@ describe("addLink", () => {
         endPipeId: IDS.P1,
       });
 
-      expect(deleteAssets).toEqual([IDS.P1]);
+      expect(changedEntities(changeSet)).toEqual([
+        "junction:create:2",
+        "pipe:create:3",
+        "pipe:delete:1",
+      ]);
+      expect(hydraulicModel.assets.has(IDS.P1)).toBe(false);
 
-      const pipes = putAssets!.filter((a) => a.type === "pipe") as Pipe[];
-      expect(pipes).toHaveLength(3);
+      const pipes = changedPipes(hydraulicModel, changeSet);
+      expect(pipes.map((pipe) => pipe.id)).toContain(link.id);
+      expect(assetOf<Pipe>(hydraulicModel, link.id).connections).toEqual([
+        startNode.id,
+        endNode.id,
+      ]);
 
-      const newPipe = pipes.find((p) => p.id === link.id);
-      expect(newPipe).toBeDefined();
-      const remainingPipes = pipes.filter((p) => p.id !== link.id);
-      expect(remainingPipes).toHaveLength(2);
-
-      const pipe1 = remainingPipes.find((p) => p.connections[0] === IDS.J1);
-      const pipe2 = remainingPipes.find((p) => p.connections[1] === IDS.J2);
-
-      expect(pipe1?.connections).toEqual([IDS.J1, startNode.id]);
-      expect(pipe2?.connections).toEqual([endNode.id, IDS.J2]);
+      pipeBetween(hydraulicModel, changeSet, IDS.J1, startNode.id);
+      pipeBetween(hydraulicModel, changeSet, endNode.id, IDS.J2);
     });
 
     it("replaces section when drawing valve on same pipe", () => {
@@ -996,7 +1062,7 @@ describe("addLink", () => {
         ],
       });
 
-      const { putAssets, deleteAssets } = addLink(hydraulicModel, {
+      const changeSet = add(hydraulicModel, {
         lengthUnit: "m",
         assetFactory,
         labelManager,
@@ -1007,14 +1073,13 @@ describe("addLink", () => {
         endPipeId: IDS.P1,
       });
 
-      expect(deleteAssets).toEqual([IDS.P1]);
-
-      const valve = putAssets!.find((a) => a.type === "valve") as Valve;
-      expect(valve).toBeDefined();
-      expect(valve.diameter).toBe(150);
-
-      const pipes = putAssets!.filter((a) => a.type === "pipe") as Pipe[];
-      expect(pipes).toHaveLength(2);
+      expect(changedEntities(changeSet)).toEqual([
+        "junction:create:2",
+        "pipe:create:2",
+        "pipe:delete:1",
+        "valve:create:1",
+      ]);
+      expect(assetOf<Valve>(hydraulicModel, link.id).diameter).toBe(150);
     });
 
     it("replaces section when drawing pump on same pipe", () => {
@@ -1051,7 +1116,7 @@ describe("addLink", () => {
         ],
       });
 
-      const { putAssets, deleteAssets } = addLink(hydraulicModel, {
+      const changeSet = add(hydraulicModel, {
         lengthUnit: "m",
         assetFactory,
         labelManager,
@@ -1062,14 +1127,13 @@ describe("addLink", () => {
         endPipeId: IDS.P1,
       });
 
-      expect(deleteAssets).toEqual([IDS.P1]);
-
-      const pump = putAssets!.find((a) => a.type === "pump") as Pump;
-      expect(pump).toBeDefined();
-      expect(pump.isActive).toBe(true);
-
-      const pipes = putAssets!.filter((a) => a.type === "pipe") as Pipe[];
-      expect(pipes).toHaveLength(2);
+      expect(changedEntities(changeSet)).toEqual([
+        "junction:create:2",
+        "pipe:create:2",
+        "pipe:delete:1",
+        "pump:create:1",
+      ]);
+      expect(assetOf<Pump>(hydraulicModel, link.id).isActive).toBe(true);
     });
 
     it("falls back to standard split when new link has intermediate vertices", () => {
@@ -1106,7 +1170,7 @@ describe("addLink", () => {
         ],
       });
 
-      const { putAssets } = addLink(hydraulicModel, {
+      const changeSet = add(hydraulicModel, {
         lengthUnit: "m",
         assetFactory,
         labelManager,
@@ -1117,8 +1181,7 @@ describe("addLink", () => {
         endPipeId: IDS.P1,
       });
 
-      const pipes = putAssets!.filter((a) => a.type === "pipe") as Pipe[];
-      expect(pipes).toHaveLength(4);
+      expect(changedPipes(hydraulicModel, changeSet)).toHaveLength(4);
     });
 
     it("falls back when pipe has intermediate vertices not on new link path", () => {
@@ -1155,7 +1218,7 @@ describe("addLink", () => {
         ],
       });
 
-      const { putAssets } = addLink(hydraulicModel, {
+      const changeSet = add(hydraulicModel, {
         lengthUnit: "m",
         assetFactory,
         labelManager,
@@ -1166,8 +1229,7 @@ describe("addLink", () => {
         endPipeId: IDS.P1,
       });
 
-      const pipes = putAssets!.filter((a) => a.type === "pipe") as Pipe[];
-      expect(pipes).toHaveLength(4);
+      expect(changedPipes(hydraulicModel, changeSet)).toHaveLength(4);
     });
 
     it("reallocates or disconnects customer points to remaining pipes when drawing valve", () => {
@@ -1232,7 +1294,7 @@ describe("addLink", () => {
         ],
       });
 
-      const { putAssets, putCustomerPoints } = addLink(hydraulicModel, {
+      const changeSet = add(hydraulicModel, {
         lengthUnit: "m",
         assetFactory,
         labelManager,
@@ -1243,20 +1305,15 @@ describe("addLink", () => {
         endPipeId: IDS.P1,
       });
 
-      expect(putCustomerPoints).toHaveLength(3);
-      const connectedCustomerPoints = putCustomerPoints?.filter(
-        (cp) => !!cp.connection,
-      );
-      expect(connectedCustomerPoints).toHaveLength(2);
-      const disconnectedCustommerPoint = putCustomerPoints?.find(
-        (cp) => !cp.connection,
-      );
-      expect(disconnectedCustommerPoint!.id).toBe(cp3.id);
+      expect(changedEntities(changeSet)).toContain("customerPoint:update:3");
+      expect(customerPointOf(hydraulicModel, IDS.CP3).connection).toBeNull();
 
-      const pipes = putAssets!.filter((a) => a.type === "pipe") as Pipe[];
-      const pipeIds = pipes.map((p) => p.id);
-      for (const cp of connectedCustomerPoints!) {
-        expect(pipeIds).toContain(cp.connection?.pipeId);
+      const pipeIds = changedPipes(hydraulicModel, changeSet).map(
+        (pipe) => pipe.id,
+      );
+      for (const id of [IDS.CP1, IDS.CP2]) {
+        const connection = customerPointOf(hydraulicModel, id).connection;
+        expect(pipeIds).toContain(connection?.pipeId);
       }
     });
 
@@ -1306,7 +1363,7 @@ describe("addLink", () => {
         ],
       });
 
-      const { putCustomerPoints } = addLink(hydraulicModel, {
+      const changeSet = add(hydraulicModel, {
         lengthUnit: "m",
         assetFactory,
         labelManager,
@@ -1317,8 +1374,10 @@ describe("addLink", () => {
         endPipeId: IDS.P1,
       });
 
-      expect(putCustomerPoints).toHaveLength(1);
-      expect(putCustomerPoints![0].connection?.pipeId).toBe(link.id);
+      expect(changedEntities(changeSet)).toContain("customerPoint:update:1");
+      expect(customerPointOf(hydraulicModel, IDS.CP1).connection?.pipeId).toBe(
+        link.id,
+      );
     });
   });
 
@@ -1371,7 +1430,7 @@ describe("addLink", () => {
       ],
     });
 
-    const { putAssets, deleteAssets } = addLink(hydraulicModel, {
+    const changeSet = add(hydraulicModel, {
       lengthUnit: "m",
       assetFactory,
       labelManager,
@@ -1382,43 +1441,53 @@ describe("addLink", () => {
       endPipeId: IDS.P2,
     });
 
-    expect(deleteAssets).toEqual([IDS.P1, IDS.P2]);
+    expect(changedEntities(changeSet)).toEqual([
+      "junction:create:2",
+      "pipe:create:4",
+      "pipe:delete:2",
+      "pump:create:1",
+    ]);
 
-    const pipes = putAssets!.filter((asset) => asset.type === "pipe") as Pipe[];
-    expect(pipes).toHaveLength(4);
+    const pipes = createdPipes(hydraulicModel, changeSet);
+    expect(pipes.filter((p) => p.label.startsWith("P1"))).toHaveLength(2);
+    expect(pipes.filter((p) => p.label.startsWith("P2"))).toHaveLength(2);
 
-    const p1Segments = pipes.filter((p) => p.label.startsWith("P1"));
-    const p2Segments = pipes.filter((p) => p.label.startsWith("P2"));
-
-    expect(p1Segments).toHaveLength(2);
-    expect(p2Segments).toHaveLength(2);
-
-    const p1Seg1 = p1Segments.find((p) => p.connections[0] === IDS.J1);
-    const p1Seg2 = p1Segments.find((p) => p.connections[1] === IDS.J2);
-
-    expect(p1Seg1?.coordinates).toEqual([
+    expect(
+      pipeBetween(hydraulicModel, changeSet, IDS.J1, startNode.id).coordinates,
+    ).toEqual([
       [0, 0],
       [10, 0],
     ]);
-    expect(p1Seg2?.coordinates).toEqual([
+    expect(
+      pipeBetween(hydraulicModel, changeSet, startNode.id, IDS.J2).coordinates,
+    ).toEqual([
       [10, 0],
       [20, 0],
     ]);
-
-    const p2Seg1 = p2Segments.find((p) => p.connections[0] === IDS.J3);
-    const p2Seg2 = p2Segments.find((p) => p.connections[1] === IDS.J4);
-
-    expect(p2Seg1?.coordinates).toEqual([
+    expect(
+      pipeBetween(hydraulicModel, changeSet, IDS.J3, endNode.id).coordinates,
+    ).toEqual([
       [10, 10],
       [10, 20],
     ]);
-    expect(p2Seg2?.coordinates).toEqual([
+    expect(
+      pipeBetween(hydraulicModel, changeSet, endNode.id, IDS.J4).coordinates,
+    ).toEqual([
       [10, 20],
       [10, 30],
     ]);
   });
 
   describe("isActive inference logic", () => {
+    const activeStates = (
+      model: HydraulicModel,
+      ids: { link: AssetId; start: AssetId; end: AssetId },
+    ) => [
+      assetOf(model, ids.link).isActive,
+      assetOf(model, ids.start).isActive,
+      assetOf(model, ids.end).isActive,
+    ];
+
     it("infers isActive: false when both endpoints are existing inactive nodes", () => {
       const IDS = { P1: 1, J1: 3, J2: 4 } as const;
       const labelManager = new LabelManager();
@@ -1446,7 +1515,7 @@ describe("addLink", () => {
         isActive: true,
       });
 
-      const { putAssets } = addLink(hydraulicModel, {
+      add(hydraulicModel, {
         lengthUnit: "m",
         assetFactory,
         labelManager,
@@ -1455,10 +1524,13 @@ describe("addLink", () => {
         link,
       });
 
-      const [newPump, nodeA, nodeB] = putAssets || [];
-      expect(newPump.isActive).toBe(false);
-      expect(nodeA.isActive).toBe(false);
-      expect(nodeB.isActive).toBe(false);
+      expect(
+        activeStates(hydraulicModel, {
+          link: link.id,
+          start: startNode.id,
+          end: endNode.id,
+        }),
+      ).toEqual([false, false, false]);
     });
 
     it("infers isActive: false when both endpoints split inactive pipes", () => {
@@ -1514,7 +1586,7 @@ describe("addLink", () => {
         isActive: true,
       });
 
-      const { putAssets } = addLink(hydraulicModel, {
+      add(hydraulicModel, {
         lengthUnit: "m",
         assetFactory,
         labelManager,
@@ -1525,10 +1597,13 @@ describe("addLink", () => {
         endPipeId: IDS.P2,
       });
 
-      const [newPump, nodeStart, nodeEnd] = putAssets || [];
-      expect(newPump.isActive).toBe(false);
-      expect(nodeStart.isActive).toBe(false);
-      expect(nodeEnd.isActive).toBe(false);
+      expect(
+        activeStates(hydraulicModel, {
+          link: link.id,
+          start: startNode.id,
+          end: endNode.id,
+        }),
+      ).toEqual([false, false, false]);
     });
 
     it("infers isActive: false when one endpoint is existing inactive and other is new isolated", () => {
@@ -1560,7 +1635,7 @@ describe("addLink", () => {
         isActive: true,
       });
 
-      const { putAssets } = addLink(hydraulicModel, {
+      add(hydraulicModel, {
         lengthUnit: "m",
         assetFactory,
         labelManager,
@@ -1569,10 +1644,13 @@ describe("addLink", () => {
         link,
       });
 
-      const [newPump, nodeA, nodeB] = putAssets || [];
-      expect(newPump.isActive).toBe(false);
-      expect(nodeA.isActive).toBe(false);
-      expect(nodeB.isActive).toBe(false);
+      expect(
+        activeStates(hydraulicModel, {
+          link: link.id,
+          start: startNode.id,
+          end: endNode.id,
+        }),
+      ).toEqual([false, false, false]);
     });
 
     it("infers isActive: false when one endpoint is existing inactive and other splits inactive pipe", () => {
@@ -1609,7 +1687,7 @@ describe("addLink", () => {
         isActive: true,
       });
 
-      const { putAssets } = addLink(hydraulicModel, {
+      add(hydraulicModel, {
         lengthUnit: "m",
         assetFactory,
         labelManager,
@@ -1619,10 +1697,13 @@ describe("addLink", () => {
         endPipeId: IDS.P1,
       });
 
-      const [newPump, nodeStart, nodeEnd] = putAssets || [];
-      expect(newPump.isActive).toBe(false);
-      expect(nodeStart.isActive).toBe(false);
-      expect(nodeEnd.isActive).toBe(false);
+      expect(
+        activeStates(hydraulicModel, {
+          link: link.id,
+          start: startNode.id,
+          end: endNode.id,
+        }),
+      ).toEqual([false, false, false]);
     });
 
     it("infers isActive: false when one endpoint splits inactive pipe and other is new isolated", () => {
@@ -1660,7 +1741,7 @@ describe("addLink", () => {
         isActive: true,
       });
 
-      const { putAssets } = addLink(hydraulicModel, {
+      add(hydraulicModel, {
         lengthUnit: "m",
         assetFactory,
         labelManager,
@@ -1670,10 +1751,13 @@ describe("addLink", () => {
         startPipeId: IDS.P1,
       });
 
-      const [newPump, nodeStart, nodeEnd] = putAssets || [];
-      expect(newPump.isActive).toBe(false);
-      expect(nodeStart.isActive).toBe(false);
-      expect(nodeEnd.isActive).toBe(false);
+      expect(
+        activeStates(hydraulicModel, {
+          link: link.id,
+          start: startNode.id,
+          end: endNode.id,
+        }),
+      ).toEqual([false, false, false]);
     });
 
     it("keeps isActive: true when both endpoints are new isolated nodes (starting new network)", () => {
@@ -1700,7 +1784,7 @@ describe("addLink", () => {
         isActive: true,
       });
 
-      const { putAssets } = addLink(hydraulicModel, {
+      add(hydraulicModel, {
         lengthUnit: "m",
         assetFactory,
         labelManager,
@@ -1709,10 +1793,13 @@ describe("addLink", () => {
         link,
       });
 
-      const [newPump, nodeA, nodeB] = putAssets || [];
-      expect(newPump.isActive).toBe(true);
-      expect(nodeA.isActive).toBe(true);
-      expect(nodeB.isActive).toBe(true);
+      expect(
+        activeStates(hydraulicModel, {
+          link: link.id,
+          start: startNode.id,
+          end: endNode.id,
+        }),
+      ).toEqual([true, true, true]);
     });
 
     it("keeps isActive: true when one endpoint is active node with existing connections", () => {
@@ -1731,7 +1818,7 @@ describe("addLink", () => {
       const startNode = hydraulicModel.assets.get(IDS.J1)?.copy() as Junction;
       const endNode = assetFactory.createJunction({
         coordinates: [10, 0],
-        id: IDS.J1,
+        id: IDS.J2,
       });
       const link = assetFactory.createPump({
         coordinates: [
@@ -1742,7 +1829,7 @@ describe("addLink", () => {
         isActive: true,
       });
 
-      const { putAssets } = addLink(hydraulicModel, {
+      add(hydraulicModel, {
         lengthUnit: "m",
         assetFactory,
         labelManager,
@@ -1751,14 +1838,24 @@ describe("addLink", () => {
         link,
       });
 
-      const [newPump, nodeA, nodeB] = putAssets || [];
-      expect(newPump.isActive).toBe(true);
-      expect(nodeA.isActive).toBe(true);
-      expect(nodeB.isActive).toBe(true);
+      expect(
+        activeStates(hydraulicModel, {
+          link: link.id,
+          start: startNode.id,
+          end: endNode.id,
+        }),
+      ).toEqual([true, true, true]);
     });
 
     it("keeps isActive: true when splitting an active pipe", () => {
-      const IDS = { J1: 1, J2: 2, J3: 3, P1: 4, J4: 5, pump: 6 } as const;
+      const IDS = {
+        J2: 2,
+        J3: 3,
+        P1: 4,
+        J1: 101,
+        J4: 102,
+        pump: 103,
+      } as const;
       const labelManager = new LabelManager();
       const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
         .aJunction(IDS.J2, { coordinates: [0, 10] })
@@ -1795,7 +1892,7 @@ describe("addLink", () => {
         isActive: true,
       });
 
-      const { putAssets } = addLink(hydraulicModel, {
+      add(hydraulicModel, {
         lengthUnit: "m",
         assetFactory,
         labelManager,
@@ -1805,10 +1902,13 @@ describe("addLink", () => {
         endPipeId: IDS.P1,
       });
 
-      const [newPump, nodeStart, nodeEnd] = putAssets || [];
-      expect(newPump.isActive).toBe(true);
-      expect(nodeStart.isActive).toBe(true);
-      expect(nodeEnd.isActive).toBe(true);
+      expect(
+        activeStates(hydraulicModel, {
+          link: link.id,
+          start: startNode.id,
+          end: endNode.id,
+        }),
+      ).toEqual([true, true, true]);
     });
 
     it("activates the node splitting an inactive pipe when the other endpoint splits an active pipe", () => {
@@ -1819,9 +1919,9 @@ describe("addLink", () => {
         J4: 4,
         P1: 5,
         P2: 6,
-        start: 7,
-        end: 8,
-        pump: 9,
+        start: 101,
+        end: 102,
+        pump: 103,
       } as const;
       const labelManager = new LabelManager();
       const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
@@ -1870,7 +1970,7 @@ describe("addLink", () => {
         isActive: true,
       });
 
-      const { putAssets } = addLink(hydraulicModel, {
+      add(hydraulicModel, {
         lengthUnit: "m",
         assetFactory,
         labelManager,
@@ -1881,10 +1981,13 @@ describe("addLink", () => {
         endPipeId: IDS.P2,
       });
 
-      const [newPump, nodeStart, nodeEnd] = putAssets || [];
-      expect(newPump.isActive).toBe(true);
-      expect(nodeStart.isActive).toBe(true);
-      expect(nodeEnd.isActive).toBe(true);
+      expect(
+        activeStates(hydraulicModel, {
+          link: link.id,
+          start: startNode.id,
+          end: endNode.id,
+        }),
+      ).toEqual([true, true, true]);
     });
 
     it("activates the node splitting an inactive pipe when the other endpoint is an existing active node", () => {
@@ -1895,8 +1998,8 @@ describe("addLink", () => {
         J4: 4,
         P1: 5,
         P2: 6,
-        start: 7,
-        pump: 8,
+        start: 101,
+        pump: 102,
       } as const;
       const labelManager = new LabelManager();
       const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
@@ -1938,7 +2041,7 @@ describe("addLink", () => {
         isActive: true,
       });
 
-      const { putAssets } = addLink(hydraulicModel, {
+      add(hydraulicModel, {
         lengthUnit: "m",
         assetFactory,
         labelManager,
@@ -1948,10 +2051,13 @@ describe("addLink", () => {
         startPipeId: IDS.P1,
       });
 
-      const [newPump, nodeStart, nodeEnd] = putAssets || [];
-      expect(newPump.isActive).toBe(true);
-      expect(nodeStart.isActive).toBe(true);
-      expect(nodeEnd.isActive).toBe(true);
+      expect(
+        activeStates(hydraulicModel, {
+          link: link.id,
+          start: startNode.id,
+          end: endNode.id,
+        }),
+      ).toEqual([true, true, true]);
     });
   });
 });

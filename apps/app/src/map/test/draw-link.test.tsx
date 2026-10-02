@@ -40,7 +40,10 @@ vi.mock("src/hydraulic-model/model-operations", async (importOriginal) => {
     await importOriginal<
       typeof import("src/hydraulic-model/model-operations")
     >();
-  return { ...actual, addLink: vi.fn(actual.addLink) };
+  return {
+    ...actual,
+    addLinkDeprecated: vi.fn(actual.addLinkDeprecated),
+  };
 });
 
 const clickEventAt = (
@@ -535,7 +538,7 @@ describe("Drawing a pipe", () => {
       await new Promise((resolve) => setTimeout(resolve, 30));
     });
 
-    expect(modelOperations.addLink).toHaveBeenCalledTimes(1);
+    expect(modelOperations.addLinkDeprecated).toHaveBeenCalledTimes(1);
 
     // The link was actually created: the end node is now connected.
     const model = store.get(stagingModelDerivedAtom);

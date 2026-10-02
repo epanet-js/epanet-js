@@ -8,7 +8,7 @@ import {
   LabelManager,
 } from "@epanet-js/hydraulic-model";
 import { ModelOperationDeprecated, ModelMoment } from "../model-operation";
-import { addLink } from "./add-link";
+import { addLinkDeprecated } from "./add-link";
 import { findJunctionForCustomerPoint } from "../utilities/junction-assignment";
 import { HydraulicModel } from "../hydraulic-model";
 import { lineString, point } from "@turf/helpers";
@@ -70,7 +70,7 @@ export const replaceLink: ModelOperationDeprecated<InputData> = (
 
   newLink.setProperty("isActive", sourceLink.isActive);
 
-  const addLinkResult = addLink(hydraulicModel, {
+  const addLinkResult = addLinkDeprecated(hydraulicModel, {
     link: newLink,
     startNode,
     endNode,

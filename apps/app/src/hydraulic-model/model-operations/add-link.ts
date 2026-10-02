@@ -9,7 +9,7 @@ import {
   CustomerPoint,
   computeLinkLength,
 } from "@epanet-js/hydraulic-model";
-import { ModelOperationDeprecated } from "../model-operation";
+import { ModelOperation, ModelOperationDeprecated } from "../model-operation";
 import { Position } from "geojson";
 import { splitPipe } from "./split-pipe";
 import { AssetsMap } from "@epanet-js/hydraulic-model";
@@ -17,6 +17,12 @@ import { HydraulicModel } from "../hydraulic-model";
 import { inferNodeIsActive } from "../utilities/active-topology";
 import { copyPipePropertiesToLink } from "./mutations/copy-link-properties";
 import { Unit } from "@epanet-js/quantity";
+import {
+  changeSet,
+  dropAssets,
+  putAssets,
+  putCustomerPoints,
+} from "../change-sets";
 
 type InputData = {
   link: LinkAsset;
@@ -29,10 +35,39 @@ type InputData = {
   labelManager: LabelManager;
 };
 
-export const addLink: ModelOperationDeprecated<InputData> = (
+export const addLink: ModelOperation<InputData> = (hydraulicModel, data) => {
+  const {
+    note,
+    putAssets: assets,
+    deleteAssets,
+    customerPoints,
+  } = planAddLink(hydraulicModel, data);
+
+  return changeSet(hydraulicModel, note, [
+    dropAssets(deleteAssets),
+    putAssets(assets),
+    putCustomerPoints(customerPoints),
+  ]);
+};
+
+export const addLinkDeprecated: ModelOperationDeprecated<InputData> = (
   hydraulicModel,
   data,
 ) => {
+  const { note, putAssets, deleteAssets, customerPoints } = planAddLink(
+    hydraulicModel,
+    data,
+  );
+
+  return {
+    note,
+    deleteAssets: deleteAssets.length > 0 ? deleteAssets : undefined,
+    putAssets,
+    putCustomerPoints: customerPoints,
+  };
+};
+
+const planAddLink = (hydraulicModel: HydraulicModel, data: InputData) => {
   const {
     link,
     startNode,
@@ -90,16 +125,19 @@ export const addLink: ModelOperationDeprecated<InputData> = (
     labelManager,
   });
 
+  const withoutOverlap = removeOverlappingPipes({
+    link: linkCopy,
+    startNode: startNodeCopy,
+    endNode: endNodeCopy,
+    putAssets,
+    putCustomerPoints,
+  });
+
   return {
     note: `Add ${link.type}`,
-    deleteAssets: deleteAssets.length > 0 ? deleteAssets : undefined,
-    ...removeOverlappingPipes({
-      link: linkCopy,
-      startNode: startNodeCopy,
-      endNode: endNodeCopy,
-      putAssets,
-      putCustomerPoints,
-    }),
+    putAssets: withoutOverlap.putAssets,
+    deleteAssets,
+    customerPoints: withoutOverlap.putCustomerPoints,
   };
 };
 

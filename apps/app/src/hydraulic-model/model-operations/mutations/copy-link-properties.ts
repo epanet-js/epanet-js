@@ -26,7 +26,7 @@ export function copyPipePropertiesToLink(
         }
       }
     }
-  } else {
+  } else if (targetLink.type === "valve") {
     if (sourcePipe.hasProperty("diameter")) {
       const diameter = sourcePipe.getProperty("diameter");
       if (diameter !== null && diameter !== undefined) {
