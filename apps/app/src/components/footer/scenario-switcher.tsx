@@ -18,7 +18,6 @@ import {
   SuccessIcon,
 } from "src/icons";
 import { useTranslate } from "src/hooks/use-translate";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { notify } from "src/components/notifications";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useScenarioOperations } from "src/hooks/use-scenario-operations";
@@ -353,7 +352,6 @@ const ScenarioRow = ({
   isLast: boolean;
 } & ScenarioActions) => {
   const translate = useTranslate();
-  const isDuplicateScenarioOn = useFeatureFlag("FLAG_DUPLICATE_SCENARIO");
 
   return (
     <div className="relative group/scenario">
@@ -386,12 +384,10 @@ const ScenarioRow = ({
               <span>{translate("scenarios.rename")}</span>
             </StyledItem>
 
-            {isDuplicateScenarioOn && (
-              <StyledItem onSelect={() => onDuplicate(scenario.id)}>
-                <DuplicateIcon size="sm" />
-                <span>{translate("scenarios.duplicate")}</span>
-              </StyledItem>
-            )}
+            <StyledItem onSelect={() => onDuplicate(scenario.id)}>
+              <DuplicateIcon size="sm" />
+              <span>{translate("scenarios.duplicate")}</span>
+            </StyledItem>
 
             <StyledItem
               onSelect={() => onDelete(scenario.id, scenario.name)}
