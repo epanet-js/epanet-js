@@ -73,7 +73,6 @@ import { ExportAssetDataDialog } from "src/dialogs/export-asset-data";
 import { OpenDataTablesDialog } from "src/dialogs/open-data-tables";
 import { ExportSimulationResultsDialog as ExportTimeSeriesDialog } from "src/dialogs/export-simulation-results";
 import { FirstScenarioDialog } from "src/dialogs/first-scenario";
-import { ProfileNoPathDialog } from "src/dialogs/profile-no-path";
 import { CustomGraphDialog } from "src/dialogs/custom-graph-dialog";
 import { PriorityAccessDialog } from "src/dialogs/priority-access";
 import { AllocateCustomerPointsDialog } from "src/dialogs/allocate-customer-points";
@@ -512,9 +511,6 @@ export const Dialogs = memo(function Dialogs() {
     )
     .with({ type: "scenarioSignIn" }, ({ source }) => (
       <ScenarioSignInDialog source={source} onClose={onClose} />
-    ))
-    .with({ type: "profileNoPath" }, () => (
-      <ProfileNoPathDialog onClose={onClose} />
     ))
     .exhaustive();
 

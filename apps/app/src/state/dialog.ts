@@ -306,10 +306,6 @@ export type ExportTimeSeriesDialogState = {
   type: "exportTimeSeries";
 };
 
-export type ProfileNoPathDialogState = {
-  type: "profileNoPath";
-};
-
 export type CustomGraphDialogState = {
   type: "customGraph";
 };
@@ -432,7 +428,6 @@ export type DialogState =
   | OpenDataTablesDialogState
   | ExportTimeSeriesDialogState
   | NetworkProjectionDialogState
-  | ProfileNoPathDialogState
   | CustomGraphDialogState
   | AppLoadFailedDialogState
   | RebuildStorageProgressDialogState

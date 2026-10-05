@@ -165,18 +165,19 @@ export function useHglProfileHandlers(
       }
     }
 
+    const isExtendForbidden =
+      extendable && currentAnchors.length >= 1 && previewPath === undefined;
+
     const ephemeral = store.get(ephemeralStateAtom);
     const stagedAnchorIds =
       ephemeral.type === "hglProfile" ? ephemeral.anchorIds : undefined;
     setEphemeralState({
       type: "hglProfile",
       anchorIds: stagedAnchorIds,
-      hoveredNodeId,
+      hoveredNodeId: isExtendForbidden ? undefined : hoveredNodeId,
       path: previewPath,
     });
 
-    const isExtendForbidden =
-      extendable && currentAnchors.length >= 1 && previewPath === undefined;
     setCursor(isExtendForbidden ? "not-allowed" : "");
   }, 16);
 
