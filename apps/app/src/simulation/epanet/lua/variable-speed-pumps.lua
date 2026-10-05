@@ -1,6 +1,6 @@
-VSP2_TOL         = 0.05   -- acceptable error in a held pressure, in metres of water
-VSP2_FLOW_TOL    = 0.05   -- acceptable error in a held flow, and in a level row's net inflow, in L/s
-VSP2_LEVEL_TOL   = 0.01   -- how close a level row lands its tank on the target at the end of a step
+VSP2_TOL         = 0.005   -- acceptable error in a held pressure, in metres of water
+VSP2_FLOW_TOL    = 0.001   -- acceptable error in a held flow, and in a level row's net inflow, in L/s
+VSP2_LEVEL_TOL   = 0.01   -- how close a level row lands its tank on the target at the end of a step, in metres
 VSP2_SPEED_TOL   = 0.0001   -- smallest speed change worth writing
 VSP2_MIN_STEP    = 0.0002   -- the step taken outside the tolerance when the search's own is too small to write
 VSP2_RATIO_STEP  = 0.1      -- largest speed change a step without a slope takes
@@ -8,19 +8,20 @@ VSP2_WARM_STEP   = 0.25     -- largest speed change a step on the slope learned 
 VSP2_TRIAL_SPEED_DROP = 0.01   -- how far the speed falls below a failed trial's before a lag is tried closed again
 
 -- Per units().flow: the tank_volume one unit of flow moves in a second
--- (m^3 under SI flow units, ft^3 under US ones), and the units in one L/s.
+-- (m^3 under SI flow units, ft^3 under US ones), the units in one L/s, and
+-- the length units in one metre (feet under US flow units).
 -- Built on EPANET's own factors per CFS
 VSP2_UNIT_FACTORS = {
-    lps  = { 0.001,       1 },
-    lpm  = { 0.001 / 60,  60 },
-    mld  = { 1 / 86.4,    0.0864 },
-    cmh  = { 1 / 3600,    3.6 },
-    cmd  = { 1 / 86400,   86.4 },
-    cfs  = { 1,           1 / 28.317 },
-    gpm  = { 1 / 448.831, 448.831 / 28.317 },
-    mgd  = { 1 / 0.64632, 0.64632 / 28.317 },
-    imgd = { 1 / 0.5382,  0.5382 / 28.317 },
-    afd  = { 1 / 1.9837,  1.9837 / 28.317 },
+    lps  = { 0.001,       1,                1 },
+    lpm  = { 0.001 / 60,  60,               1 },
+    mld  = { 1 / 86.4,    0.0864,           1 },
+    cmh  = { 1 / 3600,    3.6,              1 },
+    cmd  = { 1 / 86400,   86.4,             1 },
+    cfs  = { 1,           1 / 28.317,       1 / 0.3048 },
+    gpm  = { 1 / 448.831, 448.831 / 28.317, 1 / 0.3048 },
+    mgd  = { 1 / 0.64632, 0.64632 / 28.317, 1 / 0.3048 },
+    imgd = { 1 / 0.5382,  0.5382 / 28.317,  1 / 0.3048 },
+    afd  = { 1 / 1.9837,  1.9837 / 28.317,  1 / 0.3048 },
 }
 
 -- Per units().pressure: the pressure units in one metre of water, on
@@ -37,6 +38,7 @@ VSP2_PRESSURE_PER_METER = {
 vsp2_flow_to_volume = 0.001  -- VSP2_UNIT_FACTORS' first column for the run's flow units
 vsp2_flow_tol    = VSP2_FLOW_TOL   -- VSP2_FLOW_TOL in the run's flow units
 vsp2_pressure_tol = VSP2_TOL       -- VSP2_TOL in the run's pressure units
+vsp2_level_tol   = VSP2_LEVEL_TOL  -- VSP2_LEVEL_TOL in the run's length units
 vsp2_state       = {}     -- per row: the search's memory
 vsp2_step_time   = -1     -- the clock at the latest on_hydraulic_step
 vsp2_solved_time = 0      -- the time of the step on_hydraulics_solved reports next
@@ -119,7 +121,7 @@ function vsp2Required(p, st, t, schedules)
     local target = vsp2LevelTarget(p, tank, t, schedules)
     local area   = vsp2Area(st, tank, level)
     local per_unit = area / (times().hydraulic_step * vsp2_flow_to_volume)
-    local tol = VSP2_LEVEL_TOL * per_unit
+    local tol = vsp2_level_tol * per_unit
     if tol > vsp2_flow_tol / 2 then tol = vsp2_flow_tol / 2 end
     return (target - level) * per_unit, tol
 end
@@ -396,7 +398,7 @@ function vsp2Refresh(p, t, skipped, schedules)
         local required = 0
         if st then required = st.required end
         extra = string.format(" inflow=%.4f required=%.4f", value, required)
-        tol = VSP2_LEVEL_TOL
+        tol = vsp2_level_tol
     end
     if st then
         st.last_speed, st.last_value = speed, value
@@ -415,8 +417,8 @@ function vsp2Refresh(p, t, skipped, schedules)
     end
 end
 
--- The flow and pressure tolerances, and the volume one unit of flow moves,
--- in the run's own units
+-- The flow, pressure and level tolerances, and the volume one unit of flow
+-- moves, in the run's own units
 function vsp2SetUnits()
     local u = units()
     local factors = VSP2_UNIT_FACTORS[u.flow]
@@ -426,6 +428,7 @@ function vsp2SetUnits()
     vsp2_flow_to_volume = factors[1]
     vsp2_flow_tol = VSP2_FLOW_TOL * factors[2]
     vsp2_pressure_tol = VSP2_TOL * per_meter
+    vsp2_level_tol = VSP2_LEVEL_TOL * factors[3]
 end
 
 -- A lead pump the .inp starts closed is the search's to run: a closed
