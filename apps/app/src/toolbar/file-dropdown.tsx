@@ -289,7 +289,6 @@ const ExportSubmenu = () => {
   const saveInp = useSaveInp();
   const saveProject = useSaveProject();
   const exportScenarioAsProject = useExportScenarioAsProject();
-  const isExportScenarioOn = useFeatureFlag("FLAG_EXPORT_SCENARIO");
   const worktree = useAtomValue(worktreeAtom);
   const isInScenario = worktree.activeBranchId !== worktree.mainId;
   const setDialogState = useSetAtom(dialogAtom);
@@ -320,18 +319,16 @@ const ExportSubmenu = () => {
             <FileSpreadsheetIcon />
             {translate("export.epanetInp")}
           </StyledItem>
-          {isExportScenarioOn && (
-            <StyledItem
-              disabled={!isInScenario}
-              className={!isInScenario ? "opacity-60" : undefined}
-              onSelect={() => {
-                void exportScenarioAsProject({ source: "toolbar" });
-              }}
-            >
-              <FileBoxIcon />
-              {translate("export.currentScenarioAsProject")}
-            </StyledItem>
-          )}
+          <StyledItem
+            disabled={!isInScenario}
+            className={!isInScenario ? "opacity-60" : undefined}
+            onSelect={() => {
+              void exportScenarioAsProject({ source: "toolbar" });
+            }}
+          >
+            <FileBoxIcon />
+            {translate("export.currentScenarioAsProject")}
+          </StyledItem>
           <StyledItem
             onSelect={() => {
               setDialogState({ type: "exportAssetData" });
