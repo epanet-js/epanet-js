@@ -456,17 +456,15 @@ function vsp2_solved(pumps, schedules)
 end
 
 -- ================================================================
--- What this model's script controls: one table per control type,
--- in the .inp's units, one row per asset. Edit these rows by hand
--- to change what is held; the functions above read nothing else
--- about the model.
+-- What the generated handlers pass in: on_hydraulic_step calls
+-- vsp2_step(pumps, schedules) and on_hydraulics_solved calls
+-- vsp2_solved(pumps, schedules), both with the same two tables,
+-- written in the .inp's units. The functions above read nothing
+-- else about the model.
 -- ================================================================
 
--- VSP2_PUMPS holds one row per pump the script controls, written in the .inp's
--- units. Edit these rows by hand to change what is held; the functions above
--- read nothing else about the model.
---
--- A row is a list of 8 fields. Taking the example row below field by field:
+-- pumps holds one row per pump the script controls. A row is a list of
+-- 8 fields. Taking an example row field by field:
 --
 --     { "PU1", "level", "T1", 4.5, 0.3, 1, {}, 1 }
 --
@@ -477,7 +475,7 @@ end
 --                              id for "flow" ("" means the lead pump's own flow).
 --   4. target         4.5      value to hold, in the .inp's units: a pressure, a
 --                              level above the tank's base, or a flow. Ignored
---                              when this pump has a VSP2_SCHEDULES entry.
+--                              when this pump has a schedules entry.
 --   5. minimum speed  0.3      lowest relative speed the search may set (1.0 is
 --                              the pump's rated speed).
 --   6. maximum speed  1        highest relative speed the search may set.
@@ -492,31 +490,13 @@ end
 --
 -- The example row holds tank "T1" at 4.5 m by varying pump "PU1" between 0.3 and
 -- 1.0 speed, with no lag pumps.
-VSP2_PUMPS = {
-    { "PU1", "level", "T1", 4.5, 0.3, 1, {}, 1 },
-}
-
--- VSP2_SCHEDULES gives time-of-day targets, keyed by pump id. A pump listed here
+--
+-- schedules gives time-of-day targets, keyed by pump id. A pump listed here
 -- ignores its row's own target (field 4) and follows the schedule instead. Each
 -- schedule is a list of { time-of-day in seconds, target } pairs in clock order:
 -- the latest pair at or before the current time of day is in force, every day of
--- the run, and a time of day before the first pair wraps to the last one. Leave
--- it as {} when no pump is scheduled. Example holding "PU1" at 3.0 from midnight,
--- 4.5 from 06:00 (21600 s), then 3.5 from 20:00 (72000 s):
+-- the run, and a time of day before the first pair wraps to the last one. {}
+-- when no pump is scheduled. Example holding "PU1" at 3.0 from midnight, 4.5
+-- from 06:00 (21600 s), then 3.5 from 20:00 (72000 s):
 --
---     VSP2_SCHEDULES = {
---         ["PU1"] = { { 0, 3.0 }, { 21600, 4.5 }, { 72000, 3.5 } },
---     }
-VSP2_SCHEDULES = {}
-
--- ================================================================
--- EPANET-LSX's two entry points, defined once. Each hands every
--- table above to its control type's functions, in the order written.
--- ================================================================
--- function on_hydraulic_step()
---     vsp2_step(VSP2_PUMPS, VSP2_SCHEDULES)
--- end
-
--- function on_hydraulics_solved()
---     vsp2_solved(VSP2_PUMPS, VSP2_SCHEDULES)
--- end
+--     { ["PU1"] = { { 0, 3.0 }, { 21600, 4.5 }, { 72000, 3.5 } } }
