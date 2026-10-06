@@ -396,7 +396,6 @@ export function useNoneHandlers({
         if (!asset || asset.isLink) return;
 
         let newCoordinates = getMapCoord(e);
-        const noElevation = 0;
         let snappingInfo: {
           pipeSnappingPosition?: [number, number];
           pipeId?: number;
@@ -446,7 +445,7 @@ export function useNoneHandlers({
         const { node, links } = moveNodeAndLinks(hydraulicModel, {
           nodeId: asset.id,
           newCoordinates,
-          newElevation: noElevation,
+          newElevation: null,
           lengthUnit: units.length,
         });
 

@@ -96,6 +96,24 @@ describe("moveNode", () => {
     expect(movedNode.elevation).toEqual(10);
   });
 
+  it("keeps the previous elevation when no new elevation is given", () => {
+    const IDS = { A: 1 };
+    const { builder, ...factories } = setUp();
+    const model = builder
+      .aJunction(IDS.A, { coordinates: [10, 10], elevation: 42 })
+      .build();
+
+    move(model, factories, {
+      nodeId: IDS.A,
+      newCoordinates: [20, 20],
+      newElevation: null,
+    });
+
+    const movedNode = nodeOf(model, IDS.A);
+    expect(movedNode.coordinates).toEqual([20, 20]);
+    expect(movedNode.elevation).toEqual(42);
+  });
+
   it("updates the connected links", () => {
     const IDS = { A: 1, B: 2, C: 3, AB: 4, BC: 5 };
     const { builder, ...factories } = setUp();

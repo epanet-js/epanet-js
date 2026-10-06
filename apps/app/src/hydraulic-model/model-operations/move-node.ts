@@ -82,7 +82,7 @@ export const moveNodeAndLinks = (
 
   const updatedNode = node.copy();
   updatedNode.setCoordinates(newCoordinates);
-  updatedNode.setElevation(newElevation);
+  if (newElevation !== null) updatedNode.setElevation(newElevation);
 
   const updatedLinks = topology.getLinks(node.id).map((linkId) => {
     const linkCopy = (assets.get(linkId) as LinkAsset).copy();
