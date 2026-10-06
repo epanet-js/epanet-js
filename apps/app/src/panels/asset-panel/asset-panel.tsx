@@ -2551,10 +2551,7 @@ const PumpEditor = ({
     [hydraulicModel.assets],
   );
 
-  // const isVariableSpeedPumpsOn = useFeatureFlag("FLAG_VARIABLE_SPEED_PUMPS");
-  // eslint-disable-next-line no-warning-comments
-  // FIXME: Use feature flag when merging to main
-  const isVariableSpeedPumpsOn = true;
+  const isVariableSpeedPumpsOn = useFeatureFlag("FLAG_VARIABLE_SPEED_PUMPS");
   const outletNodeId = pump.connections[1] ?? null;
   const variableSpeedPumpTargets = useMemo(() => {
     if (!isVariableSpeedPumpsOn) return undefined;
