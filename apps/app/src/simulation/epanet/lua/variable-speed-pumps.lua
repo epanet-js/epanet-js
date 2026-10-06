@@ -1,18 +1,18 @@
-VSP2_TOL         = 0.005   -- acceptable error in a held pressure, in metres of water
-VSP2_FLOW_TOL    = 0.001   -- acceptable error in a held flow, and in a level row's net inflow, in L/s
-VSP2_LEVEL_TOL   = 0.01   -- how close a level row lands its tank on the target at the end of a step, in metres
-VSP2_SPEED_TOL   = 0.0001   -- smallest speed change worth writing
-VSP2_MIN_STEP    = 0.0002   -- the step taken outside the tolerance when the search's own is too small to write
-VSP2_RATIO_STEP  = 0.1      -- largest speed change a step without a slope takes
-VSP2_WARM_STEP   = 0.25     -- largest speed change a step on the slope learned earlier takes
-VSP2_TRIAL_SPEED_DROP = 0.01   -- how far the speed falls below a failed trial's before a lag is tried closed again
-VSP2_SCHEDULE_FROM = 0   -- the run time a schedule is in force from, s; before it a row holds its own target
+VSP_TOL         = 0.005   -- acceptable error in a held pressure, in metres of water
+VSP_FLOW_TOL    = 0.001   -- acceptable error in a held flow, and in a level row's net inflow, in L/s
+VSP_LEVEL_TOL   = 0.01   -- how close a level row lands its tank on the target at the end of a step, in metres
+VSP_SPEED_TOL   = 0.0001   -- smallest speed change worth writing
+VSP_MIN_STEP    = 0.0002   -- the step taken outside the tolerance when the search's own is too small to write
+VSP_RATIO_STEP  = 0.1      -- largest speed change a step without a slope takes
+VSP_WARM_STEP   = 0.25     -- largest speed change a step on the slope learned earlier takes
+VSP_TRIAL_SPEED_DROP = 0.01   -- how far the speed falls below a failed trial's before a lag is tried closed again
+VSP_SCHEDULE_FROM = 0   -- the run time a schedule is in force from, s; before it a row holds its own target
 
 -- Per units().flow: the tank_volume one unit of flow moves in a second
 -- (m^3 under SI flow units, ft^3 under US ones), the units in one L/s, and
 -- the length units in one metre (feet under US flow units).
 -- Built on EPANET's own factors per CFS
-VSP2_UNIT_FACTORS = {
+VSP_UNIT_FACTORS = {
     lps  = { 0.001,       1,                1 },
     lpm  = { 0.001 / 60,  60,               1 },
     mld  = { 1 / 86.4,    0.0864,           1 },
@@ -27,7 +27,7 @@ VSP2_UNIT_FACTORS = {
 
 -- Per units().pressure: the pressure units in one metre of water, on
 -- EPANET's own factors (psi per ft, kPa per psi)
-VSP2_PRESSURE_PER_METER = {
+VSP_PRESSURE_PER_METER = {
     psi = 0.4333 / 0.3048,
     kpa = 0.4333 / 0.3048 * 6.895,
     m   = 1,
@@ -36,29 +36,29 @@ VSP2_PRESSURE_PER_METER = {
 }
 -- ================================================================
 
-vsp2_flow_to_volume = 0.001  -- VSP2_UNIT_FACTORS' first column for the run's flow units
-vsp2_flow_tol    = VSP2_FLOW_TOL   -- VSP2_FLOW_TOL in the run's flow units
-vsp2_pressure_tol = VSP2_TOL       -- VSP2_TOL in the run's pressure units
-vsp2_level_tol   = VSP2_LEVEL_TOL  -- VSP2_LEVEL_TOL in the run's length units
-vsp2_state       = {}     -- per row: the search's memory
-vsp2_step_time   = -1     -- the clock at the latest on_hydraulic_step
-vsp2_solved_time = 0      -- the time of the step on_hydraulics_solved reports next
-vsp2_step_skips  = 0      -- steps on_hydraulic_step did not run on (diagnostic only)
-vsp2_calls       = 0      -- on_hydraulic_step calls on the current step
+vsp_flow_to_volume = 0.001  -- VSP_UNIT_FACTORS' first column for the run's flow units
+vsp_flow_tol    = VSP_FLOW_TOL   -- VSP_FLOW_TOL in the run's flow units
+vsp_pressure_tol = VSP_TOL       -- VSP_TOL in the run's pressure units
+vsp_level_tol   = VSP_LEVEL_TOL  -- VSP_LEVEL_TOL in the run's length units
+vsp_state       = {}     -- per row: the search's memory
+vsp_step_time   = -1     -- the clock at the latest on_hydraulic_step
+vsp_solved_time = 0      -- the time of the step on_hydraulics_solved reports next
+vsp_step_skips  = 0      -- steps on_hydraulic_step did not run on (diagnostic only)
+vsp_calls       = 0      -- on_hydraulic_step calls on the current step
 
 -- The time of day at t, from the settings block or the .inp's Start ClockTime
-function vsp2Clock(t)
+function vspClock(t)
     local start = times().start_time
     return (t + start) % 86400
 end
 
 -- The target in force at time t: the schedule's latest entry at or before
 -- the time of day, the day wrapping to its last entry; the row's own
--- target for a row with no schedule, or before VSP2_SCHEDULE_FROM
-function vsp2Target(p, t, schedules)
+-- target for a row with no schedule, or before VSP_SCHEDULE_FROM
+function vspTarget(p, t, schedules)
     local s = schedules[p[1]]
-    if s == nil or t < VSP2_SCHEDULE_FROM then return p[4] end
-    local clock  = vsp2Clock(t)
+    if s == nil or t < VSP_SCHEDULE_FROM then return p[4] end
+    local clock  = vspClock(t)
     local target = s[#s][2]
     for _, entry in ipairs(s) do
         if entry[1] > clock then break end
@@ -69,7 +69,7 @@ end
 
 -- The measured quantity: a junction's pressure, a tank's net inflow (positive
 -- when filling), or a link's flow in the pump's direction
-function vsp2Value(p)
+function vspValue(p)
     if p[2] == "level" then return node(p[3]).demand end
     if p[2] == "flow" then
         if p[3] == "" then return link(p[1]).flow end
@@ -79,13 +79,13 @@ function vsp2Value(p)
 end
 
 -- A tank's level above its base: its pressure is in psi under US units
-function vsp2Level(tank)
+function vspLevel(tank)
     return tank.head - tank.elevation
 end
 
 -- A level row's target, kept inside the tank's own levels
-function vsp2LevelTarget(p, tank, t, schedules)
-    local target = vsp2Target(p, t, schedules)
+function vspLevelTarget(p, tank, t, schedules)
+    local target = vspTarget(p, t, schedules)
     if target > tank.max_level then target = tank.max_level end
     if target < tank.min_level then target = tank.min_level end
     return target
@@ -96,7 +96,7 @@ end
 -- here to the volume the tank gained per unit of level over the last step
 -- it moved on, which is the curve's own slope while both levels lie on one
 -- of its segments
-function vsp2Area(st, tank, level)
+function vspArea(st, tank, level)
     local volume = tank.tank_volume
     if st.area == nil then st.area = math.pi * tank.tank_diameter ^ 2 / 4 end
     if tank.volume_curve ~= 0 and st.prev_level ~= nil and math.abs(level - st.prev_level) > 1e-6 then
@@ -112,40 +112,40 @@ end
 -- next_event holds only a tank limit's cut, not a control's or a pattern
 -- boundary's, and an advance shorter than Δt lands short, which the next
 -- step corrects), and the inflow tolerance that keeps the landing within
--- VSP2_LEVEL_TOL. It is never looser than half the flow tolerance: a held
+-- VSP_LEVEL_TOL. It is never looser than half the flow tolerance: a held
 -- step's inflow is the search's error plus the correction of the last
 -- landing, itself within a tolerance, so the inflow at a held level stays
 -- within the flow tolerance of zero
-function vsp2Required(p, st, t, schedules)
+function vspRequired(p, st, t, schedules)
     local tank   = node(p[3])
-    local level  = vsp2Level(tank)
-    local target = vsp2LevelTarget(p, tank, t, schedules)
-    local area   = vsp2Area(st, tank, level)
-    local per_unit = area / (times().hydraulic_step * vsp2_flow_to_volume)
-    local tol = vsp2_level_tol * per_unit
-    if tol > vsp2_flow_tol / 2 then tol = vsp2_flow_tol / 2 end
+    local level  = vspLevel(tank)
+    local target = vspLevelTarget(p, tank, t, schedules)
+    local area   = vspArea(st, tank, level)
+    local per_unit = area / (times().hydraulic_step * vsp_flow_to_volume)
+    local tol = vsp_level_tol * per_unit
+    if tol > vsp_flow_tol / 2 then tol = vsp_flow_tol / 2 end
     return (target - level) * per_unit, tol
 end
 
 -- The held value, its target and its tolerance at this call
-function vsp2Read(p, st, t, schedules)
-    local value = vsp2Value(p)
+function vspRead(p, st, t, schedules)
+    local value = vspValue(p)
     if p[2] == "level" then
-        local required, tol = vsp2Required(p, st, t, schedules)
+        local required, tol = vspRequired(p, st, t, schedules)
         st.required = required
         return value, required, tol
     end
-    if p[2] == "flow" then return value, vsp2Target(p, t, schedules), vsp2_flow_tol end
-    return value, vsp2Target(p, t, schedules), vsp2_pressure_tol
+    if p[2] == "flow" then return value, vspTarget(p, t, schedules), vsp_flow_tol end
+    return value, vspTarget(p, t, schedules), vsp_pressure_tol
 end
 
 -- A head an isolated node reports is not a measurement
-function vsp2Usable(value)
+function vspUsable(value)
     return value > -1e5 and value < 1e5
 end
 
 -- Lags open in order, so the running ones are the first n
-function vsp2RunningLags(p)
+function vspRunningLags(p)
     local n = 0
     for _, id in ipairs(p[7]) do
         if link(id).setting == 0 then break end
@@ -157,7 +157,7 @@ end
 -- One speed for the lead and its first n lags, remembered as this
 -- fragment's write so a speed found different on the next call is known
 -- to be a control's
-function vsp2SetSpeed(p, st, speed, n)
+function vspSetSpeed(p, st, speed, n)
     link(p[1]).setting = speed
     for i = 1, n do link(p[7][i]).setting = speed end
     st.written = speed
@@ -165,46 +165,46 @@ end
 
 -- The speeds the held value is known to lie between: below the target at
 -- lo, above it at hi. Forgotten when the step or the running pumps change.
-function vsp2ResetBracket(p, st)
-    st.lo, st.hi = 0, p[6] + VSP2_SPEED_TOL
+function vspResetBracket(p, st)
+    st.lo, st.hi = 0, p[6] + VSP_SPEED_TOL
     st.halved = 0
 end
 
 -- Close the last running lag and run the rest at maximum speed, to see
 -- whether they hold the target without it
-function vsp2Trial(p, st, running, value, speed)
+function vspTrial(p, st, running, value, speed)
     link(p[7][running]).setting = 0
-    vsp2SetSpeed(p, st, p[6], running - 1)
+    vspSetSpeed(p, st, p[6], running - 1)
     st.trial = running
     st.trial_speed = speed
     st.last_speed, st.last_value = p[6], value
-    vsp2ResetBracket(p, st)
+    vspResetBracket(p, st)
 end
 
-function vsp2Hold(p, schedules)
+function vspHold(p, schedules)
     local pump  = link(p[1])
     local speed = pump.setting
     local lags  = p[7]
 
-    local st = vsp2_state[p[1]]
+    local st = vsp_state[p[1]]
     if st == nil then
         st = { last_speed = speed, last_value = nil, time = -1, trial = 0, trial_speed = speed, fail_speed = -1, slope = nil,
                settled = speed, written = nil, forced = false, restored = false, fresh = false, required = 0 }
-        vsp2ResetBracket(p, st)
-        vsp2_state[p[1]] = st
+        vspResetBracket(p, st)
+        vsp_state[p[1]] = st
     end
 
     -- A new step: nothing written yet, the secant pair restarts (the demand
     -- moved the value, not the speed), the slope learned so far is kept
-    if st.time ~= vsp2_step_time then
-        st.time   = vsp2_step_time
+    if st.time ~= vsp_step_time then
+        st.time   = vsp_step_time
         st.trial  = 0
         st.written  = nil
         st.forced   = false
         st.restored = false
         st.fresh    = true
         st.last_speed, st.last_value = speed, nil
-        vsp2ResetBracket(p, st)
+        vspResetBracket(p, st)
     end
 
     -- A closed pump stays closed, and its lags close with it: writing a
@@ -225,15 +225,15 @@ function vsp2Hold(p, schedules)
     -- control's OPEN) is replaced by that settled speed, and the search goes
     -- on from there with the slope it learned
     if st.forced then return end
-    local value, target, tol = vsp2Read(p, st, vsp2_step_time, schedules)
-    local running = vsp2RunningLags(p)
+    local value, target, tol = vspRead(p, st, vsp_step_time, schedules)
+    local running = vspRunningLags(p)
     if st.written ~= nil then
-        if math.abs(speed - st.written) > VSP2_SPEED_TOL then
+        if math.abs(speed - st.written) > VSP_SPEED_TOL then
             st.forced = true
             return
         end
-    elseif st.fresh and st.settled > 0 and math.abs(speed - st.settled) > VSP2_SPEED_TOL then
-        vsp2SetSpeed(p, st, st.settled, running)
+    elseif st.fresh and st.settled > 0 and math.abs(speed - st.settled) > VSP_SPEED_TOL then
+        vspSetSpeed(p, st, st.settled, running)
         st.restored = true
         st.last_speed, st.last_value = speed, value
         return
@@ -244,8 +244,8 @@ function vsp2Hold(p, schedules)
     -- last lag is tried closed
     if st.fresh then
         st.fresh = false
-        if running > 0 and (st.fail_speed < 0 or speed < st.fail_speed - VSP2_TRIAL_SPEED_DROP) then
-            vsp2Trial(p, st, running, value, speed)
+        if running > 0 and (st.fail_speed < 0 or speed < st.fail_speed - VSP_TRIAL_SPEED_DROP) then
+            vspTrial(p, st, running, value, speed)
             return
         end
     end
@@ -257,15 +257,15 @@ function vsp2Hold(p, schedules)
         local lag = st.trial
         st.trial = 0
         if value < target - tol then
-            vsp2SetSpeed(p, st, st.trial_speed, lag)
+            vspSetSpeed(p, st, st.trial_speed, lag)
             st.fail_speed = st.trial_speed
             st.last_speed, st.last_value = st.trial_speed, value
-            vsp2ResetBracket(p, st)
+            vspResetBracket(p, st)
             return
         end
         st.fail_speed = -1
         if running > 0 then
-            vsp2Trial(p, st, running, value, st.trial_speed)
+            vspTrial(p, st, running, value, st.trial_speed)
             return
         end
     end
@@ -274,11 +274,11 @@ function vsp2Hold(p, schedules)
 
     -- Every running pump at maximum speed and still below the target: the
     -- next lag opens at that speed
-    if value < target and speed >= p[6] - VSP2_SPEED_TOL and running < #lags then
+    if value < target and speed >= p[6] - VSP_SPEED_TOL and running < #lags then
         link(lags[running + 1]).setting = p[6]
         st.fail_speed = -1
         st.last_speed, st.last_value = p[6], value
-        vsp2ResetBracket(p, st)
+        vspResetBracket(p, st)
         return
     end
 
@@ -286,9 +286,9 @@ function vsp2Hold(p, schedules)
     -- source) measures nothing: run at maximum speed, which is what opens a
     -- check valve or a pump that stopped below its shutoff head, and if the
     -- node stays cut off there, leave it
-    if not vsp2Usable(value) then
-        if speed < p[6] - VSP2_SPEED_TOL then
-            vsp2SetSpeed(p, st, p[6], running)
+    if not vspUsable(value) then
+        if speed < p[6] - VSP_SPEED_TOL then
+            vspSetSpeed(p, st, p[6], running)
             st.last_speed, st.last_value = speed, nil
         end
         return
@@ -307,7 +307,7 @@ function vsp2Hold(p, schedules)
     -- whose value fell as the speed rose was moved by something else (another
     -- row's write, a valve switching) and says nothing about this pump
     local slope = nil
-    if st.last_value ~= nil and math.abs(st.last_speed - speed) >= VSP2_SPEED_TOL
+    if st.last_value ~= nil and math.abs(st.last_speed - speed) >= VSP_SPEED_TOL
        and math.abs(value - st.last_value) >= 1e-6 then
         slope = (value - st.last_value) / (speed - st.last_speed)
         if slope <= 0 then slope = nil end
@@ -321,23 +321,23 @@ function vsp2Hold(p, schedules)
         -- One point: the slope learned earlier (on this step or the steps
         -- before) gives a Newton step, capped
         new_speed = speed + (target - value) / st.slope
-        if new_speed > speed + VSP2_WARM_STEP then new_speed = speed + VSP2_WARM_STEP end
-        if new_speed < speed - VSP2_WARM_STEP then new_speed = speed - VSP2_WARM_STEP end
+        if new_speed > speed + VSP_WARM_STEP then new_speed = speed + VSP_WARM_STEP end
+        if new_speed < speed - VSP_WARM_STEP then new_speed = speed - VSP_WARM_STEP end
     else
         -- No slope at all: the speed/value ratio, capped, because a ratio
         -- is not a slope (a head holds its suction side, a pump below its
         -- shutoff head passes nothing, and a net inflow can be negative)
         if value > 0 and target > 0 then new_speed = speed * (target / value)
-        elseif value < target then new_speed = speed + VSP2_RATIO_STEP
-        else new_speed = speed - VSP2_RATIO_STEP end
-        if new_speed > speed + VSP2_RATIO_STEP then new_speed = speed + VSP2_RATIO_STEP end
-        if new_speed < speed - VSP2_RATIO_STEP then new_speed = speed - VSP2_RATIO_STEP end
+        elseif value < target then new_speed = speed + VSP_RATIO_STEP
+        else new_speed = speed - VSP_RATIO_STEP end
+        if new_speed > speed + VSP_RATIO_STEP then new_speed = speed + VSP_RATIO_STEP end
+        if new_speed < speed - VSP_RATIO_STEP then new_speed = speed - VSP_RATIO_STEP end
     end
 
     -- Still outside the tolerance, a step too small to write would leave the
     -- value there: take the smallest step that is written, towards the target
-    if math.abs(new_speed - speed) <= VSP2_SPEED_TOL then
-        if value < target then new_speed = speed + VSP2_MIN_STEP else new_speed = speed - VSP2_MIN_STEP end
+    if math.abs(new_speed - speed) <= VSP_SPEED_TOL then
+        if value < target then new_speed = speed + VSP_MIN_STEP else new_speed = speed - VSP_MIN_STEP end
     end
 
     if new_speed > p[6] then new_speed = p[6] end
@@ -352,8 +352,8 @@ function vsp2Hold(p, schedules)
     if not (new_speed > st.lo and new_speed < st.hi) then
         local mid = (st.lo + math.min(st.hi, p[6])) / 2
         if mid < p[5] then mid = p[5] end
-        if st.halved >= 1 or math.abs(mid - speed) <= VSP2_SPEED_TOL then
-            if new_speed <= st.lo then st.lo = 0 else st.hi = p[6] + VSP2_SPEED_TOL end
+        if st.halved >= 1 or math.abs(mid - speed) <= VSP_SPEED_TOL then
+            if new_speed <= st.lo then st.lo = 0 else st.hi = p[6] + VSP_SPEED_TOL end
             st.halved = 0
         else
             new_speed = mid
@@ -364,101 +364,101 @@ function vsp2Hold(p, schedules)
     end
 
     -- At a limit on the wrong side of the target there is nothing to search
-    if math.abs(new_speed - speed) > VSP2_SPEED_TOL then
-        vsp2SetSpeed(p, st, new_speed, running)
+    if math.abs(new_speed - speed) > VSP_SPEED_TOL then
+        vspSetSpeed(p, st, new_speed, running)
         st.last_speed, st.last_value = speed, value
     end
 end
 
 -- One report line for a pump of the row
-function vsp2Print(p, id, t, speed, shown, target, extra, running, skipped)
-    local st = vsp2_state[p[1]]
+function vspPrint(p, id, t, speed, shown, target, extra, running, skipped)
+    local st = vsp_state[p[1]]
     local forced, restored = 0, 0
     if st ~= nil and st.forced then forced = 1 end
     if st ~= nil and st.restored then restored = 1 end
-    print(string.format("VSP2 t=%d pump=%s speed=%.7f %s=%.4f target=%.4f%s calls=%d running=%d forced=%d restored=%d skipped=%d skips=%d",
-          t, id, speed, p[2], shown, target, extra, vsp2_calls, running, forced, restored, skipped, vsp2_step_skips))
+    print(string.format("VSP t=%d pump=%s speed=%.7f %s=%.4f target=%.4f%s calls=%d running=%d forced=%d restored=%d skipped=%d skips=%d",
+          t, id, speed, p[2], shown, target, extra, vsp_calls, running, forced, restored, skipped, vsp_step_skips))
 end
 
 -- End-of-step bookkeeping: log every pump of the row, keep the speed the
 -- search settled at (never one a control forced), and restart the secant
 -- pair on the settled point
-function vsp2Refresh(p, t, skipped, schedules)
+function vspRefresh(p, t, skipped, schedules)
     local speed = link(p[1]).setting
-    local value = vsp2Value(p)
-    local st = vsp2_state[p[1]]
-    local target, tol = vsp2Target(p, t, schedules), vsp2_pressure_tol
-    if p[2] == "flow" then tol = vsp2_flow_tol end
+    local value = vspValue(p)
+    local st = vsp_state[p[1]]
+    local target, tol = vspTarget(p, t, schedules), vsp_pressure_tol
+    if p[2] == "flow" then tol = vsp_flow_tol end
     local shown, extra = value, ""
     if p[2] == "level" then
         -- The tank's head has already moved to the end of the step here, so
         -- the level printed is where the step landed
         local tank = node(p[3])
-        shown  = vsp2Level(tank)
-        target = vsp2LevelTarget(p, tank, t, schedules)
+        shown  = vspLevel(tank)
+        target = vspLevelTarget(p, tank, t, schedules)
         local required = 0
         if st then required = st.required end
         extra = string.format(" inflow=%.4f required=%.4f", value, required)
-        tol = vsp2_level_tol
+        tol = vsp_level_tol
     end
     if st then
         st.last_speed, st.last_value = speed, value
         if speed > 0 and not st.forced then st.settled = speed end
     end
     local running = 0
-    if speed ~= 0 then running = 1 + vsp2RunningLags(p) end
-    --vsp2Print(p, p[1], t, speed, shown, target, extra, running, skipped)
+    if speed ~= 0 then running = 1 + vspRunningLags(p) end
+    --vspPrint(p, p[1], t, speed, shown, target, extra, running, skipped)
     --for _, id in ipairs(p[7]) do
-    --    vsp2Print(p, id, t, link(id).setting, shown, target, extra, running, skipped)
+    --    vspPrint(p, id, t, link(id).setting, shown, target, extra, running, skipped)
     --end
     local short = shown < target - tol
-    if p[2] == "level" and st then short = value < st.required - vsp2_flow_tol end
-    if speed > 0 and speed >= p[6] - VSP2_SPEED_TOL and running > #p[7] and short then
+    if p[2] == "level" and st then short = value < st.required - vsp_flow_tol end
+    if speed > 0 and speed >= p[6] - VSP_SPEED_TOL and running > #p[7] and short then
         print(string.format("WARNING: VSP run for pump %s: maximum pump capacity insufficient to meet target", p[1]))
     end
 end
 
 -- The flow, pressure and level tolerances, and the volume one unit of flow
 -- moves, in the run's own units
-function vsp2SetUnits()
+function vspSetUnits()
     local u = units()
-    local factors = VSP2_UNIT_FACTORS[u.flow]
-    if factors == nil then error("VSP2: unknown flow units " .. tostring(u.flow)) end
-    local per_meter = VSP2_PRESSURE_PER_METER[u.pressure]
-    if per_meter == nil then error("VSP2: unknown pressure units " .. tostring(u.pressure)) end
-    vsp2_flow_to_volume = factors[1]
-    vsp2_flow_tol = VSP2_FLOW_TOL * factors[2]
-    vsp2_pressure_tol = VSP2_TOL * per_meter
-    vsp2_level_tol = VSP2_LEVEL_TOL * factors[3]
+    local factors = VSP_UNIT_FACTORS[u.flow]
+    if factors == nil then error("VSP: unknown flow units " .. tostring(u.flow)) end
+    local per_meter = VSP_PRESSURE_PER_METER[u.pressure]
+    if per_meter == nil then error("VSP: unknown pressure units " .. tostring(u.pressure)) end
+    vsp_flow_to_volume = factors[1]
+    vsp_flow_tol = VSP_FLOW_TOL * factors[2]
+    vsp_pressure_tol = VSP_TOL * per_meter
+    vsp_level_tol = VSP_LEVEL_TOL * factors[3]
 end
 
-function vsp2_step(pumps, schedules)
-    vsp2SetUnits()
+function vsp_step(pumps, schedules)
+    vspSetUnits()
     local t = times().hydraulic_time
-    if t ~= vsp2_step_time then vsp2_calls = 0 end
-    vsp2_calls = vsp2_calls + 1
-    vsp2_step_time = t
-    for _, p in ipairs(pumps) do vsp2Hold(p, schedules) end
+    if t ~= vsp_step_time then vsp_calls = 0 end
+    vsp_calls = vsp_calls + 1
+    vsp_step_time = t
+    for _, p in ipairs(pumps) do vspHold(p, schedules) end
 end
 
 -- The clock here has already moved on to the next step, so this step's
 -- time is the one read at the step before
-function vsp2_solved(pumps, schedules)
-    vsp2SetUnits()
-    local t = vsp2_solved_time
+function vsp_solved(pumps, schedules)
+    vspSetUnits()
+    local t = vsp_solved_time
     local skipped = 0
-    if vsp2_step_time ~= t then
+    if vsp_step_time ~= t then
         skipped = 1
-        vsp2_step_skips = vsp2_step_skips + 1
+        vsp_step_skips = vsp_step_skips + 1
     end
-    for _, p in ipairs(pumps) do vsp2Refresh(p, t, skipped, schedules) end
-    vsp2_solved_time = times().hydraulic_time
+    for _, p in ipairs(pumps) do vspRefresh(p, t, skipped, schedules) end
+    vsp_solved_time = times().hydraulic_time
 end
 
 -- ================================================================
 -- What the generated handlers pass in: on_hydraulic_step calls
--- vsp2_step(pumps, schedules) and on_hydraulics_solved calls
--- vsp2_solved(pumps, schedules), both with the same two tables,
+-- vsp_step(pumps, schedules) and on_hydraulics_solved calls
+-- vsp_solved(pumps, schedules), both with the same two tables,
 -- written in the .inp's units. The functions above read nothing
 -- else about the model.
 -- ================================================================

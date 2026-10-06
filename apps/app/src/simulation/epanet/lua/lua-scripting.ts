@@ -94,10 +94,10 @@ export const LuaScriptBuilder = () => {
     `${generateVspPumps()}, ${generateVspSchedules()}`;
 
   const generateVspOnHydraulicStepLine = () =>
-    `    vsp2_step(${generateVspArguments()})`;
+    `    vsp_step(${generateVspArguments()})`;
 
   const generateVspOnHydraulicsSolvedLine = () =>
-    `    vsp2_solved(${generateVspArguments()})`;
+    `    vsp_solved(${generateVspArguments()})`;
 
   const build = () => {
     const script = [];

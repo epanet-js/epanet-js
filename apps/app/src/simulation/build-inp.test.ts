@@ -489,8 +489,8 @@ describe("build inp", () => {
       const invocation =
         `{{"${IDS.PU1}","level","${IDS.T1}",4.5,0.3,1,{"${IDS.PU2}"},1}}, ` +
         `{["${IDS.PU1}"]={{0,3},{21600,4.5}}}`;
-      expect(inp).toContain(`vsp2_step(${invocation})`);
-      expect(inp).toContain(`vsp2_solved(${invocation})`);
+      expect(inp).toContain(`vsp_step(${invocation})`);
+      expect(inp).toContain(`vsp_solved(${invocation})`);
       expect(inp).not.toContain("[CONTROLS]");
     });
 
@@ -528,7 +528,7 @@ describe("build inp", () => {
           `LINK ${IDS.PU1} CLOSED IF NODE ${IDS.T1} ABOVE 9`,
         );
         expect(inp).toContain(
-          `vsp2_step({{"${IDS.PU1}","flow","${IDS.PU1}",10,0.5,1.2,{},1}}, {})`,
+          `vsp_step({{"${IDS.PU1}","flow","${IDS.PU1}",10,0.5,1.2,{},1}}, {})`,
         );
       });
     });
@@ -569,7 +569,7 @@ describe("build inp", () => {
           simulationSettings: defaultSimulationSettings,
         });
         const row = inp.match(
-          /vsp2_step\(\{\{"\d+","flow","\d+",[\d.]+,[\d.]+,[\d.]+,\{[^}]*\},(-?1)\}\}/,
+          /vsp_step\(\{\{"\d+","flow","\d+",[\d.]+,[\d.]+,[\d.]+,\{[^}]*\},(-?1)\}\}/,
         );
         return Number(row![1]);
       };
