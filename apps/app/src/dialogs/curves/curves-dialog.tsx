@@ -32,7 +32,7 @@ import { notify } from "src/components/notifications";
 import { useUserTracking } from "src/infra/user-tracking";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { getCurveTypeConfig } from "./curve-type-config";
-import { HydraulicModel } from "src/hydraulic-model";
+import { isCurveInUse } from "src/hydraulic-model/utilities/library-usage";
 import { DialogActions, DialogActionsHandle } from "../dialog-actions-row";
 import {
   ImportExportCurvesToolbar,
@@ -161,7 +161,7 @@ export const CurveLibraryDialog = ({
       const curve = editedCurves.get(curveId);
       if (!curve) return;
 
-      if (isCurveInUse(hydraulicModel, curve)) {
+      if (isCurveInUse(hydraulicModel, curveId)) {
         notify({
           variant: "error",
           title: translate("curves.deleteCurveInUse"),
@@ -404,11 +404,4 @@ const createLabelManager = (curves: Curves): LabelManager => {
     lm.register(curve.label, "curve", curve.id);
   }
   return lm;
-};
-
-const isCurveInUse = (
-  _hydraulicModel: HydraulicModel,
-  _curve: Pick<ICurve, "id" | "type">,
-): boolean => {
-  return false;
 };

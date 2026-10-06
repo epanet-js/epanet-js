@@ -33,7 +33,7 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { getCurveTypeConfig } from "../curves/curve-type-config";
 import { DialogActions, DialogActionsHandle } from "../dialog-actions-row";
-import { HydraulicModel, Pump } from "src/hydraulic-model";
+import { isCurveInUse } from "src/hydraulic-model/utilities/library-usage";
 import {
   ImportExportCurvesToolbar,
   CURVES_IMPORT_KEYS,
@@ -155,7 +155,7 @@ export const PumpLibraryDialog = ({
       const curve = editedCurves.get(curveId);
       if (!curve) return;
 
-      if (curve.type === "pump" && isPumpCurveInUse(hydraulicModel, curveId)) {
+      if (isCurveInUse(hydraulicModel, curveId)) {
         notify({
           variant: "error",
           title: translate("curves.deleteCurveInUse"),
@@ -398,16 +398,4 @@ const createLabelManager = (curves: Curves): LabelManager => {
     lm.register(curve.label, "curve", curve.id);
   }
   return lm;
-};
-
-const isPumpCurveInUse = (
-  hydraulicModel: HydraulicModel,
-  curveId: CurveId,
-): boolean => {
-  for (const asset of hydraulicModel.assets.values()) {
-    if (asset.type === "pump" && (asset as Pump).curveId === curveId) {
-      return true;
-    }
-  }
-  return false;
 };

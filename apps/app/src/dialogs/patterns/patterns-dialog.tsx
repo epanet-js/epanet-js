@@ -22,8 +22,7 @@ import {
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { HydraulicModel } from "src/hydraulic-model/hydraulic-model";
-import { Reservoir, Pump } from "@epanet-js/hydraulic-model";
+import { isPatternInUse } from "src/hydraulic-model/utilities/library-usage";
 import { notify } from "src/components/notifications";
 import { useUserTracking } from "src/infra/user-tracking";
 import { modelFactoriesAtom } from "src/state/model-factories";
@@ -134,16 +133,8 @@ export const PatternsDialog = ({
   );
 
   const handleDeletePattern = useCallback(
-    (patternId: PatternId, patternType?: PatternType) => {
-      if (
-        patternType &&
-        isPatternInUse(
-          hydraulicModel,
-          patternId,
-          patternType,
-          energyGlobalPatternId,
-        )
-      ) {
+    (patternId: PatternId) => {
+      if (isPatternInUse(hydraulicModel, patternId, energyGlobalPatternId)) {
         notify({
           variant: "error",
           title: translate("patterns.deletePatternInUse"),
@@ -345,54 +336,4 @@ const EmptyState = ({ readOnly }: { readOnly: boolean }) => {
       )}
     </div>
   );
-};
-
-const isPatternInUse = (
-  hydraulicModel: HydraulicModel,
-  patternId: PatternId,
-  patternType: PatternType,
-  energyGlobalPatternId?: PatternId | null,
-): boolean => {
-  switch (patternType) {
-    case "demand":
-      // Check customer points — all CPs share the same pattern, so only check the first one with demands
-      for (const demands of hydraulicModel.demands.customerPoints.values()) {
-        if (demands.length > 0) {
-          return demands.some((demand) => demand.patternId === patternId);
-        }
-      }
-
-      // Check junctions
-      for (const demands of hydraulicModel.demands.junctions.values()) {
-        for (const demand of demands) {
-          if (demand.patternId === patternId) {
-            return true;
-          }
-        }
-      }
-      break;
-    case "reservoirHead":
-      for (const asset of hydraulicModel.assets.values()) {
-        if (asset instanceof Reservoir && asset.headPatternId === patternId) {
-          return true;
-        }
-      }
-      break;
-    case "pumpSpeed":
-      for (const asset of hydraulicModel.assets.values()) {
-        if (asset instanceof Pump && asset.speedPatternId === patternId) {
-          return true;
-        }
-      }
-      break;
-    case "energyPrice":
-      if (energyGlobalPatternId === patternId) {
-        return true;
-      }
-      break;
-    default:
-      return false;
-  }
-
-  return false;
 };
