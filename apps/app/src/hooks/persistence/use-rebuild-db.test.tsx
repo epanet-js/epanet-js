@@ -6,6 +6,8 @@ import { dialogAtom } from "src/state/dialog";
 import { bookmarksAtom, selectionSetsAtom } from "src/state/collections";
 import type { Bookmark } from "src/lib/collections";
 import { USelection } from "src/selection";
+import { initializeWorktree, type Branch } from "@epanet-js/worktree";
+import { worktreeAtom } from "src/state/scenarios";
 import {
   dbAvailabilityAtom,
   dbStorageModeAtom,
@@ -51,6 +53,28 @@ const renderRebuild = (store: Store) =>
       <JotaiProvider store={store}>{children}</JotaiProvider>
     ),
   });
+
+const withAScenarioActive = (): Store => {
+  const store = setInitialState({});
+  const worktree = initializeWorktree();
+  const main = worktree.branches.get(worktree.mainId)!;
+  const scenario: Branch = {
+    id: "scenario-1",
+    name: "Scenario #1",
+    parentId: worktree.mainId,
+    status: "open",
+  };
+  store.set(worktreeAtom, {
+    ...worktree,
+    activeBranchId: scenario.id,
+    branches: new Map(worktree.branches)
+      .set(worktree.mainId, { ...main, status: "locked" })
+      .set(scenario.id, scenario),
+    scenarios: [scenario.id],
+    highestScenarioNumber: 1,
+  });
+  return store;
+};
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -245,6 +269,37 @@ describe("useRebuildDb", () => {
         await result.current();
       });
 
+      expect(captureWarning).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("while scenarios exist", () => {
+    it("goes terminal instead of rebuilding without them", async () => {
+      const store = withAScenarioActive();
+      store.set(dbAvailabilityAtom, "rebuilding");
+      const { result } = renderRebuild(store);
+
+      await act(async () => {
+        await result.current();
+      });
+
+      expect(rebuildDbFromMemory).not.toHaveBeenCalled();
+      expect(store.get(dbAvailabilityAtom)).toBe("unavailable");
+      expect(store.get(dialogAtom)).toEqual({ type: "dbUnavailable" });
+    });
+
+    it("captures the lost project as an error with the storage snapshot", async () => {
+      const store = withAScenarioActive();
+      const { result } = renderRebuild(store);
+
+      await act(async () => {
+        await result.current();
+      });
+
+      expect(captureError).toHaveBeenCalledTimes(1);
+      expect(captureError).toHaveBeenCalledWith(expect.any(Error), {
+        "DB Storage": expect.objectContaining({ writesSucceeded: 3 }),
+      });
       expect(captureWarning).not.toHaveBeenCalled();
     });
   });

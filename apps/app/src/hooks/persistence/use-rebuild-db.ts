@@ -11,6 +11,7 @@ import { collectDbDiagnostics } from "src/lib/db/commands/collect-diagnostics";
 import { dialogAtom, type DialogState } from "src/state/dialog";
 import { withProgressDialog } from "src/dialogs/progress-dialog";
 import { zonesAtom } from "src/state/zones";
+import { hasScenariosAtom } from "src/state/scenarios";
 import { bookmarksAtom, selectionSetsAtom } from "src/state/collections";
 import { projectSettingsAtom } from "src/state/project-settings";
 import {
@@ -30,6 +31,19 @@ import { writeQueue } from "src/lib/persistence/write-queue";
 export const useRebuildDb = (): (() => Promise<void>) =>
   useAtomCallback(
     useCallback(async (get: Getter, set: Setter) => {
+      if (get(hasScenariosAtom)) {
+        set(dbAvailabilityAtom, "unavailable");
+        set(dialogAtom, { type: "dbUnavailable" });
+        const diagnostics = await collectDbDiagnostics().catch(() => null);
+        captureError(
+          new Error("DB unreadable with scenarios; project cannot be rebuilt"),
+          diagnostics
+            ? { "DB Storage": { ...diagnostics } as Record<string, unknown> }
+            : undefined,
+        );
+        return;
+      }
+
       set(dbAvailabilityAtom, "rebuilding");
 
       const attempts = get(rebuildAttemptsAtom);
