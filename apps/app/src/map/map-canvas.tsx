@@ -24,6 +24,7 @@ import {
 import {
   cursorStyleAtom,
   satelliteModeOnAtom,
+  satelliteMaxZoomAtom,
   currentZoomAtom,
   mapViewportAtom,
 } from "src/state/map";
@@ -48,7 +49,7 @@ import { useFitToExtent } from "./use-fit-to-extent";
 import { CustomMapControlClick, FIT_TO_EXTENT_CONTROL } from "@epanet-js/map";
 import { Hints } from "src/components/hints";
 import { useAuth } from "src/hooks/use-auth";
-import { satelliteLimitedZoom } from "src/commands/toggle-satellite";
+import { satelliteLimitedZoom } from "./satellite-resolution";
 import { useTranslate } from "src/hooks/use-translate";
 import { supportEmail } from "src/global-config";
 import { MapHandlers } from "@epanet-js/map";
@@ -95,7 +96,17 @@ const debug = isDebugOn
     }
   : noop;
 
+const useSyncSatelliteMaxZoom = () => {
+  const { isSignedIn } = useAuth();
+  const setSatelliteMaxZoom = useSetAtom(satelliteMaxZoomAtom);
+
+  useEffect(() => {
+    setSatelliteMaxZoom(isSignedIn ? null : satelliteLimitedZoom);
+  }, [isSignedIn, setSatelliteMaxZoom]);
+};
+
 const MapStateUpdates = ({ map }: { map: MapEngine | null }) => {
+  useSyncSatelliteMaxZoom();
   useMapStateUpdates(map);
   return null;
 };

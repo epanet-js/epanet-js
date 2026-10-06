@@ -65,6 +65,8 @@ class MapTestEngine {
     getStyle: vi.fn().mockReturnValue({ layers: [] }),
     removeLayer: vi.fn(),
     removeSource: vi.fn(),
+    addLayer: vi.fn(),
+    addSource: vi.fn(),
     removeFeatureState: (
       source: { source: string; id?: string },
       key?: string,
@@ -120,9 +122,7 @@ class MapTestEngine {
     return this.sources.get(name) || null;
   }
 
-  setStyle() {
-    return Promise.resolve();
-  }
+  setStyle = vi.fn((_style: mapboxgl.Style) => Promise.resolve());
   addIcons() {
     return Promise.resolve();
   }

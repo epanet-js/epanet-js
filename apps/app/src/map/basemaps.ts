@@ -5,13 +5,12 @@ const defaults = {
   type: "MAPBOX",
   token: env.NEXT_PUBLIC_MAPBOX_TOKEN,
   opacity: 1,
-  sourceMaxZoom: {},
   isBasemap: false,
 } as const;
 
 export type LayerConfigTemplate = Pick<
   Extract<ILayerConfig, { type: "MAPBOX" }>,
-  "name" | "url" | "type" | "token" | "opacity" | "sourceMaxZoom" | "isBasemap"
+  "name" | "url" | "type" | "token" | "opacity" | "isBasemap"
 > & {
   thumbnailClass: string;
 };

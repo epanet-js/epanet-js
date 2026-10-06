@@ -10,6 +10,7 @@ import {
 import { DEFAULT_CENTER, DEFAULT_ZOOM } from "@epanet-js/map";
 import type { InitialViewport } from "@epanet-js/map";
 import { basemaps } from "src/map/basemaps";
+import { satelliteLimitedZoom } from "src/map/satellite-resolution";
 import {
   MapEditionsTracker,
   nullMapEditionsTracker,
@@ -85,6 +86,8 @@ export const layerConfigAtom = atom(
   },
 );
 
+export const satelliteMaxZoomAtom = atom<number | null>(satelliteLimitedZoom);
+
 export const satelliteModeOnAtom = atom<boolean>((get) => {
   if (get(showGridAtom)) return false;
   const layersConfig = get(layerConfigAtom);
@@ -123,6 +126,7 @@ export type MapState = {
   zoneColorAssignments: Record<number, string>;
   highlights: Highlight[];
   nodeSize: NodeSizeConfig;
+  satelliteMaxZoom: number | null;
 };
 
 export const nullMapState: MapState = {
@@ -148,6 +152,7 @@ export const nullMapState: MapState = {
   zoneColorAssignments: {},
   highlights: [],
   nodeSize: defaultNodeSizeConfig,
+  satelliteMaxZoom: satelliteLimitedZoom,
 } as const;
 
 export const stylesConfigAtom = atom<StylesConfig>((get) => {
@@ -182,6 +187,7 @@ export const mapStateDerivedAtom = atom<MapState>((get) => {
   const zoneColorAssignments = get(zoneColorAssignmentsAtom);
   const highlights = get(highlightsAtom);
   const nodeSize = get(nodeSizeAtom);
+  const satelliteMaxZoom = get(satelliteMaxZoomAtom);
 
   return {
     editionsTracker,
@@ -202,5 +208,6 @@ export const mapStateDerivedAtom = atom<MapState>((get) => {
     zoneColorAssignments,
     highlights,
     nodeSize,
+    satelliteMaxZoom,
   };
 });

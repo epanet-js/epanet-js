@@ -35,6 +35,10 @@ import {
   type MapOperations,
 } from "./map-operations";
 import { buildBaseStyle, defineEmptySources, makeLayers } from "./build-style";
+import {
+  swapSatelliteMaxZoom,
+  withSatelliteMaxZoom,
+} from "./satellite-resolution";
 import { gisDataAtom } from "src/state/gis-data";
 import {
   gisLayerFill,
@@ -117,6 +121,7 @@ const detectChanges = (
   hasNewMapOverlay: boolean;
   hasNewHighlights: boolean;
   hasNewNodeSize: boolean;
+  hasNewSatelliteMaxZoom: boolean;
 } => {
   return {
     hasNewImport: state.editionsTracker.id !== prev.editionsTracker.id,
@@ -165,6 +170,7 @@ const detectChanges = (
       state.zoneColorAssignments !== prev.zoneColorAssignments,
     hasNewHighlights: state.highlights !== prev.highlights,
     hasNewNodeSize: state.nodeSize !== prev.nodeSize,
+    hasNewSatelliteMaxZoom: state.satelliteMaxZoom !== prev.satelliteMaxZoom,
   };
 };
 
@@ -216,6 +222,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   // The icon sprite is static; prepare it once per map and reuse across style
   // rebuilds (the engine no longer prepares icons — the updater passes them in).
   const iconsRef = useRef<IconImage[] | null>(null);
+  const appliedBaseStyleRef = useRef<mapboxgl.Style | null>(null);
   const pendingConsolidationFinalizeRef = useRef(false);
   const pendingDeltaCleanupRef = useRef(false);
   const consolidatedSelectionRef = useRef<Set<AssetId>>(new Set());
@@ -293,6 +300,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         hasNewMapOverlay,
         hasNewHighlights,
         hasNewNodeSize,
+        hasNewSatelliteMaxZoom,
       } = changes;
 
       const selectedIds = new Set(USelection.getAssetIds(mapState.selection));
@@ -331,7 +339,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       let consolidated = false;
 
       if (hasNewStyles) {
-        iconsRef.current = await applyStyles(
+        const applied = await applyStyles(
           map,
           mapState,
           mapOperations,
@@ -340,6 +348,20 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           iconsRef.current,
         );
         if (hasMapBeenRemoved()) return;
+        iconsRef.current = applied.iconSprites;
+        appliedBaseStyleRef.current = applied.baseStyle;
+      }
+
+      if (
+        hasNewSatelliteMaxZoom &&
+        !hasNewStyles &&
+        appliedBaseStyleRef.current
+      ) {
+        swapSatelliteMaxZoom(
+          map,
+          appliedBaseStyleRef.current,
+          mapState.satelliteMaxZoom,
+        );
       }
 
       if (hasNewImport || hasNewStyles) {
@@ -718,18 +740,21 @@ const applyStyles = withDebugInstrumentation(
     translate: (key: string) => string,
     gisData: Map<string, import("geojson").FeatureCollection>,
     icons: IconImage[] | null,
-  ): Promise<IconImage[]> => {
-    const style = await buildStyle(mapState, translate, gisData);
+  ): Promise<{ iconSprites: IconImage[]; baseStyle: mapboxgl.Style }> => {
+    const baseStyle = await buildStyle(mapState, translate, gisData);
     await mapOperations.prepare?.();
 
     map.suspendOverlayStyleReactions();
     resetMapState(map);
-    await mapOperations.applyStyle(map, style);
+    await mapOperations.applyStyle(
+      map,
+      withSatelliteMaxZoom(baseStyle, mapState.satelliteMaxZoom),
+    );
     const iconSprites = icons ?? (await prepareIconsSprite());
     map.addIcons(iconSprites);
     map.resumeOverlayStyleReactions();
     toggleAnalysisLayers(map, mapState.symbology);
-    return iconSprites;
+    return { iconSprites, baseStyle };
   },
   { name: "MAP_STATE:APPLY_STYLES", maxDurationMs: 1000 },
 );

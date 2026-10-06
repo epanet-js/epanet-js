@@ -7,17 +7,13 @@ import {
   useLayerConfigState,
 } from "src/map/layer-config";
 import { layerConfigAtom } from "src/state/map";
-import { useAuth } from "src/hooks/use-auth";
 import { ILayerConfig } from "src/types";
-
-export const satelliteLimitedZoom = 16;
 
 export const toggleSatelliteShorcut = "b";
 
 export const useToggleSatellite = () => {
   const layerConfigs = useAtomValue(layerConfigAtom);
   const { applyChanges } = useLayerConfigState();
-  const { isSignedIn } = useAuth();
 
   const toggleSatellite = useCallback(() => {
     const items = [...layerConfigs.values()];
@@ -38,17 +34,13 @@ export const useToggleSatellite = () => {
       at: oldAt || "a0",
       id: newFeatureId(),
       labelVisibility: oldMapboxLayer ? oldMapboxLayer.labelVisibility : true,
-      sourceMaxZoom:
-        !isSignedIn && newBaseMap.name === basemaps.satellite.name
-          ? { "mapbox-satellite": satelliteLimitedZoom }
-          : {},
     };
 
     applyChanges({
       deleteLayerConfigs,
       putLayerConfigs: [newLayerConfig],
     });
-  }, [layerConfigs, applyChanges, isSignedIn]);
+  }, [layerConfigs, applyChanges]);
 
   return toggleSatellite;
 };

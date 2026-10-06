@@ -155,7 +155,6 @@ export const aLayerConfig = (
     token: "TOKEN",
     url: "URL",
     opacity: 1,
-    sourceMaxZoom: {},
     isBasemap: false,
     at: "a0",
     tms: false,

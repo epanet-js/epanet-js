@@ -96,7 +96,6 @@ const SHARED_INTIAL_VALUES = {
   labelVisibility: true,
   tms: false,
   opacity: 1,
-  sourceMaxZoom: {},
 } as const;
 
 /**
@@ -566,7 +565,6 @@ export function AddLayer() {
           labelVisibility: true,
           tms: false,
           isBasemap: false,
-          sourceMaxZoom: {},
           color: "#3b82f6",
           lineWidth: 1.5,
         },
