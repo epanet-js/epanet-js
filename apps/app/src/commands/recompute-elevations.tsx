@@ -188,7 +188,9 @@ export const useRecomputeElevations = () => {
         const resolved = nodeElevations.length;
         if (resolved > 0) {
           if (isOpsChangeSetsOn) {
-            transactChangeSet(changeElevations(model, { nodeElevations }));
+            transactChangeSet(() =>
+              changeElevations(model, { nodeElevations }),
+            );
           } else {
             transact(changeElevationsDeprecated(model, { nodeElevations }));
           }

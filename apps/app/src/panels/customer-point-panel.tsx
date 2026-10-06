@@ -134,7 +134,9 @@ export function CustomerPointPanel() {
         { customerPointId: customerPoint.id, demands: newDemands },
       ];
       if (isOpsChangeSetsOn) {
-        transactChangeSet(changeDemandAssignment(hydraulicModel, assignments));
+        transactChangeSet(() =>
+          changeDemandAssignment(hydraulicModel, assignments),
+        );
       } else {
         transact(changeDemandAssignmentDeprecated(hydraulicModel, assignments));
       }
@@ -183,7 +185,7 @@ export function CustomerPointPanel() {
 
       const data = { customerPointId: customerPoint.id, newLabel };
       if (isOpsChangeSetsOn) {
-        transactChangeSet(changeCustomerPointLabel(hydraulicModel, data));
+        transactChangeSet(() => changeCustomerPointLabel(hydraulicModel, data));
       } else {
         transact(changeCustomerPointLabelDeprecated(hydraulicModel, data));
       }

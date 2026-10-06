@@ -65,12 +65,12 @@ export const useFixOrphanAsset = () => {
       if (kind !== "isolatedLink") {
         const data = { assetIds: [assetId], shouldUpdateCustomerPoints: true };
         if (isOpsChangeSetsOn) {
-          transactChangeSet(deleteAssets(hydraulicModel, data));
+          transactChangeSet(() => deleteAssets(hydraulicModel, data));
         } else {
           transact(deleteAssetsDeprecated(hydraulicModel, data));
         }
       } else if (isOpsChangeSetsOn) {
-        transactChangeSet(
+        transactChangeSet(() =>
           deactivateAssets(hydraulicModel, { assetIds: [assetId] }),
         );
       } else {

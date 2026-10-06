@@ -100,8 +100,8 @@ export function useConnectCustomerPointsHandlers({
       };
       let commit: () => void;
       if (isOpsChangeSetsOn) {
-        const changeSet = connectCustomers(hydraulicModel, data);
-        commit = () => transactChangeSet(changeSet);
+        commit = () =>
+          transactChangeSet(() => connectCustomers(hydraulicModel, data));
       } else {
         const moment = connectCustomersDeprecated(hydraulicModel, data);
         commit = () => transact(moment);

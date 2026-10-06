@@ -47,7 +47,7 @@ export const useFixCrossingPipes = () => {
             labelManager,
           };
           if (isOpsChangeSetsOn) {
-            transactChangeSet(addNode(hydraulicModel, data));
+            transactChangeSet(() => addNode(hydraulicModel, data));
           } else {
             transact(addNodeDeprecated(hydraulicModel, data));
           }

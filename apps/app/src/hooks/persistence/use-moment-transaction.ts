@@ -3,14 +3,13 @@ import { useAtomCallback } from "jotai/utils";
 import type { Getter, Setter } from "jotai";
 import type { Moment } from "src/lib/persistence/moment";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
-import { dialogAtom } from "src/state/dialog";
 import { modeAtom, MODE_INFO } from "src/state/mode";
 import { trackMoment } from "src/lib/persistence/shared";
 import { processMoment } from "src/lib/persistence/transaction-helpers";
 import { toChangeSet } from "src/hydraulic-model/change-sets";
 import type { ChangeSet } from "@epanet-js/change-set";
 import { timedWithSync } from "@epanet-js/ejsdb";
-import { captureError, captureWarning } from "src/infra/error-tracking";
+import { captureWarning } from "src/infra/error-tracking";
 import {
   findOrphanLinkConnections,
   findStoreInconsistencies,
@@ -22,6 +21,7 @@ import { useWriteFailureHandler } from "src/hooks/persistence/use-write-failure-
 import {
   commitChangeSet,
   isHistoryPending,
+  rejectChange,
 } from "src/hooks/persistence/use-model-transaction";
 
 const maxReportedIds = 20;
@@ -101,12 +101,6 @@ const reportOrphanLinks = (get: Getter, moment: Moment) => {
       mode: MODE_INFO[get(modeAtom).mode].name,
     },
   });
-};
-
-const rejectChange = (set: Setter, error: unknown): false => {
-  captureError(error instanceof Error ? error : new Error(String(error)));
-  set(dialogAtom, { type: "changeNotApplied" });
-  return false;
 };
 
 const transactWithChangeSet = (

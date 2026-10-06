@@ -41,7 +41,7 @@ export const useReverseLink = () => {
       });
 
       if (isOpsChangeSetsOn) {
-        transactChangeSet(
+        transactChangeSet(() =>
           reverseLink(hydraulicModel, { linkId: linkAsset.id }),
         );
       } else {

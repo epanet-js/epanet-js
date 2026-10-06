@@ -32,7 +32,7 @@ export const useFixSubnetwork = () => {
 
       const data = { assetIds: subnetwork.linkIds };
       if (isOpsChangeSetsOn) {
-        transactChangeSet(deactivateAssets(hydraulicModel, data));
+        transactChangeSet(() => deactivateAssets(hydraulicModel, data));
       } else {
         transact(deactivateAssetsDeprecated(hydraulicModel, data));
       }

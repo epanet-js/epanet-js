@@ -285,7 +285,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
         ...customAttributes.map((a) => a.id),
       ];
       const moments: ModelMoment[] = [];
-      const changeSets: ChangeSet[] = [];
+      const changeSetBuilders: (() => ChangeSet)[] = [];
       const editedProperties = new Map<string, number>();
       const demandAssignments: JunctionDemandAssignment[] = [];
       const yieldIfSliceElapsed = createTimeSlicer();
@@ -351,7 +351,9 @@ export const AssetDataTable = memo(function AssetDataTableInner({
         ) {
           const labelData = { assetId, newLabel: newRow.label };
           if (isOpsChangeSetsOn) {
-            changeSets.push(changeLabel(hydraulicModel, labelData));
+            changeSetBuilders.push(() =>
+              changeLabel(hydraulicModel, labelData),
+            );
           } else {
             moments.push(changeLabelDeprecated(hydraulicModel, labelData));
           }
@@ -364,7 +366,9 @@ export const AssetDataTable = memo(function AssetDataTableInner({
         if (newRow.isActive !== oldRow.isActive) {
           if (isOpsChangeSetsOn) {
             const op = newRow.isActive ? activateAssets : deactivateAssets;
-            changeSets.push(op(hydraulicModel, { assetIds: [assetId] }));
+            changeSetBuilders.push(() =>
+              op(hydraulicModel, { assetIds: [assetId] }),
+            );
           } else {
             const op = newRow.isActive
               ? activateAssetsDeprecated
@@ -454,7 +458,9 @@ export const AssetDataTable = memo(function AssetDataTableInner({
             changes: normalizedChanges,
           };
           if (isOpsChangeSetsOn) {
-            changeSets.push(changeProperties(hydraulicModel, propertiesData));
+            changeSetBuilders.push(() =>
+              changeProperties(hydraulicModel, propertiesData),
+            );
           } else {
             moments.push(
               changePropertiesDeprecated(hydraulicModel, propertiesData),
@@ -465,7 +471,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
 
       if (demandAssignments.length > 0) {
         if (isOpsChangeSetsOn) {
-          changeSets.push(
+          changeSetBuilders.push(() =>
             changeDemandAssignment(hydraulicModel, demandAssignments),
           );
         } else {
@@ -476,9 +482,13 @@ export const AssetDataTable = memo(function AssetDataTableInner({
       }
 
       if (isOpsChangeSetsOn) {
-        const merged = mergeChangeSets(changeSets, "editAssetTable");
-        if (!merged) return;
-        transactChangeSet(merged);
+        const applied = transactChangeSet(() =>
+          mergeChangeSets(
+            changeSetBuilders.map((build) => build()),
+            "editAssetTable",
+          ),
+        );
+        if (!applied) return;
       } else {
         const merged = mergeMoments(moments, "editAssetTable");
         if (!merged) return;

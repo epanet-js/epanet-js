@@ -5,6 +5,10 @@ import { setInitialState } from "src/__helpers__/state";
 import { addNodeDeprecated } from "src/hydraulic-model/model-operations/add-node";
 import { deleteAssetsDeprecated } from "src/hydraulic-model/model-operations/delete-assets";
 import { changeLabel } from "src/hydraulic-model/model-operations/change-label";
+import { changeProperty } from "src/hydraulic-model/model-operations/change-property";
+import type { ChangeSet } from "@epanet-js/change-set";
+import type { Junction } from "@epanet-js/hydraulic-model";
+import { dialogAtom } from "src/state/dialog";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import { useUndoableTransactions } from "src/hooks/persistence/use-undoable-transactions";
@@ -15,7 +19,10 @@ import {
 } from "@epanet-js/hydraulic-model";
 import { ConsecutiveIdsGenerator, withPool } from "@epanet-js/id-generator";
 import { buildIdPools } from "src/lib/id-pools";
-import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
+import {
+  canUndoDerivedAtom,
+  stagingModelDerivedAtom,
+} from "src/state/derived-branch-state";
 import { historyPendingAtom } from "src/state/transactions";
 import { useInProcessDb } from "src/lib/db/__test-helpers__/in-process-db";
 import * as db from "src/lib/db";
@@ -160,7 +167,7 @@ describe("undoable transactions", () => {
     );
 
     act(() => {
-      result.current.transact(
+      result.current.transact(() =>
         changeLabel(store.get(stagingModelDerivedAtom), {
           assetId: IDS.J1,
           newLabel: "RENAMED",
@@ -181,6 +188,35 @@ describe("undoable transactions", () => {
     });
     expect(labelOf(store, IDS.J1)).toBe("RENAMED");
     expect(labelManager.getIdByLabel("RENAMED", "junction")).toBe(IDS.J1);
+  });
+
+  it("rejects a change set that fails to build without touching the model", async () => {
+    const store = await aProject();
+    const elevationOf = () =>
+      (store.get(stagingModelDerivedAtom).assets.get(IDS.J1) as Junction)
+        .elevation;
+    const originalElevation = elevationOf();
+
+    const { result } = renderHook(
+      () => useModelTransaction(),
+      withStore(store),
+    );
+
+    let applied: ChangeSet | null = null;
+    act(() => {
+      applied = result.current.transact(() =>
+        changeProperty(store.get(stagingModelDerivedAtom), {
+          assetIds: [IDS.J1],
+          property: "elevation",
+          value: NaN,
+        }),
+      );
+    });
+
+    expect(applied).toBeNull();
+    expect(store.get(dialogAtom)).toEqual({ type: "changeNotApplied" });
+    expect(elevationOf()).toBe(originalElevation);
+    expect(store.get(canUndoDerivedAtom)).toBe(false);
   });
 
   it("rejects a history action while one is pending", async () => {

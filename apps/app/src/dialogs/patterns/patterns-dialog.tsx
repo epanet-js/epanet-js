@@ -172,7 +172,7 @@ export const PatternsDialog = ({
 
   const handleSave = useCallback(() => {
     if (isOpsChangeSetsOn) {
-      transactChangeSet(changePatterns(hydraulicModel, editedPatterns));
+      transactChangeSet(() => changePatterns(hydraulicModel, editedPatterns));
     } else {
       transact(changePatternsDeprecated(hydraulicModel, editedPatterns));
     }

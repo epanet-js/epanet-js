@@ -79,7 +79,7 @@ export const ControlsDialog = () => {
         rulesCount: newControls.rules.length,
       });
       if (isOpsChangeSetsOn) {
-        transactChangeSet(changeRawControls(hydraulicModel, newControls));
+        transactChangeSet(() => changeRawControls(hydraulicModel, newControls));
       } else {
         transact(changeRawControlsDeprecated(hydraulicModel, newControls));
       }

@@ -67,7 +67,7 @@ export const useFixProximityAnomaly = () => {
           lengthUnit: units.length,
         };
         if (isOpsChangeSetsOn) {
-          transactChangeSet(mergeNodes(hydraulicModel, data));
+          transactChangeSet(() => mergeNodes(hydraulicModel, data));
         } else {
           transact(mergeNodesDeprecated(hydraulicModel, data));
         }
@@ -83,7 +83,7 @@ export const useFixProximityAnomaly = () => {
           labelManager,
         };
         if (isOpsChangeSetsOn) {
-          transactChangeSet(moveNode(hydraulicModel, data));
+          transactChangeSet(() => moveNode(hydraulicModel, data));
         } else {
           transact(moveNodeDeprecated(hydraulicModel, data));
         }

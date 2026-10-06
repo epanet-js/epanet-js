@@ -83,7 +83,7 @@ export const usePipeLibraryHandlers = () => {
         renames.size > 0 ? renameAssignments(hydraulicModel, renames) : [];
       renames.clear();
 
-      transactChangeSet(
+      transactChangeSet(() =>
         changePipeMaterials(hydraulicModel, {
           pipeMaterials: draftMaterials,
           materialAssignments,

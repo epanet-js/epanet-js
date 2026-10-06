@@ -197,7 +197,7 @@ export function useNoneHandlers({
         const newCoordinates = getMapCoord(e);
         const data = { customerPointId: movingCustomerPointId, newCoordinates };
         if (isOpsChangeSetsOn) {
-          transactChangeSet(moveCustomerPoint(hydraulicModel, data));
+          transactChangeSet(() => moveCustomerPoint(hydraulicModel, data));
         } else {
           transact(moveCustomerPointDeprecated(hydraulicModel, data));
         }
@@ -241,7 +241,7 @@ export function useNoneHandlers({
           lengthUnit: units.length,
         };
         if (isOpsChangeSetsOn) {
-          transactChangeSet(mergeNodes(hydraulicModel, data));
+          transactChangeSet(() => mergeNodes(hydraulicModel, data));
         } else {
           transact(mergeNodesDeprecated(hydraulicModel, data));
         }
@@ -292,7 +292,7 @@ export function useNoneHandlers({
           precision: map.getPrecision(),
         };
         if (isOpsChangeSetsOn) {
-          transactChangeSet(moveNode(hydraulicModel, data));
+          transactChangeSet(() => moveNode(hydraulicModel, data));
         } else {
           transact(moveNodeDeprecated(hydraulicModel, data));
         }

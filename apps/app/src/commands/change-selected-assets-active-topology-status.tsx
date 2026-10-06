@@ -47,7 +47,7 @@ export const useChangeSelectedAssetsActiveTopologyStatus = () => {
         });
 
         if (isOpsChangeSetsOn) {
-          transactChangeSet(activateAssets(hydraulicModel, { assetIds }));
+          transactChangeSet(() => activateAssets(hydraulicModel, { assetIds }));
         } else {
           transact(activateAssetsDeprecated(hydraulicModel, { assetIds }));
         }
@@ -59,7 +59,9 @@ export const useChangeSelectedAssetsActiveTopologyStatus = () => {
         });
 
         if (isOpsChangeSetsOn) {
-          transactChangeSet(deactivateAssets(hydraulicModel, { assetIds }));
+          transactChangeSet(() =>
+            deactivateAssets(hydraulicModel, { assetIds }),
+          );
         } else {
           transact(deactivateAssetsDeprecated(hydraulicModel, { assetIds }));
         }

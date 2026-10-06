@@ -185,7 +185,7 @@ export function AssetPanel({
     (property, value, oldValue) => {
       const data = { assetIds: [asset.id], property, value };
       if (isOpsChangeSetsOn) {
-        transactChangeSet(changeProperty(hydraulicModel, data));
+        transactChangeSet(() => changeProperty(hydraulicModel, data));
       } else {
         transact(changePropertyDeprecated(hydraulicModel, data));
       }
@@ -231,7 +231,7 @@ export function AssetPanel({
     (_property: string, newValue: boolean, oldValue: boolean) => {
       const data = { assetIds: [asset.id] };
       if (isOpsChangeSetsOn) {
-        transactChangeSet(
+        transactChangeSet(() =>
           newValue
             ? activateAssets(hydraulicModel, data)
             : deactivateAssets(hydraulicModel, data),
@@ -273,7 +273,7 @@ export function AssetPanel({
         value: newStatus,
       };
       if (isOpsChangeSetsOn) {
-        transactChangeSet(changeProperty(hydraulicModel, data));
+        transactChangeSet(() => changeProperty(hydraulicModel, data));
       } else {
         transact(changePropertyDeprecated(hydraulicModel, data));
       }
@@ -303,7 +303,7 @@ export function AssetPanel({
       previousControl: Control | null,
     ) => {
       if (isOpsChangeSetsOn) {
-        transactChangeSet(
+        transactChangeSet(() =>
           changeAssetControl(hydraulicModel, { assetId, control }),
         );
       } else {
@@ -342,7 +342,7 @@ export function AssetPanel({
     (changes: PropertyChange[]) => {
       const data = { assetIds: [asset.id], changes };
       if (isOpsChangeSetsOn) {
-        transactChangeSet(changeProperties(hydraulicModel, data));
+        transactChangeSet(() => changeProperties(hydraulicModel, data));
       } else {
         transact(changePropertiesDeprecated(hydraulicModel, data));
       }
@@ -368,7 +368,9 @@ export function AssetPanel({
       const oldDemands = getJunctionDemands(hydraulicModel.demands, asset.id);
       const assignments = [{ junctionId: asset.id, demands: newDemands }];
       if (isOpsChangeSetsOn) {
-        transactChangeSet(changeDemandAssignment(hydraulicModel, assignments));
+        transactChangeSet(() =>
+          changeDemandAssignment(hydraulicModel, assignments),
+        );
       } else {
         transact(changeDemandAssignmentDeprecated(hydraulicModel, assignments));
       }
@@ -405,7 +407,7 @@ export function AssetPanel({
       }
 
       if (isOpsChangeSetsOn) {
-        transactChangeSet(
+        transactChangeSet(() =>
           changeLabel(hydraulicModel, { assetId: asset.id, newLabel }),
         );
       } else {

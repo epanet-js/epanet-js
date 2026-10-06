@@ -40,7 +40,7 @@ export const useDeleteCustomerPoints = () => {
       }
 
       if (isOpsChangeSetsOn) {
-        transactChangeSet(
+        transactChangeSet(() =>
           removeCustomerPoints(hydraulicModel, { customerPointIds }),
         );
       } else {

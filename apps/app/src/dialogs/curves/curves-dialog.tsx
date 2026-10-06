@@ -217,7 +217,7 @@ export const CurveLibraryDialog = ({
   const handleSave = useCallback(
     (hasWarnings: boolean) => {
       if (isOpsChangeSetsOn) {
-        transactChangeSet(
+        transactChangeSet(() =>
           changeCurves(hydraulicModel, { curves: cleanedCurves }),
         );
       } else {

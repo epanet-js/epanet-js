@@ -60,7 +60,9 @@ export function MultiCustomerPointCustomAttributesSection({
         value,
       };
       if (isOpsChangeSetsOn) {
-        transactChangeSet(changeCustomerPointProperty(hydraulicModel, data));
+        transactChangeSet(() =>
+          changeCustomerPointProperty(hydraulicModel, data),
+        );
       } else {
         transact(changeCustomerPointPropertyDeprecated(hydraulicModel, data));
       }

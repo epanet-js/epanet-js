@@ -170,7 +170,7 @@ export const CustomAttributesDialog = ({
 
   const handleSave = useCallback(() => {
     const applied = isOpsChangeSetsOn
-      ? transactChangeSet(
+      ? transactChangeSet(() =>
           changeCustomAttributesDefinition(hydraulicModel, edited),
         )
       : transact(

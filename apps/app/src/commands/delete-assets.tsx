@@ -60,7 +60,7 @@ export const useDeleteAssets = () => {
         shouldRemoveRawControls: true,
       };
       if (isOpsChangeSetsOn) {
-        transactChangeSet(deleteAssets(hydraulicModel, data));
+        transactChangeSet(() => deleteAssets(hydraulicModel, data));
       } else {
         transact(deleteAssetsDeprecated(hydraulicModel, data));
       }

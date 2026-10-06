@@ -107,9 +107,8 @@ export function useDrawNodeHandlers({
     };
 
     if (isOpsChangeSetsOn) {
-      const changeSet = addNode(hydraulicModel, data);
-      const applied = transactChangeSet(changeSet);
-      if (!applied) return;
+      const changeSet = transactChangeSet(() => addNode(hydraulicModel, data));
+      if (!changeSet) return;
 
       userTracking.capture({ name: "asset.created", type: nodeType });
 
@@ -145,9 +144,10 @@ export function useDrawNodeHandlers({
     };
 
     if (isOpsChangeSetsOn) {
-      const changeSet = replaceNode(hydraulicModel, data);
-      const applied = transactChangeSet(changeSet);
-      if (applied) {
+      const changeSet = transactChangeSet(() =>
+        replaceNode(hydraulicModel, data),
+      );
+      if (changeSet) {
         userTracking.capture({
           name: "asset.created",
           type: nodeType,

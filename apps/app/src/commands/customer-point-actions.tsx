@@ -71,7 +71,7 @@ export const useDisconnectCustomerPoints = () => {
       });
 
       if (isOpsChangeSetsOn) {
-        transactChangeSet(
+        transactChangeSet(() =>
           disconnectCustomers(hydraulicModel, { customerPointIds }),
         );
       } else {

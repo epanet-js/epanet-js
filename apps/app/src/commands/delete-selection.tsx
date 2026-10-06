@@ -80,17 +80,18 @@ export const useDeleteSelection = () => {
       };
 
       if (isOpsChangeSetsOn) {
-        const changeSets: ChangeSet[] = [];
-        if (assetIds.length > 0) {
-          changeSets.push(deleteAssets(hydraulicModel, deleteAssetsData));
-        }
-        if (customerPointIds.length > 0) {
-          changeSets.push(
-            removeCustomerPoints(hydraulicModel, removeCustomerPointsData),
-          );
-        }
-        const merged = mergeChangeSets(changeSets, "deleteSelection");
-        if (merged) transactChangeSet(merged);
+        transactChangeSet(() => {
+          const changeSets: ChangeSet[] = [];
+          if (assetIds.length > 0) {
+            changeSets.push(deleteAssets(hydraulicModel, deleteAssetsData));
+          }
+          if (customerPointIds.length > 0) {
+            changeSets.push(
+              removeCustomerPoints(hydraulicModel, removeCustomerPointsData),
+            );
+          }
+          return mergeChangeSets(changeSets, "deleteSelection");
+        });
       } else {
         const moments: ModelMoment[] = [];
         if (assetIds.length > 0) {

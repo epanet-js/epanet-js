@@ -61,7 +61,7 @@ export function MultiCustomAttributesSection({
         value: value as never,
       };
       if (isOpsChangeSetsOn) {
-        transactChangeSet(changeProperty(hydraulicModel, data));
+        transactChangeSet(() => changeProperty(hydraulicModel, data));
       } else {
         transact(changePropertyDeprecated(hydraulicModel, data));
       }

@@ -73,7 +73,9 @@ export function useRedrawLinkHandlers(
     };
 
     if (isOpsChangeSetsOn) {
-      const applied = transactChangeSet(replaceLink(hydraulicModel, data));
+      const applied = transactChangeSet(() =>
+        replaceLink(hydraulicModel, data),
+      );
 
       setMode({ mode: Mode.NONE });
 

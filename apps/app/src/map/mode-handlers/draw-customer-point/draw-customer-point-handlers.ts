@@ -52,9 +52,10 @@ export function useDrawCustomerPointHandlers({
 
       let createdId: CustomerPointId | undefined;
       if (isOpsChangeSetsOn) {
-        const changeSet = addCustomerPoint(hydraulicModel, data);
-        transactChangeSet(changeSet);
-        createdId = createdCustomerPointId(changeSet);
+        const changeSet = transactChangeSet(() =>
+          addCustomerPoint(hydraulicModel, data),
+        );
+        createdId = changeSet ? createdCustomerPointId(changeSet) : undefined;
       } else {
         const moment = addCustomerPointDeprecated(hydraulicModel, data);
         transact(moment);

@@ -51,7 +51,7 @@ export const AllocateCustomerPointsDialog: React.FC<
 
     try {
       if (isOpsChangeSetsOn) {
-        transactChangeSet(
+        transactChangeSet(() =>
           applyCustomerPointAllocation(hydraulicModel, { allocationResult }),
         );
       } else {

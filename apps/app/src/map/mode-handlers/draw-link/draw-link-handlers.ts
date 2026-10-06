@@ -410,7 +410,7 @@ export function useDrawLinkHandlers({
     };
 
     if (isOpsChangeSetsOn) {
-      const applied = transactChangeSet(addLink(hydraulicModel, data));
+      const applied = transactChangeSet(() => addLink(hydraulicModel, data));
       if (!applied) return undefined;
 
       userTracking.capture({ name: "asset.created", type: link.type });

@@ -145,7 +145,7 @@ export function MultiAssetPanel({
       const assetIds = assetIdsByType[assetType];
       const data = { assetIds, property: modelProperty, value };
       if (isOpsChangeSetsOn) {
-        transactChangeSet(
+        transactChangeSet(() =>
           modelProperty === "isActive"
             ? value
               ? activateAssets(hydraulicModel, { assetIds })

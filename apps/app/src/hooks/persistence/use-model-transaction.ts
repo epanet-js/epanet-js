@@ -14,7 +14,8 @@ import { historyPendingAtom } from "src/state/transactions";
 import { applyChange } from "src/lib/persistence/transaction-helpers";
 import { persistBranchChange } from "src/lib/persistence/persist-branch-change";
 import { trackChangeSet } from "src/lib/persistence/shared";
-import { captureWarning } from "src/infra/error-tracking";
+import { captureError, captureWarning } from "src/infra/error-tracking";
+import { dialogAtom } from "src/state/dialog";
 import type { AssetId } from "@epanet-js/hydraulic-model";
 import {
   findOrphanLinkConnections,
@@ -121,6 +122,12 @@ export const isHistoryPending = (get: Getter, note: string): boolean => {
   return true;
 };
 
+export const rejectChange = (set: Setter, error: unknown): false => {
+  captureError(error instanceof Error ? error : new Error(String(error)));
+  set(dialogAtom, { type: "changeNotApplied" });
+  return false;
+};
+
 export const commitChangeSet = (
   get: Getter,
   set: Setter,
@@ -159,8 +166,21 @@ export const useModelTransaction = () => {
 
   const transact = useAtomCallback(
     useCallback(
-      (get: Getter, set: Setter, changeSet: ChangeSet) => {
-        if (isHistoryPending(get, changeSet.name)) return false;
+      (
+        get: Getter,
+        set: Setter,
+        build: () => ChangeSet | null,
+      ): ChangeSet | null => {
+        let changeSet: ChangeSet | null;
+        try {
+          changeSet = build();
+        } catch (error) {
+          rejectChange(set, error);
+          return null;
+        }
+        if (!changeSet) return null;
+
+        if (isHistoryPending(get, changeSet.name)) return null;
 
         reportOrphanLinks(get, changeSet);
 
@@ -168,7 +188,7 @@ export const useModelTransaction = () => {
         commitChangeSet(get, set, changeSet, onWriteFailure);
 
         reportAppliedIntegrity(get, changeSet);
-        return true;
+        return changeSet;
       },
       [onWriteFailure],
     ),

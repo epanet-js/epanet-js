@@ -185,7 +185,7 @@ export const CustomerPointDataTable = memo(
     const onChange = useCallback(
       async (newRows: CustomerPointRow[]) => {
         const moments: ModelMoment[] = [];
-        const changeSets: ChangeSet[] = [];
+        const changeSetBuilders: (() => ChangeSet)[] = [];
         const demandAssignments: CustomerDemandAssignment[] = [];
         const customEditCounts = new Map<string, number>();
         let labelChanges = 0;
@@ -215,7 +215,7 @@ export const CustomerPointDataTable = memo(
               newLabel: newRow.label,
             };
             if (isOpsChangeSetsOn) {
-              changeSets.push(
+              changeSetBuilders.push(() =>
                 changeCustomerPointLabel(hydraulicModel, labelData),
               );
             } else {
@@ -276,7 +276,7 @@ export const CustomerPointDataTable = memo(
                 changes: customChanges,
               };
               if (isOpsChangeSetsOn) {
-                changeSets.push(
+                changeSetBuilders.push(() =>
                   changeCustomerPointProperties(hydraulicModel, propertiesData),
                 );
               } else {
@@ -293,7 +293,7 @@ export const CustomerPointDataTable = memo(
 
         if (demandAssignments.length > 0) {
           if (isOpsChangeSetsOn) {
-            changeSets.push(
+            changeSetBuilders.push(() =>
               changeDemandAssignment(hydraulicModel, demandAssignments),
             );
           } else {
@@ -307,9 +307,13 @@ export const CustomerPointDataTable = memo(
         }
 
         if (isOpsChangeSetsOn) {
-          const merged = mergeChangeSets(changeSets, "editCustomerPointTable");
-          if (!merged) return;
-          transactChangeSet(merged);
+          const applied = transactChangeSet(() =>
+            mergeChangeSets(
+              changeSetBuilders.map((build) => build()),
+              "editCustomerPointTable",
+            ),
+          );
+          if (!applied) return;
         } else {
           const merged = mergeMoments(moments, "editCustomerPointTable");
           if (!merged) return;
