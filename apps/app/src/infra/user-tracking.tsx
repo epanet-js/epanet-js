@@ -111,6 +111,17 @@ type AssetControlRemoved = {
   stepsCount?: number;
 };
 
+type AssetControlVariableSpeedControlChanged = {
+  name: "assetControl.variableSpeedControlChanged";
+  quantity?: "pressure" | "level" | "flow";
+  minSpeed?: number;
+  maxSpeed?: number;
+  hasRemoteTarget?: boolean;
+  hasLaggedPumps?: boolean;
+  hasSchedule?: boolean;
+  hasTankLevels?: boolean;
+};
+
 type AssetPropertyBatchEdited = {
   name: "assetProperty.batchEdited";
   type: Asset["type"];
@@ -1425,6 +1436,7 @@ export type UserEvent =
   | AssetDeselected
   | AssetControlChanged
   | AssetControlRemoved
+  | AssetControlVariableSpeedControlChanged
   | AssetPropertyEdited
   | AssetPropertyBatchEdited
   | AssetPropertiesEdited

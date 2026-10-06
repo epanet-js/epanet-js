@@ -33,6 +33,7 @@ import { NumericField } from "src/components/form/numeric-field";
 import { TextField } from "src/components/form/text-field";
 import { Checkbox } from "src/components/form/Checkbox";
 import { highlightsAtom } from "src/state/highlights";
+import { useUserTracking } from "src/infra/user-tracking";
 import { validateLevelSetting } from "./pump-level-based-controls";
 
 export type VariableSpeedPumpTargets = {
@@ -67,6 +68,7 @@ export const VariableSpeedPumpControlsEditor = ({
 }) => {
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
+  const userTracking = useUserTracking();
 
   const quantityName =
     control.quantity === "level"
@@ -90,8 +92,9 @@ export const VariableSpeedPumpControlsEditor = ({
   const minSpeedLabel = translate("controls.variableSpeed.minSpeed");
   const maxSpeedLabel = translate("controls.variableSpeed.maxSpeed");
 
-  const update = (changes: Partial<VariableSpeedPumpControl>) =>
+  const update = (changes: Partial<VariableSpeedPumpControl>) => {
     onControlChange({ ...control, ...changes });
+  };
 
   const highlightAsset = useAssetHighlight(targets);
 
@@ -111,13 +114,32 @@ export const VariableSpeedPumpControlsEditor = ({
     });
   };
 
+  const track = (fields: {
+    quantity?: "pressure" | "level" | "flow";
+    minSpeed?: number;
+    maxSpeed?: number;
+    hasRemoteTarget?: boolean;
+    hasLaggedPumps?: boolean;
+    hasSchedule?: boolean;
+    hasTankLevels?: boolean;
+  }) => {
+    userTracking.capture({
+      name: "assetControl.variableSpeedControlChanged",
+      ...fields,
+    });
+  };
+
   return (
     <NestedSection className="pb-2">
       {control.quantity === "flow" ? (
         <FlowTargetField
           control={control}
           pipes={targets.pipes}
-          onChange={(targetId) => update({ targetId })}
+          onChange={(targetId) => {
+            update({ targetId });
+            const hasRemoteTarget = targetId !== control.linkId;
+            track({ hasRemoteTarget });
+          }}
           onHighlightChange={highlightAsset}
           readOnly={readOnly}
         />
@@ -126,13 +148,15 @@ export const VariableSpeedPumpControlsEditor = ({
           control={control}
           nodes={targets.nodes}
           outletNodeId={targets.outletNodeId}
-          onChange={(node) =>
+          onChange={(node) => {
             update({
               targetId: node.id,
               quantity: node.type === "tank" ? "level" : "pressure",
               tankLevels: tankLevelsOn(node, control.tankLevels),
-            })
-          }
+            });
+            const hasRemoteTarget = node.id !== targets.outletNodeId;
+            track({ hasRemoteTarget });
+          }}
           onHighlightChange={highlightAsset}
           readOnly={readOnly}
         />
@@ -149,7 +173,9 @@ export const VariableSpeedPumpControlsEditor = ({
           }
           disabled={isScheduled}
           onChangeValue={(value, isEmpty) => {
-            if (!isEmpty) update({ target: value });
+            if (isEmpty) return;
+            update({ target: value });
+            track({ quantity: control.quantity });
           }}
           readOnly={readOnly}
           styleOptions={{ padding: "md", ghostBorder: readOnly }}
@@ -167,7 +193,10 @@ export const VariableSpeedPumpControlsEditor = ({
         <ScheduleGrid
           schedule={control.schedule}
           valueHeader={quantityLabel}
-          onChange={(schedule) => update({ schedule })}
+          onChange={(schedule) => {
+            update({ schedule });
+            if (schedule.length > 0) track({ hasSchedule: true });
+          }}
           readOnly={readOnly}
         />
       )}
@@ -181,7 +210,9 @@ export const VariableSpeedPumpControlsEditor = ({
               displayValue={localizeDecimal(control.minSpeed)}
               validate={numericChecks.nonNegative}
               onChangeValue={(value, isEmpty) => {
-                if (!isEmpty) update({ minSpeed: value });
+                if (isEmpty) return;
+                update({ minSpeed: value });
+                track({ minSpeed: value });
               }}
               readOnly={readOnly}
               styleOptions={{
@@ -197,7 +228,9 @@ export const VariableSpeedPumpControlsEditor = ({
               displayValue={localizeDecimal(control.maxSpeed)}
               validate={numericChecks.positive}
               onChangeValue={(value, isEmpty) => {
-                if (!isEmpty) update({ maxSpeed: value });
+                if (isEmpty) return;
+                update({ maxSpeed: value });
+                track({ maxSpeed: value });
               }}
               readOnly={readOnly}
               styleOptions={{
@@ -219,7 +252,10 @@ export const VariableSpeedPumpControlsEditor = ({
       <LagPumpsSection
         laggedPumpIds={control.laggedPumpIds}
         candidates={lagCandidates}
-        onChange={(laggedPumpIds) => update({ laggedPumpIds })}
+        onChange={(laggedPumpIds) => {
+          update({ laggedPumpIds });
+          if (laggedPumpIds.length > 0) track({ hasLaggedPumps: true });
+        }}
         onHighlightChange={highlightAsset}
         readOnly={readOnly}
       />
@@ -232,7 +268,10 @@ export const VariableSpeedPumpControlsEditor = ({
             tanks={tanks}
             fixedTankId={control.quantity === "level" ? control.targetId : null}
             levelUnit={translateUnit(targets.units.minLevel)}
-            onChange={(tankLevels) => update({ tankLevels })}
+            onChange={(tankLevels) => {
+              update({ tankLevels });
+              if (tankLevels?.tankId) track({ hasTankLevels: true });
+            }}
             onHighlightChange={highlightAsset}
             readOnly={readOnly}
           />
