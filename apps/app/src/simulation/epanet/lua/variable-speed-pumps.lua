@@ -431,16 +431,6 @@ function vsp2SetUnits()
     vsp2_level_tol = VSP2_LEVEL_TOL * factors[3]
 end
 
--- A lead pump the .inp starts closed is the search's to run: a closed
--- pump is otherwise left alone as a control's. It starts at maximum
--- speed, the only one known to deliver
-function vsp2_open(pumps, schedules)
-    vsp2SetUnits()
-    for _, p in ipairs(pumps) do
-        if link(p[1]).init_status == 0 then link(p[1]).setting = p[6] end
-    end
-end
-
 function vsp2_step(pumps, schedules)
     vsp2SetUnits()
     local t = times().hydraulic_time
@@ -519,13 +509,9 @@ VSP2_PUMPS = {
 VSP2_SCHEDULES = {}
 
 -- ================================================================
--- EPANET-LSX's three entry points, defined once. Each hands every
+-- EPANET-LSX's two entry points, defined once. Each hands every
 -- table above to its control type's functions, in the order written.
 -- ================================================================
--- function on_open()
---     vsp2_open(VSP2_PUMPS, VSP2_SCHEDULES)
--- end
-
 -- function on_hydraulic_step()
 --     vsp2_step(VSP2_PUMPS, VSP2_SCHEDULES)
 -- end

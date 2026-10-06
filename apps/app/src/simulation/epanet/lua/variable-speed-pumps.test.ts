@@ -83,7 +83,7 @@ describe.each(UNIT_SYSTEMS)("variable speed pumps in $name", (units) => {
   });
 
   describe("pressure", () => {
-    it("starts a lead pump that is initially off", async () => {
+    it("leaves a lead pump that is initially off closed", async () => {
       const reader = await simulate(
         units,
         pressureNetwork(units, {
@@ -91,17 +91,14 @@ describe.each(UNIT_SYSTEMS)("variable speed pumps in $name", (units) => {
           target: 30,
           initialStatus: "off",
         }),
+        { allowWarnings: true },
       );
 
-      const pressures = await junctionPressures(reader, IDS.J2);
       const speeds = await pumpSettings(reader, IDS.PU1);
+      const flows = await pumpFlows(reader, IDS.PU1);
 
-      expectAllNear(
-        pressures,
-        units.pressure(30),
-        units.pressure(PRESSURE_TOL),
-      );
-      expectSameOrder(speeds, demandsAt(DEMAND_FACTORS));
+      expect(speeds.every((speed) => speed === 0)).toBe(true);
+      expect(flows.every((flow) => flow === 0)).toBe(true);
     });
 
     it("holds a remote node on target, speeding up with demand", async () => {
@@ -414,6 +411,37 @@ describe.each(UNIT_SYSTEMS)("variable speed pumps in $name", (units) => {
       }
     });
 
+    it("starts an initially-off pump at the on level and holds the flow from there", async () => {
+      const reader = await simulate(
+        units,
+        tankSwitchNetwork(units, {
+          offLevel: 4,
+          onLevel: 1.5,
+          initialStatus: "off",
+        }),
+        { duration: SWITCH_DURATION, reportTimestep: SWITCH_REPORT_STEP },
+      );
+
+      const levels = await tankLevels(
+        reader,
+        IDS.T1,
+        units.length(TANK_ELEVATION),
+      );
+      const speeds = await pumpSettings(reader, IDS.PU1);
+      const flows = await pipeFlows(reader, IDS.P1);
+
+      expect(speeds[0]).toBe(0);
+      expect(speeds.some((speed) => speed > 0)).toBe(true);
+      expectTankSwitching(levels, speeds, units.length(4), units.length(1.5));
+      for (let step = 0; step < speeds.length; step++) {
+        if (speeds[step] > 0) {
+          expect(Math.abs(flows[step] - units.flow(20))).toBeLessThan(
+            units.flow(FLOW_TOL),
+          );
+        }
+      }
+    });
+
     it("stops a level row on its own tank above the off level", async () => {
       const reader = await simulate(
         units,
@@ -628,7 +656,11 @@ const levelNetwork = (
 //   R1 --PU1-- J1 ---P1--- T1 ---P2--- J2 (demand)
 const tankSwitchNetwork = (
   units: Units,
-  { offLevel, onLevel }: { offLevel: number; onLevel: number },
+  {
+    offLevel,
+    onLevel,
+    initialStatus = "on",
+  }: { offLevel: number; onLevel: number; initialStatus?: "on" | "off" },
 ) =>
   HydraulicModelBuilder.with()
     .aReservoir(IDS.R1, { head: 0 })
@@ -646,6 +678,7 @@ const tankSwitchNetwork = (
       startNodeId: IDS.R1,
       endNodeId: IDS.J1,
       curve: pumpCurve(units, 20, 50),
+      initialStatus,
     })
     .aPipe(IDS.P1, {
       startNodeId: IDS.J1,

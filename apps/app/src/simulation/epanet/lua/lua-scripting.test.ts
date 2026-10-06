@@ -63,13 +63,12 @@ describe("LuaScriptBuilder", () => {
       const script = builder.build().join("\n");
 
       expect(script).toContain("function vsp2_step(pumps, schedules)");
-      expect(script).toContain("function on_open()");
       expect(script).toContain("function on_hydraulic_step()");
       expect(script).toContain("function on_hydraulics_solved()");
 
       const invocation =
         '{{"PU1","level","T1",4.5,0.3,1,{"PU2","PU3"},1}}, {["PU1"]={{0,3},{21600,4.5}}}';
-      expect(script).toContain(`vsp2_open(${invocation})`);
+      expect(script).not.toContain("on_open");
       expect(script).toContain(`vsp2_step(${invocation})`);
       expect(script).toContain(`vsp2_solved(${invocation})`);
     });
