@@ -317,7 +317,7 @@ describe("change-set validation", () => {
     ).toThrow(/pipe 3: diameter/);
   });
 
-  it("rejects a non-finite number", () => {
+  it("rejects NaN but accepts an infinity in a scalar field", () => {
     const model = aModel();
 
     expect(() =>
@@ -330,7 +330,7 @@ describe("change-set validation", () => {
       changeSet(model, "changeProperty", [
         setAsset(IDS.J1, { elevation: Infinity }),
       ]),
-    ).toThrow(/junction 1: elevation/);
+    ).not.toThrow();
   });
 
   it("rejects a value outside an enum", () => {

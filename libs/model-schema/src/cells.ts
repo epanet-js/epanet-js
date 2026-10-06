@@ -3,6 +3,9 @@ import { z } from "zod";
 export const numberCell = z.number().finite();
 export const nullableNumber = numberCell.nullable();
 
+export const realCell = z.number();
+export const nullableReal = realCell.nullable();
+
 export const intCell = z.number().int();
 export const nullableInt = intCell.nullable();
 

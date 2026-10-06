@@ -14,10 +14,15 @@ describe("schemaForField", () => {
     expect(accepts("pipe", "diameter", "300")).toBe(false);
   });
 
-  it("rejects non-finite numbers", () => {
+  it("rejects NaN but accepts infinities in a scalar field", () => {
     expect(accepts("junction", "elevation", NaN)).toBe(false);
-    expect(accepts("junction", "elevation", Infinity)).toBe(false);
-    expect(accepts("junction", "elevation", -Infinity)).toBe(false);
+    expect(accepts("junction", "elevation", Infinity)).toBe(true);
+    expect(accepts("pipe", "diameter", -Infinity)).toBe(true);
+  });
+
+  it("rejects infinities where the value is stored as JSON", () => {
+    expect(accepts("pump", "curve", [{ x: Infinity, y: 1 }])).toBe(false);
+    expect(accepts("junction", "custom-1", Infinity)).toBe(false);
   });
 
   it("allows null only where the model allows it", () => {

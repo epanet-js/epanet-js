@@ -1,4 +1,9 @@
-import { intCell, nullableInt, numberCell } from "@epanet-js/model-schema";
+import {
+  intCell,
+  nullableInt,
+  nullableReal,
+  numberCell,
+} from "@epanet-js/model-schema";
 import { z } from "zod";
 import {
   chemicalSourceTypes,
@@ -16,11 +21,6 @@ const id = intCell;
 const fkId = nullableInt;
 const dbBool = z.union([z.literal(0), z.literal(1)]);
 const finiteCoord = numberCell;
-// Deliberately not model-schema's `nullableNumber`, which is finite. These
-// columns have always accepted an infinity, and tightening them is a change to
-// the moment path rather than part of sharing the atoms — a change set is
-// checked against the finite rule as it is built.
-const nullableNumber = z.number().nullable();
 const chemicalSourceTypeSchema = z.enum(chemicalSourceTypes).nullable();
 
 const nodeRowShared = {
@@ -29,10 +29,10 @@ const nodeRowShared = {
   is_active: dbBool,
   coord_x: finiteCoord,
   coord_y: finiteCoord,
-  elevation: nullableNumber,
-  initial_quality: nullableNumber,
+  elevation: nullableReal,
+  initial_quality: nullableReal,
   chemical_source_type: chemicalSourceTypeSchema,
-  chemical_source_strength: nullableNumber,
+  chemical_source_strength: nullableReal,
   chemical_source_pattern_id: fkId,
   custom_attributes: z.string().nullable().default(null),
 } as const;
@@ -44,56 +44,56 @@ const linkRowShared = {
   start_node_id: id,
   end_node_id: id,
   coords: z.string(),
-  length: nullableNumber,
+  length: nullableReal,
   custom_attributes: z.string().nullable().default(null),
 } as const;
 
 export const junctionRowSchema = z.object({
   ...nodeRowShared,
-  emitter_coefficient: nullableNumber,
+  emitter_coefficient: nullableReal,
 });
 
 export const reservoirRowSchema = z.object({
   ...nodeRowShared,
-  head: nullableNumber,
+  head: nullableReal,
   head_pattern_id: fkId,
 });
 
 export const tankRowSchema = z.object({
   ...nodeRowShared,
-  initial_level: nullableNumber,
-  min_level: nullableNumber,
-  max_level: nullableNumber,
-  min_volume: nullableNumber,
-  diameter: nullableNumber,
+  initial_level: nullableReal,
+  min_level: nullableReal,
+  max_level: nullableReal,
+  min_volume: nullableReal,
+  diameter: nullableReal,
   overflow: dbBool.nullable(),
   mixing_model: z.enum(tankMixingModels).nullable(),
-  mixing_fraction: nullableNumber,
-  bulk_reaction_coeff: nullableNumber,
+  mixing_fraction: nullableReal,
+  bulk_reaction_coeff: nullableReal,
   volume_curve_id: fkId,
 });
 
 export const pipeRowSchema = z.object({
   ...linkRowShared,
   initial_status: z.enum(pipeStatuses).nullable(),
-  diameter: nullableNumber,
-  roughness: nullableNumber,
-  minor_loss: nullableNumber,
-  bulk_reaction_coeff: nullableNumber,
-  wall_reaction_coeff: nullableNumber,
+  diameter: nullableReal,
+  roughness: nullableReal,
+  minor_loss: nullableReal,
+  bulk_reaction_coeff: nullableReal,
+  wall_reaction_coeff: nullableReal,
   material: z.string().nullable(),
-  year: nullableNumber,
+  year: nullableReal,
 });
 
 export const pumpRowSchema = z.object({
   ...linkRowShared,
   initial_status: z.enum(pumpStatuses).nullable(),
   definition_type: z.enum(pumpDefinitionTypes),
-  power: nullableNumber,
-  speed: nullableNumber,
+  power: nullableReal,
+  speed: nullableReal,
   speed_pattern_id: fkId,
   efficiency_curve_id: fkId,
-  energy_price: nullableNumber,
+  energy_price: nullableReal,
   energy_price_pattern_id: fkId,
   curve_id: fkId,
   curve_points: z.string().nullable(),
@@ -102,10 +102,10 @@ export const pumpRowSchema = z.object({
 export const valveRowSchema = z.object({
   ...linkRowShared,
   initial_status: z.enum(valveStatuses).nullable(),
-  diameter: nullableNumber,
-  minor_loss: nullableNumber,
+  diameter: nullableReal,
+  minor_loss: nullableReal,
   valve_kind: z.enum(valveKinds).nullable(),
-  setting: nullableNumber,
+  setting: nullableReal,
   curve_id: fkId,
   target_node_id: fkId,
 });

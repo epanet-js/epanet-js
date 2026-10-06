@@ -26,10 +26,11 @@ import {
   intCell,
   multipliersCell,
   nullableInt,
-  nullableNumber,
+  nullableReal,
   numberCell,
   pathCell,
   positionCell,
+  realCell,
   textCell,
 } from "./cells";
 
@@ -51,10 +52,10 @@ const sharedAsset: FieldSchemas = {
 const sharedNode: FieldSchemas = {
   ...sharedAsset,
   coordinates: positionCell,
-  elevation: nullableNumber,
-  initialQuality: numberCell,
+  elevation: nullableReal,
+  initialQuality: realCell,
   chemicalSourceType: z.enum(chemicalSourceTypes),
-  chemicalSourceStrength: numberCell,
+  chemicalSourceStrength: realCell,
   chemicalSourcePatternId: intCell,
 };
 
@@ -62,67 +63,67 @@ const sharedLink: FieldSchemas = {
   ...sharedAsset,
   coordinates: pathCell,
   connections: z.array(intCell).length(2),
-  length: nullableNumber,
+  length: nullableReal,
 };
 
 const junction: FieldSchemas = {
   ...sharedNode,
-  emitterCoefficient: numberCell,
+  emitterCoefficient: realCell,
 };
 
 const reservoir: FieldSchemas = {
   ...sharedNode,
-  head: nullableNumber,
+  head: nullableReal,
   headPatternId: intCell,
 };
 
 const tank: FieldSchemas = {
   ...sharedNode,
-  initialLevel: nullableNumber,
-  minLevel: nullableNumber,
-  maxLevel: nullableNumber,
-  minVolume: numberCell,
-  diameter: nullableNumber,
+  initialLevel: nullableReal,
+  minLevel: nullableReal,
+  maxLevel: nullableReal,
+  minVolume: realCell,
+  diameter: nullableReal,
   overflow: flagCell,
   mixingModel: z.enum(tankMixingModels),
-  mixingFraction: numberCell,
-  bulkReactionCoeff: numberCell,
+  mixingFraction: realCell,
+  bulkReactionCoeff: realCell,
   volumeCurveId: intCell,
 };
 
 const pipe: FieldSchemas = {
   ...sharedLink,
   initialStatus: z.enum(pipeStatuses),
-  diameter: nullableNumber,
-  roughness: nullableNumber,
-  minorLoss: numberCell,
-  bulkReactionCoeff: numberCell,
-  wallReactionCoeff: numberCell,
+  diameter: nullableReal,
+  roughness: nullableReal,
+  minorLoss: realCell,
+  bulkReactionCoeff: realCell,
+  wallReactionCoeff: realCell,
   material: textCell,
-  year: numberCell,
+  year: realCell,
 };
 
 const pump: FieldSchemas = {
   ...sharedLink,
   initialStatus: z.enum(pumpStatuses),
   definitionType: z.enum(pumpDefinitionTypes),
-  power: nullableNumber,
-  speed: numberCell,
+  power: nullableReal,
+  speed: realCell,
   speedPatternId: intCell,
   curveId: nullableInt,
   curve: curvePointsCell.nullable(),
   efficiencyCurveId: intCell,
-  energyPrice: numberCell,
+  energyPrice: realCell,
   energyPricePatternId: intCell,
 };
 
 const valve: FieldSchemas = {
   ...sharedLink,
   initialStatus: z.enum(valveStatuses),
-  diameter: nullableNumber,
-  minorLoss: numberCell,
+  diameter: nullableReal,
+  minorLoss: realCell,
   kind: z.enum(valveKinds),
-  setting: nullableNumber,
+  setting: nullableReal,
   curveId: intCell,
   targetNodeId: intCell,
 };

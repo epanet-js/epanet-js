@@ -185,6 +185,21 @@ describe("buildChangeSetPayload assets", () => {
     expect(payload.assetUpserts.pipes).toEqual([]);
   });
 
+  it("writes an infinite scalar unchanged", () => {
+    const { model } = aNetwork();
+
+    const payload = buildChangeSetPayload(
+      changeSet(model, "changeProperty", [
+        setAsset(IDS.P1, { diameter: Infinity }),
+      ]),
+      "forward",
+    );
+
+    expect(payload.assetPatches.pipes).toEqual([
+      { id: IDS.P1, diameter: Infinity },
+    ]);
+  });
+
   it("writes a node move as a coordinates patch", () => {
     const { model } = aNetwork();
     const moved = (model.assets.get(IDS.J1) as Junction).copy();

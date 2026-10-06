@@ -31,7 +31,9 @@ the rule underneath — so that is what lives here.
   re-exports them, `ejsdb` builds its `z.enum`s from them.
 - **`cells.ts`** — the atoms (`numberCell`, `nullableNumber`, `intCell`,
   `textCell`, `flagCell`, `positionCell`, `pathCell`, …). `ejsdb`'s row schemas
-  compose these, so a number is finite on both sides.
+  compose these, so a number follows the same rule on both sides: `realCell`
+  for a scalar in its own column, which accepts ±Infinity, and the finite
+  `numberCell` for anything stored as JSON, which cannot hold one.
 - **`controls.ts`, `pipe-library.ts`, `raw-controls.ts`,
   `custom-attributes.ts`** — the value schemas for the four things persisted as a
   single JSON column. They describe a model value and know nothing about a row,
