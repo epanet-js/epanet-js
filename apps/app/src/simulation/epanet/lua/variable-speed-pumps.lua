@@ -6,6 +6,7 @@ VSP2_MIN_STEP    = 0.0002   -- the step taken outside the tolerance when the sea
 VSP2_RATIO_STEP  = 0.1      -- largest speed change a step without a slope takes
 VSP2_WARM_STEP   = 0.25     -- largest speed change a step on the slope learned earlier takes
 VSP2_TRIAL_SPEED_DROP = 0.01   -- how far the speed falls below a failed trial's before a lag is tried closed again
+VSP2_SCHEDULE_FROM = 0   -- the run time a schedule is in force from, s; before it a row holds its own target
 
 -- Per units().flow: the tank_volume one unit of flow moves in a second
 -- (m^3 under SI flow units, ft^3 under US ones), the units in one L/s, and
@@ -53,10 +54,10 @@ end
 
 -- The target in force at time t: the schedule's latest entry at or before
 -- the time of day, the day wrapping to its last entry; the row's own
--- target for a row with no schedule
+-- target for a row with no schedule, or before VSP2_SCHEDULE_FROM
 function vsp2Target(p, t, schedules)
     local s = schedules[p[1]]
-    if s == nil then return p[4] end
+    if s == nil or t < VSP2_SCHEDULE_FROM then return p[4] end
     local clock  = vsp2Clock(t)
     local target = s[#s][2]
     for _, entry in ipairs(s) do
