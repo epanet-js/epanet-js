@@ -8,7 +8,7 @@ import {
 import userEvent from "@testing-library/user-event";
 import { Provider as JotaiProvider } from "jotai";
 import { vi } from "vitest";
-import { TooltipProvider } from "@radix-ui/react-tooltip";
+import { TooltipProvider } from "@epanet-js/ui-kit";
 import Mousetrap from "mousetrap";
 
 import { Maybe } from "purify-ts/Maybe";

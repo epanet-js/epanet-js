@@ -1,5 +1,5 @@
-import * as Tooltip from "@radix-ui/react-tooltip";
-import { Button, TContent, StyledTooltipArrow } from "src/components/elements";
+import { Tooltip } from "@epanet-js/ui-kit";
+import { Button } from "src/components/elements";
 import { PointerClickIcon } from "src/icons";
 import { useTranslate } from "src/hooks/use-translate";
 import { Asset, AssetId } from "src/hydraulic-model";
@@ -32,14 +32,9 @@ export function SelectOnlyButton({
   };
 
   return (
-    <Tooltip.Root>
-      <Tooltip.Trigger onClick={handleClick} asChild>
-        <Button variant="quiet" className="h-8 w-8 justify-center" size="xxs">
-          <PointerClickIcon />
-        </Button>
-      </Tooltip.Trigger>
-      <TContent side="bottom">
-        <StyledTooltipArrow />
+    <Tooltip
+      delayDuration={700}
+      content={
         <span className="whitespace-nowrap">
           {`${translate("select")} ${pluralize(
             translate,
@@ -48,8 +43,17 @@ export function SelectOnlyButton({
             false,
           )}`}
         </span>
-      </TContent>
-    </Tooltip.Root>
+      }
+    >
+      <Button
+        variant="quiet"
+        className="h-8 w-8 justify-center"
+        size="xxs"
+        onClick={handleClick}
+      >
+        <PointerClickIcon />
+      </Button>
+    </Tooltip>
   );
 }
 
@@ -74,14 +78,9 @@ export function SelectOnlyCustomerPointsButton({
   };
 
   return (
-    <Tooltip.Root>
-      <Tooltip.Trigger onClick={handleClick} asChild>
-        <Button variant="quiet" className="h-8 w-8 justify-center" size="xxs">
-          <PointerClickIcon />
-        </Button>
-      </Tooltip.Trigger>
-      <TContent side="bottom">
-        <StyledTooltipArrow />
+    <Tooltip
+      delayDuration={700}
+      content={
         <span className="whitespace-nowrap">
           {`${translate("select")} ${pluralize(
             translate,
@@ -90,7 +89,16 @@ export function SelectOnlyCustomerPointsButton({
             false,
           )}`}
         </span>
-      </TContent>
-    </Tooltip.Root>
+      }
+    >
+      <Button
+        variant="quiet"
+        className="h-8 w-8 justify-center"
+        size="xxs"
+        onClick={handleClick}
+      >
+        <PointerClickIcon />
+      </Button>
+    </Tooltip>
   );
 }

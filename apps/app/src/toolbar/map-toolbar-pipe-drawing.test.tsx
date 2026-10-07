@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { Provider as JotaiProvider } from "jotai";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { TooltipProvider } from "@radix-ui/react-tooltip";
+import { TooltipProvider } from "@epanet-js/ui-kit";
 import userEvent from "@testing-library/user-event";
 import { setInitialState } from "src/__helpers__/state";
 import { Store } from "src/state";

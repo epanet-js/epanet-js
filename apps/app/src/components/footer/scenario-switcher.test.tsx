@@ -2,7 +2,7 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Provider as JotaiProvider } from "jotai";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import * as Tooltip from "@radix-ui/react-tooltip";
+import { TooltipProvider } from "@epanet-js/ui-kit";
 import {
   nullBranchingRules,
   type BranchingRules,
@@ -119,9 +119,9 @@ const renderComponent = (store: Store) => {
     <QueryClientProvider client={new QueryClient()}>
       <JotaiProvider store={store}>
         <AuthMockProvider user={aUser({ plan: "pro" })}>
-          <Tooltip.Provider>
+          <TooltipProvider>
             <ScenarioSwitcher />
-          </Tooltip.Provider>
+          </TooltipProvider>
         </AuthMockProvider>
       </JotaiProvider>
     </QueryClientProvider>,

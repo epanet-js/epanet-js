@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, it, expect } from "vitest";
 import { Provider as JotaiProvider, createStore } from "jotai";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { TooltipProvider } from "@radix-ui/react-tooltip";
+import { TooltipProvider } from "@epanet-js/ui-kit";
 import type { QuantityStats } from "./stats";
 import { LazyStatsPopoverButton } from "./summary-value-row";
 

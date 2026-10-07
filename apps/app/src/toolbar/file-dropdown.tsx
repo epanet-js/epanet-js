@@ -1,6 +1,6 @@
 import React from "react";
 import * as DD from "@radix-ui/react-dropdown-menu";
-import * as Tooltip from "@radix-ui/react-tooltip";
+import { Tooltip } from "@epanet-js/ui-kit";
 
 import {
   ChevronDownIcon,
@@ -54,8 +54,6 @@ import {
   DDSubTriggerItem,
   DDSeparator,
   StyledItem,
-  TContent,
-  StyledTooltipArrow,
 } from "src/components/elements";
 
 export const FileDropdown = () => {
@@ -64,74 +62,66 @@ export const FileDropdown = () => {
   const translate = useTranslate();
 
   return (
-    <Tooltip.Root delayDuration={200}>
-      <div className="h-10 w-12 group bn flex items-stretch py-1 focus:outline-hidden">
-        <DD.Root>
-          <Tooltip.Trigger asChild>
-            <DD.Trigger asChild>
-              <Button variant="quiet">
-                <FolderIcon />
-                <ChevronDownIcon size="sm" />
-              </Button>
-            </DD.Trigger>
-          </Tooltip.Trigger>
-          <DD.Portal>
-            <DDContent
-              align="start"
-              side="bottom"
-              onCloseAutoFocus={(e) => e.preventDefault()}
+    <div className="h-10 w-12 group bn flex items-stretch py-1 focus:outline-hidden">
+      <DD.Root>
+        <Tooltip content={translate("file")}>
+          <DD.Trigger asChild>
+            <Button variant="quiet">
+              <FolderIcon />
+              <ChevronDownIcon size="sm" />
+            </Button>
+          </DD.Trigger>
+        </Tooltip>
+        <DD.Portal>
+          <DDContent
+            align="start"
+            side="bottom"
+            onCloseAutoFocus={(e) => e.preventDefault()}
+          >
+            <NewProjectSubmenu />
+
+            <DDSeparator />
+
+            <StyledItem
+              onSelect={() => {
+                openProject({ source: "toolbar" });
+              }}
             >
-              <NewProjectSubmenu />
+              <FolderOpenIcon />
+              {translate("openFile")}
+            </StyledItem>
 
-              <DDSeparator />
+            <ConvertModelSubmenu />
 
-              <StyledItem
-                onSelect={() => {
-                  openProject({ source: "toolbar" });
-                }}
-              >
-                <FolderOpenIcon />
-                {translate("openFile")}
-              </StyledItem>
+            <DDSeparator />
 
-              <ConvertModelSubmenu />
+            <StyledItem
+              onSelect={() => {
+                void saveProject({ source: "toolbar" });
+              }}
+            >
+              <SaveIcon />
+              {translate("save")}
+            </StyledItem>
 
-              <DDSeparator />
+            <StyledItem
+              onSelect={() => {
+                void saveProject({ source: "toolbar", isSaveAs: true });
+              }}
+            >
+              <SaveAllIcon />
+              {translate("saveAs")}
+            </StyledItem>
 
-              <StyledItem
-                onSelect={() => {
-                  void saveProject({ source: "toolbar" });
-                }}
-              >
-                <SaveIcon />
-                {translate("save")}
-              </StyledItem>
+            <DDSeparator />
 
-              <StyledItem
-                onSelect={() => {
-                  void saveProject({ source: "toolbar", isSaveAs: true });
-                }}
-              >
-                <SaveAllIcon />
-                {translate("saveAs")}
-              </StyledItem>
-
-              <DDSeparator />
-
-              <ImportSubmenu />
-              <ExportSubmenu />
-              <RecentFilesMenu />
-            </DDContent>
-          </DD.Portal>
-        </DD.Root>
-      </div>
-      <Tooltip.Portal>
-        <TContent side="bottom">
-          <StyledTooltipArrow />
-          {translate("file")}
-        </TContent>
-      </Tooltip.Portal>
-    </Tooltip.Root>
+            <ImportSubmenu />
+            <ExportSubmenu />
+            <RecentFilesMenu />
+          </DDContent>
+        </DD.Portal>
+      </DD.Root>
+    </div>
   );
 };
 

@@ -1,7 +1,7 @@
 /** @vitest-environment jsdom */
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { TooltipProvider } from "@radix-ui/react-tooltip";
+import { TooltipProvider } from "@epanet-js/ui-kit";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import "src/__helpers__/locale";
 import { setInitialState } from "src/__helpers__/state";

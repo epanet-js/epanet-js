@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import * as DD from "@radix-ui/react-dropdown-menu";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import type { Branch } from "@epanet-js/worktree";
-import * as Tooltip from "@radix-ui/react-tooltip";
+import { Tooltip } from "@epanet-js/ui-kit";
 import { useAtomValue, useSetAtom } from "jotai";
 import { isPlayingAtom } from "src/state/simulation-playback";
 
@@ -27,14 +27,7 @@ import { dialogAtom } from "src/state/dialog";
 import { useCreateScenario } from "src/commands/create-scenario";
 import { useSwitchToBranch } from "src/commands/switch-scenario";
 import { useFeatureLock } from "src/components/form/paywall";
-import {
-  Button,
-  DDContent,
-  DDSeparator,
-  StyledItem,
-  StyledTooltipArrow,
-  TContent,
-} from "../elements";
+import { Button, DDContent, DDSeparator, StyledItem } from "../elements";
 
 export const ScenarioSwitcher = () => {
   const translate = useTranslate();
@@ -152,97 +145,85 @@ export const ScenarioSwitcher = () => {
   if (!hasScenarios) {
     return (
       <div className="min-w-44 flex items-center">
-        <Tooltip.Root delayDuration={200}>
-          <Tooltip.Trigger asChild>
-            <button
-              onClick={handleCreateScenario}
-              className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 text-size-base text-accent-hover bg-accent-tint hover:bg-purple-100 border border-purple-200 rounded-md transition-colors"
-            >
-              <ScenarioIcon size="sm" />
-              <span>{translate("scenarios.enableScenarios")}</span>
-            </button>
-          </Tooltip.Trigger>
-          <TContent side="top">
-            <StyledTooltipArrow />
-            {translate("scenarios.enableScenarios")}
-          </TContent>
-        </Tooltip.Root>
+        <Tooltip content={translate("scenarios.enableScenarios")} side="top">
+          <button
+            onClick={handleCreateScenario}
+            className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 text-size-base text-accent-hover bg-accent-tint hover:bg-purple-100 border border-purple-200 rounded-md transition-colors"
+          >
+            <ScenarioIcon size="sm" />
+            <span>{translate("scenarios.enableScenarios")}</span>
+          </button>
+        </Tooltip>
       </div>
     );
   }
 
   return (
-    <Tooltip.Root delayDuration={200}>
-      <div className="min-w-44 max-w-80 h-10 group bn flex items-stretch py-1 focus:outline-hidden">
-        <DD.Root
-          onOpenChange={(open) => {
-            if (open) {
-              userTracking.capture({ name: "scenarioSwitcher.opened" });
-            }
-          }}
-        >
-          <Tooltip.Trigger asChild>
-            <DD.Trigger asChild disabled={isPlaying}>
-              <Button
-                variant="quiet"
-                className="w-full justify-between"
-                disabled={isPlaying}
-              >
-                <div className="flex items-center gap-1 min-w-0">
-                  {isMainActive ? (
-                    <MainModelIcon size="sm" />
-                  ) : (
-                    <ScenarioIcon size="sm" />
-                  )}
-                  <span
-                    className="truncate text-size-base"
-                    title={activeDisplayName}
-                  >
-                    {activeDisplayName}
-                  </span>
-                </div>
-                <ChevronDownIcon size="sm" />
-              </Button>
-            </DD.Trigger>
-          </Tooltip.Trigger>
-          <DD.Portal>
-            <DDContent align="start" side="top" className="min-w-64 max-w-80">
-              <StyledItem
-                onSelect={handleSelectMain}
-                className={isMainActive ? "bg-accent-tint!" : undefined}
-              >
-                <div className="flex items-center w-full gap-2">
+    <div className="min-w-44 max-w-80 h-10 group bn flex items-stretch py-1 focus:outline-hidden">
+      <DD.Root
+        onOpenChange={(open) => {
+          if (open) {
+            userTracking.capture({ name: "scenarioSwitcher.opened" });
+          }
+        }}
+      >
+        <Tooltip content={translate("scenarios.switcherTooltip")} side="top">
+          <DD.Trigger asChild disabled={isPlaying}>
+            <Button
+              variant="quiet"
+              className="w-full justify-between"
+              disabled={isPlaying}
+            >
+              <div className="flex items-center gap-1 min-w-0">
+                {isMainActive ? (
                   <MainModelIcon size="sm" />
-                  <div className="flex-1">{translate("scenarios.main")}</div>
-                </div>
-              </StyledItem>
+                ) : (
+                  <ScenarioIcon size="sm" />
+                )}
+                <span
+                  className="truncate text-size-base"
+                  title={activeDisplayName}
+                >
+                  {activeDisplayName}
+                </span>
+              </div>
+              <ChevronDownIcon size="sm" />
+            </Button>
+          </DD.Trigger>
+        </Tooltip>
+        <DD.Portal>
+          <DDContent align="start" side="top" className="min-w-64 max-w-80">
+            <StyledItem
+              onSelect={handleSelectMain}
+              className={isMainActive ? "bg-accent-tint!" : undefined}
+            >
+              <div className="flex items-center w-full gap-2">
+                <MainModelIcon size="sm" />
+                <div className="flex-1">{translate("scenarios.main")}</div>
+              </div>
+            </StyledItem>
 
-              <ScenarioList
-                scenarios={scenariosList}
-                activeBranchId={activeBranchId}
-                onSelect={handleSelectScenario}
-                onRename={openRenameDialog}
-                onDuplicate={handleDuplicateScenario}
-                onDelete={openDeleteConfirmation}
-              />
+            <ScenarioList
+              scenarios={scenariosList}
+              activeBranchId={activeBranchId}
+              onSelect={handleSelectScenario}
+              onRename={openRenameDialog}
+              onDuplicate={handleDuplicateScenario}
+              onDelete={openDeleteConfirmation}
+            />
 
-              <DDSeparator />
+            <DDSeparator />
 
-              <StyledItem onSelect={handleCreateScenario}>
-                <div className="flex items-center gap-2">
-                  <AddScenarioIcon size="sm" />
-                  <span>{translate("scenarios.createNew")}</span>
-                </div>
-              </StyledItem>
-            </DDContent>
-          </DD.Portal>
-        </DD.Root>
-      </div>
-      <TContent side="top">
-        <StyledTooltipArrow />
-        {translate("scenarios.switcherTooltip")}
-      </TContent>
-    </Tooltip.Root>
+            <StyledItem onSelect={handleCreateScenario}>
+              <div className="flex items-center gap-2">
+                <AddScenarioIcon size="sm" />
+                <span>{translate("scenarios.createNew")}</span>
+              </div>
+            </StyledItem>
+          </DDContent>
+        </DD.Portal>
+      </DD.Root>
+    </div>
   );
 };
 

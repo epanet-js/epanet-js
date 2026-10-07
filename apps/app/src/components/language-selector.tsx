@@ -1,7 +1,7 @@
 import React from "react";
 import { Locale, languageConfig } from "@epanet-js/i18n/locale";
 import * as DD from "@radix-ui/react-dropdown-menu";
-import * as Tooltip from "@radix-ui/react-tooltip";
+import { Tooltip } from "@epanet-js/ui-kit";
 import { Button, DDContent, StyledItem } from "./elements";
 import { useTranslate } from "src/hooks/use-translate";
 import { useLocale } from "src/hooks/use-locale";
@@ -49,42 +49,43 @@ export const LanguageSelector = ({
         )}
       </DD.Trigger>
       <DDContent side="bottom" align={align} className="min-w-32">
-        {availableLanguages.map((language) => (
-          <Tooltip.Provider key={language.code}>
-            <Tooltip.Root delayDuration={500}>
-              <Tooltip.Trigger asChild>
-                <StyledItem
-                  onSelect={() => handleLanguageChange(language.code)}
-                >
-                  <div className="flex items-center w-full gap-2">
-                    <div className="flex items-center gap-2 flex-1">
-                      <span>{language.name}</span>
-                      {language.experimental && (
-                        <WarningIcon className="text-warning" />
-                      )}
-                    </div>
-                    <div className="w-4 h-4 flex items-center justify-center">
-                      {locale === language.code && (
-                        <CheckIcon className="text-accent" />
-                      )}
-                    </div>
-                  </div>
-                </StyledItem>
-              </Tooltip.Trigger>
-              {language.experimental && (
-                <Tooltip.Portal>
-                  <Tooltip.Content
-                    className="bg-gray-900 text-white text-size-small px-2 py-1 rounded-sm shadow-lg max-w-48 z-50"
-                    sideOffset={5}
-                  >
-                    {translate("experimentalLanguage")}
-                    <Tooltip.Arrow className="fill-gray-900" />
-                  </Tooltip.Content>
-                </Tooltip.Portal>
-              )}
-            </Tooltip.Root>
-          </Tooltip.Provider>
-        ))}
+        {availableLanguages.map((language) => {
+          const item = (
+            <StyledItem
+              key={language.code}
+              onSelect={() => handleLanguageChange(language.code)}
+            >
+              <div className="flex items-center w-full gap-2">
+                <div className="flex items-center gap-2 flex-1">
+                  <span>{language.name}</span>
+                  {language.experimental && (
+                    <WarningIcon className="text-warning" />
+                  )}
+                </div>
+                <div className="w-4 h-4 flex items-center justify-center">
+                  {locale === language.code && (
+                    <CheckIcon className="text-accent" />
+                  )}
+                </div>
+              </div>
+            </StyledItem>
+          );
+          return language.experimental ? (
+            <Tooltip
+              key={language.code}
+              content={translate("experimentalLanguage")}
+              variant="contrast"
+              side="top"
+              sideOffset={5}
+              delayDuration={500}
+              zIndex={50}
+            >
+              {item}
+            </Tooltip>
+          ) : (
+            item
+          );
+        })}
       </DDContent>
     </DD.Root>
   );

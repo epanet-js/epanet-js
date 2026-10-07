@@ -1,7 +1,7 @@
 import { useState } from "react";
-import * as Tooltip from "@radix-ui/react-tooltip";
+import { Tooltip } from "@epanet-js/ui-kit";
 import { ItemAction, ItemActions } from "./item-actions";
-import { Button, StyledTooltipArrow, TContent } from "../elements";
+import { Button } from "../elements";
 
 type LabelledItem = {
   id: number;
@@ -64,25 +64,24 @@ export const ListItem = <T extends LabelledItem>({
       </Button>
       {!readOnly && secondaryAction && (
         <div className="self-stretch flex shrink-0">
-          <Tooltip.Root>
-            <Tooltip.Trigger asChild>
-              <Button
-                variant="quiet"
-                size="xxs"
-                aria-label={secondaryAction.label}
-                onClick={secondaryAction.onClick}
-                className={`h-6 w-6 self-center justify-center hover:bg-base-hover ${
-                  isSelected ? "" : "invisible group-hover:visible"
-                }`}
-              >
-                {secondaryAction.icon}
-              </Button>
-            </Tooltip.Trigger>
-            <TContent side="bottom">
-              <StyledTooltipArrow />
+          <Tooltip
+            delayDuration={700}
+            content={
               <span className="whitespace-nowrap">{secondaryAction.label}</span>
-            </TContent>
-          </Tooltip.Root>
+            }
+          >
+            <Button
+              variant="quiet"
+              size="xxs"
+              aria-label={secondaryAction.label}
+              onClick={secondaryAction.onClick}
+              className={`h-6 w-6 self-center justify-center hover:bg-base-hover ${
+                isSelected ? "" : "invisible group-hover:visible"
+              }`}
+            >
+              {secondaryAction.icon}
+            </Button>
+          </Tooltip>
         </div>
       )}
       {!readOnly && actions && onAction && (

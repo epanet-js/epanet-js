@@ -1,14 +1,9 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import * as DD from "@radix-ui/react-dropdown-menu";
-import * as Tooltip from "@radix-ui/react-tooltip";
 import { useAtom, useAtomValue } from "jotai";
+import { Tooltip } from "@epanet-js/ui-kit";
 
-import {
-  Button,
-  DDContent,
-  StyledItem,
-  TContent,
-} from "src/components/elements";
+import { Button, DDContent, StyledItem } from "src/components/elements";
 import {
   useCycleDrawingMode,
   useDrawingMode,
@@ -115,55 +110,52 @@ export const DrawingToolDropdown = ({
 
   return (
     <div className="relative">
-      <Tooltip.Root delayDuration={200}>
-        <div className="h-10 w-8 group bn flex items-stretch py-1 focus:outline-hidden">
-          <DD.Root open={isOpen} onOpenChange={setIsOpen}>
+      <div className="h-10 w-8 group bn flex items-stretch py-1 focus:outline-hidden">
+        <DD.Root open={isOpen} onOpenChange={setIsOpen}>
+          <Tooltip content={translate("drawingTools")}>
             <DD.Trigger asChild>
-              <Tooltip.Trigger asChild>
-                <Button
-                  ref={buttonRef}
-                  variant="quiet/mode"
-                  className="relative"
-                  disabled={disabled}
-                  role="radio"
-                  aria-label={translate("drawingTools")}
-                  aria-checked={isDrawingActive}
-                  aria-expanded={isOpen || isDrawingActive ? "true" : "false"}
-                  onPointerDown={handlePointerDown}
-                  onPointerUp={handlePointerUp}
-                  onPointerLeave={handlePointerLeave}
-                  onContextMenu={handleContextMenu}
-                >
-                  <DisplayedIcon />
-                  <span
-                    className="absolute bottom-1 right-1 border-l-[5px] border-l-transparent border-b-[5px] border-b-gray-400 aria-expanded:border-b-white"
-                    aria-expanded={isOpen || isDrawingActive ? "true" : "false"}
-                    aria-hidden="true"
-                  />
-                </Button>
-              </Tooltip.Trigger>
-            </DD.Trigger>
-            <DD.Portal>
-              <DDContent
-                align="start"
-                side="bottom"
-                onEscapeKeyDown={() => {
-                  buttonRef.current?.blur();
-                }}
-                onCloseAutoFocus={(e) => e.preventDefault()}
+              <Button
+                ref={buttonRef}
+                variant="quiet/mode"
+                className="relative"
+                disabled={disabled}
+                role="radio"
+                aria-label={translate("drawingTools")}
+                aria-checked={isDrawingActive}
+                aria-expanded={isOpen || isDrawingActive ? "true" : "false"}
+                onPointerDown={handlePointerDown}
+                onPointerUp={handlePointerUp}
+                onPointerLeave={handlePointerLeave}
+                onContextMenu={handleContextMenu}
               >
-                {DRAWING_MODE_OPTIONS.map(({ mode, Icon }) => (
-                  <StyledItem key={mode} onSelect={() => selectMode(mode)}>
-                    <Icon />
-                    {translate(MODE_INFO[mode].name)}
-                  </StyledItem>
-                ))}
-              </DDContent>
-            </DD.Portal>
-          </DD.Root>
-        </div>
-        <TContent side="bottom">{translate("drawingTools")}</TContent>
-      </Tooltip.Root>
+                <DisplayedIcon />
+                <span
+                  className="absolute bottom-1 right-1 border-l-[5px] border-l-transparent border-b-[5px] border-b-gray-400 aria-expanded:border-b-white"
+                  aria-expanded={isOpen || isDrawingActive ? "true" : "false"}
+                  aria-hidden="true"
+                />
+              </Button>
+            </DD.Trigger>
+          </Tooltip>
+          <DD.Portal>
+            <DDContent
+              align="start"
+              side="bottom"
+              onEscapeKeyDown={() => {
+                buttonRef.current?.blur();
+              }}
+              onCloseAutoFocus={(e) => e.preventDefault()}
+            >
+              {DRAWING_MODE_OPTIONS.map(({ mode, Icon }) => (
+                <StyledItem key={mode} onSelect={() => selectMode(mode)}>
+                  <Icon />
+                  {translate(MODE_INFO[mode].name)}
+                </StyledItem>
+              ))}
+            </DDContent>
+          </DD.Portal>
+        </DD.Root>
+      </div>
     </div>
   );
 };

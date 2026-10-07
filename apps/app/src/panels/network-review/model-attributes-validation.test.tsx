@@ -7,7 +7,7 @@ import {
 } from "@testing-library/react";
 import { vi } from "vitest";
 import { Provider as JotaiProvider } from "jotai";
-import { TooltipProvider } from "@radix-ui/react-tooltip";
+import { TooltipProvider } from "@epanet-js/ui-kit";
 import { AuthMockProvider } from "src/__helpers__/auth-mock";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";

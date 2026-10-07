@@ -19,7 +19,7 @@ const DEFAULT_STYLE =
 const CONTRAST_STYLE =
   "z-20 max-w-48 rounded-sm bg-gray-900 px-2 py-1 text-size-small text-white shadow-lg dark:bg-white dark:text-gray-900";
 
-export const TooltipContent = forwardRef<
+const TooltipContent = forwardRef<
   ElementRef<typeof RadixTooltip.Content>,
   ContentProps & { variant?: TooltipVariant }
 >(({ variant = "default", className, children, ...props }, ref) => (
@@ -50,10 +50,12 @@ export function Tooltip({
   open,
   onOpenChange,
   zIndex,
+  className,
 }: {
   content: ReactNode;
   children: ReactNode;
   variant?: TooltipVariant;
+  className?: string;
   side?: ContentProps["side"];
   sideOffset?: ContentProps["sideOffset"];
   align?: ContentProps["align"];
@@ -75,6 +77,7 @@ export function Tooltip({
           side={side}
           sideOffset={sideOffset}
           align={align}
+          className={className}
           style={zIndex === undefined ? undefined : { zIndex }}
         >
           {content}

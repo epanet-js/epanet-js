@@ -14,8 +14,7 @@ import {
   useState,
 } from "react";
 import { IconProps } from "@radix-ui/react-icons/dist/types";
-import { Selector } from "@epanet-js/ui-kit";
-import * as Tooltip from "@radix-ui/react-tooltip";
+import { Selector, Tooltip } from "@epanet-js/ui-kit";
 import { useUserTracking } from "src/infra/user-tracking";
 import {
   studentAccountActiviationHelpUrl,
@@ -808,22 +807,18 @@ const NonCommercialHint = () => {
 
 const InfoTooltip = ({ text }: { text: string }) => {
   return (
-    <Tooltip.Root delayDuration={100}>
-      <Tooltip.Trigger asChild>
-        <button className="rounded-full hover:bg-base-hover">
-          <InfoIcon className="w-5 h-5 text-subtle" />
-        </button>
-      </Tooltip.Trigger>
-      <Tooltip.Portal>
-        <Tooltip.Content
-          className="max-w-xs text-pretty bg-gray-900 text-white text-size-base px-3 py-2 rounded-lg shadow-lg z-50"
-          side="top"
-          align="start"
-        >
-          {text}
-          <Tooltip.Arrow className="fill-gray-900" />
-        </Tooltip.Content>
-      </Tooltip.Portal>
-    </Tooltip.Root>
+    <Tooltip
+      className="max-w-xs!"
+      content={text}
+      variant="contrast"
+      side="top"
+      align="start"
+      delayDuration={100}
+      zIndex={50}
+    >
+      <button className="rounded-full hover:bg-base-hover">
+        <InfoIcon className="w-5 h-5 text-subtle" />
+      </button>
+    </Tooltip>
   );
 };

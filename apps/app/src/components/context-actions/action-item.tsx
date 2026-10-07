@@ -1,9 +1,7 @@
-import * as Tooltip from "@radix-ui/react-tooltip";
+import { Tooltip } from "@epanet-js/ui-kit";
 import {
   CMItem,
   StyledItem,
-  TContent,
-  StyledTooltipArrow,
   Button,
   B3Variant,
   Keycap,
@@ -50,33 +48,30 @@ export function ActionItem({
       {icon} {label}
     </CMItem>
   ) : (
-    <Tooltip.Root>
-      <div
-        className="h-10 w-8 py-1
+    <div
+      className="h-10 w-8 py-1
           group bn
           flex items-stretch justify-center focus:outline-hidden"
+    >
+      <Tooltip
+        delayDuration={700}
+        content={
+          <div className="flex gap-x-2 items-center whitespace-nowrap">
+            {label}
+            {shortcut ? (
+              <Keycap size="xs">{localizeKeybinding(shortcut)}</Keycap>
+            ) : null}
+          </div>
+        }
       >
-        <Tooltip.Trigger
+        <Button
+          variant={selected ? "quiet/mode" : variant}
+          aria-expanded={selected ? "true" : "false"}
           onClick={(evt) => onSelect(evt as unknown as Event)}
-          asChild
         >
-          <Button
-            variant={selected ? "quiet/mode" : variant}
-            aria-expanded={selected ? "true" : "false"}
-          >
-            {icon}
-          </Button>
-        </Tooltip.Trigger>
-      </div>
-      <TContent side="bottom">
-        <StyledTooltipArrow />
-        <div className="flex gap-x-2 items-center whitespace-nowrap">
-          {label}
-          {shortcut ? (
-            <Keycap size="xs">{localizeKeybinding(shortcut)}</Keycap>
-          ) : null}
-        </div>
-      </TContent>
-    </Tooltip.Root>
+          {icon}
+        </Button>
+      </Tooltip>
+    </div>
   );
 }

@@ -1,7 +1,6 @@
 import classed from "classed-components";
 import clsx from "clsx";
 import { Field } from "formik";
-import * as Tooltip from "@radix-ui/react-tooltip";
 import * as DD from "@radix-ui/react-dropdown-menu";
 import * as CM from "@radix-ui/react-context-menu";
 import * as Popover from "@radix-ui/react-popover";
@@ -12,6 +11,7 @@ import {
   sharedPadding,
   sharedText,
   styledButton,
+  Tooltip,
   type ButtonSide,
   type ButtonSize,
   type ButtonVariant,
@@ -31,16 +31,15 @@ import {
 
 export function Hint({ children }: { children: React.ReactNode }) {
   return (
-    <Tooltip.Root delayDuration={0}>
-      <Tooltip.Trigger className="dark:text-white align-middle">
+    <Tooltip
+      content={<div className="w-36">{children}</div>}
+      side="top"
+      delayDuration={0}
+    >
+      <button type="button" className="dark:text-white align-middle">
         <HelpIcon />
-      </Tooltip.Trigger>
-      <Tooltip.Portal>
-        <TContent>
-          <div className="w-36">{children}</div>
-        </TContent>
-      </Tooltip.Portal>
-    </Tooltip.Root>
+      </button>
+    </Tooltip>
   );
 }
 
@@ -311,24 +310,6 @@ export const styledCheckbox = ({
 
 export const FieldCheckbox = classed(Field)(styledCheckbox);
 
-export const TContent = classed(Tooltip.Content)(
-  ({ size = "sm" }: { size?: B3Size }) => [
-    {
-      "max-w-md": size === "sm",
-      "w-64": size === "md",
-    },
-    `px-2 py-1 rounded
-  z-20
-  text-sm
-  border
-  shadow-xs
-  text-gray-700          dark:text-white
-  bg-white               dark:bg-gray-900
-  border-gray-200        dark:border-gray-600
-  `,
-  ],
-);
-
 const arrowLike = "text-white dark:text-gray-900 fill-current";
 
 const ArrowSVG = (
@@ -348,12 +329,6 @@ export const StyledPopoverArrow = () => (
   <Popover.Arrow offset={5} width={11} height={5} className={arrowLike} asChild>
     {ArrowSVG}
   </Popover.Arrow>
-);
-
-export const StyledTooltipArrow = () => (
-  <Tooltip.Arrow offset={5} width={11} height={5} className={arrowLike} asChild>
-    {ArrowSVG}
-  </Tooltip.Arrow>
 );
 
 export const StyledPopoverContent = classed(Popover.Content)(

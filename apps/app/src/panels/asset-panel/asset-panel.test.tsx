@@ -29,7 +29,7 @@ import userEvent, { type UserEvent } from "@testing-library/user-event";
 import { AssetId, getLink, getPipe } from "@epanet-js/hydraulic-model";
 import FeatureEditor from "../feature-editor";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { TooltipProvider } from "@radix-ui/react-tooltip";
+import { TooltipProvider } from "@epanet-js/ui-kit";
 import { USelection } from "src/selection";
 
 describe("AssetPanel", () => {

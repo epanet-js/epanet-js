@@ -1,10 +1,9 @@
 import clsx from "clsx";
 import { createContext, useContext, useState } from "react";
 import * as C from "@radix-ui/react-collapsible";
-import * as Tooltip from "@radix-ui/react-tooltip";
+import { Tooltip } from "@epanet-js/ui-kit";
 import { ChevronDownIcon, ChevronRightIcon } from "src/icons";
 import { FooterResizer, useBigScreen } from "src/components/resizer";
-import { TContent, StyledTooltipArrow } from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
 
 // null = outside any SectionList; 0 = at outermost level; >0 = extra accumulated indentation from nested SectionLists
@@ -49,15 +48,17 @@ const ComparisonTooltip = ({
 
   if (hasChanged && baseDisplayValue !== undefined) {
     return (
-      <Tooltip.Root delayDuration={200}>
-        <Tooltip.Trigger asChild>{children}</Tooltip.Trigger>
-        <Tooltip.Portal>
-          <TContent side="left" sideOffset={15}>
-            <StyledTooltipArrow />
+      <Tooltip
+        content={
+          <>
             {translate("scenarios.main")}: {baseDisplayValue}
-          </TContent>
-        </Tooltip.Portal>
-      </Tooltip.Root>
+          </>
+        }
+        side="left"
+        sideOffset={15}
+      >
+        {children}
+      </Tooltip>
     );
   }
 

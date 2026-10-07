@@ -1,12 +1,6 @@
-import * as Tooltip from "@radix-ui/react-tooltip";
 import clsx from "clsx";
-import {
-  Button,
-  TContent,
-  StyledTooltipArrow,
-  Keycap,
-  B3Variant,
-} from "src/components/elements";
+import { Tooltip } from "@epanet-js/ui-kit";
+import { Button, Keycap, B3Variant } from "src/components/elements";
 import { localizeKeybinding } from "src/infra/i18n";
 
 export interface Action {
@@ -33,30 +27,27 @@ export function ActionButton({ action }: { action: Action }) {
   } = action;
 
   return (
-    <Tooltip.Root>
-      <Tooltip.Trigger
-        onClick={(evt) => !disabled && onSelect(evt as unknown as Event)}
-        asChild
-      >
-        <Button
-          variant={selected ? "quiet/mode" : variant}
-          aria-expanded={selected ? "true" : "false"}
-          disabled={disabled}
-          aria-label={label}
-          className={clsx("h-8", disabled ? "cursor-not-allowed" : "")}
-        >
-          {icon}
-        </Button>
-      </Tooltip.Trigger>
-      <TContent side="bottom">
-        <StyledTooltipArrow />
+    <Tooltip
+      delayDuration={700}
+      content={
         <div className="flex gap-x-2 items-center whitespace-nowrap">
           {label}
           {shortcut ? (
             <Keycap size="xs">{localizeKeybinding(shortcut)}</Keycap>
           ) : null}
         </div>
-      </TContent>
-    </Tooltip.Root>
+      }
+    >
+      <Button
+        variant={selected ? "quiet/mode" : variant}
+        aria-expanded={selected ? "true" : "false"}
+        disabled={disabled}
+        aria-label={label}
+        className={clsx("h-8", disabled ? "cursor-not-allowed" : "")}
+        onClick={(evt) => !disabled && onSelect(evt as unknown as Event)}
+      >
+        {icon}
+      </Button>
+    </Tooltip>
   );
 }

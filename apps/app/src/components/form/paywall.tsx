@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { useSetAtom } from "jotai";
-import * as Tooltip from "@radix-ui/react-tooltip";
+import { Tooltip } from "@epanet-js/ui-kit";
 import { type PaywallFeature } from "src/state/dialog";
 import { usePaywall, useStartUpgrade } from "src/hooks/use-paywall";
 import { useTranslate } from "src/hooks/use-translate";
@@ -9,7 +9,7 @@ import {
   type PaywallLockSource,
 } from "src/infra/user-tracking";
 import { PaywallLockIcon, RefreshIcon } from "src/icons";
-import { Button, TContent, StyledTooltipArrow } from "src/components/elements";
+import { Button } from "src/components/elements";
 import { useAuth } from "src/hooks/use-auth";
 import {
   trialAfterSignInAtom,
@@ -47,24 +47,16 @@ export const PaywallLockButton = ({
   const tooltip = translate("paywall.tooltip");
 
   return (
-    <Tooltip.Root delayDuration={200}>
-      <Tooltip.Trigger asChild>
-        <button
-          type="button"
-          aria-label={`${tooltip}: ${label}`}
-          onClick={openPaywall}
-          className="shrink-0 w-7 h-7 flex items-center justify-center rounded-xs text-gray-500 hover:text-gray-700 hover:bg-gray-200 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-700"
-        >
-          <PaywallLockIcon />
-        </button>
-      </Tooltip.Trigger>
-      <Tooltip.Portal>
-        <TContent side="top">
-          <StyledTooltipArrow />
-          {tooltip}
-        </TContent>
-      </Tooltip.Portal>
-    </Tooltip.Root>
+    <Tooltip content={tooltip} side="top">
+      <button
+        type="button"
+        aria-label={`${tooltip}: ${label}`}
+        onClick={openPaywall}
+        className="shrink-0 w-7 h-7 flex items-center justify-center rounded-xs text-gray-500 hover:text-gray-700 hover:bg-gray-200 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-700"
+      >
+        <PaywallLockIcon />
+      </button>
+    </Tooltip>
   );
 };
 

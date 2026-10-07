@@ -1,5 +1,5 @@
 import * as DD from "@radix-ui/react-dropdown-menu";
-import * as Tooltip from "@radix-ui/react-tooltip";
+import { Tooltip } from "@epanet-js/ui-kit";
 
 import {
   AdvancedSettingsIcon,
@@ -12,13 +12,7 @@ import {
   CustomAttributesIcon,
 } from "src/icons";
 import { useTranslate } from "src/hooks/use-translate";
-import {
-  Button,
-  DDContent,
-  StyledItem,
-  TContent,
-  StyledTooltipArrow,
-} from "src/components/elements";
+import { Button, DDContent, StyledItem } from "src/components/elements";
 import { useShowControls } from "src/commands/show-controls";
 import { useShowPatternsLibrary } from "src/commands/show-patterns-library";
 import { useShowPipeLibrary } from "src/commands/show-pipe-library";
@@ -36,72 +30,60 @@ export const OperationalDataDropdown = () => {
   const showCustomAttributes = useShowCustomAttributes();
 
   return (
-    <Tooltip.Root delayDuration={200}>
-      <div className="h-10 w-12 group bn flex items-stretch py-1 focus:outline-hidden">
-        <DD.Root>
-          <Tooltip.Trigger asChild>
-            <DD.Trigger asChild>
-              <Button variant="quiet">
-                <AdvancedSettingsIcon />
-                <ChevronDownIcon size="sm" />
-              </Button>
-            </DD.Trigger>
-          </Tooltip.Trigger>
-          <DD.Portal>
-            <DDContent
-              align="start"
-              side="bottom"
-              onCloseAutoFocus={(e) => e.preventDefault()}
+    <div className="h-10 w-12 group bn flex items-stretch py-1 focus:outline-hidden">
+      <DD.Root>
+        <Tooltip content={translate("operationalData")}>
+          <DD.Trigger asChild>
+            <Button variant="quiet">
+              <AdvancedSettingsIcon />
+              <ChevronDownIcon size="sm" />
+            </Button>
+          </DD.Trigger>
+        </Tooltip>
+        <DD.Portal>
+          <DDContent
+            align="start"
+            side="bottom"
+            onCloseAutoFocus={(e) => e.preventDefault()}
+          >
+            <StyledItem
+              onSelect={() => showPatternsLibrary({ source: "toolbar" })}
             >
-              <StyledItem
-                onSelect={() => showPatternsLibrary({ source: "toolbar" })}
-              >
-                <PatternsIcon />
-                {translate("patterns.title")}
-              </StyledItem>
+              <PatternsIcon />
+              {translate("patterns.title")}
+            </StyledItem>
 
-              <StyledItem
-                onSelect={() => showCurveLibrary({ source: "toolbar" })}
-              >
-                <CurveLibraryIcon />
-                {translate("curves.title")}
-              </StyledItem>
+            <StyledItem
+              onSelect={() => showCurveLibrary({ source: "toolbar" })}
+            >
+              <CurveLibraryIcon />
+              {translate("curves.title")}
+            </StyledItem>
 
-              <StyledItem
-                onSelect={() => showPumpLibrary({ source: "toolbar" })}
-              >
-                <PumpLibraryIcon />
-                {translate("pumpLibrary")}
-              </StyledItem>
+            <StyledItem onSelect={() => showPumpLibrary({ source: "toolbar" })}>
+              <PumpLibraryIcon />
+              {translate("pumpLibrary")}
+            </StyledItem>
 
-              <StyledItem
-                onSelect={() => showPipeLibrary({ source: "toolbar" })}
-              >
-                <PipeLibraryIcon />
-                {translate("pipeLibrary.menuLabel")}
-              </StyledItem>
+            <StyledItem onSelect={() => showPipeLibrary({ source: "toolbar" })}>
+              <PipeLibraryIcon />
+              {translate("pipeLibrary.menuLabel")}
+            </StyledItem>
 
-              <StyledItem onSelect={() => showControls({ source: "toolbar" })}>
-                <ControlsIcon />
-                {translate("controls.title")}
-              </StyledItem>
+            <StyledItem onSelect={() => showControls({ source: "toolbar" })}>
+              <ControlsIcon />
+              {translate("controls.title")}
+            </StyledItem>
 
-              <StyledItem
-                onSelect={() => showCustomAttributes({ source: "toolbar" })}
-              >
-                <CustomAttributesIcon />
-                {translate("customAttributes.title")}
-              </StyledItem>
-            </DDContent>
-          </DD.Portal>
-        </DD.Root>
-      </div>
-      <Tooltip.Portal>
-        <TContent side="bottom">
-          <StyledTooltipArrow />
-          {translate("operationalData")}
-        </TContent>
-      </Tooltip.Portal>
-    </Tooltip.Root>
+            <StyledItem
+              onSelect={() => showCustomAttributes({ source: "toolbar" })}
+            >
+              <CustomAttributesIcon />
+              {translate("customAttributes.title")}
+            </StyledItem>
+          </DDContent>
+        </DD.Portal>
+      </DD.Root>
+    </div>
   );
 };

@@ -8,7 +8,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Provider as JotaiProvider } from "jotai";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { TooltipProvider } from "@radix-ui/react-tooltip";
+import { TooltipProvider } from "@epanet-js/ui-kit";
 
 import { setInitialState } from "src/__helpers__/state";
 import { stubUserTracking } from "src/__helpers__/user-tracking";

@@ -1,6 +1,6 @@
 import { useHotkeys } from "src/keyboard/hotkeys";
-import { TContent, Keycap, Button } from "./elements";
-import * as Tooltip from "@radix-ui/react-tooltip";
+import { Tooltip } from "@epanet-js/ui-kit";
+import { Keycap, Button } from "./elements";
 import { localizeKeybinding } from "src/infra/i18n";
 import { useRef, useState } from "react";
 
@@ -17,24 +17,19 @@ export function DisabledMenuAction({
 
   return (
     <div className="relative">
-      <Tooltip.Root open={open} onOpenChange={setOpen} delayDuration={200}>
-        <div className="h-10 opacity-60 cursor-not-allowed group bn flex items-stretch py-1 focus:outline-hidden">
-          <Tooltip.Trigger asChild>
-            <Button
-              variant={"quiet/mode"}
-              disabled
-              aria-label={label}
-              aria-disabled
-            >
-              {children}
-              {label}
-            </Button>
-          </Tooltip.Trigger>
-        </div>
-        <Tooltip.Portal>
-          <TContent side="bottom">{reason}</TContent>
-        </Tooltip.Portal>
-      </Tooltip.Root>
+      <div className="h-10 opacity-60 cursor-not-allowed group bn flex items-stretch py-1 focus:outline-hidden">
+        <Tooltip content={reason} open={open} onOpenChange={setOpen}>
+          <Button
+            variant={"quiet/mode"}
+            disabled
+            aria-label={label}
+            aria-disabled
+          >
+            {children}
+            {label}
+          </Button>
+        </Tooltip>
+      </div>
     </div>
   );
 }
@@ -82,32 +77,15 @@ export default function MenuAction({
 
   return (
     <div className="relative">
-      <Tooltip.Root open={open} onOpenChange={setOpen} delayDuration={200}>
-        <div
-          className={`h-10 ${expanded ? "" : "w-8"} ${
-            disabled ? "opacity-60 cursor-not-allowed" : ""
-          } group bn flex items-stretch py-1 focus:outline-hidden`}
-        >
-          <Tooltip.Trigger asChild>
-            <Button
-              ref={buttonRef}
-              onClick={handleClick}
-              onBlur={() => setOpen(false)}
-              variant={"quiet/mode"}
-              role={role}
-              disabled={disabled}
-              aria-label={label}
-              aria-checked={selected}
-              aria-expanded={selected ? "true" : "false"}
-            >
-              {children}
-              {!!expanded && label}
-            </Button>
-          </Tooltip.Trigger>
-        </div>
-
-        <Tooltip.Portal>
-          <TContent side="bottom">
+      <div
+        className={`h-10 ${expanded ? "" : "w-8"} ${
+          disabled ? "opacity-60 cursor-not-allowed" : ""
+        } group bn flex items-stretch py-1 focus:outline-hidden`}
+      >
+        <Tooltip
+          open={open}
+          onOpenChange={setOpen}
+          content={
             <div className="flex gap-x-2 items-center">
               {!expanded ? label : null}
               {hotkey ? (
@@ -117,9 +95,24 @@ export default function MenuAction({
                 <Keycap size="xs">{localizeKeybinding(readOnlyHotkey)}</Keycap>
               ) : null}
             </div>
-          </TContent>
-        </Tooltip.Portal>
-      </Tooltip.Root>
+          }
+        >
+          <Button
+            ref={buttonRef}
+            onClick={handleClick}
+            onBlur={() => setOpen(false)}
+            variant={"quiet/mode"}
+            role={role}
+            disabled={disabled}
+            aria-label={label}
+            aria-checked={selected}
+            aria-expanded={selected ? "true" : "false"}
+          >
+            {children}
+            {!!expanded && label}
+          </Button>
+        </Tooltip>
+      </div>
     </div>
   );
 }

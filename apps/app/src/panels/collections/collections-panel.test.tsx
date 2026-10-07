@@ -3,7 +3,7 @@ import { act } from "react";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Provider as JotaiProvider } from "jotai";
-import { TooltipProvider } from "@radix-ui/react-tooltip";
+import { TooltipProvider } from "@epanet-js/ui-kit";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import "src/__helpers__/locale";
 import { setInitialState } from "src/__helpers__/state";

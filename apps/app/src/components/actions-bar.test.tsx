@@ -1,5 +1,5 @@
 /** @vitest-environment jsdom */
-import * as Tooltip from "@radix-ui/react-tooltip";
+import { TooltipProvider } from "@epanet-js/ui-kit";
 import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "src/__helpers__/locale";
@@ -194,7 +194,7 @@ const renderHeader = (
   }
   stubWidths(headerWidth, titleWidth);
   return render(
-    <Tooltip.Provider>
+    <TooltipProvider>
       <div data-header>
         {titleFloor > 0 && (
           <span style={{ minWidth: `${titleFloor}px` }}>Pipe</span>
@@ -206,7 +206,7 @@ const renderHeader = (
         )}
         <ActionsBar actions={actions} />
       </div>
-    </Tooltip.Provider>,
+    </TooltipProvider>,
   );
 };
 

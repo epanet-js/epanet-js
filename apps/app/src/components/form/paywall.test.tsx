@@ -1,7 +1,7 @@
 import { render, screen, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Provider as JotaiProvider, createStore, useAtomValue } from "jotai";
-import { TooltipProvider } from "@radix-ui/react-tooltip";
+import { TooltipProvider } from "@epanet-js/ui-kit";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { PaywallLockButton, PaywallOverlay, useFeatureLock } from "./paywall";
 import { dialogAtom } from "src/state/dialog";

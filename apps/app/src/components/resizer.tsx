@@ -1,5 +1,5 @@
 import { memo, useEffect, useRef } from "react";
-import * as T from "@radix-ui/react-tooltip";
+import { Tooltip } from "@epanet-js/ui-kit";
 import { useSetAtom, useAtom } from "jotai";
 import {
   Side,
@@ -10,7 +10,6 @@ import {
   OTHER_SIDE,
 } from "src/state/layout";
 import { useMove } from "@react-aria/interactions";
-import { TContent } from "src/components/elements";
 import clsx from "clsx";
 import { useMediaQuery } from "react-responsive";
 import { ChevronLeftIcon, ChevronRightIcon } from "src/icons";
@@ -258,8 +257,13 @@ function PanelToggle({
   };
 
   return (
-    <T.Root>
-      <T.Trigger
+    <Tooltip
+      delayDuration={700}
+      content={<div className="whitespace-nowrap">Expand panel</div>}
+      side="top"
+    >
+      <button
+        type="button"
         onClick={togglePanel}
         aria-label="Show panel"
         className={clsx(
@@ -275,13 +279,8 @@ function PanelToggle({
         )}
       >
         {side === "right" ? <ChevronLeftIcon /> : <ChevronRightIcon />}
-      </T.Trigger>
-      <T.Portal>
-        <TContent>
-          <div className="whitespace-nowrap">Expand panel</div>
-        </TContent>
-      </T.Portal>
-    </T.Root>
+      </button>
+    </Tooltip>
   );
 }
 

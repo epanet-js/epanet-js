@@ -2,7 +2,7 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "src/styles/globals.css";
-import * as T from "@radix-ui/react-tooltip";
+import { TooltipProvider } from "@epanet-js/ui-kit";
 
 import { Suspense, useState } from "react";
 import { PersistenceProvider } from "src/lib/persistence";
@@ -22,9 +22,9 @@ export default function HomePage({}) {
   return (
     <ErrorBoundary fallback={FallbackError}>
       <QueryClientProvider client={queryClient}>
-        <T.Provider>
+        <TooltipProvider>
           <Play />
-        </T.Provider>
+        </TooltipProvider>
       </QueryClientProvider>
     </ErrorBoundary>
   );

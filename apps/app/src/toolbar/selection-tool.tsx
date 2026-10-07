@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import * as DD from "@radix-ui/react-dropdown-menu";
-import * as Tooltip from "@radix-ui/react-tooltip";
+import { Tooltip } from "@epanet-js/ui-kit";
 
 import {
   RectangularSelectionIcon,
@@ -11,13 +11,7 @@ import { useDrawingMode } from "src/commands/set-drawing-mode";
 import { Mode, MODE_INFO, lastSelectionModeAtom } from "src/state/mode";
 import { useAtom, useAtomValue } from "jotai";
 import { modeAtom } from "src/state/mode";
-import {
-  Button,
-  DDContent,
-  Keycap,
-  StyledItem,
-  TContent,
-} from "src/components/elements";
+import { Button, DDContent, Keycap, StyledItem } from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
 import { localizeKeybinding } from "src/infra/i18n";
 import {
@@ -134,67 +128,66 @@ export const SelectionTool = () => {
 
   return (
     <div className="relative">
-      <Tooltip.Root delayDuration={200}>
-        <div className="h-10 w-8 group bn flex items-stretch py-1 focus:outline-hidden">
-          <DD.Root open={isOpen} onOpenChange={handleOpenChange}>
+      <div className="h-10 w-8 group bn flex items-stretch py-1 focus:outline-hidden">
+        <DD.Root open={isOpen} onOpenChange={handleOpenChange}>
+          <Tooltip
+            content={
+              <div className="flex gap-x-2 items-center">
+                {translate("areaSelection.tool")}
+                <Keycap size="xs">
+                  {localizeKeybinding(selectionModeShortcut)}
+                </Keycap>
+              </div>
+            }
+          >
             <DD.Trigger asChild>
-              <Tooltip.Trigger asChild>
-                <Button
-                  ref={buttonRef}
-                  variant="quiet/mode"
-                  className="relative"
-                  role="radio"
-                  aria-checked={isSelectionModeActive}
+              <Button
+                ref={buttonRef}
+                variant="quiet/mode"
+                className="relative"
+                role="radio"
+                aria-checked={isSelectionModeActive}
+                aria-expanded={
+                  isOpen || isSelectionModeActive ? "true" : "false"
+                }
+                aria-label={translate("areaSelection.tool")}
+                onPointerDown={handlePointerDown}
+                onPointerUp={handlePointerUp}
+                onPointerLeave={handlePointerLeave}
+                onContextMenu={handleContextMenu}
+              >
+                <DisplayedIcon />
+                <span
+                  className="absolute bottom-1 right-1 border-l-[5px] border-l-transparent border-b-[5px] border-b-gray-400 aria-expanded:border-b-white"
                   aria-expanded={
                     isOpen || isSelectionModeActive ? "true" : "false"
                   }
-                  aria-label={translate("areaSelection.tool")}
-                  onPointerDown={handlePointerDown}
-                  onPointerUp={handlePointerUp}
-                  onPointerLeave={handlePointerLeave}
-                  onContextMenu={handleContextMenu}
-                >
-                  <DisplayedIcon />
-                  <span
-                    className="absolute bottom-1 right-1 border-l-[5px] border-l-transparent border-b-[5px] border-b-gray-400 aria-expanded:border-b-white"
-                    aria-expanded={
-                      isOpen || isSelectionModeActive ? "true" : "false"
-                    }
-                    aria-hidden="true"
-                  />
-                </Button>
-              </Tooltip.Trigger>
+                  aria-hidden="true"
+                />
+              </Button>
             </DD.Trigger>
-            <DD.Portal>
-              <DDContent
-                align="start"
-                side="bottom"
-                onEscapeKeyDown={() => {
-                  buttonRef.current?.blur();
-                }}
-                onCloseAutoFocus={(e) => {
-                  e.preventDefault();
-                }}
-              >
-                {[...SELECTION_MODES].map(([mode, { key, Icon }]) => (
-                  <StyledItem key={mode} onSelect={() => selectMode(mode)}>
-                    <Icon />
-                    {translate(key)}
-                  </StyledItem>
-                ))}
-              </DDContent>
-            </DD.Portal>
-          </DD.Root>
-        </div>
-        <TContent side="bottom">
-          <div className="flex gap-x-2 items-center">
-            {translate("areaSelection.tool")}
-            <Keycap size="xs">
-              {localizeKeybinding(selectionModeShortcut)}
-            </Keycap>
-          </div>
-        </TContent>
-      </Tooltip.Root>
+          </Tooltip>
+          <DD.Portal>
+            <DDContent
+              align="start"
+              side="bottom"
+              onEscapeKeyDown={() => {
+                buttonRef.current?.blur();
+              }}
+              onCloseAutoFocus={(e) => {
+                e.preventDefault();
+              }}
+            >
+              {[...SELECTION_MODES].map(([mode, { key, Icon }]) => (
+                <StyledItem key={mode} onSelect={() => selectMode(mode)}>
+                  <Icon />
+                  {translate(key)}
+                </StyledItem>
+              ))}
+            </DDContent>
+          </DD.Portal>
+        </DD.Root>
+      </div>
     </div>
   );
 };

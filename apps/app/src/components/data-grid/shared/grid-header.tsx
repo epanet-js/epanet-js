@@ -1,21 +1,15 @@
 import { useRef, useState } from "react";
 import { Table, flexRender, Header } from "@tanstack/react-table";
 import * as DD from "@radix-ui/react-dropdown-menu";
-import * as Tooltip from "@radix-ui/react-tooltip";
 import clsx from "clsx";
+import { Tooltip } from "@epanet-js/ui-kit";
 import {
   MoreActionsIcon,
   SortAscendingIcon,
   SortDescendingIcon,
   TableSelectAllIcon,
 } from "src/icons";
-import {
-  Button,
-  DDContent,
-  StyledItem,
-  TContent,
-  StyledTooltipArrow,
-} from "src/components/elements";
+import { Button, DDContent, StyledItem } from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
 import { DataGridVariant } from "../types";
 import { resolveVisibleHeaderActions } from "../features";
@@ -215,15 +209,9 @@ function HeaderCell<T>({
               </button>
             );
             return action.tooltip ? (
-              <Tooltip.Root key={idx} delayDuration={200}>
-                <Tooltip.Trigger asChild>{button}</Tooltip.Trigger>
-                <Tooltip.Portal>
-                  <TContent side="top">
-                    <StyledTooltipArrow />
-                    {action.tooltip}
-                  </TContent>
-                </Tooltip.Portal>
-              </Tooltip.Root>
+              <Tooltip key={idx} content={action.tooltip} side="top">
+                {button}
+              </Tooltip>
             ) : (
               <span key={idx}>{button}</span>
             );

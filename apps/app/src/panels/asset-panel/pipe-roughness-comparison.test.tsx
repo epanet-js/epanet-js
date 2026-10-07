@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import { Provider as JotaiProvider, createStore } from "jotai";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { TooltipProvider } from "@radix-ui/react-tooltip";
+import { TooltipProvider } from "@epanet-js/ui-kit";
 import { LabelManager } from "@epanet-js/hydraulic-model";
 import type { PipeMaterial } from "@epanet-js/hydraulic-model";
 import { HydraulicModel } from "src/hydraulic-model";

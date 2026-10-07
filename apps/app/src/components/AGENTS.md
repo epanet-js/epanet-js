@@ -92,7 +92,7 @@ BASE components style via Tailwind utility classes and the semantic tokens defin
 
 If a needed token doesn't exist yet, follow the "When to Introduce a New Token" section of [styles AGENTS.md](../styles/AGENTS.md). Don't invent one-offs.
 
-`RailTab` puts its accent on `aria-selected`, not `data-state=active`: the `Tooltip.Trigger asChild` wrapping it passes `data-state="closed"` down to the `Tabs.Trigger`, which replaces the active state and silently removes the accent border.
+`RailTab` puts its accent on `aria-selected`, not `data-state=active`: the ui-kit `Tooltip` wrapping it passes `data-state="closed"` down to the `Tabs.Trigger`, which replaces the active state and silently removes the accent border.
 
 ## Bridge pattern — composing BASE with domain data
 

@@ -1,6 +1,6 @@
 import debounce from "lodash/debounce";
 import { numericChecks } from "src/lib/model-attributes-validation";
-import * as T from "@radix-ui/react-tooltip";
+import { Tooltip } from "@epanet-js/ui-kit";
 import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
 import { isPlayingAtom } from "src/state/simulation-playback";
@@ -1170,12 +1170,15 @@ const TileJSONItem = ({
         {layerConfig.name}
       </span>
       {isError ? (
-        <T.Root delayDuration={0}>
-          <T.Trigger>
+        <Tooltip
+          content="This TileJSON source failed to load"
+          side="top"
+          delayDuration={0}
+        >
+          <button type="button">
             <WarningIcon className="text-error" />
-          </T.Trigger>
-          <E.TContent>This TileJSON source failed to load</E.TContent>
-        </T.Root>
+          </button>
+        </Tooltip>
       ) : null}
       {editPopover}
       <OpacitySetting layerConfig={layerConfig} readonly={readonly} />

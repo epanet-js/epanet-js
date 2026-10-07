@@ -1,5 +1,5 @@
 import { screen } from "@testing-library/react";
-import { TooltipProvider } from "@radix-ui/react-tooltip";
+import { TooltipProvider } from "@epanet-js/ui-kit";
 import { render } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ListItem } from "./list-item";
