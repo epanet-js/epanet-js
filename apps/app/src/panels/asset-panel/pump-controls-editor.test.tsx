@@ -1,7 +1,12 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
-import { Control, PumpStatus, Tank } from "@epanet-js/hydraulic-model";
+import {
+  Control,
+  Patterns,
+  PumpStatus,
+  Tank,
+} from "@epanet-js/hydraulic-model";
 import {
   resolvePermissions,
   type Permissions,
@@ -571,5 +576,87 @@ describe("PumpControlsEditor", () => {
       expect(getRows()).toHaveLength(3);
       expect(getTimeInputValue(1)).toBe("2:00");
     });
+  });
+});
+
+describe("pattern-based", () => {
+  const SPEED_PATTERNS: Patterns = new Map([
+    [20, { id: 20, label: "SPEED_1", type: "pumpSpeed", multipliers: [1] }],
+    [21, { id: 21, label: "DEMAND_1", type: "demand", multipliers: [1] }],
+  ]);
+
+  const PatternHarness = ({
+    initialControl = null,
+    initialSpeedPatternId,
+    onControlChange,
+    onSpeedPatternChange,
+  }: {
+    initialControl?: Control | null;
+    initialSpeedPatternId?: number;
+    onControlChange?: (control: Control | null) => void;
+    onSpeedPatternChange?: (id: number | undefined) => void;
+  }) => {
+    const [control, setControl] = useState<Control | null>(initialControl);
+    const [speedPatternId, setSpeedPatternId] = useState(initialSpeedPatternId);
+    return (
+      <PumpControlsEditor
+        linkId={PUMP_ID}
+        initialStatus="on"
+        initialSpeed={INITIAL_SPEED}
+        control={control}
+        tanks={DEFAULT_TANKS}
+        levelUnit="m"
+        onControlChange={(next) => {
+          onControlChange?.(next);
+          setControl(next);
+        }}
+        speedPattern={{
+          patterns: SPEED_PATTERNS,
+          speedPatternId,
+          onChange: (id) => {
+            onSpeedPatternChange?.(id);
+            setSpeedPatternId(id);
+          },
+        }}
+      />
+    );
+  };
+
+  it("offers None, the patterns library and only pump speed patterns", async () => {
+    const user = userEvent.setup();
+    render(<PatternHarness />);
+
+    await selectType(user, "Pattern-based");
+    await user.click(screen.getByRole("combobox", { name: "Speed pattern" }));
+
+    const options = await screen.findAllByRole("option");
+    expect(options.map((o) => o.textContent)).toEqual(["SPEED_1"]);
+    expect(screen.getByRole("button", { name: "None" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Open patterns..." }),
+    ).toBeInTheDocument();
+  });
+
+  it("applies the selected speed pattern", async () => {
+    const user = userEvent.setup();
+    const onSpeedPatternChange = vi.fn();
+    render(<PatternHarness onSpeedPatternChange={onSpeedPatternChange} />);
+
+    await selectType(user, "Pattern-based");
+    await user.click(screen.getByRole("combobox", { name: "Speed pattern" }));
+    await user.click(await screen.findByRole("option", { name: "SPEED_1" }));
+
+    expect(onSpeedPatternChange).toHaveBeenCalledWith(20);
+  });
+
+  it("shows pattern-based when the pump already has a speed pattern", () => {
+    render(<PatternHarness initialSpeedPatternId={20} />);
+
+    expect(screen.getByRole("combobox", { name: "Type" })).toHaveTextContent(
+      "Pattern-based",
+    );
+    expect(
+      screen.getByRole("combobox", { name: "Speed pattern" }),
+    ).toHaveTextContent("SPEED_1");
   });
 });

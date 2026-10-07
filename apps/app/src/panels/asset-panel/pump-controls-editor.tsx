@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Selector } from "@epanet-js/ui-kit";
 import {
   AssetId,
@@ -7,6 +7,7 @@ import {
   buildDefaultVspPressureControl,
   buildTimedSetting,
   Control,
+  Patterns,
   PumpStatus,
   Tank,
   TimedSettingStep,
@@ -17,11 +18,13 @@ import { usePermissions } from "src/hooks/use-permissions";
 import { useShowPriorityAccessDialog } from "src/hooks/use-priority-access";
 import { useShowControls } from "src/commands/show-controls";
 import { useSelectAssetsInApp } from "src/commands/select-assets-in-app";
+import { useShowPatternsLibrary } from "src/commands/show-patterns-library";
 import { ExternalLinkIcon } from "src/icons";
-import { InlineField } from "src/components/form/fields";
+import { InlineField, NestedSection } from "src/components/form/fields";
 import { TextField } from "src/components/form/text-field";
 import { PumpTimeBasedControls } from "./pump-time-based-controls";
 import { PumpLevelBasedControls } from "./pump-level-based-controls";
+import { LibrarySelectRow } from "./ui-components";
 import {
   VariableSpeedPumpControlsEditor,
   type VariableSpeedPumpTargets,
@@ -31,6 +34,7 @@ type ControlType =
   | "none"
   | "levelBased"
   | "timeBased"
+  | "patternBased"
   | "pressureTarget"
   | "flowTarget";
 
@@ -48,6 +52,12 @@ const controlTypeFor = (control: Control | null): ControlType => {
   return "none";
 };
 
+export type PumpSpeedPatternProps = {
+  patterns: Patterns;
+  speedPatternId: number | undefined;
+  onChange: (speedPatternId: number | undefined) => void;
+};
+
 export const PumpControlsEditor = ({
   linkId,
   initialStatus,
@@ -59,6 +69,7 @@ export const PumpControlsEditor = ({
   variableSpeedPumpTargets,
   controllingPump = null,
   hasRawControls = false,
+  speedPattern,
   readOnly = false,
 }: {
   linkId: AssetId;
@@ -71,6 +82,7 @@ export const PumpControlsEditor = ({
   variableSpeedPumpTargets?: VariableSpeedPumpTargets;
   controllingPump?: { id: AssetId; label: string } | null;
   hasRawControls?: boolean;
+  speedPattern?: PumpSpeedPatternProps;
   readOnly?: boolean;
 }) => {
   const translate = useTranslate();
@@ -78,7 +90,22 @@ export const PumpControlsEditor = ({
   const showPriorityAccess = useShowPriorityAccessDialog();
   const showControls = useShowControls();
   const selectAssets = useSelectAssetsInApp();
-  const controlType = controlTypeFor(control);
+  const showPatternsLibrary = useShowPatternsLibrary();
+
+  const speedPatternId = speedPattern?.speedPatternId;
+  const [isPatternBased, setIsPatternBased] = useState(
+    speedPatternId !== undefined,
+  );
+  const [prevSpeedPatternId, setPrevSpeedPatternId] = useState(speedPatternId);
+  if (speedPatternId !== prevSpeedPatternId) {
+    setPrevSpeedPatternId(speedPatternId);
+    if (speedPatternId !== undefined) setIsPatternBased(true);
+  }
+
+  const controlType: ControlType =
+    control === null && speedPattern && isPatternBased
+      ? "patternBased"
+      : controlTypeFor(control);
 
   const typeOptions = useMemo(
     () => [
@@ -89,6 +116,14 @@ export const PumpControlsEditor = ({
         disabled: tanks.length === 0,
       },
       { value: "timeBased" as const, label: translate("controls.timeBased") },
+      ...(speedPattern
+        ? [
+            {
+              value: "patternBased" as const,
+              label: translate("controls.patternBased"),
+            },
+          ]
+        : []),
       ...(variableSpeedPumpTargets
         ? [
             {
@@ -103,15 +138,25 @@ export const PumpControlsEditor = ({
           ]
         : []),
     ],
-    [translate, tanks.length, variableSpeedPumpTargets],
+    [translate, tanks.length, speedPattern, variableSpeedPumpTargets],
   );
 
   const selectedTypeOption = typeOptions.find((o) => o.value === controlType);
 
   const handleTypeChange = (newValue: ControlType) => {
-    if (newValue !== "none" && !canUseControls) {
+    if (newValue === controlType) return;
+    if (newValue !== "none" && newValue !== "patternBased" && !canUseControls) {
       showPriorityAccess({ featureName: translate("controls.nativeTitle") });
       return;
+    }
+    if (newValue === "patternBased") {
+      setIsPatternBased(true);
+      if (control) onControlChange(null);
+      return;
+    }
+    if (controlType === "patternBased") {
+      setIsPatternBased(false);
+      if (speedPatternId !== undefined) speedPattern?.onChange(undefined);
     }
     const previousVariableSpeed =
       control?.type === "variable-speed-pump" ? control : undefined;
@@ -179,6 +224,32 @@ export const PumpControlsEditor = ({
           </div>
         )}
       </InlineField>
+
+      {controlType === "patternBased" && speedPattern && (
+        <NestedSection className="pb-2">
+          <LibrarySelectRow
+            name="speedPattern"
+            collection={speedPattern.patterns}
+            filterByType="pumpSpeed"
+            libraryLabel={translate("openPatternsLibrary")}
+            onOpenLibrary={() =>
+              showPatternsLibrary({
+                source: "pump",
+                initialPatternId: speedPatternId,
+                initialSection: "pumpSpeed",
+              })
+            }
+            selected={speedPatternId ?? null}
+            emptyOptionLabel={translate("none")}
+            onChange={(_, newValue) => {
+              const newSpeedPatternId = newValue ?? undefined;
+              if (newSpeedPatternId !== speedPatternId)
+                speedPattern.onChange(newSpeedPatternId);
+            }}
+            readOnly={readOnly}
+          />
+        </NestedSection>
+      )}
 
       {control?.type === "level-setting" && (
         <PumpLevelBasedControls

@@ -2691,12 +2691,14 @@ const PumpEditor = ({
           onChange={handleStatusChange}
           readOnly={readonly}
         />
-        <VariableSpeedField
-          pump={pump}
-          patterns={hydraulicModel.patterns}
-          onPropertyChange={onPropertyChange}
-          readOnly={readonly}
-        />
+        {!isVariableSpeedPumpsOn && (
+          <VariableSpeedField
+            pump={pump}
+            patterns={hydraulicModel.patterns}
+            onPropertyChange={onPropertyChange}
+            readOnly={readonly}
+          />
+        )}
       </SectionWrapper>
       <CustomAttributesSection
         asset={pump}
@@ -2716,6 +2718,20 @@ const PumpEditor = ({
           variableSpeedPumpTargets={variableSpeedPumpTargets}
           controllingPump={controllingPump}
           hasRawControls={hasRawControls}
+          speedPattern={
+            isVariableSpeedPumpsOn
+              ? {
+                  patterns: hydraulicModel.patterns,
+                  speedPatternId: pump.speedPatternId,
+                  onChange: (speedPatternId) =>
+                    onPropertyChange(
+                      "speedPatternId",
+                      speedPatternId,
+                      pump.speedPatternId,
+                    ),
+                }
+              : undefined
+          }
           readOnly={readonly}
         />
       </SectionWrapper>

@@ -1140,6 +1140,7 @@
     "simpleEmpty": "No simple controls defined",
     "rulesEmpty": "No rule-based controls defined",
     "timeBased": "Time-based",
+    "patternBased": "Pattern-based",
     "levelBased": "Level-based",
     "levelValidation": {
       "outOfRange": "Level must be between {{1}} and {{2}}.",
