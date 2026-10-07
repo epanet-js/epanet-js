@@ -602,9 +602,7 @@ export function BaseSelectorList<T extends string | number | boolean>({
         </div>
       )}
       {showClearRow && (
-        <div
-          className={clsx("p-1", (showSearch || showList) && "border-t border")}
-        >
+        <div className={clsx("p-1", (showSearch || showList) && "border-t")}>
           <button
             type="button"
             className={clsx(
@@ -625,7 +623,7 @@ export function BaseSelectorList<T extends string | number | boolean>({
         <div
           className={clsx(
             "p-1",
-            (showSearch || showList || showClearRow) && "border-t border",
+            (showSearch || showList || showClearRow) && "border-t",
           )}
         >
           <button
