@@ -14,10 +14,10 @@ export type TooltipVariant = "default" | "contrast";
 type ContentProps = ComponentPropsWithoutRef<typeof RadixTooltip.Content>;
 
 const DEFAULT_STYLE =
-  "z-20 max-w-md rounded border border-gray-200 bg-white px-2 py-1 text-sm text-gray-700 shadow-xs dark:border-gray-600 dark:bg-gray-900 dark:text-white";
+  "z-20 max-w-md rounded border bg-popover px-2 py-1 text-size-base text-default shadow-xs";
 
 const CONTRAST_STYLE =
-  "z-20 max-w-48 rounded-sm bg-gray-900 px-2 py-1 text-size-small text-white shadow-lg dark:bg-white dark:text-gray-900";
+  "z-20 max-w-48 rounded-sm bg-popover-inverse px-2 py-1 text-size-small text-default-inverse shadow-lg";
 
 const TooltipContent = forwardRef<
   ElementRef<typeof RadixTooltip.Content>,
@@ -33,7 +33,7 @@ const TooltipContent = forwardRef<
   >
     {children}
     {variant === "contrast" && (
-      <RadixTooltip.Arrow className="fill-gray-900 dark:fill-white" />
+      <RadixTooltip.Arrow className="fill-popover-inverse" />
     )}
   </RadixTooltip.Content>
 ));
