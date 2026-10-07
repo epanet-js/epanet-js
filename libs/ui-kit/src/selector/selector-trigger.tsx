@@ -44,8 +44,8 @@ export const triggerStylesFor = (
     !disabled &&
       !effectiveStyleOptions.disableHoverEffects &&
       (isWarning
-        ? "focus:ring-inset focus:ring-1 focus:ring-warning"
-        : "focus:ring-inset focus:ring-1 focus:ring-accent focus:bg-purple-300/10"),
+        ? "focus-visible:ring-inset focus-visible:ring-1 focus-visible:ring-warning"
+        : "focus-visible:ring-inset focus-visible:ring-1 focus-visible:ring-accent focus-visible:bg-purple-300/10"),
   );
 };
 

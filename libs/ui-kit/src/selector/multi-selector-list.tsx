@@ -7,6 +7,7 @@ import React, {
   useLayoutEffect,
 } from "react";
 import clsx from "clsx";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { CheckIcon } from "../icons";
 import { useUIConfig } from "../ui-config";
 import { SelectorListOption } from "./selector-list";
@@ -26,12 +27,16 @@ export type MultiSelectorListProps<T extends string | number> = {
   maxVisibleOptions?: number;
 };
 
+const VIRTUALIZATION_THRESHOLD = 100;
 const NO_INDEX = -1;
 const PAGE_SIZE = 5;
 const TYPE_AHEAD_RESET_MS = 500;
 
 const ROW_REM = 2;
 const LIST_TOP_PAD_REM = 0.25;
+const ROW_PX = 32;
+const LIST_PAD_PX = 4;
+const VIRTUAL_OVERSCAN = 8;
 
 export const MultiSelectorList = BaseMultiSelectorList;
 
@@ -46,10 +51,14 @@ export function BaseMultiSelectorList<T extends string | number>({
   maxVisibleOptions = 5,
 }: MultiSelectorListProps<T>) {
   const ui = useUIConfig();
+  const virtualized = options.length > VIRTUALIZATION_THRESHOLD;
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState<number>(NO_INDEX);
   const inputRef = useRef<HTMLInputElement>(null);
   const listContainerRef = useRef<HTMLDivElement>(null);
+  const [scrollElement, setScrollElement] = useState<HTMLDivElement | null>(
+    null,
+  );
 
   const selectedSet = useMemo(() => new Set(selected), [selected]);
 
@@ -67,6 +76,15 @@ export function BaseMultiSelectorList<T extends string | number>({
 
   const maxListHeight = `${(maxVisibleOptions + 0.5) * ROW_REM + LIST_TOP_PAD_REM}rem`;
 
+  const virtualizer = useVirtualizer({
+    count: virtualized ? filtered.length : 0,
+    getScrollElement: () => scrollElement,
+    estimateSize: () => ROW_PX,
+    overscan: VIRTUAL_OVERSCAN,
+    paddingStart: LIST_PAD_PX,
+    paddingEnd: LIST_PAD_PX,
+  });
+
   useLayoutEffect(
     function focusOnMount() {
       if (showSearch) {
@@ -81,13 +99,17 @@ export function BaseMultiSelectorList<T extends string | number>({
   useEffect(
     function scrollActiveIntoView() {
       if (activeIndex < 0) return;
+      if (virtualized) {
+        virtualizer.scrollToIndex(activeIndex, { align: "auto" });
+        return;
+      }
       const list =
         listContainerRef.current?.querySelector("ul[role='listbox']");
       if (!list) return;
       const items = list.querySelectorAll<HTMLElement>("li[role='option']");
       items[activeIndex]?.scrollIntoView({ block: "nearest" });
     },
-    [activeIndex],
+    [activeIndex, virtualized, virtualizer],
   );
 
   const findNextEnabled = useCallback(
@@ -110,7 +132,11 @@ export function BaseMultiSelectorList<T extends string | number>({
     const opt = filtered[activeIndex];
     if (opt.disabled) return;
     onToggle(opt.value);
-  }, [activeIndex, filtered, onToggle]);
+    if (trimmedQuery) {
+      setQuery("");
+      setActiveIndex(options.indexOf(opt));
+    }
+  }, [activeIndex, filtered, options, trimmedQuery, onToggle]);
 
   const typedPrefixRef = useRef("");
   const typedPrefixTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
@@ -140,6 +166,59 @@ export function BaseMultiSelectorList<T extends string | number>({
     },
     [showSearch, filtered],
   );
+
+  function renderOptionRow(
+    option: SelectorListOption<T>,
+    i: number,
+    virtualStyle?: React.CSSProperties,
+  ) {
+    const isOptionDisabled = !!option.disabled;
+    const isSelected = selectedSet.has(option.value);
+    return (
+      <li
+        key={String(option.value)}
+        role="option"
+        aria-selected={isSelected}
+        aria-disabled={isOptionDisabled}
+        style={virtualStyle}
+        className={clsx(
+          "flex items-center gap-2 h-8 px-2 rounded-sm",
+          virtualStyle && "absolute top-0 left-1 right-1",
+          isOptionDisabled
+            ? "cursor-default text-disabled"
+            : "cursor-pointer text-default",
+          !isOptionDisabled && i === activeIndex && "bg-base-hover",
+          !isOptionDisabled && i !== activeIndex && "hover:bg-base-hover",
+          listClassName,
+        )}
+        onMouseEnter={isOptionDisabled ? undefined : () => setActiveIndex(i)}
+        onMouseDown={(e) => e.preventDefault()}
+        onClick={isOptionDisabled ? undefined : () => onToggle(option.value)}
+      >
+        <span
+          aria-hidden="true"
+          className={clsx(
+            "flex items-center justify-center w-4 h-4 rounded border shrink-0",
+            isSelected
+              ? "bg-accent border-transparent"
+              : "bg-panel border-strong",
+          )}
+        >
+          {isSelected && <CheckIcon size={12} className="text-white" />}
+        </span>
+        <span className="flex items-baseline gap-1 min-w-0">
+          <span className="text-nowrap overflow-hidden text-ellipsis">
+            {option.label}
+          </span>
+          {option.description && (
+            <span className="text-nowrap text-subtle">
+              {option.description}
+            </span>
+          )}
+        </span>
+      </li>
+    );
+  }
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -187,7 +266,43 @@ export function BaseMultiSelectorList<T extends string | number>({
         setActiveIndex(findNextEnabled(totalEntries - 1, -1));
         return;
       }
+      if (e.key === "Tab") {
+        e.preventDefault();
+        const direction = e.shiftKey ? -1 : 1;
+        const toOptions = () => {
+          setActiveIndex(
+            direction === 1
+              ? findNextEnabled(0, 1)
+              : findNextEnabled(totalEntries - 1, -1),
+          );
+          listContainerRef.current?.focus();
+        };
+        if (!showSearch) {
+          setActiveIndex((prev) =>
+            direction === 1
+              ? findNextEnabled(
+                  prev < 0 ? 0 : Math.min(prev + 1, totalEntries - 1),
+                  1,
+                )
+              : findNextEnabled(prev <= 0 ? totalEntries - 1 : prev - 1, -1),
+          );
+          return;
+        }
+        const inSearch = e.target === inputRef.current && activeIndex < 0;
+        if (inSearch && showList) {
+          toOptions();
+          return;
+        }
+        setActiveIndex(NO_INDEX);
+        inputRef.current?.focus();
+        return;
+      }
       if (e.key === "Enter") {
+        e.preventDefault();
+        toggleActive();
+        return;
+      }
+      if (e.key === " " && e.target !== inputRef.current) {
         e.preventDefault();
         toggleActive();
         return;
@@ -210,7 +325,16 @@ export function BaseMultiSelectorList<T extends string | number>({
         handleTypeAhead(e.key);
       }
     },
-    [totalEntries, toggleActive, findNextEnabled, handleTypeAhead, onClose],
+    [
+      totalEntries,
+      toggleActive,
+      findNextEnabled,
+      handleTypeAhead,
+      onClose,
+      showSearch,
+      showList,
+      activeIndex,
+    ],
   );
 
   return (
@@ -230,6 +354,7 @@ export function BaseMultiSelectorList<T extends string | number>({
             onChange={(e) => {
               setQuery(e.target.value);
               setActiveIndex(e.target.value.trim() ? 0 : NO_INDEX);
+              if (virtualized) virtualizer.scrollToOffset(0);
             }}
             placeholder={searchPlaceholder ?? ui.searchPlaceholder}
             className="w-full h-8 px-2 text-size-base border rounded-sm outline-hidden border-strong focus:border-accent focus:ring-1 focus:ring-accent"
@@ -238,70 +363,35 @@ export function BaseMultiSelectorList<T extends string | number>({
       )}
       {showList && (
         <div
+          ref={setScrollElement}
           style={{ maxHeight: maxListHeight }}
           className="outline-hidden min-h-0 overflow-auto scroll-shadows [scrollbar-width:thin]"
         >
-          <ul
-            role="listbox"
-            aria-multiselectable="true"
-            tabIndex={-1}
-            className="p-1"
-          >
-            {filtered.map((option, i) => {
-              const isOptionDisabled = !!option.disabled;
-              const isSelected = selectedSet.has(option.value);
-              return (
-                <li
-                  key={String(option.value)}
-                  role="option"
-                  aria-selected={isSelected}
-                  aria-disabled={isOptionDisabled}
-                  className={clsx(
-                    "flex items-center gap-2 h-8 px-2 rounded-sm",
-                    isOptionDisabled
-                      ? "cursor-default text-disabled"
-                      : "cursor-pointer text-default",
-                    !isOptionDisabled && i === activeIndex && "bg-base-hover",
-                    !isOptionDisabled &&
-                      i !== activeIndex &&
-                      "hover:bg-base-hover",
-                    listClassName,
-                  )}
-                  onMouseEnter={
-                    isOptionDisabled ? undefined : () => setActiveIndex(i)
-                  }
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={
-                    isOptionDisabled ? undefined : () => onToggle(option.value)
-                  }
-                >
-                  <span
-                    aria-hidden="true"
-                    className={clsx(
-                      "flex items-center justify-center w-4 h-4 rounded border shrink-0",
-                      isSelected
-                        ? "bg-accent border-transparent"
-                        : "bg-panel border-strong",
-                    )}
-                  >
-                    {isSelected && (
-                      <CheckIcon size={12} className="text-white" />
-                    )}
-                  </span>
-                  <span className="flex items-baseline gap-1 min-w-0">
-                    <span className="text-nowrap overflow-hidden text-ellipsis">
-                      {option.label}
-                    </span>
-                    {option.description && (
-                      <span className="text-nowrap text-subtle">
-                        {option.description}
-                      </span>
-                    )}
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
+          {virtualized ? (
+            <ul
+              role="listbox"
+              aria-multiselectable="true"
+              tabIndex={-1}
+              className="relative"
+              style={{ height: virtualizer.getTotalSize() }}
+            >
+              {virtualizer.getVirtualItems().map((row) =>
+                renderOptionRow(filtered[row.index], row.index, {
+                  height: ROW_PX,
+                  transform: `translateY(${row.start}px)`,
+                }),
+              )}
+            </ul>
+          ) : (
+            <ul
+              role="listbox"
+              aria-multiselectable="true"
+              tabIndex={-1}
+              className="p-1"
+            >
+              {filtered.map((option, i) => renderOptionRow(option, i))}
+            </ul>
+          )}
         </div>
       )}
     </div>

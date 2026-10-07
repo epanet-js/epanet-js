@@ -91,6 +91,7 @@ export function BaseSelector<T extends string | number>({
 }: SelectorProps<T>) {
   const [open, setOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const closedFromOutside = useRef(false);
   const portalContainer = useSelectorPortalContainer();
 
   const selectedOption = useMemo(
@@ -181,11 +182,17 @@ export function BaseSelector<T extends string | number>({
           collisionPadding={8}
           className="bg-popover min-w-(--radix-popover-trigger-width) max-h-(--radix-popover-content-available-height) border text-size-base rounded-md shadow-md z-50 mt-1 overflow-hidden flex flex-col"
           onOpenAutoFocus={(e) => e.preventDefault()}
-          onCloseAutoFocus={(e) => e.preventDefault()}
+          onCloseAutoFocus={(e) => {
+            e.preventDefault();
+            if (!closedFromOutside.current) buttonRef.current?.focus();
+            closedFromOutside.current = false;
+          }}
           onPointerDownOutside={(e) => {
             if (buttonRef.current?.contains(e.target as Node)) {
               e.preventDefault();
+              return;
             }
+            closedFromOutside.current = true;
           }}
         >
           {open && (

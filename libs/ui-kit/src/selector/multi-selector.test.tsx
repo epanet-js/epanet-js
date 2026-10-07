@@ -212,6 +212,70 @@ describe("MultiSelector", () => {
       );
     });
 
+    it("toggles the highlighted option with Space and stays open", async () => {
+      render(<Harness options={[opt("Apple"), opt("Banana")]} />);
+      const user = await openMultiSelector();
+      await user.keyboard("{ArrowDown}{ArrowDown} ");
+
+      expect(screen.getByRole("option", { name: "Banana" })).toHaveAttribute(
+        "aria-selected",
+        "true",
+      );
+      expect(screen.getByRole("listbox")).toBeInTheDocument();
+    });
+
+    it("types a space into the search box instead of toggling", async () => {
+      render(<Harness options={[...manyOpts(7), opt("Option 1 b")]} />);
+      const user = await openMultiSelector();
+      await user.keyboard("Option 1 ");
+
+      expect(screen.getByRole("textbox")).toHaveValue("Option 1 ");
+      expect(
+        screen
+          .getAllByRole("option")
+          .filter((option) => option.getAttribute("aria-selected") === "true"),
+      ).toHaveLength(0);
+    });
+
+    it("clears the search after toggling with Enter, keeping the option highlighted", async () => {
+      render(<Harness options={[...manyOpts(7), opt("Zebra")]} />);
+      const user = await openMultiSelector();
+      await user.keyboard("Zeb{Enter}");
+
+      expect(screen.getByRole("textbox")).toHaveValue("");
+      expect(screen.getAllByRole("option")).toHaveLength(8);
+      const zebra = screen.getByRole("option", { name: "Zebra" });
+      expect(zebra).toHaveAttribute("aria-selected", "true");
+      expect(zebra).toHaveClass("bg-base-hover");
+    });
+
+    it("moves the highlight through the options with Tab, staying open", async () => {
+      render(<Harness options={[opt("Apple"), opt("Banana")]} />);
+      const user = await openMultiSelector();
+      await user.keyboard("{Tab}{Tab}{Enter}");
+
+      expect(screen.getByRole("option", { name: "Banana" })).toHaveAttribute(
+        "aria-selected",
+        "true",
+      );
+      expect(screen.getByRole("listbox")).toBeInTheDocument();
+    });
+
+    it("moves between the search box and the options with Tab", async () => {
+      render(<Harness options={manyOpts(8)} />);
+      const user = await openMultiSelector();
+
+      await user.keyboard("{Tab} ");
+      expect(screen.getByRole("option", { name: "Option 1" })).toHaveAttribute(
+        "aria-selected",
+        "true",
+      );
+
+      await user.keyboard("{Tab}");
+      expect(screen.getByRole("textbox")).toHaveFocus();
+      expect(screen.getByRole("listbox")).toBeInTheDocument();
+    });
+
     it("closes the popover on Escape", async () => {
       render(<Harness options={[opt("Apple"), opt("Banana")]} />);
       const user = await openMultiSelector();
@@ -296,6 +360,65 @@ describe("MultiSelector", () => {
       expect(screen.getByRole("listbox").parentElement).toHaveStyle({
         maxHeight: "7.25rem",
       });
+    });
+  });
+
+  describe("focus after closing", () => {
+    const renderWithNeighbour = () =>
+      render(
+        <>
+          <Harness options={[opt("Apple"), opt("Banana")]} />
+          <button type="button">Elsewhere</button>
+        </>,
+      );
+
+    it("returns focus to the trigger when closed with Escape", async () => {
+      renderWithNeighbour();
+      const user = await openMultiSelector();
+      await user.keyboard("{ArrowDown}{Enter}{Escape}");
+
+      await waitFor(() => {
+        expect(
+          screen.getByRole("combobox", { name: "Pick some" }),
+        ).toHaveFocus();
+      });
+    });
+
+    it("leaves focus where the user clicked when closed from outside", async () => {
+      renderWithNeighbour();
+      const user = await openMultiSelector();
+      await user.click(screen.getByRole("button", { name: "Elsewhere" }));
+
+      await waitFor(() => {
+        expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
+      });
+      expect(screen.getByRole("button", { name: "Elsewhere" })).toHaveFocus();
+    });
+  });
+
+  describe("virtualization", () => {
+    it("renders only the rows in view above 100 options", async () => {
+      render(<Harness options={manyOpts(500)} />);
+      await openMultiSelector();
+
+      expect(screen.getAllByRole("option").length).toBeLessThan(500);
+    });
+
+    it("toggles a row outside the rendered window from the keyboard", async () => {
+      render(
+        <Harness
+          options={manyOpts(500)}
+          valueLabel={(selected) => selected.join(", ")}
+        />,
+      );
+      const user = await openMultiSelector();
+
+      expect(screen.queryByText("Option 500")).not.toBeInTheDocument();
+      await user.keyboard("{End}{Enter}");
+
+      expect(
+        screen.getByRole("combobox", { name: "Pick some" }),
+      ).toHaveTextContent("Option 500");
     });
   });
 

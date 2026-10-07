@@ -827,6 +827,56 @@ describe("Selector", () => {
     });
   });
 
+  describe("focus after closing", () => {
+    const renderWithNeighbour = () =>
+      render(
+        <>
+          <Selector
+            ariaLabel="Pick one"
+            options={[opt("Apple"), opt("Banana")]}
+            selected="Apple"
+            onChange={vi.fn()}
+          />
+          <button type="button">Elsewhere</button>
+        </>,
+      );
+
+    it("returns focus to the trigger when closed with Escape", async () => {
+      renderWithNeighbour();
+      const user = await openSelector();
+      await user.keyboard("{Escape}");
+
+      await waitFor(() => {
+        expect(
+          screen.getByRole("combobox", { name: "Pick one" }),
+        ).toHaveFocus();
+      });
+    });
+
+    it("returns focus to the trigger after choosing with Enter", async () => {
+      renderWithNeighbour();
+      const user = await openSelector();
+      await user.keyboard("{ArrowDown}{Enter}");
+
+      await waitFor(() => {
+        expect(
+          screen.getByRole("combobox", { name: "Pick one" }),
+        ).toHaveFocus();
+      });
+    });
+
+    it("leaves focus where the user clicked when closed from outside", async () => {
+      renderWithNeighbour();
+      const user = await openSelector();
+      await user.click(screen.getByRole("button", { name: "Elsewhere" }));
+
+      await waitFor(() => {
+        expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
+      });
+      expect(screen.getByRole("button", { name: "Elsewhere" })).toHaveFocus();
+    });
+  });
+
   describe("virtualization", () => {
     const renderSelector = (optionCount: number) => {
       const onChange = vi.fn();
