@@ -48,7 +48,9 @@
   --color-accent-hover: var(--color-purple-600);
   --color-base-hover: rgb(0 0 0 / 0.05);
   --color-popover: var(--color-white);
+  --color-popover-inverse: var(--color-gray-900);
   --color-default: var(--color-gray-900);
+  --color-default-inverse: var(--color-white);
   --color-subtle: var(--color-gray-500);
   --color-warning: var(--color-orange-600);
   --color-warning-subtle: var(--color-orange-50);
@@ -126,7 +128,9 @@
   --color-accent-tint: var(--color-purple-900);
   --color-panel: var(--color-gray-800);
   --color-popover: var(--color-gray-800);
+  --color-popover-inverse: var(--color-white);
   --color-default: var(--color-white);
+  --color-default-inverse: var(--color-gray-900);
   --color-subtle: var(--color-gray-400);
   --color-disabled: var(--color-gray-600);
   --color-warning: var(--color-orange-400);
