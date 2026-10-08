@@ -13,6 +13,8 @@ export type SourceAttribute = {
   name: string;
   type: CustomAttributeType;
   onEveryRecord: boolean;
+  // The distinct non-blank value keys, when there are at most `MAX_ENUM_VALUES`
+  values?: string[];
 };
 
 export type SourceGeometry = "point" | "line" | "polygon" | "unknown";

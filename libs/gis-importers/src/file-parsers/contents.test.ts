@@ -100,4 +100,82 @@ describe("contentsOf", () => {
       ),
     ).toEqual(["point", "line"]);
   });
+
+  describe("enum values", () => {
+    const valuesOf = (features: Feature[], name: string) =>
+      contentsOf(features).attributes.find(
+        (attribute) => attribute.name === name,
+      )?.values;
+
+    it("lists the distinct values of an attribute once each, without blanks", () => {
+      expect(
+        valuesOf(
+          [
+            aPoint({ TYPE: "VALVE" }),
+            aPoint({ TYPE: " PUMP " }),
+            aPoint({ TYPE: "VALVE" }),
+            aPoint({ TYPE: "" }),
+            aPoint({ TYPE: null }),
+            aPoint({}),
+          ],
+          "TYPE",
+        ),
+      ).toEqual(["VALVE", "PUMP"]);
+    });
+
+    it("merges a number with its text", () => {
+      expect(
+        valuesOf(
+          [
+            aPoint({ DIAMETER: 300 }),
+            aPoint({ DIAMETER: "100" }),
+            aPoint({ DIAMETER: 100 }),
+            aPoint({ DIAMETER: 25 }),
+          ],
+          "DIAMETER",
+        ),
+      ).toEqual(["300", "100", "25"]);
+    });
+
+    it("keeps up to 20 values, not counting blanks, and drops the list at the 21st", () => {
+      expect(
+        valuesOf(
+          [
+            ...Array.from({ length: 20 }, (_, index) =>
+              aPoint({ ID: `N${index}` }),
+            ),
+            aPoint({}),
+          ],
+          "ID",
+        ),
+      ).toHaveLength(20);
+      const records = (count: number) =>
+        Array.from({ length: count }, (_, index) =>
+          aPoint({ ID: `N${index}` }),
+        );
+
+      expect(valuesOf(records(20), "ID")).toHaveLength(20);
+      expect(valuesOf(records(21), "ID")).toBeUndefined();
+    });
+
+    it("merges the values of every geometry kind for the whole source", () => {
+      const line = (TYPE: string): Feature => ({
+        type: "Feature",
+        geometry: {
+          type: "LineString",
+          coordinates: [
+            [0, 0],
+            [1, 1],
+          ],
+        },
+        properties: { TYPE },
+      });
+      const contents = contentsOf([aPoint({ TYPE: "B" }), line("A")]);
+
+      expect(contents.attributes[0].values).toEqual(["B", "A"]);
+      expect(
+        contents.groups.map((group) => group.attributes[0].values),
+      ).toEqual([["B"], ["A"]]);
+    });
+  });
 });

@@ -5,16 +5,21 @@ import type {
   SourceGeometry,
 } from "../importer";
 import { numberOf } from "../number-value";
-
-const isBlank = (value: unknown): boolean =>
-  value === null ||
-  value === undefined ||
-  (typeof value === "string" && value.replace(/[\s\0]+/g, "") === "") ||
-  (typeof value === "number" && Number.isNaN(value));
+import { MAX_ENUM_VALUES, isBlank, valueKeyOf } from "../value-key";
 
 const isNumeric = (value: unknown): boolean => numberOf(value) !== null;
 
-type Tally = { stated: number; numeric: number };
+type Tally = { stated: number; numeric: number; values: Set<string> | null };
+
+const withValue = (
+  values: Set<string> | null,
+  key: string,
+): Set<string> | null => {
+  if (values === null || values.has(key)) return values;
+  if (values.size === MAX_ENUM_VALUES) return null;
+  values.add(key);
+  return values;
+};
 type Tallies = Map<string, Tally>;
 
 const GEOMETRY_ORDER: SourceGeometry[] = [
@@ -38,9 +43,14 @@ const tally = (tallies: Tallies, feature: Feature): void => {
   for (const [name, value] of Object.entries(properties)) {
     if (isBlank(value)) continue;
 
-    const counts = tallies.get(name) ?? { stated: 0, numeric: 0 };
+    const counts = tallies.get(name) ?? {
+      stated: 0,
+      numeric: 0,
+      values: new Set<string>(),
+    };
     counts.stated += 1;
     if (isNumeric(value)) counts.numeric += 1;
+    counts.values = withValue(counts.values, valueKeyOf(value));
     tallies.set(name, counts);
   }
 };
@@ -48,10 +58,21 @@ const tally = (tallies: Tallies, feature: Feature): void => {
 const merged = (all: Iterable<Tallies>): Tallies => {
   const total: Tallies = new Map();
   for (const tallies of all) {
-    for (const [name, { stated, numeric }] of tallies) {
-      const counts = total.get(name) ?? { stated: 0, numeric: 0 };
+    for (const [name, { stated, numeric, values }] of tallies) {
+      const counts = total.get(name) ?? {
+        stated: 0,
+        numeric: 0,
+        values: new Set<string>(),
+      };
       counts.stated += stated;
       counts.numeric += numeric;
+      counts.values =
+        values === null
+          ? null
+          : [...values].reduce<Set<string> | null>(
+              withValue,
+              counts.values && new Set(counts.values),
+            );
       total.set(name, counts);
     }
   }
@@ -64,11 +85,17 @@ const attributesOf = (
   statedOrder?: string[],
 ): SourceAttribute[] =>
   [...tallies.entries()]
-    .map(([name, { stated, numeric }]) => ({
-      name,
-      type: numeric === stated ? ("number" as const) : ("text" as const),
-      onEveryRecord: stated === recordCount,
-    }))
+    .map(([name, { stated, numeric, values }]): SourceAttribute => {
+      const onEveryRecord = stated === recordCount;
+      return {
+        name,
+        type: numeric === stated ? "number" : "text",
+        onEveryRecord,
+        ...(values !== null && {
+          values: [...values],
+        }),
+      };
+    })
     .sort(ordering(statedOrder));
 
 const byName = (a: SourceAttribute, b: SourceAttribute): number =>
