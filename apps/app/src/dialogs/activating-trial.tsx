@@ -6,7 +6,7 @@ import {
   useActivateTrial,
 } from "src/hooks/use-activate-trial";
 import { useAuth } from "src/hooks/use-auth";
-import { isTrialAvailable } from "src/lib/account-plans";
+import { isTrialAvailable } from "@epanet-js/account-plans";
 import { dialogAtom } from "src/state/dialog";
 import { RefreshIcon } from "src/icons";
 import { useTranslate } from "src/hooks/use-translate";

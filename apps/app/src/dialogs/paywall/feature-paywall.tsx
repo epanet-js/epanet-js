@@ -16,7 +16,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { useAuth } from "src/hooks/use-auth";
 import { SignInButton } from "src/components/auth/sign-in-button";
 import { buildAfterSignupUrl } from "src/hooks/use-early-access";
-import { isTrialAvailable } from "src/lib/account-plans";
+import { isTrialAvailable } from "@epanet-js/account-plans";
 
 export type FeaturePaywallConfig = {
   feature: PaywallFeature;

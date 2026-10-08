@@ -5,7 +5,7 @@ import {
 } from "@clerk/nextjs";
 import { isAuthEnabled } from "src/global-config";
 import { nullUser, User } from "src/auth-types";
-import { Plan, SubscriptionStatus } from "src/lib/account-plans";
+import { Plan, SubscriptionStatus } from "@epanet-js/account-plans";
 import { allSupportedLanguages, Locale } from "@epanet-js/i18n/locale";
 
 export type UseAuthHook = () => {

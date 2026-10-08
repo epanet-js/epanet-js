@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { Button } from "./elements";
-import { Plan } from "src/lib/account-plans";
+import { Plan } from "@epanet-js/account-plans";
 import { useUserTracking } from "src/infra/user-tracking";
 import { PaymentType, useCheckout } from "src/hooks/use-checkout";
 import type { UpgradeOrigin } from "src/state/dialog";

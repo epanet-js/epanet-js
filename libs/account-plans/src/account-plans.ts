@@ -1,4 +1,6 @@
-export type Plan = "free" | "pro" | "personal" | "education" | "teams";
+export const PLANS = ["free", "pro", "personal", "education", "teams"] as const;
+
+export type Plan = (typeof PLANS)[number];
 
 export type SubscriptionStatus =
   | "none"

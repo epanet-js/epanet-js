@@ -23,7 +23,7 @@ import { SignInButton, SignUpButton } from "./auth-buttons";
 import { useShowWelcome } from "src/commands/show-welcome";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useShowShortcuts } from "src/commands/show-shortcuts";
-import { TrialCta, resolveTrialCta } from "src/lib/account-plans";
+import { TrialCta, resolveTrialCta } from "@epanet-js/account-plans";
 import { useEffectivePlan } from "src/hooks/use-effective-plan";
 import { usePermissions } from "src/hooks/use-permissions";
 import { useBillingPortal } from "src/hooks/use-billing-portal";

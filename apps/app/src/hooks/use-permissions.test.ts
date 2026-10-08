@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { resolvePermissions } from "./use-permissions";
-import { Plan } from "src/lib/account-plans";
+import { Plan } from "@epanet-js/account-plans";
 
 describe("resolvePermissions", () => {
   it("free plan cannot use paid features but can upgrade", () => {

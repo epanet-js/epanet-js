@@ -1,4 +1,4 @@
-import { Plan, SubscriptionStatus } from "src/lib/account-plans";
+import { Plan, SubscriptionStatus } from "@epanet-js/account-plans";
 import { Locale } from "@epanet-js/i18n/locale";
 
 export type User = {

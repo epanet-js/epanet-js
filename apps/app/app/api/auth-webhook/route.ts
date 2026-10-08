@@ -14,7 +14,7 @@ import { captureError } from "src/infra/error-tracking";
 import { addToSubscribers } from "src/infra/newsletter";
 import { logger } from "src/infra/server-logger";
 import { assignEducationPlan, parseData } from "src/lib/user-management";
-import { Plan } from "src/lib/account-plans";
+import { Plan } from "@epanet-js/account-plans";
 
 export async function POST(request: NextRequest) {
   const token = request.nextUrl.searchParams.get("token");

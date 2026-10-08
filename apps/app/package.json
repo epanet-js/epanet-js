@@ -46,6 +46,7 @@
     "@dnd-kit/modifiers": "^6.0.1",
     "@dnd-kit/sortable": "^7.0.2",
     "@dnd-kit/utilities": "^3.2.2",
+    "@epanet-js/account-plans": "workspace:*",
     "@epanet-js/buffers": "workspace:*",
     "@epanet-js/change-set": "workspace:^",
     "@epanet-js/converters": "workspace:*",

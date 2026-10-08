@@ -2,7 +2,7 @@ import type { Locale } from "@epanet-js/i18n/locale";
 import { useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
 import { useLocale } from "src/hooks/use-locale";
-import { Plan } from "src/lib/account-plans";
+import { Plan } from "@epanet-js/account-plans";
 import { billingUrl } from "src/global-config";
 
 export type PaymentType = "monthly" | "yearly";

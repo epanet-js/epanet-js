@@ -3,7 +3,7 @@ import { useAtomValue } from "jotai";
 import { useAuth } from "src/hooks/use-auth";
 import { useOrganization } from "src/hooks/use-organization";
 import { useEffectivePlan } from "src/hooks/use-effective-plan";
-import { Plan, isTrialActive } from "src/lib/account-plans";
+import { Plan, isTrialActive } from "@epanet-js/account-plans";
 import { isDemoNetworkAtom } from "src/state/file-system";
 
 export type Permissions = {

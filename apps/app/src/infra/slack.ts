@@ -1,4 +1,4 @@
-import { Plan } from "src/lib/account-plans";
+import { Plan } from "@epanet-js/account-plans";
 import { captureError } from "./error-tracking";
 import { logger } from "./server-logger";
 

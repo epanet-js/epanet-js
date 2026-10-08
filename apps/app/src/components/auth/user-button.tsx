@@ -6,7 +6,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { useBillingPortal } from "src/hooks/use-billing-portal";
 import { useSignOut } from "src/commands/sign-out";
 import { useUserTracking } from "src/infra/user-tracking";
-import { hasBillingAccount, resolveTrialCta } from "src/lib/account-plans";
+import { hasBillingAccount, resolveTrialCta } from "@epanet-js/account-plans";
 import { isAuthEnabled } from "src/global-config";
 import { Building, CreditCard, LogOut } from "lucide-react";
 

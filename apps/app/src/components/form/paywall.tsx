@@ -16,7 +16,7 @@ import {
   useActivateTrial,
   useIsTrialEmailRefused,
 } from "src/hooks/use-activate-trial";
-import { isTrialAvailable } from "src/lib/account-plans";
+import { isTrialAvailable } from "@epanet-js/account-plans";
 import { SignInButton } from "src/components/auth/sign-in-button";
 import { buildAfterSignupUrl } from "src/hooks/use-early-access";
 

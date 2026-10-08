@@ -1,4 +1,4 @@
-import { Plan } from "src/lib/account-plans";
+import { Plan } from "@epanet-js/account-plans";
 import { useTranslate } from "src/hooks/use-translate";
 
 const planStyles: Record<string, string> = {
