@@ -287,6 +287,10 @@ type ModelBuilderCompleted = {
   name: "modelBuilder.completed";
   version?: "v2";
 };
+type ModelBuilderClosed = {
+  name: "modelBuilder.closed";
+  step: string | null;
+};
 type ModelBuilderPaywallSeen = {
   name: "modelBuilder.paywall.seen";
   source: string;
@@ -1584,6 +1588,7 @@ export type UserEvent =
   | SimulationReportAssetClicked
   | ModelBuilderOpened
   | ModelBuilderCompleted
+  | ModelBuilderClosed
   | ModelBuilderPaywallSeen
   | ModelBuilderPaywallDismissed
   | ModelBuilderPaywallContinuedWithLegacy

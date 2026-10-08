@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { BaseDialog } from "../components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
 import { useAuth } from "src/hooks/use-auth";
@@ -45,6 +45,18 @@ interface TrackUserEventMessage extends IframeMessage {
   data: {
     source: "epanet-model-builder";
     userEvent: UserEvent;
+  };
+}
+
+type ModelBuilderContext = {
+  step?: string;
+};
+
+interface ContextChangedMessage extends IframeMessage {
+  type: "contextChanged";
+  data: {
+    source: "epanet-model-builder";
+    context: ModelBuilderContext;
   };
 }
 
@@ -114,6 +126,7 @@ export const ModelBuilderV2IframeDialog = ({
   const translate = useTranslate();
   const { locale } = useLocale();
   const [isLoading, setIsLoading] = useState(true);
+  const context = useRef<ModelBuilderContext>({});
   const openProjectFile = useOpenProjectFile();
   const userTracking = useUserTracking();
   const showNetworkReview = useShowNetworkReview();
@@ -146,6 +159,8 @@ export const ModelBuilderV2IframeDialog = ({
         );
       } else if (message.type === "trackUserEvent") {
         handleUserEvent(message as TrackUserEventMessage, userTracking);
+      } else if (message.type === "contextChanged") {
+        context.current = (message as ContextChangedMessage).data.context ?? {};
       } else if (message.type === "openExternalLink") {
         handleOpenExternalLink(message as OpenExternalLinkMessage);
       }
@@ -158,13 +173,21 @@ export const ModelBuilderV2IframeDialog = ({
     };
   }, [openProjectFile, userTracking, showNetworkReview]);
 
+  const handleClose = () => {
+    userTracking.capture({
+      name: "modelBuilder.closed",
+      step: context.current.step ?? null,
+    });
+    _onClose();
+  };
+
   return (
     <BaseDialog
       title={translate("importFromGIS")}
       size="xxl"
       height="xxl"
       isOpen={true}
-      onClose={_onClose}
+      onClose={handleClose}
       badge={showEarlyAccess ? <EarlyAccessBadge /> : undefined}
     >
       <div className="relative flex-1 flex flex-col min-h-0 overflow-hidden">
