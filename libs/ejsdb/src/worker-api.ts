@@ -47,7 +47,8 @@ import type {
 } from "./types";
 import { isEmptyWriteBatch } from "./types";
 import { ChangeSet, type Direction } from "@epanet-js/change-set";
-import { getFileTagger, type FileTagVerdict } from "@epanet-js/ejsdb-tag";
+import { nullFileTagger, type FileTagger } from "@epanet-js/ejsdb-tag";
+import { transfer } from "comlink";
 import { buildChangeSetPayload } from "./change-set/to-payload";
 
 const formatErrorDetails = (e: unknown): string => {
@@ -115,7 +116,7 @@ const stmtCache = new Map<string, Stmt>();
 
 type StorageMode = "memory" | "sahpool";
 let storageMode: StorageMode = "memory";
-let tagModels = false;
+let fileTagger: FileTagger = nullFileTagger;
 let poolUtil: SAHPoolUtil | null = null;
 const SAHPOOL_DB_PATH = "/main.sqlite3";
 const SAHPOOL_BASE_CAPACITY = 6;
@@ -254,13 +255,11 @@ const createNewDb = async (): Promise<NewDbResult> => {
   return { status: "ok" };
 };
 
-const tagFile = (bytes: Uint8Array, label: string): Promise<Uint8Array> =>
-  tagModels ? getFileTagger().tag(bytes, label) : Promise.resolve(bytes);
+const tagFile = (bytes: Uint8Array, label: string) =>
+  fileTagger.tag(transfer(bytes, [bytes.buffer]), label);
 
-const verifyFile = (bytes: Uint8Array): Promise<FileTagVerdict> =>
-  tagModels
-    ? getFileTagger().verify(bytes)
-    : Promise.resolve({ body: bytes, integrity: "untagged", label: null });
+const verifyFile = (bytes: Uint8Array) =>
+  fileTagger.verify(transfer(bytes, [bytes.buffer]));
 
 const readUserVersion = (): number => {
   const rows = db!.exec("PRAGMA user_version", {
@@ -1170,16 +1169,16 @@ export const api = {
   async configure({
     mode,
     sahpoolId,
-    tagModels: shouldTagModels = false,
+    tagger = nullFileTagger,
   }: {
     mode: StorageMode;
     sahpoolId: string;
-    tagModels?: boolean;
+    tagger?: FileTagger;
   }): Promise<StorageMode> {
     await ready;
     storageMode =
       mode !== "memory" && (await ensureSahpool(sahpoolId)) ? mode : "memory";
-    tagModels = shouldTagModels;
+    fileTagger = tagger;
     return storageMode;
   },
 
