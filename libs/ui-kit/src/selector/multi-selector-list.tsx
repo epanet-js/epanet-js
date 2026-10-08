@@ -8,9 +8,9 @@ import React, {
 } from "react";
 import clsx from "clsx";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { CheckIcon } from "../icons";
 import { useUIConfig } from "../ui-config";
 import { SelectorListOption } from "./selector-list";
+import { MultiSelectorRow } from "./multi-selector-row";
 
 // Multi-select sibling of `BaseSelectorList` (./selector-list.tsx). It shares the
 // same look and keyboard/search behaviour but toggles membership without closing
@@ -172,51 +172,17 @@ export function BaseMultiSelectorList<T extends string | number>({
     i: number,
     virtualStyle?: React.CSSProperties,
   ) {
-    const isOptionDisabled = !!option.disabled;
-    const isSelected = selectedSet.has(option.value);
     return (
-      <li
+      <MultiSelectorRow<T>
         key={String(option.value)}
-        role="option"
-        aria-selected={isSelected}
-        aria-disabled={isOptionDisabled}
+        option={option}
+        isSelected={selectedSet.has(option.value)}
+        isActive={i === activeIndex}
+        className={listClassName}
         style={virtualStyle}
-        className={clsx(
-          "flex items-center gap-2 h-8 px-2 rounded-sm",
-          virtualStyle && "absolute top-0 left-1 right-1",
-          isOptionDisabled
-            ? "cursor-default text-disabled"
-            : "cursor-pointer text-default",
-          !isOptionDisabled && i === activeIndex && "bg-base-hover",
-          !isOptionDisabled && i !== activeIndex && "hover:bg-base-hover",
-          listClassName,
-        )}
-        onMouseEnter={isOptionDisabled ? undefined : () => setActiveIndex(i)}
-        onMouseDown={(e) => e.preventDefault()}
-        onClick={isOptionDisabled ? undefined : () => onToggle(option.value)}
-      >
-        <span
-          aria-hidden="true"
-          className={clsx(
-            "flex items-center justify-center w-4 h-4 rounded border shrink-0",
-            isSelected
-              ? "bg-accent border-transparent"
-              : "bg-panel border-strong",
-          )}
-        >
-          {isSelected && <CheckIcon size={12} className="text-white" />}
-        </span>
-        <span className="flex items-baseline gap-1 min-w-0">
-          <span className="text-nowrap overflow-hidden text-ellipsis">
-            {option.label}
-          </span>
-          {option.description && (
-            <span className="text-nowrap text-subtle">
-              {option.description}
-            </span>
-          )}
-        </span>
-      </li>
+        onActivate={() => setActiveIndex(i)}
+        onToggle={onToggle}
+      />
     );
   }
 
