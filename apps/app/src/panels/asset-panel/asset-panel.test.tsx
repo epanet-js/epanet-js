@@ -657,7 +657,7 @@ describe("AssetPanel", () => {
         (getLink(updatedHydraulicModel.assets, IDS.V1) as Valve).initialStatus,
       ).toEqual("closed");
 
-      expect(selector).not.toHaveFocus();
+      expect(selector).toHaveFocus();
       expect(selector).toHaveTextContent("Closed");
 
       historyControl("undo");
@@ -700,7 +700,7 @@ describe("AssetPanel", () => {
         (getLink(updatedHydraulicModel.assets, IDS.V1) as Valve).kind,
       ).toEqual("psv");
 
-      expect(selector).not.toHaveFocus();
+      expect(selector).toHaveFocus();
       expect(selector).toHaveTextContent("PSV");
       expectPropertyDisplayed("setting (m)", "10");
 
@@ -1070,7 +1070,7 @@ describe("AssetPanel", () => {
         (getLink(updatedHydraulicModel.assets, IDS.PU1) as Pump).initialStatus,
       ).toEqual("off");
 
-      expect(selector).not.toHaveFocus();
+      expect(selector).toHaveFocus();
       expect(selector).toHaveTextContent("Of");
 
       historyControl("undo");
@@ -1697,7 +1697,7 @@ describe("AssetPanel", () => {
       (getPipe(updatedHydraulicModel.assets, IDS.PIPE1) as Pipe).initialStatus,
     ).toEqual("closed");
 
-    expect(selector).not.toHaveFocus();
+    expect(selector).toHaveFocus();
     expect(selector).toHaveTextContent("Closed");
 
     historyControl("undo");
