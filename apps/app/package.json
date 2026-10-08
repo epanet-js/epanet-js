@@ -51,6 +51,7 @@
     "@epanet-js/change-set": "workspace:^",
     "@epanet-js/converters": "workspace:*",
     "@epanet-js/ejsdb": "workspace:*",
+    "@epanet-js/ejsdb-tag": "workspace:*",
     "@epanet-js/ejsdb-mappers": "workspace:*",
     "@epanet-js/elevations": "workspace:*",
     "@epanet-js/geometry": "workspace:*",

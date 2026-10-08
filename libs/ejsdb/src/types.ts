@@ -1,3 +1,4 @@
+import type { FileIntegrity } from "@epanet-js/ejsdb-tag";
 import type { AssetRows } from "./schema/assets";
 import type {
   AssetPatchRows,
@@ -21,8 +22,20 @@ export type NewDbResult =
   | { status: "storage-error"; errorDetails: string };
 
 export type OpenDbResult =
-  | { status: "ok"; fileVersion: number; appVersion: number }
-  | { status: "migrated"; fileVersion: number; appVersion: number }
+  | {
+      status: "ok";
+      fileVersion: number;
+      appVersion: number;
+      integrity: FileIntegrity;
+      label: string | null;
+    }
+  | {
+      status: "migrated";
+      fileVersion: number;
+      appVersion: number;
+      integrity: FileIntegrity;
+      label: string | null;
+    }
   | { status: "too-new"; fileVersion: number; appVersion: number }
   | { status: "corrupt"; errorDetails: string }
   | { status: "internal"; errorDetails: string }

@@ -47,6 +47,7 @@ import type {
 } from "./types";
 import { isEmptyWriteBatch } from "./types";
 import { ChangeSet, type Direction } from "@epanet-js/change-set";
+import { getFileTagger, type FileTagVerdict } from "@epanet-js/ejsdb-tag";
 import { buildChangeSetPayload } from "./change-set/to-payload";
 
 const formatErrorDetails = (e: unknown): string => {
@@ -114,6 +115,7 @@ const stmtCache = new Map<string, Stmt>();
 
 type StorageMode = "memory" | "sahpool";
 let storageMode: StorageMode = "memory";
+let tagModels = false;
 let poolUtil: SAHPoolUtil | null = null;
 const SAHPOOL_DB_PATH = "/main.sqlite3";
 const SAHPOOL_BASE_CAPACITY = 6;
@@ -251,6 +253,14 @@ const createNewDb = async (): Promise<NewDbResult> => {
 
   return { status: "ok" };
 };
+
+const tagFile = (bytes: Uint8Array, label: string): Promise<Uint8Array> =>
+  tagModels ? getFileTagger().tag(bytes, label) : Promise.resolve(bytes);
+
+const verifyFile = (bytes: Uint8Array): Promise<FileTagVerdict> =>
+  tagModels
+    ? getFileTagger().verify(bytes)
+    : Promise.resolve({ body: bytes, integrity: "untagged", label: null });
 
 const readUserVersion = (): number => {
   const rows = db!.exec("PRAGMA user_version", {
@@ -1160,13 +1170,16 @@ export const api = {
   async configure({
     mode,
     sahpoolId,
+    tagModels: shouldTagModels = false,
   }: {
     mode: StorageMode;
     sahpoolId: string;
+    tagModels?: boolean;
   }): Promise<StorageMode> {
     await ready;
     storageMode =
       mode !== "memory" && (await ensureSahpool(sahpoolId)) ? mode : "memory";
+    tagModels = shouldTagModels;
     return storageMode;
   },
 
@@ -1230,14 +1243,19 @@ export const api = {
         closeExistingDb();
 
         try {
+          const {
+            body: dbBytes,
+            integrity,
+            label,
+          } = await verifyFile(fileBytes);
           if (storageMode === "sahpool") {
-            await poolUtil!.importDb(SAHPOOL_DB_PATH, fileBytes);
+            await poolUtil!.importDb(SAHPOOL_DB_PATH, dbBytes);
             db = new poolUtil!.OpfsSAHPoolDb(
               SAHPOOL_DB_PATH,
             ) as unknown as OoDb;
           } else {
             db = new sqlite3!.oo1.DB(":memory:", "c");
-            const p = sqlite3!.wasm.allocFromTypedArray(fileBytes);
+            const p = sqlite3!.wasm.allocFromTypedArray(dbBytes);
             const flags =
               sqlite3!.capi.SQLITE_DESERIALIZE_FREEONCLOSE |
               sqlite3!.capi.SQLITE_DESERIALIZE_RESIZEABLE;
@@ -1245,8 +1263,8 @@ export const api = {
               db.pointer!,
               "main",
               p,
-              fileBytes.length,
-              fileBytes.length,
+              dbBytes.length,
+              dbBytes.length,
               flags,
             );
           }
@@ -1284,6 +1302,8 @@ export const api = {
             status: migrated ? "migrated" : "ok",
             fileVersion,
             appVersion: APP_VERSION,
+            integrity,
+            label,
           };
         } catch (e) {
           closeExistingDb();
@@ -1294,7 +1314,10 @@ export const api = {
     );
   },
 
-  async exportDbFromPool(poolId: string): Promise<Uint8Array | null> {
+  async exportDbFromPool(
+    poolId: string,
+    label?: string,
+  ): Promise<Uint8Array | null> {
     return timed("exportDbFromPool", async () => {
       await ready;
       if (!sqlite3) return null;
@@ -1306,7 +1329,8 @@ export const api = {
           initialCapacity: 6,
         });
         const bytes = await pool.exportFile(SAHPOOL_DB_PATH);
-        return bytes.length > 0 ? bytes : null;
+        if (bytes.length === 0) return null;
+        return label === undefined ? bytes : await tagFile(bytes, label);
       } catch {
         return null;
       } finally {
@@ -1750,12 +1774,13 @@ export const api = {
     );
   },
 
-  async exportDb(): Promise<Uint8Array> {
+  async exportDb(label?: string): Promise<Uint8Array> {
     return timed("exportDb", async () => {
       await ready;
       if (!db) throw new Error("No database open");
       db.exec(`PRAGMA application_id = ${APP_VERSION}`);
-      return sqlite3!.capi.sqlite3_js_db_export(db.pointer!);
+      const bytes = sqlite3!.capi.sqlite3_js_db_export(db.pointer!);
+      return label === undefined ? bytes : tagFile(bytes, label);
     });
   },
 
