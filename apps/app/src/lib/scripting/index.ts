@@ -3,6 +3,7 @@ export type {
   ExampleScript,
   Scripting,
   ScriptAttachment,
+  ScriptBBox,
   ScriptConsoleLevel,
   ScriptEvent,
   ScriptRunHandle,

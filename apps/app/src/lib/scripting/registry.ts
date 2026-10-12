@@ -11,11 +11,21 @@ export type ScriptEvent =
 
 export type ScriptAttachment = { name: string; content: string };
 
+export type ScriptBBox = [
+  minLng: number,
+  minLat: number,
+  maxLng: number,
+  maxLat: number,
+];
+
 export type ScriptRunOutcome =
   | {
       status: "success";
       selection: AssetId[] | null;
-      zoomTo: AssetId[] | null;
+      zoomTo:
+        | { type: "assets"; ids: AssetId[] }
+        | { type: "bbox"; bbox: ScriptBBox }
+        | null;
       attachments: ScriptAttachment[];
     }
   | {
@@ -38,6 +48,7 @@ export type Scripting = {
     factories: ModelFactories;
     units: UnitsSpec;
     selectedAssetIds: readonly AssetId[];
+    viewport: ScriptBBox | null;
     onEvent: (event: ScriptEvent) => void;
   }) => ScriptRunHandle;
   exampleScripts: ExampleScript[];

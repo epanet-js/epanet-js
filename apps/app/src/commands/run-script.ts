@@ -1,10 +1,13 @@
 import { useSetAtom, useStore } from "jotai";
-import { useCallback } from "react";
+import { useCallback, useContext } from "react";
+import { Just } from "purify-ts/Maybe";
 import {
   getScripting,
+  type ScriptBBox,
   type ScriptEvent,
   type ScriptRunOutcome,
 } from "src/lib/scripting";
+import { MapContext } from "src/map";
 import { useZoomTo } from "src/hooks/use-zoom-to";
 import { USelection } from "src/selection";
 import { dialogAtom } from "src/state/dialog";
@@ -26,6 +29,14 @@ export const useRunScript = () => {
   const setDialog = useSetAtom(dialogAtom);
   const setSelection = useSetAtom(selectionAtom);
   const zoomTo = useZoomTo();
+  const map = useContext(MapContext);
+
+  const currentViewport = useCallback((): ScriptBBox | null => {
+    const bounds = map?.map.getBounds();
+    if (!bounds) return null;
+    const [[west, south], [east, north]] = bounds.toArray();
+    return [west, south, east, north];
+  }, [map]);
 
   const applyOutcome = useCallback(
     (outcome: ScriptRunOutcome) => {
@@ -35,8 +46,11 @@ export const useRunScript = () => {
       if (outcome.selection) {
         setSelection(USelection.fromAssetIds(existing(outcome.selection)));
       }
-      if (outcome.zoomTo) {
-        zoomTo(USelection.fromAssetIds(existing(outcome.zoomTo)));
+      if (outcome.zoomTo?.type === "assets") {
+        zoomTo(USelection.fromAssetIds(existing(outcome.zoomTo.ids)));
+      }
+      if (outcome.zoomTo?.type === "bbox") {
+        zoomTo(Just(outcome.zoomTo.bbox));
       }
     },
     [store, setSelection, zoomTo],
@@ -75,6 +89,7 @@ export const useRunScript = () => {
         factories: store.get(modelFactoriesAtom),
         units: store.get(projectSettingsAtom).units,
         selectedAssetIds: USelection.getAssetIds(store.get(selectionAtom)),
+        viewport: currentViewport(),
         onEvent,
       });
       setRun({
@@ -99,6 +114,6 @@ export const useRunScript = () => {
         applyOutcome(outcome);
       });
     },
-    [store, setRun, setDialog, applyOutcome],
+    [store, setRun, setDialog, applyOutcome, currentViewport],
   );
 };
