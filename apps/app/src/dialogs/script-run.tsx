@@ -128,6 +128,34 @@ const RunProgress = ({
 };
 
 const ConsoleLine = ({ line }: { line: ScriptConsoleLine }) => {
+  if (line.type === "table") {
+    return (
+      <div className="overflow-x-auto my-1">
+        <table className="border-collapse text-left">
+          <thead>
+            <tr>
+              {line.columns.map((column, i) => (
+                <th key={i} className="border px-2 py-0.5 font-semibold">
+                  {column}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {line.rows.map((row, i) => (
+              <tr key={i}>
+                {row.map((cell, j) => (
+                  <td key={j} className="border px-2 py-0.5">
+                    {cell}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
   const color =
     line.level === "error"
       ? "text-error"

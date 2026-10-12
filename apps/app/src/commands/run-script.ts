@@ -11,7 +11,11 @@ import { dialogAtom } from "src/state/dialog";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { projectSettingsAtom } from "src/state/project-settings";
-import { scriptRunAtom, type ScriptRunState } from "src/state/scripts";
+import {
+  scriptRunAtom,
+  type ScriptConsoleLine,
+  type ScriptRunState,
+} from "src/state/scripts";
 import { selectionAtom } from "src/state/selection";
 
 const MAX_CONSOLE_LINES = 1000;
@@ -52,7 +56,10 @@ export const useRunScript = () => {
           updateRun((run) => ({ ...run, progress: event.fraction }));
           return;
         }
-        const line = { level: event.level, text: event.text };
+        const line: ScriptConsoleLine =
+          event.type === "console"
+            ? { type: "text", level: event.level, text: event.text }
+            : { type: "table", columns: event.columns, rows: event.rows };
         updateRun((run) => ({
           ...run,
           lines:
@@ -67,6 +74,7 @@ export const useRunScript = () => {
         model: store.get(stagingModelDerivedAtom),
         factories: store.get(modelFactoriesAtom),
         units: store.get(projectSettingsAtom).units,
+        selectedAssetIds: USelection.getAssetIds(store.get(selectionAtom)),
         onEvent,
       });
       setRun({

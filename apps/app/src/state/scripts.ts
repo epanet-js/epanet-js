@@ -1,7 +1,9 @@
 import { atom } from "jotai";
 import type { ScriptConsoleLevel, ScriptRunOutcome } from "src/lib/scripting";
 
-export type ScriptConsoleLine = { level: ScriptConsoleLevel; text: string };
+export type ScriptConsoleLine =
+  | { type: "text"; level: ScriptConsoleLevel; text: string }
+  | { type: "table"; columns: string[]; rows: string[][] };
 
 export type ScriptRunState = {
   name: string;

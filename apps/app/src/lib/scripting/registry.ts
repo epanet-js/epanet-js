@@ -6,6 +6,7 @@ export type ScriptConsoleLevel = "log" | "warn" | "error";
 
 export type ScriptEvent =
   | { type: "console"; level: ScriptConsoleLevel; text: string }
+  | { type: "console-table"; columns: string[]; rows: string[][] }
   | { type: "progress"; fraction: number };
 
 export type ScriptAttachment = { name: string; content: string };
@@ -36,6 +37,7 @@ export type Scripting = {
     model: HydraulicModel;
     factories: ModelFactories;
     units: UnitsSpec;
+    selectedAssetIds: readonly AssetId[];
     onEvent: (event: ScriptEvent) => void;
   }) => ScriptRunHandle;
   exampleScripts: ExampleScript[];
