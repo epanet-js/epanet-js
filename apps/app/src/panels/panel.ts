@@ -23,7 +23,8 @@ export type Panel =
   | (Common & { type: "network-review" })
   | (Common & { type: "collections" })
   | (Common & { type: "asset" })
-  | (Common & { type: "map-styling" });
+  | (Common & { type: "map-styling" })
+  | (Common & { type: "scripts" });
 
 export type PanelType = Panel["type"];
 

@@ -254,6 +254,11 @@ details summary::-webkit-details-marker {
   --highlight-tooltip-text: var(--color-black);
   --highlight-background: var(--color-white);
   --cm-font: var(--font-mono);
+  --cm-text: var(--color-gray-800);
+  --cm-comment: var(--color-gray-500);
+  --cm-keyword: var(--color-purple-600);
+  --cm-literal: var(--color-green-700);
+  --cm-invalid: var(--color-red-600);
 }
 
 .dark {
@@ -269,6 +274,11 @@ details summary::-webkit-details-marker {
   --highlight-background: var(--color-gray-800);
   --highlight-tooltip-text: var(--color-white);
   --cm-font: var(--font-mono);
+  --cm-text: var(--color-gray-200);
+  --cm-comment: var(--color-gray-400);
+  --cm-keyword: var(--color-purple-300);
+  --cm-literal: var(--color-green-300);
+  --cm-invalid: var(--color-red-300);
 }
 
 .cm-editor.cm-focused {

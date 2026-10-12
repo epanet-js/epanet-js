@@ -37,6 +37,7 @@ import { ProjectSavedInfoDialog } from "src/dialogs/project-saved-info";
 import { FileFormatUpdatedDialog } from "src/dialogs/file-format-updated";
 import { AlertNetworkRequiredDialog } from "src/dialogs/alert-network-required";
 import { CheatsheetDialog } from "src/dialogs/cheatsheet";
+import { ScriptRunDialog } from "src/dialogs/script-run";
 import { UnexpectedErrorDialog } from "src/dialogs/unexpected-error";
 import { ChangeNotAppliedDialog } from "src/dialogs/change-not-applied";
 import { ImportCustomerPointsWizard } from "src/dialogs/import-customer-points-wizard";
@@ -263,6 +264,9 @@ export const Dialogs = memo(function Dialogs() {
   }
   if (dialog.type === "rebuildStorageProgress") {
     return <RebuildStorageProgressDialog modal={dialog} onClose={onClose} />;
+  }
+  if (dialog.type === "scriptRun") {
+    return <ScriptRunDialog onClose={onClose} />;
   }
   if (dialog.type === "controls") {
     return <ControlsDialog />;

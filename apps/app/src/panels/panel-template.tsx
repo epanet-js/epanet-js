@@ -13,6 +13,7 @@ import { networkReviewPanel } from "./network-review/panel";
 import { collectionsPanel } from "./collections/panel";
 import { assetPanel } from "./asset-panel/panel";
 import { mapStylingPanel } from "./map-styling-editor/panel";
+import { scriptsPanel } from "./scripts/panel";
 
 export type PanelLifecycleContext = {
   get: Getter;
@@ -58,6 +59,7 @@ export type PanelContentStateByType = {
   collections: undefined;
   asset: undefined;
   "map-styling": undefined;
+  scripts: undefined;
 };
 
 export type PanelContentState =
@@ -71,6 +73,7 @@ const panelTemplates = {
   collections: collectionsPanel,
   asset: assetPanel,
   "map-styling": mapStylingPanel,
+  scripts: scriptsPanel,
 } satisfies { [K in PanelType]: PanelTemplate<K> };
 
 export const panelFor = (panel: Panel): PanelTemplate<PanelType> =>

@@ -409,6 +409,7 @@ export type DialogState =
   | RecomputeElevationsProgressDialogState
   | { type: "simulationSettings" }
   | { type: "controls" }
+  | { type: "scriptRun" }
   | PatternsLibraryDialog
   | PipeLibraryDialogState
   | PumpLibraryDialogState
