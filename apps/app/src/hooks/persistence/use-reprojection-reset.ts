@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import { useAtomCallback } from "jotai/utils";
 import type { Getter, Setter } from "jotai";
+import { nanoid } from "nanoid";
 import * as db from "src/lib/db";
 import { handleError } from "src/infra/errors";
 import type { HydraulicModel } from "src/hydraulic-model";
@@ -49,14 +50,15 @@ const loadModel = (
   set: Setter,
   { hydraulicModel, projectSettings, autoElevations }: ReprojectionResetInput,
 ) => {
-  const sessionHistory = new SessionHistory(hydraulicModel.version);
+  const reprojectedModel = { ...hydraulicModel, version: nanoid() };
+  const sessionHistory = new SessionHistory(reprojectedModel.version);
 
-  set(stagingModelDerivedAtom, hydraulicModel);
+  set(stagingModelDerivedAtom, reprojectedModel);
   set(projectSettingsAtom, projectSettings);
   void db
     .importProject({
       projectSettings,
-      hydraulicModel,
+      hydraulicModel: reprojectedModel,
       simulationSettings: get(simulationSettingsDerivedAtom),
     })
     .catch((error) =>
