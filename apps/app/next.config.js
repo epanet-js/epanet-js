@@ -54,6 +54,43 @@ const nextConfig = {
     // Next.js only patches __webpack_require__.u in the main-thread runtime;
     // workers get their own runtime and miss the deployment ID, causing
     // importScripts to hit the latest deployment where old chunks don't exist.
+    // Sentry's debug-ID BannerPlugin prepends a snippet to every chunk, which
+    // demotes webpack's hoisted chunk-level "use strict" to a plain expression
+    // and leaves the chunk sloppy. SES refuses to run sloppy (SES_NO_SLOPPY),
+    // so move the directive back in front of the banner.
+    config.plugins.push({
+      apply(compiler) {
+        const { Compilation, sources } = webpack;
+        compiler.hooks.thisCompilation.tap(
+          "RestoreUseStrictPlugin",
+          (compilation) => {
+            compilation.hooks.processAssets.tap(
+              {
+                name: "RestoreUseStrictPlugin",
+                stage: Compilation.PROCESS_ASSETS_STAGE_ADDITIONS + 1,
+              },
+              (assets) => {
+                for (const name of Object.keys(assets)) {
+                  if (!/\.js$/.test(name)) continue;
+                  const code = assets[name].source().toString();
+                  const match =
+                    /^[^\n]*_sentryDebugIds[^\n]*\n("use strict";)/.exec(code);
+                  if (!match) continue;
+                  compilation.updateAsset(name, (source) => {
+                    const replaced = new sources.ReplaceSource(source);
+                    const start = match[0].length - match[1].length;
+                    replaced.replace(start, match[0].length - 1, "");
+                    replaced.insert(0, '"use strict";');
+                    return replaced;
+                  });
+                }
+              },
+            );
+          },
+        );
+      },
+    });
+
     const deploymentId = process.env.NEXT_DEPLOYMENT_ID;
     if (deploymentId) {
       const { RuntimeModule, RuntimeGlobals } = webpack;
