@@ -1,13 +1,11 @@
 import {
   CurvePoint,
+  effectiveRoughness,
   getPumpCurveErrors,
+  inferredRoughness,
   Pipe,
 } from "@epanet-js/hydraulic-model";
 import { HydraulicModel } from "src/hydraulic-model";
-import {
-  effectiveRoughness,
-  inferredRoughness,
-} from "src/hydraulic-model/pipe-materials";
 import { EntityType, Rule, Severity, ValidatableEntity } from "./types";
 import {
   NumericCheckName,

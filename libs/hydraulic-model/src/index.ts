@@ -16,6 +16,8 @@ export * from "./id-pools";
 export * from "./curves";
 export * from "./patterns";
 export * from "./pipe-materials";
+export * from "./infer-roughness";
+export * from "./property-validators";
 export * from "./customer-points";
 export * from "./customer-points-lookup";
 export * from "./factories";

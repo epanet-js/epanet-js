@@ -1,5 +1,6 @@
-import { Pipe } from "@epanet-js/hydraulic-model";
-import type { PipeMaterial } from "@epanet-js/hydraulic-model";
+import { describe, it, expect } from "vitest";
+import { Pipe } from "./asset-types/pipe";
+import type { PipeMaterial } from "./pipe-materials";
 import {
   buildRoughnessInferrer,
   effectiveRoughness,

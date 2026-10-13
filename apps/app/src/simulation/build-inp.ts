@@ -55,7 +55,7 @@ import {
   getCustomerPointDemands,
   getJunctionDemands,
 } from "src/hydraulic-model";
-import { effectiveRoughness } from "src/hydraulic-model/pipe-materials";
+import { effectiveRoughness } from "@epanet-js/hydraulic-model";
 import { boundaryTrace } from "src/lib/trace/boundary-trace";
 import { AllowedFlowDirection } from "src/lib/trace/allowed-flow-direction";
 import {

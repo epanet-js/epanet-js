@@ -3,7 +3,7 @@ import { useAtomValue } from "jotai";
 import isEqual from "lodash/isEqual";
 import { worktreeAtom } from "src/state/scenarios";
 import { baseModelDerivedAtom } from "src/state/derived-branch-state";
-import { buildRoughnessInferrer } from "src/hydraulic-model/pipe-materials";
+import { buildRoughnessInferrer } from "@epanet-js/hydraulic-model";
 import type { Asset, Patterns, Pipe, Pump } from "src/hydraulic-model";
 import {
   type Pattern,

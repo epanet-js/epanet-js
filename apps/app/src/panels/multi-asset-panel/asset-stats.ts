@@ -2,7 +2,7 @@ import { Unit } from "@epanet-js/quantity";
 import { UnitsSpec, FormattingSpec } from "@epanet-js/project-settings";
 import type { ResultsReader } from "@epanet-js/simulation";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
-import type { RoughnessInferrer } from "src/hydraulic-model/pipe-materials";
+import type { RoughnessInferrer } from "@epanet-js/hydraulic-model";
 import {
   Asset,
   AssetId,

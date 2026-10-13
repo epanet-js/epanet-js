@@ -1,5 +1,5 @@
 import { HydraulicModel, Pipe } from "src/hydraulic-model";
-import { effectiveRoughness } from "src/hydraulic-model/pipe-materials";
+import { effectiveRoughness } from "@epanet-js/hydraulic-model";
 import { getSortedValues } from "@epanet-js/hydraulic-model";
 import { EPSResultsReader } from "src/simulation/epanet/eps-results-reader";
 import {

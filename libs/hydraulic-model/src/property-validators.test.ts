@@ -1,3 +1,4 @@
+import { describe, it, expect } from "vitest";
 import { isValidInstallationYear } from "./property-validators";
 
 describe("isValidInstallationYear", () => {

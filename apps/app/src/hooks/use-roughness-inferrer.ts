@@ -3,7 +3,7 @@ import { useMemo } from "react";
 import {
   buildRoughnessInferrer,
   type RoughnessInferrer,
-} from "src/hydraulic-model/pipe-materials";
+} from "@epanet-js/hydraulic-model";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 
 export const useRoughnessInferrer = (): RoughnessInferrer => {

@@ -9,7 +9,7 @@ import type {
   PropertyStatsDeprecated,
 } from "./stats-deprecated";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import { buildRoughnessInferrer } from "src/hydraulic-model/pipe-materials";
+import { buildRoughnessInferrer } from "@epanet-js/hydraulic-model";
 import { presets, FormattingSpec } from "@epanet-js/project-settings";
 import { createMockResultsReader } from "src/__helpers__/state";
 

@@ -11,7 +11,7 @@ import type { ReactNode } from "react";
 import type { CustomHeaderAction } from "src/components/data-grid/features";
 import { type CustomAttribute } from "@epanet-js/hydraulic-model";
 import { type Asset, type Pipe } from "@epanet-js/hydraulic-model";
-import type { RoughnessInferrer } from "src/hydraulic-model/pipe-materials";
+import type { RoughnessInferrer } from "@epanet-js/hydraulic-model";
 import {
   type AssetType,
   pipeStatuses,

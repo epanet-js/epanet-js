@@ -9,7 +9,7 @@ import {
   type Pipe,
 } from "@epanet-js/hydraulic-model";
 import type { HydraulicModel } from "src/hydraulic-model";
-import { buildRoughnessInferrer } from "src/hydraulic-model/pipe-materials";
+import { buildRoughnessInferrer } from "@epanet-js/hydraulic-model";
 
 type FieldDefault = number | ((asset: Asset) => number | null);
 

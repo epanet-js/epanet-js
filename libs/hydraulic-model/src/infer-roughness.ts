@@ -1,6 +1,6 @@
-import type { Pipe } from "@epanet-js/hydraulic-model";
-import type { PipeMaterial, RoughnessEntry } from "@epanet-js/hydraulic-model";
-import { isValidInstallationYear } from "src/hydraulic-model/property-validators";
+import type { Pipe } from "./asset-types/pipe";
+import type { PipeMaterial, RoughnessEntry } from "./pipe-materials";
+import { isValidInstallationYear } from "./property-validators";
 
 export type RoughnessInferrer = (pipe: Pipe) => number | null;
 
