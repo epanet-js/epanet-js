@@ -5,6 +5,7 @@ import {
   duplicateLabelKeys,
   emptyCustomAttributesDefinition,
   getAttribute,
+  getAttributeByLabel,
   getAttributeIds,
   getAttributes,
   hasDuplicateLabel,
@@ -191,5 +192,26 @@ describe("getAttribute", () => {
     const definition = withAttributes({ pipe: [attr("custom-1", "Diameter")] });
 
     expect(getAttribute(definition, "junction", "custom-1")).toBeUndefined();
+  });
+});
+
+describe("getAttributeByLabel", () => {
+  it("finds the attribute of the asset type ignoring case and surrounding whitespace", () => {
+    const definition = withAttributes({
+      pipe: [attr("custom-1", "Diameter"), attr("custom-2", "Material")],
+      junction: [attr("custom-3", "Material")],
+    });
+
+    expect(getAttributeByLabel(definition, "pipe", "  material ")).toEqual(
+      attr("custom-2", "Material"),
+    );
+  });
+
+  it("returns undefined when only another asset type has the label", () => {
+    const definition = withAttributes({
+      junction: [attr("custom-1", "Zone")],
+    });
+
+    expect(getAttributeByLabel(definition, "pipe", "Zone")).toBeUndefined();
   });
 });

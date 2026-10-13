@@ -47,6 +47,17 @@ export const getAttribute = (
   id: CustomAttributeId,
 ): CustomAttribute | undefined => definition.get(assetType)?.get(id);
 
+export const getAttributeByLabel = (
+  definition: CustomAttributesDefinition,
+  assetType: CustomAttributeAssetType,
+  label: string,
+): CustomAttribute | undefined => {
+  const key = normalizeLabel(label);
+  return getAttributes(definition, assetType).find(
+    (attribute) => normalizeLabel(attribute.label) === key,
+  );
+};
+
 export const countFor = (
   definition: CustomAttributesDefinition,
   assetType: CustomAttributeAssetType,
