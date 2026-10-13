@@ -255,8 +255,8 @@ const createNewDb = async (): Promise<NewDbResult> => {
   return { status: "ok" };
 };
 
-const tagFile = (bytes: Uint8Array, label: string) =>
-  fileTagger.tag(transfer(bytes, [bytes.buffer]), label);
+const tagFile = (bytes: Uint8Array) =>
+  fileTagger.tag(transfer(bytes, [bytes.buffer]));
 
 const verifyFile = (bytes: Uint8Array) =>
   fileTagger.verify(transfer(bytes, [bytes.buffer]));
@@ -1169,17 +1169,21 @@ export const api = {
   async configure({
     mode,
     sahpoolId,
-    tagger = nullFileTagger,
+    tagger,
   }: {
     mode: StorageMode;
     sahpoolId: string;
-    tagger?: FileTagger;
+    tagger: FileTagger;
   }): Promise<StorageMode> {
     await ready;
     storageMode =
       mode !== "memory" && (await ensureSahpool(sahpoolId)) ? mode : "memory";
     fileTagger = tagger;
     return storageMode;
+  },
+
+  setFileTagger(tagger: FileTagger): void {
+    fileTagger = tagger;
   },
 
   sahpoolFailure(): SahpoolFailure | null {
@@ -1313,10 +1317,7 @@ export const api = {
     );
   },
 
-  async exportDbFromPool(
-    poolId: string,
-    label?: string,
-  ): Promise<Uint8Array | null> {
+  async exportDbFromPool(poolId: string): Promise<Uint8Array | null> {
     return timed("exportDbFromPool", async () => {
       await ready;
       if (!sqlite3) return null;
@@ -1329,7 +1330,7 @@ export const api = {
         });
         const bytes = await pool.exportFile(SAHPOOL_DB_PATH);
         if (bytes.length === 0) return null;
-        return label === undefined ? bytes : await tagFile(bytes, label);
+        return await tagFile(bytes);
       } catch {
         return null;
       } finally {
@@ -1773,13 +1774,13 @@ export const api = {
     );
   },
 
-  async exportDb(label?: string): Promise<Uint8Array> {
+  async exportDb(): Promise<Uint8Array> {
     return timed("exportDb", async () => {
       await ready;
       if (!db) throw new Error("No database open");
       db.exec(`PRAGMA application_id = ${APP_VERSION}`);
       const bytes = sqlite3!.capi.sqlite3_js_db_export(db.pointer!);
-      return label === undefined ? bytes : tagFile(bytes, label);
+      return tagFile(bytes);
     });
   },
 

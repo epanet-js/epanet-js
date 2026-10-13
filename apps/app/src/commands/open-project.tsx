@@ -41,6 +41,7 @@ import { converterExtensions, converterForFile } from "src/lib/converters";
 import { useAvailableConverters } from "src/hooks/use-available-converters";
 import { usePermissions } from "src/hooks/use-permissions";
 import { describeFileTypes } from "src/lib/describe-file-types";
+import { useModelTagging } from "src/hooks/persistence/use-model-tagging";
 
 export const openProjectShortcut = "ctrl+o";
 
@@ -65,6 +66,7 @@ export const useOpenProjectFile = () => {
   const readWorktree = useAtomCallback(
     useCallback((get) => get(worktreeAtom), []),
   );
+  const { isTagModelsOn, plan } = useModelTagging();
 
   const openProjectFile = useCallback(
     async (
@@ -246,6 +248,17 @@ export const useOpenProjectFile = () => {
           size: "sm",
         });
 
+        if (isTagModelsOn) {
+          userTracking.capture({
+            name: "projectFile.tagChecked",
+            source,
+            integrity: result.integrity,
+            label: result.label,
+            plan,
+            planMatches: result.label === plan,
+          });
+        }
+
         userTracking.capture({
           name: "projectFile.opened",
           source,
@@ -298,6 +311,8 @@ export const useOpenProjectFile = () => {
       userTracking,
       addRecent,
       readWorktree,
+      isTagModelsOn,
+      plan,
     ],
   );
 

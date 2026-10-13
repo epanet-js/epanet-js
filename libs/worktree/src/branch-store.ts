@@ -1,4 +1,5 @@
 import type { ChangeSet, Direction } from "@epanet-js/change-set";
+import type { FileTagger } from "@epanet-js/ejsdb-tag";
 import type { Branch, Worktree } from "./types";
 import { initializeWorktree } from "./initialize-worktree";
 
@@ -24,7 +25,11 @@ export interface BranchStore {
     direction: Direction,
   ): Promise<void>;
   recordSimulationSettings(branchId: string, data: string): Promise<void>;
-  exportBranch(branchId: string, projectSettings: string): Promise<Uint8Array>;
+  exportBranch(
+    branchId: string,
+    projectSettings: string,
+    tagger: FileTagger,
+  ): Promise<Uint8Array>;
 }
 
 export const nullBranchStore: BranchStore = {

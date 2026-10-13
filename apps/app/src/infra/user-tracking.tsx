@@ -514,6 +514,15 @@ export type OpenProjectStarted = {
   source: string;
 };
 
+export type ProjectFileTagChecked = {
+  name: "projectFile.tagChecked";
+  source: string;
+  integrity: "intact" | "tampered" | "untagged";
+  label: string | null;
+  plan: string;
+  planMatches: boolean;
+};
+
 export type SessionRecoveryOffered = {
   name: "sessionRecovery.offered";
   count?: number;
@@ -2001,6 +2010,7 @@ export type UserEvent =
   | CustomGraphPropertySelected
   | SessionRecoveryOffered
   | SessionRecoveryRecovered
+  | ProjectFileTagChecked
   | SessionRecoveryFailed
   | SessionRecoveryDiscarded
   | SessionRecoveryIgnored;

@@ -7,9 +7,11 @@ export type FileTagVerdict = {
 };
 
 export type FileTagger = {
-  tag(database: Uint8Array, label: string): Promise<Uint8Array>;
+  tag(database: Uint8Array): Promise<Uint8Array>;
   verify(file: Uint8Array): Promise<FileTagVerdict>;
 };
+
+export type FileTaggerFactory = (label: string) => FileTagger;
 
 export const nullFileTagger: FileTagger = {
   tag: (database) => Promise.resolve(database),
@@ -17,14 +19,16 @@ export const nullFileTagger: FileTagger = {
     Promise.resolve({ body: file, integrity: "untagged", label: null }),
 };
 
-let current: FileTagger = nullFileTagger;
+const nullFileTaggerFactory: FileTaggerFactory = () => nullFileTagger;
 
-export const registerFileTagger = (tagger: FileTagger): void => {
-  current = tagger;
+let current: FileTaggerFactory = nullFileTaggerFactory;
+
+export const registerFileTaggerFactory = (factory: FileTaggerFactory): void => {
+  current = factory;
 };
 
-export const getFileTagger = (): FileTagger => current;
+export const createFileTagger = (label: string): FileTagger => current(label);
 
 export const resetFileTaggerForTest = (): void => {
-  current = nullFileTagger;
+  current = nullFileTaggerFactory;
 };

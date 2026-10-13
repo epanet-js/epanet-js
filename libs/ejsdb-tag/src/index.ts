@@ -1,7 +1,12 @@
 export {
   nullFileTagger,
-  registerFileTagger,
-  getFileTagger,
+  registerFileTaggerFactory,
+  createFileTagger,
   resetFileTaggerForTest,
 } from "./file-tagger";
-export type { FileTagger, FileTagVerdict, FileIntegrity } from "./file-tagger";
+export type {
+  FileTagger,
+  FileTaggerFactory,
+  FileTagVerdict,
+  FileIntegrity,
+} from "./file-tagger";

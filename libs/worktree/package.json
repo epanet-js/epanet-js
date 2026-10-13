@@ -27,6 +27,7 @@
     "vitest": "^2.1.5"
   },
   "dependencies": {
-    "@epanet-js/change-set": "workspace:^"
+    "@epanet-js/change-set": "workspace:^",
+    "@epanet-js/ejsdb-tag": "workspace:*"
   }
 }

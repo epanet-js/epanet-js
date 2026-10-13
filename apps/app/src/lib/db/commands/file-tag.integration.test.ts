@@ -3,7 +3,7 @@ import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { defaultProjectSettings } from "@epanet-js/project-settings";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { getWorker } from "@epanet-js/ejsdb";
-import type { FileTagger } from "@epanet-js/ejsdb-tag";
+import { nullFileTagger, type FileTagger } from "@epanet-js/ejsdb-tag";
 import { importProject } from "./import-project";
 import { openProject } from "./open-project";
 import { fetchProject } from "./fetch-project";
@@ -19,10 +19,10 @@ const databaseLength = (bytes: Uint8Array) => {
   return pageSize * pageCount;
 };
 
-const fakeTagger = (): FileTagger & { tagged: string[] } => {
+const fakeTagger = (label: string): FileTagger & { tagged: string[] } => {
   const tagger = {
     tagged: [] as string[],
-    tag: (database: Uint8Array, label: string) => {
+    tag: (database: Uint8Array) => {
       tagger.tagged.push(label);
       const file = new Uint8Array(
         database.length + readHeader(database).pageSize,
@@ -56,13 +56,13 @@ describe("file tag integration", () => {
   useInProcessDb();
 
   afterEach(async () => {
-    await configureTagging();
+    await configureTagging(nullFileTagger);
   });
 
-  const configureTagging = (tagger?: FileTagger) =>
+  const configureTagging = (tagger: FileTagger) =>
     getWorker().configure({ mode: "memory", sahpoolId: "test", tagger });
 
-  const saveProject = async (label?: string): Promise<Uint8Array> => {
+  const saveProject = async (): Promise<Uint8Array> => {
     await importProject({
       newDb: true,
       hydraulicModel: HydraulicModelBuilder.with()
@@ -73,7 +73,7 @@ describe("file tag integration", () => {
       projectSettings: { ...defaultProjectSettings, name: "tagged" },
       simulationSettings: defaultSimulationSettings,
     });
-    return getWorker().exportDb(label);
+    return getWorker().exportDb();
   };
 
   const open = (bytes: Uint8Array) =>
@@ -82,7 +82,8 @@ describe("file tag integration", () => {
     );
 
   it("leaves files alone without a tagger", async () => {
-    const bytes = await saveProject("pro");
+    await configureTagging(nullFileTagger);
+    const bytes = await saveProject();
     const result = await open(bytes);
 
     expect(bytes.length).toBe(databaseLength(bytes));
@@ -94,10 +95,10 @@ describe("file tag integration", () => {
   });
 
   it("tags on export and verifies on open with a tagger", async () => {
-    const tagger = fakeTagger();
+    const tagger = fakeTagger("education");
     await configureTagging(tagger);
 
-    const bytes = await saveProject("education");
+    const bytes = await saveProject();
     const result = await open(bytes);
 
     expect(bytes.length).toBe(
@@ -115,9 +116,9 @@ describe("file tag integration", () => {
   });
 
   it("opens a file another writer stripped as untagged", async () => {
-    await configureTagging(fakeTagger());
+    await configureTagging(fakeTagger("free"));
 
-    const bytes = await saveProject("free");
+    const bytes = await saveProject();
     const stripped = bytes.subarray(0, databaseLength(bytes));
     const result = await open(stripped);
 

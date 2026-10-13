@@ -52,6 +52,7 @@ vi.mock("src/infra/error-tracking", async (importActual) => ({
   },
 }));
 
+import { nullFileTagger } from "@epanet-js/ejsdb-tag";
 import { rebuildDbFromMemory } from "./rebuild-from-memory";
 
 const anInput = () => ({
@@ -73,7 +74,9 @@ describe("rebuildDbFromMemory", () => {
   it("reinstalls OPFS on a fresh pool and holds its lock", async () => {
     reinstallSahpool.mockResolvedValue("sahpool");
 
-    const mode = await rebuildDbFromMemory(anInput());
+    const mode = await rebuildDbFromMemory(anInput(), {
+      tagger: nullFileTagger,
+    });
 
     expect(mode).toBe("opfs");
     // The old directory is what failed, so the retry must not reuse it.
@@ -89,7 +92,9 @@ describe("rebuildDbFromMemory", () => {
       message: "no access handle",
     });
 
-    const mode = await rebuildDbFromMemory(anInput());
+    const mode = await rebuildDbFromMemory(anInput(), {
+      tagger: nullFileTagger,
+    });
 
     expect(mode).toBe("memory");
     expect(holdSessionLock).not.toHaveBeenCalled();
@@ -103,7 +108,7 @@ describe("rebuildDbFromMemory", () => {
   it("writes the whole model into a fresh db", async () => {
     reinstallSahpool.mockResolvedValue("sahpool");
 
-    await rebuildDbFromMemory(anInput());
+    await rebuildDbFromMemory(anInput(), { tagger: nullFileTagger });
 
     expect(importProject).toHaveBeenCalledWith(
       expect.objectContaining({ newDb: true }),
@@ -114,7 +119,7 @@ describe("rebuildDbFromMemory", () => {
     reinstallSahpool.mockResolvedValue("sahpool");
     const input = anInput();
 
-    await rebuildDbFromMemory(input);
+    await rebuildDbFromMemory(input, { tagger: nullFileTagger });
 
     expect(importProject).toHaveBeenCalledWith(
       expect.objectContaining({ zones: input.zones }),
@@ -137,7 +142,7 @@ describe("rebuildDbFromMemory", () => {
       ] as Bookmark[],
     };
 
-    await rebuildDbFromMemory(input);
+    await rebuildDbFromMemory(input, { tagger: nullFileTagger });
 
     expect(importProject).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -152,6 +157,7 @@ describe("rebuildDbFromMemory", () => {
     const phases: string[] = [];
 
     await rebuildDbFromMemory(anInput(), {
+      tagger: nullFileTagger,
       onPhase: (phase) => phases.push(phase),
     });
 
@@ -159,7 +165,10 @@ describe("rebuildDbFromMemory", () => {
   });
 
   it("skips OPFS entirely once the caller has given up on it", async () => {
-    const mode = await rebuildDbFromMemory(anInput(), { skipOpfs: true });
+    const mode = await rebuildDbFromMemory(anInput(), {
+      tagger: nullFileTagger,
+      skipOpfs: true,
+    });
 
     expect(mode).toBe("memory");
     expect(reinstallSahpool).not.toHaveBeenCalled();
@@ -176,8 +185,8 @@ describe("rebuildDbFromMemory", () => {
     reinstallSahpool.mockResolvedValue("memory");
     importProject.mockRejectedValue(new Error("import blew up"));
 
-    await expect(rebuildDbFromMemory(anInput())).rejects.toThrow(
-      "import blew up",
-    );
+    await expect(
+      rebuildDbFromMemory(anInput(), { tagger: nullFileTagger }),
+    ).rejects.toThrow("import blew up");
   });
 });

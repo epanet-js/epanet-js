@@ -31,5 +31,6 @@ export { ensureUniqueId, newUniqueId } from "./commands/ensure-unique-id";
 export { exportDb } from "./commands/export-db";
 export { exportDbFromPool } from "./commands/recover-db";
 export { configureDbStorage } from "./commands/configure-storage";
+export { setDbFileTagger } from "./commands/set-file-tagger";
 export { rebuildDbFromMemory } from "./commands/rebuild-from-memory";
 export type { RebuildPhase } from "./commands/rebuild-from-memory";

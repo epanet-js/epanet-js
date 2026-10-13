@@ -8,6 +8,13 @@ import { setInitialState } from "src/__helpers__/state";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { AuthMockProvider, aUser } from "src/__helpers__/auth-mock";
 import { registerBranchStore } from "src/lib/branching";
+import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
+import {
+  nullFileTagger,
+  registerFileTaggerFactory,
+  resetFileTaggerForTest,
+  type FileTagger,
+} from "@epanet-js/ejsdb-tag";
 import { branchStateAtom } from "src/state/branch-state";
 import { dialogAtom } from "src/state/dialog";
 import { projectSettingsAtom } from "src/state/project-settings";
@@ -36,12 +43,14 @@ describe("exportScenarioAsProject", () => {
 
   afterEach(() => {
     registerBranchStore(nullBranchStore);
+    resetFileTaggerForTest();
     exportBranch.mockReset();
     vi.mocked(fileSave).mockReset();
     auth.enabled = false;
   });
 
   it("saves the active scenario as a project", async () => {
+    stubFeatureOff("FLAG_TAG_MODELS");
     stubFileSave();
     const store = aStoreInScenario();
 
@@ -58,6 +67,32 @@ describe("exportScenarioAsProject", () => {
     expect(exportBranch).toHaveBeenCalledWith(
       "scenario-1",
       expect.stringContaining('"name":"My project - Scenario #1"'),
+      nullFileTagger,
+    );
+  });
+
+  it("exports through the registered tagger", async () => {
+    stubFeatureOn("FLAG_TAG_MODELS");
+    stubFileSave();
+    const taggers = new Map<string, FileTagger>();
+    registerFileTaggerFactory((label) => {
+      const tagger = { ...nullFileTagger };
+      taggers.set(label, tagger);
+      return tagger;
+    });
+    const store = aStoreInScenario();
+
+    renderComponent({ store });
+    await userEvent.click(
+      screen.getByRole("button", { name: "Export scenario" }),
+    );
+
+    await waitFor(() => expect(fileSave).toHaveBeenCalled());
+    await vi.mocked(fileSave).mock.calls[0][0];
+    expect(exportBranch).toHaveBeenCalledWith(
+      "scenario-1",
+      expect.any(String),
+      taggers.get("pro"),
     );
   });
 

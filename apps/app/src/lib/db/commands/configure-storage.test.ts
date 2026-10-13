@@ -59,6 +59,7 @@ vi.mock("src/infra/error-tracking", async (importActual) => ({
 }));
 
 import { configureDbStorage } from "./configure-storage";
+import { nullFileTagger } from "@epanet-js/ejsdb-tag";
 
 const gibibyte = 1024 * 1024 * 1024;
 
@@ -71,22 +72,42 @@ beforeEach(() => {
   getAvailableStorageBytes.mockResolvedValue(gibibyte);
 });
 
+const proxiedTagger = expect.objectContaining({
+  tag: expect.any(Function),
+  verify: expect.any(Function),
+});
+
 describe("configureDbStorage", () => {
+  it("hands the worker a proxy of the model tagger", async () => {
+    isOPFSAvailable.mockResolvedValue(true);
+    configure.mockResolvedValueOnce("sahpool");
+
+    await configureDbStorage(nullFileTagger);
+
+    expect(configure).toHaveBeenCalledWith({
+      mode: "sahpool",
+      sahpoolId: "tab-a",
+      tagger: proxiedTagger,
+    });
+  });
+
   it("regenerates the appId and retries once when the sahpool install clashes", async () => {
     isOPFSAvailable.mockResolvedValue(true);
     configure.mockResolvedValueOnce("memory").mockResolvedValueOnce("sahpool");
 
-    const result = await configureDbStorage();
+    const result = await configureDbStorage(nullFileTagger);
 
     expect(result).toBe("sahpool");
     expect(configure).toHaveBeenNthCalledWith(1, {
       mode: "sahpool",
       sahpoolId: "tab-a",
+      tagger: proxiedTagger,
     });
     expect(resetAppId).toHaveBeenCalledTimes(1);
     expect(configure).toHaveBeenNthCalledWith(2, {
       mode: "sahpool",
       sahpoolId: "tab-a-fresh",
+      tagger: proxiedTagger,
     });
     expect(cleanupStaleDbPools).toHaveBeenCalledWith(
       "tab-a-fresh",
@@ -100,7 +121,7 @@ describe("configureDbStorage", () => {
     isOPFSAvailable.mockResolvedValue(true);
     configure.mockResolvedValueOnce("sahpool");
 
-    await configureDbStorage();
+    await configureDbStorage(nullFileTagger);
 
     expect(configure).toHaveBeenCalledTimes(1);
     expect(resetAppId).not.toHaveBeenCalled();
@@ -115,7 +136,7 @@ describe("configureDbStorage", () => {
     isOPFSAvailable.mockResolvedValue(true);
     configure.mockResolvedValue("memory");
 
-    const result = await configureDbStorage();
+    const result = await configureDbStorage(nullFileTagger);
 
     expect(result).toBe("memory");
     expect(configure).toHaveBeenCalledTimes(2);
@@ -134,7 +155,7 @@ describe("configureDbStorage", () => {
       message: "no access handle",
     });
 
-    await configureDbStorage();
+    await configureDbStorage(nullFileTagger);
 
     expect(captureWarning).toHaveBeenCalledWith(
       fallbackMessage("db-worker-fallback"),
@@ -150,13 +171,14 @@ describe("configureDbStorage", () => {
       getAvailableStorageBytes.mockResolvedValue(256 * 1024 * 1024);
       configure.mockResolvedValue("memory");
 
-      const result = await configureDbStorage();
+      const result = await configureDbStorage(nullFileTagger);
 
       expect(result).toBe("memory");
       expect(configure).toHaveBeenCalledTimes(1);
       expect(configure).toHaveBeenCalledWith({
         mode: "memory",
         sahpoolId: "tab-a",
+        tagger: proxiedTagger,
       });
       expect(captureWarning).toHaveBeenCalledTimes(1);
       expect(captureWarning).toHaveBeenCalledWith(
@@ -171,7 +193,7 @@ describe("configureDbStorage", () => {
       getAvailableStorageBytes.mockResolvedValue(512 * 1024 * 1024);
       configure.mockResolvedValueOnce("sahpool");
 
-      const result = await configureDbStorage();
+      const result = await configureDbStorage(nullFileTagger);
 
       expect(result).toBe("sahpool");
       expect(captureWarning).not.toHaveBeenCalled();
@@ -182,12 +204,13 @@ describe("configureDbStorage", () => {
       getAvailableStorageBytes.mockResolvedValue(0);
       configure.mockResolvedValue("memory");
 
-      const result = await configureDbStorage();
+      const result = await configureDbStorage(nullFileTagger);
 
       expect(result).toBe("memory");
       expect(configure).toHaveBeenCalledWith({
         mode: "memory",
         sahpoolId: "tab-a",
+        tagger: proxiedTagger,
       });
       expect(captureWarning).toHaveBeenCalledWith(
         fallbackMessage("opfs-quota-exceeded"),
@@ -199,13 +222,14 @@ describe("configureDbStorage", () => {
       isOPFSAvailable.mockResolvedValue(false);
       configure.mockResolvedValue("memory");
 
-      const result = await configureDbStorage();
+      const result = await configureDbStorage(nullFileTagger);
 
       expect(result).toBe("memory");
       expect(getAvailableStorageBytes).not.toHaveBeenCalled();
       expect(configure).toHaveBeenCalledWith({
         mode: "memory",
         sahpoolId: "tab-a",
+        tagger: proxiedTagger,
       });
       expect(captureWarning).toHaveBeenCalledWith(
         fallbackMessage("opfs-not-available"),
@@ -217,7 +241,7 @@ describe("configureDbStorage", () => {
     isOPFSAvailable.mockResolvedValue(true);
     configure.mockResolvedValueOnce("sahpool");
 
-    await configureDbStorage();
+    await configureDbStorage(nullFileTagger);
 
     // A healthy boot is the overwhelming majority; only the fallbacks are reported.
     expect(captureWarning).not.toHaveBeenCalled();
@@ -231,11 +255,12 @@ describe("configureDbStorage", () => {
       { poolId: "another-crashed-tab" },
     ]);
 
-    await configureDbStorage();
+    await configureDbStorage(nullFileTagger);
 
     expect(configure).toHaveBeenCalledWith({
       mode: "sahpool",
       sahpoolId: "tab-a",
+      tagger: proxiedTagger,
     });
     expect(cleanupStaleDbPools).toHaveBeenCalledWith(
       "tab-a",
@@ -252,12 +277,13 @@ describe("configureDbStorage", () => {
       { poolId: "tab-a" },
     ]);
 
-    await configureDbStorage();
+    await configureDbStorage(nullFileTagger);
 
     expect(resetAppId).toHaveBeenCalledTimes(1);
     expect(configure).toHaveBeenCalledWith({
       mode: "sahpool",
       sahpoolId: "tab-a-fresh",
+      tagger: proxiedTagger,
     });
     expect(cleanupStaleDbPools).toHaveBeenCalledWith(
       "tab-a-fresh",
@@ -271,7 +297,7 @@ describe("configureDbStorage", () => {
     isSessionAlive.mockResolvedValueOnce(true);
     configure.mockResolvedValueOnce("sahpool");
 
-    const result = await configureDbStorage();
+    const result = await configureDbStorage(nullFileTagger);
 
     expect(result).toBe("sahpool");
     expect(isSessionAlive).toHaveBeenCalledWith("tab-a");
@@ -280,6 +306,7 @@ describe("configureDbStorage", () => {
     expect(configure).toHaveBeenCalledWith({
       mode: "sahpool",
       sahpoolId: "tab-a-fresh",
+      tagger: proxiedTagger,
     });
     expect(holdSessionLock).toHaveBeenCalledWith("tab-a-fresh");
   });
@@ -288,7 +315,7 @@ describe("configureDbStorage", () => {
     isOPFSAvailable.mockResolvedValue(true);
     configure.mockResolvedValueOnce("sahpool");
 
-    await configureDbStorage();
+    await configureDbStorage(nullFileTagger);
 
     expect(holdSessionLock).toHaveBeenCalledTimes(1);
     expect(holdSessionLock).toHaveBeenCalledWith("tab-a");
@@ -298,7 +325,7 @@ describe("configureDbStorage", () => {
     isOPFSAvailable.mockResolvedValue(true);
     configure.mockResolvedValue("memory");
 
-    await configureDbStorage();
+    await configureDbStorage(nullFileTagger);
 
     expect(holdSessionLock).not.toHaveBeenCalled();
   });
@@ -307,7 +334,7 @@ describe("configureDbStorage", () => {
     isOPFSAvailable.mockResolvedValue(false);
     configure.mockResolvedValueOnce("memory");
 
-    await configureDbStorage();
+    await configureDbStorage(nullFileTagger);
 
     expect(isSessionAlive).not.toHaveBeenCalled();
     expect(holdSessionLock).not.toHaveBeenCalled();

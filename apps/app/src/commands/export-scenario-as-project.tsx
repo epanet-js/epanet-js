@@ -18,6 +18,7 @@ import { writeQueue } from "src/lib/persistence/write-queue";
 import { serializeProjectSettings } from "src/lib/db";
 import { captureError, captureWarning } from "src/infra/error-tracking";
 import { projectExtension } from "src/commands/save-project";
+import { useModelTagging } from "src/hooks/persistence/use-model-tagging";
 
 const exportScenarioToastId = "export-scenario-as-project";
 
@@ -36,6 +37,7 @@ export const useExportScenarioAsProject = ({
   const { isSignedIn, isLoaded } = useAuth();
   const setDialog = useSetAtom(dialogAtom);
   const { isLocked, openPaywall } = useFeatureLock("manageScenarios");
+  const { tagger } = useModelTagging();
 
   return useAtomCallback(
     useCallback(
@@ -72,6 +74,7 @@ export const useExportScenarioAsProject = ({
           const bytes = await getBranchStore().exportBranch(
             scenario.id,
             serializeProjectSettings({ ...projectSettings, name }),
+            tagger,
           );
           durationMs = Math.round(performance.now() - startedAt);
           return new Blob([bytes], { type: "application/octet-stream" });
@@ -153,6 +156,7 @@ export const useExportScenarioAsProject = ({
         setDialog,
         isLocked,
         openPaywall,
+        tagger,
       ],
     ),
   );

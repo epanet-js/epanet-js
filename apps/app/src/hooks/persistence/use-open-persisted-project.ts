@@ -24,6 +24,7 @@ import type { BranchState, UnloadedBranchState } from "src/state/branch-state";
 import { startTrace, type Trace } from "src/infra/trace";
 import { isTraceProjectOpenOn } from "src/infra/debug-mode";
 import { markProjectSavedAtom } from "src/state/project-revision";
+import type { FileIntegrity } from "@epanet-js/ejsdb-tag";
 
 type RestoredBranches = {
   worktree: Worktree;
@@ -69,6 +70,8 @@ export type OpenPersistedProjectResult =
       hydraulicModel: HydraulicModel;
       projectSettings: ProjectSettings;
       uniqueId: string | null;
+      integrity: FileIntegrity;
+      label: string | null;
     }
   | { status: "too-new"; fileVersion: number; appVersion: number }
   | { status: "corrupt" | "internal"; errorDetails: string }
@@ -164,6 +167,8 @@ export const useOpenPersistedProject = () => {
           hydraulicModel,
           projectSettings,
           uniqueId,
+          integrity: result.integrity,
+          label: result.label,
         };
       },
       [defaultPanelsFor],

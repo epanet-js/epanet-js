@@ -113,6 +113,30 @@ describe("openProjectFile", () => {
     });
   });
 
+  it("reports the file tag verdict", async () => {
+    stubFeatureOn("FLAG_TAG_MODELS");
+    const userTracking = stubUserTracking();
+    const hydraulicModel = HydraulicModelBuilder.with().aJunction(1).build();
+    await seedDb(hydraulicModel);
+    const blob = await db.exportDb();
+    const file = new File([blob], "my-project.ejsdb") as FileWithHandle;
+    const store = setInitialState({ hydraulicModel });
+
+    renderComponent({ store, file });
+    await triggerOpen();
+
+    await waitFor(() => {
+      expect(userTracking.capture).toHaveBeenCalledWith({
+        name: "projectFile.tagChecked",
+        source: "test",
+        integrity: "untagged",
+        label: null,
+        plan: "free",
+        planMatches: false,
+      });
+    });
+  });
+
   it("keeps the previous project when the new one cannot be opened", async () => {
     stubFeatureOff("FLAG_OPEN_CLEAR");
     const previousModel = HydraulicModelBuilder.with().aJunction(1).build();

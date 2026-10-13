@@ -1,4 +1,5 @@
-import { getWorker } from "@epanet-js/ejsdb";
+import { getWorker, proxyFileTagger } from "@epanet-js/ejsdb";
+import type { FileTagger } from "@epanet-js/ejsdb-tag";
 import { resetAppId } from "src/infra/app-instance";
 import { holdSessionLock } from "src/infra/session-lock";
 import { addToErrorLog } from "src/infra/error-tracking";
@@ -8,6 +9,7 @@ import { importProject, type ImportProjectInput } from "./import-project";
 export type RebuildPhase = "storage" | "writing" | "finalizing";
 
 export type RebuildOptions = {
+  tagger: FileTagger;
   skipOpfs?: boolean;
   onPhase?: (phase: RebuildPhase) => void;
 };
@@ -17,13 +19,17 @@ type RebuildInput = ImportProjectInput &
 
 export const rebuildDbFromMemory = async (
   input: RebuildInput,
-  { skipOpfs = false, onPhase }: RebuildOptions = {},
+  { tagger, skipOpfs = false, onPhase }: RebuildOptions,
 ): Promise<DbStorageMode> => {
   onPhase?.("storage");
 
   const appId = resetAppId();
   const mode = skipOpfs
-    ? await getWorker().configure({ mode: "memory", sahpoolId: appId })
+    ? await getWorker().configure({
+        mode: "memory",
+        sahpoolId: appId,
+        tagger: proxyFileTagger(tagger),
+      })
     : await getWorker().reinstallSahpool(appId);
   const storageMode: DbStorageMode = mode === "sahpool" ? "opfs" : "memory";
 

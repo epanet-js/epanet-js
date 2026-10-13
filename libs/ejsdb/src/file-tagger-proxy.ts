@@ -3,8 +3,8 @@ import type { FileTagger } from "@epanet-js/ejsdb-tag";
 
 export const proxyFileTagger = (tagger: FileTagger): FileTagger =>
   proxy({
-    tag: async (database, label) => {
-      const file = await tagger.tag(database, label);
+    tag: async (database) => {
+      const file = await tagger.tag(database);
       return transfer(file, [file.buffer]);
     },
     verify: async (file) => {
