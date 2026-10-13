@@ -130,8 +130,8 @@ describe("openProjectFile", () => {
         name: "projectFile.tagChecked",
         source: "test",
         integrity: "untagged",
-        label: null,
-        plan: "free",
+        savedPlan: null,
+        currentPlan: "free",
         planMatches: false,
       });
     });

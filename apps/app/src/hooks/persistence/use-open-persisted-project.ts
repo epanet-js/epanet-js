@@ -71,7 +71,7 @@ export type OpenPersistedProjectResult =
       projectSettings: ProjectSettings;
       uniqueId: string | null;
       integrity: FileIntegrity;
-      label: string | null;
+      plan: string | null;
     }
   | { status: "too-new"; fileVersion: number; appVersion: number }
   | { status: "corrupt" | "internal"; errorDetails: string }
@@ -168,7 +168,7 @@ export const useOpenPersistedProject = () => {
           projectSettings,
           uniqueId,
           integrity: result.integrity,
-          label: result.label,
+          plan: result.label,
         };
       },
       [defaultPanelsFor],

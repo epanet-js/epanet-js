@@ -518,8 +518,8 @@ export type ProjectFileTagChecked = {
   name: "projectFile.tagChecked";
   source: string;
   integrity: "intact" | "tampered" | "untagged";
-  label: string | null;
-  plan: string;
+  savedPlan: string | null;
+  currentPlan: string;
   planMatches: boolean;
 };
 

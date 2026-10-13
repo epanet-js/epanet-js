@@ -253,9 +253,9 @@ export const useOpenProjectFile = () => {
             name: "projectFile.tagChecked",
             source,
             integrity: result.integrity,
-            label: result.label,
-            plan,
-            planMatches: result.label === plan,
+            savedPlan: result.plan,
+            currentPlan: plan,
+            planMatches: result.plan === plan,
           });
         }
 
