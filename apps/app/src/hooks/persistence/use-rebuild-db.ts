@@ -27,110 +27,102 @@ import {
 } from "src/state/session-recovery";
 import { withDatabaseBusy } from "src/hooks/persistence/use-start-new-project";
 import { writeQueue } from "src/lib/persistence/write-queue";
-import { useModelTagging } from "src/hooks/persistence/use-model-tagging";
 
-export const useRebuildDb = (): (() => Promise<void>) => {
-  const { tagger } = useModelTagging();
-  return useAtomCallback(
-    useCallback(
-      async (get: Getter, set: Setter) => {
-        if (get(hasScenariosAtom)) {
-          set(dbAvailabilityAtom, "unavailable");
-          set(dialogAtom, { type: "dbUnavailable" });
-          const diagnostics = await collectDbDiagnostics().catch(() => null);
-          captureError(
-            new Error(
-              "DB unreadable with scenarios; project cannot be rebuilt",
-            ),
-            diagnostics
-              ? { "DB Storage": { ...diagnostics } as Record<string, unknown> }
-              : undefined,
-          );
-          return;
-        }
+export const useRebuildDb = (): (() => Promise<void>) =>
+  useAtomCallback(
+    useCallback(async (get: Getter, set: Setter) => {
+      if (get(hasScenariosAtom)) {
+        set(dbAvailabilityAtom, "unavailable");
+        set(dialogAtom, { type: "dbUnavailable" });
+        const diagnostics = await collectDbDiagnostics().catch(() => null);
+        captureError(
+          new Error("DB unreadable with scenarios; project cannot be rebuilt"),
+          diagnostics
+            ? { "DB Storage": { ...diagnostics } as Record<string, unknown> }
+            : undefined,
+        );
+        return;
+      }
 
-        set(dbAvailabilityAtom, "rebuilding");
+      set(dbAvailabilityAtom, "rebuilding");
 
-        const attempts = get(rebuildAttemptsAtom);
-        set(rebuildAttemptsAtom, attempts + 1);
-        set(writesSucceededAtRebuildAtom, writeQueue.succeededCount());
-        const skipOpfs = get(opfsReinstallFailedAtom);
-        const wasOnOpfs = get(dbStorageModeAtom) === "opfs";
+      const attempts = get(rebuildAttemptsAtom);
+      set(rebuildAttemptsAtom, attempts + 1);
+      set(writesSucceededAtRebuildAtom, writeQueue.succeededCount());
+      const skipOpfs = get(opfsReinstallFailedAtom);
+      const wasOnOpfs = get(dbStorageModeAtom) === "opfs";
 
-        try {
-          const { result: storageMode, wasShown } = await withProgressDialog(
-            (state: DialogState) => set(dialogAtom, state),
-            "storage" as RebuildPhase,
-            (phase: RebuildPhase) => ({
-              type: "rebuildStorageProgress" as const,
-              phase,
-            }),
-            (onPhase) =>
-              withDatabaseBusy(() =>
-                rebuildDbFromMemory(
-                  {
-                    zones: get(zonesAtom),
-                    selectionSets: get(selectionSetsAtom),
-                    bookmarks: get(bookmarksAtom),
-                    projectSettings: get(projectSettingsAtom),
-                    hydraulicModel: get(stagingModelDerivedAtom),
-                    simulationSettings: get(simulationSettingsDerivedAtom),
-                  },
-                  { tagger, skipOpfs, onPhase },
-                ),
+      try {
+        const { result: storageMode, wasShown } = await withProgressDialog(
+          (state: DialogState) => set(dialogAtom, state),
+          "storage" as RebuildPhase,
+          (phase: RebuildPhase) => ({
+            type: "rebuildStorageProgress" as const,
+            phase,
+          }),
+          (onPhase) =>
+            withDatabaseBusy(() =>
+              rebuildDbFromMemory(
+                {
+                  zones: get(zonesAtom),
+                  selectionSets: get(selectionSetsAtom),
+                  bookmarks: get(bookmarksAtom),
+                  projectSettings: get(projectSettingsAtom),
+                  hydraulicModel: get(stagingModelDerivedAtom),
+                  simulationSettings: get(simulationSettingsDerivedAtom),
+                },
+                { skipOpfs, onPhase },
               ),
-          );
+            ),
+        );
 
-          if (storageMode === null) {
-            throw new Error("DB rebuild skipped: another load is in progress");
-          }
+        if (storageMode === null) {
+          throw new Error("DB rebuild skipped: another load is in progress");
+        }
 
-          if (!skipOpfs && storageMode === "memory") {
-            set(opfsReinstallFailedAtom, true);
-          }
+        if (!skipOpfs && storageMode === "memory") {
+          set(opfsReinstallFailedAtom, true);
+        }
 
-          set(dbStorageModeAtom, storageMode);
-          set(dbAvailabilityAtom, "available");
+        set(dbStorageModeAtom, storageMode);
+        set(dbAvailabilityAtom, "available");
 
-          const lostCrashRecovery = storageMode === "memory" && wasOnOpfs;
-          if (lostCrashRecovery) {
-            set(dialogAtom, {
-              type: "rebuildStorageProgress",
-              phase: "finalizing",
-              outcome: "memory",
-            });
-          } else if (wasShown) {
-            set(dialogAtom, null);
-          }
-          addToErrorLog({
-            category: "db",
-            level: "info",
-            message: `DB rebuilt from memory (${storageMode})`,
+        const lostCrashRecovery = storageMode === "memory" && wasOnOpfs;
+        if (lostCrashRecovery) {
+          set(dialogAtom, {
+            type: "rebuildStorageProgress",
+            phase: "finalizing",
+            outcome: "memory",
           });
+        } else if (wasShown) {
+          set(dialogAtom, null);
+        }
+        addToErrorLog({
+          category: "db",
+          level: "info",
+          message: `DB rebuilt from memory (${storageMode})`,
+        });
 
-          if (attempts === 0) {
-            captureWarning(
-              "DB storage degraded; rebuilt from memory",
-              undefined,
-              {
-                "DB Storage": { storageMode, lostCrashRecovery },
-              },
-            );
-          }
-        } catch (error) {
-          set(dbAvailabilityAtom, "unavailable");
-          set(dialogAtom, { type: "dbUnavailable" });
-
-          const diagnostics = await collectDbDiagnostics().catch(() => null);
-          captureError(
-            error instanceof Error ? error : new Error(String(error)),
-            diagnostics
-              ? { "DB Storage": { ...diagnostics } as Record<string, unknown> }
-              : undefined,
+        if (attempts === 0) {
+          captureWarning(
+            "DB storage degraded; rebuilt from memory",
+            undefined,
+            {
+              "DB Storage": { storageMode, lostCrashRecovery },
+            },
           );
         }
-      },
-      [tagger],
-    ),
+      } catch (error) {
+        set(dbAvailabilityAtom, "unavailable");
+        set(dialogAtom, { type: "dbUnavailable" });
+
+        const diagnostics = await collectDbDiagnostics().catch(() => null);
+        captureError(
+          error instanceof Error ? error : new Error(String(error)),
+          diagnostics
+            ? { "DB Storage": { ...diagnostics } as Record<string, unknown> }
+            : undefined,
+        );
+      }
+    }, []),
   );
-};

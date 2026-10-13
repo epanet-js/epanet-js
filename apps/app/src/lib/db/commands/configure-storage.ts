@@ -1,7 +1,6 @@
 import {
   getWorker,
   cleanupStaleDbPools,
-  proxyFileTagger,
   type SahpoolFailure,
 } from "@epanet-js/ejsdb";
 import type { FileTagger } from "@epanet-js/ejsdb-tag";
@@ -10,22 +9,22 @@ import { isOPFSAvailable, getAvailableStorageBytes } from "src/infra/storage";
 import { readRecoveryFingerprints } from "src/infra/session-recovery";
 import { holdSessionLock, isSessionAlive } from "src/infra/session-lock";
 import { captureWarning } from "src/infra/error-tracking";
+import { setDbFileTagger } from "./set-file-tagger";
 
 export type DbStorageMode = "memory" | "sahpool";
 
 const OPFS_MIN_AVAILABLE_BYTES = 512 * 1024 * 1024;
 
 export const configureDbStorage = async (
-  modelTagger: FileTagger,
+  tagger: FileTagger,
 ): Promise<DbStorageMode> => {
-  const tagger = proxyFileTagger(modelTagger);
+  await setDbFileTagger(tagger);
   const opfsAvailable = await isOPFSAvailable();
   if (!opfsAvailable) {
     reportFallback("opfs-not-available");
     return await getWorker().configure({
       mode: "memory",
       sahpoolId: getAppId(),
-      tagger,
     });
   }
 
@@ -36,7 +35,6 @@ export const configureDbStorage = async (
     return await getWorker().configure({
       mode: "memory",
       sahpoolId: getAppId(),
-      tagger,
     });
   }
 
@@ -61,7 +59,6 @@ export const configureDbStorage = async (
   let effective = await getWorker().configure({
     mode,
     sahpoolId: appId,
-    tagger,
   });
 
   if (effective !== mode) {
@@ -69,7 +66,6 @@ export const configureDbStorage = async (
     effective = await getWorker().configure({
       mode,
       sahpoolId: appId,
-      tagger,
     });
   }
 

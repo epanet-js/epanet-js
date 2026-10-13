@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const configure = vi.fn();
+const setFileTagger = vi.fn();
 const sahpoolFailure = vi.fn<() => { name: string; message: string } | null>(
   () => null,
 );
@@ -13,7 +14,7 @@ const cleanupStaleDbPools = vi.fn<
 >(() => Promise.resolve());
 vi.mock("@epanet-js/ejsdb", async (importActual) => ({
   ...(await importActual<typeof import("@epanet-js/ejsdb")>()),
-  getWorker: () => ({ configure, sahpoolFailure }),
+  getWorker: () => ({ configure, sahpoolFailure, setFileTagger }),
   cleanupStaleDbPools: (
     appId: string,
     protectedIds: string[],
@@ -78,17 +79,16 @@ const proxiedTagger = expect.objectContaining({
 });
 
 describe("configureDbStorage", () => {
-  it("hands the worker a proxy of the model tagger", async () => {
+  it("hands the worker a proxy of the model tagger before configuring", async () => {
     isOPFSAvailable.mockResolvedValue(true);
     configure.mockResolvedValueOnce("sahpool");
 
     await configureDbStorage(nullFileTagger);
 
-    expect(configure).toHaveBeenCalledWith({
-      mode: "sahpool",
-      sahpoolId: "tab-a",
-      tagger: proxiedTagger,
-    });
+    expect(setFileTagger).toHaveBeenCalledWith(proxiedTagger);
+    expect(setFileTagger.mock.invocationCallOrder[0]).toBeLessThan(
+      configure.mock.invocationCallOrder[0],
+    );
   });
 
   it("regenerates the appId and retries once when the sahpool install clashes", async () => {
@@ -101,13 +101,11 @@ describe("configureDbStorage", () => {
     expect(configure).toHaveBeenNthCalledWith(1, {
       mode: "sahpool",
       sahpoolId: "tab-a",
-      tagger: proxiedTagger,
     });
     expect(resetAppId).toHaveBeenCalledTimes(1);
     expect(configure).toHaveBeenNthCalledWith(2, {
       mode: "sahpool",
       sahpoolId: "tab-a-fresh",
-      tagger: proxiedTagger,
     });
     expect(cleanupStaleDbPools).toHaveBeenCalledWith(
       "tab-a-fresh",
@@ -178,7 +176,6 @@ describe("configureDbStorage", () => {
       expect(configure).toHaveBeenCalledWith({
         mode: "memory",
         sahpoolId: "tab-a",
-        tagger: proxiedTagger,
       });
       expect(captureWarning).toHaveBeenCalledTimes(1);
       expect(captureWarning).toHaveBeenCalledWith(
@@ -210,7 +207,6 @@ describe("configureDbStorage", () => {
       expect(configure).toHaveBeenCalledWith({
         mode: "memory",
         sahpoolId: "tab-a",
-        tagger: proxiedTagger,
       });
       expect(captureWarning).toHaveBeenCalledWith(
         fallbackMessage("opfs-quota-exceeded"),
@@ -229,7 +225,6 @@ describe("configureDbStorage", () => {
       expect(configure).toHaveBeenCalledWith({
         mode: "memory",
         sahpoolId: "tab-a",
-        tagger: proxiedTagger,
       });
       expect(captureWarning).toHaveBeenCalledWith(
         fallbackMessage("opfs-not-available"),
@@ -260,7 +255,6 @@ describe("configureDbStorage", () => {
     expect(configure).toHaveBeenCalledWith({
       mode: "sahpool",
       sahpoolId: "tab-a",
-      tagger: proxiedTagger,
     });
     expect(cleanupStaleDbPools).toHaveBeenCalledWith(
       "tab-a",
@@ -283,7 +277,6 @@ describe("configureDbStorage", () => {
     expect(configure).toHaveBeenCalledWith({
       mode: "sahpool",
       sahpoolId: "tab-a-fresh",
-      tagger: proxiedTagger,
     });
     expect(cleanupStaleDbPools).toHaveBeenCalledWith(
       "tab-a-fresh",
@@ -306,7 +299,6 @@ describe("configureDbStorage", () => {
     expect(configure).toHaveBeenCalledWith({
       mode: "sahpool",
       sahpoolId: "tab-a-fresh",
-      tagger: proxiedTagger,
     });
     expect(holdSessionLock).toHaveBeenCalledWith("tab-a-fresh");
   });

@@ -1169,16 +1169,13 @@ export const api = {
   async configure({
     mode,
     sahpoolId,
-    tagger,
   }: {
     mode: StorageMode;
     sahpoolId: string;
-    tagger: FileTagger;
   }): Promise<StorageMode> {
     await ready;
     storageMode =
       mode !== "memory" && (await ensureSahpool(sahpoolId)) ? mode : "memory";
-    fileTagger = tagger;
     return storageMode;
   },
 

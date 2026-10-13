@@ -60,7 +60,7 @@ describe("file tag integration", () => {
   });
 
   const configureTagging = (tagger: FileTagger) =>
-    getWorker().configure({ mode: "memory", sahpoolId: "test", tagger });
+    getWorker().setFileTagger(tagger);
 
   const saveProject = async (): Promise<Uint8Array> => {
     await importProject({
