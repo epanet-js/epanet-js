@@ -2553,10 +2553,8 @@ const PumpEditor = ({
     [hydraulicModel.assets],
   );
 
-  const isVariableSpeedPumpsOn = useFeatureFlag("FLAG_VARIABLE_SPEED_PUMPS");
   const outletNodeId = pump.connections[1] ?? null;
   const variableSpeedPumpTargets = useMemo(() => {
-    if (!isVariableSpeedPumpsOn) return undefined;
     const nodes: NodeAsset[] = [];
     const pipes: Pipe[] = [];
     const pumps: Pump[] = [];
@@ -2566,7 +2564,7 @@ const PumpEditor = ({
       else if (asset.type === "pump") pumps.push(asset as Pump);
     }
     return { nodes, pipes, pumps, outletNodeId, units };
-  }, [isVariableSpeedPumpsOn, hydraulicModel.assets, outletNodeId, units]);
+  }, [hydraulicModel.assets, outletNodeId, units]);
 
   const pumpControl =
     [...hydraulicModel.controlsLookup.getControls(pump.id)].find(
@@ -2691,14 +2689,6 @@ const PumpEditor = ({
           onChange={handleStatusChange}
           readOnly={readonly}
         />
-        {!isVariableSpeedPumpsOn && (
-          <VariableSpeedField
-            pump={pump}
-            patterns={hydraulicModel.patterns}
-            onPropertyChange={onPropertyChange}
-            readOnly={readonly}
-          />
-        )}
       </SectionWrapper>
       <CustomAttributesSection
         asset={pump}
@@ -2718,20 +2708,16 @@ const PumpEditor = ({
           variableSpeedPumpTargets={variableSpeedPumpTargets}
           controllingPump={controllingPump}
           hasRawControls={hasRawControls}
-          speedPattern={
-            isVariableSpeedPumpsOn
-              ? {
-                  patterns: hydraulicModel.patterns,
-                  speedPatternId: pump.speedPatternId,
-                  onChange: (speedPatternId) =>
-                    onPropertyChange(
-                      "speedPatternId",
-                      speedPatternId,
-                      pump.speedPatternId,
-                    ),
-                }
-              : undefined
-          }
+          speedPattern={{
+            patterns: hydraulicModel.patterns,
+            speedPatternId: pump.speedPatternId,
+            onChange: (speedPatternId) =>
+              onPropertyChange(
+                "speedPatternId",
+                speedPatternId,
+                pump.speedPatternId,
+              ),
+          }}
           readOnly={readonly}
         />
       </SectionWrapper>
@@ -2902,137 +2888,6 @@ export const valveStatusLabel = (
     return `valve.${sim.status}.${sim.statusWarning}`;
   }
   return "valve." + sim.status;
-};
-
-const VARIABLE_SPEED_PATTERN_BASED = 1;
-
-const VariableSpeedField = ({
-  pump,
-  patterns,
-  onPropertyChange,
-  readOnly = false,
-}: {
-  pump: Pump;
-  patterns: Patterns;
-  onPropertyChange: OnPropertyChange;
-  readOnly?: boolean;
-}) => {
-  const translate = useTranslate();
-  const showPatternsLibrary = useShowPatternsLibrary();
-  const { getPatternComparison } = useAssetComparison(pump);
-
-  const comparison = getPatternComparison(
-    "speedPatternId",
-    pump.speedPatternId,
-    patterns,
-  );
-
-  const enhancedVariableSpeedOptions = useMemo(
-    () => [
-      {
-        label: translate("patternBased"),
-        value: VARIABLE_SPEED_PATTERN_BASED,
-      },
-    ],
-    [translate],
-  );
-
-  const [selectedVariableSpeed, setSelectedVariableSpeed] = useState<
-    number | null
-  >(pump.speedPatternId ? VARIABLE_SPEED_PATTERN_BASED : null);
-  const [prevSpeedPatternId, setPrevSpeedPatternId] = useState(
-    pump.speedPatternId,
-  );
-  if (pump.speedPatternId !== prevSpeedPatternId) {
-    setPrevSpeedPatternId(pump.speedPatternId);
-    setSelectedVariableSpeed(
-      pump.speedPatternId ? VARIABLE_SPEED_PATTERN_BASED : null,
-    );
-  }
-
-  const handleVariableSpeedChange = useCallback(
-    (_: string, newValue: number | null, oldValue: number | null) => {
-      if (newValue === oldValue) return;
-      setSelectedVariableSpeed(newValue);
-      if (newValue === null && pump.speedPatternId) {
-        onPropertyChange("speedPatternId", undefined, pump.speedPatternId);
-      }
-    },
-    [onPropertyChange, pump.speedPatternId],
-  );
-
-  const handleSpeedPatternChange = useCallback(
-    (_: string, newValue: number | null, oldValue: number | null) => {
-      if (newValue === oldValue) return;
-      if (newValue === null) {
-        if (pump.speedPatternId) {
-          onPropertyChange("speedPatternId", undefined, pump.speedPatternId);
-        }
-        return;
-      }
-      onPropertyChange("speedPatternId", newValue, pump.speedPatternId);
-    },
-    [onPropertyChange, pump.speedPatternId],
-  );
-
-  const baseDisplayValue = useMemo(() => {
-    if (!comparison.hasChanged) return undefined;
-    const basePattern = comparison.baseValue;
-    const baseHadPattern = basePattern != null;
-    const baseSpeed = baseHadPattern
-      ? translate("patternBased")
-      : translate("none");
-    const multipliersDiffer =
-      baseHadPattern && basePattern.id === pump.speedPatternId;
-
-    return (
-      <div className="whitespace-pre-line">
-        {baseSpeed}
-        {baseHadPattern &&
-          `\n${translate("speedPattern")}: ${basePattern.label}`}
-        {multipliersDiffer && `\n${translate("multipliersDiffer")}`}
-      </div>
-    );
-  }, [comparison, pump.speedPatternId, translate]);
-
-  return (
-    <BlockComparisonField
-      hasChanged={comparison.hasChanged}
-      baseDisplayValue={baseDisplayValue}
-    >
-      <SelectRow
-        name="variableSpeed"
-        selected={selectedVariableSpeed}
-        options={enhancedVariableSpeedOptions}
-        nullable={true}
-        placeholder={translate("none")}
-        clearLabel={translate("none")}
-        onChange={handleVariableSpeedChange}
-        readOnly={readOnly}
-      />
-      {selectedVariableSpeed === VARIABLE_SPEED_PATTERN_BASED && (
-        <NestedSection>
-          <LibrarySelectRow
-            name="speedPattern"
-            collection={patterns}
-            filterByType="pumpSpeed"
-            libraryLabel={translate("openPatternsLibrary")}
-            onOpenLibrary={() =>
-              showPatternsLibrary({
-                source: "pump",
-                initialPatternId: pump.speedPatternId,
-                initialSection: "pumpSpeed",
-              })
-            }
-            selected={pump.speedPatternId ?? null}
-            emptyOptionLabel={translate("constant")}
-            onChange={handleSpeedPatternChange}
-            readOnly={readOnly}
-          />
-        </NestedSection>
-      )}
-    </BlockComparisonField>
-  );
 };
 
 const PumpEfficiencyCurveField = ({
