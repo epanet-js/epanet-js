@@ -1,5 +1,5 @@
 import { AssetId, LinkAsset } from "@epanet-js/hydraulic-model";
-import { ModelOperation, ModelOperationDeprecated } from "../model-operation";
+import { ModelOperation } from "../model-operation";
 import { HydraulicModel } from "../hydraulic-model";
 import { changeSet, putAssets } from "../change-sets";
 
@@ -14,17 +14,6 @@ export const reverseLink: ModelOperation<ReverseLinkData> = (
   const linkCopy = buildReversedLink(hydraulicModel, linkId);
 
   return changeSet(hydraulicModel, "reverseLink", [putAssets([linkCopy])]);
-};
-
-export const reverseLinkDeprecated: ModelOperationDeprecated<
-  ReverseLinkData
-> = (hydraulicModel, { linkId }) => {
-  const linkCopy = buildReversedLink(hydraulicModel, linkId);
-
-  return {
-    note: "reverseLink",
-    putAssets: [linkCopy],
-  };
 };
 
 const buildReversedLink = (

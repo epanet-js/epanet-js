@@ -5,17 +5,12 @@ import { useEffect, useRef } from "react";
 import { getMapCoord } from "../utils";
 import { useConnectCustomerPointsState } from "./connect-state";
 import { usePipeSnappingForCustomerPoints } from "./pipe-snapping";
-import {
-  connectCustomers,
-  connectCustomersDeprecated,
-} from "src/hydraulic-model/model-operations";
+import { connectCustomers } from "src/hydraulic-model/model-operations";
 import { useUserTracking } from "src/infra/user-tracking";
 import { captureError } from "src/infra/error-tracking";
 import { useKeyboardState } from "src/keyboard/use-keyboard-state";
 import throttle from "lodash/throttle";
-import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export function useConnectCustomerPointsHandlers({
   hydraulicModel,
@@ -23,9 +18,7 @@ export function useConnectCustomerPointsHandlers({
 }: HandlerContext): Handlers {
   const mode = useAtomValue(modeAtom);
   const setMode = useSetAtom(modeAtom);
-  const { transact } = useMomentTransaction();
-  const { transact: transactChangeSet } = useModelTransaction();
-  const isOpsChangeSetsOn = useFeatureFlag("FLAG_OPS_CHANGE_SETS");
+  const { transact } = useModelTransaction();
   const userTracking = useUserTracking();
   const { isShiftHeld } = useKeyboardState();
   const {
@@ -98,22 +91,13 @@ export function useConnectCustomerPointsHandlers({
         pipeId: ephemeralState.targetPipeId,
         snapPoints: ephemeralState.snapPoints,
       };
-      let commit: () => void;
-      if (isOpsChangeSetsOn) {
-        commit = () =>
-          transactChangeSet(() => connectCustomers(hydraulicModel, data));
-      } else {
-        const moment = connectCustomersDeprecated(hydraulicModel, data);
-        commit = () => transact(moment);
-      }
-
       userTracking.capture({
         name: "customerPoints.connected",
         count: ephemeralState.customerPoints.length,
         strategy: ephemeralState.strategy,
       });
 
-      commit();
+      transact(() => connectCustomers(hydraulicModel, data));
       setMode({ mode: Mode.NONE });
       clearConnectState();
     } catch (error) {

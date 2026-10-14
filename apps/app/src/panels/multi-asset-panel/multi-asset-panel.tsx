@@ -28,24 +28,13 @@ import { selectionAtom } from "src/state/selection";
 import { computeAssetsStats } from "./asset-stats";
 import { computeAssetsStatsDeprecated } from "./asset-stats-deprecated";
 import { BATCH_EDITABLE_PROPERTIES } from "./batch-edit-property-config";
-import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useRoughnessInferrer } from "src/hooks/use-roughness-inferrer";
 import { useUserTracking } from "src/infra/user-tracking";
-import {
-  changeProperty,
-  changePropertyDeprecated,
-} from "src/hydraulic-model/model-operations";
+import { changeProperty } from "src/hydraulic-model/model-operations";
 import type { ChangeableProperty } from "src/hydraulic-model/model-operations/change-property";
-import {
-  activateAssets,
-  activateAssetsDeprecated,
-} from "src/hydraulic-model/model-operations/activate-assets";
-import {
-  deactivateAssets,
-  deactivateAssetsDeprecated,
-} from "src/hydraulic-model/model-operations/deactivate-assets";
+import { activateAssets } from "src/hydraulic-model/model-operations/activate-assets";
+import { deactivateAssets } from "src/hydraulic-model/model-operations/deactivate-assets";
 import { useSelection } from "src/selection";
 import { useShowPumpLibrary } from "src/commands/show-pump-library";
 import { useShowPatternsLibrary } from "src/commands/show-patterns-library";
@@ -70,9 +59,7 @@ export function MultiAssetPanel({
   const [collapseState, setCollapseState] = useAtom(
     multiAssetPanelCollapseAtom,
   );
-  const { transact } = useMomentTransaction();
-  const { transact: transactChangeSet } = useModelTransaction();
-  const isOpsChangeSetsOn = useFeatureFlag("FLAG_OPS_CHANGE_SETS");
+  const { transact } = useModelTransaction();
   const userTracking = useUserTracking();
   const showPumpLibrary = useShowPumpLibrary();
   const showPatternsLibrary = useShowPatternsLibrary();
@@ -144,23 +131,13 @@ export function MultiAssetPanel({
     ) => {
       const assetIds = assetIdsByType[assetType];
       const data = { assetIds, property: modelProperty, value };
-      if (isOpsChangeSetsOn) {
-        transactChangeSet(() =>
-          modelProperty === "isActive"
-            ? value
-              ? activateAssets(hydraulicModel, { assetIds })
-              : deactivateAssets(hydraulicModel, { assetIds })
-            : changeProperty(hydraulicModel, data),
-        );
-      } else {
-        transact(
-          modelProperty === "isActive"
-            ? value
-              ? activateAssetsDeprecated(hydraulicModel, { assetIds })
-              : deactivateAssetsDeprecated(hydraulicModel, { assetIds })
-            : changePropertyDeprecated(hydraulicModel, data),
-        );
-      }
+      transact(() =>
+        modelProperty === "isActive"
+          ? value
+            ? activateAssets(hydraulicModel, { assetIds })
+            : deactivateAssets(hydraulicModel, { assetIds })
+          : changeProperty(hydraulicModel, data),
+      );
       userTracking.capture({
         name: "assetProperty.batchEdited",
         type: assetType,
@@ -169,14 +146,7 @@ export function MultiAssetPanel({
         count: assetIds.length,
       });
     },
-    [
-      hydraulicModel,
-      assetIdsByType,
-      isOpsChangeSetsOn,
-      transact,
-      transactChangeSet,
-      userTracking,
-    ],
+    [hydraulicModel, assetIdsByType, transact, userTracking],
   );
 
   const selection = useAtomValue(selectionAtom);

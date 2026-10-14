@@ -1,6 +1,6 @@
 import { Position } from "src/types";
 import { CustomerPoint, CustomerPointId } from "@epanet-js/hydraulic-model";
-import { ModelOperation, ModelOperationDeprecated } from "../model-operation";
+import { ModelOperation } from "../model-operation";
 import { HydraulicModel } from "../hydraulic-model";
 import { changeSet, putCustomerPoints } from "../change-sets";
 
@@ -18,15 +18,6 @@ export const moveCustomerPoint: ModelOperation<InputData> = (
       buildMovedCopy(hydraulicModel, customerPointId, newCoordinates),
     ]),
   ]);
-
-export const moveCustomerPointDeprecated: ModelOperationDeprecated<
-  InputData
-> = (hydraulicModel, { customerPointId, newCoordinates }) => ({
-  note: "moveCustomerPoint",
-  putCustomerPoints: [
-    buildMovedCopy(hydraulicModel, customerPointId, newCoordinates),
-  ],
-});
 
 const buildMovedCopy = (
   { customerPoints }: HydraulicModel,

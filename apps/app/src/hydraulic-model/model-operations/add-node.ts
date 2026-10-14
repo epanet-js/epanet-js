@@ -5,7 +5,7 @@ import {
   LabelManager,
   AssetFactory,
 } from "@epanet-js/hydraulic-model";
-import { ModelOperation, ModelOperationDeprecated } from "../model-operation";
+import { ModelOperation } from "../model-operation";
 import { Position } from "src/types";
 import { HydraulicModel } from "../hydraulic-model";
 import { controlsAfterSplits, splitPipe } from "./split-pipe";
@@ -40,26 +40,6 @@ export const addNode: ModelOperation<InputData> = (hydraulicModel, data) => {
     putCustomerPoints(customerPoints),
     ...(controls ? [replaceControls(controls)] : []),
   ]);
-};
-
-export const addNodeDeprecated: ModelOperationDeprecated<InputData> = (
-  hydraulicModel,
-  data,
-) => {
-  const { note, node, newPipes, removedPipeIds, customerPoints, controls } =
-    planAddition(hydraulicModel, data);
-
-  if (removedPipeIds.length === 0) {
-    return { note, putAssets: [node] };
-  }
-
-  return {
-    note,
-    putAssets: [node, ...newPipes],
-    putCustomerPoints: customerPoints.length > 0 ? customerPoints : undefined,
-    deleteAssets: removedPipeIds,
-    ...(controls && { putControls: controls }),
-  };
 };
 
 const planAddition = (

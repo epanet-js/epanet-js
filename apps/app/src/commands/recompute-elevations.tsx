@@ -12,12 +12,9 @@ import { notify } from "src/components/notifications";
 import { SuccessIcon } from "src/icons";
 import { TranslateFn, useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
-import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   changeElevations,
-  changeElevationsDeprecated,
   type NodeElevation,
 } from "src/hydraulic-model/model-operations";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
@@ -80,9 +77,7 @@ export const useRecomputeElevations = () => {
   const sources = useAtomValue(elevationSourcesAtom);
   const isOffline = useAtomValue(offlineAtom);
   const { units } = useAtomValue(projectSettingsAtom);
-  const { transact } = useMomentTransaction();
-  const { transact: transactChangeSet } = useModelTransaction();
-  const isOpsChangeSetsOn = useFeatureFlag("FLAG_OPS_CHANGE_SETS");
+  const { transact } = useModelTransaction();
   const userTracking = useUserTracking();
   const translate = useTranslate();
   const setDialog = useSetAtom(dialogAtom);
@@ -187,13 +182,7 @@ export const useRecomputeElevations = () => {
 
         const resolved = nodeElevations.length;
         if (resolved > 0) {
-          if (isOpsChangeSetsOn) {
-            transactChangeSet(() =>
-              changeElevations(model, { nodeElevations }),
-            );
-          } else {
-            transact(changeElevationsDeprecated(model, { nodeElevations }));
-          }
+          transact(() => changeElevations(model, { nodeElevations }));
         }
 
         userTracking.capture({
@@ -241,9 +230,7 @@ export const useRecomputeElevations = () => {
       sources,
       isOffline,
       units.elevation,
-      isOpsChangeSetsOn,
       transact,
-      transactChangeSet,
       userTracking,
       translate,
       setDialog,

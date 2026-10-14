@@ -1,7 +1,6 @@
 import { AssetId } from "@epanet-js/hydraulic-model";
 import { AssetsMap } from "@epanet-js/hydraulic-model";
-import type { AssetPatch } from "../model-operation";
-import { ModelOperation, ModelOperationDeprecated } from "../model-operation";
+import { ModelOperation } from "../model-operation";
 import { TopologyQueries } from "@epanet-js/hydraulic-model";
 import { HydraulicModel } from "../hydraulic-model";
 import { changeSet, setAsset } from "../change-sets";
@@ -17,22 +16,6 @@ export const deactivateAssets: ModelOperation<InputData> = (
   changeSet(model, "deactivateAssets", [
     setAsset(idsToDeactivate(model, assetIds), { isActive: false }),
   ]);
-
-export const deactivateAssetsDeprecated: ModelOperationDeprecated<InputData> = (
-  model,
-  { assetIds },
-) => {
-  const patches = idsToDeactivate(model, assetIds).map(
-    (id) =>
-      ({
-        id,
-        type: model.assets.get(id)!.type,
-        properties: { isActive: false },
-      }) as AssetPatch,
-  );
-
-  return { note: "deactivateAssets", patchAssetsAttributes: patches };
-};
 
 const idsToDeactivate = (
   { assets, topology }: HydraulicModel,

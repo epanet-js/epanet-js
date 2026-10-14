@@ -23,9 +23,7 @@ import { EditableTextField } from "src/components/form/editable-text-field";
 import { useLabelMaxLength } from "src/hooks/use-label-max-length";
 import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
-import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   getCustomerPointDemands,
   calculateAverageDemand,
@@ -34,9 +32,7 @@ import {
 } from "@epanet-js/hydraulic-model";
 import {
   changeDemandAssignment,
-  changeDemandAssignmentDeprecated,
   changeCustomerPointLabel,
-  changeCustomerPointLabelDeprecated,
 } from "src/hydraulic-model/model-operations";
 import { convertTo } from "@epanet-js/quantity";
 
@@ -47,9 +43,7 @@ export function CustomerPointPanel() {
   const labelMaxLength = useLabelMaxLength();
   const userTracking = useUserTracking();
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
-  const { transact } = useMomentTransaction();
-  const { transact: transactChangeSet } = useModelTransaction();
-  const isOpsChangeSetsOn = useFeatureFlag("FLAG_OPS_CHANGE_SETS");
+  const { transact } = useModelTransaction();
   const zoomTo = useZoomTo();
   const { units } = useAtomValue(projectSettingsAtom);
   const selectedCustomerPointId = USelection.singleCustomerPointId(selection);
@@ -133,13 +127,7 @@ export function CustomerPointPanel() {
       const assignments = [
         { customerPointId: customerPoint.id, demands: newDemands },
       ];
-      if (isOpsChangeSetsOn) {
-        transactChangeSet(() =>
-          changeDemandAssignment(hydraulicModel, assignments),
-        );
-      } else {
-        transact(changeDemandAssignmentDeprecated(hydraulicModel, assignments));
-      }
+      transact(() => changeDemandAssignment(hydraulicModel, assignments));
       userTracking.capture({
         name: "customerPointDemands.edited",
         oldCount,
@@ -151,9 +139,7 @@ export function CustomerPointPanel() {
       hydraulicModel,
       perDayUnit,
       flowUnit,
-      isOpsChangeSetsOn,
       transact,
-      transactChangeSet,
       userTracking,
     ],
   );
@@ -184,11 +170,7 @@ export function CustomerPointPanel() {
       }
 
       const data = { customerPointId: customerPoint.id, newLabel };
-      if (isOpsChangeSetsOn) {
-        transactChangeSet(() => changeCustomerPointLabel(hydraulicModel, data));
-      } else {
-        transact(changeCustomerPointLabelDeprecated(hydraulicModel, data));
-      }
+      transact(() => changeCustomerPointLabel(hydraulicModel, data));
       userTracking.capture({
         name: "customerPointActions.labelChanged",
         oldLabel,
@@ -201,9 +183,7 @@ export function CustomerPointPanel() {
       customerPoint,
       hydraulicModel,
       labelManager,
-      isOpsChangeSetsOn,
       transact,
-      transactChangeSet,
       translate,
       userTracking,
     ],

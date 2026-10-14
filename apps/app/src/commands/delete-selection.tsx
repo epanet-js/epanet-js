@@ -2,23 +2,17 @@ import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useCallback } from "react";
 import {
   deleteAssets,
-  deleteAssetsDeprecated,
   mergeChangeSets,
-  mergeMoments,
   removeCustomerPoints,
-  removeCustomerPointsDeprecated,
 } from "src/hydraulic-model/model-operations";
 import type { ChangeSet } from "@epanet-js/change-set";
-import type { ModelMoment } from "src/hydraulic-model/model-operation";
 import { AssetDeleted, useUserTracking } from "src/infra/user-tracking";
 import { USelection } from "src/selection";
 import { ephemeralStateAtom } from "src/state/drawing";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { modeAtom, Mode } from "src/state/mode";
 import { selectionAtom } from "src/state/selection";
-import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 export const deleteSelectedShortcuts = ["backspace", "del"];
 
 export const useDeleteSelection = () => {
@@ -26,9 +20,7 @@ export const useDeleteSelection = () => {
   const [selection, setSelection] = useAtom(selectionAtom);
   const setMode = useSetAtom(modeAtom);
   const setEphemeralState = useSetAtom(ephemeralStateAtom);
-  const { transact } = useMomentTransaction();
-  const { transact: transactChangeSet } = useModelTransaction();
-  const isOpsChangeSetsOn = useFeatureFlag("FLAG_OPS_CHANGE_SETS");
+  const { transact } = useModelTransaction();
   const userTracking = useUserTracking();
 
   const clearSelection = useCallback(() => {
@@ -79,46 +71,19 @@ export const useDeleteSelection = () => {
         customerPointIds: customerPointIds.slice(),
       };
 
-      if (isOpsChangeSetsOn) {
-        transactChangeSet(() => {
-          const changeSets: ChangeSet[] = [];
-          if (assetIds.length > 0) {
-            changeSets.push(deleteAssets(hydraulicModel, deleteAssetsData));
-          }
-          if (customerPointIds.length > 0) {
-            changeSets.push(
-              removeCustomerPoints(hydraulicModel, removeCustomerPointsData),
-            );
-          }
-          return mergeChangeSets(changeSets, "deleteSelection");
-        });
-      } else {
-        const moments: ModelMoment[] = [];
+      transact(() => {
+        const changeSets: ChangeSet[] = [];
         if (assetIds.length > 0) {
-          moments.push(
-            deleteAssetsDeprecated(hydraulicModel, deleteAssetsData),
-          );
+          changeSets.push(deleteAssets(hydraulicModel, deleteAssetsData));
         }
         if (customerPointIds.length > 0) {
-          moments.push(
-            removeCustomerPointsDeprecated(
-              hydraulicModel,
-              removeCustomerPointsData,
-            ),
+          changeSets.push(
+            removeCustomerPoints(hydraulicModel, removeCustomerPointsData),
           );
         }
-        const merged = mergeMoments(moments, "deleteSelection");
-        if (merged) transact(merged);
-      }
+        return mergeChangeSets(changeSets, "deleteSelection");
+      });
     },
-    [
-      hydraulicModel,
-      selection,
-      isOpsChangeSetsOn,
-      transact,
-      transactChangeSet,
-      clearSelection,
-      userTracking,
-    ],
+    [hydraulicModel, selection, transact, clearSelection, userTracking],
   );
 };

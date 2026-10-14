@@ -6,37 +6,24 @@ import {
   simulationResultsDerivedAtom,
   simulationSettingsDerivedAtom,
 } from "src/state/derived-branch-state";
-import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   changeProperties,
-  changePropertiesDeprecated,
   changeLabel,
-  changeLabelDeprecated,
   changeDemandAssignment,
-  changeDemandAssignmentDeprecated,
   mergeChangeSets,
-  mergeMoments,
 } from "src/hydraulic-model/model-operations";
 import type { ChangeSet } from "@epanet-js/change-set";
 import { getJunctionDemands } from "src/hydraulic-model";
 import type { JunctionDemandAssignment } from "src/hydraulic-model/model-operation";
-import type { ModelMoment } from "src/hydraulic-model";
 import {
   tankVolumeCurveChanges,
   chemicalSourceTypeChanges,
   valveKindChanges,
   pumpDefinitionTypeChanges,
 } from "src/hydraulic-model/model-operations";
-import {
-  activateAssets,
-  activateAssetsDeprecated,
-} from "src/hydraulic-model/model-operations/activate-assets";
-import {
-  deactivateAssets,
-  deactivateAssetsDeprecated,
-} from "src/hydraulic-model/model-operations/deactivate-assets";
+import { activateAssets } from "src/hydraulic-model/model-operations/activate-assets";
+import { deactivateAssets } from "src/hydraulic-model/model-operations/deactivate-assets";
 import type { PropertyChange } from "src/hydraulic-model/model-operations/change-property";
 import { createTimeSlicer } from "src/infra/yield-to-main";
 import { modelFactoriesAtom } from "src/state/model-factories";
@@ -135,9 +122,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
   const simulationSettings = useAtomValue(simulationSettingsDerivedAtom);
   const { units, formatting } = useAtomValue(projectSettingsAtom);
   const { labelManager } = useAtomValue(modelFactoriesAtom);
-  const { transact } = useMomentTransaction();
-  const { transact: transactChangeSet } = useModelTransaction();
-  const isOpsChangeSetsOn = useFeatureFlag("FLAG_OPS_CHANGE_SETS");
+  const { transact } = useModelTransaction();
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
   const isEditionBlocked = useIsEditionBlocked();
@@ -284,7 +269,6 @@ export const AssetDataTable = memo(function AssetDataTableInner({
         ...EDITABLE_SELECT_KEYS[assetType],
         ...customAttributes.map((a) => a.id),
       ];
-      const moments: ModelMoment[] = [];
       const changeSetBuilders: (() => ChangeSet)[] = [];
       const editedProperties = new Map<string, number>();
       const demandAssignments: JunctionDemandAssignment[] = [];
@@ -350,13 +334,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
           labelManager.isLabelAvailable(newRow.label, assetType, assetId)
         ) {
           const labelData = { assetId, newLabel: newRow.label };
-          if (isOpsChangeSetsOn) {
-            changeSetBuilders.push(() =>
-              changeLabel(hydraulicModel, labelData),
-            );
-          } else {
-            moments.push(changeLabelDeprecated(hydraulicModel, labelData));
-          }
+          changeSetBuilders.push(() => changeLabel(hydraulicModel, labelData));
           editedProperties.set(
             "label",
             (editedProperties.get("label") ?? 0) + 1,
@@ -364,17 +342,10 @@ export const AssetDataTable = memo(function AssetDataTableInner({
         }
 
         if (newRow.isActive !== oldRow.isActive) {
-          if (isOpsChangeSetsOn) {
-            const op = newRow.isActive ? activateAssets : deactivateAssets;
-            changeSetBuilders.push(() =>
-              op(hydraulicModel, { assetIds: [assetId] }),
-            );
-          } else {
-            const op = newRow.isActive
-              ? activateAssetsDeprecated
-              : deactivateAssetsDeprecated;
-            moments.push(op(hydraulicModel, { assetIds: [assetId] }));
-          }
+          const op = newRow.isActive ? activateAssets : deactivateAssets;
+          changeSetBuilders.push(() =>
+            op(hydraulicModel, { assetIds: [assetId] }),
+          );
           editedProperties.set(
             "isActive",
             (editedProperties.get("isActive") ?? 0) + 1,
@@ -457,43 +428,25 @@ export const AssetDataTable = memo(function AssetDataTableInner({
             assetIds: [assetId],
             changes: normalizedChanges,
           };
-          if (isOpsChangeSetsOn) {
-            changeSetBuilders.push(() =>
-              changeProperties(hydraulicModel, propertiesData),
-            );
-          } else {
-            moments.push(
-              changePropertiesDeprecated(hydraulicModel, propertiesData),
-            );
-          }
+          changeSetBuilders.push(() =>
+            changeProperties(hydraulicModel, propertiesData),
+          );
         }
       }
 
       if (demandAssignments.length > 0) {
-        if (isOpsChangeSetsOn) {
-          changeSetBuilders.push(() =>
-            changeDemandAssignment(hydraulicModel, demandAssignments),
-          );
-        } else {
-          moments.push(
-            changeDemandAssignmentDeprecated(hydraulicModel, demandAssignments),
-          );
-        }
+        changeSetBuilders.push(() =>
+          changeDemandAssignment(hydraulicModel, demandAssignments),
+        );
       }
 
-      if (isOpsChangeSetsOn) {
-        const applied = transactChangeSet(() =>
-          mergeChangeSets(
-            changeSetBuilders.map((build) => build()),
-            "editAssetTable",
-          ),
-        );
-        if (!applied) return;
-      } else {
-        const merged = mergeMoments(moments, "editAssetTable");
-        if (!merged) return;
-        transact(merged);
-      }
+      const applied = transact(() =>
+        mergeChangeSets(
+          changeSetBuilders.map((build) => build()),
+          "editAssetTable",
+        ),
+      );
+      if (!applied) return;
 
       for (const [property, count] of editedProperties) {
         if (isCustomProperty(property)) {
@@ -524,9 +477,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
       assetType,
       hydraulicModel,
       labelManager,
-      isOpsChangeSetsOn,
       transact,
-      transactChangeSet,
       userTracking,
       customAttributes,
     ],

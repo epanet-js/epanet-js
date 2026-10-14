@@ -6,17 +6,9 @@ import {
   TopologyQueries,
 } from "@epanet-js/hydraulic-model";
 import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
-import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import {
-  deactivateAssets,
-  deactivateAssetsDeprecated,
-} from "src/hydraulic-model/model-operations/deactivate-assets";
-import {
-  deleteAssets,
-  deleteAssetsDeprecated,
-} from "src/hydraulic-model/model-operations/delete-assets";
+import { deactivateAssets } from "src/hydraulic-model/model-operations/deactivate-assets";
+import { deleteAssets } from "src/hydraulic-model/model-operations/delete-assets";
 import {
   ActiveAssetIndex,
   ActiveTopology,
@@ -30,9 +22,7 @@ export const useFixOrphanAsset = () => {
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const userTracking = useUserTracking();
   const isEditionBlocked = useIsEditionBlocked();
-  const { transact } = useMomentTransaction();
-  const { transact: transactChangeSet } = useModelTransaction();
-  const isOpsChangeSetsOn = useFeatureFlag("FLAG_OPS_CHANGE_SETS");
+  const { transact } = useModelTransaction();
 
   const { topology, assetIndex } = useMemo(
     () => ({
@@ -64,18 +54,10 @@ export const useFixOrphanAsset = () => {
 
       if (kind !== "isolatedLink") {
         const data = { assetIds: [assetId], shouldUpdateCustomerPoints: true };
-        if (isOpsChangeSetsOn) {
-          transactChangeSet(() => deleteAssets(hydraulicModel, data));
-        } else {
-          transact(deleteAssetsDeprecated(hydraulicModel, data));
-        }
-      } else if (isOpsChangeSetsOn) {
-        transactChangeSet(() =>
-          deactivateAssets(hydraulicModel, { assetIds: [assetId] }),
-        );
+        transact(() => deleteAssets(hydraulicModel, data));
       } else {
-        transact(
-          deactivateAssetsDeprecated(hydraulicModel, { assetIds: [assetId] }),
+        transact(() =>
+          deactivateAssets(hydraulicModel, { assetIds: [assetId] }),
         );
       }
 
@@ -86,15 +68,7 @@ export const useFixOrphanAsset = () => {
         type: asset.type,
       });
     },
-    [
-      kindOf,
-      hydraulicModel,
-      isOpsChangeSetsOn,
-      transact,
-      transactChangeSet,
-      userTracking,
-      isEditionBlocked,
-    ],
+    [kindOf, hydraulicModel, transact, userTracking, isEditionBlocked],
   );
 
   return { kindOf, fix };

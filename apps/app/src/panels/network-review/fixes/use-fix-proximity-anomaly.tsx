@@ -6,15 +6,8 @@ import distance from "@turf/distance";
 import { point } from "@turf/helpers";
 import { HydraulicModel } from "src/hydraulic-model";
 import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
-import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import {
-  mergeNodes,
-  mergeNodesDeprecated,
-  moveNode,
-  moveNodeDeprecated,
-} from "src/hydraulic-model/model-operations";
+import { mergeNodes, moveNode } from "src/hydraulic-model/model-operations";
 import { useUserTracking } from "src/infra/user-tracking";
 import {
   CONNECTED_JUNCTION_TOLERANCE_IN_METERS,
@@ -30,9 +23,7 @@ export const useFixProximityAnomaly = () => {
   const { assetFactory, labelManager } = useAtomValue(modelFactoriesAtom);
   const userTracking = useUserTracking();
   const isEditionBlocked = useIsEditionBlocked();
-  const { transact } = useMomentTransaction();
-  const { transact: transactChangeSet } = useModelTransaction();
-  const isOpsChangeSetsOn = useFeatureFlag("FLAG_OPS_CHANGE_SETS");
+  const { transact } = useModelTransaction();
 
   const fix = useCallback(
     (anomaly: ProximityAnomaly) => {
@@ -66,11 +57,7 @@ export const useFixProximityAnomaly = () => {
           targetNodeId: endpointNodeId,
           lengthUnit: units.length,
         };
-        if (isOpsChangeSetsOn) {
-          transactChangeSet(() => mergeNodes(hydraulicModel, data));
-        } else {
-          transact(mergeNodesDeprecated(hydraulicModel, data));
-        }
+        transact(() => mergeNodes(hydraulicModel, data));
       } else {
         const data = {
           nodeId: anomaly.nodeId,
@@ -82,11 +69,7 @@ export const useFixProximityAnomaly = () => {
           assetFactory,
           labelManager,
         };
-        if (isOpsChangeSetsOn) {
-          transactChangeSet(() => moveNode(hydraulicModel, data));
-        } else {
-          transact(moveNodeDeprecated(hydraulicModel, data));
-        }
+        transact(() => moveNode(hydraulicModel, data));
       }
 
       userTracking.capture({
@@ -102,8 +85,6 @@ export const useFixProximityAnomaly = () => {
       assetFactory,
       labelManager,
       transact,
-      transactChangeSet,
-      isOpsChangeSetsOn,
       userTracking,
       isEditionBlocked,
     ],

@@ -1,10 +1,6 @@
 import { AssetId, AssetPropertiesMap } from "@epanet-js/hydraulic-model";
 import { isCustomProperty } from "@epanet-js/hydraulic-model";
-import type {
-  AssetPatch,
-  ModelMoment,
-  OperationCode,
-} from "../model-operation";
+import type { AssetPatch, OperationCode } from "../model-operation";
 import { HydraulicModel } from "../hydraulic-model";
 import { AssetsMap } from "@epanet-js/hydraulic-model";
 import type { ChangeSet } from "@epanet-js/change-set";
@@ -63,22 +59,6 @@ export function changeProperties(
 ): ChangeSet {
   const patches = buildPatches(model.assets, assetIds, changes);
   return patchesChangeSet(model, "changeProperties", patches);
-}
-
-export function changePropertyDeprecated<P extends ChangeableProperty>(
-  { assets }: HydraulicModel,
-  { assetIds, property, value }: ChangePropertyData<P>,
-): ModelMoment {
-  const patches = buildPatches(assets, assetIds, [{ property, value }]);
-  return { note: "changeProperty", patchAssetsAttributes: patches };
-}
-
-export function changePropertiesDeprecated(
-  { assets }: HydraulicModel,
-  { assetIds, changes }: ChangePropertiesData,
-): ModelMoment {
-  const patches = buildPatches(assets, assetIds, changes);
-  return { note: "changeProperties", patchAssetsAttributes: patches };
 }
 
 function patchesChangeSet(

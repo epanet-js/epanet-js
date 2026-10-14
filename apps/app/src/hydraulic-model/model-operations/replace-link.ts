@@ -7,7 +7,7 @@ import {
   AssetFactory,
   LabelManager,
 } from "@epanet-js/hydraulic-model";
-import { ModelOperation, ModelOperationDeprecated } from "../model-operation";
+import { ModelOperation } from "../model-operation";
 import { planAddLink } from "./add-link";
 import { findJunctionForCustomerPoint } from "../utilities/junction-assignment";
 import { HydraulicModel } from "../hydraulic-model";
@@ -55,22 +55,6 @@ export const replaceLink: ModelOperation<InputData> = (
     putCustomerPoints(customerPoints),
     ...(controls ? [replaceControls(controls)] : []),
   ]);
-};
-
-export const replaceLinkDeprecated: ModelOperationDeprecated<InputData> = (
-  hydraulicModel,
-  data,
-) => {
-  const { note, putAssets, deleteAssets, customerPoints, controls } =
-    planReplaceLink(hydraulicModel, data);
-
-  return {
-    note,
-    putAssets,
-    deleteAssets: deleteAssets.length > 0 ? deleteAssets : undefined,
-    putCustomerPoints: customerPoints.length > 0 ? customerPoints : undefined,
-    ...(controls && { putControls: controls }),
-  };
 };
 
 const planReplaceLink = (

@@ -12,8 +12,8 @@ import {
 } from "@epanet-js/worktree";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
-import { addNodeDeprecated } from "src/hydraulic-model/model-operations/add-node";
-import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
+import { addNode } from "src/hydraulic-model/model-operations/add-node";
+import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import { useSimulationSettingsTransaction } from "src/hooks/persistence/use-simulation-settings-transaction";
 import { useUndoableTransactions } from "src/hooks/persistence/use-undoable-transactions";
 import { useInitializeBranch } from "src/hooks/persistence/use-initialize-branch";
@@ -170,9 +170,9 @@ const switchToScenario = (store: Store, branch: Branch = scenarioBranch) => {
 };
 
 const addJunction = (store: Store) => {
-  const { result } = renderHook(() => useMomentTransaction(), withStore(store));
+  const { result } = renderHook(() => useModelTransaction(), withStore(store));
   const factories = store.get(modelFactoriesAtom);
-  const moment = addNodeDeprecated(store.get(stagingModelDerivedAtom), {
+  const changeSet = addNode(store.get(stagingModelDerivedAtom), {
     nodeType: "junction",
     coordinates: [10, 10],
     elevation: 5,
@@ -182,7 +182,7 @@ const addJunction = (store: Store) => {
   });
 
   act(() => {
-    result.current.transact(moment);
+    result.current.transact(() => changeSet);
   });
 };
 

@@ -4,9 +4,9 @@ import { describe, expect, it } from "vitest";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
 import { getAssetsByType } from "src/__helpers__/asset-queries";
-import { addNodeDeprecated } from "src/hydraulic-model/model-operations/add-node";
-import { changePropertyDeprecated } from "src/hydraulic-model/model-operations/change-property";
-import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
+import { addNode } from "src/hydraulic-model/model-operations/add-node";
+import { changeProperty } from "src/hydraulic-model/model-operations/change-property";
+import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import { useUndoableTransactions } from "src/hooks/persistence/use-undoable-transactions";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
@@ -125,9 +125,9 @@ const withStore = (store: Store) => ({
 });
 
 const addJunction = (store: Store, coordinates: number[]) => {
-  const { result } = renderHook(() => useMomentTransaction(), withStore(store));
+  const { result } = renderHook(() => useModelTransaction(), withStore(store));
   const factories = store.get(modelFactoriesAtom);
-  const moment = addNodeDeprecated(store.get(stagingModelDerivedAtom), {
+  const changeSet = addNode(store.get(stagingModelDerivedAtom), {
     nodeType: "junction",
     coordinates,
     elevation: 5,
@@ -137,20 +137,20 @@ const addJunction = (store: Store, coordinates: number[]) => {
   });
 
   act(() => {
-    result.current.transact(moment);
+    result.current.transact(() => changeSet);
   });
 };
 
 const changeElevation = (store: Store, assetIds: AssetId[]) => {
-  const { result } = renderHook(() => useMomentTransaction(), withStore(store));
-  const moment = changePropertyDeprecated(store.get(stagingModelDerivedAtom), {
+  const { result } = renderHook(() => useModelTransaction(), withStore(store));
+  const changeSet = changeProperty(store.get(stagingModelDerivedAtom), {
     assetIds,
     property: "elevation",
     value: 42,
   });
 
   act(() => {
-    result.current.transact(moment);
+    result.current.transact(() => changeSet);
   });
 };
 

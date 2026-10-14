@@ -9,7 +9,7 @@ import {
   CustomerPoint,
   computeLinkLength,
 } from "@epanet-js/hydraulic-model";
-import { ModelOperation, ModelOperationDeprecated } from "../model-operation";
+import { ModelOperation } from "../model-operation";
 import { Position } from "geojson";
 import { PipeSplit, controlsAfterSplits, splitPipe } from "./split-pipe";
 import { AssetsMap, Controls } from "@epanet-js/hydraulic-model";
@@ -51,22 +51,6 @@ export const addLink: ModelOperation<InputData> = (hydraulicModel, data) => {
     putCustomerPoints(customerPoints),
     ...(controls ? [replaceControls(controls)] : []),
   ]);
-};
-
-export const addLinkDeprecated: ModelOperationDeprecated<InputData> = (
-  hydraulicModel,
-  data,
-) => {
-  const { note, putAssets, deleteAssets, customerPoints, controls } =
-    planAddLink(hydraulicModel, data);
-
-  return {
-    note,
-    deleteAssets: deleteAssets.length > 0 ? deleteAssets : undefined,
-    putAssets,
-    putCustomerPoints: customerPoints,
-    ...(controls && { putControls: controls }),
-  };
 };
 
 export const planAddLink = (

@@ -1,5 +1,5 @@
 import { AssetId, Control, setAssetControl } from "@epanet-js/hydraulic-model";
-import { ModelOperation, ModelOperationDeprecated } from "../model-operation";
+import { ModelOperation } from "../model-operation";
 import { changeSet, replaceControls } from "../change-sets";
 
 type InputData = {
@@ -14,12 +14,3 @@ export const changeAssetControl: ModelOperation<InputData> = (
   changeSet(model, "changeAssetControl", [
     replaceControls(setAssetControl(model.controls, assetId, control)),
   ]);
-
-export const changeAssetControlDeprecated: ModelOperationDeprecated<
-  InputData
-> = (hydraulicModel, { assetId, control }) => {
-  return {
-    note: "changeAssetControl",
-    putControls: setAssetControl(hydraulicModel.controls, assetId, control),
-  };
-};

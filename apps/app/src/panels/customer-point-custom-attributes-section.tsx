@@ -10,15 +10,10 @@ import {
 import type { CustomerPoint } from "@epanet-js/hydraulic-model";
 import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
-import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useCustomerPointComparison } from "src/hooks/use-customer-point-comparison";
 import type { PropertyComparison } from "src/hooks/use-asset-comparison";
-import {
-  changeCustomerPointProperty,
-  changeCustomerPointPropertyDeprecated,
-} from "src/hydraulic-model/model-operations";
+import { changeCustomerPointProperty } from "src/hydraulic-model/model-operations";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { NumericField } from "src/components/form/numeric-field";
 import { EditableTextField } from "src/components/form/editable-text-field";
@@ -36,9 +31,7 @@ export const CustomerPointCustomAttributesSection = ({
 }) => {
   const translate = useTranslate();
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
-  const { transact } = useMomentTransaction();
-  const { transact: transactChangeSet } = useModelTransaction();
-  const isOpsChangeSetsOn = useFeatureFlag("FLAG_OPS_CHANGE_SETS");
+  const { transact } = useModelTransaction();
   const userTracking = useUserTracking();
   const { getComparison } = useCustomerPointComparison(customerPoint.id);
 
@@ -49,13 +42,7 @@ export const CustomerPointCustomAttributesSection = ({
         property: attributeId,
         value,
       };
-      if (isOpsChangeSetsOn) {
-        transactChangeSet(() =>
-          changeCustomerPointProperty(hydraulicModel, data),
-        );
-      } else {
-        transact(changeCustomerPointPropertyDeprecated(hydraulicModel, data));
-      }
+      transact(() => changeCustomerPointProperty(hydraulicModel, data));
       const attribute = getAttribute(
         hydraulicModel.customAttributes,
         "customerPoint",
@@ -69,14 +56,7 @@ export const CustomerPointCustomAttributesSection = ({
         label: attribute?.label ?? "",
       });
     },
-    [
-      transact,
-      transactChangeSet,
-      isOpsChangeSetsOn,
-      hydraulicModel,
-      customerPoint.id,
-      userTracking,
-    ],
+    [transact, hydraulicModel, customerPoint.id, userTracking],
   );
 
   const attributes = getAttributes(

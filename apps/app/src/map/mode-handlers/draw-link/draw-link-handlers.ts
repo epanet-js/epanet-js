@@ -33,15 +33,10 @@ import { useSelection } from "src/selection";
 import { useFocusAssetPanel } from "src/hooks/use-focus-asset-panel";
 import { validateAsset } from "src/lib/model-attributes-validation";
 import { DEFAULT_SNAP_DISTANCE_PIXELS } from "../../search";
-import {
-  addLink,
-  addLinkDeprecated,
-} from "src/hydraulic-model/model-operations";
+import { addLink } from "src/hydraulic-model/model-operations";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { projectSettingsAtom } from "src/state/project-settings";
-import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 
 const MIN_VERTEX_PIXEL_DISTANCE = 8;
@@ -187,17 +182,12 @@ export function useDrawLinkHandlers({
   const { selectAsset } = useSelection(selection);
   const focusAssetPanel = useFocusAssetPanel();
 
-  const selectAndFocusIfInvalid = (
-    asset: Asset,
-    model: HydraulicModel = hydraulicModel,
-  ) => {
+  const selectAndFocusIfInvalid = (asset: Asset, model: HydraulicModel) => {
     selectAsset(asset.id);
     const hasIssues = validateAsset(asset, model).length > 0;
     if (hasIssues) focusAssetPanel(true);
   };
-  const { transact } = useMomentTransaction();
-  const { transact: transactChangeSet } = useModelTransaction();
-  const isOpsChangeSetsOn = useFeatureFlag("FLAG_OPS_CHANGE_SETS");
+  const { transact } = useModelTransaction();
   const readCommittedModel = useAtomCallback(
     useCallback((get) => get(stagingModelDerivedAtom), []),
   );
@@ -409,31 +399,16 @@ export function useDrawLinkHandlers({
       labelManager,
     };
 
-    if (isOpsChangeSetsOn) {
-      const applied = transactChangeSet(() => addLink(hydraulicModel, data));
-      if (!applied) return undefined;
-
-      userTracking.capture({ name: "asset.created", type: link.type });
-
-      const committedModel = readCommittedModel();
-      const addedLink = committedModel.assets.get(link.id);
-      if (addedLink) selectAndFocusIfInvalid(addedLink, committedModel);
-
-      return committedModel.assets.get(endNode.id) as NodeAsset | undefined;
-    }
-
-    const moment = addLinkDeprecated(hydraulicModel, data);
-    const applied = transact(moment);
+    const applied = transact(() => addLink(hydraulicModel, data));
     if (!applied) return undefined;
 
     userTracking.capture({ name: "asset.created", type: link.type });
 
-    if (moment.putAssets && moment.putAssets.length > 0) {
-      selectAndFocusIfInvalid(moment.putAssets[0]);
-    }
+    const committedModel = readCommittedModel();
+    const addedLink = committedModel.assets.get(link.id);
+    if (addedLink) selectAndFocusIfInvalid(addedLink, committedModel);
 
-    const [, , endNodeUpdated] = moment.putAssets || [];
-    return endNodeUpdated as NodeAsset;
+    return committedModel.assets.get(endNode.id) as NodeAsset | undefined;
   };
 
   const isSnapping = () => !isShiftHeld();

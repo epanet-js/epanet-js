@@ -9,11 +9,7 @@ import {
   computeLinkLength,
   remapControlNodeReference,
 } from "@epanet-js/hydraulic-model";
-import {
-  DemandAssignment,
-  ModelOperation,
-  ModelOperationDeprecated,
-} from "../model-operation";
+import { DemandAssignment, ModelOperation } from "../model-operation";
 import { HydraulicModel } from "../hydraulic-model";
 import { AssetsMap } from "@epanet-js/hydraulic-model";
 import { Topology } from "@epanet-js/hydraulic-model";
@@ -72,30 +68,6 @@ export const mergeNodes: ModelOperation<InputData> = (hydraulicModel, data) => {
     setDemands(demands),
     ...(controls ? [replaceControls(controls)] : []),
   ]);
-};
-
-export const mergeNodesDeprecated: ModelOperationDeprecated<InputData> = (
-  hydraulicModel,
-  data,
-) => {
-  const {
-    note,
-    mergedNode,
-    loserNodeId,
-    updatedLinks,
-    customerPoints,
-    demands,
-    controls,
-  } = planMerge(hydraulicModel, data);
-
-  return {
-    note,
-    putAssets: [mergedNode, ...updatedLinks],
-    deleteAssets: [loserNodeId],
-    putCustomerPoints: customerPoints.length > 0 ? customerPoints : undefined,
-    putDemands: demands.length > 0 ? { assignments: demands } : undefined,
-    ...(controls && { putControls: controls }),
-  };
 };
 
 const planMerge = (

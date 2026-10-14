@@ -8,11 +8,7 @@ import {
   isNodeAsset,
   remapControlNodeReference,
 } from "@epanet-js/hydraulic-model";
-import {
-  DemandAssignment,
-  ModelOperation,
-  ModelOperationDeprecated,
-} from "../model-operation";
+import { DemandAssignment, ModelOperation } from "../model-operation";
 import { HydraulicModel } from "../hydraulic-model";
 import { Position } from "src/types";
 import { updateLinkConnections } from "../mutations/update-link-connections";
@@ -57,30 +53,6 @@ export const replaceNode: ModelOperation<InputData> = (
     setDemands(demands),
     ...(controls ? [replaceControls(controls)] : []),
   ]);
-};
-
-export const replaceNodeDeprecated: ModelOperationDeprecated<InputData> = (
-  hydraulicModel,
-  data,
-) => {
-  const {
-    note,
-    oldNodeId,
-    newNode,
-    updatedLinks,
-    customerPoints,
-    demands,
-    controls,
-  } = planReplacement(hydraulicModel, data);
-
-  return {
-    note,
-    putAssets: [newNode, ...updatedLinks],
-    deleteAssets: [oldNodeId],
-    putCustomerPoints: customerPoints.length > 0 ? customerPoints : undefined,
-    ...(demands.length > 0 && { putDemands: { assignments: demands } }),
-    ...(controls && { putControls: controls }),
-  };
 };
 
 const planReplacement = (

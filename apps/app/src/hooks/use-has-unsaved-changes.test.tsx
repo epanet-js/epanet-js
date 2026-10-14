@@ -2,8 +2,8 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import { Provider as JotaiProvider } from "jotai";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
-import { addNodeDeprecated } from "src/hydraulic-model/model-operations/add-node";
-import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
+import { addNode } from "src/hydraulic-model/model-operations/add-node";
+import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import { useUndoableTransactions } from "src/hooks/persistence/use-undoable-transactions";
 import { useProjectSettingsTransaction } from "src/hooks/persistence/use-project-settings-transaction";
 import {
@@ -54,9 +54,9 @@ const aSavedProject = async ({
 };
 
 const addJunction = (store: Store, coordinates: number[]) => {
-  const { result } = renderHook(() => useMomentTransaction(), withStore(store));
+  const { result } = renderHook(() => useModelTransaction(), withStore(store));
   const factories = store.get(modelFactoriesAtom);
-  const moment = addNodeDeprecated(store.get(stagingModelDerivedAtom), {
+  const changeSet = addNode(store.get(stagingModelDerivedAtom), {
     nodeType: "junction",
     coordinates,
     elevation: 5,
@@ -66,7 +66,7 @@ const addJunction = (store: Store, coordinates: number[]) => {
   });
 
   act(() => {
-    result.current.transact(moment);
+    result.current.transact(() => changeSet);
   });
 };
 

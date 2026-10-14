@@ -21,13 +21,8 @@ import {
 import { PumpLibraryIcon } from "src/icons";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
-import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import {
-  changeCurves,
-  changeCurvesDeprecated,
-} from "src/hydraulic-model/model-operations/change-curves";
+import { changeCurves } from "src/hydraulic-model/model-operations/change-curves";
 import { notify } from "src/components/notifications";
 import { useUserTracking } from "src/infra/user-tracking";
 import { modelFactoriesAtom } from "src/state/model-factories";
@@ -177,9 +172,7 @@ export const PumpLibraryDialog = ({
     [hydraulicModel, editedCurves, selectedCurveId, translate, userTracking],
   );
 
-  const { transact } = useMomentTransaction();
-  const { transact: transactChangeSet } = useModelTransaction();
-  const isOpsChangeSetsOn = useFeatureFlag("FLAG_OPS_CHANGE_SETS");
+  const { transact } = useModelTransaction();
 
   const cleanedCurves = useMemo(() => {
     const cleaned: Curves = new Map();
@@ -210,29 +203,14 @@ export const PumpLibraryDialog = ({
 
   const handleSave = useCallback(
     (hasWarnings: boolean) => {
-      if (isOpsChangeSetsOn) {
-        transactChangeSet(() =>
-          changeCurves(hydraulicModel, { curves: cleanedCurves }),
-        );
-      } else {
-        transact(
-          changeCurvesDeprecated(hydraulicModel, { curves: cleanedCurves }),
-        );
-      }
+      transact(() => changeCurves(hydraulicModel, { curves: cleanedCurves }));
       userTracking.capture({
         name: "curves.updated",
         count: cleanedCurves.size,
         withWarnings: hasWarnings,
       });
     },
-    [
-      hydraulicModel,
-      cleanedCurves,
-      isOpsChangeSetsOn,
-      transact,
-      transactChangeSet,
-      userTracking,
-    ],
+    [hydraulicModel, cleanedCurves, transact, userTracking],
   );
 
   const handleClose = useCallback(

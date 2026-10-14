@@ -42,7 +42,7 @@ vi.mock("src/hydraulic-model/model-operations", async (importOriginal) => {
     >();
   return {
     ...actual,
-    addLinkDeprecated: vi.fn(actual.addLinkDeprecated),
+    addLink: vi.fn(actual.addLink),
   };
 });
 
@@ -538,7 +538,7 @@ describe("Drawing a pipe", () => {
       await new Promise((resolve) => setTimeout(resolve, 30));
     });
 
-    expect(modelOperations.addLinkDeprecated).toHaveBeenCalledTimes(1);
+    expect(modelOperations.addLink).toHaveBeenCalledTimes(1);
 
     // The link was actually created: the end node is now connected.
     const model = store.get(stagingModelDerivedAtom);

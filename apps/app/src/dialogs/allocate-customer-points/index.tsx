@@ -2,16 +2,11 @@ import { useAllocateCustomerPointsState } from "./wizard-state";
 
 import { useTranslate } from "@epanet-js/i18n";
 import { useCallback } from "react";
-import {
-  applyCustomerPointAllocation,
-  applyCustomerPointAllocationDeprecated,
-} from "src/hydraulic-model/model-operations";
+import { applyCustomerPointAllocation } from "src/hydraulic-model/model-operations";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { useAtomValue } from "jotai";
 import { useUserTracking } from "src/infra/user-tracking";
-import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { BaseDialog, SimpleDialogActions } from "src/components/dialog";
 import { AllocationDialog } from "./allocation-dialog";
 
@@ -27,9 +22,7 @@ export const AllocateCustomerPointsDialog: React.FC<
   const translate = useTranslate();
   const userTracking = useUserTracking();
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
-  const { transact } = useMomentTransaction();
-  const { transact: transactChangeSet } = useModelTransaction();
-  const isOpsChangeSetsOn = useFeatureFlag("FLAG_OPS_CHANGE_SETS");
+  const { transact } = useModelTransaction();
 
   const {
     allocationResult,
@@ -50,17 +43,9 @@ export const AllocateCustomerPointsDialog: React.FC<
     setIsProcessing(true);
 
     try {
-      if (isOpsChangeSetsOn) {
-        transactChangeSet(() =>
-          applyCustomerPointAllocation(hydraulicModel, { allocationResult }),
-        );
-      } else {
-        transact(
-          applyCustomerPointAllocationDeprecated(hydraulicModel, {
-            allocationResult,
-          }),
-        );
-      }
+      transact(() =>
+        applyCustomerPointAllocation(hydraulicModel, { allocationResult }),
+      );
 
       userTracking.capture({
         name: "allocateCustomerPoints.completed",
@@ -85,9 +70,7 @@ export const AllocateCustomerPointsDialog: React.FC<
     allocationResult,
     setIsProcessing,
     hydraulicModel,
-    isOpsChangeSetsOn,
     transact,
-    transactChangeSet,
     userTracking,
     allocationRules.length,
     onClose,

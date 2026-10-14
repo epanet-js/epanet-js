@@ -1,5 +1,5 @@
 import { AssetId, PipeMaterial } from "@epanet-js/hydraulic-model";
-import { ModelOperation, ModelOperationDeprecated } from "../model-operation";
+import { ModelOperation } from "../model-operation";
 import { changeSet, setAsset, setPipeLibrary } from "../change-sets";
 
 type MaterialAssignment = {
@@ -22,12 +22,3 @@ export const changePipeMaterials: ModelOperation<InputData> = (
       setAsset(assetIds, { material }),
     ),
   ]);
-
-export const changePipeMaterialsDeprecated: ModelOperationDeprecated<
-  PipeMaterial[]
-> = (_model, pipeMaterials) => {
-  return {
-    note: "changePipeMaterials",
-    putPipeMaterials: pipeMaterials,
-  };
-};

@@ -1,5 +1,5 @@
 import { Curves } from "@epanet-js/hydraulic-model";
-import { ModelOperation, ModelOperationDeprecated } from "../model-operation";
+import { ModelOperation } from "../model-operation";
 import { changeSet, replaceCurves } from "../change-sets";
 
 type InputData = {
@@ -8,13 +8,3 @@ type InputData = {
 
 export const changeCurves: ModelOperation<InputData> = (model, { curves }) =>
   changeSet(model, "changeCurves", [replaceCurves(curves)]);
-
-export const changeCurvesDeprecated: ModelOperationDeprecated<InputData> = (
-  _model,
-  { curves },
-) => {
-  return {
-    note: "changeCurves",
-    putCurves: curves,
-  };
-};

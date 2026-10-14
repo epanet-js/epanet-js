@@ -11,7 +11,7 @@ import {
   computeLinkLength,
 } from "@epanet-js/hydraulic-model";
 import { getNode } from "@epanet-js/hydraulic-model";
-import { ModelOperation, ModelOperationDeprecated } from "../model-operation";
+import { ModelOperation } from "../model-operation";
 import { findJunctionForCustomerPoint } from "../utilities/junction-assignment";
 import { lineString, point } from "@turf/helpers";
 import { findNearestPointOnLine } from "@epanet-js/geometry";
@@ -56,29 +56,6 @@ export const moveNode: ModelOperation<InputData> = (hydraulicModel, data) => {
     putCustomerPoints(customerPoints),
     ...(controls ? [replaceControls(controls)] : []),
   ]);
-};
-
-export const moveNodeDeprecated: ModelOperationDeprecated<InputData> = (
-  hydraulicModel,
-  data,
-) => {
-  const {
-    note,
-    node,
-    links,
-    newPipes,
-    removedPipeIds,
-    customerPoints,
-    controls,
-  } = planMove(hydraulicModel, data);
-
-  return {
-    note,
-    putAssets: [node, ...links, ...newPipes],
-    putCustomerPoints: customerPoints.length > 0 ? customerPoints : undefined,
-    ...(removedPipeIds.length > 0 && { deleteAssets: removedPipeIds }),
-    ...(controls && { putControls: controls }),
-  };
 };
 
 export const moveNodeAndLinks = (

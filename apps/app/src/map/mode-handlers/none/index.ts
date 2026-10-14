@@ -13,12 +13,9 @@ import { clickableLayers } from "src/map/layers/layer";
 import { getNode } from "src/hydraulic-model";
 import {
   moveNode,
-  moveNodeDeprecated,
   moveNodeAndLinks,
   mergeNodes,
-  mergeNodesDeprecated,
   moveCustomerPoint,
-  moveCustomerPointDeprecated,
 } from "src/hydraulic-model/model-operations";
 import { nodesShareLink } from "@epanet-js/hydraulic-model";
 import { useMoveState } from "./move-state";
@@ -30,9 +27,7 @@ import { useSnapping } from "../hooks/use-snapping";
 import throttle from "lodash/throttle";
 import { useClickedAsset } from "../utils";
 import { modelFactoriesAtom } from "src/state/model-factories";
-import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const stateUpdateTime = 16;
 
@@ -91,9 +86,7 @@ export function useNoneHandlers({
   const { fetchElevation, prefetchTileThrottled } = useElevations(
     units.elevation,
   );
-  const { transact } = useMomentTransaction();
-  const { transact: transactChangeSet } = useModelTransaction();
-  const isOpsChangeSetsOn = useFeatureFlag("FLAG_OPS_CHANGE_SETS");
+  const { transact } = useModelTransaction();
   const { findSnappingCandidate } = useSnapping(map, hydraulicModel.assets);
   const {
     setStartPoint: setCustomerPointStartPoint,
@@ -196,11 +189,7 @@ export function useNoneHandlers({
       if (customerPointMoveActivated && movingCustomerPointId !== null) {
         const newCoordinates = getMapCoord(e);
         const data = { customerPointId: movingCustomerPointId, newCoordinates };
-        if (isOpsChangeSetsOn) {
-          transactChangeSet(() => moveCustomerPoint(hydraulicModel, data));
-        } else {
-          transact(moveCustomerPointDeprecated(hydraulicModel, data));
-        }
+        transact(() => moveCustomerPoint(hydraulicModel, data));
       }
       resetCustomerPointMove();
       return;
@@ -240,11 +229,7 @@ export function useNoneHandlers({
           targetNodeId: snappingCandidate.id,
           lengthUnit: units.length,
         };
-        if (isOpsChangeSetsOn) {
-          transactChangeSet(() => mergeNodes(hydraulicModel, data));
-        } else {
-          transact(mergeNodesDeprecated(hydraulicModel, data));
-        }
+        transact(() => mergeNodes(hydraulicModel, data));
         selectAsset(assetId);
       }
       clearSelection();
@@ -291,11 +276,7 @@ export function useNoneHandlers({
           labelManager,
           precision: map.getPrecision(),
         };
-        if (isOpsChangeSetsOn) {
-          transactChangeSet(() => moveNode(hydraulicModel, data));
-        } else {
-          transact(moveNodeDeprecated(hydraulicModel, data));
-        }
+        transact(() => moveNode(hydraulicModel, data));
         resetMove();
         settleCommit();
       })

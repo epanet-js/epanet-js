@@ -4,7 +4,7 @@ import {
   NodeAsset,
   AssetId,
 } from "@epanet-js/hydraulic-model";
-import { ModelOperation, ModelOperationDeprecated } from "../model-operation";
+import { ModelOperation } from "../model-operation";
 import { HydraulicModel } from "../hydraulic-model";
 import { changeSet, putCustomerPoints } from "../change-sets";
 import { Position } from "src/types";
@@ -20,14 +20,6 @@ export const connectCustomers: ModelOperation<InputData> = (model, data) =>
   changeSet(model, "connectCustomers", [
     putCustomerPoints(connectedCopies(model, data)),
   ]);
-
-export const connectCustomersDeprecated: ModelOperationDeprecated<InputData> = (
-  model,
-  data,
-) => ({
-  note: "connectCustomers",
-  putCustomerPoints: connectedCopies(model, data),
-});
 
 export const connectedCopies = (
   { customerPoints, assets }: HydraulicModel,

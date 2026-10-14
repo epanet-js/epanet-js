@@ -1,13 +1,8 @@
 import { useAtom, useAtomValue } from "jotai";
 import { useCallback } from "react";
 import { AssetId } from "src/hydraulic-model";
-import {
-  deleteAssets,
-  deleteAssetsDeprecated,
-} from "src/hydraulic-model/model-operations";
-import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
+import { deleteAssets } from "src/hydraulic-model/model-operations";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { AssetDeleted, useUserTracking } from "src/infra/user-tracking";
 import { USelection } from "src/selection";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
@@ -16,9 +11,7 @@ import { selectionAtom } from "src/state/selection";
 export const useDeleteAssets = () => {
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const [selection, setSelection] = useAtom(selectionAtom);
-  const { transact } = useMomentTransaction();
-  const { transact: transactChangeSet } = useModelTransaction();
-  const isOpsChangeSetsOn = useFeatureFlag("FLAG_OPS_CHANGE_SETS");
+  const { transact } = useModelTransaction();
   const userTracking = useUserTracking();
 
   return useCallback(
@@ -59,20 +52,8 @@ export const useDeleteAssets = () => {
         shouldUpdateCustomerPoints: true,
         shouldRemoveRawControls: true,
       };
-      if (isOpsChangeSetsOn) {
-        transactChangeSet(() => deleteAssets(hydraulicModel, data));
-      } else {
-        transact(deleteAssetsDeprecated(hydraulicModel, data));
-      }
+      transact(() => deleteAssets(hydraulicModel, data));
     },
-    [
-      hydraulicModel,
-      selection,
-      setSelection,
-      isOpsChangeSetsOn,
-      transact,
-      transactChangeSet,
-      userTracking,
-    ],
+    [hydraulicModel, selection, setSelection, transact, userTracking],
   );
 };

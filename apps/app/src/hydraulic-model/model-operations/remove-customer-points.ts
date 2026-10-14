@@ -1,9 +1,5 @@
 import { CustomerPointId } from "@epanet-js/hydraulic-model";
-import {
-  ModelOperation,
-  ModelOperationDeprecated,
-  DemandAssignment,
-} from "../model-operation";
+import { ModelOperation, DemandAssignment } from "../model-operation";
 import { getCustomerPointDemands } from "@epanet-js/hydraulic-model";
 import { HydraulicModel } from "../hydraulic-model";
 import { changeSet, dropCustomerPoints, setDemands } from "../change-sets";
@@ -25,23 +21,6 @@ export const removeCustomerPoints: ModelOperation<InputData> = (
     dropCustomerPoints(idsToDelete),
     setDemands(demandAssignments),
   ]);
-};
-
-export const removeCustomerPointsDeprecated: ModelOperationDeprecated<
-  InputData
-> = (hydraulicModel, { customerPointIds }) => {
-  const { idsToDelete, demandAssignments } = planRemoval(
-    hydraulicModel,
-    customerPointIds,
-  );
-
-  return {
-    note: "removeCustomerPoints",
-    deleteCustomerPoints: idsToDelete,
-    ...(demandAssignments.length > 0 && {
-      putDemands: { assignments: demandAssignments },
-    }),
-  };
 };
 
 const planRemoval = (

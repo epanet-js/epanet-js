@@ -2,14 +2,13 @@ import { act, renderHook } from "@testing-library/react";
 import { Provider as JotaiProvider } from "jotai";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
-import { addNodeDeprecated } from "src/hydraulic-model/model-operations/add-node";
-import { deleteAssetsDeprecated } from "src/hydraulic-model/model-operations/delete-assets";
+import { addNode } from "src/hydraulic-model/model-operations/add-node";
+import { deleteAssets } from "src/hydraulic-model/model-operations/delete-assets";
 import { changeLabel } from "src/hydraulic-model/model-operations/change-label";
 import { changeProperty } from "src/hydraulic-model/model-operations/change-property";
 import type { ChangeSet } from "@epanet-js/change-set";
 import type { Junction } from "@epanet-js/hydraulic-model";
 import { dialogAtom } from "src/state/dialog";
-import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import { useUndoableTransactions } from "src/hooks/persistence/use-undoable-transactions";
 import { modelFactoriesAtom } from "src/state/model-factories";
@@ -61,9 +60,9 @@ const aProject = async (): Promise<Store> => {
   return store;
 };
 
-const buildAddJunctionMoment = (store: Store) => {
+const buildAddJunction = (store: Store) => {
   const factories = store.get(modelFactoriesAtom);
-  return addNodeDeprecated(store.get(stagingModelDerivedAtom), {
+  return addNode(store.get(stagingModelDerivedAtom), {
     nodeType: "junction",
     coordinates: [10, 10],
     elevation: 5,
@@ -74,9 +73,9 @@ const buildAddJunctionMoment = (store: Store) => {
 };
 
 const addJunction = (store: Store) => {
-  const { result } = renderHook(() => useMomentTransaction(), withStore(store));
+  const { result } = renderHook(() => useModelTransaction(), withStore(store));
   act(() => {
-    void result.current.transact(buildAddJunctionMoment(store));
+    result.current.transact(() => buildAddJunction(store));
   });
 };
 
@@ -136,13 +135,13 @@ describe("undoable transactions", () => {
     const orderBeforeDelete = assetOrder(store);
 
     const { result } = renderHook(
-      () => ({ ...useMomentTransaction(), ...useUndoableTransactions() }),
+      () => ({ ...useModelTransaction(), ...useUndoableTransactions() }),
       withStore(store),
     );
 
     act(() => {
-      result.current.transact(
-        deleteAssetsDeprecated(store.get(stagingModelDerivedAtom), {
+      result.current.transact(() =>
+        deleteAssets(store.get(stagingModelDerivedAtom), {
           assetIds: [IDS.J2],
         }),
       );
@@ -243,16 +242,16 @@ describe("undoable transactions", () => {
     store.set(historyPendingAtom, true);
 
     const { result } = renderHook(
-      () => useMomentTransaction(),
+      () => useModelTransaction(),
       withStore(store),
     );
 
-    let applied!: boolean;
+    let applied: ChangeSet | null = null;
     act(() => {
-      applied = result.current.transact(buildAddJunctionMoment(store));
+      applied = result.current.transact(() => buildAddJunction(store));
     });
 
-    expect(applied).toBe(false);
+    expect(applied).toBeNull();
     expect(assetIds(store)).toEqual([IDS.J1]);
   });
 });

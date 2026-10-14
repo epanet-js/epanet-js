@@ -55,7 +55,6 @@ import {
   type TargetNodeOption,
 } from "src/lib/valve-target-nodes";
 import { useTranslate } from "src/hooks/use-translate";
-import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -66,26 +65,16 @@ import { simulationSettingsDerivedAtom } from "src/state/derived-branch-state";
 import {
   changeProperty,
   changeProperties,
-  changePropertyDeprecated,
-  changePropertiesDeprecated,
   changeDemandAssignment,
-  changeDemandAssignmentDeprecated,
   changeLabel,
-  changeLabelDeprecated,
 } from "src/hydraulic-model/model-operations";
 import type {
   ChangeableProperty,
   ChangeablePropertyValue,
   PropertyChange,
 } from "src/hydraulic-model/model-operations/change-property";
-import {
-  activateAssets,
-  activateAssetsDeprecated,
-} from "src/hydraulic-model/model-operations/activate-assets";
-import {
-  deactivateAssets,
-  deactivateAssetsDeprecated,
-} from "src/hydraulic-model/model-operations/deactivate-assets";
+import { activateAssets } from "src/hydraulic-model/model-operations/activate-assets";
+import { deactivateAssets } from "src/hydraulic-model/model-operations/deactivate-assets";
 import {
   fieldValidator,
   numericChecks,
@@ -94,10 +83,7 @@ import { getLinkNodes } from "@epanet-js/hydraulic-model";
 import { type AssetId, type Control } from "@epanet-js/hydraulic-model";
 import { isNodeAsset } from "@epanet-js/hydraulic-model";
 import { highlightsAtom } from "src/state/highlights";
-import {
-  changeAssetControl,
-  changeAssetControlDeprecated,
-} from "src/hydraulic-model/model-operations";
+import { changeAssetControl } from "src/hydraulic-model/model-operations";
 import {
   AssetEditorContent,
   QuantityRow,
@@ -175,20 +161,14 @@ export function AssetPanel({
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const { labelManager } = useAtomValue(modelFactoriesAtom);
   const projectSettings = useAtomValue(projectSettingsAtom);
-  const { transact } = useMomentTransaction();
-  const { transact: transactChangeSet } = useModelTransaction();
-  const isOpsChangeSetsOn = useFeatureFlag("FLAG_OPS_CHANGE_SETS");
+  const { transact } = useModelTransaction();
   const userTracking = useUserTracking();
   const translate = useTranslate();
 
   const handlePropertyChange: OnPropertyChange = useCallback(
     (property, value, oldValue) => {
       const data = { assetIds: [asset.id], property, value };
-      if (isOpsChangeSetsOn) {
-        transactChangeSet(() => changeProperty(hydraulicModel, data));
-      } else {
-        transact(changePropertyDeprecated(hydraulicModel, data));
-      }
+      transact(() => changeProperty(hydraulicModel, data));
       if (isCustomProperty(property)) {
         const attribute = getAttribute(
           hydraulicModel.customAttributes,
@@ -216,33 +196,17 @@ export function AssetPanel({
             : (oldValue as number | null),
       });
     },
-    [
-      hydraulicModel,
-      asset.id,
-      asset.type,
-      isOpsChangeSetsOn,
-      transact,
-      transactChangeSet,
-      userTracking,
-    ],
+    [hydraulicModel, asset.id, asset.type, transact, userTracking],
   );
 
   const handleActiveTopologyStatusChange = useCallback(
     (_property: string, newValue: boolean, oldValue: boolean) => {
       const data = { assetIds: [asset.id] };
-      if (isOpsChangeSetsOn) {
-        transactChangeSet(() =>
-          newValue
-            ? activateAssets(hydraulicModel, data)
-            : deactivateAssets(hydraulicModel, data),
-        );
-      } else {
-        transact(
-          newValue
-            ? activateAssetsDeprecated(hydraulicModel, data)
-            : deactivateAssetsDeprecated(hydraulicModel, data),
-        );
-      }
+      transact(() =>
+        newValue
+          ? activateAssets(hydraulicModel, data)
+          : deactivateAssets(hydraulicModel, data),
+      );
       userTracking.capture({
         name: "assetProperty.edited",
         type: asset.type,
@@ -251,15 +215,7 @@ export function AssetPanel({
         oldValue: Number(oldValue),
       });
     },
-    [
-      hydraulicModel,
-      asset.id,
-      asset.type,
-      isOpsChangeSetsOn,
-      transact,
-      transactChangeSet,
-      userTracking,
-    ],
+    [hydraulicModel, asset.id, asset.type, transact, userTracking],
   );
 
   const handleStatusChange = useCallback(
@@ -272,11 +228,7 @@ export function AssetPanel({
         property: "initialStatus" as const,
         value: newStatus,
       };
-      if (isOpsChangeSetsOn) {
-        transactChangeSet(() => changeProperty(hydraulicModel, data));
-      } else {
-        transact(changePropertyDeprecated(hydraulicModel, data));
-      }
+      transact(() => changeProperty(hydraulicModel, data));
       userTracking.capture({
         name: "assetStatus.edited",
         type: asset.type,
@@ -285,15 +237,7 @@ export function AssetPanel({
         oldStatus,
       });
     },
-    [
-      hydraulicModel,
-      asset.id,
-      asset.type,
-      isOpsChangeSetsOn,
-      transact,
-      transactChangeSet,
-      userTracking,
-    ],
+    [hydraulicModel, asset.id, asset.type, transact, userTracking],
   );
 
   const handleControlChange = useCallback(
@@ -302,15 +246,7 @@ export function AssetPanel({
       control: Control | null,
       previousControl: Control | null,
     ) => {
-      if (isOpsChangeSetsOn) {
-        transactChangeSet(() =>
-          changeAssetControl(hydraulicModel, { assetId, control }),
-        );
-      } else {
-        transact(
-          changeAssetControlDeprecated(hydraulicModel, { assetId, control }),
-        );
-      }
+      transact(() => changeAssetControl(hydraulicModel, { assetId, control }));
       if (control === null) {
         userTracking.capture({
           name: "assetControl.removed",
@@ -328,52 +264,27 @@ export function AssetPanel({
         });
       }
     },
-    [
-      hydraulicModel,
-      asset.type,
-      isOpsChangeSetsOn,
-      transact,
-      transactChangeSet,
-      userTracking,
-    ],
+    [hydraulicModel, asset.type, transact, userTracking],
   );
 
   const handleBatchPropertyChange = useCallback(
     (changes: PropertyChange[]) => {
       const data = { assetIds: [asset.id], changes };
-      if (isOpsChangeSetsOn) {
-        transactChangeSet(() => changeProperties(hydraulicModel, data));
-      } else {
-        transact(changePropertiesDeprecated(hydraulicModel, data));
-      }
+      transact(() => changeProperties(hydraulicModel, data));
       userTracking.capture({
         name: "assetProperties.edited",
         type: asset.type,
         properties: changes.map((c) => c.property),
       });
     },
-    [
-      hydraulicModel,
-      asset.id,
-      asset.type,
-      isOpsChangeSetsOn,
-      transact,
-      transactChangeSet,
-      userTracking,
-    ],
+    [hydraulicModel, asset.id, asset.type, transact, userTracking],
   );
 
   const handleDemandsChange = useCallback(
     (newDemands: Demand[]) => {
       const oldDemands = getJunctionDemands(hydraulicModel.demands, asset.id);
       const assignments = [{ junctionId: asset.id, demands: newDemands }];
-      if (isOpsChangeSetsOn) {
-        transactChangeSet(() =>
-          changeDemandAssignment(hydraulicModel, assignments),
-        );
-      } else {
-        transact(changeDemandAssignmentDeprecated(hydraulicModel, assignments));
-      }
+      transact(() => changeDemandAssignment(hydraulicModel, assignments));
       userTracking.capture({
         name: "assetProperty.edited",
         type: asset.type,
@@ -382,14 +293,7 @@ export function AssetPanel({
         oldValue: oldDemands.length,
       });
     },
-    [
-      asset,
-      hydraulicModel,
-      isOpsChangeSetsOn,
-      transact,
-      transactChangeSet,
-      userTracking,
-    ],
+    [asset, hydraulicModel, transact, userTracking],
   );
 
   const handleLabelChange = useCallback(
@@ -406,18 +310,9 @@ export function AssetPanel({
         return translate("labelDuplicate");
       }
 
-      if (isOpsChangeSetsOn) {
-        transactChangeSet(() =>
-          changeLabel(hydraulicModel, { assetId: asset.id, newLabel }),
-        );
-      } else {
-        transact(
-          changeLabelDeprecated(hydraulicModel, {
-            assetId: asset.id,
-            newLabel,
-          }),
-        );
-      }
+      transact(() =>
+        changeLabel(hydraulicModel, { assetId: asset.id, newLabel }),
+      );
       userTracking.capture({
         name: "assetProperty.edited",
         type: asset.type,
@@ -432,10 +327,8 @@ export function AssetPanel({
       asset.label,
       asset.type,
       hydraulicModel,
-      isOpsChangeSetsOn,
       labelManager,
       transact,
-      transactChangeSet,
       translate,
       userTracking,
     ],

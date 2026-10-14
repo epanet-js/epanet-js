@@ -19,17 +19,12 @@ import {
   stagingModelDerivedAtom,
   simulationSettingsDerivedAtom,
 } from "src/state/derived-branch-state";
-import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { isPatternInUse } from "src/hydraulic-model/utilities/library-usage";
 import { notify } from "src/components/notifications";
 import { useUserTracking } from "src/infra/user-tracking";
 import { modelFactoriesAtom } from "src/state/model-factories";
-import {
-  changePatterns,
-  changePatternsDeprecated,
-} from "src/hydraulic-model/model-operations";
+import { changePatterns } from "src/hydraulic-model/model-operations";
 import { VerticalResizer } from "../vertical-resizer";
 import { DialogActions, DialogActionsHandle } from "../dialog-actions-row";
 import {
@@ -161,9 +156,7 @@ export const PatternsDialog = ({
     ],
   );
 
-  const { transact } = useMomentTransaction();
-  const { transact: transactChangeSet } = useModelTransaction();
-  const isOpsChangeSetsOn = useFeatureFlag("FLAG_OPS_CHANGE_SETS");
+  const { transact } = useModelTransaction();
 
   const unsavedChanges = useMemo(
     () => differentPatternsCount(hydraulicModel.patterns, editedPatterns),
@@ -171,24 +164,12 @@ export const PatternsDialog = ({
   );
 
   const handleSave = useCallback(() => {
-    if (isOpsChangeSetsOn) {
-      transactChangeSet(() => changePatterns(hydraulicModel, editedPatterns));
-    } else {
-      transact(changePatternsDeprecated(hydraulicModel, editedPatterns));
-    }
+    transact(() => changePatterns(hydraulicModel, editedPatterns));
     userTracking.capture({
       name: "patterns.updated",
       count: unsavedChanges,
     });
-  }, [
-    hydraulicModel,
-    editedPatterns,
-    isOpsChangeSetsOn,
-    transact,
-    transactChangeSet,
-    userTracking,
-    unsavedChanges,
-  ]);
+  }, [hydraulicModel, editedPatterns, transact, userTracking, unsavedChanges]);
 
   const handleClose = useCallback(
     (hasUnsavedChanges: boolean) => {

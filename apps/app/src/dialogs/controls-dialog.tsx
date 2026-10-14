@@ -17,14 +17,9 @@ import {
   IdResolver,
   parseRawControlsFromText,
 } from "@epanet-js/hydraulic-model";
-import {
-  changeRawControls,
-  changeRawControlsDeprecated,
-} from "src/hydraulic-model/model-operations";
+import { changeRawControls } from "src/hydraulic-model/model-operations";
 import { useUserTracking } from "src/infra/user-tracking";
-import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { Callout } from "@epanet-js/ui-kit";
 
 type Tab = "simple" | "ruleBased";
@@ -41,9 +36,7 @@ export const ControlsDialog = () => {
   const isEditionBlocked = useIsEditionBlocked();
 
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
-  const { transact } = useMomentTransaction();
-  const { transact: transactChangeSet } = useModelTransaction();
-  const isOpsChangeSetsOn = useFeatureFlag("FLAG_OPS_CHANGE_SETS");
+  const { transact } = useModelTransaction();
   const userTracking = useUserTracking();
 
   const { rawControls, assets } = hydraulicModel;
@@ -78,22 +71,10 @@ export const ControlsDialog = () => {
         simpleControlsCount: newControls.simple.length,
         rulesCount: newControls.rules.length,
       });
-      if (isOpsChangeSetsOn) {
-        transactChangeSet(() => changeRawControls(hydraulicModel, newControls));
-      } else {
-        transact(changeRawControlsDeprecated(hydraulicModel, newControls));
-      }
+      transact(() => changeRawControls(hydraulicModel, newControls));
       closeDialog();
     },
-    [
-      assets,
-      hydraulicModel,
-      isOpsChangeSetsOn,
-      transact,
-      transactChangeSet,
-      closeDialog,
-      userTracking,
-    ],
+    [assets, hydraulicModel, transact, closeDialog, userTracking],
   );
 
   return (

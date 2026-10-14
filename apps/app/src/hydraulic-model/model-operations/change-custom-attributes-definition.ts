@@ -2,11 +2,7 @@ import {
   CustomAttributesDefinition,
   getAttributeIds,
 } from "@epanet-js/hydraulic-model";
-import type {
-  AssetPatch,
-  CustomerPointPatch,
-  ModelMoment,
-} from "../model-operation";
+import type { AssetPatch, CustomerPointPatch } from "../model-operation";
 import { HydraulicModel } from "../hydraulic-model";
 import type { ChangeSet } from "@epanet-js/change-set";
 import {
@@ -33,21 +29,6 @@ export const changeCustomAttributesDefinition = (
       setCustomerPoint(patch.id, patch.properties as Fields),
     ),
   ]);
-};
-
-export const changeCustomAttributesDefinitionDeprecated = (
-  model: HydraulicModel,
-  next: CustomAttributesDefinition,
-): ModelMoment => {
-  const { patchAssetsAttributes, patchCustomerPointsAttributes } =
-    planClearedValues(model, next);
-
-  return {
-    note: "changeCustomAttributesDefinition",
-    putCustomAttributesDefinition: next,
-    patchAssetsAttributes,
-    patchCustomerPointsAttributes,
-  };
 };
 
 const planClearedValues = (

@@ -7,22 +7,16 @@ import {
   unregisterTableHandleAtom,
 } from "./table-handles";
 import { dialogAtom } from "src/state/dialog";
-import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   changeCustomerPointLabel,
-  changeCustomerPointLabelDeprecated,
   changeCustomerPointProperties,
-  changeCustomerPointPropertiesDeprecated,
   changeDemandAssignment,
-  changeDemandAssignmentDeprecated,
   mergeChangeSets,
-  mergeMoments,
 } from "src/hydraulic-model/model-operations";
 import type { ChangeSet } from "@epanet-js/change-set";
 import { getAttribute, getAttributes } from "@epanet-js/hydraulic-model";
-import { getCustomerPointDemands, type ModelMoment } from "src/hydraulic-model";
+import { getCustomerPointDemands } from "src/hydraulic-model";
 import type { CustomerDemandAssignment } from "src/hydraulic-model/model-operation";
 import { createTimeSlicer } from "src/infra/yield-to-main";
 import { modelFactoriesAtom } from "src/state/model-factories";
@@ -94,9 +88,7 @@ export const CustomerPointDataTable = memo(
     const { patterns } = hydraulicModel;
     const { units, formatting } = useAtomValue(projectSettingsAtom);
     const { labelManager } = useAtomValue(modelFactoriesAtom);
-    const { transact } = useMomentTransaction();
-    const { transact: transactChangeSet } = useModelTransaction();
-    const isOpsChangeSetsOn = useFeatureFlag("FLAG_OPS_CHANGE_SETS");
+    const { transact } = useModelTransaction();
     const translate = useTranslate();
     const translateUnit = useTranslateUnit();
     const isEditionBlocked = useIsEditionBlocked();
@@ -184,7 +176,6 @@ export const CustomerPointDataTable = memo(
 
     const onChange = useCallback(
       async (newRows: CustomerPointRow[]) => {
-        const moments: ModelMoment[] = [];
         const changeSetBuilders: (() => ChangeSet)[] = [];
         const demandAssignments: CustomerDemandAssignment[] = [];
         const customEditCounts = new Map<string, number>();
@@ -214,15 +205,9 @@ export const CustomerPointDataTable = memo(
               customerPointId: newRow.id,
               newLabel: newRow.label,
             };
-            if (isOpsChangeSetsOn) {
-              changeSetBuilders.push(() =>
-                changeCustomerPointLabel(hydraulicModel, labelData),
-              );
-            } else {
-              moments.push(
-                changeCustomerPointLabelDeprecated(hydraulicModel, labelData),
-              );
-            }
+            changeSetBuilders.push(() =>
+              changeCustomerPointLabel(hydraulicModel, labelData),
+            );
             labelChanges += 1;
           }
 
@@ -275,50 +260,26 @@ export const CustomerPointDataTable = memo(
                 customerPointIds: [newRow.id],
                 changes: customChanges,
               };
-              if (isOpsChangeSetsOn) {
-                changeSetBuilders.push(() =>
-                  changeCustomerPointProperties(hydraulicModel, propertiesData),
-                );
-              } else {
-                moments.push(
-                  changeCustomerPointPropertiesDeprecated(
-                    hydraulicModel,
-                    propertiesData,
-                  ),
-                );
-              }
+              changeSetBuilders.push(() =>
+                changeCustomerPointProperties(hydraulicModel, propertiesData),
+              );
             }
           }
         }
 
         if (demandAssignments.length > 0) {
-          if (isOpsChangeSetsOn) {
-            changeSetBuilders.push(() =>
-              changeDemandAssignment(hydraulicModel, demandAssignments),
-            );
-          } else {
-            moments.push(
-              changeDemandAssignmentDeprecated(
-                hydraulicModel,
-                demandAssignments,
-              ),
-            );
-          }
+          changeSetBuilders.push(() =>
+            changeDemandAssignment(hydraulicModel, demandAssignments),
+          );
         }
 
-        if (isOpsChangeSetsOn) {
-          const applied = transactChangeSet(() =>
-            mergeChangeSets(
-              changeSetBuilders.map((build) => build()),
-              "editCustomerPointTable",
-            ),
-          );
-          if (!applied) return;
-        } else {
-          const merged = mergeMoments(moments, "editCustomerPointTable");
-          if (!merged) return;
-          transact(merged);
-        }
+        const applied = transact(() =>
+          mergeChangeSets(
+            changeSetBuilders.map((build) => build()),
+            "editCustomerPointTable",
+          ),
+        );
+        if (!applied) return;
 
         if (labelChanges > 0) {
           userTracking.capture({
@@ -349,15 +310,7 @@ export const CustomerPointDataTable = memo(
           });
         }
       },
-      [
-        hydraulicModel,
-        labelManager,
-        isOpsChangeSetsOn,
-        transact,
-        transactChangeSet,
-        userTracking,
-        customAttributes,
-      ],
+      [hydraulicModel, labelManager, transact, userTracking, customAttributes],
     );
 
     const getCpIdsFromRange = useCallback(

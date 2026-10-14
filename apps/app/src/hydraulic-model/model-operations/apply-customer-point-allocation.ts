@@ -3,7 +3,7 @@ import {
   CustomerPointAllocationResult,
 } from "@epanet-js/hydraulic-model";
 import { HydraulicModel } from "../hydraulic-model";
-import { ModelOperation, ModelOperationDeprecated } from "../model-operation";
+import { ModelOperation } from "../model-operation";
 import { changeSet, putCustomerPoints } from "../change-sets";
 import { connectedCopies } from "./connect-customers";
 import { Position } from "src/types";
@@ -19,13 +19,6 @@ export const applyCustomerPointAllocation: ModelOperation<InputData> = (
   changeSet(hydraulicModel, "applyCustomerPointAllocation", [
     putCustomerPoints(allocatedCopies(hydraulicModel, allocationResult)),
   ]);
-
-export const applyCustomerPointAllocationDeprecated: ModelOperationDeprecated<
-  InputData
-> = (hydraulicModel, { allocationResult }) => ({
-  note: "applyCustomerPointAllocation",
-  putCustomerPoints: allocatedCopies(hydraulicModel, allocationResult),
-});
 
 const allocatedCopies = (
   hydraulicModel: HydraulicModel,

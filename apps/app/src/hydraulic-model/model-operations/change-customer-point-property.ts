@@ -1,10 +1,6 @@
 import { CustomerPointId } from "@epanet-js/hydraulic-model";
 import { isCustomProperty } from "@epanet-js/hydraulic-model";
-import type {
-  CustomerPointPatch,
-  ModelMoment,
-  OperationCode,
-} from "../model-operation";
+import type { CustomerPointPatch, OperationCode } from "../model-operation";
 import { HydraulicModel } from "../hydraulic-model";
 import { CustomerPoints } from "@epanet-js/hydraulic-model";
 import type { ChangeSet } from "@epanet-js/change-set";
@@ -42,30 +38,6 @@ export function changeCustomerPointProperties(
 ): ChangeSet {
   const patches = buildPatches(model.customerPoints, customerPointIds, changes);
   return patchesChangeSet(model, "changeCustomerPointProperties", patches);
-}
-
-export function changeCustomerPointPropertyDeprecated(
-  { customerPoints }: HydraulicModel,
-  { customerPointIds, property, value }: ChangeCustomerPointPropertyData,
-): ModelMoment {
-  const patches = buildPatches(customerPoints, customerPointIds, [
-    { property, value },
-  ]);
-  return {
-    note: "changeCustomerPointProperty",
-    patchCustomerPointsAttributes: patches,
-  };
-}
-
-export function changeCustomerPointPropertiesDeprecated(
-  { customerPoints }: HydraulicModel,
-  { customerPointIds, changes }: ChangeCustomerPointPropertiesData,
-): ModelMoment {
-  const patches = buildPatches(customerPoints, customerPointIds, changes);
-  return {
-    note: "changeCustomerPointProperties",
-    patchCustomerPointsAttributes: patches,
-  };
 }
 
 function patchesChangeSet(

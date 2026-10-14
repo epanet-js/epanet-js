@@ -9,13 +9,8 @@ import {
 } from "@epanet-js/hydraulic-model";
 import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
-import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import {
-  changeCustomerPointProperty,
-  changeCustomerPointPropertyDeprecated,
-} from "src/hydraulic-model/model-operations";
+import { changeCustomerPointProperty } from "src/hydraulic-model/model-operations";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { Section, InlineField } from "src/components/form/fields";
@@ -47,9 +42,7 @@ export function MultiCustomerPointCustomAttributesSection({
 }) {
   const translate = useTranslate();
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
-  const { transact } = useMomentTransaction();
-  const { transact: transactChangeSet } = useModelTransaction();
-  const isOpsChangeSetsOn = useFeatureFlag("FLAG_OPS_CHANGE_SETS");
+  const { transact } = useModelTransaction();
   const userTracking = useUserTracking();
 
   const handleChange = useCallback(
@@ -59,13 +52,7 @@ export function MultiCustomerPointCustomAttributesSection({
         property: attributeId,
         value,
       };
-      if (isOpsChangeSetsOn) {
-        transactChangeSet(() =>
-          changeCustomerPointProperty(hydraulicModel, data),
-        );
-      } else {
-        transact(changeCustomerPointPropertyDeprecated(hydraulicModel, data));
-      }
+      transact(() => changeCustomerPointProperty(hydraulicModel, data));
       const attribute = getAttribute(
         hydraulicModel.customAttributes,
         "customerPoint",
@@ -80,14 +67,7 @@ export function MultiCustomerPointCustomAttributesSection({
         count: customerPointIds.length,
       });
     },
-    [
-      transact,
-      transactChangeSet,
-      isOpsChangeSetsOn,
-      customerPointIds,
-      hydraulicModel,
-      userTracking,
-    ],
+    [transact, customerPointIds, hydraulicModel, userTracking],
   );
 
   const attributes = getAttributes(

@@ -1,12 +1,7 @@
 import { useAtom, useAtomValue } from "jotai";
 import { useCallback } from "react";
-import {
-  removeCustomerPoints,
-  removeCustomerPointsDeprecated,
-} from "src/hydraulic-model/model-operations";
-import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
+import { removeCustomerPoints } from "src/hydraulic-model/model-operations";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useUserTracking } from "src/infra/user-tracking";
 import { USelection } from "src/selection";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
@@ -16,9 +11,7 @@ import { type CustomerPointId } from "@epanet-js/hydraulic-model";
 export const useDeleteCustomerPoints = () => {
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const [selection, setSelection] = useAtom(selectionAtom);
-  const { transact } = useMomentTransaction();
-  const { transact: transactChangeSet } = useModelTransaction();
-  const isOpsChangeSetsOn = useFeatureFlag("FLAG_OPS_CHANGE_SETS");
+  const { transact } = useModelTransaction();
   const userTracking = useUserTracking();
 
   return useCallback(
@@ -39,24 +32,10 @@ export const useDeleteCustomerPoints = () => {
         setSelection(USelection.fromIds(assetIds, remainingCps));
       }
 
-      if (isOpsChangeSetsOn) {
-        transactChangeSet(() =>
-          removeCustomerPoints(hydraulicModel, { customerPointIds }),
-        );
-      } else {
-        transact(
-          removeCustomerPointsDeprecated(hydraulicModel, { customerPointIds }),
-        );
-      }
+      transact(() =>
+        removeCustomerPoints(hydraulicModel, { customerPointIds }),
+      );
     },
-    [
-      hydraulicModel,
-      selection,
-      setSelection,
-      isOpsChangeSetsOn,
-      transact,
-      transactChangeSet,
-      userTracking,
-    ],
+    [hydraulicModel, selection, setSelection, transact, userTracking],
   );
 };

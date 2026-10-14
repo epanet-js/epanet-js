@@ -10,7 +10,7 @@ import {
   detachControlReferences,
 } from "@epanet-js/hydraulic-model";
 import type { AssetPatch, DemandAssignment } from "../model-operation";
-import { ModelOperation, ModelOperationDeprecated } from "../model-operation";
+import { ModelOperation } from "../model-operation";
 import { HydraulicModel } from "../hydraulic-model";
 import { inferNodeIsActive } from "../utilities/active-topology";
 import { Demands, getJunctionDemands } from "@epanet-js/hydraulic-model";
@@ -56,36 +56,6 @@ export const deleteAssets: ModelOperation<InputData> = (
   intents.push(setDemands(demandAssignments));
 
   return changeSet(hydraulicModel, "deleteAssets", intents);
-};
-
-export const deleteAssetsDeprecated: ModelOperationDeprecated<InputData> = (
-  hydraulicModel,
-  data,
-) => {
-  const {
-    deleteIds,
-    boundaryPatches,
-    disconnectedCustomerPoints,
-    demandAssignments,
-    controls,
-    rawControls,
-  } = planDeletion(hydraulicModel, data);
-
-  return {
-    note: "deleteAssets",
-    deleteAssets: deleteIds,
-    patchAssetsAttributes:
-      boundaryPatches.length > 0 ? boundaryPatches : undefined,
-    putCustomerPoints:
-      disconnectedCustomerPoints.length > 0
-        ? disconnectedCustomerPoints
-        : undefined,
-    ...(demandAssignments.length > 0 && {
-      putDemands: { assignments: demandAssignments },
-    }),
-    ...(controls && { putControls: controls }),
-    ...(rawControls && { putRawControls: rawControls }),
-  };
 };
 
 const planDeletion = (

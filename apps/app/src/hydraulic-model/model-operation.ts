@@ -112,9 +112,4 @@ export type OperationCode =
   | "replaceNode"
   | "reverseLink";
 
-export type ModelOperationDeprecated<T> = (
-  model: HydraulicModel,
-  data: T,
-) => ModelMoment;
-
 export type ModelOperation<T> = (model: HydraulicModel, data: T) => ChangeSet;
