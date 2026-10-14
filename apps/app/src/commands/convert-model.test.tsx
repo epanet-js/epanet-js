@@ -3,7 +3,6 @@ import userEvent from "@testing-library/user-event";
 import { emptyNetworkData, type NetworkData } from "@epanet-js/converters";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { aTestFile } from "src/__helpers__/file";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import { setInitialState } from "src/__helpers__/state";
 import { stubFileOpen } from "src/__helpers__/browser-fs-mock";
 import { fileOpen } from "browser-fs-access";
@@ -362,7 +361,7 @@ describe("convertModel", () => {
     await waitForNotLoading();
 
     expect(screen.getByText(/could not be opened/i)).toBeInTheDocument();
-    expect(store.get(stagingModelDerivedAtom)).toBe(previousModel);
+    expect(store.get(stagingModelDerivedAtom).assets.size).toBe(0);
     expect(userTracking.capture).toHaveBeenCalledWith({
       name: "convertModel.failed",
       source: "toolbar",
@@ -444,28 +443,7 @@ describe("convertModel", () => {
     );
   });
 
-  it("keeps the previous model and reports when the file cannot be read", async () => {
-    stubFileOpen();
-    registerConverter("synergi", {
-      name: "Synergi",
-      extensions: [".mdb"],
-      parseNetworkData: () => Promise.reject(new Error("cannot read")),
-    });
-    const previousModel = HydraulicModelBuilder.empty();
-    const store = setInitialState({ hydraulicModel: previousModel });
-
-    renderComponent({ store });
-    await triggerCommand();
-    await doFileSelection(aTestFile({ filename: "my-network.mdb" }));
-
-    await waitForNotLoading();
-
-    expect(screen.getByText(/failed to open model/i)).toBeInTheDocument();
-    expect(store.get(stagingModelDerivedAtom)).toBe(previousModel);
-  });
-
-  it("clears the previous model before converting when FLAG_OPEN_CLEAR is on", async () => {
-    stubFeatureOn("FLAG_OPEN_CLEAR");
+  it("clears the previous model and reports when the file cannot be read", async () => {
     stubFileOpen();
     registerConverter("synergi", {
       name: "Synergi",

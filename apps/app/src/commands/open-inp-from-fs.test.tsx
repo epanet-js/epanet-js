@@ -27,7 +27,6 @@ import { checksum } from "src/infra/checksum";
 import { presets } from "@epanet-js/project-settings";
 import { waitForNotLoading } from "src/__helpers__/ui-expects";
 import { getByLabel } from "src/__helpers__/asset-queries";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import { useOpenInpFromFs } from "./open-inp-from-fs";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { userSettingsAtom } from "src/state/user-settings";
@@ -492,40 +491,7 @@ describe("file format updated dialog", () => {
     });
   });
 
-  it("shows an error notification and rolls back when the db import fails", async () => {
-    stubFileOpen();
-    const previousModel = HydraulicModelBuilder.empty();
-    const store = setInitialState({ hydraulicModel: previousModel });
-    const file = aTestFile({
-      filename: "my-network.inp",
-      content: minimalInp({ junctionId: "J1" }),
-    });
-    const spy = vi
-      .spyOn(db, "importProject")
-      .mockRejectedValueOnce(
-        new Error("Junction 1 (J1): row does not match schema"),
-      );
-
-    renderComponent({ store });
-    await triggerCommand();
-    await doFileSelection(file);
-
-    await waitFor(() =>
-      expect(screen.queryByText(/loading/i)).not.toBeInTheDocument(),
-    );
-
-    expect(screen.getByText(/couldn't open project/i)).toBeInTheDocument();
-    expect(
-      screen.getByText(/if the error persists, contact support/i),
-    ).toBeInTheDocument();
-    expect(store.get(stagingModelDerivedAtom)).toBe(previousModel);
-    expect(screen.queryByText(/file format updated/i)).not.toBeInTheDocument();
-
-    spy.mockRestore();
-  });
-
-  it("leaves a blank project when the db import fails and FLAG_OPEN_CLEAR is on", async () => {
-    stubFeatureOn("FLAG_OPEN_CLEAR");
+  it("shows an error notification and leaves a blank project when the db import fails", async () => {
     stubFileOpen();
     const previousModel = HydraulicModelBuilder.with().aJunction(1).build();
     const store = setInitialState({ hydraulicModel: previousModel });
@@ -549,7 +515,12 @@ describe("file format updated dialog", () => {
       expect(screen.queryByText(/loading/i)).not.toBeInTheDocument(),
     );
 
+    expect(screen.getByText(/couldn't open project/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/if the error persists, contact support/i),
+    ).toBeInTheDocument();
     expect(store.get(stagingModelDerivedAtom).assets.size).toBe(0);
+    expect(screen.queryByText(/file format updated/i)).not.toBeInTheDocument();
 
     spy.mockRestore();
   });

@@ -137,23 +137,7 @@ describe("openProjectFile", () => {
     });
   });
 
-  it("keeps the previous project when the new one cannot be opened", async () => {
-    stubFeatureOff("FLAG_OPEN_CLEAR");
-    const previousModel = HydraulicModelBuilder.with().aJunction(1).build();
-    const store = setInitialState({ hydraulicModel: previousModel });
-    const file = new File(
-      ["not a project"],
-      "my-project.ejsdb",
-    ) as FileWithHandle;
-
-    renderComponent({ store, file });
-    await triggerOpen();
-
-    expect(store.get(stagingModelDerivedAtom)).toBe(previousModel);
-  });
-
-  it("clears the previous project first when FLAG_OPEN_CLEAR is on", async () => {
-    stubFeatureOn("FLAG_OPEN_CLEAR");
+  it("clears the previous project first", async () => {
     const previousModel = HydraulicModelBuilder.with().aJunction(1).build();
     const store = setInitialState({ hydraulicModel: previousModel });
     store.set(projectFileInfoAtom, { name: "previous.ejsdb" });
