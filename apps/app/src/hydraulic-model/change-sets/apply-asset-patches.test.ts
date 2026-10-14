@@ -2,10 +2,10 @@ import { describe, it, expect } from "vitest";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { applyOperation } from "src/__helpers__/apply-operation";
 import { Pipe, Junction } from "@epanet-js/hydraulic-model";
-import { ModelMoment } from "../model-operation";
+import { changeSet, putAssets, setAsset } from "./index";
 import { buildTestFactories } from "src/__helpers__/test-factories";
 
-describe("change sets from patchAssetsAttributes", () => {
+describe("change sets from setAsset", () => {
   it("patches a single property on an asset", () => {
     const IDS = { PIPE: 1, N1: 2, N2: 3 } as const;
     const { labelManager } = buildTestFactories();
@@ -19,14 +19,11 @@ describe("change sets from patchAssetsAttributes", () => {
       })
       .build();
 
-    const moment: ModelMoment = {
-      note: "Patch diameter",
-      patchAssetsAttributes: [
-        { id: IDS.PIPE, type: "pipe", properties: { diameter: 200 } },
-      ],
-    };
+    const operation = changeSet(model, "changeProperty", [
+      setAsset(IDS.PIPE, { diameter: 200 }),
+    ]);
 
-    const { undo } = applyOperation(model, moment, labelManager);
+    const { undo } = applyOperation(model, operation, labelManager);
     expect((model.assets.get(IDS.PIPE) as Pipe).diameter).toBe(200);
 
     undo();
@@ -47,18 +44,11 @@ describe("change sets from patchAssetsAttributes", () => {
       })
       .build();
 
-    const moment: ModelMoment = {
-      note: "Patch diameter and roughness",
-      patchAssetsAttributes: [
-        {
-          id: IDS.PIPE,
-          type: "pipe",
-          properties: { diameter: 200, roughness: 150 },
-        },
-      ],
-    };
+    const operation = changeSet(model, "changeProperty", [
+      setAsset(IDS.PIPE, { diameter: 200, roughness: 150 }),
+    ]);
 
-    const { undo } = applyOperation(model, moment, labelManager);
+    const { undo } = applyOperation(model, operation, labelManager);
     expect((model.assets.get(IDS.PIPE) as Pipe).diameter).toBe(200);
     expect((model.assets.get(IDS.PIPE) as Pipe).roughness).toBe(150);
 
@@ -75,15 +65,12 @@ describe("change sets from patchAssetsAttributes", () => {
       .aJunction(IDS.J2, { elevation: 20 })
       .build();
 
-    const moment: ModelMoment = {
-      note: "Patch elevations",
-      patchAssetsAttributes: [
-        { id: IDS.J1, type: "junction", properties: { elevation: 50 } },
-        { id: IDS.J2, type: "junction", properties: { elevation: 60 } },
-      ],
-    };
+    const operation = changeSet(model, "changeProperty", [
+      setAsset(IDS.J1, { elevation: 50 }),
+      setAsset(IDS.J2, { elevation: 60 }),
+    ]);
 
-    const { undo } = applyOperation(model, moment, labelManager);
+    const { undo } = applyOperation(model, operation, labelManager);
     expect((model.assets.get(IDS.J1) as Junction).elevation).toBe(50);
     expect((model.assets.get(IDS.J2) as Junction).elevation).toBe(60);
 
@@ -98,21 +85,18 @@ describe("change sets from patchAssetsAttributes", () => {
       .aJunction(1, { elevation: 10 })
       .build();
 
-    const moment: ModelMoment = {
-      note: "Patch non-existent",
-      patchAssetsAttributes: [
-        { id: 999, type: "junction", properties: { elevation: 50 } },
-      ],
-    };
+    const operation = changeSet(model, "changeProperty", [
+      setAsset(999, { elevation: 50 }),
+    ]);
 
-    const { changeSet } = applyOperation(model, moment, labelManager);
+    applyOperation(model, operation, labelManager);
 
-    expect(changeSet.size).toBe(0);
+    expect(operation.size).toBe(0);
     expect(model.assets.has(999)).toBe(false);
     expect((model.assets.get(1) as Junction).elevation).toBe(10);
   });
 
-  it("handles a moment with both putAssets and patchAssetsAttributes", () => {
+  it("handles both putAssets and setAsset in one change set", () => {
     const IDS = { J1: 1, PIPE: 2, N1: 3, N2: 4 } as const;
     const { labelManager } = buildTestFactories();
     const model = HydraulicModelBuilder.with({ labelManager })
@@ -129,15 +113,12 @@ describe("change sets from patchAssetsAttributes", () => {
     const updatedJunction = (model.assets.get(IDS.J1) as Junction).copy();
     updatedJunction.setProperty("elevation", 99);
 
-    const moment: ModelMoment = {
-      note: "Mixed put and patch",
-      putAssets: [updatedJunction],
-      patchAssetsAttributes: [
-        { id: IDS.PIPE, type: "pipe", properties: { diameter: 200 } },
-      ],
-    };
+    const operation = changeSet(model, "changeProperty", [
+      putAssets([updatedJunction]),
+      setAsset(IDS.PIPE, { diameter: 200 }),
+    ]);
 
-    const { undo } = applyOperation(model, moment, labelManager);
+    const { undo } = applyOperation(model, operation, labelManager);
     expect((model.assets.get(IDS.J1) as Junction).elevation).toBe(99);
     expect((model.assets.get(IDS.PIPE) as Pipe).diameter).toBe(200);
 
@@ -155,14 +136,11 @@ describe("change sets from patchAssetsAttributes", () => {
 
     const oldLabel = (model.assets.get(IDS.J1) as Junction).label;
 
-    const moment: ModelMoment = {
-      note: "Rename junction",
-      patchAssetsAttributes: [
-        { id: IDS.J1, type: "junction", properties: { label: "NewName" } },
-      ],
-    };
+    const operation = changeSet(model, "changeLabel", [
+      setAsset(IDS.J1, { label: "NewName" }),
+    ]);
 
-    const { undo } = applyOperation(model, moment, labelManager);
+    const { undo } = applyOperation(model, operation, labelManager);
 
     expect((model.assets.get(IDS.J1) as Junction).label).toBe("NewName");
     expect(labelManager.getIdByLabel("NewName", "junction")).toBe(IDS.J1);
@@ -185,22 +163,12 @@ describe("change sets from patchAssetsAttributes", () => {
 
     const first = applyOperation(
       model,
-      {
-        note: "Patch 1",
-        patchAssetsAttributes: [
-          { id: IDS.J1, type: "junction", properties: { elevation: 50 } },
-        ],
-      },
+      changeSet(model, "changeProperty", [setAsset(IDS.J1, { elevation: 50 })]),
       labelManager,
     );
     const second = applyOperation(
       model,
-      {
-        note: "Patch 2",
-        patchAssetsAttributes: [
-          { id: IDS.J2, type: "junction", properties: { elevation: 60 } },
-        ],
-      },
+      changeSet(model, "changeProperty", [setAsset(IDS.J2, { elevation: 60 })]),
       labelManager,
     );
 

@@ -2,10 +2,10 @@ import { describe, it, expect } from "vitest";
 import { getLinkTimedSetting } from "@epanet-js/hydraulic-model";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { applyOperation } from "src/__helpers__/apply-operation";
-import { ModelMoment } from "../model-operation";
+import { changeSet, replaceControls } from "./index";
 import { buildTestFactories } from "src/__helpers__/test-factories";
 
-describe("change sets from putControls", () => {
+describe("change sets from replaceControls", () => {
   const IDS = { N1: 1, N2: 2, P1: 3, T1: 4 } as const;
 
   const aModel = (
@@ -34,9 +34,8 @@ describe("change sets from putControls", () => {
     const { labelManager } = buildTestFactories();
     const model = aModel(labelManager);
 
-    const moment: ModelMoment = {
-      note: "Change controls",
-      putControls: [
+    const operation = changeSet(model, "changeAssetControl", [
+      replaceControls([
         {
           id: "ctrl-1",
           type: "timed-setting",
@@ -46,10 +45,10 @@ describe("change sets from putControls", () => {
             { time: 7200, status: "on", setting: 1.5 },
           ],
         },
-      ],
-    };
+      ]),
+    ]);
 
-    const { undo } = applyOperation(model, moment, labelManager);
+    const { undo } = applyOperation(model, operation, labelManager);
 
     expect(getLinkTimedSetting(model.controls, IDS.P1)?.steps).toEqual([
       { time: 3600, status: "off", setting: 1 },
@@ -66,7 +65,7 @@ describe("change sets from putControls", () => {
 
     const { undo } = applyOperation(
       model,
-      { note: "Change controls", putControls: [] },
+      changeSet(model, "changeAssetControl", [replaceControls([])]),
       labelManager,
     );
     expect(model.controls).toEqual([]);
@@ -77,7 +76,7 @@ describe("change sets from putControls", () => {
     ]);
   });
 
-  it("rebuilds the controls lookup when applying putControls", () => {
+  it("rebuilds the controls lookup when replacing controls", () => {
     const { labelManager } = buildTestFactories();
     const model = aModel(labelManager);
 
@@ -92,7 +91,7 @@ describe("change sets from putControls", () => {
 
     applyOperation(
       model,
-      { note: "Change controls", putControls: [control] },
+      changeSet(model, "changeAssetControl", [replaceControls([control])]),
       labelManager,
     );
 
@@ -110,7 +109,7 @@ describe("change sets from putControls", () => {
 
     const { undo } = applyOperation(
       model,
-      { note: "Change controls", putControls: [] },
+      changeSet(model, "changeAssetControl", [replaceControls([])]),
       labelManager,
     );
     expect(model.controlsLookup.hasControls(IDS.P1)).toBe(false);

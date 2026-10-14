@@ -13,7 +13,6 @@ import {
   type ModelFixture,
 } from "src/__helpers__/model-snapshot";
 import { ChangeSet } from "@epanet-js/change-set";
-import type { ModelMoment } from "../model-operation";
 import {
   addNode,
   changeAssetControl,
@@ -41,7 +40,6 @@ import {
 } from "@epanet-js/hydraulic-model";
 import type { HydraulicModel } from "src/hydraulic-model";
 import { applyChangeSet } from "./apply";
-import { toChangeSet } from "./from-moment";
 
 const IDS = {
   J1: 1,
@@ -110,7 +108,7 @@ const aNetwork = (): Fixture => {
 type OperationCase = {
   name: string;
   fixture: () => Fixture;
-  run: (fixture: Fixture) => ModelMoment | ChangeSet;
+  run: (fixture: Fixture) => ChangeSet;
   expectApplied: (fixture: Fixture) => void;
 };
 
@@ -536,9 +534,7 @@ const runCase = (testCase: OperationCase) => {
   const applied = testCase.fixture();
   const pristine = testCase.fixture();
 
-  const result = testCase.run(applied);
-  const changeSet =
-    result instanceof ChangeSet ? result : toChangeSet(applied.model, result);
+  const changeSet = testCase.run(applied);
   applyChangeSet(applied.model, changeSet, "forward", applied.labelManager);
 
   const probe = [...modelLabels(pristine.model), ...modelLabels(applied.model)];
