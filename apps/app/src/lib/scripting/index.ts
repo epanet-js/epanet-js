@@ -8,4 +8,5 @@ export type {
   ScriptEvent,
   ScriptRunHandle,
   ScriptRunOutcome,
+  ScriptTargets,
 } from "./registry";

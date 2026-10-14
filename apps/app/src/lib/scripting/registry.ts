@@ -1,4 +1,8 @@
-import type { AssetId, ModelFactories } from "@epanet-js/hydraulic-model";
+import type {
+  AssetId,
+  CustomerPointId,
+  ModelFactories,
+} from "@epanet-js/hydraulic-model";
 import type { UnitsSpec } from "@epanet-js/project-settings";
 import type { HydraulicModel } from "src/hydraulic-model";
 
@@ -18,12 +22,17 @@ export type ScriptBBox = [
   maxLat: number,
 ];
 
+export type ScriptTargets = {
+  assetIds: AssetId[];
+  customerPointIds: CustomerPointId[];
+};
+
 export type ScriptRunOutcome =
   | {
       status: "success";
-      selection: AssetId[] | null;
+      selection: ScriptTargets | null;
       zoomTo:
-        | { type: "assets"; ids: AssetId[] }
+        | { type: "targets"; targets: ScriptTargets }
         | { type: "bbox"; bbox: ScriptBBox }
         | null;
       attachments: ScriptAttachment[];
@@ -47,7 +56,7 @@ export type Scripting = {
     model: HydraulicModel;
     factories: ModelFactories;
     units: UnitsSpec;
-    selectedAssetIds: readonly AssetId[];
+    selected: ScriptTargets;
     viewport: ScriptBBox | null;
     onEvent: (event: ScriptEvent) => void;
   }) => ScriptRunHandle;

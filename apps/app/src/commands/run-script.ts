@@ -6,10 +6,11 @@ import {
   type ScriptBBox,
   type ScriptEvent,
   type ScriptRunOutcome,
+  type ScriptTargets,
 } from "src/lib/scripting";
 import { MapContext } from "src/map";
 import { useZoomTo } from "src/hooks/use-zoom-to";
-import { USelection } from "src/selection";
+import { USelection, type Sel } from "src/selection";
 import { dialogAtom } from "src/state/dialog";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { modelFactoriesAtom } from "src/state/model-factories";
@@ -41,13 +42,17 @@ export const useRunScript = () => {
   const applyOutcome = useCallback(
     (outcome: ScriptRunOutcome) => {
       if (outcome.status !== "success") return;
-      const { assets } = store.get(stagingModelDerivedAtom);
-      const existing = (ids: number[]) => ids.filter((id) => assets.has(id));
+      const { assets, customerPoints } = store.get(stagingModelDerivedAtom);
+      const existing = ({ assetIds, customerPointIds }: ScriptTargets) =>
+        USelection.fromIds(
+          assetIds.filter((id) => assets.has(id)),
+          customerPointIds.filter((id) => customerPoints.has(id)),
+        );
       if (outcome.selection) {
-        setSelection(USelection.fromAssetIds(existing(outcome.selection)));
+        setSelection(existing(outcome.selection));
       }
-      if (outcome.zoomTo?.type === "assets") {
-        zoomTo(USelection.fromAssetIds(existing(outcome.zoomTo.ids)));
+      if (outcome.zoomTo?.type === "targets") {
+        zoomTo(existing(outcome.zoomTo.targets));
       }
       if (outcome.zoomTo?.type === "bbox") {
         zoomTo(Just(outcome.zoomTo.bbox));
@@ -88,7 +93,7 @@ export const useRunScript = () => {
         model: store.get(stagingModelDerivedAtom),
         factories: store.get(modelFactoriesAtom),
         units: store.get(projectSettingsAtom).units,
-        selectedAssetIds: USelection.getAssetIds(store.get(selectionAtom)),
+        selected: selectedTargets(store.get(selectionAtom)),
         viewport: currentViewport(),
         onEvent,
       });
@@ -117,3 +122,8 @@ export const useRunScript = () => {
     [store, setRun, setDialog, applyOutcome, currentViewport],
   );
 };
+
+const selectedTargets = (selection: Sel): ScriptTargets => ({
+  assetIds: [...USelection.getAssetIds(selection)],
+  customerPointIds: [...USelection.getCustomerPointIds(selection)],
+});
