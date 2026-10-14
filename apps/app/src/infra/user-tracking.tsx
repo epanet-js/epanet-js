@@ -521,6 +521,7 @@ export type ProjectFileTagChecked = {
   savedPlan: string | null;
   currentPlan: string;
   planMatches: boolean;
+  projectName: string;
 };
 
 export type SessionRecoveryOffered = {

@@ -133,6 +133,7 @@ describe("openProjectFile", () => {
         savedPlan: null,
         currentPlan: "free",
         planMatches: false,
+        projectName: "",
       });
     });
   });

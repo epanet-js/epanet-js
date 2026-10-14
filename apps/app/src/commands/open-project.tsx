@@ -254,6 +254,7 @@ export const useOpenProjectFile = () => {
             savedPlan: result.plan,
             currentPlan: plan,
             planMatches: result.plan === plan,
+            projectName: result.projectSettings.name,
           });
         }
 
