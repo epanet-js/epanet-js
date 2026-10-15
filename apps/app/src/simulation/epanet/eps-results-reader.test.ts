@@ -1414,6 +1414,96 @@ describe("EPSResultsReader", () => {
       });
     });
 
+    describe("with intermediate hydraulic steps", () => {
+      const buildPumpFilledTank = () => {
+        const IDS = { R1: 1, T1: 2, J1: 3, P1: 4, PU1: 5 } as const;
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aReservoir(IDS.R1, { head: 100 })
+          .aTank(IDS.T1, {
+            elevation: 100,
+            initialLevel: 3,
+            minLevel: 0.5,
+            maxLevel: 6,
+            diameter: 40,
+          })
+          .aJunction(IDS.J1, { elevation: 50 })
+          .aJunctionDemand(IDS.J1, [{ baseDemand: 20 }])
+          .aPipe(IDS.P1, {
+            startNodeId: IDS.T1,
+            endNodeId: IDS.J1,
+            length: 500,
+            diameter: 200,
+            roughness: 130,
+          })
+          .aPump(IDS.PU1, {
+            startNodeId: IDS.R1,
+            endNodeId: IDS.T1,
+            curve: [{ x: 30, y: 30 }],
+          })
+          .aSimpleControl({
+            template: "LINK {{0}} CLOSED AT TIME 2:30",
+            assetReferences: [{ assetId: IDS.PU1, isActionTarget: true }],
+          })
+          .aSimpleControl({
+            template: "LINK {{0}} OPEN AT TIME 3:30",
+            assetReferences: [{ assetId: IDS.PU1, isActionTarget: true }],
+          })
+          .build();
+        const simulationSettings = SimulationSettingsBuilder.with()
+          .timing({ duration: 6 * 3600, hydraulicTimestep: 3600 })
+          .build();
+        const inp = buildInp(hydraulicModel, {
+          units: presets.LPS.units,
+          simulationSettings,
+        });
+        return { IDS, inp };
+      };
+
+      it("aligns pump status with reporting steps when FLAG_REPORT_STEP_BUG is on", async () => {
+        const { IDS, inp } = buildPumpFilledTank();
+
+        const testAppId = "test-report-step-pump-status";
+        await runSimulation(inp, testAppId, undefined, {
+          isReportStepBugOn: true,
+        });
+
+        const storage = new InMemoryStorage(testAppId);
+        const reader = new EPSResultsReader(storage);
+        await reader.initialize();
+
+        const atThreeHours = await reader.getResultsForTimestep(3);
+        const atFourHours = await reader.getResultsForTimestep(4);
+        expect(atThreeHours.getPump(IDS.PU1)?.status).toEqual("off");
+        expect(atFourHours.getPump(IDS.PU1)?.status).toEqual("on");
+        expect(atFourHours.getPump(IDS.PU1)?.flow).toBeGreaterThan(0);
+      });
+
+      it("aligns tank volume with reporting steps when FLAG_REPORT_STEP_BUG is on", async () => {
+        const { IDS, inp } = buildPumpFilledTank();
+
+        const testAppId = "test-report-step-tank-volume";
+        await runSimulation(inp, testAppId, undefined, {
+          isReportStepBugOn: true,
+        });
+
+        const storage = new InMemoryStorage(testAppId);
+        const reader = new EPSResultsReader(storage);
+        await reader.initialize();
+
+        const volumeSeries = await reader.getTimeSeries(
+          IDS.T1,
+          "tank",
+          "volume",
+        );
+
+        expect(volumeSeries!.intervalsCount).toBe(7);
+        const volumes = Array.from(volumeSeries!.values);
+        for (let i = 1; i < volumes.length; i++) {
+          expect(volumes[i]).toBeGreaterThan(volumes[i - 1]);
+        }
+      });
+    });
+
     describe("valve", () => {
       it("reads valve flow time series", async () => {
         const IDS = { R1: 1, J1: 2, V1: 3 } as const;

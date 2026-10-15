@@ -102,13 +102,20 @@ export const runSimulation = async (
 
     const missingDataAccumulator = new MissingSimulationDataAccumulator(model);
     const totalDuration = model.getTimeParameter(TimeParameter.Duration);
+    const reportStart = model.getTimeParameter(TimeParameter.ReportStart);
+    const reportStep = model.getTimeParameter(TimeParameter.ReportStep);
+    const isReportingTime = (time: number) =>
+      time >= reportStart && (time - reportStart) % reportStep === 0;
 
     model.openH();
     model.initH(InitHydOption.SaveAndInit);
     do {
       timestepCount++;
       const currentTime = model.runH();
-      missingDataAccumulator.appendTimestepData(model);
+      missingDataAccumulator.appendNodeStats(model);
+      if (!flags.isReportStepBugOn || isReportingTime(currentTime)) {
+        missingDataAccumulator.appendReportingStep(model);
+      }
       const keepGoing = await onProgress({
         currentTime,
         totalDuration,
@@ -313,7 +320,7 @@ class MissingSimulationDataAccumulator {
     this.pumpCount = this.pumpIndices.length;
   }
 
-  appendTimestepData(model: Project) {
+  appendNodeStats(model: Project) {
     const heads = model.getNodeValues(NodeProperty.Head);
     for (let i = 0; i < this.nodeCount; i++) {
       const h = heads[i];
@@ -329,7 +336,9 @@ class MissingSimulationDataAccumulator {
       if (p > this._nodeStats.pressureMax[i])
         this._nodeStats.pressureMax[i] = p;
     }
+  }
 
+  appendReportingStep(model: Project) {
     if (this.supplySourcesCount > 0) {
       const volumes: number[] = [];
       for (const nodeIndex of this.supplySourceIndices) {
