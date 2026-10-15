@@ -34,7 +34,6 @@ import {
 } from "src/lib/network-review";
 import { useReviewChecks } from "src/hooks/use-review-checks";
 import { errorName, handleError } from "src/infra/errors";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 export const runSimulationShortcut = "shift+enter";
 
 // Small models settle well inside this, so the dialog never flashes for them.
@@ -49,7 +48,6 @@ export const useRunSimulation = () => {
   const showNetworkReview = useShowNetworkReview();
   const { ensureFresh } = useReviewChecks();
   const isCheckingRef = useRef(false);
-  const isReportStepBugOn = useFeatureFlag("FLAG_REPORT_STEP_BUG");
 
   const runSimulation = useAtomCallback(
     useCallback(
@@ -117,7 +115,7 @@ export const useRunSimulation = () => {
               inp,
               appId,
               reportProgress,
-              { runQuality, isReportStepBugOn },
+              { runQuality },
               scenarioKey,
               runId,
             );
@@ -335,7 +333,6 @@ export const useRunSimulation = () => {
         userTracking,
         showNetworkReview,
         ensureFresh,
-        isReportStepBugOn,
       ],
     ),
   );

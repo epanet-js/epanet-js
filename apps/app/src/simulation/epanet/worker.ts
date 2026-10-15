@@ -113,7 +113,7 @@ export const runSimulation = async (
       timestepCount++;
       const currentTime = model.runH();
       missingDataAccumulator.appendNodeStats(model);
-      if (!flags.isReportStepBugOn || isReportingTime(currentTime)) {
+      if (isReportingTime(currentTime)) {
         missingDataAccumulator.appendReportingStep(model);
       }
       const keepGoing = await onProgress({

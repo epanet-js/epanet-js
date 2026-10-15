@@ -1459,13 +1459,11 @@ describe("EPSResultsReader", () => {
         return { IDS, inp };
       };
 
-      it("aligns pump status with reporting steps when FLAG_REPORT_STEP_BUG is on", async () => {
+      it("aligns pump status with reporting steps", async () => {
         const { IDS, inp } = buildPumpFilledTank();
 
         const testAppId = "test-report-step-pump-status";
-        await runSimulation(inp, testAppId, undefined, {
-          isReportStepBugOn: true,
-        });
+        await runSimulation(inp, testAppId);
 
         const storage = new InMemoryStorage(testAppId);
         const reader = new EPSResultsReader(storage);
@@ -1478,13 +1476,11 @@ describe("EPSResultsReader", () => {
         expect(atFourHours.getPump(IDS.PU1)?.flow).toBeGreaterThan(0);
       });
 
-      it("aligns tank volume with reporting steps when FLAG_REPORT_STEP_BUG is on", async () => {
+      it("aligns tank volume with reporting steps", async () => {
         const { IDS, inp } = buildPumpFilledTank();
 
         const testAppId = "test-report-step-tank-volume";
-        await runSimulation(inp, testAppId, undefined, {
-          isReportStepBugOn: true,
-        });
+        await runSimulation(inp, testAppId);
 
         const storage = new InMemoryStorage(testAppId);
         const reader = new EPSResultsReader(storage);
