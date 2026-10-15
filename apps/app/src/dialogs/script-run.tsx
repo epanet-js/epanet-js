@@ -123,6 +123,11 @@ const RunProgress = ({
           />
         )}
       </Progress.Root>
+      {run.progressMessage && (
+        <p className="mt-2 text-size-base text-subtle truncate">
+          {run.progressMessage}
+        </p>
+      )}
     </div>
   );
 };

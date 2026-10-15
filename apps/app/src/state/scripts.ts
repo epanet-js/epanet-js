@@ -10,6 +10,7 @@ export type ScriptRunState = {
   status: "running" | "finished";
   lines: ScriptConsoleLine[];
   progress: number | null;
+  progressMessage: string | null;
   outcome: ScriptRunOutcome | null;
   startedAt: number;
   finishedAt: number | null;

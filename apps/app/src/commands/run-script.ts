@@ -3,11 +3,11 @@ import { useCallback, useContext } from "react";
 import { Just } from "purify-ts/Maybe";
 import {
   getScripting,
-  type ScriptBBox,
   type ScriptEvent,
   type ScriptProject,
   type ScriptRunOutcome,
   type ScriptTargets,
+  type ScriptViewport,
 } from "src/lib/scripting";
 import { MapContext } from "src/map";
 import { useZoomTo } from "src/hooks/use-zoom-to";
@@ -41,11 +41,16 @@ export const useRunScript = () => {
   const zoomTo = useZoomTo();
   const map = useContext(MapContext);
 
-  const currentViewport = useCallback((): ScriptBBox | null => {
+  const currentViewport = useCallback((): ScriptViewport | null => {
     const bounds = map?.map.getBounds();
-    if (!bounds) return null;
+    if (!map || !bounds) return null;
     const [[west, south], [east, north]] = bounds.toArray();
-    return [west, south, east, north];
+    const { lng, lat } = map.map.getCenter();
+    return {
+      bounds: [west, south, east, north],
+      center: [lng, lat],
+      zoom: map.map.getZoom(),
+    };
   }, [map]);
 
   const applyOutcome = useCallback(
@@ -60,11 +65,12 @@ export const useRunScript = () => {
       if (outcome.selection) {
         setSelection(existing(outcome.selection));
       }
+      const maxZoom = outcome.zoomTo?.maxZoom ?? undefined;
       if (outcome.zoomTo?.type === "targets") {
-        zoomTo(existing(outcome.zoomTo.targets));
+        zoomTo(existing(outcome.zoomTo.targets), maxZoom);
       }
       if (outcome.zoomTo?.type === "bbox") {
-        zoomTo(Just(outcome.zoomTo.bbox));
+        zoomTo(Just(outcome.zoomTo.bbox), maxZoom);
       }
     },
     [store, setSelection, zoomTo],
@@ -81,7 +87,11 @@ export const useRunScript = () => {
 
       const onEvent = (event: ScriptEvent) => {
         if (event.type === "progress") {
-          updateRun((run) => ({ ...run, progress: event.fraction }));
+          updateRun((run) => ({
+            ...run,
+            progress: event.fraction,
+            progressMessage: event.message,
+          }));
           return;
         }
         const line: ScriptConsoleLine =
@@ -112,6 +122,7 @@ export const useRunScript = () => {
         status: "running",
         lines: [],
         progress: null,
+        progressMessage: null,
         outcome: null,
         startedAt: performance.now(),
         finishedAt: null,

@@ -12,7 +12,7 @@ export type ScriptConsoleLevel = "log" | "warn" | "error";
 export type ScriptEvent =
   | { type: "console"; level: ScriptConsoleLevel; text: string }
   | { type: "console-table"; columns: string[]; rows: string[][] }
-  | { type: "progress"; fraction: number };
+  | { type: "progress"; fraction: number; message: string | null };
 
 export type ScriptAttachment = { name: string; content: string };
 
@@ -22,6 +22,12 @@ export type ScriptBBox = [
   maxLng: number,
   maxLat: number,
 ];
+
+export type ScriptViewport = {
+  bounds: ScriptBBox;
+  center: [lng: number, lat: number];
+  zoom: number;
+};
 
 export type ScriptTargets = {
   assetIds: AssetId[];
@@ -42,8 +48,10 @@ export type ScriptRunOutcome =
       status: "success";
       selection: ScriptTargets | null;
       zoomTo:
-        | { type: "targets"; targets: ScriptTargets }
-        | { type: "bbox"; bbox: ScriptBBox }
+        | ((
+            | { type: "targets"; targets: ScriptTargets }
+            | { type: "bbox"; bbox: ScriptBBox }
+          ) & { maxZoom: number | null })
         | null;
       attachments: ScriptAttachment[];
     }
@@ -67,7 +75,7 @@ export type Scripting = {
     factories: ModelFactories;
     units: UnitsSpec;
     selected: ScriptTargets;
-    viewport: ScriptBBox | null;
+    viewport: ScriptViewport | null;
     project: ScriptProject;
     onEvent: (event: ScriptEvent) => void;
   }) => ScriptRunHandle;

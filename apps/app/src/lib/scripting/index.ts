@@ -10,4 +10,5 @@ export type {
   ScriptRunHandle,
   ScriptRunOutcome,
   ScriptTargets,
+  ScriptViewport,
 } from "./registry";
