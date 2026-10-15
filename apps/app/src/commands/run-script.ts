@@ -1,19 +1,28 @@
-import { useSetAtom, useStore } from "jotai";
+import { useSetAtom, useStore, type Getter } from "jotai";
 import { useCallback, useContext } from "react";
 import { Just } from "purify-ts/Maybe";
 import {
   getScripting,
   type ScriptBBox,
   type ScriptEvent,
+  type ScriptProject,
   type ScriptRunOutcome,
   type ScriptTargets,
 } from "src/lib/scripting";
 import { MapContext } from "src/map";
 import { useZoomTo } from "src/hooks/use-zoom-to";
 import { USelection, type Sel } from "src/selection";
+import { chooseUnitSystem } from "src/simulation/build-inp";
 import { dialogAtom } from "src/state/dialog";
+import {
+  currentFileNameAtom,
+  inpFileInfoAtom,
+  isDemoNetworkAtom,
+  projectFileInfoAtom,
+} from "src/state/file-system";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { modelFactoriesAtom } from "src/state/model-factories";
+import type { ProjectSettings } from "@epanet-js/project-settings";
 import { projectSettingsAtom } from "src/state/project-settings";
 import {
   scriptRunAtom,
@@ -95,6 +104,7 @@ export const useRunScript = () => {
         units: store.get(projectSettingsAtom).units,
         selected: selectedTargets(store.get(selectionAtom)),
         viewport: currentViewport(),
+        project: scriptProjectOf(store.get),
         onEvent,
       });
       setRun({
@@ -127,3 +137,28 @@ const selectedTargets = (selection: Sel): ScriptTargets => ({
   assetIds: [...USelection.getAssetIds(selection)],
   customerPointIds: [...USelection.getCustomerPointIds(selection)],
 });
+
+const scriptProjectOf = (get: Getter): ScriptProject => {
+  const settings = get(projectSettingsAtom);
+  const fileName = get(currentFileNameAtom);
+  return {
+    name: fileName?.replace(/\.[^.]+$/, "") || settings.name || "Untitled",
+    fileName,
+    source: get(projectFileInfoAtom)
+      ? "project"
+      : get(inpFileInfoAtom)
+        ? "inp"
+        : "new",
+    isDemo: get(isDemoNetworkAtom),
+    unitSystem: unitSystemOf(settings.units),
+    headlossFormula: settings.headlossFormula,
+  };
+};
+
+const unitSystemOf = (units: ProjectSettings["units"]): string => {
+  try {
+    return chooseUnitSystem(units);
+  } catch {
+    return "";
+  }
+};

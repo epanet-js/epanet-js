@@ -6,6 +6,7 @@ export type {
   ScriptBBox,
   ScriptConsoleLevel,
   ScriptEvent,
+  ScriptProject,
   ScriptRunHandle,
   ScriptRunOutcome,
   ScriptTargets,

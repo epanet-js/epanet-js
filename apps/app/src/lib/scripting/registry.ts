@@ -1,6 +1,7 @@
 import type {
   AssetId,
   CustomerPointId,
+  HeadlossFormula,
   ModelFactories,
 } from "@epanet-js/hydraulic-model";
 import type { UnitsSpec } from "@epanet-js/project-settings";
@@ -25,6 +26,15 @@ export type ScriptBBox = [
 export type ScriptTargets = {
   assetIds: AssetId[];
   customerPointIds: CustomerPointId[];
+};
+
+export type ScriptProject = {
+  name: string;
+  fileName: string | null;
+  source: "project" | "inp" | "new";
+  isDemo: boolean;
+  unitSystem: string;
+  headlossFormula: HeadlossFormula;
 };
 
 export type ScriptRunOutcome =
@@ -58,6 +68,7 @@ export type Scripting = {
     units: UnitsSpec;
     selected: ScriptTargets;
     viewport: ScriptBBox | null;
+    project: ScriptProject;
     onEvent: (event: ScriptEvent) => void;
   }) => ScriptRunHandle;
   exampleScripts: ExampleScript[];
