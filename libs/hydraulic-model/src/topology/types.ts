@@ -12,3 +12,9 @@ export type PathData = {
   linkIds: AssetId[];
   totalLength: number;
 };
+
+export type BoundaryLinkData = {
+  linkId: AssetId;
+  insideNodeId: AssetId;
+  outsideNodeId: AssetId;
+};

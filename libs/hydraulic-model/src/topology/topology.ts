@@ -1,7 +1,7 @@
 import { EventedType } from "ngraph.events";
 import createGraph, { Graph, Link, Node } from "ngraph.graph";
 import { AssetId, NO_ASSET_ID } from "../asset-types/base-asset";
-import { PathData, TopologyQueries } from "./types";
+import { BoundaryLinkData, PathData, TopologyQueries } from "./types";
 
 type GraphChange = {
   changeType: "add" | "remove";
@@ -82,6 +82,26 @@ export class Topology implements TopologyQueries {
       copy.addLink(linkId, link.fromId as AssetId, link.toId as AssetId);
     }
     return copy;
+  }
+
+  boundaryLinks(nodeIds: Iterable<AssetId>): BoundaryLinkData[] {
+    const inside = new Set(nodeIds);
+    const seen = new Set<AssetId>();
+    const boundary: BoundaryLinkData[] = [];
+    for (const nodeId of inside) {
+      for (const linkId of this.getLinks(nodeId)) {
+        if (seen.has(linkId)) continue;
+        seen.add(linkId);
+        const [startNodeId, endNodeId] = this.getNodes(linkId);
+        if (inside.has(startNodeId) === inside.has(endNodeId)) continue;
+        boundary.push(
+          inside.has(startNodeId)
+            ? { linkId, insideNodeId: startNodeId, outsideNodeId: endNodeId }
+            : { linkId, insideNodeId: endNodeId, outsideNodeId: startNodeId },
+        );
+      }
+    }
+    return boundary;
   }
 
   shortestPath(

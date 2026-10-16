@@ -87,6 +87,24 @@ describe("Topology", () => {
     expect(topology.getLinks(IDS.A)).toEqual([]);
   });
 
+  describe("boundaryLinks", () => {
+    it("returns each link with exactly one end in the node set, once", () => {
+      const topology = new Topology();
+      topology.addLink(IDS.link1, IDS.A, IDS.B);
+      topology.addLink(IDS.link2, IDS.B, IDS.C);
+
+      expect(topology.boundaryLinks([IDS.B])).toEqual([
+        { linkId: IDS.link1, insideNodeId: IDS.B, outsideNodeId: IDS.A },
+        { linkId: IDS.link2, insideNodeId: IDS.B, outsideNodeId: IDS.C },
+      ]);
+      expect(topology.boundaryLinks([IDS.A, IDS.B, IDS.B])).toEqual([
+        { linkId: IDS.link2, insideNodeId: IDS.B, outsideNodeId: IDS.C },
+      ]);
+      expect(topology.boundaryLinks([IDS.A, IDS.B, IDS.C])).toEqual([]);
+      expect(topology.boundaryLinks([])).toEqual([]);
+    });
+  });
+
   describe("shortestPath", () => {
     const constant = (value: number) => () => value;
 
