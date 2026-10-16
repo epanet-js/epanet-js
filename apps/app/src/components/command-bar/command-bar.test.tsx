@@ -151,7 +151,7 @@ describe("CommandBar", () => {
     expect(
       USelection.isCustomerPointSelected(store.get(selectionAtom), 42),
     ).toBe(true);
-    expect(zoomToMock).toHaveBeenCalledWith(Maybe.of([10, 20, 10, 20]), 18);
+    expect(zoomToMock.mock.calls).toEqual([[Maybe.of([10, 20, 10, 20]), 18]]);
   });
 
   it("closes on Escape", async () => {
