@@ -5,7 +5,7 @@ import {
   AssetsGeoEncoder,
   AssetsGeoView,
   AssetsGeoQueries,
-} from "./assets-geo";
+} from "@epanet-js/hydraulic-model";
 import { HydraulicModel } from "./hydraulic-model";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 

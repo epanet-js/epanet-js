@@ -8,12 +8,12 @@ import {
   AssetsGeoBuffers,
   AssetsGeoEncoder,
   AssetsGeoIndex,
-} from "src/hydraulic-model/assets-geo";
+} from "@epanet-js/hydraulic-model";
 import {
   CustomerPointsGeoBuffers,
   cloneCustomerPointsGeoBuffers,
   encodeCustomerPointsGeo,
-} from "src/hydraulic-model/customer-points-geo";
+} from "@epanet-js/hydraulic-model";
 import { BinaryData, BufferType } from "@epanet-js/buffers";
 
 export const encodeHydraulicModel = (

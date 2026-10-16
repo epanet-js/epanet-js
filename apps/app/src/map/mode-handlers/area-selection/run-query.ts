@@ -5,14 +5,14 @@ import { HydraulicModel } from "src/hydraulic-model/hydraulic-model";
 import {
   AssetsGeoIndex,
   assetsGeoTransferables,
-} from "src/hydraulic-model/assets-geo";
+} from "@epanet-js/hydraulic-model";
 import { assetIndexTransferables } from "src/hydraulic-model/asset-index-transferable";
 import {
   CustomerPointsGeoIndex,
   customerPointsGeoTransferables,
   queryContainedCustomerPoints,
-} from "src/hydraulic-model/customer-points-geo";
-import { queryContainedAssets } from "src/hydraulic-model/spatial-queries";
+} from "@epanet-js/hydraulic-model";
+import { queryContainedAssets } from "@epanet-js/hydraulic-model";
 import { canUseWorker, enrichWorkerError } from "src/infra/worker";
 import { getSpatialQueryWorker } from "./get-worker";
 import {

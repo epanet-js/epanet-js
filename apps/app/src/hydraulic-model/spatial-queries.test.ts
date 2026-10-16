@@ -2,8 +2,8 @@ import { describe, it, expect } from "vitest";
 import {
   findClosestEndpointNode,
   queryContainedAssets,
-} from "./spatial-queries";
-import { AssetsGeoIndex } from "./assets-geo";
+} from "@epanet-js/hydraulic-model";
+import { AssetsGeoIndex } from "@epanet-js/hydraulic-model";
 import { getPipe } from "@epanet-js/hydraulic-model";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 

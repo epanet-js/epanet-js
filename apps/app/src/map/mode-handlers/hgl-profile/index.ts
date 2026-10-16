@@ -11,7 +11,7 @@ import { USelection } from "src/selection";
 import { Asset, AssetId, LinkAsset } from "src/hydraulic-model";
 import { deriveProfilePath } from "src/panels/hgl-profile/path-finding";
 import { buildHglProfile } from "src/panels/hgl-profile/build-hgl-profile";
-import { findClosestEndpointNode } from "src/hydraulic-model/spatial-queries";
+import { findClosestEndpointNode } from "@epanet-js/hydraulic-model";
 import { isUnprojectedAtom } from "src/state/map-projection";
 import { useClickedAsset, getMapCoord } from "src/map/mode-handlers/utils";
 import {

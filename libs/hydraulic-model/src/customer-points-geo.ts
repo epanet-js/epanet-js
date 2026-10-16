@@ -1,6 +1,6 @@
 import Flatbush from "flatbush";
 import type { Position } from "geojson";
-import type { CustomerPoints } from "@epanet-js/hydraulic-model";
+import type { CustomerPoints } from "./customer-points";
 import type { SearchOptions } from "./spatial-queries";
 import { toSearchPolygon, containsNode } from "./spatial-queries";
 import { BinaryData, BufferType, createBuffer } from "@epanet-js/buffers";

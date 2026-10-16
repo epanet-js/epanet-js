@@ -14,17 +14,26 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@epanet-js/buffers": "workspace:^",
     "@epanet-js/geometry": "workspace:*",
     "@epanet-js/id-generator": "workspace:*",
     "@epanet-js/model-schema": "workspace:^",
     "@epanet-js/quantity": "workspace:*",
     "@turf/bbox": "^6.5.0",
+    "@turf/boolean-concave": "^7.2.0",
+    "@turf/boolean-contains": "^7.2.0",
+    "@turf/boolean-point-in-polygon": "^7.2.0",
+    "@turf/distance": "^7.1.0",
+    "@turf/helpers": "^6.5.0",
     "@turf/length": "^6.5.0",
+    "@turf/line-segment": "^6.5.0",
+    "flatbush": "^4.5.0",
     "nanoid": "^3.3.7",
     "ngraph.events": "^1.2.2",
     "ngraph.graph": "^20.0.1"
   },
   "devDependencies": {
+    "@types/flatbush": "^3.3.0",
     "@types/geojson": "^7946.0.14",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",

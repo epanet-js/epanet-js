@@ -13,13 +13,13 @@ import {
   VariableSizeBufferBuilder,
   VariableSizeBufferView,
 } from "@epanet-js/buffers";
-import { AssetIndex, AssetIndexQueries } from "@epanet-js/hydraulic-model";
-import { AssetId, LinkAsset, NodeAsset } from "@epanet-js/hydraulic-model";
+import { AssetIndex, AssetIndexQueries } from "./asset-index";
+import { AssetId, LinkAsset, NodeAsset } from "./asset-types";
 import { LineString, Position } from "geojson";
 import Flatbush from "flatbush";
 import bbox from "@turf/bbox";
 import lineSegment from "@turf/line-segment";
-import { AssetsMap } from "@epanet-js/hydraulic-model";
+import { AssetsMap } from "./assets-map";
 
 type SegmentId = number;
 type BoundingBox = [number, number, number, number];

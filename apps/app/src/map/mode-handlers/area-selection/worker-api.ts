@@ -1,9 +1,6 @@
 import * as Comlink from "comlink";
 import { Position } from "src/types";
-import {
-  AssetsGeoBuffers,
-  AssetsGeoView,
-} from "src/hydraulic-model/assets-geo";
+import { AssetsGeoBuffers, AssetsGeoView } from "@epanet-js/hydraulic-model";
 import {
   AssetIndexBuffers,
   AssetIndexView,
@@ -12,8 +9,8 @@ import {
   CustomerPointsGeoBuffers,
   CustomerPointsGeoView,
   queryContainedCustomerPoints,
-} from "src/hydraulic-model/customer-points-geo";
-import { queryContainedAssets } from "src/hydraulic-model/spatial-queries";
+} from "@epanet-js/hydraulic-model";
+import { queryContainedAssets } from "@epanet-js/hydraulic-model";
 import { EncodedAreaSelectionResult } from "./data";
 
 export interface SpatialQueryWorkerAPI {
