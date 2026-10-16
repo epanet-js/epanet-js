@@ -2,7 +2,10 @@ import { useCallback } from "react";
 import { useAtomCallback } from "jotai/utils";
 import type { Getter, Setter } from "jotai";
 import * as db from "src/lib/db";
-import { captureWarning } from "src/infra/error-tracking";
+import {
+  captureWarning,
+  setProjectFileContext,
+} from "src/infra/error-tracking";
 import {
   type HydraulicModel,
   initializeHydraulicModel,
@@ -211,6 +214,7 @@ const replaceProject = async (
   input: ProjectLoadInput,
 ) => {
   set(simulationDerivedAtom, initialSimulationState);
+  setProjectFileContext(null);
   await clearSimulationStorage();
   const mergedProjectSettings: ProjectSettings = {
     ...input.projectSettings,

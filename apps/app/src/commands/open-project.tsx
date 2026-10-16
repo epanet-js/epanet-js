@@ -19,7 +19,11 @@ import { chooseUnitSystem } from "src/simulation/build-inp";
 import type { Asset } from "src/hydraulic-model";
 import { notify } from "src/components/notifications";
 import { SuccessIcon, WarningIcon } from "src/icons";
-import { captureError, captureWarning } from "src/infra/error-tracking";
+import {
+  captureError,
+  captureWarning,
+  setProjectFileContext,
+} from "src/infra/error-tracking";
 import { catchErrors, handleError } from "src/infra/errors";
 import { formatErrorDetails } from "src/lib/errors";
 import { useTranslate } from "src/hooks/use-translate";
@@ -247,6 +251,9 @@ export const useOpenProjectFile = () => {
         });
 
         if (isTagModelsOn) {
+          setProjectFileContext({
+            isTampered: result.integrity === "tampered",
+          });
           userTracking.capture({
             name: "projectFile.tagChecked",
             source,
