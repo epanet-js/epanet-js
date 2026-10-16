@@ -14,8 +14,12 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@turf/along": "^6.5.0",
     "@turf/bbox": "^6.5.0",
+    "@turf/destination": "^6.5.0",
+    "@turf/distance": "^6.5.0",
     "@turf/helpers": "^6.5.0",
+    "@turf/length": "^6.5.0",
     "@turf/nearest-point-on-line": "^6.5.0",
     "lodash": "^4.17.21",
     "purify-ts": "^2.1.2"

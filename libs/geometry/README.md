@@ -24,6 +24,8 @@ Import functions from the package root (`@epanet-js/geometry`):
   `isLastPolygonSegmentIntersecting`.
 - **Lines & points** — `findNearestPointOnLine`, `arePointsInLine`,
   `bufferPoint` (a small click hit-box around a screen point).
+- **Geodesic measures (meters)** — `geodesicDistance`, `geodesicLength`,
+  `pointAlong`, `nearestPointWithChainage`, `destination`.
 - **Repair** — `removeDegenerates` (drop/fix broken geometries, e.g. unclosed
   polygons) returning a clean `Geometry` or `null`.
 

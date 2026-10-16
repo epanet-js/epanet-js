@@ -636,3 +636,5 @@ export function isLastPolygonSegmentIntersecting(coords: Position[]): boolean {
 
   return false;
 }
+
+export * from "./geodesic";
