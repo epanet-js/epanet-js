@@ -7,6 +7,10 @@ import booleanConcave from "@turf/boolean-concave";
 import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
 import booleanContains from "@turf/boolean-contains";
 import turfDistance from "@turf/distance";
+import {
+  geodesicDistance,
+  nearestPointWithChainage,
+} from "@epanet-js/geometry";
 
 export function queryContainedAssets(
   geoIndex: AssetsGeoQueries,
@@ -42,6 +46,41 @@ export function queryContainedAssets(
 
   return assetIds;
 }
+
+export type NearbyResult = { id: number; distance: number };
+
+export function queryNearAssets(
+  geoIndex: AssetsGeoQueries,
+  position: Position,
+  radiusInM: number,
+): NearbyResult[] {
+  const { bounds } = toSearchPolygon({ position, radiusInM });
+  const distances = new Map<AssetId, number>();
+  for (const nodeId of geoIndex.searchNodes(bounds)) {
+    const nodePosition = geoIndex.getNodePosition(nodeId);
+    if (!nodePosition) continue;
+    const distance = geodesicDistance(position, nodePosition);
+    if (distance <= radiusInM) distances.set(nodeId, distance);
+  }
+  for (const segmentId of geoIndex.searchLinkSegments(bounds)) {
+    const { distance } = nearestPointWithChainage(
+      geoIndex.getSegmentCoords(segmentId),
+      position,
+    );
+    if (distance > radiusInM) continue;
+    const linkId = geoIndex.getSegmentLinkId(segmentId);
+    const closest = distances.get(linkId);
+    if (closest === undefined || distance < closest) {
+      distances.set(linkId, distance);
+    }
+  }
+  return byDistance(distances);
+}
+
+const byDistance = (distances: Map<number, number>): NearbyResult[] =>
+  [...distances]
+    .map(([id, distance]) => ({ id, distance }))
+    .sort((a, b) => a.distance - b.distance);
 
 export function findClosestEndpointNode(
   link: LinkAsset,

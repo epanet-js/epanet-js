@@ -1,8 +1,9 @@
 import Flatbush from "flatbush";
 import type { Position } from "geojson";
 import type { CustomerPoints } from "./customer-points";
-import type { SearchOptions } from "./spatial-queries";
+import type { NearbyResult, SearchOptions } from "./spatial-queries";
 import { toSearchPolygon, containsNode } from "./spatial-queries";
+import { geodesicDistance } from "@epanet-js/geometry";
 import { BinaryData, BufferType, createBuffer } from "@epanet-js/buffers";
 
 type BoundingBox = [number, number, number, number];
@@ -156,4 +157,20 @@ export function queryContainedCustomerPoints(
   return geo.searchCustomerPoints(search.bounds, (_id, position) =>
     search.isBounds ? true : containsNode(search, position),
   );
+}
+
+export function queryNearCustomerPoints(
+  geo: CustomerPointsGeoQueries,
+  position: Position,
+  radiusInM: number,
+): NearbyResult[] {
+  const { bounds } = toSearchPolygon({ position, radiusInM });
+  const nearby: NearbyResult[] = [];
+  geo.searchCustomerPoints(bounds, (id, customerPointPosition) => {
+    const distance = geodesicDistance(position, customerPointPosition);
+    if (distance > radiusInM) return false;
+    nearby.push({ id, distance });
+    return true;
+  });
+  return nearby.sort((a, b) => a.distance - b.distance);
 }
