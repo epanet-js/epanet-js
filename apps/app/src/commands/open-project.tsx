@@ -64,7 +64,7 @@ export const useOpenProjectFile = () => {
   const readWorktree = useAtomCallback(
     useCallback((get) => get(worktreeAtom), []),
   );
-  const { isTagModelsOn, plan } = useModelTagging();
+  const { plan } = useModelTagging();
 
   const openProjectFile = useCallback(
     async (
@@ -246,17 +246,15 @@ export const useOpenProjectFile = () => {
           size: "sm",
         });
 
-        if (isTagModelsOn) {
-          userTracking.capture({
-            name: "projectFile.tagChecked",
-            source,
-            integrity: result.integrity,
-            savedPlan: result.plan,
-            currentPlan: plan,
-            planMatches: result.plan === plan,
-            projectName: result.projectSettings.name,
-          });
-        }
+        userTracking.capture({
+          name: "projectFile.tagChecked",
+          source,
+          integrity: result.integrity,
+          savedPlan: result.plan,
+          currentPlan: plan,
+          planMatches: result.plan === plan,
+          projectName: result.projectSettings.name,
+        });
 
         userTracking.capture({
           name: "projectFile.opened",
@@ -310,7 +308,6 @@ export const useOpenProjectFile = () => {
       userTracking,
       addRecent,
       readWorktree,
-      isTagModelsOn,
       plan,
     ],
   );

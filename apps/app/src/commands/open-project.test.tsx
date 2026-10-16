@@ -114,7 +114,6 @@ describe("openProjectFile", () => {
   });
 
   it("reports the file tag verdict", async () => {
-    stubFeatureOn("FLAG_TAG_MODELS");
     const userTracking = stubUserTracking();
     const hydraulicModel = HydraulicModelBuilder.with().aJunction(1).build();
     await seedDb(hydraulicModel);

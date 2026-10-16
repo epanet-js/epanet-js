@@ -14,7 +14,6 @@ import {
   type ProjectLoadInput,
 } from "./use-start-new-project";
 import { captureError, setProjectFileContext } from "src/infra/error-tracking";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { getBranchStore } from "src/lib/branching";
 import {
   buildUnloadedBranchStates,
@@ -86,7 +85,6 @@ export type OpenPersistedProjectResult =
 
 export const useOpenPersistedProject = () => {
   const defaultPanelsFor = useDefaultPanels();
-  const isTagModelsOn = useFeatureFlag("FLAG_TAG_MODELS");
   const openPersistedProject = useAtomCallback(
     useCallback(
       async (
@@ -104,11 +102,9 @@ export const useOpenPersistedProject = () => {
           return result;
         }
 
-        if (isTagModelsOn) {
-          setProjectFileContext({
-            isTampered: result.integrity === "tampered",
-          });
-        }
+        setProjectFileContext({
+          isTampered: result.integrity === "tampered",
+        });
 
         let uniqueId: string | null = null;
         try {
@@ -179,7 +175,7 @@ export const useOpenPersistedProject = () => {
           plan: result.label,
         };
       },
-      [defaultPanelsFor, isTagModelsOn],
+      [defaultPanelsFor],
     ),
   );
 
