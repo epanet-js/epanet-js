@@ -108,9 +108,9 @@ export const setFlagsContext = (flagsEnabled: string[]) => {
   );
 };
 
-export const setProjectFileContext = (info: { isTampered: boolean } | null) => {
+export const setProjectFileContext = (info: { isTampered: boolean }) => {
   Sentry.setContext("Project file", info);
-  Sentry.setTag("projectFile.isTampered", info ? info.isTampered : null);
+  Sentry.setTag("projectFile.isTampered", info.isTampered);
 };
 
 export const setErrorContext = (
