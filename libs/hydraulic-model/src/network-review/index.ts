@@ -30,3 +30,12 @@ export {
   type ProximityAnomaly,
   type EncodedProximityAnomalies,
 } from "./proximity-anomalies";
+export {
+  findCrossingPipes,
+  CROSSING_PIPES_JUNCTION_TOLERANCE,
+} from "./find-crossing-pipes";
+export {
+  decodeCrossingPipes,
+  type CrossingPipe,
+  type EncodedCrossingPipes,
+} from "./crossing-pipes";

@@ -1,12 +1,14 @@
-import type { EncodedCrossingPipes } from "./data";
+import type { EncodedCrossingPipes } from "./crossing-pipes";
 import type { Position } from "geojson";
 import {
   HydraulicModelBuffers,
   HydraulicModelBuffersView,
-} from "@epanet-js/hydraulic-model";
+} from "./hydraulic-model-buffers";
 import bbox from "@turf/bbox";
 import lineIntersect from "@turf/line-intersect";
 import { lineString } from "@turf/helpers";
+
+export const CROSSING_PIPES_JUNCTION_TOLERANCE = 0.0000045;
 
 export function findCrossingPipes(
   buffers: HydraulicModelBuffers,

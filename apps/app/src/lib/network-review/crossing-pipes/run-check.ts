@@ -7,16 +7,14 @@ import {
   enrichWorkerError,
 } from "src/infra/worker";
 import {
-  decodeCrossingPipes,
-  EncodedCrossingPipes,
   CrossingPipe,
-} from "./data";
-import {
+  EncodedCrossingPipes,
   HydraulicModelBuffers,
   HydraulicModelEncoder,
+  decodeCrossingPipes,
+  findCrossingPipes,
   hydraulicModelTransferables,
 } from "@epanet-js/hydraulic-model";
-import { findCrossingPipes } from "./find-crossing-pipes";
 import { getCrossingPipesWorker } from "./get-worker";
 
 export const runCheck = async (

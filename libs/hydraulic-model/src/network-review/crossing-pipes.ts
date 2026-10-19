@@ -1,5 +1,5 @@
-import { Pipe, AssetId } from "@epanet-js/hydraulic-model";
-import { HydraulicModel } from "src/hydraulic-model";
+import { Pipe, AssetId } from "../asset-types";
+import { HydraulicModel } from "../hydraulic-model";
 import { Position } from "geojson";
 
 interface EncodedCrossingPipe {
