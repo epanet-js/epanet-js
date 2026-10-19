@@ -1,4 +1,7 @@
-import { decodeSubNetworks, EncodedSubNetwork } from "./data";
+import {
+  decodeSubNetworks,
+  EncodedSubNetwork,
+} from "@epanet-js/hydraulic-model";
 
 const IDS = {
   J1: 1,

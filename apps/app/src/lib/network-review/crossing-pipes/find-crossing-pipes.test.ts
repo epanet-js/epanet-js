@@ -3,7 +3,7 @@ import { findCrossingPipes } from "./find-crossing-pipes";
 import {
   EncodedHydraulicModel,
   HydraulicModelEncoder,
-} from "../hydraulic-model-buffers";
+} from "@epanet-js/hydraulic-model";
 import { HydraulicModel } from "src/hydraulic-model";
 
 describe("findCrossingPipes", () => {

@@ -5,9 +5,9 @@ import {
   decodeIdsList,
   decodeLinkConnections,
   decodePosition,
-  EncodedSize,
+  HydraulicModelBuffersEncodedSize as EncodedSize,
   HydraulicModelEncoder,
-} from "./hydraulic-model-buffers";
+} from "@epanet-js/hydraulic-model";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import {
   decodeType,

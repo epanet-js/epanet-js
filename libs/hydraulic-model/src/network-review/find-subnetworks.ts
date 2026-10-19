@@ -1,10 +1,10 @@
-import { EncodedSubNetwork } from "./data";
+import { EncodedSubNetwork } from "./subnetworks";
 import {
   HydraulicModelBuffers,
   HydraulicModelBuffersView,
   toNodeType,
-} from "../hydraulic-model-buffers";
-import { NodeType } from "src/hydraulic-model";
+} from "./hydraulic-model-buffers";
+import { NodeType } from "../asset-types";
 
 export function findSubNetworks(
   buffers: HydraulicModelBuffers,

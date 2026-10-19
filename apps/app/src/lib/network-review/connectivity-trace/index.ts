@@ -1,3 +1,3 @@
 export { runCheck as findConnectivityTrace } from "./run-check";
-export { unsuppliedSubNetworks } from "./data";
-export type { SubNetwork } from "./data";
+export { unsuppliedSubNetworks } from "@epanet-js/hydraulic-model";
+export type { SubNetwork } from "@epanet-js/hydraulic-model";

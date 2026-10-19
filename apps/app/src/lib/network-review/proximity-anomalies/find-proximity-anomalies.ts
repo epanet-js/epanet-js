@@ -6,7 +6,7 @@ import {
 import {
   HydraulicModelBuffers,
   HydraulicModelBuffersView,
-} from "../hydraulic-model-buffers";
+} from "@epanet-js/hydraulic-model";
 import { lineString, point } from "@turf/helpers";
 import nearestPointOnLine from "@turf/nearest-point-on-line";
 import distance from "@turf/distance";

@@ -3,7 +3,7 @@ import type { Position } from "geojson";
 import {
   HydraulicModelBuffers,
   HydraulicModelBuffersView,
-} from "../hydraulic-model-buffers";
+} from "@epanet-js/hydraulic-model";
 import bbox from "@turf/bbox";
 import lineIntersect from "@turf/line-intersect";
 import { lineString } from "@turf/helpers";

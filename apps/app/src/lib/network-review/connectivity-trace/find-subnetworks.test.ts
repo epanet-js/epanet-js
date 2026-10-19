@@ -1,10 +1,11 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import { findSubNetworks } from "./find-subnetworks";
 import {
   EncodedHydraulicModel,
   HydraulicModelEncoder,
-} from "../hydraulic-model-buffers";
-import { decodeSubNetworks, unsuppliedSubNetworks } from "./data";
+  decodeSubNetworks,
+  findSubNetworks,
+  unsuppliedSubNetworks,
+} from "@epanet-js/hydraulic-model";
 import { HydraulicModel } from "src/hydraulic-model";
 
 describe("findSubNetworks", () => {

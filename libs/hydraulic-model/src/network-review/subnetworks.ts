@@ -1,4 +1,4 @@
-import { AssetId } from "src/hydraulic-model";
+import { AssetId } from "../asset-types";
 
 export interface SubNetwork {
   subnetworkId: number;

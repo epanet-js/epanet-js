@@ -3,7 +3,7 @@ import { findProximityAnomalies } from "./find-proximity-anomalies";
 import {
   EncodedHydraulicModel,
   HydraulicModelEncoder,
-} from "../hydraulic-model-buffers";
+} from "@epanet-js/hydraulic-model";
 import { HydraulicModel } from "src/hydraulic-model";
 
 describe("findProximityAnomalies", () => {

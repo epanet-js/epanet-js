@@ -15,7 +15,7 @@ import {
   HydraulicModelBuffers,
   HydraulicModelEncoder,
   hydraulicModelTransferables,
-} from "../hydraulic-model-buffers";
+} from "@epanet-js/hydraulic-model";
 import { findCrossingPipes } from "./find-crossing-pipes";
 import { getCrossingPipesWorker } from "./get-worker";
 

@@ -6,14 +6,16 @@ import {
   canUseWorker,
   enrichWorkerError,
 } from "src/infra/worker";
-import { EncodedSubNetwork, SubNetwork, decodeSubNetworks } from "./data";
-import { findSubNetworks } from "./find-subnetworks";
 import { getConnectivityTraceWorker } from "./get-worker";
 import {
+  EncodedSubNetwork,
   HydraulicModelBuffers,
   HydraulicModelEncoder,
+  SubNetwork,
+  decodeSubNetworks,
+  findSubNetworks,
   hydraulicModelTransferables,
-} from "../hydraulic-model-buffers";
+} from "@epanet-js/hydraulic-model";
 
 export const runCheck = async (
   hydraulicModel: HydraulicModel,
