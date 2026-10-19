@@ -64,6 +64,8 @@
       "customAttributeValueUnreadable_other": "{{count}} Custom attribute values could not be read, so they were not imported",
       "zoneGeometryUnreadable_one": "1 Zone boundary has too few points to make a polygon, so it was not imported",
       "zoneGeometryUnreadable_other": "{{count}} Zone boundaries have too few points to make polygons, so they were not imported",
+      "selectionSetMembersUnreadable_one": "1 Selection set references an asset not found in the model, so it was not imported",
+      "selectionSetMembersUnreadable_other": "{{count}} Selection sets reference assets not found in the model, so they were not imported",
       "sourceUnreadable": "The file could not be read. It may be corrupted, or in a format we do not read yet.",
       "sourceEmpty": "The file has nothing we can import.",
       "sourceFilesIncomplete": "Some of the files this source needs are missing. Add them and try again.",

@@ -21,6 +21,10 @@ import type {
 } from "../network-data";
 import { IssueCollector } from "../issues";
 import { buildZones } from "./build-zones";
+import {
+  buildSelectionSets,
+  type BuiltSelectionSet,
+} from "./build-selection-sets";
 import { inferNodeIsActive } from "./active-topology";
 import {
   HydraulicModel,
@@ -92,6 +96,7 @@ export type BuildModelOptions = {
 export type BuildModelResult = {
   hydraulicModel: HydraulicModel;
   zones: Zones;
+  selectionSets: BuiltSelectionSet[];
   issues: Issue[];
   factories: ModelFactories;
   idGenerator: IdGenerator;
@@ -234,9 +239,19 @@ export const buildModel = (
     factories.zoneFactory,
   );
 
+  const selectionSets = buildSelectionSets(
+    network.selectionSets,
+    {
+      nodeIdByRef: (ref) => nodeIdByRef.get(ref)?.id,
+      linkIdByRef: (ref) => linkContext.linkIdByRef.get(ref),
+    },
+    issues,
+  );
+
   return {
     hydraulicModel,
     zones,
+    selectionSets,
     issues: issues.build(),
     factories,
     idGenerator,

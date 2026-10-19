@@ -7,7 +7,23 @@ export type RegisteredConverter = {
   converter: Converter;
 };
 
+export type ConverterSettings = {
+  parseSelectionSets: boolean;
+};
+
 const converters = new Map<ConverterVendor, Converter>();
+
+let applySettings: ((settings: ConverterSettings) => void) | null = null;
+
+export const registerConverterSettings = (
+  apply: (settings: ConverterSettings) => void,
+): void => {
+  applySettings = apply;
+};
+
+export const applyConverterSettings = (settings: ConverterSettings): void => {
+  applySettings?.(settings);
+};
 
 export const registerConverter = (
   vendor: ConverterVendor,

@@ -1848,6 +1848,83 @@ const aZone = (data: Partial<ZoneData> = {}): ZoneData => ({
   ...data,
 });
 
+describe("build selection sets from network data", () => {
+  const twoJunctionsAndAPipe = () =>
+    aNetwork({
+      junctions: [
+        aJunction({ ref: "1", label: "J1" }),
+        aJunction({ ref: "2", label: "J2" }),
+      ],
+      pipes: [aPipe({ ref: "10", label: "P1" })],
+    });
+
+  it("resolves node and link refs to the assets built from them", () => {
+    const { hydraulicModel, selectionSets, issues } = buildModel(
+      {
+        ...twoJunctionsAndAPipe(),
+        selectionSets: [
+          { ref: "5", label: "NORTH", nodeRefs: ["1"], linkRefs: ["10"] },
+        ],
+      },
+      { projections: aCatalogue() },
+    );
+
+    const junction = getByLabel(hydraulicModel.assets, "J1")!;
+    const pipe = getByLabel(hydraulicModel.assets, "P1")!;
+    expect(selectionSets).toEqual([
+      { label: "NORTH", assetIds: [junction.id, pipe.id] },
+    ]);
+    expect(issues).toEqual([]);
+  });
+
+  it("skips a ref that names nothing and keeps the rest", () => {
+    const { hydraulicModel, selectionSets, issues } = buildModel(
+      {
+        ...twoJunctionsAndAPipe(),
+        selectionSets: [
+          { ref: "5", label: "NORTH", nodeRefs: ["1", "99"], linkRefs: ["98"] },
+        ],
+      },
+      { projections: aCatalogue() },
+    );
+
+    const junction = getByLabel(hydraulicModel.assets, "J1")!;
+    expect(selectionSets).toEqual([
+      { label: "NORTH", assetIds: [junction.id] },
+    ]);
+    expect(issues).toEqual([]);
+  });
+
+  it("drops a set with no resolvable member, and reports issue", () => {
+    const { selectionSets, issues } = buildModel(
+      {
+        ...twoJunctionsAndAPipe(),
+        selectionSets: [
+          { ref: "5", label: "NORTH", nodeRefs: ["99"], linkRefs: [] },
+        ],
+      },
+      { projections: aCatalogue() },
+    );
+
+    expect(selectionSets).toEqual([]);
+    expect(issues).toEqual([
+      { code: "selectionSetMembersUnreadable", severity: "warning", ref: "5" },
+    ]);
+  });
+
+  it("names an unlabelled set after its ref", () => {
+    const { selectionSets } = buildModel(
+      {
+        ...twoJunctionsAndAPipe(),
+        selectionSets: [{ ref: "5", nodeRefs: ["1"], linkRefs: [] }],
+      },
+      { projections: aCatalogue() },
+    );
+
+    expect(selectionSets.map((set) => set.label)).toEqual(["Selection set 5"]);
+  });
+});
+
 const aNetwork = (data: Partial<NetworkData> = {}): NetworkData => ({
   junctions: [],
   reservoirs: [],
@@ -1860,6 +1937,7 @@ const aNetwork = (data: Partial<NetworkData> = {}): NetworkData => ({
   controls: [],
   customAttributes: [],
   zones: [],
+  selectionSets: [],
   customerPoints: [],
   units: {},
   crs: { type: "unknown" },

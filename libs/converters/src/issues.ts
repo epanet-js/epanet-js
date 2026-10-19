@@ -29,6 +29,7 @@ export const issueCodes = [
   "tankFloatControlUnsupported",
   "customAttributeValueUnreadable",
   "zoneGeometryUnreadable",
+  "selectionSetMembersUnreadable",
   "unitSystemMissing",
   "unitSystemUnsupported",
   "coordinateSystemMissing",

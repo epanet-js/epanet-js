@@ -126,6 +126,13 @@ export type ZoneData = {
   polygons: Position[][][];
 };
 
+export type SelectionSetData = {
+  ref: string;
+  label?: string;
+  nodeRefs: string[];
+  linkRefs: string[];
+};
+
 export type CustomerPointData = {
   ref: string;
   label?: string;
@@ -198,6 +205,7 @@ export type NetworkData = {
   controls: ControlData[];
   customAttributes: CustomAttributeData[];
   zones: ZoneData[];
+  selectionSets: SelectionSetData[];
   customerPoints: CustomerPointData[];
   patternTimeStep?: number;
   simulationDuration?: number;
@@ -223,6 +231,7 @@ export const emptyNetworkData = (): NetworkData => ({
   controls: [],
   customAttributes: [],
   zones: [],
+  selectionSets: [],
   customerPoints: [],
   units: {},
   crs: { type: "unknown" },

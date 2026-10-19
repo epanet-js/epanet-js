@@ -11,6 +11,7 @@ import { defaultProjectSettings } from "@epanet-js/project-settings";
 import { useUnsavedChangesCheck } from "./check-unsaved-changes";
 import {
   blockingIssues,
+  applyConverterSettings,
   getConverter,
   issueCodes,
   type ConverterVendor,
@@ -25,6 +26,7 @@ import { useFileOpen } from "src/hooks/use-file-open";
 import { useProjections } from "src/hooks/use-projections";
 import { useLabelMaxLength } from "src/hooks/use-label-max-length";
 import { usePermissions } from "src/hooks/use-permissions";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   defaultSimulationSettings,
   type SimulationSettings,
@@ -34,6 +36,8 @@ import {
   useStartNewProject,
 } from "src/hooks/persistence/use-start-new-project";
 import { saveCustomAttributes } from "src/lib/db";
+import { newSelectionSet } from "src/lib/collections";
+import { USelection } from "src/selection";
 import { MapContext } from "src/map";
 
 export const useConvertFile = () => {
@@ -43,6 +47,7 @@ export const useConvertFile = () => {
   const { startNewProject } = useStartNewProject();
   const startBlankProject = useStartBlankProject();
   const { canImportSynergi } = usePermissions();
+  const parseSelectionSets = useFeatureFlag("FLAG_SYNERGI_SELECTION_SETS");
   const setDialogState = useSetAtom(dialogAtom);
   const setInpFileInfo = useSetAtom(inpFileInfoAtom);
   const setProjectFileInfo = useSetAtom(projectFileInfoAtom);
@@ -76,6 +81,7 @@ export const useConvertFile = () => {
           return;
         }
 
+        applyConverterSettings({ parseSelectionSets });
         const { network, issues } = await converter.parseNetworkData({
           files: [file],
         });
@@ -95,6 +101,7 @@ export const useConvertFile = () => {
         const {
           hydraulicModel,
           zones,
+          selectionSets,
           factories,
           projectSettings,
           bounds,
@@ -108,6 +115,9 @@ export const useConvertFile = () => {
         const started = await startNewProject({
           hydraulicModel,
           zones,
+          selectionSets: selectionSets.map(({ label, assetIds }) =>
+            newSelectionSet(label, USelection.fromIds(assetIds, [])),
+          ),
           factories,
           projectSettings: {
             ...defaultProjectSettings,
@@ -151,6 +161,7 @@ export const useConvertFile = () => {
             pumps: network.pumps.length,
             valves: network.valves.length,
             zones: zones.size,
+            selectionSets: selectionSets.length,
             customAttributes: network.customAttributes.length,
           },
           issues: issueCodes(allIssues),
@@ -174,6 +185,7 @@ export const useConvertFile = () => {
     },
     [
       canImportSynergi,
+      parseSelectionSets,
       projections,
       labelMaxLength,
       startNewProject,

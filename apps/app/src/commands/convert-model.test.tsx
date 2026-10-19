@@ -21,6 +21,8 @@ import {
 } from "src/state/derived-branch-state";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { zonesAtom } from "src/state/zones";
+import { selectionSetsAtom } from "src/state/collections";
+import { USelection } from "src/selection";
 import { Store } from "src/state";
 import { dialogAtom } from "src/state/dialog";
 import { Junction, Pipe, Reservoir, Tank, Valve } from "src/hydraulic-model";
@@ -154,6 +156,46 @@ describe("convertModel", () => {
     expect([...saved.zones.values()].map((zone) => zone.label)).toEqual([
       "NORTH",
     ]);
+  });
+
+  it("opens the project with the selection sets the converter parsed", async () => {
+    stubFileOpen();
+    stubConverter("synergi", {
+      network: aNetwork({
+        junctions: [
+          { ref: "1", label: "J1", coordinates: [0, 0] },
+          { ref: "2", label: "J2", coordinates: [10, 0] },
+        ],
+        pipes: [{ ref: "10", label: "P1", startNodeRef: "1", endNodeRef: "2" }],
+        selectionSets: [
+          { ref: "5", label: "NORTH", nodeRefs: ["1"], linkRefs: ["10"] },
+        ],
+      }),
+      issues: [],
+    });
+    const store = setInitialState();
+
+    renderComponent({ store });
+    await triggerCommand();
+    await doFileSelection(aTestFile({ filename: "my-network.mdb" }));
+
+    await waitForNotLoading();
+
+    const hydraulicModel = store.get(stagingModelDerivedAtom);
+    const junction = getByLabel(hydraulicModel.assets, "J1")!;
+    const pipe = getByLabel(hydraulicModel.assets, "P1")!;
+
+    const selectionSets = store.get(selectionSetsAtom);
+    expect(selectionSets.map((set) => set.label)).toEqual(["NORTH"]);
+    expect(
+      [...USelection.getAssetIds(selectionSets[0].selection)].sort(),
+    ).toEqual([junction.id, pipe.id].sort());
+
+    const saved = await fetchProject();
+    expect(saved.selectionSets.map((set) => set.label)).toEqual(["NORTH"]);
+    expect(
+      [...USelection.getAssetIds(saved.selectionSets[0].selection)].sort(),
+    ).toEqual([junction.id, pipe.id].sort());
   });
 
   it("opens the project with the custom attributes the converter parsed", async () => {
@@ -315,6 +357,7 @@ describe("convertModel", () => {
         pumps: 0,
         valves: 0,
         zones: 0,
+        selectionSets: 0,
         customAttributes: 0,
       },
       issues: [],
@@ -484,6 +527,7 @@ const aNetwork = (data: Partial<NetworkData> = {}): NetworkData => ({
   controls: [],
   customAttributes: [],
   zones: [],
+  selectionSets: [],
   customerPoints: [],
   units: {},
   crs: { type: "unknown" },
