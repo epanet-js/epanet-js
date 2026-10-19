@@ -21,3 +21,12 @@ export {
   type SubNetwork,
   type EncodedSubNetwork,
 } from "./subnetworks";
+export {
+  findProximityAnomalies,
+  CONNECTED_JUNCTION_TOLERANCE_IN_METERS,
+} from "./find-proximity-anomalies";
+export {
+  decodeProximityAnomalies,
+  type ProximityAnomaly,
+  type EncodedProximityAnomalies,
+} from "./proximity-anomalies";

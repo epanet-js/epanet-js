@@ -2,11 +2,11 @@ import {
   EncodedProximityAnomalies,
   Node,
   EncodedAlternativeConnection,
-} from "./data";
+} from "./proximity-anomalies";
 import {
   HydraulicModelBuffers,
   HydraulicModelBuffersView,
-} from "@epanet-js/hydraulic-model";
+} from "./hydraulic-model-buffers";
 import { lineString, point } from "@turf/helpers";
 import nearestPointOnLine from "@turf/nearest-point-on-line";
 import distance from "@turf/distance";

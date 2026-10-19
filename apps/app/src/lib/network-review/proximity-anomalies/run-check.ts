@@ -7,16 +7,14 @@ import {
   enrichWorkerError,
 } from "src/infra/worker";
 import {
-  decodeProximityAnomalies,
   EncodedProximityAnomalies,
-  ProximityAnomaly,
-} from "./data";
-import {
   HydraulicModelBuffers,
   HydraulicModelEncoder,
+  ProximityAnomaly,
+  decodeProximityAnomalies,
+  findProximityAnomalies,
   hydraulicModelTransferables,
 } from "@epanet-js/hydraulic-model";
-import { findProximityAnomalies } from "./find-proximity-anomalies";
 import { getProximityAnomaliesWorker } from "./get-worker";
 
 export const runCheck = async (
