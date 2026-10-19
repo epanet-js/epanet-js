@@ -1,6 +1,11 @@
 import * as Comlink from "comlink";
 
-import { AssetId } from "@epanet-js/hydraulic-model";
+import {
+  AssetId,
+  boundaryTrace,
+  type TraceResult,
+  type TraceStart,
+} from "@epanet-js/hydraulic-model";
 import { HydraulicModel } from "src/hydraulic-model/hydraulic-model";
 import { ResultsReader } from "@epanet-js/simulation";
 import { canUseWorker, enrichWorkerError } from "src/infra/worker";
@@ -13,8 +18,7 @@ import { topologyTransferables } from "src/hydraulic-model/topology/topology-tra
 import { assetIndexTransferables } from "src/hydraulic-model/asset-index-transferable";
 import { FlowDirection } from "./flow-direction";
 import { AllowedFlowDirection } from "./allowed-flow-direction";
-import { TraceMode, TraceStart, TraceResult } from "./types";
-import { boundaryTrace } from "./boundary-trace";
+import { TraceMode } from "./types";
 import { upstreamTrace } from "./upstream-trace";
 import { downstreamTrace } from "./downstream-trace";
 import { getTraceWorker } from "./get-worker";

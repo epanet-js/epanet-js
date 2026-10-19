@@ -1,11 +1,10 @@
 import { AssetId } from "@epanet-js/hydraulic-model";
-import { TopologyQueries } from "@epanet-js/hydraulic-model";
 import {
-  FlowDirectionQueries,
-  TraceStart,
-  TraceResult,
-  FlowDirection,
-} from "./types";
+  TopologyQueries,
+  type TraceResult,
+  type TraceStart,
+} from "@epanet-js/hydraulic-model";
+import { FlowDirectionQueries, FlowDirection } from "./types";
 
 export function upstreamTrace(
   start: TraceStart,

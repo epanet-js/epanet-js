@@ -56,12 +56,12 @@ import {
   getJunctionDemands,
 } from "src/hydraulic-model";
 import { effectiveRoughness } from "@epanet-js/hydraulic-model";
-import { boundaryTrace } from "src/lib/trace/boundary-trace";
-import { AllowedFlowDirection } from "src/lib/trace/allowed-flow-direction";
 import {
+  boundaryTrace,
   AllowedFlowDirection as AllowedFlowDirections,
   type AllowedFlowDirectionQueries,
-} from "src/lib/trace/types";
+} from "@epanet-js/hydraulic-model";
+import { AllowedFlowDirection } from "src/lib/trace/allowed-flow-direction";
 
 type SimulationPipeStatus = "Open" | "Closed" | "CV";
 type SimulationPumpStatus = "Open" | "Closed";

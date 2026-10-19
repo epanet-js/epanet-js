@@ -2,8 +2,12 @@ import { AssetIndexView } from "src/hydraulic-model/asset-index-transferable";
 import { TopologyView } from "src/hydraulic-model/topology/topology-transferable";
 import { TraceRunData } from "./encode-trace-buffers";
 import { FlowDirectionView, AllowedFlowDirectionView } from "./trace-buffers";
-import { TraceMode, TraceStart, TraceResult } from "./types";
-import { boundaryTrace } from "./boundary-trace";
+import {
+  boundaryTrace,
+  type TraceResult,
+  type TraceStart,
+} from "@epanet-js/hydraulic-model";
+import { TraceMode } from "./types";
 import { upstreamTrace } from "./upstream-trace";
 import { downstreamTrace } from "./downstream-trace";
 

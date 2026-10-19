@@ -5,7 +5,10 @@ import {
   AssetIndexEncoder,
   AssetIndexBuffers,
 } from "src/hydraulic-model/asset-index-transferable";
-import { type AssetIndexQueries } from "@epanet-js/hydraulic-model";
+import {
+  type AllowedFlowDirectionQueries,
+  type AssetIndexQueries,
+} from "@epanet-js/hydraulic-model";
 import {
   TopologyEncoder,
   TopologyBuffers,
@@ -16,10 +19,7 @@ import {
 } from "./trace-buffers";
 import { FlowDirection } from "./flow-direction";
 import { AllowedFlowDirection } from "./allowed-flow-direction";
-import type {
-  FlowDirectionQueries,
-  AllowedFlowDirectionQueries,
-} from "./types";
+import type { FlowDirectionQueries } from "./types";
 
 export type TraceRunData = {
   topologyBuffers: TopologyBuffers;

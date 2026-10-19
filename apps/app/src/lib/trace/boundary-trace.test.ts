@@ -1,6 +1,6 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { createMockResultsReader } from "src/__helpers__/state";
-import { boundaryTrace } from "./boundary-trace";
+import { boundaryTrace } from "@epanet-js/hydraulic-model";
 import { AllowedFlowDirection } from "./allowed-flow-direction";
 
 describe("boundaryTrace", () => {
