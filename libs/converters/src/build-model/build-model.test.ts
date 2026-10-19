@@ -93,6 +93,30 @@ describe("build model from network data", () => {
     expect(labels).toEqual(["DUPLICATE", "DUPLICATE_1"]);
   });
 
+  it("de-duplicates a numbered label without renumbering it", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        junctions: [
+          aJunction({ ref: "1", label: "NORTH_0000043" }),
+          aJunction({ ref: "2", label: "NORTH_0000043" }),
+          aJunction({ ref: "3", label: "NORTH_43" }),
+          aJunction({ ref: "4", label: "NORTH_43" }),
+          aJunction({ ref: "5", label: "NORTH_44" }),
+        ],
+      }),
+      { projections: aCatalogue() },
+    );
+
+    const labels = [...hydraulicModel.assets.values()].map((a) => a.label);
+    expect(labels).toEqual([
+      "NORTH_0000043",
+      "NORTH_0000043_1",
+      "NORTH_43",
+      "NORTH_43_1",
+      "NORTH_44",
+    ]);
+  });
+
   it("reprojects coordinates with the projection the source coordinate system names", () => {
     const { hydraulicModel, projectSettings } = buildModel(
       aNetwork({

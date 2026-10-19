@@ -246,8 +246,11 @@ export class LabelManager {
   generateNextLabel(
     inputLabel: string,
     rules: LabelLengthRule = defaultLabelRule,
+    { continueCounter = true }: { continueCounter?: boolean } = {},
   ): string {
-    const { baseLabel, nextCounter } = this.extractBaseAndCounter(inputLabel);
+    const { baseLabel, nextCounter } = continueCounter
+      ? this.extractBaseAndCounter(inputLabel)
+      : { baseLabel: inputLabel, nextCounter: 1 };
 
     const generateLabelWithCounter = (counter: number): string => {
       const suffix = `_${counter}`;

@@ -1066,6 +1066,7 @@ const resolveLabel = (
       : type === "customerPoint"
         ? { maxLength: labelMaxLength }
         : { maxByteLength: labelMaxLength },
+    { continueCounter: false },
   );
 };
 
