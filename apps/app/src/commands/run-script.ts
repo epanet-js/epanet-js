@@ -6,13 +6,18 @@ import {
   type ScriptEvent,
   type ScriptProject,
   type ScriptRunOutcome,
+  type ScriptSimulationSettings,
   type ScriptTargets,
   type ScriptViewport,
 } from "src/lib/scripting";
 import { MapContext } from "src/map";
 import { useZoomTo } from "src/hooks/use-zoom-to";
 import { USelection, type Sel } from "src/selection";
-import { chooseUnitSystem } from "src/simulation/build-inp";
+import { chooseUnitSystem, defaultAccuracy } from "src/simulation/build-inp";
+import {
+  defaultHydraulicsValues,
+  type SimulationSettings,
+} from "src/simulation/simulation-settings";
 import { dialogAtom } from "src/state/dialog";
 import {
   currentFileNameAtom,
@@ -20,7 +25,10 @@ import {
   isDemoNetworkAtom,
   projectFileInfoAtom,
 } from "src/state/file-system";
-import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
+import {
+  simulationSettingsDerivedAtom,
+  stagingModelDerivedAtom,
+} from "src/state/derived-branch-state";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import type { ProjectSettings } from "@epanet-js/project-settings";
 import { projectSettingsAtom } from "src/state/project-settings";
@@ -32,6 +40,8 @@ import {
 import { selectionAtom } from "src/state/selection";
 
 const MAX_CONSOLE_LINES = 1000;
+const EPANET_DEFAULT_TRIALS = 200;
+const DEFAULT_UNBALANCED_EXTRA_TRIALS = 10;
 
 export const useRunScript = () => {
   const store = useStore();
@@ -115,6 +125,9 @@ export const useRunScript = () => {
         selected: selectedTargets(store.get(selectionAtom)),
         viewport: currentViewport(),
         project: scriptProjectOf(store.get),
+        simulation: scriptSimulationOf(
+          store.get(simulationSettingsDerivedAtom),
+        ),
         onEvent,
       });
       setRun({
@@ -165,6 +178,59 @@ const scriptProjectOf = (get: Getter): ScriptProject => {
     headlossFormula: settings.headlossFormula,
   };
 };
+
+const scriptSimulationOf = (
+  settings: SimulationSettings,
+): ScriptSimulationSettings => ({
+  version: settings.version,
+  duration: settings.timing.duration,
+  hydraulicTimestep: settings.timing.hydraulicTimestep,
+  reportTimestep: settings.timing.reportTimestep,
+  patternTimestep: settings.timing.patternTimestep,
+  qualityTimestep: settings.timing.qualityTimestep ?? null,
+  ruleTimestep: settings.timing.ruleTimestep ?? null,
+  globalDemandMultiplier: settings.globalDemandMultiplier,
+  demandModel: settings.demandModel,
+  minimumPressure: settings.minimumPressure,
+  requiredPressure: settings.requiredPressure,
+  pressureExponent: settings.pressureExponent,
+  emitterExponent: settings.emitterExponent,
+  backflowAllowed: settings.backflowAllowed,
+  trials: settings.trials ?? EPANET_DEFAULT_TRIALS,
+  accuracy: settings.accuracy ?? defaultAccuracy,
+  unbalancedMode: settings.unbalancedMode ?? "CONTINUE",
+  unbalancedExtraTrials:
+    settings.unbalancedMode === undefined
+      ? DEFAULT_UNBALANCED_EXTRA_TRIALS
+      : (settings.unbalancedExtraTrials ?? 0),
+  headError: settings.headError ?? defaultHydraulicsValues.headError,
+  flowChange: settings.flowChange ?? defaultHydraulicsValues.flowChange,
+  checkFreq: settings.checkFreq ?? defaultHydraulicsValues.checkFreq,
+  maxCheck: settings.maxCheck ?? defaultHydraulicsValues.maxCheck,
+  dampLimit: settings.dampLimit ?? defaultHydraulicsValues.dampLimit,
+  viscosity: settings.viscosity ?? defaultHydraulicsValues.viscosity,
+  specificGravity:
+    settings.specificGravity ?? defaultHydraulicsValues.specificGravity,
+  quality: settings.qualitySimulationType,
+  qualityChemicalName: settings.qualityChemicalName,
+  qualityMassUnit: settings.qualityMassUnit,
+  qualityTraceNodeId: settings.qualityTraceNodeId,
+  tolerance: settings.tolerance,
+  diffusivity: settings.diffusivity,
+  reactionBulkOrder: settings.reactionBulkOrder,
+  reactionWallOrder: settings.reactionWallOrder,
+  reactionTankOrder: settings.reactionTankOrder,
+  reactionGlobalBulk: settings.reactionGlobalBulk,
+  reactionGlobalWall: settings.reactionGlobalWall,
+  reactionLimitingPotential: settings.reactionLimitingPotential,
+  reactionRoughnessCorrelation: settings.reactionRoughnessCorrelation,
+  reportEnergy: settings.reportEnergy,
+  energyGlobalEfficiency: settings.energyGlobalEfficiency,
+  energyGlobalPrice: settings.energyGlobalPrice,
+  energyGlobalPatternId: settings.energyGlobalPatternId,
+  energyDemandCharge: settings.energyDemandCharge,
+  statusReport: settings.statusReport,
+});
 
 const unitSystemOf = (units: ProjectSettings["units"]): string => {
   try {

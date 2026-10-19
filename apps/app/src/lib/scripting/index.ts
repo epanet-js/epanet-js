@@ -9,6 +9,7 @@ export type {
   ScriptProject,
   ScriptRunHandle,
   ScriptRunOutcome,
+  ScriptSimulationSettings,
   ScriptTargets,
   ScriptViewport,
 } from "./registry";

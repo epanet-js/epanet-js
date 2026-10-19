@@ -3,6 +3,7 @@ import type {
   CustomerPointId,
   HeadlossFormula,
   ModelFactories,
+  PatternId,
 } from "@epanet-js/hydraulic-model";
 import type { UnitsSpec } from "@epanet-js/project-settings";
 import type { HydraulicModel } from "src/hydraulic-model";
@@ -43,6 +44,53 @@ export type ScriptProject = {
   headlossFormula: HeadlossFormula;
 };
 
+export type ScriptSimulationSettings = {
+  version: string;
+  duration: number;
+  hydraulicTimestep: number;
+  reportTimestep: number;
+  patternTimestep: number;
+  qualityTimestep: number | null;
+  ruleTimestep: number | null;
+  globalDemandMultiplier: number;
+  demandModel: "DDA" | "PDA";
+  minimumPressure: number;
+  requiredPressure: number;
+  pressureExponent: number;
+  emitterExponent: number;
+  backflowAllowed: boolean;
+  trials: number;
+  accuracy: number;
+  unbalancedMode: "STOP" | "CONTINUE";
+  unbalancedExtraTrials: number;
+  headError: number;
+  flowChange: number;
+  checkFreq: number;
+  maxCheck: number;
+  dampLimit: number;
+  viscosity: number;
+  specificGravity: number;
+  quality: "none" | "chemical" | "age" | "trace";
+  qualityChemicalName: string;
+  qualityMassUnit: "mg/L" | "ug/L";
+  qualityTraceNodeId: AssetId | null;
+  tolerance: number;
+  diffusivity: number;
+  reactionBulkOrder: number;
+  reactionWallOrder: number;
+  reactionTankOrder: number;
+  reactionGlobalBulk: number;
+  reactionGlobalWall: number;
+  reactionLimitingPotential: number;
+  reactionRoughnessCorrelation: number;
+  reportEnergy: boolean;
+  energyGlobalEfficiency: number;
+  energyGlobalPrice: number;
+  energyGlobalPatternId: PatternId | null;
+  energyDemandCharge: number;
+  statusReport: "YES" | "NO" | "FULL";
+};
+
 export type ScriptRunOutcome =
   | {
       status: "success";
@@ -77,6 +125,7 @@ export type Scripting = {
     selected: ScriptTargets;
     viewport: ScriptViewport | null;
     project: ScriptProject;
+    simulation: ScriptSimulationSettings;
     onEvent: (event: ScriptEvent) => void;
   }) => ScriptRunHandle;
   exampleScripts: ExampleScript[];
