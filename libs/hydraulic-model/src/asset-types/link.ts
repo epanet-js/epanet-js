@@ -118,7 +118,13 @@ export const computeLinkLength = (
   lengthUnit: Unit,
 ): number | null => {
   if (link.type !== "pipe") return null;
+  return measureLinkLength(link, lengthUnit);
+};
 
+export const measureLinkLength = (
+  link: Link<unknown>,
+  lengthUnit: Unit,
+): number => {
   const lengthInMeters =
     measureLength(link.feature, { units: "kilometers" }) * 1000;
   return parseFloat(
