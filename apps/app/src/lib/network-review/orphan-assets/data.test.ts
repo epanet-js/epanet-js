@@ -1,5 +1,6 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import { buildOrphanAssets, encodeData } from "./data";
+import { buildOrphanAssets } from "@epanet-js/hydraulic-model";
+import { encodeData } from "./data";
 import { AssetIndexView } from "src/hydraulic-model/asset-index-transferable";
 import { TopologyView } from "src/hydraulic-model/topology/topology-transferable";
 import { AssetId } from "@epanet-js/hydraulic-model";

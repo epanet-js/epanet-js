@@ -1,15 +1,17 @@
 import * as Comlink from "comlink";
 
-import { AssetId } from "@epanet-js/hydraulic-model";
-import { HydraulicModel } from "src/hydraulic-model";
-import { OrphanAssets, buildOrphanAssets, encodeData } from "./data";
 import {
   ActiveAssetIndex,
   ActiveTopology,
-} from "src/hydraulic-model/utilities/active-only-queries";
+  AssetId,
+  buildOrphanAssets,
+  findOrphanAssets,
+  type OrphanAssets,
+} from "@epanet-js/hydraulic-model";
+import { HydraulicModel } from "src/hydraulic-model";
+import { encodeData } from "./data";
 import { topologyTransferables } from "src/hydraulic-model/topology/topology-transferable";
 import { assetIndexTransferables } from "src/hydraulic-model/asset-index-transferable";
-import { findOrphanAssets } from "./find-orphan-assets";
 import { getOrphanAssetsWorker } from "./get-worker";
 import { BufferType } from "@epanet-js/buffers";
 import { canUseWorker, enrichWorkerError } from "src/infra/worker";

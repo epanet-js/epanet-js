@@ -54,7 +54,7 @@ trace**. Do not add feature-specific behaviour to them.
 When a consumer needs a different view of the model, wrap the **inputs** instead.
 Both encoders take `AssetIndexQueries` / `TopologyQueries`, so an adapter
 implementing those interfaces can hide or reshape assets without the encoders
-knowing. `utilities/active-only-queries.ts` does exactly that: `ActiveAssetIndex`
+knowing. `@epanet-js/hydraulic-model`'s `active-only-queries.ts` does exactly that: `ActiveAssetIndex`
 and `ActiveTopology` present an active-only view, which is how the network review
 checks exclude inactive assets.
 

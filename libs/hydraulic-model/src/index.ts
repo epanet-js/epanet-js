@@ -33,6 +33,8 @@ export * from "./raw-controls";
 export * from "./controls";
 export * from "./topology";
 export * from "./trace";
+export * from "./active-only-queries";
+export * from "./network-review";
 export * from "./custom-attributes";
 export * from "./hydraulic-model";
 export * from "./zones";

@@ -1,14 +1,7 @@
-import {
-  AssetId,
-  AssetIndexQueries,
-  AssetType,
-  LinkIndex,
-  LinkType,
-  NodeIndex,
-  NodeType,
-  TopologyQueries,
-} from "@epanet-js/hydraulic-model";
-import { AssetsMap } from "../hydraulic-model";
+import { AssetId, AssetType, LinkType, NodeType } from "./asset-types";
+import { AssetIndexQueries, LinkIndex, NodeIndex } from "./asset-index";
+import { AssetsMap } from "./assets-map";
+import { TopologyQueries } from "./topology";
 
 const isActive = (assets: AssetsMap, id: AssetId): boolean =>
   assets.get(id)?.isActive === true;
