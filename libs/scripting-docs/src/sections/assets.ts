@@ -17,7 +17,7 @@ export const SECTION: Section = {
   number: "1.3",
   title: "Assets",
   intro:
-    "Every asset is a read-only object of getters. A value the model has not set reads as `null` or `undefined`, as its type says.",
+    "Every asset is a read-only object of getters. A value the model has not set reads as `null`.",
   types: [
     {
       name: "AssetType",
@@ -140,17 +140,17 @@ export const SECTION: Section = {
       "number | null",
       "The tank's diameter, in `units.tankDiameter`.",
     ),
-    tank("minVolume", "number | undefined", "The minimum volume."),
+    tank("minVolume", "number | null", "The minimum volume."),
     tank("overflow", "boolean", "Whether the tank can overflow."),
     tank(
       "mixingModel",
       '"mixed" | "2comp" | "fifo" | "lifo"',
       "The mixing model.",
     ),
-    tank("mixingFraction", "number | undefined", "The mixing fraction."),
+    tank("mixingFraction", "number | null", "The mixing fraction."),
     tank(
       "bulkReactionCoeff",
-      "number | undefined",
+      "number | null",
       "The bulk reaction coefficient.",
     ),
     tank("volumeCurve", "string | null", "The label of the volume curve."),
@@ -195,18 +195,18 @@ export const SECTION: Section = {
       '"pipe" | "library" | null',
       "Where `appliedRoughness` came from.",
     ),
-    pipe("minorLoss", "number | undefined", "The minor loss coefficient."),
+    pipe("minorLoss", "number | null", "The minor loss coefficient."),
     pipe("status", '"open" | "closed" | "cv"', "The initial status."),
-    pipe("material", "string | undefined", "The pipe's material."),
-    pipe("year", "number | undefined", "The year the pipe was installed."),
+    pipe("material", "string | null", "The pipe's material."),
+    pipe("year", "number | null", "The year the pipe was installed."),
     pipe(
       "bulkReactionCoeff",
-      "number | undefined",
+      "number | null",
       "The bulk reaction coefficient.",
     ),
     pipe(
       "wallReactionCoeff",
-      "number | undefined",
+      "number | null",
       "The wall reaction coefficient.",
     ),
     pipe(
@@ -237,14 +237,14 @@ export const SECTION: Section = {
       "string | null",
       'The library curve\'s label when `definitionType === "curveId"`, else `null`.',
     ),
-    pump("speed", "number | undefined", "The relative speed."),
+    pump("speed", "number | null", "The relative speed."),
     pump("speedPattern", "string | null", "The label of the speed pattern."),
     pump(
       "efficiencyCurve",
       "string | null",
       "The label of the efficiency curve.",
     ),
-    pump("energyPrice", "number | undefined", "The energy price."),
+    pump("energyPrice", "number | null", "The energy price."),
     pump(
       "energyPricePattern",
       "string | null",
@@ -272,7 +272,7 @@ export const SECTION: Section = {
       "number | null",
       "The valve's diameter, in `units.diameter`.",
     ),
-    valve("minorLoss", "number | undefined", "The minor loss coefficient."),
+    valve("minorLoss", "number | null", "The minor loss coefficient."),
     valve("status", '"active" | "open" | "closed"', "The initial status."),
     valve("curve", "string | null", "The label of the valve's curve."),
     valve(
