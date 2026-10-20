@@ -66,6 +66,7 @@
     "@epanet-js/project-settings": "workspace:*",
     "@epanet-js/projections": "workspace:*",
     "@epanet-js/quantity": "workspace:*",
+    "@epanet-js/scripting-docs": "workspace:^",
     "@epanet-js/simulation": "workspace:*",
     "@epanet-js/ui-kit": "workspace:*",
     "@epanet-js/worktree": "workspace:*",
