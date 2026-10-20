@@ -39,3 +39,9 @@ export {
   type CrossingPipe,
   type EncodedCrossingPipes,
 } from "./crossing-pipes";
+export * from "./model-attributes-validation";
+export {
+  ORPHAN_ASSETS_RULE_ID,
+  UNSUPPLIED_SUBNETWORK_RULE_ID,
+  blocksSimulation,
+} from "./simulation-blockers";

@@ -4,8 +4,8 @@ import {
   getPumpCurveErrors,
   inferredRoughness,
   Pipe,
+  HydraulicModel,
 } from "@epanet-js/hydraulic-model";
-import { HydraulicModel } from "src/hydraulic-model";
 import { EntityType, Rule, Severity, ValidatableEntity } from "./types";
 import {
   NumericCheckName,

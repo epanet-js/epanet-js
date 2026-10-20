@@ -1,4 +1,4 @@
-import { HydraulicModel } from "src/hydraulic-model";
+import { HydraulicModel } from "@epanet-js/hydraulic-model";
 import { EntityType, Rule, ValidatableEntity } from "./types";
 import { RULES } from "./rules";
 

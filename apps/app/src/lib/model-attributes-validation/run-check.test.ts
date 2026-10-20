@@ -1,8 +1,11 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { countValidationIssues, validateModelAttributes } from "./run-check";
-import { RULES_BY_ID } from "./repository";
-import { RULES } from "./rules";
-import { ValidationIssues } from "./types";
+import {
+  RULES_BY_ID,
+  RULES,
+  validateModelAttributesSync,
+  type ValidationIssues,
+} from "@epanet-js/network-review";
 
 const ruleIdsOf = (issues: ValidationIssues) =>
   issues.map(([ruleId]) => ruleId);
@@ -13,6 +16,22 @@ const entityIdsOf = (issues: ValidationIssues, ruleId: string) =>
 const severityOf = (ruleId: string) => RULES_BY_ID.get(ruleId)?.severity;
 
 describe("validateModelAttributes", () => {
+  it("returns what the synchronous run returns", async () => {
+    const model = HydraulicModelBuilder.with()
+      .aJunction(1, { label: "J1", elevation: undefined })
+      .aJunction(2, { label: "J2", elevation: 10 })
+      .aJunction(3, { label: "J3", elevation: undefined, isActive: false })
+      .aPipe(4, { label: "P1", roughness: null, diameter: 100, length: 100 })
+      .aPipe(5, { label: "P2", roughness: 0, diameter: null, length: 100 })
+      .aCustomerPoint(1, { label: "CP1" })
+      .build();
+
+    const issues = await validateModelAttributes(model);
+
+    expect(issues.length).toBeGreaterThan(2);
+    expect(issues).toEqual(validateModelAttributesSync(model));
+  });
+
   describe("pipe roughness", () => {
     it("flags a missing roughness as a present error", async () => {
       const model = HydraulicModelBuilder.with()

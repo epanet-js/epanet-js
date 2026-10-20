@@ -1,6 +1,10 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import { rulesFor, firstFailure, fieldValidator } from "./repository";
-import { ValidatableEntity } from "./types";
+import {
+  rulesFor,
+  firstFailure,
+  fieldValidator,
+  type ValidatableEntity,
+} from "@epanet-js/network-review";
 
 const emptyModel = HydraulicModelBuilder.with().build();
 

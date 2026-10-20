@@ -1,4 +1,9 @@
 import { AssetId } from "@epanet-js/hydraulic-model";
+import {
+  ORPHAN_ASSETS_RULE_ID,
+  UNSUPPLIED_SUBNETWORK_RULE_ID,
+  blocksSimulation,
+} from "@epanet-js/network-review";
 import { HydraulicModel } from "src/hydraulic-model";
 import {
   countValidationIssues,
@@ -87,13 +92,6 @@ export const runBlockingChecks = async (
   );
 };
 
-// EPANET solves a model with a disconnected tank or reservoir, so the review
-// still reports them but they must not gate a run.
-const blocksSimulation = (model: HydraulicModel, assetId: AssetId): boolean => {
-  const type = model.assets.get(assetId)?.type;
-  return type !== "tank" && type !== "reservoir";
-};
-
 export const simulationBlockers = (
   results: BlockingCheckResult[],
   model: HydraulicModel,
@@ -114,8 +112,8 @@ const reportOrder = [
 ] as const;
 
 const topologyRuleIds: Partial<Record<BlockingCheckType, string>> = {
-  [CheckType.orphanAssets]: "asset.connected",
-  [CheckType.connectivityTrace]: "subNetwork.supplySource.present",
+  [CheckType.orphanAssets]: ORPHAN_ASSETS_RULE_ID,
+  [CheckType.connectivityTrace]: UNSUPPLIED_SUBNETWORK_RULE_ID,
 };
 
 export const failingRuleIds = (results: BlockingCheckResult[]): string[] =>

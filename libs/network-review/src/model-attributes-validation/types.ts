@@ -3,8 +3,8 @@ import {
   AssetType,
   Asset,
   CustomerPoint,
+  HydraulicModel,
 } from "@epanet-js/hydraulic-model";
-import { HydraulicModel } from "src/hydraulic-model";
 
 export type Severity = "error" | "warning";
 

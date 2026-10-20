@@ -22,7 +22,8 @@
     "@turf/line-intersect": "^7.2.0",
     "@turf/line-segment": "^6.5.0",
     "@turf/nearest-point-on-line": "^6.5.0",
-    "flatbush": "^4.5.0"
+    "flatbush": "^4.5.0",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/flatbush": "^3.3.0",
