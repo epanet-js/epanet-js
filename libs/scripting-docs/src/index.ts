@@ -13,3 +13,11 @@ export type {
   Section,
   TypeDef,
 } from "./types";
+export {
+  appendixOf,
+  ownersOf,
+  sectionLevel,
+  sectionTitle,
+  splitMembers,
+} from "./outline";
+export type { Appendix } from "./outline";

@@ -1,3 +1,10 @@
+import {
+  appendixOf,
+  ownersOf,
+  sectionLevel,
+  sectionTitle,
+  splitMembers,
+} from "../outline";
 import { callForm, parseSignature } from "../signature";
 import type {
   InterfaceDef,
@@ -9,16 +16,6 @@ import type {
 
 const heading = (level: number, text: string): string =>
   `${"#".repeat(Math.min(6, level))} ${text}`;
-
-const levelOf = (section: Section): number =>
-  section.number ? section.number.split(".").length + 1 : 2;
-
-const sectionTitle = (section: Section): string => {
-  if (!section.number) return section.title;
-  return section.number.includes(".")
-    ? `${section.number} ${section.title}`
-    : `${section.number}. ${section.title}`;
-};
 
 const cell = (text: string): string =>
   text.replace(/\|/g, "\\|").replace(/\n+/g, " ");
@@ -74,12 +71,7 @@ const renderOwner = (
   members: Member[],
   level: number,
 ): string => {
-  const properties = members.filter(
-    (member) => parseSignature(member.signature).kind === "property",
-  );
-  const methods = members.filter(
-    (member) => parseSignature(member.signature).kind === "method",
-  );
+  const { properties, methods } = splitMembers(members);
   return blocks(
     properties.length > 0 && renderPropertyTable(iface.path, properties),
     ...methods.map((member) => renderMethod(iface.path, member, level)),
@@ -87,21 +79,13 @@ const renderOwner = (
 };
 
 const renderSection = (docs: ScriptingDocs, section: Section): string => {
-  const level = levelOf(section);
-  const members = section.members ?? [];
-  const owners = [...new Set(members.map((member) => member.owner))];
-  const interfaceOf = (name: string): InterfaceDef => {
-    const iface = docs.interfaces.find((candidate) => candidate.name === name);
-    if (!iface) throw new Error(`No interface named ${name}`);
-    return iface;
-  };
+  const level = sectionLevel(section) + 1;
+  const owners = ownersOf(docs, section);
   const grouped = owners.length > 1;
   return blocks(
     heading(level, sectionTitle(section)),
     section.intro,
-    ...owners.map((owner) => {
-      const iface = interfaceOf(owner);
-      const ownMembers = members.filter((member) => member.owner === owner);
+    ...owners.map(({ iface, members: ownMembers }) => {
       if (!grouped) return renderOwner(iface, ownMembers, level + 1);
       return blocks(
         heading(level + 1, `\`${iface.name}\` (\`${iface.path}\`)`),
@@ -119,24 +103,16 @@ const renderSection = (docs: ScriptingDocs, section: Section): string => {
   );
 };
 
-const nextTopNumber = (sections: Section[]): number =>
-  Math.max(
-    0,
-    ...sections
-      .filter((section) => section.number && !section.number.includes("."))
-      .map((section) => Number(section.number)),
-  ) + 1;
-
 export const renderLlmsTxt = (docs: ScriptingDocs): string => {
-  const agentNotes = nextTopNumber(docs.sections);
+  const { agentNotes, workedExamples } = appendixOf(docs);
   return `${blocks(
     heading(1, docs.title),
     `> ${docs.summary}`,
     docs.intro,
     ...docs.sections.map((section) => renderSection(docs, section)),
-    heading(2, `${agentNotes}. Notes for AI agents`),
+    heading(2, sectionTitle(agentNotes)),
     docs.agentRules.map((rule) => `- ${rule}`).join("\n"),
-    heading(2, `${agentNotes + 1}. Worked examples`),
+    heading(2, sectionTitle(workedExamples)),
     "The built-in examples from the Scripts panel.",
     ...docs.exampleScripts.map((example) =>
       blocks(
