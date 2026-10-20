@@ -9,6 +9,7 @@ export type RegisteredConverter = {
 
 export type ConverterSettings = {
   parseSelectionSets: boolean;
+  freeDischargeInlet: boolean;
 };
 
 const converters = new Map<ConverterVendor, Converter>();

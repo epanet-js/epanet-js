@@ -48,6 +48,9 @@ export const useConvertFile = () => {
   const startBlankProject = useStartBlankProject();
   const { canImportSynergi } = usePermissions();
   const parseSelectionSets = useFeatureFlag("FLAG_SYNERGI_SELECTION_SETS");
+  const freeDischargeInlet = useFeatureFlag(
+    "FLAG_SYNERGI_FREE_DISCHARGE_INLET",
+  );
   const setDialogState = useSetAtom(dialogAtom);
   const setInpFileInfo = useSetAtom(inpFileInfoAtom);
   const setProjectFileInfo = useSetAtom(projectFileInfoAtom);
@@ -81,7 +84,7 @@ export const useConvertFile = () => {
           return;
         }
 
-        applyConverterSettings({ parseSelectionSets });
+        applyConverterSettings({ parseSelectionSets, freeDischargeInlet });
         const { network, issues } = await converter.parseNetworkData({
           files: [file],
         });
@@ -186,6 +189,7 @@ export const useConvertFile = () => {
     [
       canImportSynergi,
       parseSelectionSets,
+      freeDischargeInlet,
       projections,
       labelMaxLength,
       startNewProject,
