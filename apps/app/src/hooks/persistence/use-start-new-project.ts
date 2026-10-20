@@ -89,6 +89,7 @@ import {
   initializeSelectionSets,
 } from "src/lib/collections";
 import { hglProfileAtom } from "src/state/hgl-profile";
+import { scriptDraftAtom, userScriptsAtom } from "src/state/scripts";
 import { resetPanelsAtom } from "src/state/panels";
 import type { Panel } from "src/panels/panel";
 import { useDefaultPanels } from "src/panels/use-default-panels";
@@ -125,6 +126,8 @@ export const resetAppState = (set: Setter, panels: Panel[]) => {
   set(zonesAtom, new Map());
   set(selectionSetsAtom, initializeSelectionSets());
   set(bookmarksAtom, initializeBookmarks());
+  set(userScriptsAtom, []);
+  set(scriptDraftAtom, null);
   set(reviewResultsAtom, {});
   set(archivedNetworkReviewItemsAtom, {});
   set(proximityDistanceAtom, null);

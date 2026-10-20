@@ -19,6 +19,25 @@ export type ScriptRunState = {
 
 export const scriptRunAtom = atom<ScriptRunState | null>(null);
 
-export type ScriptDraft = { name: string; source: string };
+export type UserScript = {
+  id: string;
+  name: string;
+  source: string;
+  updatedAt: number;
+};
+
+export const userScriptsAtom = atom<UserScript[]>([]);
+
+export type ScriptDraft = {
+  scriptId: string | null;
+  name: string;
+  source: string;
+  savedAs: { name: string; source: string } | null;
+};
 
 export const scriptDraftAtom = atom<ScriptDraft | null>(null);
+
+export const hasUnsavedChanges = (draft: ScriptDraft): boolean =>
+  draft.savedAs === null ||
+  draft.name !== draft.savedAs.name ||
+  draft.source !== draft.savedAs.source;

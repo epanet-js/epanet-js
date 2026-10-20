@@ -24,14 +24,16 @@ export function CodeEditor({
   initialSource,
   onChange,
   onRun,
+  onSave,
 }: {
   initialSource: string;
   onChange: (source: string) => void;
   onRun: () => void;
+  onSave: () => void;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const callbacksRef = useRef({ onChange, onRun });
-  callbacksRef.current = { onChange, onRun };
+  const callbacksRef = useRef({ onChange, onRun, onSave });
+  callbacksRef.current = { onChange, onRun, onSave };
   const initialSourceRef = useRef(initialSource);
 
   useEffect(() => {
@@ -52,6 +54,13 @@ export function CodeEditor({
               key: "Mod-Enter",
               run: () => {
                 callbacksRef.current.onRun();
+                return true;
+              },
+            },
+            {
+              key: "Mod-s",
+              run: () => {
+                callbacksRef.current.onSave();
                 return true;
               },
             },
