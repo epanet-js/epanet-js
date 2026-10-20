@@ -3,7 +3,7 @@ import type { Section } from "../types";
 export const SECTION: Section = {
   id: "how-a-script-runs",
   title: "How a script runs",
-  intro: `- **Globals:** \`network\`, \`selection\`, \`map\`, \`console\`, \`ui\`, \`collections\`. There is no \`fetch\`, DOM, \`require\`/\`import\`, timers (\`setTimeout\`), \`structuredClone\` or network access.
+  intro: `- **Globals:** \`network\`, \`zones\`, \`selection\`, \`map\`, \`console\`, \`ui\`, \`collections\`. There is no \`fetch\`, DOM, \`require\`/\`import\`, timers (\`setTimeout\`), \`structuredClone\` or network access.
 - **Standard JavaScript works:** \`Array\`, \`Map\`, \`Set\`, \`JSON\`, \`Math\`, \`Number\`, \`String\`, template strings, destructuring, \`async\`/\`await\` (top-level \`await\` is allowed).
 - **The sandbox is SES (hardened JavaScript).** \`Date.now()\`, \`new Date()\` with no arguments and \`Math.random()\` throw. \`new Date(milliseconds)\` and date arithmetic on given values work. Do not reach for the current time or randomness.
 - **Scripts run top to bottom, once.** Every call is synchronous. The script's output — \`selection.set\`, \`map.zoomTo\`, \`ui.attachFile\`, \`collections.saveSelectionSet\` — is applied when the script ends successfully. If the script throws, the error is shown with its line number and none of that output is applied (console lines already printed stay visible).

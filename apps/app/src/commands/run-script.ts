@@ -42,6 +42,7 @@ import {
 } from "src/state/scripts";
 import { selectionAtom } from "src/state/selection";
 import { selectionSetsAtom } from "src/state/collections";
+import { zonesAtom } from "src/state/zones";
 
 const MAX_CONSOLE_LINES = 1000;
 const EPANET_DEFAULT_TRIALS = 200;
@@ -151,6 +152,7 @@ export const useRunScript = () => {
           simulationSettings: store.get(simulationSettingsDerivedAtom),
           projection: store.get(projectSettingsAtom).projection,
         },
+        zones: store.get(zonesAtom),
         onEvent,
       });
       setRun({

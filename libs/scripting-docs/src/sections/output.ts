@@ -15,7 +15,7 @@ const Targets = "Asset | CustomerPoint | (Asset | CustomerPoint)[]";
 
 export const SELECTION_SECTION: Section = {
   id: "selection",
-  number: "2",
+  number: "3",
   title: "`selection` — the user's selection in, the script's out",
   members: [
     selected("assets", "Asset[]", "The selected assets."),
@@ -61,7 +61,7 @@ When the user says "the selected pipes", start from \`selection.pipes\`, and thr
 
 export const MAP_SECTION: Section = {
   id: "map",
-  number: "3",
+  number: "4",
   title: "`map` — the viewport",
   members: [
     viewport("bounds", "BBox | null", "The viewport at run start."),
@@ -81,7 +81,7 @@ export const MAP_SECTION: Section = {
 
 export const CONSOLE_SECTION: Section = {
   id: "console",
-  number: "4",
+  number: "5",
   title: "`console` — output",
   members: [
     consoleMember({
@@ -113,7 +113,7 @@ export const CONSOLE_SECTION: Section = {
 
 export const UI_SECTION: Section = {
   id: "ui",
-  number: "5",
+  number: "6",
   title: "`ui` — progress and files",
   members: [
     ui({

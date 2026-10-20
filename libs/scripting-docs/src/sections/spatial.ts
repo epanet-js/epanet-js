@@ -18,7 +18,7 @@ export const SECTION: Section = {
   | BBox
   | Position[];`,
       summary:
-        "Where to look: a polygon, a multipolygon, a feature of one, a box or a ring of positions. Polygons with holes are not supported.",
+        "Where to look: a polygon, a multipolygon, a feature of one, a box or a ring of positions. A node is inside when its point is; a link only when the whole line is, so one crossing a hole is left out.",
     },
     {
       name: "NearestPoint",

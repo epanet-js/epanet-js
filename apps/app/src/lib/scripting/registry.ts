@@ -4,6 +4,7 @@ import type {
   HeadlossFormula,
   ModelFactories,
   PatternId,
+  Zones,
 } from "@epanet-js/hydraulic-model";
 import type { UnitsSpec } from "@epanet-js/project-settings";
 import type { Projection } from "@epanet-js/projections";
@@ -133,6 +134,7 @@ export type Scripting = {
     project: ScriptProject;
     simulation: ScriptSimulationSettings;
     inp: { simulationSettings: SimulationSettings; projection: Projection };
+    zones: Zones;
     onEvent: (event: ScriptEvent) => void;
   }) => ScriptRunHandle;
   exampleScripts: ExampleScript[];

@@ -223,6 +223,38 @@ if (crossings.length === 0) {
 `,
   },
   {
+    id: "zone-summary",
+    name: "Summarise each zone",
+    source: `// Counts the junctions, pipe length and customer demand inside each zone
+// imported with File > Import > Zones. A pipe counts only when all of it is
+// inside, so one crossing a boundary is in no zone.
+if (zones.count === 0) throw new Error("This project has no zones — import them first");
+
+const rows = zones.list.map((zone) => {
+  const inside = network.findWithin(zone.geometry, {
+    types: ["junction", "pipe", "customerPoint"],
+  });
+  const of = (type) => inside.filter((a) => a.type === type);
+  return {
+    zone,
+    junctions: of("junction").length,
+    pipeLength: Math.round(of("pipe").reduce((sum, p) => sum + p.length, 0)),
+    demand: of("customerPoint").reduce((sum, cp) => sum + cp.demand, 0),
+  };
+});
+
+console.log(\`\${zones.count} zones · length in \${network.units.length}, demand in \${network.units.customerDemand}\`);
+console.table(rows);
+
+const outside = network.junctions.filter((j) => zones.at(j).length === 0);
+if (outside.length > 0) {
+  console.warn(\`\${outside.length} junctions are in no zone\`);
+  selection.set(outside);
+  map.zoomTo(outside);
+}
+`,
+  },
+  {
     id: "validate-network",
     name: "Check the model will run",
     source: `// The checks behind the dialog that opens when you press Run: orphan

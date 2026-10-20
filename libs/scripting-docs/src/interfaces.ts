@@ -9,6 +9,12 @@ export const GLOBALS: GlobalDef[] = [
     section: "network",
   },
   {
+    name: "zones",
+    type: "Zones",
+    summary: "the project's polygon zones: list, get, at, contains",
+    section: "zones",
+  },
+  {
     name: "selection",
     type: "Selection",
     summary: "the map selection — the user's as input, the script's as output",
@@ -51,6 +57,16 @@ export const INTERFACES: InterfaceDef[] = [
     name: "NetworkGeo",
     path: "network.geo",
     summary: "Geodesic helpers in the project length unit.",
+  },
+  {
+    name: "Zones",
+    path: "zones",
+    summary: "The project's polygon zones.",
+  },
+  {
+    name: "Zone",
+    path: "zone",
+    summary: "One polygon zone.",
   },
   {
     name: "Selection",

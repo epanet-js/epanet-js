@@ -41,7 +41,7 @@ export const SECTION: Section = {
       name: "Units",
       definition: "type Units = Readonly<Record<string, string | null>>;",
       summary: "Quantity → unit for every value the API hands out.",
-      description: `The keys: \`diameter\` (pipes, valves), \`tankDiameter\` (tanks), \`length\`, \`elevation\`, \`head\`, \`pressure\`, \`flow\`, \`velocity\`, \`headloss\`, \`unitHeadloss\`, \`baseDemand\`, \`directDemand\`, \`actualDemand\`, \`customerDemand\`, \`customerDemandPerDay\`, \`initialLevel\`, \`minLevel\`, \`maxLevel\`, \`level\`, \`minVolume\`, \`volume\`, \`tankArea\`, \`power\`, \`speed\`, \`efficiency\`, \`roughness\`, \`minorLoss\`, \`emitterCoefficient\`, \`mixingFraction\`, \`tcvSetting\`, \`averageKwPerFlowUnit\`, \`waterAge\`, \`waterTrace\`, \`chemicalConcentration\`, \`netFlow\`, \`actualHead\`, \`status\`.
+      description: `The keys: \`diameter\` (pipes, valves), \`tankDiameter\` (tanks), \`length\`, \`elevation\`, \`head\`, \`pressure\`, \`flow\`, \`velocity\`, \`headloss\`, \`unitHeadloss\`, \`baseDemand\`, \`directDemand\`, \`actualDemand\`, \`customerDemand\`, \`customerDemandPerDay\`, \`initialLevel\`, \`minLevel\`, \`maxLevel\`, \`level\`, \`minVolume\`, \`volume\`, \`tankArea\`, \`area\` (zones; m² or ft² by the length unit), \`power\`, \`speed\`, \`efficiency\`, \`roughness\`, \`minorLoss\`, \`emitterCoefficient\`, \`mixingFraction\`, \`tcvSetting\`, \`averageKwPerFlowUnit\`, \`waterAge\`, \`waterTrace\`, \`chemicalConcentration\`, \`netFlow\`, \`actualHead\`, \`status\`.
 
 Mind the mapping: a tank's \`diameter\` is in \`units.tankDiameter\`, a pipe's in \`units.diameter\`.`,
     },
