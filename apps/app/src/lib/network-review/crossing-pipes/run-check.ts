@@ -14,7 +14,7 @@ import {
   decodeCrossingPipes,
   findCrossingPipes,
   hydraulicModelTransferables,
-} from "@epanet-js/hydraulic-model";
+} from "@epanet-js/network-review";
 import { getCrossingPipesWorker } from "./get-worker";
 
 export const runCheck = async (

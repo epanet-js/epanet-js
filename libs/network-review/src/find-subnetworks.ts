@@ -4,7 +4,7 @@ import {
   HydraulicModelBuffersView,
   toNodeType,
 } from "./hydraulic-model-buffers";
-import { NodeType } from "../asset-types";
+import { NodeType } from "@epanet-js/hydraulic-model";
 
 export function findSubNetworks(
   buffers: HydraulicModelBuffers,

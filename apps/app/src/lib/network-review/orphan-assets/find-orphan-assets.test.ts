@@ -1,5 +1,5 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import { findOrphanAssets } from "@epanet-js/hydraulic-model";
+import { findOrphanAssets } from "@epanet-js/network-review";
 
 describe("findOrphanAssets", () => {
   it("should find nodes not connected to other assets in the network", () => {

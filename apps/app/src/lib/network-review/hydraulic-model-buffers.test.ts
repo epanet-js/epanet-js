@@ -7,7 +7,7 @@ import {
   decodePosition,
   HydraulicModelBuffersEncodedSize as EncodedSize,
   HydraulicModelEncoder,
-} from "@epanet-js/hydraulic-model";
+} from "@epanet-js/network-review";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import {
   decodeType,

@@ -154,7 +154,7 @@ would be a regression.
 | Orphan assets                     | `ActiveAssetIndex` / `ActiveTopology` adapters wrapping the inputs |
 | Attribute validation              | the asset loop in `model-attributes-validation/run-check.ts`       |
 
-`@epanet-js/hydraulic-model`'s `HydraulicModelEncoder` serves only the review checks, so it filters
+`@epanet-js/network-review`'s `HydraulicModelEncoder` serves only the review checks, so it filters
 unconditionally — no option flag is needed and none should be added.
 
 Orphan assets cannot filter inside its encoders, because `AssetIndexEncoder` and

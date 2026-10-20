@@ -3,7 +3,7 @@ import {
   EncodedProximityAnomalies,
   HydraulicModelBuffers,
   findProximityAnomalies,
-} from "@epanet-js/hydraulic-model";
+} from "@epanet-js/network-review";
 
 export interface ProximityCheckWorkerAPI {
   findProximityAnomalies: (

@@ -3,7 +3,7 @@ import {
   EncodedCrossingPipes,
   HydraulicModelBuffers,
   findCrossingPipes,
-} from "@epanet-js/hydraulic-model";
+} from "@epanet-js/network-review";
 
 export interface CrossingPipesWorkerAPI {
   findCrossingPipes: (

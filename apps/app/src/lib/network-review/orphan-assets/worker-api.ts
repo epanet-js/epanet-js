@@ -1,7 +1,4 @@
-import {
-  findOrphanAssets,
-  type OrphanAssets,
-} from "@epanet-js/hydraulic-model";
+import { findOrphanAssets, type OrphanAssets } from "@epanet-js/network-review";
 import { RunData } from "./data";
 import { AssetIndexView } from "src/hydraulic-model/asset-index-transferable";
 import { TopologyView } from "src/hydraulic-model/topology/topology-transferable";

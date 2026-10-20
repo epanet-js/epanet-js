@@ -1,2 +1,2 @@
 export { runCheck as findCrossingPipes } from "./run-check";
-export type { CrossingPipe } from "@epanet-js/hydraulic-model";
+export type { CrossingPipe } from "@epanet-js/network-review";

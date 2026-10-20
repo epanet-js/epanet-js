@@ -1,5 +1,4 @@
-import { AssetId, AssetType } from "../asset-types";
-import { HydraulicModel } from "../hydraulic-model";
+import { AssetId, AssetType, HydraulicModel } from "@epanet-js/hydraulic-model";
 
 export type OrphanAssets = {
   orphanNodes: number[];

@@ -1,5 +1,5 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import { decodeCrossingPipes } from "@epanet-js/hydraulic-model";
+import { decodeCrossingPipes } from "@epanet-js/network-review";
 
 describe("decodeCrossingPipes", () => {
   it("sorts crossing pipes by diameter (ascending)", () => {

@@ -1,5 +1,11 @@
-import { HydraulicModel } from "../hydraulic-model";
-import { Asset, AssetType, LinkType, NodeType, Pipe } from "../asset-types";
+import {
+  HydraulicModel,
+  Asset,
+  AssetType,
+  LinkType,
+  NodeType,
+  Pipe,
+} from "@epanet-js/hydraulic-model";
 import { Position } from "geojson";
 import bbox from "@turf/bbox";
 import lineSegment from "@turf/line-segment";

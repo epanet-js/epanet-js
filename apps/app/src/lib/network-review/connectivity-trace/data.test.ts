@@ -1,7 +1,7 @@
 import {
   decodeSubNetworks,
   EncodedSubNetwork,
-} from "@epanet-js/hydraulic-model";
+} from "@epanet-js/network-review";
 
 const IDS = {
   J1: 1,

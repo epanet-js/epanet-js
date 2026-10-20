@@ -1,5 +1,4 @@
-import { AssetId } from "../asset-types";
-import { HydraulicModel } from "../hydraulic-model";
+import { AssetId, HydraulicModel } from "@epanet-js/hydraulic-model";
 import { Position } from "geojson";
 
 interface EncodedProximityAnomaly {

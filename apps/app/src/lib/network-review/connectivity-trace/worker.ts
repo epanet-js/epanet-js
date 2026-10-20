@@ -3,7 +3,7 @@ import {
   EncodedSubNetwork,
   HydraulicModelBuffers,
   findSubNetworks,
-} from "@epanet-js/hydraulic-model";
+} from "@epanet-js/network-review";
 
 export interface ConnectivityTraceWorkerAPI {
   findSubNetworks: (buffers: HydraulicModelBuffers) => EncodedSubNetwork[];

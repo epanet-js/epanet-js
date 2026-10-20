@@ -15,7 +15,7 @@ import {
   decodeSubNetworks,
   findSubNetworks,
   hydraulicModelTransferables,
-} from "@epanet-js/hydraulic-model";
+} from "@epanet-js/network-review";
 
 export const runCheck = async (
   hydraulicModel: HydraulicModel,

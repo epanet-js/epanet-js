@@ -4,10 +4,12 @@ import {
   ActiveAssetIndex,
   ActiveTopology,
   AssetId,
+} from "@epanet-js/hydraulic-model";
+import {
   buildOrphanAssets,
   findOrphanAssets,
   type OrphanAssets,
-} from "@epanet-js/hydraulic-model";
+} from "@epanet-js/network-review";
 import { HydraulicModel } from "src/hydraulic-model";
 import { encodeData } from "./data";
 import { topologyTransferables } from "src/hydraulic-model/topology/topology-transferable";

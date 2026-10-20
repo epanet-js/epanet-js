@@ -5,7 +5,7 @@ import {
   decodeSubNetworks,
   findSubNetworks,
   unsuppliedSubNetworks,
-} from "@epanet-js/hydraulic-model";
+} from "@epanet-js/network-review";
 import { HydraulicModel } from "src/hydraulic-model";
 
 describe("findSubNetworks", () => {
