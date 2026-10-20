@@ -5,6 +5,8 @@ import { useAtom } from "jotai";
 import { Button } from "src/components/elements";
 import { BaseDialog, SimpleDialogActions } from "src/components/dialog";
 import { FileSystemHelpers } from "src/infra/storage";
+import { PaywallLockButton } from "src/components/form/paywall";
+import { usePermissions } from "src/hooks/use-permissions";
 import type { ScriptAttachment, ScriptRunOutcome } from "src/lib/scripting";
 import {
   scriptRunAtom,
@@ -208,6 +210,36 @@ const RunResult = ({ outcome }: { outcome: ScriptRunOutcome }) => {
           ))}
         </div>
       )}
+      {outcome.selectionSets.length > 0 && (
+        <SelectionSetsResult
+          labels={outcome.selectionSets.map((s) => s.label)}
+        />
+      )}
+    </div>
+  );
+};
+
+const SelectionSetsResult = ({ labels }: { labels: string[] }) => {
+  const { canManageCollections } = usePermissions();
+
+  return (
+    <div className="flex flex-col gap-1">
+      <div className="flex items-center gap-1 text-size-small font-semibold text-default">
+        Selection sets
+        {!canManageCollections && (
+          <PaywallLockButton feature="selectionSets" label="Selection sets" />
+        )}
+      </div>
+      {!canManageCollections && (
+        <div className="text-size-base text-subtle">
+          Not saved. Your plan does not include collections.
+        </div>
+      )}
+      {labels.map((label, i) => (
+        <div key={i} className="truncate text-size-base">
+          {label}
+        </div>
+      ))}
     </div>
   );
 };

@@ -5,6 +5,7 @@ import { SECTION as COLLECTIONS } from "./sections/collections";
 import { SECTION as EXPORT } from "./sections/export";
 import { SECTION as LIBRARIES } from "./sections/libraries";
 import {
+  COLLECTIONS_SECTION,
   CONSOLE_SECTION,
   ERRORS_SECTION,
   MAP_SECTION,
@@ -29,7 +30,7 @@ const AGENT_RULES = [
   "`network.validate()`'s `findings[0]` is the worst problem; `code` is stable; `assets` names what to fix.",
   "Read `pipe.appliedRoughness`, not `pipe.roughness`, for the value EPANET receives.",
   "Junction demand is `junction.demands` (categories with patterns) plus the demand of `junction.customerPoints`; `junction.baseDemand` is the categories only.",
-  "Hand results back visually: `selection.set(...)` and `map.zoomTo(...)` for what to look at, `ui.attachFile` for data, `console.table` for a summary.",
+  "Hand results back visually: `selection.set(...)` and `map.zoomTo(...)` for what to look at, `ui.attachFile` for data, `collections.saveSelectionSet` for a set the user will want again, `console.table` for a summary.",
   'When the user says "the selected …", start from `selection.*` and fail clearly when it is empty or the wrong type.',
 ];
 
@@ -56,6 +57,7 @@ export const scriptingDocs: ScriptingDocs = {
     MAP_SECTION,
     CONSOLE_SECTION,
     UI_SECTION,
+    COLLECTIONS_SECTION,
     ERRORS_SECTION,
   ],
   agentRules: AGENT_RULES,

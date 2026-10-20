@@ -12,6 +12,9 @@ import {
 } from "src/lib/scripting";
 import { MapContext } from "src/map";
 import { useZoomTo } from "src/hooks/use-zoom-to";
+import { usePermissions } from "src/hooks/use-permissions";
+import { useSelectionSetsTransaction } from "src/hooks/persistence/use-selection-sets-transaction";
+import { countSelected, newSelectionSet } from "src/lib/collections";
 import { USelection, type Sel } from "src/selection";
 import { chooseUnitSystem, defaultAccuracy } from "src/simulation/build-inp";
 import {
@@ -50,6 +53,8 @@ export const useRunScript = () => {
   const setSelection = useSetAtom(selectionAtom);
   const zoomTo = useZoomTo();
   const map = useContext(MapContext);
+  const { canManageCollections } = usePermissions();
+  const { create: createSelectionSet } = useSelectionSetsTransaction();
 
   const currentViewport = useCallback((): ScriptViewport | null => {
     const bounds = map?.map.getBounds();
@@ -82,8 +87,15 @@ export const useRunScript = () => {
       if (outcome.zoomTo?.type === "bbox") {
         zoomTo(Just(outcome.zoomTo.bbox), maxZoom);
       }
+      if (canManageCollections) {
+        for (const { label, targets } of outcome.selectionSets) {
+          const members = existing(targets);
+          if (countSelected(members) === 0) continue;
+          createSelectionSet(newSelectionSet(label, members));
+        }
+      }
     },
-    [store, setSelection, zoomTo],
+    [store, setSelection, zoomTo, canManageCollections, createSelectionSet],
   );
 
   return useCallback(

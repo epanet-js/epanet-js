@@ -62,7 +62,7 @@ describe("renderLlmsTxt", () => {
   });
 
   it("numbers the agent notes and worked examples after the sections", () => {
-    expect(text).toContain("## 7. Notes for AI agents");
-    expect(text).toContain("## 8. Worked examples");
+    expect(text).toContain("## 8. Notes for AI agents");
+    expect(text).toContain("## 9. Worked examples");
   });
 });

@@ -7,6 +7,7 @@ const map = memberOf("ScriptMap");
 const viewport = propertyOf("ScriptMap");
 const consoleMember = memberOf("ScriptConsole");
 const ui = memberOf("Ui");
+const collections = memberOf("Collections");
 
 const Targets = "Asset | CustomerPoint | (Asset | CustomerPoint)[]";
 
@@ -132,11 +133,46 @@ export const UI_SECTION: Section = {
     "Deliver tabular or geographic output as files — CSV, GeoJSON, JSON, INP — and keep `console.table` for at-a-glance summaries.",
 };
 
+export const COLLECTIONS_SECTION: Section = {
+  id: "collections",
+  number: "6",
+  title: "`collections` — saved selection sets",
+  members: [
+    collections({
+      name: "saveSelectionSet",
+      signature: `saveSelectionSet(label: string, targets?: ${Targets}): void`,
+      summary:
+        "Save a selection set to the project's Collections when the script ends.",
+      description:
+        "Without `targets` it saves the script's current selection at the time of the call. Labels need not be unique: saving a label that already exists adds another set, so running a script twice saves its sets twice.",
+      params: [
+        {
+          name: "label",
+          description:
+            "The set's name. Leading and trailing spaces are dropped.",
+        },
+      ],
+      examples: [
+        {
+          code: 'collections.saveSelectionSet("Pumps and valves", [...network.pumps, ...network.valves]);',
+        },
+      ],
+      throws: [
+        "`collections.saveSelectionSet expects a label`",
+        "`collections.saveSelectionSet expects at least one asset or customer point`",
+        "`collections.saveSelectionSet expects assets or customer points from the network`",
+      ],
+    }),
+  ],
+  notes:
+    "Saving selection sets needs a plan that includes Collections. Without it the run still applies its selection, zoom and files, and the run dialog says the sets were not saved.",
+};
+
 export const ERRORS_SECTION: Section = {
   id: "errors",
-  number: "6",
+  number: "7",
   title: "Errors and limits",
-  intro: `- **An uncaught error stops the script.** The run dialog shows \`name: message\` and the script line it came from. Selection, zoom and attachments are not applied; console lines already printed stay.
+  intro: `- **An uncaught error stops the script.** The run dialog shows \`name: message\` and the script line it came from. Selection, zoom, attachments and selection sets are not applied; console lines already printed stay.
 - **API misuse throws early with a specific message**, quoted under each member's **Throws**.
 - **Cancellation:** the run dialog's Cancel stops the script immediately. There is no time limit.
 - **Caps:** a console line keeps its first 10,000 characters; the run dialog keeps the last 1,000 console entries; \`console.table\` shows the first 1,000 rows and says how many it left out; a progress message keeps 200 characters.`,

@@ -13,7 +13,7 @@ const collection = (name: string, type: string, what: string): Member =>
 export const SECTION: Section = {
   id: "network-collections",
   number: "1.2",
-  title: "Collections and lookup",
+  title: "Lists and lookup",
   members: [
     collection("junctions", "Junction", "Every junction."),
     collection("reservoirs", "Reservoir", "Every reservoir."),

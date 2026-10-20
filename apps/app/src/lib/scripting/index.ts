@@ -9,6 +9,7 @@ export type {
   ScriptProject,
   ScriptRunHandle,
   ScriptRunOutcome,
+  ScriptSelectionSet,
   ScriptSimulationSettings,
   ScriptTargets,
   ScriptViewport,

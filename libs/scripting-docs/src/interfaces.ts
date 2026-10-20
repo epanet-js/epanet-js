@@ -32,6 +32,12 @@ export const GLOBALS: GlobalDef[] = [
     summary: "progress, and files offered for download when the script ends",
     section: "ui",
   },
+  {
+    name: "collections",
+    type: "Collections",
+    summary: "selection sets saved to the project when the script ends",
+    section: "collections",
+  },
 ];
 
 export const INTERFACES: InterfaceDef[] = [
@@ -65,6 +71,11 @@ export const INTERFACES: InterfaceDef[] = [
     name: "Ui",
     path: "ui",
     summary: "Progress and attached files.",
+  },
+  {
+    name: "Collections",
+    path: "collections",
+    summary: "Selection sets saved to the project when the script ends.",
   },
   {
     name: "Asset",

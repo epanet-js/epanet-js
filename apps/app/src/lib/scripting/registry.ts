@@ -19,6 +19,8 @@ export type ScriptEvent =
 
 export type ScriptAttachment = { name: string; content: string };
 
+export type ScriptSelectionSet = { label: string; targets: ScriptTargets };
+
 export type ScriptBBox = [
   minLng: number,
   minLat: number,
@@ -104,6 +106,7 @@ export type ScriptRunOutcome =
           ) & { maxZoom: number | null })
         | null;
       attachments: ScriptAttachment[];
+      selectionSets: ScriptSelectionSet[];
     }
   | {
       status: "error";
