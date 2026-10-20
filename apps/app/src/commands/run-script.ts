@@ -128,6 +128,10 @@ export const useRunScript = () => {
         simulation: scriptSimulationOf(
           store.get(simulationSettingsDerivedAtom),
         ),
+        inp: {
+          simulationSettings: store.get(simulationSettingsDerivedAtom),
+          projection: store.get(projectSettingsAtom).projection,
+        },
         onEvent,
       });
       setRun({

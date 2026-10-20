@@ -6,6 +6,8 @@ import type {
   PatternId,
 } from "@epanet-js/hydraulic-model";
 import type { UnitsSpec } from "@epanet-js/project-settings";
+import type { Projection } from "@epanet-js/projections";
+import type { SimulationSettings } from "@epanet-js/simulation";
 import type { HydraulicModel } from "src/hydraulic-model";
 
 export type ScriptConsoleLevel = "log" | "warn" | "error";
@@ -126,6 +128,7 @@ export type Scripting = {
     viewport: ScriptViewport | null;
     project: ScriptProject;
     simulation: ScriptSimulationSettings;
+    inp: { simulationSettings: SimulationSettings; projection: Projection };
     onEvent: (event: ScriptEvent) => void;
   }) => ScriptRunHandle;
   exampleScripts: ExampleScript[];
