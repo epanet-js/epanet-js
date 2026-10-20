@@ -6,7 +6,7 @@ import {
   CurveType,
   PatternType,
 } from "@epanet-js/hydraulic-model";
-import { EpanetUnitSystem } from "src/simulation/build-inp";
+import type { EpanetUnitSystem } from "@epanet-js/project-settings";
 
 export type PipeData = {
   id: string;

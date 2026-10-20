@@ -128,6 +128,7 @@ export type Scripting = {
     factories: ModelFactories;
     units: UnitsSpec;
     selected: ScriptTargets;
+    selectionSets: ScriptSelectionSet[];
     viewport: ScriptViewport | null;
     project: ScriptProject;
     simulation: ScriptSimulationSettings;

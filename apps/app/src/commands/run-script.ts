@@ -41,6 +41,7 @@ import {
   type ScriptRunState,
 } from "src/state/scripts";
 import { selectionAtom } from "src/state/selection";
+import { selectionSetsAtom } from "src/state/collections";
 
 const MAX_CONSOLE_LINES = 1000;
 const EPANET_DEFAULT_TRIALS = 200;
@@ -135,6 +136,12 @@ export const useRunScript = () => {
         factories: store.get(modelFactoriesAtom),
         units: store.get(projectSettingsAtom).units,
         selected: selectedTargets(store.get(selectionAtom)),
+        selectionSets: store
+          .get(selectionSetsAtom)
+          .map(({ label, selection }) => ({
+            label,
+            targets: selectedTargets(selection),
+          })),
         viewport: currentViewport(),
         project: scriptProjectOf(store.get),
         simulation: scriptSimulationOf(

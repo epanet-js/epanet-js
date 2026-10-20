@@ -8,6 +8,8 @@ const viewport = propertyOf("ScriptMap");
 const consoleMember = memberOf("ScriptConsole");
 const ui = memberOf("Ui");
 const collections = memberOf("Collections");
+const saved = propertyOf("Collections");
+const selectionSet = propertyOf("SelectionSet");
 
 const Targets = "Asset | CustomerPoint | (Asset | CustomerPoint)[]";
 
@@ -138,6 +140,28 @@ export const COLLECTIONS_SECTION: Section = {
   number: "6",
   title: "`collections` — saved selection sets",
   members: [
+    saved(
+      "selectionSets",
+      "SelectionSet[]",
+      "The project's selection sets, in the Collections panel's order, as they were when the script started.",
+      "Sets saved during the run are not in the list. Labels can repeat, so pick a set with `find` or `filter` on the label and handle more than one match.",
+    ),
+    selectionSet("label", "string", "The set's name. Not unique."),
+    selectionSet(
+      "assets",
+      "Asset[]",
+      "The set's assets that are still in the model.",
+    ),
+    selectionSet(
+      "customerPoints",
+      "CustomerPoint[]",
+      "The set's customer points that are still in the model.",
+    ),
+    selectionSet(
+      "missing",
+      "number",
+      "How many members were deleted from the model since the set was saved.",
+    ),
     collections({
       name: "saveSelectionSet",
       signature: `saveSelectionSet(label: string, targets?: ${Targets}): void`,
@@ -165,7 +189,7 @@ export const COLLECTIONS_SECTION: Section = {
     }),
   ],
   notes:
-    "Saving selection sets needs a plan that includes Collections. Without it the run still applies its selection, zoom and files, and the run dialog says the sets were not saved.",
+    "Apply a saved set with `selection.set([...set.assets, ...set.customerPoints])`. Saving selection sets needs a plan that includes Collections. Without it the run still applies its selection, zoom and files, and the run dialog says the sets were not saved.",
 };
 
 export const ERRORS_SECTION: Section = {

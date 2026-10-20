@@ -5,7 +5,7 @@ export const GLOBALS: GlobalDef[] = [
     name: "network",
     type: "Network",
     summary:
-      "the model: collections, lookup, spatial and topology queries, the review checks, INP export",
+      "the model: lists, lookup, spatial and topology queries, the review checks, INP export",
     section: "network",
   },
   {
@@ -35,7 +35,8 @@ export const GLOBALS: GlobalDef[] = [
   {
     name: "collections",
     type: "Collections",
-    summary: "selection sets saved to the project when the script ends",
+    summary:
+      "the project's selection sets, and new ones saved when the script ends",
     section: "collections",
   },
 ];
@@ -75,7 +76,14 @@ export const INTERFACES: InterfaceDef[] = [
   {
     name: "Collections",
     path: "collections",
-    summary: "Selection sets saved to the project when the script ends.",
+    summary:
+      "The project's selection sets, and new ones saved when the script ends.",
+  },
+  {
+    name: "SelectionSet",
+    path: "selectionSet",
+    summary:
+      "A saved selection set: its label and the members still in the model.",
   },
   {
     name: "Asset",
