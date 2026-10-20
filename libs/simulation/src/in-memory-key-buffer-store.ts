@@ -1,4 +1,4 @@
-import { IKeyBufferStore } from "./types";
+import { IKeyBufferStore } from "./results-store";
 
 // Shared storage across all InMemoryStorage instances (keyed by appId)
 const sharedStorage = new Map<string, Map<string, ArrayBuffer>>();

@@ -5,9 +5,9 @@ export {
   opfsUnavailableErrors,
   getAvailableStorageBytes,
   createTempFile,
-} from "./opfs-storage";
+} from "@epanet-js/simulation/browser";
 export { FileSystemHelpers } from "./file-system-helpers";
-export { InMemoryKeyBufferStore as InMemoryStorage } from "./in-memory-key-buffer-store";
+export { InMemoryKeyBufferStore as InMemoryStorage } from "@epanet-js/simulation";
 export { initStorage } from "./init";
 export { IndexedDB } from "./indexed-db";
 export { InMemoryKeyValueStore } from "./in-memory-key-value-store";

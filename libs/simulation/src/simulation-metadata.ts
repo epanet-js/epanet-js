@@ -1,0 +1,121 @@
+export const PROLOG_SIZE = 884;
+export const EPILOG_SIZE = 12;
+
+// Pressure Units Option from EPANET binary output
+export type PressureUnits = "psi" | "kPa" | "m" | "bar" | "ft";
+
+// Water Quality Analysis Type from EPANET binary output (prolog offset 28)
+export type QualityAnalysisType = "none" | "chemical" | "age" | "trace";
+
+const QUALITY_TYPE_MAP: Record<number, QualityAnalysisType> = {
+  0: "none",
+  1: "chemical",
+  2: "age",
+  3: "trace",
+};
+
+const PRESSURE_UNITS_MAP: Record<number, PressureUnits> = {
+  0: "psi",
+  1: "kPa",
+  2: "m",
+  3: "bar",
+  4: "ft",
+};
+
+export interface ISimulationMetadata {
+  nodeCount: number;
+  resAndTankCount: number;
+  linkCount: number;
+  pumpCount: number;
+  valveCount: number;
+  qualityType: QualityAnalysisType;
+  pressureUnits: PressureUnits;
+  reportingStartTime: number;
+  reportingTimeStep: number;
+  simulationDuration: number;
+  reportingStepsCount: number;
+}
+
+export function getSimulationMetadata(
+  metadata: ArrayBuffer | undefined,
+): ISimulationMetadata {
+  if (!metadata || metadata.byteLength !== PROLOG_SIZE + EPILOG_SIZE) {
+    return {
+      nodeCount: 0,
+      resAndTankCount: 0,
+      linkCount: 0,
+      pumpCount: 0,
+      valveCount: 0,
+      qualityType: "none",
+      pressureUnits: "m", // default to meters
+      reportingStartTime: 0,
+      reportingTimeStep: 3600,
+      simulationDuration: 0,
+      reportingStepsCount: 1,
+    };
+  }
+  return new SimulationMetadata(metadata);
+}
+
+export class SimulationMetadata implements ISimulationMetadata {
+  private prologView: DataView;
+  private epilogView: DataView;
+
+  constructor(prologAndEpilog: ArrayBuffer) {
+    this.prologView = new DataView(prologAndEpilog, 0, PROLOG_SIZE);
+    this.epilogView = new DataView(prologAndEpilog, PROLOG_SIZE, EPILOG_SIZE);
+  }
+
+  get nodeCount(): number {
+    return this.prologView.getInt32(8, true);
+  }
+
+  get resAndTankCount(): number {
+    return this.prologView.getInt32(12, true);
+  }
+
+  get linkCount(): number {
+    return this.prologView.getInt32(16, true);
+  }
+
+  get pumpCount(): number {
+    return this.prologView.getInt32(20, true);
+  }
+
+  get valveCount(): number {
+    return this.prologView.getInt32(24, true);
+  }
+
+  get qualityType(): QualityAnalysisType {
+    const rawValue = this.prologView.getInt32(28, true);
+    return QUALITY_TYPE_MAP[rawValue] ?? "none";
+  }
+
+  get pressureUnits(): PressureUnits {
+    const rawValue = this.prologView.getInt32(40, true);
+    return PRESSURE_UNITS_MAP[rawValue] ?? "m";
+  }
+
+  get reportingStartTime(): number {
+    return this.prologView.getInt32(48, true);
+  }
+
+  get reportingTimeStep(): number {
+    return this.prologView.getInt32(52, true);
+  }
+
+  get simulationDuration(): number {
+    return this.prologView.getInt32(56, true);
+  }
+
+  get reportingStepsCount(): number {
+    return this.epilogView.getInt32(0, true);
+  }
+}
+
+export interface SimulationIds {
+  nodeIds: string[];
+  linkIds: string[];
+  nodeIdToIndex: Map<string, number>;
+  linkIdToIndex: Map<string, number>;
+}

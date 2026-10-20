@@ -1,5 +1,5 @@
 import { getAppId } from "src/infra/app-instance";
-import { createTempFile, isOPFSAvailable } from "./opfs-storage";
+import { createTempFile, isOPFSAvailable } from "@epanet-js/simulation/browser";
 import { createInMemoryFile } from "./in-memory-file";
 
 const openFileInOpfs = async (

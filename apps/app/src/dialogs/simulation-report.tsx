@@ -4,7 +4,7 @@ import {
   AckDialogAction,
   useDialogState,
 } from "../components/dialog";
-import { processReportWithSlots, ReportRow } from "src/simulation/report";
+import { processReportWithSlots, ReportRow } from "@epanet-js/simulation";
 import { useMemo, useCallback } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";

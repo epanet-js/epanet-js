@@ -1,4 +1,4 @@
-import { Asset, AssetsMap, AssetId } from "src/hydraulic-model";
+import { Asset, AssetsMap, AssetId } from "@epanet-js/hydraulic-model";
 import { ReportErrorCollector } from "./report-error-collector";
 
 export type ReportRow = {

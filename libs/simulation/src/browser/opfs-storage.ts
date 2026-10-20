@@ -1,4 +1,4 @@
-import { IKeyBufferStore } from "./types";
+import { IKeyBufferStore } from "../results-store";
 
 const ROOT_DIR = "epanet-simulation";
 const TEMP_ROOT_DIR = "epanet-temp";
@@ -15,11 +15,11 @@ export class OPFSStorage implements IKeyBufferStore {
     const dir = await this.getAppDir();
     const fileHandle = await dir.getFileHandle(filename, { create: true });
     // @ts-expect-error createSyncAccessHandle is only available in Web Workers (lib.webworker.d.ts)
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment
     const accessHandle = await fileHandle.createSyncAccessHandle();
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     accessHandle.write(data);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     accessHandle.close();
   }
 

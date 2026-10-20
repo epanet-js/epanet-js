@@ -1,5 +1,5 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import { processReportWithSlots } from "./report";
+import { processReportWithSlots } from "@epanet-js/simulation";
 
 describe("processReportWithSlots", () => {
   it("processes simple error messages into slots", () => {

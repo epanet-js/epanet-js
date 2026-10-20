@@ -1,10 +1,10 @@
 // @vitest-environment jsdom
 import { FileSystemHelpers } from "./file-system-helpers";
-import { createTempFile, isOPFSAvailable } from "./opfs-storage";
+import { createTempFile, isOPFSAvailable } from "@epanet-js/simulation/browser";
 import { getAppId } from "src/infra/app-instance";
 
-vi.mock("./opfs-storage", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("./opfs-storage")>()),
+vi.mock("@epanet-js/simulation/browser", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@epanet-js/simulation/browser")>()),
   createTempFile: vi.fn(),
   isOPFSAvailable: vi.fn(),
 }));
