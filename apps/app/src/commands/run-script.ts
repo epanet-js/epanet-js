@@ -14,7 +14,12 @@ import { MapContext } from "src/map";
 import { useZoomTo } from "src/hooks/use-zoom-to";
 import { usePermissions } from "src/hooks/use-permissions";
 import { useSelectionSetsTransaction } from "src/hooks/persistence/use-selection-sets-transaction";
-import { countSelected, newSelectionSet } from "src/lib/collections";
+import { useBookmarksTransaction } from "src/hooks/persistence/use-bookmarks-transaction";
+import {
+  countSelected,
+  newBookmark,
+  newSelectionSet,
+} from "src/lib/collections";
 import { USelection, type Sel } from "src/selection";
 import { chooseUnitSystem, defaultAccuracy } from "src/simulation/build-inp";
 import {
@@ -57,6 +62,7 @@ export const useRunScript = () => {
   const map = useContext(MapContext);
   const { canManageCollections } = usePermissions();
   const { create: createSelectionSet } = useSelectionSetsTransaction();
+  const { transact: saveBookmarks } = useBookmarksTransaction();
 
   const currentViewport = useCallback((): ScriptViewport | null => {
     const bounds = map?.map.getBounds();
@@ -95,9 +101,24 @@ export const useRunScript = () => {
           if (countSelected(members) === 0) continue;
           createSelectionSet(newSelectionSet(label, members));
         }
+        if (outcome.bookmarks.length > 0) {
+          saveBookmarks([
+            ...store.get(bookmarksAtom),
+            ...outcome.bookmarks.map(({ label, bbox }) =>
+              newBookmark(label, bbox),
+            ),
+          ]);
+        }
       }
     },
-    [store, setSelection, zoomTo, canManageCollections, createSelectionSet],
+    [
+      store,
+      setSelection,
+      zoomTo,
+      canManageCollections,
+      createSelectionSet,
+      saveBookmarks,
+    ],
   );
 
   return useCallback(

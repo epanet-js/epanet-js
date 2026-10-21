@@ -196,16 +196,42 @@ export const COLLECTIONS_SECTION: Section = {
         "`collections.saveSelectionSet expects assets or customer points from the network`",
       ],
     }),
+    collections({
+      name: "saveBookmark",
+      signature: "saveBookmark(label: string, bbox?: BBox): void",
+      summary:
+        "Save a bookmark to the project's Collections when the script ends.",
+      description:
+        "Without `bbox` it saves the map view the script started with (`map.bounds`). Labels need not be unique: saving a label that already exists adds another bookmark.",
+      params: [
+        {
+          name: "label",
+          description:
+            "The bookmark's name. Leading and trailing spaces are dropped.",
+        },
+      ],
+      examples: [
+        {
+          title: "A bookmark per zone",
+          code: "for (const zone of zones.list) collections.saveBookmark(zone.label, zone.bbox);",
+        },
+      ],
+      throws: [
+        "`collections.saveBookmark expects a label`",
+        "`collections.saveBookmark expects a [minLng, minLat, maxLng, maxLat] box`",
+        "`collections.saveBookmark expects a box when there is no map view`",
+      ],
+    }),
   ],
   notes:
-    "Apply a saved set with `selection.set([...set.assets, ...set.customerPoints])`, and go to a bookmark with `map.zoomTo(bookmark.bbox)`. Saving selection sets needs a plan that includes Collections. Without it the run still applies its selection, zoom and files, and the run dialog says the sets were not saved.",
+    "Apply a saved set with `selection.set([...set.assets, ...set.customerPoints])`, and go to a bookmark with `map.zoomTo(bookmark.bbox)`. Saving selection sets and bookmarks needs a plan that includes Collections. Without it the run still applies its selection, zoom and files, and the run dialog says they were not saved.",
 };
 
 export const ERRORS_SECTION: Section = {
   id: "errors",
   number: "7",
   title: "Errors and limits",
-  intro: `- **An uncaught error stops the script.** The run dialog shows \`name: message\` and the script line it came from. Selection, zoom, attachments and selection sets are not applied; console lines already printed stay.
+  intro: `- **An uncaught error stops the script.** The run dialog shows \`name: message\` and the script line it came from. Selection, zoom, attachments, selection sets and bookmarks are not applied; console lines already printed stay.
 - **API misuse throws early with a specific message**, quoted under each member's **Throws**.
 - **Cancellation:** the run dialog's Cancel stops the script immediately. There is no time limit.
 - **Caps:** a console line keeps its first 10,000 characters; the run dialog keeps the last 1,000 console entries; \`console.table\` shows the first 1,000 rows and says how many it left out; a progress message keeps 200 characters.`,

@@ -211,23 +211,36 @@ const RunResult = ({ outcome }: { outcome: ScriptRunOutcome }) => {
         </div>
       )}
       {outcome.selectionSets.length > 0 && (
-        <SelectionSetsResult
+        <CollectionsResult
+          title="Selection sets"
           labels={outcome.selectionSets.map((s) => s.label)}
+        />
+      )}
+      {outcome.bookmarks.length > 0 && (
+        <CollectionsResult
+          title="Bookmarks"
+          labels={outcome.bookmarks.map((b) => b.label)}
         />
       )}
     </div>
   );
 };
 
-const SelectionSetsResult = ({ labels }: { labels: string[] }) => {
+const CollectionsResult = ({
+  title,
+  labels,
+}: {
+  title: string;
+  labels: string[];
+}) => {
   const { canManageCollections } = usePermissions();
 
   return (
     <div className="flex flex-col gap-1">
       <div className="flex items-center gap-1 text-size-small font-semibold text-default">
-        Selection sets
+        {title}
         {!canManageCollections && (
-          <PaywallLockButton feature="selectionSets" label="Selection sets" />
+          <PaywallLockButton feature="selectionSets" label={title} />
         )}
       </div>
       {!canManageCollections && (

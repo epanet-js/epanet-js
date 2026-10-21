@@ -31,7 +31,7 @@ const AGENT_RULES = [
   "`network.validate()`'s `findings[0]` is the worst problem; `code` is stable; `assets` names what to fix.",
   "Read `pipe.appliedRoughness`, not `pipe.roughness`, for the value EPANET receives.",
   "Junction demand is `junction.demands` (categories with patterns) plus the demand of `junction.customerPoints`; `junction.baseDemand` is the categories only.",
-  "Hand results back visually: `selection.set(...)` and `map.zoomTo(...)` for what to look at, `ui.attachFile` for data, `collections.saveSelectionSet` for a set the user will want again, `console.table` for a summary.",
+  "Hand results back visually: `selection.set(...)` and `map.zoomTo(...)` for what to look at, `ui.attachFile` for data, `collections.saveSelectionSet` and `collections.saveBookmark` for a set or a view the user will want again, `console.table` for a summary.",
   'When the user says "the selected …", start from `selection.*` and fail clearly when it is empty or the wrong type.',
   'When the user names a DMA or a zone, look in `zones` (the drawn polygons); `network.trace` is a different, connectivity-based "zone".',
 ];

@@ -110,6 +110,7 @@ export type ScriptRunOutcome =
         | null;
       attachments: ScriptAttachment[];
       selectionSets: ScriptSelectionSet[];
+      bookmarks: ScriptBookmark[];
     }
   | {
       status: "error";
