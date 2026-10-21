@@ -29,3 +29,32 @@ export type TraceResult = {
   nodeIds: AssetId[];
   linkIds: AssetId[];
 };
+
+export interface TraceBarriers {
+  isNodeBarrier(nodeId: AssetId): boolean;
+  isLinkBarrier(linkId: AssetId): boolean;
+}
+
+export type TraceStopReason = "barrier" | "closed" | "direction";
+
+export type WeightedTraceStopReason = TraceStopReason | "limit";
+
+export type TraceStop<Reason extends string = TraceStopReason> = {
+  assetId: AssetId;
+  reason: Reason;
+  fromNodeId: AssetId;
+  viaLinkId: AssetId | null;
+};
+
+export type BarrierTraceResult = TraceResult & { stops: TraceStop[] };
+
+export type TraceLimits = {
+  maxDistance: number;
+  maxHops: number;
+  lengthOf: (linkId: AssetId) => number;
+};
+
+export type WeightedTraceResult = TraceResult & {
+  stops: TraceStop<WeightedTraceStopReason>[];
+  distances: Map<AssetId, number>;
+};

@@ -8,7 +8,7 @@ import {
   AllowedFlowDirection,
 } from "./types";
 
-export function boundaryTrace(
+export function boundaryTraceDeprecated(
   start: TraceStart,
   topology: TopologyQueries,
   assetIndex: AssetIndexQueries,

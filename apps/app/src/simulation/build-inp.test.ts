@@ -533,7 +533,10 @@ describe("build inp", () => {
       });
     });
 
-    describe("remote flow direction", () => {
+    describe.each([
+      { barrierTrace: false, name: "deprecated trace" },
+      { barrierTrace: true, name: "barrier trace" },
+    ])("remote flow direction, $name", ({ barrierTrace }) => {
       const IDS = {
         R1: 1,
         J1: 2,
@@ -567,6 +570,7 @@ describe("build inp", () => {
         const inp = buildInp(hydraulicModel, {
           units: presets.LPS.units,
           simulationSettings: defaultSimulationSettings,
+          barrierTrace,
         });
         const row = inp.match(
           /vsp_step\(\{\{"\d+","flow","\d+",[\d.]+,[\d.]+,[\d.]+,\{[^}]*\},(-?1)\}\}/,

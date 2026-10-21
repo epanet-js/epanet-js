@@ -19,6 +19,7 @@ import { SpinnerIcon, SuccessIcon, WarningIcon, ErrorIcon } from "src/icons";
 import { useUserTracking } from "src/infra/user-tracking";
 import { worktreeAtom } from "src/state/scenarios";
 import { useRecentFiles } from "src/hooks/use-recent-files";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const saveShortcut = "ctrl+s";
 export const saveAsShortcut = "ctrl+shift+s";
@@ -30,6 +31,7 @@ export const useSaveInp = () => {
   const { addRecent } = useRecentFiles();
   const userTracking = useUserTracking();
   const map = useContext(MapContext);
+  const isScriptingOn = useFeatureFlag("FLAG_SCRIPTING");
 
   const saveInp = useAtomCallback(
     useCallback(
@@ -60,6 +62,7 @@ export const useSaveInp = () => {
             simulationSettings,
             units: projectSettings.units,
             headlossFormula: projectSettings.headlossFormula,
+            barrierTrace: isScriptingOn,
           };
 
           const lsxRequirements = getLsxRequirements(hydraulicModel);
@@ -176,7 +179,7 @@ export const useSaveInp = () => {
           return false;
         }
       },
-      [userTracking, translate, map, addRecent],
+      [userTracking, translate, map, addRecent, isScriptingOn],
     ),
   );
 

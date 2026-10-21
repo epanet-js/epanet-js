@@ -53,7 +53,9 @@ import {
 } from "@epanet-js/hydraulic-model";
 import { effectiveRoughness } from "@epanet-js/hydraulic-model";
 import {
-  boundaryTrace,
+  boundaryBarriers,
+  boundaryTraceDeprecated,
+  trace,
   AllowedFlowDirection as AllowedFlowDirections,
   getAllowedFlowDirectionFromAssetConfig,
   type AllowedFlowDirectionQueries,
@@ -381,6 +383,7 @@ export type BuildOptions = {
   usedCurves?: boolean;
   includeQuality?: boolean;
   projection?: Projection;
+  barrierTrace?: boolean;
 };
 
 export const buildInp = (
@@ -459,6 +462,7 @@ type ResolvedBuildOptions = BuildOptions &
       | "usedPatterns"
       | "usedCurves"
       | "includeQuality"
+      | "barrierTrace"
     >
   >;
 
@@ -477,6 +481,7 @@ function* generateInp(
     usedPatterns: false,
     usedCurves: false,
     includeQuality: false,
+    barrierTrace: false,
     ...options,
   };
   const idMap = new EpanetIds({
@@ -754,7 +759,11 @@ function* generateInp(
   }
   yield* emitSection(state, ["[CONTROLS]"], controlRows(hydraulicModel, idMap));
   yield* emitSection(state, ["[RULES]"], ruleRows(hydraulicModel, idMap));
-  yield* emitSection(state, ["[SCRIPT]"], scriptRows(hydraulicModel, idMap));
+  yield* emitSection(
+    state,
+    ["[SCRIPT]"],
+    scriptRows(hydraulicModel, idMap, opts.barrierTrace),
+  );
   yield* emitSection(state, ["[END]"], [], { alwaysWrite: true });
 }
 
@@ -1490,6 +1499,7 @@ function* variableSpeedPumpTankLevelRows(
 function* scriptRows(
   hydraulicModel: HydraulicModel,
   idMap: EpanetIds,
+  barrierTrace: boolean,
 ): Generator<string> {
   const builder = LuaScriptBuilder();
 
@@ -1523,6 +1533,7 @@ function* scriptRows(
             hydraulicModel,
             control.linkId,
             control.targetId,
+            barrierTrace,
           )
         : 1;
 
@@ -1672,6 +1683,7 @@ const remoteFlowDirectionOf = (
   hydraulicModel: HydraulicModel,
   pumpId: AssetId,
   linkId: AssetId,
+  barrierTrace: boolean,
 ): 1 | -1 => {
   if (pumpId === linkId) return 1;
 
@@ -1680,12 +1692,21 @@ const remoteFlowDirectionOf = (
   const [linkStartId, linkEndId] = hydraulicModel.topology.getNodes(linkId);
 
   const reachedEnd = (fromNodeId: AssetId) => {
-    const { nodeIds } = boundaryTrace(
-      { nodeIds: [fromNodeId], linkIds: [] },
-      hydraulicModel.topology,
-      hydraulicModel.assetIndex,
-      alongSimulatedLinksExcept(hydraulicModel, linkId),
-    );
+    const start = { nodeIds: [fromNodeId], linkIds: [] };
+    const directions = alongSimulatedLinksExcept(hydraulicModel, linkId);
+    const { nodeIds } = barrierTrace
+      ? trace(
+          start,
+          hydraulicModel.topology,
+          directions,
+          boundaryBarriers(hydraulicModel.assetIndex, directions),
+        )
+      : boundaryTraceDeprecated(
+          start,
+          hydraulicModel.topology,
+          hydraulicModel.assetIndex,
+          directions,
+        );
     const reached = new Set(nodeIds);
     if (reached.has(linkStartId) === reached.has(linkEndId)) return null;
     return reached.has(linkStartId) ? "start" : "end";

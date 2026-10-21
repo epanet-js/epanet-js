@@ -11,6 +11,7 @@ export type TargetNodeOption = { value: AssetId; label: string };
 export const findTargetNodeOptions = async (
   hydraulicModel: HydraulicModel,
   valve: Valve,
+  isScriptingOn: boolean,
   signal?: AbortSignal,
 ): Promise<TargetNodeOption[]> => {
   const endNodeId = valve.connections[1];
@@ -20,6 +21,7 @@ export const findTargetNodeOptions = async (
     hydraulicModel,
     null,
     { mode: "boundary", startNodeIds: [endNodeId], startLinkIds: [] },
+    isScriptingOn,
     signal,
   );
 

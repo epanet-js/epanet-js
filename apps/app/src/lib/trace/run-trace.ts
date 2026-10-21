@@ -2,7 +2,9 @@ import * as Comlink from "comlink";
 
 import {
   AssetId,
-  boundaryTrace,
+  boundaryBarriers,
+  boundaryTraceDeprecated,
+  trace,
   type TraceResult,
   type TraceStart,
 } from "@epanet-js/hydraulic-model";
@@ -33,6 +35,7 @@ export const runTrace = async (
   hydraulicModel: HydraulicModel,
   resultsReader: ResultsReader | null,
   input: TraceInput,
+  isScriptingOn: boolean,
   signal?: AbortSignal,
 ): Promise<AssetId[]> => {
   if (signal?.aborted) {
@@ -43,8 +46,14 @@ export const runTrace = async (
     input.mode === "boundary" ? null : resultsReader;
 
   const result = canUseWorker()
-    ? await runWithWorker(hydraulicModel, effectiveResultsReader, input, signal)
-    : runSync(hydraulicModel, effectiveResultsReader, input);
+    ? await runWithWorker(
+        hydraulicModel,
+        effectiveResultsReader,
+        input,
+        isScriptingOn,
+        signal,
+      )
+    : runSync(hydraulicModel, effectiveResultsReader, input, isScriptingOn);
 
   return [...result.nodeIds, ...result.linkIds];
 };
@@ -53,6 +62,7 @@ function runSync(
   model: HydraulicModel,
   resultsReader: ResultsReader | null,
   input: TraceInput,
+  isScriptingOn: boolean,
 ): TraceResult {
   const status = new FlowDirection(model.assets, resultsReader);
   const allowedFlowDirection = new AllowedFlowDirection(
@@ -66,12 +76,19 @@ function runSync(
 
   switch (input.mode) {
     case "boundary":
-      return boundaryTrace(
-        start,
-        model.topology,
-        model.assetIndex,
-        allowedFlowDirection,
-      );
+      return isScriptingOn
+        ? trace(
+            start,
+            model.topology,
+            allowedFlowDirection,
+            boundaryBarriers(model.assetIndex, allowedFlowDirection),
+          )
+        : boundaryTraceDeprecated(
+            start,
+            model.topology,
+            model.assetIndex,
+            allowedFlowDirection,
+          );
     case "upstream":
       return upstreamTrace(start, model.topology, status);
     case "downstream":
@@ -83,6 +100,7 @@ const runWithWorker = async (
   model: HydraulicModel,
   resultsReader: ResultsReader | null,
   input: TraceInput,
+  isScriptingOn: boolean,
   signal?: AbortSignal,
 ): Promise<TraceResult> => {
   if (signal?.aborted) {
@@ -103,7 +121,12 @@ const runWithWorker = async (
 
   const workerAPI = getTraceWorker();
   try {
-    const result = await workerAPI.runTrace(input.mode, start, transferData);
+    const result = await workerAPI.runTrace(
+      input.mode,
+      start,
+      transferData,
+      isScriptingOn,
+    );
     if (signal?.aborted) {
       throw new DOMException("Operation cancelled", "AbortError");
     }

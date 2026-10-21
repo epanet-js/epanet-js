@@ -3,7 +3,9 @@ import { TopologyView } from "src/hydraulic-model/topology/topology-transferable
 import { TraceRunData } from "./encode-trace-buffers";
 import { FlowDirectionView, AllowedFlowDirectionView } from "./trace-buffers";
 import {
-  boundaryTrace,
+  boundaryBarriers,
+  boundaryTraceDeprecated,
+  trace,
   type TraceResult,
   type TraceStart,
 } from "@epanet-js/hydraulic-model";
@@ -16,11 +18,12 @@ export interface TraceWorkerAPI {
     mode: TraceMode,
     start: TraceStart,
     data: TraceRunData,
+    isScriptingOn: boolean,
   ) => TraceResult;
 }
 
 export const workerAPI: TraceWorkerAPI = {
-  runTrace: (mode, start, data) => {
+  runTrace: (mode, start, data, isScriptingOn) => {
     const assetIndex = new AssetIndexView(data.assetIndexBuffers);
     const topology = new TopologyView(data.topologyBuffers, assetIndex);
     const flowDirection = new FlowDirectionView(
@@ -34,7 +37,19 @@ export const workerAPI: TraceWorkerAPI = {
 
     switch (mode) {
       case "boundary":
-        return boundaryTrace(start, topology, assetIndex, allowedFlowDirection);
+        return isScriptingOn
+          ? trace(
+              start,
+              topology,
+              allowedFlowDirection,
+              boundaryBarriers(assetIndex, allowedFlowDirection),
+            )
+          : boundaryTraceDeprecated(
+              start,
+              topology,
+              assetIndex,
+              allowedFlowDirection,
+            );
       case "upstream":
         return upstreamTrace(start, topology, flowDirection);
       case "downstream":

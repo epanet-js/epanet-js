@@ -1,9 +1,32 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { createMockResultsReader } from "src/__helpers__/state";
-import { boundaryTrace } from "@epanet-js/hydraulic-model";
+import {
+  boundaryBarriers,
+  boundaryTraceDeprecated,
+  configuredAllowedFlowDirections,
+  presetBarriers,
+  configuredValveKinds,
+  stopPresets,
+  trace,
+  weightedTrace,
+  type TraceStop,
+} from "@epanet-js/hydraulic-model";
 import { AllowedFlowDirection } from "./allowed-flow-direction";
 
-describe("boundaryTrace", () => {
+const boundaryTraceWithBarriers: typeof boundaryTraceDeprecated = (
+  start,
+  topology,
+  assetIndex,
+  status,
+) => trace(start, topology, status, boundaryBarriers(assetIndex, status));
+
+describe.each([
+  { name: "boundaryTraceDeprecated", boundaryTrace: boundaryTraceDeprecated },
+  {
+    name: "trace with boundary barriers",
+    boundaryTrace: boundaryTraceWithBarriers,
+  },
+])("$name", ({ boundaryTrace }) => {
   it("traces through open pipes and junctions", () => {
     const IDS = { J1: 1, J2: 2, J3: 3, P1: 4, P2: 5 } as const;
     const model = HydraulicModelBuilder.with()
@@ -369,5 +392,220 @@ describe("boundaryTrace", () => {
 
     expect(result.linkIds).toContain(IDS.TCV);
     expect(result.nodeIds).toContain(IDS.J3);
+  });
+});
+
+describe("trace stops", () => {
+  it("reports each barrier it stopped at, why, and where it came from", () => {
+    const IDS = {
+      J1: 1,
+      J2: 2,
+      J3: 3,
+      J4: 4,
+      J5: 5,
+      T1: 6,
+      P1: 7,
+      PU1: 8,
+      P2: 9,
+      CV: 10,
+      P3: 11,
+    } as const;
+    const model = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1)
+      .aJunction(IDS.J2)
+      .aJunction(IDS.J3)
+      .aJunction(IDS.J4)
+      .aJunction(IDS.J5)
+      .aTank(IDS.T1)
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
+      .aPump(IDS.PU1, { startNodeId: IDS.J2, endNodeId: IDS.J3 })
+      .aPipe(IDS.P2, {
+        startNodeId: IDS.J2,
+        endNodeId: IDS.J4,
+        initialStatus: "closed",
+      })
+      .aPipe(IDS.CV, {
+        startNodeId: IDS.J5,
+        endNodeId: IDS.J2,
+        initialStatus: "cv",
+      })
+      .aPipe(IDS.P3, { startNodeId: IDS.J1, endNodeId: IDS.T1 })
+      .build();
+
+    const traversal = new AllowedFlowDirection(model.assets, null);
+    const result = trace(
+      { nodeIds: [IDS.J1], linkIds: [] },
+      model.topology,
+      traversal,
+      boundaryBarriers(model.assetIndex, traversal),
+    );
+
+    expect(result.stops).toHaveLength(4);
+    expect(result.stops).toEqual(
+      expect.arrayContaining([
+        {
+          assetId: IDS.T1,
+          reason: "barrier",
+          fromNodeId: IDS.J1,
+          viaLinkId: IDS.P3,
+        },
+        {
+          assetId: IDS.PU1,
+          reason: "barrier",
+          fromNodeId: IDS.J2,
+          viaLinkId: null,
+        },
+        {
+          assetId: IDS.P2,
+          reason: "closed",
+          fromNodeId: IDS.J2,
+          viaLinkId: null,
+        },
+        {
+          assetId: IDS.CV,
+          reason: "direction",
+          fromNodeId: IDS.J2,
+          viaLinkId: null,
+        },
+      ]),
+    );
+  });
+
+  it("does not report a one-way link it later crossed from its start", () => {
+    const IDS = { J1: 1, J2: 2, J3: 3, CV: 4, P1: 5, P2: 6 } as const;
+    const model = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1)
+      .aJunction(IDS.J2)
+      .aJunction(IDS.J3)
+      .aPipe(IDS.P2, { startNodeId: IDS.J1, endNodeId: IDS.J3 })
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
+      .aPipe(IDS.CV, {
+        startNodeId: IDS.J3,
+        endNodeId: IDS.J2,
+        initialStatus: "cv",
+      })
+      .build();
+
+    const traversal = new AllowedFlowDirection(model.assets, null);
+    const result = trace(
+      { nodeIds: [IDS.J1], linkIds: [] },
+      model.topology,
+      traversal,
+      boundaryBarriers(model.assetIndex, traversal),
+    );
+
+    expect(result.linkIds).toContain(IDS.CV);
+    expect(result.stops).toEqual([]);
+  });
+});
+
+describe("weightedTrace without limits", () => {
+  const random = (seed: number) => () => {
+    seed = (seed * 1103515245 + 12345) % 2147483648;
+    return seed / 2147483648;
+  };
+  const pick = <T>(next: () => number, items: readonly T[]): T =>
+    items[Math.floor(next() * items.length)];
+
+  const aRandomModel = (next: () => number) => {
+    const nodeCount = 3 + Math.floor(next() * 20);
+    const builder = HydraulicModelBuilder.with();
+    for (let id = 1; id <= nodeCount; id++) {
+      const kind = next();
+      if (kind < 0.08) builder.aTank(id);
+      else if (kind < 0.14) builder.aReservoir(id);
+      else builder.aJunction(id);
+    }
+    const linkCount = Math.floor(nodeCount * (1 + next()));
+    for (let i = 0; i < linkCount; i++) {
+      const id = 100 + i;
+      const startNodeId = 1 + Math.floor(next() * nodeCount);
+      const endNodeId =
+        ((startNodeId + Math.floor(next() * (nodeCount - 1))) % nodeCount) + 1;
+      const kind = next();
+      if (kind < 0.7) {
+        builder.aPipe(id, {
+          startNodeId,
+          endNodeId,
+          length: 1 + Math.floor(next() * 100),
+          initialStatus: pick(next, ["open", "open", "closed", "cv"] as const),
+        });
+      } else if (kind < 0.82) {
+        builder.aPump(id, {
+          startNodeId,
+          endNodeId,
+          initialStatus: pick(next, ["on", "off"] as const),
+        });
+      } else {
+        builder.aValve(id, {
+          startNodeId,
+          endNodeId,
+          kind: pick(next, [
+            "prv",
+            "psv",
+            "fcv",
+            "pbv",
+            "tcv",
+            "gpv",
+            "pcv",
+          ] as const),
+          initialStatus: pick(next, ["active", "open", "closed"] as const),
+        });
+      }
+    }
+    return builder.build();
+  };
+
+  const stopsOf = (stops: TraceStop<string>[]) =>
+    stops.map(({ assetId, reason }) => `${assetId}:${reason}`).sort();
+
+  it("reaches the same nodes and links, and stops at the same assets for the same reasons, as trace", () => {
+    for (let seed = 1; seed <= 200; seed++) {
+      const next = random(seed);
+      const model = aRandomModel(next);
+      const directions = configuredAllowedFlowDirections(model.assets);
+      const presets = stopPresets.filter(() => next() < 0.3);
+      const barriers = presetBarriers(
+        presets,
+        model.assetIndex,
+        directions,
+        configuredValveKinds(model.assets),
+      );
+      const nodeIds = [...model.assets.values()]
+        .filter((asset) => !asset.isLink)
+        .map((asset) => asset.id);
+      const linkIds = [...model.assets.values()]
+        .filter((asset) => asset.isLink)
+        .map((asset) => asset.id);
+      const start = {
+        nodeIds: [pick(next, nodeIds)],
+        linkIds: next() < 0.5 ? [pick(next, linkIds)] : [],
+      };
+
+      const traced = trace(start, model.topology, directions, barriers);
+      const weighted = weightedTrace(
+        start,
+        model.topology,
+        directions,
+        barriers,
+        {
+          maxDistance: Infinity,
+          maxHops: Infinity,
+          lengthOf: () => 1,
+        },
+      );
+
+      expect({
+        seed,
+        nodes: [...weighted.nodeIds].sort(),
+        links: [...weighted.linkIds].sort(),
+        stops: stopsOf(weighted.stops),
+      }).toEqual({
+        seed,
+        nodes: [...traced.nodeIds].sort(),
+        links: [...traced.linkIds].sort(),
+        stops: stopsOf(traced.stops),
+      });
+    }
   });
 });

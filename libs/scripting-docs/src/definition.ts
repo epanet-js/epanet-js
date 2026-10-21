@@ -28,6 +28,7 @@ const AGENT_RULES = [
   "No `Date.now()`, `new Date()` or `Math.random()`: they throw in this sandbox.",
   "`JSON.stringify(asset)` is `{}`. Map assets to plain objects of the fields you need before serialising.",
   "Use the app's own checks instead of re-implementing them: `network.validate()`, `findOrphanAssets()`, `findSubnetworks()`, `findProximityAnomalies({ distance })`, `findCrossingPipes()`, `trace`, `boundaryLinks`, `shortestPath`.",
+  "Walk the pipes with `network.trace`, never with your own search over `junction.links`: `stopAt`, `maxDistance` and `maxHops` set where it stops, `stoppedAt` says where and why it stopped, `distance(node)` how far along the pipes a node is.",
   "`network.validate()`'s `findings[0]` is the worst problem; `code` is stable; `assets` names what to fix.",
   "Read `pipe.appliedRoughness`, not `pipe.roughness`, for the value EPANET receives.",
   "Junction demand is `junction.demands` (categories with patterns) plus the demand of `junction.customerPoints`; `junction.baseDemand` is the categories only.",

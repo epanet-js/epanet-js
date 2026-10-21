@@ -17,6 +17,7 @@ import { Asset, Pipe, Valve } from "@epanet-js/hydraulic-model";
 import { runTrace } from "src/lib/trace";
 import { useTranslate } from "src/hooks/use-translate";
 import { useKeyboardState } from "src/keyboard/use-keyboard-state";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const TRACE_MODE_MAP = {
   [Mode.BOUNDARY_TRACE_SELECT]: "boundary",
@@ -36,6 +37,7 @@ export function useTraceSelectHandlers({
 
   const { getClickedAsset } = useClickedAsset(map, hydraulicModel.assets);
   const resultsReader = useAtomValue(simulationResultsDerivedAtom);
+  const isScriptingOn = useFeatureFlag("FLAG_SCRIPTING");
   const setMode = useSetAtom(modeAtom);
   const setCursor = useSetAtom(cursorStyleAtom);
   const {
@@ -124,6 +126,7 @@ export function useTraceSelectHandlers({
           startNodeIds,
           startLinkIds,
         },
+        isScriptingOn,
         abortController.signal,
       );
 

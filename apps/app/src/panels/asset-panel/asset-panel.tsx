@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useCallback, useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   Asset,
   Junction,
@@ -2136,6 +2137,7 @@ const ValveEditor = ({
   };
 
   const showTargetNode = valve.kind === "prv";
+  const isScriptingOn = useFeatureFlag("FLAG_SCRIPTING");
   const targetNode =
     valve.targetNodeId !== undefined
       ? hydraulicModel.assets.get(valve.targetNodeId)
@@ -2147,9 +2149,13 @@ const ValveEditor = ({
   );
 
   const { data: tracedNodeOptions } = useAsyncCompute<
-    [HydraulicModel, Valve],
+    [HydraulicModel, Valve, boolean],
     TargetNodeOption[]
-  >(findTargetNodeOptions, [hydraulicModel, valve], showTargetNode);
+  >(
+    findTargetNodeOptions,
+    [hydraulicModel, valve, isScriptingOn],
+    showTargetNode,
+  );
   const targetNodeOptions = tracedNodeOptions ?? EMPTY_TARGET_NODE_OPTIONS;
 
   const setHighlights = useSetAtom(highlightsAtom);

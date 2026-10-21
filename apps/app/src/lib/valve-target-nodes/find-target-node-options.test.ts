@@ -4,13 +4,16 @@ import { HydraulicModel } from "src/hydraulic-model/hydraulic-model";
 import * as workerInfra from "src/infra/worker";
 import { findTargetNodeOptions } from "./find-target-node-options";
 
-const labelsOf = async (model: HydraulicModel, valveId: number) => {
-  const valve = model.assets.get(valveId) as unknown as Valve;
-  const options = await findTargetNodeOptions(model, valve);
-  return options.map((option) => option.label).sort();
-};
+describe.each([
+  { isScriptingOn: false, flagState: "off" },
+  { isScriptingOn: true, flagState: "on" },
+])("findTargetNodeOptions, FLAG_SCRIPTING $flagState", ({ isScriptingOn }) => {
+  const labelsOf = async (model: HydraulicModel, valveId: number) => {
+    const valve = model.assets.get(valveId) as unknown as Valve;
+    const options = await findTargetNodeOptions(model, valve, isScriptingOn);
+    return options.map((option) => option.label).sort();
+  };
 
-describe("findTargetNodeOptions", () => {
   beforeEach(() => {
     vi.spyOn(workerInfra, "canUseWorker").mockReturnValue(false);
   });
