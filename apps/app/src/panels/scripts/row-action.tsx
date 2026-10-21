@@ -31,11 +31,11 @@ export const RowAction = ({
         onActivate();
       }
     }}
-    className={`inline-flex items-center justify-center rounded p-1
+    className={`inline-flex items-center justify-center h-6 min-w-6 px-1 rounded-sm
       focus:outline-hidden focus-visible:ring-1 focus-visible:ring-accent ${
         disabled
           ? "text-disabled cursor-not-allowed"
-          : "text-subtle hover:text-default"
+          : "text-default hover:bg-base-hover"
       }`}
   >
     {children}
