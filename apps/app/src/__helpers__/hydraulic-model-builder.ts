@@ -23,6 +23,8 @@ import {
   SimpleControl,
   RuleBasedControl,
   AssetFactory,
+  type Zone,
+  type Zones,
 } from "@epanet-js/hydraulic-model";
 import {
   Controls,
@@ -165,6 +167,7 @@ export class HydraulicModelBuilder {
   private rawControlsValue: RawControls;
   private controlsValue: Controls;
   private customAttributesValue: CustomAttributesDefinition;
+  private zonesValue: Zones;
 
   static with(
     options: {
@@ -203,6 +206,7 @@ export class HydraulicModelBuilder {
     this.rawControlsValue = createEmptyRawControls();
     this.controlsValue = createEmptyControls();
     this.customAttributesValue = emptyCustomAttributesDefinition();
+    this.zonesValue = new Map();
   }
 
   aCustomAttribute(
@@ -471,6 +475,11 @@ export class HydraulicModelBuilder {
     return this;
   }
 
+  aZone(zone: Zone) {
+    this.zonesValue.set(zone.id, zone);
+    return this;
+  }
+
   aPipeMaterial(material: PipeMaterial) {
     this.pipeMaterialsValue.push(material);
     return this;
@@ -570,6 +579,7 @@ export class HydraulicModelBuilder {
       controls: this.controlsValue,
       controlsLookup: buildControlsLookup(this.controlsValue),
       customAttributes: this.customAttributesValue,
+      zones: this.zonesValue,
     };
   }
 

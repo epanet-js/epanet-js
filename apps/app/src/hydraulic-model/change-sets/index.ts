@@ -10,6 +10,7 @@ export {
   replaceCurves,
   replaceCustomAttributes,
   replacePatterns,
+  replaceZones,
   setAsset,
   setCustomerPoint,
   setDemands,

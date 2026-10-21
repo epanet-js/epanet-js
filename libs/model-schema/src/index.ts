@@ -4,4 +4,5 @@ export * from "./controls";
 export * from "./pipe-library";
 export * from "./raw-controls";
 export * from "./custom-attributes";
+export * from "./zones";
 export * from "./fields";

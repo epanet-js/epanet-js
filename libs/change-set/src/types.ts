@@ -14,6 +14,7 @@ export const entityKinds = [
   "customAttributesDefinition",
   "pipeLibrary",
   "rawControls",
+  "zone",
 ] as const;
 
 export type EntityKind = (typeof entityKinds)[number];

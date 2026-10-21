@@ -1577,6 +1577,15 @@ describe("build zones from network data", () => {
     ]);
   });
 
+  it("puts the zones in the hydraulic model", () => {
+    const { hydraulicModel, zones } = buildModel(
+      aNetwork({ zones: [aZone({ ref: "3", label: "NORTH" })] }),
+      { projections: aCatalogue() },
+    );
+
+    expect(hydraulicModel.zones).toEqual(zones);
+  });
+
   it("generates a label when the source named no zone", () => {
     const { zones } = buildModel(aNetwork({ zones: [aZone({ ref: "3" })] }), {
       projections: aCatalogue(),

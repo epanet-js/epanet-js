@@ -76,6 +76,7 @@ export const snapshot = (
   },
   curves: sortedEntries(model.curves),
   patterns: sortedEntries(model.patterns),
+  zones: sortedEntries(model.zones),
   controls: [...model.controls]
     .sort((a, b) => (a.id < b.id ? -1 : 1))
     .map(canonical),

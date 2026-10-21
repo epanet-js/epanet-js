@@ -24,6 +24,8 @@ import {
   type PatternType,
   type PipeMaterial,
   type RawControls,
+  type Zone,
+  type Zones,
 } from "@epanet-js/hydraulic-model";
 import type { HydraulicModel } from "../hydraulic-model";
 import {
@@ -63,6 +65,7 @@ const CREATE_RANK: Record<EntityKind, number> = {
   allControls: 12,
   junctionDemand: 13,
   customerDemand: 14,
+  zone: 15,
 };
 
 const CREATE_ORDER: EntityKind[] = [...entityKinds].sort(
@@ -235,6 +238,27 @@ const applyPattern = (
   labelManager.register(pattern.label, "pattern", id);
 };
 
+const applyZone = (
+  entityId: number | string,
+  change: Effective,
+  zones: Zones,
+): void => {
+  const id = Number(entityId);
+
+  if (change.kind === "delete") {
+    zones.delete(id);
+    return;
+  }
+
+  const source = { ...(zones.get(id) ?? {}), ...change.fields };
+  zones.set(id, {
+    id,
+    label: source.label as string,
+    geometry: source.geometry as Zone["geometry"],
+    bbox: source.bbox as Zone["bbox"],
+  });
+};
+
 const applyDemand = (
   entityId: number | string,
   change: Effective,
@@ -265,6 +289,7 @@ const applyChanges = (
   let patterns: Map<number, Pattern> | null = null;
   let junctionDemands: Map<number, Demand[]> | null = null;
   let customerDemands: Map<number, Demand[]> | null = null;
+  let zones: Zones | null = null;
 
   let count = 0;
   const buckets = new Map<string, EntityChange[]>();
@@ -329,6 +354,10 @@ const applyChanges = (
           case "rawControls":
             model.rawControls = wholeValueOf<RawControls>(change.fields);
             break;
+          case "zone":
+            zones ??= new Map(model.zones);
+            applyZone(id, change, zones);
+            break;
         }
       }
     }
@@ -336,6 +365,7 @@ const applyChanges = (
 
   if (curves) model.curves = curves;
   if (patterns) model.patterns = patterns;
+  if (zones) model.zones = zones;
   if (junctionDemands || customerDemands) {
     model.demands = {
       ...model.demands,

@@ -10,6 +10,7 @@ import {
 import { customerPointRowSchema } from "./customer-points";
 import { curveRowSchema } from "./curves";
 import { patternRowSchema } from "./patterns";
+import { zoneRowSchema } from "./zones";
 
 const asPatchSchema = <T extends z.ZodObject<z.ZodRawShape>>(rowSchema: T) =>
   rowSchema.partial().required({ id: true });
@@ -25,6 +26,7 @@ export const customerPointPatchRowSchema = asPatchSchema(
 );
 export const curvePatchRowSchema = asPatchSchema(curveRowSchema);
 export const patternPatchRowSchema = asPatchSchema(patternRowSchema);
+export const zonePatchRowSchema = asPatchSchema(zoneRowSchema);
 
 export type JunctionPatchRow = z.infer<typeof junctionPatchRowSchema>;
 export type ReservoirPatchRow = z.infer<typeof reservoirPatchRowSchema>;
@@ -35,6 +37,7 @@ export type ValvePatchRow = z.infer<typeof valvePatchRowSchema>;
 export type CustomerPointPatchRow = z.infer<typeof customerPointPatchRowSchema>;
 export type CurvePatchRow = z.infer<typeof curvePatchRowSchema>;
 export type PatternPatchRow = z.infer<typeof patternPatchRowSchema>;
+export type ZonePatchRow = z.infer<typeof zonePatchRowSchema>;
 
 export type AssetPatchRow =
   | JunctionPatchRow

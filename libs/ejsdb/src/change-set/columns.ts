@@ -9,6 +9,11 @@ import type {
 } from "../schema/assets";
 import { pointsSchema, type CurveRow } from "../schema/curves";
 import { multipliersSchema, type PatternRow } from "../schema/patterns";
+import {
+  zoneBboxSchema,
+  zoneGeometrySchema,
+  type ZoneRow,
+} from "../schema/zones";
 import type { CustomerPointRow } from "../schema/customer-points";
 import {
   column,
@@ -87,6 +92,26 @@ const toDbMultipliers = (value: unknown): string => {
   if (!result.success) {
     throw new Error(
       `Pattern multipliers must be an array of finite numbers — ${result.error.message}`,
+    );
+  }
+  return JSON.stringify(result.data);
+};
+
+const toDbZoneGeometry = (value: unknown): string => {
+  const result = zoneGeometrySchema.safeParse(value);
+  if (!result.success) {
+    throw new Error(
+      `Zone geometry must be a MultiPolygon of finite-number positions — ${result.error.message}`,
+    );
+  }
+  return JSON.stringify(result.data);
+};
+
+const toDbZoneBbox = (value: unknown): string => {
+  const result = zoneBboxSchema.safeParse(value);
+  if (!result.success) {
+    throw new Error(
+      `Zone bbox must be an array of finite numbers — ${result.error.message}`,
     );
   }
   return JSON.stringify(result.data);
@@ -239,4 +264,10 @@ export const patternMap: ColumnMap<PatternRow> = {
   label: column<PatternRow>("label"),
   type: column<PatternRow>("type", toNullable),
   multipliers: column<PatternRow>("multipliers", toDbMultipliers),
+};
+
+export const zoneMap: ColumnMap<ZoneRow> = {
+  label: column<ZoneRow>("label"),
+  geometry: column<ZoneRow>("geometry", toDbZoneGeometry),
+  bbox: column<ZoneRow>("bbox", toDbZoneBbox),
 };

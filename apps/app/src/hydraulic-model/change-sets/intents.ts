@@ -15,6 +15,7 @@ import type {
   Patterns,
   PipeMaterial,
   RawControls,
+  Zones,
 } from "@epanet-js/hydraulic-model";
 import type { DemandAssignment } from "../model-operation";
 import type { Intent } from "./build";
@@ -264,6 +265,22 @@ export const replacePatterns =
         label: pattern.label,
         type: pattern.type,
         multipliers: pattern.multipliers,
+      }),
+      out,
+    );
+  };
+
+export const replaceZones =
+  (zones: Zones): Intent =>
+  (model, out) => {
+    diffKeyed(
+      "zone",
+      model.zones,
+      zones,
+      (zone) => ({
+        label: zone.label,
+        geometry: zone.geometry,
+        bbox: zone.bbox,
       }),
       out,
     );

@@ -17,5 +17,6 @@ export enum Entity {
   CustomerDemand = 11,
   CustomAttributesDefinition = 12,
   PipeLibrary = 13,
-  RawControls = 14
+  RawControls = 14,
+  Zone = 15
 }

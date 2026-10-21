@@ -238,6 +238,7 @@ export const buildModel = (
     reprojectZones(network.zones, toWgs84),
     factories.zoneFactory,
   );
+  hydraulicModel.zones = zones;
 
   const selectionSets = buildSelectionSets(
     network.selectionSets,

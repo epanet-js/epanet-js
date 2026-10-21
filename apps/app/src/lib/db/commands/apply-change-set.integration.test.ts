@@ -10,6 +10,7 @@ import {
   dropAssets,
   putAssets,
   replaceCurves,
+  replaceZones,
   setAsset,
   setDemands,
 } from "src/hydraulic-model/change-sets/intents";
@@ -113,5 +114,38 @@ describe("apply-change-set integration", () => {
     expect(hydraulicModel.demands.junctions.get(IDS.J1)).toEqual([
       { baseDemand: 7 },
     ]);
+  });
+
+  it("writes zones and reads them back into the model", async () => {
+    const { model } = aNetwork();
+    await seed(model);
+
+    const zone = {
+      id: 1,
+      label: "NORTH",
+      geometry: {
+        type: "MultiPolygon" as const,
+        coordinates: [
+          [
+            [
+              [0, 0],
+              [1, 0],
+              [1, 1],
+              [0, 0],
+            ],
+          ],
+        ],
+      },
+      bbox: [0, 0, 1, 1] as [number, number, number, number],
+    };
+    const built = changeSet(model, "changeZones", [
+      replaceZones(new Map([[zone.id, zone]])),
+    ]);
+
+    await applyChangeSetToDb(built, "forward");
+    expect((await fetchProject()).hydraulicModel.zones.get(1)).toEqual(zone);
+
+    await applyChangeSetToDb(built, "reverse");
+    expect((await fetchProject()).hydraulicModel.zones.size).toBe(0);
   });
 });

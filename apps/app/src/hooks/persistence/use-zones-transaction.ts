@@ -2,7 +2,7 @@ import { useCallback } from "react";
 import { useSetAtom } from "jotai";
 import { nanoid } from "nanoid";
 import type { Zones } from "@epanet-js/hydraulic-model";
-import { zonesAtom } from "src/state/zones";
+import { zonesDeprecatedAtom } from "src/state/zones";
 import { projectDataVersionAtom } from "src/state/project-revision";
 import { dialogAtom } from "src/state/dialog";
 import { saveZones, zonesToRows } from "src/lib/db";
@@ -11,7 +11,7 @@ import { writeQueue } from "src/lib/persistence/write-queue";
 import { useWriteFailureHandler } from "src/hooks/persistence/use-write-failure-handler";
 
 export const useZonesTransaction = () => {
-  const setZones = useSetAtom(zonesAtom);
+  const setZones = useSetAtom(zonesDeprecatedAtom);
   const setProjectDataVersion = useSetAtom(projectDataVersionAtom);
   const setDialog = useSetAtom(dialogAtom);
   const onWriteFailure = useWriteFailureHandler();

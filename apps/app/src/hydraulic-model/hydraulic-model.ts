@@ -32,6 +32,7 @@ export const copyModel = (source: HydraulicModel): HydraulicModel => {
     controls,
     controlsLookup: buildControlsLookup(controls),
     customAttributes: deepCloneCustomAttributes(source.customAttributes),
+    zones: new Map(source.zones),
   };
 };
 

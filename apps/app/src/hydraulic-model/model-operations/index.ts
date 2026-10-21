@@ -15,6 +15,7 @@ export { changeRawControls } from "./change-raw-controls";
 export { changeAssetControl } from "./change-asset-control";
 export { changeCurves } from "./change-curves";
 export { changePatterns } from "./change-patterns";
+export { changeZones } from "./change-zones";
 export { changePipeMaterials } from "./change-pipe-materials";
 export { changeCustomAttributesDefinition } from "./change-custom-attributes-definition";
 export { changeElevations, type NodeElevation } from "./change-elevations";

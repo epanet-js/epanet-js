@@ -5,6 +5,7 @@ import type {
   CustomerPointPatchRow,
   CurvePatchRow,
   PatternPatchRow,
+  ZonePatchRow,
 } from "./schema/patches";
 import type {
   CustomerPointRow,
@@ -122,6 +123,9 @@ export type WriteBatch = {
   patternDeleteIds: number[];
   patternUpserts: PatternRow[];
   patternPatches: PatternPatchRow[];
+  zoneDeleteIds: number[];
+  zoneUpserts: ZoneRow[];
+  zonePatches: ZonePatchRow[];
   pipeLibraryReplacement: string | null;
   rawControlsReplacement: string | null;
   controlsReplacement: string | null;
@@ -157,6 +161,9 @@ export const isEmptyWriteBatch = (payload: WriteBatch): boolean =>
   payload.patternDeleteIds.length === 0 &&
   payload.patternUpserts.length === 0 &&
   payload.patternPatches.length === 0 &&
+  payload.zoneDeleteIds.length === 0 &&
+  payload.zoneUpserts.length === 0 &&
+  payload.zonePatches.length === 0 &&
   payload.pipeLibraryReplacement === null &&
   payload.rawControlsReplacement === null &&
   payload.controlsReplacement === null &&
@@ -200,6 +207,9 @@ export const emptyWriteBatch = (): WriteBatch => ({
   patternDeleteIds: [],
   patternUpserts: [],
   patternPatches: [],
+  zoneDeleteIds: [],
+  zoneUpserts: [],
+  zonePatches: [],
   pipeLibraryReplacement: null,
   rawControlsReplacement: null,
   controlsReplacement: null,

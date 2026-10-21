@@ -80,7 +80,7 @@ import {
   initialPlaybackState,
   simulationPlaybackAtom,
 } from "src/state/simulation-playback";
-import { zonesAtom } from "src/state/zones";
+import { zonesDeprecatedAtom } from "src/state/zones";
 import { bookmarksAtom, selectionSetsAtom } from "src/state/collections";
 import {
   type Bookmark,
@@ -123,7 +123,7 @@ export const resetAppState = (set: Setter, panels: Panel[]) => {
   set(sourceRebuildDurationsAtom, []);
   set(resultsFetchDurationsAtom, []);
   set(simulationPlaybackAtom, initialPlaybackState);
-  set(zonesAtom, new Map());
+  set(zonesDeprecatedAtom, new Map());
   set(selectionSetsAtom, initializeSelectionSets());
   set(bookmarksAtom, initializeBookmarks());
   set(userScriptsAtom, []);
@@ -176,7 +176,7 @@ export const loadModel = (
     },
   };
   set(projectSettingsAtom, mergedProjectSettings);
-  set(zonesAtom, zones ?? new Map());
+  set(zonesDeprecatedAtom, zones ?? new Map());
   set(selectionSetsAtom, selectionSets ?? initializeSelectionSets());
   set(bookmarksAtom, bookmarks ?? initializeBookmarks());
   if (autoElevations !== undefined) {

@@ -31,7 +31,7 @@ import type {
   Worktree,
 } from "@epanet-js/worktree";
 
-type Identifiers = { pool: IdPool; labelType: LabelType };
+type Identifiers = { pool: IdPool; labelType: LabelType | null };
 
 const identifiersByEntity: Record<EntityKind, Identifiers | null> = {
   junction: { pool: "asset", labelType: "junction" },
@@ -49,6 +49,7 @@ const identifiersByEntity: Record<EntityKind, Identifiers | null> = {
   customAttributesDefinition: null,
   pipeLibrary: null,
   rawControls: null,
+  zone: { pool: "zone", labelType: null },
 };
 
 const observeIdentifiers = (
@@ -66,6 +67,7 @@ const observeIdentifiers = (
       factories.idPools.forPool(pool).observe(entry.id);
     }
 
+    if (!labelType) continue;
     const label = entry.get("after", "label");
     if (typeof label !== "string") continue;
     const index = LabelManager.generatedIndex(label, labelType);

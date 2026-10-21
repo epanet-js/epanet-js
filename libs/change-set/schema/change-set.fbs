@@ -20,6 +20,7 @@ enum Entity : ubyte {
   CustomAttributesDefinition,
   PipeLibrary,
   RawControls,
+  Zone,
 }
 
 enum Kind : ubyte { Create, Update, Delete }

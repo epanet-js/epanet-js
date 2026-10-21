@@ -30,6 +30,7 @@ import {
   customerPointMap,
   curveMap,
   patternMap,
+  zoneMap,
 } from "./columns";
 
 type Fields = Record<string, Cell>;
@@ -181,6 +182,28 @@ const addPattern = (
   );
 };
 
+const addZone = (payload: WriteBatch, id: number, change: Effective): void => {
+  if (change.kind === "delete") {
+    payload.zoneDeleteIds.push(id);
+    return;
+  }
+
+  if (change.kind === "create") {
+    payload.zoneUpserts.push(
+      rowFrom(
+        id,
+        change.fields,
+        zoneMap,
+      ) as (typeof payload.zoneUpserts)[number],
+    );
+    return;
+  }
+
+  const candidate = patchFrom(id, change.fields, zoneMap);
+  if (!hasColumns(candidate)) return;
+  payload.zonePatches.push(candidate as (typeof payload.zonePatches)[number]);
+};
+
 const demandRows = <T>(
   ownerColumn: "junction_id" | "customer_point_id",
   ownerId: number,
@@ -223,6 +246,9 @@ const buildPayload = (changes: readonly EntityChange[]): WriteBatch => {
         break;
       case "pattern":
         addPattern(payload, id, change);
+        break;
+      case "zone":
+        addZone(payload, id, change);
         break;
       case "junctionDemand":
         payload.junctionDemandUpdates.push({

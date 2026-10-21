@@ -15,6 +15,7 @@ import {
   serializePipeLibrary,
   serializeRawControls,
   toCustomerPointRow,
+  zonesToRows,
 } from "@epanet-js/ejsdb-mappers";
 import { buildChangeSetPayload, isEmptyWriteBatch } from "@epanet-js/ejsdb";
 import {
@@ -34,6 +35,7 @@ import {
   replaceCurves,
   replaceCustomAttributes,
   replacePatterns,
+  replaceZones,
   setAsset,
   setCustomerPoint,
   setDemands,
@@ -52,7 +54,27 @@ const IDS = {
   J4: 8,
   C2: 9,
   PAT2: 10,
+  Z1: 11,
+  Z2: 12,
 } as const;
+
+const aSquare = (x: number) => ({
+  geometry: {
+    type: "MultiPolygon" as const,
+    coordinates: [
+      [
+        [
+          [x, 0],
+          [x + 1, 0],
+          [x + 1, 1],
+          [x, 1],
+          [x, 0],
+        ],
+      ],
+    ],
+  },
+  bbox: [x, 0, x + 1, 1] as [number, number, number, number],
+});
 
 const aNetwork = () => {
   const { labelManager, assetFactory } = buildTestFactories();
@@ -72,6 +94,7 @@ const aNetwork = () => {
       points: [{ x: 1, y: 1 }],
     })
     .aPattern(IDS.PAT1, "PAT1", [1, 2, 3], "demand")
+    .aZone({ id: IDS.Z1, label: "NORTH", ...aSquare(0) })
     .aCustomAttribute("junction", {
       id: "custom-1",
       label: "ZONE",
@@ -489,6 +512,60 @@ describe("buildChangeSetPayload curves and patterns", () => {
     );
 
     expect(payload.patternDeleteIds).toEqual([IDS.PAT1]);
+  });
+});
+
+describe("buildChangeSetPayload zones", () => {
+  it("writes a zone create as an upsert with stringified geometry and bbox", () => {
+    const { model } = aNetwork();
+    const zones = new Map(model.zones);
+    zones.set(IDS.Z2, { id: IDS.Z2, label: "SOUTH", ...aSquare(5) });
+
+    const payload = buildChangeSetPayload(
+      changeSet(model, "changeZones", [replaceZones(zones)]),
+      "forward",
+    );
+
+    expect(payload.zoneUpserts).toEqual([
+      zonesToRows(new Map([[IDS.Z2, zones.get(IDS.Z2)!]]))[0],
+    ]);
+    expect(payload.zonePatches).toEqual([]);
+  });
+
+  it("writes a label-only zone edit as a patch", () => {
+    const { model } = aNetwork();
+    const zones = new Map(model.zones);
+    zones.set(IDS.Z1, { ...zones.get(IDS.Z1)!, label: "EAST" });
+
+    const payload = buildChangeSetPayload(
+      changeSet(model, "changeZones", [replaceZones(zones)]),
+      "forward",
+    );
+
+    expect(payload.zonePatches).toEqual([{ id: IDS.Z1, label: "EAST" }]);
+    expect(payload.zoneUpserts).toEqual([]);
+  });
+
+  it("writes a zone removal as a delete id", () => {
+    const { model } = aNetwork();
+
+    const payload = buildChangeSetPayload(
+      changeSet(model, "changeZones", [replaceZones(new Map())]),
+      "forward",
+    );
+
+    expect(payload.zoneDeleteIds).toEqual([IDS.Z1]);
+  });
+
+  it("restores a removed zone as an upsert in reverse", () => {
+    const { model } = aNetwork();
+
+    const payload = buildChangeSetPayload(
+      changeSet(model, "changeZones", [replaceZones(new Map())]),
+      "reverse",
+    );
+
+    expect(payload.zoneUpserts).toEqual(zonesToRows(model.zones));
   });
 });
 

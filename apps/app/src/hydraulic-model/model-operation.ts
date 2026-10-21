@@ -54,6 +54,7 @@ export type OperationCode =
   | "changeProperties"
   | "changeProperty"
   | "changeRawControls"
+  | "changeZones"
   | "connectCustomers"
   | "deactivateAssets"
   | "deleteAssets"

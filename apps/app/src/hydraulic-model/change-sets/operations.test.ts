@@ -25,6 +25,7 @@ import {
   changePipeMaterials,
   changeProperty,
   changeRawControls,
+  changeZones,
   deleteAssets,
   disconnectCustomers,
   moveCustomerPoint,
@@ -55,7 +56,27 @@ const IDS = {
   V1: 32,
   J4: 33,
   J5: 34,
+  Z1: 40,
+  Z2: 41,
 } as const;
+
+const aSquare = (x: number) => ({
+  geometry: {
+    type: "MultiPolygon" as const,
+    coordinates: [
+      [
+        [
+          [x, 0],
+          [x + 1, 0],
+          [x + 1, 1],
+          [x, 1],
+          [x, 0],
+        ],
+      ],
+    ],
+  },
+  bbox: [x, 0, x + 1, 1] as [number, number, number, number],
+});
 
 type Fixture = ModelFixture & { assetFactory: AssetFactory };
 
@@ -83,6 +104,7 @@ const aNetwork = (): Fixture => {
     })
     .aCurve({ id: IDS.C1, type: "volume", points: [{ x: 1, y: 1 }] })
     .aPattern(IDS.PAT1, "PAT1", [1, 2, 3])
+    .aZone({ id: IDS.Z1, label: "NORTH", ...aSquare(0) })
     .aCustomAttribute("junction", {
       id: "custom-1",
       label: "Zone",
@@ -340,6 +362,36 @@ const cases: OperationCase[] = [
     },
     expectApplied: ({ model }) => {
       expect(model.patterns.get(99)?.multipliers).toEqual([4, 5]);
+    },
+  },
+  {
+    name: "changeZones",
+    fixture: aNetwork,
+    run: ({ model }) => {
+      const zones = new Map(model.zones);
+      zones.set(IDS.Z1, { id: IDS.Z1, label: "SOUTH", ...aSquare(5) });
+      zones.set(IDS.Z2, { id: IDS.Z2, label: "EAST", ...aSquare(10) });
+      return changeZones(model, { zones });
+    },
+    expectApplied: ({ model }) => {
+      expect(model.zones.get(IDS.Z1)).toEqual({
+        id: IDS.Z1,
+        label: "SOUTH",
+        ...aSquare(5),
+      });
+      expect(model.zones.get(IDS.Z2)).toEqual({
+        id: IDS.Z2,
+        label: "EAST",
+        ...aSquare(10),
+      });
+    },
+  },
+  {
+    name: "changeZones removing a zone",
+    fixture: aNetwork,
+    run: ({ model }) => changeZones(model, { zones: new Map() }),
+    expectApplied: ({ model }) => {
+      expect(model.zones.size).toBe(0);
     },
   },
   {

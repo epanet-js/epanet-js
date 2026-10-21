@@ -20,6 +20,7 @@ import {
   CustomAttributesDefinition,
   emptyCustomAttributesDefinition,
 } from "./custom-attributes";
+import type { Zones } from "./zones";
 
 export type HydraulicModel = {
   version: string;
@@ -36,6 +37,7 @@ export type HydraulicModel = {
   controls: Controls;
   controlsLookup: ControlsLookup;
   customAttributes: CustomAttributesDefinition;
+  zones: Zones;
 };
 
 export const initializeHydraulicModel = ({
@@ -53,6 +55,7 @@ export const initializeHydraulicModel = ({
   curves,
   pipeMaterials,
   customAttributes,
+  zones,
 }: {
   version?: string;
   demands?: Demands;
@@ -68,6 +71,7 @@ export const initializeHydraulicModel = ({
   curves?: Curves;
   pipeMaterials?: PipeMaterial[];
   customAttributes?: CustomAttributesDefinition;
+  zones?: Zones;
 } = {}): HydraulicModel => {
   const assetIdGenerator = idGenerator ?? new ConsecutiveIdsGenerator();
   const resolvedAssets = assets ?? new Map();
@@ -86,5 +90,6 @@ export const initializeHydraulicModel = ({
     controls,
     controlsLookup: buildControlsLookup(controls),
     customAttributes: customAttributes ?? emptyCustomAttributesDefinition(),
+    zones: zones ?? (new Map() as Zones),
   };
 };

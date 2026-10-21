@@ -37,6 +37,7 @@ const entityToFb: Record<EntityKind, Entity> = {
   customAttributesDefinition: Entity.CustomAttributesDefinition,
   pipeLibrary: Entity.PipeLibrary,
   rawControls: Entity.RawControls,
+  zone: Entity.Zone,
 };
 
 const fbToEntity = new Map<Entity, EntityKind>(

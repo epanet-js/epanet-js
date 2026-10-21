@@ -13,6 +13,7 @@ import {
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
 import { addNode } from "src/hydraulic-model/model-operations/add-node";
+import { changeZones } from "src/hydraulic-model/model-operations/change-zones";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import { useSimulationSettingsTransaction } from "src/hooks/persistence/use-simulation-settings-transaction";
 import { useUndoableTransactions } from "src/hooks/persistence/use-undoable-transactions";
@@ -179,6 +180,35 @@ const addJunction = (store: Store) => {
     lengthUnit: "m",
     assetFactory: factories.assetFactory,
     labelManager: factories.labelManager,
+  });
+
+  act(() => {
+    result.current.transact(() => changeSet);
+  });
+};
+
+const importZone = (store: Store, id: number) => {
+  const { result } = renderHook(() => useModelTransaction(), withStore(store));
+  const zone = {
+    id,
+    label: "NORTH",
+    geometry: {
+      type: "MultiPolygon" as const,
+      coordinates: [
+        [
+          [
+            [0, 0],
+            [1, 0],
+            [1, 1],
+            [0, 0],
+          ],
+        ],
+      ],
+    },
+    bbox: [0, 0, 1, 1] as [number, number, number, number],
+  };
+  const changeSet = changeZones(store.get(stagingModelDerivedAtom), {
+    zones: new Map([[id, zone]]),
   });
 
   act(() => {
@@ -486,6 +516,33 @@ describe("branch store", () => {
     expect(
       store.get(modelFactoriesAtom).idPools.newId("asset"),
     ).toBeGreaterThan(scenarioMaxId);
+  });
+
+  it("keeps a scenario's zones out of main", async () => {
+    const { store: branchStore } = aRecordingStore();
+    registerBranchStore(branchStore);
+    const store = await aSavedProject();
+    switchToScenario(store);
+
+    importZone(store, 1);
+    await writeQueue.whenIdle();
+
+    expect(store.get(stagingModelDerivedAtom).zones.has(1)).toBe(true);
+    expect(modelOf(store, "main").zones.size).toEqual(0);
+    expect((await db.fetchProject({})).hydraulicModel.zones.size).toEqual(0);
+  });
+
+  it("keeps the zone id pool above every zone id a stored delta holds", async () => {
+    const { store: branchStore } = aRecordingStore();
+    registerBranchStore(branchStore);
+    const store = await aSavedProject();
+    switchToScenario(store);
+    importZone(store, 7);
+    await writeQueue.whenIdle();
+
+    await reopen(store);
+
+    expect(store.get(modelFactoriesAtom).idPools.newId("zone")).toBe(8);
   });
 
   it("refuses to open when the stored branches cannot be read", async () => {

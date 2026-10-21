@@ -191,6 +191,7 @@ export const fetchProject = async (
             customerPoints: customerDemands,
           },
           customAttributes,
+          zones,
         });
 
         return {

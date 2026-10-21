@@ -351,6 +351,15 @@ const insertCurve = (row: CurveRow) => {
     .stepReset();
 };
 
+const insertZone = (row: ZoneRow) => {
+  getStmt(
+    `INSERT INTO zones (id, label, geometry, bbox) VALUES (?, ?, ?, ?) ` +
+      `ON CONFLICT(id) DO UPDATE SET label = excluded.label, geometry = excluded.geometry, bbox = excluded.bbox`,
+  )
+    .bind([row.id, row.label, row.geometry, row.bbox])
+    .stepReset();
+};
+
 const upsertProjectSettings = (json: string) => {
   db!.exec(
     "INSERT INTO project (id, settings) VALUES (1, ?) ON CONFLICT(id) DO UPDATE SET settings = excluded.settings",
@@ -1021,6 +1030,9 @@ const countWriteBatch = (payload: WriteBatch) => ({
   delPat: payload.patternDeleteIds.length,
   upPat: payload.patternUpserts.length,
   patPat: payload.patternPatches.length,
+  delZone: payload.zoneDeleteIds.length,
+  upZone: payload.zoneUpserts.length,
+  patZone: payload.zonePatches.length,
   pipeLib: payload.pipeLibraryReplacement !== null ? 1 : 0,
   ctrl: payload.rawControlsReplacement !== null ? 1 : 0,
   ctrls: payload.controlsReplacement !== null ? 1 : 0,
@@ -1137,6 +1149,12 @@ const applyWriteBatch = (label: string, payload: WriteBatch): Promise<void> =>
         insertPattern(row);
       }
       bulkUpdate("patterns", payload.patternPatches);
+
+      bulkDelete(["zones"], "id", payload.zoneDeleteIds);
+      for (const row of payload.zoneUpserts) {
+        insertZone(row);
+      }
+      bulkUpdate("zones", payload.zonePatches);
       if (payload.pipeLibraryReplacement !== null) {
         updatePipeLibrary(payload.pipeLibraryReplacement);
       }

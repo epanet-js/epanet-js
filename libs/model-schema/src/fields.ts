@@ -20,6 +20,7 @@ import {
 } from "./custom-attributes";
 import { pipeLibrarySchema } from "./pipe-library";
 import { rawControlsSchema } from "./raw-controls";
+import { zoneBboxSchema, zoneGeometrySchema } from "./zones";
 import {
   curvePointsCell,
   flagCell,
@@ -152,6 +153,12 @@ const pattern: FieldSchemas = {
   multipliers: multipliersCell,
 };
 
+const zone: FieldSchemas = {
+  label: textCell,
+  geometry: zoneGeometrySchema,
+  bbox: zoneBboxSchema,
+};
+
 // Entities with no fields of their own: the whole value rides in one cell.
 const whole = (schema: z.ZodTypeAny): FieldSchemas => ({
   [WHOLE_VALUE]: schema,
@@ -196,6 +203,7 @@ export const fieldSchemas: Record<EntityKind, FieldSchemas> = {
   customAttributesDefinition: whole(customAttributesPlainCell),
   pipeLibrary: whole(pipeLibrarySchema),
   rawControls: whole(rawControlsSchema),
+  zone,
 };
 
 // A custom attribute's type comes from the definition rather than from this
