@@ -19,10 +19,10 @@ export const SECTION: Section = {
       name: "StopPreset",
       definition: `type StopPreset =
   | "tanks" | "reservoirs" | "pumps"
-  | "valves" | "controlValves" | "cv"
+  | "valves" | "controlValves" | "cv" | "closed"
   | "prv" | "psv" | "fcv" | "pbv" | "tcv" | "gpv" | "pcv";`,
       summary:
-        "Named barriers for `trace`'s `stopAt`. `controlValves` is every valve except TCVs; `cv` is check-valve pipes.",
+        'Named barriers for `trace`\'s `stopAt`. `controlValves` is every valve except an open TCV; `cv` is check-valve pipes; `closed` is closed pipes and valves and pumps that are off, for `mode: "connected"`.',
     },
     {
       name: "TraceStop",
@@ -35,7 +35,7 @@ export const SECTION: Section = {
       summary:
         "Where a trace stopped and why: the barrier, and the node it was reached from.",
       description:
-        "`stopAt`: the asset matched a preset or function. `closed`: a closed pipe or valve, or a pump that is off. `direction`: a one-way link (a pump, a check-valve pipe, any valve except a TCV) reached from its end node. `limit`: a node past `maxDistance` or `maxHops`. `via` is the link that led to a node barrier, and `null` when the barrier is the link itself.",
+        "`stopAt`: the asset matched a preset or function. `closed`: a closed pipe or valve, or a pump that is off. `direction`: a one-way link (a pump, a check-valve pipe, any valve except a TCV) reached from its end node. `closed` and `direction` only come from the default mode. `limit`: a node past `maxDistance` or `maxHops`. `via` is the link that led to a node barrier, and `null` when the barrier is the link itself.",
     },
     {
       name: "TraceResult",
@@ -57,16 +57,16 @@ export const SECTION: Section = {
     network({
       name: "trace",
       signature:
-        'trace(start: Asset | string | (Asset | string)[], options?: { mode?: "allowed"; stopAt?: (StopPreset | ((asset: Asset) => boolean))[]; maxDistance?: number; maxHops?: number }): TraceResult',
+        'trace(start: Asset | string | (Asset | string)[], options?: { mode?: "allowed" | "connected"; stopAt?: (StopPreset | ((asset: Asset) => boolean))[]; maxDistance?: number; maxHops?: number }): TraceResult',
       summary:
         "The walk over the pipes to reach for. By default it is the app's Trace tool, boundary mode: the pressure zone around `start`.",
       description:
-        "It grows through open links in the direction water may flow. It never crosses a closed link, or a one-way link from its end node, and it stops at every barrier in `stopAt`. Barrier nodes are not included. `stoppedAt` says where it stopped and why. A start node that is itself a barrier is left out, as in the Trace tool; a start link is always included.",
+        'By default it grows through open links in the direction water may flow, never crossing a closed link or a one-way link from its end node; `mode: "connected"` crosses both. It stops at every barrier in `stopAt`. Barrier nodes are not included. `stoppedAt` says where it stopped and why. A start node that is itself a barrier is left out, as in the Trace tool; a start link is always included.',
       params: [
         {
           name: "options.mode",
           description:
-            '`"allowed"`, the default. `"upstream"` and `"downstream"` need simulation results and throw.',
+            '`"allowed"`, the default: through open links in the direction water may flow. `"connected"`: everything connected on the drawing, through closed links and one-way links either way; `stopAt` still applies. `"upstream"` and `"downstream"` need simulation results and throw.',
         },
         {
           name: "options.stopAt",
@@ -96,6 +96,12 @@ for (const stop of zone.stoppedAt) console.log(stop.asset.label, stop.reason, "f
   stopAt: ["tanks", "reservoirs", "pumps", "controlValves", (asset) => asset.type === "pipe" && asset.diameter >= 300],
 });
 selection.set(area.nodes);`,
+        },
+        {
+          title:
+            "Everything connected on the drawing, stopping only at closed links",
+          code: `const piece = network.trace("J1", { mode: "connected", stopAt: ["closed"] });
+console.log(piece.nodes.length, "nodes;", piece.stoppedAt.length, "closed links on the rim");`,
         },
         {
           title: "Everything within 500 along the pipes",

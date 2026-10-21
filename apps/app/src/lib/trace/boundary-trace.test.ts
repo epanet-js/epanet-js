@@ -8,6 +8,7 @@ import {
   configuredValveKinds,
   stopPresets,
   trace,
+  unrestrictedFlowDirections,
   weightedTrace,
   type TraceStop,
 } from "@epanet-js/hydraulic-model";
@@ -582,18 +583,14 @@ describe("weightedTrace without limits", () => {
         linkIds: next() < 0.5 ? [pick(next, linkIds)] : [],
       };
 
-      const traced = trace(start, model.topology, directions, barriers);
-      const weighted = weightedTrace(
-        start,
-        model.topology,
-        directions,
-        barriers,
-        {
-          maxDistance: Infinity,
-          maxHops: Infinity,
-          lengthOf: () => 1,
-        },
-      );
+      const walk = seed % 2 === 0 ? unrestrictedFlowDirections : directions;
+
+      const traced = trace(start, model.topology, walk, barriers);
+      const weighted = weightedTrace(start, model.topology, walk, barriers, {
+        maxDistance: Infinity,
+        maxHops: Infinity,
+        lengthOf: () => 1,
+      });
 
       expect({
         seed,

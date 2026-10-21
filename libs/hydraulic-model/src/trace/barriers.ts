@@ -15,6 +15,7 @@ const typeStopPresets = [
   "valves",
   "controlValves",
   "cv",
+  "closed",
 ] as const;
 
 type TypeStopPreset = (typeof typeStopPresets)[number];
@@ -57,6 +58,12 @@ const typeBarriers = (
     );
   },
   isLinkBarrier: (linkId) => {
+    if (
+      presets.has("closed") &&
+      status.getAllowedFlowDirection(linkId) === AllowedFlowDirection.NONE
+    ) {
+      return true;
+    }
     switch (assetIndex.getLinkType(linkId)) {
       case "pump":
         return presets.has("pumps");

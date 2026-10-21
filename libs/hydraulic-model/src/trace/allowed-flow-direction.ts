@@ -16,6 +16,10 @@ export const configuredAllowedFlowDirections = (
   },
 });
 
+export const unrestrictedFlowDirections: AllowedFlowDirectionQueries = {
+  getAllowedFlowDirection: () => AFD.BOTH,
+};
+
 export function getAllowedFlowDirectionFromAssetConfig(
   asset: Asset,
 ): AllowedFlowDirectionValue {
