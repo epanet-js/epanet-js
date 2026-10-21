@@ -33,7 +33,7 @@ import {
   File,
   FileBox,
   FileCode,
-  SquareTerminal,
+  Braces,
   FilePlus,
   FilePlus2,
   Database,
@@ -262,7 +262,7 @@ export const PaywallLockIcon = icon(Lock);
 export const LocateIcon = icon(Locate);
 export const LocateOffIcon = icon(LocateOff);
 export const ControlsIcon = icon(FileCode);
-export const ScriptsIcon = icon(SquareTerminal);
+export const ScriptsIcon = icon(Braces);
 export const PatternsIcon = icon(ChartColumn);
 export const RenameIcon = icon(TextCursorInput);
 export const DuplicateIcon = icon(Copy);
