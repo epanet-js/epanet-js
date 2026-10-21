@@ -9,7 +9,6 @@ describe("resolvePermissions", () => {
     expect(p.canUseScenarios).toBe(false);
     expect(p.canUseElevations).toBe(false);
     expect(p.canUseZones).toBe(false);
-    expect(p.canUseControls).toBe(false);
     expect(p.canUsePipeAttributes).toBe(false);
     expect(p.canValidateModelAttributes).toBe(false);
     expect(p.canUsePipeLibrary).toBe(false);
@@ -27,7 +26,6 @@ describe("resolvePermissions", () => {
       expect(p.canUseScenarios).toBe(true);
       expect(p.canUseElevations).toBe(true);
       expect(p.canUseZones).toBe(true);
-      expect(p.canUseControls).toBe(true);
       expect(p.canUsePipeAttributes).toBe(true);
       expect(p.canValidateModelAttributes).toBe(true);
       expect(p.canUsePipeLibrary).toBe(true);
@@ -44,7 +42,6 @@ describe("resolvePermissions", () => {
     expect(p.canUseScenarios).toBe(true);
     expect(p.canUseElevations).toBe(true);
     expect(p.canUseZones).toBe(true);
-    expect(p.canUseControls).toBe(true);
     expect(p.canUsePipeAttributes).toBe(true);
     expect(p.canValidateModelAttributes).toBe(true);
     expect(p.canUpgrade).toBe(false);
@@ -57,7 +54,6 @@ describe("resolvePermissions", () => {
     expect(p.canUseScenarios).toBe(true);
     expect(p.canUseElevations).toBe(true);
     expect(p.canUseZones).toBe(true);
-    expect(p.canUseControls).toBe(true);
     expect(p.canUsePipeAttributes).toBe(true);
     expect(p.canUseModelBuildV2).toBe(true);
     expect(p.canValidateModelAttributes).toBe(true);
@@ -71,7 +67,6 @@ describe("resolvePermissions", () => {
     const p = resolvePermissions("free", false, false, true);
     expect(p.canUsePipeAttributes).toBe(true);
     expect(p.canUseZones).toBe(true);
-    expect(p.canUseControls).toBe(true);
     expect(p.canUsePipeLibrary).toBe(true);
     expect(p.canUseCustomAttributes).toBe(true);
     expect(p.canUseScenarios).toBe(true);

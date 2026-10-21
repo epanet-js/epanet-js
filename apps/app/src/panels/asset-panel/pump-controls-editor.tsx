@@ -14,8 +14,6 @@ import {
 } from "@epanet-js/hydraulic-model";
 import { Unit } from "@epanet-js/quantity";
 import { useTranslate } from "src/hooks/use-translate";
-import { usePermissions } from "src/hooks/use-permissions";
-import { useShowPriorityAccessDialog } from "src/hooks/use-priority-access";
 import { useShowControls } from "src/commands/show-controls";
 import { useSelectAssetsInApp } from "src/commands/select-assets-in-app";
 import { useShowPatternsLibrary } from "src/commands/show-patterns-library";
@@ -86,8 +84,6 @@ export const PumpControlsEditor = ({
   readOnly?: boolean;
 }) => {
   const translate = useTranslate();
-  const { canUseControls } = usePermissions();
-  const showPriorityAccess = useShowPriorityAccessDialog();
   const showControls = useShowControls();
   const selectAssets = useSelectAssetsInApp();
   const showPatternsLibrary = useShowPatternsLibrary();
@@ -145,10 +141,6 @@ export const PumpControlsEditor = ({
 
   const handleTypeChange = (newValue: ControlType) => {
     if (newValue === controlType) return;
-    if (newValue !== "none" && newValue !== "patternBased" && !canUseControls) {
-      showPriorityAccess({ featureName: translate("controls.nativeTitle") });
-      return;
-    }
     if (newValue === "patternBased") {
       setIsPatternBased(true);
       if (control) onControlChange(null);

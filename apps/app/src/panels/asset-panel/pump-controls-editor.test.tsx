@@ -29,10 +29,6 @@ vi.mock("src/hooks/use-permissions", async () => {
   };
 });
 
-vi.mock("src/hooks/use-priority-access", () => ({
-  useShowPriorityAccessDialog: () => showPriorityAccessMock,
-}));
-
 beforeEach(() => {
   permissionsRef.current = entitledPermissions;
   showPriorityAccessMock.mockClear();
@@ -164,59 +160,6 @@ describe("PumpControlsEditor", () => {
       screen.queryByRole("button", { name: /add time step/i }),
     ).not.toBeInTheDocument();
     expect(screen.queryAllByRole("row")).toHaveLength(0);
-  });
-
-  describe("priority access", () => {
-    beforeEach(() => {
-      permissionsRef.current = resolvePermissions("free", false, false, false);
-    });
-
-    it("blocks selecting time-based and does not change the control", async () => {
-      const user = userEvent.setup();
-      const onChange = vi.fn();
-      renderEditor("on", onChange);
-
-      await selectTimeBased(user);
-
-      expect(showPriorityAccessMock).toHaveBeenCalledWith({
-        featureName: "native controls",
-      });
-      expect(onChange).not.toHaveBeenCalled();
-    });
-
-    it("blocks selecting level-based and does not change the control", async () => {
-      const user = userEvent.setup();
-      const onChange = vi.fn();
-      renderEditor("on", onChange);
-
-      await selectType(user, "Level-based");
-
-      expect(showPriorityAccessMock).toHaveBeenCalledWith({
-        featureName: "native controls",
-      });
-      expect(onChange).not.toHaveBeenCalled();
-    });
-
-    it("still allows clearing an existing control to None", async () => {
-      const user = userEvent.setup();
-      const onChange = vi.fn();
-      render(
-        <Harness
-          initialControl={{
-            id: "ctrl-1",
-            type: "timed-setting",
-            linkId: PUMP_ID,
-            steps: [],
-          }}
-          onChange={onChange}
-        />,
-      );
-
-      await selectType(user, "None");
-
-      expect(showPriorityAccessMock).not.toHaveBeenCalled();
-      expect(onChange).toHaveBeenCalledWith(null);
-    });
   });
 
   describe("level-based", () => {
