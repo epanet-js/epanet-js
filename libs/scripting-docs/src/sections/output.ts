@@ -10,6 +10,7 @@ const ui = memberOf("Ui");
 const collections = memberOf("Collections");
 const saved = propertyOf("Collections");
 const selectionSet = propertyOf("SelectionSet");
+const bookmark = propertyOf("Bookmark");
 
 const Targets = "Asset | CustomerPoint | (Asset | CustomerPoint)[]";
 
@@ -138,7 +139,7 @@ export const UI_SECTION: Section = {
 export const COLLECTIONS_SECTION: Section = {
   id: "collections",
   number: "6",
-  title: "`collections` — saved selection sets",
+  title: "`collections` — saved selection sets and bookmarks",
   members: [
     saved(
       "selectionSets",
@@ -162,6 +163,14 @@ export const COLLECTIONS_SECTION: Section = {
       "number",
       "How many members were deleted from the model since the set was saved.",
     ),
+    saved(
+      "bookmarks",
+      "Bookmark[]",
+      "The project's bookmarks, in the Collections panel's order, as they were when the script started.",
+      "Labels can repeat, so pick a bookmark with `find` or `filter` on the label and handle more than one match.",
+    ),
+    bookmark("label", "string", "The bookmark's name. Not unique."),
+    bookmark("bbox", "BBox", "The map view the user saved."),
     collections({
       name: "saveSelectionSet",
       signature: `saveSelectionSet(label: string, targets?: ${Targets}): void`,
@@ -189,7 +198,7 @@ export const COLLECTIONS_SECTION: Section = {
     }),
   ],
   notes:
-    "Apply a saved set with `selection.set([...set.assets, ...set.customerPoints])`. Saving selection sets needs a plan that includes Collections. Without it the run still applies its selection, zoom and files, and the run dialog says the sets were not saved.",
+    "Apply a saved set with `selection.set([...set.assets, ...set.customerPoints])`, and go to a bookmark with `map.zoomTo(bookmark.bbox)`. Saving selection sets needs a plan that includes Collections. Without it the run still applies its selection, zoom and files, and the run dialog says the sets were not saved.",
 };
 
 export const ERRORS_SECTION: Section = {

@@ -29,6 +29,8 @@ export type ScriptBBox = [
   maxLat: number,
 ];
 
+export type ScriptBookmark = { label: string; bbox: ScriptBBox };
+
 export type ScriptViewport = {
   bounds: ScriptBBox;
   center: [lng: number, lat: number];
@@ -130,6 +132,7 @@ export type Scripting = {
     units: UnitsSpec;
     selected: ScriptTargets;
     selectionSets: ScriptSelectionSet[];
+    bookmarks: ScriptBookmark[];
     viewport: ScriptViewport | null;
     project: ScriptProject;
     simulation: ScriptSimulationSettings;

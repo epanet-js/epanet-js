@@ -42,7 +42,7 @@ export const GLOBALS: GlobalDef[] = [
     name: "collections",
     type: "Collections",
     summary:
-      "the project's selection sets, and new ones saved when the script ends",
+      "the project's selection sets and bookmarks, and new sets saved when the script ends",
     section: "collections",
   },
 ];
@@ -93,13 +93,18 @@ export const INTERFACES: InterfaceDef[] = [
     name: "Collections",
     path: "collections",
     summary:
-      "The project's selection sets, and new ones saved when the script ends.",
+      "The project's selection sets and bookmarks, and new sets saved when the script ends.",
   },
   {
     name: "SelectionSet",
     path: "selectionSet",
     summary:
       "A saved selection set: its label and the members still in the model.",
+  },
+  {
+    name: "Bookmark",
+    path: "bookmark",
+    summary: "A saved map view: its label and box.",
   },
   {
     name: "Asset",

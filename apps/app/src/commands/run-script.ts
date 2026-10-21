@@ -41,7 +41,7 @@ import {
   type ScriptRunState,
 } from "src/state/scripts";
 import { selectionAtom } from "src/state/selection";
-import { selectionSetsAtom } from "src/state/collections";
+import { bookmarksAtom, selectionSetsAtom } from "src/state/collections";
 import { zonesAtom } from "src/state/zones";
 
 const MAX_CONSOLE_LINES = 1000;
@@ -142,6 +142,12 @@ export const useRunScript = () => {
           .map(({ label, selection }) => ({
             label,
             targets: selectedTargets(selection),
+          })),
+        bookmarks: store
+          .get(bookmarksAtom)
+          .map(({ label, bbox: [west, south, east, north] }) => ({
+            label,
+            bbox: [west, south, east, north],
           })),
         viewport: currentViewport(),
         project: scriptProjectOf(store.get),
