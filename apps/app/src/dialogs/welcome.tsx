@@ -410,6 +410,7 @@ const SmallDeviceWarning = () => {
 
 const DemoNetworks = () => {
   const translate = useTranslate();
+  const isTetraTechPartnerOn = useFeatureFlag("FLAG_TETRA_TECH_PARTNER");
 
   const demoModels = [
     {
@@ -427,7 +428,7 @@ const DemoNetworks = () => {
   ];
 
   return (
-    <div>
+    <div className={isTetraTechPartnerOn ? "pb-4" : undefined}>
       <h2 className="pt-2 pb-2 font-bold text-subtle">
         {translate("demoNetworksTitle")}
       </h2>
