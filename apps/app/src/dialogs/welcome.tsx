@@ -38,7 +38,9 @@ import optimaticsLogoUrl from "src/assets/images/logos/optimatics-logo-black.web
 import affinityWaterLogoUrl from "src/assets/images/logos/affinity-water-logo.svg";
 import anglianWaterLogoUrl from "src/assets/images/logos/anglian-water-logo.webp";
 import atkinsRealisLogoUrl from "src/assets/images/logos/atkins-realis-logo.svg";
+import tetraTechLogoUrl from "src/assets/images/logos/tetra-tech-logo.svg";
 import iteratingLogoUrl from "src/assets/images/logos/iterating-logo-muted-padded.svg";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useIsDrawingAvailable } from "src/hooks/use-is-drawing-available";
 import { useIsModelBuilderAvailable } from "src/hooks/use-is-model-builder-available";
 import type { RecentFileEntry } from "src/lib/recent-files";
@@ -192,7 +194,89 @@ export const WelcomeDialog = () => {
   );
 };
 
+const foundingPartners = [
+  {
+    link: "optimatics",
+    name: "Optimatics",
+    href: "https://optimatics.com/",
+    logoUrl: optimaticsLogoUrl.src,
+    className: "",
+    logoClassName: "block h-6.75 mt-3.25",
+  },
+  {
+    link: "affinityWater",
+    name: "Affinity Water",
+    href: "https://www.affinitywater.co.uk/",
+    logoUrl: affinityWaterLogoUrl.src,
+    className: "pt-3.5",
+    logoClassName: "block h-3.25",
+  },
+  {
+    link: "atkinsRealis",
+    name: "AtkinsRéalis",
+    href: "https://www.atkinsrealis.com/",
+    logoUrl: atkinsRealisLogoUrl.src,
+    className: "pt-2.75",
+    logoClassName: "block h-3.25",
+  },
+  {
+    link: "anglianWater",
+    name: "Anglian Water",
+    href: "https://www.anglianwater.co.uk/",
+    logoUrl: anglianWaterLogoUrl.src,
+    className: "pt-2.75 -mt-5.25",
+    logoClassName: "block h-9",
+  },
+  {
+    link: "tetraTech",
+    name: "Tetra Tech",
+    href: "https://www.tetratech.com/",
+    logoUrl: tetraTechLogoUrl.src,
+    className: "pt-2.75",
+    logoClassName: "block h-5.75",
+  },
+] as const;
+
 const FoundingPartners = () => {
+  const isTetraTechPartnerOn = useFeatureFlag("FLAG_TETRA_TECH_PARTNER");
+  const translate = useTranslate();
+  const userTracking = useUserTracking();
+
+  if (!isTetraTechPartnerOn) return <FoundingPartnersDeprecated />;
+
+  return (
+    <section className="mt-4 mb-1 text-size-small text-center shrink-0">
+      <h3 className="pb-4 text-subtle font-bold">
+        {translate("foundersPartnerTitle")}
+      </h3>
+      <ul className="flex place-content-between">
+        {foundingPartners.map((partner) => (
+          <li key={partner.link} className={partner.className}>
+            <a
+              className="block"
+              href={partner.href}
+              target="_blank"
+              onClick={() => {
+                userTracking.capture({
+                  name: "foundersPartner.visited",
+                  link: partner.link,
+                });
+              }}
+            >
+              <img
+                src={partner.logoUrl}
+                alt={partner.name}
+                className={partner.logoClassName}
+              />
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+};
+
+const FoundingPartnersDeprecated = () => {
   const translate = useTranslate();
   const userTracking = useUserTracking();
   return (

@@ -713,7 +713,8 @@ type FoundersPartnerLinkVisited = {
     | "optimatics"
     | "foundersPartners"
     | "atkinsRealis"
-    | "anglianWater";
+    | "anglianWater"
+    | "tetraTech";
 };
 
 type SignInStarted = {
