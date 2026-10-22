@@ -15,7 +15,7 @@ import { useUserScripts } from "src/hooks/use-user-scripts";
 import {
   AddIcon,
   ChevronLeftIcon,
-  CloseIcon,
+  DeleteIcon,
   MoreActionsIcon,
   PencilIcon,
   PlayIcon,
@@ -169,7 +169,7 @@ const ScriptList = ({ onOpen }: { onOpen: (draft: ScriptDraft) => void }) => {
     {
       action: "delete",
       label: "Delete",
-      icon: <CloseIcon size="sm" />,
+      icon: <DeleteIcon size="sm" />,
       variant: "destructive",
     },
   ];
@@ -381,7 +381,7 @@ const ScriptEditor = ({
                       })
                     }
                   >
-                    <CloseIcon size="sm" />
+                    <DeleteIcon size="sm" />
                     Delete
                   </StyledItem>
                 </DDContent>
