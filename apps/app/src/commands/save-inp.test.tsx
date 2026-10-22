@@ -10,6 +10,8 @@ import { FileSystemHelpers } from "src/infra/storage";
 import { waitForNotLoading } from "src/__helpers__/ui-expects";
 import { worktreeAtom } from "src/state/scenarios";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
+import { branchStateAtom } from "src/state/branch-state";
+import { SimulationSettingsBuilder } from "src/__helpers__/simulation-settings-builder";
 
 describe("save inp", () => {
   beforeEach(() => {
@@ -183,6 +185,55 @@ describe("save inp", () => {
     expect(userTracking.capture).toHaveBeenCalledWith(
       expect.objectContaining({ name: "inp.exported", scenariosCount: 1 }),
     );
+  });
+
+  it("exports main's model when a scenario is active", async () => {
+    const { handle, chunks } = buildWritableHandleMock();
+    vi.spyOn(FileSystemHelpers, "openFileInFileSystem").mockResolvedValue(
+      handle,
+    );
+    const store = setInitialState({
+      hydraulicModel: HydraulicModelBuilder.with()
+        .aPipe(1, { label: "MAIN_PIPE" })
+        .build(),
+      simulationSettings: SimulationSettingsBuilder.with()
+        .globalDemandMultiplier(1)
+        .build(),
+    });
+    const worktree = store.get(worktreeAtom);
+    const mainState = store.get(branchStateAtom).get(worktree.mainId)!;
+    store.set(
+      branchStateAtom,
+      new Map(store.get(branchStateAtom)).set("scenario-1", {
+        ...mainState,
+        hydraulicModel: HydraulicModelBuilder.with()
+          .aPipe(1, { label: "SCENARIO_PIPE" })
+          .build(),
+        simulationSettings: SimulationSettingsBuilder.with()
+          .globalDemandMultiplier(2)
+          .build(),
+      }),
+    );
+    store.set(worktreeAtom, {
+      ...worktree,
+      branches: new Map(worktree.branches).set("scenario-1", {
+        id: "scenario-1",
+        name: "Scenario #1",
+        parentId: worktree.mainId,
+        status: "open",
+      }),
+      scenarios: ["scenario-1"],
+      highestScenarioNumber: 1,
+      activeBranchId: "scenario-1",
+    });
+
+    renderComponent({ store });
+    await triggerSave();
+
+    const inp = chunks.join("");
+    expect(inp).toContain("MAIN_PIPE");
+    expect(inp).not.toContain("SCENARIO_PIPE");
+    expect(inp).toContain("Demand Multiplier\t1");
   });
 
   it("displays an error when not saved", async () => {

@@ -84,6 +84,16 @@ export const baseModelDerivedAtom = atom((get): HydraulicModel => {
     : emptyHydraulicModel();
 });
 
+export const baseSimulationSettingsDerivedAtom = atom(
+  (get): SimulationSettings => {
+    const worktree = get(worktreeAtom);
+    return (
+      get(branchStateAtom).get(worktree.mainId)?.simulationSettings ??
+      defaultSimulationSettings
+    );
+  },
+);
+
 export const baseSimulationDerivedAtom = atom((get): SimulationState => {
   const worktree = get(worktreeAtom);
   const branchStates = get(branchStateAtom);

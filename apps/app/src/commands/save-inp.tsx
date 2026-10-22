@@ -3,6 +3,7 @@ import { inpFileInfoAtom, projectFileInfoAtom } from "src/state/file-system";
 import {
   stagingModelDerivedAtom,
   baseModelDerivedAtom,
+  baseSimulationSettingsDerivedAtom,
   simulationSettingsDerivedAtom,
 } from "src/state/derived-branch-state";
 import { isDemoNetworkAtom } from "src/state/file-system";
@@ -51,7 +52,9 @@ export const useSaveInp = () => {
             ? get(baseModelDerivedAtom)
             : get(stagingModelDerivedAtom);
           const projectSettings = get(projectSettingsAtom);
-          const simulationSettings = get(simulationSettingsDerivedAtom);
+          const simulationSettings = hasScenarios
+            ? get(baseSimulationSettingsDerivedAtom)
+            : get(simulationSettingsDerivedAtom);
           const buildOptions = {
             geolocation: true,
             madeBy: true,
