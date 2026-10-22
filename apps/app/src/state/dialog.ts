@@ -233,6 +233,12 @@ export type DeleteScenarioConfirmationDialogState = {
   onConfirm: (scenarioId: string) => void;
 };
 
+export type DeleteScriptConfirmationDialogState = {
+  type: "deleteScriptConfirmation";
+  scriptId: string;
+  scriptName: string;
+};
+
 export type ScenarioSignInDialogState = {
   type: "scenarioSignIn";
   source: "scenarioSwitcher" | "exportScenario";
@@ -416,6 +422,7 @@ export type DialogState =
   | CurveLibraryDialogState
   | CustomAttributesDialogState
   | DeleteScenarioConfirmationDialogState
+  | DeleteScriptConfirmationDialogState
   | RenameScenarioDialogState
   | ScenarioSignInDialogState
   | FeaturePaywallDialogState

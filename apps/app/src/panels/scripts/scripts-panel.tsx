@@ -1,4 +1,4 @@
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import clsx from "clsx";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { Button } from "src/components/elements";
@@ -15,10 +15,12 @@ import {
   AddIcon,
   ChevronLeftIcon,
   CloseIcon,
+  PencilIcon,
   PlayIcon,
   SaveIcon,
 } from "src/icons";
 import { getScripting } from "src/lib/scripting";
+import { dialogAtom } from "src/state/dialog";
 import {
   hasUnsavedChanges,
   scriptDraftAtom,
@@ -64,7 +66,8 @@ type Row = {
 
 const ScriptList = ({ onOpen }: { onOpen: (draft: ScriptDraft) => void }) => {
   const runScript = useRunScript();
-  const { scripts, deleteScript } = useUserScripts();
+  const { scripts } = useUserScripts();
+  const setDialog = useSetAtom(dialogAtom);
   const [focusedItem, setFocusedItem] = useState<NavItem<Section> | undefined>(
     undefined,
   );
@@ -141,13 +144,26 @@ const ScriptList = ({ onOpen }: { onOpen: (draft: ScriptDraft) => void }) => {
 
   const handleAction = (action: string, item: { id: number }) => {
     const row = byNavId.get(item.id);
-    if (action === "delete" && row?.scriptId) {
+    if (!row) return;
+    if (action === "edit") return onOpen(row.draft);
+    if (action === "delete" && row.scriptId) {
       setFocusedItem(undefined);
-      deleteScript(row.scriptId);
+      setDialog({
+        type: "deleteScriptConfirmation",
+        scriptId: row.scriptId,
+        scriptName: row.name,
+      });
     }
   };
 
+  const editAction: ItemAction = {
+    action: "edit",
+    label: "Edit",
+    icon: <PencilIcon size="sm" />,
+  };
+
   const itemActions: ItemAction[] = [
+    editAction,
     {
       action: "delete",
       label: "Delete",
@@ -168,7 +184,7 @@ const ScriptList = ({ onOpen }: { onOpen: (draft: ScriptDraft) => void }) => {
         icon: <PlayIcon size="md" />,
         onClick: () => runScript(row.run),
       }}
-      actions={row.scriptId ? itemActions : undefined}
+      actions={row.scriptId ? itemActions : [editAction]}
       actionsLabel={`More actions for ${row.name}`}
       onAction={handleAction}
     />

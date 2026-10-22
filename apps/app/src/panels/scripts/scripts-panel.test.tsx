@@ -128,7 +128,7 @@ describe("ScriptsPanel", () => {
     expect(screen.getByText("My scripts")).toBeVisible();
   });
 
-  it("deletes a script from its actions menu", async () => {
+  it("deletes a script after confirming", async () => {
     const user = userEvent.setup();
     const store = setInitialState({
       hydraulicModel: HydraulicModelBuilder.with().build(),
@@ -142,6 +142,9 @@ describe("ScriptsPanel", () => {
       screen.getByRole("button", { name: "More actions for Pipe audit" }),
     );
     await user.click(screen.getByRole("menuitem", { name: "Delete" }));
+    expect(store.get(userScriptsAtom)).toHaveLength(1);
+
+    await user.click(screen.getByRole("button", { name: "Delete script" }));
 
     expect(store.get(userScriptsAtom)).toEqual([]);
   });

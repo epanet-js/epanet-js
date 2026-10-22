@@ -57,6 +57,7 @@ import { PumpLibraryDialog } from "src/dialogs/pump-library";
 import { CurveLibraryDialog } from "src/dialogs/curves";
 import { CustomAttributesDialog } from "src/dialogs/custom-attributes";
 import { DeleteScenarioConfirmationDialog } from "src/dialogs/delete-scenario-confirmation";
+import { DeleteScriptConfirmationDialog } from "src/dialogs/delete-script-confirmation";
 import { RenameScenarioDialog } from "src/dialogs/rename-scenario";
 import { ScenarioSignInDialog } from "src/dialogs/scenario-sign-in";
 import { ScenariosPaywallConnector } from "src/dialogs/paywall/scenarios-connector";
@@ -502,6 +503,13 @@ export const Dialogs = memo(function Dialogs() {
         />
       ),
     )
+    .with({ type: "deleteScriptConfirmation" }, ({ scriptId, scriptName }) => (
+      <DeleteScriptConfirmationDialog
+        scriptId={scriptId}
+        scriptName={scriptName}
+        onClose={onClose}
+      />
+    ))
     .with(
       { type: "renameScenario" },
       ({ scenarioId, currentName, onConfirm }) => (
