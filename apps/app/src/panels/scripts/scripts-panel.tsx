@@ -327,18 +327,16 @@ const ScriptEditor = ({
         </Button>
       </div>
       {confirmingDiscard && (
-        <div className="flex items-center justify-between gap-2 px-3 py-1.5 border-b bg-warning-subtle text-warning text-size-small">
-          <span>Discard unsaved changes?</span>
-          <div className="flex items-center gap-1">
-            <Button size="xs" onClick={onClose}>
-              Discard
-            </Button>
-            <Button
-              size="xs"
-              variant="quiet"
-              onClick={() => setConfirmingDiscard(false)}
-            >
+        <div className="flex flex-col gap-2 px-3 py-2 border-b text-size-small">
+          <span>
+            You have unsaved changes. Are you sure you want to discard them?
+          </span>
+          <div className="flex items-center justify-end gap-2">
+            <Button size="xs" onClick={() => setConfirmingDiscard(false)}>
               Keep editing
+            </Button>
+            <Button size="xs" variant="danger" onClick={onClose}>
+              Discard changes
             </Button>
           </div>
         </div>

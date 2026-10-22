@@ -116,9 +116,13 @@ describe("ScriptsPanel", () => {
 
     await user.click(screen.getByRole("button", { name: /new/i }));
     await user.click(screen.getByRole("button", { name: "Back" }));
-    expect(screen.getByText("Discard unsaved changes?")).toBeVisible();
+    expect(
+      screen.getByText(
+        "You have unsaved changes. Are you sure you want to discard them?",
+      ),
+    ).toBeVisible();
 
-    await user.click(screen.getByRole("button", { name: "Discard" }));
+    await user.click(screen.getByRole("button", { name: "Discard changes" }));
 
     expect(store.get(userScriptsAtom)).toEqual([]);
     expect(screen.getByText("My scripts")).toBeVisible();
