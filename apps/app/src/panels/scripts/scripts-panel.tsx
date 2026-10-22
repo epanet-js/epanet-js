@@ -1,6 +1,7 @@
 import { useAtom, useAtomValue } from "jotai";
 import { useCallback, useRef, useState } from "react";
-import { Button, Input } from "src/components/elements";
+import { Button } from "src/components/elements";
+import { EditableTextField } from "src/components/form/editable-text-field";
 import { useRunScript } from "src/commands/run-script";
 import { useUserScripts } from "src/hooks/use-user-scripts";
 import {
@@ -212,6 +213,7 @@ const ScriptEditor = ({
   const isRunning = useIsRunning();
   const { saveScript } = useUserScripts();
   const [confirmingDiscard, setConfirmingDiscard] = useState(false);
+  const [isRenaming, setIsRenaming] = useState(false);
   const draftRef = useRef(draft);
   draftRef.current = draft;
 
@@ -258,20 +260,34 @@ const ScriptEditor = ({
         <Button variant="quiet" aria-label="Back" onClick={handleBack}>
           <ChevronLeftIcon />
         </Button>
-        <Input
-          aria-label="Script name"
-          className="flex-auto min-w-0"
+        <EditableTextField
+          label="Script name"
           value={draft.name}
-          onChange={(e) =>
-            onChange({ ...draftRef.current, name: e.target.value })
-          }
+          onChangeValue={(name) => {
+            onChange({ ...draftRef.current, name });
+            setIsRenaming(false);
+            return false;
+          }}
+          onDirty={() => setIsRenaming(true)}
+          onReset={() => setIsRenaming(false)}
+          className="min-w-0"
+          styleOptions={{
+            padding: "sm",
+            ghostBorder: true,
+            fontWeight: "semibold",
+            textSize: "sm",
+            width: "content",
+          }}
         />
         <Button
           variant="quiet"
           aria-label="Save"
           title="Save"
+          className="ml-auto"
           onClick={handleSave}
-          disabled={!hasUnsavedChanges(draft) && draft.scriptId !== null}
+          disabled={
+            !isRenaming && !hasUnsavedChanges(draft) && draft.scriptId !== null
+          }
         >
           <SaveIcon />
         </Button>

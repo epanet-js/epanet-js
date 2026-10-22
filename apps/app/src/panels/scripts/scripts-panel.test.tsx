@@ -42,9 +42,11 @@ describe("ScriptsPanel", () => {
     renderPanel(store);
 
     await user.click(screen.getByRole("button", { name: /new/i }));
-    await user.clear(screen.getByRole("textbox", { name: "Script name" }));
+    await user.clear(
+      screen.getByRole("textbox", { name: "Value for: Script name" }),
+    );
     await user.type(
-      screen.getByRole("textbox", { name: "Script name" }),
+      screen.getByRole("textbox", { name: "Value for: Script name" }),
       "Pipe audit",
     );
     await user.click(screen.getByRole("button", { name: "Save" }));
@@ -89,14 +91,17 @@ describe("ScriptsPanel", () => {
     renderPanel(store);
 
     await user.click(screen.getByRole("button", { name: "Old name" }));
+    await user.clear(
+      screen.getByRole("textbox", { name: "Value for: Script name" }),
+    );
     await user.type(
-      screen.getByRole("textbox", { name: "Script name" }),
-      " v2",
+      screen.getByRole("textbox", { name: "Value for: Script name" }),
+      "New name",
     );
     await user.click(screen.getByRole("button", { name: "Save" }));
 
     expect(store.get(userScriptsAtom)).toEqual([
-      expect.objectContaining({ id: "1", name: "Old name v2" }),
+      expect.objectContaining({ id: "1", name: "New name" }),
     ]);
     expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
   });
