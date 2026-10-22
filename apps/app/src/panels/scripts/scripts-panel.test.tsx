@@ -66,7 +66,10 @@ describe("ScriptsPanel", () => {
     });
     renderPanel(store);
 
-    await user.click(screen.getByRole("button", { name: "Count pipes" }));
+    await user.click(
+      screen.getByRole("button", { name: "More actions for Count pipes" }),
+    );
+    await user.click(screen.getByRole("menuitem", { name: "Edit" }));
     await user.click(screen.getByRole("button", { name: "Save" }));
     await user.click(screen.getByRole("button", { name: "Back" }));
 
@@ -91,7 +94,10 @@ describe("ScriptsPanel", () => {
     ]);
     renderPanel(store);
 
-    await user.click(screen.getByRole("button", { name: "Old name" }));
+    await user.click(
+      screen.getByRole("button", { name: "More actions for Old name" }),
+    );
+    await user.click(screen.getByRole("menuitem", { name: "Edit" }));
     await user.clear(
       screen.getByRole("textbox", { name: "Value for: Script name" }),
     );
@@ -125,6 +131,29 @@ describe("ScriptsPanel", () => {
     await user.click(screen.getByRole("button", { name: "Discard changes" }));
 
     expect(store.get(userScriptsAtom)).toEqual([]);
+    expect(screen.getByText("My scripts")).toBeVisible();
+  });
+
+  it("runs a script when its row is clicked", async () => {
+    const user = userEvent.setup();
+    const startScriptRun = vi.fn().mockReturnValue({
+      finished: new Promise(() => {}),
+      cancel: vi.fn(),
+    });
+    registerScripting({ startScriptRun, exampleScripts: [] });
+    const store = setInitialState({
+      hydraulicModel: HydraulicModelBuilder.with().build(),
+    });
+    store.set(userScriptsAtom, [
+      { id: "1", name: "Pipe audit", source: "console.log(1);", updatedAt: 0 },
+    ]);
+    renderPanel(store);
+
+    await user.click(screen.getByRole("button", { name: "Pipe audit" }));
+
+    expect(startScriptRun).toHaveBeenCalledWith(
+      expect.objectContaining({ source: "console.log(1);" }),
+    );
     expect(screen.getByText("My scripts")).toBeVisible();
   });
 
@@ -189,7 +218,10 @@ describe("ScriptsPanel", () => {
     ]);
     renderPanel(store);
 
-    await user.click(screen.getByRole("button", { name: "Pipe audit" }));
+    await user.click(
+      screen.getByRole("button", { name: "More actions for Pipe audit" }),
+    );
+    await user.click(screen.getByRole("menuitem", { name: "Edit" }));
     await user.click(screen.getByRole("button", { name: "More actions" }));
     await user.click(screen.getByRole("menuitem", { name: "Delete" }));
     await user.click(screen.getByRole("button", { name: "Delete script" }));

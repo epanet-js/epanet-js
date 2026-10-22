@@ -142,9 +142,9 @@ const ScriptList = ({ onOpen }: { onOpen: (draft: ScriptDraft) => void }) => {
     (item: NavItem<Section>) => {
       if (item.id === newRowNavId) return openNew();
       const row = item.id != null ? byNavId.get(item.id) : undefined;
-      if (row) onOpen(row.draft);
+      if (row) runScript(row.run);
     },
-    [byNavId, newRowNavId, onOpen, openNew],
+    [byNavId, newRowNavId, openNew, runScript],
   );
 
   const handleBlur = (e: React.FocusEvent<HTMLDivElement>) => {
@@ -223,7 +223,7 @@ const ScriptList = ({ onOpen }: { onOpen: (draft: ScriptDraft) => void }) => {
         item={{ id: row.navId, label: row.name }}
         isSelected={false}
         isFocused={focusedItem?.id === row.navId}
-        onSelect={() => onOpen(row.draft)}
+        onSelect={() => runScript(row.run)}
         showFullLabelOnHover
         secondaryAction={{
           label: `Run ${row.name}`,
