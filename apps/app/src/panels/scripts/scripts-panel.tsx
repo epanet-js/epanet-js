@@ -1,7 +1,8 @@
+import * as DD from "@radix-ui/react-dropdown-menu";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import clsx from "clsx";
 import { useCallback, useMemo, useRef, useState } from "react";
-import { Button } from "src/components/elements";
+import { Button, DDContent, StyledItem } from "src/components/elements";
 import { EditableTextField } from "src/components/form/editable-text-field";
 import {
   CollapsibleListSection,
@@ -15,6 +16,7 @@ import {
   AddIcon,
   ChevronLeftIcon,
   CloseIcon,
+  MoreActionsIcon,
   PencilIcon,
   PlayIcon,
   SaveIcon,
@@ -262,6 +264,7 @@ const ScriptEditor = ({
   const runScript = useRunScript();
   const isRunning = useIsRunning();
   const { saveScript } = useUserScripts();
+  const setDialog = useSetAtom(dialogAtom);
   const [confirmingDiscard, setConfirmingDiscard] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
   const draftRef = useRef(draft);
@@ -329,18 +332,63 @@ const ScriptEditor = ({
             width: "content",
           }}
         />
-        <Button
-          variant="quiet"
-          aria-label="Save"
-          title="Save"
-          className="ml-auto"
-          onClick={handleSave}
-          disabled={
-            !isRenaming && !hasUnsavedChanges(draft) && draft.scriptId !== null
-          }
-        >
-          <SaveIcon />
-        </Button>
+        <div className="flex shrink-0 ml-auto">
+          <Button
+            variant="quiet"
+            aria-label="Run"
+            title="Run"
+            className="h-8"
+            onClick={handleRun}
+            disabled={isRunning}
+          >
+            <PlayIcon />
+          </Button>
+          <Button
+            variant="quiet"
+            aria-label="Save"
+            title="Save"
+            className="h-8"
+            onClick={handleSave}
+            disabled={
+              !isRenaming &&
+              !hasUnsavedChanges(draft) &&
+              draft.scriptId !== null
+            }
+          >
+            <SaveIcon />
+          </Button>
+          {draft.scriptId !== null && (
+            <DD.Root modal={false}>
+              <DD.Trigger asChild>
+                <Button
+                  variant="quiet"
+                  aria-label="More actions"
+                  className="h-8"
+                >
+                  <MoreActionsIcon />
+                </Button>
+              </DD.Trigger>
+              <DD.Portal>
+                <DDContent align="end" side="bottom" className="z-50">
+                  <StyledItem
+                    variant="destructive"
+                    onSelect={() =>
+                      draft.scriptId !== null &&
+                      setDialog({
+                        type: "deleteScriptConfirmation",
+                        scriptId: draft.scriptId,
+                        scriptName: draft.name,
+                      })
+                    }
+                  >
+                    <CloseIcon size="sm" />
+                    Delete
+                  </StyledItem>
+                </DDContent>
+              </DD.Portal>
+            </DD.Root>
+          )}
+        </div>
       </div>
       {confirmingDiscard && (
         <div className="flex flex-col gap-2 px-3 py-2 border-b text-size-small">
@@ -369,17 +417,6 @@ const ScriptEditor = ({
           onRun={handleRun}
           onSave={handleSave}
         />
-      </div>
-      <div className="flex items-center justify-end gap-2 p-2 border-t">
-        <Button
-          variant="primary"
-          size="sm"
-          onClick={handleRun}
-          disabled={isRunning}
-        >
-          <PlayIcon size="sm" />
-          Run
-        </Button>
       </div>
     </div>
   );

@@ -149,6 +149,25 @@ describe("ScriptsPanel", () => {
     expect(store.get(userScriptsAtom)).toEqual([]);
   });
 
+  it("deletes the open script from the editor and returns to the list", async () => {
+    const user = userEvent.setup();
+    const store = setInitialState({
+      hydraulicModel: HydraulicModelBuilder.with().build(),
+    });
+    store.set(userScriptsAtom, [
+      { id: "1", name: "Pipe audit", source: "", updatedAt: 0 },
+    ]);
+    renderPanel(store);
+
+    await user.click(screen.getByRole("button", { name: "Pipe audit" }));
+    await user.click(screen.getByRole("button", { name: "More actions" }));
+    await user.click(screen.getByRole("menuitem", { name: "Delete" }));
+    await user.click(screen.getByRole("button", { name: "Delete script" }));
+
+    expect(store.get(userScriptsAtom)).toEqual([]);
+    expect(screen.getByText("My scripts")).toBeVisible();
+  });
+
   const renderPanel = (store: Store) =>
     render(
       <CommandContainer store={store}>
