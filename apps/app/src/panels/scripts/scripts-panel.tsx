@@ -9,6 +9,7 @@ import {
   CloseIcon,
   DeleteIcon,
   PlayIcon,
+  SaveIcon,
 } from "src/icons";
 import { getScripting } from "src/lib/scripting";
 import {
@@ -265,6 +266,15 @@ const ScriptEditor = ({
             onChange({ ...draftRef.current, name: e.target.value })
           }
         />
+        <Button
+          variant="quiet"
+          aria-label="Save"
+          title="Save"
+          onClick={handleSave}
+          disabled={!hasUnsavedChanges(draft) && draft.scriptId !== null}
+        >
+          <SaveIcon />
+        </Button>
       </div>
       {confirmingDiscard && (
         <div className="flex items-center justify-between gap-2 px-3 py-1.5 border-b bg-warning-subtle text-warning text-size-small">
@@ -297,13 +307,6 @@ const ScriptEditor = ({
         />
       </div>
       <div className="flex items-center justify-end gap-2 p-2 border-t">
-        <Button
-          size="sm"
-          onClick={handleSave}
-          disabled={!hasUnsavedChanges(draft) && draft.scriptId !== null}
-        >
-          Save
-        </Button>
         <Button
           variant="primary"
           size="sm"
