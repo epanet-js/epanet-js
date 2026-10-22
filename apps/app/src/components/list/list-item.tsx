@@ -25,6 +25,7 @@ type ListItemProps<T extends LabelledItem> = {
   secondaryAction?: ItemSecondaryAction;
   icon?: React.ReactNode;
   readOnly?: boolean;
+  showFullLabelOnHover?: boolean;
 };
 
 export const ListItem = <T extends LabelledItem>({
@@ -38,6 +39,7 @@ export const ListItem = <T extends LabelledItem>({
   secondaryAction,
   icon,
   readOnly = false,
+  showFullLabelOnHover = false,
 }: ListItemProps<T>) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -60,7 +62,12 @@ export const ListItem = <T extends LabelledItem>({
         className="flex-1 min-w-0 justify-start hover:bg-transparent dark:hover:bg-transparent focus-visible:ring-0! focus-visible:ring-offset-0!"
       >
         {icon && icon}
-        <span className="truncate">{item.label}</span>
+        <span
+          className="truncate"
+          title={showFullLabelOnHover ? item.label : undefined}
+        >
+          {item.label}
+        </span>
       </Button>
       {!readOnly && secondaryAction && (
         <div className="self-stretch flex shrink-0">
@@ -76,7 +83,7 @@ export const ListItem = <T extends LabelledItem>({
               aria-label={secondaryAction.label}
               onClick={secondaryAction.onClick}
               className={`h-6 w-6 self-center justify-center hover:bg-base-hover ${
-                isSelected ? "" : "invisible group-hover:visible"
+                isSelected || isMenuOpen ? "" : "invisible group-hover:visible"
               }`}
             >
               {secondaryAction.icon}

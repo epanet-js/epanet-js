@@ -181,6 +181,7 @@ const ScriptList = ({ onOpen }: { onOpen: (draft: ScriptDraft) => void }) => {
       isSelected={false}
       isFocused={focusedItem?.id === row.navId}
       onSelect={() => onOpen(row.draft)}
+      showFullLabelOnHover
       secondaryAction={{
         label: `Run ${row.name}`,
         icon: <PlayIcon size="md" />,
@@ -316,6 +317,7 @@ const ScriptEditor = ({
         <EditableTextField
           label="Script name"
           value={draft.name}
+          title={draft.name}
           onChangeValue={(name) => {
             onChange({ ...draftRef.current, name });
             setIsRenaming(false);

@@ -34,6 +34,7 @@ export const EditableTextField = ({
   allowEmpty = false,
   placeholder,
   className,
+  title,
 }: {
   label: string;
   value: string;
@@ -49,6 +50,7 @@ export const EditableTextField = ({
   allowEmpty?: boolean;
   placeholder?: string;
   className?: string;
+  title?: string;
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [inputValue, setInputValue] = useState(value);
@@ -130,6 +132,7 @@ export const EditableTextField = ({
       <span
         className={clsx(styledReadOnlyText(styleOptions), className)}
         aria-label={`Value for: ${label}`}
+        title={title}
       >
         {value}
       </span>
@@ -150,6 +153,7 @@ export const EditableTextField = ({
       ref={inputRef}
       value={inputValue}
       placeholder={placeholder}
+      title={title}
       onFocus={handleFocus}
       tabIndex={tabIndex}
       className={clsx(
