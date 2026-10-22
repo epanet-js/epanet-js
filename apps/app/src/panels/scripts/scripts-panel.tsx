@@ -331,7 +331,9 @@ const ScriptEditor = ({
     const current = draftRef.current;
     const saved = saveScript({
       id: current.scriptId,
-      name: nameOf(current),
+      name: isUnrenamedExample(current)
+        ? `${nameOf(current)} (copy)`
+        : nameOf(current),
       source: current.source,
     });
     onChange({
@@ -468,5 +470,10 @@ const ScriptEditor = ({
     </div>
   );
 };
+
+const isUnrenamedExample = (draft: ScriptDraft) =>
+  draft.scriptId === null &&
+  draft.savedAs !== null &&
+  draft.name === draft.savedAs.name;
 
 const useIsRunning = () => useAtomValue(scriptRunAtom)?.status === "running";

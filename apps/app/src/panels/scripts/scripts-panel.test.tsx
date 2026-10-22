@@ -75,13 +75,14 @@ describe("ScriptsPanel", () => {
 
     expect(store.get(userScriptsAtom)).toEqual([
       expect.objectContaining({
-        name: "Count pipes",
+        name: "Count pipes (copy)",
         source: "console.log(1);",
       }),
     ]);
-    expect(screen.getAllByRole("button", { name: "Count pipes" })).toHaveLength(
-      2,
-    );
+    expect(
+      screen.getByRole("button", { name: "Count pipes (copy)" }),
+    ).toBeVisible();
+    expect(screen.getByRole("button", { name: "Count pipes" })).toBeVisible();
   });
 
   it("renames a saved script in place", async () => {
