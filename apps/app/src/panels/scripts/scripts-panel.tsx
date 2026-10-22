@@ -6,10 +6,15 @@ import { Button, DDContent, StyledItem } from "src/components/elements";
 import { EditableTextField } from "src/components/form/editable-text-field";
 import {
   CollapsibleListSection,
+  ItemInput,
   ListItem,
   NavigableList,
 } from "src/components/list";
-import type { ItemAction, NavItem } from "src/components/list";
+import type {
+  ItemAction,
+  NavItem,
+  NavigableListHandle,
+} from "src/components/list";
 import { useRunScript } from "src/commands/run-script";
 import { useUserScripts } from "src/hooks/use-user-scripts";
 import {
@@ -19,6 +24,7 @@ import {
   MoreActionsIcon,
   PencilIcon,
   PlayIcon,
+  RenameIcon,
   SaveIcon,
 } from "src/icons";
 import { getScripting } from "src/lib/scripting";
@@ -68,8 +74,10 @@ type Row = {
 
 const ScriptList = ({ onOpen }: { onOpen: (draft: ScriptDraft) => void }) => {
   const runScript = useRunScript();
-  const { scripts } = useUserScripts();
+  const { scripts, saveScript } = useUserScripts();
   const setDialog = useSetAtom(dialogAtom);
+  const listRef = useRef<NavigableListHandle>(null);
+  const [renamingId, setRenamingId] = useState<string | null>(null);
   const [focusedItem, setFocusedItem] = useState<NavItem<Section> | undefined>(
     undefined,
   );
@@ -148,6 +156,10 @@ const ScriptList = ({ onOpen }: { onOpen: (draft: ScriptDraft) => void }) => {
     const row = byNavId.get(item.id);
     if (!row) return;
     if (action === "edit") return onOpen(row.draft);
+    if (action === "rename" && row.scriptId) {
+      setRenamingId(row.scriptId);
+      return;
+    }
     if (action === "delete" && row.scriptId) {
       setFocusedItem(undefined);
       setDialog({
@@ -167,6 +179,11 @@ const ScriptList = ({ onOpen }: { onOpen: (draft: ScriptDraft) => void }) => {
   const itemActions: ItemAction[] = [
     editAction,
     {
+      action: "rename",
+      label: "Rename",
+      icon: <RenameIcon size="sm" />,
+    },
+    {
       action: "delete",
       label: "Delete",
       icon: <DeleteIcon size="sm" />,
@@ -174,28 +191,56 @@ const ScriptList = ({ onOpen }: { onOpen: (draft: ScriptDraft) => void }) => {
     },
   ];
 
-  const renderRow = (row: Row) => (
-    <ListItem
-      key={row.navId}
-      item={{ id: row.navId, label: row.name }}
-      isSelected={false}
-      isFocused={focusedItem?.id === row.navId}
-      onSelect={() => onOpen(row.draft)}
-      showFullLabelOnHover
-      secondaryAction={{
-        label: `Run ${row.name}`,
-        icon: <PlayIcon size="md" />,
-        onClick: () => runScript(row.run),
-      }}
-      actions={row.scriptId ? itemActions : [editAction]}
-      actionsLabel={`More actions for ${row.name}`}
-      onAction={handleAction}
-    />
-  );
+  const stopRenaming = () => {
+    setRenamingId(null);
+    requestAnimationFrame(() => listRef.current?.focus());
+  };
+
+  const handleRename = (row: Row, name: string): boolean => {
+    const trimmedName = name.trim();
+    if (!trimmedName) return true;
+    saveScript({
+      id: row.scriptId,
+      name: trimmedName,
+      source: row.run.source,
+    });
+    stopRenaming();
+    return false;
+  };
+
+  const renderRow = (row: Row) =>
+    row.scriptId !== null && row.scriptId === renamingId ? (
+      <ItemInput
+        key={row.navId}
+        label="Script name"
+        value={row.name}
+        onCommit={(name) => handleRename(row, name)}
+        onCancel={stopRenaming}
+      />
+    ) : (
+      <ListItem
+        key={row.navId}
+        item={{ id: row.navId, label: row.name }}
+        isSelected={false}
+        isFocused={focusedItem?.id === row.navId}
+        onSelect={() => onOpen(row.draft)}
+        showFullLabelOnHover
+        secondaryAction={{
+          label: `Run ${row.name}`,
+          icon: <PlayIcon size="md" />,
+          onClick: () => runScript(row.run),
+        }}
+        actions={row.scriptId ? itemActions : [editAction]}
+        actionsLabel={`More actions for ${row.name}`}
+        onAction={handleAction}
+      />
+    );
 
   return (
     <div className="flex flex-col h-full" onBlur={handleBlur}>
       <NavigableList
+        ref={listRef}
+        isNavBlocked={renamingId !== null}
         navItems={navItems}
         focusedItem={focusedItem}
         onSelectItem={setFocusedItem}

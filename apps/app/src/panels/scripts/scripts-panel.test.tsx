@@ -128,6 +128,36 @@ describe("ScriptsPanel", () => {
     expect(screen.getByText("My scripts")).toBeVisible();
   });
 
+  it("renames a script from its actions menu", async () => {
+    const user = userEvent.setup();
+    const store = setInitialState({
+      hydraulicModel: HydraulicModelBuilder.with().build(),
+    });
+    store.set(userScriptsAtom, [
+      { id: "1", name: "Pipe audit", source: "console.log(1);", updatedAt: 0 },
+    ]);
+    renderPanel(store);
+
+    await user.click(
+      screen.getByRole("button", { name: "More actions for Pipe audit" }),
+    );
+    await user.click(screen.getByRole("menuitem", { name: "Rename" }));
+    const input = screen.getByRole("textbox", {
+      name: "Value for: Script name",
+    });
+    await user.clear(input);
+    await user.type(input, "Valve audit{Enter}");
+
+    expect(store.get(userScriptsAtom)).toEqual([
+      expect.objectContaining({
+        id: "1",
+        name: "Valve audit",
+        source: "console.log(1);",
+      }),
+    ]);
+    expect(screen.getByRole("button", { name: "Valve audit" })).toBeVisible();
+  });
+
   it("deletes a script after confirming", async () => {
     const user = userEvent.setup();
     const store = setInitialState({
