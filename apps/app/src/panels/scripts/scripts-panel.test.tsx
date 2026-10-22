@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { TooltipProvider } from "@epanet-js/ui-kit";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
 import { CommandContainer } from "src/commands/__helpers__/command-container";
@@ -123,7 +124,7 @@ describe("ScriptsPanel", () => {
     expect(screen.getByText("My scripts")).toBeVisible();
   });
 
-  it("deletes a script after confirming", async () => {
+  it("deletes a script from its actions menu", async () => {
     const user = userEvent.setup();
     const store = setInitialState({
       hydraulicModel: HydraulicModelBuilder.with().build(),
@@ -133,10 +134,10 @@ describe("ScriptsPanel", () => {
     ]);
     renderPanel(store);
 
-    await user.click(screen.getByRole("button", { name: "Delete Pipe audit" }));
-    expect(store.get(userScriptsAtom)).toHaveLength(1);
-
-    await user.click(screen.getByRole("button", { name: "Delete" }));
+    await user.click(
+      screen.getByRole("button", { name: "More actions for Pipe audit" }),
+    );
+    await user.click(screen.getByRole("menuitem", { name: "Delete" }));
 
     expect(store.get(userScriptsAtom)).toEqual([]);
   });
@@ -144,7 +145,9 @@ describe("ScriptsPanel", () => {
   const renderPanel = (store: Store) =>
     render(
       <CommandContainer store={store}>
-        <ScriptsPanel />
+        <TooltipProvider>
+          <ScriptsPanel />
+        </TooltipProvider>
       </CommandContainer>,
     );
 });

@@ -1,14 +1,20 @@
 import { useAtom, useAtomValue } from "jotai";
-import { useCallback, useRef, useState } from "react";
+import clsx from "clsx";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { Button } from "src/components/elements";
 import { EditableTextField } from "src/components/form/editable-text-field";
+import {
+  CollapsibleListSection,
+  ListItem,
+  NavigableList,
+} from "src/components/list";
+import type { ItemAction, NavItem } from "src/components/list";
 import { useRunScript } from "src/commands/run-script";
 import { useUserScripts } from "src/hooks/use-user-scripts";
 import {
   AddIcon,
   ChevronLeftIcon,
   CloseIcon,
-  DeleteIcon,
   PlayIcon,
   SaveIcon,
 } from "src/icons";
@@ -20,7 +26,6 @@ import {
   type ScriptDraft,
 } from "src/state/scripts";
 import { CodeEditor } from "./code-editor";
-import { RowAction } from "./row-action";
 
 const UNTITLED = "Untitled script";
 
@@ -46,157 +51,186 @@ export const ScriptsPanel = () => {
   return <ScriptList onOpen={setDraft} />;
 };
 
-const ScriptList = ({ onOpen }: { onOpen: (draft: ScriptDraft) => void }) => {
-  const runScript = useRunScript();
-  const isRunning = useIsRunning();
-  const { scripts, deleteScript } = useUserScripts();
+type Section = "myScripts" | "examples";
 
-  return (
-    <div className="h-full flex flex-col overflow-y-auto placemark-scrollbar">
-      <div className="py-2 px-4 text-size-base font-bold text-default border-b w-full flex items-center justify-between gap-2">
-        <span>Scripts</span>
-        <Button
-          variant="quiet"
-          size="xs"
-          onClick={() =>
-            onOpen({
-              scriptId: null,
-              name: UNTITLED,
-              source: NEW_SCRIPT_SOURCE,
-              savedAs: null,
-            })
-          }
-        >
-          <AddIcon size="sm" />
-          New
-        </Button>
-      </div>
-      <div className="px-4 py-2 text-size-base">
-        Read the network and hand results back as a selection, files and console
-        output.
-      </div>
-      <div className="relative flex-auto px-1 pb-2">
-        <SectionTitle>My scripts</SectionTitle>
-        {scripts.length === 0 && (
-          <div className="px-3 py-2 text-size-small text-subtle">
-            No scripts yet. Create one, or open an example and save a copy.
-          </div>
-        )}
-        {scripts.map((script) => (
-          <ScriptRow
-            key={script.id}
-            name={script.name}
-            detail={new Date(script.updatedAt).toLocaleDateString()}
-            runDisabled={isRunning}
-            onOpen={() =>
-              onOpen({
-                scriptId: script.id,
-                name: script.name,
-                source: script.source,
-                savedAs: { name: script.name, source: script.source },
-              })
-            }
-            onRun={() => runScript(script)}
-            onDelete={() => deleteScript(script.id)}
-          />
-        ))}
-        <SectionTitle>Examples</SectionTitle>
-        {(getScripting()?.exampleScripts ?? []).map((example) => (
-          <ScriptRow
-            key={example.id}
-            name={example.name}
-            runDisabled={isRunning}
-            onOpen={() =>
-              onOpen({
-                scriptId: null,
-                name: example.name,
-                source: example.source,
-                savedAs: { name: example.name, source: example.source },
-              })
-            }
-            onRun={() => runScript(example)}
-          />
-        ))}
-      </div>
-    </div>
-  );
+type Row = {
+  navId: number;
+  section: Section;
+  name: string;
+  draft: ScriptDraft;
+  run: { name: string; source: string };
+  scriptId: string | null;
 };
 
-const SectionTitle = ({ children }: { children: React.ReactNode }) => (
-  <div className="px-3 pt-3 pb-1 text-size-small font-semibold uppercase text-subtle">
-    {children}
-  </div>
-);
+const ScriptList = ({ onOpen }: { onOpen: (draft: ScriptDraft) => void }) => {
+  const runScript = useRunScript();
+  const { scripts, deleteScript } = useUserScripts();
+  const [focusedItem, setFocusedItem] = useState<NavItem<Section> | undefined>(
+    undefined,
+  );
 
-const ScriptRow = ({
-  name,
-  detail,
-  runDisabled,
-  onOpen,
-  onRun,
-  onDelete,
-}: {
-  name: string;
-  detail?: string;
-  runDisabled: boolean;
-  onOpen: () => void;
-  onRun: () => void;
-  onDelete?: () => void;
-}) => {
-  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const { myRows, exampleRows, newRowNavId, byNavId } = useMemo(() => {
+    const myRows: Row[] = scripts.map((script, index) => ({
+      navId: index + 1,
+      section: "myScripts",
+      name: script.name,
+      scriptId: script.id,
+      run: script,
+      draft: {
+        scriptId: script.id,
+        name: script.name,
+        source: script.source,
+        savedAs: { name: script.name, source: script.source },
+      },
+    }));
+    const newRowNavId = scripts.length + 1;
+    const exampleRows: Row[] = (getScripting()?.exampleScripts ?? []).map(
+      (example, index) => ({
+        navId: newRowNavId + index + 1,
+        section: "examples",
+        name: example.name,
+        scriptId: null,
+        run: example,
+        draft: {
+          scriptId: null,
+          name: example.name,
+          source: example.source,
+          savedAs: { name: example.name, source: example.source },
+        },
+      }),
+    );
+    const byNavId = new Map<number, Row>(
+      [...myRows, ...exampleRows].map((row) => [row.navId, row]),
+    );
+    return { myRows, exampleRows, newRowNavId, byNavId };
+  }, [scripts]);
+
+  const navItems = useMemo(
+    (): NavItem<Section>[] => [
+      ...myRows.map((row) => ({ id: row.navId, section: row.section })),
+      { id: newRowNavId, section: "myScripts" },
+      ...exampleRows.map((row) => ({ id: row.navId, section: row.section })),
+    ],
+    [myRows, exampleRows, newRowNavId],
+  );
+
+  const openNew = useCallback(
+    () =>
+      onOpen({
+        scriptId: null,
+        name: UNTITLED,
+        source: NEW_SCRIPT_SOURCE,
+        savedAs: null,
+      }),
+    [onOpen],
+  );
+
+  const handleActivateItem = useCallback(
+    (item: NavItem<Section>) => {
+      if (item.id === newRowNavId) return openNew();
+      const row = item.id != null ? byNavId.get(item.id) : undefined;
+      if (row) onOpen(row.draft);
+    },
+    [byNavId, newRowNavId, onOpen, openNew],
+  );
+
+  const handleBlur = (e: React.FocusEvent<HTMLDivElement>) => {
+    if (e.currentTarget.contains(e.relatedTarget)) return;
+    setFocusedItem(undefined);
+  };
+
+  const handleAction = (action: string, item: { id: number }) => {
+    const row = byNavId.get(item.id);
+    if (action === "delete" && row?.scriptId) {
+      setFocusedItem(undefined);
+      deleteScript(row.scriptId);
+    }
+  };
+
+  const itemActions: ItemAction[] = [
+    {
+      action: "delete",
+      label: "Delete",
+      icon: <CloseIcon size="sm" />,
+      variant: "destructive",
+    },
+  ];
+
+  const renderRow = (row: Row) => (
+    <ListItem
+      key={row.navId}
+      item={{ id: row.navId, label: row.name }}
+      isSelected={false}
+      isFocused={focusedItem?.id === row.navId}
+      onSelect={() => onOpen(row.draft)}
+      secondaryAction={{
+        label: `Run ${row.name}`,
+        icon: <PlayIcon size="md" />,
+        onClick: () => runScript(row.run),
+      }}
+      actions={row.scriptId ? itemActions : undefined}
+      actionsLabel={`More actions for ${row.name}`}
+      onAction={handleAction}
+    />
+  );
 
   return (
-    <Button
-      onClick={onOpen}
-      variant="quiet/list"
-      aria-label={name}
-      className="group w-full"
-    >
-      <div className="grid grid-cols-[1fr_auto] gap-x-1 items-center p-2 text-size-base w-full">
-        <div className="min-w-0 text-left">
-          <div className="text-size-base font-semibold truncate">{name}</div>
-          {detail && (
-            <div className="text-size-small text-subtle truncate">{detail}</div>
-          )}
+    <div className="flex flex-col h-full" onBlur={handleBlur}>
+      <NavigableList
+        navItems={navItems}
+        focusedItem={focusedItem}
+        onSelectItem={setFocusedItem}
+        onActivateItem={handleActivateItem}
+      >
+        <div className="px-1 pb-2 text-size-base">
+          Read the network and hand results back as a selection, files and
+          console output.
         </div>
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
-          {confirmingDelete && onDelete ? (
-            <>
-              <RowAction label="Delete" onActivate={onDelete}>
-                <span className="text-error text-size-small font-semibold whitespace-nowrap">
-                  Delete
-                </span>
-              </RowAction>
-              <RowAction
-                label="Keep script"
-                onActivate={() => setConfirmingDelete(false)}
-              >
-                <CloseIcon size="sm" />
-              </RowAction>
-            </>
-          ) : (
-            <>
-              <RowAction
-                label={`Run ${name}`}
-                onActivate={onRun}
-                disabled={runDisabled}
-                disabledReason="A script is already running"
-              >
-                <PlayIcon size="sm" />
-              </RowAction>
-              {onDelete && (
-                <RowAction
-                  label={`Delete ${name}`}
-                  onActivate={() => setConfirmingDelete(true)}
-                >
-                  <DeleteIcon size="sm" />
-                </RowAction>
-              )}
-            </>
-          )}
-        </div>
-      </div>
-    </Button>
+        <CollapsibleListSection
+          sectionType="myScripts"
+          title="My scripts"
+          count={myRows.length}
+          isFocused={
+            focusedItem?.section === "myScripts" && focusedItem.id == null
+          }
+          action={{ icon: <AddIcon />, label: "New script" }}
+          onAction={openNew}
+        >
+          {myRows.map(renderRow)}
+          <li
+            data-item-id={newRowNavId}
+            className={clsx(
+              "flex items-center text-sm h-8 min-w-0 rounded-sm",
+              focusedItem?.id === newRowNavId
+                ? "bg-base-hover"
+                : "hover:bg-base-hover",
+            )}
+          >
+            <Button
+              variant="quiet/list"
+              size="sm"
+              onClick={openNew}
+              className="flex-1 min-w-0 self-stretch justify-start hover:bg-transparent dark:hover:bg-transparent"
+            >
+              <span className="flex items-center gap-1 min-w-0 text-subtle">
+                <AddIcon />
+                <span className="truncate">Create a script</span>
+              </span>
+            </Button>
+          </li>
+        </CollapsibleListSection>
+        <CollapsibleListSection
+          sectionType="examples"
+          title="Examples"
+          count={exampleRows.length}
+          isFocused={
+            focusedItem?.section === "examples" && focusedItem.id == null
+          }
+        >
+          {exampleRows.map(renderRow)}
+        </CollapsibleListSection>
+      </NavigableList>
+    </div>
   );
 };
 
