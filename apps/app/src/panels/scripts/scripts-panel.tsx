@@ -225,11 +225,6 @@ const ScriptList = ({ onOpen }: { onOpen: (draft: ScriptDraft) => void }) => {
         isFocused={focusedItem?.id === row.navId}
         onSelect={() => runScript(row.run)}
         showFullLabelOnHover
-        secondaryAction={{
-          label: `Run ${row.name}`,
-          icon: <PlayIcon size="md" />,
-          onClick: () => runScript(row.run),
-        }}
         actions={row.scriptId ? itemActions : [editAction]}
         actionsLabel={`More actions for ${row.name}`}
         onAction={handleAction}
