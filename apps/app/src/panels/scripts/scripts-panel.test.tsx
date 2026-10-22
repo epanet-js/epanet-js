@@ -135,7 +135,7 @@ describe("ScriptsPanel", () => {
     expect(screen.getByText("My scripts")).toBeVisible();
   });
 
-  it("runs a script when its row is clicked", async () => {
+  it("runs a script from its row without opening the editor", async () => {
     const user = userEvent.setup();
     const startScriptRun = vi.fn().mockReturnValue({
       finished: new Promise(() => {}),
@@ -150,7 +150,7 @@ describe("ScriptsPanel", () => {
     ]);
     renderPanel(store);
 
-    await user.click(screen.getByRole("button", { name: "Pipe audit" }));
+    await user.click(screen.getByRole("button", { name: "Run Pipe audit" }));
 
     expect(startScriptRun).toHaveBeenCalledWith(
       expect.objectContaining({ source: "console.log(1);" }),
