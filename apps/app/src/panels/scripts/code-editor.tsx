@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { EditorState } from "@codemirror/state";
+import { Compartment, EditorState, type Extension } from "@codemirror/state";
 import {
   EditorView,
   drawSelection,
@@ -22,19 +22,27 @@ import { placemarkTheme } from "src/lib/codemirror-theme";
 
 export function CodeEditor({
   initialSource,
+  locked,
   onChange,
   onRun,
   onSave,
+  onLockedEdit,
 }: {
   initialSource: string;
+  locked: boolean;
   onChange: (source: string) => void;
   onRun: () => void;
   onSave: () => void;
+  onLockedEdit: () => void;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const callbacksRef = useRef({ onChange, onRun, onSave });
-  callbacksRef.current = { onChange, onRun, onSave };
+  const viewRef = useRef<EditorView | null>(null);
+  const lockRef = useRef(new Compartment());
+  const callbacksRef = useRef({ onChange, onRun, onSave, onLockedEdit });
+  callbacksRef.current = { onChange, onRun, onSave, onLockedEdit };
   const initialSourceRef = useRef(initialSource);
+  const initialLockedRef = useRef(locked);
+  const onLockedEditRef = useRef(() => callbacksRef.current.onLockedEdit());
 
   useEffect(() => {
     const parent = containerRef.current;
@@ -49,6 +57,9 @@ export function CodeEditor({
           indentOnInput(),
           indentUnit.of("  "),
           bracketMatching(),
+          lockRef.current.of(
+            lockExtension(initialLockedRef.current, onLockedEditRef.current),
+          ),
           keymap.of([
             {
               key: "Mod-Enter",
@@ -80,9 +91,41 @@ export function CodeEditor({
       }),
       parent,
     });
+    viewRef.current = view;
     view.focus();
-    return () => view.destroy();
+    return () => {
+      viewRef.current = null;
+      view.destroy();
+    };
   }, []);
+
+  useEffect(() => {
+    viewRef.current?.dispatch({
+      effects: lockRef.current.reconfigure(
+        lockExtension(locked, onLockedEditRef.current),
+      ),
+    });
+  }, [locked]);
 
   return <div ref={containerRef} className="h-full [&_.cm-editor]:h-full!" />;
 }
+
+const lockExtension = (
+  isLocked: boolean,
+  onLockedEdit: () => void,
+): Extension => {
+  if (!isLocked) return [];
+  const blockEdit = (event: Event) => {
+    event.preventDefault();
+    onLockedEdit();
+    return true;
+  };
+  return [
+    EditorState.readOnly.of(true),
+    EditorView.domEventHandlers({
+      beforeinput: blockEdit,
+      paste: blockEdit,
+      drop: blockEdit,
+    }),
+  ];
+};

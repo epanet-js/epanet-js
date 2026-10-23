@@ -95,6 +95,32 @@ describe("resolvePermissions", () => {
     },
   );
 
+  it.each(["pro", "personal", "teams", "education"] satisfies Plan[])(
+    "%s plan can run and edit scripts",
+    (plan) => {
+      const p = resolvePermissions(plan, false, false, false);
+      expect(p.canRunScripts).toBe(true);
+      expect(p.canEditScripts).toBe(true);
+    },
+  );
+
+  it("free plan with active trial can run and edit scripts", () => {
+    const p = resolvePermissions("free", true, false, false);
+    expect(p.canRunScripts).toBe(true);
+    expect(p.canEditScripts).toBe(true);
+  });
+
+  it("free plan can run and edit scripts only on a demo network", () => {
+    expect(resolvePermissions("free", false, false, false)).toMatchObject({
+      canRunScripts: false,
+      canEditScripts: false,
+    });
+    expect(resolvePermissions("free", false, false, true)).toMatchObject({
+      canRunScripts: true,
+      canEditScripts: true,
+    });
+  });
+
   it("org admin can manage organization", () => {
     const p = resolvePermissions("teams", false, true, false);
     expect(p.canManageOrganization).toBe(true);

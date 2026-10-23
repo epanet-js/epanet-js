@@ -16,12 +16,15 @@ import type {
   NavigableListHandle,
 } from "src/components/list";
 import { useRunScript } from "src/commands/run-script";
+import { useFeatureLock } from "src/components/form/paywall";
+import { useTranslate } from "src/hooks/use-translate";
 import { useUserScripts } from "src/hooks/use-user-scripts";
 import {
   AddIcon,
   ChevronLeftIcon,
   DeleteIcon,
   MoreActionsIcon,
+  PaywallLockIcon,
   PencilIcon,
   PlayIcon,
   RenameIcon,
@@ -73,7 +76,7 @@ type Row = {
   section: Section;
   name: string;
   draft: ScriptDraft;
-  run: { name: string; source: string };
+  run: { name: string; source: string; paywalled: boolean };
   scriptId: string | null;
 };
 
@@ -81,6 +84,9 @@ const ScriptList = ({ onOpen }: { onOpen: (draft: ScriptDraft) => void }) => {
   const runScript = useRunScript();
   const { scripts, saveScript } = useUserScripts();
   const setDialog = useSetAtom(dialogAtom);
+  const translate = useTranslate();
+  const { isLocked: isEditLocked, openPaywall: openEditPaywall } =
+    useFeatureLock("editScripts");
   const listRef = useRef<NavigableListHandle>(null);
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [focusedItem, setFocusedItem] = useState<NavItem<Section> | undefined>(
@@ -93,7 +99,7 @@ const ScriptList = ({ onOpen }: { onOpen: (draft: ScriptDraft) => void }) => {
       section: "myScripts",
       name: script.name,
       scriptId: script.id,
-      run: script,
+      run: { name: script.name, source: script.source, paywalled: true },
       draft: {
         scriptId: script.id,
         name: script.name,
@@ -108,7 +114,7 @@ const ScriptList = ({ onOpen }: { onOpen: (draft: ScriptDraft) => void }) => {
         section: "examples",
         name: example.name,
         scriptId: null,
-        run: example,
+        run: { name: example.name, source: example.source, paywalled: false },
         draft: {
           scriptId: null,
           name: example.name,
@@ -132,16 +138,15 @@ const ScriptList = ({ onOpen }: { onOpen: (draft: ScriptDraft) => void }) => {
     [myRows, exampleRows, newRowNavId],
   );
 
-  const openNew = useCallback(
-    () =>
-      onOpen({
-        scriptId: null,
-        name: UNTITLED,
-        source: NEW_SCRIPT_SOURCE,
-        savedAs: null,
-      }),
-    [onOpen],
-  );
+  const openNew = useCallback(() => {
+    if (isEditLocked) return openEditPaywall();
+    onOpen({
+      scriptId: null,
+      name: UNTITLED,
+      source: NEW_SCRIPT_SOURCE,
+      savedAs: null,
+    });
+  }, [isEditLocked, openEditPaywall, onOpen]);
 
   const handleActivateItem = useCallback(
     (item: NavItem<Section>) => {
@@ -161,6 +166,7 @@ const ScriptList = ({ onOpen }: { onOpen: (draft: ScriptDraft) => void }) => {
     const row = byNavId.get(item.id);
     if (!row) return;
     if (action === "edit") return onOpen(row.draft);
+    if (isEditLocked) return openEditPaywall();
     if (action === "rename" && row.scriptId) {
       setRenamingId(row.scriptId);
       return;
@@ -232,7 +238,7 @@ const ScriptList = ({ onOpen }: { onOpen: (draft: ScriptDraft) => void }) => {
         secondaryAction={{
           label: `Run ${row.name}`,
           icon: <PlayIcon size="md" />,
-          onClick: () => runScript(row.run),
+          onClick: () => runScript(row.run, "list"),
         }}
         showFullLabelOnHover
         actions={row.scriptId ? itemActions : [editAction]}
@@ -252,8 +258,7 @@ const ScriptList = ({ onOpen }: { onOpen: (draft: ScriptDraft) => void }) => {
         onActivateItem={handleActivateItem}
       >
         <div className="px-1 pb-2 text-size-base">
-          Read the network and hand results back as a selection, files and
-          console output.
+          Automate work on your network and build the tools you&apos;re missing.
         </div>
         <CollapsibleListSection
           sectionType="myScripts"
@@ -279,10 +284,15 @@ const ScriptList = ({ onOpen }: { onOpen: (draft: ScriptDraft) => void }) => {
               variant="quiet/list"
               size="sm"
               onClick={openNew}
+              aria-label={
+                isEditLocked
+                  ? `${translate("paywall.tooltip")}: Create a script`
+                  : undefined
+              }
               className="flex-1 min-w-0 self-stretch justify-start hover:bg-transparent dark:hover:bg-transparent"
             >
               <span className="flex items-center gap-1 min-w-0 text-subtle">
-                <AddIcon />
+                {isEditLocked ? <PaywallLockIcon size="sm" /> : <AddIcon />}
                 <span className="truncate">Create a script</span>
               </span>
             </Button>
@@ -316,6 +326,8 @@ const ScriptEditor = ({
   const isRunning = useIsRunning();
   const { saveScript } = useUserScripts();
   const setDialog = useSetAtom(dialogAtom);
+  const { isLocked: isEditLocked, openPaywall: openEditPaywall } =
+    useFeatureLock("editScripts");
   const [confirmingDiscard, setConfirmingDiscard] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
   const draftRef = useRef(draft);
@@ -324,15 +336,20 @@ const ScriptEditor = ({
   const nameOf = (current: ScriptDraft) => current.name.trim() || UNTITLED;
 
   const handleRun = useCallback(
-    () =>
-      runScript({
-        name: nameOf(draftRef.current),
-        source: draftRef.current.source,
-      }),
+    (trigger: "editor" | "shortcut") =>
+      runScript(
+        {
+          name: nameOf(draftRef.current),
+          source: draftRef.current.source,
+          paywalled: !isExample(draftRef.current),
+        },
+        trigger,
+      ),
     [runScript],
   );
 
   const handleSave = useCallback(() => {
+    if (isEditLocked) return openEditPaywall();
     const current = draftRef.current;
     const saved = saveScript({
       id: current.scriptId,
@@ -348,7 +365,7 @@ const ScriptEditor = ({
       savedAs: { name: saved.name, source: saved.source },
     });
     setConfirmingDiscard(false);
-  }, [saveScript, onChange]);
+  }, [isEditLocked, openEditPaywall, saveScript, onChange]);
 
   const handleBack = () => {
     if (hasUnsavedChanges(draft) && !confirmingDiscard) {
@@ -358,7 +375,7 @@ const ScriptEditor = ({
     onClose();
   };
 
-  const isExampleCopy = draft.scriptId === null && draft.savedAs !== null;
+  const isExampleCopy = isExample(draft);
 
   return (
     <div className="h-full min-h-0 flex flex-col">
@@ -366,33 +383,44 @@ const ScriptEditor = ({
         <Button variant="quiet" aria-label="Back" onClick={handleBack}>
           <ChevronLeftIcon />
         </Button>
-        <EditableTextField
-          label="Script name"
-          value={draft.name}
-          title={draft.name}
-          onChangeValue={(name) => {
-            onChange({ ...draftRef.current, name });
-            setIsRenaming(false);
-            return false;
-          }}
-          onDirty={() => setIsRenaming(true)}
-          onReset={() => setIsRenaming(false)}
-          className="min-w-0"
-          styleOptions={{
-            padding: "sm",
-            ghostBorder: true,
-            fontWeight: "semibold",
-            textSize: "sm",
-            width: "content",
-          }}
-        />
+        {isEditLocked ? (
+          <button
+            type="button"
+            title={draft.name}
+            onClick={openEditPaywall}
+            className="min-w-0 truncate px-1 text-sm font-semibold text-left"
+          >
+            {draft.name}
+          </button>
+        ) : (
+          <EditableTextField
+            label="Script name"
+            value={draft.name}
+            title={draft.name}
+            onChangeValue={(name) => {
+              onChange({ ...draftRef.current, name });
+              setIsRenaming(false);
+              return false;
+            }}
+            onDirty={() => setIsRenaming(true)}
+            onReset={() => setIsRenaming(false)}
+            className="min-w-0"
+            styleOptions={{
+              padding: "sm",
+              ghostBorder: true,
+              fontWeight: "semibold",
+              textSize: "sm",
+              width: "content",
+            }}
+          />
+        )}
         <div className="flex shrink-0 ml-auto">
           <Button
             variant="quiet"
             aria-label="Run"
             title="Run"
             className="h-8"
-            onClick={handleRun}
+            onClick={() => handleRun("editor")}
             disabled={isRunning}
           >
             <PlayIcon />
@@ -404,6 +432,7 @@ const ScriptEditor = ({
             className="h-8"
             onClick={handleSave}
             disabled={
+              !isEditLocked &&
               !isRenaming &&
               !hasUnsavedChanges(draft) &&
               draft.scriptId !== null
@@ -426,14 +455,15 @@ const ScriptEditor = ({
                 <DDContent align="end" side="bottom" className="z-50">
                   <StyledItem
                     variant="destructive"
-                    onSelect={() =>
-                      draft.scriptId !== null &&
+                    onSelect={() => {
+                      if (isEditLocked) return openEditPaywall();
+                      if (draft.scriptId === null) return;
                       setDialog({
                         type: "deleteScriptConfirmation",
                         scriptId: draft.scriptId,
                         scriptName: draft.name,
-                      })
-                    }
+                      });
+                    }}
                   >
                     <DeleteIcon size="sm" />
                     Delete
@@ -467,14 +497,19 @@ const ScriptEditor = ({
       <div className="flex-auto min-h-0">
         <CodeEditor
           initialSource={draft.source}
+          locked={isEditLocked}
           onChange={(source) => onChange({ ...draftRef.current, source })}
-          onRun={handleRun}
+          onRun={() => handleRun("shortcut")}
           onSave={handleSave}
+          onLockedEdit={openEditPaywall}
         />
       </div>
     </div>
   );
 };
+
+const isExample = (draft: ScriptDraft) =>
+  draft.scriptId === null && draft.savedAs !== null;
 
 const isUnrenamedExample = (draft: ScriptDraft) =>
   draft.scriptId === null &&

@@ -19,6 +19,8 @@ export type Permissions = {
   canUseCustomAttributes: boolean;
   canManageCollections: boolean;
   canImportSynergi: boolean;
+  canRunScripts: boolean;
+  canEditScripts: boolean;
   canUpgrade: boolean;
   canManageOrganization: boolean;
 };
@@ -44,6 +46,8 @@ export const resolvePermissions = (
     canUseCustomAttributes: hasPaidAccess || isDemoNetwork,
     canManageCollections: hasPaidAccess || isDemoNetwork,
     canImportSynergi: hasPaidAccess,
+    canRunScripts: hasPaidAccess || isDemoNetwork,
+    canEditScripts: hasPaidAccess || isDemoNetwork,
     canUpgrade: plan === "free",
     canManageOrganization: isOrgAdmin,
   };

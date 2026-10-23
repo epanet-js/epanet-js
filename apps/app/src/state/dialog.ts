@@ -264,7 +264,9 @@ export type PaywallFeature =
   | "selectionSets"
   | "modelAttributesValidation"
   | "modelBuilder"
-  | "convertModel";
+  | "convertModel"
+  | "runScripts"
+  | "editScripts";
 
 export type FeaturePaywallDialogState = {
   type: "featurePaywall";

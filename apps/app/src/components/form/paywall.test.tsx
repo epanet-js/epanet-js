@@ -20,6 +20,8 @@ const defaultPermissions: Permissions = {
   canUseCustomAttributes: false,
   canManageCollections: false,
   canImportSynergi: false,
+  canRunScripts: false,
+  canEditScripts: false,
   canUpgrade: true,
   canManageOrganization: false,
 };

@@ -701,6 +701,12 @@ type UtilitiesVisited = {
   source: "menu";
 };
 
+type ScriptRunStarted = {
+  name: "script.runStarted";
+  source: "editor" | "list" | "shortcut";
+  canRunScripts: boolean;
+};
+
 type ScriptingApiVisited = {
   name: "scriptingApi.visited";
   source: "menu";
@@ -1538,6 +1544,7 @@ export type UserEvent =
   | RoadmapVisited
   | UtilitiesVisited
   | ScriptingApiVisited
+  | ScriptRunStarted
   | RepoVisited
   | FoundersPartnerLinkVisited
   | SignUpStarted

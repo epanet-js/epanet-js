@@ -13,6 +13,8 @@ import {
 import { MapContext } from "src/map";
 import { useZoomTo } from "src/hooks/use-zoom-to";
 import { usePermissions } from "src/hooks/use-permissions";
+import { useFeatureLock } from "src/components/form/paywall";
+import { useUserTracking } from "src/infra/user-tracking";
 import { useSelectionSetsTransaction } from "src/hooks/persistence/use-selection-sets-transaction";
 import { useBookmarksTransaction } from "src/hooks/persistence/use-bookmarks-transaction";
 import {
@@ -60,7 +62,9 @@ export const useRunScript = () => {
   const setSelection = useSetAtom(selectionAtom);
   const zoomTo = useZoomTo();
   const map = useContext(MapContext);
-  const { canManageCollections } = usePermissions();
+  const { canManageCollections, canRunScripts } = usePermissions();
+  const { openPaywall } = useFeatureLock("runScripts");
+  const userTracking = useUserTracking();
   const { create: createSelectionSet } = useSelectionSetsTransaction();
   const { transact: saveBookmarks } = useBookmarksTransaction();
 
@@ -122,10 +126,23 @@ export const useRunScript = () => {
   );
 
   return useCallback(
-    ({ name, source }: { name: string; source: string }) => {
+    (
+      {
+        name,
+        source,
+        paywalled,
+      }: { name: string; source: string; paywalled: boolean },
+      trigger: "editor" | "list" | "shortcut",
+    ) => {
       const scripting = getScripting();
       if (!scripting) return;
       if (store.get(scriptRunAtom)?.status === "running") return;
+      userTracking.capture({
+        name: "script.runStarted",
+        source: trigger,
+        canRunScripts,
+      });
+      if (paywalled && !canRunScripts) return openPaywall();
 
       const updateRun = (update: (run: ScriptRunState) => ScriptRunState) =>
         setRun((run) => run && update(run));
@@ -205,7 +222,16 @@ export const useRunScript = () => {
         applyOutcome(outcome);
       });
     },
-    [store, setRun, setDialog, applyOutcome, currentViewport],
+    [
+      store,
+      setRun,
+      setDialog,
+      applyOutcome,
+      currentViewport,
+      userTracking,
+      canRunScripts,
+      openPaywall,
+    ],
   );
 };
 
