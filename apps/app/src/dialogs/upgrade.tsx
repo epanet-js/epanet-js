@@ -28,6 +28,7 @@ import {
   useIsTrialEmailRefused,
 } from "src/hooks/use-activate-trial";
 import { usePermissions } from "src/hooks/use-permissions";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { signUpUrl } from "src/global-config";
 import { CheckIcon, InfoIcon, CloseIcon, RefreshIcon } from "src/icons";
 import type { UpgradeOrigin } from "src/state/dialog";
@@ -277,6 +278,7 @@ const PersonalPlan = ({
   source: UpgradeOrigin;
 }) => {
   const translate = useTranslate();
+  const isScriptingOn = useFeatureFlag("FLAG_SCRIPTING");
   const price = prices.personal.yearly;
 
   return (
@@ -316,6 +318,15 @@ const PersonalPlan = ({
                 Icon: CheckIcon,
                 iconColor: "text-success",
               },
+              ...(isScriptingOn
+                ? [
+                    {
+                      feature: translate("scriptingItem"),
+                      Icon: CheckIcon,
+                      iconColor: "text-success",
+                    },
+                  ]
+                : []),
               {
                 feature: translate("customMapLayers"),
                 Icon: CheckIcon,
@@ -435,6 +446,7 @@ const ProPlan = ({
   source: UpgradeOrigin;
 }) => {
   const translate = useTranslate();
+  const isScriptingOn = useFeatureFlag("FLAG_SCRIPTING");
   const price = prices.pro[paymentType];
   const { user, isSignedIn } = useAuth();
   const isTrialEmailRefused = useIsTrialEmailRefused();
@@ -482,6 +494,15 @@ const ProPlan = ({
                 Icon: CheckIcon,
                 iconColor: "text-success",
               },
+              ...(isScriptingOn
+                ? [
+                    {
+                      feature: translate("scriptingItem"),
+                      Icon: CheckIcon,
+                      iconColor: "text-success",
+                    },
+                  ]
+                : []),
               {
                 feature: translate("customMapLayers"),
                 Icon: CheckIcon,
