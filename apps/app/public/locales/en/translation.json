@@ -1862,6 +1862,7 @@
   "exportTimeSeries": "Export simulation results",
   "exportTimeSeries.progress": "Exporting results",
   "exportTimeSeries.noSimulation": "No simulation results were found. Run a simulation first to export time-series data.",
+  "exportTimeSeries.simulationFailed": "The last simulation run was unsuccessful, so there are no results to export. Review the simulation report, fix the issues and run it again.",
   "exportTimeSeries.largeExportTitle": "Large export size (~{{1}} GB)",
   "exportTimeSeries.exceededSizeTitle": "Maximum export size exceeded (~{{1}} GB)",
   "exportTimeSeries.largeExportDescription": "Large files may be slow to generate and difficult to open in other apps. Consider filtering your data or reducing the number of simulation steps to lower its size.",

@@ -294,7 +294,30 @@ export const ExportSimulationResultsDialog = ({
     );
   }
 
-  if (epsResultsReader === null) {
+  if (simulation.status === "failure") {
+    return (
+      <BaseDialog
+        title={translate("exportTimeSeries")}
+        size="sm"
+        isOpen={true}
+        onClose={onClose}
+        footer={
+          <SimpleDialogActions
+            action={translate("dialog.close")}
+            onAction={onClose}
+          />
+        }
+      >
+        <div className="p-4">
+          <p className="text-size-base text-default">
+            {translate("exportTimeSeries.simulationFailed")}
+          </p>
+        </div>
+      </BaseDialog>
+    );
+  }
+
+  if (!epsResultsReader) {
     return (
       <BaseDialog
         title={translate("exportTimeSeries")}
