@@ -245,7 +245,7 @@ export function HelpDot() {
           >
             <StyledItem>
               <ScriptsIcon />
-              Scripting API
+              {translate("scripting.apiReference")}
             </StyledItem>
           </a>
         )}

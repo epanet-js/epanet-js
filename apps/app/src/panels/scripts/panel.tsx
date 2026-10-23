@@ -4,6 +4,6 @@ import { ScriptsPanel } from "./scripts-panel";
 
 export const scriptsPanel: PanelTemplate<"scripts"> = {
   component: () => <ScriptsPanel />,
-  buildLabel: () => "Scripts",
+  buildLabel: (_panel, { translate }) => translate("scripting.panelTitle"),
   icon: () => <ScriptsIcon />,
 };

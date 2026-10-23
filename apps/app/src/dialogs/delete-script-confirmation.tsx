@@ -2,6 +2,7 @@ import { useSetAtom } from "jotai";
 import { BaseDialog, SimpleDialogActions } from "src/components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
 import { useUserScripts } from "src/hooks/use-user-scripts";
+import { useUserTracking } from "src/infra/user-tracking";
 import { scriptDraftAtom } from "src/state/scripts";
 
 export const DeleteScriptConfirmationDialog = ({
@@ -14,24 +15,29 @@ export const DeleteScriptConfirmationDialog = ({
   onClose: () => void;
 }) => {
   const translate = useTranslate();
-  const { deleteScript } = useUserScripts();
+  const { scripts, deleteScript } = useUserScripts();
+  const userTracking = useUserTracking();
   const setDraft = useSetAtom(scriptDraftAtom);
 
   const handleConfirm = () => {
     onClose();
     deleteScript(scriptId);
+    userTracking.capture({
+      name: "script.deleted",
+      scriptsCount: scripts.filter((script) => script.id !== scriptId).length,
+    });
     setDraft((draft) => (draft?.scriptId === scriptId ? null : draft));
   };
 
   return (
     <BaseDialog
-      title="Delete script"
+      title={translate("scripting.deleteScript")}
       size="xs"
       isOpen={true}
       onClose={onClose}
       footer={
         <SimpleDialogActions
-          action="Delete script"
+          action={translate("scripting.deleteScript")}
           onAction={handleConfirm}
           actionVariant="danger"
           secondary={{
@@ -42,7 +48,7 @@ export const DeleteScriptConfirmationDialog = ({
       }
     >
       <div className="p-4 text-size-base text-default">
-        <p>Are you sure you want to delete script "{scriptName}"?</p>
+        <p>{translate("scripting.deleteScriptConfirmation", scriptName)}</p>
       </div>
     </BaseDialog>
   );

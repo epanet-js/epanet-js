@@ -30,6 +30,7 @@ export const userScriptsAtom = atom<UserScript[]>([]);
 
 export type ScriptDraft = {
   scriptId: string | null;
+  exampleId: string | null;
   name: string;
   source: string;
   savedAs: { name: string; source: string } | null;

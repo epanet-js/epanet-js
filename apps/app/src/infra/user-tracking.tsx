@@ -705,6 +705,40 @@ type ScriptRunStarted = {
   name: "script.runStarted";
   source: "editor" | "list" | "shortcut";
   canRunScripts: boolean;
+  isExample: boolean;
+  exampleId: string;
+  isDemoNetwork: boolean;
+};
+
+type ScriptRunFinished = {
+  name: "script.runFinished";
+  status: "success" | "error" | "cancelled";
+  durationMs: number;
+  isExample: boolean;
+  errorName: string;
+  consoleLinesCount: number;
+  attachmentsCount: number;
+  selectionSetsCount: number;
+  bookmarksCount: number;
+  appliedSelection: boolean;
+  zoomed: boolean;
+};
+
+type ScriptSaved = {
+  name: "script.saved";
+  kind: "new" | "update" | "exampleCopy";
+  source: "editor" | "list";
+  scriptsCount: number;
+};
+
+type ScriptDeleted = {
+  name: "script.deleted";
+  scriptsCount: number;
+};
+
+type ScriptAttachmentDownloaded = {
+  name: "script.attachmentDownloaded";
+  sizeKb: number;
 };
 
 type ScriptingApiVisited = {
@@ -1545,6 +1579,10 @@ export type UserEvent =
   | UtilitiesVisited
   | ScriptingApiVisited
   | ScriptRunStarted
+  | ScriptRunFinished
+  | ScriptSaved
+  | ScriptDeleted
+  | ScriptAttachmentDownloaded
   | RepoVisited
   | FoundersPartnerLinkVisited
   | SignUpStarted

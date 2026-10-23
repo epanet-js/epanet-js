@@ -7,6 +7,8 @@ import { BaseDialog, SimpleDialogActions } from "src/components/dialog";
 import { FileSystemHelpers } from "src/infra/storage";
 import { PaywallLockButton } from "src/components/form/paywall";
 import { usePermissions } from "src/hooks/use-permissions";
+import { useTranslate } from "src/hooks/use-translate";
+import { useUserTracking } from "src/infra/user-tracking";
 import type { ScriptAttachment, ScriptRunOutcome } from "src/lib/scripting";
 import {
   scriptRunAtom,
@@ -42,6 +44,7 @@ const RunningScriptDialog = ({
   run: ScriptRunState;
   onClose: () => void;
 }) => {
+  const translate = useTranslate();
   const [cancelling, setCancelling] = useState(false);
   const consoleRef = useRef<HTMLDivElement>(null);
   const elapsedMs = useElapsed(run);
@@ -64,7 +67,9 @@ const RunningScriptDialog = ({
           <SimpleDialogActions
             isSubmitting={cancelling}
             secondary={{
-              action: cancelling ? "Cancelling…" : "Cancel",
+              action: cancelling
+                ? translate("scripting.cancelling")
+                : translate("dialog.cancel"),
               onClick: () => {
                 setCancelling(true);
                 run.cancel();
@@ -72,7 +77,10 @@ const RunningScriptDialog = ({
             }}
           />
         ) : (
-          <SimpleDialogActions action="Close" onAction={onClose} />
+          <SimpleDialogActions
+            action={translate("dialog.close")}
+            onAction={onClose}
+          />
         )
       }
     >
@@ -84,7 +92,9 @@ const RunningScriptDialog = ({
           className="h-64 overflow-auto placemark-scrollbar bg-panel border rounded p-4 font-mono text-size-base text-default whitespace-pre-wrap"
         >
           {run.lines.length === 0 && (
-            <span className="text-subtle">No console output</span>
+            <span className="text-subtle">
+              {translate("scripting.noConsoleOutput")}
+            </span>
           )}
           {run.lines.map((line, i) => (
             <ConsoleLine key={i} line={line} />
@@ -102,11 +112,14 @@ const RunProgress = ({
   run: ScriptRunState;
   elapsedMs: number;
 }) => {
+  const translate = useTranslate();
   const percent = run.progress === null ? null : run.progress * 100;
   return (
     <div>
       <div className="flex flex-row items-baseline gap-1 mb-2">
-        <p className="text-size-base text-subtle">Running</p>
+        <p className="text-size-base text-subtle">
+          {translate("scripting.running")}
+        </p>
         <p className="text-size-base font-bold text-default tabular-nums">
           {formatElapsed(elapsedMs)}
         </p>
@@ -173,23 +186,28 @@ const ConsoleLine = ({ line }: { line: ScriptConsoleLine }) => {
 };
 
 const RunResult = ({ outcome }: { outcome: ScriptRunOutcome }) => {
+  const translate = useTranslate();
   if (outcome.status === "cancelled") {
     return (
       <StatusRow
         icon={<StopSimulationIcon />}
         iconClass="text-info"
-        text="Run cancelled"
+        text={translate("scripting.runCancelled")}
       />
     );
   }
   if (outcome.status === "error") {
     const { name, message, line } = outcome.error;
-    const location = line !== null ? ` (line ${line})` : "";
+    const error = `${name}: ${message}`;
     return (
       <StatusRow
         icon={<ErrorIcon />}
         iconClass="text-error"
-        text={`${name}: ${message}${location}`}
+        text={
+          line !== null
+            ? translate("scripting.errorAtLine", error, String(line))
+            : error
+        }
       />
     );
   }
@@ -198,12 +216,12 @@ const RunResult = ({ outcome }: { outcome: ScriptRunOutcome }) => {
       <StatusRow
         icon={<SuccessIcon />}
         iconClass="text-success"
-        text="Script finished"
+        text={translate("scripting.finished")}
       />
       {outcome.attachments.length > 0 && (
         <div className="flex flex-col gap-1">
           <div className="text-size-small font-semibold text-default">
-            Files
+            {translate("scripting.files")}
           </div>
           {outcome.attachments.map((attachment) => (
             <AttachmentRow key={attachment.name} attachment={attachment} />
@@ -212,13 +230,13 @@ const RunResult = ({ outcome }: { outcome: ScriptRunOutcome }) => {
       )}
       {outcome.selectionSets.length > 0 && (
         <CollectionsResult
-          title="Selection sets"
+          title={translate("collections.selectionSets.title")}
           labels={outcome.selectionSets.map((s) => s.label)}
         />
       )}
       {outcome.bookmarks.length > 0 && (
         <CollectionsResult
-          title="Bookmarks"
+          title={translate("collections.bookmarks.title")}
           labels={outcome.bookmarks.map((b) => b.label)}
         />
       )}
@@ -233,6 +251,7 @@ const CollectionsResult = ({
   title: string;
   labels: string[];
 }) => {
+  const translate = useTranslate();
   const { canManageCollections } = usePermissions();
 
   return (
@@ -245,7 +264,7 @@ const CollectionsResult = ({
       </div>
       {!canManageCollections && (
         <div className="text-size-base text-subtle">
-          Not saved. Your plan does not include collections.
+          {translate("scripting.collectionsNotSaved")}
         </div>
       )}
       {labels.map((label, i) => (
@@ -257,23 +276,34 @@ const CollectionsResult = ({
   );
 };
 
-const AttachmentRow = ({ attachment }: { attachment: ScriptAttachment }) => (
-  <div className="flex items-center gap-2 text-size-base">
-    <span className="truncate flex-auto">{attachment.name}</span>
-    <span className="text-size-small text-subtle tabular-nums shrink-0">
-      {formatSize(attachment.content.length)}
-    </span>
-    <Button
-      size="xs"
-      onClick={() =>
-        void FileSystemHelpers.downloadFile(attachment.name, attachment.content)
-      }
-    >
-      <DownloadIcon size="sm" />
-      Download
-    </Button>
-  </div>
-);
+const AttachmentRow = ({ attachment }: { attachment: ScriptAttachment }) => {
+  const translate = useTranslate();
+  const userTracking = useUserTracking();
+  return (
+    <div className="flex items-center gap-2 text-size-base">
+      <span className="truncate flex-auto">{attachment.name}</span>
+      <span className="text-size-small text-subtle tabular-nums shrink-0">
+        {formatSize(attachment.content.length)}
+      </span>
+      <Button
+        size="xs"
+        onClick={() => {
+          userTracking.capture({
+            name: "script.attachmentDownloaded",
+            sizeKb: Math.max(1, Math.round(attachment.content.length / 1024)),
+          });
+          void FileSystemHelpers.downloadFile(
+            attachment.name,
+            attachment.content,
+          );
+        }}
+      >
+        <DownloadIcon size="sm" />
+        {translate("scripting.download")}
+      </Button>
+    </div>
+  );
+};
 
 const StatusRow = ({
   icon,

@@ -18,6 +18,7 @@ import type {
 import { useRunScript } from "src/commands/run-script";
 import { useFeatureLock } from "src/components/form/paywall";
 import { useTranslate } from "src/hooks/use-translate";
+import { useUserTracking } from "src/infra/user-tracking";
 import { useUserScripts } from "src/hooks/use-user-scripts";
 import {
   AddIcon,
@@ -39,8 +40,6 @@ import {
   type ScriptDraft,
 } from "src/state/scripts";
 import { CodeEditor } from "./code-editor";
-
-const UNTITLED = "Untitled script";
 
 const NEW_SCRIPT_SOURCE = `// Writing this script with AI? Give your assistant this file first:
 //   https://app.epanetjs.com/llms.txt
@@ -76,13 +75,19 @@ type Row = {
   section: Section;
   name: string;
   draft: ScriptDraft;
-  run: { name: string; source: string; paywalled: boolean };
+  run: {
+    name: string;
+    source: string;
+    paywalled: boolean;
+    exampleId: string | null;
+  };
   scriptId: string | null;
 };
 
 const ScriptList = ({ onOpen }: { onOpen: (draft: ScriptDraft) => void }) => {
   const runScript = useRunScript();
   const { scripts, saveScript } = useUserScripts();
+  const userTracking = useUserTracking();
   const setDialog = useSetAtom(dialogAtom);
   const translate = useTranslate();
   const { isLocked: isEditLocked, openPaywall: openEditPaywall } =
@@ -99,9 +104,15 @@ const ScriptList = ({ onOpen }: { onOpen: (draft: ScriptDraft) => void }) => {
       section: "myScripts",
       name: script.name,
       scriptId: script.id,
-      run: { name: script.name, source: script.source, paywalled: true },
+      run: {
+        name: script.name,
+        source: script.source,
+        paywalled: true,
+        exampleId: null,
+      },
       draft: {
         scriptId: script.id,
+        exampleId: null,
         name: script.name,
         source: script.source,
         savedAs: { name: script.name, source: script.source },
@@ -114,9 +125,15 @@ const ScriptList = ({ onOpen }: { onOpen: (draft: ScriptDraft) => void }) => {
         section: "examples",
         name: example.name,
         scriptId: null,
-        run: { name: example.name, source: example.source, paywalled: false },
+        run: {
+          name: example.name,
+          source: example.source,
+          paywalled: false,
+          exampleId: example.id,
+        },
         draft: {
           scriptId: null,
+          exampleId: example.id,
           name: example.name,
           source: example.source,
           savedAs: { name: example.name, source: example.source },
@@ -142,11 +159,12 @@ const ScriptList = ({ onOpen }: { onOpen: (draft: ScriptDraft) => void }) => {
     if (isEditLocked) return openEditPaywall();
     onOpen({
       scriptId: null,
-      name: UNTITLED,
+      exampleId: null,
+      name: translate("scripting.untitled"),
       source: NEW_SCRIPT_SOURCE,
       savedAs: null,
     });
-  }, [isEditLocked, openEditPaywall, onOpen]);
+  }, [isEditLocked, openEditPaywall, onOpen, translate]);
 
   const handleActivateItem = useCallback(
     (item: NavItem<Section>) => {
@@ -183,7 +201,7 @@ const ScriptList = ({ onOpen }: { onOpen: (draft: ScriptDraft) => void }) => {
 
   const editAction: ItemAction = {
     action: "edit",
-    label: "Edit",
+    label: translate("scripting.edit"),
     icon: <PencilIcon size="sm" />,
   };
 
@@ -191,12 +209,12 @@ const ScriptList = ({ onOpen }: { onOpen: (draft: ScriptDraft) => void }) => {
     editAction,
     {
       action: "rename",
-      label: "Rename",
+      label: translate("rename"),
       icon: <RenameIcon size="sm" />,
     },
     {
       action: "delete",
-      label: "Delete",
+      label: translate("delete"),
       icon: <DeleteIcon size="sm" />,
       variant: "destructive",
     },
@@ -215,6 +233,12 @@ const ScriptList = ({ onOpen }: { onOpen: (draft: ScriptDraft) => void }) => {
       name: trimmedName,
       source: row.run.source,
     });
+    userTracking.capture({
+      name: "script.saved",
+      kind: "update",
+      source: "list",
+      scriptsCount: scripts.length,
+    });
     stopRenaming();
     return false;
   };
@@ -223,7 +247,7 @@ const ScriptList = ({ onOpen }: { onOpen: (draft: ScriptDraft) => void }) => {
     row.scriptId !== null && row.scriptId === renamingId ? (
       <ItemInput
         key={row.navId}
-        label="Script name"
+        label={translate("scripting.scriptName")}
         value={row.name}
         onCommit={(name) => handleRename(row, name)}
         onCancel={stopRenaming}
@@ -236,13 +260,13 @@ const ScriptList = ({ onOpen }: { onOpen: (draft: ScriptDraft) => void }) => {
         isFocused={focusedItem?.id === row.navId}
         onSelect={() => onOpen(row.draft)}
         secondaryAction={{
-          label: `Run ${row.name}`,
+          label: translate("scripting.runScript", row.name),
           icon: <PlayIcon size="md" />,
           onClick: () => runScript(row.run, "list"),
         }}
         showFullLabelOnHover
         actions={row.scriptId ? itemActions : [editAction]}
-        actionsLabel={`More actions for ${row.name}`}
+        actionsLabel={translate("scripting.moreActionsFor", row.name)}
         onAction={handleAction}
       />
     );
@@ -258,16 +282,19 @@ const ScriptList = ({ onOpen }: { onOpen: (draft: ScriptDraft) => void }) => {
         onActivateItem={handleActivateItem}
       >
         <div className="px-1 pb-2 text-size-base">
-          Automate work on your network and build the tools you&apos;re missing.
+          {translate("scripting.description")}
         </div>
         <CollapsibleListSection
           sectionType="myScripts"
-          title="My scripts"
+          title={translate("scripting.myScripts")}
           count={myRows.length}
           isFocused={
             focusedItem?.section === "myScripts" && focusedItem.id == null
           }
-          action={{ icon: <AddIcon />, label: "New script" }}
+          action={{
+            icon: <AddIcon />,
+            label: translate("scripting.newScript"),
+          }}
           onAction={openNew}
         >
           {myRows.map(renderRow)}
@@ -286,21 +313,23 @@ const ScriptList = ({ onOpen }: { onOpen: (draft: ScriptDraft) => void }) => {
               onClick={openNew}
               aria-label={
                 isEditLocked
-                  ? `${translate("paywall.tooltip")}: Create a script`
+                  ? `${translate("paywall.tooltip")}: ${translate("scripting.createScript")}`
                   : undefined
               }
               className="flex-1 min-w-0 self-stretch justify-start hover:bg-transparent dark:hover:bg-transparent"
             >
               <span className="flex items-center gap-1 min-w-0 text-subtle">
                 {isEditLocked ? <PaywallLockIcon size="sm" /> : <AddIcon />}
-                <span className="truncate">Create a script</span>
+                <span className="truncate">
+                  {translate("scripting.createScript")}
+                </span>
               </span>
             </Button>
           </li>
         </CollapsibleListSection>
         <CollapsibleListSection
           sectionType="examples"
-          title="Examples"
+          title={translate("scripting.examples")}
           count={exampleRows.length}
           isFocused={
             focusedItem?.section === "examples" && focusedItem.id == null
@@ -324,8 +353,10 @@ const ScriptEditor = ({
 }) => {
   const runScript = useRunScript();
   const isRunning = useIsRunning();
-  const { saveScript } = useUserScripts();
+  const { scripts, saveScript } = useUserScripts();
+  const userTracking = useUserTracking();
   const setDialog = useSetAtom(dialogAtom);
+  const translate = useTranslate();
   const { isLocked: isEditLocked, openPaywall: openEditPaywall } =
     useFeatureLock("editScripts");
   const [confirmingDiscard, setConfirmingDiscard] = useState(false);
@@ -333,7 +364,11 @@ const ScriptEditor = ({
   const draftRef = useRef(draft);
   draftRef.current = draft;
 
-  const nameOf = (current: ScriptDraft) => current.name.trim() || UNTITLED;
+  const nameOf = useCallback(
+    (current: ScriptDraft) =>
+      current.name.trim() || translate("scripting.untitled"),
+    [translate],
+  );
 
   const handleRun = useCallback(
     (trigger: "editor" | "shortcut") =>
@@ -342,10 +377,11 @@ const ScriptEditor = ({
           name: nameOf(draftRef.current),
           source: draftRef.current.source,
           paywalled: !isExample(draftRef.current),
+          exampleId: draftRef.current.exampleId,
         },
         trigger,
       ),
-    [runScript],
+    [runScript, nameOf],
   );
 
   const handleSave = useCallback(() => {
@@ -354,18 +390,40 @@ const ScriptEditor = ({
     const saved = saveScript({
       id: current.scriptId,
       name: isUnrenamedExample(current)
-        ? `${nameOf(current)} (copy)`
+        ? translate("scripting.copyName", nameOf(current))
         : nameOf(current),
       source: current.source,
     });
     onChange({
       scriptId: saved.id,
+      exampleId: null,
       name: saved.name,
       source: saved.source,
       savedAs: { name: saved.name, source: saved.source },
     });
+    const kind =
+      current.scriptId !== null
+        ? "update"
+        : current.exampleId !== null
+          ? "exampleCopy"
+          : "new";
+    userTracking.capture({
+      name: "script.saved",
+      kind,
+      source: "editor",
+      scriptsCount: kind === "update" ? scripts.length : scripts.length + 1,
+    });
     setConfirmingDiscard(false);
-  }, [isEditLocked, openEditPaywall, saveScript, onChange]);
+  }, [
+    isEditLocked,
+    openEditPaywall,
+    saveScript,
+    onChange,
+    nameOf,
+    translate,
+    userTracking,
+    scripts.length,
+  ]);
 
   const handleBack = () => {
     if (hasUnsavedChanges(draft) && !confirmingDiscard) {
@@ -380,7 +438,11 @@ const ScriptEditor = ({
   return (
     <div className="h-full min-h-0 flex flex-col">
       <div className="flex items-center gap-1 px-2 py-2 border-b">
-        <Button variant="quiet" aria-label="Back" onClick={handleBack}>
+        <Button
+          variant="quiet"
+          aria-label={translate("back")}
+          onClick={handleBack}
+        >
           <ChevronLeftIcon />
         </Button>
         {isEditLocked ? (
@@ -394,7 +456,7 @@ const ScriptEditor = ({
           </button>
         ) : (
           <EditableTextField
-            label="Script name"
+            label={translate("scripting.scriptName")}
             value={draft.name}
             title={draft.name}
             onChangeValue={(name) => {
@@ -417,8 +479,8 @@ const ScriptEditor = ({
         <div className="flex shrink-0 ml-auto">
           <Button
             variant="quiet"
-            aria-label="Run"
-            title="Run"
+            aria-label={translate("scripting.run")}
+            title={translate("scripting.run")}
             className="h-8"
             onClick={() => handleRun("editor")}
             disabled={isRunning}
@@ -427,8 +489,8 @@ const ScriptEditor = ({
           </Button>
           <Button
             variant="quiet"
-            aria-label="Save"
-            title="Save"
+            aria-label={translate("save")}
+            title={translate("save")}
             className="h-8"
             onClick={handleSave}
             disabled={
@@ -445,7 +507,7 @@ const ScriptEditor = ({
               <DD.Trigger asChild>
                 <Button
                   variant="quiet"
-                  aria-label="More actions"
+                  aria-label={translate("moreActions")}
                   className="h-8"
                 >
                   <MoreActionsIcon />
@@ -466,7 +528,7 @@ const ScriptEditor = ({
                     }}
                   >
                     <DeleteIcon size="sm" />
-                    Delete
+                    {translate("delete")}
                   </StyledItem>
                 </DDContent>
               </DD.Portal>
@@ -476,22 +538,20 @@ const ScriptEditor = ({
       </div>
       {confirmingDiscard && (
         <div className="flex flex-col gap-2 px-3 py-2 border-b text-size-small">
-          <span>
-            You have unsaved changes. Are you sure you want to discard them?
-          </span>
+          <span>{translate("scripting.unsavedChanges")}</span>
           <div className="flex items-center justify-end gap-2">
             <Button size="xs" onClick={() => setConfirmingDiscard(false)}>
-              Keep editing
+              {translate("dialog.keepEditing")}
             </Button>
             <Button size="xs" variant="danger" onClick={onClose}>
-              Discard changes
+              {translate("dialog.discardChanges")}
             </Button>
           </div>
         </div>
       )}
       {isExampleCopy && (
         <div className="px-3 py-1.5 border-b text-size-small text-subtle">
-          This is an example. Saving keeps a copy under My scripts.
+          {translate("scripting.exampleCopyHint")}
         </div>
       )}
       <div className="flex-auto min-h-0">

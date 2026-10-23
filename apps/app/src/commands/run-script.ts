@@ -131,7 +131,13 @@ export const useRunScript = () => {
         name,
         source,
         paywalled,
-      }: { name: string; source: string; paywalled: boolean },
+        exampleId,
+      }: {
+        name: string;
+        source: string;
+        paywalled: boolean;
+        exampleId: string | null;
+      },
       trigger: "editor" | "list" | "shortcut",
     ) => {
       const scripting = getScripting();
@@ -141,12 +147,16 @@ export const useRunScript = () => {
         name: "script.runStarted",
         source: trigger,
         canRunScripts,
+        isExample: exampleId !== null,
+        exampleId: exampleId ?? "",
+        isDemoNetwork: store.get(isDemoNetworkAtom),
       });
       if (paywalled && !canRunScripts) return openPaywall();
 
       const updateRun = (update: (run: ScriptRunState) => ScriptRunState) =>
         setRun((run) => run && update(run));
 
+      let consoleLinesCount = 0;
       const onEvent = (event: ScriptEvent) => {
         if (event.type === "progress") {
           updateRun((run) => ({
@@ -156,6 +166,7 @@ export const useRunScript = () => {
           }));
           return;
         }
+        consoleLinesCount++;
         const line: ScriptConsoleLine =
           event.type === "console"
             ? { type: "text", level: event.level, text: event.text }
@@ -199,6 +210,7 @@ export const useRunScript = () => {
         zones: store.get(zonesAtom),
         onEvent,
       });
+      const startedAt = performance.now();
       setRun({
         name,
         status: "running",
@@ -206,20 +218,35 @@ export const useRunScript = () => {
         progress: null,
         progressMessage: null,
         outcome: null,
-        startedAt: performance.now(),
+        startedAt,
         finishedAt: null,
         cancel: handle.cancel,
       });
       setDialog({ type: "scriptRun" });
 
       void handle.finished.then((outcome) => {
+        const finishedAt = performance.now();
         updateRun((run) => ({
           ...run,
           status: "finished",
           outcome,
-          finishedAt: performance.now(),
+          finishedAt,
         }));
         applyOutcome(outcome);
+        const success = outcome.status === "success" ? outcome : null;
+        userTracking.capture({
+          name: "script.runFinished",
+          status: outcome.status,
+          durationMs: Math.round(finishedAt - startedAt),
+          isExample: exampleId !== null,
+          errorName: outcome.status === "error" ? outcome.error.name : "",
+          consoleLinesCount,
+          attachmentsCount: success?.attachments.length ?? 0,
+          selectionSetsCount: success?.selectionSets.length ?? 0,
+          bookmarksCount: success?.bookmarks.length ?? 0,
+          appliedSelection: success?.selection != null,
+          zoomed: success?.zoomTo != null,
+        });
       });
     },
     [
