@@ -32,6 +32,8 @@ import { useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { LanguageSelector } from "./language-selector";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { getScripting } from "src/lib/scripting";
 
 import {
   GlobeIcon,
@@ -44,6 +46,7 @@ import {
   NewFromExampleIcon,
   CloseIcon,
   GithubIcon,
+  ScriptsIcon,
 } from "src/icons";
 
 export function MenuBarFallback() {
@@ -168,6 +171,7 @@ export function HelpDot() {
   const showWelcome = useShowWelcome();
   const showShortcuts = useShowShortcuts();
   const userTracking = useUserTracking();
+  const isScriptingOn = useFeatureFlag("FLAG_SCRIPTING");
 
   return (
     <DD.Root>
@@ -228,6 +232,23 @@ export function HelpDot() {
             {translate("utilities")}
           </StyledItem>
         </a>
+        {isScriptingOn && getScripting() && (
+          <a
+            href="/scripting-api"
+            target="_blank"
+            onClick={() => {
+              userTracking.capture({
+                name: "scriptingApi.visited",
+                source: "menu",
+              });
+            }}
+          >
+            <StyledItem>
+              <ScriptsIcon />
+              Scripting API
+            </StyledItem>
+          </a>
+        )}
         <StyledItem
           onSelect={() => {
             userTracking.capture({

@@ -701,6 +701,11 @@ type UtilitiesVisited = {
   source: "menu";
 };
 
+type ScriptingApiVisited = {
+  name: "scriptingApi.visited";
+  source: "menu";
+};
+
 type RepoVisited = {
   name: "repo.visited";
   source: "welcome" | "menu";
@@ -1532,6 +1537,7 @@ export type UserEvent =
   | HelpCenterVisited
   | RoadmapVisited
   | UtilitiesVisited
+  | ScriptingApiVisited
   | RepoVisited
   | FoundersPartnerLinkVisited
   | SignUpStarted
