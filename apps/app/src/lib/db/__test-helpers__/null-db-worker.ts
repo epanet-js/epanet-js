@@ -10,6 +10,8 @@ const silentWrites = new Set([
   "deleteSelectionSet",
   "setAllSelectionSets",
   "saveBookmarks",
+  "saveScript",
+  "deleteScript",
   "saveCustomAttributesDefinition",
 ]);
 

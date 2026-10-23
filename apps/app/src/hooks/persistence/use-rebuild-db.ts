@@ -13,6 +13,7 @@ import { withProgressDialog } from "src/dialogs/progress-dialog";
 import { zonesAtom } from "src/state/zones";
 import { hasScenariosAtom } from "src/state/scenarios";
 import { bookmarksAtom, selectionSetsAtom } from "src/state/collections";
+import { userScriptsAtom } from "src/state/scripts";
 import { projectSettingsAtom } from "src/state/project-settings";
 import {
   stagingModelDerivedAtom,
@@ -67,6 +68,7 @@ export const useRebuildDb = (): (() => Promise<void>) =>
                   zones: get(zonesAtom),
                   selectionSets: get(selectionSetsAtom),
                   bookmarks: get(bookmarksAtom),
+                  scripts: get(userScriptsAtom),
                   projectSettings: get(projectSettingsAtom),
                   hydraulicModel: get(stagingModelDerivedAtom),
                   simulationSettings: get(simulationSettingsDerivedAtom),

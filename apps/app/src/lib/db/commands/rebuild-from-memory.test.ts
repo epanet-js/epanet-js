@@ -61,6 +61,7 @@ const anInput = () => ({
   zones: new Map(),
   selectionSets: initializeSelectionSets(),
   bookmarks: initializeBookmarks(),
+  scripts: [],
 });
 
 beforeEach(() => {
@@ -121,7 +122,7 @@ describe("rebuildDbFromMemory", () => {
     );
   });
 
-  it("includes the collections, which every other importProject call site omits", async () => {
+  it("includes the collections and scripts, which every other importProject call site omits", async () => {
     reinstallSahpool.mockResolvedValue("sahpool");
     const input = {
       ...anInput(),
@@ -135,6 +136,15 @@ describe("rebuildDbFromMemory", () => {
       bookmarks: [
         { id: "bookmark-1", label: "North reservoir", bbox: [-1, -2, 3, 4] },
       ] as Bookmark[],
+      scripts: [
+        {
+          id: "script-1",
+          name: "Pipe audit",
+          source: "console.log(1);",
+          apiVersion: 1,
+          updatedAt: 0,
+        },
+      ],
     };
 
     await rebuildDbFromMemory(input);
@@ -143,6 +153,7 @@ describe("rebuildDbFromMemory", () => {
       expect.objectContaining({
         selectionSets: input.selectionSets,
         bookmarks: input.bookmarks,
+        scripts: input.scripts,
       }),
     );
   });

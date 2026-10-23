@@ -25,6 +25,7 @@ import type { PatternRow } from "./schema/patterns";
 import type { CurveRow } from "./schema/curves";
 import type { ZoneRow } from "./schema/zones";
 import type { SelectionSetRow } from "./schema/collections";
+import type { ScriptRow } from "./schema/scripts";
 import type {
   AssetPatchRow,
   CustomerPointPatchRow,
@@ -415,6 +416,7 @@ const BULK_TABLES = [
   "junction_demands",
   "zones",
   "selection_sets",
+  "scripts",
 ] as const;
 
 const BULK_CHUNK_SIZES = {
@@ -429,6 +431,7 @@ const BULK_CHUNK_SIZES = {
   junction_demands: 7500, //  4 cols × 7500 = 30000 params
   zones: 6000, // 5 cols × 6000 = 30000 params
   selection_sets: 500, // 4 cols, rows carry id-list blobs
+  scripts: 500, // 5 cols, rows carry script sources
 } as const satisfies Record<(typeof BULK_TABLES)[number], number>;
 
 const buildBulkInsertSql = (
@@ -984,6 +987,29 @@ const replaceSelectionSets = (rows: readonly SelectionSetRow[]) => {
   bulkInsertSelectionSets(rows);
 };
 
+const SCRIPT_COLUMNS = [
+  "id",
+  "name",
+  "source",
+  "api_version",
+  "updated_at",
+] as const;
+
+const appendScriptParams = (row: ScriptRow, params: unknown[]) => {
+  params.push(row.id, row.name, row.source, row.api_version, row.updated_at);
+};
+
+const replaceScripts = (rows: readonly ScriptRow[]) => {
+  db!.exec("DELETE FROM scripts");
+  bulkInsert(
+    "scripts",
+    SCRIPT_COLUMNS,
+    rows,
+    appendScriptParams,
+    BULK_CHUNK_SIZES.scripts,
+  );
+};
+
 const countImportProject = (payload: ImportProjectPayload) => ({
   newDb: payload.newDb ? 1 : 0,
   settings: payload.projectSettings !== null ? 1 : 0,
@@ -991,6 +1017,7 @@ const countImportProject = (payload: ImportProjectPayload) => ({
   zones: payload.zones?.length ?? 0,
   selSets: payload.selectionSets?.length ?? 0,
   bookmarks: payload.bookmarks !== null ? 1 : 0,
+  scripts: payload.scripts?.length ?? 0,
   j: payload.assets.junctions.length,
   r: payload.assets.reservoirs.length,
   t: payload.assets.tanks.length,
@@ -1591,6 +1618,29 @@ export const api = {
     });
   },
 
+  async getScripts(): Promise<unknown[]> {
+    return timed("getScripts", () =>
+      readAll("SELECT * FROM scripts ORDER BY updated_at DESC, rowid DESC"),
+    );
+  },
+
+  async saveScript(row: ScriptRow): Promise<void> {
+    return withTransaction("saveScript", (db) => {
+      const params: unknown[] = [];
+      appendScriptParams(row, params);
+      db.exec(
+        `INSERT OR REPLACE INTO scripts (${SCRIPT_COLUMNS.join(", ")}) VALUES (?, ?, ?, ?, ?)`,
+        { bind: params },
+      );
+    });
+  },
+
+  async deleteScript(id: string): Promise<void> {
+    return withTransaction("deleteScript", (db) => {
+      db.exec("DELETE FROM scripts WHERE id = ?", { bind: [id] });
+    });
+  },
+
   async getIdPools(): Promise<IdPoolMaxima> {
     return timed("getIdPools", async () => {
       await ready;
@@ -1660,6 +1710,9 @@ export const api = {
         }
         if (payload.bookmarks !== null) {
           updateBookmarks(payload.bookmarks);
+        }
+        if (payload.scripts !== null) {
+          replaceScripts(payload.scripts);
         }
 
         for (const table of ASSET_TYPE_TABLES) {

@@ -125,7 +125,7 @@ describe("ScriptsPanel", () => {
       hydraulicModel: HydraulicModelBuilder.with().build(),
     });
     store.set(userScriptsAtom, [
-      { id: "1", name: "Old name", source: "", updatedAt: 0 },
+      { id: "1", name: "Old name", source: "", apiVersion: 1, updatedAt: 0 },
     ]);
     renderPanel(store);
 
@@ -180,7 +180,13 @@ describe("ScriptsPanel", () => {
       hydraulicModel: HydraulicModelBuilder.with().build(),
     });
     store.set(userScriptsAtom, [
-      { id: "1", name: "Pipe audit", source: "console.log(1);", updatedAt: 0 },
+      {
+        id: "1",
+        name: "Pipe audit",
+        source: "console.log(1);",
+        apiVersion: 1,
+        updatedAt: 0,
+      },
     ]);
     renderPanel(store);
 
@@ -198,7 +204,13 @@ describe("ScriptsPanel", () => {
       hydraulicModel: HydraulicModelBuilder.with().build(),
     });
     store.set(userScriptsAtom, [
-      { id: "1", name: "Pipe audit", source: "console.log(1);", updatedAt: 0 },
+      {
+        id: "1",
+        name: "Pipe audit",
+        source: "console.log(1);",
+        apiVersion: 1,
+        updatedAt: 0,
+      },
     ]);
     renderPanel(store);
 
@@ -228,7 +240,7 @@ describe("ScriptsPanel", () => {
       hydraulicModel: HydraulicModelBuilder.with().build(),
     });
     store.set(userScriptsAtom, [
-      { id: "1", name: "Pipe audit", source: "", updatedAt: 0 },
+      { id: "1", name: "Pipe audit", source: "", apiVersion: 1, updatedAt: 0 },
     ]);
     renderPanel(store);
 
@@ -249,7 +261,7 @@ describe("ScriptsPanel", () => {
       hydraulicModel: HydraulicModelBuilder.with().build(),
     });
     store.set(userScriptsAtom, [
-      { id: "1", name: "Pipe audit", source: "", updatedAt: 0 },
+      { id: "1", name: "Pipe audit", source: "", apiVersion: 1, updatedAt: 0 },
     ]);
     renderPanel(store);
 
@@ -279,6 +291,7 @@ describe("ScriptsPanel", () => {
           id: "1",
           name: "Pipe audit",
           source: "console.log(1);",
+          apiVersion: 1,
           updatedAt: 0,
         },
       ]);
@@ -308,6 +321,7 @@ describe("ScriptsPanel", () => {
           id: "1",
           name: "Pipe audit",
           source: "console.log(1);",
+          apiVersion: 1,
           updatedAt: 0,
         },
       ]);
@@ -360,7 +374,13 @@ describe("ScriptsPanel", () => {
       async (action) => {
         const user = userEvent.setup();
         const store = aStoreWith([
-          { id: "1", name: "Pipe audit", source: "", updatedAt: 0 },
+          {
+            id: "1",
+            name: "Pipe audit",
+            source: "",
+            apiVersion: 1,
+            updatedAt: 0,
+          },
         ]);
         renderPanel(store);
 
@@ -379,7 +399,13 @@ describe("ScriptsPanel", () => {
     it("offers the paywall instead of saving or renaming in the editor", async () => {
       const user = userEvent.setup();
       const store = aStoreWith([
-        { id: "1", name: "Pipe audit", source: "", updatedAt: 0 },
+        {
+          id: "1",
+          name: "Pipe audit",
+          source: "",
+          apiVersion: 1,
+          updatedAt: 0,
+        },
       ]);
       renderPanel(store);
 

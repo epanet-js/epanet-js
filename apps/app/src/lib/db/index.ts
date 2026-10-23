@@ -21,6 +21,8 @@ export {
   serializeSelectionSet,
   serializeSelectionSets,
 } from "./mappers/selection-sets/to-rows";
+export { saveScript, deleteScript } from "./commands/scripts";
+export { serializeScript } from "./mappers/scripts/to-rows";
 export { saveBookmarks } from "./commands/save-bookmarks";
 export { serializeBookmarks } from "./mappers/bookmarks/to-rows";
 export { setAllSimulationSettings } from "./commands/set-all-simulation-settings";

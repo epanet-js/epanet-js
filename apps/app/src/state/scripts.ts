@@ -23,6 +23,7 @@ export type UserScript = {
   id: string;
   name: string;
   source: string;
+  apiVersion: number;
   updatedAt: number;
 };
 

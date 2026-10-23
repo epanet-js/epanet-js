@@ -2,6 +2,7 @@ import type { HydraulicModel } from "src/hydraulic-model";
 import type { ProjectSettings } from "@epanet-js/project-settings";
 import type { Zones } from "@epanet-js/hydraulic-model";
 import type { Bookmark, SelectionSet } from "src/lib/collections";
+import type { UserScript } from "src/state/scripts";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
 import { getWorker, timed } from "@epanet-js/ejsdb";
 import {
@@ -19,6 +20,7 @@ import {
 } from "@epanet-js/ejsdb-mappers";
 import { serializeSelectionSets } from "../mappers/selection-sets/to-rows";
 import { serializeBookmarks } from "../mappers/bookmarks/to-rows";
+import { serializeScripts } from "../mappers/scripts/to-rows";
 
 export type ImportProjectInput = {
   newDb?: boolean;
@@ -26,6 +28,7 @@ export type ImportProjectInput = {
   zones?: Zones;
   selectionSets?: SelectionSet[];
   bookmarks?: Bookmark[];
+  scripts?: UserScript[];
   hydraulicModel: HydraulicModel;
   simulationSettings: SimulationSettings;
 };
@@ -48,6 +51,7 @@ export const importProject = async (
     const bookmarks = input.bookmarks
       ? serializeBookmarks(input.bookmarks)
       : null;
+    const scripts = input.scripts ? serializeScripts(input.scripts) : null;
     const assets = assetsToRows(input.hydraulicModel.assets.values());
 
     const result = await getWorker().importProject({
@@ -57,6 +61,7 @@ export const importProject = async (
       zones,
       selectionSets,
       bookmarks,
+      scripts,
       assets,
       customerPoints: customerPointsToRows(
         input.hydraulicModel.customerPoints,

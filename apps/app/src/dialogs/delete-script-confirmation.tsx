@@ -1,9 +1,9 @@
-import { useSetAtom } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { BaseDialog, SimpleDialogActions } from "src/components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
-import { useUserScripts } from "src/hooks/use-user-scripts";
+import { useScriptsTransaction } from "src/hooks/persistence/use-scripts-transaction";
 import { useUserTracking } from "src/infra/user-tracking";
-import { scriptDraftAtom } from "src/state/scripts";
+import { scriptDraftAtom, userScriptsAtom } from "src/state/scripts";
 
 export const DeleteScriptConfirmationDialog = ({
   scriptId,
@@ -15,7 +15,8 @@ export const DeleteScriptConfirmationDialog = ({
   onClose: () => void;
 }) => {
   const translate = useTranslate();
-  const { scripts, deleteScript } = useUserScripts();
+  const scripts = useAtomValue(userScriptsAtom);
+  const { remove: deleteScript } = useScriptsTransaction();
   const userTracking = useUserTracking();
   const setDraft = useSetAtom(scriptDraftAtom);
 

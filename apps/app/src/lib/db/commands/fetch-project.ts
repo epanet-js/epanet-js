@@ -2,6 +2,7 @@ import type { ProjectSettings } from "@epanet-js/project-settings";
 import type { CustomAttributesDefinition } from "@epanet-js/hydraulic-model";
 import type { Zones } from "@epanet-js/hydraulic-model";
 import type { Bookmark, SelectionSet } from "src/lib/collections";
+import type { UserScript } from "src/state/scripts";
 import {
   defaultSimulationSettings,
   type SimulationSettings,
@@ -30,6 +31,7 @@ import {
 } from "@epanet-js/ejsdb-mappers";
 import { buildSelectionSetsData } from "../mappers/selection-sets/builders";
 import { buildBookmarksData } from "../mappers/bookmarks/builders";
+import { buildScriptsData } from "../mappers/scripts/builders";
 
 export type Project = {
   projectSettings: ProjectSettings;
@@ -37,6 +39,7 @@ export type Project = {
   zones: Zones;
   selectionSets: SelectionSet[];
   bookmarks: Bookmark[];
+  scripts: UserScript[];
   hydraulicModel: HydraulicModel;
   factories: ModelFactories;
   simulationSettings: SimulationSettings;
@@ -102,6 +105,7 @@ export const fetchProject = async (
       zonesRaw,
       selectionSetsRaw,
       bookmarksJson,
+      scriptsRaw,
       patternsRaw,
       junctionDemandsRaw,
       curvesRaw,
@@ -117,6 +121,7 @@ export const fetchProject = async (
         worker.getZones(),
         worker.getSelectionSets(),
         worker.getBookmarks(),
+        worker.getScripts(),
         worker.getPatterns(),
         worker.getJunctionDemands(),
         worker.getCurves(),
@@ -141,6 +146,7 @@ export const fetchProject = async (
         const zones = buildZonesData(zonesRaw);
         const selectionSets = buildSelectionSetsData(selectionSetsRaw);
         const bookmarks = buildBookmarksData(bookmarksJson);
+        const scripts = buildScriptsData(scriptsRaw);
 
         const factories = buildFactories(idMaxima);
         const { idGenerator } = factories;
@@ -200,6 +206,7 @@ export const fetchProject = async (
           zones,
           selectionSets,
           bookmarks,
+          scripts,
           hydraulicModel,
           factories,
           simulationSettings,

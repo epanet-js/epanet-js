@@ -9,6 +9,7 @@ export * from "./project-settings";
 export * from "./simulation-settings";
 export * from "./zones";
 export * from "./collections";
+export * from "./scripts";
 export * from "./pipe-library";
 export * from "./custom-attributes-definition";
 export * from "./custom-attributes-data";

@@ -19,7 +19,7 @@ import { useRunScript } from "src/commands/run-script";
 import { useFeatureLock } from "src/components/form/paywall";
 import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
-import { useUserScripts } from "src/hooks/use-user-scripts";
+import { useScriptsTransaction } from "src/hooks/persistence/use-scripts-transaction";
 import {
   AddIcon,
   ChevronLeftIcon,
@@ -37,6 +37,7 @@ import {
   hasUnsavedChanges,
   scriptDraftAtom,
   scriptRunAtom,
+  userScriptsAtom,
   type ScriptDraft,
 } from "src/state/scripts";
 import { CodeEditor } from "./code-editor";
@@ -86,7 +87,8 @@ type Row = {
 
 const ScriptList = ({ onOpen }: { onOpen: (draft: ScriptDraft) => void }) => {
   const runScript = useRunScript();
-  const { scripts, saveScript } = useUserScripts();
+  const scripts = useAtomValue(userScriptsAtom);
+  const { save: saveScript } = useScriptsTransaction();
   const userTracking = useUserTracking();
   const setDialog = useSetAtom(dialogAtom);
   const translate = useTranslate();
@@ -353,7 +355,8 @@ const ScriptEditor = ({
 }) => {
   const runScript = useRunScript();
   const isRunning = useIsRunning();
-  const { scripts, saveScript } = useUserScripts();
+  const scripts = useAtomValue(userScriptsAtom);
+  const { save: saveScript } = useScriptsTransaction();
   const userTracking = useUserTracking();
   const setDialog = useSetAtom(dialogAtom);
   const translate = useTranslate();
@@ -394,6 +397,7 @@ const ScriptEditor = ({
         : nameOf(current),
       source: current.source,
     });
+    if (!saved) return;
     onChange({
       scriptId: saved.id,
       exampleId: null,

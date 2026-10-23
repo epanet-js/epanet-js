@@ -17,6 +17,7 @@ import type { PatternRow } from "./schema/patterns";
 import type { CurveRow } from "./schema/curves";
 import type { ZoneRow } from "./schema/zones";
 import type { SelectionSetRow } from "./schema/collections";
+import type { ScriptRow } from "./schema/scripts";
 
 export type NewDbResult =
   | { status: "ok" }
@@ -96,6 +97,7 @@ export type ImportProjectPayload = {
   zones: ZoneRow[] | null;
   selectionSets: SelectionSetRow[] | null;
   bookmarks: string | null;
+  scripts: ScriptRow[] | null;
   assets: AssetRows;
   customerPoints: CustomerPointsData;
   patterns: PatternRow[];

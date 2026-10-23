@@ -89,7 +89,11 @@ import {
   initializeSelectionSets,
 } from "src/lib/collections";
 import { hglProfileAtom } from "src/state/hgl-profile";
-import { scriptDraftAtom, userScriptsAtom } from "src/state/scripts";
+import {
+  scriptDraftAtom,
+  userScriptsAtom,
+  type UserScript,
+} from "src/state/scripts";
 import { resetPanelsAtom } from "src/state/panels";
 import type { Panel } from "src/panels/panel";
 import { useDefaultPanels } from "src/panels/use-default-panels";
@@ -101,6 +105,7 @@ export type ProjectLoadInput = {
   zones?: Zones;
   selectionSets?: SelectionSet[];
   bookmarks?: Bookmark[];
+  scripts?: UserScript[];
   simulationSettings: SimulationSettings;
   autoElevations?: boolean;
 };
@@ -157,6 +162,7 @@ export const loadModel = (
     zones,
     selectionSets,
     bookmarks,
+    scripts,
     simulationSettings,
     autoElevations,
   } = input;
@@ -179,6 +185,7 @@ export const loadModel = (
   set(zonesDeprecatedAtom, zones ?? new Map());
   set(selectionSetsAtom, selectionSets ?? initializeSelectionSets());
   set(bookmarksAtom, bookmarks ?? initializeBookmarks());
+  set(userScriptsAtom, scripts ?? []);
   if (autoElevations !== undefined) {
     set(autoElevationsAtom, autoElevations);
   }
@@ -235,6 +242,7 @@ const replaceProject = async (
     zones: input.zones,
     selectionSets: input.selectionSets,
     bookmarks: input.bookmarks,
+    scripts: input.scripts,
   });
   resetAppState(set, panels);
   loadModel(set, { ...input, projectSettings: mergedProjectSettings });
