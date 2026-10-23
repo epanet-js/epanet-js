@@ -43,6 +43,13 @@ const nextConfig = {
     });
 
     config.module.rules.push({
+      test: /\.d\.ts$/,
+      include: /[\\/]node_modules[\\/]/,
+      resourceQuery: /raw/,
+      type: "asset/source",
+    });
+
+    config.module.rules.push({
       test: /\.wasm$/,
       type: "asset/resource",
       generator: {

@@ -18,7 +18,12 @@ import {
   indentUnit,
 } from "@codemirror/language";
 import { javascript } from "@codemirror/lang-javascript";
+import { autocompletion } from "@codemirror/autocomplete";
 import { placemarkTheme } from "src/lib/codemirror-theme";
+import {
+  scriptCompletionSource,
+  warmUpScriptCompletions,
+} from "./script-completions";
 
 export function CodeEditor({
   initialSource,
@@ -47,6 +52,7 @@ export function CodeEditor({
   useEffect(() => {
     const parent = containerRef.current;
     if (!parent) return;
+    warmUpScriptCompletions();
     const view = new EditorView({
       state: EditorState.create({
         doc: initialSourceRef.current,
@@ -80,6 +86,7 @@ export function CodeEditor({
             indentWithTab,
           ]),
           javascript(),
+          autocompletion({ override: [scriptCompletionSource] }),
           placemarkTheme,
           EditorView.lineWrapping,
           EditorView.updateListener.of((update) => {
