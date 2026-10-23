@@ -62,7 +62,8 @@ describe("useCustomGraphExport", () => {
         format: "csv",
         fileName: "test-network-J1-pressure",
         onProgress: expect.any(Function),
-        properties: ["pressure", "flow"],
+        nodeProperties: ["pressure"],
+        linkProperties: ["flow"],
         selectedAssets: new Set([1, 2]),
       });
     });
@@ -80,7 +81,8 @@ describe("useCustomGraphExport", () => {
       expect(mockExport).toHaveBeenCalledWith(
         expect.objectContaining({
           format: "xlsx",
-          properties: ["pressure", "unitHeadloss"],
+          nodeProperties: ["pressure"],
+          linkProperties: ["unitHeadloss"],
         }),
       );
     });
@@ -97,7 +99,8 @@ describe("useCustomGraphExport", () => {
 
       expect(mockExport).toHaveBeenCalledWith(
         expect.objectContaining({
-          properties: ["pressure", "flow"],
+          nodeProperties: ["pressure"],
+          linkProperties: ["flow"],
         }),
       );
     });
@@ -114,7 +117,8 @@ describe("useCustomGraphExport", () => {
 
       expect(mockExport).toHaveBeenCalledWith(
         expect.objectContaining({
-          properties: ["pressure", "status"],
+          nodeProperties: ["pressure"],
+          linkProperties: ["status"],
         }),
       );
     });
@@ -131,7 +135,26 @@ describe("useCustomGraphExport", () => {
 
       expect(mockExport).toHaveBeenCalledWith(
         expect.objectContaining({
-          properties: ["waterQuality", "flow"],
+          nodeProperties: ["waterQuality"],
+          linkProperties: ["flow"],
+        }),
+      );
+    });
+
+    it("maps water quality link properties to waterQuality", async () => {
+      const mockExport = vi.fn().mockResolvedValue(undefined);
+      vi.mocked(useExportSimulationResults).mockReturnValue(mockExport);
+
+      const opts = defaultOptions();
+      opts.linkProperty = "waterAge";
+      const { result } = renderHook(() => useCustomGraphExport(opts));
+
+      await act(() => result.current.exportTabular("xlsx"));
+
+      expect(mockExport).toHaveBeenCalledWith(
+        expect.objectContaining({
+          nodeProperties: ["pressure"],
+          linkProperties: ["waterQuality"],
         }),
       );
     });
@@ -148,7 +171,8 @@ describe("useCustomGraphExport", () => {
 
       expect(mockExport).toHaveBeenCalledWith(
         expect.objectContaining({
-          properties: ["pressure"],
+          nodeProperties: ["pressure"],
+          linkProperties: [],
         }),
       );
     });
@@ -165,7 +189,8 @@ describe("useCustomGraphExport", () => {
 
       expect(mockExport).toHaveBeenCalledWith(
         expect.objectContaining({
-          properties: ["flow"],
+          nodeProperties: [],
+          linkProperties: ["flow"],
         }),
       );
     });

@@ -21,7 +21,8 @@ describe("exportXlsxSimulationResults", () => {
     const reader = makeResultsReader(1, 3600, {});
 
     await exportXlsxSimulationResults("my-network", fileHandle, model, reader, {
-      properties: ["pressure"],
+      nodeProperties: ["pressure"],
+      linkProperties: [],
     });
 
     expect(getBuffer().length).toBeGreaterThan(0);
@@ -34,7 +35,8 @@ describe("exportXlsxSimulationResults", () => {
     const reader = makeResultsReader(1, 3600, {});
 
     await exportXlsxSimulationResults("net", fileHandle, model, reader, {
-      properties: ["pressure", "flow", "status"],
+      nodeProperties: ["pressure"],
+      linkProperties: ["flow", "status"],
     });
 
     const wb = getWorkbook();
@@ -48,7 +50,8 @@ describe("exportXlsxSimulationResults", () => {
     const reader = makeResultsReader(3, 5400, {});
 
     await exportXlsxSimulationResults("net", fileHandle, model, reader, {
-      properties: ["pressure"],
+      nodeProperties: ["pressure"],
+      linkProperties: [],
     });
 
     const wb = getWorkbook();
@@ -71,7 +74,8 @@ describe("exportXlsxSimulationResults", () => {
     });
 
     await exportXlsxSimulationResults("net", fileHandle, model, reader, {
-      properties: ["pressure", "flow"],
+      nodeProperties: ["pressure"],
+      linkProperties: ["flow"],
     });
 
     const wb = getWorkbook();
@@ -83,6 +87,29 @@ describe("exportXlsxSimulationResults", () => {
     const flowRows = sheetRows(wb, "Flow");
     expect(flowRows).toHaveLength(2);
     expect(flowRows[1][0]).toBe("P1");
+  });
+
+  it("writes nodes and links on the water quality sheet", async () => {
+    const IDS = { J1: 1, P1: 2 } as const;
+    const model = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1, { label: "J1" })
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, label: "P1" })
+      .build();
+    const { fileHandle, getWorkbook } = makeFileHandle();
+    const reader = makeResultsReader(1, 3600, {
+      [`${IDS.J1}:waterQuality`]: makeTimeSeries([1]),
+      [`${IDS.P1}:waterQuality`]: makeTimeSeries([2]),
+    });
+
+    await exportXlsxSimulationResults("net", fileHandle, model, reader, {
+      nodeProperties: ["waterQuality"],
+      linkProperties: ["waterQuality"],
+    });
+
+    const rows = sheetRows(getWorkbook(), "Water Quality");
+    expect(rows).toHaveLength(3);
+    expect(rows[1][0]).toBe("J1");
+    expect(rows[2][0]).toBe("P1");
   });
 
   it("maps status to closed when value is less than 3 and open when 3 or more", async () => {
@@ -99,7 +126,8 @@ describe("exportXlsxSimulationResults", () => {
     });
 
     await exportXlsxSimulationResults("net", fileHandle, model, reader, {
-      properties: ["status"],
+      nodeProperties: [],
+      linkProperties: ["status"],
     });
 
     const wb = getWorkbook();
@@ -119,7 +147,8 @@ describe("exportXlsxSimulationResults", () => {
     });
 
     await exportXlsxSimulationResults("net", fileHandle, model, reader, {
-      properties: ["pressure"],
+      nodeProperties: ["pressure"],
+      linkProperties: [],
     });
 
     const wb = getWorkbook();
@@ -143,7 +172,8 @@ describe("exportXlsxSimulationResults", () => {
 
     await exportXlsxSimulationResults("net", fileHandle, model, reader, {
       selectedAssets: new Set([IDS.J1]),
-      properties: ["pressure"],
+      nodeProperties: ["pressure"],
+      linkProperties: [],
     });
 
     const wb = getWorkbook();
@@ -164,7 +194,8 @@ describe("exportXlsxSimulationResults", () => {
     });
 
     await exportXlsxSimulationResults("net", fileHandle, model, reader, {
-      properties: ["pressure"],
+      nodeProperties: ["pressure"],
+      linkProperties: [],
     });
 
     const wb = getWorkbook();
@@ -183,7 +214,8 @@ describe("exportXlsxSimulationResults", () => {
     const onProgress = vi.fn();
 
     await exportXlsxSimulationResults("net", fileHandle, model, reader, {
-      properties: ["pressure", "head"],
+      nodeProperties: ["pressure", "head"],
+      linkProperties: [],
       onProgress,
     });
 
@@ -201,7 +233,8 @@ describe("exportXlsxSimulationResults", () => {
     const reader = makeResultsReader(1, 3600, {});
 
     await exportXlsxSimulationResults("net", fileHandle, model, reader, {
-      properties: ["pressure"],
+      nodeProperties: ["pressure"],
+      linkProperties: [],
     });
 
     expect(getClose()).toHaveBeenCalledOnce();
@@ -214,7 +247,8 @@ describe("exportXlsxSimulationResults", () => {
     const reader = makeResultsReader(1, 3600, {});
 
     await exportXlsxSimulationResults("net", fileHandle, model, reader, {
-      properties: ["pressure"],
+      nodeProperties: ["pressure"],
+      linkProperties: [],
     });
 
     expect(FileSystemHelpers.triggerDownload).toHaveBeenCalledWith(

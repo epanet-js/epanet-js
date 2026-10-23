@@ -19,6 +19,9 @@ interface UseCustomGraphExportOptions {
   onExportProgress?: (progress: number) => void;
 }
 
+const isWaterQualityProperty = (property: string) =>
+  GraphDefaultOptions.WATER_QUALITY_PROPERTIES.includes(property);
+
 export function useCustomGraphExport({
   chartContainerRef,
   networkName,
@@ -151,27 +154,24 @@ export function useCustomGraphExport({
           return ["flow"];
         }
 
+        if (isWaterQualityProperty(linkProperty)) {
+          return ["waterQuality"];
+        }
+
         return [linkProperty];
-      })();
+      })() as ExportSimulationResultsProperties[];
 
       const mappedNodeProperty = (() => {
         if (nodeIds.length === 0) {
           return [];
         }
 
-        const hasWaterQuality =
-          GraphDefaultOptions.WATER_QUALITY_PROPERTIES.includes(nodeProperty);
-        if (hasWaterQuality) {
+        if (isWaterQualityProperty(nodeProperty)) {
           return ["waterQuality"];
         }
 
         return [nodeProperty];
-      })();
-
-      const properties = [
-        ...mappedNodeProperty,
-        ...mappedLinkProperty,
-      ] as ExportSimulationResultsProperties[];
+      })() as ExportSimulationResultsProperties[];
 
       try {
         await exportSimulationResults({
@@ -185,7 +185,8 @@ export function useCustomGraphExport({
             }
             return Promise.resolve();
           },
-          properties,
+          nodeProperties: mappedNodeProperty,
+          linkProperties: mappedLinkProperty,
           selectedAssets,
         });
       } catch (err) {

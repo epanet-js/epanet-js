@@ -180,6 +180,7 @@ const LINK_RESULTS_PROPERTY_INDEX: Partial<Record<string, number>> = {
   setting: LINK_PROPERTY_INDEX.setting,
   reactionRate: LINK_PROPERTY_INDEX.reactionRate,
   friction: LINK_PROPERTY_INDEX.friction,
+  waterQuality: LINK_PROPERTY_INDEX.avgQuality,
   waterAge: LINK_PROPERTY_INDEX.avgQuality,
   waterTrace: LINK_PROPERTY_INDEX.avgQuality,
   chemicalConcentration: LINK_PROPERTY_INDEX.avgQuality,

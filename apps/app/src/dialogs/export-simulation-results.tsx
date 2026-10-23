@@ -12,7 +12,10 @@ import {
   stagingModelDerivedAtom,
 } from "src/state/derived-branch-state";
 import { Export } from "src/lib/export";
-import type { ExportSimulationResultsProperties } from "src/lib/export/types";
+import {
+  combineMetrics,
+  type ExportSimulationResultsProperties,
+} from "src/lib/export/types";
 
 type SimulationExportFormat = "csv" | "xlsx";
 
@@ -35,7 +38,23 @@ type LinkFields = {
   flow: boolean;
   velocity: boolean;
   unitHeadloss: boolean;
+  waterQuality: boolean;
 };
+
+const NODE_FIELDS: [keyof NodeFields, string][] = [
+  ["pressure", "pressure"],
+  ["head", "head"],
+  ["demand", "demand"],
+  ["waterQuality", "simulationSettings.waterQuality"],
+];
+
+const LINK_FIELDS: [keyof LinkFields, string][] = [
+  ["status", "status"],
+  ["flow", "flow"],
+  ["velocity", "velocity"],
+  ["unitHeadloss", "unitHeadloss"],
+  ["waterQuality", "simulationSettings.waterQuality"],
+];
 
 const IndeterminateCheckbox = ({
   checked,
@@ -101,18 +120,25 @@ export const ExportSimulationResultsDialog = ({
     flow: true,
     velocity: true,
     unitHeadloss: true,
+    waterQuality: isWaterQualityEnabled,
   });
 
-  const enabledNodeFields = Object.entries(nodeFields).filter(
-    ([key]) => key !== "waterQuality" || isWaterQualityEnabled,
+  const isFieldEnabled = (key: string) =>
+    key !== "waterQuality" || isWaterQualityEnabled;
+
+  const enabledNodeFields = Object.entries(nodeFields).filter(([key]) =>
+    isFieldEnabled(key),
   );
   const nodeCheckedCount = enabledNodeFields.filter(([, v]) => v).length;
   const nodeTotal = enabledNodeFields.length;
   const nodeAllChecked = nodeCheckedCount === nodeTotal;
   const nodeIndeterminate = nodeCheckedCount > 0 && !nodeAllChecked;
 
-  const linkCheckedCount = Object.values(linkFields).filter(Boolean).length;
-  const linkTotal = Object.keys(linkFields).length;
+  const enabledLinkFields = Object.entries(linkFields).filter(([key]) =>
+    isFieldEnabled(key),
+  );
+  const linkCheckedCount = enabledLinkFields.filter(([, v]) => v).length;
+  const linkTotal = enabledLinkFields.length;
   const linkAllChecked = linkCheckedCount === linkTotal;
   const linkIndeterminate = linkCheckedCount > 0 && !linkAllChecked;
 
@@ -133,6 +159,7 @@ export const ExportSimulationResultsDialog = ({
       flow: next,
       velocity: next,
       unitHeadloss: next,
+      waterQuality: isWaterQualityEnabled && next,
     });
   };
 
@@ -151,7 +178,7 @@ export const ExportSimulationResultsDialog = ({
 
   const estimatedBytes = Export.estimateSimulationResultsSize(
     format,
-    [...selectedNodeProperties, ...selectedLinkProperties],
+    combineMetrics(selectedNodeProperties, selectedLinkProperties),
     assetCount,
     timestepCount,
   );
@@ -193,7 +220,6 @@ export const ExportSimulationResultsDialog = ({
     isExporting || exceedsLimit || nodeCheckedCount + linkCheckedCount === 0;
 
   const handleExport = useCallback(async () => {
-    const properties = [...selectedNodeProperties, ...selectedLinkProperties];
     const selectedAssets = selectedAssetsOnly
       ? new Set(selectedIds)
       : new Set<number>();
@@ -205,7 +231,8 @@ export const ExportSimulationResultsDialog = ({
     try {
       await exportSimulationResults({
         format,
-        properties,
+        nodeProperties: selectedNodeProperties,
+        linkProperties: selectedLinkProperties,
         selectedAssets,
         onProgress,
         signal: controller.signal,
@@ -357,16 +384,8 @@ export const ExportSimulationResultsDialog = ({
               </span>
             </label>
             <div className="pl-5 space-y-2">
-              {(
-                [
-                  ["pressure", "pressure"],
-                  ["head", "head"],
-                  ["demand", "demand"],
-                  ["waterQuality", "simulationSettings.waterQuality"],
-                ] as [keyof NodeFields, string][]
-              ).map(([key, translationKey]) => {
-                const disabled =
-                  key === "waterQuality" && !isWaterQualityEnabled;
+              {NODE_FIELDS.map(([key, translationKey]) => {
+                const disabled = !isFieldEnabled(key);
                 return (
                   <label
                     key={key}
@@ -406,34 +425,31 @@ export const ExportSimulationResultsDialog = ({
               </span>
             </label>
             <div className="pl-5 space-y-2">
-              {(
-                [
-                  ["status", "status"],
-                  ["flow", "flow"],
-                  ["velocity", "velocity"],
-                  ["unitHeadloss", "unitHeadloss"],
-                ] as [keyof LinkFields, string][]
-              ).map(([key, translationKey]) => (
-                <label
-                  key={key}
-                  className="flex items-center gap-x-2 cursor-pointer"
-                >
-                  <input
-                    type="checkbox"
-                    checked={linkFields[key]}
-                    onChange={(e) =>
-                      setLinkFields((prev) => ({
-                        ...prev,
-                        [key]: e.target.checked,
-                      }))
-                    }
-                    className="rounded-sm text-accent-hover focus:ring-accent"
-                  />
-                  <span className="text-size-base text-default">
-                    {translate(translationKey)}
-                  </span>
-                </label>
-              ))}
+              {LINK_FIELDS.map(([key, translationKey]) => {
+                const disabled = !isFieldEnabled(key);
+                return (
+                  <label
+                    key={key}
+                    className={`flex items-center gap-x-2 ${disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={linkFields[key]}
+                      disabled={disabled}
+                      onChange={(e) =>
+                        setLinkFields((prev) => ({
+                          ...prev,
+                          [key]: e.target.checked,
+                        }))
+                      }
+                      className="rounded-sm text-accent-hover focus:ring-accent disabled:opacity-50"
+                    />
+                    <span className="text-size-base text-default">
+                      {translate(translationKey)}
+                    </span>
+                  </label>
+                );
+              })}
             </div>
           </div>
         </div>

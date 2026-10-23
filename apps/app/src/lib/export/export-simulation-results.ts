@@ -10,7 +10,7 @@ export const exportSimulationResults = async (
   fileHandle: FileSystemFileHandle,
   hydraulicModel: HydraulicModel,
   resultsReader: EPSResultsReader,
-  options?: SimulationResultsOptions,
+  options: SimulationResultsOptions,
 ) => {
   const fn =
     format === "xlsx"

@@ -1,7 +1,7 @@
 import { Zip, ZipDeflate } from "fflate";
 import { Asset, HydraulicModel } from "src/hydraulic-model";
 import {
-  ALL_METRICS,
+  combineMetrics,
   ExportSimulationResultsProperties,
   SimulationResultsOptions,
 } from "../types";
@@ -15,12 +15,11 @@ export const exportCsvSimulationResults = async (
   fileHandle: FileSystemFileHandle,
   hydraulicModel: HydraulicModel,
   resultsReader: EPSResultsReader,
-  options?: SimulationResultsOptions,
+  options: SimulationResultsOptions,
 ) => {
-  const selectedAssets = options?.selectedAssets ?? new Set<number>();
-  const properties = options?.properties ?? ALL_METRICS;
-  const onProgress = options?.onProgress;
-  const signal = options?.signal;
+  const { nodeProperties, linkProperties, onProgress, signal } = options;
+  const selectedAssets = options.selectedAssets ?? new Set<number>();
+  const properties = combineMetrics(nodeProperties, linkProperties);
   const encoder = new TextEncoder();
   const headerBuf = new Uint8Array(lineSize(resultsReader.timestepCount));
   const maxRowSize = lineSize(resultsReader.timestepCount);
@@ -88,10 +87,12 @@ export const exportCsvSimulationResults = async (
               writtenMetrics.add(property);
             }
 
-            const epanetType = asset.isLink ? "link" : "node";
+            const typeProperties = asset.isLink
+              ? linkProperties
+              : nodeProperties;
             if (hasSelection && !selectedAssets.has(asset.id)) return;
             if (results === null) return;
-            if (!METRICS_BY_TYPE[epanetType].has(property)) return;
+            if (!typeProperties.includes(property)) return;
 
             if (batchOffset + maxRowSize > BATCH_SIZE) {
               flushBatch(currentEntry!);
@@ -268,11 +269,6 @@ const encodeValues = (
 
   buffer[offset - 1] = UTF8_NEW_LINE;
   return offset;
-};
-
-const METRICS_BY_TYPE = {
-  node: new Set(["pressure", "head", "demand", "waterQuality"]),
-  link: new Set(["flow", "velocity", "unitHeadloss", "status"]),
 };
 
 const formatTimestepTime = (

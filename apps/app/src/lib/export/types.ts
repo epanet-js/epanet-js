@@ -28,16 +28,26 @@ export type ExportSimulationResultsProperties =
   | "demand"
   | "waterQuality";
 
-export const ALL_METRICS: ExportSimulationResultsProperties[] = [
+export const NODE_METRICS: ExportSimulationResultsProperties[] = [
   "pressure",
   "head",
   "demand",
   "waterQuality",
+];
+
+export const LINK_METRICS: ExportSimulationResultsProperties[] = [
   "flow",
   "velocity",
   "unitHeadloss",
   "status",
+  "waterQuality",
 ];
+
+export const combineMetrics = (
+  nodeProperties: ExportSimulationResultsProperties[],
+  linkProperties: ExportSimulationResultsProperties[],
+): ExportSimulationResultsProperties[] =>
+  Array.from(new Set([...nodeProperties, ...linkProperties]));
 
 export type AssetExportOptions = {
   includeSimulationResults?: boolean;
@@ -48,7 +58,8 @@ export type AssetExportOptions = {
 
 export type SimulationResultsOptions = {
   selectedAssets?: Set<number>;
-  properties?: ExportSimulationResultsProperties[];
+  nodeProperties: ExportSimulationResultsProperties[];
+  linkProperties: ExportSimulationResultsProperties[];
   onProgress?: (
     progressPercentage: number,
     property: ExportSimulationResultsProperties,

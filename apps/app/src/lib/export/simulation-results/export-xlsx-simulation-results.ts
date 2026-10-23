@@ -2,7 +2,7 @@ import { Zip, ZipDeflate } from "fflate";
 import { HydraulicModel } from "src/hydraulic-model";
 import { EPSResultsReader } from "src/simulation";
 import {
-  ALL_METRICS,
+  combineMetrics,
   ExportSimulationResultsProperties,
   SimulationResultsOptions,
 } from "../types";
@@ -14,12 +14,11 @@ export const exportXlsxSimulationResults = async (
   fileHandle: FileSystemFileHandle,
   hydraulicModel: HydraulicModel,
   resultsReader: EPSResultsReader,
-  options?: SimulationResultsOptions,
+  options: SimulationResultsOptions,
 ) => {
-  const selectedAssets = options?.selectedAssets ?? new Set<number>();
-  const properties = options?.properties ?? ALL_METRICS;
-  const onProgress = options?.onProgress;
-  const signal = options?.signal;
+  const { nodeProperties, linkProperties, onProgress, signal } = options;
+  const selectedAssets = options.selectedAssets ?? new Set<number>();
+  const properties = combineMetrics(nodeProperties, linkProperties);
 
   signal?.throwIfAborted();
 
@@ -245,10 +244,12 @@ export const exportXlsxSimulationResults = async (
               writtenMetrics.add(metric);
             }
 
-            const epanetType = asset.isLink ? "link" : "node";
+            const typeProperties = asset.isLink
+              ? linkProperties
+              : nodeProperties;
             if (hasSelection && !selectedAssets.has(asset.id)) return;
             if (results === null) return;
-            if (!METRICS_BY_TYPE[epanetType].has(metric)) return;
+            if (!typeProperties.includes(metric)) return;
 
             if (rowCount >= MAX_ROWS) {
               throw new Error(
@@ -419,9 +420,4 @@ const METRIC_SHEET_NAMES: Record<ExportSimulationResultsProperties, string> = {
   head: "Head",
   demand: "Demand",
   waterQuality: "Water Quality",
-};
-
-const METRICS_BY_TYPE = {
-  node: new Set(["pressure", "head", "demand", "waterQuality"]),
-  link: new Set(["flow", "velocity", "unitHeadloss", "status"]),
 };

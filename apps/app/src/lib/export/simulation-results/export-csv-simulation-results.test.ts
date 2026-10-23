@@ -21,7 +21,8 @@ describe("exportTimeSeries", () => {
     const reader = makeResultsReader(1, 3600, {});
 
     await exportCsvSimulationResults("my-network", fileHandle, model, reader, {
-      properties: ["pressure", "demand"],
+      nodeProperties: ["pressure", "demand"],
+      linkProperties: [],
     });
 
     expect(getZipEntryNames()).toEqual([
@@ -37,7 +38,8 @@ describe("exportTimeSeries", () => {
     const reader = makeResultsReader(2, 5400, {});
 
     await exportCsvSimulationResults("net", fileHandle, model, reader, {
-      properties: ["pressure"],
+      nodeProperties: ["pressure"],
+      linkProperties: [],
     });
 
     const [header] = getText("net-export-pressure.csv").split("\n");
@@ -59,7 +61,8 @@ describe("exportTimeSeries", () => {
     });
 
     await exportCsvSimulationResults("net", fileHandle, model, reader, {
-      properties: ["pressure", "flow"],
+      nodeProperties: ["pressure"],
+      linkProperties: ["flow"],
     });
 
     const pressureLines = getText("net-export-pressure.csv")
@@ -77,6 +80,31 @@ describe("exportTimeSeries", () => {
     expect(flowLines[1]).not.toContain("J1");
   });
 
+  it("writes nodes and links to the water quality file", async () => {
+    const IDS = { J1: 1, P1: 2 } as const;
+    const model = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1, { label: "J1" })
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, label: "P1" })
+      .build();
+    const { fileHandle, getText } = makeFileHandle();
+    const reader = makeResultsReader(1, 3600, {
+      [`${IDS.J1}:waterQuality`]: makeTimeSeries([1]),
+      [`${IDS.P1}:waterQuality`]: makeTimeSeries([2]),
+    });
+
+    await exportCsvSimulationResults("net", fileHandle, model, reader, {
+      nodeProperties: ["waterQuality"],
+      linkProperties: ["waterQuality"],
+    });
+
+    const lines = getText("net-export-waterQuality.csv")
+      .split("\n")
+      .filter(Boolean);
+    expect(lines).toHaveLength(3);
+    expect(lines[1]).toContain("J1");
+    expect(lines[2]).toContain("P1");
+  });
+
   it("maps status to closed when value is less than 3 and open when 3 or more", async () => {
     const IDS = { J1: 1, P1: 2, P2: 3 } as const;
     const model = HydraulicModelBuilder.with()
@@ -91,7 +119,8 @@ describe("exportTimeSeries", () => {
     });
 
     await exportCsvSimulationResults("net", fileHandle, model, reader, {
-      properties: ["status"],
+      nodeProperties: [],
+      linkProperties: ["status"],
     });
 
     const lines = getText("net-export-status.csv").split("\n").filter(Boolean);
@@ -110,7 +139,8 @@ describe("exportTimeSeries", () => {
     });
 
     await exportCsvSimulationResults("net", fileHandle, model, reader, {
-      properties: ["pressure"],
+      nodeProperties: ["pressure"],
+      linkProperties: [],
     });
 
     const lines = getText("net-export-pressure.csv")
@@ -133,7 +163,8 @@ describe("exportTimeSeries", () => {
 
     await exportCsvSimulationResults("net", fileHandle, model, reader, {
       selectedAssets: new Set([IDS.J1]),
-      properties: ["pressure"],
+      nodeProperties: ["pressure"],
+      linkProperties: [],
     });
 
     const lines = getText("net-export-pressure.csv")
@@ -155,7 +186,8 @@ describe("exportTimeSeries", () => {
     });
 
     await exportCsvSimulationResults("net", fileHandle, model, reader, {
-      properties: ["pressure"],
+      nodeProperties: ["pressure"],
+      linkProperties: [],
     });
 
     const lines = getText("net-export-pressure.csv")
@@ -175,7 +207,8 @@ describe("exportTimeSeries", () => {
     const onProgress = vi.fn();
 
     await exportCsvSimulationResults("net", fileHandle, model, reader, {
-      properties: ["pressure", "head"],
+      nodeProperties: ["pressure", "head"],
+      linkProperties: [],
       onProgress,
     });
 
@@ -193,7 +226,8 @@ describe("exportTimeSeries", () => {
     const reader = makeResultsReader(1, 3600, {});
 
     await exportCsvSimulationResults("net", fileHandle, model, reader, {
-      properties: ["pressure", "head"],
+      nodeProperties: ["pressure", "head"],
+      linkProperties: [],
     });
 
     expect(getClose()).toHaveBeenCalledOnce();
@@ -206,7 +240,8 @@ describe("exportTimeSeries", () => {
     const reader = makeResultsReader(1, 3600, {});
 
     await exportCsvSimulationResults("net", fileHandle, model, reader, {
-      properties: ["pressure"],
+      nodeProperties: ["pressure"],
+      linkProperties: [],
     });
 
     expect(FileSystemHelpers.triggerDownload).toHaveBeenCalledWith(
