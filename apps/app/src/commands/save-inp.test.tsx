@@ -12,6 +12,7 @@ import { worktreeAtom } from "src/state/scenarios";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { branchStateAtom } from "src/state/branch-state";
 import { SimulationSettingsBuilder } from "src/__helpers__/simulation-settings-builder";
+import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("save inp", () => {
   beforeEach(() => {
@@ -188,10 +189,65 @@ describe("save inp", () => {
   });
 
   it("exports main's model when a scenario is active", async () => {
+    stubFeatureOff("FLAG_EXPORT_SCENARIO_DROPDOWN");
     const { handle, chunks } = buildWritableHandleMock();
     vi.spyOn(FileSystemHelpers, "openFileInFileSystem").mockResolvedValue(
       handle,
     );
+    const store = setInitialStateWithActiveScenario();
+
+    renderComponent({ store });
+    await triggerSave();
+
+    const inp = chunks.join("");
+    expect(inp).toContain("MAIN_PIPE");
+    expect(inp).not.toContain("SCENARIO_PIPE");
+    expect(inp).toContain("Demand Multiplier\t1");
+  });
+
+  it("exports the active scenario when scenario export is on", async () => {
+    stubFeatureOn("FLAG_EXPORT_SCENARIO_DROPDOWN");
+    const { handle, chunks } = buildWritableHandleMock();
+    vi.spyOn(FileSystemHelpers, "openFileInFileSystem").mockResolvedValue(
+      handle,
+    );
+    const store = setInitialStateWithActiveScenario();
+
+    renderComponent({ store });
+    await triggerSave();
+
+    const inp = chunks.join("");
+    expect(inp).toContain("SCENARIO_PIPE");
+    expect(inp).not.toContain("MAIN_PIPE");
+    expect(inp).toContain("Demand Multiplier\t2");
+    expect(FileSystemHelpers.openFileInFileSystem).toHaveBeenCalledWith(
+      "my-network - Scenario #1.inp",
+      ".INP",
+      "text/plain",
+      ".inp",
+    );
+    expect(store.get(inpFileInfoAtom)).toBeNull();
+  });
+
+  it("displays an error when not saved", async () => {
+    const IDS = { J1: 1 } as const;
+    vi.spyOn(FileSystemHelpers, "openFileInFileSystem").mockRejectedValue(
+      new Error("Something went wrong"),
+    );
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1)
+      .build();
+    const store = setInitialState({
+      hydraulicModel,
+    });
+
+    renderComponent({ store });
+    await triggerSave();
+
+    expect(screen.getByText(/canceled exporting inp/i)).toBeInTheDocument();
+  });
+
+  const setInitialStateWithActiveScenario = () => {
     const store = setInitialState({
       hydraulicModel: HydraulicModelBuilder.with()
         .aPipe(1, { label: "MAIN_PIPE" })
@@ -226,33 +282,8 @@ describe("save inp", () => {
       highestScenarioNumber: 1,
       activeBranchId: "scenario-1",
     });
-
-    renderComponent({ store });
-    await triggerSave();
-
-    const inp = chunks.join("");
-    expect(inp).toContain("MAIN_PIPE");
-    expect(inp).not.toContain("SCENARIO_PIPE");
-    expect(inp).toContain("Demand Multiplier\t1");
-  });
-
-  it("displays an error when not saved", async () => {
-    const IDS = { J1: 1 } as const;
-    vi.spyOn(FileSystemHelpers, "openFileInFileSystem").mockRejectedValue(
-      new Error("Something went wrong"),
-    );
-    const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction(IDS.J1)
-      .build();
-    const store = setInitialState({
-      hydraulicModel,
-    });
-
-    renderComponent({ store });
-    await triggerSave();
-
-    expect(screen.getByText(/canceled exporting inp/i)).toBeInTheDocument();
-  });
+    return store;
+  };
 
   const buildWritableHandleMock = ({
     fileName = "mock.inp",

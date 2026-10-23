@@ -497,6 +497,7 @@
   "export.assetData": "Asset data",
   "export.simulationResults": "Simulation results",
   "export.currentScenarioAsProject": "Current scenario as project",
+  "export.currentScenarioAsEpanetInp": "Current scenario as EPANET INP",
   "failedToOpenModel": "Failed to open model",
   "failedToOpenModelDetail": "Make sure to provide a valid {{1}} file.",
   "fileReadError": "Failed to read file",

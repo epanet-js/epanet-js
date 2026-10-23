@@ -8,6 +8,7 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { getLsxRequirements } from "src/simulation";
 import { worktreeAtom } from "src/state/scenarios";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const AlertExportInpDialog = ({
   onSaveProject,
@@ -26,10 +27,12 @@ export const AlertExportInpDialog = ({
   );
   const showLsxWarning = lsxRequirements.isRequired;
   const worktree = useAtomValue(worktreeAtom);
+  const isExportScenarioOn = useFeatureFlag("FLAG_EXPORT_SCENARIO_DROPDOWN");
   const activeScenario =
     worktree.activeBranchId !== worktree.mainId
       ? worktree.branches.get(worktree.activeBranchId)
       : undefined;
+  const showActiveScenarioWarning = !isExportScenarioOn && !!activeScenario;
 
   return (
     <BaseDialog
@@ -55,7 +58,7 @@ export const AlertExportInpDialog = ({
       }
     >
       <div className="p-4 text-size-base text-default">
-        {activeScenario && (
+        {showActiveScenarioWarning && (
           <ActiveScenarioWarning scenarioName={activeScenario.name} />
         )}
         {showLsxWarning && (
@@ -64,7 +67,13 @@ export const AlertExportInpDialog = ({
             variableSpeedPumps={lsxRequirements.variableSpeedPumps}
           />
         )}
-        <p className="pb-2">{translate("alertExportInpDetailWithScenarios")}</p>
+        <p className="pb-2">
+          {translate(
+            isExportScenarioOn
+              ? "alertExportInpDetail"
+              : "alertExportInpDetailWithScenarios",
+          )}
+        </p>
         <p className="pb-2">{translate("alertExportInpLabels")}</p>
         <p>{translate("alertExportInpRecommendation")}</p>
       </div>

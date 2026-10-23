@@ -33,6 +33,7 @@ export const useSaveInp = () => {
   const userTracking = useUserTracking();
   const map = useContext(MapContext);
   const isScriptingOn = useFeatureFlag("FLAG_SCRIPTING");
+  const isExportScenarioOn = useFeatureFlag("FLAG_EXPORT_SCENARIO_DROPDOWN");
 
   const saveInp = useAtomCallback(
     useCallback(
@@ -47,14 +48,19 @@ export const useSaveInp = () => {
           const projectInfo = get(projectFileInfoAtom);
 
           const worktree = get(worktreeAtom);
-          const hasScenarios = worktree.scenarios.length > 0;
-          const hydraulicModel = hasScenarios
+          const exportsMainBranch =
+            !isExportScenarioOn && worktree.scenarios.length > 0;
+          const hydraulicModel = exportsMainBranch
             ? get(baseModelDerivedAtom)
             : get(stagingModelDerivedAtom);
           const projectSettings = get(projectSettingsAtom);
-          const simulationSettings = hasScenarios
+          const simulationSettings = exportsMainBranch
             ? get(baseSimulationSettingsDerivedAtom)
             : get(simulationSettingsDerivedAtom);
+          const activeScenario =
+            isExportScenarioOn && worktree.activeBranchId !== worktree.mainId
+              ? worktree.branches.get(worktree.activeBranchId)
+              : undefined;
           const buildOptions = {
             geolocation: true,
             madeBy: true,
@@ -81,11 +87,14 @@ export const useSaveInp = () => {
             scenariosCount: worktree.scenarios.length,
           });
 
-          const suggestedName = fileInfo
-            ? fileInfo.name
+          const baseName = fileInfo
+            ? fileInfo.name.replace(/\.[^.]+$/, "")
             : projectInfo
-              ? `${projectInfo.name.replace(/\.[^.]+$/, "")}.inp`
-              : "my-network.inp";
+              ? projectInfo.name.replace(/\.[^.]+$/, "")
+              : "my-network";
+          const suggestedName = activeScenario
+            ? `${baseName} - ${activeScenario.name}.inp`
+            : `${baseName}.inp`;
 
           const isNativeFsSupported =
             FileSystemHelpers.isFileSystemAccessSupported();
@@ -117,6 +126,8 @@ export const useSaveInp = () => {
             await FileSystemHelpers.triggerDownload(suggestedName, handle);
             return;
           }
+
+          if (activeScenario) return;
 
           const isDemo = get(isDemoNetworkAtom);
           set(inpFileInfoAtom, {
@@ -182,7 +193,14 @@ export const useSaveInp = () => {
           return false;
         }
       },
-      [userTracking, translate, map, addRecent, isScriptingOn],
+      [
+        userTracking,
+        translate,
+        map,
+        addRecent,
+        isScriptingOn,
+        isExportScenarioOn,
+      ],
     ),
   );
 
