@@ -48,10 +48,6 @@ const NEW_SCRIPT_SOURCE = `// Writing this script with AI? Give your assistant t
 // It describes the whole scripting API, so the AI can write scripts
 // that run here. If your AI can't open links, open it and paste it in.
 
-// ---- inputs ----------------------------------------------------------
-// Declare script inputs as constants here, where they are easy to edit.
-// ----------------------------------------------------------------------
-
 console.log("Junctions:", network.stats.junctions, "· Pipes:", network.stats.pipes);
 `;
 

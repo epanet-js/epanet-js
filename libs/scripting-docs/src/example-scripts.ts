@@ -4,9 +4,7 @@ export const exampleScripts: ExampleScript[] = [
   {
     id: "select-small-pipes",
     name: "Select small pipes",
-    source: `// ---- inputs ----------------------------------------------------------
-const MAX_DIAMETER = 100; // select pipes at or below this (project units)
-// ----------------------------------------------------------------------
+    source: `const MAX_DIAMETER = 100; // select pipes at or below this (project units)
 
 const small = network.pipes.filter((p) => p.diameter <= MAX_DIAMETER);
 console.log(\`\${small.length} of \${network.pipes.length} pipes at or below \${MAX_DIAMETER}\`);
@@ -36,9 +34,7 @@ ui.attachFile("pipes.csv", rows.join("\\n"));
   {
     id: "select-in-view",
     name: "Select what's in view",
-    source: `// ---- inputs ----------------------------------------------------------
-const TYPE = null; // e.g. "pipe" to select only pipes
-// ----------------------------------------------------------------------
+    source: `const TYPE = null; // e.g. "pipe" to select only pipes
 
 if (!map.bounds) throw new Error("The map isn't available");
 const [minLng, minLat, maxLng, maxLat] = map.bounds;
@@ -342,10 +338,8 @@ ui.attachFile("junction-demands.csv", rows.join("\\n"));
   {
     id: "count-by-custom-attribute",
     name: "Count by custom attribute",
-    source: `// ---- inputs ----------------------------------------------------------
-const ATTRIBUTE = "Zone"; // the custom attribute's name, as in the asset panel
+    source: `const ATTRIBUTE = "Zone"; // the custom attribute's name, as in the asset panel
 const TYPE = "junction"; // the asset type it is defined for
-// ----------------------------------------------------------------------
 
 const assets = network.assets.filter((a) => a.type === TYPE);
 const counts = new Map();
@@ -370,9 +364,7 @@ if (missing.length > 0) selection.set(missing);
   {
     id: "audit-customer-points",
     name: "Audit customer points",
-    source: `// ---- inputs ----------------------------------------------------------
-const TOP = 10; // how many of the largest customers to list
-// ----------------------------------------------------------------------
+    source: `const TOP = 10; // how many of the largest customers to list
 
 const points = network.customerPoints;
 if (points.length === 0) throw new Error("This network has no customer points");
