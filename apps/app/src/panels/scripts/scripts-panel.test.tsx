@@ -162,10 +162,28 @@ describe("ScriptsPanel", () => {
         "You have unsaved changes. Are you sure you want to discard them?",
       ),
     ).toBeVisible();
+    expect(screen.getByRole("button", { name: "Back" })).toBeDisabled();
 
     await user.click(screen.getByRole("button", { name: "Discard changes" }));
 
     expect(store.get(userScriptsAtom)).toEqual([]);
+    expect(screen.getByText("My scripts")).toBeVisible();
+  });
+
+  it("saves unsaved changes before going back", async () => {
+    const user = userEvent.setup();
+    const store = setInitialState({
+      hydraulicModel: HydraulicModelBuilder.with().build(),
+    });
+    renderPanel(store);
+
+    await user.click(screen.getByRole("button", { name: /new/i }));
+    await user.click(screen.getByRole("button", { name: "Back" }));
+    await user.click(screen.getByRole("button", { name: "Save changes" }));
+
+    expect(store.get(userScriptsAtom)).toEqual([
+      expect.objectContaining({ name: "Untitled script" }),
+    ]);
     expect(screen.getByText("My scripts")).toBeVisible();
   });
 

@@ -1948,6 +1948,7 @@
     "close": "Close",
     "discardChanges": "Discard changes",
     "keepEditing": "Keep editing",
+    "saveChanges": "Save changes",
     "discardWithunsavedChangesHint": "You have unsaved changes. Are you sure you want to discard them?",
     "saveWithWarningsHint": "There are some validation warnings."
   },

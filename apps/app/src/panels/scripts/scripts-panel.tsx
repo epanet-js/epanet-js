@@ -384,8 +384,11 @@ const ScriptEditor = ({
     [runScript, nameOf],
   );
 
-  const handleSave = useCallback(() => {
-    if (isEditLocked) return openEditPaywall();
+  const handleSave = useCallback((): boolean => {
+    if (isEditLocked) {
+      openEditPaywall();
+      return false;
+    }
     const current = draftRef.current;
     const saved = saveScript({
       id: current.scriptId,
@@ -394,7 +397,7 @@ const ScriptEditor = ({
         : nameOf(current),
       source: current.source,
     });
-    if (!saved) return;
+    if (!saved) return false;
     onChange({
       scriptId: saved.id,
       exampleId: null,
@@ -415,6 +418,7 @@ const ScriptEditor = ({
       scriptsCount: kind === "update" ? scripts.length : scripts.length + 1,
     });
     setConfirmingDiscard(false);
+    return true;
   }, [
     isEditLocked,
     openEditPaywall,
@@ -427,7 +431,7 @@ const ScriptEditor = ({
   ]);
 
   const handleBack = () => {
-    if (hasUnsavedChanges(draft) && !confirmingDiscard) {
+    if (hasUnsavedChanges(draft)) {
       setConfirmingDiscard(true);
       return;
     }
@@ -443,6 +447,7 @@ const ScriptEditor = ({
           variant="quiet"
           aria-label={translate("back")}
           onClick={handleBack}
+          disabled={confirmingDiscard}
         >
           <ChevronLeftIcon />
         </Button>
@@ -556,8 +561,13 @@ const ScriptEditor = ({
         <div className="flex flex-col gap-2 px-3 py-2 border-b text-size-small">
           <span>{translate("scripting.unsavedChanges")}</span>
           <div className="flex items-center justify-end gap-2">
-            <Button size="xs" onClick={() => setConfirmingDiscard(false)}>
-              {translate("dialog.keepEditing")}
+            <Button
+              size="xs"
+              onClick={() => {
+                if (handleSave()) onClose();
+              }}
+            >
+              {translate("dialog.saveChanges")}
             </Button>
             <Button size="xs" variant="danger" onClick={onClose}>
               {translate("dialog.discardChanges")}
