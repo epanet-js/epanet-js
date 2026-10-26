@@ -1,8 +1,7 @@
 import { FeaturePaywall, type FeaturePaywallConfig } from "./feature-paywall";
 
-// PLACEHOLDER: the custom-layers recording. Replace with the scripting one.
 const SCRIPTING_VIDEO_SRC =
-  "https://stream.mux.com/edP01XlZ2kgSvviQMj1jTnxc8NGy1qtfAPAsoyZdJcug.m3u8";
+  "https://stream.mux.com/WOoXicYR9m8HcZrpaVB8Oe3h9x01be2Ro6Prs22RZBKI.m3u8";
 
 export const ScriptingPaywallConnector = ({
   feature,
