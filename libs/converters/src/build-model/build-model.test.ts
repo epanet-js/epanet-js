@@ -848,6 +848,108 @@ describe("build pumps and valves from network data", () => {
   });
 });
 
+describe("valve remote target", () => {
+  const threeJunctions = [
+    aJunction({ ref: "1", label: "J1", coordinates: [0, 0] }),
+    aJunction({ ref: "2", label: "J2", coordinates: [1, 0] }),
+    aJunction({ ref: "3", label: "J3", coordinates: [2, 0] }),
+  ];
+
+  it("holds a prv's pressure at the node the source names", () => {
+    const { hydraulicModel, issues } = buildModel(
+      aNetwork({
+        junctions: threeJunctions,
+        valves: [
+          aValve({ ref: "10", label: "V1", kind: "prv", targetNodeRef: "3" }),
+        ],
+      }),
+      { projections: aCatalogue() },
+    );
+
+    const valve = getByLabel(hydraulicModel.assets, "V1") as Valve;
+    const target = getByLabel(hydraulicModel.assets, "J3") as Junction;
+    expect(valve.targetNodeId).toEqual(target.id);
+    expect(issues).toEqual([]);
+  });
+
+  it("raises issue for a remote target on a valve that is not a PRV", () => {
+    const { hydraulicModel, issues } = buildModel(
+      aNetwork({
+        junctions: threeJunctions,
+        valves: [
+          aValve({ ref: "10", label: "V1", kind: "fcv", targetNodeRef: "3" }),
+        ],
+      }),
+      { projections: aCatalogue() },
+    );
+
+    const valve = getByLabel(hydraulicModel.assets, "V1") as Valve;
+    expect(valve.targetNodeId).toBeUndefined();
+    expect(issues).toContainEqual({
+      code: "remotePressureControlUnsupported",
+      severity: "warning",
+      ref: "10",
+    });
+  });
+
+  it("raises issue for a remote target that is not defined in the network", () => {
+    const { hydraulicModel, issues } = buildModel(
+      aNetwork({
+        junctions: threeJunctions,
+        valves: [
+          aValve({ ref: "10", label: "V1", kind: "prv", targetNodeRef: "9" }),
+        ],
+      }),
+      { projections: aCatalogue() },
+    );
+
+    const valve = getByLabel(hydraulicModel.assets, "V1") as Valve;
+    expect(valve.targetNodeId).toBeUndefined();
+    expect(issues).toContainEqual({
+      code: "remotePressureControlUnsupported",
+      severity: "warning",
+      ref: "10",
+    });
+  });
+
+  it("keeps the schedule of a remote prv and raises an issue for it", () => {
+    const { hydraulicModel, issues } = buildModel(
+      aNetwork({
+        junctions: threeJunctions,
+        valves: [
+          aValve({
+            ref: "10",
+            label: "V1",
+            kind: "prv",
+            setting: 30,
+            targetNodeRef: "3",
+          }),
+        ],
+        controls: [
+          {
+            type: "timedSetting",
+            link: { kind: "valve", ref: "10" },
+            steps: [
+              { time: 0, setting: 30 },
+              { time: 43200, setting: 25 },
+            ],
+          },
+        ],
+      }),
+      { projections: aCatalogue() },
+    );
+
+    const valve = getByLabel(hydraulicModel.assets, "V1") as Valve;
+    expect(valve.targetNodeId).toBeDefined();
+    expect(hydraulicModel.rawControls.simple).toHaveLength(2);
+    expect(issues).toContainEqual({
+      code: "remotePressureControlUnsupported",
+      severity: "warning",
+      ref: "10",
+    });
+  });
+});
+
 describe("valve setting units", () => {
   const twoJunctions = [
     aJunction({ ref: "1", label: "J1", coordinates: [0, 0] }),

@@ -97,6 +97,7 @@ export type ValveData = LinkData & {
   setting?: number;
   minorLoss?: number;
   initialStatus?: ValveStatus;
+  targetNodeRef?: string;
 };
 
 export type PumpData = LinkData & {

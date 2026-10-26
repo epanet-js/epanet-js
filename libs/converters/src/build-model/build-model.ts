@@ -214,7 +214,13 @@ export const buildModel = (
   }
 
   for (const valveData of network.valves) {
-    addValve(hydraulicModel, factories.assetFactory, valveData, linkContext);
+    addValve(
+      hydraulicModel,
+      factories.assetFactory,
+      valveData,
+      linkContext,
+      issues,
+    );
   }
 
   addCustomerPoints(hydraulicModel, network.customerPoints, {
@@ -741,11 +747,13 @@ const addValve = (
   assetFactory: AssetFactory,
   valveData: ValveData,
   context: LinkContext,
+  issues: IssueCollector,
 ) => {
   const geometry = linkGeometry(valveData, context);
   if (geometry === null) return;
 
   const kind = valveKindOf(valveData);
+  const targetNodeId = remoteTargetOf(valveData, kind, context, issues);
   const valve = assetFactory.createValve({
     ...linkProperties(valveData, "valve", geometry, context),
     kind,
@@ -753,6 +761,7 @@ const addValve = (
     diameter: converted(valveData.diameter, context.toDiameter),
     minorLoss: valveData.minorLoss,
     initialStatus: valveData.initialStatus,
+    ...(targetNodeId === undefined ? {} : { targetNodeId }),
   });
 
   registerLink(
@@ -762,6 +771,25 @@ const addValve = (
     geometry.connections,
     context,
   );
+};
+
+const remoteTargetOf = (
+  { ref, targetNodeRef }: ValveData,
+  kind: ValveKind,
+  { nodeIdByRef }: LinkContext,
+  issues: IssueCollector,
+): AssetId | undefined => {
+  if (targetNodeRef === undefined) return undefined;
+
+  const target = nodeIdByRef.get(targetNodeRef);
+  if (kind === "prv" && target !== undefined) return target.id;
+
+  issues.add({
+    code: "remotePressureControlUnsupported",
+    severity: "warning",
+    ref,
+  });
+  return undefined;
 };
 
 const unknownValveFallback = "tcv" as const satisfies ValveKind;
@@ -910,6 +938,7 @@ const rawControlsFor = (
 
   switch (controlData.type) {
     case "timedSetting":
+      reportScheduledRemoteTarget(controlData, linkId, hydraulicModel, issues);
       return scheduleRows(controlData, linkId, hydraulicModel, context);
     case "tankLevel":
       return controlData.link.kind === "pump"
@@ -918,6 +947,23 @@ const rawControlsFor = (
     default:
       return [];
   }
+};
+
+const reportScheduledRemoteTarget = (
+  { link }: TimedSettingControlData,
+  linkId: AssetId,
+  hydraulicModel: HydraulicModel,
+  issues: IssueCollector,
+): void => {
+  const asset = hydraulicModel.assets.get(linkId);
+  if (asset?.type !== "valve" || (asset as Valve).targetNodeId === undefined)
+    return;
+
+  issues.add({
+    code: "remotePressureControlUnsupported",
+    severity: "warning",
+    ref: link.ref,
+  });
 };
 
 const linkRow = (
