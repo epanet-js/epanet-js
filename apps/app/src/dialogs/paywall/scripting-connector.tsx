@@ -1,7 +1,13 @@
 import { FeaturePaywall, type FeaturePaywallConfig } from "./feature-paywall";
 
 const SCRIPTING_VIDEO_SRC =
-  "https://stream.mux.com/WOoXicYR9m8HcZrpaVB8Oe3h9x01be2Ro6Prs22RZBKI.m3u8";
+  "https://stream.mux.com/02TFqsbNdcoxx00HKCQK4kmZUEXM7sUcQSap100JRFIlTU.m3u8";
+
+const SCRIPTING_CAPTIONS = [
+  { start: 0.0, end: 4.8, captionKey: "scripting.paywall.captions.1" },
+  { start: 4.8, end: 11.2, captionKey: "scripting.paywall.captions.2" },
+  { start: 11.2, end: 16.7, captionKey: "scripting.paywall.captions.3" },
+] as const;
 
 export const ScriptingPaywallConnector = ({
   feature,
@@ -13,6 +19,7 @@ export const ScriptingPaywallConnector = ({
   const config: FeaturePaywallConfig = {
     feature,
     videoSrc: SCRIPTING_VIDEO_SRC,
+    captions: SCRIPTING_CAPTIONS,
     titleKey: "scripting.paywall.title",
     descriptionKeys: [
       "scripting.paywall.description1",

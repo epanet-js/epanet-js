@@ -131,7 +131,12 @@
       "description1": "Automate repetitive work on your network and build the tools you're missing, with scripts that run right inside epanet-js.",
       "description2": "Write your own or ask an AI assistant to write them for you using the scripting API reference.",
       "plans": "Scripting is available on paid plans.",
-      "trial": "Scripting is a paid feature. Activate your free trial to get full access for 14 days—no credit card required."
+      "trial": "Scripting is a paid feature. Activate your free trial to get full access for 14 days—no credit card required.",
+      "captions": {
+        "1": "Build the tools you're missing",
+        "2": "Extract data as tables or files",
+        "3": "See the results right on the map"
+      }
     }
   },
   "assetSearch": {
