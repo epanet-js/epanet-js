@@ -743,7 +743,7 @@ type ScriptAttachmentDownloaded = {
 
 type ScriptingApiVisited = {
   name: "scriptingApi.visited";
-  source: "menu";
+  source: "menu" | "editor";
 };
 
 type RepoVisited = {

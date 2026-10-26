@@ -8,6 +8,7 @@ import {
   Archive,
   GitPullRequestArrow,
   Bell,
+  BookOpen,
   BookText,
   Bookmark,
   ChartColumn,
@@ -158,6 +159,7 @@ const icon = (Icon: LucideIcon): React.FC<IconProps> => {
 };
 
 export const HelpIcon = icon(CircleQuestionMark);
+export const DocsIcon = icon(BookOpen);
 export const RoadmapIcon = icon(MapIcon);
 export const MapStylingIcon = icon(Layers);
 export const MapPinnedIcon = icon(MapPinned);

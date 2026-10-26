@@ -24,6 +24,7 @@ import {
   AddIcon,
   ChevronLeftIcon,
   DeleteIcon,
+  DocsIcon,
   MoreActionsIcon,
   PaywallLockIcon,
   PencilIcon,
@@ -538,6 +539,21 @@ const ScriptEditor = ({
               </DD.Portal>
             </DD.Root>
           )}
+          <Button
+            variant="quiet"
+            aria-label={translate("scripting.apiReference")}
+            title={translate("scripting.apiReference")}
+            className="h-8"
+            onClick={() => {
+              userTracking.capture({
+                name: "scriptingApi.visited",
+                source: "editor",
+              });
+              window.open("/scripting-api", "_blank", "noopener,noreferrer");
+            }}
+          >
+            <DocsIcon />
+          </Button>
         </div>
       </div>
       {confirmingDiscard && (
