@@ -173,11 +173,30 @@ export type TankFloatControlData = {
   reopenDrop: number;
 };
 
-export type RemotePressureControlData = {
-  type: "remotePressure";
+export type VariableSpeedPumpQuantity = "pressure" | "level" | "flow";
+
+export type VariableSpeedPumpScheduleStepData = {
+  time: number;
+  target: number;
+};
+
+export type VariableSpeedPumpTankLevelsData = {
+  tankRef: string;
+  onLevel: number;
+  offLevel: number;
+};
+
+export type VariableSpeedPumpControlData = {
+  type: "variableSpeedPump";
   link: ControlLinkRef;
-  node: ControlNodeRef;
-  pressure: number;
+  quantity: VariableSpeedPumpQuantity;
+  target: ControlNodeRef | ControlLinkRef;
+  value: number;
+  minSpeed: number;
+  maxSpeed: number;
+  laggedPumpRefs: string[];
+  schedule: VariableSpeedPumpScheduleStepData[];
+  tankLevels?: VariableSpeedPumpTankLevelsData;
 };
 
 export type FlowModulatedSetpointControlData = {
@@ -191,7 +210,7 @@ export type ControlData =
   | TankLevelControlData
   | TimedSettingControlData
   | TankFloatControlData
-  | RemotePressureControlData
+  | VariableSpeedPumpControlData
   | FlowModulatedSetpointControlData;
 
 export type NetworkData = {

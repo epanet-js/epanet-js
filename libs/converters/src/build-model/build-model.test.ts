@@ -9,9 +9,13 @@ import type {
   ReservoirData,
   TankData,
   ValveData,
+  VariableSpeedPumpControlData,
 } from "../network-data";
 import { WGS84, type Proj4Projection } from "@epanet-js/projections";
-import type { LevelSettingControl } from "@epanet-js/hydraulic-model";
+import type {
+  LevelSettingControl,
+  VariableSpeedPumpControl,
+} from "@epanet-js/hydraulic-model";
 import {
   Asset,
   AssetsMap,
@@ -1506,6 +1510,80 @@ describe("build controls from network data", () => {
 
     expect(hydraulicModel.controls).toEqual([]);
   });
+
+  describe("variable speed pumps", () => {
+    it("builds the pump's control", () => {
+      const { hydraulicModel, issues } = buildModel(
+        aNetwork({
+          junctions: [
+            aJunction({ ref: "1", label: "J1", coordinates: [0, 0] }),
+            aJunction({ ref: "2", label: "J2", coordinates: [1, 0] }),
+            aJunction({ ref: "3", label: "J3", coordinates: [2, 0] }),
+          ],
+          tanks: [aTank({ ref: "4", label: "T1", coordinates: [3, 0] })],
+          pumps: [
+            aPump({
+              ref: "10",
+              label: "PU1",
+              startNodeRef: "1",
+              endNodeRef: "2",
+            }),
+            aPump({
+              ref: "11",
+              label: "PU2",
+              startNodeRef: "1",
+              endNodeRef: "2",
+            }),
+          ],
+          controls: [
+            aVariableSpeedPumpControl({
+              link: { kind: "pump", ref: "10" },
+              quantity: "pressure",
+              target: { kind: "junction", ref: "3" },
+              value: 35,
+              minSpeed: 0.2,
+              maxSpeed: 1.5,
+              laggedPumpRefs: ["11"],
+              schedule: [
+                { time: 0, target: 35 },
+                { time: 21600, target: 40 },
+              ],
+              tankLevels: { tankRef: "4", onLevel: 2, offLevel: 6 },
+            }),
+          ],
+        }),
+        { projections: aCatalogue() },
+      );
+
+      const pump = getByLabel(hydraulicModel.assets, "PU1") as Pump;
+      const lag = getByLabel(hydraulicModel.assets, "PU2") as Pump;
+      const node = getByLabel(hydraulicModel.assets, "J3") as Junction;
+      const tank = getByLabel(hydraulicModel.assets, "T1") as Tank;
+      const [control] = hydraulicModel.controls as VariableSpeedPumpControl[];
+
+      const { id, ...rest } = control;
+      expect(typeof id).toEqual("string");
+      expect(rest).toEqual({
+        type: "variable-speed-pump",
+        linkId: pump.id,
+        quantity: "pressure",
+        targetId: node.id,
+        target: 35,
+        minSpeed: 0.2,
+        maxSpeed: 1.5,
+        laggedPumpIds: [lag.id],
+        schedule: [
+          { time: 0, target: 35 },
+          { time: 21600, target: 40 },
+        ],
+        tankLevels: { tankId: tank.id, onLevel: 2, offLevel: 6 },
+      });
+      expect(issues).toEqual([]);
+      expect([...hydraulicModel.controlsLookup.getControls(pump.id)]).toEqual(
+        hydraulicModel.controls,
+      );
+    });
+  });
 });
 
 describe("build custom attributes from network data", () => {
@@ -1932,6 +2010,21 @@ const aTankLevelControl = (
   tankRef: "2",
   on: { level: 7.12, setting: 0.8113 },
   off: { level: 7.92 },
+  ...data,
+});
+
+const aVariableSpeedPumpControl = (
+  data: Partial<VariableSpeedPumpControlData> = {},
+): VariableSpeedPumpControlData => ({
+  type: "variableSpeedPump",
+  link: { kind: "pump", ref: "10" },
+  quantity: "pressure",
+  target: { kind: "junction", ref: "3" },
+  value: 30,
+  minSpeed: 0,
+  maxSpeed: 2,
+  laggedPumpRefs: [],
+  schedule: [],
   ...data,
 });
 

@@ -11,6 +11,7 @@ export type ConverterSettings = {
   parseSelectionSets: boolean;
   freeDischargeInlet: boolean;
   remoteSetpointPrv: boolean;
+  variableSpeedPumps: boolean;
 };
 
 const converters = new Map<ConverterVendor, Converter>();

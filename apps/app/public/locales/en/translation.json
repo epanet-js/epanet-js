@@ -58,6 +58,8 @@
       "pumpDefinitionUnsupported_other": "{{count}} Pumps name a flow and head curve with no points, so they were imported with no definition",
       "pumpControlUnsupported_one": "1 Pump is switched by a rule that could not be imported, so it keeps its starting status",
       "pumpControlUnsupported_other": "{{count}} Pumps are switched by rules that could not be imported, so they keep their starting status",
+      "pumpSpeedControlUnsupported_one": "1 Pump varies its speed to hold a target that could not be imported, so it keeps its stated speed",
+      "pumpSpeedControlUnsupported_other": "{{count}} Pumps vary their speed to hold targets that could not be imported, so they keep their stated speed",
       "pumpPressureControlUnsupported_one": "1 Pump holds a set pressure at another node, which is not imported yet, so it keeps only its speed",
       "pumpPressureControlUnsupported_other": "{{count}} Pumps hold a set pressure at another node, which is not imported yet, so they keep only their speed",
       "customAttributeValueUnreadable_one": "1 Custom attribute value could not be read, so it was not imported",

@@ -1,9 +1,12 @@
 import type { IssueCode, Issue } from "../issues";
 import type {
   ControlData,
+  ControlLinkRef,
+  ControlNodeRef,
   CustomAttributeValues,
   TankLevelControlData,
   TimedSettingControlData,
+  VariableSpeedPumpControlData,
   CurvePointData,
   CustomerPointData,
   DemandData,
@@ -59,6 +62,7 @@ import {
   LevelSettingControl,
   SimpleControl,
   Valve,
+  VariableSpeedPumpControl,
   buildControlsLookup,
   buildCustomAttributeId,
   createControlId,
@@ -896,9 +900,7 @@ const addControls = (
       continue;
     }
 
-    if (controlData.type !== "tankLevel") continue;
-
-    const control = tankLevelControlOf(controlData, context);
+    const control = controlOf(controlData, context, issues);
     if (control === undefined) continue;
 
     built.push(control);
@@ -908,12 +910,26 @@ const addControls = (
   hydraulicModel.controlsLookup = buildControlsLookup(built);
 };
 
+const controlOf = (
+  controlData: ControlData,
+  context: LinkContext,
+  issues: IssueCollector,
+): LevelSettingControl | VariableSpeedPumpControl | undefined => {
+  switch (controlData.type) {
+    case "tankLevel":
+      return tankLevelControlOf(controlData, context);
+    case "variableSpeedPump":
+      return variableSpeedPumpControlOf(controlData, context, issues);
+    default:
+      return undefined;
+  }
+};
+
 // A float modulates as the tank fills; EPANET can only shut a link or open it,
 // and a two-state stand-in reads as support for something we do not model. A
-// setpoint held at another node, or one following the flow, has no form at all.
+// setpoint following the flow has no form at all.
 const unsupported: Record<string, IssueCode> = {
   tankFloat: "tankFloatControlUnsupported",
-  remotePressure: "remotePressureControlUnsupported",
   flowModulatedSetpoint: "flowModulatedSetpointUnsupported",
 };
 
@@ -944,6 +960,8 @@ const rawControlsFor = (
       return controlData.link.kind === "pump"
         ? undefined
         : levelRows(controlData, linkId, hydraulicModel, context);
+    case "variableSpeedPump":
+      return undefined;
     default:
       return [];
   }
@@ -1061,6 +1079,86 @@ const asClockTime = (seconds: number): string => {
   const minutes = Math.floor((seconds % 3600) / 60);
 
   return `${hours}:${String(minutes).padStart(2, "0")}`;
+};
+
+const variableSpeedPumpControlOf = (
+  control: VariableSpeedPumpControlData,
+  context: LinkContext,
+  issues: IssueCollector,
+): VariableSpeedPumpControl | undefined => {
+  const { linkIdByRef } = context;
+  const linkId = linkIdByRef.get(control.link.ref);
+  const targetId = targetIdOf(control.target, context);
+  const tankLevels = tankLevelsOf(control, context);
+  if (linkId === undefined || targetId === undefined || tankLevels === null) {
+    issues.add({
+      code: "pumpSpeedControlUnsupported",
+      severity: "warning",
+      ref: control.link.ref,
+    });
+    return undefined;
+  }
+
+  const convert = targetConverterFor(control.quantity, context);
+  const laggedPumpIds = control.laggedPumpRefs.flatMap((ref) => {
+    const id = linkIdByRef.get(ref);
+    return id === undefined ? [] : [id];
+  });
+
+  return {
+    id: createControlId(),
+    type: "variable-speed-pump",
+    linkId,
+    quantity: control.quantity,
+    targetId,
+    target: convert(control.value),
+    minSpeed: control.minSpeed,
+    maxSpeed: control.maxSpeed,
+    laggedPumpIds,
+    schedule: control.schedule.map(({ time, target }) => ({
+      time,
+      target: convert(target),
+    })),
+    ...(tankLevels === undefined ? {} : { tankLevels }),
+  };
+};
+
+const targetIdOf = (
+  target: ControlNodeRef | ControlLinkRef,
+  { linkIdByRef, nodeIdByRef }: LinkContext,
+): AssetId | undefined =>
+  target.kind === "pipe" || target.kind === "pump" || target.kind === "valve"
+    ? linkIdByRef.get(target.ref)
+    : nodeIdByRef.get(target.ref)?.id;
+
+const tankLevelsOf = (
+  { tankLevels }: VariableSpeedPumpControlData,
+  { nodeIdByRef, toLevel }: LinkContext,
+): VariableSpeedPumpControl["tankLevels"] | null => {
+  if (tankLevels === undefined) return undefined;
+
+  const tank = nodeIdByRef.get(tankLevels.tankRef);
+  if (tank === undefined) return null;
+
+  return {
+    tankId: tank.id,
+    onLevel: toLevel(tankLevels.onLevel),
+    offLevel: toLevel(tankLevels.offLevel),
+  };
+};
+
+const targetConverterFor = (
+  quantity: VariableSpeedPumpControlData["quantity"],
+  { toPressure, toLevel, toFlow }: LinkContext,
+): ((value: number) => number) => {
+  switch (quantity) {
+    case "pressure":
+      return toPressure;
+    case "level":
+      return toLevel;
+    case "flow":
+      return toFlow;
+  }
 };
 
 const tankLevelControlOf = (

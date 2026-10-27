@@ -52,6 +52,9 @@ export const useConvertFile = () => {
     "FLAG_SYNERGI_FREE_DISCHARGE_INLET",
   );
   const remoteSetpointPrv = useFeatureFlag("FLAG_SYNERGI_REMOTE_SETPOINT_PRV");
+  const variableSpeedPumps = useFeatureFlag(
+    "FLAG_SYNERGI_VARIABLE_SPEED_PUMPS",
+  );
   const setDialogState = useSetAtom(dialogAtom);
   const setInpFileInfo = useSetAtom(inpFileInfoAtom);
   const setProjectFileInfo = useSetAtom(projectFileInfoAtom);
@@ -89,6 +92,7 @@ export const useConvertFile = () => {
           parseSelectionSets,
           freeDischargeInlet,
           remoteSetpointPrv,
+          variableSpeedPumps,
         });
         const { network, issues } = await converter.parseNetworkData({
           files: [file],
@@ -196,6 +200,7 @@ export const useConvertFile = () => {
       parseSelectionSets,
       freeDischargeInlet,
       remoteSetpointPrv,
+      variableSpeedPumps,
       projections,
       labelMaxLength,
       startNewProject,
