@@ -145,6 +145,7 @@ export const useRunScript = () => {
       if (store.get(scriptRunAtom)?.status === "running") return;
       userTracking.capture({
         name: "script.runStarted",
+        scriptName: name,
         source: trigger,
         canRunScripts,
         isExample: exampleId !== null,
@@ -236,6 +237,7 @@ export const useRunScript = () => {
         const success = outcome.status === "success" ? outcome : null;
         userTracking.capture({
           name: "script.runFinished",
+          scriptName: name,
           status: outcome.status,
           durationMs: Math.round(finishedAt - startedAt),
           isExample: exampleId !== null,

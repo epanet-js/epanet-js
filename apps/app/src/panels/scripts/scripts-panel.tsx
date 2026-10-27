@@ -234,6 +234,7 @@ const ScriptList = ({ onOpen }: { onOpen: (draft: ScriptDraft) => void }) => {
     });
     userTracking.capture({
       name: "script.saved",
+      scriptName: trimmedName,
       kind: "update",
       source: "list",
       scriptsCount: scripts.length,
@@ -413,6 +414,7 @@ const ScriptEditor = ({
           : "new";
     userTracking.capture({
       name: "script.saved",
+      scriptName: saved.name,
       kind,
       source: "editor",
       scriptsCount: kind === "update" ? scripts.length : scripts.length + 1,

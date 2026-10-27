@@ -703,6 +703,7 @@ type UtilitiesVisited = {
 
 type ScriptRunStarted = {
   name: "script.runStarted";
+  scriptName: string;
   source: "editor" | "list" | "shortcut";
   canRunScripts: boolean;
   isExample: boolean;
@@ -712,6 +713,7 @@ type ScriptRunStarted = {
 
 type ScriptRunFinished = {
   name: "script.runFinished";
+  scriptName: string;
   status: "success" | "error" | "cancelled";
   durationMs: number;
   isExample: boolean;
@@ -726,6 +728,7 @@ type ScriptRunFinished = {
 
 type ScriptSaved = {
   name: "script.saved";
+  scriptName: string;
   kind: "new" | "update" | "exampleCopy";
   source: "editor" | "list";
   scriptsCount: number;
