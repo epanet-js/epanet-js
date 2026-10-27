@@ -36,6 +36,7 @@ interface ModelBuildEjsdbCompleteMessage extends IframeMessage {
   data: {
     source: "epanet-model-builder";
     ejsdbBytes: Uint8Array;
+    projectName?: string;
     timestamp: string;
   };
 }
@@ -79,8 +80,11 @@ const handleModelBuildEjsdbComplete = async (
     return;
   }
 
-  const { ejsdbBytes, timestamp } = message.data;
-  const filename = `model-builder-${new Date(timestamp).toISOString().replace(/[:.]/g, "-")}${projectExtension}`;
+  const { ejsdbBytes, projectName, timestamp } = message.data;
+  const name =
+    projectName ||
+    `model-builder-${new Date(timestamp).toISOString().replace(/[:.]/g, "-")}`;
+  const filename = `${name}${projectExtension}`;
 
   userTracking.capture({
     name: "modelBuilder.completed",
