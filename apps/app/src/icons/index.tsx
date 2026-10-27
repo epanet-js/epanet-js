@@ -4,6 +4,7 @@ import {
   ArrowDownWideNarrow,
   ArrowDownUp,
   ArrowRight,
+  ArrowLeft,
   ArrowUpNarrowWide,
   Archive,
   GitPullRequestArrow,
@@ -114,6 +115,13 @@ import {
   ChartLine,
   FolderDown,
   FolderUp,
+  Clock,
+  GraduationCap,
+  Hammer,
+  SlidersHorizontal,
+  InfinityIcon as Infinite,
+  Gauge,
+  Bot,
 } from "lucide-react";
 import clsx from "clsx";
 
@@ -173,12 +181,20 @@ export const ErrorIcon = icon(CircleX);
 export const StopSimulationIcon = icon(CirclePause);
 export const UserIcon = icon(User);
 export const RefreshIcon = icon(RefreshCw);
+export const ClockIcon = icon(Clock);
+export const GraduationCapIcon = icon(GraduationCap);
+export const HammerIcon = icon(Hammer);
+export const SlidersHorizontalIcon = icon(SlidersHorizontal);
+export const InfiniteIcon = icon(Infinite);
+export const GaugeIcon = icon(Gauge);
+export const BotIcon = icon(Bot);
 export const SpinnerIcon: React.FC<IconProps> = (props) => (
   <RefreshIcon {...props} className={`${props.className ?? ""} animate-spin`} />
 );
 export const PencilIcon = icon(Pencil);
 export const RedrawIcon = icon(PencilLine);
 export const ArrowRightIcon = icon(ArrowRight);
+export const ArrowLeftIcon = icon(ArrowLeft);
 export const ChevronUpIcon = icon(ChevronUp);
 export const ChevronRightIcon = icon(ChevronRight);
 export const ChevronDownIcon = icon(ChevronDown);

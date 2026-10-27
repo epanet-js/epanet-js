@@ -9,10 +9,12 @@ import { CheckoutButton } from "../components/checkout-button";
 import { Button, StyledSwitch, StyledThumb } from "../components/elements";
 import {
   ForwardRefExoticComponent,
+  ReactNode,
   RefAttributes,
   useMemo,
   useState,
 } from "react";
+import clsx from "clsx";
 import { IconProps } from "@radix-ui/react-icons/dist/types";
 import { Selector, Tooltip } from "@epanet-js/ui-kit";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -22,7 +24,7 @@ import {
 } from "src/global-config";
 import { useUnsavedChangesCheck } from "src/commands/check-unsaved-changes";
 import { useAuth } from "src/hooks/use-auth";
-import { PaymentType } from "src/hooks/use-checkout";
+import { PaymentType, useCheckout } from "src/hooks/use-checkout";
 import {
   useActivateTrial,
   useIsTrialEmailRefused,
@@ -30,7 +32,23 @@ import {
 import { usePermissions } from "src/hooks/use-permissions";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { signUpUrl } from "src/global-config";
-import { CheckIcon, InfoIcon, CloseIcon, RefreshIcon } from "src/icons";
+import {
+  CheckIcon,
+  InfoIcon,
+  CloseIcon,
+  RefreshIcon,
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  BotIcon,
+  ChevronDownIcon,
+  ClockIcon,
+  GaugeIcon,
+  GraduationCapIcon,
+  HammerIcon,
+  InfiniteIcon,
+  SlidersHorizontalIcon,
+  UserIcon,
+} from "src/icons";
 import type { UpgradeOrigin } from "src/state/dialog";
 
 type UsageOption = "commercial" | "non-commercial";
@@ -57,11 +75,16 @@ export const UpgradeDialog = ({
 }: { feature?: string; source?: UpgradeOrigin } = {}) => {
   const { isLoaded: isAuthLoaded } = useAuth();
   const { canUpgrade } = usePermissions();
+  const isPricingUpgradeOn = useFeatureFlag("FLAG_PRICING_UPGRADE");
 
   if (!isAuthLoaded) return <LoadingDialog />;
 
   if (!canUpgrade) {
     return <ChangesFromSupportDialog />;
+  }
+
+  if (isPricingUpgradeOn) {
+    return <PricingPlansDialog feature={feature} source={source} />;
   }
 
   return <PlansDialog feature={feature} source={source} />;
@@ -841,5 +864,552 @@ const InfoTooltip = ({ text }: { text: string }) => {
         <InfoIcon className="w-5 h-5 text-subtle" />
       </button>
     </Tooltip>
+  );
+};
+
+const proPrices = {
+  yearly: "$950",
+  monthly: "$250",
+};
+
+const PricingPlansDialog = ({
+  feature,
+  source,
+}: {
+  feature: string;
+  source: UpgradeOrigin;
+}) => {
+  const translate = useTranslate();
+  const userTracking = useUserTracking();
+  const { closeDialog } = useDialogState();
+  const { user, isSignedIn } = useAuth();
+  const isTrialEmailRefused = useIsTrialEmailRefused();
+  const isTrialAvailable =
+    !!isSignedIn && !user.hasUsedTrial && !isTrialEmailRefused;
+  const [usage, setUsage] = useState<UsageOption>("commercial");
+
+  const handleUsageChange = (newUsage: UsageOption) => {
+    userTracking.capture({ name: "planUsage.toggled" });
+    setUsage(newUsage);
+  };
+
+  const handleClose = () => {
+    userTracking.capture({
+      name: "upgradeDialog.dismissed",
+      source,
+      sourceFeature: feature,
+    });
+    closeDialog();
+  };
+
+  return (
+    <BaseDialog
+      title={translate("upgradeYourAccount")}
+      size="xl"
+      isOpen={true}
+      onClose={handleClose}
+      footer={
+        <footer className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 py-3 border-t text-size-base">
+          {usage === "commercial" ? (
+            <p className="text-subtle">
+              Student or personal use?{" "}
+              <button
+                type="button"
+                className="inline-flex items-center gap-1 text-info hover:underline"
+                onClick={() => handleUsageChange("non-commercial")}
+              >
+                Non-commercial licenses
+                <ArrowRightIcon />
+              </button>
+            </p>
+          ) : (
+            <button
+              type="button"
+              className="inline-flex items-center gap-1 text-info hover:underline"
+              onClick={() => handleUsageChange("commercial")}
+            >
+              <ArrowLeftIcon />
+              Back to commercial plans
+            </button>
+          )}
+          <p className="text-subtle">
+            Have questions?{" "}
+            <a className="text-info" href="mailto:sales@epanetjs.com">
+              Send us an email
+            </a>{" "}
+            or{" "}
+            <a
+              className="text-info"
+              target="_blank"
+              href="https://cal.com/epanet-js/"
+            >
+              book a call
+            </a>
+            .
+          </p>
+        </footer>
+      }
+    >
+      <div className="p-4">
+        {/* Both views share one grid cell, so the dialog keeps the taller one's height. */}
+        <div className="grid">
+          <div
+            aria-hidden={usage !== "commercial"}
+            className={clsx(
+              "[grid-area:1/1] flex flex-col gap-4",
+              usage !== "commercial" && "invisible",
+            )}
+          >
+            {isTrialAvailable && (
+              <div className="flex items-center justify-center gap-2 rounded-lg bg-blue-50 p-4 text-center text-size-base text-default">
+                <ClockIcon className="text-blue-600" />
+                <p>
+                  <strong className="font-semibold">
+                    Try Pro free for 14 days.
+                  </strong>{" "}
+                  No card needed, just a work email.
+                </p>
+              </div>
+            )}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <ProPricingCard
+                feature={feature}
+                source={source}
+                isTrialAvailable={isTrialAvailable}
+              />
+              <UltimatePricingCard feature={feature} source={source} />
+              <EnterprisePricingCard />
+            </div>
+          </div>
+          <div
+            aria-hidden={usage !== "non-commercial"}
+            className={clsx(
+              "[grid-area:1/1]",
+              usage !== "non-commercial" && "invisible",
+            )}
+          >
+            <NonCommercialLicenses feature={feature} source={source} />
+          </div>
+        </div>
+      </div>
+    </BaseDialog>
+  );
+};
+
+const ProPricingCard = ({
+  feature,
+  source,
+  isTrialAvailable,
+}: {
+  feature: string;
+  source: UpgradeOrigin;
+  isTrialAvailable: boolean;
+}) => {
+  const translate = useTranslate();
+  const userTracking = useUserTracking();
+  const [paymentType, setPaymentType] = useState<PaymentType>("yearly");
+  const canStartTrial = paymentType === "yearly" && isTrialAvailable;
+
+  const handlePaymentChange = (newPaymentType: PaymentType) => {
+    userTracking.capture({ name: "planPaymentType.toggled" });
+    setPaymentType(newPaymentType);
+  };
+
+  return (
+    <PricingCard
+      name="Pro"
+      per="Per named license"
+      featured
+      price={
+        <>
+          <PricingAmount>{proPrices[paymentType]}</PricingAmount>
+          <BillingPeriodSelect
+            value={paymentType}
+            onChange={handlePaymentChange}
+          />
+        </>
+      }
+      featuresTitle="Everything in Free, and:"
+      features={[
+        { label: "Scenarios" },
+        {
+          label: "Pro model builder",
+          tooltip:
+            "The new Pro model builder adds pipe year & materials, projection preservation, multiple languages, custom attributes and null values. The Legacy builder is kept for maintenance only.",
+        },
+        { label: "Custom attributes" },
+        { label: "Custom map layers & elevation sources" },
+        { label: "Scripting" },
+        { label: "Professional support" },
+      ]}
+      more={<p className="mt-2 text-size-base text-subtle">And more…</p>}
+      actions={
+        <>
+          {canStartTrial ? (
+            <StartTrialButton feature={feature} source={source} />
+          ) : (
+            <CheckoutButton
+              plan="pro"
+              paymentType={paymentType}
+              feature={feature}
+              source={source}
+            >
+              {translate("upgradeTo", "Pro")}
+            </CheckoutButton>
+          )}
+          <QuoteButton label="Request a quote" />
+        </>
+      }
+    />
+  );
+};
+
+const UltimatePricingCard = ({
+  feature,
+  source,
+}: {
+  feature: string;
+  source: UpgradeOrigin;
+}) => {
+  const userTracking = useUserTracking();
+
+  const captureCheckoutStarted = () => {
+    userTracking.capture({
+      name: "checkout.started",
+      plan: "teams",
+      paymentType: "yearly",
+      source,
+      sourceFeature: feature,
+    });
+  };
+
+  return (
+    <PricingCard
+      name="Ultimate"
+      per="Includes 3 seats"
+      isPerStrong
+      price={
+        <>
+          <PricingAmount>$10,000</PricingAmount>
+          <span className="ml-1 text-size-base text-subtle">/year</span>
+        </>
+      }
+      featuresTitle="Everything in Pro, and:"
+      features={[
+        { label: "Shared cloud models with version history" },
+        { label: "Team branching & merging" },
+        { label: "Roles & permissions" },
+        { label: "Self-service seat management" },
+        { label: "Pay by invoice" },
+        { label: "Team onboarding session" },
+      ]}
+      extraFeaturesTitle="Advanced workflows:"
+      extraFeatures={[
+        { label: "Automated model build & maintenance", Icon: HammerIcon },
+        { label: "Calibration tools", Icon: SlidersHorizontalIcon },
+        { label: "Unlimited model conversions", Icon: InfiniteIcon },
+        { label: "Shutdowns & pressure/flow inquiries", Icon: GaugeIcon },
+        { label: "AI-assisted modeling", Icon: BotIcon },
+      ]}
+      actions={
+        <QuoteButton label="Request a quote" onClick={captureCheckoutStarted} />
+      }
+    />
+  );
+};
+
+const EnterprisePricingCard = () => {
+  return (
+    <PricingCard
+      name="Enterprise"
+      per="Tailored to your organization"
+      price={<PricingAmount>Custom</PricingAmount>}
+      featuresTitle="Everything in Ultimate, and:"
+      features={[
+        { label: "Corporate SSO (SAML / Azure AD)" },
+        { label: "Regional data hosting" },
+        { label: "Centralized user management & usage analytics" },
+        { label: "Network-level permissions" },
+        { label: "Security review & procurement support" },
+        { label: "Dedicated support & custom training" },
+      ]}
+      actions={<QuoteButton label="Contact us" />}
+    />
+  );
+};
+
+type PricingFeature = {
+  label: string;
+  Icon?: SlottableIcon;
+  tooltip?: string;
+};
+
+const PricingCard = ({
+  name,
+  per,
+  isPerStrong = false,
+  featured = false,
+  price,
+  featuresTitle,
+  features,
+  extraFeaturesTitle,
+  extraFeatures,
+  more,
+  actions,
+}: {
+  name: string;
+  per: string;
+  isPerStrong?: boolean;
+  featured?: boolean;
+  price: ReactNode;
+  featuresTitle: string;
+  features: PricingFeature[];
+  extraFeaturesTitle?: string;
+  extraFeatures?: PricingFeature[];
+  more?: ReactNode;
+  actions: ReactNode;
+}) => {
+  return (
+    <div
+      className={clsx(
+        "flex flex-col bg-base border rounded-lg p-6",
+        featured
+          ? "border-purple-200 shadow-[0_4px_12px_rgba(124,58,237,0.10),0_16px_40px_rgba(124,58,237,0.18)]"
+          : "shadow-md shadow-gray-300",
+      )}
+    >
+      <h3 className="text-size-heading-2 font-semibold">{name}</h3>
+      <div className="mt-2">
+        <span
+          className={clsx(
+            "block text-size-base",
+            isPerStrong ? "font-semibold text-default" : "text-subtle",
+          )}
+        >
+          {per}
+        </span>
+        {price}
+      </div>
+      <div className="mt-4 flex flex-1 flex-col">
+        <p className="text-size-small font-semibold uppercase tracking-wide text-subtle">
+          {featuresTitle}
+        </p>
+        <PricingFeatureList items={features} />
+        {extraFeatures && (
+          <>
+            <p className="mt-2 text-size-base text-subtle">
+              {extraFeaturesTitle}
+            </p>
+            <PricingFeatureList items={extraFeatures} />
+          </>
+        )}
+        {more}
+        <div className="mt-auto pt-4 flex flex-col gap-2">{actions}</div>
+      </div>
+    </div>
+  );
+};
+
+const PricingAmount = ({ children }: { children: ReactNode }) => {
+  return <strong className="text-3xl font-bold">{children}</strong>;
+};
+
+const PricingFeatureList = ({ items }: { items: PricingFeature[] }) => {
+  return (
+    <ul className="mt-1 space-y-1">
+      {items.map(({ label, Icon = CheckIcon, tooltip }) => (
+        <li
+          key={label}
+          className="flex items-start gap-2 text-size-base text-default"
+        >
+          <Icon className="mt-0.5 shrink-0 text-indigo-500" />
+          <span>{label}</span>
+          {tooltip && <InfoTooltip text={tooltip} />}
+        </li>
+      ))}
+    </ul>
+  );
+};
+
+const BillingPeriodSelect = ({
+  value,
+  onChange,
+}: {
+  value: PaymentType;
+  onChange: (value: PaymentType) => void;
+}) => {
+  const labels: Record<PaymentType, string> = {
+    yearly: "/year",
+    monthly: "/month",
+  };
+
+  return (
+    <label className="relative ml-1 inline-flex items-center gap-0.5 text-size-base text-subtle has-focus-visible:underline">
+      <span aria-hidden="true">{labels[value]}</span>
+      <ChevronDownIcon className="pointer-events-none" />
+      <select
+        aria-label="Billing period"
+        value={value}
+        onChange={(event) => onChange(event.target.value as PaymentType)}
+        className="absolute inset-0 w-full cursor-pointer appearance-none opacity-0"
+      >
+        <option value="yearly">{labels.yearly}</option>
+        <option value="monthly">{labels.monthly}</option>
+      </select>
+    </label>
+  );
+};
+
+const QuoteButton = ({
+  label,
+  onClick,
+}: {
+  label: string;
+  onClick?: () => void;
+}) => {
+  const userTracking = useUserTracking();
+
+  const goToQuoteForm = () => {
+    userTracking.capture({ name: "teamsRequest.clicked" });
+    onClick?.();
+    window.open(teamsPlanRequestFormUrl, "_blank", "noopener,noreferrer");
+  };
+
+  return (
+    <Button
+      size="full-width"
+      className="default-pointer bg-panel text-default"
+      onClick={goToQuoteForm}
+    >
+      {label}
+    </Button>
+  );
+};
+
+const NonCommercialLicenses = ({
+  feature,
+  source,
+}: {
+  feature: string;
+  source: UpgradeOrigin;
+}) => {
+  const translate = useTranslate();
+  const checkUnsavedChanges = useUnsavedChangesCheck();
+  const { isSignedIn, signOut } = useAuth();
+  const { startCheckout } = useCheckout();
+  const userTracking = useUserTracking();
+
+  const startStudentSignUp = () => {
+    userTracking.capture({ name: "studentLogin.clicked" });
+    checkUnsavedChanges(() => {
+      if (isSignedIn) {
+        void signOut({ redirectUrl: signUpUrl });
+      } else {
+        window.location.href = signUpUrl;
+      }
+    });
+  };
+
+  const startPersonalCheckout = () => {
+    userTracking.capture({
+      name: "checkout.started",
+      plan: "personal",
+      paymentType: "yearly",
+      source,
+      sourceFeature: feature,
+    });
+    startCheckout("personal", "yearly");
+  };
+
+  return (
+    <section>
+      <h2 className="text-size-heading-2 font-semibold">
+        Non-commercial licenses
+      </h2>
+      <p className="text-size-base text-subtle">
+        For coursework, research and personal projects.
+      </p>
+      <div className="mt-4 grid items-start gap-4 sm:grid-cols-2">
+        <NonCommercialLicense
+          Icon={GraduationCapIcon}
+          name="Education"
+          description="Non-commercial use, for coursework and research."
+          price="Free"
+          per="with a school email"
+          onClick={startStudentSignUp}
+          help={
+            <>
+              {translate("havingIssuesWithStudentEmail")}{" "}
+              <a
+                className="text-info"
+                target="_blank"
+                href={studentAccountActiviationHelpUrl}
+                onClick={() => {
+                  userTracking.capture({
+                    name: "helpCenter.visited",
+                    source: "educationPlan",
+                  });
+                }}
+              >
+                {translate("getHelp")}.
+              </a>
+            </>
+          }
+        />
+        <NonCommercialLicense
+          Icon={UserIcon}
+          name="Personal"
+          description="Non-commercial use, for your own projects."
+          price="$100"
+          per="/year"
+          onClick={startPersonalCheckout}
+        />
+      </div>
+    </section>
+  );
+};
+
+const NonCommercialLicense = ({
+  Icon,
+  name,
+  description,
+  price,
+  per,
+  onClick,
+  help,
+}: {
+  Icon: SlottableIcon;
+  name: string;
+  description: string;
+  price: string;
+  per: string;
+  onClick: () => void;
+  help?: ReactNode;
+}) => {
+  return (
+    <div className="flex flex-col gap-2">
+      <button
+        type="button"
+        onClick={onClick}
+        className="flex flex-col gap-4 rounded-lg border bg-base shadow-sm p-6 text-left hover:bg-base-hover"
+      >
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-linear-to-br from-blue-100 to-purple-100 text-purple-600">
+          <Icon className="h-5 w-5" />
+        </div>
+        <div>
+          <span className="block text-size-base font-semibold text-default">
+            {name}
+          </span>
+          <span className="block text-size-base text-subtle">
+            {description}
+          </span>
+          <span className="flex items-baseline mt-2">
+            <strong className="text-2xl font-bold text-default">{price}</strong>
+            <span className="ml-1 text-size-base text-subtle">{per}</span>
+          </span>
+        </div>
+      </button>
+      {help && <p className="text-size-base text-subtle">{help}</p>}
+    </div>
   );
 };
