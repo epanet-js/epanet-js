@@ -250,7 +250,7 @@ export function CustomerPointPanel() {
           {translate("customer")}
         </span>
       </div>
-      <SectionList padding={3}>
+      <SectionList padding={3} overflow={true}>
         {connection && (
           <SectionWrapper
             title={translate("connections")}
