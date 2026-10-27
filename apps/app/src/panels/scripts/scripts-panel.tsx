@@ -487,13 +487,18 @@ const ScriptEditor = ({
         <div className="flex shrink-0 ml-auto">
           <Button
             variant="quiet"
-            aria-label={translate("scripting.run")}
-            title={translate("scripting.run")}
+            aria-label={translate("scripting.apiReference")}
+            title={translate("scripting.apiReference")}
             className="h-8"
-            onClick={() => handleRun("editor")}
-            disabled={isRunning}
+            onClick={() => {
+              userTracking.capture({
+                name: "scriptingApi.visited",
+                source: "editor",
+              });
+              window.open("/scripting-api", "_blank", "noopener,noreferrer");
+            }}
           >
-            <PlayIcon />
+            <DocsIcon />
           </Button>
           <Button
             variant="quiet"
@@ -509,6 +514,16 @@ const ScriptEditor = ({
             }
           >
             <SaveIcon />
+          </Button>
+          <Button
+            variant="quiet"
+            aria-label={translate("scripting.run")}
+            title={translate("scripting.run")}
+            className="h-8"
+            onClick={() => handleRun("editor")}
+            disabled={isRunning}
+          >
+            <PlayIcon />
           </Button>
           {draft.scriptId !== null && (
             <DD.Root modal={false}>
@@ -542,21 +557,6 @@ const ScriptEditor = ({
               </DD.Portal>
             </DD.Root>
           )}
-          <Button
-            variant="quiet"
-            aria-label={translate("scripting.apiReference")}
-            title={translate("scripting.apiReference")}
-            className="h-8"
-            onClick={() => {
-              userTracking.capture({
-                name: "scriptingApi.visited",
-                source: "editor",
-              });
-              window.open("/scripting-api", "_blank", "noopener,noreferrer");
-            }}
-          >
-            <DocsIcon />
-          </Button>
         </div>
       </div>
       {confirmingDiscard && (
