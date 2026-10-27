@@ -3,6 +3,7 @@ import { BaseDialog } from "src/components/dialog";
 import { Button } from "src/components/elements";
 import { dialogAtom } from "src/state/dialog";
 import { useEarlyAccess } from "src/hooks/use-early-access";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useStartUpgrade } from "src/hooks/use-paywall";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";
@@ -21,6 +22,55 @@ export const ModelBuilderPaywallDialog = ({
   const userTracking = useUserTracking();
   const translate = useTranslate();
   const startUpgrade = useStartUpgrade();
+  const isModelBuilderPaywallOn = useFeatureFlag("FLAG_MODEL_BUILDER_PAYWALL");
+
+  const comparedFeatures = isModelBuilderPaywallOn
+    ? [
+        { legacy: "Pipe year and materials", pro: "Pipe year and materials" },
+        { legacy: "Custom attributes", pro: "Custom attributes" },
+        { legacy: "Zones", pro: "Zones" },
+        { legacy: "Customer points", pro: "Customer points" },
+        {
+          legacy: "Filter, split by value and custom rules",
+          pro: "Filter, split by value and custom rules",
+        },
+        { legacy: "Multiple files per layer", pro: "Multiple files per layer" },
+        { legacy: "DXF and CSV files", pro: "DXF and CSV files" },
+        { legacy: "Models over 100K assets", pro: "Models over 100K assets" },
+        {
+          legacy: translate("modelBuilderPaywall.legacyProjection"),
+          pro: translate("modelBuilderPaywall.proProjection"),
+        },
+        {
+          legacy: translate("modelBuilderPaywall.legacyLanguages"),
+          pro: translate("modelBuilderPaywall.proLanguages"),
+        },
+      ]
+    : [
+        {
+          legacy: translate("modelBuilderPaywall.pipeYearAndMaterials"),
+          pro: translate("modelBuilderPaywall.pipeYearAndMaterials"),
+        },
+        {
+          legacy: translate("modelBuilderPaywall.legacyProjection"),
+          pro: translate("modelBuilderPaywall.proProjection"),
+        },
+        {
+          legacy: translate("modelBuilderPaywall.legacyLanguages"),
+          pro: translate("modelBuilderPaywall.proLanguages"),
+        },
+        {
+          legacy: translate("modelBuilderPaywall.customAttributes"),
+          pro: translate("modelBuilderPaywall.customAttributes"),
+        },
+      ];
+
+  const upcomingFeatures = isModelBuilderPaywallOn
+    ? [translate("modelBuilderPaywall.saveBuildSettings")]
+    : [
+        translate("modelBuilderPaywall.saveBuildSettings"),
+        translate("modelBuilderPaywall.filterData"),
+      ];
 
   const handleDismiss = () => {
     userTracking.capture({ name: "modelBuilder.paywall.dismissed", source });
@@ -64,6 +114,11 @@ export const ModelBuilderPaywallDialog = ({
               <h2 className="text-size-heading-2 font-semibold mb-2">
                 {translate("modelBuilderPaywall.legacy")}
               </h2>
+              {isModelBuilderPaywallOn && (
+                <p className="text-size-base text-subtle">
+                  Free, Personal and Education plans
+                </p>
+              )}
               <div className="flex flex-col justify-between flex-1">
                 <FeaturesList
                   items={[
@@ -72,52 +127,24 @@ export const ModelBuilderPaywallDialog = ({
                       Icon: WarningIcon,
                       iconColor: "text-warning",
                     },
-                    {
-                      feature: translate(
-                        "modelBuilderPaywall.pipeYearAndMaterials",
-                      ),
+                    ...comparedFeatures.map(({ legacy }) => ({
+                      feature: legacy,
                       Icon: CloseIcon,
                       iconColor: "text-red-500",
-                    },
-                    {
-                      feature: translate(
-                        "modelBuilderPaywall.legacyProjection",
-                      ),
-                      Icon: CloseIcon,
-                      iconColor: "text-red-500",
-                    },
-                    {
-                      feature: translate("modelBuilderPaywall.legacyLanguages"),
-                      Icon: CloseIcon,
-                      iconColor: "text-red-500",
-                    },
-                    {
-                      feature: translate(
-                        "modelBuilderPaywall.customAttributes",
-                      ),
-                      Icon: CloseIcon,
-                      iconColor: "text-red-500",
-                    },
+                    })),
                   ]}
                 />
-                <FeaturesList
-                  title={translate("modelBuilderPaywall.notAvailable")}
-                  textColor="text-subtle"
-                  items={[
-                    {
-                      feature: translate(
-                        "modelBuilderPaywall.saveBuildSettings",
-                      ),
+                {!isModelBuilderPaywallOn && (
+                  <FeaturesList
+                    title={translate("modelBuilderPaywall.notAvailable")}
+                    textColor="text-subtle"
+                    items={upcomingFeatures.map((feature) => ({
+                      feature,
                       Icon: CloseIcon,
                       iconColor: "text-red-500",
-                    },
-                    {
-                      feature: translate("modelBuilderPaywall.filterData"),
-                      Icon: CloseIcon,
-                      iconColor: "text-red-500",
-                    },
-                  ]}
-                />
+                    }))}
+                  />
+                )}
               </div>
             </div>
             <div className="p-4 w-full">
@@ -136,6 +163,11 @@ export const ModelBuilderPaywallDialog = ({
               <h2 className="text-size-heading-2 font-semibold mb-2">
                 {translate("modelBuilderPaywall.pro")}
               </h2>
+              {isModelBuilderPaywallOn && (
+                <p className="text-size-base text-subtle">
+                  Pro plans and above
+                </p>
+              )}
               <div className="flex flex-col justify-between flex-1">
                 <FeaturesList
                   items={[
@@ -144,49 +176,21 @@ export const ModelBuilderPaywallDialog = ({
                       Icon: CheckIcon,
                       iconColor: "text-success",
                     },
-                    {
-                      feature: translate(
-                        "modelBuilderPaywall.pipeYearAndMaterials",
-                      ),
+                    ...comparedFeatures.map(({ pro }) => ({
+                      feature: pro,
                       Icon: CheckIcon,
                       iconColor: "text-success",
-                    },
-                    {
-                      feature: translate("modelBuilderPaywall.proProjection"),
-                      Icon: CheckIcon,
-                      iconColor: "text-success",
-                    },
-                    {
-                      feature: translate("modelBuilderPaywall.proLanguages"),
-                      Icon: CheckIcon,
-                      iconColor: "text-success",
-                    },
-                    {
-                      feature: translate(
-                        "modelBuilderPaywall.customAttributes",
-                      ),
-                      Icon: CheckIcon,
-                      iconColor: "text-success",
-                    },
+                    })),
                   ]}
                 />
                 <FeaturesList
                   title={translate("modelBuilderPaywall.comingSoon")}
                   textColor="text-subtle"
-                  items={[
-                    {
-                      feature: translate(
-                        "modelBuilderPaywall.saveBuildSettings",
-                      ),
-                      Icon: CheckIcon,
-                      iconColor: "text-subtle",
-                    },
-                    {
-                      feature: translate("modelBuilderPaywall.filterData"),
-                      Icon: CheckIcon,
-                      iconColor: "text-subtle",
-                    },
-                  ]}
+                  items={upcomingFeatures.map((feature) => ({
+                    feature,
+                    Icon: CheckIcon,
+                    iconColor: "text-subtle",
+                  }))}
                 />
               </div>
             </div>
