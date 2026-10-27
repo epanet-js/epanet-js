@@ -51,6 +51,8 @@ export const SECTION: Section = {
       definition:
         "interface Path { nodes: NodeAsset[]; links: LinkAsset[]; totalLength: number }",
       summary: "A path between two nodes.",
+      description:
+        "`totalLength` is the length along the pipes, in the project length unit (pumps and valves count 0), whatever `weightBy` the path was found with.",
     },
   ],
   members: [

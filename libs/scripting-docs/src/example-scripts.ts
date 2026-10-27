@@ -266,7 +266,7 @@ for (const source of sources) {
   const smallest = pipes.reduce((min, p) => (min === null || p.diameter < min.diameter ? p : min), null);
   rows.push({
     source,
-    length: Math.round(pipes.reduce((sum, p) => sum + p.length, 0)),
+    length: Math.round(path.totalLength),
     pipes: pipes.length,
     smallestPipe: smallest ?? "",
     diameter: smallest?.diameter ?? "",
