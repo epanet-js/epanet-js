@@ -912,13 +912,13 @@ const PricingPlansDialog = ({
         <footer className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 py-3 border-t text-size-base">
           {usage === "commercial" ? (
             <p className="text-subtle">
-              Student or personal use?{" "}
+              {translate("pricingPlans.studentOrPersonal")}{" "}
               <button
                 type="button"
                 className="inline-flex items-center gap-1 text-info hover:underline"
                 onClick={() => handleUsageChange("non-commercial")}
               >
-                Non-commercial licenses
+                {translate("pricingPlans.nonCommercialLicenses")}
                 <ArrowRightIcon />
               </button>
             </p>
@@ -929,21 +929,21 @@ const PricingPlansDialog = ({
               onClick={() => handleUsageChange("commercial")}
             >
               <ArrowLeftIcon />
-              Back to commercial plans
+              {translate("pricingPlans.backToCommercial")}
             </button>
           )}
           <p className="text-subtle">
-            Have questions?{" "}
+            {translate("pricingPlans.haveQuestions")}{" "}
             <a className="text-info" href="mailto:sales@epanetjs.com">
-              Send us an email
+              {translate("pricingPlans.sendEmail")}
             </a>{" "}
-            or{" "}
+            {translate("pricingPlans.or")}{" "}
             <a
               className="text-info"
               target="_blank"
               href="https://cal.com/epanet-js/"
             >
-              book a call
+              {translate("pricingPlans.bookCall")}
             </a>
             .
           </p>
@@ -965,9 +965,9 @@ const PricingPlansDialog = ({
                 <ClockIcon className="text-blue-600" />
                 <p>
                   <strong className="font-semibold">
-                    Try Pro free for 14 days.
+                    {translate("pricingPlans.trialTitle")}
                   </strong>{" "}
-                  No card needed, just a work email.
+                  {translate("pricingPlans.trialDescription")}
                 </p>
               </div>
             )}
@@ -1018,7 +1018,7 @@ const ProPricingCard = ({
   return (
     <PricingCard
       name="Pro"
-      per="Per named license"
+      per={translate("pricingPlans.pro.per")}
       featured
       price={
         <>
@@ -1029,20 +1029,23 @@ const ProPricingCard = ({
           />
         </>
       }
-      featuresTitle="Everything in Free, and:"
+      featuresTitle={`${translate("everythingAnd", "Free")}:`}
       features={[
-        { label: "Scenarios" },
+        { label: translate("scenariosItem") },
         {
-          label: "Pro model builder",
-          tooltip:
-            "The new Pro model builder adds pipe year & materials, projection preservation, multiple languages, custom attributes and null values. The Legacy builder is kept for maintenance only.",
+          label: translate("proModelBuilder"),
+          tooltip: translate("pricingPlans.pro.modelBuilderInfo"),
         },
-        { label: "Custom attributes" },
-        { label: "Custom map layers & elevation sources" },
-        { label: "Scripting" },
-        { label: "Professional support" },
+        { label: translate("customAttributesItem") },
+        { label: translate("pricingPlans.pro.customMapLayers") },
+        { label: translate("scriptingItem") },
+        { label: translate("professionalSupport") },
       ]}
-      more={<p className="mt-2 text-size-base text-subtle">And more…</p>}
+      more={
+        <p className="mt-2 text-size-base text-subtle">
+          {translate("pricingPlans.pro.andMore")}
+        </p>
+      }
       actions={
         <>
           {canStartTrial ? (
@@ -1057,7 +1060,7 @@ const ProPricingCard = ({
               {translate("upgradeTo", "Pro")}
             </CheckoutButton>
           )}
-          <QuoteButton label="Request a quote" />
+          <QuoteButton label={translate("pricingPlans.requestQuote")} />
         </>
       }
     />
@@ -1071,6 +1074,7 @@ const UltimatePricingCard = ({
   feature: string;
   source: UpgradeOrigin;
 }) => {
+  const translate = useTranslate();
   const userTracking = useUserTracking();
 
   const captureCheckoutStarted = () => {
@@ -1086,54 +1090,84 @@ const UltimatePricingCard = ({
   return (
     <PricingCard
       name="Ultimate"
-      per="Includes 3 seats"
+      per={translate("pricingPlans.ultimate.per", "3")}
       isPerStrong
       price={
         <>
           <PricingAmount>$10,000</PricingAmount>
-          <span className="ml-1 text-size-base text-subtle">/year</span>
+          <span className="ml-1 text-size-base text-subtle">
+            {translate("pricingPlans.perYear")}
+          </span>
         </>
       }
-      featuresTitle="Everything in Pro, and:"
+      featuresTitle={`${translate("everythingAnd", "Pro")}:`}
       features={[
-        { label: "Shared cloud models with version history" },
-        { label: "Team branching & merging" },
-        { label: "Roles & permissions" },
-        { label: "Self-service seat management" },
-        { label: "Pay by invoice" },
-        { label: "Team onboarding session" },
+        { label: translate("pricingPlans.ultimate.sharedCloudModels") },
+        { label: translate("pricingPlans.ultimate.teamBranching") },
+        { label: translate("pricingPlans.ultimate.rolesAndPermissions") },
+        { label: translate("selfServiceSeatManagement") },
+        { label: translate("payByInvoice") },
+        { label: translate("pricingPlans.ultimate.teamOnboarding") },
       ]}
-      extraFeaturesTitle="Advanced workflows:"
+      extraFeaturesTitle={translate("pricingPlans.ultimate.advancedWorkflows")}
       extraFeatures={[
-        { label: "Automated model build & maintenance", Icon: HammerIcon },
-        { label: "Calibration tools", Icon: SlidersHorizontalIcon },
-        { label: "Unlimited model conversions", Icon: InfiniteIcon },
-        { label: "Shutdowns & pressure/flow inquiries", Icon: GaugeIcon },
-        { label: "AI-assisted modeling", Icon: BotIcon },
+        {
+          label: translate("pricingPlans.ultimate.automatedModelBuild"),
+          Icon: HammerIcon,
+        },
+        {
+          label: translate("pricingPlans.ultimate.calibrationTools"),
+          Icon: SlidersHorizontalIcon,
+        },
+        {
+          label: translate("pricingPlans.ultimate.unlimitedConversions"),
+          Icon: InfiniteIcon,
+        },
+        {
+          label: translate("pricingPlans.ultimate.shutdownsAndInquiries"),
+          Icon: GaugeIcon,
+        },
+        {
+          label: translate("pricingPlans.ultimate.aiAssistedModeling"),
+          Icon: BotIcon,
+        },
       ]}
       actions={
-        <QuoteButton label="Request a quote" onClick={captureCheckoutStarted} />
+        <QuoteButton
+          label={translate("pricingPlans.requestQuote")}
+          onClick={captureCheckoutStarted}
+        />
       }
     />
   );
 };
 
 const EnterprisePricingCard = () => {
+  const translate = useTranslate();
+
   return (
     <PricingCard
       name="Enterprise"
-      per="Tailored to your organization"
-      price={<PricingAmount>Custom</PricingAmount>}
-      featuresTitle="Everything in Ultimate, and:"
+      per={translate("pricingPlans.enterprise.per")}
+      price={
+        <PricingAmount>
+          {translate("pricingPlans.enterprise.price")}
+        </PricingAmount>
+      }
+      featuresTitle={`${translate("everythingAnd", "Ultimate")}:`}
       features={[
-        { label: "Corporate SSO (SAML / Azure AD)" },
-        { label: "Regional data hosting" },
-        { label: "Centralized user management & usage analytics" },
-        { label: "Network-level permissions" },
-        { label: "Security review & procurement support" },
-        { label: "Dedicated support & custom training" },
+        { label: translate("pricingPlans.enterprise.corporateSso") },
+        { label: translate("pricingPlans.enterprise.regionalHosting") },
+        {
+          label: translate("pricingPlans.enterprise.centralizedUserManagement"),
+        },
+        { label: translate("pricingPlans.enterprise.networkPermissions") },
+        { label: translate("pricingPlans.enterprise.securityReview") },
+        { label: translate("pricingPlans.enterprise.dedicatedSupport") },
       ]}
-      actions={<QuoteButton label="Contact us" />}
+      actions={
+        <QuoteButton label={translate("pricingPlans.enterprise.contactUs")} />
+      }
     />
   );
 };
@@ -1238,9 +1272,10 @@ const BillingPeriodSelect = ({
   value: PaymentType;
   onChange: (value: PaymentType) => void;
 }) => {
+  const translate = useTranslate();
   const labels: Record<PaymentType, string> = {
-    yearly: "/year",
-    monthly: "/month",
+    yearly: translate("pricingPlans.perYear"),
+    monthly: translate("pricingPlans.perMonth"),
   };
 
   return (
@@ -1248,7 +1283,7 @@ const BillingPeriodSelect = ({
       <span aria-hidden="true">{labels[value]}</span>
       <ChevronDownIcon className="pointer-events-none" />
       <select
-        aria-label="Billing period"
+        aria-label={translate("pricingPlans.billingPeriod")}
         value={value}
         onChange={(event) => onChange(event.target.value as PaymentType)}
         className="absolute inset-0 w-full cursor-pointer appearance-none opacity-0"
@@ -1324,18 +1359,20 @@ const NonCommercialLicenses = ({
   return (
     <section>
       <h2 className="text-size-heading-2 font-semibold">
-        Non-commercial licenses
+        {translate("pricingPlans.nonCommercialLicenses")}
       </h2>
       <p className="text-size-base text-subtle">
-        For coursework, research and personal projects.
+        {translate("pricingPlans.nonCommercial.description")}
       </p>
       <div className="mt-4 grid items-start gap-4 sm:grid-cols-2">
         <NonCommercialLicense
           Icon={GraduationCapIcon}
           name="Education"
-          description="Non-commercial use, for coursework and research."
-          price="Free"
-          per="with a school email"
+          description={translate(
+            "pricingPlans.nonCommercial.educationDescription",
+          )}
+          price={translate("pricingPlans.nonCommercial.educationPrice")}
+          per={translate("pricingPlans.nonCommercial.educationPer")}
           onClick={startStudentSignUp}
           help={
             <>
@@ -1359,9 +1396,11 @@ const NonCommercialLicenses = ({
         <NonCommercialLicense
           Icon={UserIcon}
           name="Personal"
-          description="Non-commercial use, for your own projects."
+          description={translate(
+            "pricingPlans.nonCommercial.personalDescription",
+          )}
           price="$100"
-          per="/year"
+          per={translate("pricingPlans.perYear")}
           onClick={startPersonalCheckout}
         />
       </div>

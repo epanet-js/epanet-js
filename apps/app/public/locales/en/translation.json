@@ -941,6 +941,58 @@
   "learnWithEpanetJS": "Learn with epanet-js",
   "learnMore": "Learn more.",
   "useStudentEmail": "Use student email",
+  "pricingPlans": {
+    "perYear": "/year",
+    "perMonth": "/month",
+    "billingPeriod": "Billing period",
+    "requestQuote": "Request a quote",
+    "trialTitle": "Try Pro free for 14 days.",
+    "trialDescription": "No card needed, just a work email.",
+    "studentOrPersonal": "Student or personal use?",
+    "nonCommercialLicenses": "Non-commercial licenses",
+    "backToCommercial": "Back to commercial plans",
+    "haveQuestions": "Have questions?",
+    "sendEmail": "Send us an email",
+    "or": "or",
+    "bookCall": "book a call",
+    "pro": {
+      "per": "Per named license",
+      "modelBuilderInfo": "The new Pro model builder adds pipe year & materials, projection preservation, multiple languages, custom attributes and null values. The Legacy builder is kept for maintenance only.",
+      "customMapLayers": "Custom map layers & elevation sources",
+      "andMore": "And more…"
+    },
+    "ultimate": {
+      "per": "Includes {{1}} seats",
+      "sharedCloudModels": "Shared cloud models with version history",
+      "teamBranching": "Team branching & merging",
+      "rolesAndPermissions": "Roles & permissions",
+      "teamOnboarding": "Team onboarding session",
+      "advancedWorkflows": "Advanced workflows:",
+      "automatedModelBuild": "Automated model build & maintenance",
+      "calibrationTools": "Calibration tools",
+      "unlimitedConversions": "Unlimited model conversions",
+      "shutdownsAndInquiries": "Shutdowns & pressure/flow inquiries",
+      "aiAssistedModeling": "AI-assisted modeling"
+    },
+    "enterprise": {
+      "per": "Tailored to your organization",
+      "price": "Custom",
+      "corporateSso": "Corporate SSO (SAML / Azure AD)",
+      "regionalHosting": "Regional data hosting",
+      "centralizedUserManagement": "Centralized user management & usage analytics",
+      "networkPermissions": "Network-level permissions",
+      "securityReview": "Security review & procurement support",
+      "dedicatedSupport": "Dedicated support & custom training",
+      "contactUs": "Contact us"
+    },
+    "nonCommercial": {
+      "description": "For coursework, research and personal projects.",
+      "educationDescription": "Non-commercial use, for coursework and research.",
+      "educationPrice": "Free",
+      "educationPer": "with a school email",
+      "personalDescription": "Non-commercial use, for your own projects."
+    }
+  },
   "layerAdded": "Layer added",
   "addingLayer": "Adding layer...",
   "layerUpdated": "Layer updated",
