@@ -64,7 +64,12 @@ describe("ScriptsPanel", () => {
     registerScripting({
       startScriptRun: vi.fn(),
       exampleScripts: [
-        { id: "example", name: "Count pipes", source: "console.log(1);" },
+        {
+          id: "example",
+          name: "Count pipes",
+          source: "console.log(1);",
+          paid: false,
+        },
       ],
     });
   });
@@ -360,7 +365,12 @@ describe("ScriptsPanel", () => {
       registerScripting({
         startScriptRun,
         exampleScripts: [
-          { id: "example", name: "Count pipes", source: "console.log(1);" },
+          {
+            id: "example",
+            name: "Count pipes",
+            source: "console.log(1);",
+            paid: false,
+          },
         ],
       });
       const store = aStoreWith([]);
@@ -372,6 +382,22 @@ describe("ScriptsPanel", () => {
       expect(startScriptRun).toHaveBeenCalledWith(
         expect.objectContaining({ source: "console.log(1);" }),
       );
+    });
+
+    it("hides paid examples", () => {
+      registerScripting({
+        startScriptRun: vi.fn(),
+        exampleScripts: [
+          { id: "free", name: "Count pipes", source: "", paid: false },
+          { id: "paid", name: "Network review", source: "", paid: true },
+        ],
+      });
+      renderPanel(aStoreWith([]));
+
+      expect(screen.getByRole("button", { name: "Count pipes" })).toBeVisible();
+      expect(
+        screen.queryByRole("button", { name: "Network review" }),
+      ).not.toBeInTheDocument();
     });
 
     it("offers the paywall instead of creating a script", async () => {

@@ -18,6 +18,7 @@ import type {
 import { useRunScript } from "src/commands/run-script";
 import { useFeatureLock } from "src/components/form/paywall";
 import { useTranslate } from "src/hooks/use-translate";
+import { usePermissions } from "src/hooks/use-permissions";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useScriptsTransaction } from "src/hooks/persistence/use-scripts-transaction";
 import {
@@ -91,6 +92,7 @@ const ScriptList = ({ onOpen }: { onOpen: (draft: ScriptDraft) => void }) => {
   const translate = useTranslate();
   const { isLocked: isEditLocked, openPaywall: openEditPaywall } =
     useFeatureLock("editScripts");
+  const { canRunScripts } = usePermissions();
   const listRef = useRef<NavigableListHandle>(null);
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [focusedItem, setFocusedItem] = useState<NavItem<Section> | undefined>(
@@ -118,8 +120,9 @@ const ScriptList = ({ onOpen }: { onOpen: (draft: ScriptDraft) => void }) => {
       },
     }));
     const newRowNavId = scripts.length + 1;
-    const exampleRows: Row[] = (getScripting()?.exampleScripts ?? []).map(
-      (example, index) => ({
+    const exampleRows: Row[] = (getScripting()?.exampleScripts ?? [])
+      .filter((example) => !example.paid || canRunScripts)
+      .map((example, index) => ({
         navId: newRowNavId + index + 1,
         section: "examples",
         name: example.name,
@@ -137,13 +140,12 @@ const ScriptList = ({ onOpen }: { onOpen: (draft: ScriptDraft) => void }) => {
           source: example.source,
           savedAs: { name: example.name, source: example.source },
         },
-      }),
-    );
+      }));
     const byNavId = new Map<number, Row>(
       [...myRows, ...exampleRows].map((row) => [row.navId, row]),
     );
     return { myRows, exampleRows, newRowNavId, byNavId };
-  }, [scripts]);
+  }, [scripts, canRunScripts]);
 
   const navItems = useMemo(
     (): NavItem<Section>[] => [

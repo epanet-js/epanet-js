@@ -4,6 +4,7 @@ export const exampleScripts: ExampleScript[] = [
   {
     id: "select-small-pipes",
     name: "Select small pipes",
+    paid: false,
     source: `const MAX_DIAMETER = 100; // select pipes at or below this (project units)
 
 const small = network.pipes.filter((p) => p.diameter <= MAX_DIAMETER);
@@ -19,6 +20,7 @@ map.zoomTo(small);
   {
     id: "pipe-length-by-diameter",
     name: "Pipe length by diameter",
+    paid: false,
     source: `// Uses the selected pipes, or every pipe when nothing is selected.
 const pipes = selection.isEmpty
   ? network.pipes
@@ -44,6 +46,7 @@ console.table(
   {
     id: "export-pipes-csv",
     name: "Export pipes to CSV",
+    paid: false,
     source: `const pipes = network.pipes;
 const rows = ["label,diameter,length,start,end"];
 for (const [i, p] of pipes.entries()) {
@@ -59,6 +62,7 @@ ui.attachFile("pipes.csv", rows.join("\\n"));
   {
     id: "count-by-custom-attribute",
     name: "Count by custom attribute",
+    paid: false,
     source: `const ATTRIBUTE = "Zone"; // the custom attribute's name, as in the asset panel
 const TYPE = "junction"; // the asset type it is defined for
 
@@ -85,6 +89,7 @@ if (missing.length > 0) selection.set(missing);
   {
     id: "expand-selection",
     name: "Expand selection by one hop",
+    paid: false,
     source: `if (selection.isEmpty) throw new Error("Select some assets first");
 const start = selection.assets;
 
@@ -112,6 +117,7 @@ map.zoomTo([...expanded]);
   {
     id: "trace-zone",
     name: "Trace the zone around the selection",
+    paid: false,
     source: `const MAIN_DIAMETER = 300; // stop at pipes at or above this (project units)
 
 // The Trace tool's boundary mode stops at tanks, reservoirs, pumps, closed
@@ -148,6 +154,7 @@ map.zoomTo(assets);
   {
     id: "zone-summary",
     name: "Summarise each zone",
+    paid: false,
     source: `// Counts the junctions, pipe length and customer demand inside each zone
 // imported with File > Import > Zones. A pipe counts only when all of it is
 // inside, so one crossing a boundary is in no zone.
@@ -183,6 +190,7 @@ if (outside.length > 0) {
   {
     id: "network-review",
     name: "Network review report",
+    paid: true,
     source: `const PROXIMITY = network.units.length === "ft" ? 1.5 : 0.5; // the review panel's default (project units)
 
 // The Network Review panel's checks in one pass: the checks behind Run
@@ -241,6 +249,7 @@ if (findings.length === 0) {
   {
     id: "water-source",
     name: "Where does this node get its water?",
+    paid: false,
     source: `// The path from each reservoir and tank to the selected node. weightBy
 // makes a pipe cost length / diameter⁵, roughly how its headloss grows, so
 // the path follows the large pipes the water would take rather than the
@@ -286,6 +295,7 @@ map.zoomTo(assets);
   {
     id: "pattern-and-curve-usage",
     name: "Pattern and curve usage",
+    paid: false,
     source: `// Finds what uses each pattern and curve, and which ones nothing uses.
 const patternUses = new Map(network.patterns.map((p) => [p.label, []]));
 const curveUses = new Map(network.curves.map((c) => [c.label, []]));

@@ -45,7 +45,12 @@ export type Section = {
   notes?: Markdown;
 };
 
-export type ExampleScript = { id: string; name: string; source: string };
+export type ExampleScript = {
+  id: string;
+  name: string;
+  source: string;
+  paid: boolean;
+};
 
 export type ScriptingDocs = {
   title: string;
