@@ -281,13 +281,11 @@ const ExportSubmenu = () => {
   const exportScenarioAsProject = useExportScenarioAsProject();
   const worktree = useAtomValue(worktreeAtom);
   const isInScenario = worktree.activeBranchId !== worktree.mainId;
-  const isExportScenarioOn = useFeatureFlag("FLAG_EXPORT_SCENARIO_DROPDOWN");
   const setDialogState = useSetAtom(dialogAtom);
   const translate = useTranslate();
-  const exportInpLabel =
-    isExportScenarioOn && isInScenario
-      ? translate("export.currentScenarioAsEpanetInp")
-      : translate("export.epanetInp");
+  const exportInpLabel = isInScenario
+    ? translate("export.currentScenarioAsEpanetInp")
+    : translate("export.epanetInp");
 
   return (
     <DD.Sub>

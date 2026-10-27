@@ -12,7 +12,6 @@ import { worktreeAtom } from "src/state/scenarios";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { branchStateAtom } from "src/state/branch-state";
 import { SimulationSettingsBuilder } from "src/__helpers__/simulation-settings-builder";
-import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("save inp", () => {
   beforeEach(() => {
@@ -188,25 +187,7 @@ describe("save inp", () => {
     );
   });
 
-  it("exports main's model when a scenario is active", async () => {
-    stubFeatureOff("FLAG_EXPORT_SCENARIO_DROPDOWN");
-    const { handle, chunks } = buildWritableHandleMock();
-    vi.spyOn(FileSystemHelpers, "openFileInFileSystem").mockResolvedValue(
-      handle,
-    );
-    const store = setInitialStateWithActiveScenario();
-
-    renderComponent({ store });
-    await triggerSave();
-
-    const inp = chunks.join("");
-    expect(inp).toContain("MAIN_PIPE");
-    expect(inp).not.toContain("SCENARIO_PIPE");
-    expect(inp).toContain("Demand Multiplier\t1");
-  });
-
-  it("exports the active scenario when scenario export is on", async () => {
-    stubFeatureOn("FLAG_EXPORT_SCENARIO_DROPDOWN");
+  it("exports the active scenario", async () => {
     const { handle, chunks } = buildWritableHandleMock();
     vi.spyOn(FileSystemHelpers, "openFileInFileSystem").mockResolvedValue(
       handle,

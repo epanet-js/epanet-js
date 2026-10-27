@@ -2,8 +2,6 @@ import { projectSettingsAtom } from "src/state/project-settings";
 import { inpFileInfoAtom, projectFileInfoAtom } from "src/state/file-system";
 import {
   stagingModelDerivedAtom,
-  baseModelDerivedAtom,
-  baseSimulationSettingsDerivedAtom,
   simulationSettingsDerivedAtom,
 } from "src/state/derived-branch-state";
 import { isDemoNetworkAtom } from "src/state/file-system";
@@ -33,7 +31,6 @@ export const useSaveInp = () => {
   const userTracking = useUserTracking();
   const map = useContext(MapContext);
   const isScriptingOn = useFeatureFlag("FLAG_SCRIPTING");
-  const isExportScenarioOn = useFeatureFlag("FLAG_EXPORT_SCENARIO_DROPDOWN");
 
   const saveInp = useAtomCallback(
     useCallback(
@@ -48,17 +45,11 @@ export const useSaveInp = () => {
           const projectInfo = get(projectFileInfoAtom);
 
           const worktree = get(worktreeAtom);
-          const exportsMainBranch =
-            !isExportScenarioOn && worktree.scenarios.length > 0;
-          const hydraulicModel = exportsMainBranch
-            ? get(baseModelDerivedAtom)
-            : get(stagingModelDerivedAtom);
+          const hydraulicModel = get(stagingModelDerivedAtom);
           const projectSettings = get(projectSettingsAtom);
-          const simulationSettings = exportsMainBranch
-            ? get(baseSimulationSettingsDerivedAtom)
-            : get(simulationSettingsDerivedAtom);
+          const simulationSettings = get(simulationSettingsDerivedAtom);
           const activeScenario =
-            isExportScenarioOn && worktree.activeBranchId !== worktree.mainId
+            worktree.activeBranchId !== worktree.mainId
               ? worktree.branches.get(worktree.activeBranchId)
               : undefined;
           const buildOptions = {
@@ -193,14 +184,7 @@ export const useSaveInp = () => {
           return false;
         }
       },
-      [
-        userTracking,
-        translate,
-        map,
-        addRecent,
-        isScriptingOn,
-        isExportScenarioOn,
-      ],
+      [userTracking, translate, map, addRecent, isScriptingOn],
     ),
   );
 

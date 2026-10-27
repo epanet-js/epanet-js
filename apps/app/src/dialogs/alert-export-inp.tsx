@@ -7,8 +7,6 @@ import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { getLsxRequirements } from "src/simulation";
-import { worktreeAtom } from "src/state/scenarios";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const AlertExportInpDialog = ({
   onSaveProject,
@@ -26,13 +24,6 @@ export const AlertExportInpDialog = ({
     [hydraulicModel],
   );
   const showLsxWarning = lsxRequirements.isRequired;
-  const worktree = useAtomValue(worktreeAtom);
-  const isExportScenarioOn = useFeatureFlag("FLAG_EXPORT_SCENARIO_DROPDOWN");
-  const activeScenario =
-    worktree.activeBranchId !== worktree.mainId
-      ? worktree.branches.get(worktree.activeBranchId)
-      : undefined;
-  const showActiveScenarioWarning = !isExportScenarioOn && !!activeScenario;
 
   return (
     <BaseDialog
@@ -58,43 +49,17 @@ export const AlertExportInpDialog = ({
       }
     >
       <div className="p-4 text-size-base text-default">
-        {showActiveScenarioWarning && (
-          <ActiveScenarioWarning scenarioName={activeScenario.name} />
-        )}
         {showLsxWarning && (
           <LsxRequiredWarning
             remoteSetpointPrvs={lsxRequirements.remoteSetpointPrvs}
             variableSpeedPumps={lsxRequirements.variableSpeedPumps}
           />
         )}
-        <p className="pb-2">
-          {translate(
-            isExportScenarioOn
-              ? "alertExportInpDetail"
-              : "alertExportInpDetailWithScenarios",
-          )}
-        </p>
+        <p className="pb-2">{translate("alertExportInpDetail")}</p>
         <p className="pb-2">{translate("alertExportInpLabels")}</p>
         <p>{translate("alertExportInpRecommendation")}</p>
       </div>
     </BaseDialog>
-  );
-};
-
-const ActiveScenarioWarning = ({ scenarioName }: { scenarioName: string }) => {
-  const translate = useTranslate();
-  return (
-    <div className="mb-4 p-3 rounded-md space-y-1 bg-yellow-50 border border-yellow-200">
-      <p className="text-size-base font-medium text-yellow-800">
-        {translate("alertExportInpScenarioTitle")}
-      </p>
-      <p className="text-size-base">
-        {translate("alertExportInpScenarioDetail", scenarioName)}
-      </p>
-      <p className="text-size-base">
-        {translate("alertExportInpScenarioHint")}
-      </p>
-    </div>
   );
 };
 
