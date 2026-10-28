@@ -184,6 +184,57 @@ console.log("P1 reverses", reversals, "times");`,
         },
       ],
     }),
+    results({
+      name: "nodeStats",
+      signature:
+        "nodeStats(ref: NodeAsset | string): Promise<{ minPressure: number; maxPressure: number } | null>",
+      summary:
+        "A node's lowest and highest pressure over the run, in `network.units.pressure` — `await` it.",
+      description:
+        "`null` when the run did not include the node or has no timesteps. For a steady-state run both are the pressure at its one timestep.",
+      throws: [
+        "a label no node has, or a link",
+        "`The simulation results are no longer available; run the simulation again` when a newer run has replaced the stored results",
+      ],
+      examples: [
+        {
+          code: `const low = [];
+for (const junction of network.junctions) {
+  const stats = await network.lastResults.nodeStats(junction);
+  if (stats && stats.minPressure < 20) low.push(junction);
+}
+console.log(low.length, "junctions drop below 20", network.units.pressure);`,
+        },
+      ],
+    }),
+    results({
+      name: "pumpEnergy",
+      signature: `pumpEnergy(ref: Pump | string): Promise<{
+  utilization: number;
+  averageEfficiency: number;
+  averageKwPerFlowUnit: number;
+  averageKw: number;
+  peakKw: number;
+  averageCostPerDay: number;
+  demandCharge: number;
+} | null>`,
+      summary:
+        "A pump's energy use over the run, as EPANET reports it — `await` it.",
+      description:
+        "`utilization` and `averageEfficiency` are in `units.efficiency`, `averageKw` and `peakKw` in `units.power`, `averageKwPerFlowUnit` in `units.averageKwPerFlowUnit`; `averageCostPerDay` and `demandCharge` are in the project's currency. `demandCharge` is the network's, the same for every pump. `null` when the run did not include the pump, has no timesteps or reported no energy.",
+      throws: [
+        "a label no link has, or a link that is not a pump",
+        "`The simulation results are no longer available; run the simulation again` when a newer run has replaced the stored results",
+      ],
+      examples: [
+        {
+          code: `for (const pump of network.pumps) {
+  const energy = await network.lastResults.pumpEnergy(pump);
+  if (energy) console.log(pump.label, energy.averageKw, network.units.power, "on", energy.utilization, network.units.efficiency, "of the time");
+}`,
+        },
+      ],
+    }),
     step({
       name: "time",
       signature: "readonly time: number",
