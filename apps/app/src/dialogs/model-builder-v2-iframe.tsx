@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import clsx from "clsx";
 import { BaseDialog } from "../components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
 import { useAuth } from "src/hooks/use-auth";
@@ -49,7 +50,7 @@ interface TrackUserEventMessage extends IframeMessage {
   };
 }
 
-type ModelBuilderContext = {
+export type ModelBuilderContext = {
   step?: string;
 };
 
@@ -122,21 +123,22 @@ const handleOpenExternalLink = (message: OpenExternalLinkMessage) => {
   window.open(message.data.url, "_blank", "noopener,noreferrer");
 };
 
-export const ModelBuilderV2IframeDialog = ({
-  onClose: _onClose,
+export const ModelBuilderV2Frame = ({
+  onContextChange,
+  onClose,
+  className,
 }: {
-  onClose: () => void;
+  onContextChange: (context: ModelBuilderContext) => void;
+  onClose?: () => void;
+  className?: string;
 }) => {
   const translate = useTranslate();
   const { locale } = useLocale();
   const [isLoading, setIsLoading] = useState(true);
-  const context = useRef<ModelBuilderContext>({});
   const openProjectFile = useOpenProjectFile();
   const userTracking = useUserTracking();
   const showNetworkReview = useShowNetworkReview();
   const enabledFlags = useEnabledFeatureFlags();
-  const { isSignedIn, isLoaded } = useAuth();
-  const showEarlyAccess = isLoaded && !isSignedIn;
   const initialLocale = useRef(locale).current;
   const iframeSrc = useMemo(
     () => buildIframeSrc(enabledFlags, initialLocale),
@@ -177,9 +179,11 @@ export const ModelBuilderV2IframeDialog = ({
       } else if (message.type === "trackUserEvent") {
         handleUserEvent(message as TrackUserEventMessage, userTracking);
       } else if (message.type === "contextChanged") {
-        context.current = (message as ContextChangedMessage).data.context ?? {};
+        onContextChange((message as ContextChangedMessage).data.context ?? {});
       } else if (message.type === "openExternalLink") {
         handleOpenExternalLink(message as OpenExternalLinkMessage);
+      } else if (message.type === "close") {
+        onClose?.();
       }
     };
 
@@ -188,7 +192,50 @@ export const ModelBuilderV2IframeDialog = ({
     return () => {
       window.removeEventListener("message", handleMessage);
     };
-  }, [openProjectFile, userTracking, showNetworkReview]);
+  }, [
+    openProjectFile,
+    userTracking,
+    showNetworkReview,
+    onContextChange,
+    onClose,
+  ]);
+
+  return (
+    <div className="relative flex-1 flex flex-col min-h-0 overflow-hidden">
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-base z-10">
+          <Loading />
+        </div>
+      )}
+      <iframe
+        ref={iframeRef}
+        src={iframeSrc}
+        className={clsx("w-full flex-1 border-0", className)}
+        onLoad={() => {
+          setIsLoading(false);
+          sendLocale();
+        }}
+        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads"
+        title={translate("importFromGIS")}
+      />
+    </div>
+  );
+};
+
+export const ModelBuilderV2IframeDialog = ({
+  onClose: _onClose,
+}: {
+  onClose: () => void;
+}) => {
+  const translate = useTranslate();
+  const context = useRef<ModelBuilderContext>({});
+  const userTracking = useUserTracking();
+  const { isSignedIn, isLoaded } = useAuth();
+  const showEarlyAccess = isLoaded && !isSignedIn;
+
+  const handleContextChange = useCallback((newContext: ModelBuilderContext) => {
+    context.current = newContext;
+  }, []);
 
   const handleClose = () => {
     userTracking.capture({
@@ -207,24 +254,10 @@ export const ModelBuilderV2IframeDialog = ({
       onClose={handleClose}
       badge={showEarlyAccess ? <EarlyAccessBadge /> : undefined}
     >
-      <div className="relative flex-1 flex flex-col min-h-0 overflow-hidden">
-        {isLoading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-base z-10">
-            <Loading />
-          </div>
-        )}
-        <iframe
-          ref={iframeRef}
-          src={iframeSrc}
-          className="w-full flex-1 border-0 rounded-bl-lg rounded-br-lg"
-          onLoad={() => {
-            setIsLoading(false);
-            sendLocale();
-          }}
-          sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads"
-          title={translate("importFromGIS")}
-        />
-      </div>
+      <ModelBuilderV2Frame
+        onContextChange={handleContextChange}
+        className="rounded-bl-lg rounded-br-lg"
+      />
     </BaseDialog>
   );
 };

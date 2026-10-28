@@ -2,13 +2,18 @@ import { useCallback } from "react";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
-import {
-  buildAfterSignupUrl,
-  useEarlyAccess,
-} from "src/hooks/use-early-access";
+import { useEarlyAccess } from "src/hooks/use-early-access";
 import { usePermissions } from "src/hooks/use-permissions";
 import { useStartBlankProject } from "src/hooks/persistence/use-start-new-project";
 import { useUnsavedChangesCheck } from "./check-unsaved-changes";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { contentViewAtom } from "src/state/content-view";
+
+const buildModelBuildViewUrl = (): string => {
+  const url = new URL(window.location.href);
+  url.searchParams.set("view", "modelBuild");
+  return url.toString();
+};
 
 export const useOpenModelBuilder = () => {
   const userTracking = useUserTracking();
@@ -17,6 +22,8 @@ export const useOpenModelBuilder = () => {
   const { canUseModelBuildV2 } = usePermissions();
   const checkUnsavedChanges = useUnsavedChangesCheck();
   const startBlankProject = useStartBlankProject();
+  const setContentView = useSetAtom(contentViewAtom);
+  const isModelBuildFullViewOn = useFeatureFlag("FLAG_MODEL_BUILD_FULL_VIEW");
 
   const openModelBuilder = useCallback(
     ({ source }: { source: string }) => {
@@ -35,9 +42,14 @@ export const useOpenModelBuilder = () => {
           const started = await startBlankProject();
           if (!started) return;
 
-          setDialogState({ type: "modelBuilderV2Iframe" });
+          if (isModelBuildFullViewOn) {
+            setDialogState(null);
+            setContentView({ type: "modelBuild", step: null });
+          } else {
+            setDialogState({ type: "modelBuilderV2Iframe" });
+          }
         });
-      }, buildAfterSignupUrl("modelBuilderV2Iframe"));
+      }, buildModelBuildViewUrl());
     },
     [
       userTracking,
@@ -46,6 +58,8 @@ export const useOpenModelBuilder = () => {
       canUseModelBuildV2,
       checkUnsavedChanges,
       startBlankProject,
+      setContentView,
+      isModelBuildFullViewOn,
     ],
   );
 

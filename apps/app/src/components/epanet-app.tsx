@@ -26,7 +26,7 @@ import {
 } from "src/panels";
 import { MapContext } from "src/map";
 import Notifications from "src/components/notifications";
-import { atom, useAtom } from "jotai";
+import { atom, useAtom, useAtomValue } from "jotai";
 import type { WritableAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
 import type { DialogState } from "src/state/dialog";
@@ -74,6 +74,9 @@ import { SessionRecoveryGuard } from "./session-recovery-guard";
 import { AuthSyncGuard } from "./auth-sync-guard";
 import { useDbStorageBootstrap } from "src/hooks/use-db-storage-bootstrap";
 import { useWorkersBootstrap } from "src/hooks/use-workers-bootstrap";
+import { contentViewAtom } from "src/state/content-view";
+import { ContentViews } from "./content-views";
+import { ModelBuildViewUrl } from "./model-build-view-url";
 import { DialogFromUrl } from "./dialog-from-url";
 
 type ResolvedLayout = "HORIZONTAL" | "VERTICAL" | "FLOATING";
@@ -103,6 +106,7 @@ export function EpanetApp() {
   const effectivePlan = useEffectivePlan();
   const lastReportedPlanRef = useRef<string | null>(null);
 
+  const isContentViewOpen = useAtomValue(contentViewAtom) !== null;
   const isEditionBlocked = useIsEditionBlocked();
   const isCustomerAllocationDisabled = useIsCustomerAllocationDisabled();
 
@@ -180,18 +184,21 @@ export function EpanetApp() {
   return (
     <main className={"custom-cursor-family h-dvh flex flex-col bg-popover"}>
       <MapContext.Provider value={map}>
-        <div className="h-24">
+        <div className={clsx(!isContentViewOpen && "h-24")}>
           <MenuBarPlay />
-          <Toolbar
-            readonly={isEditionBlocked}
-            customerAllocationDisabled={isCustomerAllocationDisabled}
-          />
+          {!isContentViewOpen && (
+            <Toolbar
+              readonly={isEditionBlocked}
+              customerAllocationDisabled={isCustomerAllocationDisabled}
+            />
+          )}
         </div>
         <div
           className={clsx(
             layout === "VERTICAL" && "flex-col h-full",
             "flex grow relative border-t dark:border-gray-900",
             "pb-10",
+            isContentViewOpen && "invisible",
           )}
         >
           {layout === "HORIZONTAL" && <ActivityBar />}
@@ -233,23 +240,29 @@ export function EpanetApp() {
               </>
             )}
           </div>
+          <ContentViews />
         </div>
-        <Drop />
+        {!isContentViewOpen && <Drop />}
         <Dialogs />
         <ActivateTrialAfterSignIn />
-        <CommandBar />
-        <Suspense fallback={null}>
-          <CommandShortcuts />
-          <SimulationPlaybackController />
-        </Suspense>
+        {!isContentViewOpen && (
+          <>
+            <CommandBar />
+            <Suspense fallback={null}>
+              <CommandShortcuts />
+              <SimulationPlaybackController />
+            </Suspense>
+          </>
+        )}
         <Notifications />
-        <Footer />
+        {!isContentViewOpen && <Footer />}
       </MapContext.Provider>
       <TabCloseGuard />
       <SessionRecoveryGuard />
       <AuthSyncGuard />
       <OfflineGuard />
       <NotificationFromUrl />
+      <ModelBuildViewUrl />
       <DialogFromUrl />
       <PrivacyBanner />
     </main>

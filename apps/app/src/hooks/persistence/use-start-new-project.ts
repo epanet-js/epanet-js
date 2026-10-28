@@ -97,6 +97,7 @@ import {
 import { resetPanelsAtom } from "src/state/panels";
 import type { Panel } from "src/panels/panel";
 import { useDefaultPanels } from "src/panels/use-default-panels";
+import { contentViewAtom } from "src/state/content-view";
 
 export type ProjectLoadInput = {
   hydraulicModel: HydraulicModel;
@@ -168,6 +169,7 @@ export const loadModel = (
   } = input;
 
   writeQueue.reset();
+  set(contentViewAtom, null);
   set(dbAvailabilityAtom, "available");
   set(rebuildAttemptsAtom, 0);
   set(writesSucceededAtRebuildAtom, 0);

@@ -1,4 +1,5 @@
 import React, { memo, useMemo, useRef, useState } from "react";
+import clsx from "clsx";
 import type { User } from "src/auth-types";
 import type { TranslateFn } from "src/hooks/use-translate";
 import { FileInfo } from "src/components/file-info";
@@ -28,13 +29,14 @@ import { useEffectivePlan } from "src/hooks/use-effective-plan";
 import { usePermissions } from "src/hooks/use-permissions";
 import { useBillingPortal } from "src/hooks/use-billing-portal";
 import { PlanLabel } from "./plan-label";
-import { useSetAtom } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { LanguageSelector } from "./language-selector";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useScriptingDocs } from "src/hooks/use-scripting-docs";
 import { getScripting } from "src/lib/scripting";
+import { contentViewAtom } from "src/state/content-view";
 
 import {
   GlobeIcon,
@@ -74,33 +76,47 @@ export const MenuBarPlay = memo(function MenuBar() {
   const effectivePlan = useEffectivePlan();
   const { openOrganizationProfile } = useAccountManager();
   const { canManageOrganization } = usePermissions();
+  const isModelBuildViewOpen =
+    useAtomValue(contentViewAtom)?.type === "modelBuild";
 
   return (
     <div className="flex justify-between h-12 pr-2 text-black">
       <div className="flex items-center">
         <div
-          className="py-1 pl-2 pr-2 inline-flex cursor-pointer"
-          onClick={() => showWelcome({ source: "menu" })}
+          className={clsx(
+            "py-1 pl-2 pr-2 inline-flex",
+            !isModelBuildViewOpen && "cursor-pointer",
+          )}
+          onClick={
+            isModelBuildViewOpen
+              ? undefined
+              : () => showWelcome({ source: "menu" })
+          }
         >
           <HeaderLogoUpdated />
         </div>
-        {isSmOrLarger && <FileInfo />}
+        {!isModelBuildViewOpen && isSmOrLarger && <FileInfo />}
       </div>
       <div className="flex items-center gap-x-1">
         {isMdOrLarger && (
           <>
-            <a
-              href={sourceCodeUrl}
-              target="_blank"
-              onClick={() => {
-                userTracking.capture({ name: "repo.visited", source: "menu" });
-              }}
-            >
-              <Button variant="quiet">
-                <GithubIcon />
-                {translate("openSource")}
-              </Button>
-            </a>
+            {!isModelBuildViewOpen && (
+              <a
+                href={sourceCodeUrl}
+                target="_blank"
+                onClick={() => {
+                  userTracking.capture({
+                    name: "repo.visited",
+                    source: "menu",
+                  });
+                }}
+              >
+                <Button variant="quiet">
+                  <GithubIcon />
+                  {translate("openSource")}
+                </Button>
+              </a>
+            )}
             <HelpDot />
             <LanguageSelector />
             <Divider />
@@ -283,6 +299,8 @@ export const SideMenu = () => {
   const effectivePlan = useEffectivePlan();
   const { openOrganizationProfile } = useAccountManager();
   const { canManageOrganization } = usePermissions();
+  const isModelBuildViewOpen =
+    useAtomValue(contentViewAtom)?.type === "modelBuild";
   const toggleMenu = () => {
     setIsOpen(!isOpen);
   };
@@ -320,24 +338,26 @@ export const SideMenu = () => {
             </ul>
             <hr className="my-4" />
             <ul className="flex flex-col items-start gap-2 text-gray-200">
-              <li>
-                <a
-                  href={sourceCodeUrl}
-                  target="_blank"
-                  onClick={() => {
-                    setIsOpen(false);
-                    userTracking.capture({
-                      name: "repo.visited",
-                      source: "menu",
-                    });
-                  }}
-                >
-                  <Button variant="quiet">
-                    <GithubIcon />
-                    {translate("openSource")}
-                  </Button>
-                </a>
-              </li>
+              {!isModelBuildViewOpen && (
+                <li>
+                  <a
+                    href={sourceCodeUrl}
+                    target="_blank"
+                    onClick={() => {
+                      setIsOpen(false);
+                      userTracking.capture({
+                        name: "repo.visited",
+                        source: "menu",
+                      });
+                    }}
+                  >
+                    <Button variant="quiet">
+                      <GithubIcon />
+                      {translate("openSource")}
+                    </Button>
+                  </a>
+                </li>
+              )}
               <li>
                 <Button
                   variant="quiet"

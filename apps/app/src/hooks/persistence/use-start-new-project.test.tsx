@@ -20,6 +20,7 @@ import { Store } from "src/state";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { panelContentStateAtom, panelsAtom, panelsIn } from "src/state/panels";
 import { createAssetTablePanel } from "src/panels/data-tables/create-panel";
+import { contentViewAtom } from "src/state/content-view";
 import {
   useSeedDefaultProjectDb,
   useStartBlankProject,
@@ -68,6 +69,18 @@ describe("useStartBlankProject", () => {
     expect(store.get(baseModelDerivedAtom).assets.size).toBe(0);
     expect(store.get(inpFileInfoAtom)).toBeNull();
     expect(store.get(projectFileInfoAtom)).toBeNull();
+  });
+
+  it("closes the model build view", async () => {
+    const store = setInitialState();
+    store.set(contentViewAtom, { type: "modelBuild", step: "dataSources" });
+
+    const { result } = renderStartEmptyProject(store);
+    await act(async () => {
+      await result.current();
+    });
+
+    expect(store.get(contentViewAtom)).toBeNull();
   });
 
   it("clears the open data tables", async () => {
