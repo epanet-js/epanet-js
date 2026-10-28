@@ -234,6 +234,7 @@ export const useRunScript = () => {
         cancel: handle.cancel,
       });
       setDialog({ type: "scriptRun" });
+      if (isScriptOutputPanelOn) showScriptOutput();
 
       void handle.finished.then((outcome) => {
         const finishedAt = performance.now();
