@@ -1,11 +1,15 @@
 import ts from "typescript";
-import { scriptingDocs } from "../definition";
+import { resultsCandidateDocs, scriptingDocs } from "../definition";
+import type { ScriptingDocs } from "../types";
 import { renderDeclarations } from "./declarations";
 
-describe("renderDeclarations", () => {
+describe.each<[string, ScriptingDocs]>([
+  ["scriptingDocs", scriptingDocs],
+  ["resultsCandidateDocs", resultsCandidateDocs],
+])("renderDeclarations(%s)", (_name, docs) => {
   it("compiles against the ES2020 library with no errors", () => {
     const fileName = "/scripting.d.ts";
-    const source = renderDeclarations(scriptingDocs);
+    const source = renderDeclarations(docs);
     const options: ts.CompilerOptions = {
       noEmit: true,
       strict: true,
@@ -28,9 +32,9 @@ describe("renderDeclarations", () => {
   });
 
   it("declares every global", () => {
-    const source = renderDeclarations(scriptingDocs);
+    const source = renderDeclarations(docs);
 
-    const missing = scriptingDocs.globals.filter(
+    const missing = docs.globals.filter(
       (global) =>
         !source.includes(`declare const ${global.name}: ${global.type};`),
     );

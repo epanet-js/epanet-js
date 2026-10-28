@@ -1,7 +1,8 @@
+import { resultsCandidateDocs, scriptingDocs } from "@epanet-js/scripting-docs";
 import { createScriptLanguageService } from "./language-service";
 
 describe("script language service", () => {
-  const service = createScriptLanguageService();
+  const service = createScriptLanguageService(scriptingDocs);
 
   const completionsAtEnd = (source: string) =>
     service.completionsAt(source, source.length);
@@ -70,5 +71,21 @@ describe("script language service", () => {
       signature: "(property) Network.pipes: Pipe[]",
       documentation: "Every pipe.",
     });
+  });
+
+  it("completes the last results only from the results candidate", () => {
+    const candidate = createScriptLanguageService(resultsCandidateDocs);
+    const source = "const step = await network.lastResults.at(0);\nstep.";
+
+    const names = (completions: { name: string }[]) =>
+      completions.map((completion) => completion.name);
+
+    expect(names(completionsAtEnd("network."))).not.toContain("lastResults");
+    expect(names(candidate.completionsAt("network.", 8))).toContain(
+      "lastResults",
+    );
+    expect(names(candidate.completionsAt(source, source.length))).toEqual(
+      expect.arrayContaining(["node", "link", "values", "time"]),
+    );
   });
 });

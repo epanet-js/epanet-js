@@ -62,3 +62,5 @@ export type ScriptingDocs = {
   agentRules: Markdown[];
   exampleScripts: ExampleScript[];
 };
+
+export type DocsCandidates = { results: boolean };

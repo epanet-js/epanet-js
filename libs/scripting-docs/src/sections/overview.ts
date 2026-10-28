@@ -1,9 +1,9 @@
 import { memberOf } from "../members";
-import type { Section } from "../types";
+import type { DocsCandidates, Section } from "../types";
 
 const network = memberOf("Network");
 
-export const SECTION: Section = {
+export const sectionFor = ({ results }: DocsCandidates): Section => ({
   id: "network-overview",
   number: "1.1",
   title: "Overview",
@@ -95,8 +95,9 @@ Mind the mapping: a tank's \`diameter\` is in \`units.tankDiameter\`, a pipe's i
 }`,
       summary:
         "The simulation settings the next run would use, with unset hydraulic options resolved to what EPANET uses.",
-      description:
-        "Times are in seconds. `qualityTraceNode` is a node label and `energyGlobalPattern` a pattern label. Scripts cannot run a simulation or read results yet.",
+      description: results
+        ? "Times are in seconds. `qualityTraceNode` is a node label and `energyGlobalPattern` a pattern label. Scripts cannot run a simulation; `network.lastResults` reads the one the user last ran."
+        : "Times are in seconds. `qualityTraceNode` is a node label and `energyGlobalPattern` a pattern label. Scripts cannot run a simulation or read results yet.",
     },
   ],
   members: [
@@ -127,4 +128,4 @@ Mind the mapping: a tank's \`diameter\` is in \`units.tankDiameter\`, a pipe's i
       summary: "The simulation settings the next run would use.",
     }),
   ],
-};
+});

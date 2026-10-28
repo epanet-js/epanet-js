@@ -12,13 +12,17 @@ import {
   SELECTION_SECTION,
   UI_SECTION,
 } from "./sections/output";
-import { SECTION as OVERVIEW } from "./sections/overview";
+import { sectionFor as overviewFor } from "./sections/overview";
+import {
+  INTERFACES as RESULTS_INTERFACES,
+  SECTION as RESULTS,
+} from "./sections/results";
 import { SECTION as REVIEW } from "./sections/review";
 import { SECTION as SCRIPT_RUNS } from "./sections/script-runs";
 import { SECTION as SPATIAL } from "./sections/spatial";
 import { SECTION as TOPOLOGY } from "./sections/topology";
 import { SECTION as ZONES } from "./sections/zones";
-import type { ScriptingDocs } from "./types";
+import type { DocsCandidates, ScriptingDocs } from "./types";
 
 const AGENT_RULES = [
   "Orient once: start the first script on an unfamiliar model with `console.log(network.stats)` and `console.log(network.units)`.",
@@ -37,18 +41,20 @@ const AGENT_RULES = [
   'When the user names a DMA or a zone, look in `zones` (the drawn polygons); `network.trace` is a different, connectivity-based "zone".',
 ];
 
-export const scriptingDocs: ScriptingDocs = {
+const buildDocs = (candidates: DocsCandidates): ScriptingDocs => ({
   title: "epanet-js scripting API",
-  summary:
-    "Sandboxed JavaScript scripting for epanet-js, a browser-based water network modelling app built on the EPANET engine. A script reads the open network — assets, patterns, curves, controls, the pipe library, settings — queries it spatially and topologically, reads the project's zones, runs the app's own review checks, exports it as INP, and hands results back as the map selection, a zoom, console output and attached files. This version is read-only: scripts cannot edit the model or run a simulation. Experimental — names may change.",
+  summary: `Sandboxed JavaScript scripting for epanet-js, a browser-based water network modelling app built on the EPANET engine. A script reads the open network — assets, patterns, curves, controls, the pipe library, settings — queries it spatially and topologically, reads the project's zones, runs the app's own review checks, ${candidates.results ? "reads the last simulation's results, " : ""}exports it as INP, and hands results back as the map selection, a zoom, console output and attached files. This version is read-only: scripts cannot edit the model or run a simulation. Experimental — names may change.`,
   intro:
     "This is the complete surface a script sees. Everything below is injected into the sandbox; nothing else exists.",
   globals: GLOBALS,
-  interfaces: INTERFACES,
+  interfaces: [
+    ...INTERFACES,
+    ...(candidates.results ? RESULTS_INTERFACES : []),
+  ],
   sections: [
     SCRIPT_RUNS,
     { id: "network", number: "1", title: "`network` — the model" },
-    OVERVIEW,
+    overviewFor(candidates),
     COLLECTIONS,
     ASSETS,
     LIBRARIES,
@@ -56,6 +62,7 @@ export const scriptingDocs: ScriptingDocs = {
     TOPOLOGY,
     REVIEW,
     EXPORT,
+    ...(candidates.results ? [RESULTS] : []),
     ZONES,
     SELECTION_SECTION,
     MAP_SECTION,
@@ -66,4 +73,8 @@ export const scriptingDocs: ScriptingDocs = {
   ],
   agentRules: AGENT_RULES,
   exampleScripts,
-};
+});
+
+export const scriptingDocs = buildDocs({ results: false });
+
+export const resultsCandidateDocs = buildDocs({ results: true });

@@ -1,14 +1,16 @@
-import { scriptingDocs } from "./definition";
+import { resultsCandidateDocs, scriptingDocs } from "./definition";
 import { renderLlmsTxt } from "./render/markdown";
 import { callForm, parseSignature } from "./signature";
+import type { ScriptingDocs } from "./types";
 
-const members = scriptingDocs.sections.flatMap(
-  (section) => section.members ?? [],
-);
-const pathOf = (owner: string) =>
-  scriptingDocs.interfaces.find((iface) => iface.name === owner)?.path;
+describe.each<[string, ScriptingDocs]>([
+  ["scriptingDocs", scriptingDocs],
+  ["resultsCandidateDocs", resultsCandidateDocs],
+])("%s", (_name, docs) => {
+  const members = docs.sections.flatMap((section) => section.members ?? []);
+  const pathOf = (owner: string) =>
+    docs.interfaces.find((iface) => iface.name === owner)?.path;
 
-describe("scriptingDocs", () => {
   it("documents members of declared interfaces only", () => {
     const undeclared = members.filter((member) => !pathOf(member.owner));
 
@@ -30,14 +32,12 @@ describe("scriptingDocs", () => {
   });
 
   it("gives every section a distinct id", () => {
-    const ids = scriptingDocs.sections.map((section) => section.id);
+    const ids = docs.sections.map((section) => section.id);
 
     expect(new Set(ids).size).toEqual(ids.length);
   });
-});
 
-describe("renderLlmsTxt", () => {
-  const text = renderLlmsTxt(scriptingDocs);
+  const text = renderLlmsTxt(docs);
 
   it("renders every member", () => {
     const missing = members
@@ -54,7 +54,7 @@ describe("renderLlmsTxt", () => {
   });
 
   it("renders every example script", () => {
-    const missing = scriptingDocs.exampleScripts.filter(
+    const missing = docs.exampleScripts.filter(
       (example) => !text.includes(example.source.trimEnd()),
     );
 
@@ -64,5 +64,12 @@ describe("renderLlmsTxt", () => {
   it("numbers the agent notes and worked examples after the sections", () => {
     expect(text).toContain("## 8. Notes for AI agents");
     expect(text).toContain("## 9. Worked examples");
+  });
+});
+
+describe("candidates", () => {
+  it("keeps the results candidate out of the official docs", () => {
+    expect(renderLlmsTxt(scriptingDocs)).not.toContain("lastResults");
+    expect(renderLlmsTxt(resultsCandidateDocs)).toContain("lastResults");
   });
 });

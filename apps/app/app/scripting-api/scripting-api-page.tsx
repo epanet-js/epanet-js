@@ -2,7 +2,7 @@ import {
   appendixOf,
   sectionLevel,
   sectionTitle,
-  scriptingDocs,
+  type ScriptingDocs,
 } from "@epanet-js/scripting-docs";
 import { CodeBlock } from "./code-block";
 import { Prose, inline } from "./prose";
@@ -11,8 +11,15 @@ import { SectionHeading, SectionView, anchorsOf } from "./reference";
 const linkClassName =
   "text-accent underline decoration-dotted underline-offset-2";
 
-export const ScriptingApiPage = () => {
-  const docs = scriptingDocs;
+export const ScriptingApiPage = ({
+  docs,
+  llmsPath,
+  isCandidate,
+}: {
+  docs: ScriptingDocs;
+  llmsPath: string;
+  isCandidate: boolean;
+}) => {
   const anchors = anchorsOf(docs);
   const { agentNotes, workedExamples } = appendixOf(docs);
   const contents = [...docs.sections, agentNotes, workedExamples];
@@ -28,11 +35,16 @@ export const ScriptingApiPage = () => {
           <span className="rounded bg-warning-subtle px-2 py-0.5 text-size-small text-warning">
             Experimental — names may change
           </span>
+          {isCandidate && (
+            <span className="rounded bg-warning-subtle px-2 py-0.5 text-size-small text-warning">
+              Release candidate — includes unreleased API
+            </span>
+          )}
           <a
-            href="/llms.txt"
+            href={llmsPath}
             className={`ml-auto text-size-small ${linkClassName}`}
           >
-            llms.txt
+            {llmsPath.slice(1)}
           </a>
         </div>
       </header>
@@ -90,8 +102,8 @@ export const ScriptingApiPage = () => {
           </p>
           <p className="mt-2 text-size-base text-subtle">
             To have an LLM write a script, give it{" "}
-            <a href="/llms.txt" className={linkClassName}>
-              /llms.txt
+            <a href={llmsPath} className={linkClassName}>
+              {llmsPath}
             </a>
             : this reference as one plain-text file.
           </p>
