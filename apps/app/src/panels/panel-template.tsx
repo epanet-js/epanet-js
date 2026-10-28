@@ -61,7 +61,7 @@ export type PanelContentStateByType = {
   asset: undefined;
   "map-styling": undefined;
   scripts: undefined;
-  "script-output": undefined;
+  "script-output": { sidebarWidth: number };
 };
 
 export type PanelContentState =

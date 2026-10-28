@@ -4,7 +4,7 @@ import { scriptRunAtom } from "src/state/scripts";
 import { ScriptOutputPanel } from "./script-output-panel";
 
 export const scriptOutputPanel: PanelTemplate<"script-output"> = {
-  component: () => <ScriptOutputPanel />,
+  component: ({ panel }) => <ScriptOutputPanel panelId={panel.id} />,
   buildLabel: () => "Script output",
   icon: () => <ScriptsIcon />,
   onClose: ({ get, set }) => {
