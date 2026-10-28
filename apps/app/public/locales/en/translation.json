@@ -105,6 +105,18 @@
     "description": "Automate work on your network and build the tools you're missing.",
     "myScripts": "My scripts",
     "examples": "Examples",
+    "exampleNames": {
+      "select-small-pipes": "Select small pipes",
+      "pipe-length-by-diameter": "Pipe length by diameter",
+      "export-pipes-csv": "Export pipes to CSV",
+      "count-by-custom-attribute": "Count by custom attribute",
+      "expand-selection": "Expand selection by one hop",
+      "trace-zone": "Trace the zone around the selection",
+      "zone-summary": "Summarise each zone",
+      "network-review": "Network review report",
+      "water-source": "Where does this node get its water?",
+      "pattern-and-curve-usage": "Pattern and curve usage"
+    },
     "newScript": "New script",
     "createScript": "Create a script",
     "untitled": "Untitled script",

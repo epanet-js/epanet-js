@@ -44,6 +44,7 @@ import {
   type ScriptDraft,
 } from "src/state/scripts";
 import { CodeEditor } from "./code-editor";
+import { exampleNameKey } from "./example-names";
 
 const newScriptSource = (
   llmsPath: string,
@@ -126,30 +127,33 @@ const ScriptList = ({ onOpen }: { onOpen: (draft: ScriptDraft) => void }) => {
     const newRowNavId = scripts.length + 1;
     const exampleRows: Row[] = (getScripting()?.exampleScripts ?? [])
       .filter((example) => !example.paid || canRunScripts)
-      .map((example, index) => ({
-        navId: newRowNavId + index + 1,
-        section: "examples",
-        name: example.name,
-        scriptId: null,
-        run: {
-          name: example.name,
-          source: example.source,
-          paywalled: false,
-          exampleId: example.id,
-        },
-        draft: {
+      .map((example, index) => {
+        const name = translate(exampleNameKey(example.id));
+        return {
+          navId: newRowNavId + index + 1,
+          section: "examples",
+          name,
           scriptId: null,
-          exampleId: example.id,
-          name: example.name,
-          source: example.source,
-          savedAs: { name: example.name, source: example.source },
-        },
-      }));
+          run: {
+            name,
+            source: example.source,
+            paywalled: false,
+            exampleId: example.id,
+          },
+          draft: {
+            scriptId: null,
+            exampleId: example.id,
+            name,
+            source: example.source,
+            savedAs: { name, source: example.source },
+          },
+        };
+      });
     const byNavId = new Map<number, Row>(
       [...myRows, ...exampleRows].map((row) => [row.navId, row]),
     );
     return { myRows, exampleRows, newRowNavId, byNavId };
-  }, [scripts, canRunScripts]);
+  }, [scripts, canRunScripts, translate]);
 
   const navItems = useMemo(
     (): NavItem<Section>[] => [

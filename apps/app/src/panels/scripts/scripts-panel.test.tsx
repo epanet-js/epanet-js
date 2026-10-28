@@ -65,8 +65,8 @@ describe("ScriptsPanel", () => {
       startScriptRun: vi.fn(),
       exampleScripts: [
         {
-          id: "example",
-          name: "Count pipes",
+          id: "select-small-pipes",
+          name: "Select small pipes",
           source: "console.log(1);",
           paid: false,
         },
@@ -120,7 +120,9 @@ describe("ScriptsPanel", () => {
     renderPanel(store);
 
     await user.click(
-      screen.getByRole("button", { name: "More actions for Count pipes" }),
+      screen.getByRole("button", {
+        name: "More actions for Select small pipes",
+      }),
     );
     await user.click(screen.getByRole("menuitem", { name: "Edit" }));
     await user.click(screen.getByRole("button", { name: "Save" }));
@@ -128,14 +130,16 @@ describe("ScriptsPanel", () => {
 
     expect(store.get(userScriptsAtom)).toEqual([
       expect.objectContaining({
-        name: "Count pipes (copy)",
+        name: "Select small pipes (copy)",
         source: "console.log(1);",
       }),
     ]);
     expect(
-      screen.getByRole("button", { name: "Count pipes (copy)" }),
+      screen.getByRole("button", { name: "Select small pipes (copy)" }),
     ).toBeVisible();
-    expect(screen.getByRole("button", { name: "Count pipes" })).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "Select small pipes" }),
+    ).toBeVisible();
   });
 
   it("renames a saved script in place", async () => {
@@ -380,8 +384,8 @@ describe("ScriptsPanel", () => {
         startScriptRun,
         exampleScripts: [
           {
-            id: "example",
-            name: "Count pipes",
+            id: "select-small-pipes",
+            name: "Select small pipes",
             source: "console.log(1);",
             paid: false,
           },
@@ -390,7 +394,9 @@ describe("ScriptsPanel", () => {
       const store = aStoreWith([]);
       renderPanel(store);
 
-      await user.click(screen.getByRole("button", { name: "Run Count pipes" }));
+      await user.click(
+        screen.getByRole("button", { name: "Run Select small pipes" }),
+      );
 
       expect(startUpgrade).not.toHaveBeenCalled();
       expect(startScriptRun).toHaveBeenCalledWith(
@@ -402,15 +408,27 @@ describe("ScriptsPanel", () => {
       registerScripting({
         startScriptRun: vi.fn(),
         exampleScripts: [
-          { id: "free", name: "Count pipes", source: "", paid: false },
-          { id: "paid", name: "Network review", source: "", paid: true },
+          {
+            id: "select-small-pipes",
+            name: "Select small pipes",
+            source: "",
+            paid: false,
+          },
+          {
+            id: "network-review",
+            name: "Network review report",
+            source: "",
+            paid: true,
+          },
         ],
       });
       renderPanel(aStoreWith([]));
 
-      expect(screen.getByRole("button", { name: "Count pipes" })).toBeVisible();
       expect(
-        screen.queryByRole("button", { name: "Network review" }),
+        screen.getByRole("button", { name: "Select small pipes" }),
+      ).toBeVisible();
+      expect(
+        screen.queryByRole("button", { name: "Network review report" }),
       ).not.toBeInTheDocument();
     });
 
