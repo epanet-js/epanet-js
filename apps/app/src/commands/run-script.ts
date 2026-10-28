@@ -1,9 +1,11 @@
 import { useSetAtom, useStore, type Getter } from "jotai";
 import { useCallback, useContext } from "react";
 import { Just } from "purify-ts/Maybe";
+import { nanoid } from "src/lib/id";
 import {
   getScripting,
   type ScriptEvent,
+  type ScriptLastResultsSource,
   type ScriptProject,
   type ScriptRunOutcome,
   type ScriptSimulationSettings,
@@ -14,6 +16,7 @@ import { MapContext } from "src/map";
 import { useZoomTo } from "src/hooks/use-zoom-to";
 import { usePermissions } from "src/hooks/use-permissions";
 import { useFeatureLock } from "src/components/form/paywall";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useSelectionSetsTransaction } from "src/hooks/persistence/use-selection-sets-transaction";
 import { useBookmarksTransaction } from "src/hooks/persistence/use-bookmarks-transaction";
@@ -23,6 +26,7 @@ import {
   newSelectionSet,
 } from "src/lib/collections";
 import { USelection, type Sel } from "src/selection";
+import type { EPSResultsReader } from "src/simulation";
 import { chooseUnitSystem, defaultAccuracy } from "src/simulation/build-inp";
 import {
   defaultHydraulicsValues,
@@ -36,6 +40,7 @@ import {
   projectFileInfoAtom,
 } from "src/state/file-system";
 import {
+  simulationDerivedAtom,
   simulationSettingsDerivedAtom,
   stagingModelDerivedAtom,
 } from "src/state/derived-branch-state";
@@ -65,6 +70,7 @@ export const useRunScript = () => {
   const { canManageCollections, canRunScripts } = usePermissions();
   const { openPaywall } = useFeatureLock("runScripts");
   const userTracking = useUserTracking();
+  const isScriptResultsOn = useFeatureFlag("FLAG_SCRIPT_RESULTS");
   const { create: createSelectionSet } = useSelectionSetsTransaction();
   const { transact: saveBookmarks } = useBookmarksTransaction();
 
@@ -209,6 +215,9 @@ export const useRunScript = () => {
           projection: store.get(projectSettingsAtom).projection,
         },
         zones: store.get(zonesAtom),
+        lastResults: isScriptResultsOn
+          ? { isOn: true, value: lastResultsOf(store.get) }
+          : { isOn: false },
         onEvent,
       });
       const startedAt = performance.now();
@@ -260,6 +269,7 @@ export const useRunScript = () => {
       userTracking,
       canRunScripts,
       openPaywall,
+      isScriptResultsOn,
     ],
   );
 };
@@ -268,6 +278,34 @@ const selectedTargets = (selection: Sel): ScriptTargets => ({
   assetIds: [...USelection.getAssetIds(selection)],
   customerPointIds: [...USelection.getCustomerPointIds(selection)],
 });
+
+const resultsKeys = new WeakMap<EPSResultsReader, string>();
+
+const resultsKeyOf = (reader: EPSResultsReader): string => {
+  const existing = resultsKeys.get(reader);
+  if (existing) return existing;
+  const key = nanoid();
+  resultsKeys.set(reader, key);
+  return key;
+};
+
+const lastResultsOf = (get: Getter): ScriptLastResultsSource | null => {
+  const simulation = get(simulationDerivedAtom);
+  if (simulation.status === "idle" || simulation.status === "running") {
+    return null;
+  }
+  const reader = simulation.epsResultsReader;
+  return {
+    status: simulation.status,
+    report: simulation.report,
+    isStale:
+      simulation.modelVersion !== get(stagingModelDerivedAtom).version ||
+      simulation.settingsVersion !== get(simulationSettingsDerivedAtom).version,
+    results: reader
+      ? { key: resultsKeyOf(reader), readFiles: () => reader.readRunFiles() }
+      : null,
+  };
+};
 
 const scriptProjectOf = (get: Getter): ScriptProject => {
   const settings = get(projectSettingsAtom);

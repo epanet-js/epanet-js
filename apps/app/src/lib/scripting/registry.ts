@@ -98,6 +98,24 @@ export type ScriptSimulationSettings = {
   statusReport: "YES" | "NO" | "FULL";
 };
 
+export type ScriptSimulationStatus =
+  | "success"
+  | "warning"
+  | "failure"
+  | "stopped";
+
+export type ScriptGated<T> = { isOn: false } | { isOn: true; value: T };
+
+export type ScriptLastResultsSource = {
+  status: ScriptSimulationStatus;
+  report: string;
+  isStale: boolean;
+  results: {
+    key: string;
+    readFiles: () => Promise<Map<string, ArrayBuffer>>;
+  } | null;
+};
+
 export type ScriptRunOutcome =
   | {
       status: "success";
@@ -144,6 +162,7 @@ export type Scripting = {
     simulation: ScriptSimulationSettings;
     inp: { simulationSettings: SimulationSettings; projection: Projection };
     zones: Zones;
+    lastResults: ScriptGated<ScriptLastResultsSource | null>;
     onEvent: (event: ScriptEvent) => void;
   }) => ScriptRunHandle;
   exampleScripts: ExampleScript[];
