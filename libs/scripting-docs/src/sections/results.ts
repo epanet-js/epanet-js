@@ -187,11 +187,11 @@ console.log("P1 reverses", reversals, "times");`,
     results({
       name: "nodeStats",
       signature:
-        "nodeStats(ref: NodeAsset | string): Promise<{ minPressure: number; maxPressure: number } | null>",
+        "nodeStats(ref: NodeAsset | string): Promise<{ minPressure: number; maxPressure: number; minHead: number; maxHead: number } | null>",
       summary:
-        "A node's lowest and highest pressure over the run, in `network.units.pressure` — `await` it.",
+        "A node's lowest and highest pressure and head over the run, in `network.units.pressure` and `network.units.head` — `await` it.",
       description:
-        "`null` when the run did not include the node or has no timesteps. For a steady-state run both are the pressure at its one timestep.",
+        "The engine tracks these at every hydraulic step, including the ones it takes between reported timesteps — when a control fires or a tank fills — so they can be beyond anything `nodeSeries` shows. `null` when the run did not include the node or has no timesteps.",
       throws: [
         "a label no node has, or a link",
         "`The simulation results are no longer available; run the simulation again` when a newer run has replaced the stored results",
