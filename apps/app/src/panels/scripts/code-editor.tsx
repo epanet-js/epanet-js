@@ -30,6 +30,7 @@ export function CodeEditor({
   initialSource,
   locked,
   docsVariant,
+  autoFocus,
   onChange,
   onRun,
   onSave,
@@ -38,6 +39,7 @@ export function CodeEditor({
   initialSource: string;
   locked: boolean;
   docsVariant: ScriptingDocsVariant;
+  autoFocus: boolean;
   onChange: (source: string) => void;
   onRun: () => void;
   onSave: () => void;
@@ -50,6 +52,7 @@ export function CodeEditor({
   callbacksRef.current = { onChange, onRun, onSave, onLockedEdit };
   const initialSourceRef = useRef(initialSource);
   const initialLockedRef = useRef(locked);
+  const initialAutoFocusRef = useRef(autoFocus);
   const onLockedEditRef = useRef(() => callbacksRef.current.onLockedEdit());
   const docsVariantRef = useRef(docsVariant);
   docsVariantRef.current = docsVariant;
@@ -109,7 +112,7 @@ export function CodeEditor({
       parent,
     });
     viewRef.current = view;
-    view.focus();
+    if (initialAutoFocusRef.current) view.focus();
     return () => {
       viewRef.current = null;
       view.destroy();

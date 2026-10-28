@@ -448,6 +448,7 @@ const ScriptEditor = ({
   };
 
   const isExampleCopy = isExample(draft);
+  const isNewScript = draft.scriptId === null && draft.savedAs === null;
 
   return (
     <div className="h-full min-h-0 flex flex-col">
@@ -481,6 +482,7 @@ const ScriptEditor = ({
             }}
             onDirty={() => setIsRenaming(true)}
             onReset={() => setIsRenaming(false)}
+            autoFocus={isNewScript}
             className="min-w-0"
             styleOptions={{
               padding: "sm",
@@ -598,6 +600,7 @@ const ScriptEditor = ({
           initialSource={draft.source}
           locked={isEditLocked}
           docsVariant={scriptingDocs.variant}
+          autoFocus={!isNewScript}
           onChange={(source) => onChange({ ...draftRef.current, source })}
           onRun={() => handleRun("shortcut")}
           onSave={handleSave}

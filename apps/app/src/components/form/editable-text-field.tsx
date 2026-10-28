@@ -35,6 +35,7 @@ export const EditableTextField = ({
   placeholder,
   className,
   title,
+  autoFocus = false,
 }: {
   label: string;
   value: string;
@@ -51,10 +52,17 @@ export const EditableTextField = ({
   placeholder?: string;
   className?: string;
   title?: string;
+  autoFocus?: boolean;
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [inputValue, setInputValue] = useState(value);
   const [isDirty, setDirty] = useState(false);
+
+  useEffect(() => {
+    if (autoFocus) {
+      inputRef.current?.focus();
+    }
+  }, [autoFocus]);
 
   useEffect(() => {
     if (!isDirty && document.activeElement !== inputRef.current) {

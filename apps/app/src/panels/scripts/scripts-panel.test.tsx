@@ -98,6 +98,20 @@ describe("ScriptsPanel", () => {
     expect(screen.getByRole("button", { name: "Pipe audit" })).toBeVisible();
   });
 
+  it("focuses the name field when creating a script", async () => {
+    const user = userEvent.setup();
+    const store = setInitialState({
+      hydraulicModel: HydraulicModelBuilder.with().build(),
+    });
+    renderPanel(store);
+
+    await user.click(screen.getByRole("button", { name: /new/i }));
+
+    expect(
+      screen.getByRole("textbox", { name: "Value for: Script name" }),
+    ).toHaveFocus();
+  });
+
   it("saves an example as a copy", async () => {
     const user = userEvent.setup();
     const store = setInitialState({
