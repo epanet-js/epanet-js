@@ -24,7 +24,8 @@ export type Panel =
   | (Common & { type: "collections" })
   | (Common & { type: "asset" })
   | (Common & { type: "map-styling" })
-  | (Common & { type: "scripts" });
+  | (Common & { type: "scripts" })
+  | (Common & { type: "script-output" });
 
 export type PanelType = Panel["type"];
 

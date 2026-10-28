@@ -14,8 +14,8 @@ import {
 import { MapContext } from "src/map";
 import { useZoomTo } from "src/hooks/use-zoom-to";
 import { usePermissions } from "src/hooks/use-permissions";
-import { useFeatureLock } from "src/components/form/paywall";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { useFeatureLock } from "src/components/form/paywall";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useSelectionSetsTransaction } from "src/hooks/persistence/use-selection-sets-transaction";
 import { useBookmarksTransaction } from "src/hooks/persistence/use-bookmarks-transaction";
@@ -53,6 +53,7 @@ import {
 import { selectionAtom } from "src/state/selection";
 import { bookmarksAtom, selectionSetsAtom } from "src/state/collections";
 import { zonesAtom } from "src/state/zones";
+import { useShowScriptOutput } from "./show-script-output";
 
 const MAX_CONSOLE_LINES = 1000;
 const EPANET_DEFAULT_TRIALS = 200;
@@ -71,6 +72,8 @@ export const useRunScript = () => {
   const isScriptResultsOn = useFeatureFlag("FLAG_SCRIPT_RESULTS");
   const { create: createSelectionSet } = useSelectionSetsTransaction();
   const { transact: saveBookmarks } = useBookmarksTransaction();
+  const isScriptOutputPanelOn = useFeatureFlag("FLAG_SCRIPT_OUTPUT_PANEL");
+  const showScriptOutput = useShowScriptOutput();
 
   const currentViewport = useCallback((): ScriptViewport | null => {
     const bounds = map?.map.getBounds();
@@ -241,6 +244,10 @@ export const useRunScript = () => {
           finishedAt,
         }));
         applyOutcome(outcome);
+        if (isScriptOutputPanelOn) {
+          if (store.get(dialogAtom)?.type === "scriptRun") setDialog(null);
+          showScriptOutput();
+        }
         const success = outcome.status === "success" ? outcome : null;
         userTracking.capture({
           name: "script.runFinished",
@@ -268,6 +275,8 @@ export const useRunScript = () => {
       canRunScripts,
       openPaywall,
       isScriptResultsOn,
+      isScriptOutputPanelOn,
+      showScriptOutput,
     ],
   );
 };
