@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { BaseDialog } from "../components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
 import { useAuth } from "src/hooks/use-auth";
@@ -137,10 +137,23 @@ export const ModelBuilderV2IframeDialog = ({
   const enabledFlags = useEnabledFeatureFlags();
   const { isSignedIn, isLoaded } = useAuth();
   const showEarlyAccess = isLoaded && !isSignedIn;
+  const initialLocale = useRef(locale).current;
   const iframeSrc = useMemo(
-    () => buildIframeSrc(enabledFlags, locale),
-    [enabledFlags, locale],
+    () => buildIframeSrc(enabledFlags, initialLocale),
+    [enabledFlags, initialLocale],
   );
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  const sendLocale = useCallback(() => {
+    iframeRef.current?.contentWindow?.postMessage(
+      { type: "localeChanged", data: { locale } },
+      new URL(modelBuilderV2Url).origin,
+    );
+  }, [locale]);
+
+  useEffect(() => {
+    sendLocale();
+  }, [sendLocale]);
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
@@ -201,9 +214,13 @@ export const ModelBuilderV2IframeDialog = ({
           </div>
         )}
         <iframe
+          ref={iframeRef}
           src={iframeSrc}
           className="w-full flex-1 border-0 rounded-bl-lg rounded-br-lg"
-          onLoad={() => setIsLoading(false)}
+          onLoad={() => {
+            setIsLoading(false);
+            sendLocale();
+          }}
           sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads"
           title={translate("importFromGIS")}
         />
