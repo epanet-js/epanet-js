@@ -1,11 +1,10 @@
 import { useSetAtom, useStore, type Getter } from "jotai";
 import { useCallback, useContext } from "react";
 import { Just } from "purify-ts/Maybe";
-import { nanoid } from "src/lib/id";
 import {
   getScripting,
   type ScriptEvent,
-  type ScriptLastResultsSource,
+  type ScriptLastResults,
   type ScriptProject,
   type ScriptRunOutcome,
   type ScriptSimulationSettings,
@@ -26,7 +25,6 @@ import {
   newSelectionSet,
 } from "src/lib/collections";
 import { USelection, type Sel } from "src/selection";
-import type { EPSResultsReader } from "src/simulation";
 import { chooseUnitSystem, defaultAccuracy } from "src/simulation/build-inp";
 import {
   defaultHydraulicsValues,
@@ -279,31 +277,18 @@ const selectedTargets = (selection: Sel): ScriptTargets => ({
   customerPointIds: [...USelection.getCustomerPointIds(selection)],
 });
 
-const resultsKeys = new WeakMap<EPSResultsReader, string>();
-
-const resultsKeyOf = (reader: EPSResultsReader): string => {
-  const existing = resultsKeys.get(reader);
-  if (existing) return existing;
-  const key = nanoid();
-  resultsKeys.set(reader, key);
-  return key;
-};
-
-const lastResultsOf = (get: Getter): ScriptLastResultsSource | null => {
+const lastResultsOf = (get: Getter): ScriptLastResults | null => {
   const simulation = get(simulationDerivedAtom);
   if (simulation.status === "idle" || simulation.status === "running") {
     return null;
   }
-  const reader = simulation.epsResultsReader;
   return {
     status: simulation.status,
     report: simulation.report,
     isStale:
       simulation.modelVersion !== get(stagingModelDerivedAtom).version ||
       simulation.settingsVersion !== get(simulationSettingsDerivedAtom).version,
-    results: reader
-      ? { key: resultsKeyOf(reader), readFiles: () => reader.readRunFiles() }
-      : null,
+    location: simulation.runLocation ?? null,
   };
 };
 

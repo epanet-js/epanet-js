@@ -154,6 +154,7 @@ export const useRunSimulation = () => {
             modelVersion: hydraulicModel.version,
             settingsVersion: simulationSettings.version,
             epsResultsReader: epsReader,
+            runLocation: epsReader ? { appId, scenarioKey, runId } : undefined,
           };
           set(commitSimulationResultAtom, simulationState);
           set(simulationSourceIdDerivedAtom, scenarioKey);

@@ -269,21 +269,6 @@ export class EPSResultsReader {
     return this.metadata.simulationMetadata.qualityType;
   }
 
-  async readRunFiles(): Promise<Map<string, ArrayBuffer>> {
-    const files = new Map<string, ArrayBuffer>();
-    const results = await this.storage.getFile(RESULTS_OUT_KEY);
-    files.set(RESULTS_OUT_KEY, await results.arrayBuffer());
-    for (const key of [TANK_VOLUMES_KEY, PUMP_STATUS_KEY, NODE_STATS_KEY]) {
-      try {
-        const file = await this.storage.getFile(key);
-        files.set(key, await file.arrayBuffer());
-      } catch {
-        // Absent when the run has no tanks or pumps, or predates the file.
-      }
-    }
-    return files;
-  }
-
   async dispose(): Promise<void> {
     this.wasDisposed = true;
     try {

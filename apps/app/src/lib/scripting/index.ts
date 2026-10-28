@@ -6,7 +6,7 @@ export type {
   ScriptBBox,
   ScriptConsoleLevel,
   ScriptEvent,
-  ScriptLastResultsSource,
+  ScriptLastResults,
   ScriptProject,
   ScriptRunHandle,
   ScriptRunOutcome,

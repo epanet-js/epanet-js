@@ -5,11 +5,18 @@ export const simulationStepAtom = atom<number | null>(null);
 
 export type SimulationIdle = { status: "idle" };
 
+export type SimulationRunLocation = {
+  appId: string;
+  scenarioKey: string;
+  runId: string;
+};
+
 type ExecutionResult = {
   report: string;
   modelVersion: string;
   settingsVersion: string;
   epsResultsReader?: EPSResultsReader;
+  runLocation?: SimulationRunLocation;
 };
 type PreviousExecutionResult = ExecutionResult;
 

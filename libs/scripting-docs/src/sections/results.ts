@@ -126,16 +126,17 @@ console.log(res.status, res.stepCount, "timesteps");`,
     ),
     results({
       name: "at",
-      signature: "at(index: number): StepResult",
+      signature: "at(index: number): Promise<StepResult>",
       summary:
-        "One timestep. A negative index counts from the end: `at(-1)` is the last.",
+        "One timestep, read from the stored results when you ask for it — `await` it. A negative index counts from the end: `at(-1)` is the last.",
       throws: [
         "`No results available` when the run has no timesteps",
         "an index outside the run",
+        "`The simulation results are no longer available; run the simulation again` when a newer run has replaced the stored results",
       ],
       examples: [
         {
-          code: `const last = network.lastResults.at(-1);
+          code: `const last = await network.lastResults.at(-1);
 console.log(last.time / 3600, "h:", last.node("J1").pressure, network.units.pressure);`,
         },
       ],
@@ -153,7 +154,7 @@ console.log(last.time / 3600, "h:", last.node("J1").pressure, network.units.pres
       throws: ["a label no node has, or a link"],
       examples: [
         {
-          code: `const step = network.lastResults.at(0);
+          code: `const step = await network.lastResults.at(0);
 console.log(step.node("J1"));`,
         },
       ],
@@ -166,7 +167,7 @@ console.log(step.node("J1"));`,
       throws: ["a label no link has, or a node"],
       examples: [
         {
-          code: `const flow = network.lastResults.at(0).link("P1").flow;
+          code: `const flow = (await network.lastResults.at(0)).link("P1").flow;
 console.log("P1 carries", Math.abs(flow), network.units.flow);`,
         },
       ],
@@ -185,7 +186,7 @@ console.log("P1 carries", Math.abs(flow), network.units.flow);`,
       ],
       examples: [
         {
-          code: `const pressures = network.lastResults.at(-1).values("pressure");
+          code: `const pressures = (await network.lastResults.at(-1)).values("pressure");
 const low = [...pressures].filter(([, p]) => p < 20).map(([label]) => label);
 console.log(low.length, "of", pressures.size, "nodes below 20", network.units.pressure);`,
         },

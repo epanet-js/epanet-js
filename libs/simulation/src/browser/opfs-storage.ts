@@ -128,6 +128,7 @@ export class OPFSStorage implements IKeyBufferStore {
   }
 
   private touchLastAccess(): void {
+    if (typeof localStorage === "undefined") return;
     localStorage.setItem(
       `${HEARTBEAT_KEY_PREFIX}${this.appId}`,
       JSON.stringify({ timestamp: Date.now() }),

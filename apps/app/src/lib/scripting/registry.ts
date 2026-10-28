@@ -106,14 +106,11 @@ export type ScriptSimulationStatus =
 
 export type ScriptGated<T> = { isOn: false } | { isOn: true; value: T };
 
-export type ScriptLastResultsSource = {
+export type ScriptLastResults = {
   status: ScriptSimulationStatus;
   report: string;
   isStale: boolean;
-  results: {
-    key: string;
-    readFiles: () => Promise<Map<string, ArrayBuffer>>;
-  } | null;
+  location: { appId: string; scenarioKey: string; runId: string } | null;
 };
 
 export type ScriptRunOutcome =
@@ -162,7 +159,7 @@ export type Scripting = {
     simulation: ScriptSimulationSettings;
     inp: { simulationSettings: SimulationSettings; projection: Projection };
     zones: Zones;
-    lastResults: ScriptGated<ScriptLastResultsSource | null>;
+    lastResults: ScriptGated<ScriptLastResults | null>;
     onEvent: (event: ScriptEvent) => void;
   }) => ScriptRunHandle;
   exampleScripts: ExampleScript[];
