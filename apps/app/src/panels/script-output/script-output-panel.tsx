@@ -80,7 +80,9 @@ const RunOutput = ({
         />
         <div className="h-full overflow-auto placemark-scrollbar p-3 flex flex-col gap-3 text-size-base text-default">
           <div className="flex flex-col gap-0.5">
-            <div className="font-semibold truncate">{run.name}</div>
+            <div className="font-semibold truncate" title={run.name}>
+              {run.name}
+            </div>
             <div className="text-subtle tabular-nums">
               {run.status === "running"
                 ? translate("scripting.running")

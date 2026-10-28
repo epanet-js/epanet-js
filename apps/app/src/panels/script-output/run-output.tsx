@@ -154,7 +154,7 @@ const CollectionsResult = ({
         </div>
       )}
       {labels.map((label, i) => (
-        <div key={i} className="truncate text-size-base">
+        <div key={i} className="truncate text-size-base" title={label}>
           {label}
         </div>
       ))}
@@ -167,7 +167,9 @@ const AttachmentRow = ({ attachment }: { attachment: ScriptAttachment }) => {
   const userTracking = useUserTracking();
   return (
     <div className="flex items-center gap-2 text-size-base">
-      <span className="truncate flex-auto">{attachment.name}</span>
+      <span className="truncate flex-auto" title={attachment.name}>
+        {attachment.name}
+      </span>
       <span className="text-size-small text-subtle tabular-nums shrink-0">
         {formatSize(attachment.content.length)}
       </span>
