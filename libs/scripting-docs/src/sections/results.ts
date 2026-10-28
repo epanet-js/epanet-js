@@ -141,6 +141,49 @@ console.log(last.time / 3600, "h:", last.node("J1").pressure, network.units.pres
         },
       ],
     }),
+    results({
+      name: "nodeSeries",
+      signature:
+        "nodeSeries(ref: NodeAsset | string, property: string): Promise<number[] | null>",
+      summary:
+        "One node's property across the run, one value per entry of `timesteps` — `await` it. Reads only that node, so it is the way to follow one asset over time.",
+      description:
+        "The property is one the node's type reports in `NodeStepValues`. `null` when the run did not include the node, or did not analyse that water quality.",
+      throws: [
+        "a label no node has, or a link",
+        "a property the node's type does not report",
+        "`The simulation results are no longer available; run the simulation again` when a newer run has replaced the stored results",
+      ],
+      examples: [
+        {
+          code: `const res = network.lastResults;
+const pressures = await res.nodeSeries("J1", "pressure");
+const lowest = Math.min(...pressures);
+console.log("J1 drops to", lowest, network.units.pressure, "at", res.timesteps[pressures.indexOf(lowest)] / 3600, "h");`,
+        },
+      ],
+    }),
+    results({
+      name: "linkSeries",
+      signature:
+        "linkSeries(ref: LinkAsset | string, property: string): Promise<number[] | null>",
+      summary:
+        "One link's property across the run, one value per entry of `timesteps` — `await` it. A link's `status` is not a number and has no series; read it with `step.link`.",
+      description:
+        "The property is one the link's type reports in `LinkStepValues`. `null` when the run did not include the link, or did not analyse that water quality.",
+      throws: [
+        "a label no link has, or a node",
+        "a property the link's type does not report",
+        "`The simulation results are no longer available; run the simulation again` when a newer run has replaced the stored results",
+      ],
+      examples: [
+        {
+          code: `const flows = await network.lastResults.linkSeries("P1", "flow");
+const reversals = flows.filter((flow, i) => i > 0 && Math.sign(flow) !== Math.sign(flows[i - 1])).length;
+console.log("P1 reverses", reversals, "times");`,
+        },
+      ],
+    }),
     step({
       name: "time",
       signature: "readonly time: number",

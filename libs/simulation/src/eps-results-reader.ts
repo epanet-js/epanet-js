@@ -269,6 +269,19 @@ export class EPSResultsReader {
     return this.metadata.simulationMetadata.qualityType;
   }
 
+  getLinkLength(linkId: AssetId): number | null {
+    if (!this.metadata) {
+      throw new Error(
+        "EPSResultsReader not initialized. Call initialize() first.",
+      );
+    }
+    const linkIndex = this.metadata.simulationIds.linkIdToIndex.get(
+      String(linkId),
+    );
+    if (linkIndex === undefined) return null;
+    return this.metadata.linkLengths[linkIndex] ?? 0;
+  }
+
   async dispose(): Promise<void> {
     this.wasDisposed = true;
     try {
