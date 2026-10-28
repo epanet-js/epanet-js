@@ -2,7 +2,10 @@ import { useCallback } from "react";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
-import { useEarlyAccess } from "src/hooks/use-early-access";
+import {
+  buildAfterSignupUrl,
+  useEarlyAccess,
+} from "src/hooks/use-early-access";
 import { usePermissions } from "src/hooks/use-permissions";
 import { useStartBlankProject } from "src/hooks/persistence/use-start-new-project";
 import { useUnsavedChangesCheck } from "./check-unsaved-changes";
@@ -34,7 +37,7 @@ export const useOpenModelBuilder = () => {
 
           setDialogState({ type: "modelBuilderV2Iframe" });
         });
-      }, "modelBuilderV2Iframe");
+      }, buildAfterSignupUrl("modelBuilderV2Iframe"));
     },
     [
       userTracking,

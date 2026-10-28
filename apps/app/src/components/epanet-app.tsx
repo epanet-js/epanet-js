@@ -74,6 +74,7 @@ import { SessionRecoveryGuard } from "./session-recovery-guard";
 import { AuthSyncGuard } from "./auth-sync-guard";
 import { useDbStorageBootstrap } from "src/hooks/use-db-storage-bootstrap";
 import { useWorkersBootstrap } from "src/hooks/use-workers-bootstrap";
+import { DialogFromUrl } from "./dialog-from-url";
 
 type ResolvedLayout = "HORIZONTAL" | "VERTICAL" | "FLOATING";
 
@@ -249,6 +250,7 @@ export function EpanetApp() {
       <AuthSyncGuard />
       <OfflineGuard />
       <NotificationFromUrl />
+      <DialogFromUrl />
       <PrivacyBanner />
     </main>
   );

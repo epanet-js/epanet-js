@@ -5,25 +5,20 @@ import {
 } from "src/components/dialog";
 import { SignInButton } from "src/components/auth/sign-in-button";
 import { isAuthEnabled } from "src/global-config";
-import { buildAfterSignupUrl } from "src/hooks/use-early-access";
 import { Button } from "src/components/elements";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";
 
 export const EarlyAccessDialog = ({
   onContinue: _onContinue,
-  afterSignupDialog,
+  afterSignupUrl,
 }: {
   onContinue: () => void;
-  afterSignupDialog?: string;
+  afterSignupUrl?: string;
 }) => {
   const { closeDialog } = useDialogState();
   const userTracking = useUserTracking();
   const translate = useTranslate();
-
-  const redirectUrl = afterSignupDialog
-    ? buildAfterSignupUrl(afterSignupDialog)
-    : undefined;
 
   return (
     <BaseDialog
@@ -38,8 +33,8 @@ export const EarlyAccessDialog = ({
               {translate("dialog.cancel")}
             </Button>
             <SignInButton
-              signUpForceRedirectUrl={redirectUrl}
-              forceRedirectUrl={redirectUrl}
+              signUpForceRedirectUrl={afterSignupUrl}
+              forceRedirectUrl={afterSignupUrl}
             >
               <Button
                 variant="primary"

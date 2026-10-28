@@ -458,10 +458,10 @@ export const Dialogs = memo(function Dialogs() {
     .with({ type: "alertNetworkRequired" }, () => (
       <AlertNetworkRequiredDialog onClose={onClose} />
     ))
-    .with({ type: "earlyAccess" }, ({ onContinue, afterSignupDialog }) => (
+    .with({ type: "earlyAccess" }, ({ onContinue, afterSignupUrl }) => (
       <EarlyAccessDialog
         onContinue={onContinue}
-        afterSignupDialog={afterSignupDialog}
+        afterSignupUrl={afterSignupUrl}
       />
     ))
     .with({ type: "importCustomerPointsWarning" }, ({ onContinue }) => (

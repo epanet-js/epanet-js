@@ -165,7 +165,7 @@ export type ModelBuilderPaywallDialogState = {
 export type EarlyAccessDialogState = {
   type: "earlyAccess";
   onContinue: () => void;
-  afterSignupDialog?: string;
+  afterSignupUrl?: string;
 };
 
 export type SimulationProgressDialogState = {

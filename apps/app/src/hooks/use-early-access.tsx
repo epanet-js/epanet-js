@@ -19,7 +19,7 @@ export const useEarlyAccess = () => {
   const setDialogState = useSetAtom(dialogAtom);
 
   const onlyEarlyAccess = useCallback(
-    (callback: () => void, afterSignupDialog?: string) => {
+    (callback: () => void, afterSignupUrl?: string) => {
       if (!isLoaded) {
         return;
       }
@@ -30,7 +30,7 @@ export const useEarlyAccess = () => {
         setDialogState({
           type: "earlyAccess",
           onContinue: callback,
-          afterSignupDialog,
+          afterSignupUrl,
         });
       }
     },

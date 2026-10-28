@@ -2,7 +2,10 @@ import { useSetAtom } from "jotai";
 import { BaseDialog } from "src/components/dialog";
 import { Button } from "src/components/elements";
 import { dialogAtom } from "src/state/dialog";
-import { useEarlyAccess } from "src/hooks/use-early-access";
+import {
+  buildAfterSignupUrl,
+  useEarlyAccess,
+} from "src/hooks/use-early-access";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useStartUpgrade } from "src/hooks/use-paywall";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -85,7 +88,7 @@ export const ModelBuilderPaywallDialog = ({
     onlyEarlyAccess(() => {
       userTracking.capture({ name: "modelBuilder.opened", source });
       setDialog({ type: "modelBuilderIframe" });
-    }, "modelBuilderIframe");
+    }, buildAfterSignupUrl("modelBuilderIframe"));
   };
 
   const handleUpgrade = () => {
