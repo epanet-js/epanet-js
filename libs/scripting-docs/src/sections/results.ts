@@ -208,6 +208,46 @@ console.log(low.length, "junctions drop below 20", network.units.pressure);`,
       ],
     }),
     results({
+      name: "minValues",
+      signature:
+        'minValues(property: "pressure" | "head"): Promise<Map<string, number>>',
+      summary:
+        "Label → lowest value over the run for every node — `await` it. The network-wide form of `nodeStats`, with the same numbers.",
+      description:
+        "`pressure` lists junctions and tanks, `head` every node. Like `nodeStats`, the engine tracks these at every hydraulic step, not only the reported timesteps. A node the run did not include is left out; the map is empty when the run has no timesteps.",
+      throws: [
+        "a property other than `pressure` or `head`",
+        "`The simulation results are no longer available; run the simulation again` when a newer run has replaced the stored results",
+      ],
+      examples: [
+        {
+          code: `const low = [...(await network.lastResults.minValues("pressure"))]
+  .filter(([, p]) => p < 20)
+  .map(([label]) => label);
+console.log(low.length, "nodes drop below 20", network.units.pressure);`,
+        },
+      ],
+    }),
+    results({
+      name: "maxValues",
+      signature:
+        'maxValues(property: "pressure" | "head"): Promise<Map<string, number>>',
+      summary:
+        "Label → highest value over the run for every node — `await` it. The same rules as `minValues`.",
+      throws: [
+        "a property other than `pressure` or `head`",
+        "`The simulation results are no longer available; run the simulation again` when a newer run has replaced the stored results",
+      ],
+      examples: [
+        {
+          code: `const high = [...(await network.lastResults.maxValues("pressure"))]
+  .sort(([, a], [, b]) => b - a)
+  .slice(0, 5);
+console.table(high.map(([node, pressure]) => ({ node, pressure })));`,
+        },
+      ],
+    }),
+    results({
       name: "pumpEnergy",
       signature: `pumpEnergy(ref: Pump | string): Promise<{
   utilization: number;
