@@ -177,7 +177,7 @@ export const styledButton = ({
             : `
     aria-expanded:bg-base-hover
     data-[state=on]:bg-base-hover`,
-    "disabled:opacity-50 disabled:cursor-not-allowed",
+    "cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed",
     "transition-colors",
     // Focus
     `focus-visible:outline-hidden`,
