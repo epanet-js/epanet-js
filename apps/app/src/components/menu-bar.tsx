@@ -1,5 +1,4 @@
 import React, { memo, useMemo, useRef, useState } from "react";
-import clsx from "clsx";
 import type { User } from "src/auth-types";
 import type { TranslateFn } from "src/hooks/use-translate";
 import { FileInfo } from "src/components/file-info";
@@ -76,47 +75,36 @@ export const MenuBarPlay = memo(function MenuBar() {
   const effectivePlan = useEffectivePlan();
   const { openOrganizationProfile } = useAccountManager();
   const { canManageOrganization } = usePermissions();
-  const isModelBuildViewOpen =
-    useAtomValue(contentViewAtom)?.type === "modelBuild";
 
   return (
     <div className="flex justify-between h-12 pr-2 text-black">
       <div className="flex items-center">
         <div
-          className={clsx(
-            "py-1 pl-2 pr-2 inline-flex",
-            !isModelBuildViewOpen && "cursor-pointer",
-          )}
-          onClick={
-            isModelBuildViewOpen
-              ? undefined
-              : () => showWelcome({ source: "menu" })
-          }
+          className="py-1 pl-2 pr-2 inline-flex cursor-pointer"
+          onClick={() => showWelcome({ source: "menu" })}
         >
           <HeaderLogoUpdated />
         </div>
-        {!isModelBuildViewOpen && isSmOrLarger && <FileInfo />}
+        {isSmOrLarger && <FileInfo />}
       </div>
       <div className="flex items-center gap-x-1">
         {isMdOrLarger && (
           <>
-            {!isModelBuildViewOpen && (
-              <a
-                href={sourceCodeUrl}
-                target="_blank"
-                onClick={() => {
-                  userTracking.capture({
-                    name: "repo.visited",
-                    source: "menu",
-                  });
-                }}
-              >
-                <Button variant="quiet">
-                  <GithubIcon />
-                  {translate("openSource")}
-                </Button>
-              </a>
-            )}
+            <a
+              href={sourceCodeUrl}
+              target="_blank"
+              onClick={() => {
+                userTracking.capture({
+                  name: "repo.visited",
+                  source: "menu",
+                });
+              }}
+            >
+              <Button variant="quiet">
+                <GithubIcon />
+                {translate("openSource")}
+              </Button>
+            </a>
             <HelpDot />
             <LanguageSelector />
             <Divider />
