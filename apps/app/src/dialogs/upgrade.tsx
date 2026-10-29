@@ -15,7 +15,7 @@ import { useUserTracking } from "src/infra/user-tracking";
 import {
   pricingPageUrl,
   studentAccountActiviationHelpUrl,
-  teamsPlanRequestFormUrl,
+  requestQuoteFormUrl,
 } from "src/global-config";
 import { useUnsavedChangesCheck } from "src/commands/check-unsaved-changes";
 import { useAuth } from "src/hooks/use-auth";
@@ -325,7 +325,7 @@ const PricingProPlan = ({
           </p>
         </div>
       </div>
-      <div className="px-4 pb-4 w-full">
+      <div className="flex flex-col px-4 pb-4 gap-y-3 w-full">
         {canStartTrial ? (
           <StartTrialButton feature={feature} source={source} />
         ) : (
@@ -338,6 +338,7 @@ const PricingProPlan = ({
             {translate("upgradeTo", "Pro")}
           </CheckoutButton>
         )}
+        <QuoteButton label={translate("requestQuote")} />
       </div>
     </div>
   );
@@ -699,7 +700,7 @@ const QuoteButton = ({
   const goToQuoteForm = () => {
     userTracking.capture({ name: "teamsRequest.clicked" });
     onClick?.();
-    window.open(teamsPlanRequestFormUrl, "_blank", "noopener,noreferrer");
+    window.open(requestQuoteFormUrl, "_blank", "noopener,noreferrer");
   };
 
   return (

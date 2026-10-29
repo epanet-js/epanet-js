@@ -36,7 +36,7 @@ export const customerPointsImportVideoUrl =
   "https://www.youtube.com/watch?v=58BFdUokcd4";
 export const customerPointsImportGuide =
   "https://help.epanetjs.com/Importing-customer-points-2f4e18c9f0f680bca5c9d5d00fe827ae";
-export const teamsPlanRequestFormUrl = "https://tally.so/r/wkqjyo";
+export const requestQuoteFormUrl = "https://tally.so/r/ArreAy";
 export const scenariosPromoVideoUrl = "https://www.youtube.com/embed/VIDEO_ID";
 
 export const isAuthEnabled = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
