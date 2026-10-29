@@ -4,6 +4,7 @@ export type {
   Scripting,
   ScriptAttachment,
   ScriptBBox,
+  ScriptBookmark,
   ScriptConsoleLevel,
   ScriptEvent,
   ScriptLastResults,

@@ -107,7 +107,7 @@ export const useRunScript = () => {
       if (outcome.zoomTo?.type === "bbox") {
         zoomTo(Just(outcome.zoomTo.bbox), maxZoom);
       }
-      if (canManageCollections) {
+      if (canManageCollections && !isScriptOutputPanelOn) {
         for (const { label, targets } of outcome.selectionSets) {
           const members = existing(targets);
           if (countSelected(members) === 0) continue;
@@ -128,6 +128,7 @@ export const useRunScript = () => {
       setSelection,
       zoomTo,
       canManageCollections,
+      isScriptOutputPanelOn,
       createSelectionSet,
       saveBookmarks,
     ],

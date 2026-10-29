@@ -6,7 +6,16 @@ import { PaywallLockButton } from "src/components/form/paywall";
 import { usePermissions } from "src/hooks/use-permissions";
 import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
-import type { ScriptAttachment, ScriptRunOutcome } from "src/lib/scripting";
+import type {
+  ScriptAttachment,
+  ScriptBookmark,
+  ScriptRunOutcome,
+  ScriptSelectionSet,
+} from "src/lib/scripting";
+import {
+  useApplyScriptSelectionSet,
+  useGoToScriptBookmark,
+} from "src/commands/script-output-collections";
 import type { ScriptConsoleLine, ScriptRunState } from "src/state/scripts";
 import {
   DownloadIcon,
@@ -71,7 +80,13 @@ const ConsoleLine = ({ line }: { line: ScriptConsoleLine }) => {
   return <div className={color}>{line.text}</div>;
 };
 
-export const RunResult = ({ outcome }: { outcome: ScriptRunOutcome }) => {
+export const RunResult = ({
+  outcome,
+  collections,
+}: {
+  outcome: ScriptRunOutcome;
+  collections: "saved" | "draft";
+}) => {
   const translate = useTranslate();
   if (outcome.status === "cancelled") {
     return (
@@ -114,21 +129,86 @@ export const RunResult = ({ outcome }: { outcome: ScriptRunOutcome }) => {
           ))}
         </div>
       )}
-      {outcome.selectionSets.length > 0 && (
-        <CollectionsResult
-          title={translate("collections.selectionSets.title")}
-          labels={outcome.selectionSets.map((s) => s.label)}
+      {collections === "draft" ? (
+        <DraftCollections
+          selectionSets={outcome.selectionSets}
+          bookmarks={outcome.bookmarks}
         />
-      )}
-      {outcome.bookmarks.length > 0 && (
-        <CollectionsResult
-          title={translate("collections.bookmarks.title")}
-          labels={outcome.bookmarks.map((b) => b.label)}
-        />
+      ) : (
+        <>
+          {outcome.selectionSets.length > 0 && (
+            <CollectionsResult
+              title={translate("collections.selectionSets.title")}
+              labels={outcome.selectionSets.map((s) => s.label)}
+            />
+          )}
+          {outcome.bookmarks.length > 0 && (
+            <CollectionsResult
+              title={translate("collections.bookmarks.title")}
+              labels={outcome.bookmarks.map((b) => b.label)}
+            />
+          )}
+        </>
       )}
     </div>
   );
 };
+
+const DraftCollections = ({
+  selectionSets,
+  bookmarks,
+}: {
+  selectionSets: ScriptSelectionSet[];
+  bookmarks: ScriptBookmark[];
+}) => {
+  const translate = useTranslate();
+  const applySelectionSet = useApplyScriptSelectionSet();
+  const goToBookmark = useGoToScriptBookmark();
+
+  return (
+    <>
+      {selectionSets.length > 0 && (
+        <DraftCollection
+          title={translate("collections.selectionSets.title")}
+          items={selectionSets}
+          onClick={applySelectionSet}
+        />
+      )}
+      {bookmarks.length > 0 && (
+        <DraftCollection
+          title={translate("collections.bookmarks.title")}
+          items={bookmarks}
+          onClick={goToBookmark}
+        />
+      )}
+    </>
+  );
+};
+
+const DraftCollection = <T extends { label: string }>({
+  title,
+  items,
+  onClick,
+}: {
+  title: string;
+  items: T[];
+  onClick: (item: T) => void;
+}) => (
+  <div className="flex flex-col gap-1">
+    <div className="text-size-small font-semibold text-default">{title}</div>
+    {items.map((item, i) => (
+      <button
+        key={i}
+        type="button"
+        className="truncate text-left text-size-base rounded px-1 -mx-1 hover:bg-base-hover"
+        title={item.label}
+        onClick={() => onClick(item)}
+      >
+        {item.label}
+      </button>
+    ))}
+  </div>
+);
 
 const CollectionsResult = ({
   title,

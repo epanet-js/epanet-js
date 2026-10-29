@@ -89,7 +89,9 @@ const RunOutput = ({
                 : formatElapsed(elapsedMs)}
             </div>
           </div>
-          {run.outcome && <RunResult outcome={run.outcome} />}
+          {run.outcome && (
+            <RunResult outcome={run.outcome} collections="draft" />
+          )}
         </div>
       </div>
     </div>

@@ -79,7 +79,9 @@ const RunningScriptDialog = ({
         {running && <RunProgress run={run} elapsedMs={elapsedMs} />}
         {!isScriptOutputPanelOn && (
           <>
-            {run.outcome && <RunResult outcome={run.outcome} />}
+            {run.outcome && (
+              <RunResult outcome={run.outcome} collections="saved" />
+            )}
             <div
               ref={consoleRef}
               className="h-64 overflow-auto placemark-scrollbar bg-panel border rounded p-4 font-mono text-size-base text-default whitespace-pre-wrap"
