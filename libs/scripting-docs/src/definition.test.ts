@@ -69,7 +69,7 @@ describe.each<[string, ScriptingDocs]>([
 
 describe("candidates", () => {
   it("keeps the results candidate out of the official docs", () => {
-    expect(renderLlmsTxt(scriptingDocs)).not.toContain("lastResults");
-    expect(renderLlmsTxt(resultsCandidateDocs)).toContain("lastResults");
+    expect(renderLlmsTxt(scriptingDocs)).not.toContain("network.results");
+    expect(renderLlmsTxt(resultsCandidateDocs)).toContain("network.results");
   });
 });

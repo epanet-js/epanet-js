@@ -73,17 +73,15 @@ describe("script language service", () => {
     });
   });
 
-  it("completes the last results only from the results candidate", () => {
+  it("completes the results only from the results candidate", () => {
     const candidate = createScriptLanguageService(resultsCandidateDocs);
-    const source = "const step = await network.lastResults.at(0);\nstep.";
+    const source = "const step = network.results.at(0);\nstep.";
 
     const names = (completions: { name: string }[]) =>
       completions.map((completion) => completion.name);
 
-    expect(names(completionsAtEnd("network."))).not.toContain("lastResults");
-    expect(names(candidate.completionsAt("network.", 8))).toContain(
-      "lastResults",
-    );
+    expect(names(completionsAtEnd("network."))).not.toContain("results");
+    expect(names(candidate.completionsAt("network.", 8))).toContain("results");
     expect(names(candidate.completionsAt(source, source.length))).toEqual(
       expect.arrayContaining(["node", "link", "values", "time"]),
     );

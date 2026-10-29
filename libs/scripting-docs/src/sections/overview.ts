@@ -96,7 +96,7 @@ Mind the mapping: a tank's \`diameter\` is in \`units.tankDiameter\`, a pipe's i
       summary:
         "The simulation settings the next run would use, with unset hydraulic options resolved to what EPANET uses.",
       description: results
-        ? "Times are in seconds. `qualityTraceNode` is a node label and `energyGlobalPattern` a pattern label. Scripts cannot run a simulation; `network.lastResults` reads the one the user last ran."
+        ? "Times are in seconds. `qualityTraceNode` is a node label and `energyGlobalPattern` a pattern label. Scripts cannot run a simulation; `network.results` reads the one the user last ran."
         : "Times are in seconds. `qualityTraceNode` is a node label and `energyGlobalPattern` a pattern label. Scripts cannot run a simulation or read results yet.",
     },
   ],

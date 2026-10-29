@@ -24,7 +24,7 @@ export const SECTION: Section = {
   number: "1.9",
   title: "Simulation results",
   intro:
-    "`network.lastResults` is the simulation the user last ran from the toolbar, read as it was when the script started. Scripts cannot run a simulation themselves.",
+    "`network.results` is the simulation the user last ran from the toolbar, read as it was when the script started. Scripts cannot run a simulation themselves.",
   types: [
     {
       name: "SimulationStatus",
@@ -84,15 +84,15 @@ export const SECTION: Section = {
   ],
   members: [
     memberOf("Network")({
-      name: "lastResults",
-      signature: "readonly lastResults: SimulationResult | null",
+      name: "results",
+      signature: "readonly results: SimulationResult | null",
       summary:
         "The simulation the user last ran from the toolbar, or `null` when there is none.",
       description:
         "Results are matched to assets by identity, not by label. An asset the run did not include — inactive, or added since — reads as `null`. Check `isStale` before trusting the numbers.",
       examples: [
         {
-          code: `const res = network.lastResults;
+          code: `const res = network.results;
 if (!res) throw new Error("Run a simulation first");
 if (res.isStale) console.warn("The results are from before the last change to the model");
 console.log(res.status, res.stepCount, "timesteps");`,
@@ -136,7 +136,7 @@ console.log(res.status, res.stepCount, "timesteps");`,
       ],
       examples: [
         {
-          code: `const last = network.lastResults.at(-1);
+          code: `const last = network.results.at(-1);
 console.log(last.time / 3600, "h:", last.node("J1").pressure, network.units.pressure);`,
         },
       ],
@@ -156,7 +156,7 @@ console.log(last.time / 3600, "h:", last.node("J1").pressure, network.units.pres
       ],
       examples: [
         {
-          code: `const res = network.lastResults;
+          code: `const res = network.results;
 const pressures = res.nodeSeries("J1", "pressure");
 const lowest = Math.min(...pressures);
 console.log("J1 drops to", lowest, network.units.pressure, "at", res.timesteps[pressures.indexOf(lowest)] / 3600, "h");`,
@@ -178,7 +178,7 @@ console.log("J1 drops to", lowest, network.units.pressure, "at", res.timesteps[p
       ],
       examples: [
         {
-          code: `const flows = network.lastResults.linkSeries("P1", "flow");
+          code: `const flows = network.results.linkSeries("P1", "flow");
 const reversals = flows.filter((flow, i) => i > 0 && Math.sign(flow) !== Math.sign(flows[i - 1])).length;
 console.log("P1 reverses", reversals, "times");`,
         },
@@ -200,7 +200,7 @@ console.log("P1 reverses", reversals, "times");`,
         {
           code: `const low = [];
 for (const junction of network.junctions) {
-  const stats = network.lastResults.nodeStats(junction);
+  const stats = network.results.nodeStats(junction);
   if (stats && stats.minPressure < 20) low.push(junction);
 }
 console.log(low.length, "junctions drop below 20", network.units.pressure);`,
@@ -221,7 +221,7 @@ console.log(low.length, "junctions drop below 20", network.units.pressure);`,
       ],
       examples: [
         {
-          code: `const low = [...network.lastResults.minValues("pressure")]
+          code: `const low = [...network.results.minValues("pressure")]
   .filter(([, p]) => p < 20)
   .map(([label]) => label);
 console.log(low.length, "nodes drop below 20", network.units.pressure);`,
@@ -240,7 +240,7 @@ console.log(low.length, "nodes drop below 20", network.units.pressure);`,
       ],
       examples: [
         {
-          code: `const high = [...network.lastResults.maxValues("pressure")]
+          code: `const high = [...network.results.maxValues("pressure")]
   .sort(([, a], [, b]) => b - a)
   .slice(0, 5);
 console.table(high.map(([node, pressure]) => ({ node, pressure })));`,
@@ -268,7 +268,7 @@ console.table(high.map(([node, pressure]) => ({ node, pressure })));`,
       examples: [
         {
           code: `for (const pump of network.pumps) {
-  const energy = network.lastResults.pumpEnergy(pump);
+  const energy = network.results.pumpEnergy(pump);
   if (energy) console.log(pump.label, energy.averageKw, network.units.power, "on", energy.utilization, network.units.efficiency, "of the time");
 }`,
         },
@@ -287,7 +287,7 @@ console.table(high.map(([node, pressure]) => ({ node, pressure })));`,
       throws: ["a label no node has, or a link"],
       examples: [
         {
-          code: `const step = network.lastResults.at(0);
+          code: `const step = network.results.at(0);
 console.log(step.node("J1"));`,
         },
       ],
@@ -300,7 +300,7 @@ console.log(step.node("J1"));`,
       throws: ["a label no link has, or a node"],
       examples: [
         {
-          code: `const flow = network.lastResults.at(0).link("P1").flow;
+          code: `const flow = network.results.at(0).link("P1").flow;
 console.log("P1 carries", Math.abs(flow), network.units.flow);`,
         },
       ],
@@ -319,7 +319,7 @@ console.log("P1 carries", Math.abs(flow), network.units.flow);`,
       ],
       examples: [
         {
-          code: `const pressures = network.lastResults.at(-1).values("pressure");
+          code: `const pressures = network.results.at(-1).values("pressure");
 const low = [...pressures].filter(([, p]) => p < 20).map(([label]) => label);
 console.log(low.length, "of", pressures.size, "nodes below 20", network.units.pressure);`,
         },
