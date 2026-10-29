@@ -2,7 +2,6 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createStore, Provider as JotaiProvider } from "jotai";
 import { TooltipProvider } from "@epanet-js/ui-kit";
-import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { AuthMockProvider, aUser } from "src/__helpers__/auth-mock";
 import { User } from "src/auth-types";
@@ -13,22 +12,7 @@ describe("upgrade dialog", () => {
     stubUserTracking();
   });
 
-  it("shows the Teams plan when pricing upgrade is off", () => {
-    stubFeatureOff("FLAG_PRICING_UPGRADE");
-
-    renderDialog();
-
-    expect(screen.getByRole("heading", { name: "Teams" })).toBeVisible();
-    expect(
-      screen.queryByRole("heading", { name: "Ultimate" }),
-    ).not.toBeInTheDocument();
-  });
-
-  describe("with pricing upgrade on", () => {
-    beforeEach(() => {
-      stubFeatureOn("FLAG_PRICING_UPGRADE");
-    });
-
+  describe("pricing plans", () => {
     it("shows Free, Pro and Ultimate without Teams or Enterprise", () => {
       renderDialog();
 
