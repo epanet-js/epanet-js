@@ -2,6 +2,7 @@
 /// <reference path="./lua-raw.d.ts" />
 import remoteSetpointPrvScript from "./remote-setpoint-prv.lua?raw";
 import variableSpeedPumpsScript from "./variable-speed-pumps.lua?raw";
+import flowModulatingValvesScript from "./flow-modulating-valves.lua?raw";
 
 type RemoteSetpointPrv = {
   valveId: string;
@@ -27,11 +28,31 @@ type VariableSpeedPump = {
   schedule: VspSchedulePoint[];
 };
 
+type FlowModulatingValvePoint = {
+  flow: number;
+  pressure: number;
+};
+
+type FlowModulatingValve = {
+  valveId: string;
+  points: FlowModulatingValvePoint[];
+  interpolate: boolean;
+  sensorLinkId: string;
+  controlNodeId: string;
+  isLocal: boolean;
+  inletNodeId: string;
+  outletNodeId: string;
+};
+
 const REMOTE_SETPOINT_PRV_FUNCTION = remoteSetpointPrvScript
   .trimEnd()
   .split("\n");
 
 const VARIABLE_SPEED_PUMPS_FUNCTION = variableSpeedPumpsScript
+  .trimEnd()
+  .split("\n");
+
+const FLOW_MODULATING_VALVES_FUNCTION = flowModulatingValvesScript
   .trimEnd()
   .split("\n");
 
@@ -73,9 +94,36 @@ const variableSpeedPumpStruct = ({
 const variableSpeedPumpSchedule = (schedule: VspSchedulePoint[]) =>
   `{${schedule.map(({ time, target }) => `{${time},${target}}`).join(",")}}`;
 
+const luaNumberList = (values: number[]) => `{${values.join(",")}}`;
+
+const flowModulatingValveStruct = ({
+  valveId,
+  points,
+  interpolate,
+  sensorLinkId,
+  controlNodeId,
+  isLocal,
+  inletNodeId,
+  outletNodeId,
+}: FlowModulatingValve) =>
+  "{" +
+  [
+    `valve_id="${valveId}"`,
+    `flows=${luaNumberList(points.map((p) => p.flow))}`,
+    `pressures=${luaNumberList(points.map((p) => p.pressure))}`,
+    `interpolate=${interpolate}`,
+    `sensor_link_id="${sensorLinkId}"`,
+    `control_node_id="${controlNodeId}"`,
+    `is_local=${isLocal}`,
+    `inlet_node_id="${inletNodeId}"`,
+    `outlet_node_id="${outletNodeId}"`,
+  ].join(",") +
+  "}";
+
 export const LuaScriptBuilder = () => {
   const remoteSetpointPrvs: RemoteSetpointPrv[] = [];
   const variableSpeedPumps: VariableSpeedPump[] = [];
+  const flowModulatingValves: FlowModulatingValve[] = [];
 
   const generateRemoteSetpointPrvLines = () =>
     remoteSetpointPrvs.map((prv) => `    ${remoteSetpointPrvInvocation(prv)}`);
@@ -101,12 +149,21 @@ export const LuaScriptBuilder = () => {
   const generateVspOnHydraulicsSolvedLine = () =>
     `    vsp_solved(${generateVspArguments()})`;
 
+  const generateFlowModulatingValvesTable = () => [
+    "FMVALVE_VALVES = {",
+    ...flowModulatingValves.map(
+      (valve) => `    ${flowModulatingValveStruct(valve)},`,
+    ),
+    "}",
+  ];
+
   const build = () => {
     const script = [];
     const onHydraulicStepInner = [];
     const onHydraulicsSolvedInner = [];
     const hasRemoteSetpointPrvs = remoteSetpointPrvs.length > 0;
     const hasVariableSpeedPumps = variableSpeedPumps.length > 0;
+    const hasFlowModulatingValves = flowModulatingValves.length > 0;
 
     if (hasRemoteSetpointPrvs) {
       script.push(...REMOTE_SETPOINT_PRV_FUNCTION);
@@ -117,6 +174,12 @@ export const LuaScriptBuilder = () => {
       script.push(...VARIABLE_SPEED_PUMPS_FUNCTION);
       onHydraulicStepInner.push(generateVspOnHydraulicStepLine());
       onHydraulicsSolvedInner.push(generateVspOnHydraulicsSolvedLine());
+    }
+
+    if (hasFlowModulatingValves) {
+      script.push(...FLOW_MODULATING_VALVES_FUNCTION);
+      script.push(...generateFlowModulatingValvesTable());
+      onHydraulicStepInner.push("    fmvalve_step(FMVALVE_VALVES)");
     }
 
     if (onHydraulicStepInner.length > 0) {
@@ -160,9 +223,13 @@ export const LuaScriptBuilder = () => {
       schedule,
     });
 
+  const withFlowModulatingValve = (valve: FlowModulatingValve) =>
+    flowModulatingValves.push(valve);
+
   return {
     withRemoteSetpointPrv,
     withVariableSpeedPump,
+    withFlowModulatingValve,
     build,
   };
 };

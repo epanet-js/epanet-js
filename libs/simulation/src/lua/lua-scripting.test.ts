@@ -95,4 +95,129 @@ describe("LuaScriptBuilder", () => {
       expect(script).toContain(`vsp_solved(${invocation})`);
     });
   });
+
+  describe("flow-modulating valves", () => {
+    const linearValve = {
+      valveId: "V1",
+      points: [
+        { flow: 3, pressure: 20 },
+        { flow: 5, pressure: 24 },
+        { flow: 7, pressure: 30 },
+      ],
+      interpolate: true,
+      sensorLinkId: "V1",
+      controlNodeId: "J1",
+      isLocal: true,
+      inletNodeId: "R1",
+      outletNodeId: "J1",
+    };
+
+    it("emits the fragment, the valves table and the step handler call for a linear row", () => {
+      const builder = LuaScriptBuilder();
+      builder.withFlowModulatingValve(linearValve);
+
+      const script = builder.build().join("\n");
+
+      expect(script).toContain(
+        "function fmvalveLookup(flow, flows, pressures, interpolate)",
+      );
+      expect(script).toContain(
+        'FMVALVE_VALVES = {\n    {valve_id="V1",flows={3,5,7},pressures={20,24,30},interpolate=true,sensor_link_id="V1",control_node_id="J1",is_local=true,inlet_node_id="R1",outlet_node_id="J1"},\n}',
+      );
+      expect(script).toContain(
+        "function on_hydraulic_step()\n    fmvalve_step(FMVALVE_VALVES)\nend",
+      );
+      expect(script).not.toContain("function on_hydraulics_solved()");
+    });
+
+    it("writes interpolate=false for a step row", () => {
+      const builder = LuaScriptBuilder();
+      builder.withFlowModulatingValve({ ...linearValve, interpolate: false });
+
+      const script = builder.build().join("\n");
+
+      expect(script).toContain(
+        '{valve_id="V1",flows={3,5,7},pressures={20,24,30},interpolate=false,sensor_link_id="V1",control_node_id="J1",is_local=true,inlet_node_id="R1",outlet_node_id="J1"},',
+      );
+    });
+
+    it("writes the sensor, the remote control node and is_local=false for a remote row", () => {
+      const builder = LuaScriptBuilder();
+      builder.withFlowModulatingValve({
+        ...linearValve,
+        sensorLinkId: "P3",
+        controlNodeId: "J2",
+        isLocal: false,
+      });
+
+      const script = builder.build().join("\n");
+
+      expect(script).toContain(
+        '{valve_id="V1",flows={3,5,7},pressures={20,24,30},interpolate=true,sensor_link_id="P3",control_node_id="J2",is_local=false,inlet_node_id="R1",outlet_node_id="J1"},',
+      );
+    });
+
+    it("puts every valve in one table", () => {
+      const builder = LuaScriptBuilder();
+      builder.withFlowModulatingValve(linearValve);
+      builder.withFlowModulatingValve({
+        ...linearValve,
+        valveId: "V2",
+        sensorLinkId: "V2",
+      });
+
+      const script = builder.build().join("\n");
+
+      expect(script).toContain(
+        'FMVALVE_VALVES = {\n    {valve_id="V1",flows={3,5,7},pressures={20,24,30},interpolate=true,sensor_link_id="V1",control_node_id="J1",is_local=true,inlet_node_id="R1",outlet_node_id="J1"},\n    {valve_id="V2",flows={3,5,7},pressures={20,24,30},interpolate=true,sensor_link_id="V2",control_node_id="J1",is_local=true,inlet_node_id="R1",outlet_node_id="J1"},\n}',
+      );
+      expect(script.match(/fmvalve_step\(FMVALVE_VALVES\)/g)).toHaveLength(1);
+    });
+
+    it("emits the fragments in order and calls each from one pair of handlers", () => {
+      const builder = LuaScriptBuilder();
+      builder.withFlowModulatingValve(linearValve);
+      builder.withVariableSpeedPump("PU1", "pressure", "J9", 30, 0.5, 1, [], 1);
+      builder.withRemoteSetpointPrv("V5", "J5", 30, "J6");
+
+      const script = builder.build().join("\n");
+
+      const remotePrv = script.indexOf("function simulate_remote_setpoint_prv");
+      const vsp = script.indexOf("function vsp_step(");
+      const fmvalve = script.indexOf("function fmvalve_step(");
+      expect(remotePrv).toBeGreaterThanOrEqual(0);
+      expect(vsp).toBeGreaterThan(remotePrv);
+      expect(fmvalve).toBeGreaterThan(vsp);
+      expect(script.match(/function on_hydraulic_step\(\)/g)).toHaveLength(1);
+      expect(script.match(/function on_hydraulics_solved\(\)/g)).toHaveLength(
+        1,
+      );
+      expect(script).toContain(
+        [
+          "function on_hydraulic_step()",
+          '    simulate_remote_setpoint_prv("V5", "J5", 30, "J6")',
+          '    vsp_step({{"PU1","pressure","J9",30,0.5,1,{},1}}, {})',
+          "    fmvalve_step(FMVALVE_VALVES)",
+          "end",
+        ].join("\n"),
+      );
+      expect(script).toContain(
+        [
+          "function on_hydraulics_solved()",
+          '    vsp_solved({{"PU1","pressure","J9",30,0.5,1,{},1}}, {})',
+          "end",
+        ].join("\n"),
+      );
+    });
+
+    it("emits no fragment without a valve", () => {
+      const builder = LuaScriptBuilder();
+      builder.withRemoteSetpointPrv("V5", "J5", 30, "J6");
+
+      const script = builder.build().join("\n");
+
+      expect(script).not.toContain("fmvalve");
+      expect(script).not.toContain("FMVALVE");
+    });
+  });
 });
