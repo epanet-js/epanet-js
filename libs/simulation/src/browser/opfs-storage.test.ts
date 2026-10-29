@@ -183,6 +183,112 @@ describe("OPFSStorage", () => {
     });
   });
 
+  describe("sync reads", () => {
+    const createMockReadHandle = (data: ArrayBuffer) => ({
+      read: vi.fn((buffer: Uint8Array, { at }: { at: number }) => {
+        const bytes = new Uint8Array(data).subarray(at, at + buffer.length);
+        buffer.set(bytes);
+        return bytes.length;
+      }),
+      close: vi.fn(),
+    });
+
+    it("reads slices and block series through the sync handle while open", async () => {
+      const fileData = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8, 9]).buffer;
+      const readHandle = createMockReadHandle(fileData);
+      const fileHandle = createMockFileHandle(fileData);
+      fileHandle.createSyncAccessHandle.mockResolvedValue(readHandle);
+      mockAppDir.getFileHandle.mockResolvedValue(fileHandle);
+
+      const storage = new OPFSStorage("test-app-id");
+      await storage.openSyncReads(["results.out"]);
+
+      expect(fileHandle.createSyncAccessHandle).toHaveBeenCalledWith({
+        mode: "read-only",
+      });
+      expect(
+        new Uint8Array(storage.readSliceSync("results.out", 2, 3)),
+      ).toEqual(new Uint8Array([3, 4, 5]));
+      expect(
+        new Uint8Array(
+          await storage.readBlockSeries("results.out", 1, 2, 3, 3),
+        ),
+      ).toEqual(new Uint8Array([2, 3, 5, 6, 8, 9]));
+      expect(fileHandle.getFile).not.toHaveBeenCalled();
+    });
+
+    it("returns only the bytes that exist past the end of the file", async () => {
+      const fileData = new Uint8Array([1, 2, 3]).buffer;
+      const fileHandle = createMockFileHandle(fileData);
+      fileHandle.createSyncAccessHandle.mockResolvedValue(
+        createMockReadHandle(fileData),
+      );
+      mockAppDir.getFileHandle.mockResolvedValue(fileHandle);
+
+      const storage = new OPFSStorage("test-app-id");
+      await storage.openSyncReads(["results.out"]);
+
+      expect(
+        new Uint8Array(storage.readSliceSync("results.out", 1, 10)),
+      ).toEqual(new Uint8Array([2, 3]));
+    });
+
+    it("skips files that do not exist and reads them asynchronously", async () => {
+      const notFound = Object.assign(new Error("missing"), {
+        name: "NotFoundError",
+      });
+      mockAppDir.getFileHandle.mockRejectedValueOnce(notFound);
+
+      const storage = new OPFSStorage("test-app-id");
+      await storage.openSyncReads(["tank-volumes.bin"]);
+
+      expect(() => storage.readSliceSync("tank-volumes.bin", 0, 1)).toThrow(
+        'No sync read is open for "tank-volumes.bin"',
+      );
+    });
+
+    it("closes the handles and falls back to async reads", async () => {
+      const fileData = new Uint8Array([1, 2, 3, 4]).buffer;
+      const readHandle = createMockReadHandle(fileData);
+      const fileHandle = createMockFileHandle(fileData);
+      fileHandle.createSyncAccessHandle.mockResolvedValue(readHandle);
+      mockAppDir.getFileHandle.mockResolvedValue(fileHandle);
+
+      const storage = new OPFSStorage("test-app-id");
+      await storage.openSyncReads(["results.out"]);
+      storage.closeSyncReads();
+
+      expect(readHandle.close).toHaveBeenCalled();
+      expect(
+        new Uint8Array(await storage.readSlice("results.out", 1, 2)),
+      ).toEqual(new Uint8Array([2, 3]));
+      expect(readHandle.read).not.toHaveBeenCalled();
+    });
+
+    it("closes the handles it opened when one fails to open", async () => {
+      const fileData = new Uint8Array([1]).buffer;
+      const readHandle = createMockReadHandle(fileData);
+      const opened = createMockFileHandle(fileData);
+      opened.createSyncAccessHandle.mockResolvedValue(readHandle);
+      const locked = createMockFileHandle(fileData);
+      locked.createSyncAccessHandle.mockRejectedValue(
+        Object.assign(new Error("locked"), {
+          name: "NoModificationAllowedError",
+        }),
+      );
+      mockAppDir.getFileHandle
+        .mockResolvedValueOnce(opened)
+        .mockResolvedValueOnce(locked);
+
+      const storage = new OPFSStorage("test-app-id");
+
+      await expect(
+        storage.openSyncReads(["results.out", "pump-status.bin"]),
+      ).rejects.toThrow("locked");
+      expect(readHandle.close).toHaveBeenCalled();
+    });
+  });
+
   describe("clear", () => {
     it("removes app directory recursively", async () => {
       mockSimulationDir.removeEntry.mockResolvedValue(undefined);

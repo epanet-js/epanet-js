@@ -1,10 +1,23 @@
-import { IKeyBufferStore } from "../results-store";
+import { IKeyBufferStore, ISyncKeyBufferReader } from "../results-store";
 
 const ROOT_DIR = "epanet-simulation";
 const TEMP_ROOT_DIR = "epanet-temp";
 const HEARTBEAT_KEY_PREFIX = "last-simulation-access:";
 
-export class OPFSStorage implements IKeyBufferStore {
+type SyncReadHandle = {
+  read(buffer: Uint8Array, options: { at: number }): number;
+  close(): void;
+};
+
+type SyncReadFileHandle = {
+  createSyncAccessHandle(options: {
+    mode: "read-only";
+  }): Promise<SyncReadHandle>;
+};
+
+export class OPFSStorage implements IKeyBufferStore, ISyncKeyBufferReader {
+  private readonly syncHandles = new Map<string, SyncReadHandle>();
+
   constructor(
     private readonly appId: string,
     private readonly scenarioKey?: string,
@@ -23,11 +36,67 @@ export class OPFSStorage implements IKeyBufferStore {
     accessHandle.close();
   }
 
+  async openSyncReads(filenames: string[]): Promise<void> {
+    const dir = await this.getAppDir();
+    try {
+      for (const filename of filenames) {
+        if (this.syncHandles.has(filename)) continue;
+        let fileHandle: FileSystemFileHandle;
+        try {
+          fileHandle = await dir.getFileHandle(filename);
+        } catch (error) {
+          if (error instanceof Error && error.name === "NotFoundError")
+            continue;
+          throw error;
+        }
+        const handle = await (
+          fileHandle as unknown as SyncReadFileHandle
+        ).createSyncAccessHandle({ mode: "read-only" });
+        this.syncHandles.set(filename, handle);
+      }
+    } catch (error) {
+      this.closeSyncReads();
+      throw error;
+    }
+  }
+
+  closeSyncReads(): void {
+    for (const handle of this.syncHandles.values()) handle.close();
+    this.syncHandles.clear();
+  }
+
+  readSliceSync(filename: string, offset: number, length: number): ArrayBuffer {
+    const handle = this.syncHandleOf(filename);
+    const result = new ArrayBuffer(length);
+    const bytesRead = handle.read(new Uint8Array(result), { at: offset });
+    return bytesRead < length ? result.slice(0, bytesRead) : result;
+  }
+
+  readBlockSeriesSync(
+    filename: string,
+    baseOffset: number,
+    readSize: number,
+    blockSize: number,
+    blockCount: number,
+  ): ArrayBuffer {
+    const handle = this.syncHandleOf(filename);
+    const result = new ArrayBuffer(readSize * blockCount);
+    for (let i = 0; i < blockCount; i++) {
+      handle.read(new Uint8Array(result, i * readSize, readSize), {
+        at: baseOffset + i * blockSize,
+      });
+    }
+    return result;
+  }
+
   async readSlice(
     filename: string,
     offset: number,
     length: number,
   ): Promise<ArrayBuffer> {
+    if (this.syncHandles.has(filename)) {
+      return this.readSliceSync(filename, offset, length);
+    }
     const dir = await this.getAppDir();
     const fileHandle = await dir.getFileHandle(filename);
     const file = await fileHandle.getFile();
@@ -45,6 +114,15 @@ export class OPFSStorage implements IKeyBufferStore {
     blockCount: number,
   ): Promise<ArrayBuffer> {
     if (blockCount === 0) return new ArrayBuffer(0);
+    if (this.syncHandles.has(filename)) {
+      return this.readBlockSeriesSync(
+        filename,
+        baseOffset,
+        readSize,
+        blockSize,
+        blockCount,
+      );
+    }
 
     // One large contiguous read is dramatically faster than many small slices,
     // but the strided range can be huge on big networks (blockSize = the full
@@ -125,6 +203,14 @@ export class OPFSStorage implements IKeyBufferStore {
       ? await appDir.getDirectoryHandle(this.scenarioKey)
       : appDir;
     await parentDir.removeEntry(this.runId, { recursive: true });
+  }
+
+  private syncHandleOf(filename: string): SyncReadHandle {
+    const handle = this.syncHandles.get(filename);
+    if (!handle) {
+      throw new Error(`No sync read is open for "${filename}"`);
+    }
+    return handle;
   }
 
   private touchLastAccess(): void {

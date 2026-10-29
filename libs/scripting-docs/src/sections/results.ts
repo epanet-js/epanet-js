@@ -126,9 +126,9 @@ console.log(res.status, res.stepCount, "timesteps");`,
     ),
     results({
       name: "at",
-      signature: "at(index: number): Promise<StepResult>",
+      signature: "at(index: number): StepResult",
       summary:
-        "One timestep, read from the stored results when you ask for it — `await` it. A negative index counts from the end: `at(-1)` is the last.",
+        "One timestep, read from the stored results when you ask for it. A negative index counts from the end: `at(-1)` is the last.",
       throws: [
         "`No results available` when the run has no timesteps",
         "an index outside the run",
@@ -136,7 +136,7 @@ console.log(res.status, res.stepCount, "timesteps");`,
       ],
       examples: [
         {
-          code: `const last = await network.lastResults.at(-1);
+          code: `const last = network.lastResults.at(-1);
 console.log(last.time / 3600, "h:", last.node("J1").pressure, network.units.pressure);`,
         },
       ],
@@ -144,9 +144,9 @@ console.log(last.time / 3600, "h:", last.node("J1").pressure, network.units.pres
     results({
       name: "nodeSeries",
       signature:
-        "nodeSeries(ref: NodeAsset | string, property: string): Promise<number[] | null>",
+        "nodeSeries(ref: NodeAsset | string, property: string): number[] | null",
       summary:
-        "One node's property across the run, one value per entry of `timesteps` — `await` it. Reads only that node, so it is the way to follow one asset over time.",
+        "One node's property across the run, one value per entry of `timesteps`. Reads only that node, so it is the way to follow one asset over time.",
       description:
         "The property is one the node's type reports in `NodeStepValues`. `null` when the run did not include the node, or did not analyse that water quality.",
       throws: [
@@ -157,7 +157,7 @@ console.log(last.time / 3600, "h:", last.node("J1").pressure, network.units.pres
       examples: [
         {
           code: `const res = network.lastResults;
-const pressures = await res.nodeSeries("J1", "pressure");
+const pressures = res.nodeSeries("J1", "pressure");
 const lowest = Math.min(...pressures);
 console.log("J1 drops to", lowest, network.units.pressure, "at", res.timesteps[pressures.indexOf(lowest)] / 3600, "h");`,
         },
@@ -166,9 +166,9 @@ console.log("J1 drops to", lowest, network.units.pressure, "at", res.timesteps[p
     results({
       name: "linkSeries",
       signature:
-        "linkSeries(ref: LinkAsset | string, property: string): Promise<number[] | null>",
+        "linkSeries(ref: LinkAsset | string, property: string): number[] | null",
       summary:
-        "One link's property across the run, one value per entry of `timesteps` — `await` it. A link's `status` is not a number and has no series; read it with `step.link`.",
+        "One link's property across the run, one value per entry of `timesteps`. A link's `status` is not a number and has no series; read it with `step.link`.",
       description:
         "The property is one the link's type reports in `LinkStepValues`. `null` when the run did not include the link, or did not analyse that water quality.",
       throws: [
@@ -178,7 +178,7 @@ console.log("J1 drops to", lowest, network.units.pressure, "at", res.timesteps[p
       ],
       examples: [
         {
-          code: `const flows = await network.lastResults.linkSeries("P1", "flow");
+          code: `const flows = network.lastResults.linkSeries("P1", "flow");
 const reversals = flows.filter((flow, i) => i > 0 && Math.sign(flow) !== Math.sign(flows[i - 1])).length;
 console.log("P1 reverses", reversals, "times");`,
         },
@@ -187,9 +187,9 @@ console.log("P1 reverses", reversals, "times");`,
     results({
       name: "nodeStats",
       signature:
-        "nodeStats(ref: NodeAsset | string): Promise<{ minPressure: number; maxPressure: number; minHead: number; maxHead: number } | null>",
+        "nodeStats(ref: NodeAsset | string): { minPressure: number; maxPressure: number; minHead: number; maxHead: number } | null",
       summary:
-        "A node's lowest and highest pressure and head over the run, in `network.units.pressure` and `network.units.head` — `await` it.",
+        "A node's lowest and highest pressure and head over the run, in `network.units.pressure` and `network.units.head`.",
       description:
         "The engine tracks these at every hydraulic step, including the ones it takes between reported timesteps — when a control fires or a tank fills — so they can be beyond anything `nodeSeries` shows. `null` when the run did not include the node or has no timesteps.",
       throws: [
@@ -200,7 +200,7 @@ console.log("P1 reverses", reversals, "times");`,
         {
           code: `const low = [];
 for (const junction of network.junctions) {
-  const stats = await network.lastResults.nodeStats(junction);
+  const stats = network.lastResults.nodeStats(junction);
   if (stats && stats.minPressure < 20) low.push(junction);
 }
 console.log(low.length, "junctions drop below 20", network.units.pressure);`,
@@ -210,9 +210,9 @@ console.log(low.length, "junctions drop below 20", network.units.pressure);`,
     results({
       name: "minValues",
       signature:
-        'minValues(property: "pressure" | "head"): Promise<Map<string, number>>',
+        'minValues(property: "pressure" | "head"): Map<string, number>',
       summary:
-        "Label → lowest value over the run for every node — `await` it. The network-wide form of `nodeStats`, with the same numbers.",
+        "Label → lowest value over the run for every node. The network-wide form of `nodeStats`, with the same numbers.",
       description:
         "`pressure` lists junctions and tanks, `head` every node. Like `nodeStats`, the engine tracks these at every hydraulic step, not only the reported timesteps. A node the run did not include is left out; the map is empty when the run has no timesteps.",
       throws: [
@@ -221,7 +221,7 @@ console.log(low.length, "junctions drop below 20", network.units.pressure);`,
       ],
       examples: [
         {
-          code: `const low = [...(await network.lastResults.minValues("pressure"))]
+          code: `const low = [...network.lastResults.minValues("pressure")]
   .filter(([, p]) => p < 20)
   .map(([label]) => label);
 console.log(low.length, "nodes drop below 20", network.units.pressure);`,
@@ -231,16 +231,16 @@ console.log(low.length, "nodes drop below 20", network.units.pressure);`,
     results({
       name: "maxValues",
       signature:
-        'maxValues(property: "pressure" | "head"): Promise<Map<string, number>>',
+        'maxValues(property: "pressure" | "head"): Map<string, number>',
       summary:
-        "Label → highest value over the run for every node — `await` it. The same rules as `minValues`.",
+        "Label → highest value over the run for every node. The same rules as `minValues`.",
       throws: [
         "a property other than `pressure` or `head`",
         "`The simulation results are no longer available; run the simulation again` when a newer run has replaced the stored results",
       ],
       examples: [
         {
-          code: `const high = [...(await network.lastResults.maxValues("pressure"))]
+          code: `const high = [...network.lastResults.maxValues("pressure")]
   .sort(([, a], [, b]) => b - a)
   .slice(0, 5);
 console.table(high.map(([node, pressure]) => ({ node, pressure })));`,
@@ -249,7 +249,7 @@ console.table(high.map(([node, pressure]) => ({ node, pressure })));`,
     }),
     results({
       name: "pumpEnergy",
-      signature: `pumpEnergy(ref: Pump | string): Promise<{
+      signature: `pumpEnergy(ref: Pump | string): {
   utilization: number;
   averageEfficiency: number;
   averageKwPerFlowUnit: number;
@@ -257,9 +257,8 @@ console.table(high.map(([node, pressure]) => ({ node, pressure })));`,
   peakKw: number;
   averageCostPerDay: number;
   demandCharge: number;
-} | null>`,
-      summary:
-        "A pump's energy use over the run, as EPANET reports it — `await` it.",
+} | null`,
+      summary: "A pump's energy use over the run, as EPANET reports it.",
       description:
         "`utilization` and `averageEfficiency` are in `units.efficiency`, `averageKw` and `peakKw` in `units.power`, `averageKwPerFlowUnit` in `units.averageKwPerFlowUnit`; `averageCostPerDay` and `demandCharge` are in the project's currency. `demandCharge` is the network's, the same for every pump. `null` when the run did not include the pump, has no timesteps or reported no energy.",
       throws: [
@@ -269,7 +268,7 @@ console.table(high.map(([node, pressure]) => ({ node, pressure })));`,
       examples: [
         {
           code: `for (const pump of network.pumps) {
-  const energy = await network.lastResults.pumpEnergy(pump);
+  const energy = network.lastResults.pumpEnergy(pump);
   if (energy) console.log(pump.label, energy.averageKw, network.units.power, "on", energy.utilization, network.units.efficiency, "of the time");
 }`,
         },
@@ -288,7 +287,7 @@ console.table(high.map(([node, pressure]) => ({ node, pressure })));`,
       throws: ["a label no node has, or a link"],
       examples: [
         {
-          code: `const step = await network.lastResults.at(0);
+          code: `const step = network.lastResults.at(0);
 console.log(step.node("J1"));`,
         },
       ],
@@ -301,7 +300,7 @@ console.log(step.node("J1"));`,
       throws: ["a label no link has, or a node"],
       examples: [
         {
-          code: `const flow = (await network.lastResults.at(0)).link("P1").flow;
+          code: `const flow = network.lastResults.at(0).link("P1").flow;
 console.log("P1 carries", Math.abs(flow), network.units.flow);`,
         },
       ],
@@ -320,7 +319,7 @@ console.log("P1 carries", Math.abs(flow), network.units.flow);`,
       ],
       examples: [
         {
-          code: `const pressures = (await network.lastResults.at(-1)).values("pressure");
+          code: `const pressures = network.lastResults.at(-1).values("pressure");
 const low = [...pressures].filter(([, p]) => p < 20).map(([label]) => label);
 console.log(low.length, "of", pressures.size, "nodes below 20", network.units.pressure);`,
         },

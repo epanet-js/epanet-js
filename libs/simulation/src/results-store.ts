@@ -20,6 +20,18 @@ export interface IKeyBufferStore {
   clearRun(): Promise<void>;
 }
 
+export interface ISyncKeyBufferReader {
+  readSliceSync(key: string, offset: number, length: number): ArrayBuffer;
+
+  readBlockSeriesSync(
+    key: string,
+    baseOffset: number,
+    readSize: number,
+    blockSize: number,
+    blockCount: number,
+  ): ArrayBuffer;
+}
+
 export const RESULTS_OUT_KEY = "results.out";
 export const TANK_VOLUMES_KEY = "tank-volumes.bin";
 export const PUMP_STATUS_KEY = "pump-status.bin";

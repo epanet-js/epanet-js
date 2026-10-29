@@ -11,6 +11,7 @@ import {
 } from "./results-reader";
 import {
   IKeyBufferStore,
+  ISyncKeyBufferReader,
   RESULTS_OUT_KEY,
   TANK_VOLUMES_KEY,
   PUMP_STATUS_KEY,
@@ -192,6 +193,17 @@ export interface TimeSeries {
   intervalSeconds: number;
 }
 
+type SyncKeyBufferStore = IKeyBufferStore & ISyncKeyBufferReader;
+
+type Slice = { offset: number; length: number };
+
+type SeriesRead = {
+  key: string;
+  baseOffset: number;
+  blockSize: number;
+  map: ((values: Float32Array) => Float32Array) | null;
+};
+
 interface CachedMetadata {
   simulationMetadata: SimulationMetadata;
   simulationIds: SimulationIds;
@@ -200,8 +212,8 @@ interface CachedMetadata {
   timestepBlockSize: number;
 }
 
-export class EPSResultsReader {
-  private storage: IKeyBufferStore;
+export class EPSResultsReader<S extends IKeyBufferStore = IKeyBufferStore> {
+  private storage: S;
   private metadata: CachedMetadata | null = null;
   private pumpPositionByLinkIndex: Map<number, number> = new Map();
   private pumpEnergy: Float32Array | null = null;
@@ -215,7 +227,7 @@ export class EPSResultsReader {
   private wasDisposed = false;
 
   constructor(
-    storage: IKeyBufferStore,
+    storage: S,
     private readonly reporter: ResultsErrorReporter = consoleReporter,
   ) {
     this.storage = storage;
@@ -336,88 +348,128 @@ export class EPSResultsReader {
     }
 
     try {
-      switch (assetType) {
-        case "junction":
-          if (
-            property === "waterAge" ||
-            property === "waterTrace" ||
-            property === "chemicalConcentration"
-          )
-            return this._getNodePropertyTimeSeries(assetId, "quality");
-          return this._getNodePropertyTimeSeries(
-            assetId,
-            property as NodeProperty,
-          );
-        case "reservoir":
-          if (property === "netFlow")
-            return this._getNodePropertyTimeSeries(assetId, "demand");
-          if (
-            property === "waterAge" ||
-            property === "waterTrace" ||
-            property === "chemicalConcentration"
-          )
-            return this._getNodePropertyTimeSeries(assetId, "quality");
-          return this._getNodePropertyTimeSeries(
-            assetId,
-            property as NodeProperty,
-          );
-        case "tank":
-          if (property === "volume")
-            return this._getTankVolumeTimeSeries(assetId);
-          if (property === "level")
-            return this._getTankLevelTimeSeries(assetId);
-          if (property === "netFlow")
-            return this._getNodePropertyTimeSeries(assetId, "demand");
-          if (
-            property === "waterAge" ||
-            property === "waterTrace" ||
-            property === "chemicalConcentration"
-          )
-            return this._getNodePropertyTimeSeries(assetId, "quality");
-          return this._getNodePropertyTimeSeries(
-            assetId,
-            property as NodeProperty,
-          );
-        case "pipe":
-        case "valve":
-          if (
-            property === "waterAge" ||
-            property === "waterTrace" ||
-            property === "chemicalConcentration"
-          )
-            return this._getLinkPropertyTimeSeries(assetId, "avgQuality");
-          return this._getLinkPropertyTimeSeries(
-            assetId,
-            property as LinkProperty,
-          );
-        case "pump":
-          if (property === "status")
-            return this._getPumpStatusTimeSeries(assetId);
-          if (
-            property === "waterAge" ||
-            property === "waterTrace" ||
-            property === "chemicalConcentration"
-          )
-            return this._getLinkPropertyTimeSeries(assetId, "avgQuality");
-          if (property === "head") {
-            const headloss = await this._getLinkPropertyTimeSeries(
-              assetId,
-              "headloss",
-            );
-            if (!headloss) return null;
-            return { ...headloss, values: headloss.values.map((v) => -v) };
-          }
-          return this._getLinkPropertyTimeSeries(
-            assetId,
-            property as LinkProperty,
-          );
-      }
+      const read = this.seriesReadOf(assetId, assetType, property);
+      if (!read) return null;
+      const series = this.storage
+        .readBlockSeries(
+          read.key,
+          read.baseOffset,
+          FLOAT_SIZE,
+          read.blockSize,
+          this.metadata.simulationMetadata.reportingStepsCount,
+        )
+        .then((values) => this.seriesFrom(read, values));
+      return assetType === "pump" && property === "head"
+        ? await series
+        : series;
     } catch (error) {
-      this.reporter.readFailed(error, {
-        as: "epsResultsReader: time series read failed",
-        contexts: { "simulation results": { wasDisposed: this.wasDisposed } },
-      });
+      this.seriesReadFailed(error);
       return null;
+    }
+  }
+
+  getTimeSeriesSync(
+    this: EPSResultsReader<SyncKeyBufferStore>,
+    assetId: AssetId,
+    assetType: AssetType,
+    property: string,
+  ): TimeSeries | null {
+    if (!this.metadata) {
+      throw new Error(
+        "EPSResultsReader not initialized. Call initialize() first.",
+      );
+    }
+
+    try {
+      const read = this.seriesReadOf(assetId, assetType, property);
+      if (!read) return null;
+      return this.seriesFrom(
+        read,
+        this.storage.readBlockSeriesSync(
+          read.key,
+          read.baseOffset,
+          FLOAT_SIZE,
+          read.blockSize,
+          this.metadata.simulationMetadata.reportingStepsCount,
+        ),
+      );
+    } catch (error) {
+      this.seriesReadFailed(error);
+      return null;
+    }
+  }
+
+  private seriesReadFailed(error: unknown): void {
+    this.reporter.readFailed(error, {
+      as: "epsResultsReader: time series read failed",
+      contexts: { "simulation results": { wasDisposed: this.wasDisposed } },
+    });
+  }
+
+  private seriesReadOf(
+    assetId: AssetId,
+    assetType: AssetType,
+    property: string,
+  ): SeriesRead | null {
+    switch (assetType) {
+      case "junction":
+        if (
+          property === "waterAge" ||
+          property === "waterTrace" ||
+          property === "chemicalConcentration"
+        )
+          return this.nodePropertySeriesRead(assetId, "quality");
+        return this.nodePropertySeriesRead(assetId, property as NodeProperty);
+      case "reservoir":
+        if (property === "netFlow")
+          return this.nodePropertySeriesRead(assetId, "demand");
+        if (
+          property === "waterAge" ||
+          property === "waterTrace" ||
+          property === "chemicalConcentration"
+        )
+          return this.nodePropertySeriesRead(assetId, "quality");
+        return this.nodePropertySeriesRead(assetId, property as NodeProperty);
+      case "tank":
+        if (property === "volume") return this.tankVolumeSeriesRead(assetId);
+        if (property === "level") return this.tankLevelSeriesRead(assetId);
+        if (property === "netFlow")
+          return this.nodePropertySeriesRead(assetId, "demand");
+        if (
+          property === "waterAge" ||
+          property === "waterTrace" ||
+          property === "chemicalConcentration"
+        )
+          return this.nodePropertySeriesRead(assetId, "quality");
+        return this.nodePropertySeriesRead(assetId, property as NodeProperty);
+      case "pipe":
+      case "valve":
+        if (
+          property === "waterAge" ||
+          property === "waterTrace" ||
+          property === "chemicalConcentration"
+        )
+          return this.linkPropertySeriesRead(assetId, "avgQuality");
+        return this.linkPropertySeriesRead(assetId, property as LinkProperty);
+      case "pump": {
+        if (property === "status") return this.pumpStatusSeriesRead(assetId);
+        if (
+          property === "waterAge" ||
+          property === "waterTrace" ||
+          property === "chemicalConcentration"
+        )
+          return this.linkPropertySeriesRead(assetId, "avgQuality");
+        if (property === "head") {
+          const headloss = this.linkPropertySeriesRead(assetId, "headloss");
+          return (
+            headloss && {
+              ...headloss,
+              map: (values) => values.map((v) => -v),
+            }
+          );
+        }
+        return this.linkPropertySeriesRead(assetId, property as LinkProperty);
+      }
     }
   }
 
@@ -507,10 +559,15 @@ export class EPSResultsReader {
     };
   }
 
-  private async _getNodePropertyTimeSeries(
+  private seriesFrom(read: SeriesRead, buffer: ArrayBuffer): TimeSeries {
+    const series = this._buildTimeSeries(buffer);
+    return read.map ? { ...series, values: read.map(series.values) } : series;
+  }
+
+  private nodePropertySeriesRead(
     nodeId: AssetId,
     property: NodeProperty,
-  ): Promise<TimeSeries | null> {
+  ): SeriesRead | null {
     if (!this.metadata) return null;
 
     const nodeIndex = this.metadata.simulationIds.nodeIdToIndex.get(
@@ -523,47 +580,38 @@ export class EPSResultsReader {
     const propertyIndex = NODE_PROPERTY_INDEX[property];
     const { nodeCount } = simulationMetadata;
 
-    const baseOffset =
-      resultsBaseOffset +
-      propertyIndex * nodeCount * FLOAT_SIZE +
-      nodeIndex * FLOAT_SIZE;
-
-    const values = await this.storage.readBlockSeries(
-      RESULTS_OUT_KEY,
-      baseOffset,
-      FLOAT_SIZE,
-      timestepBlockSize,
-      simulationMetadata.reportingStepsCount,
-    );
-    return this._buildTimeSeries(values);
-  }
-
-  private async _getTankLevelTimeSeries(
-    tankId: AssetId,
-  ): Promise<TimeSeries | null> {
-    const pressureSeries = await this._getNodePropertyTimeSeries(
-      tankId,
-      "pressure",
-    );
-    if (!pressureSeries) return null;
-
-    const { pressureUnits } = this.metadata!.simulationMetadata;
-    const levelValues = new Float32Array(pressureSeries.values.length);
-    for (let i = 0; i < pressureSeries.values.length; i++) {
-      levelValues[i] = pressureToLevel(pressureSeries.values[i], pressureUnits);
-    }
-
     return {
-      values: levelValues,
-      intervalsCount: pressureSeries.intervalsCount,
-      intervalSeconds: pressureSeries.intervalSeconds,
+      key: RESULTS_OUT_KEY,
+      baseOffset:
+        resultsBaseOffset +
+        propertyIndex * nodeCount * FLOAT_SIZE +
+        nodeIndex * FLOAT_SIZE,
+      blockSize: timestepBlockSize,
+      map: null,
     };
   }
 
-  private async _getLinkPropertyTimeSeries(
+  private tankLevelSeriesRead(tankId: AssetId): SeriesRead | null {
+    const pressure = this.nodePropertySeriesRead(tankId, "pressure");
+    if (!pressure) return null;
+
+    const { pressureUnits } = this.metadata!.simulationMetadata;
+    return {
+      ...pressure,
+      map: (values) => {
+        const levelValues = new Float32Array(values.length);
+        for (let i = 0; i < values.length; i++) {
+          levelValues[i] = pressureToLevel(values[i], pressureUnits);
+        }
+        return levelValues;
+      },
+    };
+  }
+
+  private linkPropertySeriesRead(
     linkId: AssetId,
     property: LinkProperty,
-  ): Promise<TimeSeries | null> {
+  ): SeriesRead | null {
     if (!this.metadata) return null;
 
     const linkIndex = this.metadata.simulationIds.linkIdToIndex.get(
@@ -577,25 +625,19 @@ export class EPSResultsReader {
     const { nodeCount, linkCount } = simulationMetadata;
 
     const nodeDataSize = nodeCount * NODE_RESULT_FLOATS * FLOAT_SIZE;
-    const baseOffset =
-      resultsBaseOffset +
-      nodeDataSize +
-      propertyIndex * linkCount * FLOAT_SIZE +
-      linkIndex * FLOAT_SIZE;
-
-    const values = await this.storage.readBlockSeries(
-      RESULTS_OUT_KEY,
-      baseOffset,
-      FLOAT_SIZE,
-      timestepBlockSize,
-      simulationMetadata.reportingStepsCount,
-    );
-    return this._buildTimeSeries(values);
+    return {
+      key: RESULTS_OUT_KEY,
+      baseOffset:
+        resultsBaseOffset +
+        nodeDataSize +
+        propertyIndex * linkCount * FLOAT_SIZE +
+        linkIndex * FLOAT_SIZE,
+      blockSize: timestepBlockSize,
+      map: null,
+    };
   }
 
-  private async _getTankVolumeTimeSeries(
-    tankId: AssetId,
-  ): Promise<TimeSeries | null> {
+  private tankVolumeSeriesRead(tankId: AssetId): SeriesRead | null {
     if (!this.metadata) return null;
 
     const nodeIndex = this.metadata.simulationIds.nodeIdToIndex.get(
@@ -612,22 +654,15 @@ export class EPSResultsReader {
     if (nodeIndex < firstSupplySourceIndex) return null;
 
     const tankIndex = nodeIndex - firstSupplySourceIndex;
-    const baseOffset = tankIndex * FLOAT_SIZE;
-    const blockSize = resAndTankCount * FLOAT_SIZE;
-
-    const values = await this.storage.readBlockSeries(
-      TANK_VOLUMES_KEY,
-      baseOffset,
-      FLOAT_SIZE,
-      blockSize,
-      simulationMetadata.reportingStepsCount,
-    );
-    return this._buildTimeSeries(values);
+    return {
+      key: TANK_VOLUMES_KEY,
+      baseOffset: tankIndex * FLOAT_SIZE,
+      blockSize: resAndTankCount * FLOAT_SIZE,
+      map: null,
+    };
   }
 
-  private async _getPumpStatusTimeSeries(
-    pumpId: AssetId,
-  ): Promise<TimeSeries | null> {
+  private pumpStatusSeriesRead(pumpId: AssetId): SeriesRead | null {
     if (!this.metadata) return null;
 
     const linkIndex = this.metadata.simulationIds.linkIdToIndex.get(
@@ -643,17 +678,12 @@ export class EPSResultsReader {
     const pumpPosition = this.pumpPositionByLinkIndex.get(linkIndex);
     if (pumpPosition === undefined) return null;
 
-    const baseOffset = pumpPosition * FLOAT_SIZE;
-    const blockSize = pumpCount * FLOAT_SIZE;
-
-    const values = await this.storage.readBlockSeries(
-      PUMP_STATUS_KEY,
-      baseOffset,
-      FLOAT_SIZE,
-      blockSize,
-      simulationMetadata.reportingStepsCount,
-    );
-    return this._buildTimeSeries(values);
+    return {
+      key: PUMP_STATUS_KEY,
+      baseOffset: pumpPosition * FLOAT_SIZE,
+      blockSize: pumpCount * FLOAT_SIZE,
+      map: null,
+    };
   }
 
   getHeadRangesForNodes(nodeIds: AssetId[]): Array<[number, number]> {
@@ -1074,19 +1104,76 @@ export class EPSResultsReader {
   getResultsForTimestep = async (
     timestepIndex: number,
   ): Promise<ResultsReader> => {
+    const { results, tankVolumes, pumpStatus } =
+      this.timestepSlicesOf(timestepIndex);
+    if (!results) return new NullResultsReader();
+
+    try {
+      const timestepData = await this.storage.readSlice(
+        RESULTS_OUT_KEY,
+        results.offset,
+        results.length,
+      );
+
+      const tankVolumesForTimestep = await this.readOptionalSlice(
+        TANK_VOLUMES_KEY,
+        tankVolumes,
+      );
+
+      const pumpStatuses = await this.readOptionalSlice(
+        PUMP_STATUS_KEY,
+        pumpStatus,
+      );
+
+      return this.timestepReaderOf(
+        timestepData,
+        tankVolumesForTimestep,
+        pumpStatuses,
+      );
+    } catch (error) {
+      this.timestepReadFailed(error, timestepIndex);
+      return new NullResultsReader();
+    }
+  };
+
+  getResultsForTimestepSync(
+    this: EPSResultsReader<SyncKeyBufferStore>,
+    timestepIndex: number,
+  ): ResultsReader {
+    const { results, tankVolumes, pumpStatus } =
+      this.timestepSlicesOf(timestepIndex);
+    if (!results) return new NullResultsReader();
+
+    try {
+      const timestepData = this.storage.readSliceSync(
+        RESULTS_OUT_KEY,
+        results.offset,
+        results.length,
+      );
+      return this.timestepReaderOf(
+        timestepData,
+        this.readOptionalSliceSync(TANK_VOLUMES_KEY, tankVolumes),
+        this.readOptionalSliceSync(PUMP_STATUS_KEY, pumpStatus),
+      );
+    } catch (error) {
+      this.timestepReadFailed(error, timestepIndex);
+      return new NullResultsReader();
+    }
+  }
+
+  private timestepSlicesOf(timestepIndex: number): {
+    results: Slice | null;
+    tankVolumes: Slice | null;
+    pumpStatus: Slice | null;
+  } {
     if (!this.metadata) {
       throw new Error(
         "EPSResultsReader not initialized. Call initialize() first.",
       );
     }
 
-    const {
-      simulationMetadata,
-      simulationIds,
-      linkLengths,
-      resultsBaseOffset,
-      timestepBlockSize,
-    } = this.metadata;
+    const { simulationMetadata, resultsBaseOffset, timestepBlockSize } =
+      this.metadata;
 
     if (
       timestepIndex < 0 ||
@@ -1097,49 +1184,65 @@ export class EPSResultsReader {
           `Timestep index ${timestepIndex} out of range [0, ${simulationMetadata.reportingStepsCount - 1}]`,
         ),
       );
-      return new NullResultsReader();
+      return { results: null, tankVolumes: null, pumpStatus: null };
     }
 
-    try {
-      const timestepOffset =
-        resultsBaseOffset + timestepIndex * timestepBlockSize;
-      const timestepData = await this.storage.readSlice(
-        RESULTS_OUT_KEY,
-        timestepOffset,
-        timestepBlockSize,
-      );
+    const { resAndTankCount, pumpCount } = simulationMetadata;
+    return {
+      results: {
+        offset: resultsBaseOffset + timestepIndex * timestepBlockSize,
+        length: timestepBlockSize,
+      },
+      tankVolumes:
+        resAndTankCount === 0
+          ? null
+          : {
+              offset: timestepIndex * resAndTankCount * FLOAT_SIZE,
+              length: resAndTankCount * FLOAT_SIZE,
+            },
+      pumpStatus:
+        pumpCount === 0
+          ? null
+          : {
+              offset: timestepIndex * pumpCount * FLOAT_SIZE,
+              length: pumpCount * FLOAT_SIZE,
+            },
+    };
+  }
 
-      const tankVolumesForTimestep =
-        await this.readTankVolumesForTimestep(timestepIndex);
+  private timestepReaderOf(
+    timestepData: ArrayBuffer,
+    tankVolumes: Float32Array | null,
+    pumpStatuses: Float32Array | null,
+  ): ResultsReader {
+    const { simulationMetadata, simulationIds, linkLengths } = this.metadata!;
+    return new TimestepResultsReader(
+      new DataView(timestepData),
+      simulationMetadata,
+      simulationIds,
+      tankVolumes,
+      linkLengths,
+      this.pumpPositionByLinkIndex,
+      pumpStatuses,
+      this.pumpEnergy,
+      this.nodeMinPressure,
+      this.nodeMaxPressure,
+    );
+  }
 
-      const pumpStatuses = await this.readPumpStatusForTimestep(timestepIndex);
-
-      return new TimestepResultsReader(
-        new DataView(timestepData),
-        simulationMetadata,
-        simulationIds,
-        tankVolumesForTimestep,
-        linkLengths,
-        this.pumpPositionByLinkIndex,
-        pumpStatuses,
-        this.pumpEnergy,
-        this.nodeMinPressure,
-        this.nodeMaxPressure,
-      );
-    } catch (error) {
-      this.reporter.readFailed(error, {
-        as: "epsResultsReader: timestep read failed",
-        contexts: {
-          "simulation results": {
-            wasDisposed: this.wasDisposed,
-            timestepIndex,
-            reportingStepsCount: simulationMetadata.reportingStepsCount,
-          },
+  private timestepReadFailed(error: unknown, timestepIndex: number): void {
+    this.reporter.readFailed(error, {
+      as: "epsResultsReader: timestep read failed",
+      contexts: {
+        "simulation results": {
+          wasDisposed: this.wasDisposed,
+          timestepIndex,
+          reportingStepsCount:
+            this.metadata!.simulationMetadata.reportingStepsCount,
         },
-      });
-      return new NullResultsReader();
-    }
-  };
+      },
+    });
+  }
 
   private static readonly EMPTY_METADATA: CachedMetadata = {
     simulationMetadata: new SimulationMetadata(
@@ -1306,20 +1409,16 @@ export class EPSResultsReader {
     return new Float32Array(data);
   }
 
-  private async readTankVolumesForTimestep(
-    timestepIndex: number,
+  private async readOptionalSlice(
+    key: string,
+    slice: Slice | null,
   ): Promise<Float32Array | null> {
-    const resAndTankCount = this.metadata!.simulationMetadata.resAndTankCount;
-    if (resAndTankCount === 0) return null;
-
-    const offset = timestepIndex * resAndTankCount * FLOAT_SIZE;
-    const length = resAndTankCount * FLOAT_SIZE;
-
+    if (!slice) return null;
     try {
       const data = await this.storage.readSlice(
-        TANK_VOLUMES_KEY,
-        offset,
-        length,
+        key,
+        slice.offset,
+        slice.length,
       );
       return new Float32Array(data);
     } catch {
@@ -1327,22 +1426,16 @@ export class EPSResultsReader {
     }
   }
 
-  private async readPumpStatusForTimestep(
-    timestepIndex: number,
-  ): Promise<Float32Array | null> {
-    const simMetadata = this.metadata!.simulationMetadata;
-    if (simMetadata.pumpCount === 0) return null;
-
-    const offset = timestepIndex * simMetadata.pumpCount * FLOAT_SIZE;
-    const length = simMetadata.pumpCount * FLOAT_SIZE;
-
+  private readOptionalSliceSync(
+    this: EPSResultsReader<SyncKeyBufferStore>,
+    key: string,
+    slice: Slice | null,
+  ): Float32Array | null {
+    if (!slice) return null;
     try {
-      const data = await this.storage.readSlice(
-        PUMP_STATUS_KEY,
-        offset,
-        length,
+      return new Float32Array(
+        this.storage.readSliceSync(key, slice.offset, slice.length),
       );
-      return new Float32Array(data);
     } catch {
       return null;
     }

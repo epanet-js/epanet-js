@@ -1,9 +1,11 @@
-import { IKeyBufferStore } from "./results-store";
+import { IKeyBufferStore, ISyncKeyBufferReader } from "./results-store";
 
 // Shared storage across all InMemoryStorage instances (keyed by appId)
 const sharedStorage = new Map<string, Map<string, ArrayBuffer>>();
 
-export class InMemoryKeyBufferStore implements IKeyBufferStore {
+export class InMemoryKeyBufferStore
+  implements IKeyBufferStore, ISyncKeyBufferReader
+{
   constructor(private readonly appId: string) {
     if (!sharedStorage.has(appId)) {
       sharedStorage.set(appId, new Map());
@@ -20,9 +22,13 @@ export class InMemoryKeyBufferStore implements IKeyBufferStore {
   }
 
   readSlice(key: string, offset: number, length: number): Promise<ArrayBuffer> {
+    return Promise.resolve(this.readSliceSync(key, offset, length));
+  }
+
+  readSliceSync(key: string, offset: number, length: number): ArrayBuffer {
     const data = this.data.get(key);
     if (!data) throw new Error(`Key "${key}" not found in storage`);
-    return Promise.resolve(data.slice(offset, offset + length));
+    return data.slice(offset, offset + length);
   }
 
   readBlockSeries(
@@ -32,7 +38,25 @@ export class InMemoryKeyBufferStore implements IKeyBufferStore {
     blockSize: number,
     blockCount: number,
   ): Promise<ArrayBuffer> {
-    if (blockCount === 0) return Promise.resolve(new ArrayBuffer(0));
+    return Promise.resolve(
+      this.readBlockSeriesSync(
+        key,
+        baseOffset,
+        readSize,
+        blockSize,
+        blockCount,
+      ),
+    );
+  }
+
+  readBlockSeriesSync(
+    key: string,
+    baseOffset: number,
+    readSize: number,
+    blockSize: number,
+    blockCount: number,
+  ): ArrayBuffer {
+    if (blockCount === 0) return new ArrayBuffer(0);
 
     const data = this.data.get(key);
     if (!data) throw new Error(`Key "${key}" not found in storage`);
@@ -46,7 +70,7 @@ export class InMemoryKeyBufferStore implements IKeyBufferStore {
       dst.set(src.subarray(offset, offset + readSize), i * readSize);
     }
 
-    return Promise.resolve(result);
+    return result;
   }
 
   getFile(key: string): Promise<File> {
