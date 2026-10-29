@@ -1,5 +1,5 @@
 import { memberOf, propertyOf } from "../members";
-import type { Section } from "../types";
+import type { DocsCandidates, Member, Section, TypeDef } from "../types";
 
 const asset = propertyOf("Asset");
 const node = propertyOf("NodeAsset");
@@ -12,7 +12,173 @@ const pump = propertyOf("Pump");
 const valve = propertyOf("Valve");
 const customerPoint = propertyOf("CustomerPoint");
 
-export const SECTION: Section = {
+const QUALITY = `/** when the run had that water quality analysis */
+  waterAge?: number;
+  waterTrace?: number;
+  chemicalConcentration?: number;`;
+
+const QUALITY_SERIES = '"waterAge" | "waterTrace" | "chemicalConcentration"';
+
+const STATUS_WARNING =
+  'statusWarning: "cannot-deliver-flow" | "cannot-deliver-pressure" | "cannot-deliver-head" | null;';
+
+const resultsType = (
+  name: string,
+  kind: string,
+  values: string,
+  series: string,
+  runWide: string,
+  summary: string,
+): TypeDef => ({
+  name,
+  definition: `interface ${name} {
+  ${values}
+  ${QUALITY}
+  /** this ${kind} at another timestep; a negative index counts from the end */
+  at(index: number): ${name} | null;
+  /** one value per entry of network.results.timesteps */
+  series(property: ${series} | ${QUALITY_SERIES}): number[] | null;${runWide ? `\n  ${runWide}` : ""}
+}`,
+  summary,
+});
+
+const NODE_STATS =
+  "/** lowest and highest over the run; the same at every timestep */\n  readonly stats: { minPressure: number; maxPressure: number; minHead: number; maxHead: number } | null;";
+
+const RESULTS_TYPES: TypeDef[] = [
+  resultsType(
+    "JunctionResults",
+    "junction",
+    "pressure: number;\n  head: number;\n  demand: number;",
+    '"pressure" | "head" | "demand"',
+    NODE_STATS,
+    "A junction's simulation results at one timestep.",
+  ),
+  resultsType(
+    "ReservoirResults",
+    "reservoir",
+    "head: number;\n  netFlow: number;",
+    '"head" | "netFlow"',
+    NODE_STATS,
+    "A reservoir's simulation results at one timestep.",
+  ),
+  resultsType(
+    "TankResults",
+    "tank",
+    "pressure: number;\n  head: number;\n  level: number;\n  volume: number;\n  netFlow: number;",
+    '"pressure" | "head" | "level" | "volume" | "netFlow"',
+    NODE_STATS,
+    "A tank's simulation results at one timestep.",
+  ),
+  resultsType(
+    "PipeResults",
+    "pipe",
+    'flow: number;\n  velocity: number;\n  headloss: number;\n  unitHeadloss: number;\n  status: "open" | "closed";',
+    '"flow" | "velocity" | "headloss" | "unitHeadloss"',
+    "",
+    "A pipe's simulation results at one timestep.",
+  ),
+  resultsType(
+    "PumpResults",
+    "pump",
+    `flow: number;\n  head: number;\n  status: "on" | "off";\n  ${STATUS_WARNING}`,
+    '"flow" | "head"',
+    "/** energy use over the run, as EPANET reports it; the same at every timestep */\n  readonly energy: { utilization: number; averageEfficiency: number; averageKwPerFlowUnit: number; averageKw: number; peakKw: number; averageCostPerDay: number; demandCharge: number } | null;",
+    "A pump's simulation results at one timestep.",
+  ),
+  resultsType(
+    "ValveResults",
+    "valve",
+    `flow: number;\n  velocity: number;\n  headloss: number;\n  status: "active" | "open" | "closed";\n  ${STATUS_WARNING}`,
+    '"flow" | "velocity" | "headloss"',
+    "",
+    "A valve's simulation results at one timestep.",
+  ),
+];
+
+const STATS_UNITS =
+  "`stats` is in `units.pressure` and `units.head`. The engine tracks it at every hydraulic step, including the ones between reported timesteps — when a control fires or a tank fills — so it can be beyond anything `series` shows.";
+
+const FLOW_DIRECTION =
+  "A positive `flow` runs from the start node to the end node.";
+
+const resultsOf = (
+  owner: string,
+  kind: string,
+  units: string,
+  code: string,
+): Member =>
+  memberOf(owner)({
+    name: "results",
+    signature: `readonly results: ${owner}Results | null`,
+    summary: `This ${kind}'s simulation results at the timestep the user had selected in the app when the script started.`,
+    description: `\`at\` reads another timestep and \`series\` one property across the run. \`null\` when there is no simulation, the run has no timesteps, or it did not include this ${kind} — inactive, or added since. Check \`network.results.isStale\` before trusting the numbers. ${units}`,
+    throws: [
+      "`at` with an index outside the run",
+      "`series` with a property it does not list",
+      "`The simulation results are no longer available; run the simulation again` when a newer run has replaced the stored results",
+    ],
+    examples: [{ code }],
+  });
+
+const junctionResults = resultsOf(
+  "Junction",
+  "junction",
+  `Values are in \`network.units[name]\`, except \`demand\`, which is in \`units.actualDemand\`. ${STATS_UNITS}`,
+  `const low = network.junctions.filter((junction) => junction.results?.pressure < 20);
+console.log(low.length, "junctions below 20", network.units.pressure, "at the selected timestep");
+const j1 = network.getNode("J1").results;
+if (j1) console.log("J1:", j1.pressure, "now,", j1.at(-1).pressure, "at the end,", j1.stats.minPressure, "at its lowest");`,
+);
+
+const reservoirResults = resultsOf(
+  "Reservoir",
+  "reservoir",
+  `Values are in \`network.units[name]\`. ${STATS_UNITS}`,
+  `for (const reservoir of network.reservoirs) {
+  console.log(reservoir.label, reservoir.results?.netFlow, network.units.netFlow);
+}`,
+);
+
+const tankResults = resultsOf(
+  "Tank",
+  "tank",
+  `Values are in \`network.units[name]\`. ${STATS_UNITS}`,
+  `for (const tank of network.tanks) {
+  const levels = tank.results?.series("level") ?? [];
+  console.log(tank.label, "runs from", Math.min(...levels), "to", Math.max(...levels), network.units.level);
+}`,
+);
+
+const pipeResults = resultsOf(
+  "Pipe",
+  "pipe",
+  `Values are in \`network.units[name]\`. ${FLOW_DIRECTION}`,
+  `const closed = network.pipes.filter((pipe) => pipe.results?.status === "closed");
+console.log(closed.length, "pipes closed at the selected timestep");
+const flows = network.getLink("P1").results?.series("flow") ?? [];
+console.log("P1 peaks at", Math.max(...flows.map(Math.abs)), network.units.flow);`,
+);
+
+const pumpResults = resultsOf(
+  "Pump",
+  "pump",
+  `Values are in \`network.units[name]\`, except \`head\`, which is in \`units.actualHead\`. ${FLOW_DIRECTION} \`energy\` has \`utilization\` and \`averageEfficiency\` in \`units.efficiency\`, \`averageKw\` and \`peakKw\` in \`units.power\`, \`averageKwPerFlowUnit\` in \`units.averageKwPerFlowUnit\`; \`averageCostPerDay\` and \`demandCharge\` are in the project's currency. \`demandCharge\` is the network's, the same for every pump. \`energy\` is \`null\` when the run reported none.`,
+  `for (const pump of network.pumps) {
+  const energy = pump.results?.energy;
+  if (energy) console.log(pump.label, pump.results.status, energy.averageKw, network.units.power, "on", energy.utilization, network.units.efficiency, "of the time");
+}`,
+);
+
+const valveResults = resultsOf(
+  "Valve",
+  "valve",
+  `Values are in \`network.units[name]\`. ${FLOW_DIRECTION}`,
+  `const struggling = network.valves.filter((valve) => valve.results?.statusWarning);
+console.log(struggling.map((valve) => \`\${valve.label}: \${valve.results.statusWarning}\`));`,
+);
+
+export const sectionFor = ({ results }: DocsCandidates): Section => ({
   id: "assets",
   number: "1.3",
   title: "Assets",
@@ -58,6 +224,7 @@ export const SECTION: Section = {
       summary:
         "A pump's structured control from the app. Times are in seconds.",
     },
+    ...(results ? RESULTS_TYPES : []),
   ],
   members: [
     asset(
@@ -128,9 +295,11 @@ export const SECTION: Section = {
       "CustomerPoint[]",
       "The customer points allocated to the junction.",
     ),
+    ...(results ? [junctionResults] : []),
 
     reservoir("head", "number | null", "The reservoir's head."),
     reservoir("headPattern", "string | null", "The label of the head pattern."),
+    ...(results ? [reservoirResults] : []),
 
     tank("initialLevel", "number | null", "The initial level."),
     tank("minLevel", "number | null", "The minimum level."),
@@ -154,6 +323,7 @@ export const SECTION: Section = {
       "The bulk reaction coefficient.",
     ),
     tank("volumeCurve", "string | null", "The label of the volume curve."),
+    ...(results ? [tankResults] : []),
 
     link(
       "startNode",
@@ -214,6 +384,7 @@ export const SECTION: Section = {
       "CustomerPoint[]",
       "The customer points connected to the pipe.",
     ),
+    ...(results ? [pipeResults] : []),
 
     pump("status", '"on" | "off"', "The initial status."),
     pump(
@@ -256,6 +427,7 @@ export const SECTION: Section = {
       "The pump's structured control from the app.",
       "Pump controls are here, not in `network.rawControls`. Read both before judging why a pump is off.",
     ),
+    ...(results ? [pumpResults] : []),
 
     valve(
       "kind",
@@ -280,6 +452,7 @@ export const SECTION: Section = {
       "NodeAsset | null",
       "A PRV's remote set-point node, or `null`.",
     ),
+    ...(results ? [valveResults] : []),
 
     customerPoint("uid", "number", "An internal number. Never persist it."),
     customerPoint("label", "string", "The customer point's label."),
@@ -315,4 +488,4 @@ export const SECTION: Section = {
       summary: "A custom attribute's value by its name, or `null`.",
     }),
   ],
-};
+});

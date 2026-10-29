@@ -1,6 +1,6 @@
 import { exampleScripts } from "./example-scripts";
 import { GLOBALS, INTERFACES } from "./interfaces";
-import { SECTION as ASSETS } from "./sections/assets";
+import { sectionFor as assetsFor } from "./sections/assets";
 import { SECTION as COLLECTIONS } from "./sections/collections";
 import { SECTION as EXPORT } from "./sections/export";
 import { SECTION as LIBRARIES } from "./sections/libraries";
@@ -56,7 +56,7 @@ const buildDocs = (candidates: DocsCandidates): ScriptingDocs => ({
     { id: "network", number: "1", title: "`network` — the model" },
     overviewFor(candidates),
     COLLECTIONS,
-    ASSETS,
+    assetsFor(candidates),
     LIBRARIES,
     SPATIAL,
     TOPOLOGY,

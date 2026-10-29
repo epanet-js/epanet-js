@@ -75,7 +75,7 @@ describe("script language service", () => {
 
   it("completes the results only from the results candidate", () => {
     const candidate = createScriptLanguageService(resultsCandidateDocs);
-    const source = "const step = network.results.at(0);\nstep.";
+    const source = "network.junctions[0].results?.";
 
     const names = (completions: { name: string }[]) =>
       completions.map((completion) => completion.name);
@@ -83,7 +83,7 @@ describe("script language service", () => {
     expect(names(completionsAtEnd("network."))).not.toContain("results");
     expect(names(candidate.completionsAt("network.", 8))).toContain("results");
     expect(names(candidate.completionsAt(source, source.length))).toEqual(
-      expect.arrayContaining(["node", "link", "values", "time"]),
+      expect.arrayContaining(["pressure", "at", "series", "stats"]),
     );
   });
 });
