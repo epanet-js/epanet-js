@@ -14,6 +14,7 @@ export type SelectorOption<T extends string | number> = SelectorListOption<T>;
 
 type SelectorPropsBase<T extends string | number> = {
   options: SelectorOption<T>[];
+  id?: string;
   ariaLabel?: string;
   tabIndex?: number;
   invalid?: boolean;
@@ -68,6 +69,7 @@ export function BaseSelector<T extends string | number>({
   options,
   selected,
   onChange,
+  id,
   ariaLabel,
   tabIndex = 0,
   invalid = false,
@@ -149,6 +151,7 @@ export function BaseSelector<T extends string | number>({
       <Popover.Trigger asChild>
         <button
           ref={buttonRef}
+          id={id}
           type="button"
           role="combobox"
           aria-label={ariaLabel}

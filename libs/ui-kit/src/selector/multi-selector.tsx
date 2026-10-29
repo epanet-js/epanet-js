@@ -21,6 +21,7 @@ export type MultiSelectorProps<T extends string | number> = {
   valueLabel: string;
   /** Resolved empty-state text shown when selected.length === 0. */
   placeholder: string;
+  id?: string;
   ariaLabel?: string;
   tabIndex?: number;
   styleOptions?: StyleOptions;
@@ -45,6 +46,7 @@ export function BaseMultiSelector<T extends string | number>({
   onOptionRemoved,
   valueLabel,
   placeholder,
+  id,
   ariaLabel,
   tabIndex = 0,
   styleOptions = {},
@@ -111,6 +113,7 @@ export function BaseMultiSelector<T extends string | number>({
       <Popover.Trigger asChild>
         <button
           ref={buttonRef}
+          id={id}
           type="button"
           role="combobox"
           aria-label={ariaLabel}
