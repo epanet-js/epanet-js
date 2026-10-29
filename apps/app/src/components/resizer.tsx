@@ -218,11 +218,10 @@ export const Resizer = memo(function ResizerInner({
         justify-center
         w-1
         hover-none:w-3
-        bg-purple-700/0
+        bg-transparent
         hover-none:bg-white/40
         hover-none:dark:bg-black/40
-        hover-hover:hover:bg-purple-700
-        hover-hover:dark:hover:bg-purple-700
+        hover-hover:hover:bg-accent
         "
     >
       <div
@@ -303,11 +302,10 @@ const RowResizer = ({
       justify-center
       h-1
       hover-none:h-3
-      bg-purple-700/0
+      bg-transparent
       hover-none:bg-white/40
       hover-none:dark:bg-black/40
-      hover-hover:hover:bg-purple-700
-      hover-hover:dark:hover:bg-purple-700
+      hover-hover:hover:bg-accent
       "
   >
     <div
@@ -410,7 +408,7 @@ export const FooterResizer = memo(function FooterResizerInner({
     >
       <div
         className="w-full h-1
-          bg-purple-700 dark:bg-purple-700
+          bg-accent
           opacity-0
           group-hover:opacity-100
           pointer-events-none"
