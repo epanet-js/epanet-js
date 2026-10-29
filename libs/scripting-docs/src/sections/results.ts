@@ -24,7 +24,7 @@ export const SECTION: Section = {
   number: "1.9",
   title: "Simulation results",
   intro:
-    "`network.results` is the simulation the user last ran from the toolbar, read as it was when the script started. Scripts cannot run a simulation themselves.",
+    "Results come from the simulation the user last ran from the toolbar, read as it was when the script started. Scripts cannot run a simulation themselves.\n\nRead them from the asset when the question is about assets at the timestep the user is looking at: `junction.results.pressure`, `pipe.results.flow`. That covers most scripts, and looping over every asset reads the timestep once. `asset.results.at(i)` and `asset.results.series(property)` reach other timesteps of the same asset, and a node's `stats` and a pump's `energy` cover the whole run.\n\nUse `network.results` for the run as a whole: whether it succeeded and is still current (`status`, `isStale`), its `timesteps`, every asset's value at a timestep in one map (`at(i).values`), and the lowest and highest values across the network (`minValues`, `maxValues`). Those read the stored results directly, so prefer them to looping over assets for anything beyond the current timestep.",
   types: [
     {
       name: "SimulationStatus",
@@ -81,15 +81,105 @@ export const SECTION: Section = {
       description:
         "Values are in the project's units: `network.units[name]`, except a pump's `head`, which is in `units.actualHead`. A positive `flow` runs from the start node to the end node.",
     },
+    {
+      name: "NodeResults",
+      definition: `interface NodeResults extends NodeStepValues {
+  /** this node at another timestep; a negative index counts from the end */
+  at(index: number): NodeResults | null;
+  /** this node's property across the run, one value per entry of network.results.timesteps */
+  series(property: string): number[] | null;
+  /** this node's lowest and highest pressure and head over the run; the same at every timestep */
+  readonly stats: { minPressure: number; maxPressure: number; minHead: number; maxHead: number } | null;
+}`,
+      summary:
+        "A node's values at one timestep, with the way to its other timesteps.",
+    },
+    {
+      name: "LinkResults",
+      definition: `interface LinkResults extends LinkStepValues {
+  /** this link at another timestep; a negative index counts from the end */
+  at(index: number): LinkResults | null;
+  /** this link's property across the run, one value per entry of network.results.timesteps; status has no series */
+  series(property: string): number[] | null;
+  /** pumps: this pump's energy use over the run, as EPANET reports it; the same at every timestep */
+  readonly energy?: {
+    utilization: number;
+    averageEfficiency: number;
+    averageKwPerFlowUnit: number;
+    averageKw: number;
+    peakKw: number;
+    averageCostPerDay: number;
+    demandCharge: number;
+  } | null;
+}`,
+      summary:
+        "A link's values at one timestep, with the way to its other timesteps.",
+    },
   ],
   members: [
+    memberOf("NodeAsset")({
+      name: "results",
+      signature: "readonly results: NodeResults | null",
+      summary:
+        "This node's values at the timestep the user had selected in the app when the script started.",
+      description:
+        "`null` when there is no simulation, the run has no timesteps, or it did not include this node — inactive, or added since. Check `network.results.isStale` before trusting the numbers. `series` takes a property the node's type reports in `NodeStepValues`.\n\n`stats` is in `network.units.pressure` and `network.units.head`. The engine tracks it at every hydraulic step, including the ones it takes between reported timesteps — when a control fires or a tank fills — so it can be beyond anything `series` shows.",
+      throws: [
+        "`at` with an index outside the run",
+        "`series` with a property the node's type does not report",
+        "`The simulation results are no longer available; run the simulation again` when a newer run has replaced the stored results",
+      ],
+      examples: [
+        {
+          code: `const low = network.junctions.filter((junction) => junction.results?.pressure < 20);
+console.log(low.length, "junctions below 20", network.units.pressure, "at the selected timestep");`,
+        },
+        {
+          code: `const j1 = network.getNode("J1");
+if (j1.results) console.log("J1:", j1.results.pressure, "now,", j1.results.at(-1).pressure, "at the end,", Math.min(...j1.results.series("pressure")), "at its lowest reported timestep");`,
+        },
+        {
+          code: `const low = network.junctions.filter((junction) => junction.results?.stats?.minPressure < 20);
+console.log(low.length, "junctions drop below 20", network.units.pressure, "during the run");`,
+        },
+      ],
+    }),
+    memberOf("LinkAsset")({
+      name: "results",
+      signature: "readonly results: LinkResults | null",
+      summary:
+        "This link's values at the timestep the user had selected in the app when the script started.",
+      description:
+        "`null` when there is no simulation, the run has no timesteps, or it did not include this link — inactive, or added since. Check `network.results.isStale` before trusting the numbers. `series` takes a property the link's type reports in `LinkStepValues`, other than `status`.\n\nA pump's `energy` has `utilization` and `averageEfficiency` in `units.efficiency`, `averageKw` and `peakKw` in `units.power`, `averageKwPerFlowUnit` in `units.averageKwPerFlowUnit`; `averageCostPerDay` and `demandCharge` are in the project's currency. `demandCharge` is the network's, the same for every pump. `energy` is `null` when the run reported no energy; other links have no `energy`.",
+      throws: [
+        "`at` with an index outside the run",
+        "`series` with a property the link's type does not report",
+        "`The simulation results are no longer available; run the simulation again` when a newer run has replaced the stored results",
+      ],
+      examples: [
+        {
+          code: `const closed = network.pipes.filter((pipe) => pipe.results?.status === "closed");
+console.log(closed.length, "pipes closed at the selected timestep");`,
+        },
+        {
+          code: `const flows = network.getLink("P1").results?.series("flow") ?? [];
+console.log("P1 peaks at", Math.max(...flows.map(Math.abs)), network.units.flow);`,
+        },
+        {
+          code: `for (const pump of network.pumps) {
+  const energy = pump.results?.energy;
+  if (energy) console.log(pump.label, energy.averageKw, network.units.power, "on", energy.utilization, network.units.efficiency, "of the time");
+}`,
+        },
+      ],
+    }),
     memberOf("Network")({
       name: "results",
       signature: "readonly results: SimulationResult | null",
       summary:
         "The simulation the user last ran from the toolbar, or `null` when there is none.",
       description:
-        "Results are matched to assets by identity, not by label. An asset the run did not include — inactive, or added since — reads as `null`. Check `isStale` before trusting the numbers.",
+        "The run as a whole; for one asset at the selected timestep, read `asset.results`. Results are matched to assets by identity, not by label. An asset the run did not include — inactive, or added since — reads as `null`. Check `isStale` before trusting the numbers.",
       examples: [
         {
           code: `const res = network.results;
@@ -142,79 +232,13 @@ console.log(last.time / 3600, "h:", last.node("J1").pressure, network.units.pres
       ],
     }),
     results({
-      name: "nodeSeries",
-      signature:
-        "nodeSeries(ref: NodeAsset | string, property: string): number[] | null",
-      summary:
-        "One node's property across the run, one value per entry of `timesteps`. Reads only that node, so it is the way to follow one asset over time.",
-      description:
-        "The property is one the node's type reports in `NodeStepValues`. `null` when the run did not include the node, or did not analyse that water quality.",
-      throws: [
-        "a label no node has, or a link",
-        "a property the node's type does not report",
-        "`The simulation results are no longer available; run the simulation again` when a newer run has replaced the stored results",
-      ],
-      examples: [
-        {
-          code: `const res = network.results;
-const pressures = res.nodeSeries("J1", "pressure");
-const lowest = Math.min(...pressures);
-console.log("J1 drops to", lowest, network.units.pressure, "at", res.timesteps[pressures.indexOf(lowest)] / 3600, "h");`,
-        },
-      ],
-    }),
-    results({
-      name: "linkSeries",
-      signature:
-        "linkSeries(ref: LinkAsset | string, property: string): number[] | null",
-      summary:
-        "One link's property across the run, one value per entry of `timesteps`. A link's `status` is not a number and has no series; read it with `step.link`.",
-      description:
-        "The property is one the link's type reports in `LinkStepValues`. `null` when the run did not include the link, or did not analyse that water quality.",
-      throws: [
-        "a label no link has, or a node",
-        "a property the link's type does not report",
-        "`The simulation results are no longer available; run the simulation again` when a newer run has replaced the stored results",
-      ],
-      examples: [
-        {
-          code: `const flows = network.results.linkSeries("P1", "flow");
-const reversals = flows.filter((flow, i) => i > 0 && Math.sign(flow) !== Math.sign(flows[i - 1])).length;
-console.log("P1 reverses", reversals, "times");`,
-        },
-      ],
-    }),
-    results({
-      name: "nodeStats",
-      signature:
-        "nodeStats(ref: NodeAsset | string): { minPressure: number; maxPressure: number; minHead: number; maxHead: number } | null",
-      summary:
-        "A node's lowest and highest pressure and head over the run, in `network.units.pressure` and `network.units.head`.",
-      description:
-        "The engine tracks these at every hydraulic step, including the ones it takes between reported timesteps — when a control fires or a tank fills — so they can be beyond anything `nodeSeries` shows. `null` when the run did not include the node or has no timesteps.",
-      throws: [
-        "a label no node has, or a link",
-        "`The simulation results are no longer available; run the simulation again` when a newer run has replaced the stored results",
-      ],
-      examples: [
-        {
-          code: `const low = [];
-for (const junction of network.junctions) {
-  const stats = network.results.nodeStats(junction);
-  if (stats && stats.minPressure < 20) low.push(junction);
-}
-console.log(low.length, "junctions drop below 20", network.units.pressure);`,
-        },
-      ],
-    }),
-    results({
       name: "minValues",
       signature:
         'minValues(property: "pressure" | "head"): Map<string, number>',
       summary:
-        "Label → lowest value over the run for every node. The network-wide form of `nodeStats`, with the same numbers.",
+        "Label → lowest value over the run for every node. The network-wide form of `node.results.stats`, with the same numbers.",
       description:
-        "`pressure` lists junctions and tanks, `head` every node. Like `nodeStats`, the engine tracks these at every hydraulic step, not only the reported timesteps. A node the run did not include is left out; the map is empty when the run has no timesteps.",
+        "`pressure` lists junctions and tanks, `head` every node. Like `node.results.stats`, the engine tracks these at every hydraulic step, not only the reported timesteps. A node the run did not include is left out; the map is empty when the run has no timesteps.",
       throws: [
         "a property other than `pressure` or `head`",
         "`The simulation results are no longer available; run the simulation again` when a newer run has replaced the stored results",
@@ -244,33 +268,6 @@ console.log(low.length, "nodes drop below 20", network.units.pressure);`,
   .sort(([, a], [, b]) => b - a)
   .slice(0, 5);
 console.table(high.map(([node, pressure]) => ({ node, pressure })));`,
-        },
-      ],
-    }),
-    results({
-      name: "pumpEnergy",
-      signature: `pumpEnergy(ref: Pump | string): {
-  utilization: number;
-  averageEfficiency: number;
-  averageKwPerFlowUnit: number;
-  averageKw: number;
-  peakKw: number;
-  averageCostPerDay: number;
-  demandCharge: number;
-} | null`,
-      summary: "A pump's energy use over the run, as EPANET reports it.",
-      description:
-        "`utilization` and `averageEfficiency` are in `units.efficiency`, `averageKw` and `peakKw` in `units.power`, `averageKwPerFlowUnit` in `units.averageKwPerFlowUnit`; `averageCostPerDay` and `demandCharge` are in the project's currency. `demandCharge` is the network's, the same for every pump. `null` when the run did not include the pump, has no timesteps or reported no energy.",
-      throws: [
-        "a label no link has, or a link that is not a pump",
-        "`The simulation results are no longer available; run the simulation again` when a newer run has replaced the stored results",
-      ],
-      examples: [
-        {
-          code: `for (const pump of network.pumps) {
-  const energy = network.results.pumpEnergy(pump);
-  if (energy) console.log(pump.label, energy.averageKw, network.units.power, "on", energy.utilization, network.units.efficiency, "of the time");
-}`,
         },
       ],
     }),

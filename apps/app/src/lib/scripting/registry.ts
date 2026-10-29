@@ -110,6 +110,7 @@ export type ScriptLastResults = {
   status: ScriptSimulationStatus;
   report: string;
   isStale: boolean;
+  currentStep: number;
   location: { appId: string; scenarioKey: string; runId: string } | null;
 };
 

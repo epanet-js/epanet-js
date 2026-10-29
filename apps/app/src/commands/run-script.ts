@@ -51,6 +51,7 @@ import {
   type ScriptRunState,
 } from "src/state/scripts";
 import { selectionAtom } from "src/state/selection";
+import { simulationStepAtom } from "src/state/simulation";
 import { bookmarksAtom, selectionSetsAtom } from "src/state/collections";
 import { zonesAtom } from "src/state/zones";
 import { useShowScriptOutput } from "./show-script-output";
@@ -298,6 +299,7 @@ const lastResultsOf = (get: Getter): ScriptLastResults | null => {
     isStale:
       simulation.modelVersion !== get(stagingModelDerivedAtom).version ||
       simulation.settingsVersion !== get(simulationSettingsDerivedAtom).version,
+    currentStep: get(simulationStepAtom) ?? 0,
     location: simulation.runLocation ?? null,
   };
 };
