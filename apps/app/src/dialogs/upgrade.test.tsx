@@ -29,55 +29,26 @@ describe("upgrade dialog", () => {
       stubFeatureOn("FLAG_PRICING_UPGRADE");
     });
 
-    it("shows Pro, Ultimate and Enterprise without Free or Teams", () => {
+    it("shows Free, Pro and Ultimate without Teams or Enterprise", () => {
       renderDialog();
 
+      expect(screen.getByRole("heading", { name: "Free" })).toBeVisible();
       expect(screen.getByRole("heading", { name: "Pro" })).toBeVisible();
       expect(screen.getByRole("heading", { name: "Ultimate" })).toBeVisible();
-      expect(screen.getByRole("heading", { name: "Enterprise" })).toBeVisible();
-      expect(
-        screen.queryByRole("heading", { name: "Free" }),
-      ).not.toBeInTheDocument();
       expect(
         screen.queryByRole("heading", { name: "Teams" }),
       ).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("heading", { name: "Enterprise" }),
+      ).not.toBeInTheDocument();
     });
 
-    it("swaps the plans for the non-commercial licenses", async () => {
-      const user = userEvent.setup();
-      renderDialog();
-
-      expect(
-        screen.queryByRole("heading", { name: "Non-commercial licenses" }),
-      ).not.toBeInTheDocument();
-
-      await user.click(
-        screen.getByRole("button", { name: /Non-commercial licenses/ }),
-      );
-
-      expect(
-        screen.queryByRole("heading", { name: "Pro" }),
-      ).not.toBeInTheDocument();
-
-      expect(
-        screen.getByRole("heading", { name: "Non-commercial licenses" }),
-      ).toBeVisible();
-      expect(screen.getByRole("button", { name: /Education/ })).toBeVisible();
-      expect(screen.getByRole("button", { name: /Personal/ })).toBeVisible();
-      expect(screen.getByRole("link", { name: "Get help." })).toBeVisible();
-
-      await user.click(
-        screen.getByRole("button", { name: /Back to commercial plans/ }),
-      );
-
-      expect(screen.getByRole("heading", { name: "Pro" })).toBeVisible();
-    });
-
-    it("switches the Pro price with the billing period", async () => {
+    it("switches the Pro price with the billing period, without a discount", async () => {
       const user = userEvent.setup();
       renderDialog();
 
       expect(screen.getByText("$950")).toBeVisible();
+      expect(screen.queryByText(/save/i)).not.toBeInTheDocument();
 
       await user.selectOptions(
         screen.getByLabelText("Billing period"),
@@ -88,20 +59,46 @@ describe("upgrade dialog", () => {
       expect(screen.queryByText("$950")).not.toBeInTheDocument();
     });
 
+    it("links to the full pricing page", () => {
+      renderDialog();
+
+      expect(
+        screen.getByRole("link", { name: "See all plans and features" }),
+      ).toHaveAttribute("href", "https://epanetjs.com/pricing");
+    });
+
     it("offers the trial only to users who have not used it", () => {
       renderDialog({ user: aUser({ hasUsedTrial: false }) });
-      expect(screen.getByText("Try Pro free for 14 days.")).toBeVisible();
+
       expect(
         screen.getByRole("button", { name: "Start free trial" }),
       ).toBeVisible();
     });
 
+    it("switches to the non-commercial plans from the footer and back", async () => {
+      const user = userEvent.setup();
+      renderDialog();
+
+      await user.click(
+        screen.getByRole("button", { name: "Non-commercial plans" }),
+      );
+
+      expect(screen.getByRole("heading", { name: "Personal" })).toBeVisible();
+      expect(screen.getByRole("heading", { name: "Education" })).toBeVisible();
+      expect(
+        screen.queryByRole("heading", { name: "Ultimate" }),
+      ).not.toBeInTheDocument();
+
+      await user.click(
+        screen.getByRole("button", { name: "Back to commercial plans" }),
+      );
+
+      expect(screen.getByRole("heading", { name: "Ultimate" })).toBeVisible();
+    });
+
     it("offers checkout once the trial is used", () => {
       renderDialog({ user: aUser({ hasUsedTrial: true }) });
 
-      expect(
-        screen.queryByText("Try Pro free for 14 days."),
-      ).not.toBeInTheDocument();
       expect(
         screen.getByRole("button", { name: "Upgrade to Pro" }),
       ).toBeVisible();

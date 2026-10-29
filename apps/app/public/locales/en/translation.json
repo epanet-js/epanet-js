@@ -965,10 +965,19 @@
     "studentOrPersonal": "Student or personal use?",
     "nonCommercialLicenses": "Non-commercial licenses",
     "backToCommercial": "Back to commercial plans",
+    "nonCommercialPlans": "Non-commercial plans",
+    "seeAllPlans": "See all plans and features",
     "haveQuestions": "Have questions?",
     "sendEmail": "Send us an email",
     "or": "or",
     "bookCall": "book a call",
+    "free": {
+      "claim": "Free forever",
+      "includes": "Includes",
+      "engine": "Web-based EPANET 2.3 engine",
+      "noLimits": "No limits on model size",
+      "runsLocally": "Runs locally, your data stays on your machine"
+    },
     "pro": {
       "per": "Per named license",
       "modelBuilderInfo": "The new Pro model builder adds pipe year & materials, projection preservation, multiple languages, custom attributes and null values. The Legacy builder is kept for maintenance only.",

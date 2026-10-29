@@ -9,7 +9,6 @@ import { CheckoutButton } from "../components/checkout-button";
 import { Button, StyledSwitch, StyledThumb } from "../components/elements";
 import {
   ForwardRefExoticComponent,
-  ReactNode,
   RefAttributes,
   useMemo,
   useState,
@@ -19,12 +18,13 @@ import { IconProps } from "@radix-ui/react-icons/dist/types";
 import { Selector, Tooltip } from "@epanet-js/ui-kit";
 import { useUserTracking } from "src/infra/user-tracking";
 import {
+  pricingPageUrl,
   studentAccountActiviationHelpUrl,
   teamsPlanRequestFormUrl,
 } from "src/global-config";
 import { useUnsavedChangesCheck } from "src/commands/check-unsaved-changes";
 import { useAuth } from "src/hooks/use-auth";
-import { PaymentType, useCheckout } from "src/hooks/use-checkout";
+import { PaymentType } from "src/hooks/use-checkout";
 import {
   useActivateTrial,
   useIsTrialEmailRefused,
@@ -33,21 +33,18 @@ import { usePermissions } from "src/hooks/use-permissions";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { signUpUrl } from "src/global-config";
 import {
+  ArrowLeftIcon,
+  ArrowRightIcon,
   CheckIcon,
   InfoIcon,
   CloseIcon,
   RefreshIcon,
-  ArrowLeftIcon,
-  ArrowRightIcon,
   BotIcon,
   ChevronDownIcon,
-  ClockIcon,
   GaugeIcon,
-  GraduationCapIcon,
   HammerIcon,
   InfiniteIcon,
   SlidersHorizontalIcon,
-  UserIcon,
 } from "src/icons";
 import type { UpgradeOrigin } from "src/state/dialog";
 
@@ -224,6 +221,112 @@ const PlansDialog = ({
               <EducationPlan paymentType={paymentType} />
             </>
           )}
+        </div>
+      </div>
+    </BaseDialog>
+  );
+};
+
+const PricingPlansDialog = ({
+  feature,
+  source,
+}: {
+  feature: string;
+  source: UpgradeOrigin;
+}) => {
+  const translate = useTranslate();
+  const [usage, setUsage] = useState<UsageOption>("commercial");
+  const [paymentType, setPaymentType] = useState<PaymentType>("yearly");
+  const userTracking = useUserTracking();
+
+  const handleUsageChange = (newUsage: UsageOption) => {
+    userTracking.capture({ name: "planUsage.toggled" });
+    setUsage(newUsage);
+  };
+
+  const handlePaymentChange = (newPaymentType: PaymentType) => {
+    userTracking.capture({ name: "planPaymentType.toggled" });
+    setPaymentType(newPaymentType);
+  };
+
+  const { closeDialog } = useDialogState();
+  const handleClose = () => {
+    userTracking.capture({
+      name: "upgradeDialog.dismissed",
+      source,
+      sourceFeature: feature,
+    });
+    closeDialog();
+  };
+
+  return (
+    <BaseDialog
+      title={translate("upgradeYourAccount")}
+      size="xl"
+      isOpen={true}
+      onClose={handleClose}
+      footer={
+        <footer className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 py-3 border-t text-size-base">
+          {usage === "commercial" ? (
+            <button
+              type="button"
+              className="inline-flex items-center gap-1 text-accent-hover hover:underline"
+              onClick={() => handleUsageChange("non-commercial")}
+            >
+              {translate("pricingPlans.nonCommercialPlans")}
+              <ArrowRightIcon />
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="inline-flex items-center gap-1 text-accent-hover hover:underline"
+              onClick={() => handleUsageChange("commercial")}
+            >
+              <ArrowLeftIcon />
+              {translate("pricingPlans.backToCommercial")}
+            </button>
+          )}
+          <a
+            className="text-accent-hover hover:underline"
+            target="_blank"
+            href={pricingPageUrl}
+          >
+            {translate("pricingPlans.seeAllPlans")}
+          </a>
+        </footer>
+      }
+    >
+      <div className="p-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mx-auto">
+          <PricingFreePlan />
+          {/* Both views share one grid cell, so the dialog keeps the taller one's height. */}
+          <div className="grid md:col-span-2">
+            <div
+              aria-hidden={usage !== "commercial"}
+              className={clsx(
+                "[grid-area:1/1] grid grid-cols-1 md:grid-cols-2 gap-6",
+                usage !== "commercial" && "invisible",
+              )}
+            >
+              <PricingProPlan
+                paymentType={paymentType}
+                onPaymentChange={handlePaymentChange}
+                feature={feature}
+                source={source}
+              />
+              <UltimatePlan feature={feature} source={source} />
+            </div>
+            <div
+              aria-hidden={usage !== "non-commercial"}
+              className={clsx(
+                "[grid-area:1/1] grid grid-cols-1 md:grid-cols-2 gap-6",
+                usage !== "non-commercial" && "invisible",
+              )}
+            >
+              <PricingPersonalPlan feature={feature} source={source} />
+              <PricingEducationPlan />
+            </div>
+          </div>
         </div>
       </div>
     </BaseDialog>
@@ -715,6 +818,366 @@ const TeamsPlan = ({
   );
 };
 
+const checkItem = (feature: string, tooltip?: string) => ({
+  feature,
+  Icon: CheckIcon,
+  iconColor: "text-success",
+  tooltip,
+});
+
+const PricingFreePlan = () => {
+  const translate = useTranslate();
+  return (
+    <div className="bg-base border rounded-md shadow-md overflow-hidden flex flex-col justify-between">
+      <div className="p-6 flex flex-col gap-6 flex-1">
+        <PricingPlanHeader
+          name="Free"
+          price="$0"
+          claim={translate("pricingPlans.free.claim")}
+          payment="yearly"
+        />
+        <FeaturesList
+          className=""
+          title={translate("pricingPlans.free.includes")}
+          items={[
+            checkItem(translate("pricingPlans.free.engine")),
+            checkItem(translate("pricingPlans.free.noLimits")),
+            checkItem(translate("pricingPlans.free.runsLocally")),
+          ]}
+        />
+      </div>
+      <div className="px-4 pb-4 w-full">
+        <Button
+          size="full-width"
+          className="default-pointer bg-gray-300 text-default"
+          disabled={true}
+        >
+          <CheckIcon />
+          {translate("currentPlan")}
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+const PricingProPlan = ({
+  paymentType,
+  onPaymentChange,
+  feature,
+  source,
+}: {
+  paymentType: PaymentType;
+  onPaymentChange: (paymentType: PaymentType) => void;
+  feature: string;
+  source: UpgradeOrigin;
+}) => {
+  const translate = useTranslate();
+  const { user, isSignedIn } = useAuth();
+  const isTrialEmailRefused = useIsTrialEmailRefused();
+  const canStartTrial =
+    paymentType === "yearly" &&
+    !!isSignedIn &&
+    !user.hasUsedTrial &&
+    !isTrialEmailRefused;
+
+  return (
+    <div className="relative bg-base border border-purple-100 rounded-lg shadow-md shadow-purple-300 overflow-hidden flex flex-col justify-between">
+      <div className="p-6 flex flex-col gap-6 flex-1">
+        <div className="absolute top-0 right-0 bg-linear-to-br from-purple-300 via-purple-400 to-purple-500 text-white text-size-small font-semibold py-1 px-2 rounded-bl-lg">
+          {translate("mostPopular")}
+        </div>
+        <PricingPlanHeader
+          name="Pro"
+          price={proPrices[paymentType]}
+          payment={paymentType}
+          onPaymentChange={onPaymentChange}
+          claim={translate("pricingPlans.pro.per")}
+        />
+        <div>
+          <FeaturesList
+            className=""
+            title={translate("everythingAnd", "Free")}
+            items={[
+              checkItem(translate("scenariosItem")),
+              checkItem(
+                translate("proModelBuilder"),
+                translate("pricingPlans.pro.modelBuilderInfo"),
+              ),
+              checkItem(translate("customAttributesItem")),
+              checkItem(translate("pricingPlans.pro.customMapLayers")),
+              checkItem(translate("scriptingItem")),
+              checkItem(translate("professionalSupport")),
+            ]}
+          />
+          <p className="mt-4 text-size-base text-subtle">
+            {translate("pricingPlans.pro.andMore")}
+          </p>
+        </div>
+      </div>
+      <div className="px-4 pb-4 w-full">
+        {canStartTrial ? (
+          <StartTrialButton feature={feature} source={source} />
+        ) : (
+          <CheckoutButton
+            plan="pro"
+            paymentType={paymentType}
+            feature={feature}
+            source={source}
+          >
+            {translate("upgradeTo", "Pro")}
+          </CheckoutButton>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const PricingPersonalPlan = ({
+  feature,
+  source,
+}: {
+  feature: string;
+  source: UpgradeOrigin;
+}) => {
+  const translate = useTranslate();
+
+  return (
+    <div className="relative bg-base border border-purple-100 rounded-lg shadow-md shadow-purple-300 overflow-hidden flex flex-col justify-between">
+      <div className="p-6 flex flex-col gap-6 flex-1">
+        <div className="absolute top-0 right-0 bg-linear-to-br from-purple-300 via-purple-400 to-purple-500 text-white text-size-small font-semibold py-1 px-2 rounded-bl-lg">
+          {translate("mostPopular")}
+        </div>
+        <PricingPlanHeader
+          name="Personal"
+          price={prices.personal.yearly}
+          payment="yearly"
+          claim={translate("tryItYourself")}
+        />
+        <FeaturesList
+          className=""
+          title={translate("everythingAnd", "Free")}
+          items={[
+            checkItem(translate("scenariosItem")),
+            {
+              feature: translate("proModelBuilder"),
+              Icon: CloseIcon,
+              iconColor: "text-red-500",
+              tooltip: translate("modelBuilderInfo"),
+            },
+            checkItem(translate("customAttributesItem")),
+            checkItem(translate("pricingPlans.pro.customMapLayers")),
+            checkItem(translate("scriptingItem")),
+            {
+              feature: translate("professionalSupport"),
+              Icon: CloseIcon,
+              iconColor: "text-red-500",
+            },
+          ]}
+        />
+      </div>
+      <div className="px-4 pb-4 w-full">
+        <CheckoutButton
+          plan="personal"
+          paymentType="yearly"
+          feature={feature}
+          source={source}
+        >
+          {translate("upgradeTo", "Personal")}
+        </CheckoutButton>
+      </div>
+    </div>
+  );
+};
+
+const PricingEducationPlan = () => {
+  const translate = useTranslate();
+  const checkUnsavedChanges = useUnsavedChangesCheck();
+  const { isSignedIn, signOut } = useAuth();
+  const userTracking = useUserTracking();
+
+  return (
+    <div className="relative bg-base border rounded-lg shadow-md shadow-gray-300 overflow-hidden flex flex-col h-fit">
+      <div className="p-6 flex flex-col gap-6 flex-1">
+        <PricingPlanHeader
+          name="Education"
+          price="$0"
+          payment="yearly"
+          claim={translate("learnWithEpanetJS")}
+        />
+        <p className="text-size-base text-subtle">
+          {translate("everythingInForFree", "Personal")}
+        </p>
+      </div>
+      <div className="flex flex-col px-4 pb-4 gap-y-3">
+        <Button
+          size="full-width"
+          className="default-pointer bg-panel text-default"
+          onClick={() => {
+            userTracking.capture({ name: "studentLogin.clicked" });
+            checkUnsavedChanges(() => {
+              if (isSignedIn) {
+                void signOut({ redirectUrl: signUpUrl });
+              } else {
+                window.location.href = signUpUrl;
+              }
+            });
+          }}
+        >
+          {translate("useStudentEmail")}
+        </Button>
+        <div className="text-size-small text-center text-subtle">
+          <p>{translate("havingIssuesWithStudentEmail")}</p>
+          <a
+            className="text-accent-hover hover:underline"
+            target="_blank"
+            href={studentAccountActiviationHelpUrl}
+            onClick={() => {
+              userTracking.capture({
+                name: "helpCenter.visited",
+                source: "educationPlan",
+              });
+            }}
+          >
+            {translate("getHelp")}.
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const UltimatePlan = ({
+  feature,
+  source,
+}: {
+  feature: string;
+  source: UpgradeOrigin;
+}) => {
+  const translate = useTranslate();
+  const userTracking = useUserTracking();
+
+  const captureCheckoutStarted = () => {
+    userTracking.capture({
+      name: "checkout.started",
+      plan: "teams",
+      paymentType: "yearly",
+      source,
+      sourceFeature: feature,
+    });
+  };
+
+  return (
+    <div className="relative bg-base border rounded-md shadow-md shadow-gray-300 overflow-hidden flex flex-col justify-between">
+      <div className="p-6 flex flex-col gap-6 flex-1">
+        <PricingPlanHeader
+          name="Ultimate"
+          price={ultimatePrice}
+          payment="yearly"
+          claim={translate("pricingPlans.ultimate.per", "3")}
+        />
+        <div>
+          <FeaturesList
+            className=""
+            title={translate("everythingAnd", "Pro")}
+            items={[
+              checkItem(translate("pricingPlans.ultimate.sharedCloudModels")),
+              checkItem(translate("pricingPlans.ultimate.teamBranching")),
+              checkItem(translate("pricingPlans.ultimate.rolesAndPermissions")),
+              checkItem(translate("selfServiceSeatManagement")),
+              checkItem(translate("payByInvoice")),
+              checkItem(translate("pricingPlans.ultimate.teamOnboarding")),
+            ]}
+          />
+          <FeaturesList
+            className="mt-6"
+            title={translate("pricingPlans.ultimate.advancedWorkflows")}
+            items={[
+              {
+                feature: translate("pricingPlans.ultimate.automatedModelBuild"),
+                Icon: HammerIcon,
+                iconColor: "text-default",
+              },
+              {
+                feature: translate("pricingPlans.ultimate.calibrationTools"),
+                Icon: SlidersHorizontalIcon,
+                iconColor: "text-default",
+              },
+              {
+                feature: translate(
+                  "pricingPlans.ultimate.unlimitedConversions",
+                ),
+                Icon: InfiniteIcon,
+                iconColor: "text-default",
+              },
+              {
+                feature: translate(
+                  "pricingPlans.ultimate.shutdownsAndInquiries",
+                ),
+                Icon: GaugeIcon,
+                iconColor: "text-default",
+              },
+              {
+                feature: translate("pricingPlans.ultimate.aiAssistedModeling"),
+                Icon: BotIcon,
+                iconColor: "text-default",
+              },
+            ]}
+          />
+        </div>
+      </div>
+      <div className="px-4 pb-4 w-full">
+        <QuoteButton
+          label={translate("requestQuote")}
+          onClick={captureCheckoutStarted}
+        />
+      </div>
+    </div>
+  );
+};
+
+const PricingPlanHeader = ({
+  name,
+  claim,
+  price,
+  payment,
+  onPaymentChange,
+}: {
+  name: string;
+  claim: string;
+  price: string;
+  payment: PaymentType;
+  onPaymentChange?: (payment: PaymentType) => void;
+}) => {
+  const translate = useTranslate();
+  const periodLabels: Record<PaymentType, string> = {
+    yearly: `/${translate("yearShort")}`,
+    monthly: `/${translate("monthShort")}`,
+  };
+
+  return (
+    <div className="flex flex-col">
+      <h2 className="text-size-heading-2 leading-6 font-semibold mb-2">
+        {name}
+      </h2>
+      <p className="text-subtle text-size-base leading-6">{claim}</p>
+      <div>
+        <strong className="text-3xl leading-10 font-bold">{price}</strong>
+        {onPaymentChange ? (
+          <BillingPeriodSelect
+            value={payment}
+            onChange={onPaymentChange}
+            labels={periodLabels}
+          />
+        ) : (
+          <span className="text-size-base text-subtle">
+            {periodLabels[payment]}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+};
+
 type PlanHeaderProps = {
   name: string;
   payment: PaymentType;
@@ -793,10 +1256,12 @@ type SlottableIcon =
 export const FeaturesList = ({
   title,
   textColor = "text-default",
+  className = "my-4",
   items,
 }: {
   title?: string;
   textColor?: string;
+  className?: string;
   items: {
     feature: string;
     Icon: SlottableIcon;
@@ -805,7 +1270,7 @@ export const FeaturesList = ({
   }[];
 }) => {
   return (
-    <div className="my-4">
+    <div className={className}>
       {title && <p className="text-size-base text-subtle mb-2">{title}</p>}
       <ul className="space-y-2 grow">
         {items.map(({ feature, Icon, iconColor, tooltip }, index) => (
@@ -872,408 +1337,19 @@ const proPrices = {
   monthly: "$250",
 };
 
-const PricingPlansDialog = ({
-  feature,
-  source,
-}: {
-  feature: string;
-  source: UpgradeOrigin;
-}) => {
-  const translate = useTranslate();
-  const userTracking = useUserTracking();
-  const { closeDialog } = useDialogState();
-  const { user, isSignedIn } = useAuth();
-  const isTrialEmailRefused = useIsTrialEmailRefused();
-  const isTrialAvailable =
-    !!isSignedIn && !user.hasUsedTrial && !isTrialEmailRefused;
-  const [usage, setUsage] = useState<UsageOption>("commercial");
-
-  const handleUsageChange = (newUsage: UsageOption) => {
-    userTracking.capture({ name: "planUsage.toggled" });
-    setUsage(newUsage);
-  };
-
-  const handleClose = () => {
-    userTracking.capture({
-      name: "upgradeDialog.dismissed",
-      source,
-      sourceFeature: feature,
-    });
-    closeDialog();
-  };
-
-  return (
-    <BaseDialog
-      title={translate("upgradeYourAccount")}
-      size="xl"
-      isOpen={true}
-      onClose={handleClose}
-      footer={
-        <footer className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 py-3 border-t text-size-base">
-          {usage === "commercial" ? (
-            <p className="text-subtle">
-              {translate("pricingPlans.studentOrPersonal")}{" "}
-              <button
-                type="button"
-                className="inline-flex items-center gap-1 text-info hover:underline"
-                onClick={() => handleUsageChange("non-commercial")}
-              >
-                {translate("pricingPlans.nonCommercialLicenses")}
-                <ArrowRightIcon />
-              </button>
-            </p>
-          ) : (
-            <button
-              type="button"
-              className="inline-flex items-center gap-1 text-info hover:underline"
-              onClick={() => handleUsageChange("commercial")}
-            >
-              <ArrowLeftIcon />
-              {translate("pricingPlans.backToCommercial")}
-            </button>
-          )}
-          <p className="text-subtle">
-            {translate("pricingPlans.haveQuestions")}{" "}
-            <a className="text-info" href="mailto:sales@epanetjs.com">
-              {translate("pricingPlans.sendEmail")}
-            </a>{" "}
-            {translate("pricingPlans.or")}{" "}
-            <a
-              className="text-info"
-              target="_blank"
-              href="https://cal.com/epanet-js/"
-            >
-              {translate("pricingPlans.bookCall")}
-            </a>
-            .
-          </p>
-        </footer>
-      }
-    >
-      <div className="p-4">
-        {/* Both views share one grid cell, so the dialog keeps the taller one's height. */}
-        <div className="grid">
-          <div
-            aria-hidden={usage !== "commercial"}
-            className={clsx(
-              "[grid-area:1/1] flex flex-col gap-4",
-              usage !== "commercial" && "invisible",
-            )}
-          >
-            {isTrialAvailable && (
-              <div className="flex items-center justify-center gap-2 rounded-lg bg-blue-50 p-4 text-center text-size-base text-default">
-                <ClockIcon className="text-blue-600" />
-                <p>
-                  <strong className="font-semibold">
-                    {translate("pricingPlans.trialTitle")}
-                  </strong>{" "}
-                  {translate("pricingPlans.trialDescription")}
-                </p>
-              </div>
-            )}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <ProPricingCard
-                feature={feature}
-                source={source}
-                isTrialAvailable={isTrialAvailable}
-              />
-              <UltimatePricingCard feature={feature} source={source} />
-              <EnterprisePricingCard />
-            </div>
-          </div>
-          <div
-            aria-hidden={usage !== "non-commercial"}
-            className={clsx(
-              "[grid-area:1/1]",
-              usage !== "non-commercial" && "invisible",
-            )}
-          >
-            <NonCommercialLicenses feature={feature} source={source} />
-          </div>
-        </div>
-      </div>
-    </BaseDialog>
-  );
-};
-
-const ProPricingCard = ({
-  feature,
-  source,
-  isTrialAvailable,
-}: {
-  feature: string;
-  source: UpgradeOrigin;
-  isTrialAvailable: boolean;
-}) => {
-  const translate = useTranslate();
-  const userTracking = useUserTracking();
-  const [paymentType, setPaymentType] = useState<PaymentType>("yearly");
-  const canStartTrial = paymentType === "yearly" && isTrialAvailable;
-
-  const handlePaymentChange = (newPaymentType: PaymentType) => {
-    userTracking.capture({ name: "planPaymentType.toggled" });
-    setPaymentType(newPaymentType);
-  };
-
-  return (
-    <PricingCard
-      name="Pro"
-      per={translate("pricingPlans.pro.per")}
-      featured
-      price={
-        <>
-          <PricingAmount>{proPrices[paymentType]}</PricingAmount>
-          <BillingPeriodSelect
-            value={paymentType}
-            onChange={handlePaymentChange}
-          />
-        </>
-      }
-      featuresTitle={`${translate("everythingAnd", "Free")}:`}
-      features={[
-        { label: translate("scenariosItem") },
-        {
-          label: translate("proModelBuilder"),
-          tooltip: translate("pricingPlans.pro.modelBuilderInfo"),
-        },
-        { label: translate("customAttributesItem") },
-        { label: translate("pricingPlans.pro.customMapLayers") },
-        { label: translate("scriptingItem") },
-        { label: translate("professionalSupport") },
-      ]}
-      more={
-        <p className="mt-2 text-size-base text-subtle">
-          {translate("pricingPlans.pro.andMore")}
-        </p>
-      }
-      actions={
-        <>
-          {canStartTrial ? (
-            <StartTrialButton feature={feature} source={source} />
-          ) : (
-            <CheckoutButton
-              plan="pro"
-              paymentType={paymentType}
-              feature={feature}
-              source={source}
-            >
-              {translate("upgradeTo", "Pro")}
-            </CheckoutButton>
-          )}
-          <QuoteButton label={translate("pricingPlans.requestQuote")} />
-        </>
-      }
-    />
-  );
-};
-
-const UltimatePricingCard = ({
-  feature,
-  source,
-}: {
-  feature: string;
-  source: UpgradeOrigin;
-}) => {
-  const translate = useTranslate();
-  const userTracking = useUserTracking();
-
-  const captureCheckoutStarted = () => {
-    userTracking.capture({
-      name: "checkout.started",
-      plan: "teams",
-      paymentType: "yearly",
-      source,
-      sourceFeature: feature,
-    });
-  };
-
-  return (
-    <PricingCard
-      name="Ultimate"
-      per={translate("pricingPlans.ultimate.per", "3")}
-      isPerStrong
-      price={
-        <>
-          <PricingAmount>$10,000</PricingAmount>
-          <span className="ml-1 text-size-base text-subtle">
-            {translate("pricingPlans.perYear")}
-          </span>
-        </>
-      }
-      featuresTitle={`${translate("everythingAnd", "Pro")}:`}
-      features={[
-        { label: translate("pricingPlans.ultimate.sharedCloudModels") },
-        { label: translate("pricingPlans.ultimate.teamBranching") },
-        { label: translate("pricingPlans.ultimate.rolesAndPermissions") },
-        { label: translate("selfServiceSeatManagement") },
-        { label: translate("payByInvoice") },
-        { label: translate("pricingPlans.ultimate.teamOnboarding") },
-      ]}
-      extraFeaturesTitle={translate("pricingPlans.ultimate.advancedWorkflows")}
-      extraFeatures={[
-        {
-          label: translate("pricingPlans.ultimate.automatedModelBuild"),
-          Icon: HammerIcon,
-        },
-        {
-          label: translate("pricingPlans.ultimate.calibrationTools"),
-          Icon: SlidersHorizontalIcon,
-        },
-        {
-          label: translate("pricingPlans.ultimate.unlimitedConversions"),
-          Icon: InfiniteIcon,
-        },
-        {
-          label: translate("pricingPlans.ultimate.shutdownsAndInquiries"),
-          Icon: GaugeIcon,
-        },
-        {
-          label: translate("pricingPlans.ultimate.aiAssistedModeling"),
-          Icon: BotIcon,
-        },
-      ]}
-      actions={
-        <QuoteButton
-          label={translate("pricingPlans.requestQuote")}
-          onClick={captureCheckoutStarted}
-        />
-      }
-    />
-  );
-};
-
-const EnterprisePricingCard = () => {
-  const translate = useTranslate();
-
-  return (
-    <PricingCard
-      name="Enterprise"
-      per={translate("pricingPlans.enterprise.per")}
-      price={
-        <PricingAmount>
-          {translate("pricingPlans.enterprise.price")}
-        </PricingAmount>
-      }
-      featuresTitle={`${translate("everythingAnd", "Ultimate")}:`}
-      features={[
-        { label: translate("pricingPlans.enterprise.corporateSso") },
-        { label: translate("pricingPlans.enterprise.regionalHosting") },
-        {
-          label: translate("pricingPlans.enterprise.centralizedUserManagement"),
-        },
-        { label: translate("pricingPlans.enterprise.networkPermissions") },
-        { label: translate("pricingPlans.enterprise.securityReview") },
-        { label: translate("pricingPlans.enterprise.dedicatedSupport") },
-      ]}
-      actions={
-        <QuoteButton label={translate("pricingPlans.enterprise.contactUs")} />
-      }
-    />
-  );
-};
-
-type PricingFeature = {
-  label: string;
-  Icon?: SlottableIcon;
-  tooltip?: string;
-};
-
-const PricingCard = ({
-  name,
-  per,
-  isPerStrong = false,
-  featured = false,
-  price,
-  featuresTitle,
-  features,
-  extraFeaturesTitle,
-  extraFeatures,
-  more,
-  actions,
-}: {
-  name: string;
-  per: string;
-  isPerStrong?: boolean;
-  featured?: boolean;
-  price: ReactNode;
-  featuresTitle: string;
-  features: PricingFeature[];
-  extraFeaturesTitle?: string;
-  extraFeatures?: PricingFeature[];
-  more?: ReactNode;
-  actions: ReactNode;
-}) => {
-  return (
-    <div
-      className={clsx(
-        "flex flex-col bg-base border rounded-lg p-6",
-        featured
-          ? "border-purple-200 shadow-[0_4px_12px_rgba(124,58,237,0.10),0_16px_40px_rgba(124,58,237,0.18)]"
-          : "shadow-md shadow-gray-300",
-      )}
-    >
-      <h3 className="text-size-heading-2 font-semibold">{name}</h3>
-      <div className="mt-2">
-        <span
-          className={clsx(
-            "block text-size-base",
-            isPerStrong ? "font-semibold text-default" : "text-subtle",
-          )}
-        >
-          {per}
-        </span>
-        {price}
-      </div>
-      <div className="mt-4 flex flex-1 flex-col">
-        <p className="text-size-small font-semibold uppercase tracking-wide text-subtle">
-          {featuresTitle}
-        </p>
-        <PricingFeatureList items={features} />
-        {extraFeatures && (
-          <>
-            <p className="mt-2 text-size-base text-subtle">
-              {extraFeaturesTitle}
-            </p>
-            <PricingFeatureList items={extraFeatures} />
-          </>
-        )}
-        {more}
-        <div className="mt-auto pt-4 flex flex-col gap-2">{actions}</div>
-      </div>
-    </div>
-  );
-};
-
-const PricingAmount = ({ children }: { children: ReactNode }) => {
-  return <strong className="text-3xl font-bold">{children}</strong>;
-};
-
-const PricingFeatureList = ({ items }: { items: PricingFeature[] }) => {
-  return (
-    <ul className="mt-1 space-y-1">
-      {items.map(({ label, Icon = CheckIcon, tooltip }) => (
-        <li
-          key={label}
-          className="flex items-start gap-2 text-size-base text-default"
-        >
-          <Icon className="mt-0.5 shrink-0 text-indigo-500" />
-          <span>{label}</span>
-          {tooltip && <InfoTooltip text={tooltip} />}
-        </li>
-      ))}
-    </ul>
-  );
-};
+const ultimatePrice = "$10,000";
 
 const BillingPeriodSelect = ({
   value,
   onChange,
+  labels: customLabels,
 }: {
   value: PaymentType;
   onChange: (value: PaymentType) => void;
+  labels?: Record<PaymentType, string>;
 }) => {
   const translate = useTranslate();
-  const labels: Record<PaymentType, string> = {
+  const labels: Record<PaymentType, string> = customLabels ?? {
     yearly: translate("pricingPlans.perYear"),
     monthly: translate("pricingPlans.perMonth"),
   };
@@ -1318,137 +1394,5 @@ const QuoteButton = ({
     >
       {label}
     </Button>
-  );
-};
-
-const NonCommercialLicenses = ({
-  feature,
-  source,
-}: {
-  feature: string;
-  source: UpgradeOrigin;
-}) => {
-  const translate = useTranslate();
-  const checkUnsavedChanges = useUnsavedChangesCheck();
-  const { isSignedIn, signOut } = useAuth();
-  const { startCheckout } = useCheckout();
-  const userTracking = useUserTracking();
-
-  const startStudentSignUp = () => {
-    userTracking.capture({ name: "studentLogin.clicked" });
-    checkUnsavedChanges(() => {
-      if (isSignedIn) {
-        void signOut({ redirectUrl: signUpUrl });
-      } else {
-        window.location.href = signUpUrl;
-      }
-    });
-  };
-
-  const startPersonalCheckout = () => {
-    userTracking.capture({
-      name: "checkout.started",
-      plan: "personal",
-      paymentType: "yearly",
-      source,
-      sourceFeature: feature,
-    });
-    startCheckout("personal", "yearly");
-  };
-
-  return (
-    <section>
-      <h2 className="text-size-heading-2 font-semibold">
-        {translate("pricingPlans.nonCommercialLicenses")}
-      </h2>
-      <p className="text-size-base text-subtle">
-        {translate("pricingPlans.nonCommercial.description")}
-      </p>
-      <div className="mt-4 grid items-start gap-4 sm:grid-cols-2">
-        <NonCommercialLicense
-          Icon={GraduationCapIcon}
-          name="Education"
-          description={translate(
-            "pricingPlans.nonCommercial.educationDescription",
-          )}
-          price={translate("pricingPlans.nonCommercial.educationPrice")}
-          per={translate("pricingPlans.nonCommercial.educationPer")}
-          onClick={startStudentSignUp}
-          help={
-            <>
-              {translate("havingIssuesWithStudentEmail")}{" "}
-              <a
-                className="text-info"
-                target="_blank"
-                href={studentAccountActiviationHelpUrl}
-                onClick={() => {
-                  userTracking.capture({
-                    name: "helpCenter.visited",
-                    source: "educationPlan",
-                  });
-                }}
-              >
-                {translate("getHelp")}.
-              </a>
-            </>
-          }
-        />
-        <NonCommercialLicense
-          Icon={UserIcon}
-          name="Personal"
-          description={translate(
-            "pricingPlans.nonCommercial.personalDescription",
-          )}
-          price="$100"
-          per={translate("pricingPlans.perYear")}
-          onClick={startPersonalCheckout}
-        />
-      </div>
-    </section>
-  );
-};
-
-const NonCommercialLicense = ({
-  Icon,
-  name,
-  description,
-  price,
-  per,
-  onClick,
-  help,
-}: {
-  Icon: SlottableIcon;
-  name: string;
-  description: string;
-  price: string;
-  per: string;
-  onClick: () => void;
-  help?: ReactNode;
-}) => {
-  return (
-    <div className="flex flex-col gap-2">
-      <button
-        type="button"
-        onClick={onClick}
-        className="flex flex-col gap-4 rounded-lg border bg-base shadow-sm p-6 text-left hover:bg-base-hover"
-      >
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-linear-to-br from-blue-100 to-purple-100 text-purple-600">
-          <Icon className="h-5 w-5" />
-        </div>
-        <div>
-          <span className="block text-size-base font-semibold text-default">
-            {name}
-          </span>
-          <span className="block text-size-base text-subtle">
-            {description}
-          </span>
-          <span className="flex items-baseline mt-2">
-            <strong className="text-2xl font-bold text-default">{price}</strong>
-            <span className="ml-1 text-size-base text-subtle">{per}</span>
-          </span>
-        </div>
-      </button>
-      {help && <p className="text-size-base text-subtle">{help}</p>}
-    </div>
   );
 };

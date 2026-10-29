@@ -9,6 +9,7 @@ export const helpCenterUrl = "https://help.epanetjs.com";
 export const roadmapUrl = "https://roadmap.epanetjs.com";
 export const utilitiesUrl = "https://utils.epanetjs.com";
 export const landingPageUrl = "https://epanetjs.com";
+export const pricingPageUrl = "https://epanetjs.com/pricing";
 export const quickStartTutorialUrl =
   "https://help.epanetjs.com/Getting-started-1a5e18c9f0f680399659f710a37aa452";
 export const sourceCodeUrl = "https://github.com/epanet-js/epanet-js";
