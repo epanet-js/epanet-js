@@ -81,6 +81,34 @@ export type PumpEnergySummary = {
   demandCharge: number;
 };
 
+export const pipeStatusOf = (code: number): PipeSimulation["status"] =>
+  code < 3 ? "closed" : "open";
+
+export const valveStatusOf = (code: number): ValveSimulation["status"] => {
+  if (code < 3) return "closed";
+  if (code === 4) return "active";
+  return "open";
+};
+
+export const valveStatusWarningOf = (
+  code: number,
+): ValveSimulation["statusWarning"] => {
+  if (code === 6) return "cannot-deliver-flow";
+  if (code === 7) return "cannot-deliver-pressure";
+  return null;
+};
+
+export const pumpStatusOf = (code: number): PumpSimulation["status"] =>
+  code >= 3 ? "on" : "off";
+
+export const pumpStatusWarningOf = (
+  code: number,
+): PumpSimulation["statusWarning"] => {
+  if (code === 0) return "cannot-deliver-head";
+  if (code === 5) return "cannot-deliver-flow";
+  return null;
+};
+
 export const simulationProperties = [
   "flow",
   "velocity",

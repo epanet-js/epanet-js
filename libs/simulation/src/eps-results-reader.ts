@@ -8,6 +8,11 @@ import {
   ReservoirSimulation,
   PumpEnergySummary,
   type SimulationProperty,
+  pipeStatusOf,
+  pumpStatusOf,
+  pumpStatusWarningOf,
+  valveStatusOf,
+  valveStatusWarningOf,
 } from "./results-reader";
 import {
   IKeyBufferStore,
@@ -1491,8 +1496,8 @@ class TimestepResultsReader implements ResultsReader {
       flow: linkData.flow,
       velocity: linkData.velocity,
       headloss: linkData.headloss,
-      status: this.mapValveStatus(statusValue),
-      statusWarning: this.mapValveStatusWarning(statusValue),
+      status: valveStatusOf(statusValue),
+      statusWarning: valveStatusWarningOf(statusValue),
       waterAge: qualityType === "age" ? linkData.avgQuality : null,
       waterTrace: qualityType === "trace" ? linkData.avgQuality : null,
       chemicalConcentration:
@@ -1508,15 +1513,14 @@ class TimestepResultsReader implements ResultsReader {
 
     const statusValue =
       this.getPumpStatusFromStorage(linkIndex) ?? linkData.status;
-    const isOn = statusValue >= 3;
 
     const qualityType = this.simulationMetadata.qualityType;
     return {
       type: "pump",
       flow: linkData.flow,
       head: -linkData.headloss,
-      status: isOn ? "on" : "off",
-      statusWarning: this.mapPumpStatusWarning(statusValue),
+      status: pumpStatusOf(statusValue),
+      statusWarning: pumpStatusWarningOf(statusValue),
       waterAge: qualityType === "age" ? linkData.avgQuality : null,
       waterTrace: qualityType === "trace" ? linkData.avgQuality : null,
       chemicalConcentration:
@@ -1571,7 +1575,7 @@ class TimestepResultsReader implements ResultsReader {
       velocity: linkData.velocity,
       headloss,
       unitHeadloss,
-      status: this.mapPipeStatus(linkData.status),
+      status: pipeStatusOf(linkData.status),
       waterAge: qualityType === "age" ? linkData.avgQuality : null,
       waterTrace: qualityType === "trace" ? linkData.avgQuality : null,
       chemicalConcentration:
@@ -1696,33 +1700,6 @@ class TimestepResultsReader implements ResultsReader {
       reactionRate: this.view.getFloat32(reactionOffset, true),
       friction: this.view.getFloat32(frictionOffset, true),
     };
-  }
-
-  private mapValveStatus(statusValue: number): "active" | "open" | "closed" {
-    if (statusValue < 3) return "closed";
-    if (statusValue === 4) return "active";
-    return "open";
-  }
-
-  private mapValveStatusWarning(
-    statusValue: number,
-  ): ValveSimulation["statusWarning"] {
-    if (statusValue === 6) return "cannot-deliver-flow";
-    if (statusValue === 7) return "cannot-deliver-pressure";
-    return null;
-  }
-
-  private mapPipeStatus(statusValue: number): "open" | "closed" {
-    if (statusValue < 3) return "closed";
-    return "open";
-  }
-
-  private mapPumpStatusWarning(
-    statusValue: number,
-  ): PumpSimulation["statusWarning"] {
-    if (statusValue === 0) return "cannot-deliver-head";
-    if (statusValue === 5) return "cannot-deliver-flow";
-    return null;
   }
 
   private findTankIndexInSupplySources(nodeIndex: number): number {
