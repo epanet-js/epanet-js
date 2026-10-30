@@ -7,6 +7,7 @@ import { ModelBuildView } from "./model-build-view";
 vi.mock("src/hooks/use-feature-flags", () => ({
   useEnabledFeatureFlags: () => [],
   useFeatureFlag: () => false,
+  useReportFeatureFlagUsage: () => () => {},
 }));
 vi.mock("src/commands/open-project", () => ({
   useOpenProjectFile: () => vi.fn(),

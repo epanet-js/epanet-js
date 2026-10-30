@@ -1,5 +1,12 @@
 import { usePostHog } from "posthog-js/react";
-import { useEffect, useState, createContext, useContext, useRef } from "react";
+import {
+  useCallback,
+  useEffect,
+  useState,
+  createContext,
+  useContext,
+  useRef,
+} from "react";
 import { setFlagsContext } from "src/infra/error-tracking";
 import { isPosthogConfigured } from "src/infra/user-tracking";
 import {
@@ -117,6 +124,25 @@ const useFeatureFlagWithUrl = (name: string): boolean => {
 export const useFeatureFlag = isPosthogConfigured
   ? useFeatureFlagWithPostHog
   : useFeatureFlagWithUrl;
+
+const useReportFeatureFlagUsageWithPostHog = () => {
+  const posthog = usePostHog();
+
+  return useCallback(
+    (name: string) => {
+      if (getFlagOverrideFromUrl(name) !== undefined) return;
+      posthog?.getFeatureFlag?.(name);
+    },
+    [posthog],
+  );
+};
+
+const useReportFeatureFlagUsageWithUrl = () =>
+  useCallback((_name: string) => {}, []);
+
+export const useReportFeatureFlagUsage = isPosthogConfigured
+  ? useReportFeatureFlagUsageWithPostHog
+  : useReportFeatureFlagUsageWithUrl;
 
 export const useFeatureFlagsReady = (): boolean => {
   return useContext(FeatureFlagsContext).isReady;

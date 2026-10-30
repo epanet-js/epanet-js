@@ -10,7 +10,10 @@ import { useOpenProjectFile } from "src/commands/open-project";
 import { projectExtension } from "src/commands/save-project";
 import { useUserTracking, UserEvent } from "src/infra/user-tracking";
 import { useShowNetworkReview } from "src/commands/show-network-review";
-import { useEnabledFeatureFlags } from "src/hooks/use-feature-flags";
+import {
+  useEnabledFeatureFlags,
+  useReportFeatureFlagUsage,
+} from "src/hooks/use-feature-flags";
 import { modelBuilderV2Url } from "src/global-config";
 
 const buildIframeSrc = (enabledFlags: string[], locale: string): string => {
@@ -68,6 +71,14 @@ interface OpenExternalLinkMessage extends IframeMessage {
     source: "epanet-model-builder";
     url: string;
     timestamp: string;
+  };
+}
+
+interface FeatureFlagCalledMessage extends IframeMessage {
+  type: "featureFlagCalled";
+  data: {
+    source: "epanet-model-builder";
+    name: string;
   };
 }
 
@@ -139,6 +150,7 @@ export const ModelBuilderV2Frame = ({
   const userTracking = useUserTracking();
   const showNetworkReview = useShowNetworkReview();
   const enabledFlags = useEnabledFeatureFlags();
+  const reportFeatureFlagUsage = useReportFeatureFlagUsage();
   const initialLocale = useRef(locale).current;
   const iframeSrc = useMemo(
     () => buildIframeSrc(enabledFlags, initialLocale),
@@ -182,6 +194,9 @@ export const ModelBuilderV2Frame = ({
         onContextChange((message as ContextChangedMessage).data.context ?? {});
       } else if (message.type === "openExternalLink") {
         handleOpenExternalLink(message as OpenExternalLinkMessage);
+      } else if (message.type === "featureFlagCalled") {
+        const { name } = (message as FeatureFlagCalledMessage).data;
+        if (typeof name === "string" && name) reportFeatureFlagUsage(name);
       } else if (message.type === "close") {
         onClose?.();
       }
@@ -196,6 +211,7 @@ export const ModelBuilderV2Frame = ({
     openProjectFile,
     userTracking,
     showNetworkReview,
+    reportFeatureFlagUsage,
     onContextChange,
     onClose,
   ]);

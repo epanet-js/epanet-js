@@ -5,6 +5,7 @@ import { ModelBuilderV2IframeDialog } from "./model-builder-v2-iframe";
 const v2Url = vi.hoisted(() => "https://v2.example/?embedded=true");
 const openProjectFile = vi.hoisted(() => vi.fn());
 const enabledFlags = vi.hoisted(() => ({ value: [] as string[] }));
+const reportFeatureFlagUsage = vi.hoisted(() => vi.fn());
 
 vi.mock("src/global-config", async (importOriginal) => ({
   ...(await importOriginal<typeof import("src/global-config")>()),
@@ -14,6 +15,7 @@ vi.mock("src/global-config", async (importOriginal) => ({
 vi.mock("src/hooks/use-feature-flags", () => ({
   useEnabledFeatureFlags: () => enabledFlags.value,
   useFeatureFlag: (name: string) => enabledFlags.value.includes(name),
+  useReportFeatureFlagUsage: () => reportFeatureFlagUsage,
 }));
 
 vi.mock("src/commands/open-project", () => ({
@@ -49,6 +51,7 @@ const postFromModelBuilder = (type: string, data: Record<string, unknown>) =>
 describe("ModelBuilderV2IframeDialog (v2)", () => {
   beforeEach(() => {
     openProjectFile.mockReset();
+    reportFeatureFlagUsage.mockReset();
     enabledFlags.value = [];
   });
 
@@ -98,6 +101,14 @@ describe("ModelBuilderV2IframeDialog (v2)", () => {
     expect(file).toBeInstanceOf(File);
     expect((file as File).name).toMatch(/\.ejsdb$/);
     expect(source).toBe("modelBuilder");
+  });
+
+  it("reports the flags the model builder reads as used", () => {
+    render(<ModelBuilderV2IframeDialog onClose={vi.fn()} />);
+
+    postFromModelBuilder("featureFlagCalled", { name: "FLAG_TEST_ERRORS" });
+
+    expect(reportFeatureFlagUsage).toHaveBeenCalledWith("FLAG_TEST_ERRORS");
   });
 
   it("ignores messages from other sources", () => {
