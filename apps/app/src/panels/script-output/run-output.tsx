@@ -6,16 +6,7 @@ import { PaywallLockButton } from "src/components/form/paywall";
 import { usePermissions } from "src/hooks/use-permissions";
 import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
-import type {
-  ScriptAttachment,
-  ScriptBookmark,
-  ScriptRunOutcome,
-  ScriptSelectionSet,
-} from "src/lib/scripting";
-import {
-  useApplyScriptSelectionSet,
-  useGoToScriptBookmark,
-} from "src/commands/script-output-collections";
+import type { ScriptAttachment, ScriptRunOutcome } from "src/lib/scripting";
 import type { ScriptConsoleLine, ScriptRunState } from "src/state/scripts";
 import {
   DownloadIcon,
@@ -80,13 +71,7 @@ const ConsoleLine = ({ line }: { line: ScriptConsoleLine }) => {
   return <div className={color}>{line.text}</div>;
 };
 
-export const RunResult = ({
-  outcome,
-  collections,
-}: {
-  outcome: ScriptRunOutcome;
-  collections: "saved" | "draft";
-}) => {
+export const RunStatus = ({ outcome }: { outcome: ScriptRunOutcome }) => {
   const translate = useTranslate();
   if (outcome.status === "cancelled") {
     return (
@@ -113,12 +98,24 @@ export const RunResult = ({
     );
   }
   return (
+    <StatusRow
+      icon={<SuccessIcon />}
+      iconClass="text-success"
+      text={translate("scripting.finished")}
+    />
+  );
+};
+
+export const RunResultDeprecated = ({
+  outcome,
+}: {
+  outcome: ScriptRunOutcome;
+}) => {
+  const translate = useTranslate();
+  if (outcome.status !== "success") return <RunStatus outcome={outcome} />;
+  return (
     <div className="flex flex-col gap-2">
-      <StatusRow
-        icon={<SuccessIcon />}
-        iconClass="text-success"
-        text={translate("scripting.finished")}
-      />
+      <RunStatus outcome={outcome} />
       {outcome.attachments.length > 0 && (
         <div className="flex flex-col gap-1">
           <div className="text-size-small font-semibold text-default">
@@ -129,86 +126,21 @@ export const RunResult = ({
           ))}
         </div>
       )}
-      {collections === "draft" ? (
-        <DraftCollections
-          selectionSets={outcome.selectionSets}
-          bookmarks={outcome.bookmarks}
+      {outcome.selectionSets.length > 0 && (
+        <CollectionsResult
+          title={translate("collections.selectionSets.title")}
+          labels={outcome.selectionSets.map((s) => s.label)}
         />
-      ) : (
-        <>
-          {outcome.selectionSets.length > 0 && (
-            <CollectionsResult
-              title={translate("collections.selectionSets.title")}
-              labels={outcome.selectionSets.map((s) => s.label)}
-            />
-          )}
-          {outcome.bookmarks.length > 0 && (
-            <CollectionsResult
-              title={translate("collections.bookmarks.title")}
-              labels={outcome.bookmarks.map((b) => b.label)}
-            />
-          )}
-        </>
+      )}
+      {outcome.bookmarks.length > 0 && (
+        <CollectionsResult
+          title={translate("collections.bookmarks.title")}
+          labels={outcome.bookmarks.map((b) => b.label)}
+        />
       )}
     </div>
   );
 };
-
-const DraftCollections = ({
-  selectionSets,
-  bookmarks,
-}: {
-  selectionSets: ScriptSelectionSet[];
-  bookmarks: ScriptBookmark[];
-}) => {
-  const translate = useTranslate();
-  const applySelectionSet = useApplyScriptSelectionSet();
-  const goToBookmark = useGoToScriptBookmark();
-
-  return (
-    <>
-      {selectionSets.length > 0 && (
-        <DraftCollection
-          title={translate("collections.selectionSets.title")}
-          items={selectionSets}
-          onClick={applySelectionSet}
-        />
-      )}
-      {bookmarks.length > 0 && (
-        <DraftCollection
-          title={translate("collections.bookmarks.title")}
-          items={bookmarks}
-          onClick={goToBookmark}
-        />
-      )}
-    </>
-  );
-};
-
-const DraftCollection = <T extends { label: string }>({
-  title,
-  items,
-  onClick,
-}: {
-  title: string;
-  items: T[];
-  onClick: (item: T) => void;
-}) => (
-  <div className="flex flex-col gap-1">
-    <div className="text-size-small font-semibold text-default">{title}</div>
-    {items.map((item, i) => (
-      <button
-        key={i}
-        type="button"
-        className="truncate text-left text-size-base rounded px-1 -mx-1 hover:bg-base-hover"
-        title={item.label}
-        onClick={() => onClick(item)}
-      >
-        {item.label}
-      </button>
-    ))}
-  </div>
-);
 
 const CollectionsResult = ({
   title,
@@ -242,9 +174,20 @@ const CollectionsResult = ({
   );
 };
 
+export const useDownloadAttachment = () => {
+  const userTracking = useUserTracking();
+  return (attachment: ScriptAttachment) => {
+    userTracking.capture({
+      name: "script.attachmentDownloaded",
+      sizeKb: Math.max(1, Math.round(attachment.content.length / 1024)),
+    });
+    void FileSystemHelpers.downloadFile(attachment.name, attachment.content);
+  };
+};
+
 const AttachmentRow = ({ attachment }: { attachment: ScriptAttachment }) => {
   const translate = useTranslate();
-  const userTracking = useUserTracking();
+  const downloadAttachment = useDownloadAttachment();
   return (
     <div className="flex items-center gap-2 text-size-base">
       <span className="truncate flex-auto" title={attachment.name}>
@@ -253,19 +196,7 @@ const AttachmentRow = ({ attachment }: { attachment: ScriptAttachment }) => {
       <span className="text-size-small text-subtle tabular-nums shrink-0">
         {formatSize(attachment.content.length)}
       </span>
-      <Button
-        size="xs"
-        onClick={() => {
-          userTracking.capture({
-            name: "script.attachmentDownloaded",
-            sizeKb: Math.max(1, Math.round(attachment.content.length / 1024)),
-          });
-          void FileSystemHelpers.downloadFile(
-            attachment.name,
-            attachment.content,
-          );
-        }}
-      >
+      <Button size="xs" onClick={() => downloadAttachment(attachment)}>
         <DownloadIcon size="sm" />
         {translate("scripting.download")}
       </Button>
@@ -308,7 +239,7 @@ export const formatElapsed = (ms: number): string => {
   return `${minutes}:${String(seconds).padStart(2, "0")}`;
 };
 
-const formatSize = (chars: number): string =>
+export const formatSize = (chars: number): string =>
   chars >= 1024 * 1024
     ? `${(chars / (1024 * 1024)).toFixed(1)} MB`
     : `${Math.max(1, Math.round(chars / 1024))} kB`;

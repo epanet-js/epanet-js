@@ -8,10 +8,11 @@ import { accumulateResize } from "src/components/resizer";
 import { useTranslate } from "src/hooks/use-translate";
 import {
   ConsoleLines,
-  RunResult,
+  RunStatus,
   formatElapsed,
   useElapsed,
 } from "./run-output";
+import { RunResult } from "./run-result";
 
 const DEFAULT_SIDEBAR_WIDTH = 288;
 const MIN_SIDEBAR_WIDTH = 200;
@@ -78,20 +79,25 @@ const RunOutput = ({
             )
           }
         />
-        <div className="h-full overflow-auto placemark-scrollbar p-3 flex flex-col gap-3 text-size-base text-default">
-          <div className="flex flex-col gap-0.5">
-            <div className="font-semibold truncate" title={run.name}>
+        <div className="h-full overflow-auto placemark-scrollbar px-2 py-2 flex flex-col text-sm text-default">
+          <div className="flex items-center h-8 px-1">
+            <span className="font-semibold truncate" title={run.name}>
               {run.name}
-            </div>
-            <div className="text-subtle tabular-nums">
-              {run.status === "running"
-                ? translate("scripting.running")
-                : formatElapsed(elapsedMs)}
-            </div>
+            </span>
           </div>
-          {run.outcome && (
-            <RunResult outcome={run.outcome} collections="draft" />
-          )}
+          <div className="flex items-start justify-between gap-2 px-1 py-1.5">
+            {run.outcome ? (
+              <RunStatus outcome={run.outcome} />
+            ) : (
+              <span className="text-subtle">
+                {translate("scripting.running")}
+              </span>
+            )}
+            <span className="shrink-0 text-subtle tabular-nums">
+              {formatElapsed(elapsedMs)}
+            </span>
+          </div>
+          {run.outcome && <RunResult outcome={run.outcome} />}
         </div>
       </div>
     </div>

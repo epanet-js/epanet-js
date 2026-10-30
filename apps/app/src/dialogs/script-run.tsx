@@ -7,7 +7,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { scriptRunAtom, type ScriptRunState } from "src/state/scripts";
 import {
   ConsoleLines,
-  RunResult,
+  RunResultDeprecated,
   formatElapsed,
   useElapsed,
 } from "src/panels/script-output/run-output";
@@ -79,9 +79,7 @@ const RunningScriptDialog = ({
         {running && <RunProgress run={run} elapsedMs={elapsedMs} />}
         {!isScriptOutputPanelOn && (
           <>
-            {run.outcome && (
-              <RunResult outcome={run.outcome} collections="saved" />
-            )}
+            {run.outcome && <RunResultDeprecated outcome={run.outcome} />}
             <div
               ref={consoleRef}
               className="h-64 overflow-auto placemark-scrollbar bg-panel border rounded p-4 font-mono text-size-base text-default whitespace-pre-wrap"
