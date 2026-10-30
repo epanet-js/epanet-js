@@ -1,13 +1,38 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import clsx from "clsx";
 import { BaseDialog } from "../components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
+import { useAuth } from "src/hooks/use-auth";
+import { useLocale } from "src/hooks/use-locale";
 import { Loading } from "../components/elements";
 import { EarlyAccessBadge } from "../components/early-access-badge";
-import { useImportInp } from "src/commands/import-inp";
+import { useOpenProjectFile } from "src/commands/open-project";
+import { projectExtension } from "src/commands/save-project";
 import { useUserTracking, UserEvent } from "src/infra/user-tracking";
 import { useShowNetworkReview } from "src/commands/show-network-review";
-import { modelBuilderUrl } from "src/global-config";
-import { useAuth } from "src/hooks/use-auth";
+import {
+  useEnabledFeatureFlags,
+  useReportFeatureFlagUsage,
+} from "src/hooks/use-feature-flags";
+import { usePermissions } from "src/hooks/use-permissions";
+import { useStartUpgrade } from "src/hooks/use-paywall";
+import { modelBuilderV2Url } from "src/global-config";
+
+type ModelBuildAccess = "full" | "limited";
+
+const buildIframeSrc = (
+  enabledFlags: string[],
+  locale: string,
+  access: ModelBuildAccess,
+): string => {
+  const url = new URL(modelBuilderV2Url);
+  for (const flag of enabledFlags) {
+    url.searchParams.set(flag, "true");
+  }
+  url.searchParams.set("locale", locale);
+  url.searchParams.set("access", access);
+  return url.toString();
+};
 
 interface IframeMessage {
   type: string;
@@ -17,12 +42,15 @@ interface IframeMessage {
   };
 }
 
-interface ModelBuildCompleteMessage extends IframeMessage {
-  type: "modelBuildComplete";
+// v2 hands the built model back as an .ejsdb binary (vs v1's INP text). The
+// bytes ride along as a structured-cloned Uint8Array.
+interface ModelBuildEjsdbCompleteMessage extends IframeMessage {
+  type: "modelBuildEjsdbComplete";
   data: {
     source: "epanet-model-builder";
-    inpContent: string;
-    timestamp: number;
+    ejsdbBytes: Uint8Array;
+    projectName?: string;
+    timestamp: string;
   };
 }
 
@@ -31,6 +59,18 @@ interface TrackUserEventMessage extends IframeMessage {
   data: {
     source: "epanet-model-builder";
     userEvent: UserEvent;
+  };
+}
+
+export type ModelBuilderContext = {
+  step?: string;
+};
+
+interface ContextChangedMessage extends IframeMessage {
+  type: "contextChanged";
+  data: {
+    source: "epanet-model-builder";
+    context: ModelBuilderContext;
   };
 }
 
@@ -43,33 +83,41 @@ interface OpenExternalLinkMessage extends IframeMessage {
   };
 }
 
-const handleModelBuildComplete = (
-  message: ModelBuildCompleteMessage,
+interface FeatureFlagCalledMessage extends IframeMessage {
+  type: "featureFlagCalled";
+  data: {
+    source: "epanet-model-builder";
+    name: string;
+  };
+}
+
+const handleModelBuildEjsdbComplete = async (
+  message: ModelBuildEjsdbCompleteMessage,
   userTracking: ReturnType<typeof useUserTracking>,
-  importInp: ReturnType<typeof useImportInp>,
+  openProjectFile: ReturnType<typeof useOpenProjectFile>,
   showNetworkReview: ReturnType<typeof useShowNetworkReview>,
 ) => {
-  if (!message.data.inpContent) {
+  if (!message.data.ejsdbBytes) {
     return;
   }
 
-  const { inpContent, timestamp } = message.data;
-  const filename = `model-builder-${new Date(timestamp).toISOString().replace(/[:.]/g, "-")}.inp`;
+  const { ejsdbBytes, projectName, timestamp } = message.data;
+  const name =
+    projectName ||
+    `model-builder-${new Date(timestamp).toISOString().replace(/[:.]/g, "-")}`;
+  const filename = `${name}${projectExtension}`;
 
   userTracking.capture({
     name: "modelBuilder.completed",
+    version: "v2",
   });
 
-  setTimeout(() => {
-    const inpFile = new File([inpContent], filename, {
-      type: "text/plain",
-    });
+  const projectFile = new File([ejsdbBytes], filename, {
+    type: "application/octet-stream",
+  });
 
-    void (async () => {
-      await importInp([inpFile], "modelBuilder");
-      showNetworkReview({ source: "auto" });
-    })();
-  }, 1000);
+  await openProjectFile(projectFile, "modelBuilder", { isUnsaved: true });
+  showNetworkReview({ source: "auto" });
 };
 
 const handleUserEvent = (
@@ -95,45 +143,90 @@ const handleOpenExternalLink = (message: OpenExternalLinkMessage) => {
   window.open(message.data.url, "_blank", "noopener,noreferrer");
 };
 
-export const ModelBuilderIframeDialog = ({
-  onClose: _onClose,
+export const ModelBuilderFrame = ({
+  onContextChange,
+  onClose,
+  className,
 }: {
-  onClose: () => void;
+  onContextChange: (context: ModelBuilderContext) => void;
+  onClose?: () => void;
+  className?: string;
 }) => {
   const translate = useTranslate();
+  const { locale } = useLocale();
   const [isLoading, setIsLoading] = useState(true);
-  const importInp = useImportInp();
+  const openProjectFile = useOpenProjectFile();
   const userTracking = useUserTracking();
   const showNetworkReview = useShowNetworkReview();
-  const { isSignedIn } = useAuth();
+  const enabledFlags = useEnabledFeatureFlags();
+  const reportFeatureFlagUsage = useReportFeatureFlagUsage();
+  const { canUseAdvancedModelBuild } = usePermissions();
+  const startUpgrade = useStartUpgrade();
+  const access: ModelBuildAccess = canUseAdvancedModelBuild
+    ? "full"
+    : "limited";
+  const initialLocale = useRef(locale).current;
+  const initialAccess = useRef(access).current;
+  const iframeSrc = useMemo(
+    () => buildIframeSrc(enabledFlags, initialLocale, initialAccess),
+    [enabledFlags, initialLocale, initialAccess],
+  );
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  const sendLocale = useCallback(() => {
+    iframeRef.current?.contentWindow?.postMessage(
+      { type: "localeChanged", data: { locale } },
+      new URL(modelBuilderV2Url).origin,
+    );
+  }, [locale]);
+
+  const sendAccess = useCallback(() => {
+    iframeRef.current?.contentWindow?.postMessage(
+      { type: "accessChanged", data: { access } },
+      new URL(modelBuilderV2Url).origin,
+    );
+  }, [access]);
+
+  useEffect(() => {
+    sendLocale();
+  }, [sendLocale]);
+
+  useEffect(() => {
+    sendAccess();
+  }, [sendAccess]);
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      try {
-        const message = event.data as IframeMessage;
+      const message = event.data as IframeMessage;
 
-        if (!message?.type || !message?.data?.source) {
-          return;
-        }
+      if (!message?.type || !message?.data?.source) {
+        return;
+      }
 
-        if (message.data.source !== "epanet-model-builder") {
-          return;
-        }
+      if (message.data.source !== "epanet-model-builder") {
+        return;
+      }
 
-        if (message.type === "modelBuildComplete") {
-          handleModelBuildComplete(
-            message as ModelBuildCompleteMessage,
-            userTracking,
-            importInp,
-            showNetworkReview,
-          );
-        } else if (message.type === "trackUserEvent") {
-          handleUserEvent(message as TrackUserEventMessage, userTracking);
-        } else if (message.type === "openExternalLink") {
-          handleOpenExternalLink(message as OpenExternalLinkMessage);
-        }
-      } catch (error) {
-        throw error;
+      if (message.type === "modelBuildEjsdbComplete") {
+        void handleModelBuildEjsdbComplete(
+          message as ModelBuildEjsdbCompleteMessage,
+          userTracking,
+          openProjectFile,
+          showNetworkReview,
+        );
+      } else if (message.type === "trackUserEvent") {
+        handleUserEvent(message as TrackUserEventMessage, userTracking);
+      } else if (message.type === "contextChanged") {
+        onContextChange((message as ContextChangedMessage).data.context ?? {});
+      } else if (message.type === "openExternalLink") {
+        handleOpenExternalLink(message as OpenExternalLinkMessage);
+      } else if (message.type === "featureFlagCalled") {
+        const { name } = (message as FeatureFlagCalledMessage).data;
+        if (typeof name === "string" && name) reportFeatureFlagUsage(name);
+      } else if (message.type === "requestUpgrade") {
+        startUpgrade("modelBuildAdvanced");
+      } else if (message.type === "close") {
+        onClose?.();
       }
     };
 
@@ -142,7 +235,61 @@ export const ModelBuilderIframeDialog = ({
     return () => {
       window.removeEventListener("message", handleMessage);
     };
-  }, [importInp, userTracking, showNetworkReview]);
+  }, [
+    openProjectFile,
+    userTracking,
+    showNetworkReview,
+    reportFeatureFlagUsage,
+    onContextChange,
+    onClose,
+    startUpgrade,
+  ]);
+
+  return (
+    <div className="relative flex-1 flex flex-col min-h-0 overflow-hidden">
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-base z-10">
+          <Loading />
+        </div>
+      )}
+      <iframe
+        ref={iframeRef}
+        src={iframeSrc}
+        className={clsx("w-full flex-1 border-0", className)}
+        onLoad={() => {
+          setIsLoading(false);
+          sendLocale();
+          sendAccess();
+        }}
+        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads"
+        title={translate("importFromGIS")}
+      />
+    </div>
+  );
+};
+
+export const ModelBuilderIframeDialog = ({
+  onClose: _onClose,
+}: {
+  onClose: () => void;
+}) => {
+  const translate = useTranslate();
+  const context = useRef<ModelBuilderContext>({});
+  const userTracking = useUserTracking();
+  const { isSignedIn, isLoaded } = useAuth();
+  const showEarlyAccess = isLoaded && !isSignedIn;
+
+  const handleContextChange = useCallback((newContext: ModelBuilderContext) => {
+    context.current = newContext;
+  }, []);
+
+  const handleClose = () => {
+    userTracking.capture({
+      name: "modelBuilder.closed",
+      step: context.current.step ?? null,
+    });
+    _onClose();
+  };
 
   return (
     <BaseDialog
@@ -150,23 +297,13 @@ export const ModelBuilderIframeDialog = ({
       size="xxl"
       height="xxl"
       isOpen={true}
-      onClose={_onClose}
-      badge={isSignedIn ? undefined : <EarlyAccessBadge />}
+      onClose={handleClose}
+      badge={showEarlyAccess ? <EarlyAccessBadge /> : undefined}
     >
-      <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-        {isLoading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-base z-10">
-            <Loading />
-          </div>
-        )}
-        <iframe
-          src={modelBuilderUrl}
-          className="w-full flex-1 border-0 rounded-bl-lg rounded-br-lg"
-          onLoad={() => setIsLoading(false)}
-          sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads"
-          title={translate("importFromGIS")}
-        />
-      </div>
+      <ModelBuilderFrame
+        onContextChange={handleContextChange}
+        className="rounded-bl-lg rounded-br-lg"
+      />
     </BaseDialog>
   );
 };

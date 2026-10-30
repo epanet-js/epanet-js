@@ -17,14 +17,14 @@ const buildModelBuildViewUrl = (): string => {
 
 export const useOpenModelBuilder = () => {
   const setDialogState = useSetAtom(dialogAtom);
-  const { canUseModelBuildV2 } = usePermissions();
+  const { canUseAdvancedModelBuild } = usePermissions();
   const isLimitedModelBuildOn = useFeatureFlag("FLAG_LIMITED_MODEL_BUILD");
   const openNewModelBuilder = useOpenNewModelBuilder();
 
   const openModelBuilder = useCallback(
     ({ source }: { source: string }) => {
-      if (!canUseModelBuildV2 && !isLimitedModelBuildOn) {
-        setDialogState({ type: "modelBuilderPaywall", source });
+      if (!canUseAdvancedModelBuild && !isLimitedModelBuildOn) {
+        setDialogState({ type: "modelBuilderLegacyPaywall", source });
         return;
       }
 
@@ -32,7 +32,7 @@ export const useOpenModelBuilder = () => {
     },
     [
       setDialogState,
-      canUseModelBuildV2,
+      canUseAdvancedModelBuild,
       isLimitedModelBuildOn,
       openNewModelBuilder,
     ],
@@ -66,7 +66,7 @@ const useOpenNewModelBuilder = () => {
             setDialogState(null);
             setContentView({ type: "modelBuild", step: null });
           } else {
-            setDialogState({ type: "modelBuilderV2Iframe" });
+            setDialogState({ type: "modelBuilderIframe" });
           }
         });
       }, buildModelBuildViewUrl());

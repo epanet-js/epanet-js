@@ -13,7 +13,7 @@ export type Permissions = {
   canRefreshElevations: boolean;
   canUseZones: boolean;
   canUsePipeAttributes: boolean;
-  canUseModelBuildV2: boolean;
+  canUseAdvancedModelBuild: boolean;
   canValidateModelAttributes: boolean;
   canUsePipeLibrary: boolean;
   canUseCustomAttributes: boolean;
@@ -40,7 +40,7 @@ export const resolvePermissions = (
     canRefreshElevations: hasPaidAccess,
     canUseZones: hasPaidAccess || isDemoNetwork,
     canUsePipeAttributes: hasPaidAccess || isDemoNetwork,
-    canUseModelBuildV2:
+    canUseAdvancedModelBuild:
       ["pro", "teams", "education"].includes(plan) || trialActive,
     canValidateModelAttributes: hasPaidAccess,
     canUsePipeLibrary: hasPaidAccess || isDemoNetwork,

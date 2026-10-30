@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
-import { ModelBuilderV2IframeDialog } from "./model-builder-v2-iframe";
+import { ModelBuilderIframeDialog } from "./model-builder-iframe";
 
 const v2Url = vi.hoisted(() => "https://v2.example/?embedded=true");
 const openProjectFile = vi.hoisted(() => vi.fn());
@@ -48,7 +48,7 @@ const postFromModelBuilder = (type: string, data: Record<string, unknown>) =>
     data: { ...data, source: "epanet-model-builder" },
   });
 
-describe("ModelBuilderV2IframeDialog (v2)", () => {
+describe("ModelBuilderIframeDialog", () => {
   beforeEach(() => {
     openProjectFile.mockReset();
     reportFeatureFlagUsage.mockReset();
@@ -56,7 +56,7 @@ describe("ModelBuilderV2IframeDialog (v2)", () => {
   });
 
   it("loads the v2 model-builder URL", () => {
-    render(<ModelBuilderV2IframeDialog onClose={vi.fn()} />);
+    render(<ModelBuilderIframeDialog onClose={vi.fn()} />);
 
     const src = new URL(
       screen.getByTitle<HTMLIFrameElement>("Import from GIS").src,
@@ -66,7 +66,7 @@ describe("ModelBuilderV2IframeDialog (v2)", () => {
   });
 
   it("forwards the host locale onto the iframe URL", () => {
-    render(<ModelBuilderV2IframeDialog onClose={vi.fn()} />);
+    render(<ModelBuilderIframeDialog onClose={vi.fn()} />);
 
     const src = new URL(
       screen.getByTitle<HTMLIFrameElement>("Import from GIS").src,
@@ -77,7 +77,7 @@ describe("ModelBuilderV2IframeDialog (v2)", () => {
   it("forwards the host's enabled feature flags onto the iframe URL", () => {
     enabledFlags.value = ["FLAG_TEST_ERRORS", "FLAG_NULL_VALUES"];
 
-    render(<ModelBuilderV2IframeDialog onClose={vi.fn()} />);
+    render(<ModelBuilderIframeDialog onClose={vi.fn()} />);
 
     const src = new URL(
       screen.getByTitle<HTMLIFrameElement>("Import from GIS").src,
@@ -88,7 +88,7 @@ describe("ModelBuilderV2IframeDialog (v2)", () => {
   });
 
   it("opens the received .ejsdb as a project", async () => {
-    render(<ModelBuilderV2IframeDialog onClose={vi.fn()} />);
+    render(<ModelBuilderIframeDialog onClose={vi.fn()} />);
 
     const ejsdbBytes = new Uint8Array([1, 2, 3, 4]);
     postFromModelBuilder("modelBuildEjsdbComplete", {
@@ -104,7 +104,7 @@ describe("ModelBuilderV2IframeDialog (v2)", () => {
   });
 
   it("reports the flags the model builder reads as used", () => {
-    render(<ModelBuilderV2IframeDialog onClose={vi.fn()} />);
+    render(<ModelBuilderIframeDialog onClose={vi.fn()} />);
 
     postFromModelBuilder("featureFlagCalled", { name: "FLAG_TEST_ERRORS" });
 
@@ -112,7 +112,7 @@ describe("ModelBuilderV2IframeDialog (v2)", () => {
   });
 
   it("ignores messages from other sources", () => {
-    render(<ModelBuilderV2IframeDialog onClose={vi.fn()} />);
+    render(<ModelBuilderIframeDialog onClose={vi.fn()} />);
 
     postMessageToWindow({
       type: "modelBuildEjsdbComplete",

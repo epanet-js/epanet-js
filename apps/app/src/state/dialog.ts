@@ -149,16 +149,16 @@ export type ChangeNotAppliedDialogState = {
   type: "changeNotApplied";
 };
 
+export type ModelBuilderLegacyIframeDialogState = {
+  type: "modelBuilderLegacyIframe";
+};
+
 export type ModelBuilderIframeDialogState = {
   type: "modelBuilderIframe";
 };
 
-export type ModelBuilderV2IframeDialogState = {
-  type: "modelBuilderV2Iframe";
-};
-
-export type ModelBuilderPaywallDialogState = {
-  type: "modelBuilderPaywall";
+export type ModelBuilderLegacyPaywallDialogState = {
+  type: "modelBuilderLegacyPaywall";
   source: string;
 };
 
@@ -407,9 +407,9 @@ export type DialogState =
   | PreSimulationChecksDialogState
   | UnexpectedErrorDialogState
   | ChangeNotAppliedDialogState
+  | ModelBuilderLegacyIframeDialogState
   | ModelBuilderIframeDialogState
-  | ModelBuilderV2IframeDialogState
-  | ModelBuilderPaywallDialogState
+  | ModelBuilderLegacyPaywallDialogState
   | EarlyAccessDialogState
   | SimulationProgressDialogState
   | OpenProjectProgressDialogState

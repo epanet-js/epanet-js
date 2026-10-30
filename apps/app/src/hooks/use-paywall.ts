@@ -59,11 +59,11 @@ const FEATURE_CONFIG: Record<PaywallFeature, FeatureConfig> = {
     dialog: { type: "upgrade", feature: "modelAttributesValidation" },
   },
   modelBuilder: {
-    permission: "canUseModelBuildV2",
+    permission: "canUseAdvancedModelBuild",
     dialog: { type: "upgrade", feature: "modelBuilder" },
   },
   modelBuildAdvanced: {
-    permission: "canUseModelBuildV2",
+    permission: "canUseAdvancedModelBuild",
     dialog: { type: "featurePaywall", feature: "modelBuildAdvanced" },
   },
   convertModel: {

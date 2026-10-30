@@ -1,0 +1,172 @@
+import { useState, useEffect } from "react";
+import { BaseDialog } from "../components/dialog";
+import { useTranslate } from "src/hooks/use-translate";
+import { Loading } from "../components/elements";
+import { EarlyAccessBadge } from "../components/early-access-badge";
+import { useImportInp } from "src/commands/import-inp";
+import { useUserTracking, UserEvent } from "src/infra/user-tracking";
+import { useShowNetworkReview } from "src/commands/show-network-review";
+import { modelBuilderUrl } from "src/global-config";
+import { useAuth } from "src/hooks/use-auth";
+
+interface IframeMessage {
+  type: string;
+  data: {
+    source: string;
+    [key: string]: any;
+  };
+}
+
+interface ModelBuildCompleteMessage extends IframeMessage {
+  type: "modelBuildComplete";
+  data: {
+    source: "epanet-model-builder";
+    inpContent: string;
+    timestamp: number;
+  };
+}
+
+interface TrackUserEventMessage extends IframeMessage {
+  type: "trackUserEvent";
+  data: {
+    source: "epanet-model-builder";
+    userEvent: UserEvent;
+  };
+}
+
+interface OpenExternalLinkMessage extends IframeMessage {
+  type: "openExternalLink";
+  data: {
+    source: "epanet-model-builder";
+    url: string;
+    timestamp: string;
+  };
+}
+
+const handleModelBuildComplete = (
+  message: ModelBuildCompleteMessage,
+  userTracking: ReturnType<typeof useUserTracking>,
+  importInp: ReturnType<typeof useImportInp>,
+  showNetworkReview: ReturnType<typeof useShowNetworkReview>,
+) => {
+  if (!message.data.inpContent) {
+    return;
+  }
+
+  const { inpContent, timestamp } = message.data;
+  const filename = `model-builder-${new Date(timestamp).toISOString().replace(/[:.]/g, "-")}.inp`;
+
+  userTracking.capture({
+    name: "modelBuilder.completed",
+  });
+
+  setTimeout(() => {
+    const inpFile = new File([inpContent], filename, {
+      type: "text/plain",
+    });
+
+    void (async () => {
+      await importInp([inpFile], "modelBuilder");
+      showNetworkReview({ source: "auto" });
+    })();
+  }, 1000);
+};
+
+const handleUserEvent = (
+  message: TrackUserEventMessage,
+  userTracking: ReturnType<typeof useUserTracking>,
+) => {
+  if (!message.data.userEvent) {
+    return;
+  }
+
+  if (!message.data.userEvent.name) {
+    return;
+  }
+
+  userTracking.capture(message.data.userEvent);
+};
+
+const handleOpenExternalLink = (message: OpenExternalLinkMessage) => {
+  if (!message.data.url) {
+    return;
+  }
+
+  window.open(message.data.url, "_blank", "noopener,noreferrer");
+};
+
+export const ModelBuilderLegacyIframeDialog = ({
+  onClose: _onClose,
+}: {
+  onClose: () => void;
+}) => {
+  const translate = useTranslate();
+  const [isLoading, setIsLoading] = useState(true);
+  const importInp = useImportInp();
+  const userTracking = useUserTracking();
+  const showNetworkReview = useShowNetworkReview();
+  const { isSignedIn } = useAuth();
+
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      try {
+        const message = event.data as IframeMessage;
+
+        if (!message?.type || !message?.data?.source) {
+          return;
+        }
+
+        if (message.data.source !== "epanet-model-builder") {
+          return;
+        }
+
+        if (message.type === "modelBuildComplete") {
+          handleModelBuildComplete(
+            message as ModelBuildCompleteMessage,
+            userTracking,
+            importInp,
+            showNetworkReview,
+          );
+        } else if (message.type === "trackUserEvent") {
+          handleUserEvent(message as TrackUserEventMessage, userTracking);
+        } else if (message.type === "openExternalLink") {
+          handleOpenExternalLink(message as OpenExternalLinkMessage);
+        }
+      } catch (error) {
+        throw error;
+      }
+    };
+
+    window.addEventListener("message", handleMessage);
+
+    return () => {
+      window.removeEventListener("message", handleMessage);
+    };
+  }, [importInp, userTracking, showNetworkReview]);
+
+  return (
+    <BaseDialog
+      title={translate("importFromGIS")}
+      size="xxl"
+      height="xxl"
+      isOpen={true}
+      onClose={_onClose}
+      badge={isSignedIn ? undefined : <EarlyAccessBadge />}
+    >
+      <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+        {isLoading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-base z-10">
+            <Loading />
+          </div>
+        )}
+        <iframe
+          src={modelBuilderUrl}
+          className="w-full flex-1 border-0 rounded-bl-lg rounded-br-lg"
+          onLoad={() => setIsLoading(false)}
+          sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads"
+          title={translate("importFromGIS")}
+        />
+      </div>
+    </BaseDialog>
+  );
+};

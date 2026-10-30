@@ -2,9 +2,9 @@ import { useCallback } from "react";
 import { useAtom } from "jotai";
 import { contentViewAtom } from "src/state/content-view";
 import {
-  ModelBuilderV2Frame,
+  ModelBuilderFrame,
   type ModelBuilderContext,
-} from "src/dialogs/model-builder-v2-iframe";
+} from "src/dialogs/model-builder-iframe";
 import { useUserTracking } from "src/infra/user-tracking";
 
 export const ModelBuildView = () => {
@@ -29,7 +29,7 @@ export const ModelBuildView = () => {
   }, [userTracking, step, setContentView]);
 
   return (
-    <ModelBuilderV2Frame
+    <ModelBuilderFrame
       onContextChange={handleContextChange}
       onClose={handleClose}
     />

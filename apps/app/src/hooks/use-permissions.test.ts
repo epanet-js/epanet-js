@@ -55,7 +55,7 @@ describe("resolvePermissions", () => {
     expect(p.canUseElevations).toBe(true);
     expect(p.canUseZones).toBe(true);
     expect(p.canUsePipeAttributes).toBe(true);
-    expect(p.canUseModelBuildV2).toBe(true);
+    expect(p.canUseAdvancedModelBuild).toBe(true);
     expect(p.canValidateModelAttributes).toBe(true);
     expect(p.canUseCustomAttributes).toBe(true);
     expect(p.canImportSynergi).toBe(true);
@@ -81,7 +81,7 @@ describe("resolvePermissions", () => {
     "%s plan can use the v2 model builder",
     (plan) => {
       expect(
-        resolvePermissions(plan, false, false, false).canUseModelBuildV2,
+        resolvePermissions(plan, false, false, false).canUseAdvancedModelBuild,
       ).toBe(true);
     },
   );
@@ -90,7 +90,7 @@ describe("resolvePermissions", () => {
     "%s plan cannot use the v2 model builder",
     (plan) => {
       expect(
-        resolvePermissions(plan, false, false, false).canUseModelBuildV2,
+        resolvePermissions(plan, false, false, false).canUseAdvancedModelBuild,
       ).toBe(false);
     },
   );

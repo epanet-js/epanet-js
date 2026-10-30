@@ -13,7 +13,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { CheckIcon, CloseIcon, WarningIcon } from "src/icons";
 import { FeaturesList } from "./upgrade";
 
-export const ModelBuilderPaywallDialog = ({
+export const ModelBuilderLegacyPaywallDialog = ({
   source,
   onClose,
 }: {
@@ -87,8 +87,8 @@ export const ModelBuilderPaywallDialog = ({
     });
     onlyEarlyAccess(() => {
       userTracking.capture({ name: "modelBuilder.opened", source });
-      setDialog({ type: "modelBuilderIframe" });
-    }, buildAfterSignupUrl("modelBuilderIframe"));
+      setDialog({ type: "modelBuilderLegacyIframe" });
+    }, buildAfterSignupUrl("modelBuilderLegacyIframe"));
   };
 
   const handleUpgrade = () => {

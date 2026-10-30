@@ -41,9 +41,9 @@ import { ScriptRunDialog } from "src/dialogs/script-run";
 import { UnexpectedErrorDialog } from "src/dialogs/unexpected-error";
 import { ChangeNotAppliedDialog } from "src/dialogs/change-not-applied";
 import { ImportCustomerPointsWizard } from "src/dialogs/import-customer-points-wizard";
+import { ModelBuilderLegacyIframeDialog } from "src/dialogs/model-builder-legacy-iframe";
 import { ModelBuilderIframeDialog } from "src/dialogs/model-builder-iframe";
-import { ModelBuilderV2IframeDialog } from "src/dialogs/model-builder-v2-iframe";
-import { ModelBuilderPaywallDialog } from "src/dialogs/model-builder-paywall";
+import { ModelBuilderLegacyPaywallDialog } from "src/dialogs/model-builder-legacy-paywall";
 import { EarlyAccessDialog } from "src/dialogs/early-access";
 import { ImportCustomerPointsWarningDialog } from "src/dialogs/import-customer-points-warning";
 import { ImportZonesWarningDialog } from "src/dialogs/import-zones-warning";
@@ -173,7 +173,7 @@ export const Dialogs = memo(function Dialogs() {
           featureName: dialog.featureName,
         });
       }
-      if (dialog.type === "modelBuilderPaywall") {
+      if (dialog.type === "modelBuilderLegacyPaywall") {
         userTracking.capture({
           name: "modelBuilder.paywall.seen",
           source: dialog.source,
@@ -231,15 +231,18 @@ export const Dialogs = memo(function Dialogs() {
   if (dialog.type === "preSimulationChecks") {
     return <PreSimulationChecksDialog modal={dialog} onClose={onClose} />;
   }
+  if (dialog.type === "modelBuilderLegacyIframe") {
+    return <ModelBuilderLegacyIframeDialog onClose={onClose} />;
+  }
   if (dialog.type === "modelBuilderIframe") {
     return <ModelBuilderIframeDialog onClose={onClose} />;
   }
-  if (dialog.type === "modelBuilderV2Iframe") {
-    return <ModelBuilderV2IframeDialog onClose={onClose} />;
-  }
-  if (dialog.type === "modelBuilderPaywall") {
+  if (dialog.type === "modelBuilderLegacyPaywall") {
     return (
-      <ModelBuilderPaywallDialog source={dialog.source} onClose={onClose} />
+      <ModelBuilderLegacyPaywallDialog
+        source={dialog.source}
+        onClose={onClose}
+      />
     );
   }
   if (dialog.type === "unexpectedError") {
