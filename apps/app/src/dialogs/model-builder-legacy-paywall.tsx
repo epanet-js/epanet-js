@@ -130,8 +130,6 @@ export const ModelBuilderLegacyPaywallDialog = ({
 const useComparedFeatures = () => {
   const translate = useTranslate();
   const isLimitedModelBuildOn = useFeatureFlag("FLAG_LIMITED_MODEL_BUILD");
-  const isModelBuildRecoveryOn = useFeatureFlag("FLAG_MODEL_BUILD_RECOVERY");
-  const saveBuildSettings = translate("modelBuilderPaywall.saveBuildSettings");
   const projectionAndLanguages = isLimitedModelBuildOn
     ? []
     : [
@@ -150,7 +148,7 @@ const useComparedFeatures = () => {
     return { legacy: feature, pro: feature };
   };
 
-  const availableFeatures = [
+  const comparedFeatures = [
     sameInBoth("multipleFilesPerLayer"),
     ...(isLimitedModelBuildOn ? [] : [sameInBoth("dxfAndCsvFiles")]),
     sameInBoth("filterSplitAndRules"),
@@ -160,16 +158,10 @@ const useComparedFeatures = () => {
     ...(isLimitedModelBuildOn ? [] : [sameInBoth("customerPoints")]),
     sameInBoth("largeModels"),
     ...projectionAndLanguages,
+    sameInBoth("saveBuildSettings"),
   ];
 
-  const comparedFeatures = isModelBuildRecoveryOn
-    ? [
-        ...availableFeatures,
-        { legacy: saveBuildSettings, pro: saveBuildSettings },
-      ]
-    : availableFeatures;
-
-  const upcomingFeatures = isModelBuildRecoveryOn ? [] : [saveBuildSettings];
+  const upcomingFeatures: string[] = [];
 
   return { comparedFeatures, upcomingFeatures };
 };
