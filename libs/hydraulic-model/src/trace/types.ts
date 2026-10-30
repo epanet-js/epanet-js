@@ -6,11 +6,13 @@ import { AssetId } from "../asset-types";
  * - NONE: no flow (closed assets, zero flow)
  * - BOTH: bidirectional (open pipes, open TCV valves)
  * - DOWNSTREAM: start → end only (CV pipes, active pumps, active non-TCV valves)
+ * - UPSTREAM: end → start only (simulated flow against the link's direction)
  */
 export const AllowedFlowDirection = {
   NONE: 0,
   BOTH: 1,
   DOWNSTREAM: 2,
+  UPSTREAM: 3,
 } as const;
 
 export type AllowedFlowDirectionValue =

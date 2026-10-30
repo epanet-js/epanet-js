@@ -20,7 +20,7 @@ import {
 import { SECTION as REVIEW } from "./sections/review";
 import { SECTION as SCRIPT_RUNS } from "./sections/script-runs";
 import { SECTION as SPATIAL } from "./sections/spatial";
-import { SECTION as TOPOLOGY } from "./sections/topology";
+import { sectionFor as topologyFor } from "./sections/topology";
 import { SECTION as ZONES } from "./sections/zones";
 import type { DocsCandidates, ScriptingDocs } from "./types";
 
@@ -60,7 +60,7 @@ const buildDocs = (candidates: DocsCandidates): ScriptingDocs => ({
     assetsFor(candidates),
     LIBRARIES,
     SPATIAL,
-    TOPOLOGY,
+    topologyFor(candidates),
     REVIEW,
     EXPORT,
     ...(candidates.results ? [RESULTS] : []),

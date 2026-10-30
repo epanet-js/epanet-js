@@ -1,9 +1,9 @@
 import { memberOf } from "../members";
-import type { Section } from "../types";
+import type { DocsCandidates, Section } from "../types";
 
 const network = memberOf("Network");
 
-export const SECTION: Section = {
+export const sectionFor = ({ results }: DocsCandidates): Section => ({
   id: "topology",
   number: "1.6",
   title: "Topology and tracing",
@@ -34,8 +34,7 @@ export const SECTION: Section = {
 }`,
       summary:
         "Where a trace stopped and why: the barrier, and the node it was reached from.",
-      description:
-        "`stopAt`: the asset matched a preset or function. `closed`: a closed pipe or valve, or a pump that is off. `direction`: a one-way link (a pump, a check-valve pipe, any valve except a TCV) reached from its end node. `closed` and `direction` only come from the default mode. `limit`: a node past `maxDistance` or `maxHops`. `via` is the link that led to a node barrier, and `null` when the barrier is the link itself.",
+      description: `\`stopAt\`: the asset matched a preset or function. \`closed\`: a closed pipe or valve, or a pump that is off. \`direction\`: a one-way link (a pump, a check-valve pipe, any valve except a TCV) reached from its end node. \`closed\` and \`direction\` only come from the default mode.${results ? ' In `"upstream"` and `"downstream"` mode, `closed` is a link with no flow in the run — closed, off, or flowing less than 0.001 — and `direction` is a link whose water flows the other way.' : ""} \`limit\`: a node past \`maxDistance\` or \`maxHops\`. \`via\` is the link that led to a node barrier, and \`null\` when the barrier is the link itself.`,
     },
     {
       name: "TraceResult",
@@ -58,8 +57,7 @@ export const SECTION: Section = {
   members: [
     network({
       name: "trace",
-      signature:
-        'trace(start: Asset | string | (Asset | string)[], options?: { mode?: "allowed" | "connected"; stopAt?: (StopPreset | ((asset: Asset) => boolean))[]; maxDistance?: number; maxHops?: number }): TraceResult',
+      signature: `trace(start: Asset | string | (Asset | string)[], options?: { mode?: "allowed" | "connected"${results ? ' | "upstream" | "downstream"' : ""}; stopAt?: (StopPreset | ((asset: Asset) => boolean))[]; maxDistance?: number; maxHops?: number }): TraceResult`,
       summary:
         "The walk over the pipes to reach for. By default it is the app's Trace tool, boundary mode: the pressure zone around `start`.",
       description:
@@ -68,12 +66,18 @@ export const SECTION: Section = {
         {
           name: "options.mode",
           description:
-            '`"allowed"`, the default: through open links in the direction water may flow. `"connected"`: everything connected on the drawing, through closed links and one-way links either way; `stopAt` still applies. `"upstream"` and `"downstream"` need simulation results and throw.',
+            '`"allowed"`, the default: through open links in the direction water may flow. `"connected"`: everything connected on the drawing, through closed links and one-way links either way; `stopAt` still applies. ' +
+            (results
+              ? '`"downstream"` and `"upstream"`: the app\'s Trace tool in those modes — where the water from `start` goes, or where the water reaching it comes from, following each link\'s flow in `network.results` at the timestep the user had selected. A link with no flow (closed, off, or under 0.001) is not crossed. A start link is included, and the trace goes on from its downstream end (its upstream end for `"upstream"`). They read the results even when `network.results.isStale`.'
+              : '`"upstream"` and `"downstream"` need simulation results and throw.'),
         },
         {
           name: "options.stopAt",
           description:
-            'Presets and functions that make an asset a barrier. The default, `["tanks", "reservoirs", "pumps", "controlValves"]`, is the Trace tool\'s boundary. `[]` follows the water through everything passable, pumps and valves only from their start node. A function gets each node and link the trace reaches and returns `true` to stop there.',
+            'Presets and functions that make an asset a barrier. The default, `["tanks", "reservoirs", "pumps", "controlValves"]`, is the Trace tool\'s boundary. `[]` follows the water through everything passable, pumps and valves only from their start node. A function gets each node and link the trace reaches and returns `true` to stop there.' +
+            (results
+              ? ' In `"upstream"` and `"downstream"` mode the default is `[]`, as in the Trace tool; the presets still read how each link is set up, not the run.'
+              : ""),
         },
         {
           name: "options.maxDistance",
@@ -110,6 +114,17 @@ console.log(piece.nodes.length, "nodes;", piece.stoppedAt.length, "closed links 
           code: `const near = network.trace("J1", { stopAt: [], maxDistance: 500 });
 console.table(near.nodes.map((node) => ({ node: node.label, distance: near.distance(node) })));`,
         },
+        ...(results
+          ? [
+              {
+                title: "Where the water from a source goes",
+                code: `if (!network.results) throw new Error("Run a simulation first");
+const fed = network.trace("R1", { mode: "downstream" });
+console.log(fed.nodes.length, "nodes fed from R1 at the selected timestep");
+selection.set(fed.nodes);`,
+              },
+            ]
+          : []),
       ],
       throws: [
         '`network.trace found no asset labelled "X"`',
@@ -117,6 +132,11 @@ console.table(near.nodes.map((node) => ({ node: node.label, distance: near.dista
         "`network.trace expects stopAt functions to return true or false`",
         "`network.trace expects maxDistance as a number of at least 0, in the project length unit`",
         "`network.trace expects maxHops as a whole number of at least 0`",
+        ...(results
+          ? [
+              '`network.trace mode "downstream" needs simulation results; run a simulation first` when there is no run, or it has no timesteps',
+            ]
+          : []),
       ],
     }),
     network({
@@ -148,4 +168,4 @@ console.table(near.nodes.map((node) => ({ node: node.label, distance: near.dista
   ],
   notes:
     "Do not hand-roll a breadth-first search — `trace`, `boundaryLinks` and `shortestPath` cover it. To change where a trace stops, give it `stopAt`, `maxDistance` or `maxHops`; to learn why it stopped, read `stoppedAt`; for how far a node is along the pipes, `distance(node)`.",
-};
+});

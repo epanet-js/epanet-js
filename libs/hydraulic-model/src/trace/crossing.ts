@@ -26,6 +26,10 @@ export const crossingRules = (
       const [startNode] = topology.getNodes(linkId);
       if (fromNodeId !== startNode) return "direction";
     }
+    if (direction === AllowedFlowDirection.UPSTREAM) {
+      const [, endNode] = topology.getNodes(linkId);
+      if (fromNodeId !== endNode) return "direction";
+    }
     return null;
   };
 
