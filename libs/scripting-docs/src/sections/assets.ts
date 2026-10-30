@@ -29,14 +29,14 @@ const resultsType = (
   series: string,
   runWide: string,
   summary: string,
-  status?: string,
+  stringSeries: [string, string][] = [],
 ): TypeDef => ({
   name,
   definition: `interface ${name} {
   ${values}
   ${QUALITY}
   /** this ${kind} at another timestep; a negative index counts from the end */
-  at(index: number): ${name} | null;${status ? `\n  /** \`status\` at each entry of network.results.timesteps */\n  series(property: "status"): (${status})[] | null;` : ""}
+  at(index: number): ${name} | null;${stringSeries.map(([property, type]) => `\n  /** \`${property}\` at each entry of network.results.timesteps */\n  series(property: "${property}"): (${type})[] | null;`).join("")}
   /** one value per entry of network.results.timesteps */
   series(property: ${series} | ${QUALITY_SERIES}): number[] | null;${runWide ? `\n  ${runWide}` : ""}
 }`,
@@ -78,7 +78,7 @@ const RESULTS_TYPES: TypeDef[] = [
     '"flow" | "velocity" | "headloss" | "unitHeadloss"',
     "",
     "A pipe's simulation results at one timestep.",
-    '"open" | "closed"',
+    [["status", '"open" | "closed"']],
   ),
   resultsType(
     "PumpResults",
@@ -87,7 +87,10 @@ const RESULTS_TYPES: TypeDef[] = [
     '"flow" | "head" | "setting"',
     "/** energy use over the run, as EPANET reports it; the same at every timestep */\n  readonly energy: { utilization: number; averageEfficiency: number; averageKwPerFlowUnit: number; averageKw: number; peakKw: number; averageCostPerDay: number; demandCharge: number } | null;",
     "A pump's simulation results at one timestep.",
-    '"on" | "off"',
+    [
+      ["status", '"on" | "off"'],
+      ["statusWarning", '"cannot-deliver-flow" | "cannot-deliver-head" | null'],
+    ],
   ),
   resultsType(
     "ValveResults",
@@ -96,7 +99,13 @@ const RESULTS_TYPES: TypeDef[] = [
     '"flow" | "velocity" | "headloss" | "setting"',
     "",
     "A valve's simulation results at one timestep.",
-    '"active" | "open" | "closed"',
+    [
+      ["status", '"active" | "open" | "closed"'],
+      [
+        "statusWarning",
+        '"cannot-deliver-flow" | "cannot-deliver-pressure" | null',
+      ],
+    ],
   ),
 ];
 
