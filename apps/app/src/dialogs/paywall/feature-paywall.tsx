@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, type ReactNode } from "react";
 import { useSetAtom } from "jotai";
 import { BaseDialog } from "src/components/dialog";
 import { Button } from "src/components/elements";
@@ -22,6 +22,7 @@ export type FeaturePaywallConfig = {
   feature: PaywallFeature;
   imageSrc?: string;
   videoSrc?: string;
+  media?: ReactNode;
   captions?: readonly { start: number; end: number; captionKey: string }[];
   titleKey: string;
   descriptionKeys: string[];
@@ -100,7 +101,9 @@ export const FeaturePaywall = ({
     >
       <div className="grid grid-cols-1 md:grid-cols-[3fr_2fr] gap-8 p-4">
         <div className="relative aspect-square bg-panel border rounded-lg shadow-md overflow-hidden">
-          {config.videoSrc ? (
+          {config.media ? (
+            config.media
+          ) : config.videoSrc ? (
             <VideoPlayer
               src={config.videoSrc}
               captions={captions}

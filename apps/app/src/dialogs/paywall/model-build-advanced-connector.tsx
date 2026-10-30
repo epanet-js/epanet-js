@@ -1,9 +1,13 @@
+import { ModelBuilderProFeatures } from "../model-builder-legacy-paywall";
 import { FeaturePaywall, type FeaturePaywallConfig } from "./feature-paywall";
 
-// PLACEHOLDER: the custom-attributes screenshot. Replace with one of the
-// builder's split step, captured from invented data.
-const MODEL_BUILD_ADVANCED_IMAGE_SRC =
-  "/images/custom-attributes-paywall-screenshot.webp";
+const AdvancedFeatures = () => (
+  <div className="flex flex-col h-full overflow-y-auto px-4 bg-base">
+    <div className="m-auto">
+      <ModelBuilderProFeatures />
+    </div>
+  </div>
+);
 
 export const ModelBuildAdvancedPaywallConnector = ({
   onClose,
@@ -12,12 +16,9 @@ export const ModelBuildAdvancedPaywallConnector = ({
 }) => {
   const config: FeaturePaywallConfig = {
     feature: "modelBuildAdvanced",
-    imageSrc: MODEL_BUILD_ADVANCED_IMAGE_SRC,
+    media: <AdvancedFeatures />,
     titleKey: "modelBuildAdvanced.paywall.title",
-    descriptionKeys: [
-      "modelBuildAdvanced.paywall.description1",
-      "modelBuildAdvanced.paywall.description2",
-    ],
+    descriptionKeys: ["modelBuildAdvanced.paywall.description"],
     actionDescriptionKeys: {
       trial: "modelBuildAdvanced.paywall.trial",
       plans: "modelBuildAdvanced.paywall.plans",

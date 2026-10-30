@@ -27,53 +27,7 @@ export const ModelBuilderLegacyPaywallDialog = ({
   const startUpgrade = useStartUpgrade();
   const isModelBuilderPaywallOn = useFeatureFlag("FLAG_MODEL_BUILDER_PAYWALL");
 
-  const comparedFeatures = isModelBuilderPaywallOn
-    ? [
-        { legacy: "Pipe year and materials", pro: "Pipe year and materials" },
-        { legacy: "Custom attributes", pro: "Custom attributes" },
-        { legacy: "Zones", pro: "Zones" },
-        { legacy: "Customer points", pro: "Customer points" },
-        {
-          legacy: "Filter, split by value and custom rules",
-          pro: "Filter, split by value and custom rules",
-        },
-        { legacy: "Multiple files per layer", pro: "Multiple files per layer" },
-        { legacy: "DXF and CSV files", pro: "DXF and CSV files" },
-        { legacy: "Models over 100K assets", pro: "Models over 100K assets" },
-        {
-          legacy: translate("modelBuilderPaywall.legacyProjection"),
-          pro: translate("modelBuilderPaywall.proProjection"),
-        },
-        {
-          legacy: translate("modelBuilderPaywall.legacyLanguages"),
-          pro: translate("modelBuilderPaywall.proLanguages"),
-        },
-      ]
-    : [
-        {
-          legacy: translate("modelBuilderPaywall.pipeYearAndMaterials"),
-          pro: translate("modelBuilderPaywall.pipeYearAndMaterials"),
-        },
-        {
-          legacy: translate("modelBuilderPaywall.legacyProjection"),
-          pro: translate("modelBuilderPaywall.proProjection"),
-        },
-        {
-          legacy: translate("modelBuilderPaywall.legacyLanguages"),
-          pro: translate("modelBuilderPaywall.proLanguages"),
-        },
-        {
-          legacy: translate("modelBuilderPaywall.customAttributes"),
-          pro: translate("modelBuilderPaywall.customAttributes"),
-        },
-      ];
-
-  const upcomingFeatures = isModelBuilderPaywallOn
-    ? [translate("modelBuilderPaywall.saveBuildSettings")]
-    : [
-        translate("modelBuilderPaywall.saveBuildSettings"),
-        translate("modelBuilderPaywall.filterData"),
-      ];
+  const { comparedFeatures, upcomingFeatures } = useComparedFeatures();
 
   const handleDismiss = () => {
     userTracking.capture({ name: "modelBuilder.paywall.dismissed", source });
@@ -137,7 +91,7 @@ export const ModelBuilderLegacyPaywallDialog = ({
                     })),
                   ]}
                 />
-                {!isModelBuilderPaywallOn && (
+                {!isModelBuilderPaywallOn && upcomingFeatures.length > 0 && (
                   <FeaturesList
                     title={translate("modelBuilderPaywall.notAvailable")}
                     textColor="text-subtle"
@@ -171,31 +125,7 @@ export const ModelBuilderLegacyPaywallDialog = ({
                   Pro plans and above
                 </p>
               )}
-              <div className="flex flex-col justify-between flex-1">
-                <FeaturesList
-                  items={[
-                    {
-                      feature: translate("modelBuilderPaywall.activeUpdates"),
-                      Icon: CheckIcon,
-                      iconColor: "text-success",
-                    },
-                    ...comparedFeatures.map(({ pro }) => ({
-                      feature: pro,
-                      Icon: CheckIcon,
-                      iconColor: "text-success",
-                    })),
-                  ]}
-                />
-                <FeaturesList
-                  title={translate("modelBuilderPaywall.comingSoon")}
-                  textColor="text-subtle"
-                  items={upcomingFeatures.map((feature) => ({
-                    feature,
-                    Icon: CheckIcon,
-                    iconColor: "text-subtle",
-                  }))}
-                />
-              </div>
+              <ModelBuilderProFeatures />
             </div>
             <div className="p-4 w-full">
               <Button
@@ -210,5 +140,112 @@ export const ModelBuilderLegacyPaywallDialog = ({
         </div>
       </div>
     </BaseDialog>
+  );
+};
+
+const useComparedFeatures = () => {
+  const translate = useTranslate();
+  const isModelBuilderPaywallOn = useFeatureFlag("FLAG_MODEL_BUILDER_PAYWALL");
+  const isLimitedModelBuildOn = useFeatureFlag("FLAG_LIMITED_MODEL_BUILD");
+  const isModelBuildRecoveryOn = useFeatureFlag("FLAG_MODEL_BUILD_RECOVERY");
+  const saveBuildSettings = translate("modelBuilderPaywall.saveBuildSettings");
+  const projectionAndLanguages = isLimitedModelBuildOn
+    ? []
+    : [
+        {
+          legacy: translate("modelBuilderPaywall.legacyProjection"),
+          pro: translate("modelBuilderPaywall.proProjection"),
+        },
+        {
+          legacy: translate("modelBuilderPaywall.legacyLanguages"),
+          pro: translate("modelBuilderPaywall.proLanguages"),
+        },
+      ];
+
+  const availableFeatures = isModelBuilderPaywallOn
+    ? [
+        { legacy: "Multiple files per layer", pro: "Multiple files per layer" },
+        ...(isLimitedModelBuildOn
+          ? []
+          : [{ legacy: "DXF and CSV files", pro: "DXF and CSV files" }]),
+        {
+          legacy: "Filter, split by value and custom rules",
+          pro: "Filter, split by value and custom rules",
+        },
+        { legacy: "Pipe year and materials", pro: "Pipe year and materials" },
+        { legacy: "Custom attributes", pro: "Custom attributes" },
+        { legacy: "Zones", pro: "Zones" },
+        ...(isLimitedModelBuildOn
+          ? []
+          : [{ legacy: "Customer points", pro: "Customer points" }]),
+        { legacy: "Models over 100K assets", pro: "Models over 100K assets" },
+        ...projectionAndLanguages,
+      ]
+    : [
+        {
+          legacy: translate("modelBuilderPaywall.pipeYearAndMaterials"),
+          pro: translate("modelBuilderPaywall.pipeYearAndMaterials"),
+        },
+        ...projectionAndLanguages,
+        {
+          legacy: translate("modelBuilderPaywall.customAttributes"),
+          pro: translate("modelBuilderPaywall.customAttributes"),
+        },
+      ];
+
+  const comparedFeatures = isModelBuildRecoveryOn
+    ? [
+        ...availableFeatures,
+        { legacy: saveBuildSettings, pro: saveBuildSettings },
+      ]
+    : availableFeatures;
+
+  const upcomingFeatures = [
+    ...(isModelBuildRecoveryOn ? [] : [saveBuildSettings]),
+    ...(isModelBuilderPaywallOn
+      ? []
+      : [translate("modelBuilderPaywall.filterData")]),
+  ];
+
+  return { comparedFeatures, upcomingFeatures };
+};
+
+export const ModelBuilderProFeatures = () => {
+  const translate = useTranslate();
+  const isLimitedModelBuildOn = useFeatureFlag("FLAG_LIMITED_MODEL_BUILD");
+  const { comparedFeatures, upcomingFeatures } = useComparedFeatures();
+
+  return (
+    <div className="flex flex-col justify-between flex-1">
+      <FeaturesList
+        items={[
+          ...(isLimitedModelBuildOn
+            ? []
+            : [
+                {
+                  feature: translate("modelBuilderPaywall.activeUpdates"),
+                  Icon: CheckIcon,
+                  iconColor: "text-success",
+                },
+              ]),
+          ...comparedFeatures.map(({ pro }) => ({
+            feature: pro,
+            Icon: CheckIcon,
+            iconColor: "text-success",
+          })),
+        ]}
+      />
+      {upcomingFeatures.length > 0 && (
+        <FeaturesList
+          title={translate("modelBuilderPaywall.comingSoon")}
+          textColor="text-subtle"
+          items={upcomingFeatures.map((feature) => ({
+            feature,
+            Icon: CheckIcon,
+            iconColor: "text-subtle",
+          }))}
+        />
+      )}
+    </div>
   );
 };
