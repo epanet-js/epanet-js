@@ -173,27 +173,36 @@ export const COLLECTIONS_SECTION: Section = {
     bookmark("bbox", "BBox", "The map view the user saved."),
     collections({
       name: "saveSelectionSet",
-      signature: `saveSelectionSet(label: string, targets?: ${Targets}): void`,
+      signature: `saveSelectionSet(label: string, targets?: ${Targets}, options?: { commit?: boolean }): void`,
       summary:
-        "Save a selection set to the project's Collections when the script ends.",
+        "Hand back a selection set as part of the run's output when the script ends.",
       description:
-        "Without `targets` it saves the script's current selection at the time of the call. Labels need not be unique: saving a label that already exists adds another set, so running a script twice saves its sets twice.",
+        "The set is listed with the run's output, where the user can select it on the map and save the ones worth keeping to the project's Collections. It is not saved to the project unless `commit` is `true`. Without `targets` it uses the script's current selection at the time of the call. Labels need not be unique: a label that already exists adds another set, so committing from a script that runs twice saves its sets twice.",
       params: [
         {
           name: "label",
           description:
             "The set's name. Leading and trailing spaces are dropped.",
         },
+        {
+          name: "options.commit",
+          description:
+            "`true` saves the set straight to the project's Collections. Defaults to `false`. Avoid it in most scripts: a run is something the user tries until the result is right, and committed sets pile up in their project on every run. Leave the choice to the user, and commit only when they ask for sets to be saved without review.",
+        },
       ],
       examples: [
         {
           code: 'collections.saveSelectionSet("Pumps and valves", [...network.pumps, ...network.valves]);',
+        },
+        {
+          code: 'collections.saveSelectionSet("Pumps", network.pumps, { commit: true });',
         },
       ],
       throws: [
         "`collections.saveSelectionSet expects a label`",
         "`collections.saveSelectionSet expects at least one asset or customer point`",
         "`collections.saveSelectionSet expects assets or customer points from the network`",
+        "`collections.saveSelectionSet expects { commit } as true or false`",
       ],
     }),
     collections({

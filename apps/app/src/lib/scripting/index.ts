@@ -10,6 +10,7 @@ export type {
   ScriptLastResults,
   ScriptProject,
   ScriptRunHandle,
+  ScriptOutputSelectionSet,
   ScriptRunOutcome,
   ScriptSelectionSet,
   ScriptSimulationSettings,

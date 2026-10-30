@@ -107,13 +107,14 @@ export const useRunScript = () => {
       if (outcome.zoomTo?.type === "bbox") {
         zoomTo(Just(outcome.zoomTo.bbox), maxZoom);
       }
-      if (canManageCollections && !isScriptOutputPanelOn) {
-        for (const { label, targets } of outcome.selectionSets) {
+      if (canManageCollections) {
+        for (const { label, targets, commit } of outcome.selectionSets) {
+          if (isScriptOutputPanelOn && !commit) continue;
           const members = existing(targets);
           if (countSelected(members) === 0) continue;
           createSelectionSet(newSelectionSet(label, members));
         }
-        if (outcome.bookmarks.length > 0) {
+        if (!isScriptOutputPanelOn && outcome.bookmarks.length > 0) {
           saveBookmarks([
             ...store.get(bookmarksAtom),
             ...outcome.bookmarks.map(({ label, bbox }) =>

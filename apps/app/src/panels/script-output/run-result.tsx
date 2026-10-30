@@ -6,6 +6,7 @@ import {
   ListItem,
   type ItemAction,
 } from "src/components/list";
+import { usePermissions } from "src/hooks/use-permissions";
 import { useTranslate } from "src/hooks/use-translate";
 import { BookmarkIcon, DownloadIcon } from "src/icons";
 import type { ScriptAttachment, ScriptRunOutcome } from "src/lib/scripting";
@@ -23,6 +24,7 @@ export const RunResult = ({ outcome }: { outcome: ScriptRunOutcome }) => {
   const goToBookmark = useGoToScriptBookmark();
   const saveSelectionSet = useSaveScriptSelectionSet();
   const isCollectionsAvailable = useIsCollectionsAvailable();
+  const { canManageCollections } = usePermissions();
 
   if (outcome.status !== "success") return null;
 
@@ -61,7 +63,11 @@ export const RunResult = ({ outcome }: { outcome: ScriptRunOutcome }) => {
               id={i}
               label={selectionSet.label}
               onSelect={() => applySelectionSet(selectionSet)}
-              actions={selectionSetActions}
+              actions={
+                selectionSet.commit && canManageCollections
+                  ? []
+                  : selectionSetActions
+              }
               onAction={() => saveSelectionSet(selectionSet)}
             />
           ))}

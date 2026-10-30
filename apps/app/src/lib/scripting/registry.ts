@@ -22,6 +22,8 @@ export type ScriptAttachment = { name: string; content: string };
 
 export type ScriptSelectionSet = { label: string; targets: ScriptTargets };
 
+export type ScriptOutputSelectionSet = ScriptSelectionSet & { commit: boolean };
+
 export type ScriptBBox = [
   minLng: number,
   minLat: number,
@@ -125,7 +127,7 @@ export type ScriptRunOutcome =
           ) & { maxZoom: number | null })
         | null;
       attachments: ScriptAttachment[];
-      selectionSets: ScriptSelectionSet[];
+      selectionSets: ScriptOutputSelectionSet[];
       bookmarks: ScriptBookmark[];
     }
   | {
