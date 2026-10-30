@@ -421,6 +421,30 @@ body.dark .mapboxgl-ctrl-attrib-button {
   background: radial-gradient(farthest-side at 50% 100%, rgba(0, 0, 0, 0.3), transparent);
 }
 
+/* Scroll shadow above a sticky bottom-0 footer, shown while the nearest
+   scroll container has more content below. */
+.sticky-footer-shadow::before {
+  content: "";
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  right: 0;
+  height: 10px;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(farthest-side at 50% 100%, rgba(0, 0, 0, 0.12), transparent);
+  animation-name: scroll-shadow-appear;
+  animation-timeline: scroll(nearest block);
+  animation-fill-mode: both;
+  animation-timing-function: linear;
+  animation-direction: reverse;
+  animation-range: calc(100% - 40px) 100%;
+}
+
+.dark .sticky-footer-shadow::before {
+  background: radial-gradient(farthest-side at 50% 100%, rgba(0, 0, 0, 0.3), transparent);
+}
+
 /* Horizontal scroll shadows.
    Usage: wrap the overflow-x-auto element with .scroll-shadows-x.
    The wrapper holds the absolutely-positioned shadows (they don't scroll);

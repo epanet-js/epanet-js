@@ -155,15 +155,15 @@ const PricingPlansDialog = ({
         </footer>
       }
     >
-      <div className="p-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mx-auto">
+      <div className="p-4 md:min-h-0 md:flex md:flex-col">
+        <div className="grid grid-cols-1 md:grid-cols-3 md:grid-rows-1 md:min-h-0 gap-6 mx-auto">
           <PricingFreePlan />
           {/* Both views share one grid cell, so the dialog keeps the taller one's height. */}
-          <div className="grid md:col-span-2">
+          <div className="grid md:col-span-2 md:grid-rows-1 md:min-h-0">
             <div
               aria-hidden={usage !== "commercial"}
               className={clsx(
-                "[grid-area:1/1] grid grid-cols-1 md:grid-cols-2 gap-6",
+                "[grid-area:1/1] grid grid-cols-1 md:grid-cols-2 md:grid-rows-1 md:min-h-0 gap-6",
                 usage !== "commercial" && "invisible",
               )}
             >
@@ -178,7 +178,7 @@ const PricingPlansDialog = ({
             <div
               aria-hidden={usage !== "non-commercial"}
               className={clsx(
-                "[grid-area:1/1] grid grid-cols-1 md:grid-cols-2 gap-6",
+                "[grid-area:1/1] grid grid-cols-1 md:grid-cols-2 md:grid-rows-1 md:min-h-0 gap-6",
                 usage !== "non-commercial" && "invisible",
               )}
             >
@@ -239,8 +239,8 @@ const checkItem = (feature: string, tooltip?: string) => ({
 const PricingFreePlan = () => {
   const translate = useTranslate();
   return (
-    <div className="bg-base border rounded-md shadow-md overflow-hidden flex flex-col justify-between">
-      <div className="p-6 flex flex-col gap-6 flex-1">
+    <div className="bg-base border rounded-md shadow-md overflow-y-auto md:min-h-0 md:max-h-[720px] flex flex-col justify-between">
+      <div className="px-6 pt-6 pb-3 flex flex-col gap-6 flex-1">
         <PricingPlanHeader
           name="Free"
           price="$0"
@@ -257,7 +257,7 @@ const PricingFreePlan = () => {
           ]}
         />
       </div>
-      <div className="px-4 pb-4 w-full">
+      <div className="sticky bottom-0 sticky-footer-shadow bg-base px-4 pt-3 pb-4 w-full">
         <Button
           size="full-width"
           className="default-pointer bg-gray-300 text-default"
@@ -292,8 +292,8 @@ const PricingProPlan = ({
     !isTrialEmailRefused;
 
   return (
-    <div className="relative bg-base border border-purple-100 rounded-lg shadow-md shadow-purple-300 overflow-hidden flex flex-col justify-between">
-      <div className="p-6 flex flex-col gap-6 flex-1">
+    <div className="relative bg-base border border-purple-100 rounded-lg shadow-md shadow-purple-300 overflow-y-auto md:min-h-0 md:max-h-[720px] flex flex-col justify-between">
+      <div className="px-6 pt-6 pb-3 flex flex-col gap-6 flex-1">
         <div className="absolute top-0 right-0 bg-linear-to-br from-purple-300 via-purple-400 to-purple-500 text-white text-size-small font-semibold py-1 px-2 rounded-bl-lg">
           {translate("mostPopular")}
         </div>
@@ -325,7 +325,7 @@ const PricingProPlan = ({
           </p>
         </div>
       </div>
-      <div className="flex flex-col px-4 pb-4 gap-y-3 w-full">
+      <div className="sticky bottom-0 sticky-footer-shadow bg-base flex flex-col px-4 pt-3 pb-4 gap-y-3 w-full">
         {canStartTrial ? (
           <StartTrialButton feature={feature} source={source} />
         ) : (
@@ -354,8 +354,8 @@ const PricingPersonalPlan = ({
   const translate = useTranslate();
 
   return (
-    <div className="relative bg-base border border-purple-100 rounded-lg shadow-md shadow-purple-300 overflow-hidden flex flex-col justify-between">
-      <div className="p-6 flex flex-col gap-6 flex-1">
+    <div className="relative bg-base border border-purple-100 rounded-lg shadow-md shadow-purple-300 overflow-y-auto md:min-h-0 md:max-h-[720px] flex flex-col justify-between">
+      <div className="px-6 pt-6 pb-3 flex flex-col gap-6 flex-1">
         <div className="absolute top-0 right-0 bg-linear-to-br from-purple-300 via-purple-400 to-purple-500 text-white text-size-small font-semibold py-1 px-2 rounded-bl-lg">
           {translate("mostPopular")}
         </div>
@@ -387,7 +387,7 @@ const PricingPersonalPlan = ({
           ]}
         />
       </div>
-      <div className="px-4 pb-4 w-full">
+      <div className="sticky bottom-0 sticky-footer-shadow bg-base px-4 pt-3 pb-4 w-full">
         <CheckoutButton
           plan="personal"
           paymentType="yearly"
@@ -408,8 +408,8 @@ const PricingEducationPlan = () => {
   const userTracking = useUserTracking();
 
   return (
-    <div className="relative bg-base border rounded-lg shadow-md shadow-gray-300 overflow-hidden flex flex-col h-fit">
-      <div className="p-6 flex flex-col gap-6 flex-1">
+    <div className="relative bg-base border rounded-lg shadow-md shadow-gray-300 overflow-y-auto md:min-h-0 md:max-h-[720px] flex flex-col h-fit">
+      <div className="px-6 pt-6 pb-3 flex flex-col gap-6 flex-1">
         <PricingPlanHeader
           name="Education"
           price="$0"
@@ -420,7 +420,7 @@ const PricingEducationPlan = () => {
           {translate("everythingInForFree", "Personal")}
         </p>
       </div>
-      <div className="flex flex-col px-4 pb-4 gap-y-3">
+      <div className="sticky bottom-0 sticky-footer-shadow bg-base flex flex-col px-4 pt-3 pb-4 gap-y-3">
         <Button
           size="full-width"
           className="default-pointer bg-panel text-default"
@@ -479,8 +479,8 @@ const UltimatePlan = ({
   };
 
   return (
-    <div className="relative bg-base border rounded-md shadow-md shadow-gray-300 overflow-hidden flex flex-col justify-between">
-      <div className="p-6 flex flex-col gap-6 flex-1">
+    <div className="relative bg-base border rounded-md shadow-md shadow-gray-300 overflow-y-auto md:min-h-0 md:max-h-[720px] flex flex-col justify-between">
+      <div className="px-6 pt-6 pb-3 flex flex-col gap-6 flex-1">
         <PricingPlanHeader
           name="Ultimate"
           price={ultimatePrice}
@@ -537,7 +537,7 @@ const UltimatePlan = ({
           />
         </div>
       </div>
-      <div className="px-4 pb-4 w-full">
+      <div className="sticky bottom-0 sticky-footer-shadow bg-base px-4 pt-3 pb-4 w-full">
         <QuoteButton
           label={translate("requestQuote")}
           onClick={captureCheckoutStarted}
