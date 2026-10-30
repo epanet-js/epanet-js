@@ -25,9 +25,8 @@ export const ModelBuilderLegacyPaywallDialog = ({
   const userTracking = useUserTracking();
   const translate = useTranslate();
   const startUpgrade = useStartUpgrade();
-  const isModelBuilderPaywallOn = useFeatureFlag("FLAG_MODEL_BUILDER_PAYWALL");
 
-  const { comparedFeatures, upcomingFeatures } = useComparedFeatures();
+  const { comparedFeatures } = useComparedFeatures();
 
   const handleDismiss = () => {
     userTracking.capture({ name: "modelBuilder.paywall.dismissed", source });
@@ -71,11 +70,9 @@ export const ModelBuilderLegacyPaywallDialog = ({
               <h2 className="text-size-heading-2 font-semibold mb-2">
                 {translate("modelBuilderPaywall.legacy")}
               </h2>
-              {isModelBuilderPaywallOn && (
-                <p className="text-size-base text-subtle">
-                  Free and Personal plans
-                </p>
-              )}
+              <p className="text-size-base text-subtle">
+                {translate("modelBuilderPaywall.freeAndPersonalPlans")}
+              </p>
               <div className="flex flex-col justify-between flex-1">
                 <FeaturesList
                   items={[
@@ -91,17 +88,6 @@ export const ModelBuilderLegacyPaywallDialog = ({
                     })),
                   ]}
                 />
-                {!isModelBuilderPaywallOn && upcomingFeatures.length > 0 && (
-                  <FeaturesList
-                    title={translate("modelBuilderPaywall.notAvailable")}
-                    textColor="text-subtle"
-                    items={upcomingFeatures.map((feature) => ({
-                      feature,
-                      Icon: CloseIcon,
-                      iconColor: "text-red-500",
-                    }))}
-                  />
-                )}
               </div>
             </div>
             <div className="p-4 w-full">
@@ -120,11 +106,9 @@ export const ModelBuilderLegacyPaywallDialog = ({
               <h2 className="text-size-heading-2 font-semibold mb-2">
                 {translate("modelBuilderPaywall.pro")}
               </h2>
-              {isModelBuilderPaywallOn && (
-                <p className="text-size-base text-subtle">
-                  Pro plans and above
-                </p>
-              )}
+              <p className="text-size-base text-subtle">
+                {translate("modelBuilderPaywall.proPlansAndAbove")}
+              </p>
               <ModelBuilderProFeatures />
             </div>
             <div className="p-4 w-full">
@@ -145,7 +129,6 @@ export const ModelBuilderLegacyPaywallDialog = ({
 
 const useComparedFeatures = () => {
   const translate = useTranslate();
-  const isModelBuilderPaywallOn = useFeatureFlag("FLAG_MODEL_BUILDER_PAYWALL");
   const isLimitedModelBuildOn = useFeatureFlag("FLAG_LIMITED_MODEL_BUILD");
   const isModelBuildRecoveryOn = useFeatureFlag("FLAG_MODEL_BUILD_RECOVERY");
   const saveBuildSettings = translate("modelBuilderPaywall.saveBuildSettings");
@@ -162,36 +145,22 @@ const useComparedFeatures = () => {
         },
       ];
 
-  const availableFeatures = isModelBuilderPaywallOn
-    ? [
-        { legacy: "Multiple files per layer", pro: "Multiple files per layer" },
-        ...(isLimitedModelBuildOn
-          ? []
-          : [{ legacy: "DXF and CSV files", pro: "DXF and CSV files" }]),
-        {
-          legacy: "Filter, split by value and custom rules",
-          pro: "Filter, split by value and custom rules",
-        },
-        { legacy: "Pipe year and materials", pro: "Pipe year and materials" },
-        { legacy: "Custom attributes", pro: "Custom attributes" },
-        { legacy: "Zones", pro: "Zones" },
-        ...(isLimitedModelBuildOn
-          ? []
-          : [{ legacy: "Customer points", pro: "Customer points" }]),
-        { legacy: "Models over 100K assets", pro: "Models over 100K assets" },
-        ...projectionAndLanguages,
-      ]
-    : [
-        {
-          legacy: translate("modelBuilderPaywall.pipeYearAndMaterials"),
-          pro: translate("modelBuilderPaywall.pipeYearAndMaterials"),
-        },
-        ...projectionAndLanguages,
-        {
-          legacy: translate("modelBuilderPaywall.customAttributes"),
-          pro: translate("modelBuilderPaywall.customAttributes"),
-        },
-      ];
+  const sameInBoth = (key: string) => {
+    const feature = translate(`modelBuilderPaywall.${key}`);
+    return { legacy: feature, pro: feature };
+  };
+
+  const availableFeatures = [
+    sameInBoth("multipleFilesPerLayer"),
+    ...(isLimitedModelBuildOn ? [] : [sameInBoth("dxfAndCsvFiles")]),
+    sameInBoth("filterSplitAndRules"),
+    sameInBoth("pipeYearAndMaterials"),
+    sameInBoth("customAttributes"),
+    sameInBoth("zones"),
+    ...(isLimitedModelBuildOn ? [] : [sameInBoth("customerPoints")]),
+    sameInBoth("largeModels"),
+    ...projectionAndLanguages,
+  ];
 
   const comparedFeatures = isModelBuildRecoveryOn
     ? [
@@ -200,12 +169,7 @@ const useComparedFeatures = () => {
       ]
     : availableFeatures;
 
-  const upcomingFeatures = [
-    ...(isModelBuildRecoveryOn ? [] : [saveBuildSettings]),
-    ...(isModelBuilderPaywallOn
-      ? []
-      : [translate("modelBuilderPaywall.filterData")]),
-  ];
+  const upcomingFeatures = isModelBuildRecoveryOn ? [] : [saveBuildSettings];
 
   return { comparedFeatures, upcomingFeatures };
 };
