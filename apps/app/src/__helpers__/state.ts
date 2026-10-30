@@ -464,4 +464,5 @@ export const createMockResultsReader = (
     }
   },
   getPumpEnergy: () => null,
+  getLinkSetting: () => null,
 });

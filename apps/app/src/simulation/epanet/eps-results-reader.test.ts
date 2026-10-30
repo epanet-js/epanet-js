@@ -552,6 +552,66 @@ describe("EPSResultsReader", () => {
       expect(valve?.status).toMatch(/active|open|closed/);
     });
 
+    it("reads the setting the run applied to a pump and a valve", async () => {
+      const IDS = {
+        R1: 1,
+        J1: 2,
+        PUMP1: 3,
+        R2: 4,
+        J2: 5,
+        P1: 6,
+        J3: 7,
+        V1: 8,
+      } as const;
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aReservoir(IDS.R1, { head: 50 })
+        .aJunction(IDS.J1, { elevation: 0 })
+        .aJunctionDemand(IDS.J1, [{ baseDemand: 1 }])
+        .aPump(IDS.PUMP1, {
+          startNodeId: IDS.R1,
+          endNodeId: IDS.J1,
+          speed: 0.8,
+        })
+        .aPumpCurve({ id: IDS.PUMP1, points: [{ x: 1, y: 1 }] })
+        .aReservoir(IDS.R2, { head: 100 })
+        .aJunction(IDS.J2, { elevation: 0 })
+        .aPipe(IDS.P1, {
+          startNodeId: IDS.R2,
+          endNodeId: IDS.J2,
+          length: 1000,
+          diameter: 300,
+          roughness: 130,
+        })
+        .aJunction(IDS.J3, { elevation: 0 })
+        .aJunctionDemand(IDS.J3, [{ baseDemand: 1 }])
+        .aValve(IDS.V1, {
+          startNodeId: IDS.J2,
+          endNodeId: IDS.J3,
+          kind: "prv",
+          diameter: 300,
+          setting: 30,
+        })
+        .build();
+      const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
+        simulationSettings: defaultSimulationSettings,
+      });
+
+      const testAppId = "test-link-setting";
+      const { status } = await runSimulation(inp, testAppId);
+      expect(status).toEqual("success");
+
+      const storage = new InMemoryStorage(testAppId);
+      const reader = new EPSResultsReader(storage);
+      await reader.initialize();
+
+      const resultsReader = await reader.getResultsForTimestep(0);
+
+      expect(resultsReader.getLinkSetting(IDS.PUMP1)).toBeCloseTo(0.8);
+      expect(resultsReader.getLinkSetting(IDS.V1)).toBeCloseTo(30);
+      expect(resultsReader.getLinkSetting(IDS.J1)).toBeNull();
+    });
+
     it("reads closed valve status", async () => {
       const IDS = { R1: 1, J1: 2, V1: 3 } as const;
       const hydraulicModel = HydraulicModelBuilder.with()

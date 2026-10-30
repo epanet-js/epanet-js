@@ -83,7 +83,7 @@ const RESULTS_TYPES: TypeDef[] = [
   resultsType(
     "PumpResults",
     "pump",
-    `flow: number;\n  head: number;\n  status: "on" | "off";\n  ${STATUS_WARNING}`,
+    `flow: number;\n  head: number;\n  setting: number;\n  status: "on" | "off";\n  ${STATUS_WARNING}`,
     '"flow" | "head" | "setting"',
     "/** energy use over the run, as EPANET reports it; the same at every timestep */\n  readonly energy: { utilization: number; averageEfficiency: number; averageKwPerFlowUnit: number; averageKw: number; peakKw: number; averageCostPerDay: number; demandCharge: number } | null;",
     "A pump's simulation results at one timestep.",
@@ -95,7 +95,7 @@ const RESULTS_TYPES: TypeDef[] = [
   resultsType(
     "ValveResults",
     "valve",
-    `flow: number;\n  velocity: number;\n  headloss: number;\n  status: "active" | "open" | "closed";\n  ${STATUS_WARNING}`,
+    `flow: number;\n  velocity: number;\n  headloss: number;\n  setting: number;\n  status: "active" | "open" | "closed";\n  ${STATUS_WARNING}`,
     '"flow" | "velocity" | "headloss" | "setting"',
     "",
     "A valve's simulation results at one timestep.",
@@ -176,7 +176,7 @@ console.log("P1 peaks at", Math.max(...flows.map(Math.abs)), network.units.flow)
 const pumpResults = resultsOf(
   "Pump",
   "pump",
-  `Values are in \`network.units[name]\`, except \`head\`, which is in \`units.actualHead\`. \`series("setting")\` is the relative speed the engine ran the pump at, like \`pump.speed\`. ${FLOW_DIRECTION} \`energy\` has \`utilization\` and \`averageEfficiency\` in \`units.efficiency\`, \`averageKw\` and \`peakKw\` in \`units.power\`, \`averageKwPerFlowUnit\` in \`units.averageKwPerFlowUnit\`; \`averageCostPerDay\` and \`demandCharge\` are in the project's currency. \`demandCharge\` is the network's, the same for every pump. \`energy\` is \`null\` when the run reported none.`,
+  `Values are in \`network.units[name]\`, except \`head\`, which is in \`units.actualHead\`. \`setting\` is the relative speed the engine ran the pump at, like \`pump.speed\`. ${FLOW_DIRECTION} \`energy\` has \`utilization\` and \`averageEfficiency\` in \`units.efficiency\`, \`averageKw\` and \`peakKw\` in \`units.power\`, \`averageKwPerFlowUnit\` in \`units.averageKwPerFlowUnit\`; \`averageCostPerDay\` and \`demandCharge\` are in the project's currency. \`demandCharge\` is the network's, the same for every pump. \`energy\` is \`null\` when the run reported none.`,
   `for (const pump of network.pumps) {
   const energy = pump.results?.energy;
   if (energy) console.log(pump.label, pump.results.status, energy.averageKw, network.units.power, "on", energy.utilization, network.units.efficiency, "of the time");
@@ -186,7 +186,7 @@ const pumpResults = resultsOf(
 const valveResults = resultsOf(
   "Valve",
   "valve",
-  `Values are in \`network.units[name]\`. \`series("setting")\` is the setting the engine applied, in the unit its kind uses, like \`valve.setting\`. ${FLOW_DIRECTION}`,
+  `Values are in \`network.units[name]\`. \`setting\` is the setting the engine applied, in the unit its kind uses, like \`valve.setting\`. ${FLOW_DIRECTION}`,
   `const struggling = network.valves.filter((valve) => valve.results?.statusWarning);
 console.log(struggling.map((valve) => \`\${valve.label}: \${valve.results.statusWarning}\`));`,
 );

@@ -139,6 +139,7 @@ export interface ResultsReader {
   getTank: (tankId: number) => TankSimulation | null;
   getReservoir: (reservoirId: number) => ReservoirSimulation | null;
   getPumpEnergy: (pumpId: number) => PumpEnergySummary | null;
+  getLinkSetting: (linkId: number) => number | null;
 
   getAllValues: (property: SimulationProperty) => number[];
 }

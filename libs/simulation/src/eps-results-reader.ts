@@ -1537,6 +1537,12 @@ class TimestepResultsReader implements ResultsReader {
     return this.pumpStatuses[pumpPosition];
   }
 
+  getLinkSetting(linkId: number): number | null {
+    const linkIndex = this.simulationIds.linkIdToIndex.get(String(linkId));
+    if (linkIndex === undefined) return null;
+    return this.getLinkData(linkIndex).setting;
+  }
+
   getJunction(junctionId: number): JunctionSimulation | null {
     const nodeIndex = this.simulationIds.nodeIdToIndex.get(String(junctionId));
     if (nodeIndex === undefined) return null;
@@ -1812,6 +1818,9 @@ class NullResultsReader implements ResultsReader {
     return [];
   }
   getPumpEnergy(): PumpEnergySummary | null {
+    return null;
+  }
+  getLinkSetting(): number | null {
     return null;
   }
 }
