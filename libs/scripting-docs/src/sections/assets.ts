@@ -57,8 +57,8 @@ const RESULTS_TYPES: TypeDef[] = [
   resultsType(
     "ReservoirResults",
     "reservoir",
-    "head: number;\n  netFlow: number;",
-    '"head" | "netFlow"',
+    "pressure: number;\n  head: number;\n  netFlow: number;",
+    '"pressure" | "head" | "netFlow"',
     NODE_STATS,
     "A reservoir's simulation results at one timestep.",
   ),

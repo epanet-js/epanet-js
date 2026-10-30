@@ -89,7 +89,7 @@ if (res && res.currentStep !== null) console.log("Reading the results at", res.t
       summary:
         "Label → lowest value over the run for every node. The network-wide form of `node.results.stats`, with the same numbers.",
       description:
-        "`pressure` lists junctions and tanks, `head` every node. Like `node.results.stats`, the engine tracks these at every hydraulic step, not only the reported timesteps. A node the run did not include is left out; the map is empty when the run has no timesteps.",
+        "Both list every node. Like `node.results.stats`, the engine tracks these at every hydraulic step, not only the reported timesteps. A node the run did not include is left out; the map is empty when the run has no timesteps.",
       throws: [
         "a property other than `pressure` or `head`",
         "`The simulation results are no longer available; run the simulation again` when a newer run has replaced the stored results",
