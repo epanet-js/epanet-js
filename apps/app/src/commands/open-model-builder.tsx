@@ -16,14 +16,9 @@ const buildModelBuildViewUrl = (): string => {
 };
 
 export const useOpenModelBuilder = () => {
-  const userTracking = useUserTracking();
   const setDialogState = useSetAtom(dialogAtom);
-  const onlyEarlyAccess = useEarlyAccess();
   const { canUseModelBuildV2 } = usePermissions();
-  const checkUnsavedChanges = useUnsavedChangesCheck();
-  const startBlankProject = useStartBlankProject();
-  const setContentView = useSetAtom(contentViewAtom);
-  const isModelBuildFullViewOn = useFeatureFlag("FLAG_MODEL_BUILD_FULL_VIEW");
+  const openNewModelBuilder = useOpenNewModelBuilder();
 
   const openModelBuilder = useCallback(
     ({ source }: { source: string }) => {
@@ -32,6 +27,25 @@ export const useOpenModelBuilder = () => {
         return;
       }
 
+      openNewModelBuilder({ source });
+    },
+    [setDialogState, canUseModelBuildV2, openNewModelBuilder],
+  );
+
+  return openModelBuilder;
+};
+
+export const useOpenNewModelBuilder = () => {
+  const userTracking = useUserTracking();
+  const setDialogState = useSetAtom(dialogAtom);
+  const onlyEarlyAccess = useEarlyAccess();
+  const checkUnsavedChanges = useUnsavedChangesCheck();
+  const startBlankProject = useStartBlankProject();
+  const setContentView = useSetAtom(contentViewAtom);
+  const isModelBuildFullViewOn = useFeatureFlag("FLAG_MODEL_BUILD_FULL_VIEW");
+
+  const openNewModelBuilder = useCallback(
+    ({ source }: { source: string }) => {
       onlyEarlyAccess(() => {
         checkUnsavedChanges(async () => {
           userTracking.capture({
@@ -55,7 +69,6 @@ export const useOpenModelBuilder = () => {
       userTracking,
       setDialogState,
       onlyEarlyAccess,
-      canUseModelBuildV2,
       checkUnsavedChanges,
       startBlankProject,
       setContentView,
@@ -63,5 +76,5 @@ export const useOpenModelBuilder = () => {
     ],
   );
 
-  return openModelBuilder;
+  return openNewModelBuilder;
 };
