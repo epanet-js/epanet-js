@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useSetAtom } from "jotai";
 import { BaseDialog } from "src/components/dialog";
 import { Button } from "src/components/elements";
@@ -10,7 +10,7 @@ import {
   useIsTrialEmailRefused,
 } from "src/hooks/use-activate-trial";
 import { dialogAtom, type PaywallFeature } from "src/state/dialog";
-import { ChevronLeftIcon, RefreshIcon } from "src/icons";
+import { RefreshIcon } from "src/icons";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";
 import { useAuth } from "src/hooks/use-auth";
@@ -46,7 +46,6 @@ export const FeaturePaywall = ({
   const { user, isSignedIn } = useAuth();
   const isTrialEmailRefused = useIsTrialEmailRefused();
   const showTrialButton = isTrialAvailable(user) && !isTrialEmailRefused;
-  const [showPlans, setShowPlans] = useState(false);
 
   const { activateTrial, isLoading: isTrialLoading } = useActivateTrial();
 
@@ -67,27 +66,12 @@ export const FeaturePaywall = ({
     _onClose();
   };
 
-  const handleChooseYourPlan = () => {
-    userTracking.capture({
-      name: "paywall.clickedChoosePlan",
-      feature: config.feature,
-    });
-    setDialog({ type: "upgrade", feature: config.feature, source: "paywall" });
-  };
-
-  const handlePersonalCheckout = () => {
-    userTracking.capture({
-      name: "paywall.clickedPersonal",
-      feature: config.feature,
-    });
-  };
-
   const handleExplorePlans = () => {
     userTracking.capture({
       name: "paywall.clickedExplorePlans",
       feature: config.feature,
     });
-    setShowPlans(true);
+    setDialog({ type: "upgrade", feature: config.feature, source: "paywall" });
   };
 
   const handleStartTrial = async () => {
@@ -135,56 +119,7 @@ export const FeaturePaywall = ({
         </div>
 
         <div className="flex flex-col">
-          {showPlans ? (
-            <>
-              <button
-                className="flex items-center gap-1 text-size-base text-subtle hover:text-default dark:hover:text-gray-200 pb-2"
-                onClick={() => setShowPlans(false)}
-              >
-                <ChevronLeftIcon className="w-4 h-4" />
-                {translate("back")}
-              </button>
-              <div className="flex flex-col gap-5">
-                <div className="flex flex-col gap-1">
-                  <h3 className="text-size-base font-medium text-default dark:text-gray-100">
-                    {translate("paywall.nonCommercial.title")}
-                  </h3>
-                  <p className="text-size-base text-subtle">
-                    {translate("paywall.nonCommercial.description")}
-                  </p>
-                  <div className="pt-2" onClick={handlePersonalCheckout}>
-                    <CheckoutButton
-                      plan="personal"
-                      paymentType="yearly"
-                      variant="default"
-                      source="paywall"
-                      feature={config.feature}
-                    >
-                      {translate("paywall.nonCommercial.cta")}
-                    </CheckoutButton>
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-1">
-                  <h3 className="text-size-base font-medium text-default dark:text-gray-100">
-                    {translate("paywall.commercial.title")}
-                  </h3>
-                  <p className="text-size-base text-subtle">
-                    {translate("paywall.commercial.description")}
-                  </p>
-                  <div className="pt-2">
-                    <Button
-                      variant="primary"
-                      size="full-width"
-                      onClick={handleChooseYourPlan}
-                    >
-                      {translate("paywall.commercial.cta")}
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </>
-          ) : showTrialButton ? (
+          {showTrialButton ? (
             <>
               <div className="space-y-3 pb-6">
                 {config.descriptionKeys.map((key) => (
@@ -228,13 +163,6 @@ export const FeaturePaywall = ({
                     </Button>
                   </SignInButton>
                 )}
-                <div className="flex items-center gap-2">
-                  <div className="flex-1 border-t" />
-                  <span className="text-size-small text-subtle">
-                    {translate("paywall.or")}
-                  </span>
-                  <div className="flex-1 border-t" />
-                </div>
                 <Button
                   variant="default"
                   size="full-width"
