@@ -155,15 +155,22 @@ const PricingPlansDialog = ({
         </footer>
       }
     >
-      <div className="p-4 md:min-h-0 md:flex md:flex-col">
+      {/* Non-commercial shrinks to fit the dialog instead of scrolling;
+          overflow-clip, not hidden, so it doesn't become the scroller. */}
+      <div
+        className={clsx(
+          "px-4 pt-4 md:flex md:flex-col",
+          usage === "non-commercial" && "md:min-h-0 md:overflow-clip",
+        )}
+      >
         <div className="grid grid-cols-1 md:grid-cols-3 md:grid-rows-1 md:min-h-0 gap-6 mx-auto">
           <PricingFreePlan />
           {/* Both views share one grid cell, so the dialog keeps the taller one's height. */}
-          <div className="grid md:col-span-2 md:grid-rows-1 md:min-h-0">
+          <div className="grid md:col-span-2 md:grid-rows-1">
             <div
               aria-hidden={usage !== "commercial"}
               className={clsx(
-                "[grid-area:1/1] grid grid-cols-1 md:grid-cols-2 md:grid-rows-1 md:min-h-0 gap-6",
+                "[grid-area:1/1] grid grid-cols-1 md:grid-cols-2 md:grid-rows-1 gap-6",
                 usage !== "commercial" && "invisible",
               )}
             >
@@ -178,7 +185,7 @@ const PricingPlansDialog = ({
             <div
               aria-hidden={usage !== "non-commercial"}
               className={clsx(
-                "[grid-area:1/1] grid grid-cols-1 md:grid-cols-2 md:grid-rows-1 md:min-h-0 gap-6",
+                "[grid-area:1/1] grid grid-cols-1 md:grid-cols-2 md:grid-rows-1 gap-6",
                 usage !== "non-commercial" && "invisible",
               )}
             >
@@ -187,6 +194,8 @@ const PricingPlansDialog = ({
             </div>
           </div>
         </div>
+        {/* Covers card content scrolling below the sticky card footers. */}
+        <div className="sticky bottom-0 shrink-0 h-4 -mx-4 bg-base" />
       </div>
     </BaseDialog>
   );
@@ -239,7 +248,7 @@ const checkItem = (feature: string, tooltip?: string) => ({
 const PricingFreePlan = () => {
   const translate = useTranslate();
   return (
-    <div className="bg-base border rounded-md shadow-md overflow-y-auto md:min-h-0 md:max-h-[720px] flex flex-col justify-between">
+    <div className="bg-base border rounded-md shadow-md flex flex-col justify-between">
       <div className="px-6 pt-6 pb-3 flex flex-col gap-6 flex-1">
         <PricingPlanHeader
           name="Free"
@@ -257,7 +266,7 @@ const PricingFreePlan = () => {
           ]}
         />
       </div>
-      <div className="sticky bottom-0 sticky-footer-shadow bg-base px-4 pt-3 pb-4 w-full">
+      <div className="sticky bottom-4 z-1 sticky-footer-shadow after:shadow-md bg-base -mx-px -mb-px border-x border-b rounded-b-md px-4 pt-3 pb-4">
         <Button
           size="full-width"
           className="default-pointer bg-gray-300 text-default"
@@ -292,7 +301,7 @@ const PricingProPlan = ({
     !isTrialEmailRefused;
 
   return (
-    <div className="relative bg-base border border-purple-100 rounded-lg shadow-md shadow-purple-300 overflow-y-auto md:min-h-0 md:max-h-[720px] flex flex-col justify-between">
+    <div className="relative bg-base border border-purple-100 rounded-lg shadow-md shadow-purple-300 flex flex-col justify-between">
       <div className="px-6 pt-6 pb-3 flex flex-col gap-6 flex-1">
         <div className="absolute top-0 right-0 bg-linear-to-br from-purple-300 via-purple-400 to-purple-500 text-white text-size-small font-semibold py-1 px-2 rounded-bl-lg">
           {translate("mostPopular")}
@@ -325,7 +334,7 @@ const PricingProPlan = ({
           </p>
         </div>
       </div>
-      <div className="sticky bottom-0 sticky-footer-shadow bg-base flex flex-col px-4 pt-3 pb-4 gap-y-3 w-full">
+      <div className="sticky bottom-4 z-1 sticky-footer-shadow after:shadow-md after:shadow-purple-300 bg-base -mx-px -mb-px border-x border-b border-purple-100 rounded-b-lg flex flex-col px-4 pt-3 pb-4 gap-y-3">
         {canStartTrial ? (
           <StartTrialButton feature={feature} source={source} />
         ) : (
@@ -354,7 +363,7 @@ const PricingPersonalPlan = ({
   const translate = useTranslate();
 
   return (
-    <div className="relative bg-base border border-purple-100 rounded-lg shadow-md shadow-purple-300 overflow-y-auto md:min-h-0 md:max-h-[720px] flex flex-col justify-between">
+    <div className="relative bg-base border border-purple-100 rounded-lg shadow-md shadow-purple-300 flex flex-col justify-between">
       <div className="px-6 pt-6 pb-3 flex flex-col gap-6 flex-1">
         <div className="absolute top-0 right-0 bg-linear-to-br from-purple-300 via-purple-400 to-purple-500 text-white text-size-small font-semibold py-1 px-2 rounded-bl-lg">
           {translate("mostPopular")}
@@ -387,7 +396,7 @@ const PricingPersonalPlan = ({
           ]}
         />
       </div>
-      <div className="sticky bottom-0 sticky-footer-shadow bg-base px-4 pt-3 pb-4 w-full">
+      <div className="sticky bottom-4 z-1 sticky-footer-shadow after:shadow-md after:shadow-purple-300 bg-base -mx-px -mb-px border-x border-b border-purple-100 rounded-b-lg px-4 pt-3 pb-4">
         <CheckoutButton
           plan="personal"
           paymentType="yearly"
@@ -408,7 +417,7 @@ const PricingEducationPlan = () => {
   const userTracking = useUserTracking();
 
   return (
-    <div className="relative bg-base border rounded-lg shadow-md shadow-gray-300 overflow-y-auto md:min-h-0 md:max-h-[720px] flex flex-col h-fit">
+    <div className="relative bg-base border rounded-lg shadow-md shadow-gray-300 flex flex-col justify-between">
       <div className="px-6 pt-6 pb-3 flex flex-col gap-6 flex-1">
         <PricingPlanHeader
           name="Education"
@@ -420,7 +429,7 @@ const PricingEducationPlan = () => {
           {translate("everythingInForFree", "Personal")}
         </p>
       </div>
-      <div className="sticky bottom-0 sticky-footer-shadow bg-base flex flex-col px-4 pt-3 pb-4 gap-y-3">
+      <div className="sticky bottom-4 z-1 sticky-footer-shadow after:shadow-md after:shadow-gray-300 bg-base -mx-px -mb-px border-x border-b rounded-b-lg flex flex-col px-4 pt-3 pb-4 gap-y-3">
         <Button
           size="full-width"
           className="default-pointer bg-panel text-default"
@@ -479,7 +488,7 @@ const UltimatePlan = ({
   };
 
   return (
-    <div className="relative bg-base border rounded-md shadow-md shadow-gray-300 overflow-y-auto md:min-h-0 md:max-h-[720px] flex flex-col justify-between">
+    <div className="relative bg-base border rounded-md shadow-md shadow-gray-300 flex flex-col justify-between">
       <div className="px-6 pt-6 pb-3 flex flex-col gap-6 flex-1">
         <PricingPlanHeader
           name="Ultimate"
@@ -537,7 +546,7 @@ const UltimatePlan = ({
           />
         </div>
       </div>
-      <div className="sticky bottom-0 sticky-footer-shadow bg-base px-4 pt-3 pb-4 w-full">
+      <div className="sticky bottom-4 z-1 sticky-footer-shadow after:shadow-md after:shadow-gray-300 bg-base -mx-px -mb-px border-x border-b rounded-b-md px-4 pt-3 pb-4">
         <QuoteButton
           label={translate("requestQuote")}
           onClick={captureCheckoutStarted}

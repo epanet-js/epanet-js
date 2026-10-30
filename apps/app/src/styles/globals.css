@@ -445,6 +445,17 @@ body.dark .mapboxgl-ctrl-attrib-button {
   background: radial-gradient(farthest-side at 50% 100%, rgba(0, 0, 0, 0.3), transparent);
 }
 
+/* Optional drop shadow under a sticky footer (set it with after:shadow-*),
+   for a card whose own bottom shadow is covered at the scroll edge. */
+.sticky-footer-shadow::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
 /* Horizontal scroll shadows.
    Usage: wrap the overflow-x-auto element with .scroll-shadows-x.
    The wrapper holds the absolutely-positioned shadows (they don't scroll);
