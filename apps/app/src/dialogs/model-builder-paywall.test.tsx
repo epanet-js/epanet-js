@@ -31,9 +31,7 @@ describe("model builder paywall dialog", () => {
     expect(screen.getAllByText("Save build settings")).toHaveLength(1);
     expect(screen.queryByText("Not available:")).not.toBeInTheDocument();
     expect(screen.queryByText("Filter data")).not.toBeInTheDocument();
-    expect(
-      screen.getByText("Free, Personal and Education plans"),
-    ).toBeVisible();
+    expect(screen.getByText("Free and Personal plans")).toBeVisible();
     expect(screen.getByText("Pro plans and above")).toBeVisible();
   });
 });

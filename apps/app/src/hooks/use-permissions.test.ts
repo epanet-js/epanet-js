@@ -77,7 +77,7 @@ describe("resolvePermissions", () => {
     expect(p.canUpgrade).toBe(true);
   });
 
-  it.each(["pro", "teams"] satisfies Plan[])(
+  it.each(["pro", "teams", "education"] satisfies Plan[])(
     "%s plan can use the v2 model builder",
     (plan) => {
       expect(
@@ -86,7 +86,7 @@ describe("resolvePermissions", () => {
     },
   );
 
-  it.each(["free", "personal", "education"] satisfies Plan[])(
+  it.each(["free", "personal"] satisfies Plan[])(
     "%s plan cannot use the v2 model builder",
     (plan) => {
       expect(

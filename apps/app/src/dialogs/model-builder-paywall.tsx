@@ -119,7 +119,7 @@ export const ModelBuilderPaywallDialog = ({
               </h2>
               {isModelBuilderPaywallOn && (
                 <p className="text-size-base text-subtle">
-                  Free, Personal and Education plans
+                  Free and Personal plans
                 </p>
               )}
               <div className="flex flex-col justify-between flex-1">

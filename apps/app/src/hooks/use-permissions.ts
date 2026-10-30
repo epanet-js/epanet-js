@@ -40,7 +40,8 @@ export const resolvePermissions = (
     canRefreshElevations: hasPaidAccess,
     canUseZones: hasPaidAccess || isDemoNetwork,
     canUsePipeAttributes: hasPaidAccess || isDemoNetwork,
-    canUseModelBuildV2: ["pro", "teams"].includes(plan) || trialActive,
+    canUseModelBuildV2:
+      ["pro", "teams", "education"].includes(plan) || trialActive,
     canValidateModelAttributes: hasPaidAccess,
     canUsePipeLibrary: hasPaidAccess || isDemoNetwork,
     canUseCustomAttributes: hasPaidAccess || isDemoNetwork,
