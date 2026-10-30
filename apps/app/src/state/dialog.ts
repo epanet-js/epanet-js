@@ -264,6 +264,7 @@ export type PaywallFeature =
   | "selectionSets"
   | "modelAttributesValidation"
   | "modelBuilder"
+  | "modelBuildAdvanced"
   | "convertModel"
   | "runScripts"
   | "editScripts";

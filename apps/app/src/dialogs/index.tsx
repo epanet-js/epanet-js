@@ -67,6 +67,7 @@ import { ZonesPaywallConnector } from "src/dialogs/paywall/zones-connector";
 import { PipeLibraryPaywallConnector } from "src/dialogs/paywall/pipe-library-connector";
 import { CustomAttributesPaywallConnector } from "src/dialogs/paywall/custom-attributes-connector";
 import { ConvertModelPaywallConnector } from "src/dialogs/paywall/convert-model-connector";
+import { ModelBuildAdvancedPaywallConnector } from "src/dialogs/paywall/model-build-advanced-connector";
 import { ScriptingPaywallConnector } from "src/dialogs/paywall/scripting-connector";
 import { ElevationTileErrorsDialog } from "src/dialogs/elevation-tile-errors";
 import { GisImportErrorsDialog } from "src/dialogs/gis-import-errors";
@@ -336,6 +337,9 @@ export const Dialogs = memo(function Dialogs() {
     }
     if (dialog.feature === "convertModel") {
       return <ConvertModelPaywallConnector onClose={onClose} />;
+    }
+    if (dialog.feature === "modelBuildAdvanced") {
+      return <ModelBuildAdvancedPaywallConnector onClose={onClose} />;
     }
     if (dialog.feature === "runScripts" || dialog.feature === "editScripts") {
       return (

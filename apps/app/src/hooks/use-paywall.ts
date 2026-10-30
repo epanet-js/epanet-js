@@ -62,6 +62,10 @@ const FEATURE_CONFIG: Record<PaywallFeature, FeatureConfig> = {
     permission: "canUseModelBuildV2",
     dialog: { type: "upgrade", feature: "modelBuilder" },
   },
+  modelBuildAdvanced: {
+    permission: "canUseModelBuildV2",
+    dialog: { type: "featurePaywall", feature: "modelBuildAdvanced" },
+  },
   convertModel: {
     permission: "canImportSynergi",
     dialog: { type: "featurePaywall", feature: "convertModel" },

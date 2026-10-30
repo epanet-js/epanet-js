@@ -14,14 +14,23 @@ import {
   useEnabledFeatureFlags,
   useReportFeatureFlagUsage,
 } from "src/hooks/use-feature-flags";
+import { usePermissions } from "src/hooks/use-permissions";
+import { useStartUpgrade } from "src/hooks/use-paywall";
 import { modelBuilderV2Url } from "src/global-config";
 
-const buildIframeSrc = (enabledFlags: string[], locale: string): string => {
+type ModelBuildAccess = "full" | "limited";
+
+const buildIframeSrc = (
+  enabledFlags: string[],
+  locale: string,
+  access: ModelBuildAccess,
+): string => {
   const url = new URL(modelBuilderV2Url);
   for (const flag of enabledFlags) {
     url.searchParams.set(flag, "true");
   }
   url.searchParams.set("locale", locale);
+  url.searchParams.set("access", access);
   return url.toString();
 };
 
@@ -151,10 +160,14 @@ export const ModelBuilderV2Frame = ({
   const showNetworkReview = useShowNetworkReview();
   const enabledFlags = useEnabledFeatureFlags();
   const reportFeatureFlagUsage = useReportFeatureFlagUsage();
+  const { canUseModelBuildV2 } = usePermissions();
+  const startUpgrade = useStartUpgrade();
+  const access: ModelBuildAccess = canUseModelBuildV2 ? "full" : "limited";
   const initialLocale = useRef(locale).current;
+  const initialAccess = useRef(access).current;
   const iframeSrc = useMemo(
-    () => buildIframeSrc(enabledFlags, initialLocale),
-    [enabledFlags, initialLocale],
+    () => buildIframeSrc(enabledFlags, initialLocale, initialAccess),
+    [enabledFlags, initialLocale, initialAccess],
   );
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
@@ -165,9 +178,20 @@ export const ModelBuilderV2Frame = ({
     );
   }, [locale]);
 
+  const sendAccess = useCallback(() => {
+    iframeRef.current?.contentWindow?.postMessage(
+      { type: "accessChanged", data: { access } },
+      new URL(modelBuilderV2Url).origin,
+    );
+  }, [access]);
+
   useEffect(() => {
     sendLocale();
   }, [sendLocale]);
+
+  useEffect(() => {
+    sendAccess();
+  }, [sendAccess]);
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
@@ -197,6 +221,8 @@ export const ModelBuilderV2Frame = ({
       } else if (message.type === "featureFlagCalled") {
         const { name } = (message as FeatureFlagCalledMessage).data;
         if (typeof name === "string" && name) reportFeatureFlagUsage(name);
+      } else if (message.type === "requestUpgrade") {
+        startUpgrade("modelBuildAdvanced");
       } else if (message.type === "close") {
         onClose?.();
       }
@@ -214,6 +240,7 @@ export const ModelBuilderV2Frame = ({
     reportFeatureFlagUsage,
     onContextChange,
     onClose,
+    startUpgrade,
   ]);
 
   return (
@@ -230,6 +257,7 @@ export const ModelBuilderV2Frame = ({
         onLoad={() => {
           setIsLoading(false);
           sendLocale();
+          sendAccess();
         }}
         sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads"
         title={translate("importFromGIS")}
