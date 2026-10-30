@@ -183,6 +183,7 @@ function QuickGraphChartECharts({
 
   const chartRef = useRef<ReactECharts>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const isChartReadyRef = useRef(false);
 
   useEffect(function resizeChart() {
     const container = containerRef.current;
@@ -216,6 +217,7 @@ function QuickGraphChartECharts({
 
   useEffect(
     function updateMarkLinePosition() {
+      if (!isChartReadyRef.current) return;
       const chart = chartRef.current?.getEchartsInstance();
       if (!chart) return;
       applyMarkLine(chart);
@@ -225,6 +227,7 @@ function QuickGraphChartECharts({
 
   const onChartReady = useCallback(
     (chart: EChartsInstance) => {
+      isChartReadyRef.current = true;
       applyMarkLine(chart);
 
       const zr = chart.getZr();
