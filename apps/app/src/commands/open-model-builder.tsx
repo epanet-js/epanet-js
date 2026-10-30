@@ -18,24 +18,30 @@ const buildModelBuildViewUrl = (): string => {
 export const useOpenModelBuilder = () => {
   const setDialogState = useSetAtom(dialogAtom);
   const { canUseModelBuildV2 } = usePermissions();
+  const isLimitedModelBuildOn = useFeatureFlag("FLAG_LIMITED_MODEL_BUILD");
   const openNewModelBuilder = useOpenNewModelBuilder();
 
   const openModelBuilder = useCallback(
     ({ source }: { source: string }) => {
-      if (!canUseModelBuildV2) {
+      if (!canUseModelBuildV2 && !isLimitedModelBuildOn) {
         setDialogState({ type: "modelBuilderPaywall", source });
         return;
       }
 
       openNewModelBuilder({ source });
     },
-    [setDialogState, canUseModelBuildV2, openNewModelBuilder],
+    [
+      setDialogState,
+      canUseModelBuildV2,
+      isLimitedModelBuildOn,
+      openNewModelBuilder,
+    ],
   );
 
   return openModelBuilder;
 };
 
-export const useOpenNewModelBuilder = () => {
+const useOpenNewModelBuilder = () => {
   const userTracking = useUserTracking();
   const setDialogState = useSetAtom(dialogAtom);
   const onlyEarlyAccess = useEarlyAccess();

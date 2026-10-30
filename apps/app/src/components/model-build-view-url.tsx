@@ -15,7 +15,7 @@ const removeViewParam = () => {
 };
 
 export const ModelBuildViewUrl = () => {
-  const { isLoaded } = useAuth();
+  const { isLoaded, isSignedIn } = useAuth();
   const openModelBuilder = useOpenModelBuilder();
   const hasRecoverableSession =
     useAtomValue(recoverableSessionsAtom).length > 0;
@@ -29,11 +29,17 @@ export const ModelBuildViewUrl = () => {
       removeViewParam();
     }
 
-    if (!hasPendingRequest.current || !isLoaded) return;
+    if (!hasPendingRequest.current || !isLoaded || !isSignedIn) return;
     hasPendingRequest.current = false;
     if (hasRecoverableSession) return;
     openModelBuilder({ source: "url" });
-  }, [isRequestedByUrl, isLoaded, hasRecoverableSession, openModelBuilder]);
+  }, [
+    isRequestedByUrl,
+    isLoaded,
+    isSignedIn,
+    hasRecoverableSession,
+    openModelBuilder,
+  ]);
 
   return null;
 };
