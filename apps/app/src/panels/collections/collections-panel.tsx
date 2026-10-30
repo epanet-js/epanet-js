@@ -55,7 +55,12 @@ import { useStartCollectionDraft } from "src/commands/collection-draft";
 type SectionType = CollectionKind;
 
 type ActionState =
-  | { action: "creating"; section: SectionType; source: CollectionDraftSource }
+  | {
+      action: "creating";
+      section: SectionType;
+      source: CollectionDraftSource;
+      label: string;
+    }
   | { action: "renaming"; section: SectionType; id: string };
 
 type RowKey = { section: SectionType; id: string };
@@ -233,6 +238,7 @@ export const CollectionsPanel = () => {
         startCollectionDraft({
           kind: addRowSection,
           source: "collections-add-row",
+          label: "",
         });
         return;
       }
@@ -304,6 +310,7 @@ export const CollectionsPanel = () => {
       action: "creating",
       section: pendingDraft.kind,
       source: pendingDraft.source,
+      label: pendingDraft.label,
     });
     listRef.current?.openSection(pendingDraft.kind);
     setPendingDraft(null);
@@ -311,7 +318,7 @@ export const CollectionsPanel = () => {
 
   const handleNew = (section: SectionType, source: CollectionDraftSource) => {
     clearKeyboardFocus();
-    startCollectionDraft({ kind: section, source });
+    startCollectionDraft({ kind: section, source, label: "" });
   };
 
   const handleAction = (action: string, item: { id: number }) => {
@@ -347,6 +354,9 @@ export const CollectionsPanel = () => {
       variant: "destructive",
     },
   ];
+
+  const draftLabel =
+    actionState?.action === "creating" ? actionState.label : "";
 
   const renderRow = (row: Row) => (
     <EditableListItem
@@ -399,7 +409,8 @@ export const CollectionsPanel = () => {
           {isCreatingIn(actionState, "selectionSets") ? (
             <ItemInput
               label={translate("collections.selectionSets.newLabel")}
-              value=""
+              value={draftLabel}
+              forceValidation={draftLabel !== ""}
               placeholder={translate(
                 "collections.selectionSets.labelPlaceholder",
               )}
@@ -438,7 +449,8 @@ export const CollectionsPanel = () => {
           {isCreatingIn(actionState, "bookmarks") ? (
             <ItemInput
               label={translate("collections.bookmarks.newLabel")}
-              value=""
+              value={draftLabel}
+              forceValidation={draftLabel !== ""}
               placeholder={translate("collections.bookmarks.labelPlaceholder")}
               onCommit={handleLabelChange}
               onCancel={clearActionState}

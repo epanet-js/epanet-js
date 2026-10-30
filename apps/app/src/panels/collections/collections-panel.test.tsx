@@ -152,6 +152,7 @@ describe("CollectionsPanel", () => {
       store.set(pendingCollectionDraftAtom, {
         kind: "selectionSets",
         source: "context-menu",
+        label: "",
       });
       renderPanel(store);
 
@@ -159,6 +160,24 @@ describe("CollectionsPanel", () => {
 
       expect(screen.getByText("From the map")).toBeInTheDocument();
       expect(store.get(pendingCollectionDraftAtom)).toBeNull();
+    });
+
+    it("saves a prefilled name as given", async () => {
+      const store = aStore();
+      store.set(selectionAtom, USelection.fromAssetIds([IDS.J1, IDS.J2]));
+      store.set(pendingCollectionDraftAtom, {
+        kind: "selectionSets",
+        source: "script-output",
+        label: "Isolated nodes",
+      });
+      renderPanel(store);
+
+      expect(screen.getByRole("textbox")).toHaveValue("Isolated nodes");
+      await userEvent.keyboard("{Enter}");
+
+      expect(store.get(selectionSetsAtom).map((set) => set.label)).toEqual([
+        "Isolated nodes",
+      ]);
     });
   });
 

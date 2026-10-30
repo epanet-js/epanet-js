@@ -1,22 +1,40 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
 import { Button } from "src/components/elements";
-import { CollapsibleListSection, ListItem } from "src/components/list";
+import {
+  CollapsibleListSection,
+  ListItem,
+  type ItemAction,
+} from "src/components/list";
 import { useTranslate } from "src/hooks/use-translate";
-import { DownloadIcon } from "src/icons";
+import { BookmarkIcon, DownloadIcon } from "src/icons";
 import type { ScriptAttachment, ScriptRunOutcome } from "src/lib/scripting";
 import {
   useApplyScriptSelectionSet,
   useGoToScriptBookmark,
+  useSaveScriptSelectionSet,
 } from "src/commands/script-output-collections";
+import { useIsCollectionsAvailable } from "src/commands/collection-draft";
 import { formatSize, useDownloadAttachment } from "./run-output";
 
 export const RunResult = ({ outcome }: { outcome: ScriptRunOutcome }) => {
   const translate = useTranslate();
   const applySelectionSet = useApplyScriptSelectionSet();
   const goToBookmark = useGoToScriptBookmark();
+  const saveSelectionSet = useSaveScriptSelectionSet();
+  const isCollectionsAvailable = useIsCollectionsAvailable();
 
   if (outcome.status !== "success") return null;
+
+  const selectionSetActions: ItemAction[] = isCollectionsAvailable
+    ? [
+        {
+          action: "save",
+          label: translate("collections.selectionSets.save"),
+          icon: <BookmarkIcon size="sm" />,
+        },
+      ]
+    : [];
 
   return (
     <>
@@ -43,6 +61,8 @@ export const RunResult = ({ outcome }: { outcome: ScriptRunOutcome }) => {
               id={i}
               label={selectionSet.label}
               onSelect={() => applySelectionSet(selectionSet)}
+              actions={selectionSetActions}
+              onAction={() => saveSelectionSet(selectionSet)}
             />
           ))}
         </Section>
@@ -98,19 +118,29 @@ const OutputItem = ({
   id,
   label,
   onSelect,
+  actions = [],
+  onAction,
 }: {
   id: number;
   label: string;
   onSelect: () => void;
-}) => (
-  <ListItem
-    item={{ id, label }}
-    isSelected={false}
-    onSelect={onSelect}
-    readOnly
-    showFullLabelOnHover
-  />
-);
+  actions?: ItemAction[];
+  onAction?: (action: string) => void;
+}) => {
+  const translate = useTranslate();
+  return (
+    <ListItem
+      item={{ id, label }}
+      isSelected={false}
+      onSelect={onSelect}
+      actions={actions}
+      actionsLabel={translate("moreActions")}
+      onAction={onAction}
+      readOnly={actions.length === 0}
+      showFullLabelOnHover
+    />
+  );
+};
 
 const AttachmentItem = ({ attachment }: { attachment: ScriptAttachment }) => {
   const translate = useTranslate();

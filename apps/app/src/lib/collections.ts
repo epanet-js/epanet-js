@@ -10,11 +10,13 @@ export type CollectionDraftSource =
   | "collections-heading"
   | "collections-add-row"
   | "context-menu"
-  | "toolbar";
+  | "toolbar"
+  | "script-output";
 
 export type CollectionDraft = {
   kind: CollectionKind;
   source: CollectionDraftSource;
+  label: string;
 };
 
 export type SelectionSetId = string;

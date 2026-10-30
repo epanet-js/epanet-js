@@ -1,6 +1,7 @@
 import { useAtomCallback } from "jotai/utils";
 import type { LngLatBoundsLike } from "mapbox-gl";
 import { useCallback, useContext } from "react";
+import { useStartCollectionDraft } from "src/commands/collection-draft";
 import { useZoomTo } from "src/hooks/use-zoom-to";
 import type { ScriptBookmark, ScriptSelectionSet } from "src/lib/scripting";
 import { existingSelection } from "src/lib/collections";
@@ -24,6 +25,23 @@ export const useApplyScriptSelectionSet = () => {
       },
       [zoomTo],
     ),
+  );
+};
+
+export const useSaveScriptSelectionSet = () => {
+  const applySelectionSet = useApplyScriptSelectionSet();
+  const startCollectionDraft = useStartCollectionDraft();
+
+  return useCallback(
+    (selectionSet: ScriptSelectionSet) => {
+      applySelectionSet(selectionSet);
+      startCollectionDraft({
+        kind: "selectionSets",
+        source: "script-output",
+        label: selectionSet.label,
+      });
+    },
+    [applySelectionSet, startCollectionDraft],
   );
 };
 

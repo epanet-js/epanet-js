@@ -58,7 +58,11 @@ export function useNodeActions(readonly = false): Action[] {
     applicable: isCollectionsAvailable,
     label: translate("collections.selectionSets.save"),
     onSelect: function saveSelectionSet() {
-      startCollectionDraft({ kind: "selectionSets", source: "toolbar" });
+      startCollectionDraft({
+        kind: "selectionSets",
+        source: "toolbar",
+        label: "",
+      });
       return Promise.resolve();
     },
   };

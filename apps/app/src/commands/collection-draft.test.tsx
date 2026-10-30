@@ -80,7 +80,11 @@ describe("useStartCollectionDraft", () => {
     store.set(splitsAtom, (splits) => ({ ...splits, leftOpen: false }));
     store.set(activatePanelAtom, "network-review");
 
-    await start(store, { kind: "selectionSets", source: "context-menu" });
+    await start(store, {
+      kind: "selectionSets",
+      source: "context-menu",
+      label: "",
+    });
 
     expect(store.get(splitsAtom).leftOpen).toBe(true);
     expect(store.get(activePanelIn("left"))?.id).toEqual("collections");
@@ -94,7 +98,11 @@ describe("useStartCollectionDraft", () => {
       left: 555,
     }));
 
-    await start(store, { kind: "bookmarks", source: "collections-heading" });
+    await start(store, {
+      kind: "bookmarks",
+      source: "collections-heading",
+      label: "",
+    });
 
     expect(store.get(splitsAtom).left).toEqual(555);
   });
@@ -102,11 +110,16 @@ describe("useStartCollectionDraft", () => {
   it("hands the panel the kind and source of the draft", async () => {
     const store = aStore();
 
-    await start(store, { kind: "bookmarks", source: "collections-add-row" });
+    await start(store, {
+      kind: "bookmarks",
+      source: "collections-add-row",
+      label: "",
+    });
 
     expect(store.get(pendingCollectionDraftAtom)).toEqual({
       kind: "bookmarks",
       source: "collections-add-row",
+      label: "",
     });
   });
 
@@ -116,7 +129,11 @@ describe("useStartCollectionDraft", () => {
     store.set(splitsAtom, (splits) => ({ ...splits, leftOpen: false }));
     store.set(activatePanelAtom, "network-review");
 
-    await start(store, { kind: "selectionSets", source: "context-menu" });
+    await start(store, {
+      kind: "selectionSets",
+      source: "context-menu",
+      label: "",
+    });
 
     expect(store.get(splitsAtom).leftOpen).toBe(true);
     expect(store.get(activePanelIn("left"))?.id).toEqual("collections");
@@ -130,7 +147,11 @@ describe("useStartCollectionDraft", () => {
     store.set(splitsAtom, (splits) => ({ ...splits, leftOpen: true }));
     store.set(activatePanelAtom, "collections");
 
-    await start(store, { kind: "selectionSets", source: "context-menu" });
+    await start(store, {
+      kind: "selectionSets",
+      source: "context-menu",
+      label: "",
+    });
 
     expect(startUpgrade).toHaveBeenCalledWith("selectionSets");
     expect(store.get(pendingCollectionDraftAtom)).toBeNull();

@@ -105,7 +105,11 @@ function useSelectionActions(source: ActionProps["as"]): Action[] {
     applicable: isCollectionsAvailable,
     label: translate("collections.selectionSets.save"),
     onSelect: function saveSelectionSet() {
-      startCollectionDraft({ kind: "selectionSets", source: "context-menu" });
+      startCollectionDraft({
+        kind: "selectionSets",
+        source: "context-menu",
+        label: "",
+      });
       return Promise.resolve();
     },
   };
