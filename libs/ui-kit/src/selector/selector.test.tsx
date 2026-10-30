@@ -301,17 +301,16 @@ describe("Selector", () => {
     });
   });
 
-  describe("actionLabel", () => {
-    it("renders an action row and fires onActionClick", async () => {
-      const onActionClick = vi.fn();
+  describe("actions", () => {
+    it("renders an action row and fires its onSelect", async () => {
+      const onSelect = vi.fn();
       render(
         <Selector
           ariaLabel="Pick one"
           options={[opt("Apple")]}
           selected="Apple"
           onChange={vi.fn()}
-          actionLabel="Open library"
-          onActionClick={onActionClick}
+          actions={[{ label: "Open library", onSelect }]}
         />,
       );
       await openSelector();
@@ -320,7 +319,7 @@ describe("Selector", () => {
         screen.getByRole("button", { name: "Open library" }),
       );
 
-      expect(onActionClick).toHaveBeenCalledTimes(1);
+      expect(onSelect).toHaveBeenCalledTimes(1);
     });
 
     it("renders the action row regardless of selection state", async () => {
@@ -332,8 +331,7 @@ describe("Selector", () => {
           onChange={vi.fn()}
           nullable
           placeholder="Choose…"
-          actionLabel="Open library"
-          onActionClick={vi.fn()}
+          actions={[{ label: "Open library", onSelect: vi.fn() }]}
         />,
       );
       await openSelector();
@@ -574,8 +572,7 @@ describe("Selector", () => {
           onChange={vi.fn()}
           nullable
           placeholder="Choose…"
-          actionLabel="Open library"
-          onActionClick={vi.fn()}
+          actions={[{ label: "Open library", onSelect: vi.fn() }]}
         />,
       );
       const trigger = screen.getByRole("combobox", { name: "Pick one" });
@@ -609,7 +606,7 @@ describe("Selector", () => {
 
   describe("keyboard interaction", () => {
     it("triggers the action on Enter when no options exist", async () => {
-      const onActionClick = vi.fn();
+      const onSelect = vi.fn();
       render(
         <Selector
           ariaLabel="Pick one"
@@ -618,8 +615,7 @@ describe("Selector", () => {
           onChange={vi.fn()}
           nullable
           placeholder="Choose…"
-          actionLabel="Open library"
-          onActionClick={onActionClick}
+          actions={[{ label: "Open library", onSelect }]}
         />,
       );
       const user = setupUser();
@@ -631,7 +627,7 @@ describe("Selector", () => {
       });
       await user.keyboard("{Enter}");
 
-      expect(onActionClick).toHaveBeenCalled();
+      expect(onSelect).toHaveBeenCalled();
     });
 
     it("Tab from the list jumps the active highlight to the clear button", async () => {
@@ -671,8 +667,7 @@ describe("Selector", () => {
           onChange={vi.fn()}
           nullable
           placeholder="Choose…"
-          actionLabel="Open library"
-          onActionClick={vi.fn()}
+          actions={[{ label: "Open library", onSelect: vi.fn() }]}
         />,
       );
       const user = await openSelector();
@@ -704,22 +699,21 @@ describe("Selector", () => {
     });
 
     it("navigates into the action button via Arrow keys and Enter triggers it", async () => {
-      const onActionClick = vi.fn();
+      const onSelect = vi.fn();
       render(
         <Selector
           ariaLabel="Pick one"
           options={[opt("Apple"), opt("Banana")]}
           selected="Apple"
           onChange={vi.fn()}
-          actionLabel="Open library"
-          onActionClick={onActionClick}
+          actions={[{ label: "Open library", onSelect }]}
         />,
       );
       const user = await openSelector();
       // Active starts on "Apple" (index 0). ArrowDown twice → action row.
       await user.keyboard("{ArrowDown}{ArrowDown}{Enter}");
 
-      expect(onActionClick).toHaveBeenCalled();
+      expect(onSelect).toHaveBeenCalled();
     });
 
     it("type-ahead jumps the active row to the first matching option (no search)", async () => {

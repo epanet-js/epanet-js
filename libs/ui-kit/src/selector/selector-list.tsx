@@ -16,6 +16,14 @@ export type SelectorListOption<T extends string | number | boolean> = {
   description?: string;
   value: T;
   disabled?: boolean;
+  icon?: React.ReactNode;
+};
+
+export type SelectorAction = {
+  label: string;
+  onSelect: () => void;
+  disabled?: boolean;
+  icon?: React.ReactNode;
 };
 
 export type SelectorListProps<T extends string | number | boolean> = {
@@ -23,9 +31,7 @@ export type SelectorListProps<T extends string | number | boolean> = {
   selected: T | null;
   onCommit: (value: T | null) => void;
   onClose: () => void;
-  onActionClick?: () => void;
-
-  actionLabel?: string;
+  actions?: SelectorAction[];
   clearLabel?: string;
   nullable?: boolean;
   allowNew?: boolean;
@@ -51,6 +57,7 @@ export type SelectorListProps<T extends string | number | boolean> = {
 
 const VIRTUALIZATION_THRESHOLD = 100;
 const NO_INDEX = -1;
+const NO_ACTIONS: SelectorAction[] = [];
 const PAGE_SIZE = 5;
 const TYPE_AHEAD_RESET_MS = 500;
 
@@ -72,10 +79,10 @@ export function isSelectorEmpty<T extends string | number | boolean>(
   options: SelectorListOption<T>[],
   {
     allowNew = false,
-    onActionClick,
-  }: { allowNew?: boolean; onActionClick?: () => void } = {},
+    actions = [],
+  }: { allowNew?: boolean; actions?: SelectorAction[] } = {},
 ): boolean {
-  return options.length === 0 && !allowNew && onActionClick === undefined;
+  return options.length === 0 && !allowNew && actions.length === 0;
 }
 
 export const SelectorList = BaseSelectorList;
@@ -85,8 +92,7 @@ export function BaseSelectorList<T extends string | number | boolean>({
   selected,
   onCommit,
   onClose,
-  onActionClick,
-  actionLabel,
+  actions = NO_ACTIONS,
   clearLabel,
   nullable = false,
   allowNew = false,
@@ -134,8 +140,7 @@ export function BaseSelectorList<T extends string | number | boolean>({
     allowNew && trimmedQuery.length > 0 && !hasExactMatch && !isNewQueryInvalid;
   const showClearRow =
     nullable && clearLabel !== undefined && options.length > 0;
-  const showActionRow =
-    actionLabel !== undefined && onActionClick !== undefined;
+  const showActionRow = actions.length > 0;
   const showList = filtered.length > 0 || showCreateOption;
 
   const maxListHeight = `${(maxVisibleOptions + 0.5) * ROW_REM + LIST_TOP_PAD_REM}rem`;
@@ -144,9 +149,13 @@ export function BaseSelectorList<T extends string | number | boolean>({
   const clearIdx = showClearRow
     ? filtered.length + (showCreateOption ? 1 : 0)
     : -1;
-  const actionIdx = showActionRow
-    ? filtered.length + (showCreateOption ? 1 : 0) + (showClearRow ? 1 : 0)
-    : -1;
+  const firstActionIdx =
+    filtered.length + (showCreateOption ? 1 : 0) + (showClearRow ? 1 : 0);
+  const actionAt = useCallback(
+    (index: number): SelectorAction | undefined =>
+      index >= firstActionIdx ? actions[index - firstActionIdx] : undefined,
+    [actions, firstActionIdx],
+  );
   const virtualRowCount = virtualized
     ? filtered.length + (showCreateOption ? 1 : 0)
     : 0;
@@ -165,7 +174,7 @@ export function BaseSelectorList<T extends string | number | boolean>({
     filtered.length +
     (showCreateOption ? 1 : 0) +
     (showClearRow ? 1 : 0) +
-    (showActionRow ? 1 : 0);
+    actions.length;
 
   useLayoutEffect(
     function focusOnMount() {
@@ -215,10 +224,14 @@ export function BaseSelectorList<T extends string | number | boolean>({
     return () => onActiveOptionChangeRef.current?.(null);
   }, []);
 
-  const triggerAction = useCallback(() => {
-    onActionClick?.();
-    onClose();
-  }, [onActionClick, onClose]);
+  const triggerAction = useCallback(
+    (action: SelectorAction) => {
+      if (action.disabled) return;
+      action.onSelect();
+      onClose();
+    },
+    [onClose],
+  );
 
   const commitActive = useCallback(() => {
     if (activeIndex >= 0 && activeIndex < filtered.length) {
@@ -235,8 +248,9 @@ export function BaseSelectorList<T extends string | number | boolean>({
       onCommit(null);
       return;
     }
-    if (activeIndex === actionIdx && showActionRow) {
-      triggerAction();
+    const activeAction = actionAt(activeIndex);
+    if (activeAction) {
+      triggerAction(activeAction);
       return;
     }
     if (filtered.length === 1 && !filtered[0].disabled) {
@@ -247,19 +261,19 @@ export function BaseSelectorList<T extends string | number | boolean>({
       filtered.length === 0 &&
       !showCreateOption &&
       !showClearRow &&
-      showActionRow
+      actions.length === 1
     ) {
-      triggerAction();
+      triggerAction(actions[0]);
     }
   }, [
     activeIndex,
     filtered,
     showCreateOption,
     showClearRow,
-    showActionRow,
     createIdx,
     clearIdx,
-    actionIdx,
+    actionAt,
+    actions,
     trimmedQuery,
     onCommit,
     triggerAction,
@@ -273,12 +287,13 @@ export function BaseSelectorList<T extends string | number | boolean>({
         if (i < 0) i = totalEntries - 1;
         if (i >= totalEntries) i = 0;
         const isCreateRow = showCreateOption && i === filtered.length;
-        if (isCreateRow || !filtered[i]?.disabled) return i;
+        const isDisabled = filtered[i]?.disabled || actionAt(i)?.disabled;
+        if (isCreateRow || !isDisabled) return i;
         i += direction;
       }
       return NO_INDEX;
     },
-    [filtered, showCreateOption, totalEntries],
+    [filtered, showCreateOption, totalEntries, actionAt],
   );
 
   const typedPrefixRef = useRef("");
@@ -383,7 +398,7 @@ export function BaseSelectorList<T extends string | number | boolean>({
             ? "search"
             : activeIndex === clearIdx
               ? "clear"
-              : activeIndex === actionIdx
+              : actionAt(activeIndex)
                 ? "action"
                 : activeIndex >= 0
                   ? "options"
@@ -416,7 +431,11 @@ export function BaseSelectorList<T extends string | number | boolean>({
             setActiveIndex(clearIdx);
             break;
           case "action":
-            setActiveIndex(actionIdx);
+            setActiveIndex(
+              direction === 1
+                ? findNextEnabled(firstActionIdx, 1)
+                : findNextEnabled(totalEntries - 1, -1),
+            );
             break;
         }
         return;
@@ -456,7 +475,8 @@ export function BaseSelectorList<T extends string | number | boolean>({
       showActionRow,
       activeIndex,
       clearIdx,
-      actionIdx,
+      actionAt,
+      firstActionIdx,
       filtered.length,
     ],
   );
@@ -496,6 +516,9 @@ export function BaseSelectorList<T extends string | number | boolean>({
         onClick={isOptionDisabled ? undefined : () => onCommit(option.value)}
       >
         <span className="flex items-baseline gap-1 min-w-0">
+          {option.icon && (
+            <span className="self-center flex shrink-0">{option.icon}</span>
+          )}
           <span className={clsx(virtualStyle && "truncate")}>
             {option.label}
           </span>
@@ -626,20 +649,36 @@ export function BaseSelectorList<T extends string | number | boolean>({
             (showSearch || showList || showClearRow) && "border-t",
           )}
         >
-          <button
-            type="button"
-            className={clsx(
-              "flex items-center justify-between gap-4 w-full h-8 px-2 cursor-pointer text-default rounded-sm",
-              activeIndex === actionIdx
-                ? "bg-base-hover"
-                : "hover:bg-base-hover",
-            )}
-            onMouseEnter={() => setActiveIndex(actionIdx)}
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={triggerAction}
-          >
-            {actionLabel}
-          </button>
+          {actions.map((action, i) => {
+            const index = firstActionIdx + i;
+            return (
+              <button
+                key={`${i}-${action.label}`}
+                type="button"
+                aria-disabled={action.disabled}
+                className={clsx(
+                  "flex items-center justify-between gap-4 w-full h-8 px-2 rounded-sm",
+                  action.disabled
+                    ? "cursor-default text-disabled"
+                    : "cursor-pointer text-default",
+                  !action.disabled &&
+                    (activeIndex === index
+                      ? "bg-base-hover"
+                      : "hover:bg-base-hover"),
+                )}
+                onMouseEnter={
+                  action.disabled ? undefined : () => setActiveIndex(index)
+                }
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => triggerAction(action)}
+              >
+                <span className="flex items-center gap-1 min-w-0">
+                  {action.icon}
+                  {action.label}
+                </span>
+              </button>
+            );
+          })}
         </div>
       )}
     </div>

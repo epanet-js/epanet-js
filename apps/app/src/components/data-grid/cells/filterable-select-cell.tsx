@@ -10,6 +10,7 @@ import clsx from "clsx";
 import { ChevronDownIcon } from "src/icons";
 import type { Row, RowData } from "@tanstack/react-table";
 import {
+  SelectorAction,
   SelectorList,
   SelectorListOption,
   isSelectorEmpty,
@@ -32,8 +33,7 @@ type FilterableSelectCellProps<
   placeholder: string;
   emptyOptionLabel?: string;
   minOptionsForSearch?: number;
-  actionLabel?: string;
-  onActionClick?: () => void;
+  actions?: SelectorAction[];
   allowNew?: boolean;
   createLabel?: (query: string) => string;
   validateNew?: (query: string) => boolean;
@@ -69,8 +69,7 @@ export function FilterableSelectCell({
   placeholder,
   emptyOptionLabel,
   minOptionsForSearch,
-  actionLabel,
-  onActionClick,
+  actions,
   allowNew,
   createLabel,
   validateNew,
@@ -221,8 +220,7 @@ export function FilterableSelectCell({
                 onCommit={handleCommit}
                 onClose={stopEditing}
                 clearLabel={emptyOptionLabel}
-                actionLabel={actionLabel}
-                onActionClick={onActionClick}
+                actions={actions}
                 allowNew={allowNew}
                 createLabel={createLabel}
                 minOptionsForSearch={minOptionsForSearch}
@@ -252,8 +250,7 @@ export function filterableSelectColumn<
     emptyValue?: T | null;
     minOptionsForSearch?: number;
     isReadOnly?: boolean | ((rowIndex: number) => boolean);
-    actionLabel?: string;
-    onActionClick?: () => void;
+    actions?: SelectorAction[];
     allowNew?: boolean;
     createLabel?: (query: string) => string;
     validateNew?: (query: string) => boolean;
@@ -262,7 +259,7 @@ export function filterableSelectColumn<
 ): GridColumn<TData> {
   const isEmpty = isSelectorEmpty(options.options, {
     allowNew: options.allowNew,
-    onActionClick: options.onActionClick,
+    actions: options.actions,
   });
   const resolveReadOnly = (rowIndex: number) =>
     typeof options.isReadOnly === "function"
@@ -319,8 +316,7 @@ export function filterableSelectColumn<
           placeholder={options.placeholder ?? ""}
           emptyOptionLabel={options.emptyOptionLabel}
           minOptionsForSearch={options.minOptionsForSearch}
-          actionLabel={options.actionLabel}
-          onActionClick={options.onActionClick}
+          actions={options.actions}
           allowNew={options.allowNew}
           createLabel={options.createLabel}
           validateNew={options.validateNew}

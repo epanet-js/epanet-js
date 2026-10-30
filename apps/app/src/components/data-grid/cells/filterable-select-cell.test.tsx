@@ -254,13 +254,12 @@ describe("FilterableSelectCell", () => {
     expect(onChange).toHaveBeenCalledWith(null);
   });
 
-  it("renders an action button when actionLabel is set", async () => {
+  it("renders an action button when an action is set", async () => {
     render(
       <FilterableSelectCell
         {...defaultProps}
         editMode="full"
-        actionLabel="Open library"
-        onActionClick={vi.fn()}
+        actions={[{ label: "Open library", onSelect: vi.fn() }]}
       />,
     );
     await waitFor(() => {
@@ -271,16 +270,15 @@ describe("FilterableSelectCell", () => {
     ).toBeInTheDocument();
   });
 
-  it("calls onActionClick and stopEditing when the action button is clicked", async () => {
+  it("calls the action and stopEditing when the action button is clicked", async () => {
     const user = setupUser();
-    const onActionClick = vi.fn();
+    const onSelect = vi.fn();
     const stopEditing = vi.fn();
     render(
       <FilterableSelectCell
         {...defaultProps}
         editMode="full"
-        actionLabel="Open library"
-        onActionClick={onActionClick}
+        actions={[{ label: "Open library", onSelect }]}
         stopEditing={stopEditing}
       />,
     );
@@ -290,7 +288,7 @@ describe("FilterableSelectCell", () => {
 
     await user.click(screen.getByRole("button", { name: "Open library" }));
 
-    expect(onActionClick).toHaveBeenCalled();
+    expect(onSelect).toHaveBeenCalled();
     expect(stopEditing).toHaveBeenCalled();
   });
 

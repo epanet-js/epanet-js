@@ -209,12 +209,15 @@ export const EditableField = ({
         selected={currentId}
         options={items}
         nullable={true}
-        actionLabel={
-          showLibraryAction ? translate(config.libraryLabelKey!) : undefined
-        }
-        onActionClick={
+        actions={
           showLibraryAction
-            ? () => onOpenLibrary(config.library, config.filterByType)
+            ? [
+                {
+                  label: translate(config.libraryLabelKey!),
+                  onSelect: () =>
+                    onOpenLibrary(config.library, config.filterByType),
+                },
+              ]
             : undefined
         }
         placeholder={resolvedPlaceholder}

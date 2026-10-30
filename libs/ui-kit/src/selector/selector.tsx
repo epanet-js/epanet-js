@@ -6,6 +6,7 @@ import { useSelectorPortalContainer } from "../portal";
 import { StyleOptions, triggerStylesFor } from "./selector-trigger";
 import {
   BaseSelectorList,
+  SelectorAction,
   SelectorListOption,
   isSelectorEmpty,
 } from "./selector-list";
@@ -26,8 +27,7 @@ type SelectorPropsBase<T extends string | number> = {
   createLabel?: (query: string) => string;
   minOptionsForSearch?: number;
   maxVisibleOptions?: number;
-  actionLabel?: string;
-  onActionClick?: () => void;
+  actions?: SelectorAction[];
   listClassName?: string;
   validateNew?: (query: string) => boolean;
   onActiveOptionChange?: (value: T | null) => void;
@@ -84,8 +84,7 @@ export function BaseSelector<T extends string | number>({
   nullable = false,
   placeholder,
   clearLabel,
-  actionLabel,
-  onActionClick,
+  actions,
   listClassName,
   validateNew,
   onActiveOptionChange,
@@ -104,7 +103,7 @@ export function BaseSelector<T extends string | number>({
   // An empty selector (no options and no way to add content) has nothing to
   // show, so we treat it as disabled rather than opening an empty dropdown.
   const effectiveDisabled =
-    disabled || isSelectorEmpty(options, { allowNew, onActionClick });
+    disabled || isSelectorEmpty(options, { allowNew, actions });
 
   const triggerStyles = useMemo(
     () => triggerStylesFor(styleOptions, { disabled: effectiveDisabled }),
@@ -205,8 +204,7 @@ export function BaseSelector<T extends string | number>({
               nullable={nullable}
               onCommit={handleCommit}
               onClose={() => setOpen(false)}
-              actionLabel={actionLabel}
-              onActionClick={onActionClick}
+              actions={actions}
               clearLabel={clearLabel}
               allowNew={allowNew}
               createLabel={createLabel}

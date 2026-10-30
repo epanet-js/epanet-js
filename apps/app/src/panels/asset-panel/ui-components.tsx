@@ -16,7 +16,11 @@ import { Unit, convertTo } from "@epanet-js/quantity";
 import { localizeDecimal } from "@epanet-js/i18n";
 import { useValueDisplay } from "src/hooks/use-value-display";
 import type { QuantityProperty } from "@epanet-js/project-settings";
-import { Selector, SelectorListOption } from "@epanet-js/ui-kit";
+import {
+  Selector,
+  SelectorAction,
+  SelectorListOption,
+} from "@epanet-js/ui-kit";
 import { NumericField } from "src/components/form/numeric-field";
 import { Checkbox } from "src/components/form/Checkbox";
 import {
@@ -578,8 +582,7 @@ type SelectRowPropsBase<P extends string, T extends SelectRowValue> = {
   label?: string;
   options: SelectorListOption<T>[];
   listClassName?: string;
-  actionLabel?: string;
-  onActionClick?: () => void;
+  actions?: SelectorAction[];
   comparison?: PropertyComparison;
   readOnly?: boolean;
   paywall?: PaywallFeature;
@@ -619,8 +622,7 @@ export function SelectRow<P extends string, T extends SelectRowValue>({
   selected,
   options,
   listClassName,
-  actionLabel,
-  onActionClick,
+  actions,
   comparison,
   readOnly,
   paywall,
@@ -677,8 +679,7 @@ export function SelectRow<P extends string, T extends SelectRowValue>({
             placeholder={placeholder as string}
             clearLabel={clearLabel}
             listClassName={listClassName}
-            actionLabel={actionLabel}
-            onActionClick={onActionClick}
+            actions={actions}
             onActiveOptionChange={onHighlightChange}
             styleOptions={{
               border: true,
@@ -739,8 +740,7 @@ export function LibrarySelectRow<P extends string>({
       nullable={true}
       placeholder={resolvedPlaceholder}
       clearLabel={emptyOptionLabel}
-      actionLabel={libraryLabel}
-      onActionClick={onOpenLibrary}
+      actions={[{ label: libraryLabel, onSelect: onOpenLibrary }]}
       onChange={onChange}
       readOnly={readOnly}
       comparison={comparison}
