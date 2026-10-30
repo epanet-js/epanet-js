@@ -13,6 +13,7 @@ import type { ScriptAttachment, ScriptRunOutcome } from "src/lib/scripting";
 import {
   useApplyScriptSelectionSet,
   useGoToScriptBookmark,
+  useSaveScriptBookmark,
   useSaveScriptSelectionSet,
 } from "src/commands/script-output-collections";
 import { useIsCollectionsAvailable } from "src/commands/collection-draft";
@@ -23,6 +24,7 @@ export const RunResult = ({ outcome }: { outcome: ScriptRunOutcome }) => {
   const applySelectionSet = useApplyScriptSelectionSet();
   const goToBookmark = useGoToScriptBookmark();
   const saveSelectionSet = useSaveScriptSelectionSet();
+  const saveBookmark = useSaveScriptBookmark();
   const isCollectionsAvailable = useIsCollectionsAvailable();
   const { canManageCollections } = usePermissions();
 
@@ -33,6 +35,16 @@ export const RunResult = ({ outcome }: { outcome: ScriptRunOutcome }) => {
         {
           action: "save",
           label: translate("collections.selectionSets.save"),
+          icon: <BookmarkIcon size="sm" />,
+        },
+      ]
+    : [];
+
+  const bookmarkActions: ItemAction[] = isCollectionsAvailable
+    ? [
+        {
+          action: "save",
+          label: translate("collections.bookmarks.add"),
           icon: <BookmarkIcon size="sm" />,
         },
       ]
@@ -85,6 +97,10 @@ export const RunResult = ({ outcome }: { outcome: ScriptRunOutcome }) => {
               id={i}
               label={bookmark.label}
               onSelect={() => goToBookmark(bookmark)}
+              actions={
+                bookmark.commit && canManageCollections ? [] : bookmarkActions
+              }
+              onAction={() => saveBookmark(bookmark)}
             />
           ))}
         </Section>

@@ -45,6 +45,23 @@ export const useSaveScriptSelectionSet = () => {
   );
 };
 
+export const useSaveScriptBookmark = () => {
+  const goToBookmark = useGoToScriptBookmark();
+  const startCollectionDraft = useStartCollectionDraft();
+
+  return useCallback(
+    (bookmark: ScriptBookmark) => {
+      goToBookmark(bookmark);
+      startCollectionDraft({
+        kind: "bookmarks",
+        source: "script-output",
+        label: bookmark.label,
+      });
+    },
+    [goToBookmark, startCollectionDraft],
+  );
+};
+
 export const useGoToScriptBookmark = () => {
   const map = useContext(MapContext);
 

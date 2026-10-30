@@ -33,6 +33,8 @@ export type ScriptBBox = [
 
 export type ScriptBookmark = { label: string; bbox: ScriptBBox };
 
+export type ScriptOutputBookmark = ScriptBookmark & { commit: boolean };
+
 export type ScriptViewport = {
   bounds: ScriptBBox;
   center: [lng: number, lat: number];
@@ -128,7 +130,7 @@ export type ScriptRunOutcome =
         | null;
       attachments: ScriptAttachment[];
       selectionSets: ScriptOutputSelectionSet[];
-      bookmarks: ScriptBookmark[];
+      bookmarks: ScriptOutputBookmark[];
     }
   | {
       status: "error";

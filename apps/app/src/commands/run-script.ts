@@ -114,12 +114,13 @@ export const useRunScript = () => {
           if (countSelected(members) === 0) continue;
           createSelectionSet(newSelectionSet(label, members));
         }
-        if (!isScriptOutputPanelOn && outcome.bookmarks.length > 0) {
+        const bookmarks = isScriptOutputPanelOn
+          ? outcome.bookmarks.filter(({ commit }) => commit)
+          : outcome.bookmarks;
+        if (bookmarks.length > 0) {
           saveBookmarks([
             ...store.get(bookmarksAtom),
-            ...outcome.bookmarks.map(({ label, bbox }) =>
-              newBookmark(label, bbox),
-            ),
+            ...bookmarks.map(({ label, bbox }) => newBookmark(label, bbox)),
           ]);
         }
       }

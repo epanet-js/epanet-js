@@ -37,7 +37,7 @@ const AGENT_RULES = [
   "Read `pipe.appliedRoughness`, not `pipe.roughness`, for the value EPANET receives.",
   "Junction demand is `junction.demands` (categories with patterns) plus the demand of `junction.customerPoints`; `junction.baseDemand` is the categories only.",
   "Hand results back visually: `selection.set(...)` and `map.zoomTo(...)` for what to look at, `ui.attachFile` for data, `collections.saveSelectionSet` and `collections.saveBookmark` for a set or a view the user will want again, `console.table` for a summary.",
-  "Leave `collections.saveSelectionSet` uncommitted: the user picks the sets worth keeping from the run's output. Pass `{ commit: true }` only when the user asks for the sets to be saved to the project.",
+  "Leave `collections.saveSelectionSet` and `collections.saveBookmark` uncommitted: the user picks what is worth keeping from the run's output. Pass `{ commit: true }` only when the user asks for them to be saved to the project.",
   'When the user says "the selected …", start from `selection.*` and fail clearly when it is empty or the wrong type.',
   'When the user names a DMA or a zone, look in `zones` (the drawn polygons); `network.trace` is a different, connectivity-based "zone".',
 ];

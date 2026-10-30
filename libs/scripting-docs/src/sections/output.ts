@@ -207,16 +207,22 @@ export const COLLECTIONS_SECTION: Section = {
     }),
     collections({
       name: "saveBookmark",
-      signature: "saveBookmark(label: string, bbox?: BBox): void",
+      signature:
+        "saveBookmark(label: string, bbox?: BBox, options?: { commit?: boolean }): void",
       summary:
-        "Save a bookmark to the project's Collections when the script ends.",
+        "Hand back a bookmark as part of the run's output when the script ends.",
       description:
-        "Without `bbox` it saves the map view the script started with (`map.bounds`). Labels need not be unique: saving a label that already exists adds another bookmark.",
+        "The bookmark is listed with the run's output, where the user can go to it on the map. It is not saved to the project unless `commit` is `true`. Without `bbox` it uses the map view the script started with (`map.bounds`). Labels need not be unique: a label that already exists adds another bookmark, so committing from a script that runs twice saves its bookmarks twice.",
       params: [
         {
           name: "label",
           description:
             "The bookmark's name. Leading and trailing spaces are dropped.",
+        },
+        {
+          name: "options.commit",
+          description:
+            "`true` saves the bookmark straight to the project's Collections. Defaults to `false`. Avoid it in most scripts, for the same reason as `saveSelectionSet`: committed bookmarks pile up in the user's project on every run. Commit only when the user asks for bookmarks to be saved without review.",
         },
       ],
       examples: [
@@ -224,11 +230,15 @@ export const COLLECTIONS_SECTION: Section = {
           title: "A bookmark per zone",
           code: "for (const zone of zones.list) collections.saveBookmark(zone.label, zone.bbox);",
         },
+        {
+          code: 'collections.saveBookmark("Plant", [-3.71, 40.41, -3.69, 40.43], { commit: true });',
+        },
       ],
       throws: [
         "`collections.saveBookmark expects a label`",
         "`collections.saveBookmark expects a [minLng, minLat, maxLng, maxLat] box`",
         "`collections.saveBookmark expects a box when there is no map view`",
+        "`collections.saveBookmark expects { commit } as true or false`",
       ],
     }),
   ],
