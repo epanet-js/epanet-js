@@ -16,7 +16,7 @@ import {
   moveNodeAndLinks,
   mergeNodes,
   moveCustomerPoint,
-} from "src/hydraulic-model/model-operations";
+} from "@epanet-js/hydraulic-model-operations";
 import { nodesShareLink } from "@epanet-js/hydraulic-model";
 import { useMoveState } from "./move-state";
 import { useCustomerPointMoveState } from "./customer-point-move-state";

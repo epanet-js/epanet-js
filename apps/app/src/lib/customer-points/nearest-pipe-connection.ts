@@ -1,7 +1,7 @@
 import { Point, Feature, lineString } from "@turf/helpers";
 import Flatbush from "flatbush";
 import type { Position } from "geojson";
-import { findJunctionForCustomerPoint } from "../../hydraulic-model/utilities/junction-assignment";
+import { findJunctionForCustomerPoint } from "@epanet-js/hydraulic-model-operations";
 import { findNearestPointOnLine } from "@epanet-js/geometry";
 
 import type { CustomerPointConnection } from "@epanet-js/hydraulic-model";

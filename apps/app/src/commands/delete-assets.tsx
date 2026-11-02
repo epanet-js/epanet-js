@@ -1,7 +1,7 @@
 import { useAtom, useAtomValue } from "jotai";
 import { useCallback } from "react";
 import { AssetId } from "src/hydraulic-model";
-import { deleteAssets } from "src/hydraulic-model/model-operations";
+import { deleteAssets } from "@epanet-js/hydraulic-model-operations";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import { AssetDeleted, useUserTracking } from "src/infra/user-tracking";
 import { USelection } from "src/selection";

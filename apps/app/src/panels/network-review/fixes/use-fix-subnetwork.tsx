@@ -2,7 +2,7 @@ import { useAtomValue } from "jotai";
 import { useCallback } from "react";
 import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
-import { deactivateAssets } from "src/hydraulic-model/model-operations/deactivate-assets";
+import { deactivateAssets } from "@epanet-js/hydraulic-model-operations";
 import { useUserTracking } from "src/infra/user-tracking";
 import { SubNetwork } from "src/lib/network-review";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";

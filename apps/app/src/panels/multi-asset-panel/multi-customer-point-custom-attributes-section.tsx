@@ -10,7 +10,7 @@ import {
 import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
-import { changeCustomerPointProperty } from "src/hydraulic-model/model-operations";
+import { changeCustomerPointProperty } from "@epanet-js/hydraulic-model-operations";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { Section, InlineField } from "src/components/form/fields";

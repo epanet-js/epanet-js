@@ -3,7 +3,7 @@ import { addCustomerPoints } from "./add-customer-points";
 import {
   HydraulicModelBuilder,
   buildCustomerPoint,
-} from "src/__helpers__/hydraulic-model-builder";
+} from "@epanet-js/hydraulic-model-testing";
 import { CustomerPoint } from "@epanet-js/hydraulic-model";
 import { Demand } from "@epanet-js/hydraulic-model";
 

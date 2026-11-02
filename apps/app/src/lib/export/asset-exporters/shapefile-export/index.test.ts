@@ -1,4 +1,4 @@
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { exportShapefiles } from "./index";
 import { setProjectionsBaseUrl, WGS84 } from "@epanet-js/projections";
 import { vi, afterEach } from "vitest";

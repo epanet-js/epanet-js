@@ -4,10 +4,7 @@ import { AssetIndexEncoder, AssetIndexView } from "./asset-index-transferable";
 import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
 import { AssetsMap } from "@epanet-js/hydraulic-model";
 import { AssetId } from "@epanet-js/hydraulic-model";
-import {
-  buildJunction,
-  buildPipe,
-} from "src/__helpers__/hydraulic-model-builder";
+import { buildJunction, buildPipe } from "@epanet-js/hydraulic-model-testing";
 
 function createAssetsMap(linkIds: AssetId[], nodeIds: AssetId[]): AssetsMap {
   const map: AssetsMap = new Map();

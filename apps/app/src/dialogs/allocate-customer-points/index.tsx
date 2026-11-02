@@ -2,7 +2,7 @@ import { useAllocateCustomerPointsState } from "./wizard-state";
 
 import { useTranslate } from "@epanet-js/i18n";
 import { useCallback } from "react";
-import { applyCustomerPointAllocation } from "src/hydraulic-model/model-operations";
+import { applyCustomerPointAllocation } from "@epanet-js/hydraulic-model-operations";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { useAtomValue } from "jotai";
 import { useUserTracking } from "src/infra/user-tracking";

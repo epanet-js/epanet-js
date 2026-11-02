@@ -8,7 +8,7 @@ import {
 import { vi } from "vitest";
 import { Provider as JotaiProvider } from "jotai";
 import { TooltipProvider } from "@epanet-js/ui-kit";
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { setInitialState } from "src/__helpers__/state";
 import { stubElevation } from "src/map/test/__helpers__/elevations";
 import { Store } from "src/state";

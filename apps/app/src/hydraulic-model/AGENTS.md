@@ -1,7 +1,9 @@
 # hydraulic-model module
 
-The app side of the in-memory domain model: the `HydraulicModel` container, the
-operations that change it, and the worker-transferable encodings.
+The app side of the in-memory domain model: the `HydraulicModel` container and
+the worker-transferable encodings. The operations that change the model, and the
+change-set builder and applier, are in
+[`@epanet-js/hydraulic-model-operations`](../../../../libs/hydraulic-model-operations/AGENTS.md).
 
 ## References are unidirectional
 
@@ -30,20 +32,6 @@ no subpaths); this directory's `index.ts` re-exports them so existing
 package holds the `Topology` class and its queries, this directory holds only
 the worker-transferable encoding (`topologyEncoder`, `topologyView`,
 `topology-transferable`).
-
-## Operations build change sets
-
-An operation is a pure function `(model, data) => ChangeSet`. It reads the
-model, builds intents, and never mutates. How intents resolve, why they must all
-read the same unmutated model, and how a change set is applied and reversed is
-in [`change-sets/AGENTS.md`](./change-sets/AGENTS.md).
-
-Stateful creation concerns — `AssetFactory`, `CustomerPointFactory`,
-`LabelManager` — come from `modelFactoriesAtom`, not from `HydraulicModel`, and
-reach an operation through its `data` argument. Do not widen the
-`ModelOperation` signature to carry them: only the operations that create
-something need one, and every caller would otherwise have to subscribe to the
-atom.
 
 ## The transferable encoders are shared — wrap their inputs
 

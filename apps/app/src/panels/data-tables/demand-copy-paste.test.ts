@@ -10,7 +10,7 @@
  */
 import "src/__helpers__/locale";
 import { describe, expect, it } from "vitest";
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { presets } from "@epanet-js/project-settings";
 import type { FormattingSpec, UnitsSpec } from "@epanet-js/project-settings";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";

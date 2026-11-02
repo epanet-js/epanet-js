@@ -7,8 +7,8 @@ import {
 } from "@epanet-js/hydraulic-model";
 import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
-import { deactivateAssets } from "src/hydraulic-model/model-operations/deactivate-assets";
-import { deleteAssets } from "src/hydraulic-model/model-operations/delete-assets";
+import { deactivateAssets } from "@epanet-js/hydraulic-model-operations";
+import { deleteAssets } from "@epanet-js/hydraulic-model-operations";
 import { ActiveAssetIndex, ActiveTopology } from "@epanet-js/hydraulic-model";
 import { useUserTracking } from "src/infra/user-tracking";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";

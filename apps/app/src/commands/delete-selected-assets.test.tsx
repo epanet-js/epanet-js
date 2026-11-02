@@ -11,7 +11,7 @@ import {
   setInitialState,
 } from "src/__helpers__/state";
 import { useDeleteSelection } from "./delete-selection";
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { USelection } from "src/selection";
 

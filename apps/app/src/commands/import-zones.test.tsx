@@ -3,7 +3,7 @@ import { Provider as JotaiProvider } from "jotai";
 import type { BuildZonesResult } from "@epanet-js/converters";
 import type { Zone, Zones } from "@epanet-js/hydraulic-model";
 import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { setInitialState } from "src/__helpers__/state";
 import { useInProcessDb } from "src/lib/db/__test-helpers__/in-process-db";
 import * as db from "src/lib/db";

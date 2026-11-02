@@ -5,7 +5,7 @@ import {
 } from "@epanet-js/hydraulic-model";
 import { AssetsGeoIndex } from "@epanet-js/hydraulic-model";
 import { getPipe } from "@epanet-js/hydraulic-model";
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 
 describe("queryContainedAssets", () => {
   describe("bounding box search", () => {

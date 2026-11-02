@@ -7,7 +7,7 @@ import { aSingleSelection, setInitialState } from "src/__helpers__/state";
 import { USelection } from "src/selection";
 import { useDrawingMode } from "./set-drawing-mode";
 import { Mode } from "src/state/mode";
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { CommandContainer } from "./__helpers__/command-container";
 
 const TestComponent = () => {

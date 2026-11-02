@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { TopologyEncoder } from "./topologyEncoder";
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 
 describe("TopologyEncoder", () => {
   it("incremental encoding produces same result as full encoding", () => {

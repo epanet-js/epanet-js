@@ -1,6 +1,6 @@
 import "src/__helpers__/locale";
 import { describe, it, expect } from "vitest";
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { buildRoughnessInferrer } from "@epanet-js/hydraulic-model";
 import { presets } from "@epanet-js/project-settings";
 import type { FormattingSpec } from "@epanet-js/project-settings";

@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import {
   createMockResultsReader,
   setInitialState,

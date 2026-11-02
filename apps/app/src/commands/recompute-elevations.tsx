@@ -16,7 +16,7 @@ import { useModelTransaction } from "src/hooks/persistence/use-model-transaction
 import {
   changeElevations,
   type NodeElevation,
-} from "src/hydraulic-model/model-operations";
+} from "@epanet-js/hydraulic-model-operations";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { elevationSourcesAtom } from "src/state/elevation-sources";
 import { dialogAtom } from "src/state/dialog";

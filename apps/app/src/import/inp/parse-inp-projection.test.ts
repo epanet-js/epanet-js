@@ -1,6 +1,6 @@
 import { parseInp } from "./parse-inp";
 import { buildInp } from "src/simulation/build-inp";
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { presets } from "@epanet-js/project-settings";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { WGS84 } from "@epanet-js/projections";

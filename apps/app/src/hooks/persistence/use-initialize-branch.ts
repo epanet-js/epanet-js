@@ -10,7 +10,7 @@ import {
 import type { ChangeSet, EntityKind } from "@epanet-js/change-set";
 import type { IdPool } from "@epanet-js/id-generator";
 import { copyModel } from "src/hydraulic-model";
-import { applyChangeSet } from "src/hydraulic-model/change-sets";
+import { applyChangeSet } from "@epanet-js/hydraulic-model-operations";
 import { buildSimulationSettingsData } from "src/lib/db";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { SessionHistory } from "src/lib/persistence/session-history";

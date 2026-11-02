@@ -22,7 +22,7 @@ import { CurveLibraryIcon } from "src/icons";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
-import { changeCurves } from "src/hydraulic-model/model-operations/change-curves";
+import { changeCurves } from "@epanet-js/hydraulic-model-operations";
 import { notify } from "src/components/notifications";
 import { useUserTracking } from "src/infra/user-tracking";
 import { modelFactoriesAtom } from "src/state/model-factories";

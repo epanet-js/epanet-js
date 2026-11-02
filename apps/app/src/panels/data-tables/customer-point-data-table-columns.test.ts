@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import type { ColumnDefBase } from "@tanstack/react-table";
-import { buildCustomerPoint } from "src/__helpers__/hydraulic-model-builder";
+import { buildCustomerPoint } from "@epanet-js/hydraulic-model-testing";
 import { defaultProjectSettings } from "@epanet-js/project-settings";
 import { buildCustomerPointColumns } from "./customer-point-data-table-columns";
 import type { CustomerPointRow } from "./customer-point-data-table-data";

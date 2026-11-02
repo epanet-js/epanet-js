@@ -2,7 +2,7 @@ import { renderHook, act } from "@testing-library/react";
 import { Provider as JotaiProvider } from "jotai";
 import { SCRIPT_API_VERSION } from "@epanet-js/scripting-docs";
 import { setInitialState } from "src/__helpers__/state";
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { useInProcessDb } from "src/lib/db/__test-helpers__/in-process-db";
 import { importProject } from "src/lib/db/commands/import-project";
 import { fetchProject } from "src/lib/db/commands/fetch-project";

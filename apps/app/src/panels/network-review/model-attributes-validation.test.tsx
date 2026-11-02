@@ -9,7 +9,7 @@ import { vi } from "vitest";
 import { Provider as JotaiProvider } from "jotai";
 import { TooltipProvider } from "@epanet-js/ui-kit";
 import { AuthMockProvider } from "src/__helpers__/auth-mock";
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { setInitialState } from "src/__helpers__/state";
 import { Store } from "src/state";
 import {

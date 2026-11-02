@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { createSpatialIndex } from "./spatial-index";
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { getAssetsByType } from "src/__helpers__/asset-queries";
 import { Pipe } from "@epanet-js/hydraulic-model";
 

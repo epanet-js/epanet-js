@@ -7,7 +7,7 @@ import { point } from "@turf/helpers";
 import { HydraulicModel } from "src/hydraulic-model";
 import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
-import { mergeNodes, moveNode } from "src/hydraulic-model/model-operations";
+import { mergeNodes, moveNode } from "@epanet-js/hydraulic-model-operations";
 import { useUserTracking } from "src/infra/user-tracking";
 import {
   CONNECTED_JUNCTION_TOLERANCE_IN_METERS,

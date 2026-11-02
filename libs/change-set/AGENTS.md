@@ -61,8 +61,8 @@ faithfulness, not validation, and it is the correct behaviour for a wire format.
 
 **Do not add field validation here.** Knowing that a pipe's `diameter` is a nullable finite
 number is knowing what a hydraulic model is, which this package deliberately does not. The
-rules live in `@epanet-js/model-schema` and the app's builder applies them before calling
-`ChangeSet.of` — see `src/hydraulic-model/change-sets/AGENTS.md` in the app.
+rules live in `@epanet-js/model-schema` and the builder in `@epanet-js/hydraulic-model-operations`
+applies them before calling `ChangeSet.of` — see its `src/change-sets/AGENTS.md`.
 
 ## Three states, not two
 

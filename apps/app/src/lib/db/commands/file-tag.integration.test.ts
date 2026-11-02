@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { defaultProjectSettings } from "@epanet-js/project-settings";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { getWorker } from "@epanet-js/ejsdb";

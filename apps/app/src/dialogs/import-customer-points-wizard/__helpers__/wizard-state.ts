@@ -2,7 +2,7 @@ import { act } from "@testing-library/react";
 import { Store } from "src/state";
 import { wizardStateAtom } from "../use-wizard-state";
 import { WizardState, ParsedDataSummary } from "../types";
-import { buildCustomerPoint } from "src/__helpers__/hydraulic-model-builder";
+import { buildCustomerPoint } from "@epanet-js/hydraulic-model-testing";
 import { Demand } from "@epanet-js/hydraulic-model";
 import { CustomerPointId } from "@epanet-js/hydraulic-model";
 

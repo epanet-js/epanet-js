@@ -1,5 +1,5 @@
 import { Valve } from "@epanet-js/hydraulic-model";
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { HydraulicModel } from "src/hydraulic-model/hydraulic-model";
 import * as workerInfra from "src/infra/worker";
 import { findTargetNodeOptions } from "./find-target-node-options";

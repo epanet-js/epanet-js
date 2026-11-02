@@ -1,6 +1,6 @@
 import { act, renderHook } from "@testing-library/react";
 import { vi } from "vitest";
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { setInitialState } from "src/__helpers__/state";
 import { CommandContainer } from "src/commands/__helpers__/command-container";
 import { hglProfileAtom } from "src/state/hgl-profile";

@@ -21,11 +21,11 @@ import { buildChangeSetPayload, isEmptyWriteBatch } from "@epanet-js/ejsdb";
 import {
   HydraulicModelBuilder,
   buildCustomerPoint,
-} from "src/__helpers__/hydraulic-model-builder";
-import { buildTestFactories } from "src/__helpers__/test-factories";
+} from "@epanet-js/hydraulic-model-testing";
+import { buildTestFactories } from "@epanet-js/hydraulic-model-testing";
 import { CUSTOM_PROPERTY_PREFIX } from "@epanet-js/hydraulic-model";
 import { CUSTOM_ATTRIBUTE_KEY_PREFIX } from "@epanet-js/ejsdb";
-import { changeSet } from "src/hydraulic-model/change-sets/build";
+import { changeSet } from "@epanet-js/hydraulic-model-operations";
 import {
   dropAssets,
   dropCustomerPoints,
@@ -41,7 +41,7 @@ import {
   setDemands,
   setPipeLibrary,
   setRawControls,
-} from "src/hydraulic-model/change-sets/intents";
+} from "@epanet-js/hydraulic-model-operations";
 
 const IDS = {
   J1: 1,

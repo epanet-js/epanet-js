@@ -10,7 +10,7 @@ import {
 } from "./__helpers__/map-engine-mock";
 import { stubElevation } from "./__helpers__/elevations";
 import { setInitialState } from "src/__helpers__/state";
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { Mode } from "src/state/mode";
 import { matchLineString, matchPoint, renderMap } from "./__helpers__/map";
 import { vi } from "vitest";
@@ -29,16 +29,16 @@ import { getAssetsByType } from "src/__helpers__/asset-queries";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { buildFeatureId } from "../data-source/features";
 import type { ClickEvent } from "@epanet-js/map";
-import * as modelOperations from "src/hydraulic-model/model-operations";
+import * as modelOperations from "@epanet-js/hydraulic-model-operations";
 
 // Spy on addLink so we can count how many times a single finishing gesture
 // submits. The model ends up identical whether or not the double-submit
 // happens (the buggy second submit throws before mutating anything), so the
 // only observable signal of the regression is addLink running twice.
-vi.mock("src/hydraulic-model/model-operations", async (importOriginal) => {
+vi.mock("@epanet-js/hydraulic-model-operations", async (importOriginal) => {
   const actual =
     await importOriginal<
-      typeof import("src/hydraulic-model/model-operations")
+      typeof import("@epanet-js/hydraulic-model-operations")
     >();
   return {
     ...actual,

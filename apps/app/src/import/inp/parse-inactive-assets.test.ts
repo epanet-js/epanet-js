@@ -2,7 +2,7 @@ import { parseInp } from "./parse-inp";
 import { buildInp } from "src/simulation/build-inp";
 import { presets } from "@epanet-js/project-settings";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { Asset, AssetsMap } from "src/hydraulic-model";
 import { checksum } from "src/infra/checksum";
 

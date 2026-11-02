@@ -10,7 +10,7 @@ import {
 } from "@epanet-js/worktree";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { AuthMockProvider, aUser } from "src/__helpers__/auth-mock";
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { setInitialState } from "src/__helpers__/state";
 import { registerBranchingRules } from "src/lib/branching";
 import { branchStateAtom, type BranchState } from "src/state/branch-state";

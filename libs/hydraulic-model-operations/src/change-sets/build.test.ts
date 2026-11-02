@@ -1,0 +1,388 @@
+import { describe, it, expect } from "vitest";
+import { WHOLE_VALUE } from "@epanet-js/change-set";
+import {
+  buildTimedSetting,
+  emptyCustomAttributesDefinition,
+  setAssetControl,
+  type PipeMaterial,
+} from "@epanet-js/hydraulic-model";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
+import { buildTestFactories } from "@epanet-js/hydraulic-model-testing";
+import { changeSet } from "./build";
+import {
+  dropAssets,
+  putAssets,
+  replaceControls,
+  replaceCurves,
+  replaceCustomAttributes,
+  setAsset,
+  setDemands,
+  setPipeLibrary,
+} from "./intents";
+
+describe("change-set builder", () => {
+  it("records a new asset as a create", () => {
+    const IDS = { J1: 1, J2: 2 } as const;
+    const { labelManager, assetFactory } = buildTestFactories();
+    const model = HydraulicModelBuilder.with({ labelManager })
+      .aJunction(IDS.J1, { elevation: 10 })
+      .build();
+
+    const junction = assetFactory.createJunction({
+      id: IDS.J2,
+      coordinates: [5, 5],
+      elevation: 20,
+    });
+    const built = changeSet(model, "addNode", [putAssets([junction])]);
+    const record = built.records[0];
+
+    expect(built.records).toHaveLength(1);
+    expect(record.kind).toBe("create");
+    expect(record.entity).toBe("junction");
+    expect(record.id).toBe(IDS.J2);
+    expect(record.before).toEqual({});
+    expect(record.after.elevation).toBe(20);
+    expect(record.after.coordinates).toEqual([5, 5]);
+  });
+
+  it("records a put over an existing asset as an update of what moved", () => {
+    const IDS = { J1: 1 } as const;
+    const { labelManager } = buildTestFactories();
+    const model = HydraulicModelBuilder.with({ labelManager })
+      .aJunction(IDS.J1, { elevation: 10 })
+      .build();
+
+    const edited = model.assets.get(IDS.J1)!.copy();
+    edited.setProperty("elevation", 42);
+
+    const built = changeSet(model, "changeProperty", [putAssets([edited])]);
+    const record = built.records[0];
+
+    expect(record.kind).toBe("update");
+    expect(record.before).toEqual({ elevation: 10 });
+    expect(record.after).toEqual({ elevation: 42 });
+  });
+
+  it("produces nothing when a put changes no value", () => {
+    const IDS = { J1: 1 } as const;
+    const { labelManager } = buildTestFactories();
+    const model = HydraulicModelBuilder.with({ labelManager })
+      .aJunction(IDS.J1, { elevation: 10 })
+      .build();
+
+    const untouched = model.assets.get(IDS.J1)!.copy();
+
+    expect(
+      changeSet(model, "changeProperty", [putAssets([untouched])]).size,
+    ).toBe(0);
+  });
+
+  it("records a patch against only the named fields", () => {
+    const IDS = { J1: 1 } as const;
+    const { labelManager } = buildTestFactories();
+    const model = HydraulicModelBuilder.with({ labelManager })
+      .aJunction(IDS.J1, { elevation: 10 })
+      .build();
+
+    const built = changeSet(model, "changeProperty", [
+      setAsset(IDS.J1, { elevation: 99 }),
+    ]);
+    const record = built.records[0];
+
+    expect(Object.keys(record.after)).toEqual(["elevation"]);
+    expect(record.before).toEqual({ elevation: 10 });
+  });
+
+  it("records a delete carrying the whole asset as before", () => {
+    const IDS = { J1: 1 } as const;
+    const { labelManager } = buildTestFactories();
+    const model = HydraulicModelBuilder.with({ labelManager })
+      .aJunction(IDS.J1, { elevation: 10 })
+      .build();
+
+    const built = changeSet(model, "deleteAssets", [dropAssets([IDS.J1])]);
+    const record = built.records[0];
+
+    expect(record.kind).toBe("delete");
+    expect(record.before.elevation).toBe(10);
+    expect(record.before.coordinates).toBeDefined();
+    expect(record.after).toEqual({});
+  });
+
+  it("skips ids that are not in the model", () => {
+    const IDS = { J1: 1, MISSING: 404 } as const;
+    const { labelManager } = buildTestFactories();
+    const model = HydraulicModelBuilder.with({ labelManager })
+      .aJunction(IDS.J1)
+      .build();
+
+    expect(
+      changeSet(model, "deleteAssets", [dropAssets([IDS.MISSING])]).size,
+    ).toBe(0);
+  });
+
+  it("diffs a whole-collection curve replacement down to the one that changed", () => {
+    const IDS = { C1: 1, C2: 2, C3: 3 } as const;
+    const { labelManager } = buildTestFactories();
+    const model = HydraulicModelBuilder.with({ labelManager })
+      .aCurve({ id: IDS.C1, type: "volume", points: [{ x: 1, y: 1 }] })
+      .aCurve({ id: IDS.C2, type: "volume", points: [{ x: 2, y: 2 }] })
+      .build();
+
+    const next = new Map(model.curves);
+    next.set(IDS.C3, {
+      id: IDS.C3,
+      label: "C3",
+      type: "volume",
+      points: [{ x: 3, y: 3 }],
+    });
+    next.delete(IDS.C2);
+
+    const built = changeSet(model, "changeCurves", [replaceCurves(next)]);
+    const byId = new Map(built.records.map((r) => [r.id, r]));
+
+    expect(built.records).toHaveLength(2);
+    expect(byId.get(IDS.C3)!.kind).toBe("create");
+    expect(byId.get(IDS.C2)!.kind).toBe("delete");
+    expect(byId.has(IDS.C1)).toBe(false);
+  });
+
+  it("records a demand assignment as a whole value against its owner", () => {
+    const IDS = { J1: 1 } as const;
+    const { labelManager } = buildTestFactories();
+    const model = HydraulicModelBuilder.with({ labelManager })
+      .aJunction(IDS.J1)
+      .aJunctionDemand(IDS.J1, [{ baseDemand: 5 }])
+      .build();
+
+    const built = changeSet(model, "changeDemandAssignment", [
+      setDemands([{ junctionId: IDS.J1, demands: [{ baseDemand: 9 }] }]),
+    ]);
+    const record = built.records[0];
+
+    expect(record.entity).toBe("junctionDemand");
+    expect(record.id).toBe(IDS.J1);
+    expect(record.before[WHOLE_VALUE]).toEqual([{ baseDemand: 5 }]);
+    expect(record.after[WHOLE_VALUE]).toEqual([{ baseDemand: 9 }]);
+  });
+
+  it("records every control when one of them changes", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3, P2: 4 } as const;
+    const { labelManager } = buildTestFactories();
+    const model = HydraulicModelBuilder.with({ labelManager })
+      .aJunction(IDS.J1)
+      .aJunction(IDS.J2)
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
+      .aPipe(IDS.P2, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
+      .aTimedSettingControl({
+        linkId: IDS.P1,
+        steps: [{ time: 0, status: "off", setting: 1 }],
+      })
+      .aTimedSettingControl({
+        linkId: IDS.P2,
+        steps: [{ time: 0, status: "off", setting: 1 }],
+      })
+      .build();
+
+    const next = setAssetControl(
+      model.controls,
+      IDS.P1,
+      buildTimedSetting(IDS.P1, [{ time: 5, status: "on", setting: 2 }]),
+    );
+
+    const built = changeSet(model, "changeAssetControl", [
+      replaceControls(next),
+    ]);
+    const record = built.records[0];
+
+    expect(built.records).toHaveLength(1);
+    expect(record.entity).toBe("allControls");
+    expect(record.id).toBe(0);
+    expect(record.before[WHOLE_VALUE]).toEqual(model.controls);
+    expect(record.after[WHOLE_VALUE]).toEqual(next);
+  });
+
+  it("records the custom attributes definition flattened to one value", () => {
+    const { labelManager } = buildTestFactories();
+    const model = HydraulicModelBuilder.with({ labelManager })
+      .aCustomAttribute("junction", { id: "a1", label: "ZONE", type: "text" })
+      .build();
+
+    const next = emptyCustomAttributesDefinition();
+
+    const built = changeSet(model, "changeCustomAttributesDefinition", [
+      replaceCustomAttributes(next),
+    ]);
+    const record = built.records[0];
+
+    expect(built.records).toHaveLength(1);
+    expect(record.entity).toBe("customAttributesDefinition");
+    expect(record.before[WHOLE_VALUE]).toEqual({
+      "junction/a1": { id: "a1", label: "ZONE", type: "text" },
+    });
+    expect(record.after[WHOLE_VALUE]).toEqual({});
+  });
+
+  it("records the pipe library as a singleton whole value", () => {
+    const { labelManager } = buildTestFactories();
+    const model = HydraulicModelBuilder.with({ labelManager }).build();
+
+    const materials = [{ label: "PVC", entries: [{ age: 0, roughness: 140 }] }];
+    const built = changeSet(model, "changePipeMaterials", [
+      setPipeLibrary(materials),
+    ]);
+    const record = built.records[0];
+
+    expect(record.entity).toBe("pipeLibrary");
+    expect(record.before[WHOLE_VALUE]).toEqual([]);
+    expect(record.after[WHOLE_VALUE]).toEqual(materials);
+  });
+
+  it("unsets a field the replacing asset no longer carries", () => {
+    const IDS = { J1: 1 } as const;
+    const { labelManager } = buildTestFactories();
+    const model = HydraulicModelBuilder.with({ labelManager })
+      .aJunction(IDS.J1, { elevation: 10 })
+      .build();
+
+    model.assets.get(IDS.J1)!.setProperty("custom-1", "north");
+
+    const replacement = model.assets.get(IDS.J1)!.copy();
+    replacement.setProperty("custom-1", undefined);
+
+    const built = changeSet(model, "replaceNode", [putAssets([replacement])]);
+    const record = built.records[0];
+
+    expect(record.before["custom-1"]).toBe("north");
+    expect("custom-1" in record.after).toBe(true);
+    expect(record.after["custom-1"]).toBeUndefined();
+  });
+
+  it("produces nothing when empty demands are assigned to an owner with none", () => {
+    const IDS = { J1: 1 } as const;
+    const { labelManager } = buildTestFactories();
+    const model = HydraulicModelBuilder.with({ labelManager })
+      .aJunction(IDS.J1)
+      .build();
+
+    const built = changeSet(model, "changeDemandAssignment", [
+      setDemands([{ junctionId: IDS.J1, demands: [] }]),
+    ]);
+
+    expect(built.size).toBe(0);
+  });
+
+  it("reads every before against the same unmutated model", () => {
+    const IDS = { J1: 1 } as const;
+    const { labelManager } = buildTestFactories();
+    const model = HydraulicModelBuilder.with({ labelManager })
+      .aJunction(IDS.J1, { elevation: 10 })
+      .build();
+
+    const built = changeSet(model, "changeProperty", [
+      setAsset(IDS.J1, { elevation: 20 }),
+      setAsset(IDS.J1, { elevation: 30 }),
+    ]);
+    const record = built.records[0];
+
+    expect(built.records).toHaveLength(1);
+    expect(record.before).toEqual({ elevation: 10 });
+    expect(record.after).toEqual({ elevation: 30 });
+  });
+});
+
+describe("change-set validation", () => {
+  const IDS = { J1: 1, P1: 3, J2: 2 } as const;
+
+  const aModel = () => {
+    const { labelManager } = buildTestFactories();
+    return HydraulicModelBuilder.with({ labelManager })
+      .aJunction(IDS.J1, { elevation: 10 })
+      .aJunction(IDS.J2, { elevation: 20 })
+      .aPipe(IDS.P1, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        diameter: 200,
+      })
+      .build();
+  };
+
+  it("rejects a string where the model has a number", () => {
+    const model = aModel();
+
+    expect(() =>
+      changeSet(model, "changeProperty", [
+        setAsset(IDS.P1, { diameter: "300" as unknown as number }),
+      ]),
+    ).toThrow(/pipe 3: diameter/);
+  });
+
+  it("rejects NaN but accepts an infinity in a scalar field", () => {
+    const model = aModel();
+
+    expect(() =>
+      changeSet(model, "changeProperty", [
+        setAsset(IDS.J1, { elevation: NaN }),
+      ]),
+    ).toThrow(/junction 1: elevation/);
+
+    expect(() =>
+      changeSet(model, "changeProperty", [
+        setAsset(IDS.J1, { elevation: Infinity }),
+      ]),
+    ).not.toThrow();
+  });
+
+  it("rejects a value outside an enum", () => {
+    const model = aModel();
+
+    expect(() =>
+      changeSet(model, "changeProperty", [
+        setAsset(IDS.P1, { initialStatus: "active" }),
+      ]),
+    ).toThrow(/pipe 3: initialStatus/);
+  });
+
+  it("allows null only where the model does", () => {
+    const model = aModel();
+
+    expect(() =>
+      changeSet(model, "changeProperty", [
+        setAsset(IDS.P1, { diameter: null }),
+      ]),
+    ).not.toThrow();
+
+    expect(() =>
+      changeSet(model, "changeProperty", [
+        setAsset(IDS.P1, { minorLoss: null }),
+      ]),
+    ).toThrow(/pipe 3: minorLoss/);
+  });
+
+  it("rejects a field nothing has declared", () => {
+    const model = aModel();
+
+    expect(() =>
+      changeSet(model, "changeProperty", [setAsset(IDS.J1, { madeUp: 1 })]),
+    ).toThrow(/junction 1: madeUp has no schema/);
+  });
+
+  it("drops a key the whole value's schema does not declare", () => {
+    const model = aModel();
+
+    const materials = [
+      {
+        label: "PVC",
+        entries: [{ age: 0, roughness: 140 }],
+        madeUp: 1,
+      },
+    ] as unknown as PipeMaterial[];
+    const built = changeSet(model, "changePipeMaterials", [
+      setPipeLibrary(materials),
+    ]);
+
+    expect(built.records[0].after[WHOLE_VALUE]).toEqual([
+      { label: "PVC", entries: [{ age: 0, roughness: 140 }] },
+    ]);
+  });
+});

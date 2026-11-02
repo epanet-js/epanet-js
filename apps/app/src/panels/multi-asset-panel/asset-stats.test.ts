@@ -7,7 +7,7 @@ import type {
   BooleanStats,
 } from "./summary-stats";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { buildRoughnessInferrer } from "@epanet-js/hydraulic-model";
 import { presets, FormattingSpec } from "@epanet-js/project-settings";
 import { createMockResultsReader } from "src/__helpers__/state";

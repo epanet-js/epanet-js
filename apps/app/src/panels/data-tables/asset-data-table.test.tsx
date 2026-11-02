@@ -13,7 +13,7 @@ import { TooltipProvider } from "@epanet-js/ui-kit";
 import { setInitialState } from "src/__helpers__/state";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { stubFeatureOff } from "src/__helpers__/feature-flags";
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { AuthMockProvider, aUser } from "src/__helpers__/auth-mock";
 import type { User } from "src/auth-types";
 import { PersistenceContext } from "src/lib/persistence/context";

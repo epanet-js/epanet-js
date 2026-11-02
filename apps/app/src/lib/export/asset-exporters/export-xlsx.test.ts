@@ -1,5 +1,5 @@
 import * as XLSX from "xlsx";
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { ResultsReader } from "src/simulation";
 import { exportXlsx } from "./export-xlsx";
 import { WGS84 } from "@epanet-js/projections";

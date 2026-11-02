@@ -1,4 +1,4 @@
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { USelection } from "src/selection";
 import { largestContainedSet, newSelectionSet } from "./collections";
 

@@ -13,11 +13,11 @@ import {
   changeCustomerPointProperties,
   changeDemandAssignment,
   mergeChangeSets,
-} from "src/hydraulic-model/model-operations";
+} from "@epanet-js/hydraulic-model-operations";
 import type { ChangeSet } from "@epanet-js/change-set";
 import { getAttribute, getAttributes } from "@epanet-js/hydraulic-model";
 import { getCustomerPointDemands } from "src/hydraulic-model";
-import type { CustomerDemandAssignment } from "src/hydraulic-model/model-operation";
+import type { CustomerDemandAssignment } from "@epanet-js/hydraulic-model-operations";
 import { createTimeSlicer } from "src/infra/yield-to-main";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import {

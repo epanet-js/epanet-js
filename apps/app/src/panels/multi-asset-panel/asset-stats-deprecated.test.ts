@@ -8,7 +8,7 @@ import type {
   LiteralCategoryStatsDeprecated,
   PropertyStatsDeprecated,
 } from "./stats-deprecated";
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { buildRoughnessInferrer } from "@epanet-js/hydraulic-model";
 import { presets, FormattingSpec } from "@epanet-js/project-settings";
 import { createMockResultsReader } from "src/__helpers__/state";

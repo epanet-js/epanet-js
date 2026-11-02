@@ -26,7 +26,7 @@ import type {
   PropertyComparison,
   PumpCurveComparison,
 } from "src/hooks/use-asset-comparison";
-import type { PropertyChange } from "src/hydraulic-model/model-operations/change-property";
+import type { PropertyChange } from "@epanet-js/hydraulic-model-operations";
 import { useShowPumpLibrary } from "src/commands/show-pump-library";
 import {
   BlockComparisonField,

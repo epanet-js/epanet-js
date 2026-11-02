@@ -15,7 +15,7 @@ import type {
   LiteralCategoryStats as LiteralCategorySummary,
   QuantityStats as QuantitySummary,
 } from "./summary-stats";
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { presets, FormattingSpec } from "@epanet-js/project-settings";
 
 describe("computeCustomerPointData", () => {

@@ -33,7 +33,7 @@ import {
 import {
   changeDemandAssignment,
   changeCustomerPointLabel,
-} from "src/hydraulic-model/model-operations";
+} from "@epanet-js/hydraulic-model-operations";
 import { convertTo } from "@epanet-js/quantity";
 
 export function CustomerPointPanel() {

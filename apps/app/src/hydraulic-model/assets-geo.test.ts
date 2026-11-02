@@ -7,7 +7,7 @@ import {
   AssetsGeoQueries,
 } from "@epanet-js/hydraulic-model";
 import { HydraulicModel } from "./hydraulic-model";
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 
 describe("AssetsGeoView", () => {
   it("behaves the same way as AssetsGeoIndex", () => {

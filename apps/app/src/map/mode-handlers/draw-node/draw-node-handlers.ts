@@ -9,7 +9,7 @@ import { useCallback, useRef } from "react";
 import { useAtomCallback } from "jotai/utils";
 import type { ChangeSet } from "@epanet-js/change-set";
 import { getMapCoord } from "../utils";
-import { addNode, replaceNode } from "src/hydraulic-model/model-operations";
+import { addNode, replaceNode } from "@epanet-js/hydraulic-model-operations";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import throttle from "lodash/throttle";
 import { useUserTracking } from "src/infra/user-tracking";

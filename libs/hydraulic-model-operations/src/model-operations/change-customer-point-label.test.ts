@@ -1,0 +1,152 @@
+import { describe, it, expect } from "vitest";
+import { changeCustomerPointLabel } from "./change-customer-point-label";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
+import { applyOperation } from "../__helpers__/apply-operation";
+import { buildTestFactories } from "@epanet-js/hydraulic-model-testing";
+
+describe("changeCustomerPointLabel", () => {
+  it("changes a customer point label", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4 } as const;
+    const { labelManager } = buildTestFactories();
+    const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
+      .aJunction(IDS.J1, { coordinates: [0, 0] })
+      .aJunction(IDS.J2, { coordinates: [10, 0] })
+      .aPipe(IDS.P1, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        coordinates: [
+          [0, 0],
+          [10, 0],
+        ],
+      })
+      .aCustomerPoint(IDS.CP1, {
+        coordinates: [2, 1],
+        connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
+      })
+      .build();
+
+    const changeSet = changeCustomerPointLabel(hydraulicModel, {
+      customerPointId: IDS.CP1,
+      newLabel: "MyCustomer",
+    });
+    applyOperation(hydraulicModel, changeSet, labelManager);
+
+    expect(hydraulicModel.customerPoints.get(IDS.CP1)!.label).toBe(
+      "MyCustomer",
+    );
+  });
+
+  it("preserves connection data after apply", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4 } as const;
+    const { labelManager } = buildTestFactories();
+    const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
+      .aJunction(IDS.J1, { coordinates: [0, 0] })
+      .aJunction(IDS.J2, { coordinates: [10, 0] })
+      .aPipe(IDS.P1, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        coordinates: [
+          [0, 0],
+          [10, 0],
+        ],
+      })
+      .aCustomerPoint(IDS.CP1, {
+        coordinates: [2, 1],
+        connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
+      })
+      .build();
+
+    const changeSet = changeCustomerPointLabel(hydraulicModel, {
+      customerPointId: IDS.CP1,
+      newLabel: "Renamed",
+    });
+    applyOperation(hydraulicModel, changeSet, labelManager);
+
+    const updated = hydraulicModel.customerPoints.get(IDS.CP1)!;
+    expect(updated.label).toBe("Renamed");
+    expect(updated.connection).not.toBeNull();
+    expect(updated.connection!.pipeId).toBe(IDS.P1);
+    expect(updated.connection!.junctionId).toBe(IDS.J1);
+  });
+
+  it("throws for non-existent customer point", () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction(1, { coordinates: [0, 0] })
+      .build();
+
+    expect(() => {
+      changeCustomerPointLabel(hydraulicModel, {
+        customerPointId: 999,
+        newLabel: "Test",
+      });
+    }).toThrow("Customer point 999 not found");
+  });
+
+  it("updates label manager after apply", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4 } as const;
+    const { labelManager } = buildTestFactories();
+    const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
+      .aJunction(IDS.J1, { coordinates: [0, 0] })
+      .aJunction(IDS.J2, { coordinates: [10, 0] })
+      .aPipe(IDS.P1, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        coordinates: [
+          [0, 0],
+          [10, 0],
+        ],
+      })
+      .aCustomerPoint(IDS.CP1, {
+        coordinates: [2, 1],
+        connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
+      })
+      .build();
+
+    const changeSet = changeCustomerPointLabel(hydraulicModel, {
+      customerPointId: IDS.CP1,
+      newLabel: "NewLabel",
+    });
+    applyOperation(hydraulicModel, changeSet, labelManager);
+
+    expect(hydraulicModel.customerPoints.get(IDS.CP1)!.label).toBe("NewLabel");
+    expect(
+      labelManager.isLabelAvailable("NewLabel", "customerPoint", IDS.CP1),
+    ).toBe(true);
+    expect(labelManager.isLabelAvailable("NewLabel", "customerPoint")).toBe(
+      false,
+    );
+  });
+
+  it("restores the previous label on undo", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4 } as const;
+    const { labelManager } = buildTestFactories();
+    const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
+      .aJunction(IDS.J1, { coordinates: [0, 0] })
+      .aJunction(IDS.J2, { coordinates: [10, 0] })
+      .aPipe(IDS.P1, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        coordinates: [
+          [0, 0],
+          [10, 0],
+        ],
+      })
+      .aCustomerPoint(IDS.CP1, {
+        coordinates: [2, 1],
+        label: "Original",
+        connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
+      })
+      .build();
+
+    const changeSet = changeCustomerPointLabel(hydraulicModel, {
+      customerPointId: IDS.CP1,
+      newLabel: "Changed",
+    });
+    const { undo } = applyOperation(hydraulicModel, changeSet, labelManager);
+
+    expect(hydraulicModel.customerPoints.get(IDS.CP1)!.label).toBe("Changed");
+
+    undo();
+    expect(hydraulicModel.customerPoints.get(IDS.CP1)!.label).toBe("Original");
+  });
+});

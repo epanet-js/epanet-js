@@ -24,7 +24,7 @@ import { isPatternInUse } from "src/hydraulic-model/utilities/library-usage";
 import { notify } from "src/components/notifications";
 import { useUserTracking } from "src/infra/user-tracking";
 import { modelFactoriesAtom } from "src/state/model-factories";
-import { changePatterns } from "src/hydraulic-model/model-operations";
+import { changePatterns } from "@epanet-js/hydraulic-model-operations";
 import { VerticalResizer } from "../vertical-resizer";
 import { DialogActions, DialogActionsHandle } from "../dialog-actions-row";
 import {

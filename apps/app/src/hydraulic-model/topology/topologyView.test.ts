@@ -3,7 +3,7 @@ import { AssetIndexEncoder, AssetIndexView } from "../asset-index-transferable";
 import { TopologyEncoder } from "./topologyEncoder";
 import { TopologyView } from "./topologyView";
 import { HydraulicModel } from "../hydraulic-model";
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 
 describe("TopologyView", () => {
   it("getLinks and getNodes behave the same way as the model topology", () => {

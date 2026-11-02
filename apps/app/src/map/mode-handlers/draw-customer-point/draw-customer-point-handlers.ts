@@ -5,7 +5,7 @@ import { modeAtom, Mode } from "src/state/mode";
 import noop from "lodash/noop";
 import { useSetAtom, useAtomValue } from "jotai";
 import { getMapCoord } from "../utils";
-import { addCustomerPoint } from "src/hydraulic-model/model-operations";
+import { addCustomerPoint } from "@epanet-js/hydraulic-model-operations";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useSelection } from "src/selection";
 import { modelFactoriesAtom } from "src/state/model-factories";

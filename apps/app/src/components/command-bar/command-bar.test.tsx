@@ -12,7 +12,7 @@ import { TooltipProvider } from "@epanet-js/ui-kit";
 import Mousetrap from "mousetrap";
 
 import { Maybe } from "purify-ts/Maybe";
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { setInitialState } from "src/__helpers__/state";
 import {
   LabelManager,

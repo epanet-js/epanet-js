@@ -1,6 +1,6 @@
 import { renderHook, act } from "@testing-library/react";
 import { Provider as JotaiProvider } from "jotai";
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { setInitialState } from "src/__helpers__/state";
 import { useInProcessDb } from "src/lib/db/__test-helpers__/in-process-db";
 import { projectSettingsAtom } from "src/state/project-settings";

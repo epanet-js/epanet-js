@@ -12,19 +12,19 @@ import {
   changeLabel,
   changeDemandAssignment,
   mergeChangeSets,
-} from "src/hydraulic-model/model-operations";
+} from "@epanet-js/hydraulic-model-operations";
 import type { ChangeSet } from "@epanet-js/change-set";
 import { getJunctionDemands } from "src/hydraulic-model";
-import type { JunctionDemandAssignment } from "src/hydraulic-model/model-operation";
+import type { JunctionDemandAssignment } from "@epanet-js/hydraulic-model-operations";
 import {
   tankVolumeCurveChanges,
   chemicalSourceTypeChanges,
   valveKindChanges,
   pumpDefinitionTypeChanges,
-} from "src/hydraulic-model/model-operations";
-import { activateAssets } from "src/hydraulic-model/model-operations/activate-assets";
-import { deactivateAssets } from "src/hydraulic-model/model-operations/deactivate-assets";
-import type { PropertyChange } from "src/hydraulic-model/model-operations/change-property";
+} from "@epanet-js/hydraulic-model-operations";
+import { activateAssets } from "@epanet-js/hydraulic-model-operations";
+import { deactivateAssets } from "@epanet-js/hydraulic-model-operations";
+import type { PropertyChange } from "@epanet-js/hydraulic-model-operations";
 import { createTimeSlicer } from "src/infra/yield-to-main";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import {

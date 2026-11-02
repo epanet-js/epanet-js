@@ -4,7 +4,7 @@ import { allocateCustomerPoints } from "./main";
 import {
   HydraulicModelBuilder,
   buildCustomerPoint,
-} from "src/__helpers__/hydraulic-model-builder";
+} from "@epanet-js/hydraulic-model-testing";
 import { CustomerPoints } from "@epanet-js/hydraulic-model";
 import type { Zone } from "@epanet-js/hydraulic-model";
 

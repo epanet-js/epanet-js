@@ -3,7 +3,7 @@ import { useCallback } from "react";
 import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import { useElevations } from "src/hooks/use-elevations";
-import { addNode } from "src/hydraulic-model/model-operations";
+import { addNode } from "@epanet-js/hydraulic-model-operations";
 import { useUserTracking } from "src/infra/user-tracking";
 import { CrossingPipe } from "src/lib/network-review";
 import { modelFactoriesAtom } from "src/state/model-factories";

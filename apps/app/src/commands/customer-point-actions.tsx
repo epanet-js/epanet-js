@@ -4,7 +4,7 @@ import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { modeAtom, Mode } from "src/state/mode";
 import { selectionAtom } from "src/state/selection";
 import { USelection } from "src/selection";
-import { disconnectCustomers } from "src/hydraulic-model/model-operations";
+import { disconnectCustomers } from "@epanet-js/hydraulic-model-operations";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 

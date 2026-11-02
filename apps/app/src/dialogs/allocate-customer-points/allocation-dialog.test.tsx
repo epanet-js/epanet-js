@@ -5,7 +5,7 @@ import { setInitialState, aMultiSelection } from "src/__helpers__/state";
 import {
   HydraulicModelBuilder,
   buildCustomerPoint,
-} from "src/__helpers__/hydraulic-model-builder";
+} from "@epanet-js/hydraulic-model-testing";
 import { AllocationDialog } from "./allocation-dialog";
 import { useAllocateCustomerPointsState } from "./wizard-state";
 import { Persistence } from "src/lib/persistence/persistence";

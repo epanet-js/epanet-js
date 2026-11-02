@@ -1,6 +1,6 @@
 import { describe, expect, it, vi, afterEach } from "vitest";
 import { api, setSahpoolForTest } from "@epanet-js/ejsdb/worker-api";
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { useInProcessDb } from "../__test-helpers__/in-process-db";
 import { importProject } from "./import-project";

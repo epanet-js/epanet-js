@@ -15,7 +15,6 @@ export type {
 } from "@epanet-js/hydraulic-model";
 export type { AssetId } from "@epanet-js/hydraulic-model";
 export { filterAssets, getNode, AssetsMap } from "@epanet-js/hydraulic-model";
-export type { ModelOperation, AssetPatch } from "./model-operation";
 export { BaseAsset } from "@epanet-js/hydraulic-model";
 export type {
   AssetStatus,

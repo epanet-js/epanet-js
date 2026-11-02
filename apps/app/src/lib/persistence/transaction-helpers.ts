@@ -8,7 +8,7 @@ import type { ChangeSet, Direction } from "@epanet-js/change-set";
 import {
   applyChangeSet,
   type ApplyReport,
-} from "src/hydraulic-model/change-sets";
+} from "@epanet-js/hydraulic-model-operations";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { mapEditionsTrackerAtom } from "src/state/map";
 

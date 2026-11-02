@@ -1,11 +1,11 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { Provider as JotaiProvider } from "jotai";
 import { describe, expect, it } from "vitest";
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { setInitialState } from "src/__helpers__/state";
 import { getAssetsByType } from "src/__helpers__/asset-queries";
-import { addNode } from "src/hydraulic-model/model-operations/add-node";
-import { changeProperty } from "src/hydraulic-model/model-operations/change-property";
+import { addNode } from "@epanet-js/hydraulic-model-operations";
+import { changeProperty } from "@epanet-js/hydraulic-model-operations";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import { useUndoableTransactions } from "src/hooks/persistence/use-undoable-transactions";
 import { modelFactoriesAtom } from "src/state/model-factories";

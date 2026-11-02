@@ -13,7 +13,7 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import { useCustomerPointComparison } from "src/hooks/use-customer-point-comparison";
 import type { PropertyComparison } from "src/hooks/use-asset-comparison";
-import { changeCustomerPointProperty } from "src/hydraulic-model/model-operations";
+import { changeCustomerPointProperty } from "@epanet-js/hydraulic-model-operations";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { NumericField } from "src/components/form/numeric-field";
 import { EditableTextField } from "src/components/form/editable-text-field";

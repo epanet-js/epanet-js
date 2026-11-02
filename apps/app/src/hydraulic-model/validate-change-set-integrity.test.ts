@@ -1,8 +1,12 @@
 import { describe, it, expect } from "vitest";
 import { LabelManager, LinkAsset } from "@epanet-js/hydraulic-model";
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { applyOperation } from "src/__helpers__/apply-operation";
-import { changeSet, dropAssets, putAssets } from "./change-sets";
+import {
+  changeSet,
+  dropAssets,
+  putAssets,
+} from "@epanet-js/hydraulic-model-operations";
 import {
   findOrphanLinkConnections,
   findStoreInconsistencies,

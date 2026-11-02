@@ -8,7 +8,7 @@ import {
   searchBounds,
   findNearestPipeConnection,
 } from "./nearest-pipe-connection";
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 
 const METERS_PER_DEGREE = 111194.93;
 const toDegrees = (meters: number) => meters / METERS_PER_DEGREE;

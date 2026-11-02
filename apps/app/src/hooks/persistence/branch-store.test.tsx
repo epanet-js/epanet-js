@@ -10,10 +10,10 @@ import {
   type BranchStore,
   type Worktree,
 } from "@epanet-js/worktree";
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { setInitialState } from "src/__helpers__/state";
-import { addNode } from "src/hydraulic-model/model-operations/add-node";
-import { changeZones } from "src/hydraulic-model/model-operations/change-zones";
+import { addNode } from "@epanet-js/hydraulic-model-operations";
+import { changeZones } from "@epanet-js/hydraulic-model-operations";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import { useSimulationSettingsTransaction } from "src/hooks/persistence/use-simulation-settings-transaction";
 import { useUndoableTransactions } from "src/hooks/persistence/use-undoable-transactions";

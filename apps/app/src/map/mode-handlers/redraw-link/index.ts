@@ -7,7 +7,7 @@ import { modeAtom, Mode } from "src/state/mode";
 import { selectionAtom } from "src/state/selection";
 import { LinkAsset, NodeAsset } from "src/hydraulic-model";
 import { USelection, useSelection } from "src/selection";
-import { replaceLink } from "src/hydraulic-model/model-operations";
+import { replaceLink } from "@epanet-js/hydraulic-model-operations";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import measureLength from "@turf/length";
 import { useUserTracking } from "src/infra/user-tracking";

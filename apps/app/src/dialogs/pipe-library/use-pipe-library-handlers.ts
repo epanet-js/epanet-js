@@ -6,7 +6,7 @@ import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import { selectedMaterialLabelAtom } from "src/state/pipe-library";
-import { changePipeMaterials } from "src/hydraulic-model/model-operations";
+import { changePipeMaterials } from "@epanet-js/hydraulic-model-operations";
 import { renameAssignments } from "./rename-materials";
 import {
   detectModelMaterials,

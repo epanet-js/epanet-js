@@ -18,7 +18,7 @@ import {
   type PatternType,
   type LabelManager,
 } from "@epanet-js/hydraulic-model";
-import type { ChangeableProperty } from "src/hydraulic-model/model-operations/change-property";
+import type { ChangeableProperty } from "@epanet-js/hydraulic-model-operations";
 
 type AssetSectionProps = {
   sections: AssetPropertySections;

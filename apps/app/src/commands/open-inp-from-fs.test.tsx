@@ -1,6 +1,6 @@
 import { USelection } from "src/selection";
 import { render, screen, waitFor } from "@testing-library/react";
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { selectionAtom } from "src/state/selection";
 import { inpFileInfoAtom } from "src/state/file-system";

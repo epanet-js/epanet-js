@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { nullBranchStore, type Worktree } from "@epanet-js/worktree";
 import { stubFileSave } from "src/__helpers__/browser-fs-mock";
 import { fileSave } from "browser-fs-access";
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { setInitialState } from "src/__helpers__/state";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { AuthMockProvider, aUser } from "src/__helpers__/auth-mock";

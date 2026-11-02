@@ -1,4 +1,4 @@
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { ActiveAssetIndex, ActiveTopology } from "@epanet-js/hydraulic-model";
 
 const IDS = { J1: 1, J2: 2, J3: 3, P1: 4, P2: 5 } as const;

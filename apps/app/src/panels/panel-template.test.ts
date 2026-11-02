@@ -1,5 +1,5 @@
 /** @vitest-environment jsdom */
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { createAssetTablePanel } from "./data-tables/create-panel";
 import { createHglProfilePanel } from "./hgl-profile/create-panel";
 import { createNetworkReviewPanel } from "./network-review/create-panel";

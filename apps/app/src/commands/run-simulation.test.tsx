@@ -3,7 +3,7 @@ import { CommandContainer } from "./__helpers__/command-container";
 import { SimulationFinished } from "src/state/simulation";
 import { simulationDerivedAtom } from "src/state/derived-branch-state";
 import { Store } from "src/state";
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { setInitialState } from "src/__helpers__/state";
 import { dialogAtom } from "src/state/dialog";
 import { splitsAtom } from "src/state/layout";

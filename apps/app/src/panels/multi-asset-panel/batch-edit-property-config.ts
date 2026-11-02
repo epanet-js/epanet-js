@@ -9,7 +9,7 @@ import {
   type CurveType,
   type PatternType,
 } from "@epanet-js/hydraulic-model";
-import type { ChangeableProperty } from "src/hydraulic-model/model-operations/change-property";
+import type { ChangeableProperty } from "@epanet-js/hydraulic-model-operations";
 import type { PaywallFeature } from "src/state/dialog";
 import { fieldValidator } from "src/lib/model-attributes-validation";
 

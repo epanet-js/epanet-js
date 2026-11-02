@@ -1,7 +1,7 @@
 import { useAtomValue } from "jotai";
 import { useCallback } from "react";
 import { LinkAsset } from "src/hydraulic-model";
-import { reverseLink } from "src/hydraulic-model/model-operations/reverse-link";
+import { reverseLink } from "@epanet-js/hydraulic-model-operations";
 import { useUserTracking } from "src/infra/user-tracking";
 import { USelection } from "src/selection";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";

@@ -17,7 +17,7 @@ import {
   IdResolver,
   parseRawControlsFromText,
 } from "@epanet-js/hydraulic-model";
-import { changeRawControls } from "src/hydraulic-model/model-operations";
+import { changeRawControls } from "@epanet-js/hydraulic-model-operations";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import { Callout } from "@epanet-js/ui-kit";

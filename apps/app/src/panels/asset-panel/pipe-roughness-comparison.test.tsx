@@ -6,7 +6,7 @@ import { TooltipProvider } from "@epanet-js/ui-kit";
 import { LabelManager } from "@epanet-js/hydraulic-model";
 import type { PipeMaterial } from "@epanet-js/hydraulic-model";
 import { HydraulicModel } from "src/hydraulic-model";
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { Store } from "src/state";
 import { selectionAtom } from "src/state/selection";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";

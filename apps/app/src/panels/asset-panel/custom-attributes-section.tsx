@@ -11,7 +11,7 @@ import { Asset } from "src/hydraulic-model";
 import type {
   ChangeableProperty,
   ChangeablePropertyValue,
-} from "src/hydraulic-model/model-operations/change-property";
+} from "@epanet-js/hydraulic-model-operations";
 import { useTranslate } from "src/hooks/use-translate";
 import {
   useAssetComparison,

@@ -1,6 +1,6 @@
 import { useAtom, useAtomValue } from "jotai";
 import { useCallback } from "react";
-import { removeCustomerPoints } from "src/hydraulic-model/model-operations";
+import { removeCustomerPoints } from "@epanet-js/hydraulic-model-operations";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import { useUserTracking } from "src/infra/user-tracking";
 import { USelection } from "src/selection";

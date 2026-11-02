@@ -8,7 +8,7 @@ import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
 import { hasScenariosAtom } from "src/state/scenarios";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
-import { changeCustomAttributesDefinition } from "src/hydraulic-model/model-operations";
+import { changeCustomAttributesDefinition } from "@epanet-js/hydraulic-model-operations";
 import { useUserTracking } from "src/infra/user-tracking";
 import { Callout } from "@epanet-js/ui-kit";
 import { VerticalResizer } from "../vertical-resizer";

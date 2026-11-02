@@ -1,0 +1,1460 @@
+import { controlsAfterSplits, splitPipe } from "./split-pipe";
+import {
+  HydraulicModelBuilder,
+  buildCustomerPoint,
+} from "@epanet-js/hydraulic-model-testing";
+import {
+  Pipe,
+  VariableSpeedPumpControl,
+  getLinkVariableSpeedPump,
+} from "@epanet-js/hydraulic-model";
+import { buildTestFactories } from "@epanet-js/hydraulic-model-testing";
+
+describe("splitPipe", () => {
+  it("splits a pipe at specified coordinates", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3 } as const;
+
+    const { assetFactory, labelManager } = buildTestFactories();
+    const hydraulicModel = HydraulicModelBuilder.with({
+      assetFactory,
+      labelManager,
+    })
+      .aNode(IDS.J1, [0, 0])
+      .aNode(IDS.J2, [10, 0])
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
+      .build();
+
+    const pipe = hydraulicModel.assets.get(IDS.P1) as Pipe;
+    const splitNode = assetFactory.createJunction({
+      label: "J3",
+      coordinates: [5, 0],
+    });
+
+    const { newPipes, removedPipeId } = splitPipe(hydraulicModel, {
+      assetFactory,
+      labelManager,
+      lengthUnit: "m",
+      pipe,
+      splits: [splitNode],
+    });
+
+    expect(newPipes).toHaveLength(2);
+    expect(removedPipeId).toBe(IDS.P1);
+
+    const [pipe1, pipe2] = newPipes;
+    expect(pipe1.type).toBe("pipe");
+    expect(pipe2.type).toBe("pipe");
+    expect(pipe1.coordinates).toEqual([
+      [0, 0],
+      [5, 0],
+    ]);
+    expect(pipe2.coordinates).toEqual([
+      [5, 0],
+      [10, 0],
+    ]);
+    expect(pipe1.connections).toEqual([IDS.J1, splitNode.id]);
+    expect(pipe2.connections).toEqual([splitNode.id, IDS.J2]);
+  });
+
+  it("generates correct labels for split pipes", () => {
+    const IDS = { J1: 1, J2: 2, MainPipe: 3 } as const;
+
+    const { assetFactory, labelManager } = buildTestFactories();
+    const hydraulicModel = HydraulicModelBuilder.with({
+      assetFactory,
+      labelManager,
+    })
+      .aNode(IDS.J1, [0, 0])
+      .aNode(IDS.J2, [10, 0])
+      .aPipe(IDS.MainPipe, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        label: "MainPipe",
+      })
+      .build();
+
+    const pipe = hydraulicModel.assets.get(IDS.MainPipe) as Pipe;
+    const splitNode = assetFactory.createJunction({
+      label: "J3",
+      coordinates: [5, 0],
+    });
+
+    const { newPipes } = splitPipe(hydraulicModel, {
+      assetFactory,
+      labelManager,
+      lengthUnit: "m",
+      pipe,
+      splits: [splitNode],
+    });
+
+    const [pipe1, pipe2] = newPipes;
+    expect(pipe1.label).toBe("MainPipe");
+    expect(pipe2.label).toBe("MainPipe_1");
+  });
+
+  it("handles label collisions correctly", () => {
+    const IDS = {
+      J1: 1,
+      J2: 2,
+      J3: 3,
+      J4: 4,
+      TestPipe: 5,
+      TestPipe_1: 6,
+    } as const;
+
+    const { assetFactory, labelManager } = buildTestFactories();
+    const hydraulicModel = HydraulicModelBuilder.with({
+      assetFactory,
+      labelManager,
+    })
+      .aNode(IDS.J1, [0, 0])
+      .aNode(IDS.J2, [10, 0])
+      .aNode(IDS.J3, [0, 5])
+      .aNode(IDS.J4, [10, 5])
+      .aPipe(IDS.TestPipe, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        label: "TestPipe",
+      })
+      .aPipe(IDS.TestPipe_1, {
+        startNodeId: IDS.J3,
+        endNodeId: IDS.J4,
+        label: "TestPipe_1",
+      })
+      .build();
+
+    labelManager.register("TestPipe_1", "pipe", IDS.TestPipe_1);
+
+    const pipe = hydraulicModel.assets.get(IDS.TestPipe) as Pipe;
+    const splitNode = assetFactory.createJunction({
+      label: "J5",
+      coordinates: [5, 0],
+    });
+
+    const { newPipes } = splitPipe(hydraulicModel, {
+      assetFactory,
+      labelManager,
+      lengthUnit: "m",
+      pipe,
+      splits: [splitNode],
+    });
+
+    const [pipe1, pipe2] = newPipes;
+    expect(pipe1.label).toBe("TestPipe");
+    expect(pipe2.label).toBe("TestPipe_2");
+  });
+
+  it("follows logical progression when splitting numbered pipes", () => {
+    const IDS = { J1: 1, J2: 2, MYLABEL_1: 3 } as const;
+
+    const { assetFactory, labelManager } = buildTestFactories();
+    const hydraulicModel = HydraulicModelBuilder.with({
+      assetFactory,
+      labelManager,
+    })
+      .aNode(IDS.J1, [0, 0])
+      .aNode(IDS.J2, [10, 0])
+      .aPipe(IDS.MYLABEL_1, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        label: "MYLABEL_1",
+      })
+      .build();
+
+    const pipe = hydraulicModel.assets.get(IDS.MYLABEL_1) as Pipe;
+    const splitNode = assetFactory.createJunction({
+      label: "J3",
+      coordinates: [5, 0],
+    });
+
+    const { newPipes } = splitPipe(hydraulicModel, {
+      assetFactory,
+      labelManager,
+      lengthUnit: "m",
+      pipe,
+      splits: [splitNode],
+    });
+
+    const [pipe1, pipe2] = newPipes;
+    expect(pipe1.label).toBe("MYLABEL_1");
+    expect(pipe2.label).toBe("MYLABEL_2");
+  });
+
+  it("copies all properties from original pipe", () => {
+    const IDS = { J1: 1, J2: 2 } as const;
+
+    const { assetFactory, labelManager } = buildTestFactories();
+    const hydraulicModel = HydraulicModelBuilder.with({
+      assetFactory,
+      labelManager,
+    })
+      .aNode(IDS.J1, [0, 0])
+      .aNode(IDS.J2, [10, 0])
+      .build();
+
+    const originalPipe = assetFactory.createPipe({
+      label: "SpecialPipe",
+      coordinates: [
+        [0, 0],
+        [10, 0],
+      ],
+    });
+    originalPipe.setProperty("diameter", 200);
+    originalPipe.setProperty("roughness", 0.1);
+    originalPipe.setProperty("minorLoss", 0.5);
+    originalPipe.setProperty("initialStatus", "open");
+    originalPipe.setProperty("material", "Cast Iron");
+    originalPipe.setProperty("year", 1985);
+    originalPipe.setProperty("bulkReactionCoeff", -0.3);
+    originalPipe.setProperty("wallReactionCoeff", -0.7);
+
+    hydraulicModel.assets.set(originalPipe.id, originalPipe);
+
+    const splitNode = assetFactory.createJunction({
+      label: "J3",
+      coordinates: [5, 0],
+    });
+
+    const { newPipes } = splitPipe(hydraulicModel, {
+      assetFactory,
+      labelManager,
+      lengthUnit: "m",
+      pipe: originalPipe,
+      splits: [splitNode],
+    });
+
+    const [pipe1, pipe2] = newPipes;
+
+    expect(pipe1.getProperty("diameter")).toBe(200);
+    expect(pipe1.getProperty("roughness")).toBe(0.1);
+    expect(pipe1.getProperty("minorLoss")).toBe(0.5);
+    expect(pipe1.getProperty("initialStatus")).toBe("open");
+    expect(pipe1.getProperty("material")).toBe("Cast Iron");
+    expect(pipe1.getProperty("year")).toBe(1985);
+    expect(pipe1.getProperty("bulkReactionCoeff")).toBe(-0.3);
+    expect(pipe1.getProperty("wallReactionCoeff")).toBe(-0.7);
+
+    expect(pipe2.getProperty("diameter")).toBe(200);
+    expect(pipe2.getProperty("roughness")).toBe(0.1);
+    expect(pipe2.getProperty("minorLoss")).toBe(0.5);
+    expect(pipe2.getProperty("initialStatus")).toBe("open");
+    expect(pipe2.getProperty("material")).toBe("Cast Iron");
+    expect(pipe2.getProperty("year")).toBe(1985);
+    expect(pipe2.getProperty("bulkReactionCoeff")).toBe(-0.3);
+    expect(pipe2.getProperty("wallReactionCoeff")).toBe(-0.7);
+  });
+
+  it("copies custom attributes to both segments", () => {
+    const IDS = { J1: 1, J2: 2 } as const;
+
+    const { assetFactory, labelManager } = buildTestFactories();
+    const hydraulicModel = HydraulicModelBuilder.with({
+      assetFactory,
+      labelManager,
+    })
+      .aNode(IDS.J1, [0, 0])
+      .aNode(IDS.J2, [10, 0])
+      .build();
+
+    const originalPipe = assetFactory.createPipe({
+      label: "SpecialPipe",
+      coordinates: [
+        [0, 0],
+        [10, 0],
+      ],
+    });
+    originalPipe.setProperty("custom-1", 42);
+    originalPipe.setProperty("custom-2", "abc");
+
+    hydraulicModel.assets.set(originalPipe.id, originalPipe);
+
+    const splitNode = assetFactory.createJunction({
+      label: "J3",
+      coordinates: [5, 0],
+    });
+
+    const { newPipes } = splitPipe(hydraulicModel, {
+      assetFactory,
+      labelManager,
+      lengthUnit: "m",
+      pipe: originalPipe,
+      splits: [splitNode],
+    });
+
+    const [pipe1, pipe2] = newPipes;
+
+    expect(pipe1.getProperty("custom-1")).toBe(42);
+    expect(pipe1.getProperty("custom-2")).toBe("abc");
+    expect(pipe2.getProperty("custom-1")).toBe(42);
+    expect(pipe2.getProperty("custom-2")).toBe("abc");
+  });
+
+  it("updates lengths for split pipes", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3 } as const;
+
+    const { assetFactory, labelManager } = buildTestFactories();
+    const hydraulicModel = HydraulicModelBuilder.with({
+      assetFactory,
+      labelManager,
+    })
+      .aNode(IDS.J1, [0, 0])
+      .aNode(IDS.J2, [10, 0])
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
+      .build();
+
+    const pipe = hydraulicModel.assets.get(IDS.P1) as Pipe;
+    const splitNode = assetFactory.createJunction({
+      label: "J3",
+      coordinates: [5, 0],
+    });
+
+    const { newPipes } = splitPipe(hydraulicModel, {
+      assetFactory,
+      labelManager,
+      lengthUnit: "m",
+      pipe,
+      splits: [splitNode],
+    });
+
+    const [pipe1, pipe2] = newPipes;
+
+    const length1 = pipe1.length!;
+    const length2 = pipe2.length!;
+
+    expect(length1).toBeGreaterThan(0);
+    expect(length2).toBeGreaterThan(0);
+    expect(length1).toBeLessThan(length1 + length2);
+  });
+
+  it("throws error when no splits provided", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3 } as const;
+
+    const { assetFactory, labelManager } = buildTestFactories();
+    const hydraulicModel = HydraulicModelBuilder.with({
+      assetFactory,
+      labelManager,
+    })
+      .aNode(IDS.J1, [0, 0])
+      .aNode(IDS.J2, [10, 0])
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
+      .build();
+
+    const pipe = hydraulicModel.assets.get(IDS.P1) as Pipe;
+
+    expect(() => {
+      splitPipe(hydraulicModel, {
+        assetFactory,
+        labelManager,
+        lengthUnit: "m",
+        pipe,
+        splits: [],
+      });
+    }).toThrow("At least one split is required");
+  });
+
+  it("uses split coordinates exactly as split point", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3 } as const;
+
+    const { assetFactory, labelManager } = buildTestFactories();
+    const hydraulicModel = HydraulicModelBuilder.with({
+      assetFactory,
+      labelManager,
+    })
+      .aNode(IDS.J1, [0, 0])
+      .aNode(IDS.J2, [10, 0])
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
+      .build();
+
+    const splitCoordinates: [number, number] = [5.123, 0.456];
+
+    const pipe = hydraulicModel.assets.get(IDS.P1) as Pipe;
+    const splitNode = assetFactory.createJunction({
+      label: "J3",
+      coordinates: splitCoordinates,
+    });
+
+    const { newPipes } = splitPipe(hydraulicModel, {
+      assetFactory,
+      labelManager,
+      lengthUnit: "m",
+      pipe,
+      splits: [splitNode],
+    });
+
+    const [pipe1, pipe2] = newPipes;
+
+    expect(pipe1.coordinates[pipe1.coordinates.length - 1]).toEqual(
+      splitCoordinates,
+    );
+    expect(pipe2.coordinates[0]).toEqual(splitCoordinates);
+  });
+
+  it("stress test: splits pipe with 2 splits producing 3 pipes with correct labels and lengths", () => {
+    const IDS = { J1: 1, J2: 2, MY_PIPE: 3 } as const;
+
+    const { assetFactory, labelManager } = buildTestFactories();
+    const hydraulicModel = HydraulicModelBuilder.with({
+      assetFactory,
+      labelManager,
+    })
+      .aNode(IDS.J1, [0, 0])
+      .aNode(IDS.J2, [0.00009, 0])
+      .aPipe(IDS.MY_PIPE, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        label: "MY_PIPE",
+      })
+      .build();
+
+    const pipe = hydraulicModel.assets.get(IDS.MY_PIPE) as Pipe;
+    const splitNode1 = assetFactory.createJunction({
+      label: "J3",
+      coordinates: [0.000027, 0],
+    });
+    const splitNode2 = assetFactory.createJunction({
+      label: "J4",
+      coordinates: [0.000063, 0],
+    });
+
+    const { newPipes, removedPipeId } = splitPipe(hydraulicModel, {
+      assetFactory,
+      labelManager,
+      lengthUnit: "m",
+      pipe,
+      splits: [splitNode1, splitNode2],
+    });
+
+    expect(newPipes).toHaveLength(3);
+    expect(removedPipeId).toBe(IDS.MY_PIPE);
+
+    const [pipe1, pipe2, pipe3] = newPipes;
+
+    expect(pipe1.label).toBe("MY_PIPE");
+    expect(pipe2.label).toBe("MY_PIPE_1");
+    expect(pipe3.label).toBe("MY_PIPE_2");
+
+    expect(pipe1.connections).toEqual([IDS.J1, splitNode1.id]);
+    expect(pipe2.connections).toEqual([splitNode1.id, splitNode2.id]);
+    expect(pipe3.connections).toEqual([splitNode2.id, IDS.J2]);
+
+    expect(pipe1.coordinates).toEqual([
+      [0, 0],
+      [0.000027, 0],
+    ]);
+    expect(pipe2.coordinates).toEqual([
+      [0.000027, 0],
+      [0.000063, 0],
+    ]);
+    expect(pipe3.coordinates).toEqual([
+      [0.000063, 0],
+      [0.00009, 0],
+    ]);
+
+    const totalLength = pipe1.length! + pipe2.length! + pipe3.length!;
+    expect(totalLength).toBeCloseTo(10, 0);
+    expect(pipe1.length).toBeCloseTo(3, 0);
+    expect(pipe2.length).toBeCloseTo(4, 0);
+    expect(pipe3.length).toBeCloseTo(3, 0);
+  });
+
+  it("handles multiple splits with complex coordinates", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3 } as const;
+
+    const { assetFactory, labelManager } = buildTestFactories();
+    const hydraulicModel = HydraulicModelBuilder.with({
+      assetFactory,
+      labelManager,
+    })
+      .aNode(IDS.J1, [0, 0])
+      .aNode(IDS.J2, [20, 10])
+      .aPipe(IDS.P1, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        coordinates: [
+          [0, 0],
+          [10, 5],
+          [20, 10],
+        ],
+      })
+      .build();
+
+    const pipe = hydraulicModel.assets.get(IDS.P1) as Pipe;
+    const splitNode1 = assetFactory.createJunction({
+      label: "J3",
+      coordinates: [5, 2.5],
+    });
+    const splitNode2 = assetFactory.createJunction({
+      label: "J4",
+      coordinates: [15, 7.5],
+    });
+
+    const { newPipes } = splitPipe(hydraulicModel, {
+      assetFactory,
+      labelManager,
+      lengthUnit: "m",
+      pipe,
+      splits: [splitNode1, splitNode2],
+    });
+
+    expect(newPipes).toHaveLength(3);
+
+    const [pipe1, pipe2, pipe3] = newPipes;
+
+    expect(pipe1.coordinates).toEqual([
+      [0, 0],
+      [5, 2.5],
+    ]);
+    expect(pipe2.coordinates).toEqual([
+      [5, 2.5],
+      [10, 5],
+      [15, 7.5],
+    ]);
+    expect(pipe3.coordinates).toEqual([
+      [15, 7.5],
+      [20, 10],
+    ]);
+  });
+
+  it("preserves all properties across multiple segments", () => {
+    const IDS = { J1: 1, J2: 2 } as const;
+
+    const { assetFactory, labelManager } = buildTestFactories();
+    const hydraulicModel = HydraulicModelBuilder.with({
+      assetFactory,
+      labelManager,
+    })
+      .aNode(IDS.J1, [0, 0])
+      .aNode(IDS.J2, [10, 0])
+      .build();
+
+    const originalPipe = assetFactory.createPipe({
+      label: "TestPipe",
+      coordinates: [
+        [0, 0],
+        [10, 0],
+      ],
+    });
+    originalPipe.setProperty("diameter", 300);
+    originalPipe.setProperty("roughness", 0.15);
+    originalPipe.setProperty("minorLoss", 0.8);
+    originalPipe.setProperty("initialStatus", "closed");
+    originalPipe.setProperty("material", "PVC");
+    originalPipe.setProperty("year", 2001);
+    originalPipe.setProperty("bulkReactionCoeff", -0.5);
+    originalPipe.setProperty("wallReactionCoeff", -1.2);
+
+    hydraulicModel.assets.set(originalPipe.id, originalPipe);
+
+    const splitNode1 = assetFactory.createJunction({
+      label: "J3",
+      coordinates: [3, 0],
+    });
+    const splitNode2 = assetFactory.createJunction({
+      label: "J4",
+      coordinates: [7, 0],
+    });
+
+    const { newPipes } = splitPipe(hydraulicModel, {
+      assetFactory,
+      labelManager,
+      lengthUnit: "m",
+      pipe: originalPipe,
+      splits: [splitNode1, splitNode2],
+    });
+
+    const [pipe1, pipe2, pipe3] = newPipes;
+
+    [pipe1, pipe2, pipe3].forEach((pipe) => {
+      expect(pipe.getProperty("diameter")).toBe(300);
+      expect(pipe.getProperty("roughness")).toBe(0.15);
+      expect(pipe.getProperty("minorLoss")).toBe(0.8);
+      expect(pipe.getProperty("initialStatus")).toBe("closed");
+      expect(pipe.getProperty("material")).toBe("PVC");
+      expect(pipe.getProperty("year")).toBe(2001);
+      expect(pipe.getProperty("bulkReactionCoeff")).toBe(-0.5);
+      expect(pipe.getProperty("wallReactionCoeff")).toBe(-1.2);
+      expect(pipe.length).toBeGreaterThan(0);
+    });
+  });
+
+  it("handles splits in reverse order correctly", () => {
+    const IDS = { J1: 1, J2: 2, REVERSE_TEST: 3 } as const;
+
+    const { assetFactory, labelManager } = buildTestFactories();
+    const hydraulicModel = HydraulicModelBuilder.with({
+      assetFactory,
+      labelManager,
+    })
+      .aNode(IDS.J1, [0, 0])
+      .aNode(IDS.J2, [10, 0])
+      .aPipe(IDS.REVERSE_TEST, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        label: "REVERSE_TEST",
+      })
+      .build();
+
+    const pipe = hydraulicModel.assets.get(IDS.REVERSE_TEST) as Pipe;
+    const splitNode1 = assetFactory.createJunction({
+      label: "J4",
+      coordinates: [7, 0],
+    });
+    const splitNode2 = assetFactory.createJunction({
+      label: "J3",
+      coordinates: [3, 0],
+    });
+
+    const { newPipes } = splitPipe(hydraulicModel, {
+      assetFactory,
+      labelManager,
+      lengthUnit: "m",
+      pipe,
+      splits: [splitNode1, splitNode2],
+    });
+
+    expect(newPipes).toHaveLength(3);
+
+    const [pipe1, pipe2, pipe3] = newPipes;
+
+    expect(pipe1.label).toBe("REVERSE_TEST");
+    expect(pipe2.label).toBe("REVERSE_TEST_1");
+    expect(pipe3.label).toBe("REVERSE_TEST_2");
+
+    expect(pipe1.connections).toEqual([IDS.J1, splitNode2.id]);
+    expect(pipe2.connections).toEqual([splitNode2.id, splitNode1.id]);
+    expect(pipe3.connections).toEqual([splitNode1.id, IDS.J2]);
+
+    expect(pipe1.coordinates).toEqual([
+      [0, 0],
+      [3, 0],
+    ]);
+    expect(pipe2.coordinates).toEqual([
+      [3, 0],
+      [7, 0],
+    ]);
+    expect(pipe3.coordinates).toEqual([
+      [7, 0],
+      [10, 0],
+    ]);
+  });
+
+  it("preserves vertices correctly when split between vertices", () => {
+    const IDS = { J1: 1, J2: 2, MULTI_VERTEX: 3 } as const;
+
+    const { assetFactory, labelManager } = buildTestFactories();
+    const hydraulicModel = HydraulicModelBuilder.with({
+      assetFactory,
+      labelManager,
+    })
+      .aNode(IDS.J1, [0, 0])
+      .aNode(IDS.J2, [100, 0])
+      .aPipe(IDS.MULTI_VERTEX, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        coordinates: [
+          [0, 0],
+          [20, 0],
+          [40, 0],
+          [60, 0],
+          [80, 0],
+          [100, 0],
+        ],
+      })
+      .build();
+
+    const pipe = hydraulicModel.assets.get(IDS.MULTI_VERTEX) as Pipe;
+    const splitNode = assetFactory.createJunction({
+      label: "J3",
+      coordinates: [33, 0],
+    });
+
+    const { newPipes } = splitPipe(hydraulicModel, {
+      assetFactory,
+      labelManager,
+      lengthUnit: "m",
+      pipe,
+      splits: [splitNode],
+    });
+
+    const [pipe1, pipe2] = newPipes;
+
+    expect(pipe1.coordinates).toEqual([
+      [0, 0],
+      [20, 0],
+      [33, 0],
+    ]);
+    expect(pipe2.coordinates).toEqual([
+      [33, 0],
+      [40, 0],
+      [60, 0],
+      [80, 0],
+      [100, 0],
+    ]);
+  });
+
+  it("reconnects customer points to appropriate split segments", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4, CP2: 5 } as const;
+
+    const { assetFactory, labelManager } = buildTestFactories();
+    const hydraulicModel = HydraulicModelBuilder.with({
+      assetFactory,
+      labelManager,
+    })
+      .aNode(IDS.J1, [0, 0])
+      .aNode(IDS.J2, [10, 0])
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
+      .build();
+
+    const customerPoint1 = buildCustomerPoint(IDS.CP1, {
+      coordinates: [2, 1],
+    });
+    const customerPoint2 = buildCustomerPoint(IDS.CP2, {
+      coordinates: [8, 1],
+    });
+
+    // Connect customer points to the original pipe
+    customerPoint1.connect({
+      pipeId: IDS.P1,
+      snapPoint: [2, 0],
+      junctionId: IDS.J1,
+    });
+    customerPoint2.connect({
+      pipeId: IDS.P1,
+      snapPoint: [8, 0],
+      junctionId: IDS.J2,
+    });
+
+    hydraulicModel.customerPoints.set(customerPoint1.id, customerPoint1);
+    hydraulicModel.customerPoints.set(customerPoint2.id, customerPoint2);
+    hydraulicModel.customerPointsLookup.addConnection(customerPoint1);
+    hydraulicModel.customerPointsLookup.addConnection(customerPoint2);
+
+    const pipe = hydraulicModel.assets.get(IDS.P1) as Pipe;
+    const splitNode = assetFactory.createJunction({
+      label: "J3",
+      coordinates: [5, 0],
+    });
+
+    const { newPipes, customerPoints } = splitPipe(hydraulicModel, {
+      assetFactory,
+      labelManager,
+      lengthUnit: "m",
+      pipe,
+      splits: [splitNode],
+    });
+
+    expect(newPipes).toHaveLength(2);
+    expect(customerPoints).toHaveLength(2);
+
+    const [reconnectedCP1, reconnectedCP2] = customerPoints;
+    const [splitPipeWithActiveTopology1, splitPipeWithActiveTopology2] =
+      newPipes;
+
+    // Customer point 1 should connect to the first split (closer to J1)
+    expect(reconnectedCP1.connection?.pipeId).toBe(
+      splitPipeWithActiveTopology1.id,
+    );
+    expect(reconnectedCP1.connection?.junctionId).toBe(IDS.J1);
+
+    // Customer point 2 should connect to the second split (closer to J2)
+    expect(reconnectedCP2.connection?.pipeId).toBe(
+      splitPipeWithActiveTopology2.id,
+    );
+    expect(reconnectedCP2.connection?.junctionId).toBe(IDS.J2);
+  });
+
+  it("handles multiple splits with customer points correctly", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4, CP2: 5, CP3: 6 } as const;
+
+    const { assetFactory, labelManager } = buildTestFactories();
+    const hydraulicModel = HydraulicModelBuilder.with({
+      assetFactory,
+      labelManager,
+    })
+      .aNode(IDS.J1, [0, 0])
+      .aNode(IDS.J2, [20, 0])
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
+      .build();
+
+    const customerPoint1 = buildCustomerPoint(IDS.CP1, {
+      coordinates: [3, 1],
+    });
+    const customerPoint2 = buildCustomerPoint(IDS.CP2, {
+      coordinates: [10, 1],
+    });
+    const customerPoint3 = buildCustomerPoint(IDS.CP3, {
+      coordinates: [17, 1],
+    });
+
+    // Connect customer points to original pipe at different locations
+    customerPoint1.connect({
+      pipeId: IDS.P1,
+      snapPoint: [3, 0],
+      junctionId: IDS.J1,
+    });
+    customerPoint2.connect({
+      pipeId: IDS.P1,
+      snapPoint: [10, 0],
+      junctionId: IDS.J1,
+    });
+    customerPoint3.connect({
+      pipeId: IDS.P1,
+      snapPoint: [17, 0],
+      junctionId: IDS.J2,
+    });
+
+    hydraulicModel.customerPoints.set(customerPoint1.id, customerPoint1);
+    hydraulicModel.customerPoints.set(customerPoint2.id, customerPoint2);
+    hydraulicModel.customerPoints.set(customerPoint3.id, customerPoint3);
+    hydraulicModel.customerPointsLookup.addConnection(customerPoint1);
+    hydraulicModel.customerPointsLookup.addConnection(customerPoint2);
+    hydraulicModel.customerPointsLookup.addConnection(customerPoint3);
+
+    const pipe = hydraulicModel.assets.get(IDS.P1) as Pipe;
+    const splitNode1 = assetFactory.createJunction({
+      label: "J3",
+      coordinates: [7, 0],
+    });
+    const splitNode2 = assetFactory.createJunction({
+      label: "J4",
+      coordinates: [14, 0],
+    });
+
+    const { newPipes, customerPoints } = splitPipe(hydraulicModel, {
+      assetFactory,
+      labelManager,
+      lengthUnit: "m",
+      pipe,
+      splits: [splitNode1, splitNode2],
+    });
+
+    expect(newPipes).toHaveLength(3);
+    expect(customerPoints).toHaveLength(3);
+
+    const [pipe1, pipe2, pipe3] = newPipes;
+    const reconnectedPoints = customerPoints;
+
+    // Verify each customer point is connected to the correct split segment
+    const cp1Reconnected = reconnectedPoints.find((cp) => cp.id === IDS.CP1);
+    const cp2Reconnected = reconnectedPoints.find((cp) => cp.id === IDS.CP2);
+    const cp3Reconnected = reconnectedPoints.find((cp) => cp.id === IDS.CP3);
+
+    expect(cp1Reconnected?.connection?.pipeId).toBe(pipe1.id); // [0,0] to [7,0]
+    expect(cp2Reconnected?.connection?.pipeId).toBe(pipe2.id); // [7,0] to [14,0]
+    expect(cp3Reconnected?.connection?.pipeId).toBe(pipe3.id); // [14,0] to [20,0]
+  });
+
+  it("handles split with no customer points connected", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3 } as const;
+
+    const { assetFactory, labelManager } = buildTestFactories();
+    const hydraulicModel = HydraulicModelBuilder.with({
+      assetFactory,
+      labelManager,
+    })
+      .aNode(IDS.J1, [0, 0])
+      .aNode(IDS.J2, [10, 0])
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
+      .build();
+
+    const pipe = hydraulicModel.assets.get(IDS.P1) as Pipe;
+    const splitNode = assetFactory.createJunction({
+      label: "J3",
+      coordinates: [5, 0],
+    });
+
+    const { newPipes, customerPoints } = splitPipe(hydraulicModel, {
+      assetFactory,
+      labelManager,
+      lengthUnit: "m",
+      pipe,
+      splits: [splitNode],
+    });
+
+    expect(newPipes).toHaveLength(2);
+    expect(customerPoints).toEqual([]);
+  });
+
+  it("preserves customer point properties when reconnecting", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4 } as const;
+
+    const { assetFactory, labelManager } = buildTestFactories();
+    const hydraulicModel = HydraulicModelBuilder.with({
+      assetFactory,
+      labelManager,
+    })
+      .aNode(IDS.J1, [0, 0])
+      .aNode(IDS.J2, [10, 0])
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
+      .build();
+
+    const customerPoint = buildCustomerPoint(IDS.CP1, {
+      coordinates: [3, 1],
+    });
+
+    customerPoint.connect({
+      pipeId: IDS.P1,
+      snapPoint: [3, 0],
+      junctionId: IDS.J1,
+    });
+
+    hydraulicModel.customerPoints.set(customerPoint.id, customerPoint);
+    hydraulicModel.customerPointsLookup.addConnection(customerPoint);
+
+    const pipe = hydraulicModel.assets.get(IDS.P1) as Pipe;
+    const splitNode = assetFactory.createJunction({
+      label: "J3",
+      coordinates: [5, 0],
+    });
+
+    const { newPipes, customerPoints } = splitPipe(hydraulicModel, {
+      assetFactory,
+      labelManager,
+      lengthUnit: "m",
+      pipe,
+      splits: [splitNode],
+    });
+
+    expect(newPipes).toHaveLength(2);
+    expect(customerPoints).toHaveLength(1);
+
+    const reconnectedPoint = customerPoints[0];
+    expect(reconnectedPoint.id).toBe(IDS.CP1);
+    expect(reconnectedPoint.coordinates).toEqual([3, 1]);
+    expect(reconnectedPoint.connection?.snapPoint).toEqual([3, 0]);
+  });
+
+  it("disconnects customer points when split has no junctions", () => {
+    const IDS = { R1: 1, J1: 2, P1: 3, CP1: 4, CP2: 5 } as const;
+
+    const { assetFactory, labelManager } = buildTestFactories();
+    const hydraulicModel = HydraulicModelBuilder.with({
+      assetFactory,
+      labelManager,
+    })
+      .aReservoir(IDS.R1, { coordinates: [0, 0] })
+      .aNode(IDS.J1, [10, 0])
+      .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
+      .build();
+
+    const customerPoint1 = buildCustomerPoint(IDS.CP1, {
+      coordinates: [2, 1],
+    });
+    const customerPoint2 = buildCustomerPoint(IDS.CP2, {
+      coordinates: [8, 1],
+    });
+
+    customerPoint1.connect({
+      pipeId: IDS.P1,
+      snapPoint: [2, 0],
+      junctionId: IDS.J1,
+    });
+    customerPoint2.connect({
+      pipeId: IDS.P1,
+      snapPoint: [8, 0],
+      junctionId: IDS.J1,
+    });
+
+    hydraulicModel.customerPoints.set(customerPoint1.id, customerPoint1);
+    hydraulicModel.customerPoints.set(customerPoint2.id, customerPoint2);
+    hydraulicModel.customerPointsLookup.addConnection(customerPoint1);
+    hydraulicModel.customerPointsLookup.addConnection(customerPoint2);
+
+    const pipe = hydraulicModel.assets.get(IDS.P1) as Pipe;
+    const splitReservoir = assetFactory.createReservoir({
+      label: "R2",
+      coordinates: [5, 0],
+    });
+
+    const { newPipes, customerPoints } = splitPipe(hydraulicModel, {
+      assetFactory,
+      labelManager,
+      lengthUnit: "m",
+      pipe,
+      splits: [splitReservoir],
+    });
+
+    expect(newPipes).toHaveLength(2);
+    expect(customerPoints).toHaveLength(2);
+
+    const [splitPipeWithActiveTopology1, splitPipeWithActiveTopology2] =
+      newPipes;
+    const [reconnectedCP1, reconnectedCP2] = customerPoints;
+
+    expect(splitPipeWithActiveTopology1.connections).toEqual([
+      IDS.R1,
+      splitReservoir.id,
+    ]);
+    expect(splitPipeWithActiveTopology2.connections).toEqual([
+      splitReservoir.id,
+      IDS.J1,
+    ]);
+
+    const cp1 = reconnectedCP1.id === IDS.CP1 ? reconnectedCP1 : reconnectedCP2;
+    const cp2 = reconnectedCP1.id === IDS.CP2 ? reconnectedCP1 : reconnectedCP2;
+
+    expect(cp1.connection).toBeNull();
+    expect(cp2.connection?.pipeId).toBe(splitPipeWithActiveTopology2.id);
+    expect(cp2.connection?.junctionId).toBe(IDS.J1);
+  });
+
+  it("removes matching vertex when splitting at vertex location", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3 } as const;
+
+    const { assetFactory, labelManager } = buildTestFactories();
+    const hydraulicModel = HydraulicModelBuilder.with({
+      assetFactory,
+      labelManager,
+    })
+      .aNode(IDS.J1, [0, 0])
+      .aNode(IDS.J2, [10, 0])
+      .aPipe(IDS.P1, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        coordinates: [
+          [0, 0],
+          [5, 0],
+          [10, 0],
+        ],
+      })
+      .build();
+
+    const pipe = hydraulicModel.assets.get(IDS.P1) as Pipe;
+    const splitNode = assetFactory.createJunction({
+      label: "J3",
+      coordinates: [5, 0],
+    });
+
+    const { newPipes } = splitPipe(hydraulicModel, {
+      assetFactory,
+      labelManager,
+      lengthUnit: "m",
+      pipe,
+      splits: [splitNode],
+    });
+
+    const [pipe1, pipe2] = newPipes;
+    expect(pipe1.coordinates).toEqual([
+      [0, 0],
+      [5, 0],
+    ]);
+    expect(pipe2.coordinates).toEqual([
+      [5, 0],
+      [10, 0],
+    ]);
+  });
+
+  it("handles multiple vertices correctly", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3 } as const;
+
+    const { assetFactory, labelManager } = buildTestFactories();
+    const hydraulicModel = HydraulicModelBuilder.with({
+      assetFactory,
+      labelManager,
+    })
+      .aNode(IDS.J1, [0, 0])
+      .aNode(IDS.J2, [20, 0])
+      .aPipe(IDS.P1, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        coordinates: [
+          [0, 0],
+          [5, 0],
+          [10, 0],
+          [15, 0],
+          [20, 0],
+        ],
+      })
+      .build();
+
+    const pipe = hydraulicModel.assets.get(IDS.P1) as Pipe;
+    const splitNode = assetFactory.createJunction({
+      label: "J3",
+      coordinates: [10, 0],
+    });
+
+    const { newPipes } = splitPipe(hydraulicModel, {
+      assetFactory,
+      labelManager,
+      lengthUnit: "m",
+      pipe,
+      splits: [splitNode],
+    });
+
+    const [pipe1, pipe2] = newPipes;
+    expect(pipe1.coordinates).toEqual([
+      [0, 0],
+      [5, 0],
+      [10, 0],
+    ]);
+    expect(pipe2.coordinates).toEqual([
+      [10, 0],
+      [15, 0],
+      [20, 0],
+    ]);
+  });
+
+  it("does not remove first or last vertex", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3 } as const;
+
+    const { assetFactory, labelManager } = buildTestFactories();
+    const hydraulicModel = HydraulicModelBuilder.with({
+      assetFactory,
+      labelManager,
+    })
+      .aNode(IDS.J1, [0, 0])
+      .aNode(IDS.J2, [10, 0])
+      .aPipe(IDS.P1, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        coordinates: [
+          [0, 0],
+          [5, 0],
+          [10, 0],
+        ],
+      })
+      .build();
+
+    const pipe = hydraulicModel.assets.get(IDS.P1) as Pipe;
+    const splitNodeAtStart = assetFactory.createJunction({
+      label: "J3",
+      coordinates: [0, 0],
+    });
+
+    const { newPipes } = splitPipe(hydraulicModel, {
+      assetFactory,
+      labelManager,
+      lengthUnit: "m",
+      pipe,
+      splits: [splitNodeAtStart],
+    });
+
+    const [pipe1, pipe2] = newPipes;
+    expect(pipe1.coordinates.length).toBeGreaterThan(1);
+    expect(pipe2.coordinates.length).toBeGreaterThan(1);
+  });
+
+  it("preserves all intermediate vertices when splitting at middle vertex", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3 } as const;
+
+    const { assetFactory, labelManager } = buildTestFactories();
+    const hydraulicModel = HydraulicModelBuilder.with({
+      assetFactory,
+      labelManager,
+    })
+      .aNode(IDS.J1, [0, 0])
+      .aNode(IDS.J2, [100, 0])
+      .aPipe(IDS.P1, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        coordinates: [
+          [0, 0],
+          [25, 0],
+          [50, 0],
+          [75, 0],
+          [100, 0],
+        ],
+      })
+      .build();
+
+    const pipe = hydraulicModel.assets.get(IDS.P1) as Pipe;
+    const splitNode = assetFactory.createJunction({
+      label: "J3",
+      coordinates: [50, 0],
+    });
+
+    const { newPipes } = splitPipe(hydraulicModel, {
+      assetFactory,
+      labelManager,
+      lengthUnit: "m",
+      pipe,
+      splits: [splitNode],
+    });
+
+    const [pipe1, pipe2] = newPipes;
+
+    expect(pipe1.coordinates).toEqual([
+      [0, 0],
+      [25, 0],
+      [50, 0],
+    ]);
+    expect(pipe2.coordinates).toEqual([
+      [50, 0],
+      [75, 0],
+      [100, 0],
+    ]);
+  });
+
+  it("splits correctly when split point is very close to a vertex", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3 } as const;
+
+    const { assetFactory, labelManager } = buildTestFactories();
+    const hydraulicModel = HydraulicModelBuilder.with({
+      assetFactory,
+      labelManager,
+    })
+      .aNode(IDS.J1, [0, 0])
+      .aNode(IDS.J2, [0.0001, 0])
+      .aPipe(IDS.P1, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        coordinates: [
+          [0, 0],
+          [0.000025, 0],
+          [0.00005, 0],
+          [0.000075, 0],
+          [0.0001, 0],
+        ],
+      })
+      .build();
+
+    const pipe = hydraulicModel.assets.get(IDS.P1) as Pipe;
+    const splitNode = assetFactory.createJunction({
+      label: "J3",
+      coordinates: [0.000049, 0],
+    });
+
+    const { newPipes } = splitPipe(hydraulicModel, {
+      assetFactory,
+      labelManager,
+      lengthUnit: "m",
+      pipe,
+      splits: [splitNode],
+    });
+
+    const [pipe1, pipe2] = newPipes;
+
+    expect(pipe1.coordinates).toEqual([
+      [0, 0],
+      [0.000025, 0],
+      [0.000049, 0],
+    ]);
+    expect(pipe2.coordinates).toEqual([
+      [0.000049, 0],
+      [0.00005, 0],
+      [0.000075, 0],
+      [0.0001, 0],
+    ]);
+  });
+
+  it("splits 3-vertex pipe when snapping exactly to middle vertex", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3 } as const;
+
+    const { assetFactory, labelManager } = buildTestFactories();
+    const hydraulicModel = HydraulicModelBuilder.with({
+      assetFactory,
+      labelManager,
+    })
+      .aNode(IDS.J1, [0, 0])
+      .aNode(IDS.J2, [20, 0])
+      .aPipe(IDS.P1, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        coordinates: [
+          [0, 0],
+          [10, 0],
+          [20, 0],
+        ],
+      })
+      .build();
+
+    const pipe = hydraulicModel.assets.get(IDS.P1) as Pipe;
+    const splitNode = assetFactory.createJunction({
+      label: "J3",
+      coordinates: [10, 0],
+    });
+
+    const { newPipes, removedPipeId } = splitPipe(hydraulicModel, {
+      assetFactory,
+      labelManager,
+      lengthUnit: "m",
+      pipe,
+      splits: [splitNode],
+    });
+
+    expect(removedPipeId).toBe(IDS.P1);
+    expect(newPipes).toHaveLength(2);
+
+    const [pipe1, pipe2] = newPipes;
+
+    expect(pipe1.coordinates).toEqual([
+      [0, 0],
+      [10, 0],
+    ]);
+    expect(pipe2.coordinates).toEqual([
+      [10, 0],
+      [20, 0],
+    ]);
+    expect(pipe1.connections).toEqual([IDS.J1, splitNode.id]);
+    expect(pipe2.connections).toEqual([splitNode.id, IDS.J2]);
+  });
+
+  it("preserves isActive when splitting active pipe", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3 } as const;
+    const { assetFactory, labelManager } = buildTestFactories();
+    const model = HydraulicModelBuilder.with({ assetFactory, labelManager })
+      .aJunction(IDS.J1, { coordinates: [0, 0] })
+      .aJunction(IDS.J2, { coordinates: [100, 0] })
+      .aPipe(IDS.P1, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        isActive: true,
+      })
+      .build();
+
+    const pipe = model.assets.get(IDS.P1) as Pipe;
+    const splitNode = assetFactory.createJunction({
+      coordinates: [50, 0],
+    });
+
+    const split = splitPipe(model, {
+      assetFactory,
+      labelManager,
+      lengthUnit: "m",
+      pipe,
+      splits: [splitNode],
+    });
+
+    const { newPipes } = split;
+    expect(newPipes).toHaveLength(2);
+
+    const [pipe1, pipe2] = newPipes;
+    expect(pipe1.isActive).toBe(true);
+    expect(pipe2.isActive).toBe(true);
+  });
+
+  it("preserves isActive when splitting inactive pipe", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3 } as const;
+    const { assetFactory, labelManager } = buildTestFactories();
+    const model = HydraulicModelBuilder.with({ assetFactory, labelManager })
+      .aJunction(IDS.J1, { coordinates: [0, 0] })
+      .aJunction(IDS.J2, { coordinates: [100, 0] })
+      .aPipe(IDS.P1, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        isActive: false,
+      })
+      .build();
+
+    const pipe = model.assets.get(IDS.P1) as Pipe;
+    const splitNode = assetFactory.createJunction({
+      coordinates: [50, 0],
+    });
+
+    const split = splitPipe(model, {
+      assetFactory,
+      labelManager,
+      lengthUnit: "m",
+      pipe,
+      splits: [splitNode],
+    });
+
+    const { newPipes } = split;
+    expect(newPipes).toHaveLength(2);
+
+    const [pipe1, pipe2] = newPipes;
+    expect(pipe1.isActive).toBe(false);
+    expect(pipe2.isActive).toBe(false);
+  });
+
+  it("creates inactive split segments when original pipe is inactive", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3 } as const;
+    const { assetFactory, labelManager } = buildTestFactories();
+    const model = HydraulicModelBuilder.with({ assetFactory, labelManager })
+      .aJunction(IDS.J1, { coordinates: [0, 0] })
+      .aJunction(IDS.J2, { coordinates: [150, 0] })
+      .aPipe(IDS.P1, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        isActive: false,
+      })
+      .build();
+
+    const pipe = model.assets.get(IDS.P1) as Pipe;
+    const splitNode1 = assetFactory.createJunction({
+      coordinates: [50, 0],
+    });
+    const splitNode2 = assetFactory.createJunction({
+      coordinates: [100, 0],
+    });
+
+    const split = splitPipe(model, {
+      assetFactory,
+      labelManager,
+      lengthUnit: "m",
+      pipe,
+      splits: [splitNode1, splitNode2],
+    });
+
+    const { newPipes } = split;
+    expect(newPipes).toHaveLength(3);
+
+    const pipes = newPipes;
+    expect(pipes[0].isActive).toBe(false);
+    expect(pipes[1].isActive).toBe(false);
+    expect(pipes[2].isActive).toBe(false);
+  });
+
+  describe("controlsAfterSplits", () => {
+    const aFlowTarget = (linkId: number, targetId: number) => ({
+      linkId,
+      quantity: "flow" as VariableSpeedPumpControl["quantity"],
+      targetId,
+      target: 10,
+      minSpeed: 0,
+      maxSpeed: 1,
+      laggedPumpIds: [],
+      schedule: [],
+    });
+
+    it("re-points every control at the half that keeps the split pipe's label", () => {
+      const IDS = {
+        J1: 1,
+        J2: 2,
+        J3: 3,
+        J4: 4,
+        P1: 5,
+        P2: 6,
+        PU1: 7,
+        PU2: 8,
+      } as const;
+      const { assetFactory, labelManager } = buildTestFactories();
+      const hydraulicModel = HydraulicModelBuilder.with({
+        assetFactory,
+        labelManager,
+      })
+        .aNode(IDS.J1, [0, 0])
+        .aNode(IDS.J2, [10, 0])
+        .aNode(IDS.J3, [0, 10])
+        .aNode(IDS.J4, [10, 10])
+        .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2, label: "P1" })
+        .aPipe(IDS.P2, { startNodeId: IDS.J3, endNodeId: IDS.J4, label: "P2" })
+        .aPump(IDS.PU1, { startNodeId: IDS.J1, endNodeId: IDS.J3 })
+        .aPump(IDS.PU2, { startNodeId: IDS.J2, endNodeId: IDS.J4 })
+        .aVariableSpeedPumpControl(aFlowTarget(IDS.PU1, IDS.P1))
+        .aVariableSpeedPumpControl(aFlowTarget(IDS.PU2, IDS.P2))
+        .build();
+      const split = (pipeId: number, coordinates: [number, number]) =>
+        splitPipe(hydraulicModel, {
+          assetFactory,
+          labelManager,
+          lengthUnit: "m",
+          pipe: hydraulicModel.assets.get(pipeId) as Pipe,
+          splits: [assetFactory.createJunction({ coordinates })],
+        });
+      const splitP1 = split(IDS.P1, [5, 0]);
+      const splitP2 = split(IDS.P2, [5, 10]);
+
+      const controls = controlsAfterSplits(hydraulicModel, [splitP1, splitP2])!;
+
+      expect(splitP1.newPipes[0].label).toBe("P1");
+      expect(getLinkVariableSpeedPump(controls, IDS.PU1)?.targetId).toBe(
+        splitP1.newPipes[0].id,
+      );
+      expect(splitP2.newPipes[0].label).toBe("P2");
+      expect(getLinkVariableSpeedPump(controls, IDS.PU2)?.targetId).toBe(
+        splitP2.newPipes[0].id,
+      );
+    });
+  });
+});

@@ -1,4 +1,4 @@
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { buildIconPointsSource } from "./icons";
 import { AssetId } from "src/hydraulic-model";
 import { Point } from "geojson";

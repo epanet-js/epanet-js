@@ -5,7 +5,7 @@ import {
   createLabelResolverFromAssets,
   LabelResolver,
 } from "@epanet-js/hydraulic-model";
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 
 describe("parseSimpleControlsFromText", () => {
   const createResolver = (mapping: Record<string, number>): LabelResolver => {

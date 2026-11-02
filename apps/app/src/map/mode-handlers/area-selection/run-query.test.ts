@@ -1,4 +1,4 @@
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import * as Comlink from "comlink";
 import { runQuery } from "./run-query";
 import { workerAPI } from "./worker-api";

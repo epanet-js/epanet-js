@@ -21,7 +21,7 @@ import {
   type LabelManager,
 } from "@epanet-js/hydraulic-model";
 import { JsonValue } from "type-fest";
-import type { ChangeableProperty } from "src/hydraulic-model/model-operations/change-property";
+import type { ChangeableProperty } from "@epanet-js/hydraulic-model-operations";
 
 export const EditableField = ({
   config,

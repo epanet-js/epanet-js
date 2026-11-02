@@ -1,8 +1,8 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { Provider as JotaiProvider } from "jotai";
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { setInitialState } from "src/__helpers__/state";
-import { addNode } from "src/hydraulic-model/model-operations/add-node";
+import { addNode } from "@epanet-js/hydraulic-model-operations";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import { useUndoableTransactions } from "src/hooks/persistence/use-undoable-transactions";
 import { useProjectSettingsTransaction } from "src/hooks/persistence/use-project-settings-transaction";
@@ -18,7 +18,7 @@ import { useSimulationSettingsTransaction } from "src/hooks/persistence/use-simu
 import { markProjectSavedAtom } from "src/state/project-revision";
 import { useCustomerPointsImportReset } from "src/hooks/persistence/use-customer-points-import-reset";
 import { addCustomerPoints } from "src/hydraulic-model/mutations/add-customer-points";
-import { buildCustomerPoint } from "src/__helpers__/hydraulic-model-builder";
+import { buildCustomerPoint } from "@epanet-js/hydraulic-model-testing";
 import { useHasUnsavedChanges } from "src/hooks/use-has-unsaved-changes";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import {

@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { Provider as JotaiProvider } from "jotai";
 import { LabelManager } from "@epanet-js/hydraulic-model";
 import { initializeModelFactories } from "@epanet-js/hydraulic-model";
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { setInitialState } from "src/__helpers__/state";
 import { buildIdPools } from "src/lib/id-pools";
 import { Persistence } from "src/lib/persistence/persistence";

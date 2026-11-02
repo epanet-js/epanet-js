@@ -67,14 +67,14 @@ import {
   changeProperties,
   changeDemandAssignment,
   changeLabel,
-} from "src/hydraulic-model/model-operations";
+} from "@epanet-js/hydraulic-model-operations";
 import type {
   ChangeableProperty,
   ChangeablePropertyValue,
   PropertyChange,
-} from "src/hydraulic-model/model-operations/change-property";
-import { activateAssets } from "src/hydraulic-model/model-operations/activate-assets";
-import { deactivateAssets } from "src/hydraulic-model/model-operations/deactivate-assets";
+} from "@epanet-js/hydraulic-model-operations";
+import { activateAssets } from "@epanet-js/hydraulic-model-operations";
+import { deactivateAssets } from "@epanet-js/hydraulic-model-operations";
 import {
   fieldValidator,
   numericChecks,
@@ -83,7 +83,7 @@ import { getLinkNodes } from "@epanet-js/hydraulic-model";
 import { type AssetId, type Control } from "@epanet-js/hydraulic-model";
 import { isNodeAsset } from "@epanet-js/hydraulic-model";
 import { highlightsAtom } from "src/state/highlights";
-import { changeAssetControl } from "src/hydraulic-model/model-operations";
+import { changeAssetControl } from "@epanet-js/hydraulic-model-operations";
 import {
   AssetEditorContent,
   QuantityRow,
@@ -127,7 +127,7 @@ import {
   tankVolumeCurveChanges,
   chemicalSourceTypeChanges,
   valveKindChanges,
-} from "src/hydraulic-model/model-operations";
+} from "@epanet-js/hydraulic-model-operations";
 import { useShowCurveLibrary } from "src/commands/show-curve-library";
 import { Unit } from "@epanet-js/quantity";
 

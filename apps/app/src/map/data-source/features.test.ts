@@ -1,4 +1,4 @@
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { SymbologySpec, nullSymbologySpec } from "src/map/symbology";
 import { buildOptimizedAssetsSource } from "./features";
 import { presets, FormattingSpec } from "@epanet-js/project-settings";

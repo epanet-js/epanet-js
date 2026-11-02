@@ -3,9 +3,9 @@ import { defaultProjectSettings } from "@epanet-js/project-settings";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { type Junction, type Pipe } from "@epanet-js/hydraulic-model";
 import type { HydraulicModel } from "src/hydraulic-model";
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import { buildTestFactories } from "src/__helpers__/test-factories";
-import { changeSet } from "src/hydraulic-model/change-sets/build";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
+import { buildTestFactories } from "@epanet-js/hydraulic-model-testing";
+import { changeSet } from "@epanet-js/hydraulic-model-operations";
 import {
   dropAssets,
   putAssets,
@@ -13,7 +13,7 @@ import {
   replaceZones,
   setAsset,
   setDemands,
-} from "src/hydraulic-model/change-sets/intents";
+} from "@epanet-js/hydraulic-model-operations";
 import { applyChangeSetToDb } from "./apply-change-set";
 import { fetchProject } from "./fetch-project";
 import { importProject } from "./import-project";

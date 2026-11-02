@@ -1,11 +1,11 @@
 import { act, renderHook } from "@testing-library/react";
 import { Provider as JotaiProvider } from "jotai";
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { setInitialState } from "src/__helpers__/state";
-import { addNode } from "src/hydraulic-model/model-operations/add-node";
-import { deleteAssets } from "src/hydraulic-model/model-operations/delete-assets";
-import { changeLabel } from "src/hydraulic-model/model-operations/change-label";
-import { changeProperty } from "src/hydraulic-model/model-operations/change-property";
+import { addNode } from "@epanet-js/hydraulic-model-operations";
+import { deleteAssets } from "@epanet-js/hydraulic-model-operations";
+import { changeLabel } from "@epanet-js/hydraulic-model-operations";
+import { changeProperty } from "@epanet-js/hydraulic-model-operations";
 import type { ChangeSet } from "@epanet-js/change-set";
 import type { Junction } from "@epanet-js/hydraulic-model";
 import { dialogAtom } from "src/state/dialog";

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { createMockResultsReader } from "src/__helpers__/state";
 import { buildHglProfile } from "./build-hgl-profile";
 

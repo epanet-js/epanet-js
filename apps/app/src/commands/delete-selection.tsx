@@ -4,7 +4,7 @@ import {
   deleteAssets,
   mergeChangeSets,
   removeCustomerPoints,
-} from "src/hydraulic-model/model-operations";
+} from "@epanet-js/hydraulic-model-operations";
 import type { ChangeSet } from "@epanet-js/change-set";
 import { AssetDeleted, useUserTracking } from "src/infra/user-tracking";
 import { USelection } from "src/selection";

@@ -8,7 +8,7 @@ import {
   deserializeZoneGeometry,
 } from "./run-data";
 import type { MultiPolygon } from "geojson";
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import Flatbush from "flatbush";
 import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
 

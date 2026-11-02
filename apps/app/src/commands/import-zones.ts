@@ -4,7 +4,7 @@ import type { BuildZonesResult } from "@epanet-js/converters";
 import { useZonesTransaction } from "src/hooks/persistence/use-zones-transaction";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { changeZones } from "src/hydraulic-model/model-operations";
+import { changeZones } from "@epanet-js/hydraulic-model-operations";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 
 export const useImportZones = () => {

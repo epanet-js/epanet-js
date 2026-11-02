@@ -1,5 +1,5 @@
 import { render, screen, waitFor } from "@testing-library/react";
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { projectFileInfoAtom } from "src/state/file-system";
 import { hasUnsavedChangesRevisionAtom } from "src/state/project-revision";
 import { Store } from "src/state";

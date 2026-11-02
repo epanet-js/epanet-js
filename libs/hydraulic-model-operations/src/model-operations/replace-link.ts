@@ -1,0 +1,250 @@
+import {
+  Asset,
+  AssetId,
+  LinkAsset,
+  NodeAsset,
+  CustomerPoint,
+  AssetFactory,
+  LabelManager,
+} from "@epanet-js/hydraulic-model";
+import { ModelOperation } from "../model-operation";
+import { planAddLink } from "./add-link";
+import { findJunctionForCustomerPoint } from "../utilities/junction-assignment";
+import { HydraulicModel } from "@epanet-js/hydraulic-model";
+import { lineString, point } from "@turf/helpers";
+import { Position } from "geojson";
+import { findNearestPointOnLine } from "@epanet-js/geometry";
+import { inferNodeIsActive } from "../utilities/active-topology";
+import { Unit } from "@epanet-js/quantity";
+import {
+  changeSet,
+  dropAssets,
+  putAssets,
+  putCustomerPoints,
+  replaceControls,
+} from "../change-sets";
+
+type InputData = {
+  sourceLinkId: AssetId;
+  newLink: LinkAsset;
+  startNode: NodeAsset;
+  endNode: NodeAsset;
+  startPipeId?: AssetId;
+  endPipeId?: AssetId;
+  lengthUnit: Unit;
+  assetFactory: AssetFactory;
+  labelManager: LabelManager;
+  precision?: number;
+};
+
+export const replaceLink: ModelOperation<InputData> = (
+  hydraulicModel,
+  data,
+) => {
+  const {
+    note,
+    putAssets: assets,
+    deleteAssets,
+    customerPoints,
+    controls,
+  } = planReplaceLink(hydraulicModel, data);
+
+  return changeSet(hydraulicModel, note, [
+    dropAssets(deleteAssets),
+    putAssets(assets),
+    putCustomerPoints(customerPoints),
+    ...(controls ? [replaceControls(controls)] : []),
+  ]);
+};
+
+const planReplaceLink = (
+  hydraulicModel: HydraulicModel,
+  {
+    sourceLinkId,
+    newLink,
+    startNode,
+    endNode,
+    startPipeId,
+    endPipeId,
+    lengthUnit,
+    assetFactory,
+    labelManager,
+    precision,
+  }: InputData,
+) => {
+  const sourceLink = hydraulicModel.assets.get(sourceLinkId);
+  if (!sourceLink || sourceLink.isNode) {
+    throw new Error(`Source link with id ${sourceLinkId} not found`);
+  }
+
+  const sourceLinkAsset = sourceLink as LinkAsset;
+
+  if (sourceLinkAsset.type !== newLink.type) {
+    throw new Error(
+      `Link types must match: source is ${sourceLinkAsset.type}, new is ${newLink.type}`,
+    );
+  }
+
+  if (newLink.id !== sourceLinkId) {
+    throw new Error(
+      `Replaced link must keep the source id: source is ${sourceLinkId}, new is ${newLink.id}`,
+    );
+  }
+
+  if (startPipeId === sourceLinkId || endPipeId === sourceLinkId) {
+    throw new Error(`Cannot split link ${sourceLinkId} while replacing it`);
+  }
+
+  newLink.setProperty("isActive", sourceLink.isActive);
+
+  const added = planAddLink(hydraulicModel, {
+    link: newLink,
+    startNode,
+    endNode,
+    startPipeId,
+    endPipeId,
+    lengthUnit,
+    assetFactory,
+    labelManager,
+  });
+
+  const reconnectedCustomerPoints =
+    sourceLinkAsset.type === "pipe"
+      ? reconnectCustomerPoints(
+          hydraulicModel,
+          sourceLinkId,
+          newLink,
+          startNode,
+          endNode,
+          added.putAssets,
+          precision,
+        )
+      : [];
+
+  const oldNodesWithChanges = reevaluateAffectedNodes(
+    hydraulicModel,
+    sourceLinkAsset,
+    added.putAssets,
+  );
+
+  return {
+    note: "replaceLink" as const,
+    putAssets: [...added.putAssets, ...oldNodesWithChanges],
+    deleteAssets: added.deleteAssets,
+    customerPoints: [...added.customerPoints, ...reconnectedCustomerPoints],
+    controls: added.controls,
+  };
+};
+
+const reconnectCustomerPoints = (
+  hydraulicModel: HydraulicModel,
+  sourceLinkId: AssetId,
+  newLink: LinkAsset,
+  startNode: NodeAsset,
+  endNode: NodeAsset,
+  addedAssets: Asset[],
+  precision: number | undefined,
+): CustomerPoint[] => {
+  const connectedCustomerPoints =
+    hydraulicModel.customerPointsLookup.getCustomerPoints(sourceLinkId);
+
+  if (connectedCustomerPoints.size === 0) {
+    return [];
+  }
+
+  const actualNewPipe = addedAssets.find(
+    (asset) => asset.type === "pipe" && asset.id === newLink.id,
+  );
+
+  if (!actualNewPipe) {
+    return [];
+  }
+
+  const reconnectedCustomerPoints: CustomerPoint[] = [];
+
+  for (const customerPoint of connectedCustomerPoints) {
+    if (customerPoint.connection?.snapPoint) {
+      const customerPointGeometry = point(customerPoint.coordinates);
+      const newPipeLineString = lineString(
+        actualNewPipe.coordinates as Position[],
+      );
+
+      const nearestPointResult = findNearestPointOnLine(
+        newPipeLineString,
+        customerPointGeometry,
+        { precision },
+      );
+
+      if (nearestPointResult.coordinates) {
+        const newSnapPoint = nearestPointResult.coordinates;
+
+        const startNodeData = {
+          id: startNode.id,
+          type: startNode.type,
+          coordinates: startNode.coordinates,
+        };
+        const endNodeData = {
+          id: endNode.id,
+          type: endNode.type,
+          coordinates: endNode.coordinates,
+        };
+
+        const targetJunctionId = findJunctionForCustomerPoint(
+          startNodeData,
+          endNodeData,
+          newSnapPoint,
+        );
+
+        if (targetJunctionId) {
+          const reconnectedPoint = customerPoint.copyDisconnected();
+          reconnectedPoint.connect({
+            pipeId: actualNewPipe.id,
+            snapPoint: newSnapPoint,
+            junctionId: targetJunctionId,
+          });
+          reconnectedCustomerPoints.push(reconnectedPoint);
+        } else {
+          const disconnectedPoint = customerPoint.copyDisconnected();
+          reconnectedCustomerPoints.push(disconnectedPoint);
+        }
+      } else {
+        const disconnectedPoint = customerPoint.copyDisconnected();
+        reconnectedCustomerPoints.push(disconnectedPoint);
+      }
+    }
+  }
+
+  return reconnectedCustomerPoints;
+};
+
+const reevaluateAffectedNodes = (
+  hydraulicModel: HydraulicModel,
+  originalLink: LinkAsset,
+  putAssets: Asset[],
+): NodeAsset[] => {
+  const nodesWithDifferentActiveTopologyStatus: NodeAsset[] = [];
+  const putAssetIds = new Set(putAssets.map((asset) => asset.id));
+
+  for (const nodeId of originalLink.connections) {
+    if (putAssetIds.has(nodeId)) continue;
+
+    const node = hydraulicModel.assets.get(nodeId) as NodeAsset;
+    if (!node || node.isLink) continue;
+
+    const inferredState = inferNodeIsActive(
+      node,
+      new Set([originalLink.id]),
+      putAssets,
+      hydraulicModel.topology,
+      hydraulicModel.assets,
+    );
+
+    if (node.isActive !== inferredState) {
+      const nodeCopy = node.copy();
+      nodeCopy.setProperty("isActive", inferredState);
+      nodesWithDifferentActiveTopologyStatus.push(nodeCopy);
+    }
+  }
+
+  return nodesWithDifferentActiveTopologyStatus;
+};

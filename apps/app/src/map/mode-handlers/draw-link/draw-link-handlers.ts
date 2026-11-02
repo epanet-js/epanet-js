@@ -33,7 +33,7 @@ import { useSelection } from "src/selection";
 import { useFocusAssetPanel } from "src/hooks/use-focus-asset-panel";
 import { validateAsset } from "src/lib/model-attributes-validation";
 import { DEFAULT_SNAP_DISTANCE_PIXELS } from "../../search";
-import { addLink } from "src/hydraulic-model/model-operations";
+import { addLink } from "@epanet-js/hydraulic-model-operations";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";

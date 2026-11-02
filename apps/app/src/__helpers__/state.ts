@@ -1,5 +1,5 @@
 import { createStore } from "jotai";
-import { HydraulicModelBuilder } from "./hydraulic-model-builder";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { SessionHistory } from "src/lib/persistence/session-history";
 import { selectionAtom } from "src/state/selection";
 import {
