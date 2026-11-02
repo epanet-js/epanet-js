@@ -23,6 +23,7 @@ import { DeleteIcon, AddIcon } from "src/icons";
 import { InlineField, NestedSection } from "src/components/form/fields";
 import { TextField } from "src/components/form/text-field";
 import { colors } from "src/lib/constants";
+import { useUserTracking } from "src/infra/user-tracking";
 import {
   CheckboxRow,
   useAssetHighlight,
@@ -133,6 +134,7 @@ export const FlowModulatingValveControlsEditor = ({
 }) => {
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
+  const userTracking = useUserTracking();
   const highlightAsset = useAssetHighlight(targets.nodes);
 
   const withUnit = (label: string, unit: string) =>
@@ -150,12 +152,27 @@ export const FlowModulatingValveControlsEditor = ({
     onControlChange({ ...control, ...changes });
   };
 
+  const track = (fields: {
+    hasRemoteSensor?: boolean;
+    hasRemoteControlNode?: boolean;
+    interpolate?: boolean;
+    pointsCount?: number;
+  }) => {
+    userTracking.capture({
+      name: "assetControl.flowModulatingControlChanged",
+      ...fields,
+    });
+  };
+
   return (
     <NestedSection className="pb-2">
       <SensorLinkField
         control={control}
         links={targets.links}
-        onChange={(sensorLinkId) => update({ sensorLinkId })}
+        onChange={(sensorLinkId) => {
+          update({ sensorLinkId });
+          track({ hasRemoteSensor: sensorLinkId !== control.linkId });
+        }}
         onHighlightChange={highlightAsset}
         readOnly={readOnly}
       />
@@ -163,21 +180,34 @@ export const FlowModulatingValveControlsEditor = ({
         control={control}
         nodes={targets.nodes}
         outletNodeId={targets.outletNodeId}
-        onChange={(controlNodeId) => update({ controlNodeId })}
+        onChange={(controlNodeId) => {
+          update({ controlNodeId });
+          track({
+            hasRemoteControlNode: controlNodeId !== targets.outletNodeId,
+          });
+        }}
         onHighlightChange={highlightAsset}
         readOnly={readOnly}
       />
       <CheckboxRow
         label={translate("controls.flowModulating.linearInterpolation")}
         checked={control.interpolate}
-        onChange={(interpolate) => update({ interpolate })}
+        onChange={(interpolate) => {
+          update({ interpolate });
+          track({ interpolate });
+        }}
         disabled={readOnly}
       />
       <PointsGrid
         points={control.points}
         flowHeader={flowLabel}
         pressureHeader={pressureLabel}
-        onChange={(points) => update({ points })}
+        onChange={(points) => {
+          update({ points });
+          if (points.length !== control.points.length) {
+            track({ pointsCount: points.length });
+          }
+        }}
         readOnly={readOnly}
       />
       <CurveChart

@@ -122,6 +122,14 @@ type AssetControlVariableSpeedControlChanged = {
   hasTankLevels?: boolean;
 };
 
+type AssetControlFlowModulatingControlChanged = {
+  name: "assetControl.flowModulatingControlChanged";
+  hasRemoteSensor?: boolean;
+  hasRemoteControlNode?: boolean;
+  interpolate?: boolean;
+  pointsCount?: number;
+};
+
 type AssetPropertyBatchEdited = {
   name: "assetProperty.batchEdited";
   type: Asset["type"];
@@ -1490,6 +1498,7 @@ export type UserEvent =
   | AssetControlChanged
   | AssetControlRemoved
   | AssetControlVariableSpeedControlChanged
+  | AssetControlFlowModulatingControlChanged
   | AssetPropertyEdited
   | AssetPropertyBatchEdited
   | AssetPropertiesEdited
