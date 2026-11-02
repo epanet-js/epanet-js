@@ -2,14 +2,18 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { TooltipProvider } from "@epanet-js/ui-kit";
 import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
+import { changeProperty } from "@epanet-js/hydraulic-model-operations";
+import type { HydraulicModel, Pipe } from "@epanet-js/hydraulic-model";
+import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
 import { setInitialState } from "src/__helpers__/state";
 import { CommandContainer } from "src/commands/__helpers__/command-container";
 import {
   resolvePermissions,
   type Permissions,
 } from "src/hooks/use-permissions";
-import { registerScripting } from "src/lib/scripting";
+import { registerScripting, type ScriptRunOutcome } from "src/lib/scripting";
 import { Store } from "src/state";
+import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { userScriptsAtom, type UserScript } from "src/state/scripts";
 import { ScriptsPanel } from "./scripts-panel";
 
@@ -237,6 +241,88 @@ describe("ScriptsPanel", () => {
       expect.objectContaining({ source: "console.log(1);" }),
     );
     expect(screen.getByText("My scripts")).toBeVisible();
+  });
+
+  describe("with script edits", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3 } as const;
+
+    const aRunThatSetsTheDiameter = () =>
+      vi.fn(({ model }: { model: HydraulicModel }) => ({
+        finished: Promise.resolve<ScriptRunOutcome>({
+          status: "success",
+          edits: changeProperty(model, {
+            assetIds: [IDS.P1],
+            property: "diameter",
+            value: 150,
+          }).bytes,
+          selection: null,
+          zoomTo: null,
+          attachments: [],
+          selectionSets: [],
+          bookmarks: [],
+        }),
+        cancel: vi.fn(),
+      }));
+
+    const aStoreWithAPipe = () => {
+      const store = setInitialState({
+        hydraulicModel: HydraulicModelBuilder.with()
+          .aJunction(IDS.J1)
+          .aJunction(IDS.J2)
+          .aPipe(IDS.P1, {
+            startNodeId: IDS.J1,
+            endNodeId: IDS.J2,
+            diameter: 100,
+          })
+          .build(),
+      });
+      store.set(userScriptsAtom, [
+        {
+          id: "1",
+          name: "Resize",
+          source: "network.getLink('P1').setProperties({ diameter: 150 });",
+          apiVersion: 1,
+          updatedAt: 0,
+        },
+      ]);
+      return store;
+    };
+
+    const diameterOf = (store: Store) =>
+      (store.get(stagingModelDerivedAtom).assets.get(IDS.P1) as Pipe).diameter;
+
+    it("applies the edits a script hands back to the network", async () => {
+      stubFeatureOn("FLAG_SCRIPT_EDITS");
+      const user = userEvent.setup();
+      const startScriptRun = aRunThatSetsTheDiameter();
+      registerScripting({ startScriptRun, exampleScripts: [] });
+      const store = aStoreWithAPipe();
+      renderPanel(store);
+
+      await user.click(screen.getByRole("button", { name: "Run Resize" }));
+
+      expect(startScriptRun).toHaveBeenCalledWith(
+        expect.objectContaining({ isEditsOn: true }),
+      );
+      await vi.waitFor(() => expect(diameterOf(store)).toEqual(150));
+    });
+
+    it("runs scripts without edits when the flag is off", async () => {
+      stubFeatureOff("FLAG_SCRIPT_EDITS");
+      const user = userEvent.setup();
+      const startScriptRun = vi.fn().mockReturnValue({
+        finished: new Promise(() => {}),
+        cancel: vi.fn(),
+      });
+      registerScripting({ startScriptRun, exampleScripts: [] });
+      renderPanel(aStoreWithAPipe());
+
+      await user.click(screen.getByRole("button", { name: "Run Resize" }));
+
+      expect(startScriptRun).toHaveBeenCalledWith(
+        expect.objectContaining({ isEditsOn: false }),
+      );
+    });
   });
 
   it("renames a script from its actions menu", async () => {

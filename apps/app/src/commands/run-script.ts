@@ -1,5 +1,6 @@
 import { useSetAtom, useStore, type Getter } from "jotai";
-import { useCallback, useContext } from "react";
+import { useCallback, useContext, useRef } from "react";
+import { ChangeSet } from "@epanet-js/change-set";
 import { Just } from "purify-ts/Maybe";
 import {
   getScripting,
@@ -16,6 +17,8 @@ import { useZoomTo } from "src/hooks/use-zoom-to";
 import { usePermissions } from "src/hooks/use-permissions";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useFeatureLock } from "src/components/form/paywall";
+import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
+import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useSelectionSetsTransaction } from "src/hooks/persistence/use-selection-sets-transaction";
 import { useBookmarksTransaction } from "src/hooks/persistence/use-bookmarks-transaction";
@@ -71,6 +74,11 @@ export const useRunScript = () => {
   const { openPaywall } = useFeatureLock("runScripts");
   const userTracking = useUserTracking();
   const isScriptResultsOn = useFeatureFlag("FLAG_SCRIPT_RESULTS");
+  const isScriptEditsOn = useFeatureFlag("FLAG_SCRIPT_EDITS");
+  const { transact } = useModelTransaction();
+  const isEditionBlocked = useIsEditionBlocked();
+  const isEditionBlockedRef = useRef(isEditionBlocked);
+  isEditionBlockedRef.current = isEditionBlocked;
   const { create: createSelectionSet } = useSelectionSetsTransaction();
   const { transact: saveBookmarks } = useBookmarksTransaction();
   const isScriptOutputPanelOn = useFeatureFlag("FLAG_SCRIPT_OUTPUT_PANEL");
@@ -88,9 +96,23 @@ export const useRunScript = () => {
     };
   }, [map]);
 
+  const applyEdits = useCallback(
+    (edits: Uint8Array, modelVersion: string) => {
+      const isModelUnchanged =
+        store.get(stagingModelDerivedAtom).version === modelVersion;
+      if (isEditionBlockedRef.current || !isModelUnchanged) {
+        setDialog({ type: "changeNotApplied" });
+        return;
+      }
+      transact(() => ChangeSet.fromBytes(edits));
+    },
+    [store, setDialog, transact],
+  );
+
   const applyOutcome = useCallback(
-    (outcome: ScriptRunOutcome) => {
+    (outcome: ScriptRunOutcome, modelVersion: string) => {
       if (outcome.status !== "success") return;
+      if (outcome.edits) applyEdits(outcome.edits, modelVersion);
       const { assets, customerPoints } = store.get(stagingModelDerivedAtom);
       const existing = ({ assetIds, customerPointIds }: ScriptTargets) =>
         USelection.fromIds(
@@ -127,6 +149,7 @@ export const useRunScript = () => {
     },
     [
       store,
+      applyEdits,
       setSelection,
       zoomTo,
       canManageCollections,
@@ -192,9 +215,10 @@ export const useRunScript = () => {
         }));
       };
 
+      const model = store.get(stagingModelDerivedAtom);
       const handle = scripting.startScriptRun({
         source,
-        model: store.get(stagingModelDerivedAtom),
+        model,
         factories: store.get(modelFactoriesAtom),
         units: store.get(projectSettingsAtom).units,
         selected: selectedTargets(store.get(selectionAtom)),
@@ -223,6 +247,7 @@ export const useRunScript = () => {
         lastResults: isScriptResultsOn
           ? { isOn: true, value: lastResultsOf(store.get) }
           : { isOn: false },
+        isEditsOn: isScriptEditsOn,
         onEvent,
       });
       const startedAt = performance.now();
@@ -248,7 +273,7 @@ export const useRunScript = () => {
           outcome,
           finishedAt,
         }));
-        applyOutcome(outcome);
+        applyOutcome(outcome, model.version);
         if (isScriptOutputPanelOn) {
           if (store.get(dialogAtom)?.type === "scriptRun") setDialog(null);
           showScriptOutput();
@@ -280,6 +305,7 @@ export const useRunScript = () => {
       canRunScripts,
       openPaywall,
       isScriptResultsOn,
+      isScriptEditsOn,
       isScriptOutputPanelOn,
       showScriptOutput,
     ],

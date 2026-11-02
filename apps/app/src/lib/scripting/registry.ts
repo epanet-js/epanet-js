@@ -121,6 +121,7 @@ export type ScriptLastResults = {
 export type ScriptRunOutcome =
   | {
       status: "success";
+      edits: Uint8Array | null;
       selection: ScriptTargets | null;
       zoomTo:
         | ((
@@ -165,6 +166,7 @@ export type Scripting = {
     inp: { simulationSettings: SimulationSettings; projection: Projection };
     zones: Zones;
     lastResults: ScriptGated<ScriptLastResults | null>;
+    isEditsOn: boolean;
     onEvent: (event: ScriptEvent) => void;
   }) => ScriptRunHandle;
   exampleScripts: ExampleScript[];
