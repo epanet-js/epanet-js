@@ -1,7 +1,8 @@
 import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { HydraulicModel } from "src/hydraulic-model";
 import { SimulationSettingsBuilder } from "src/__helpers__/simulation-settings-builder";
-import { buildInp, buildInpToFile } from "./build-inp";
+import { buildInp, buildInpToFile, getLsxRequirements } from "./build-inp";
+import { FlowModulatingValveControl } from "@epanet-js/hydraulic-model";
 import { presets } from "@epanet-js/project-settings";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 
@@ -445,6 +446,86 @@ describe("build inp", () => {
     expect(inp).toContain(
       `simulate_remote_setpoint_prv("${IDS.VALVE1}", "${IDS.NODE2}", 30, "${IDS.NODE1}")`,
     );
+  });
+
+  describe("flow-modulating valve controls", () => {
+    const IDS = { R1: 1, J1: 2, J2: 3, V1: 4, P1: 5, P2: 6, J3: 7 } as const;
+    const points = [
+      { flow: 3, pressure: 20 },
+      { flow: 5, pressure: 24 },
+      { flow: 7, pressure: 30 },
+    ];
+
+    const buildModelWithFmv = (
+      control: Partial<Omit<FlowModulatingValveControl, "id" | "type">> = {},
+    ) =>
+      HydraulicModelBuilder.with()
+        .aReservoir(IDS.R1)
+        .aNode(IDS.J1)
+        .aNode(IDS.J2)
+        .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
+        .aValve(IDS.V1, {
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
+          kind: "prv",
+          setting: 25,
+          targetNodeId: IDS.J2,
+        })
+        .aPipe(IDS.P2, { startNodeId: IDS.J2, endNodeId: IDS.R1 })
+        .aJunction(IDS.J3, { isActive: false })
+        .aFlowModulatingValveControl({
+          linkId: IDS.V1,
+          points,
+          interpolate: true,
+          sensorLinkId: IDS.V1,
+          controlNodeId: IDS.J2,
+          ...control,
+        })
+        .build();
+
+    const exportInp = (hydraulicModel: HydraulicModel) =>
+      buildInp(hydraulicModel, {
+        units: presets.LPS.units,
+        simulationSettings: defaultSimulationSettings,
+      });
+
+    it("emits the valve's row in the [SCRIPT] section", () => {
+      const inp = exportInp(buildModelWithFmv());
+
+      expect(inp).toContain("[SCRIPT]");
+      expect(inp).toContain(
+        `{valve_id="${IDS.V1}",flows={3,5,7},pressures={20,24,30},interpolate=true,sensor_link_id="${IDS.V1}",control_node_id="${IDS.J2}",is_local=true,inlet_node_id="${IDS.J1}",outlet_node_id="${IDS.J2}"},`,
+      );
+      expect(inp).toContain("fmvalve_step(FMVALVE_VALVES)");
+    });
+
+    it("writes a step grid, a remote sensor and a remote control node", () => {
+      const inp = exportInp(
+        buildModelWithFmv({
+          interpolate: false,
+          sensorLinkId: IDS.P2,
+          controlNodeId: IDS.R1,
+        }),
+      );
+
+      expect(inp).toContain(
+        `{valve_id="${IDS.V1}",flows={3,5,7},pressures={20,24,30},interpolate=false,sensor_link_id="${IDS.P2}",control_node_id="${IDS.R1}",is_local=false,inlet_node_id="${IDS.J1}",outlet_node_id="${IDS.J2}"},`,
+      );
+    });
+
+    it("drops the remote-setpoint row of the same valve", () => {
+      const hydraulicModel = buildModelWithFmv();
+
+      const inp = exportInp(hydraulicModel);
+
+      expect(inp).not.toContain("simulate_remote_setpoint_prv");
+      expect(getLsxRequirements(hydraulicModel)).toEqual({
+        isRequired: true,
+        remoteSetpointPrvs: [],
+        variableSpeedPumps: [],
+        flowModulatingValves: [hydraulicModel.assets.get(IDS.V1)!.label],
+      });
+    });
   });
 
   describe("variable speed pump controls", () => {

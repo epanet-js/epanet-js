@@ -30,9 +30,11 @@ import {
   Controls,
   LevelSettingControl,
   VariableSpeedPumpControl,
+  FlowModulatingValveControl,
   TimedSettingStep,
   buildTimedSetting,
   buildVariableSpeedPump,
+  buildFlowModulatingValve,
   createControlId,
   createEmptyControls,
   setAssetControl,
@@ -542,6 +544,17 @@ export class HydraulicModelBuilder {
       this.controlsValue,
       data.linkId,
       buildVariableSpeedPump(data),
+    );
+    return this;
+  }
+
+  aFlowModulatingValveControl(
+    data: Omit<FlowModulatingValveControl, "type" | "id">,
+  ) {
+    this.controlsValue = setAssetControl(
+      this.controlsValue,
+      data.linkId,
+      buildFlowModulatingValve(data),
     );
     return this;
   }

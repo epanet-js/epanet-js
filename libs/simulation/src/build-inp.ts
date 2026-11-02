@@ -31,6 +31,7 @@ import {
   DEFAULT_SPEED,
   DEFAULT_INITIAL_QUALITY,
   type VariableSpeedPumpControl,
+  type FlowModulatingValveControl,
 } from "@epanet-js/hydraulic-model";
 import {
   type Projection,
@@ -421,6 +422,7 @@ export type LsxRequirements = {
   isRequired: boolean;
   remoteSetpointPrvs: string[];
   variableSpeedPumps: string[];
+  flowModulatingValves: string[];
 };
 
 export const getLsxRequirements = (
@@ -430,6 +432,7 @@ export const getLsxRequirements = (
     isRequired: false,
     remoteSetpointPrvs: [],
     variableSpeedPumps: [],
+    flowModulatingValves: [],
   };
 
   for (const asset of hydraulicModel.assets.values()) {
@@ -443,6 +446,13 @@ export const getLsxRequirements = (
   for (const control of scriptedVariableSpeedPumps(hydraulicModel)) {
     requirements.isRequired = true;
     requirements.variableSpeedPumps.push(
+      hydraulicModel.assets.get(control.linkId)!.label,
+    );
+  }
+
+  for (const control of scriptedFlowModulatingValves(hydraulicModel)) {
+    requirements.isRequired = true;
+    requirements.flowModulatingValves.push(
       hydraulicModel.assets.get(control.linkId)!.label,
     );
   }
@@ -1550,6 +1560,30 @@ function* scriptRows(
     );
   }
 
+  for (const control of scriptedFlowModulatingValves(hydraulicModel)) {
+    const valve = hydraulicModel.assets.get(control.linkId) as Valve;
+    const [inletNodeId, outletNodeId] = getLinkConnectionIds(
+      hydraulicModel,
+      idMap,
+      valve,
+    );
+
+    builder.withFlowModulatingValve({
+      valveId: idMap.linkId(valve),
+      points: control.points,
+      interpolate: control.interpolate,
+      sensorLinkId: resolveLinkId(hydraulicModel, idMap, control.sensorLinkId),
+      controlNodeId: resolveNodeId(
+        hydraulicModel,
+        idMap,
+        control.controlNodeId,
+      ),
+      isLocal: control.controlNodeId === valve.connections[1],
+      inletNodeId,
+      outletNodeId,
+    });
+  }
+
   const script = builder.build();
 
   for (const line of script) {
@@ -1673,6 +1707,7 @@ const remoteSetpointTargetOf = (
   if (asset.type !== "valve" || !asset.isActive) return null;
   const valve = asset as Valve;
   if (valve.kind !== "prv" || valve.targetNodeId === undefined) return null;
+  if (hasFlowModulatingValve(hydraulicModel, valve.id)) return null;
 
   const target = hydraulicModel.assets.get(valve.targetNodeId);
   if (!target || !target.isNode || !target.isActive) return null;
@@ -1749,6 +1784,40 @@ const scriptedVariableSpeedPumps = (
       control.type === "variable-speed-pump" &&
       isAssetInSimulation(hydraulicModel, control.linkId) &&
       isAssetInSimulation(hydraulicModel, control.targetId),
+  );
+
+const hasFlowModulatingValve = (
+  hydraulicModel: HydraulicModel,
+  valveId: AssetId,
+): boolean =>
+  [...hydraulicModel.controlsLookup.getControls(valveId)].some(
+    (control) =>
+      control.type === "flow-modulating-valve" && control.linkId === valveId,
+  );
+
+const isScriptablePrv = (
+  hydraulicModel: HydraulicModel,
+  assetId: AssetId,
+): boolean => {
+  const asset = hydraulicModel.assets.get(assetId);
+  return (
+    !!asset &&
+    asset.isActive &&
+    asset.type === "valve" &&
+    (asset as Valve).kind === "prv"
+  );
+};
+
+const scriptedFlowModulatingValves = (
+  hydraulicModel: HydraulicModel,
+): FlowModulatingValveControl[] =>
+  hydraulicModel.controls.filter(
+    (control): control is FlowModulatingValveControl =>
+      control.type === "flow-modulating-valve" &&
+      control.points.length >= 2 &&
+      isScriptablePrv(hydraulicModel, control.linkId) &&
+      isAssetInSimulation(hydraulicModel, control.sensorLinkId) &&
+      isAssetInSimulation(hydraulicModel, control.controlNodeId),
   );
 
 const isAssetInSimulation = (
