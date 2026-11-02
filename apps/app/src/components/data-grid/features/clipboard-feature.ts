@@ -51,7 +51,11 @@ declare module "@tanstack/react-table" {
   interface ColumnMeta<TData extends RowData, TValue> {
     copyValue?: (value: TValue) => string;
     // Returns undefined to signal "skip this cell"
-    pasteValue?: (text: string, row: TData) => TValue | undefined;
+    pasteValue?: (
+      text: string,
+      row: TData,
+      rowIndex?: number,
+    ) => TValue | undefined;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -66,7 +70,7 @@ declare module "@tanstack/react-table" {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface Column<TData extends RowData, TValue> {
     getCopyValue: (value: unknown) => string;
-    getPasteValue: (text: string, row: TData) => unknown;
+    getPasteValue: (text: string, row: TData, rowIndex?: number) => unknown;
   }
 }
 
@@ -179,7 +183,7 @@ const collectRowPatches = <TData extends RowData>(
     if (!column || column.isReadOnly(dataIdx)) continue;
 
     const cellText = clipboardRow[j % clipboardRow.length] ?? "";
-    const pasted = column.getPasteValue(cellText, existing);
+    const pasted = column.getPasteValue(cellText, existing, dataIdx);
     if (pasted === undefined) continue;
     patches[column.id] = pasted;
   }
@@ -444,9 +448,9 @@ export const ClipboardFeature: TableFeature = {
       return fn ? fn(value) : String(value ?? "");
     };
 
-    column.getPasteValue = (text: string, row: TData) => {
+    column.getPasteValue = (text: string, row: TData, rowIndex?: number) => {
       const fn = column.columnDef.meta?.pasteValue;
-      return fn ? fn(text, row) : text;
+      return fn ? fn(text, row, rowIndex) : text;
     };
   },
 };

@@ -96,6 +96,7 @@ export function GridRow<TData extends Record<string, unknown>>({
                     cell.getValue(),
                     cell.row.index,
                   ),
+                  cell.row.index,
                 )) ||
               (accessorKey
                 ? (cellHasWarning?.(cell.row.index, accessorKey) ?? false)

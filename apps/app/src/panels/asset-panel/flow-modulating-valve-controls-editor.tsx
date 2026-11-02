@@ -324,11 +324,24 @@ const PointsGrid = ({
     [onChange],
   );
 
-  const outOfSequenceRows = useMemo(() => flowsOutOfSequence(points), [points]);
+  const invalidCells = useMemo(() => invalidPointCells(points), [points]);
   const cellHasWarning = useCallback(
     (rowIndex: number, columnId: string) =>
-      columnId === "flow" && outOfSequenceRows.has(rowIndex),
-    [outOfSequenceRows],
+      columnId === "flow"
+        ? invalidCells.flow.has(rowIndex)
+        : columnId === "pressure" && invalidCells.pressure.has(rowIndex),
+    [invalidCells],
+  );
+
+  const isFlowValid = useCallback(
+    (value: number, rowIndex: number) =>
+      isFlowInSequence(points, rowIndex, value),
+    [points],
+  );
+  const isPressureValid = useCallback(
+    (value: number, rowIndex: number) =>
+      isPressureInSequence(points, rowIndex, value),
+    [points],
   );
 
   const columns: GridColumn<PointRow>[] = useMemo(
@@ -337,14 +350,16 @@ const PointsGrid = ({
         header: flowHeader,
         size: 80,
         emptyValue: 0,
+        validate: isFlowValid,
       }),
       floatColumn("pressure", {
         header: pressureHeader,
         size: 80,
         emptyValue: 0,
+        validate: isPressureValid,
       }),
     ],
-    [flowHeader, pressureHeader],
+    [flowHeader, pressureHeader, isFlowValid, isPressureValid],
   );
 
   const createRow = useCallback(
@@ -368,9 +383,10 @@ const PointsGrid = ({
         onSelect: (rowIndex: number) =>
           persist([
             ...points.slice(0, rowIndex),
-            { ...points[rowIndex] },
+            rowBefore(points, rowIndex),
             ...points.slice(rowIndex),
           ]),
+        hidden: (rowIndex: number) => rowIndex === 0 && points[0].flow <= 0,
       },
       {
         label: translate("insertRowBelow"),
@@ -528,15 +544,47 @@ const ControlNodeField = ({
   );
 };
 
-const flowsOutOfSequence = (points: FlowModulatingValvePoint[]) => {
-  const rows = new Set<number>();
-  for (let i = 1; i < points.length; i++) {
-    if (points[i].flow < points[i - 1].flow) {
-      rows.add(i - 1);
-      rows.add(i);
-    }
-  }
-  return rows;
+const isFlowInSequence = (
+  points: FlowModulatingValvePoint[],
+  rowIndex: number,
+  flow: number,
+) => {
+  if (flow < 0) return false;
+  const previous = rowIndex > 0 ? points[rowIndex - 1].flow : -Infinity;
+  const next =
+    rowIndex < points.length - 1 ? points[rowIndex + 1].flow : Infinity;
+  return flow > previous && flow < next;
+};
+
+const isPressureInSequence = (
+  points: FlowModulatingValvePoint[],
+  rowIndex: number,
+  pressure: number,
+) => {
+  if (pressure <= 0) return false;
+  const previous = rowIndex > 0 ? points[rowIndex - 1].pressure : -Infinity;
+  const next =
+    rowIndex < points.length - 1 ? points[rowIndex + 1].pressure : Infinity;
+  return pressure >= previous && pressure <= next;
+};
+
+const invalidPointCells = (points: FlowModulatingValvePoint[]) => {
+  const flow = new Set<number>();
+  const pressure = new Set<number>();
+  points.forEach((point, i) => {
+    if (!isFlowInSequence(points, i, point.flow)) flow.add(i);
+    if (!isPressureInSequence(points, i, point.pressure)) pressure.add(i);
+  });
+  return { flow, pressure };
+};
+
+const rowBefore = (
+  points: FlowModulatingValvePoint[],
+  rowIndex: number,
+): PointRow => {
+  const row = points[rowIndex];
+  const previousFlow = rowIndex > 0 ? points[rowIndex - 1].flow : 0;
+  return { flow: (previousFlow + row.flow) / 2, pressure: row.pressure };
 };
 
 const nextRowAfter = (

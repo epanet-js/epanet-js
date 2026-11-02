@@ -20,7 +20,7 @@ function formatLocaleNumber(
 
 type FloatCellProps = CellProps<number | null> & {
   emptyValue?: number | null;
-  validate?: (value: number) => boolean;
+  validate?: (value: number, rowIndex: number) => boolean;
   commitInvalidValues?: boolean;
   decimals?: number;
   readonly?: boolean;
@@ -39,6 +39,7 @@ const FLOAT_QUICK_NAV_KEYS = [
 
 export function FloatCell({
   value,
+  rowIndex,
   editMode,
   onChange,
   stopEditing,
@@ -62,14 +63,14 @@ export function FloatCell({
     (raw: string): number | null | undefined => {
       const parsed = parseNumericInput(raw);
       if (parsed !== null) {
-        if (!commitInvalidValues && validate && !validate(parsed))
+        if (!commitInvalidValues && validate && !validate(parsed, rowIndex))
           return undefined;
         return fromDisplay ? fromDisplay(parsed) : parsed;
       }
       if (raw.trim() === "") return emptyValue;
       return undefined;
     },
-    [emptyValue, validate, commitInvalidValues, fromDisplay],
+    [emptyValue, validate, commitInvalidValues, fromDisplay, rowIndex],
   );
 
   const format = useCallback(
@@ -115,10 +116,12 @@ export function FloatCell({
       const parsed = parseNumericInput(newValue);
       const isInvalidNumber = newValue.trim() !== "" && parsed === null;
       const failsValidation =
-        validate !== undefined && parsed !== null && !validate(parsed);
+        validate !== undefined &&
+        parsed !== null &&
+        !validate(parsed, rowIndex);
       setHasError(isInvalidNumber || failsValidation);
     },
-    [editValue, validate, setEditValue, setHasError],
+    [editValue, validate, setEditValue, setHasError, rowIndex],
   );
 
   const formattedValue = formatLocaleNumber(toDisplayValue(value), decimals);
@@ -172,7 +175,7 @@ export function floatColumn<TData extends RowData = RowData>(
     header: string;
     size?: number;
     emptyValue?: number | null;
-    validate?: (value: number) => boolean;
+    validate?: (value: number, rowIndex: number) => boolean;
     commitInvalidValues?: boolean;
     required?: boolean;
     decimals?: number;
@@ -248,10 +251,10 @@ export function floatColumn<TData extends RowData = RowData>(
           v !== null && toDisplay ? toDisplay(v) : v,
           decimals,
         ),
-      pasteValue: (v: string) => {
+      pasteValue: (v: string, _row: TData, rowIndex = -1) => {
         const parsed = parseNumericInput(v);
         if (parsed !== null) {
-          if (!commitInvalidValues && validate && !validate(parsed))
+          if (!commitInvalidValues && validate && !validate(parsed, rowIndex))
             return undefined;
           return fromDisplay ? fromDisplay(parsed) : parsed;
         }
@@ -264,8 +267,12 @@ export function floatColumn<TData extends RowData = RowData>(
       defaultValue,
       ...(required !== undefined
         ? {
-            hasWarning: (value: number | null): boolean =>
-              value == null ? required : validate ? !validate(value) : false,
+            hasWarning: (value: number | null, rowIndex = -1): boolean =>
+              value == null
+                ? required
+                : validate
+                  ? !validate(value, rowIndex)
+                  : false,
           }
         : {}),
     },
