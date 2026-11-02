@@ -149,15 +149,6 @@ export type ChangeNotAppliedDialogState = {
   type: "changeNotApplied";
 };
 
-export type ModelBuilderLegacyIframeDialogState = {
-  type: "modelBuilderLegacyIframe";
-};
-
-export type ModelBuilderLegacyPaywallDialogState = {
-  type: "modelBuilderLegacyPaywall";
-  source: string;
-};
-
 export type EarlyAccessDialogState = {
   type: "earlyAccess";
   onContinue: () => void;
@@ -260,7 +251,6 @@ export type PaywallFeature =
   | "selectionSets"
   | "modelAttributesValidation"
   | "modelBuilder"
-  | "modelBuildAdvanced"
   | "convertModel"
   | "runScripts"
   | "editScripts";
@@ -403,8 +393,6 @@ export type DialogState =
   | PreSimulationChecksDialogState
   | UnexpectedErrorDialogState
   | ChangeNotAppliedDialogState
-  | ModelBuilderLegacyIframeDialogState
-  | ModelBuilderLegacyPaywallDialogState
   | EarlyAccessDialogState
   | SimulationProgressDialogState
   | OpenProjectProgressDialogState

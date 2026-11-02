@@ -884,9 +884,9 @@
   "scriptingItem": "Scripting",
   "customElevations": "Custom elevations sources",
   "scenariosItem": "Scenarios",
-  "proModelBuilder": "Pro model builder",
-  "modelBuilderInfo": "The new Pro model builder adds pipe year & materials, projection preservation and multiple languages, with custom attributes and null values coming soon. The Legacy builder is kept for maintenance only.",
-  "modelBuildAdvanced": {
+  "modelBuilderItem": "Model builder",
+  "limitedModelBuilderItem": "Model builder (basic)",
+  "modelBuilder": {
     "paywall": {
       "title": "Build complete models from your GIS data",
       "description": "Turn complex GIS data into complete models, and rebuild them whenever your data changes.",
@@ -895,29 +895,12 @@
     }
   },
   "modelBuilderPaywall": {
-    "title": "Choose your model builder",
-    "subtitle": "Unlock advanced capabilities for building models in epanet-js from your GIS data.",
-    "legacy": "Legacy",
-    "pro": "Pro",
-    "freeAndPersonalPlans": "Free and Personal plans",
-    "proPlansAndAbove": "Pro plans and above",
-    "comingSoon": "Coming soon:",
-    "continueWithLegacy": "Continue with Legacy",
-    "upgrade": "Upgrade",
-    "maintenanceOnly": "Maintenance only",
     "multipleFilesPerLayer": "Multiple files per layer",
-    "dxfAndCsvFiles": "DXF and CSV files",
     "filterSplitAndRules": "Filter, split by value and custom rules",
     "pipeYearAndMaterials": "Pipe year and materials",
     "customAttributes": "Custom attributes",
     "zones": "Zones",
-    "customerPoints": "Customer points",
     "largeModels": "Models over 100K assets",
-    "activeUpdates": "Active updates & new features",
-    "legacyProjection": "Projection preservation (WGS84 only)",
-    "proProjection": "Preserve original projection",
-    "legacyLanguages": "Multiple languages (English only)",
-    "proLanguages": "Multiple languages",
     "saveBuildSettings": "Save build settings"
   },
   "monthShort": "mo",
@@ -959,7 +942,6 @@
     },
     "pro": {
       "per": "Per named license",
-      "modelBuilderInfo": "The new Pro model builder adds pipe year & materials, projection preservation, multiple languages, custom attributes and null values. The Legacy builder is kept for maintenance only.",
       "customMapLayers": "Custom map layers & elevation sources",
       "andMore": "And more…"
     },

@@ -3,10 +3,8 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
 import { useEarlyAccess } from "src/hooks/use-early-access";
-import { usePermissions } from "src/hooks/use-permissions";
 import { useStartBlankProject } from "src/hooks/persistence/use-start-new-project";
 import { useUnsavedChangesCheck } from "./check-unsaved-changes";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { contentViewAtom } from "src/state/content-view";
 
 const buildModelBuildViewUrl = (): string => {
@@ -16,32 +14,6 @@ const buildModelBuildViewUrl = (): string => {
 };
 
 export const useOpenModelBuilder = () => {
-  const setDialogState = useSetAtom(dialogAtom);
-  const { canUseAdvancedModelBuild } = usePermissions();
-  const isLimitedModelBuildOn = useFeatureFlag("FLAG_LIMITED_MODEL_BUILD");
-  const openNewModelBuilder = useOpenNewModelBuilder();
-
-  const openModelBuilder = useCallback(
-    ({ source }: { source: string }) => {
-      if (!canUseAdvancedModelBuild && !isLimitedModelBuildOn) {
-        setDialogState({ type: "modelBuilderLegacyPaywall", source });
-        return;
-      }
-
-      openNewModelBuilder({ source });
-    },
-    [
-      setDialogState,
-      canUseAdvancedModelBuild,
-      isLimitedModelBuildOn,
-      openNewModelBuilder,
-    ],
-  );
-
-  return openModelBuilder;
-};
-
-const useOpenNewModelBuilder = () => {
   const userTracking = useUserTracking();
   const setDialogState = useSetAtom(dialogAtom);
   const onlyEarlyAccess = useEarlyAccess();
@@ -49,7 +21,7 @@ const useOpenNewModelBuilder = () => {
   const startBlankProject = useStartBlankProject();
   const setContentView = useSetAtom(contentViewAtom);
 
-  const openNewModelBuilder = useCallback(
+  const openModelBuilder = useCallback(
     ({ source }: { source: string }) => {
       onlyEarlyAccess(() => {
         checkUnsavedChanges(async () => {
@@ -76,5 +48,5 @@ const useOpenNewModelBuilder = () => {
     ],
   );
 
-  return openNewModelBuilder;
+  return openModelBuilder;
 };

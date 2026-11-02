@@ -9,7 +9,7 @@ const reportFeatureFlagUsage = vi.hoisted(() => vi.fn());
 
 vi.mock("src/global-config", async (importOriginal) => ({
   ...(await importOriginal<typeof import("src/global-config")>()),
-  modelBuilderV2Url: v2Url,
+  modelBuilderUrl: v2Url,
 }));
 
 vi.mock("src/hooks/use-feature-flags", () => ({

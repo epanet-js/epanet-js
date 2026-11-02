@@ -12,7 +12,7 @@ import {
 } from "src/hooks/use-feature-flags";
 import { usePermissions } from "src/hooks/use-permissions";
 import { useStartUpgrade } from "src/hooks/use-paywall";
-import { modelBuilderV2Url } from "src/global-config";
+import { modelBuilderUrl } from "src/global-config";
 
 type ModelBuildAccess = "full" | "limited";
 
@@ -21,7 +21,7 @@ const buildIframeSrc = (
   locale: string,
   access: ModelBuildAccess,
 ): string => {
-  const url = new URL(modelBuilderV2Url);
+  const url = new URL(modelBuilderUrl);
   for (const flag of enabledFlags) {
     url.searchParams.set(flag, "true");
   }
@@ -105,7 +105,6 @@ const handleModelBuildEjsdbComplete = async (
 
   userTracking.capture({
     name: "modelBuilder.completed",
-    version: "v2",
   });
 
   const projectFile = new File([ejsdbBytes], filename, {
@@ -170,14 +169,14 @@ export const ModelBuilderFrame = ({
   const sendLocale = useCallback(() => {
     iframeRef.current?.contentWindow?.postMessage(
       { type: "localeChanged", data: { locale } },
-      new URL(modelBuilderV2Url).origin,
+      new URL(modelBuilderUrl).origin,
     );
   }, [locale]);
 
   const sendAccess = useCallback(() => {
     iframeRef.current?.contentWindow?.postMessage(
       { type: "accessChanged", data: { access } },
-      new URL(modelBuilderV2Url).origin,
+      new URL(modelBuilderUrl).origin,
     );
   }, [access]);
 
@@ -218,7 +217,7 @@ export const ModelBuilderFrame = ({
         const { name } = (message as FeatureFlagCalledMessage).data;
         if (typeof name === "string" && name) reportFeatureFlagUsage(name);
       } else if (message.type === "requestUpgrade") {
-        startUpgrade("modelBuildAdvanced");
+        startUpgrade("modelBuilder");
       } else if (message.type === "close") {
         onClose?.();
       }

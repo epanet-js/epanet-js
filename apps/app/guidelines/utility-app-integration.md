@@ -453,7 +453,7 @@ The util code calls `transport.track(...)` and `transport.getFlag(...)` everywhe
 
 The following describes what is shipped today. It uses the **cross-origin model** and diverges from the target protocol; treat it as legacy until migrated.
 
-**Location:** [src/views/model-builder-iframe.tsx](src/views/model-builder-iframe.tsx), URL configured in [src/global-config.ts](src/global-config.ts) as `modelBuilderUrl` (defaults to `https://utils.epanetjs.com/model-builder?embedded=true`).
+**Location:** [src/views/model-builder-iframe.tsx](src/views/model-builder-iframe.tsx), URL configured in [src/global-config.ts](src/global-config.ts) as `modelBuilderUrl` (from `NEXT_PUBLIC_MODEL_BUILDER_V2_URL`, then `NEXT_PUBLIC_MODEL_BUILDER_URL`, defaulting to `https://utils.epanetjs.com/model-builder?embedded=true`).
 
 **Direction:** util → main only. No host → util messages, no handshake, no round-trip.
 

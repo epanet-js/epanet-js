@@ -263,6 +263,7 @@ const PricingFreePlan = () => {
             checkItem(translate("pricingPlans.free.engine")),
             checkItem(translate("pricingPlans.free.noLimits")),
             checkItem(translate("pricingPlans.free.runsLocally")),
+            checkItem(translate("limitedModelBuilderItem")),
           ]}
         />
       </div>
@@ -319,10 +320,7 @@ const PricingProPlan = ({
             title={translate("everythingAnd", "Free")}
             items={[
               checkItem(translate("scenariosItem")),
-              checkItem(
-                translate("proModelBuilder"),
-                translate("pricingPlans.pro.modelBuilderInfo"),
-              ),
+              checkItem(translate("modelBuilderItem")),
               checkItem(translate("customAttributesItem")),
               checkItem(translate("pricingPlans.pro.customMapLayers")),
               checkItem(translate("scriptingItem")),
@@ -379,12 +377,7 @@ const PricingPersonalPlan = ({
           title={translate("everythingAnd", "Free")}
           items={[
             checkItem(translate("scenariosItem")),
-            {
-              feature: translate("proModelBuilder"),
-              Icon: CloseIcon,
-              iconColor: "text-red-500",
-              tooltip: translate("modelBuilderInfo"),
-            },
+            checkItem(translate("limitedModelBuilderItem")),
             checkItem(translate("customAttributesItem")),
             checkItem(translate("pricingPlans.pro.customMapLayers")),
             checkItem(translate("scriptingItem")),

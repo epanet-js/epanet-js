@@ -41,8 +41,6 @@ import { ScriptRunDialog } from "src/dialogs/script-run";
 import { UnexpectedErrorDialog } from "src/dialogs/unexpected-error";
 import { ChangeNotAppliedDialog } from "src/dialogs/change-not-applied";
 import { ImportCustomerPointsWizard } from "src/dialogs/import-customer-points-wizard";
-import { ModelBuilderLegacyIframeDialog } from "src/dialogs/model-builder-legacy-iframe";
-import { ModelBuilderLegacyPaywallDialog } from "src/dialogs/model-builder-legacy-paywall";
 import { EarlyAccessDialog } from "src/dialogs/early-access";
 import { ImportCustomerPointsWarningDialog } from "src/dialogs/import-customer-points-warning";
 import { ImportZonesWarningDialog } from "src/dialogs/import-zones-warning";
@@ -66,7 +64,7 @@ import { ZonesPaywallConnector } from "src/dialogs/paywall/zones-connector";
 import { PipeLibraryPaywallConnector } from "src/dialogs/paywall/pipe-library-connector";
 import { CustomAttributesPaywallConnector } from "src/dialogs/paywall/custom-attributes-connector";
 import { ConvertModelPaywallConnector } from "src/dialogs/paywall/convert-model-connector";
-import { ModelBuildAdvancedPaywallConnector } from "src/dialogs/paywall/model-build-advanced-connector";
+import { ModelBuilderPaywallConnector } from "src/dialogs/paywall/model-builder-connector";
 import { ScriptingPaywallConnector } from "src/dialogs/paywall/scripting-connector";
 import { ElevationTileErrorsDialog } from "src/dialogs/elevation-tile-errors";
 import { GisImportErrorsDialog } from "src/dialogs/gis-import-errors";
@@ -172,12 +170,6 @@ export const Dialogs = memo(function Dialogs() {
           featureName: dialog.featureName,
         });
       }
-      if (dialog.type === "modelBuilderLegacyPaywall") {
-        userTracking.capture({
-          name: "modelBuilder.paywall.seen",
-          source: dialog.source,
-        });
-      }
     }
     previousDialog.current = dialog;
   }
@@ -229,17 +221,6 @@ export const Dialogs = memo(function Dialogs() {
   }
   if (dialog.type === "preSimulationChecks") {
     return <PreSimulationChecksDialog modal={dialog} onClose={onClose} />;
-  }
-  if (dialog.type === "modelBuilderLegacyIframe") {
-    return <ModelBuilderLegacyIframeDialog onClose={onClose} />;
-  }
-  if (dialog.type === "modelBuilderLegacyPaywall") {
-    return (
-      <ModelBuilderLegacyPaywallDialog
-        source={dialog.source}
-        onClose={onClose}
-      />
-    );
   }
   if (dialog.type === "unexpectedError") {
     return <UnexpectedErrorDialog modal={dialog} onClose={onClose} />;
@@ -337,8 +318,8 @@ export const Dialogs = memo(function Dialogs() {
     if (dialog.feature === "convertModel") {
       return <ConvertModelPaywallConnector onClose={onClose} />;
     }
-    if (dialog.feature === "modelBuildAdvanced") {
-      return <ModelBuildAdvancedPaywallConnector onClose={onClose} />;
+    if (dialog.feature === "modelBuilder") {
+      return <ModelBuilderPaywallConnector onClose={onClose} />;
     }
     if (dialog.feature === "runScripts" || dialog.feature === "editScripts") {
       return (

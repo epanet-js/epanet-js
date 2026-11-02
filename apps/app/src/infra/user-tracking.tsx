@@ -285,27 +285,10 @@ type ModelBuilderOpened = {
 };
 type ModelBuilderCompleted = {
   name: "modelBuilder.completed";
-  version?: "v2";
 };
 type ModelBuilderClosed = {
   name: "modelBuilder.closed";
   step: string | null;
-};
-type ModelBuilderPaywallSeen = {
-  name: "modelBuilder.paywall.seen";
-  source: string;
-};
-type ModelBuilderPaywallDismissed = {
-  name: "modelBuilder.paywall.dismissed";
-  source: string;
-};
-type ModelBuilderPaywallContinuedWithLegacy = {
-  name: "modelBuilder.paywall.continuedWithLegacy";
-  source: string;
-};
-type ModelBuilderPaywallUpgradeClicked = {
-  name: "modelBuilder.paywall.upgradeClicked";
-  source: string;
 };
 
 type ExamplesOpened = {
@@ -1661,10 +1644,6 @@ export type UserEvent =
   | ModelBuilderOpened
   | ModelBuilderCompleted
   | ModelBuilderClosed
-  | ModelBuilderPaywallSeen
-  | ModelBuilderPaywallDismissed
-  | ModelBuilderPaywallContinuedWithLegacy
-  | ModelBuilderPaywallUpgradeClicked
   | ExamplesOpened
   | ImportCustomerPointsDataSelectDemandProperty
   | ImportCustomerPointsDataSelectLabelProperty
