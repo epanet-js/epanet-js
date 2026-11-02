@@ -806,6 +806,7 @@
   "alertExportInpLsxKnowMore": "Know more",
   "alertExportInpLsxRemoteSetpointPrvs": "Remote set-point PRVs",
   "alertExportInpLsxVariableSpeedPumps": "Variable speed pumps",
+  "alertExportInpLsxFlowModulatingValves": "Flow-modulating valves",
   "saveAsProject": "Save as Project",
   "exportToInp": "Export to INP",
   "newBadge": "new",
@@ -1247,6 +1248,16 @@
       "offAbove": "Off above",
       "onBelow": "On below",
       "controlledByPump": "Controlled by pump {{1}}"
+    },
+    "flowModulating": {
+      "type": "Flow modulated",
+      "linearInterpolation": "Linear interpolation",
+      "flowSensor": "Flow sensor",
+      "thisValve": "This valve",
+      "controlNode": "Control node",
+      "outletOfThisValve": "{{1}} (outlet of this valve)",
+      "addPoint": "Add point",
+      "setByCurve": "Set by curve"
     }
   },
   "demandMultiplier": "Demand multiplier",

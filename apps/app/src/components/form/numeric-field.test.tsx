@@ -234,6 +234,24 @@ describe("NumericField", () => {
       });
       expect(input.className).not.toContain("border-warning");
     });
+
+    it("does not validate a disabled field", async () => {
+      render(
+        <NumericField
+          label="test"
+          displayValue=""
+          isRequired={true}
+          disabled={true}
+        />,
+      );
+
+      const input = screen.getByRole("textbox", { name: /value for: test/i });
+      await waitFor(() => {
+        expect(input).toBeDisabled();
+      });
+      expect(input.className).not.toContain("border-warning");
+      expect(input).not.toHaveAttribute("aria-invalid");
+    });
   });
 
   describe("isRequired (required vs optional empty)", () => {

@@ -460,6 +460,7 @@ type InpExported = {
   lsxRequired?: boolean;
   includesRemoteSetpointPrvs?: boolean;
   includesVariableSpeedPumps?: boolean;
+  includesFlowModulatingValves?: boolean;
   scenariosCount: number;
 };
 

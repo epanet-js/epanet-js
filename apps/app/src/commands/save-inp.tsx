@@ -75,6 +75,8 @@ export const useSaveInp = () => {
               lsxRequirements.remoteSetpointPrvs.length > 0,
             includesVariableSpeedPumps:
               lsxRequirements.variableSpeedPumps.length > 0,
+            includesFlowModulatingValves:
+              lsxRequirements.flowModulatingValves.length > 0,
             scenariosCount: worktree.scenarios.length,
           });
 

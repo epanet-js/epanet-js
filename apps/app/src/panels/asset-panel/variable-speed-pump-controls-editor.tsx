@@ -96,7 +96,7 @@ export const VariableSpeedPumpControlsEditor = ({
     onControlChange({ ...control, ...changes });
   };
 
-  const highlightAsset = useAssetHighlight(targets);
+  const highlightAsset = useAssetHighlight(targets.nodes);
 
   const tanks = useMemo(
     () => targets.nodes.filter((node): node is Tank => node.type === "tank"),
@@ -617,7 +617,7 @@ const FlowTargetField = ({
   );
 };
 
-const CheckboxRow = ({
+export const CheckboxRow = ({
   label,
   checked,
   onChange,
@@ -895,7 +895,7 @@ const duplicatePumpRows = (rows: LagRow[]): Set<number> => {
   return duplicates;
 };
 
-const useAssetHighlight = (targets: VariableSpeedPumpTargets) => {
+export const useAssetHighlight = (nodes: NodeAsset[]) => {
   const setHighlights = useSetAtom(highlightsAtom);
 
   const highlightAsset = useCallback(
@@ -904,7 +904,7 @@ const useAssetHighlight = (targets: VariableSpeedPumpTargets) => {
         setHighlights([]);
         return;
       }
-      const node = targets.nodes.find((n) => n.id === assetId);
+      const node = nodes.find((n) => n.id === assetId);
       if (node) {
         const [lng, lat] = node.coordinates;
         setHighlights([
@@ -918,7 +918,7 @@ const useAssetHighlight = (targets: VariableSpeedPumpTargets) => {
       }
       setHighlights([{ type: "asset", assetId }]);
     },
-    [targets.nodes, setHighlights],
+    [nodes, setHighlights],
   );
 
   useEffect(() => () => setHighlights([]), [setHighlights]);

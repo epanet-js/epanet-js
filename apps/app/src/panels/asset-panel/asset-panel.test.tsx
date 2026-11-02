@@ -31,6 +31,7 @@ import FeatureEditor from "../feature-editor";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@epanet-js/ui-kit";
 import { USelection } from "src/selection";
+import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("AssetPanel", () => {
   describe("with a pipe", () => {
@@ -744,6 +745,103 @@ describe("AssetPanel", () => {
       const updated = store.get(stagingModelDerivedAtom);
       const valve = getLink(updated.assets, IDS.V1) as Valve;
       expect(valve.targetNodeId).toBe(IDS.other);
+    });
+
+    describe("flow-modulating valve controls", () => {
+      const IDS = { V1: 1, up: 2, down: 3, other: 4, P1: 5 };
+      const aPrvModel = () =>
+        HydraulicModelBuilder.with()
+          .aJunction(IDS.up, { label: "UP" })
+          .aJunction(IDS.down, { label: "DOWN" })
+          .aJunction(IDS.other, { label: "OTHER" })
+          .aValve(IDS.V1, {
+            kind: "prv",
+            setting: 30,
+            startNodeId: IDS.up,
+            endNodeId: IDS.down,
+          })
+          .aPipe(IDS.P1, { startNodeId: IDS.down, endNodeId: IDS.other })
+          .build();
+
+      it("locks the target node and setting to the control while a flow-modulated control is set", async () => {
+        stubFeatureOn("FLAG_FLOW_MODULATING_VALVES");
+        const store = setInitialState({
+          hydraulicModel: aPrvModel(),
+          selectedAssetId: IDS.V1,
+        });
+        const user = userEvent.setup();
+
+        renderComponent(store);
+        await waitFor(() =>
+          expect(
+            screen.getByRole("combobox", { name: /target node/i }),
+          ).toBeEnabled(),
+        );
+        expect(screen.getByRole("textbox", { name: /setting/i })).toHaveValue(
+          "30",
+        );
+
+        await user.click(screen.getByRole("combobox", { name: "Type" }));
+        await user.click(
+          await screen.findByRole("option", { name: "Flow modulated" }),
+        );
+
+        expect(store.get(stagingModelDerivedAtom).controls).toEqual([
+          {
+            id: expect.any(String),
+            type: "flow-modulating-valve",
+            linkId: IDS.V1,
+            points: [{ flow: 0, pressure: 30 }],
+            interpolate: true,
+            sensorLinkId: IDS.V1,
+            controlNodeId: IDS.down,
+          },
+        ]);
+        const targetNode = screen.getByRole("combobox", {
+          name: /target node/i,
+        });
+        expect(targetNode).toBeDisabled();
+        expect(targetNode).toHaveTextContent("DOWN");
+        const setting = screen.getByRole("textbox", { name: /setting/i });
+        expect(setting).toBeDisabled();
+        expect(setting).toHaveValue("");
+        expect(setting).toHaveAttribute("placeholder", "Set by curve");
+
+        await user.click(screen.getByRole("combobox", { name: "Type" }));
+        await user.click(await screen.findByRole("option", { name: "None" }));
+
+        expect(store.get(stagingModelDerivedAtom).controls).toEqual([]);
+        await waitFor(() =>
+          expect(
+            screen.getByRole("combobox", { name: /target node/i }),
+          ).toBeEnabled(),
+        );
+        expect(screen.getByRole("textbox", { name: /setting/i })).toBeEnabled();
+        expect(screen.getByRole("textbox", { name: /setting/i })).toHaveValue(
+          "30",
+        );
+      });
+
+      it("hides the controls section when the flag is off", () => {
+        stubFeatureOff("FLAG_FLOW_MODULATING_VALVES");
+        const store = setInitialState({
+          hydraulicModel: aPrvModel(),
+          selectedAssetId: IDS.V1,
+        });
+
+        renderComponent(store);
+
+        expect(screen.queryByText("Controls")).not.toBeInTheDocument();
+        expect(
+          screen.queryByRole("combobox", { name: "Type" }),
+        ).not.toBeInTheDocument();
+        expect(
+          screen.getByRole("combobox", { name: /target node/i }),
+        ).toBeInTheDocument();
+        expect(screen.getByRole("textbox", { name: /setting/i })).toHaveValue(
+          "30",
+        );
+      });
     });
 
     it("can show simulation results", async () => {

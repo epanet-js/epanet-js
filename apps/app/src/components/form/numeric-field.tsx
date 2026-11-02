@@ -60,15 +60,24 @@ export const NumericField = ({
   useEffect(() => {
     if (!isDirty && document.activeElement !== inputRef.current) {
       setInputValue(displayValue);
-      const { hasError, isBlocked } = validationStateFor(displayValue, {
-        isRequired,
-        commitInvalidValues,
-        validate,
-      });
+      const { hasError, isBlocked } = disabled
+        ? { hasError: false, isBlocked: false }
+        : validationStateFor(displayValue, {
+            isRequired,
+            commitInvalidValues,
+            validate,
+          });
       setError(hasError);
       setBlocked(isBlocked);
     }
-  }, [displayValue, isDirty, isRequired, commitInvalidValues, validate]);
+  }, [
+    displayValue,
+    isDirty,
+    disabled,
+    isRequired,
+    commitInvalidValues,
+    validate,
+  ]);
 
   const handleKeyDown: KeyboardEventHandler<HTMLInputElement> = (e) => {
     if (e.key === "Escape") {

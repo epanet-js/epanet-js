@@ -266,6 +266,7 @@ export const QuantityRow = <
   value,
   unit,
   readOnly = false,
+  disabled = false,
   isOptional = false,
   commitInvalidValues,
   placeholder = "",
@@ -282,6 +283,7 @@ export const QuantityRow = <
   isOptional?: boolean;
   commitInvalidValues?: boolean;
   readOnly?: boolean;
+  disabled?: boolean;
   placeholder?: string;
   defaultValue?: number | null;
   comparison?: PropertyComparison;
@@ -347,6 +349,7 @@ export const QuantityRow = <
           commitInvalidValues={commitInvalidValues}
           validate={validate}
           readOnly={readOnly}
+          disabled={disabled}
           displayValue={displayValue}
           placeholder={displayPlaceholder}
           onChangeValue={handleChange}
@@ -585,6 +588,7 @@ type SelectRowPropsBase<P extends string, T extends SelectRowValue> = {
   actions?: SelectorAction[];
   comparison?: PropertyComparison;
   readOnly?: boolean;
+  disabled?: boolean;
   paywall?: PaywallFeature;
   isOptional?: boolean;
   onHighlightChange?: (value: T | null) => void;
@@ -625,6 +629,7 @@ export function SelectRow<P extends string, T extends SelectRowValue>({
   actions,
   comparison,
   readOnly,
+  disabled = false,
   paywall,
   nullable = false,
   placeholder = undefined,
@@ -672,6 +677,7 @@ export function SelectRow<P extends string, T extends SelectRowValue>({
             options={options}
             selected={selected}
             invalid={hasError}
+            disabled={disabled}
             nullable={nullable as true}
             onChange={(newValue, oldValue) =>
               onChange?.(name, newValue as T, oldValue as T)

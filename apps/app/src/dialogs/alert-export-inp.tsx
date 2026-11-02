@@ -53,6 +53,7 @@ export const AlertExportInpDialog = ({
           <LsxRequiredWarning
             remoteSetpointPrvs={lsxRequirements.remoteSetpointPrvs}
             variableSpeedPumps={lsxRequirements.variableSpeedPumps}
+            flowModulatingValves={lsxRequirements.flowModulatingValves}
           />
         )}
         <p className="pb-2">{translate("alertExportInpDetail")}</p>
@@ -66,9 +67,11 @@ export const AlertExportInpDialog = ({
 export const LsxRequiredWarning = ({
   remoteSetpointPrvs,
   variableSpeedPumps,
+  flowModulatingValves,
 }: {
   remoteSetpointPrvs: string[];
   variableSpeedPumps: string[];
+  flowModulatingValves: string[];
 }) => {
   const translate = useTranslate();
   const userTracking = useUserTracking();
@@ -120,6 +123,12 @@ export const LsxRequiredWarning = ({
             <li>
               {translate("alertExportInpLsxVariableSpeedPumps")} (
               {summarizeLabels(variableSpeedPumps)})
+            </li>
+          )}
+          {flowModulatingValves.length > 0 && (
+            <li>
+              {translate("alertExportInpLsxFlowModulatingValves")} (
+              {summarizeLabels(flowModulatingValves)})
             </li>
           )}
         </ul>

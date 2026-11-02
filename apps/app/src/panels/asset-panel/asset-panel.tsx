@@ -80,7 +80,12 @@ import {
   numericChecks,
 } from "src/lib/model-attributes-validation";
 import { getLinkNodes } from "@epanet-js/hydraulic-model";
-import { type AssetId, type Control } from "@epanet-js/hydraulic-model";
+import {
+  type AssetId,
+  type Control,
+  type FlowModulatingValveControl,
+  type LinkAsset,
+} from "@epanet-js/hydraulic-model";
 import { isNodeAsset } from "@epanet-js/hydraulic-model";
 import { highlightsAtom } from "src/state/highlights";
 import { changeAssetControl } from "@epanet-js/hydraulic-model-operations";
@@ -117,6 +122,10 @@ import type {
 } from "@epanet-js/simulation";
 import { DemandsEditor } from "./demands-editor";
 import { PumpControlsEditor } from "./pump-controls-editor";
+import {
+  ValveControlsEditor,
+  type FlowModulatingValveTargets,
+} from "./flow-modulating-valve-controls-editor";
 import { PumpDefinitionDetails } from "./pump-definition-details";
 import { getAttribute, isCustomProperty } from "@epanet-js/hydraulic-model";
 import { CustomAttributesSection } from "./custom-attributes-section";
@@ -395,6 +404,7 @@ export function AssetPanel({
           onStatusChange={handleStatusChange}
           onActiveTopologyStatusChange={handleActiveTopologyStatusChange}
           onLabelChange={handleLabelChange}
+          onControlChange={handleControlChange}
           {...getLinkNodes(hydraulicModel.assets, valve)}
           readonly={readonly}
         />
@@ -2056,6 +2066,7 @@ const ValveEditor = ({
   onStatusChange,
   onActiveTopologyStatusChange,
   onLabelChange,
+  onControlChange,
   readonly = false,
 }: {
   hydraulicModel: HydraulicModel;
@@ -2072,6 +2083,11 @@ const ValveEditor = ({
     oldValue: boolean,
   ) => void;
   onLabelChange: (newLabel: string) => string | undefined;
+  onControlChange: (
+    assetId: AssetId,
+    control: Control | null,
+    previousControl: Control | null,
+  ) => void;
   readonly?: boolean;
 }) => {
   const translate = useTranslate();
@@ -2136,7 +2152,36 @@ const ValveEditor = ({
     return null;
   };
 
-  const showTargetNode = valve.kind === "prv";
+  const isPrv = valve.kind === "prv";
+  const isFlowModulatingValvesOn = useFeatureFlag(
+    "FLAG_FLOW_MODULATING_VALVES",
+  );
+  const showControls = isPrv && isFlowModulatingValvesOn;
+  const flowModulatingControl = showControls
+    ? ([...hydraulicModel.controlsLookup.getControls(valve.id)].find(
+        (c): c is FlowModulatingValveControl =>
+          c.type === "flow-modulating-valve" && c.linkId === valve.id,
+      ) ?? null)
+    : null;
+  const isSetByCurve = flowModulatingControl !== null;
+  const showTargetNode = isPrv;
+  const controlNodeOptions = useMemo((): TargetNodeOption[] => {
+    if (!flowModulatingControl) return EMPTY_TARGET_NODE_OPTIONS;
+    const node = hydraulicModel.assets.get(flowModulatingControl.controlNodeId);
+    return node ? [{ value: node.id, label: node.label }] : [];
+  }, [flowModulatingControl, hydraulicModel.assets]);
+  const outletNodeId = valve.connections[1] ?? null;
+  const flowModulatingTargets = useMemo((): FlowModulatingValveTargets => {
+    const nodes: NodeAsset[] = [];
+    const links: LinkAsset[] = [];
+    if (showControls) {
+      for (const asset of hydraulicModel.assets.values()) {
+        if (asset.isNode) nodes.push(asset as NodeAsset);
+        else links.push(asset as LinkAsset);
+      }
+    }
+    return { nodes, links, outletNodeId, units };
+  }, [showControls, hydraulicModel.assets, outletNodeId, units]);
   const isScriptingOn = useFeatureFlag("FLAG_SCRIPTING");
   const targetNode =
     valve.targetNodeId !== undefined
@@ -2154,9 +2199,11 @@ const ValveEditor = ({
   >(
     findTargetNodeOptions,
     [hydraulicModel, valve, isScriptingOn],
-    showTargetNode,
+    showTargetNode && !isSetByCurve,
   );
-  const targetNodeOptions = tracedNodeOptions ?? EMPTY_TARGET_NODE_OPTIONS;
+  const targetNodeOptions = isSetByCurve
+    ? controlNodeOptions
+    : (tracedNodeOptions ?? EMPTY_TARGET_NODE_OPTIONS);
 
   const setHighlights = useSetAtom(highlightsAtom);
 
@@ -2194,7 +2241,7 @@ const ValveEditor = ({
     ) ||
     getCurveComparison("curveId", valve.curveId, hydraulicModel.curves)
       .hasChanged ||
-    (showTargetNode && targetNodeComparison.hasChanged);
+    (showTargetNode && !isSetByCurve && targetNodeComparison.hasChanged);
 
   return (
     <AssetEditorContent
@@ -2241,11 +2288,19 @@ const ValveEditor = ({
         {valve.kind !== "gpv" && (
           <QuantityRow
             name="setting"
-            value={valve.setting}
+            value={isSetByCurve ? null : valve.setting}
             unit={getSettingUnit()}
-            comparison={getComparison("setting", valve.setting)}
-            onChange={onPropertyChange}
+            placeholder={
+              isSetByCurve
+                ? translate("controls.flowModulating.setByCurve")
+                : undefined
+            }
+            comparison={
+              isSetByCurve ? undefined : getComparison("setting", valve.setting)
+            }
+            onChange={isSetByCurve ? undefined : onPropertyChange}
             readOnly={readonly}
+            disabled={isSetByCurve}
             commitInvalidValues
           />
         )}
@@ -2270,14 +2325,17 @@ const ValveEditor = ({
         {showTargetNode && (
           <SelectRow
             name="targetNode"
-            selected={targetNodeId}
+            selected={
+              isSetByCurve ? flowModulatingControl.controlNodeId : targetNodeId
+            }
             options={targetNodeOptions}
             nullable
             placeholder={endNode ? endNode.label : translate("select") + "..."}
-            comparison={targetNodeComparison}
-            onChange={handleTargetNodeChange}
+            comparison={isSetByCurve ? undefined : targetNodeComparison}
+            onChange={isSetByCurve ? undefined : handleTargetNodeChange}
             onHighlightChange={highlightTargetNodeById}
             readOnly={readonly}
+            disabled={isSetByCurve}
             clearLabel={endNode ? endNode.label : translate("select") + "..."}
           />
         )}
@@ -2317,6 +2375,21 @@ const ValveEditor = ({
         type="valve"
         onPropertyChange={onPropertyChange}
       />
+      {showControls && (
+        <SectionWrapper title={translate("controls.title")} section="controls">
+          <ValveControlsEditor
+            key={valve.id}
+            valveId={valve.id}
+            setting={valve.setting ?? 0}
+            control={flowModulatingControl}
+            targets={flowModulatingTargets}
+            onControlChange={(control) =>
+              onControlChange(valve.id, control, flowModulatingControl)
+            }
+            readOnly={readonly}
+          />
+        </SectionWrapper>
+      )}
       <SectionWrapper
         title={translate("simulationResults")}
         section="simulationResults"
