@@ -98,6 +98,26 @@ describe("buildControlsData", () => {
     ).toThrow(/Controls: data does not match schema/);
   });
 
+  it("reconstructs a flow-modulating valve control from the serialized blob", () => {
+    const IDS = { V1: 7, P2: 8, J3: 12 } as const;
+    const control = {
+      id: "ctrl-1",
+      type: "flow-modulating-valve",
+      linkId: IDS.V1,
+      points: [
+        { flow: 3, pressure: 20 },
+        { flow: 9, pressure: 34 },
+      ],
+      interpolate: false,
+      sensorLinkId: IDS.P2,
+      controlNodeId: IDS.J3,
+    };
+
+    const controls = buildControlsData(JSON.stringify([control]));
+
+    expect(controls).toEqual([control]);
+  });
+
   it("returns empty controls for null input (fresh project)", () => {
     expect(buildControlsData(null)).toEqual([]);
   });

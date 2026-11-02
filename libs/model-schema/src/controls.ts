@@ -48,10 +48,26 @@ const variableSpeedPumpControlSchema = z.object({
     .optional(),
 });
 
+const flowModulatingValvePointSchema = z.object({
+  flow: z.number(),
+  pressure: z.number(),
+});
+
+const flowModulatingValveControlSchema = z.object({
+  id: z.string(),
+  type: z.literal("flow-modulating-valve"),
+  linkId: z.number(),
+  points: z.array(flowModulatingValvePointSchema),
+  interpolate: z.boolean(),
+  sensorLinkId: z.number(),
+  controlNodeId: z.number(),
+});
+
 export const controlSchema = z.discriminatedUnion("type", [
   timedSettingControlSchema,
   levelSettingControlSchema,
   variableSpeedPumpControlSchema,
+  flowModulatingValveControlSchema,
 ]);
 
 export const controlsSchema = z.array(controlSchema);

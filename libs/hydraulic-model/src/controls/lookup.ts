@@ -84,5 +84,7 @@ const referencedIds = (control: Control): AssetId[] => {
         ...(control.tankLevels ? [control.tankLevels.tankId] : []),
         ...control.laggedPumpIds,
       ];
+    case "flow-modulating-valve":
+      return [control.linkId, control.sensorLinkId, control.controlNodeId];
   }
 };

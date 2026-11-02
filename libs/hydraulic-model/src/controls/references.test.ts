@@ -5,6 +5,7 @@ import {
   buildPipe,
   buildPump,
   buildTank,
+  buildValve,
 } from "../test-helpers";
 import {
   detachControlReferences,
@@ -13,8 +14,10 @@ import {
 } from "./references";
 import {
   Controls,
+  FlowModulatingValveControl,
   VariableSpeedPumpControl,
   buildDefaultLevelSetting,
+  buildFlowModulatingValve,
   buildTimedSetting,
   buildVariableSpeedPump,
 } from "./types";
@@ -368,5 +371,96 @@ describe("remapControlNodeReference", () => {
     expect(
       remapControlNodeReference(controls, IDS.T1, buildJunction({ id: J4 })),
     ).toEqual([]);
+  });
+});
+
+describe("flow-modulating valve references", () => {
+  const V1 = 30;
+  const P2 = 31;
+  const J4 = 32;
+
+  const valveAssets = () =>
+    new AssetsMap(
+      [
+        buildJunction({ id: IDS.J1 }),
+        buildJunction({ id: IDS.J2 }),
+        buildJunction({ id: IDS.J3 }),
+        buildValve({ id: V1, connections: [IDS.J1, IDS.J2] }),
+        buildPipe({ id: P2, connections: [IDS.J2, IDS.J3] }),
+      ].map((asset) => [asset.id, asset]),
+    );
+
+  const aFlowModulatingValve = (
+    changes: Partial<Omit<FlowModulatingValveControl, "id" | "type">> = {},
+  ) =>
+    buildFlowModulatingValve(
+      {
+        linkId: V1,
+        points: [
+          { flow: 3, pressure: 20 },
+          { flow: 9, pressure: 34 },
+        ],
+        interpolate: true,
+        sensorLinkId: P2,
+        controlNodeId: IDS.J3,
+        ...changes,
+      },
+      "fmv-1",
+    );
+
+  it("drops the control when its valve is removed", () => {
+    expect(
+      detachControlReferences(
+        [aFlowModulatingValve()],
+        new Set([V1]),
+        valveAssets(),
+      ),
+    ).toEqual([]);
+  });
+
+  it("falls back to the valve itself when the sensor link is removed", () => {
+    const [control] = detachControlReferences(
+      [aFlowModulatingValve()],
+      new Set([P2]),
+      valveAssets(),
+    )!;
+
+    expect(control).toEqual(aFlowModulatingValve({ sensorLinkId: V1 }));
+  });
+
+  it("falls back to the valve's outlet when the control node is removed", () => {
+    const [control] = detachControlReferences(
+      [aFlowModulatingValve()],
+      new Set([IDS.J3]),
+      valveAssets(),
+    )!;
+
+    expect(control).toEqual(aFlowModulatingValve({ controlNodeId: IDS.J2 }));
+  });
+
+  it("re-points the sensor link when it is replaced", () => {
+    const [control] = remapControlLinkReference(
+      [aFlowModulatingValve()],
+      P2,
+      IDS.P1,
+    )!;
+
+    expect(control).toEqual(aFlowModulatingValve({ sensorLinkId: IDS.P1 }));
+  });
+
+  it("returns null when the replaced link is not the sensor", () => {
+    expect(
+      remapControlLinkReference([aFlowModulatingValve()], IDS.P1, IDS.PU1),
+    ).toBeNull();
+  });
+
+  it("re-points the control node to any replacing node", () => {
+    const [control] = remapControlNodeReference(
+      [aFlowModulatingValve()],
+      IDS.J3,
+      buildTank({ id: J4 }),
+    )!;
+
+    expect(control).toEqual(aFlowModulatingValve({ controlNodeId: J4 }));
   });
 });

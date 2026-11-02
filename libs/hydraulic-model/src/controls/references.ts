@@ -3,6 +3,7 @@ import { AssetsMap } from "../assets-map";
 import {
   Control,
   Controls,
+  FlowModulatingValveControl,
   VariableSpeedPumpControl,
   buildDefaultVspFlowControl,
   buildDefaultVspPressureControl,
@@ -65,7 +66,26 @@ const detachControl = (
       return removedIds.has(control.tankId) ? null : control;
     case "variable-speed-pump":
       return detachVariableSpeedPump(control, removedIds, assets);
+    case "flow-modulating-valve":
+      return detachFlowModulatingValve(control, removedIds, assets);
   }
+};
+
+const detachFlowModulatingValve = (
+  control: FlowModulatingValveControl,
+  removedIds: ReadonlySet<AssetId>,
+  assets: AssetsMap,
+): FlowModulatingValveControl | null => {
+  let next = control;
+  if (removedIds.has(next.sensorLinkId)) {
+    next = { ...next, sensorLinkId: next.linkId };
+  }
+  if (removedIds.has(next.controlNodeId)) {
+    const outlet = outletOf(next.linkId, removedIds, assets);
+    if (!outlet) return null;
+    next = { ...next, controlNodeId: outlet.id };
+  }
+  return next;
 };
 
 const detachVariableSpeedPump = (
@@ -144,6 +164,9 @@ const remapNodeReference = (
       return isTank ? { ...control, tankId: to.id } : null;
     case "variable-speed-pump":
       return remapVariableSpeedPumpNode(control, from, to);
+    case "flow-modulating-valve":
+      if (control.controlNodeId !== from) return control;
+      return { ...control, controlNodeId: to.id };
   }
 };
 
@@ -174,6 +197,10 @@ const remapLinkReference = (
   from: AssetId,
   to: AssetId,
 ): Control => {
+  if (control.type === "flow-modulating-valve") {
+    if (control.sensorLinkId !== from) return control;
+    return { ...control, sensorLinkId: to };
+  }
   if (control.type !== "variable-speed-pump") return control;
   const remapsTarget = control.targetId === from;
   const remapsLaggedPump = control.laggedPumpIds.includes(from);

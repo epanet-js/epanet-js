@@ -6,6 +6,8 @@ export type {
   VariableSpeedPumpControl,
   VariableSpeedPumpSchedulePoint,
   VariableSpeedPumpTankLevels,
+  FlowModulatingValveControl,
+  FlowModulatingValvePoint,
   Control,
   Controls,
 } from "./types";
@@ -16,11 +18,14 @@ export {
   getLinkTimedSetting,
   getLinkLevelSetting,
   getLinkVariableSpeedPump,
+  getLinkFlowModulatingValve,
   buildTimedSetting,
   buildDefaultLevelSetting,
   buildVariableSpeedPump,
   buildDefaultVspPressureControl,
   buildDefaultVspFlowControl,
+  buildFlowModulatingValve,
+  buildDefaultFlowModulatingValve,
   setAssetControl,
 } from "./types";
 

@@ -60,6 +60,28 @@ describe("serializeControls", () => {
     expect(JSON.parse(data)).toEqual(controls);
   });
 
+  it("round-trips a flow-modulating valve control", () => {
+    const IDS = { V1: 7, J2: 12 } as const;
+    const controls: Controls = [
+      {
+        id: "ctrl-1",
+        type: "flow-modulating-valve",
+        linkId: IDS.V1,
+        points: [
+          { flow: 0, pressure: 25 },
+          { flow: 5, pressure: 30 },
+        ],
+        interpolate: true,
+        sensorLinkId: IDS.V1,
+        controlNodeId: IDS.J2,
+      },
+    ];
+
+    const data = serializeControls(controls);
+
+    expect(JSON.parse(data)).toEqual(controls);
+  });
+
   it("serializes empty controls as an empty array", () => {
     const data = serializeControls(createEmptyControls());
     expect(JSON.parse(data)).toEqual([]);

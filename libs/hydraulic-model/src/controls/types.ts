@@ -54,10 +54,26 @@ export type VariableSpeedPumpControl = {
   tankLevels?: VariableSpeedPumpTankLevels;
 };
 
+export type FlowModulatingValvePoint = {
+  flow: number;
+  pressure: number;
+};
+
+export type FlowModulatingValveControl = {
+  id: ControlId;
+  type: "flow-modulating-valve";
+  linkId: AssetId;
+  points: FlowModulatingValvePoint[];
+  interpolate: boolean;
+  sensorLinkId: AssetId;
+  controlNodeId: AssetId;
+};
+
 export type Control =
   | TimedSettingControl
   | LevelSettingControl
-  | VariableSpeedPumpControl;
+  | VariableSpeedPumpControl
+  | FlowModulatingValveControl;
 
 export type Controls = Control[];
 
@@ -88,6 +104,15 @@ export const getLinkVariableSpeedPump = (
   controls.find(
     (control): control is VariableSpeedPumpControl =>
       control.type === "variable-speed-pump" && control.linkId === linkId,
+  ) ?? null;
+
+export const getLinkFlowModulatingValve = (
+  controls: Controls,
+  linkId: AssetId,
+): FlowModulatingValveControl | null =>
+  controls.find(
+    (control): control is FlowModulatingValveControl =>
+      control.type === "flow-modulating-valve" && control.linkId === linkId,
   ) ?? null;
 
 export const buildTimedSetting = (
@@ -165,6 +190,30 @@ export const buildDefaultVspFlowControl = (
   laggedPumpIds: base?.laggedPumpIds ?? [],
   schedule: [],
   ...(base?.tankLevels && { tankLevels: base.tankLevels }),
+});
+
+export const buildFlowModulatingValve = (
+  data: Omit<FlowModulatingValveControl, "id" | "type">,
+  id: ControlId = createControlId(),
+): FlowModulatingValveControl => ({
+  id,
+  type: "flow-modulating-valve",
+  ...data,
+});
+
+export const buildDefaultFlowModulatingValve = (
+  linkId: AssetId,
+  outletNodeId: AssetId,
+  setting: number,
+  id: ControlId = createControlId(),
+): FlowModulatingValveControl => ({
+  id,
+  type: "flow-modulating-valve",
+  linkId,
+  points: [{ flow: 0, pressure: setting }],
+  interpolate: true,
+  sensorLinkId: linkId,
+  controlNodeId: outletNodeId,
 });
 
 export const setAssetControl = (
