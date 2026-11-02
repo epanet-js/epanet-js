@@ -1,7 +1,9 @@
 import * as C from "@radix-ui/react-collapsible";
+import { useState } from "react";
 
 import { ChevronDownIcon, ChevronRightIcon } from "src/icons";
 import { Button } from "../elements";
+import { ItemActions, type ItemAction } from "./item-actions";
 import { useNavigableListContext } from "./navigable-list";
 
 type CollapsibleListSectionProps = {
@@ -14,6 +16,9 @@ type CollapsibleListSectionProps = {
   children: React.ReactNode;
   action?: { label: string; icon: React.ReactNode; disabled?: boolean };
   onAction?: (sectionType: string) => void;
+  menuActions?: ItemAction[];
+  menuLabel?: string;
+  onMenuAction?: (action: string) => void;
   readOnly?: boolean;
 };
 
@@ -26,9 +31,13 @@ export const CollapsibleListSection = ({
   onToggle: onToggleProp,
   action,
   onAction,
+  menuActions,
+  menuLabel,
+  onMenuAction,
   children,
   readOnly = false,
 }: CollapsibleListSectionProps) => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const ctx = useNavigableListContext();
   const isOpen = isOpenProp ?? ctx?.sectionStatus[sectionType] ?? true;
   const onToggle = onToggleProp ?? (() => ctx?.toggleSection(sectionType));
@@ -37,8 +46,8 @@ export const CollapsibleListSection = ({
     <C.Root open={isOpen} onOpenChange={onToggle}>
       <div
         data-section-type={sectionType}
-        className={`group/section flex items-center justify-between h-8 px-1 rounded-sm ${
-          isFocused ? "bg-base-hover" : "hover:bg-base-hover"
+        className={`group group/section flex items-center justify-between h-8 px-1 rounded-sm ${
+          isFocused || isMenuOpen ? "bg-base-hover" : "hover:bg-base-hover"
         }`}
       >
         <C.Trigger asChild>
@@ -63,6 +72,15 @@ export const CollapsibleListSection = ({
           >
             {action.icon}
           </Button>
+        )}
+        {!readOnly && menuActions && menuActions.length > 0 && onMenuAction && (
+          <ItemActions
+            label={menuLabel}
+            isSelected={false}
+            actions={menuActions}
+            onAction={onMenuAction}
+            onOpenChange={setIsMenuOpen}
+          />
         )}
       </div>
       <C.Content>

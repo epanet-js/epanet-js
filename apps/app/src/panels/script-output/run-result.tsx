@@ -13,6 +13,8 @@ import type { ScriptAttachment, ScriptRunOutcome } from "src/lib/scripting";
 import {
   useApplyScriptSelectionSet,
   useGoToScriptBookmark,
+  useSaveAllScriptBookmarks,
+  useSaveAllScriptSelectionSets,
   useSaveScriptBookmark,
   useSaveScriptSelectionSet,
 } from "src/commands/script-output-collections";
@@ -25,6 +27,8 @@ export const RunResult = ({ outcome }: { outcome: ScriptRunOutcome }) => {
   const goToBookmark = useGoToScriptBookmark();
   const saveSelectionSet = useSaveScriptSelectionSet();
   const saveBookmark = useSaveScriptBookmark();
+  const saveAllSelectionSets = useSaveAllScriptSelectionSets();
+  const saveAllBookmarks = useSaveAllScriptBookmarks();
   const isCollectionsAvailable = useIsCollectionsAvailable();
   const { canManageCollections } = usePermissions();
 
@@ -50,6 +54,20 @@ export const RunResult = ({ outcome }: { outcome: ScriptRunOutcome }) => {
       ]
     : [];
 
+  const isUnsaved = ({ commit }: { commit: boolean }) =>
+    !(commit && canManageCollections);
+
+  const saveAllActions = (hasUnsaved: boolean): ItemAction[] =>
+    isCollectionsAvailable && hasUnsaved
+      ? [
+          {
+            action: "saveAll",
+            label: translate("scripting.saveAll"),
+            icon: <BookmarkIcon size="sm" />,
+          },
+        ]
+      : [];
+
   return (
     <>
       {outcome.attachments.length > 0 && (
@@ -68,6 +86,8 @@ export const RunResult = ({ outcome }: { outcome: ScriptRunOutcome }) => {
           sectionType="selectionSets"
           title={translate("collections.selectionSets.title")}
           count={outcome.selectionSets.length}
+          menuActions={saveAllActions(outcome.selectionSets.some(isUnsaved))}
+          onMenuAction={() => saveAllSelectionSets(outcome.selectionSets)}
         >
           {outcome.selectionSets.map((selectionSet, i) => (
             <OutputItem
@@ -90,6 +110,8 @@ export const RunResult = ({ outcome }: { outcome: ScriptRunOutcome }) => {
           sectionType="bookmarks"
           title={translate("collections.bookmarks.title")}
           count={outcome.bookmarks.length}
+          menuActions={saveAllActions(outcome.bookmarks.some(isUnsaved))}
+          onMenuAction={() => saveAllBookmarks(outcome.bookmarks)}
         >
           {outcome.bookmarks.map((bookmark, i) => (
             <OutputItem
@@ -113,13 +135,18 @@ const Section = ({
   sectionType,
   title,
   count,
+  menuActions = [],
+  onMenuAction,
   children,
 }: {
   sectionType: string;
   title: string;
   count: number;
+  menuActions?: ItemAction[];
+  onMenuAction?: (action: string) => void;
   children: ReactNode;
 }) => {
+  const translate = useTranslate();
   const [isOpen, setIsOpen] = useState(true);
   return (
     <CollapsibleListSection
@@ -129,7 +156,10 @@ const Section = ({
       isOpen={isOpen}
       onToggle={() => setIsOpen((open) => !open)}
       isFocused={false}
-      readOnly
+      menuActions={menuActions}
+      menuLabel={translate("moreActions")}
+      onMenuAction={onMenuAction}
+      readOnly={menuActions.length === 0}
     >
       {children}
     </CollapsibleListSection>
