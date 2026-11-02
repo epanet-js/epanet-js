@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { strToU8, zipSync } from "fflate";
+import { strToU8, zip } from "fflate";
 import type { ReactNode } from "react";
 import { Button } from "src/components/elements";
 import { FileSystemHelpers } from "src/infra/storage";
+import { captureError } from "src/infra/error-tracking";
 import { PaywallLockButton } from "src/components/form/paywall";
 import { usePermissions } from "src/hooks/use-permissions";
 import { useTranslate } from "src/hooks/use-translate";
@@ -189,18 +190,19 @@ export const useDownloadAttachment = () => {
 export const useDownloadAttachmentsZip = () => {
   const userTracking = useUserTracking();
   return (scriptName: string, attachments: ScriptAttachment[]) => {
-    const zip = zipSync(
-      Object.fromEntries(
-        attachments.map(({ name, content }) => [name, strToU8(content)]),
-      ),
+    const files = Object.fromEntries(
+      attachments.map(({ name, content }) => [name, strToU8(content)]),
     );
-    userTracking.capture({
-      name: "script.attachmentsZipDownloaded",
-      count: attachments.length,
-      sizeKb: Math.max(1, Math.round(zip.length / 1024)),
+    zip(files, (error, data) => {
+      if (error) return captureError(error);
+      userTracking.capture({
+        name: "script.attachmentsZipDownloaded",
+        count: attachments.length,
+        sizeKb: Math.max(1, Math.round(data.length / 1024)),
+      });
+      const fileName = `${scriptName.replace(/[\\/:*?"<>|]/g, "-")}.zip`;
+      void FileSystemHelpers.downloadFile(fileName, data);
     });
-    const fileName = `${scriptName.replace(/[\\/:*?"<>|]/g, "-")}.zip`;
-    void FileSystemHelpers.downloadFile(fileName, zip);
   };
 };
 
