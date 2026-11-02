@@ -19,10 +19,21 @@ import {
   useSaveScriptSelectionSet,
 } from "src/commands/script-output-collections";
 import { useIsCollectionsAvailable } from "src/commands/collection-draft";
-import { formatSize, useDownloadAttachment } from "./run-output";
+import {
+  formatSize,
+  useDownloadAttachment,
+  useDownloadAttachmentsZip,
+} from "./run-output";
 
-export const RunResult = ({ outcome }: { outcome: ScriptRunOutcome }) => {
+export const RunResult = ({
+  scriptName,
+  outcome,
+}: {
+  scriptName: string;
+  outcome: ScriptRunOutcome;
+}) => {
   const translate = useTranslate();
+  const downloadAttachmentsZip = useDownloadAttachmentsZip();
   const applySelectionSet = useApplyScriptSelectionSet();
   const goToBookmark = useGoToScriptBookmark();
   const saveSelectionSet = useSaveScriptSelectionSet();
@@ -75,6 +86,16 @@ export const RunResult = ({ outcome }: { outcome: ScriptRunOutcome }) => {
           sectionType="files"
           title={translate("scripting.files")}
           count={outcome.attachments.length}
+          menuActions={[
+            {
+              action: "downloadAllAsZip",
+              label: translate("scripting.downloadAllAsZip"),
+              icon: <DownloadIcon size="sm" />,
+            },
+          ]}
+          onMenuAction={() =>
+            downloadAttachmentsZip(scriptName, outcome.attachments)
+          }
         >
           {outcome.attachments.map((attachment) => (
             <AttachmentItem key={attachment.name} attachment={attachment} />

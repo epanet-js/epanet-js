@@ -97,7 +97,9 @@ const RunOutput = ({
               {formatElapsed(elapsedMs)}
             </span>
           </div>
-          {run.outcome && <RunResult outcome={run.outcome} />}
+          {run.outcome && (
+            <RunResult scriptName={run.name} outcome={run.outcome} />
+          )}
         </div>
       </div>
     </div>

@@ -139,6 +139,7 @@
     "finished": "Script finished",
     "files": "Files",
     "download": "Download",
+    "downloadAllAsZip": "Download all as zip",
     "collectionsNotSaved": "Not saved. Your plan does not include collections.",
     "saveAll": "Save all",
     "paywall": {

@@ -744,6 +744,12 @@ type ScriptAttachmentDownloaded = {
   sizeKb: number;
 };
 
+type ScriptAttachmentsZipDownloaded = {
+  name: "script.attachmentsZipDownloaded";
+  count: number;
+  sizeKb: number;
+};
+
 type ScriptingApiVisited = {
   name: "scriptingApi.visited";
   source: "menu" | "editor";
@@ -1586,6 +1592,7 @@ export type UserEvent =
   | ScriptSaved
   | ScriptDeleted
   | ScriptAttachmentDownloaded
+  | ScriptAttachmentsZipDownloaded
   | RepoVisited
   | FoundersPartnerLinkVisited
   | SignUpStarted
