@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { scriptingDocs } from "@epanet-js/scripting-docs";
 import { ScriptingApiPage } from "./scripting-api-page";
 
 export const metadata: Metadata = {
@@ -11,5 +12,11 @@ export const metadata: Metadata = {
 export const dynamic = "force-static";
 
 export default function Page() {
-  return <ScriptingApiPage />;
+  return (
+    <ScriptingApiPage
+      docs={scriptingDocs}
+      llmsPath="/llms.txt"
+      isCandidate={false}
+    />
+  );
 }

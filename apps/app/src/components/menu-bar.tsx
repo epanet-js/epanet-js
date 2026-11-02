@@ -33,6 +33,7 @@ import { dialogAtom } from "src/state/dialog";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { LanguageSelector } from "./language-selector";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { useScriptingDocs } from "src/hooks/use-scripting-docs";
 import { getScripting } from "src/lib/scripting";
 import { contentViewAtom } from "src/state/content-view";
 
@@ -176,6 +177,7 @@ export function HelpDot() {
   const showShortcuts = useShowShortcuts();
   const userTracking = useUserTracking();
   const isScriptingOn = useFeatureFlag("FLAG_SCRIPTING");
+  const scriptingDocs = useScriptingDocs();
 
   return (
     <DD.Root>
@@ -238,7 +240,7 @@ export function HelpDot() {
         </a>
         {isScriptingOn && getScripting() && (
           <a
-            href="/scripting-api"
+            href={scriptingDocs.apiPath}
             target="_blank"
             onClick={() => {
               userTracking.capture({

@@ -1,6 +1,6 @@
 import { exampleScripts } from "./example-scripts";
 import { GLOBALS, INTERFACES } from "./interfaces";
-import { SECTION as ASSETS } from "./sections/assets";
+import { sectionFor as assetsFor } from "./sections/assets";
 import { SECTION as COLLECTIONS } from "./sections/collections";
 import { SECTION as EXPORT } from "./sections/export";
 import { SECTION as LIBRARIES } from "./sections/libraries";
@@ -22,13 +22,19 @@ import { SECTION as SCRIPT_RUNS } from "./sections/script-runs";
 import { SECTION as SPATIAL } from "./sections/spatial";
 import { SECTION as TOPOLOGY } from "./sections/topology";
 import { SECTION as ZONES } from "./sections/zones";
-import type { ScriptingDocs } from "./types";
+import type { DocsCandidates, ScriptingDocs } from "./types";
+
+const READ_ONLY_RULE =
+  "Everything is read-only. If the user asks to change the model, say so — do not write a script that assigns to asset fields.";
+
+const EDITS_RULE =
+  "Change pipes only with `pipe.setProperties(...)`; everything else is read-only. If the user asks for another change, say so — never assign to asset fields.";
 
 const AGENT_RULES = [
   "Orient once: start the first script on an unfamiliar model with `console.log(network.stats)` and `console.log(network.units)`.",
   "Check `network.units` before hard-coding a threshold. A pipe diameter of 100 is 100 mm in one project and 100 in in another.",
   "Prefer `getNode`/`getLink` over `get`; never persist `uid`s; address assets by label.",
-  "Everything is read-only. If the user asks to change the model, say so — do not write a script that assigns to asset fields.",
+  READ_ONLY_RULE,
   "No `Date.now()`, `new Date()` or `Math.random()`: they throw in this sandbox.",
   "`JSON.stringify(asset)` is `{}`. Map assets to plain objects of the fields you need before serialising.",
   "Use the app's own checks instead of re-implementing them: `network.validate()`, `findOrphanAssets()`, `findSubnetworks()`, `findProximityAnomalies({ distance })`, `findCrossingPipes()`, `trace`, `boundaryLinks`, `shortestPath`.",
@@ -42,9 +48,9 @@ const AGENT_RULES = [
   'When the user names a DMA or a zone, look in `zones` (the drawn polygons); `network.trace` is a different, connectivity-based "zone".',
 ];
 
-export const scriptingDocs: ScriptingDocs = {
+const buildDocs = (candidates: DocsCandidates): ScriptingDocs => ({
   title: "epanet-js scripting API",
-  summary: `Sandboxed JavaScript scripting for epanet-js, a browser-based water network modelling app built on the EPANET engine. A script reads the open network — assets, patterns, curves, controls, the pipe library, settings — queries it spatially and topologically, reads the project's zones, runs the app's own review checks, reads the last simulation's results, exports it as INP, and hands results back as the map selection, a zoom, console output and attached files. This version is read-only: scripts cannot edit the model or run a simulation.`,
+  summary: `Sandboxed JavaScript scripting for epanet-js, a browser-based water network modelling app built on the EPANET engine. A script reads the open network — assets, patterns, curves, controls, the pipe library, settings — queries it spatially and topologically, reads the project's zones, runs the app's own review checks, reads the last simulation's results, exports it as INP, and hands results back as the map selection, a zoom, console output and attached files. ${candidates.edits ? "Scripts can change pipe properties; they cannot otherwise edit the model or run a simulation." : "This version is read-only: scripts cannot edit the model or run a simulation."}`,
   intro:
     "This is the complete surface a script sees. Everything below is injected into the sandbox; nothing else exists.",
   globals: GLOBALS,
@@ -54,7 +60,7 @@ export const scriptingDocs: ScriptingDocs = {
     { id: "network", number: "1", title: "`network` — the model" },
     OVERVIEW,
     COLLECTIONS,
-    ASSETS,
+    assetsFor(candidates),
     LIBRARIES,
     SPATIAL,
     TOPOLOGY,
@@ -69,6 +75,12 @@ export const scriptingDocs: ScriptingDocs = {
     COLLECTIONS_SECTION,
     ERRORS_SECTION,
   ],
-  agentRules: AGENT_RULES,
+  agentRules: AGENT_RULES.map((rule) =>
+    rule === READ_ONLY_RULE && candidates.edits ? EDITS_RULE : rule,
+  ),
   exampleScripts,
-};
+});
+
+export const scriptingDocs = buildDocs({ edits: false });
+
+export const editsCandidateDocs = buildDocs({ edits: true });

@@ -18,6 +18,7 @@ import type {
 import { useRunScript } from "src/commands/run-script";
 import { useFeatureLock } from "src/components/form/paywall";
 import { useTranslate } from "src/hooks/use-translate";
+import { useScriptingDocs } from "src/hooks/use-scripting-docs";
 import { usePermissions } from "src/hooks/use-permissions";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useScriptsTransaction } from "src/hooks/persistence/use-scripts-transaction";
@@ -45,8 +46,10 @@ import {
 import { CodeEditor } from "./code-editor";
 import { exampleNameKey } from "./example-names";
 
-const NEW_SCRIPT_SOURCE = `// Writing this script with AI? Give your assistant this file first:
-//   https://app.epanetjs.com/llms.txt
+const newScriptSource = (
+  llmsPath: string,
+) => `// Writing this script with AI? Give your assistant this file first:
+//   https://app.epanetjs.com${llmsPath}
 // It describes the whole scripting API, so the AI can write scripts
 // that run here. If your AI can't open links, open it and paste it in.
 
@@ -85,6 +88,7 @@ type Row = {
 };
 
 const ScriptList = ({ onOpen }: { onOpen: (draft: ScriptDraft) => void }) => {
+  const { llmsPath } = useScriptingDocs();
   const runScript = useRunScript();
   const scripts = useAtomValue(userScriptsAtom);
   const { save: saveScript } = useScriptsTransaction();
@@ -166,10 +170,10 @@ const ScriptList = ({ onOpen }: { onOpen: (draft: ScriptDraft) => void }) => {
       scriptId: null,
       exampleId: null,
       name: translate("scripting.untitled"),
-      source: NEW_SCRIPT_SOURCE,
+      source: newScriptSource(llmsPath),
       savedAs: null,
     });
-  }, [isEditLocked, openEditPaywall, onOpen, translate]);
+  }, [isEditLocked, openEditPaywall, onOpen, translate, llmsPath]);
 
   const handleActivateItem = useCallback(
     (item: NavItem<Section>) => {
@@ -359,6 +363,7 @@ const ScriptEditor = ({
 }) => {
   const runScript = useRunScript();
   const isRunning = useIsRunning();
+  const scriptingDocs = useScriptingDocs();
   const scripts = useAtomValue(userScriptsAtom);
   const { save: saveScript } = useScriptsTransaction();
   const userTracking = useUserTracking();
@@ -503,7 +508,11 @@ const ScriptEditor = ({
                 name: "scriptingApi.visited",
                 source: "editor",
               });
-              window.open("/scripting-api", "_blank", "noopener,noreferrer");
+              window.open(
+                scriptingDocs.apiPath,
+                "_blank",
+                "noopener,noreferrer",
+              );
             }}
           >
             <DocsIcon />
@@ -594,6 +603,7 @@ const ScriptEditor = ({
         <CodeEditor
           initialSource={draft.source}
           locked={isEditLocked}
+          docsVariant={scriptingDocs.variant}
           autoFocus={!isNewScript}
           onChange={(source) => onChange({ ...draftRef.current, source })}
           onRun={() => handleRun("shortcut")}

@@ -1,5 +1,5 @@
 import { memberOf, propertyOf } from "../members";
-import type { Member, Section, TypeDef } from "../types";
+import type { DocsCandidates, Member, Section, TypeDef } from "../types";
 
 const asset = propertyOf("Asset");
 const node = propertyOf("NodeAsset");
@@ -191,7 +191,7 @@ const valveResults = resultsOf(
 console.log(struggling.map((valve) => \`\${valve.label}: \${valve.results.statusWarning}\`));`,
 );
 
-export const SECTION: Section = {
+const SECTION: Section = {
   id: "assets",
   number: "1.3",
   title: "Assets",
@@ -502,3 +502,50 @@ export const SECTION: Section = {
     }),
   ],
 };
+
+const PIPE_CHANGES: TypeDef = {
+  name: "PipeChanges",
+  definition: `interface PipeChanges {
+  /** in units.diameter */
+  diameter?: number;
+  /** in units.length */
+  length?: number;
+  /** null drops the pipe's own value, so the pipe library's applies */
+  roughness?: number | null;
+  minorLoss?: number;
+  status?: "open" | "closed" | "cv";
+}`,
+  summary: "The pipe properties `setProperties` can change.",
+};
+
+const SET_PROPERTIES: Member = memberOf("Pipe")({
+  name: "setProperties",
+  signature: "setProperties(changes: PipeChanges): void",
+  summary:
+    "Changes the pipe's properties, in the same units its getters read them.",
+  description:
+    "The pipe reads the new values straight away. The changes reach the network when the script finishes, as one change the user can undo; if the script throws, none of them do. Leave out a property to keep its value.",
+  throws: [
+    "`TypeError` when `changes` names a property it cannot set, or gives a value of the wrong type.",
+  ],
+  examples: [
+    {
+      code: `const pipe = network.getLink("P1");
+pipe.setProperties({ diameter: 150, status: "closed" });
+console.log(pipe.diameter, network.units.diameter, pipe.status);`,
+    },
+  ],
+});
+
+export const sectionFor = ({ edits }: DocsCandidates): Section =>
+  edits
+    ? {
+        ...SECTION,
+        intro:
+          "Every asset is an object of getters. A value the model has not set reads as `null`. Pipes also change through `setProperties`.",
+        types: [...(SECTION.types ?? []), PIPE_CHANGES],
+        members: (SECTION.members ?? []).flatMap((member) =>
+          member === pipeResults ? [SET_PROPERTIES, member] : [member],
+        ),
+      }
+    : SECTION;
