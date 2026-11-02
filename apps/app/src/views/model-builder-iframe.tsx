@@ -1,11 +1,7 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
-import clsx from "clsx";
-import { BaseDialog } from "../components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
-import { useAuth } from "src/hooks/use-auth";
 import { useLocale } from "src/hooks/use-locale";
-import { Loading } from "../components/elements";
-import { EarlyAccessBadge } from "../components/early-access-badge";
+import { Loading } from "src/components/elements";
 import { useOpenProjectFile } from "src/commands/open-project";
 import { projectExtension } from "src/commands/save-project";
 import { useUserTracking, UserEvent } from "src/infra/user-tracking";
@@ -146,11 +142,9 @@ const handleOpenExternalLink = (message: OpenExternalLinkMessage) => {
 export const ModelBuilderFrame = ({
   onContextChange,
   onClose,
-  className,
 }: {
   onContextChange: (context: ModelBuilderContext) => void;
   onClose?: () => void;
-  className?: string;
 }) => {
   const translate = useTranslate();
   const { locale } = useLocale();
@@ -255,7 +249,7 @@ export const ModelBuilderFrame = ({
       <iframe
         ref={iframeRef}
         src={iframeSrc}
-        className={clsx("w-full flex-1 border-0", className)}
+        className="w-full flex-1 border-0"
         onLoad={() => {
           setIsLoading(false);
           sendLocale();
@@ -265,45 +259,5 @@ export const ModelBuilderFrame = ({
         title={translate("importFromGIS")}
       />
     </div>
-  );
-};
-
-export const ModelBuilderIframeDialog = ({
-  onClose: _onClose,
-}: {
-  onClose: () => void;
-}) => {
-  const translate = useTranslate();
-  const context = useRef<ModelBuilderContext>({});
-  const userTracking = useUserTracking();
-  const { isSignedIn, isLoaded } = useAuth();
-  const showEarlyAccess = isLoaded && !isSignedIn;
-
-  const handleContextChange = useCallback((newContext: ModelBuilderContext) => {
-    context.current = newContext;
-  }, []);
-
-  const handleClose = () => {
-    userTracking.capture({
-      name: "modelBuilder.closed",
-      step: context.current.step ?? null,
-    });
-    _onClose();
-  };
-
-  return (
-    <BaseDialog
-      title={translate("importFromGIS")}
-      size="xxl"
-      height="xxl"
-      isOpen={true}
-      onClose={handleClose}
-      badge={showEarlyAccess ? <EarlyAccessBadge /> : undefined}
-    >
-      <ModelBuilderFrame
-        onContextChange={handleContextChange}
-        className="rounded-bl-lg rounded-br-lg"
-      />
-    </BaseDialog>
   );
 };

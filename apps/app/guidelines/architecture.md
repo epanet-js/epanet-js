@@ -10,6 +10,7 @@ Top-level folders under `src/` represent the app's main components and layout su
 |---|---|
 | `panels/` | Side and bottom panel UI |
 | `dialogs/` | Modal dialogs |
+| `views/` | Full-screen content views that replace the map area |
 | `toolbar/` | Toolbar and action buttons |
 | `components/` | Shared UI components used across surfaces |
 | `map/` | Map rendering, layers, sources, interactions |

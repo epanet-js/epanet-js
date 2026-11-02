@@ -153,10 +153,6 @@ export type ModelBuilderLegacyIframeDialogState = {
   type: "modelBuilderLegacyIframe";
 };
 
-export type ModelBuilderIframeDialogState = {
-  type: "modelBuilderIframe";
-};
-
 export type ModelBuilderLegacyPaywallDialogState = {
   type: "modelBuilderLegacyPaywall";
   source: string;
@@ -408,7 +404,6 @@ export type DialogState =
   | UnexpectedErrorDialogState
   | ChangeNotAppliedDialogState
   | ModelBuilderLegacyIframeDialogState
-  | ModelBuilderIframeDialogState
   | ModelBuilderLegacyPaywallDialogState
   | EarlyAccessDialogState
   | SimulationProgressDialogState

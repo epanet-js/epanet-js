@@ -42,7 +42,6 @@ import { UnexpectedErrorDialog } from "src/dialogs/unexpected-error";
 import { ChangeNotAppliedDialog } from "src/dialogs/change-not-applied";
 import { ImportCustomerPointsWizard } from "src/dialogs/import-customer-points-wizard";
 import { ModelBuilderLegacyIframeDialog } from "src/dialogs/model-builder-legacy-iframe";
-import { ModelBuilderIframeDialog } from "src/dialogs/model-builder-iframe";
 import { ModelBuilderLegacyPaywallDialog } from "src/dialogs/model-builder-legacy-paywall";
 import { EarlyAccessDialog } from "src/dialogs/early-access";
 import { ImportCustomerPointsWarningDialog } from "src/dialogs/import-customer-points-warning";
@@ -233,9 +232,6 @@ export const Dialogs = memo(function Dialogs() {
   }
   if (dialog.type === "modelBuilderLegacyIframe") {
     return <ModelBuilderLegacyIframeDialog onClose={onClose} />;
-  }
-  if (dialog.type === "modelBuilderIframe") {
-    return <ModelBuilderIframeDialog onClose={onClose} />;
   }
   if (dialog.type === "modelBuilderLegacyPaywall") {
     return (

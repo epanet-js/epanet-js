@@ -179,7 +179,7 @@ These are non-negotiable for both `embed` and `tab` modes:
 
 ### Known security gap: missing origin validation
 
-The existing model-builder listener in [src/dialogs/model-builder-iframe.tsx](src/dialogs/model-builder-iframe.tsx) accepts messages from **any origin**. It validates only `message.data.source === "epanet-model-builder"`, which is a string anyone can include in a postMessage. Any window that holds a reference to the main app's window — including any iframe the main app ever embeds — could forge a `modelBuildComplete` message and inject an arbitrary INP file into the user's session.
+The existing model-builder listener in [src/views/model-builder-iframe.tsx](src/views/model-builder-iframe.tsx) accepts messages from **any origin**. It validates only `message.data.source === "epanet-model-builder"`, which is a string anyone can include in a postMessage. Any window that holds a reference to the main app's window — including any iframe the main app ever embeds — could forge a `modelBuildComplete` message and inject an arbitrary INP file into the user's session.
 
 **Why the string check is not enough:** `event.data` is fully controlled by the sender. The source field is convention, not provenance. Only `event.origin` is set by the browser and cannot be spoofed.
 
@@ -377,7 +377,7 @@ Reasons:
 - Host-level opt-out / privacy mode applies uniformly
 - Guest doesn't need its own analytics keys or SDK initialisation
 
-The model-builder already follows this pattern: `trackUserEvent` postMessage routes to `userTracking.capture()` in [src/dialogs/model-builder-iframe.tsx](src/dialogs/model-builder-iframe.tsx). New utils should do the same.
+The model-builder already follows this pattern: `trackUserEvent` postMessage routes to `userTracking.capture()` in [src/views/model-builder-iframe.tsx](src/views/model-builder-iframe.tsx). New utils should do the same.
 
 Protocol shape:
 
@@ -453,7 +453,7 @@ The util code calls `transport.track(...)` and `transport.getFlag(...)` everywhe
 
 The following describes what is shipped today. It uses the **cross-origin model** and diverges from the target protocol; treat it as legacy until migrated.
 
-**Location:** [src/dialogs/model-builder-iframe.tsx](src/dialogs/model-builder-iframe.tsx), URL configured in [src/global-config.ts](src/global-config.ts) as `modelBuilderUrl` (defaults to `https://utils.epanetjs.com/model-builder?embedded=true`).
+**Location:** [src/views/model-builder-iframe.tsx](src/views/model-builder-iframe.tsx), URL configured in [src/global-config.ts](src/global-config.ts) as `modelBuilderUrl` (defaults to `https://utils.epanetjs.com/model-builder?embedded=true`).
 
 **Direction:** util → main only. No host → util messages, no handshake, no round-trip.
 

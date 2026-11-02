@@ -4,7 +4,7 @@ import { contentViewAtom } from "src/state/content-view";
 import {
   ModelBuilderFrame,
   type ModelBuilderContext,
-} from "src/dialogs/model-builder-iframe";
+} from "./model-builder-iframe";
 import { useUserTracking } from "src/infra/user-tracking";
 
 export const ModelBuildView = () => {

@@ -48,7 +48,6 @@ const useOpenNewModelBuilder = () => {
   const checkUnsavedChanges = useUnsavedChangesCheck();
   const startBlankProject = useStartBlankProject();
   const setContentView = useSetAtom(contentViewAtom);
-  const isModelBuildFullViewOn = useFeatureFlag("FLAG_MODEL_BUILD_FULL_VIEW");
 
   const openNewModelBuilder = useCallback(
     ({ source }: { source: string }) => {
@@ -62,12 +61,8 @@ const useOpenNewModelBuilder = () => {
           const started = await startBlankProject();
           if (!started) return;
 
-          if (isModelBuildFullViewOn) {
-            setDialogState(null);
-            setContentView({ type: "modelBuild", step: null });
-          } else {
-            setDialogState({ type: "modelBuilderIframe" });
-          }
+          setDialogState(null);
+          setContentView({ type: "modelBuild", step: null });
         });
       }, buildModelBuildViewUrl());
     },
@@ -78,7 +73,6 @@ const useOpenNewModelBuilder = () => {
       checkUnsavedChanges,
       startBlankProject,
       setContentView,
-      isModelBuildFullViewOn,
     ],
   );
 

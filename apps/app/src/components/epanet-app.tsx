@@ -75,8 +75,8 @@ import { AuthSyncGuard } from "./auth-sync-guard";
 import { useDbStorageBootstrap } from "src/hooks/use-db-storage-bootstrap";
 import { useWorkersBootstrap } from "src/hooks/use-workers-bootstrap";
 import { contentViewAtom } from "src/state/content-view";
-import { ContentViews } from "./content-views";
-import { ModelBuildViewUrl } from "./model-build-view-url";
+import { ContentViews } from "src/views/content-views";
+import { ModelBuildViewUrl } from "src/views/model-build-view-url";
 import { DialogFromUrl } from "./dialog-from-url";
 
 type ResolvedLayout = "HORIZONTAL" | "VERTICAL" | "FLOATING";
