@@ -63,8 +63,8 @@ ui.attachFile("pipes.csv", rows.join("\\n"));
     id: "count-by-custom-attribute",
     name: "Count by custom attribute",
     paid: false,
-    source: `const ATTRIBUTE = "Zone"; // the custom attribute's name, as in the asset panel
-const TYPE = "junction"; // the asset type it is defined for
+    source: `const ATTRIBUTE = "Class"; // the custom attribute's name, as in the asset panel
+const TYPE = "pipe"; // the asset type it is defined for
 
 const assets = network.assets.filter((a) => a.type === TYPE);
 const counts = new Map();
