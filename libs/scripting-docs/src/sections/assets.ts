@@ -1,5 +1,5 @@
 import { memberOf, propertyOf } from "../members";
-import type { DocsCandidates, Member, Section, TypeDef } from "../types";
+import type { Member, Section, TypeDef } from "../types";
 
 const asset = propertyOf("Asset");
 const node = propertyOf("NodeAsset");
@@ -191,7 +191,7 @@ const valveResults = resultsOf(
 console.log(struggling.map((valve) => \`\${valve.label}: \${valve.results.statusWarning}\`));`,
 );
 
-export const sectionFor = ({ results }: DocsCandidates): Section => ({
+export const SECTION: Section = {
   id: "assets",
   number: "1.3",
   title: "Assets",
@@ -237,7 +237,7 @@ export const sectionFor = ({ results }: DocsCandidates): Section => ({
       summary:
         "A pump's structured control from the app. Times are in seconds.",
     },
-    ...(results ? RESULTS_TYPES : []),
+    ...RESULTS_TYPES,
   ],
   members: [
     asset(
@@ -308,11 +308,11 @@ export const sectionFor = ({ results }: DocsCandidates): Section => ({
       "CustomerPoint[]",
       "The customer points allocated to the junction.",
     ),
-    ...(results ? [junctionResults] : []),
+    junctionResults,
 
     reservoir("head", "number | null", "The reservoir's head."),
     reservoir("headPattern", "string | null", "The label of the head pattern."),
-    ...(results ? [reservoirResults] : []),
+    reservoirResults,
 
     tank("initialLevel", "number | null", "The initial level."),
     tank("minLevel", "number | null", "The minimum level."),
@@ -336,7 +336,7 @@ export const sectionFor = ({ results }: DocsCandidates): Section => ({
       "The bulk reaction coefficient.",
     ),
     tank("volumeCurve", "string | null", "The label of the volume curve."),
-    ...(results ? [tankResults] : []),
+    tankResults,
 
     link(
       "startNode",
@@ -397,7 +397,7 @@ export const sectionFor = ({ results }: DocsCandidates): Section => ({
       "CustomerPoint[]",
       "The customer points connected to the pipe.",
     ),
-    ...(results ? [pipeResults] : []),
+    pipeResults,
 
     pump("status", '"on" | "off"', "The initial status."),
     pump(
@@ -440,7 +440,7 @@ export const sectionFor = ({ results }: DocsCandidates): Section => ({
       "The pump's structured control from the app.",
       "Pump controls are here, not in `network.rawControls`. Read both before judging why a pump is off.",
     ),
-    ...(results ? [pumpResults] : []),
+    pumpResults,
 
     valve(
       "kind",
@@ -465,7 +465,7 @@ export const sectionFor = ({ results }: DocsCandidates): Section => ({
       "NodeAsset | null",
       "A PRV's remote set-point node, or `null`.",
     ),
-    ...(results ? [valveResults] : []),
+    valveResults,
 
     customerPoint("uid", "number", "An internal number. Never persist it."),
     customerPoint("label", "string", "The customer point's label."),
@@ -501,4 +501,4 @@ export const sectionFor = ({ results }: DocsCandidates): Section => ({
       summary: "A custom attribute's value by its name, or `null`.",
     }),
   ],
-});
+};

@@ -24,12 +24,10 @@ import {
   scriptCompletionSource,
   warmUpScriptCompletions,
 } from "./script-completions";
-import type { ScriptingDocsVariant } from "src/lib/script-language";
 
 export function CodeEditor({
   initialSource,
   locked,
-  docsVariant,
   autoFocus,
   onChange,
   onRun,
@@ -38,7 +36,6 @@ export function CodeEditor({
 }: {
   initialSource: string;
   locked: boolean;
-  docsVariant: ScriptingDocsVariant;
   autoFocus: boolean;
   onChange: (source: string) => void;
   onRun: () => void;
@@ -54,13 +51,11 @@ export function CodeEditor({
   const initialLockedRef = useRef(locked);
   const initialAutoFocusRef = useRef(autoFocus);
   const onLockedEditRef = useRef(() => callbacksRef.current.onLockedEdit());
-  const docsVariantRef = useRef(docsVariant);
-  docsVariantRef.current = docsVariant;
 
   useEffect(() => {
     const parent = containerRef.current;
     if (!parent) return;
-    warmUpScriptCompletions(docsVariantRef.current);
+    warmUpScriptCompletions();
     const view = new EditorView({
       state: EditorState.create({
         doc: initialSourceRef.current,
@@ -94,12 +89,7 @@ export function CodeEditor({
             indentWithTab,
           ]),
           javascript(),
-          autocompletion({
-            override: [
-              (context) =>
-                scriptCompletionSource(context, docsVariantRef.current),
-            ],
-          }),
+          autocompletion({ override: [scriptCompletionSource] }),
           placemarkTheme,
           EditorView.lineWrapping,
           EditorView.updateListener.of((update) => {

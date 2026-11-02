@@ -7,12 +7,10 @@ import { canUseWorker } from "src/infra/worker";
 import {
   getScriptLanguageWorker,
   type ScriptCompletion,
-  type ScriptingDocsVariant,
 } from "src/lib/script-language";
 
 export const scriptCompletionSource = async (
   context: CompletionContext,
-  variant: ScriptingDocsVariant,
 ): Promise<CompletionResult | null> => {
   const word = context.matchBefore(/[\w$]*/);
   const from = word ? word.from : context.pos;
@@ -22,7 +20,7 @@ export const scriptCompletionSource = async (
 
   const source = context.state.doc.toString();
   const worker = getScriptLanguageWorker();
-  const completions = await worker.completionsAt(variant, source, context.pos);
+  const completions = await worker.completionsAt(source, context.pos);
   if (context.aborted) return null;
 
   return {
@@ -30,17 +28,15 @@ export const scriptCompletionSource = async (
     validFor: /^[\w$]*$/,
     options: completions.map((completion) =>
       toOption(completion, () =>
-        worker.completionDetails(variant, source, context.pos, completion.name),
+        worker.completionDetails(source, context.pos, completion.name),
       ),
     ),
   };
 };
 
-export const warmUpScriptCompletions = (
-  variant: ScriptingDocsVariant,
-): void => {
+export const warmUpScriptCompletions = (): void => {
   if (!canUseWorker()) return;
-  void getScriptLanguageWorker().completionsAt(variant, "", 0);
+  void getScriptLanguageWorker().completionsAt("", 0);
 };
 
 const toOption = (

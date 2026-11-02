@@ -2,7 +2,7 @@ import {
   appendixOf,
   sectionLevel,
   sectionTitle,
-  type ScriptingDocs,
+  scriptingDocs,
 } from "@epanet-js/scripting-docs";
 import { CodeBlock } from "./code-block";
 import { Prose, inline } from "./prose";
@@ -11,15 +11,8 @@ import { SectionHeading, SectionView, anchorsOf } from "./reference";
 const linkClassName =
   "text-accent underline decoration-dotted underline-offset-2";
 
-export const ScriptingApiPage = ({
-  docs,
-  llmsPath,
-  isCandidate,
-}: {
-  docs: ScriptingDocs;
-  llmsPath: string;
-  isCandidate: boolean;
-}) => {
+export const ScriptingApiPage = () => {
+  const docs = scriptingDocs;
   const anchors = anchorsOf(docs);
   const { agentNotes, workedExamples } = appendixOf(docs);
   const contents = [...docs.sections, agentNotes, workedExamples];
@@ -32,19 +25,11 @@ export const ScriptingApiPage = ({
             epanet-js
           </a>
           <span className="text-size-base text-subtle">Scripting API</span>
-          <span className="rounded bg-warning-subtle px-2 py-0.5 text-size-small text-warning">
-            Experimental — names may change
-          </span>
-          {isCandidate && (
-            <span className="rounded bg-warning-subtle px-2 py-0.5 text-size-small text-warning">
-              Release candidate — includes unreleased API
-            </span>
-          )}
           <a
-            href={llmsPath}
+            href="/llms.txt"
             className={`ml-auto text-size-small ${linkClassName}`}
           >
-            {llmsPath.slice(1)}
+            llms.txt
           </a>
         </div>
       </header>
@@ -102,8 +87,8 @@ export const ScriptingApiPage = ({
           </p>
           <p className="mt-2 text-size-base text-subtle">
             To have an LLM write a script, give it{" "}
-            <a href={llmsPath} className={linkClassName}>
-              {llmsPath}
+            <a href="/llms.txt" className={linkClassName}>
+              /llms.txt
             </a>
             : this reference as one plain-text file.
           </p>

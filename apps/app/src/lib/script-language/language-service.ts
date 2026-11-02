@@ -1,10 +1,5 @@
 import ts from "typescript";
-import {
-  renderDeclarations,
-  resultsCandidateDocs,
-  scriptingDocs,
-  type ScriptingDocs,
-} from "@epanet-js/scripting-docs";
+import { renderDeclarations, scriptingDocs } from "@epanet-js/scripting-docs";
 import { DEFAULT_LIB, typescriptLibs } from "./typescript-libs";
 
 export type ScriptCompletionKind =
@@ -32,13 +27,6 @@ export type ScriptCompletionDetails = {
   documentation: string;
 };
 
-export type ScriptingDocsVariant = "official" | "resultsCandidate";
-
-export const docsOf: Record<ScriptingDocsVariant, ScriptingDocs> = {
-  official: scriptingDocs,
-  resultsCandidate: resultsCandidateDocs,
-};
-
 export type ScriptLanguageService = {
   completionsAt: (source: string, position: number) => ScriptCompletion[];
   completionDetails: (
@@ -48,14 +36,12 @@ export type ScriptLanguageService = {
   ) => ScriptCompletionDetails | null;
 };
 
-export const createScriptLanguageService = (
-  docs: ScriptingDocs,
-): ScriptLanguageService => {
+export const createScriptLanguageService = (): ScriptLanguageService => {
   const files = new Map<string, string>([
     ...Object.entries(typescriptLibs).map(
       ([name, content]): [string, string] => [`/${name}`, content],
     ),
-    [DECLARATIONS_FILE, renderDeclarations(docs)],
+    [DECLARATIONS_FILE, renderDeclarations(scriptingDocs)],
     [SCRIPT_FILE, ""],
   ]);
   let scriptVersion = 0;

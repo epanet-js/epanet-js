@@ -1,8 +1,7 @@
-import { resultsCandidateDocs, scriptingDocs } from "@epanet-js/scripting-docs";
 import { createScriptLanguageService } from "./language-service";
 
 describe("script language service", () => {
-  const service = createScriptLanguageService(scriptingDocs);
+  const service = createScriptLanguageService();
 
   const completionsAtEnd = (source: string) =>
     service.completionsAt(source, source.length);
@@ -73,16 +72,12 @@ describe("script language service", () => {
     });
   });
 
-  it("completes the results only from the results candidate", () => {
-    const candidate = createScriptLanguageService(resultsCandidateDocs);
-    const source = "network.junctions[0].results?.";
+  it("completes the simulation results", () => {
+    const names = (source: string) =>
+      completionsAtEnd(source).map((completion) => completion.name);
 
-    const names = (completions: { name: string }[]) =>
-      completions.map((completion) => completion.name);
-
-    expect(names(completionsAtEnd("network."))).not.toContain("results");
-    expect(names(candidate.completionsAt("network.", 8))).toContain("results");
-    expect(names(candidate.completionsAt(source, source.length))).toEqual(
+    expect(names("network.")).toContain("results");
+    expect(names("network.junctions[0].results?.")).toEqual(
       expect.arrayContaining(["pressure", "at", "series", "stats"]),
     );
   });
