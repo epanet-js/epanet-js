@@ -51,10 +51,7 @@ import {
 import { UnitsSpec } from "@epanet-js/project-settings";
 import { getMinorLossUnit } from "@epanet-js/project-settings";
 import { useAsyncCompute } from "src/hooks/use-async-compute";
-import {
-  findTargetNodeOptions,
-  type TargetNodeOption,
-} from "src/lib/valve-target-nodes";
+import { findDownstreamNodes } from "src/lib/valve-target-nodes";
 import { useTranslate } from "src/hooks/use-translate";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -79,7 +76,10 @@ import {
   fieldValidator,
   numericChecks,
 } from "src/lib/model-attributes-validation";
-import { getLinkNodes } from "@epanet-js/hydraulic-model";
+import {
+  getLinkNodes,
+  pickTargetNodeOptions,
+} from "@epanet-js/hydraulic-model";
 import {
   type AssetId,
   type Control,
@@ -147,7 +147,9 @@ type OnPropertyChange = <P extends ChangeableProperty>(
 ) => void;
 type OnStatusChange<T> = (newStatus: T, oldStatus: T) => void;
 
+type TargetNodeOption = { value: AssetId; label: string };
 const EMPTY_TARGET_NODE_OPTIONS: TargetNodeOption[] = [];
+const EMPTY_NODES: NodeAsset[] = [];
 
 const controlTrackingData = (
   control: Control | null,
@@ -2165,24 +2167,46 @@ const ValveEditor = ({
     : null;
   const isSetByCurve = flowModulatingControl !== null;
   const showTargetNode = isPrv;
-  const controlNodeOptions = useMemo((): TargetNodeOption[] => {
-    if (!flowModulatingControl) return EMPTY_TARGET_NODE_OPTIONS;
-    const node = hydraulicModel.assets.get(flowModulatingControl.controlNodeId);
-    return node ? [{ value: node.id, label: node.label }] : [];
-  }, [flowModulatingControl, hydraulicModel.assets]);
   const outletNodeId = valve.connections[1] ?? null;
+  const isScriptingOn = useFeatureFlag("FLAG_SCRIPTING");
+  const { data: tracedDownstreamNodes } = useAsyncCompute<
+    [HydraulicModel, Valve, boolean],
+    NodeAsset[]
+  >(findDownstreamNodes, [hydraulicModel, valve, isScriptingOn], isPrv);
+  const downstreamNodes = tracedDownstreamNodes ?? EMPTY_NODES;
+
   const flowModulatingTargets = useMemo((): FlowModulatingValveTargets => {
     const nodes: NodeAsset[] = [];
     const links: LinkAsset[] = [];
     if (showControls) {
+      const outlet =
+        outletNodeId === null
+          ? undefined
+          : hydraulicModel.assets.get(outletNodeId);
+      if (outlet?.isNode) nodes.push(outlet as NodeAsset);
+      nodes.push(...downstreamNodes);
+      const controlNodeId = flowModulatingControl?.controlNodeId;
+      if (
+        controlNodeId !== undefined &&
+        !nodes.some((node) => node.id === controlNodeId)
+      ) {
+        const controlNode = hydraulicModel.assets.get(controlNodeId);
+        if (controlNode?.isNode) nodes.push(controlNode as NodeAsset);
+      }
       for (const asset of hydraulicModel.assets.values()) {
-        if (asset.isNode) nodes.push(asset as NodeAsset);
-        else links.push(asset as LinkAsset);
+        if (!asset.isNode) links.push(asset as LinkAsset);
       }
     }
     return { nodes, links, outletNodeId, units };
-  }, [showControls, hydraulicModel.assets, outletNodeId, units]);
-  const isScriptingOn = useFeatureFlag("FLAG_SCRIPTING");
+  }, [
+    showControls,
+    hydraulicModel.assets,
+    downstreamNodes,
+    flowModulatingControl,
+    outletNodeId,
+    units,
+  ]);
+
   const targetNode =
     valve.targetNodeId !== undefined
       ? hydraulicModel.assets.get(valve.targetNodeId)
@@ -2193,17 +2217,25 @@ const ValveEditor = ({
     targetNodeId,
   );
 
-  const { data: tracedNodeOptions } = useAsyncCompute<
-    [HydraulicModel, Valve, boolean],
-    TargetNodeOption[]
-  >(
-    findTargetNodeOptions,
-    [hydraulicModel, valve, isScriptingOn],
-    showTargetNode && !isSetByCurve,
-  );
-  const targetNodeOptions = isSetByCurve
-    ? controlNodeOptions
-    : (tracedNodeOptions ?? EMPTY_TARGET_NODE_OPTIONS);
+  const targetNodeOptions = useMemo((): TargetNodeOption[] => {
+    if (flowModulatingControl) {
+      const node = hydraulicModel.assets.get(
+        flowModulatingControl.controlNodeId,
+      );
+      return node ? [{ value: node.id, label: node.label }] : [];
+    }
+    if (tracedDownstreamNodes === null) return EMPTY_TARGET_NODE_OPTIONS;
+    return pickTargetNodeOptions(
+      hydraulicModel.assets,
+      valve,
+      tracedDownstreamNodes.map((node) => node.id),
+    ).map((node) => ({ value: node.id, label: node.label }));
+  }, [
+    flowModulatingControl,
+    hydraulicModel.assets,
+    tracedDownstreamNodes,
+    valve,
+  ]);
 
   const setHighlights = useSetAtom(highlightsAtom);
 

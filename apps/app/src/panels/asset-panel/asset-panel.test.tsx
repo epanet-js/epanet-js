@@ -822,6 +822,37 @@ describe("AssetPanel", () => {
         );
       });
 
+      it("offers only the nodes downstream of the valve as control node", async () => {
+        stubFeatureOn("FLAG_FLOW_MODULATING_VALVES");
+        const store = setInitialState({
+          hydraulicModel: aPrvModel(),
+          selectedAssetId: IDS.V1,
+        });
+        const user = userEvent.setup();
+
+        renderComponent(store);
+        await user.click(screen.getByRole("combobox", { name: "Type" }));
+        await user.click(
+          await screen.findByRole("option", { name: "Flow modulated" }),
+        );
+
+        const controlNode = await screen.findByRole("combobox", {
+          name: "Control node",
+        });
+        await waitFor(() => expect(controlNode).toBeEnabled());
+        await user.click(controlNode);
+
+        expect(
+          await screen.findByRole("option", { name: "OTHER" }),
+        ).toBeInTheDocument();
+        expect(
+          screen.queryByRole("option", { name: "UP" }),
+        ).not.toBeInTheDocument();
+        expect(
+          screen.queryByRole("option", { name: "DOWN" }),
+        ).not.toBeInTheDocument();
+      });
+
       it("hides the controls section when the flag is off", () => {
         stubFeatureOff("FLAG_FLOW_MODULATING_VALVES");
         const store = setInitialState({
