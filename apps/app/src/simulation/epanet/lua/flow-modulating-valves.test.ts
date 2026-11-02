@@ -4,7 +4,7 @@ import {
   withPressureUnit,
 } from "@epanet-js/project-settings";
 import { HydraulicModel } from "src/hydraulic-model";
-import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { SimulationSettingsBuilder } from "src/__helpers__/simulation-settings-builder";
 import { patchEpanetLoader } from "src/__helpers__/epanet-loader";
 import { InMemoryStorage } from "src/infra/storage";
