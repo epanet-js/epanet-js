@@ -1,5 +1,11 @@
 import { memberOf, propertyOf } from "../members";
-import type { DocsCandidates, Member, Section, TypeDef } from "../types";
+import type {
+  DocsCandidates,
+  Markdown,
+  Member,
+  Section,
+  TypeDef,
+} from "../types";
 
 const asset = propertyOf("Asset");
 const node = propertyOf("NodeAsset");
@@ -512,170 +518,57 @@ const NODE_CHANGES = `  /** ${EMPTIES} */
   /** ${CLEARS} */
   initialQuality?: number | null;`;
 
-const changesType = (owner: string, body: string): TypeDef => ({
-  name: `${owner}Changes`,
-  definition: `interface ${owner}Changes {
-${body}
-}`,
-  summary: `The ${owner.toLowerCase()} attributes \`set\` can change.`,
-});
+const BY_LABEL =
+  "Patterns and curves are named by label, and must be of the type the attribute takes.";
 
-const CHANGES_TYPES: TypeDef[] = [
-  changesType(
-    "Junction",
-    `${NODE_CHANGES}
-  /** ${CLEARS} */
-  emitterCoefficient?: number | null;`,
-  ),
-  changesType(
-    "Reservoir",
-    `${NODE_CHANGES}
-  /** ${EMPTIES} */
-  head?: number | null;
-  /** the label of a reservoirHead pattern; ${CLEARS} */
-  headPattern?: string | null;`,
-  ),
-  changesType(
-    "Tank",
-    `${NODE_CHANGES}
-  /** ${EMPTIES} */
-  initialLevel?: number | null;
-  /** ${EMPTIES} */
-  minLevel?: number | null;
-  /** ${EMPTIES} */
-  maxLevel?: number | null;
-  /** in units.tankDiameter; ${EMPTIES} */
-  diameter?: number | null;
-  /** ${CLEARS} */
-  minVolume?: number | null;
-  overflow?: boolean;
-  mixingModel?: "mixed" | "2comp" | "fifo" | "lifo";
-  /** ${CLEARS} */
-  mixingFraction?: number | null;
-  /** ${CLEARS} */
-  bulkReactionCoeff?: number | null;`,
-  ),
-  changesType(
-    "Pipe",
-    `  /** in units.diameter; ${EMPTIES} */
-  diameter?: number | null;
-  /** in units.length; ${EMPTIES} */
-  length?: number | null;
-  /** null drops the pipe's own value, so the pipe library's applies */
-  roughness?: number | null;
-  /** ${CLEARS} */
-  minorLoss?: number | null;
-  status?: "open" | "closed" | "cv";
-  /** ${CLEARS} */
-  bulkReactionCoeff?: number | null;
-  /** ${CLEARS} */
-  wallReactionCoeff?: number | null;`,
-  ),
-  changesType(
-    "Pump",
-    `  status?: "on" | "off";
-  /** ${CLEARS} */
-  speed?: number | null;
-  /** the label of a pumpSpeed pattern; ${CLEARS} */
-  speedPattern?: string | null;
-  /** the label of an efficiency curve; ${CLEARS} */
-  efficiencyCurve?: string | null;
-  /** ${CLEARS} */
-  energyPrice?: number | null;
-  /** the label of an energyPrice pattern; ${CLEARS} */
-  energyPricePattern?: string | null;`,
-  ),
-  changesType(
-    "Valve",
-    `  /** in units.diameter; ${EMPTIES} */
-  diameter?: number | null;
-  /** in the unit the valve's kind uses; ${EMPTIES} */
-  setting?: number | null;
-  /** ${CLEARS} */
-  minorLoss?: number | null;
-  status?: "active" | "open" | "closed";
-  /** the label of a headloss curve for a gpv, or a valve curve for a pcv; ${CLEARS} */
-  curve?: string | null;`,
-  ),
-];
-
-const setOf = (owner: string, example: string): Member =>
+const setOf = (
+  owner: string,
+  changes: string,
+  example: string,
+  notes: Markdown[] = [],
+): Member =>
   memberOf(owner)({
     name: "set",
-    signature: `set(changes: ${owner}Changes): void`,
+    signature: `set(changes: {
+${changes}
+}): void`,
     summary: `Changes the ${owner.toLowerCase()}'s attributes, in the same units its getters read them.`,
-    description:
-      "The asset reads the new values straight away. The changes reach the network when the script finishes, as one change the user can undo; if the script throws, none of them do. Leave out an attribute to keep its value. Patterns and curves are named by label, and must be of the type the attribute takes. `set` changes values that stand alone; a change that reshapes the asset has its own method, such as a node's `setQualitySource` or a valve's `setKind`.",
+    description: [
+      "The asset reads the new values straight away. The changes reach the network when the script finishes, as one change the user can undo; if the script throws, none of them do. Leave out an attribute to keep its value.",
+      ...notes,
+    ].join(" "),
     throws: [
       "`TypeError` when `changes` names an attribute it cannot set, or gives a value of the wrong type. For an attribute another method changes, the message names that method.",
     ],
     examples: [{ code: example }],
   });
 
-const SET_BEFORE = new Map<Member, Member>([
-  [
-    junctionResults,
-    setOf(
-      "Junction",
-      `network.getNode("J1").set({ elevation: 12, emitterCoefficient: null });`,
-    ),
-  ],
-  [
-    reservoirResults,
-    setOf("Reservoir", `network.getNode("R1").set({ head: 60 });`),
-  ],
-  [
-    tankResults,
-    setOf(
-      "Tank",
-      `network.getNode("T1").set({ initialLevel: 2, overflow: true });`,
-    ),
-  ],
-  [
-    pipeResults,
-    setOf(
-      "Pipe",
-      `const pipe = network.getLink("P1");
-pipe.set({ diameter: 150, status: "closed" });
-console.log(pipe.diameter, network.units.diameter, pipe.status);`,
-    ),
-  ],
-  [
-    pumpResults,
-    setOf("Pump", `network.getLink("PU1").set({ status: "off" });`),
-  ],
-  [valveResults, setOf("Valve", `network.getLink("V1").set({ setting: 45 });`)],
-]);
+const QUALITY_SOURCE_BY =
+  "The quality source changes through `setQualitySource`.";
 
-const QUALITY_SOURCE: TypeDef = {
-  name: "QualitySource",
-  definition: `interface QualitySource {
+const setQualitySourceOf = (owner: string, label: string): Member =>
+  memberOf(owner)({
+    name: "setQualitySource",
+    signature: `setQualitySource(source: {
   type: "concen" | "mass" | "flowpaced" | "setpoint";
   /** left out, the source has no strength */
   strength?: number | null;
   /** the label of a qualitySourceStrength pattern; left out, the source has none */
   pattern?: string | null;
-}`,
-  summary: "A node's water quality source, as `setQualitySource` takes it.",
-};
-
-const SET_QUALITY_SOURCE: Member = memberOf("NodeAsset")({
-  name: "setQualitySource",
-  signature: "setQualitySource(source: QualitySource | null): void",
-  summary:
-    "Replaces the node's quality source as a whole, or removes it with `null`.",
-  description:
-    'What `source` leaves out is cleared, not kept: `{ type: "concen" }` drops the strength and pattern the node had. The node reads the new source straight away, through `chemicalSourceType`, `chemicalSourceStrength` and `chemicalSourcePattern`; it reaches the network with the script\'s other changes.',
-  throws: [
-    "`TypeError` when `source` has no `type`, names a field it does not take, or gives a value of the wrong type.",
-  ],
-  examples: [
-    {
-      code: `network.getNode("R1").setQualitySource({ type: "concen", strength: 1.5 });
-network.getNode("J1").setQualitySource(null);`,
-    },
-  ],
-});
+} | null): void`,
+    summary: `Replaces the ${owner.toLowerCase()}'s quality source as a whole, or removes it with \`null\`.`,
+    description:
+      'What `source` leaves out is cleared, not kept: `{ type: "concen" }` drops the strength and pattern it had. The new source reads straight away through `chemicalSourceType`, `chemicalSourceStrength` and `chemicalSourcePattern`, and reaches the network with the other changes.',
+    throws: [
+      "`TypeError` when `source` has no `type`, names a field it does not take, or gives a value of the wrong type.",
+    ],
+    examples: [
+      {
+        code: `network.getNode("${label}").setQualitySource({ type: "concen", strength: 1.5 });
+network.getNode("${label}").setQualitySource(null);`,
+      },
+    ],
+  });
 
 const SET_KIND: Member = memberOf("Valve")({
   name: "setKind",
@@ -694,15 +587,131 @@ valve.set({ setting: 12 });`,
   ],
 });
 
-const ADD_AFTER: [owner: string, name: string, added: Member][] = [
-  ["NodeAsset", "chemicalSourcePattern", SET_QUALITY_SOURCE],
-  ["Valve", "kind", SET_KIND],
-];
-
-const addedAfter = (member: Member): Member[] =>
-  ADD_AFTER.filter(
-    ([owner, name]) => member.owner === owner && member.name === name,
-  ).map(([, , added]) => added);
+const EDITS_BEFORE = new Map<Member, Member[]>([
+  [
+    junctionResults,
+    [
+      setOf(
+        "Junction",
+        `${NODE_CHANGES}
+  /** ${CLEARS} */
+  emitterCoefficient?: number | null;`,
+        `network.getNode("J1").set({ elevation: 12, emitterCoefficient: null });`,
+        [QUALITY_SOURCE_BY],
+      ),
+      setQualitySourceOf("Junction", "J1"),
+    ],
+  ],
+  [
+    reservoirResults,
+    [
+      setOf(
+        "Reservoir",
+        `${NODE_CHANGES}
+  /** ${EMPTIES} */
+  head?: number | null;
+  /** the label of a reservoirHead pattern; ${CLEARS} */
+  headPattern?: string | null;`,
+        `network.getNode("R1").set({ head: 60 });`,
+        [BY_LABEL, QUALITY_SOURCE_BY],
+      ),
+      setQualitySourceOf("Reservoir", "R1"),
+    ],
+  ],
+  [
+    tankResults,
+    [
+      setOf(
+        "Tank",
+        `${NODE_CHANGES}
+  /** ${EMPTIES} */
+  initialLevel?: number | null;
+  /** ${EMPTIES} */
+  minLevel?: number | null;
+  /** ${EMPTIES} */
+  maxLevel?: number | null;
+  /** in units.tankDiameter; ${EMPTIES} */
+  diameter?: number | null;
+  /** ${CLEARS} */
+  minVolume?: number | null;
+  overflow?: boolean;
+  mixingModel?: "mixed" | "2comp" | "fifo" | "lifo";
+  /** ${CLEARS} */
+  mixingFraction?: number | null;
+  /** ${CLEARS} */
+  bulkReactionCoeff?: number | null;`,
+        `network.getNode("T1").set({ initialLevel: 2, overflow: true });`,
+        [QUALITY_SOURCE_BY],
+      ),
+      setQualitySourceOf("Tank", "T1"),
+    ],
+  ],
+  [
+    pipeResults,
+    [
+      setOf(
+        "Pipe",
+        `  /** in units.diameter; ${EMPTIES} */
+  diameter?: number | null;
+  /** in units.length; ${EMPTIES} */
+  length?: number | null;
+  /** null drops the value set on the pipe, so the pipe library applies */
+  roughness?: number | null;
+  /** ${CLEARS} */
+  minorLoss?: number | null;
+  status?: "open" | "closed" | "cv";
+  /** ${CLEARS} */
+  bulkReactionCoeff?: number | null;
+  /** ${CLEARS} */
+  wallReactionCoeff?: number | null;`,
+        `const pipe = network.getLink("P1");
+pipe.set({ diameter: 150, status: "closed" });
+console.log(pipe.diameter, network.units.diameter, pipe.status);`,
+      ),
+    ],
+  ],
+  [
+    pumpResults,
+    [
+      setOf(
+        "Pump",
+        `  status?: "on" | "off";
+  /** ${CLEARS} */
+  speed?: number | null;
+  /** the label of a pumpSpeed pattern; ${CLEARS} */
+  speedPattern?: string | null;
+  /** the label of an efficiency curve; ${CLEARS} */
+  efficiencyCurve?: string | null;
+  /** ${CLEARS} */
+  energyPrice?: number | null;
+  /** the label of an energyPrice pattern; ${CLEARS} */
+  energyPricePattern?: string | null;`,
+        `network.getLink("PU1").set({ status: "off" });`,
+        [BY_LABEL],
+      ),
+    ],
+  ],
+  [
+    valveResults,
+    [
+      setOf(
+        "Valve",
+        `  /** in units.diameter; ${EMPTIES} */
+  diameter?: number | null;
+  /** in the unit of the valve kind; ${EMPTIES} */
+  setting?: number | null;
+  /** ${CLEARS} */
+  minorLoss?: number | null;
+  status?: "active" | "open" | "closed";
+  /** the label of a headloss curve for a gpv, or a valve curve for a pcv; ${CLEARS} */
+  curve?: string | null;`,
+        `network.getLink("V1").set({ setting: 45 });`,
+        [BY_LABEL, "The kind changes through `setKind`."],
+      ),
+      SET_KIND,
+    ],
+  ],
+]);
 
 export const sectionFor = ({ edits }: DocsCandidates): Section =>
   edits
@@ -710,10 +719,9 @@ export const sectionFor = ({ edits }: DocsCandidates): Section =>
         ...SECTION,
         intro:
           "Every asset is an object of getters. A value the model has not set reads as `null`. Every asset also changes through `set`.",
-        types: [...(SECTION.types ?? []), ...CHANGES_TYPES, QUALITY_SOURCE],
-        members: (SECTION.members ?? []).flatMap((member) => {
-          const set = SET_BEFORE.get(member);
-          return [...(set ? [set] : []), member, ...addedAfter(member)];
-        }),
+        members: (SECTION.members ?? []).flatMap((member) => [
+          ...(EDITS_BEFORE.get(member) ?? []),
+          member,
+        ]),
       }
     : SECTION;

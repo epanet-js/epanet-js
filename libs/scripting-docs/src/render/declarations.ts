@@ -15,7 +15,7 @@ export const renderDeclarations = (docs: ScriptingDocs): string => {
         .filter((member) => member.owner === iface.name)
         .map(
           (member) =>
-            `${docComment("  ", member.summary, member.description)}  ${member.signature};`,
+            `${docComment("  ", member.summary, member.description)}  ${member.signature.replace(/\n/g, "\n  ")};`,
         );
       return `${docComment("", iface.summary)}interface ${iface.name}${heritage} {\n${body.join("\n")}\n}`;
     }),
