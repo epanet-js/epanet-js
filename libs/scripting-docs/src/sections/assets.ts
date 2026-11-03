@@ -513,6 +513,8 @@ const CLEARS = "null clears it";
 
 const EMPTIES = "null leaves it empty, which network review reports";
 
+const BY_CURVE = "refused while the tank has a volume curve";
+
 const NODE_CHANGES = `  /** ${EMPTIES} */
   elevation?: number | null;
   /** ${CLEARS} */
@@ -570,6 +572,25 @@ network.getNode("${label}").setQualitySource(null);`,
     ],
   });
 
+const SET_VOLUME_CURVE: Member = memberOf("Tank")({
+  name: "setVolumeCurve",
+  signature: "setVolumeCurve(label: string | null): void",
+  summary:
+    "Gives the tank a volume curve by its label, or removes it with `null`.",
+  description:
+    "The curve must be a volume curve with points. The tank takes `minLevel` and `maxLevel` from the curve's first and last depths, and `minVolume` from its first volume. While the tank has a curve, `set` refuses those three and `diameter`, as the curve decides them. With `null` the tank keeps the values and is sized by its `diameter` again.",
+  throws: [
+    "`TypeError` when `label` is not the label of a volume curve, or the curve has no points.",
+  ],
+  examples: [
+    {
+      code: `const tank = network.getNode("T1");
+tank.setVolumeCurve("VOLUME");
+console.log(tank.minLevel, tank.maxLevel, tank.minVolume);`,
+    },
+  ],
+});
+
 const SET_KIND: Member = memberOf("Valve")({
   name: "setKind",
   signature:
@@ -626,13 +647,13 @@ const EDITS_BEFORE = new Map<Member, Member[]>([
         `${NODE_CHANGES}
   /** ${EMPTIES} */
   initialLevel?: number | null;
-  /** ${EMPTIES} */
+  /** ${BY_CURVE}; ${EMPTIES} */
   minLevel?: number | null;
-  /** ${EMPTIES} */
+  /** ${BY_CURVE}; ${EMPTIES} */
   maxLevel?: number | null;
-  /** in units.tankDiameter; ${EMPTIES} */
+  /** in units.tankDiameter; ${BY_CURVE}; ${EMPTIES} */
   diameter?: number | null;
-  /** ${CLEARS} */
+  /** ${BY_CURVE}; ${CLEARS} */
   minVolume?: number | null;
   overflow?: boolean;
   mixingModel?: "mixed" | "2comp" | "fifo" | "lifo";
@@ -641,8 +662,12 @@ const EDITS_BEFORE = new Map<Member, Member[]>([
   /** ${CLEARS} */
   bulkReactionCoeff?: number | null;`,
         `network.getNode("T1").set({ initialLevel: 2, overflow: true });`,
-        [QUALITY_SOURCE_BY],
+        [
+          "The volume curve changes through `setVolumeCurve`.",
+          QUALITY_SOURCE_BY,
+        ],
       ),
+      SET_VOLUME_CURVE,
       setQualitySourceOf("Tank", "T1"),
     ],
   ],
