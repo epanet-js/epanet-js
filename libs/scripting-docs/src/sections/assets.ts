@@ -761,7 +761,11 @@ const EDITS_BEFORE = new Map<Member, Member[]>([
   /** ${CLEARS} */
   bulkReactionCoeff?: number | null;
   /** ${CLEARS} */
-  wallReactionCoeff?: number | null;`,
+  wallReactionCoeff?: number | null;
+  /** the pipe library applies its roughness when the pipe has none; ${CLEARS} */
+  material?: string | null;
+  /** a whole number; ${CLEARS} */
+  year?: number | null;`,
         `const pipe = network.getLink("P1");
 pipe.set({ diameter: 150, status: "closed" });
 console.log(pipe.diameter, network.units.diameter, pipe.status);`,
