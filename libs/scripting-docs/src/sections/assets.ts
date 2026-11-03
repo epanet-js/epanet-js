@@ -642,7 +642,39 @@ const setDemandsOf = (owner: string, unit: string, example: string): Member =>
     examples: [{ code: example }],
   });
 
+const setCustomOf = (owner: string, example: string): Member =>
+  memberOf(owner)({
+    name: "setCustom",
+    signature: "setCustom(name: string, value: string | number | null): void",
+    summary:
+      "Sets a custom attribute's value by its name, the way `getCustom` reads it.",
+    description:
+      'A number attribute takes a number and a text attribute a string; `null` clears either, and so does `""` for text. The value reads straight away and reaches the network with the other changes.',
+    throws: [
+      "`TypeError` when no custom attribute of this type has that name, or the value does not match the attribute's type.",
+    ],
+    examples: [{ code: example }],
+  });
+
 const EDITS_AFTER: [owner: string, name: string, added: Member][] = [
+  [
+    "Asset",
+    "getCustom",
+    setCustomOf(
+      "Asset",
+      `const junction = network.getNode("J1");
+junction.setCustom("Zone", "NORTH");
+console.log(junction.getCustom("Zone"));`,
+    ),
+  ],
+  [
+    "CustomerPoint",
+    "getCustom",
+    setCustomOf(
+      "CustomerPoint",
+      `network.getCustomerPoint("CP1").setCustom("Use", "RESIDENTIAL");`,
+    ),
+  ],
   [
     "CustomerPoint",
     "getCustom",
