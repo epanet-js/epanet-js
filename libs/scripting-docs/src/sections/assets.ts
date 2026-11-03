@@ -807,7 +807,9 @@ console.log(pipe.diameter, network.units.diameter, pipe.status);`,
   minorLoss?: number | null;
   status?: "active" | "open" | "closed";
   /** the label of a headloss curve for a gpv, or a valve curve for a pcv; ${CLEARS} */
-  curve?: string | null;`,
+  curve?: string | null;
+  /** a prv only: a node from targetNodeOptions(); ${CLEARS} */
+  targetNode?: NodeAsset | null;`,
         `network.getLink("V1").set({ setting: 45 });`,
         [BY_LABEL, "The kind changes through `setKind`."],
       ),
