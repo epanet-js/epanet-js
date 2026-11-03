@@ -41,6 +41,9 @@ export class Growable<T extends TypedArray> {
   }
 }
 
-export const growableFloat64 = () => new Growable(Float64Array);
-export const growableUint32 = () => new Growable(Uint32Array);
-export const growableUint8 = () => new Growable(Uint8Array);
+export const growableFloat64 = (): Growable<Float64Array> =>
+  new Growable<Float64Array>(Float64Array);
+export const growableUint32 = (): Growable<Uint32Array> =>
+  new Growable<Uint32Array>(Uint32Array);
+export const growableUint8 = (): Growable<Uint8Array> =>
+  new Growable<Uint8Array>(Uint8Array);

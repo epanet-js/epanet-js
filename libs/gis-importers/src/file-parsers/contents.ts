@@ -1,9 +1,11 @@
 import type { Feature } from "geojson";
 import type {
+  RecordsContents,
   SourceAttribute,
   SourceContents,
   SourceGeometry,
 } from "../importer";
+import type { GisRecords } from "../records/gis-records";
 import { numberOf } from "../number-value";
 import { MAX_ENUM_VALUES, isBlank, valueKeyOf } from "../value-key";
 
@@ -36,22 +38,26 @@ const geometryKindOf = (type: string): SourceGeometry => {
   return "unknown";
 };
 
+const tallyValue = (tallies: Tallies, name: string, value: unknown): void => {
+  if (isBlank(value)) return;
+
+  const counts = tallies.get(name) ?? {
+    stated: 0,
+    numeric: 0,
+    values: new Set<string>(),
+  };
+  counts.stated += 1;
+  if (isNumeric(value)) counts.numeric += 1;
+  counts.values = withValue(counts.values, valueKeyOf(value));
+  tallies.set(name, counts);
+};
+
 const tally = (tallies: Tallies, feature: Feature): void => {
   const properties = feature.properties;
   if (!properties) return;
 
   for (const [name, value] of Object.entries(properties)) {
-    if (isBlank(value)) continue;
-
-    const counts = tallies.get(name) ?? {
-      stated: 0,
-      numeric: 0,
-      values: new Set<string>(),
-    };
-    counts.stated += 1;
-    if (isNumeric(value)) counts.numeric += 1;
-    counts.values = withValue(counts.values, valueKeyOf(value));
-    tallies.set(name, counts);
+    tallyValue(tallies, name, value);
   }
 };
 
@@ -161,6 +167,65 @@ export const contentsOf = (
               attributes: attributesOf(
                 talliesByKind.get(geometry) ?? new Map<string, Tally>(),
                 held.length,
+                statedOrder,
+              ),
+            };
+          }),
+  };
+};
+
+export const recordsContentsOf = (
+  records: GisRecords,
+  statedOrder?: string[],
+): RecordsContents => {
+  const indicesByKind = new Map<SourceGeometry, number[]>();
+  const talliesByKind = new Map<SourceGeometry | typeof NO_GEOMETRY, Tallies>();
+  const tallies = new Array<Tallies>(records.count);
+
+  for (let index = 0; index < records.count; index++) {
+    const kind = records.kindOf(index);
+
+    if (kind !== NO_GEOMETRY) {
+      const indices = indicesByKind.get(kind);
+      if (indices) indices.push(index);
+      else indicesByKind.set(kind, [index]);
+    }
+
+    let kindTallies = talliesByKind.get(kind);
+    if (!kindTallies) {
+      kindTallies = new Map();
+      talliesByKind.set(kind, kindTallies);
+    }
+    tallies[index] = kindTallies;
+  }
+
+  for (const name of records.attributes) {
+    for (let index = 0; index < records.count; index++) {
+      tallyValue(tallies[index], name, records.valueOf(index, name));
+    }
+  }
+
+  const attributes = attributesOf(
+    merged(talliesByKind.values()),
+    records.count,
+    statedOrder,
+  );
+  const geometries = GEOMETRY_ORDER.filter((kind) => indicesByKind.has(kind));
+
+  return {
+    attributes,
+    recordCount: records.count,
+    groups:
+      geometries.length === 1
+        ? [{ geometry: geometries[0], records, attributes }]
+        : geometries.map((geometry) => {
+            const indices = indicesByKind.get(geometry) as number[];
+            return {
+              geometry,
+              records: records.select(indices),
+              attributes: attributesOf(
+                talliesByKind.get(geometry) ?? new Map<string, Tally>(),
+                indices.length,
                 statedOrder,
               ),
             };

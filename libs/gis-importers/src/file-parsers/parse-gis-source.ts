@@ -29,12 +29,12 @@ type ParsedGisSource = {
   contents: SourceContents;
 };
 
-type DecodedSource = {
+export type DecodedSource = {
   features: Feature[];
   sourceProjection?: Proj4Projection;
   issues: Issue[];
   contents?: SourceContents;
-  summarise?: (features: Feature[]) => SourceContents;
+  statedOrder?: string[];
 };
 
 type CacheEntry = {
@@ -45,7 +45,7 @@ type CacheEntry = {
 };
 const cache = new WeakMap<SourceFile, CacheEntry>();
 
-const suppliedEpsg = (crs: GisInput["crs"]): number | null =>
+export const suppliedEpsg = (crs: GisInput["crs"]): number | null =>
   crs?.type === "epsg" ? crs.code : null;
 
 const suppliedAttributes = (
@@ -78,7 +78,7 @@ export const parseGisSource = async (
     return resultOf(cached.decoded);
   }
 
-  const decoded = await decode(input);
+  const decoded = await decodeFeatures(input);
   cache.set(key, {
     files,
     suppliedEpsg: epsg,
@@ -196,8 +196,9 @@ const resultOf = (decoded: DecodedSource): ParsedGisSource => {
       : { sourceProjection: decoded.sourceProjection }),
     issues,
     get contents() {
-      return (decoded.contents ??= (decoded.summarise ?? contentsOf)(
+      return (decoded.contents ??= contentsOf(
         decoded.features,
+        decoded.statedOrder,
       ));
     },
   };
@@ -210,7 +211,7 @@ type ReadError =
   | "sourceHeaderMissing"
   | "coordinateAttributesMissing";
 
-const failure = (code: ReadError): DecodedSource => ({
+export const failure = (code: ReadError): DecodedSource => ({
   features: [],
   issues: [{ code, severity: "error" }],
 });
@@ -230,7 +231,9 @@ const unplaced = (
 const hasExtension = (file: SourceFile, extension: string) =>
   file.name.toLowerCase().endsWith(extension);
 
-const decode = async (input: GisInput): Promise<DecodedSource> => {
+export const decodeFeatures = async (
+  input: GisInput,
+): Promise<DecodedSource> => {
   const { files } = input;
 
   const shpFile = files.find(
@@ -271,17 +274,12 @@ const parseCsv = (content: string, input: GisInput): DecodedSource => {
 
   return {
     ...placed,
-    summarise: inHeaderOrder(parsed.headers),
+    statedOrder: parsed.headers,
     issues: [...placed.issues, ...parsed.skipped],
   };
 };
 
 const COORDINATE_ATTRIBUTES = 2;
-
-const inHeaderOrder =
-  (headers: string[]) =>
-  (features: Feature[]): SourceContents =>
-    contentsOf(features, headers);
 
 const unnamedCoordinates = (
   features: Feature[],
@@ -295,14 +293,15 @@ const unnamedCoordinates = (
     : {
         features,
         contents,
-        summarise: inHeaderOrder(headers),
+        statedOrder: headers,
         issues: [{ code: "coordinateAttributesUnknown", severity: "error" }],
       };
 };
 
 const DXF_START = /^(?:\s*999[^\n]*\n[^\n]*\n)*\s*0[^\S\n]*\r?\n\s*SECTION/;
 
-const looksLikeDxf = (content: string): boolean => DXF_START.test(content);
+export const looksLikeDxf = (content: string): boolean =>
+  DXF_START.test(content);
 
 const parseDxf = async (
   bytes: ArrayBuffer,
@@ -592,7 +591,7 @@ const placeWith = (
     : "coordinateSystemMismatch";
 };
 
-const WGS84_EPSG = 4326;
+export const WGS84_EPSG = 4326;
 
 type ParsedGeoJson = { features: Feature[]; stated: number | null };
 
@@ -652,7 +651,7 @@ const onlyFeatures = (candidates: unknown[]): Feature[] => {
 const isFeature = (candidate: unknown): candidate is Feature =>
   (candidate as Feature | null)?.type === "Feature";
 
-const statedCrs = (collection: FeatureCollection): number | null => {
+export const statedCrs = (collection: unknown): number | null => {
   const { code } = extractEPSGFromGeoJSON(collection);
   return code === null ? null : Number(code);
 };

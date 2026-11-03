@@ -143,13 +143,18 @@ const isLine = (positions: Position[]): boolean =>
 const isRing = (ring: Position[]): boolean =>
   Array.isArray(ring) && ring.every(isPosition);
 
+const isLatLng = (x: number, y: number): boolean =>
+  x >= -180 && x <= 180 && y >= -90 && y <= 90;
+
+export type Transform = (position: [number, number]) => [number, number];
+
 export class RecordsBuilder {
   count = 0;
   private readonly kinds = growableUint8();
   private readonly recordPolygons = growableUint32();
   private readonly polygonRings = growableUint32();
   private readonly ringPositions = growableUint32();
-  private readonly xy = growableFloat64();
+  private xy = growableFloat64();
   private z: Growable<Float64Array> | null = null;
   private readonly columns = new Map<string, ColumnBuilder>();
 
@@ -211,6 +216,56 @@ export class RecordsBuilder {
     }
   }
 
+  hasGeometry(): boolean {
+    const kinds = this.kinds.view();
+    for (let i = 0; i < kinds.length; i++) {
+      if ((kinds[i] as GeometryKind) !== GeometryKind.None) return true;
+    }
+    return false;
+  }
+
+  mostlyLatLng(xy: Float64Array = this.xy.view()): boolean {
+    const kinds = this.kinds.view();
+    const decided = this.count / 2;
+    let located = 0;
+    let inRange = 0;
+
+    for (let record = 0; record < this.count; record++) {
+      if ((kinds[record] as GeometryKind) === GeometryKind.None) continue;
+      located += 1;
+      if (this.isRecordLatLng(record, xy)) inRange += 1;
+      if (inRange > decided) return true;
+      if (located - inRange >= decided) return false;
+    }
+
+    return inRange * 2 > located;
+  }
+
+  /** The coordinates moved by `transform`, leaving these untouched; null when
+   *  the transform throws. */
+  transformed(transform: Transform): Float64Array | null {
+    const source = this.xy.view();
+    const moved = new Float64Array(source.length);
+    try {
+      for (let i = 0; i < source.length; i += 2) {
+        const [x, y] = transform([source[i], source[i + 1]]);
+        moved[i] = x;
+        moved[i + 1] = y;
+      }
+    } catch {
+      return null;
+    }
+    return moved;
+  }
+
+  useCoordinates(xy: Float64Array, { keepZ }: { keepZ: boolean }): void {
+    const replaced = growableFloat64();
+    replaced.array = xy;
+    replaced.length = xy.length;
+    this.xy = replaced;
+    if (!keepZ) this.z = null;
+  }
+
   encode(): ArrayBuffer {
     return encodeRecords({
       count: this.count,
@@ -224,6 +279,21 @@ export class RecordsBuilder {
         column.encode(this.count),
       ),
     });
+  }
+
+  private isRecordLatLng(record: number, xy: Float64Array): boolean {
+    if ((this.kinds.get(record) as GeometryKind) === GeometryKind.Unknown)
+      return false;
+    const firstRing = this.polygonRings.get(this.recordPolygons.get(record));
+    const lastRing = this.polygonRings.get(this.recordPolygons.get(record + 1));
+    const from = this.ringPositions.get(firstRing);
+    const to = this.ringPositions.get(lastRing);
+    for (let position = from; position < to; position++) {
+      if (!isLatLng(xy[position * 2], xy[position * 2 + 1])) {
+        return false;
+      }
+    }
+    return true;
   }
 
   private addPoint(

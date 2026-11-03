@@ -8,6 +8,7 @@ import type {
 import type { Feature } from "geojson";
 import type { Proj4Projection } from "@epanet-js/projections";
 import type { ImportConfig } from "./import-config";
+import type { GisRecords } from "./records/gis-records";
 
 export type SourceAttribute = {
   name: string;
@@ -29,6 +30,18 @@ export type SourceContents = {
   attributes: SourceAttribute[];
   recordCount: number;
   groups: GeometryGroup[];
+};
+
+export type RecordsGroup = {
+  geometry: SourceGeometry;
+  records: GisRecords;
+  attributes: SourceAttribute[];
+};
+
+export type RecordsContents = {
+  attributes: SourceAttribute[];
+  recordCount: number;
+  groups: RecordsGroup[];
 };
 
 export type CoordinateAttributes = { x: string; y: string };
