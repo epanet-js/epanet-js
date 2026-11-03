@@ -2165,7 +2165,7 @@ const ValveEditor = ({
           c.type === "flow-modulating-valve" && c.linkId === valve.id,
       ) ?? null)
     : null;
-  const isSetByCurve = flowModulatingControl !== null;
+  const isSetByControl = flowModulatingControl !== null;
   const showTargetNode = isPrv;
   const outletNodeId = valve.connections[1] ?? null;
   const isScriptingOn = useFeatureFlag("FLAG_SCRIPTING");
@@ -2273,7 +2273,7 @@ const ValveEditor = ({
     ) ||
     getCurveComparison("curveId", valve.curveId, hydraulicModel.curves)
       .hasChanged ||
-    (showTargetNode && !isSetByCurve && targetNodeComparison.hasChanged);
+    (showTargetNode && !isSetByControl && targetNodeComparison.hasChanged);
 
   return (
     <AssetEditorContent
@@ -2320,19 +2320,21 @@ const ValveEditor = ({
         {valve.kind !== "gpv" && (
           <QuantityRow
             name="setting"
-            value={isSetByCurve ? null : valve.setting}
+            value={isSetByControl ? null : valve.setting}
             unit={getSettingUnit()}
             placeholder={
-              isSetByCurve
-                ? translate("controls.flowModulating.setByCurve")
+              isSetByControl
+                ? translate("controls.flowModulating.setByControl")
                 : undefined
             }
             comparison={
-              isSetByCurve ? undefined : getComparison("setting", valve.setting)
+              isSetByControl
+                ? undefined
+                : getComparison("setting", valve.setting)
             }
-            onChange={isSetByCurve ? undefined : onPropertyChange}
+            onChange={isSetByControl ? undefined : onPropertyChange}
             readOnly={readonly}
-            disabled={isSetByCurve}
+            disabled={isSetByControl}
             commitInvalidValues
           />
         )}
@@ -2358,16 +2360,18 @@ const ValveEditor = ({
           <SelectRow
             name="targetNode"
             selected={
-              isSetByCurve ? flowModulatingControl.controlNodeId : targetNodeId
+              isSetByControl
+                ? flowModulatingControl.controlNodeId
+                : targetNodeId
             }
             options={targetNodeOptions}
             nullable
             placeholder={endNode ? endNode.label : translate("select") + "..."}
-            comparison={isSetByCurve ? undefined : targetNodeComparison}
-            onChange={isSetByCurve ? undefined : handleTargetNodeChange}
+            comparison={isSetByControl ? undefined : targetNodeComparison}
+            onChange={isSetByControl ? undefined : handleTargetNodeChange}
             onHighlightChange={highlightTargetNodeById}
             readOnly={readonly}
-            disabled={isSetByCurve}
+            disabled={isSetByControl}
             clearLabel={endNode ? endNode.label : translate("select") + "..."}
           />
         )}

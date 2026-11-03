@@ -1252,12 +1252,12 @@
     "flowModulating": {
       "type": "Flow modulated",
       "linearInterpolation": "Linear interpolation",
-      "flowSensor": "Flow sensor",
+      "flowThrough": "Flow through",
       "thisValve": "This valve",
       "controlNode": "Control node",
       "outletOfThisValve": "{{1}} (outlet of this valve)",
       "addPoint": "Add point",
-      "setByCurve": "Set by curve"
+      "setByControl": "Set by control"
     }
   },
   "demandMultiplier": "Demand multiplier",

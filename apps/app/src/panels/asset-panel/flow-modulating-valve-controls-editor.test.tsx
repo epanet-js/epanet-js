@@ -139,10 +139,10 @@ describe("valve controls editor", () => {
   it("reads the flow from another link and returns to the valve", async () => {
     const { user, lastControl } = await renderFlowModulated();
 
-    await selectOption(user, "Flow sensor", "PU1");
+    await selectOption(user, "Flow through", "PU1");
     expect(lastControl().sensorLinkId).toBe(IDS.PU1);
 
-    await clearSelector(user, "Flow sensor", "This valve");
+    await clearSelector(user, "Flow through", "This valve");
     expect(lastControl().sensorLinkId).toBe(IDS.V1);
   });
 

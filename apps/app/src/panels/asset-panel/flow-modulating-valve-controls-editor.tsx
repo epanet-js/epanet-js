@@ -462,7 +462,7 @@ const SensorLinkField = ({
   readOnly: boolean;
 }) => {
   const translate = useTranslate();
-  const sensorLabel = translate("controls.flowModulating.flowSensor");
+  const flowThroughLabel = translate("controls.flowModulating.flowThrough");
   const thisValveLabel = translate("controls.flowModulating.thisValve");
   const options = useMemo(
     () =>
@@ -481,7 +481,7 @@ const SensorLinkField = ({
     : options.find((option) => option.value === control.sensorLinkId)?.label;
 
   return (
-    <InlineField name={sensorLabel} labelSize="md">
+    <InlineField name={flowThroughLabel} labelSize="md">
       <div
         className="w-full"
         onMouseEnter={() => onHighlightChange(control.sensorLinkId)}
@@ -491,7 +491,7 @@ const SensorLinkField = ({
           <TextField padding="md">{selectedLabel ?? ""}</TextField>
         ) : (
           <Selector
-            ariaLabel={sensorLabel}
+            ariaLabel={flowThroughLabel}
             options={options}
             selected={isValveSelected ? null : control.sensorLinkId}
             nullable

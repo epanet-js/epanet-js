@@ -805,7 +805,7 @@ describe("AssetPanel", () => {
         const setting = screen.getByRole("textbox", { name: /setting/i });
         expect(setting).toBeDisabled();
         expect(setting).toHaveValue("");
-        expect(setting).toHaveAttribute("placeholder", "Set by curve");
+        expect(setting).toHaveAttribute("placeholder", "Set by control");
 
         await user.click(screen.getByRole("combobox", { name: "Type" }));
         await user.click(await screen.findByRole("option", { name: "None" }));
