@@ -510,13 +510,7 @@ const EMPTIES = "null leaves it empty, which network review reports";
 const NODE_CHANGES = `  /** ${EMPTIES} */
   elevation?: number | null;
   /** ${CLEARS} */
-  initialQuality?: number | null;
-  /** null removes the source, with its strength and pattern */
-  chemicalSourceType?: "concen" | "mass" | "flowpaced" | "setpoint" | null;
-  /** ${CLEARS} */
-  chemicalSourceStrength?: number | null;
-  /** the label of a qualitySourceStrength pattern; ${CLEARS} */
-  chemicalSourcePattern?: string | null;`;
+  initialQuality?: number | null;`;
 
 const changesType = (owner: string, body: string): TypeDef => ({
   name: `${owner}Changes`,
@@ -611,9 +605,9 @@ const setOf = (owner: string, example: string): Member =>
     signature: `set(changes: ${owner}Changes): void`,
     summary: `Changes the ${owner.toLowerCase()}'s attributes, in the same units its getters read them.`,
     description:
-      "The asset reads the new values straight away. The changes reach the network when the script finishes, as one change the user can undo; if the script throws, none of them do. Leave out an attribute to keep its value. Patterns and curves are named by label, and must be of the type the attribute takes.",
+      "The asset reads the new values straight away. The changes reach the network when the script finishes, as one change the user can undo; if the script throws, none of them do. Leave out an attribute to keep its value. Patterns and curves are named by label, and must be of the type the attribute takes. `set` changes values that stand alone; a change that reshapes the asset has its own method, such as a node's `setQualitySource`.",
     throws: [
-      "`TypeError` when `changes` names an attribute it cannot set, or gives a value of the wrong type.",
+      "`TypeError` when `changes` names an attribute it cannot set, or gives a value of the wrong type. For an attribute another method changes, the message names that method.",
     ],
     examples: [{ code: example }],
   });
@@ -653,14 +647,49 @@ console.log(pipe.diameter, network.units.diameter, pipe.status);`,
   [valveResults, setOf("Valve", `network.getLink("V1").set({ setting: 45 });`)],
 ]);
 
+const QUALITY_SOURCE: TypeDef = {
+  name: "QualitySource",
+  definition: `interface QualitySource {
+  type: "concen" | "mass" | "flowpaced" | "setpoint";
+  /** left out, the source has no strength */
+  strength?: number | null;
+  /** the label of a qualitySourceStrength pattern; left out, the source has none */
+  pattern?: string | null;
+}`,
+  summary: "A node's water quality source, as `setQualitySource` takes it.",
+};
+
+const SET_QUALITY_SOURCE: Member = memberOf("NodeAsset")({
+  name: "setQualitySource",
+  signature: "setQualitySource(source: QualitySource | null): void",
+  summary:
+    "Replaces the node's quality source as a whole, or removes it with `null`.",
+  description:
+    'What `source` leaves out is cleared, not kept: `{ type: "concen" }` drops the strength and pattern the node had. The node reads the new source straight away, through `chemicalSourceType`, `chemicalSourceStrength` and `chemicalSourcePattern`; it reaches the network with the script\'s other changes.',
+  throws: [
+    "`TypeError` when `source` has no `type`, names a field it does not take, or gives a value of the wrong type.",
+  ],
+  examples: [
+    {
+      code: `network.getNode("R1").setQualitySource({ type: "concen", strength: 1.5 });
+network.getNode("J1").setQualitySource(null);`,
+    },
+  ],
+});
+
+const isQualitySourcePattern = (member: Member) =>
+  member.owner === "NodeAsset" && member.name === "chemicalSourcePattern";
+
 export const sectionFor = ({ edits }: DocsCandidates): Section =>
   edits
     ? {
         ...SECTION,
         intro:
           "Every asset is an object of getters. A value the model has not set reads as `null`. Every asset also changes through `set`.",
-        types: [...(SECTION.types ?? []), ...CHANGES_TYPES],
+        types: [...(SECTION.types ?? []), ...CHANGES_TYPES, QUALITY_SOURCE],
         members: (SECTION.members ?? []).flatMap((member) => {
+          if (isQualitySourcePattern(member))
+            return [member, SET_QUALITY_SOURCE];
           const set = SET_BEFORE.get(member);
           return set ? [set, member] : [member];
         }),

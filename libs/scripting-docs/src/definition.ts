@@ -28,7 +28,7 @@ const READ_ONLY_RULE =
   "Everything is read-only. If the user asks to change the model, say so — do not write a script that assigns to asset fields.";
 
 const EDITS_RULE =
-  "Change assets only with `asset.set(...)`, and only the attributes its `Changes` type lists; everything else is read-only. If the user asks for another change, say so — never assign to asset fields.";
+  "Change assets only with `asset.set(...)` for the attributes its `Changes` type lists, and a node's quality source with `setQualitySource(...)`; everything else is read-only. If the user asks for another change, say so — never assign to asset fields.";
 
 const AGENT_RULES = [
   "Orient once: start the first script on an unfamiliar model with `console.log(network.stats)` and `console.log(network.units)`.",
