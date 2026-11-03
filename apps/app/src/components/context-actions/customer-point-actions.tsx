@@ -2,13 +2,8 @@ import type {
   Action,
   ActionProps,
 } from "src/components/context-actions/action-item";
-import { ActionItem } from "./action-item";
 import { useCallback } from "react";
 import { CustomerPoint } from "@epanet-js/hydraulic-model";
-import { useAtomValue } from "jotai";
-import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
-import { selectionAtom } from "src/state/selection";
-import { USelection } from "src/selection";
 import { useTranslate } from "src/hooks/use-translate";
 import {
   useConnectCustomerPoints,
@@ -84,29 +79,4 @@ export function useCustomerPointActions(
   };
 
   return [connectAction, disconnectAction, deleteAction];
-}
-
-export function CustomerPointActions({ as }: { as: ActionProps["as"] }) {
-  const selection = useAtomValue(selectionAtom);
-  const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
-
-  const selectedCustomerPointId = USelection.singleCustomerPointId(selection);
-  const customerPoint =
-    selectedCustomerPointId !== null
-      ? hydraulicModel.customerPoints.get(selectedCustomerPointId)
-      : undefined;
-
-  const actions = useCustomerPointActions(customerPoint, as);
-
-  if (!USelection.isSingleCustomerPoint(selection)) return null;
-
-  return (
-    <>
-      {actions
-        .filter((action) => action.applicable)
-        .map((action, i) => (
-          <ActionItem as={as} key={i} action={action} />
-        ))}
-    </>
-  );
 }

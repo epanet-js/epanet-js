@@ -44,7 +44,10 @@ export const newSelectionSet = (
 ): SelectionSet => ({
   id: nanoid(),
   label,
-  selection,
+  selection: USelection.fromIds(
+    USelection.getAssetIds(selection),
+    USelection.getCustomerPointIds(selection),
+  ),
 });
 
 export const newBookmark = (label: string, bbox: BBox): Bookmark => ({

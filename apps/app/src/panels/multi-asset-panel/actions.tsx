@@ -87,7 +87,7 @@ export function useMultiAssetActions(readonly = false): Action[] {
 
   const saveSelectionSetAction = {
     icon: <BookmarkIcon />,
-    applicable: isCollectionsAvailable,
+    applicable: isCollectionsAvailable && (hasAssets || hasCustomerPoints),
     label: translate("collections.selectionSets.save"),
     onSelect: function saveSelectionSet() {
       startCollectionDraft({

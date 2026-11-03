@@ -359,12 +359,14 @@ export const MapCanvas = memo(function MapCanvas({
 
           const selectedAssets = get(selectedAssetsDerivedAtom);
           const selectedCustomerPoints = get(selectedCustomerPointsDerivedAtom);
+          const selectedZoneIds = USelection.getZoneIds(get(selectionAtom));
 
           setContextInfo({
             features: wrappedFeaturesFromMapFeatures(featureUnderMouse, assets),
             position,
             selectedFeatures: selectedAssets,
             selectedCustomerPoints,
+            selectedZoneIds,
           });
         }
       },

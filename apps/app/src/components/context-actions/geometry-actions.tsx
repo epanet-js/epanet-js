@@ -83,7 +83,7 @@ function useSelectionActions(source: ActionProps["as"]): Action[] {
   const deleteAssetsAction = {
     label: translate("delete"),
     variant: "danger-quiet" as B3Variant,
-    applicable: true,
+    applicable: hasAssets || hasCustomerPoints,
     icon: <DeleteIcon />,
     onSelect: onDelete,
   };
@@ -102,7 +102,7 @@ function useSelectionActions(source: ActionProps["as"]): Action[] {
 
   const saveSelectionSetAction = {
     icon: <BookmarkIcon />,
-    applicable: isCollectionsAvailable,
+    applicable: isCollectionsAvailable && (hasAssets || hasCustomerPoints),
     label: translate("collections.selectionSets.save"),
     onSelect: function saveSelectionSet() {
       startCollectionDraft({

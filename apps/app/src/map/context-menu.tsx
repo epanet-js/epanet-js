@@ -10,6 +10,7 @@ export interface ContextInfo {
   features: ReturnType<typeof wrappedFeaturesFromMapFeatures>;
   selectedFeatures: IWrappedFeature[];
   selectedCustomerPoints: CustomerPoint[];
+  selectedZoneIds: readonly number[];
   position: Pos2;
 }
 
@@ -21,7 +22,8 @@ export const MapContextMenu = memo(function MapContextMenu({
   const hasSelection =
     !!contextInfo &&
     (contextInfo.selectedFeatures.length > 0 ||
-      contextInfo.selectedCustomerPoints.length > 0);
+      contextInfo.selectedCustomerPoints.length > 0 ||
+      contextInfo.selectedZoneIds.length > 0);
 
   if (!hasSelection) return null;
 
