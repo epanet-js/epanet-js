@@ -2,6 +2,9 @@ import Flatbush from "flatbush";
 import type { Position } from "geojson";
 import type { ZoneId, Zones } from "./zones";
 import type { SearchOptions } from "./spatial-queries";
+import type { AssetId } from "./asset-types";
+import type { AssetsGeoQueries } from "./assets-geo";
+import type { CustomerPointsGeoQueries } from "./customer-points-geo";
 import { toSearchPolygon } from "./spatial-queries";
 import { BinaryData, BufferType, createBuffer } from "@epanet-js/buffers";
 
@@ -11,12 +14,14 @@ export type ZonesGeoBuffers = {
   zoneIds: BinaryData;
   zoneBounds: BinaryData;
   zoneRings: BinaryData;
+  zoneChunks: BinaryData;
   ringVertices: BinaryData;
   coordinates: BinaryData;
   zonesSpatialIndex: BinaryData;
   chunkFirstVertex: BinaryData;
   chunkEdgeCount: BinaryData;
   chunkZone: BinaryData;
+  chunkPolygon: BinaryData;
   chunkBounds: BinaryData;
   chunksSpatialIndex: BinaryData;
 };
@@ -25,12 +30,14 @@ const bufferKeys: (keyof ZonesGeoBuffers)[] = [
   "zoneIds",
   "zoneBounds",
   "zoneRings",
+  "zoneChunks",
   "ringVertices",
   "coordinates",
   "zonesSpatialIndex",
   "chunkFirstVertex",
   "chunkEdgeCount",
   "chunkZone",
+  "chunkPolygon",
   "chunkBounds",
   "chunksSpatialIndex",
 ];
@@ -88,21 +95,25 @@ export function encodeZonesGeo(
     zoneIds: u32(zoneCount),
     zoneBounds: f64(zoneCount * 4),
     zoneRings: u32(zoneCount + 1),
+    zoneChunks: u32(zoneCount + 1),
     ringVertices: u32(ringCount + 1),
     coordinates: f64(vertexCount * 2),
     chunkFirstVertex: u32(chunkCount),
     chunkEdgeCount: createBuffer(chunkCount, bufferType),
     chunkZone: u32(chunkCount),
+    chunkPolygon: u32(chunkCount),
     chunkBounds: f64(chunkCount * 4),
   };
   const zoneIds = new Uint32Array(buffers.zoneIds);
   const zoneBounds = new Float64Array(buffers.zoneBounds);
   const zoneRings = new Uint32Array(buffers.zoneRings);
+  const zoneChunks = new Uint32Array(buffers.zoneChunks);
   const ringVertices = new Uint32Array(buffers.ringVertices);
   const coordinates = new Float64Array(buffers.coordinates);
   const chunkFirstVertex = new Uint32Array(buffers.chunkFirstVertex);
   const chunkEdgeCount = new Uint8Array(buffers.chunkEdgeCount);
   const chunkZone = new Uint32Array(buffers.chunkZone);
+  const chunkPolygon = new Uint32Array(buffers.chunkPolygon);
   const chunkBounds = new Float64Array(buffers.chunkBounds);
 
   const zonesIndex = new Flatbush(
@@ -119,12 +130,14 @@ export function encodeZonesGeo(
   );
 
   let zoneIndex = 0;
+  let polygonIndex = 0;
   let ringIndex = 0;
   let vertexIndex = 0;
   let chunkIndex = 0;
   for (const zone of zones.values()) {
     zoneIds[zoneIndex] = zone.id;
     zoneRings[zoneIndex] = ringIndex;
+    zoneChunks[zoneIndex] = chunkIndex;
     let zMinX = Infinity;
     let zMinY = Infinity;
     let zMaxX = -Infinity;
@@ -162,6 +175,7 @@ export function encodeZonesGeo(
           chunkFirstVertex[chunkIndex] = ringStart + first;
           chunkEdgeCount[chunkIndex] = edges;
           chunkZone[chunkIndex] = zoneIndex;
+          chunkPolygon[chunkIndex] = polygonIndex;
           chunkBounds[chunkIndex * 4] = cMinX;
           chunkBounds[chunkIndex * 4 + 1] = cMinY;
           chunkBounds[chunkIndex * 4 + 2] = cMaxX;
@@ -170,6 +184,7 @@ export function encodeZonesGeo(
           chunkIndex++;
         }
       }
+      polygonIndex++;
     }
     zoneBounds[zoneIndex * 4] = zMinX;
     zoneBounds[zoneIndex * 4 + 1] = zMinY;
@@ -179,6 +194,7 @@ export function encodeZonesGeo(
     zoneIndex++;
   }
   zoneRings[zoneIndex] = ringIndex;
+  zoneChunks[zoneIndex] = chunkIndex;
   ringVertices[ringIndex] = vertexIndex;
   zonesIndex.finish();
   chunksIndex.finish();
@@ -238,6 +254,47 @@ const segmentsIntersect = (
     (d4 === 0 && isWithin(ax, ay, bx, by, dx, dy))
   );
 };
+
+const GRID_SIZE = 64;
+const BOUNDARY_CELL = 1;
+
+type ZoneLookup = {
+  firstChunk: number;
+  index: Flatbush;
+  cells: Uint8Array;
+  cellPolygons: Map<number, number[]>;
+  minX: number;
+  minY: number;
+  maxX: number;
+  maxY: number;
+  cellWidth: number;
+  cellHeight: number;
+};
+
+const cellColumn = (lookup: ZoneLookup, x: number) =>
+  Math.min(
+    GRID_SIZE - 1,
+    Math.max(0, Math.floor((x - lookup.minX) / lookup.cellWidth)),
+  );
+
+const cellRow = (lookup: ZoneLookup, y: number) =>
+  Math.min(
+    GRID_SIZE - 1,
+    Math.max(0, Math.floor((y - lookup.minY) / lookup.cellHeight)),
+  );
+
+const segmentsStrictlyCross = (
+  ax: number,
+  ay: number,
+  bx: number,
+  by: number,
+  cx: number,
+  cy: number,
+  dx: number,
+  dy: number,
+): boolean =>
+  orient(cx, cy, dx, dy, ax, ay) * orient(cx, cy, dx, dy, bx, by) < 0 &&
+  orient(ax, ay, bx, by, cx, cy) * orient(ax, ay, bx, by, dx, dy) < 0;
 
 const isPointInBox = (
   x: number,
@@ -303,11 +360,13 @@ export class ZonesGeoView {
   private readonly zoneIds: Uint32Array;
   private readonly zoneBounds: Float64Array;
   private readonly zoneRings: Uint32Array;
+  private readonly zoneChunks: Uint32Array;
   private readonly ringVertices: Uint32Array;
   private readonly coordinates: Float64Array;
   private readonly chunkFirstVertex: Uint32Array;
   private readonly chunkEdgeCount: Uint8Array;
   private readonly chunkZone: Uint32Array;
+  private readonly chunkPolygon: Uint32Array;
   private readonly chunkBounds: Float64Array;
   private readonly zonesIndex: Flatbush | null;
   private readonly chunksIndex: Flatbush | null;
@@ -317,11 +376,13 @@ export class ZonesGeoView {
     this.zoneCount = this.zoneIds.length;
     this.zoneBounds = new Float64Array(buffers.zoneBounds);
     this.zoneRings = new Uint32Array(buffers.zoneRings);
+    this.zoneChunks = new Uint32Array(buffers.zoneChunks);
     this.ringVertices = new Uint32Array(buffers.ringVertices);
     this.coordinates = new Float64Array(buffers.coordinates);
     this.chunkFirstVertex = new Uint32Array(buffers.chunkFirstVertex);
     this.chunkEdgeCount = new Uint8Array(buffers.chunkEdgeCount);
     this.chunkZone = new Uint32Array(buffers.chunkZone);
+    this.chunkPolygon = new Uint32Array(buffers.chunkPolygon);
     this.chunkBounds = new Float64Array(buffers.chunkBounds);
     const isEmpty = this.zoneCount === 0;
     this.zonesIndex = isEmpty ? null : Flatbush.from(buffers.zonesSpatialIndex);
@@ -518,6 +579,237 @@ export class ZonesGeoView {
     }
     return crossings;
   }
+
+  private zoneIndexById?: Map<ZoneId, number>;
+
+  zoneIndexOf(zoneId: ZoneId): number | undefined {
+    if (!this.zoneIndexById) {
+      this.zoneIndexById = new Map();
+      for (let zone = 0; zone < this.zoneCount; zone++)
+        this.zoneIndexById.set(this.zoneIds[zone], zone);
+    }
+    return this.zoneIndexById.get(zoneId);
+  }
+
+  zoneBoundsOf(zone: number): [number, number, number, number] {
+    const b = zone * 4;
+    return [
+      this.zoneBounds[b],
+      this.zoneBounds[b + 1],
+      this.zoneBounds[b + 2],
+      this.zoneBounds[b + 3],
+    ];
+  }
+
+  private lookups = new Map<number, ZoneLookup>();
+
+  private lookupOf(zone: number): ZoneLookup {
+    let lookup = this.lookups.get(zone);
+    if (lookup) return lookup;
+    const firstChunk = this.zoneChunks[zone];
+    const lastChunk = this.zoneChunks[zone + 1];
+    const [minX, minY, maxX, maxY] = this.zoneBoundsOf(zone);
+    const cellWidth = (maxX - minX) / GRID_SIZE || 1;
+    const cellHeight = (maxY - minY) / GRID_SIZE || 1;
+    const index = new Flatbush(Math.max(1, lastChunk - firstChunk));
+    const cells = new Uint8Array(GRID_SIZE * GRID_SIZE);
+    lookup = {
+      firstChunk,
+      index,
+      cells,
+      cellPolygons: new Map(),
+      minX,
+      minY,
+      maxX,
+      maxY,
+      cellWidth,
+      cellHeight,
+    };
+    if (lastChunk === firstChunk) index.add(0, 0, 0, 0);
+    const c = this.coordinates;
+    for (let chunk = firstChunk; chunk < lastChunk; chunk++) {
+      const b = chunk * 4;
+      index.add(
+        this.chunkBounds[b],
+        this.chunkBounds[b + 1],
+        this.chunkBounds[b + 2],
+        this.chunkBounds[b + 3],
+      );
+      const first = this.chunkFirstVertex[chunk];
+      const last = first + this.chunkEdgeCount[chunk];
+      for (let v = first; v < last; v++) {
+        const col0 = cellColumn(lookup, Math.min(c[v * 2], c[v * 2 + 2]));
+        const col1 = cellColumn(lookup, Math.max(c[v * 2], c[v * 2 + 2]));
+        const row0 = cellRow(lookup, Math.min(c[v * 2 + 1], c[v * 2 + 3]));
+        const row1 = cellRow(lookup, Math.max(c[v * 2 + 1], c[v * 2 + 3]));
+        for (let row = row0; row <= row1; row++)
+          for (let col = col0; col <= col1; col++)
+            cells[row * GRID_SIZE + col] = BOUNDARY_CELL;
+      }
+    }
+    index.finish();
+    this.lookups.set(zone, lookup);
+    return lookup;
+  }
+
+  polygonsAt(zone: number, x: number, y: number): number[] {
+    if (!this.chunksIndex) return [];
+    const lookup = this.lookupOf(zone);
+    if (
+      x < lookup.minX ||
+      x > lookup.maxX ||
+      y < lookup.minY ||
+      y > lookup.maxY
+    )
+      return [];
+    const cell = cellRow(lookup, y) * GRID_SIZE + cellColumn(lookup, x);
+    if (lookup.cells[cell] === BOUNDARY_CELL)
+      return this.rayCastPolygons(zone, lookup, x, y);
+    let polygons = lookup.cellPolygons.get(cell);
+    if (!polygons) {
+      const col = cell % GRID_SIZE;
+      const row = (cell - col) / GRID_SIZE;
+      polygons = this.rayCastPolygons(
+        zone,
+        lookup,
+        lookup.minX + (col + 0.5) * lookup.cellWidth,
+        lookup.minY + (row + 0.5) * lookup.cellHeight,
+      );
+      lookup.cellPolygons.set(cell, polygons);
+    }
+    return polygons;
+  }
+
+  private rayCastPolygons(
+    zone: number,
+    lookup: ZoneLookup,
+    x: number,
+    y: number,
+  ): number[] {
+    const parity = new Map<number, boolean>();
+    const onBoundary = new Set<number>();
+    const c = this.coordinates;
+    lookup.index.search(x, y, Infinity, y, (item: number) => {
+      const chunk = lookup.firstChunk + item;
+      if (this.chunkZone[chunk] !== zone) return false;
+      const polygon = this.chunkPolygon[chunk];
+      const first = this.chunkFirstVertex[chunk];
+      const last = first + this.chunkEdgeCount[chunk];
+      for (let v = first; v < last; v++) {
+        const ax = c[v * 2];
+        const ay = c[v * 2 + 1];
+        const bx = c[v * 2 + 2];
+        const by = c[v * 2 + 3];
+        if (
+          orient(ax, ay, bx, by, x, y) === 0 &&
+          isWithin(ax, ay, bx, by, x, y)
+        ) {
+          onBoundary.add(polygon);
+        } else if (
+          ay > y !== by > y &&
+          x < ax + ((y - ay) * (bx - ax)) / (by - ay)
+        ) {
+          parity.set(polygon, !parity.get(polygon));
+        }
+      }
+      return false;
+    });
+    const polygons = [...onBoundary];
+    for (const [polygon, isInside] of parity) {
+      if (isInside && !onBoundary.has(polygon)) polygons.push(polygon);
+    }
+    return polygons;
+  }
+
+  private mayCrossBoundary(
+    lookup: ZoneLookup,
+    minX: number,
+    minY: number,
+    maxX: number,
+    maxY: number,
+  ): boolean {
+    if (
+      maxX < lookup.minX ||
+      minX > lookup.maxX ||
+      maxY < lookup.minY ||
+      minY > lookup.maxY
+    )
+      return false;
+    const col0 = cellColumn(lookup, minX);
+    const col1 = cellColumn(lookup, maxX);
+    const row0 = cellRow(lookup, minY);
+    const row1 = cellRow(lookup, maxY);
+    for (let row = row0; row <= row1; row++)
+      for (let col = col0; col <= col1; col++)
+        if (lookup.cells[row * GRID_SIZE + col] === BOUNDARY_CELL) return true;
+    const isWithinBounds =
+      minX >= lookup.minX &&
+      maxX <= lookup.maxX &&
+      minY >= lookup.minY &&
+      maxY <= lookup.maxY;
+    return !isWithinBounds;
+  }
+
+  containsPoint(zone: number, x: number, y: number): boolean {
+    return this.polygonsAt(zone, x, y).length > 0;
+  }
+
+  classifyLine(zone: number, line: Position[]): "inside" | "boundary" | null {
+    if (!this.chunksIndex) return null;
+    let candidates: Set<number> | null = null;
+    let isStartInside = false;
+    let isEndInside = false;
+    for (let i = 0; i < line.length; i++) {
+      const polygons = this.polygonsAt(zone, line[i][0], line[i][1]);
+      if (i === 0) isStartInside = polygons.length > 0;
+      if (i === line.length - 1) isEndInside = polygons.length > 0;
+      candidates = candidates
+        ? new Set(polygons.filter((polygon) => candidates!.has(polygon)))
+        : new Set(polygons);
+    }
+    const contained = candidates ?? new Set<number>();
+    const lookup = this.lookupOf(zone);
+    const c = this.coordinates;
+    for (let i = 1; i < line.length && contained.size > 0; i++) {
+      const ax = line[i - 1][0];
+      const ay = line[i - 1][1];
+      const bx = line[i][0];
+      const by = line[i][1];
+      const minX = Math.min(ax, bx);
+      const minY = Math.min(ay, by);
+      const maxX = Math.max(ax, bx);
+      const maxY = Math.max(ay, by);
+      if (!this.mayCrossBoundary(lookup, minX, minY, maxX, maxY)) continue;
+      lookup.index.search(minX, minY, maxX, maxY, (item: number) => {
+        const chunk = lookup.firstChunk + item;
+        if (this.chunkZone[chunk] !== zone) return false;
+        const polygon = this.chunkPolygon[chunk];
+        const first = this.chunkFirstVertex[chunk];
+        const last = first + this.chunkEdgeCount[chunk];
+        for (let v = first; v < last; v++) {
+          if (
+            segmentsStrictlyCross(
+              ax,
+              ay,
+              bx,
+              by,
+              c[v * 2],
+              c[v * 2 + 1],
+              c[v * 2 + 2],
+              c[v * 2 + 3],
+            )
+          ) {
+            contained.delete(polygon);
+            break;
+          }
+        }
+        return false;
+      });
+    }
+    if (contained.size > 0) return "inside";
+    if (isStartInside !== isEndInside) return "boundary";
+    return null;
+  }
 }
 
 export function queryIntersectingZones(
@@ -525,4 +817,67 @@ export function queryIntersectingZones(
   searchOptions: SearchOptions,
 ): ZoneId[] {
   return geo.searchIntersecting(searchOptions);
+}
+
+export type ZoneContents = {
+  assetIds: AssetId[];
+  boundaryAssetIds: AssetId[];
+  customerPointIds: number[];
+};
+
+export function queryZoneContents(
+  zonesGeo: ZonesGeoView,
+  assetsGeo: AssetsGeoQueries,
+  customerPointsGeo: CustomerPointsGeoQueries | null,
+  zoneIds: ZoneId[],
+): ZoneContents {
+  const assetIds = new Set<AssetId>();
+  const boundaryAssetIds = new Set<AssetId>();
+  const customerPointIds = new Set<number>();
+
+  for (const zoneId of zoneIds) {
+    const zone = zonesGeo.zoneIndexOf(zoneId);
+    if (zone === undefined) continue;
+    const bounds = zonesGeo.zoneBoundsOf(zone);
+
+    assetsGeo.searchNodes(bounds, (nodeId) => {
+      const position = assetsGeo.getNodePosition(nodeId);
+      if (position && zonesGeo.containsPoint(zone, position[0], position[1]))
+        assetIds.add(nodeId);
+      return false;
+    });
+
+    const linkIds = new Set<AssetId>();
+    assetsGeo.searchLinkSegments(bounds, (segmentId) => {
+      linkIds.add(assetsGeo.getSegmentLinkId(segmentId));
+      return false;
+    });
+    for (const linkId of linkIds) {
+      if (assetIds.has(linkId)) continue;
+      const segments = assetsGeo.getLinkSegments(linkId);
+      if (segments.length === 0) continue;
+      const line: Position[] = [assetsGeo.getSegmentCoords(segments[0])[0]];
+      for (const segmentId of segments)
+        line.push(assetsGeo.getSegmentCoords(segmentId)[1]);
+      const placement = zonesGeo.classifyLine(zone, line);
+      if (placement === "inside") {
+        assetIds.add(linkId);
+        boundaryAssetIds.delete(linkId);
+      } else if (placement === "boundary") {
+        boundaryAssetIds.add(linkId);
+      }
+    }
+
+    customerPointsGeo?.searchCustomerPoints(bounds, (id, position) => {
+      if (zonesGeo.containsPoint(zone, position[0], position[1]))
+        customerPointIds.add(id);
+      return false;
+    });
+  }
+
+  return {
+    assetIds: [...assetIds],
+    boundaryAssetIds: [...boundaryAssetIds],
+    customerPointIds: [...customerPointIds],
+  };
 }

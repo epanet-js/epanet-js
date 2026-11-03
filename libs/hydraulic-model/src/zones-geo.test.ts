@@ -144,3 +144,152 @@ describe("queryIntersectingZones", () => {
     expect(query(zones, square(5, 5, 25, 6))).toEqual([1, 2]);
   });
 });
+
+const viewOf = (zone: Zone) => {
+  const view = new ZonesGeoView(encodeZonesGeo(new Map([[zone.id, zone]])));
+  return { view, index: view.zoneIndexOf(zone.id)! };
+};
+
+describe("ZonesGeoView.containsPoint", () => {
+  const withHole = aZone(1, [
+    [square(0, 0, 10, 10), square(4, 4, 6, 6)],
+    [square(20, 0, 30, 10)],
+  ]);
+
+  it.each([
+    { label: "inside", point: [2, 2], expected: true },
+    { label: "outside", point: [15, 5], expected: false },
+    { label: "in a hole", point: [5, 5], expected: false },
+    { label: "on the outer border", point: [0, 5], expected: true },
+    { label: "on a hole's border", point: [4, 5], expected: true },
+    { label: "in a second part", point: [25, 5], expected: true },
+  ])("is $expected for a point $label", ({ point, expected }) => {
+    const { view, index } = viewOf(withHole);
+
+    expect(view.containsPoint(index, point[0], point[1])).toBe(expected);
+  });
+});
+
+describe("ZonesGeoView.classifyLine", () => {
+  const twoParts = aZone(1, [
+    [square(0, 0, 10, 10), square(4, 4, 6, 6)],
+    [square(20, 0, 30, 10)],
+  ]);
+
+  it.each([
+    {
+      label: "inside for a line within one part",
+      line: [
+        [1, 1],
+        [3, 2],
+        [2, 8],
+      ],
+      expected: "inside",
+    },
+    {
+      label: "inside for a line that touches the border",
+      line: [
+        [0, 2],
+        [3, 2],
+      ],
+      expected: "inside",
+    },
+    {
+      label: "boundary for a line leaving the zone",
+      line: [
+        [2, 2],
+        [15, 2],
+      ],
+      expected: "boundary",
+    },
+    {
+      label: "boundary for a line from the border to outside",
+      line: [
+        [0, 2],
+        [-5, 2],
+      ],
+      expected: "boundary",
+    },
+    {
+      label: "null for a line that crosses with both ends outside",
+      line: [
+        [-5, 2],
+        [15, 2],
+      ],
+      expected: null,
+    },
+    {
+      label: "null for a line with only a middle vertex inside",
+      line: [
+        [-2, 2],
+        [2, 2],
+        [-2, 3],
+      ],
+      expected: null,
+    },
+    {
+      label: "null for a line through a hole with both ends inside",
+      line: [
+        [2, 5],
+        [8, 5],
+      ],
+      expected: null,
+    },
+    {
+      label: "null for a line spanning two parts",
+      line: [
+        [8, 2],
+        [22, 2],
+      ],
+      expected: null,
+    },
+    {
+      label: "null for a line inside a hole",
+      line: [
+        [4.5, 4.5],
+        [5.5, 5.5],
+      ],
+      expected: null,
+    },
+    {
+      label: "null for a line outside",
+      line: [
+        [12, 2],
+        [18, 2],
+      ],
+      expected: null,
+    },
+  ])("is $label", ({ line, expected }) => {
+    const { view, index } = viewOf(twoParts);
+
+    expect(view.classifyLine(index, line)).toBe(expected);
+  });
+
+  it("ignores the altitude of three-dimensional zone positions", () => {
+    const withAltitude = square(0, 0, 10, 10).map(([x, y]) => [x, y, 100]);
+    const { view, index } = viewOf(aZone(1, [[withAltitude]]));
+
+    expect(
+      view.classifyLine(index, [
+        [2, 2],
+        [3, 3],
+      ]),
+    ).toBe("inside");
+  });
+
+  it("finds a crossing in the middle of a ring with many vertices", () => {
+    const circle: Position[] = [];
+    for (let i = 0; i <= 200; i++) {
+      const angle = (i / 200) * 2 * Math.PI;
+      circle.push([Math.cos(angle) * 10, Math.sin(angle) * 10]);
+    }
+    const { view, index } = viewOf(aZone(1, [[circle]]));
+
+    expect(
+      view.classifyLine(index, [
+        [0, -5],
+        [0, -15],
+      ]),
+    ).toBe("boundary");
+  });
+});
