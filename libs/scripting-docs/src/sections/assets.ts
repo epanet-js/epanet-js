@@ -505,7 +505,10 @@ const SECTION: Section = {
 
 const CLEARS = "null clears it";
 
-const NODE_CHANGES = `  elevation?: number;
+const EMPTIES = "null leaves it empty, which network review reports";
+
+const NODE_CHANGES = `  /** ${EMPTIES} */
+  elevation?: number | null;
   /** ${CLEARS} */
   initialQuality?: number | null;`;
 
@@ -527,16 +530,20 @@ const CHANGES_TYPES: TypeDef[] = [
   changesType(
     "Reservoir",
     `${NODE_CHANGES}
-  head?: number;`,
+  /** ${EMPTIES} */
+  head?: number | null;`,
   ),
   changesType(
     "Tank",
     `${NODE_CHANGES}
-  initialLevel?: number;
-  minLevel?: number;
-  maxLevel?: number;
-  /** in units.tankDiameter */
-  diameter?: number;
+  /** ${EMPTIES} */
+  initialLevel?: number | null;
+  /** ${EMPTIES} */
+  minLevel?: number | null;
+  /** ${EMPTIES} */
+  maxLevel?: number | null;
+  /** in units.tankDiameter; ${EMPTIES} */
+  diameter?: number | null;
   /** ${CLEARS} */
   minVolume?: number | null;
   overflow?: boolean;
@@ -548,10 +555,10 @@ const CHANGES_TYPES: TypeDef[] = [
   ),
   changesType(
     "Pipe",
-    `  /** in units.diameter */
-  diameter?: number;
-  /** in units.length */
-  length?: number;
+    `  /** in units.diameter; ${EMPTIES} */
+  diameter?: number | null;
+  /** in units.length; ${EMPTIES} */
+  length?: number | null;
   /** null drops the pipe's own value, so the pipe library's applies */
   roughness?: number | null;
   /** ${CLEARS} */
@@ -572,10 +579,10 @@ const CHANGES_TYPES: TypeDef[] = [
   ),
   changesType(
     "Valve",
-    `  /** in units.diameter */
-  diameter?: number;
-  /** in the unit the valve's kind uses */
-  setting?: number;
+    `  /** in units.diameter; ${EMPTIES} */
+  diameter?: number | null;
+  /** in the unit the valve's kind uses; ${EMPTIES} */
+  setting?: number | null;
   /** ${CLEARS} */
   minorLoss?: number | null;
   status?: "active" | "open" | "closed";`,
