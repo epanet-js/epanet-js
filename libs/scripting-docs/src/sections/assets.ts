@@ -605,7 +605,7 @@ const setOf = (owner: string, example: string): Member =>
     signature: `set(changes: ${owner}Changes): void`,
     summary: `Changes the ${owner.toLowerCase()}'s attributes, in the same units its getters read them.`,
     description:
-      "The asset reads the new values straight away. The changes reach the network when the script finishes, as one change the user can undo; if the script throws, none of them do. Leave out an attribute to keep its value. Patterns and curves are named by label, and must be of the type the attribute takes. `set` changes values that stand alone; a change that reshapes the asset has its own method, such as a node's `setQualitySource`.",
+      "The asset reads the new values straight away. The changes reach the network when the script finishes, as one change the user can undo; if the script throws, none of them do. Leave out an attribute to keep its value. Patterns and curves are named by label, and must be of the type the attribute takes. `set` changes values that stand alone; a change that reshapes the asset has its own method, such as a node's `setQualitySource` or a valve's `setKind`.",
     throws: [
       "`TypeError` when `changes` names an attribute it cannot set, or gives a value of the wrong type. For an attribute another method changes, the message names that method.",
     ],
@@ -677,8 +677,32 @@ network.getNode("J1").setQualitySource(null);`,
   ],
 });
 
-const isQualitySourcePattern = (member: Member) =>
-  member.owner === "NodeAsset" && member.name === "chemicalSourcePattern";
+const SET_KIND: Member = memberOf("Valve")({
+  name: "setKind",
+  signature:
+    'setKind(kind: "prv" | "psv" | "fcv" | "pbv" | "tcv" | "gpv" | "pcv"): void',
+  summary: "Changes the valve's kind.",
+  description:
+    "The valve drops its curve when the new kind takes a different one: a gpv takes a headloss curve, a pcv a valve curve, the others none. `setting` keeps its number, which the new kind reads in its own unit, and a target node only applies while the valve is a prv. Set the curve or setting afterwards with `set`.",
+  throws: ["`TypeError` when `kind` is not a valve kind."],
+  examples: [
+    {
+      code: `const valve = network.getLink("V1");
+valve.setKind("fcv");
+valve.set({ setting: 12 });`,
+    },
+  ],
+});
+
+const ADD_AFTER: [owner: string, name: string, added: Member][] = [
+  ["NodeAsset", "chemicalSourcePattern", SET_QUALITY_SOURCE],
+  ["Valve", "kind", SET_KIND],
+];
+
+const addedAfter = (member: Member): Member[] =>
+  ADD_AFTER.filter(
+    ([owner, name]) => member.owner === owner && member.name === name,
+  ).map(([, , added]) => added);
 
 export const sectionFor = ({ edits }: DocsCandidates): Section =>
   edits
@@ -688,10 +712,8 @@ export const sectionFor = ({ edits }: DocsCandidates): Section =>
           "Every asset is an object of getters. A value the model has not set reads as `null`. Every asset also changes through `set`.",
         types: [...(SECTION.types ?? []), ...CHANGES_TYPES, QUALITY_SOURCE],
         members: (SECTION.members ?? []).flatMap((member) => {
-          if (isQualitySourcePattern(member))
-            return [member, SET_QUALITY_SOURCE];
           const set = SET_BEFORE.get(member);
-          return set ? [set, member] : [member];
+          return [...(set ? [set] : []), member, ...addedAfter(member)];
         }),
       }
     : SECTION;
