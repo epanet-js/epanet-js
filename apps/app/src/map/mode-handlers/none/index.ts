@@ -28,6 +28,7 @@ import throttle from "lodash/throttle";
 import { useClickedAsset } from "../utils";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const stateUpdateTime = 16;
 
@@ -69,7 +70,10 @@ export function useNoneHandlers({
     isCustomerPointSelected,
     extendCustomerPointSelection,
     removeCustomerPointFromSelection,
+    selectZone,
+    toggleZoneSelection,
   } = useSelection(selection);
+  const isZoneSelectionOn = useFeatureFlag("FLAG_ZONE_SELECTION");
   const { isShiftHeld } = useKeyboardState();
   const {
     setStartPoint,
@@ -171,6 +175,16 @@ export function useNoneHandlers({
     }
 
     return closest;
+  };
+
+  const getClickedZoneId = (
+    e: mapboxgl.MapMouseEvent | mapboxgl.MapTouchEvent,
+  ): number | null => {
+    const [feature] = map.queryRenderedFeatures(e.point, {
+      layers: ["zones-fill"],
+    });
+    const id = Number(feature?.properties?.id);
+    return hydraulicModel.zones.has(id) ? id : null;
   };
 
   const handleUp: Handlers["up"] = (e) => {
@@ -461,6 +475,16 @@ export function useNoneHandlers({
             }
           } else {
             selectCustomerPoint(clickedCustomerPoint.id);
+          }
+          return;
+        }
+
+        const clickedZoneId = isZoneSelectionOn ? getClickedZoneId(e) : null;
+        if (clickedZoneId !== null) {
+          if (isShiftHeld()) {
+            toggleZoneSelection(clickedZoneId);
+          } else {
+            selectZone(clickedZoneId);
           }
           return;
         }

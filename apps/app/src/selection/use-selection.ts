@@ -110,6 +110,16 @@ export const useSelection = (selection: Sel) => {
   const isCustomerPointSelected = (customerPointId: number) =>
     USelection.isCustomerPointSelected(selection, customerPointId);
 
+  const selectZone = (zoneId: number) => {
+    setSelection(USelection.singleZone(zoneId));
+    activateAssetPanel();
+  };
+
+  const toggleZoneSelection = (zoneId: number) => {
+    setSelection(USelection.toggleId(selection, "zone", zoneId));
+    activateAssetPanel();
+  };
+
   const removeFromSelection = (assetId: AssetId | AssetId[]) => {
     const newSelection = Array.isArray(assetId)
       ? USelection.removeAssetIds(selection, assetId)
@@ -145,6 +155,8 @@ export const useSelection = (selection: Sel) => {
     toggleCustomerPointSelection,
     removeCustomerPointFromSelection,
     isCustomerPointSelected,
+    selectZone,
+    toggleZoneSelection,
     getSelectionIds,
   };
 };
