@@ -503,49 +503,143 @@ const SECTION: Section = {
   ],
 };
 
-const PIPE_CHANGES: TypeDef = {
-  name: "PipeChanges",
-  definition: `interface PipeChanges {
-  /** in units.diameter */
+const CLEARS = "null clears it";
+
+const NODE_CHANGES = `  elevation?: number;
+  /** ${CLEARS} */
+  initialQuality?: number | null;`;
+
+const changesType = (owner: string, body: string): TypeDef => ({
+  name: `${owner}Changes`,
+  definition: `interface ${owner}Changes {
+${body}
+}`,
+  summary: `The ${owner.toLowerCase()} attributes \`set\` can change.`,
+});
+
+const CHANGES_TYPES: TypeDef[] = [
+  changesType(
+    "Junction",
+    `${NODE_CHANGES}
+  /** ${CLEARS} */
+  emitterCoefficient?: number | null;`,
+  ),
+  changesType(
+    "Reservoir",
+    `${NODE_CHANGES}
+  head?: number;`,
+  ),
+  changesType(
+    "Tank",
+    `${NODE_CHANGES}
+  initialLevel?: number;
+  minLevel?: number;
+  maxLevel?: number;
+  /** in units.tankDiameter */
+  diameter?: number;
+  /** ${CLEARS} */
+  minVolume?: number | null;
+  overflow?: boolean;
+  mixingModel?: "mixed" | "2comp" | "fifo" | "lifo";
+  /** ${CLEARS} */
+  mixingFraction?: number | null;
+  /** ${CLEARS} */
+  bulkReactionCoeff?: number | null;`,
+  ),
+  changesType(
+    "Pipe",
+    `  /** in units.diameter */
   diameter?: number;
   /** in units.length */
   length?: number;
   /** null drops the pipe's own value, so the pipe library's applies */
   roughness?: number | null;
-  minorLoss?: number;
+  /** ${CLEARS} */
+  minorLoss?: number | null;
   status?: "open" | "closed" | "cv";
-}`,
-  summary: "The pipe attributes `set` can change.",
-};
+  /** ${CLEARS} */
+  bulkReactionCoeff?: number | null;
+  /** ${CLEARS} */
+  wallReactionCoeff?: number | null;`,
+  ),
+  changesType(
+    "Pump",
+    `  status?: "on" | "off";
+  /** ${CLEARS} */
+  speed?: number | null;
+  /** ${CLEARS} */
+  energyPrice?: number | null;`,
+  ),
+  changesType(
+    "Valve",
+    `  /** in units.diameter */
+  diameter?: number;
+  /** in the unit the valve's kind uses */
+  setting?: number;
+  /** ${CLEARS} */
+  minorLoss?: number | null;
+  status?: "active" | "open" | "closed";`,
+  ),
+];
 
-const SET: Member = memberOf("Pipe")({
-  name: "set",
-  signature: "set(changes: PipeChanges): void",
-  summary:
-    "Changes the pipe's attributes, in the same units its getters read them.",
-  description:
-    "The pipe reads the new values straight away. The changes reach the network when the script finishes, as one change the user can undo; if the script throws, none of them do. Leave out an attribute to keep its value.",
-  throws: [
-    "`TypeError` when `changes` names an attribute it cannot set, or gives a value of the wrong type.",
+const setOf = (owner: string, example: string): Member =>
+  memberOf(owner)({
+    name: "set",
+    signature: `set(changes: ${owner}Changes): void`,
+    summary: `Changes the ${owner.toLowerCase()}'s attributes, in the same units its getters read them.`,
+    description:
+      "The asset reads the new values straight away. The changes reach the network when the script finishes, as one change the user can undo; if the script throws, none of them do. Leave out an attribute to keep its value.",
+    throws: [
+      "`TypeError` when `changes` names an attribute it cannot set, or gives a value of the wrong type.",
+    ],
+    examples: [{ code: example }],
+  });
+
+const SET_BEFORE = new Map<Member, Member>([
+  [
+    junctionResults,
+    setOf(
+      "Junction",
+      `network.getNode("J1").set({ elevation: 12, emitterCoefficient: null });`,
+    ),
   ],
-  examples: [
-    {
-      code: `const pipe = network.getLink("P1");
+  [
+    reservoirResults,
+    setOf("Reservoir", `network.getNode("R1").set({ head: 60 });`),
+  ],
+  [
+    tankResults,
+    setOf(
+      "Tank",
+      `network.getNode("T1").set({ initialLevel: 2, overflow: true });`,
+    ),
+  ],
+  [
+    pipeResults,
+    setOf(
+      "Pipe",
+      `const pipe = network.getLink("P1");
 pipe.set({ diameter: 150, status: "closed" });
 console.log(pipe.diameter, network.units.diameter, pipe.status);`,
-    },
+    ),
   ],
-});
+  [
+    pumpResults,
+    setOf("Pump", `network.getLink("PU1").set({ status: "off" });`),
+  ],
+  [valveResults, setOf("Valve", `network.getLink("V1").set({ setting: 45 });`)],
+]);
 
 export const sectionFor = ({ edits }: DocsCandidates): Section =>
   edits
     ? {
         ...SECTION,
         intro:
-          "Every asset is an object of getters. A value the model has not set reads as `null`. Pipes also change through `set`.",
-        types: [...(SECTION.types ?? []), PIPE_CHANGES],
-        members: (SECTION.members ?? []).flatMap((member) =>
-          member === pipeResults ? [SET, member] : [member],
-        ),
+          "Every asset is an object of getters. A value the model has not set reads as `null`. Every asset also changes through `set`.",
+        types: [...(SECTION.types ?? []), ...CHANGES_TYPES],
+        members: (SECTION.members ?? []).flatMap((member) => {
+          const set = SET_BEFORE.get(member);
+          return set ? [set, member] : [member];
+        }),
       }
     : SECTION;
