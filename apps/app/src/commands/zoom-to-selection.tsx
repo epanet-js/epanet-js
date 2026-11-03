@@ -14,11 +14,12 @@ export const useZoomToSelection = () => {
 
   return useCallback(
     ({ source }: { source: Source }) => {
-      const { assets, customerPoints } = USelection.countByKind(selection);
+      const { assets, customerPoints, zones } =
+        USelection.countByKind(selection);
       userTracking.capture({
         name: "selection.zoomedTo",
         source,
-        count: assets + customerPoints,
+        count: assets + customerPoints + zones,
         description: USelection.describe(selection),
       });
       zoomTo(selection);

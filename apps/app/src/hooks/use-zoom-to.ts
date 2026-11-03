@@ -45,6 +45,27 @@ const customerPointsExtent = (
   return Just([minX, minY, maxX, maxY]);
 };
 
+const zonesExtent = (
+  selection: Sel,
+  hydraulicModel: HydraulicModel,
+): Maybe<BBox> => {
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  for (const id of USelection.getZoneIds(selection)) {
+    const zone = hydraulicModel.zones.get(id);
+    if (!zone) continue;
+    const [x0, y0, x1, y1] = zone.bbox;
+    if (x0 < minX) minX = x0;
+    if (y0 < minY) minY = y0;
+    if (x1 > maxX) maxX = x1;
+    if (y1 > maxY) maxY = y1;
+  }
+  if (!Number.isFinite(minX)) return Nothing;
+  return Just([minX, minY, maxX, maxY]);
+};
+
 export function useZoomTo() {
   const map = useContext(MapContext);
 
@@ -67,8 +88,11 @@ export function useZoomTo() {
           });
         } else {
           extent = extendExtent(
-            assetsExtent(selection, hydraulicModel),
-            customerPointsExtent(selection, hydraulicModel),
+            extendExtent(
+              assetsExtent(selection, hydraulicModel),
+              customerPointsExtent(selection, hydraulicModel),
+            ),
+            zonesExtent(selection, hydraulicModel),
           );
         }
 
