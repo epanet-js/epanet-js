@@ -6,6 +6,8 @@ export {
 export {
   RULES,
   numericChecks,
+  flowModulatingValvePointChecks,
+  getFlowModulatingValvePointErrors,
   rulesFor,
   fieldGroupsFor,
   firstFailure,

@@ -123,6 +123,21 @@ describe("valve controls editor", () => {
     ]);
   });
 
+  it("keeps an out-of-sequence value and flags the cell until the table is fixed", async () => {
+    const { user, lastControl } = await renderFlowModulated();
+    await user.click(screen.getByRole("button", { name: /add point/i }));
+
+    await editCell(user, 0, 1, "30");
+    expect(lastControl().points.map((p) => p.pressure)).toEqual([30, SETTING]);
+    expect(getCell(0, 1)).toHaveClass("bg-warning-subtle");
+    expect(getCell(1, 1)).toHaveClass("bg-warning-subtle");
+
+    await editCell(user, 1, 1, "40");
+    expect(lastControl().points.map((p) => p.pressure)).toEqual([30, 40]);
+    expect(getCell(0, 1)).not.toHaveClass("bg-warning-subtle");
+    expect(getCell(1, 1)).not.toHaveClass("bg-warning-subtle");
+  });
+
   it("inserts a row below halfway to the next flow", async () => {
     const { user, lastControl } = await renderFlowModulated();
     await user.click(screen.getByRole("button", { name: /add point/i }));

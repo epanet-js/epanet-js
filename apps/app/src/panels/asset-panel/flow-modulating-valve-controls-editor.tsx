@@ -17,6 +17,7 @@ import {
   type GridColumn,
   floatColumn,
 } from "src/components/data-grid";
+import { getFlowModulatingValvePointErrors } from "src/lib/model-attributes-validation";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { DeleteIcon, AddIcon } from "src/icons";
@@ -354,7 +355,10 @@ const PointsGrid = ({
     [onChange],
   );
 
-  const invalidCells = useMemo(() => invalidPointCells(points), [points]);
+  const invalidCells = useMemo(
+    () => getFlowModulatingValvePointErrors(points),
+    [points],
+  );
   const cellHasWarning = useCallback(
     (rowIndex: number, columnId: string) =>
       columnId === "flow"
@@ -365,12 +369,12 @@ const PointsGrid = ({
 
   const isFlowValid = useCallback(
     (value: number, rowIndex: number) =>
-      isFlowInSequence(points, rowIndex, value),
+      isValueInSequence(points, rowIndex, value, "flow"),
     [points],
   );
   const isPressureValid = useCallback(
     (value: number, rowIndex: number) =>
-      isPressureInSequence(points, rowIndex, value),
+      isValueInSequence(points, rowIndex, value, "pressure"),
     [points],
   );
 
@@ -381,12 +385,14 @@ const PointsGrid = ({
         size: 80,
         emptyValue: 0,
         validate: isFlowValid,
+        commitInvalidValues: true,
       }),
       floatColumn("pressure", {
         header: pressureHeader,
         size: 80,
         emptyValue: 0,
         validate: isPressureValid,
+        commitInvalidValues: true,
       }),
     ],
     [flowHeader, pressureHeader, isFlowValid, isPressureValid],
@@ -574,38 +580,16 @@ const ControlNodeField = ({
   );
 };
 
-const isFlowInSequence = (
+const isValueInSequence = (
   points: FlowModulatingValvePoint[],
   rowIndex: number,
-  flow: number,
+  value: number,
+  column: keyof FlowModulatingValvePoint,
 ) => {
-  if (flow < 0) return false;
-  const previous = rowIndex > 0 ? points[rowIndex - 1].flow : -Infinity;
-  const next =
-    rowIndex < points.length - 1 ? points[rowIndex + 1].flow : Infinity;
-  return flow > previous && flow < next;
-};
-
-const isPressureInSequence = (
-  points: FlowModulatingValvePoint[],
-  rowIndex: number,
-  pressure: number,
-) => {
-  if (pressure <= 0) return false;
-  const previous = rowIndex > 0 ? points[rowIndex - 1].pressure : -Infinity;
-  const next =
-    rowIndex < points.length - 1 ? points[rowIndex + 1].pressure : Infinity;
-  return pressure >= previous && pressure <= next;
-};
-
-const invalidPointCells = (points: FlowModulatingValvePoint[]) => {
-  const flow = new Set<number>();
-  const pressure = new Set<number>();
-  points.forEach((point, i) => {
-    if (!isFlowInSequence(points, i, point.flow)) flow.add(i);
-    if (!isPressureInSequence(points, i, point.pressure)) pressure.add(i);
-  });
-  return { flow, pressure };
+  const candidate = points.map((point, i) =>
+    i === rowIndex ? { ...point, [column]: value } : point,
+  );
+  return !getFlowModulatingValvePointErrors(candidate)[column].has(rowIndex);
 };
 
 const rowBefore = (

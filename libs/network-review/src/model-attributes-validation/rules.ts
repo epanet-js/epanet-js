@@ -1,6 +1,8 @@
 import {
   CurvePoint,
   effectiveRoughness,
+  FlowModulatingValveControl,
+  getLinkFlowModulatingValve,
   getPumpCurveErrors,
   inferredRoughness,
   Pipe,
@@ -14,6 +16,10 @@ import {
   isNumber,
   numericChecks,
 } from "./checks";
+import {
+  FLOW_MODULATING_VALVE_MIN_POINTS,
+  flowModulatingValvePointChecks,
+} from "./flow-modulating-valve-points";
 
 const field =
   (name: string) =>
@@ -174,6 +180,44 @@ const materialProvidesRoughness: Rule = {
   message: "noRoughnessForPipe",
 };
 
+const flowModulatingControlOf = (
+  entity: ValidatableEntity,
+  model?: HydraulicModel,
+): FlowModulatingValveControl | null =>
+  model
+    ? getLinkFlowModulatingValve(
+        model.controls,
+        readEntityProp(entity, "id") as number,
+      )
+    : null;
+
+const hasFlowModulatingControl: When = (entity, model) =>
+  flowModulatingControlOf(entity, model) !== null;
+
+const flowModulatingControlHasEnoughPoints = (value: unknown): boolean =>
+  !value ||
+  (value as FlowModulatingValveControl).points.length >=
+    FLOW_MODULATING_VALVE_MIN_POINTS;
+
+const flowModulatingControlRule = (
+  checkName: keyof typeof flowModulatingValvePointChecks,
+  message: string,
+): Rule => ({
+  id: `valve.flowModulatingControl.${checkName}`,
+  type: "model",
+  entityType: "valve",
+  field: "flowModulatingControl",
+  accessor: flowModulatingControlOf,
+  appliesWhen: hasFlowModulatingControl,
+  check: (value) =>
+    !value ||
+    flowModulatingValvePointChecks[checkName](
+      (value as FlowModulatingValveControl).points,
+    ),
+  severity: "error",
+  message,
+});
+
 export const RULES: Rule[] = [
   // Node elevation (reservoirs use head, not elevation, so are excluded)
   ...(["junction", "tank"] as const).map(
@@ -219,6 +263,21 @@ export const RULES: Rule[] = [
     undefined,
     (entity) => readEntityProp(entity, "kind") !== "gpv",
   ),
+  {
+    id: "valve.flowModulatingControl.enoughPoints",
+    type: "field",
+    entityType: "valve",
+    field: "flowModulatingControl",
+    accessor: flowModulatingControlOf,
+    appliesWhen: hasFlowModulatingControl,
+    check: flowModulatingControlHasEnoughPoints,
+    severity: "error",
+    message: "notEnoughPoints",
+  },
+  flowModulatingControlRule("flowsNonNegative", "mustBeNonNegative"),
+  flowModulatingControlRule("pressuresPositive", "mustBePositive"),
+  flowModulatingControlRule("flowsIncreasing", "mustBeIncreasing"),
+  flowModulatingControlRule("pressuresIncreasing", "mustBeIncreasing"),
   ...requiredNumeric(
     "pump",
     "power",

@@ -723,6 +723,110 @@ describe("validateModelAttributes", () => {
     });
   });
 
+  describe("flow modulating valve control", () => {
+    const aPrvWithControl = (points: { flow: number; pressure: number }[]) =>
+      HydraulicModelBuilder.with()
+        .aJunction(2, { elevation: 50 })
+        .aJunction(3, { elevation: 50 })
+        .aValve(1, {
+          kind: "prv",
+          startNodeId: 2,
+          endNodeId: 3,
+          diameter: 100,
+          setting: 20,
+        })
+        .aFlowModulatingValveControl({
+          linkId: 1,
+          points,
+          interpolate: true,
+          sensorLinkId: 1,
+          controlNodeId: 3,
+        })
+        .build();
+
+    it("accepts a table with strictly increasing flows and pressures", async () => {
+      const model = aPrvWithControl([
+        { flow: 0, pressure: 20 },
+        { flow: 10, pressure: 25 },
+        { flow: 20, pressure: 30 },
+      ]);
+
+      expect(await validateModelAttributes(model)).toEqual([]);
+    });
+
+    it("flags a control with a single point as an error", async () => {
+      const model = aPrvWithControl([{ flow: 0, pressure: 20 }]);
+
+      const issues = await validateModelAttributes(model);
+
+      expect(issues).toEqual([
+        ["valve.flowModulatingControl.enoughPoints", [1]],
+      ]);
+      expect(severityOf("valve.flowModulatingControl.enoughPoints")).toBe(
+        "error",
+      );
+    });
+
+    it("flags a negative flow", async () => {
+      const model = aPrvWithControl([
+        { flow: -1, pressure: 20 },
+        { flow: 10, pressure: 25 },
+      ]);
+
+      expect(await validateModelAttributes(model)).toEqual([
+        ["valve.flowModulatingControl.flowsNonNegative", [1]],
+      ]);
+    });
+
+    it("flags a zero pressure", async () => {
+      const model = aPrvWithControl([
+        { flow: 0, pressure: 0 },
+        { flow: 10, pressure: 25 },
+      ]);
+
+      expect(await validateModelAttributes(model)).toEqual([
+        ["valve.flowModulatingControl.pressuresPositive", [1]],
+      ]);
+    });
+
+    it("flags flows that repeat or decrease", async () => {
+      const repeated = aPrvWithControl([
+        { flow: 0, pressure: 20 },
+        { flow: 10, pressure: 25 },
+        { flow: 10, pressure: 30 },
+      ]);
+      const decreasing = aPrvWithControl([
+        { flow: 10, pressure: 20 },
+        { flow: 5, pressure: 25 },
+      ]);
+
+      expect(ruleIdsOf(await validateModelAttributes(repeated))).toEqual([
+        "valve.flowModulatingControl.flowsIncreasing",
+      ]);
+      expect(ruleIdsOf(await validateModelAttributes(decreasing))).toEqual([
+        "valve.flowModulatingControl.flowsIncreasing",
+      ]);
+    });
+
+    it("flags pressures that repeat or decrease", async () => {
+      const repeated = aPrvWithControl([
+        { flow: 0, pressure: 20 },
+        { flow: 10, pressure: 20 },
+      ]);
+      const decreasing = aPrvWithControl([
+        { flow: 0, pressure: 30 },
+        { flow: 10, pressure: 20 },
+      ]);
+
+      expect(ruleIdsOf(await validateModelAttributes(repeated))).toEqual([
+        "valve.flowModulatingControl.pressuresIncreasing",
+      ]);
+      expect(ruleIdsOf(await validateModelAttributes(decreasing))).toEqual([
+        "valve.flowModulatingControl.pressuresIncreasing",
+      ]);
+    });
+  });
+
   describe("customer point connection", () => {
     it("flags a disconnected customer point as a warning", async () => {
       const model = HydraulicModelBuilder.with()
