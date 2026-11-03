@@ -280,7 +280,7 @@ describe("ScriptsPanel", () => {
         {
           id: "1",
           name: "Resize",
-          source: "network.getLink('P1').setProperties({ diameter: 150 });",
+          source: "network.getLink('P1').set({ diameter: 150 });",
           apiVersion: 1,
           updatedAt: 0,
         },

@@ -69,7 +69,11 @@ describe.each<[string, ScriptingDocs]>([
 
 describe("candidates", () => {
   it("keeps the edits candidate out of the official docs", () => {
-    expect(renderLlmsTxt(scriptingDocs)).not.toContain("setProperties");
-    expect(renderLlmsTxt(editsCandidateDocs)).toContain("setProperties");
+    expect(renderLlmsTxt(scriptingDocs)).not.toContain(
+      "set(changes: PipeChanges)",
+    );
+    expect(renderLlmsTxt(editsCandidateDocs)).toContain(
+      "set(changes: PipeChanges)",
+    );
   });
 });

@@ -86,14 +86,14 @@ describe("script language service", () => {
   it("completes pipe edits only from the edits candidate", () => {
     const candidate = createScriptLanguageService(editsCandidateDocs);
     const source = "network.pipes[0].";
-    const options = "network.pipes[0].setProperties({ ";
+    const options = "network.pipes[0].set({ ";
 
     const names = (completions: { name: string }[]) =>
       completions.map((completion) => completion.name);
 
-    expect(names(completionsAtEnd(source))).not.toContain("setProperties");
+    expect(names(completionsAtEnd(source))).not.toContain("set");
     expect(names(candidate.completionsAt(source, source.length))).toContain(
-      "setProperties",
+      "set",
     );
     expect(names(candidate.completionsAt(options, options.length))).toEqual(
       expect.arrayContaining([
