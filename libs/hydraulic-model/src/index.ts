@@ -14,6 +14,7 @@ export * from "./asset-types/defaults-spec";
 export * from "./label-manager";
 export * from "./id-pools";
 export * from "./curves";
+export * from "./pump-curve-points";
 export * from "./patterns";
 export * from "./pipe-materials";
 export * from "./infer-roughness";

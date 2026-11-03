@@ -591,6 +591,39 @@ console.log(tank.minLevel, tank.maxLevel, tank.minVolume);`,
   ],
 });
 
+const SET_DEFINITION: Member = memberOf("Pump")({
+  name: "setDefinition",
+  signature: `setDefinition(definition:
+  | { type: "power"; power: number | null }
+  | { type: "designPointCurve"; designPoint: { flow: number; head: number } }
+  | {
+      type: "standardCurve";
+      /** 3 points: shutoff, design, max flow; left out, the current curve is converted */
+      curvePoints?: { flow: number; head: number }[];
+    }
+  | {
+      type: "curveId";
+      /** the label of a pump curve */
+      curve: string | null;
+    }
+): void`,
+  summary:
+    "Changes how the pump is defined, as the pump type selector in the app does.",
+  description:
+    "Each type takes its own data, in the same units the getters read it. `type` takes the values `definitionType` reads. A `standardCurve` without `curvePoints` converts a design point the way the app does — shutoff at 1.33 times the design head, max flow at twice the design flow — and otherwise keeps the points the pump has. A library curve stops applying once the pump uses another type. A curve with problems, such as heads that do not fall, is kept and reported by network review.",
+  throws: [
+    "`TypeError` when `type` is not one of the four, the data the type needs is missing, a field belongs to another type, or a value has the wrong shape.",
+  ],
+  examples: [
+    {
+      code: `const pump = network.getLink("PU2");
+pump.setDefinition({ type: "standardCurve" });
+console.log(pump.curvePoints);
+network.getLink("PU3").setDefinition({ type: "designPointCurve", designPoint: { flow: 20, head: 40 } });`,
+    },
+  ],
+});
+
 const SET_KIND: Member = memberOf("Valve")({
   name: "setKind",
   signature:
@@ -712,8 +745,9 @@ console.log(pipe.diameter, network.units.diameter, pipe.status);`,
   /** the label of an energyPrice pattern; ${CLEARS} */
   energyPricePattern?: string | null;`,
         `network.getLink("PU1").set({ status: "off" });`,
-        [BY_LABEL],
+        [BY_LABEL, "The definition changes through `setDefinition`."],
       ),
+      SET_DEFINITION,
     ],
   ],
   [
