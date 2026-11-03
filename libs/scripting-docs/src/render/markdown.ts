@@ -107,6 +107,7 @@ export const renderLlmsTxt = (docs: ScriptingDocs): string => {
   const { agentNotes, workedExamples } = appendixOf(docs);
   return `${blocks(
     heading(1, docs.title),
+    `API version ${docs.apiVersion}.`,
     `> ${docs.summary}`,
     docs.intro,
     ...docs.sections.map((section) => renderSection(docs, section)),

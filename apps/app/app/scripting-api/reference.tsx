@@ -83,7 +83,7 @@ const Heading = ({
   ) : (
     children
   );
-  const props = { id, className: `scroll-mt-6 ${className}` };
+  const props = { id, className: `scroll-mt-20 ${className}` };
   switch (Math.min(6, level)) {
     case 2:
       return <h2 {...props}>{content}</h2>;
@@ -159,7 +159,7 @@ const PropertyTable = ({
             <tr
               key={member.name}
               id={anchor}
-              className="scroll-mt-6 border-b align-top"
+              className="scroll-mt-20 border-b align-top"
             >
               <td className="whitespace-nowrap px-2 py-1 font-mono">
                 <a
@@ -260,7 +260,7 @@ const Method = ({
 };
 
 const TypeCard = ({ type, anchors }: { type: TypeDef; anchors: Anchors }) => (
-  <article id={typeAnchor(type)} className="my-4 scroll-mt-6">
+  <article id={typeAnchor(type)} className="my-4 scroll-mt-20">
     <div className="font-mono text-size-base font-semibold">
       <a
         href={`#${typeAnchor(type)}`}

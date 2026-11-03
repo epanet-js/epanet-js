@@ -26,20 +26,31 @@ export const ScriptingApiPage = ({
 
   return (
     <div className="min-h-screen bg-base text-default">
-      <header className="border-b bg-panel">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-4 sm:px-6">
-          <a href="/" className="text-size-base font-semibold text-default">
+      <header className="sticky top-0 z-10 h-14 border-b bg-panel">
+        <div className="mx-auto flex h-full max-w-7xl items-center gap-x-4 px-4 sm:gap-x-6 sm:px-6">
+          <a
+            href="/"
+            className="shrink-0 text-size-base font-semibold text-default"
+          >
             epanet-js
           </a>
-          <span className="text-size-base text-subtle">Scripting API</span>
+          <span className="hidden shrink-0 text-size-base text-subtle sm:inline">
+            Scripting API
+          </span>
+          <span className="shrink-0 whitespace-nowrap rounded-full border border-strong bg-base px-2 py-0.5 text-size-small font-medium text-default">
+            API version {docs.apiVersion}
+          </span>
           {isCandidate && (
-            <span className="rounded bg-warning-subtle px-2 py-0.5 text-size-small text-warning">
+            <span
+              title="Release candidate — includes unreleased API"
+              className="min-w-0 truncate rounded bg-warning-subtle px-2 py-0.5 text-size-small text-warning"
+            >
               Release candidate — includes unreleased API
             </span>
           )}
           <a
             href={llmsPath}
-            className={`ml-auto text-size-small ${linkClassName}`}
+            className={`ml-auto shrink-0 text-size-small ${linkClassName}`}
           >
             {llmsPath.slice(1)}
           </a>
@@ -49,7 +60,7 @@ export const ScriptingApiPage = ({
       <div className="mx-auto flex max-w-7xl gap-8 px-4 sm:px-6">
         <nav
           aria-label="Contents"
-          className="sticky top-0 hidden h-screen w-72 shrink-0 overflow-y-auto py-8 pr-4 text-size-small lg:block"
+          className="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-72 shrink-0 overflow-y-auto py-8 pr-4 text-size-small lg:block"
         >
           <div className="mb-3 font-semibold uppercase tracking-wide text-subtle">
             Globals
@@ -133,7 +144,7 @@ export const ScriptingApiPage = ({
               <details
                 key={example.id}
                 id={`example-${example.id}`}
-                className="my-3 scroll-mt-6 rounded border"
+                className="my-3 scroll-mt-20 rounded border"
               >
                 <summary className="cursor-pointer px-3 py-2 text-size-base font-semibold hover:bg-base-hover">
                   {example.name}

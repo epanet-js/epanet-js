@@ -54,6 +54,7 @@ export type ExampleScript = {
 
 export type ScriptingDocs = {
   title: string;
+  apiVersion: number;
   summary: Markdown;
   intro: Markdown;
   globals: GlobalDef[];

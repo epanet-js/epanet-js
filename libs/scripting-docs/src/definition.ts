@@ -1,3 +1,4 @@
+import { SCRIPT_API_VERSION } from "./api-version";
 import { exampleScripts } from "./example-scripts";
 import { GLOBALS, INTERFACES } from "./interfaces";
 import { sectionFor as assetsFor } from "./sections/assets";
@@ -50,6 +51,7 @@ const AGENT_RULES = [
 
 const buildDocs = (candidates: DocsCandidates): ScriptingDocs => ({
   title: "epanet-js scripting API",
+  apiVersion: SCRIPT_API_VERSION,
   summary: `Sandboxed JavaScript scripting for epanet-js, a browser-based water network modelling app built on the EPANET engine. A script reads the open network — assets, patterns, curves, controls, the pipe library, settings — queries it spatially and topologically, reads the project's zones, runs the app's own review checks, reads the last simulation's results, exports it as INP, and hands results back as the map selection, a zoom, console output and attached files. ${candidates.edits ? "Scripts can change asset attributes; they cannot otherwise edit the model or run a simulation." : "This version is read-only: scripts cannot edit the model or run a simulation."}`,
   intro:
     "This is the complete surface a script sees. Everything below is injected into the sandbox; nothing else exists.",

@@ -1,3 +1,4 @@
+import { SCRIPT_API_VERSION } from "./api-version";
 import { editsCandidateDocs, scriptingDocs } from "./definition";
 import { renderLlmsTxt } from "./render/markdown";
 import { callForm, parseSignature } from "./signature";
@@ -59,6 +60,12 @@ describe.each<[string, ScriptingDocs]>([
     );
 
     expect(missing.map((example) => example.id)).toEqual([]);
+  });
+
+  it("states the API version under the title", () => {
+    expect(text).toContain(
+      `# ${docs.title}\n\nAPI version ${SCRIPT_API_VERSION}.`,
+    );
   });
 
   it("numbers the agent notes and worked examples after the sections", () => {
