@@ -9,6 +9,9 @@ import {
   CustomerPointsGeoBuffers,
   CustomerPointsGeoView,
   queryContainedCustomerPoints,
+  ZonesGeoBuffers,
+  ZonesGeoView,
+  queryIntersectingZones,
 } from "@epanet-js/hydraulic-model";
 import { queryContainedAssets } from "@epanet-js/hydraulic-model";
 import { EncodedAreaSelectionResult } from "./data";
@@ -18,6 +21,7 @@ export interface SpatialQueryWorkerAPI {
     assetIndexBuffers: AssetIndexBuffers,
     assetsGeoBuffers: AssetsGeoBuffers,
     customerPointsGeoBuffers: CustomerPointsGeoBuffers | undefined,
+    zonesGeoBuffers: ZonesGeoBuffers | undefined,
     points: Position[],
   ) => EncodedAreaSelectionResult;
 }
@@ -26,6 +30,7 @@ function queryContainedFeaturesFromBuffers(
   assetIndexBuffers: AssetIndexBuffers,
   assetsGeoBuffers: AssetsGeoBuffers,
   customerPointsGeoBuffers: CustomerPointsGeoBuffers | undefined,
+  zonesGeoBuffers: ZonesGeoBuffers | undefined,
   points: Position[],
 ): EncodedAreaSelectionResult {
   const assetsGeoView = new AssetsGeoView(
@@ -40,16 +45,26 @@ function queryContainedFeaturesFromBuffers(
         points,
       )
     : [];
+  const zoneIds = zonesGeoBuffers
+    ? queryIntersectingZones(new ZonesGeoView(zonesGeoBuffers), points)
+    : [];
 
   const assetIdsBuffer = new Uint32Array(assetIds);
   const cpIdsBuffer = new Uint32Array(customerPointIds);
+  const zoneIdsBuffer = new Uint32Array(zoneIds);
   const result: EncodedAreaSelectionResult = {
     assetIds: assetIdsBuffer.buffer,
     assetCount: assetIds.length,
     customerPointIds: cpIdsBuffer.buffer,
     customerPointCount: customerPointIds.length,
+    zoneIds: zoneIdsBuffer.buffer,
+    zoneCount: zoneIds.length,
   };
-  return Comlink.transfer(result, [assetIdsBuffer.buffer, cpIdsBuffer.buffer]);
+  return Comlink.transfer(result, [
+    assetIdsBuffer.buffer,
+    cpIdsBuffer.buffer,
+    zoneIdsBuffer.buffer,
+  ]);
 }
 
 export const workerAPI: SpatialQueryWorkerAPI = {

@@ -3,7 +3,15 @@ import {
   AssetIndexBuffers,
   AssetIndexEncoder,
 } from "src/hydraulic-model/asset-index-transferable";
-import { AssetId, AssetsMap, CustomerPoints } from "@epanet-js/hydraulic-model";
+import {
+  AssetId,
+  AssetsMap,
+  CustomerPoints,
+  Zones,
+  ZonesGeoBuffers,
+  cloneZonesGeoBuffers,
+  encodeZonesGeo,
+} from "@epanet-js/hydraulic-model";
 import {
   AssetsGeoBuffers,
   AssetsGeoEncoder,
@@ -56,6 +64,7 @@ export type EncodedAreaSelectionBuffers = {
   assetsGeoBuffers: AssetsGeoBuffers;
   assetIndexBuffers: AssetIndexBuffers;
   customerPointsGeoBuffers?: CustomerPointsGeoBuffers;
+  zonesGeoBuffers?: ZonesGeoBuffers;
 };
 
 const assetBuffersCache = new WeakMap<
@@ -66,36 +75,53 @@ const customerPointBuffersCache = new WeakMap<
   CustomerPoints,
   CustomerPointsGeoBuffers
 >();
+const zoneBuffersCache = new WeakMap<Zones, ZonesGeoBuffers>();
+
+export const getEncodedZonesGeoBuffers = (
+  zones: Zones,
+  bufferType: BufferType = "array",
+): ZonesGeoBuffers => {
+  let entry = zoneBuffersCache.get(zones);
+  if (!entry) {
+    entry = encodeZonesGeo(zones, bufferType);
+    zoneBuffersCache.set(zones, entry);
+  }
+  return entry;
+};
 
 export const getEncodedAreaSelectionBuffers = (
   hydraulicModel: HydraulicModel,
   bufferType: BufferType = "array",
   includeCustomerPoints: boolean = true,
+  includeZones: boolean = false,
 ): EncodedAreaSelectionBuffers => {
   let assetEntry = assetBuffersCache.get(hydraulicModel.assets);
   if (!assetEntry) {
     assetEntry = encodeHydraulicModel(hydraulicModel, bufferType);
     assetBuffersCache.set(hydraulicModel.assets, assetEntry);
   }
-  if (!includeCustomerPoints || hydraulicModel.customerPoints.size === 0) {
-    return {
-      assetsGeoBuffers: assetEntry.assetsGeoBuffers,
-      assetIndexBuffers: assetEntry.assetIndexBuffers,
-    };
-  }
-  let cpEntry = customerPointBuffersCache.get(hydraulicModel.customerPoints);
-  if (!cpEntry) {
-    cpEntry = encodeCustomerPointsGeo(
-      hydraulicModel.customerPoints,
-      bufferType,
-    );
-    customerPointBuffersCache.set(hydraulicModel.customerPoints, cpEntry);
-  }
-  return {
+  const encoded: EncodedAreaSelectionBuffers = {
     assetsGeoBuffers: assetEntry.assetsGeoBuffers,
     assetIndexBuffers: assetEntry.assetIndexBuffers,
-    customerPointsGeoBuffers: cpEntry,
   };
+  if (includeCustomerPoints && hydraulicModel.customerPoints.size > 0) {
+    let cpEntry = customerPointBuffersCache.get(hydraulicModel.customerPoints);
+    if (!cpEntry) {
+      cpEntry = encodeCustomerPointsGeo(
+        hydraulicModel.customerPoints,
+        bufferType,
+      );
+      customerPointBuffersCache.set(hydraulicModel.customerPoints, cpEntry);
+    }
+    encoded.customerPointsGeoBuffers = cpEntry;
+  }
+  if (includeZones && hydraulicModel.zones.size > 0) {
+    encoded.zonesGeoBuffers = getEncodedZonesGeoBuffers(
+      hydraulicModel.zones,
+      bufferType,
+    );
+  }
+  return encoded;
 };
 
 export const cloneEncodedAreaSelectionBuffers = (
@@ -105,6 +131,9 @@ export const cloneEncodedAreaSelectionBuffers = (
   assetIndexBuffers: cloneAssetIndexBuffers(encoded.assetIndexBuffers),
   customerPointsGeoBuffers: encoded.customerPointsGeoBuffers
     ? cloneCustomerPointsGeoBuffers(encoded.customerPointsGeoBuffers)
+    : undefined,
+  zonesGeoBuffers: encoded.zonesGeoBuffers
+    ? cloneZonesGeoBuffers(encoded.zonesGeoBuffers)
     : undefined,
 });
 
@@ -137,17 +166,21 @@ export type EncodedAreaSelectionResult = {
   assetCount: number;
   customerPointIds: BinaryData;
   customerPointCount: number;
+  zoneIds: BinaryData;
+  zoneCount: number;
 };
 
 export const decodeAreaSelectionResult = (
   encoded: EncodedAreaSelectionResult,
-): { assetIds: AssetId[]; customerPointIds: number[] } => {
+): { assetIds: AssetId[]; customerPointIds: number[]; zoneIds: number[] } => {
   const assetIdsView = new Uint32Array(encoded.assetIds as ArrayBuffer);
   const cpIdsView = new Uint32Array(encoded.customerPointIds as ArrayBuffer);
+  const zoneIdsView = new Uint32Array(encoded.zoneIds as ArrayBuffer);
   return {
     assetIds: Array.from(assetIdsView.slice(0, encoded.assetCount)),
     customerPointIds: Array.from(
       cpIdsView.slice(0, encoded.customerPointCount),
     ),
+    zoneIds: Array.from(zoneIdsView.slice(0, encoded.zoneCount)),
   };
 };

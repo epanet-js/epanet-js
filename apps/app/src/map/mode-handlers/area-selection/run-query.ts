@@ -13,6 +13,11 @@ import {
   queryContainedCustomerPoints,
 } from "@epanet-js/hydraulic-model";
 import { queryContainedAssets } from "@epanet-js/hydraulic-model";
+import {
+  ZonesGeoView,
+  queryIntersectingZones,
+  zonesGeoTransferables,
+} from "@epanet-js/hydraulic-model";
 import { canUseWorker, enrichWorkerError } from "src/infra/worker";
 import { getSpatialQueryWorker } from "./get-worker";
 import {
@@ -21,12 +26,14 @@ import {
   cloneEncodedAreaSelectionBuffers,
   decodeAreaSelectionResult,
   getEncodedAreaSelectionBuffers,
+  getEncodedZonesGeoBuffers,
 } from "./data";
 import { BufferType } from "@epanet-js/buffers";
 
 export type AreaSelectionResult = {
   assetIds: AssetId[];
   customerPointIds: number[];
+  zoneIds: number[];
 };
 
 export const runQuery = async (
@@ -35,19 +42,26 @@ export const runQuery = async (
   signal: AbortSignal | undefined = undefined,
   bufferType: BufferType = "array",
   includeCustomerPoints: boolean = true,
+  includeZones: boolean = false,
 ): Promise<AreaSelectionResult> => {
   if (signal?.aborted) {
     throw new DOMException("Operation cancelled", "AbortError");
   }
 
   if (!canUseWorker()) {
-    return runQueryInProcess(hydraulicModel, points, includeCustomerPoints);
+    return runQueryInProcess(
+      hydraulicModel,
+      points,
+      includeCustomerPoints,
+      includeZones,
+    );
   }
 
   const cached = getEncodedAreaSelectionBuffers(
     hydraulicModel,
     bufferType,
     includeCustomerPoints,
+    includeZones,
   );
   const encoded = cloneEncodedAreaSelectionBuffers(cached);
 
@@ -59,6 +73,7 @@ const runQueryInProcess = (
   hydraulicModel: HydraulicModel,
   points: Position[],
   includeCustomerPoints: boolean,
+  includeZones: boolean,
 ): AreaSelectionResult => {
   const assetsGeo = new AssetsGeoIndex(
     hydraulicModel.assets,
@@ -72,7 +87,14 @@ const runQueryInProcess = (
           points,
         )
       : [];
-  return { assetIds, customerPointIds };
+  const zoneIds =
+    includeZones && hydraulicModel.zones.size > 0
+      ? queryIntersectingZones(
+          new ZonesGeoView(getEncodedZonesGeoBuffers(hydraulicModel.zones)),
+          points,
+        )
+      : [];
+  return { assetIds, customerPointIds, zoneIds };
 };
 
 const runQueryWithWorker = async (
@@ -98,6 +120,12 @@ const runQueryWithWorker = async (
         customerPointsGeoTransferables(encoded.customerPointsGeoBuffers),
       )
     : undefined;
+  const zonesGeoArg = encoded.zonesGeoBuffers
+    ? Comlink.transfer(
+        encoded.zonesGeoBuffers,
+        zonesGeoTransferables(encoded.zonesGeoBuffers),
+      )
+    : undefined;
 
   const workerAPI = getSpatialQueryWorker();
   try {
@@ -105,6 +133,7 @@ const runQueryWithWorker = async (
       assetIndexArg,
       assetsGeoArg,
       customerPointsGeoArg,
+      zonesGeoArg,
       points,
     );
     if (signal?.aborted) {

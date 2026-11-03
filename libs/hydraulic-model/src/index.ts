@@ -38,3 +38,4 @@ export * from "./active-only-queries";
 export * from "./custom-attributes";
 export * from "./hydraulic-model";
 export * from "./zones";
+export * from "./zones-geo";

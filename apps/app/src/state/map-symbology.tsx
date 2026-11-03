@@ -135,6 +135,8 @@ export const customerPointsVisibleAtom = atom(
 
 const zoneSymbologyAtom = atom<ZoneSymbology>(nullSymbologySpec.zone);
 
+export const zonesVisibleAtom = atom((get) => get(zoneSymbologyAtom).visible);
+
 /**
  * Write-only atom: clears the active node/link symbology when its color rule
  * references the given property, and removes the entry from the saved
