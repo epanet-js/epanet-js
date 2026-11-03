@@ -1,7 +1,7 @@
 import type { Category, Sel } from "./types";
 import type { IWrappedFeature } from "src/types";
 import type { AssetsMap } from "src/hydraulic-model";
-import { type CustomerPoints } from "@epanet-js/hydraulic-model";
+import { type CustomerPoints, type Zones } from "@epanet-js/hydraulic-model";
 import { EMPTY_ARRAY } from "src/lib/constants";
 
 const EMPTY_NUMBER_ARRAY: readonly number[] = EMPTY_ARRAY;
@@ -9,25 +9,39 @@ const EMPTY_NUMBER_ARRAY: readonly number[] = EMPTY_ARRAY;
 export const SELECTION_NONE: Sel = {
   asset: EMPTY_NUMBER_ARRAY,
   customerPoint: EMPTY_NUMBER_ARRAY,
+  zone: EMPTY_NUMBER_ARRAY,
+};
+
+type KindedIds = {
+  assetIds: readonly number[];
+  customerPointIds: readonly number[];
+  zoneIds?: readonly number[];
 };
 
 const make = (
   asset: readonly number[],
   customerPoint: readonly number[],
+  zone: readonly number[],
 ): Sel => {
-  if (asset.length === 0 && customerPoint.length === 0) return SELECTION_NONE;
-  return { asset, customerPoint };
+  if (asset.length === 0 && customerPoint.length === 0 && zone.length === 0)
+    return SELECTION_NONE;
+  return { asset, customerPoint, zone };
 };
 
 const rebuild = (
   prev: Sel,
   asset: readonly number[],
   customerPoint: readonly number[],
+  zone: readonly number[],
 ): Sel => {
-  if (asset === prev.asset && customerPoint === prev.customerPoint) {
+  if (
+    asset === prev.asset &&
+    customerPoint === prev.customerPoint &&
+    zone === prev.zone
+  ) {
     return prev;
   }
-  return make(asset, customerPoint);
+  return make(asset, customerPoint, zone);
 };
 
 export const USelection = {
@@ -44,34 +58,52 @@ export const USelection = {
   getCustomerPointIds(selection: Sel): readonly number[] {
     return selection.customerPoint;
   },
-  countByKind(selection: Sel): { assets: number; customerPoints: number } {
+  /**
+   * Return zone ids in the selection. Stable reference, as above.
+   */
+  getZoneIds(selection: Sel): readonly number[] {
+    return selection.zone;
+  },
+  countByKind(selection: Sel): {
+    assets: number;
+    customerPoints: number;
+    zones: number;
+  } {
     return {
       assets: selection.asset.length,
       customerPoints: selection.customerPoint.length,
+      zones: selection.zone.length,
     };
   },
   isEmpty(selection: Sel): boolean {
-    return selection.asset.length === 0 && selection.customerPoint.length === 0;
+    return (
+      selection.asset.length === 0 &&
+      selection.customerPoint.length === 0 &&
+      selection.zone.length === 0
+    );
   },
   isNone(selection: Sel): boolean {
     return this.isEmpty(selection);
   },
   /**
    * Short human-readable label for logging/telemetry, e.g.
-   * "none" | "single/asset" | "single/customerPoint" |
-   * "multi/asset" | "multi/customerPoint" | "multi/mixed".
+   * "none" | "single/asset" | "single/customerPoint" | "single/zone" |
+   * "multi/asset" | "multi/customerPoint" | "multi/zone" | "multi/mixed".
    */
   describe(selection: Sel): string {
-    const { assets: assetCount, customerPoints: cpCount } =
-      USelection.countByKind(selection);
-    if (assetCount === 0 && cpCount === 0) return "none";
-    if (assetCount > 0 && cpCount > 0) return "multi/mixed";
-    const kind = assetCount > 0 ? "asset" : "customerPoint";
-    const total = assetCount + cpCount;
-    return `${total === 1 ? "single" : "multi"}/${kind}`;
+    const counts: [Category, number][] = [
+      ["asset", selection.asset.length],
+      ["customerPoint", selection.customerPoint.length],
+      ["zone", selection.zone.length],
+    ];
+    const present = counts.filter(([, count]) => count > 0);
+    if (present.length === 0) return "none";
+    if (present.length > 1) return "multi/mixed";
+    const [kind, count] = present[0];
+    return `${count === 1 ? "single" : "multi"}/${kind}`;
   },
   fromAssetIds(ids: readonly IWrappedFeature["id"][]): Sel {
-    return make(dedupIds(ids), EMPTY_NUMBER_ARRAY);
+    return make(dedupIds(ids), EMPTY_NUMBER_ARRAY, EMPTY_NUMBER_ARRAY);
   },
   isAssetSelected(selection: Sel, id: IWrappedFeature["id"]): boolean {
     return selection.asset.includes(id);
@@ -79,11 +111,29 @@ export const USelection = {
   isCustomerPointSelected(selection: Sel, id: number): boolean {
     return selection.customerPoint.includes(id);
   },
+  isZoneSelected(selection: Sel, id: number): boolean {
+    return selection.zone.includes(id);
+  },
   isSingleAsset(selection: Sel): boolean {
-    return selection.asset.length === 1 && selection.customerPoint.length === 0;
+    return (
+      selection.asset.length === 1 &&
+      selection.customerPoint.length === 0 &&
+      selection.zone.length === 0
+    );
   },
   isSingleCustomerPoint(selection: Sel): boolean {
-    return selection.customerPoint.length === 1 && selection.asset.length === 0;
+    return (
+      selection.customerPoint.length === 1 &&
+      selection.asset.length === 0 &&
+      selection.zone.length === 0
+    );
+  },
+  isSingleZone(selection: Sel): boolean {
+    return (
+      selection.zone.length === 1 &&
+      selection.asset.length === 0 &&
+      selection.customerPoint.length === 0
+    );
   },
   /** Id of the single selected asset, or null when not a single-asset selection. */
   singleAssetId(selection: Sel): IWrappedFeature["id"] | null {
@@ -94,6 +144,10 @@ export const USelection = {
     return this.isSingleCustomerPoint(selection)
       ? selection.customerPoint[0]
       : null;
+  },
+  /** Id of the single selected zone, or null otherwise. */
+  singleZoneId(selection: Sel): number | null {
+    return this.isSingleZone(selection) ? selection.zone[0] : null;
   },
   toggleSingleAsset(selection: Sel, id: IWrappedFeature["id"]): Sel {
     if (this.isSingleAsset(selection) && selection.asset[0] === id) {
@@ -106,6 +160,7 @@ export const USelection = {
       selection,
       unionIds(selection.asset, newIds),
       selection.customerPoint,
+      selection.zone,
     );
   },
   removeAssetIds(selection: Sel, idsToRemove: IWrappedFeature["id"][]): Sel {
@@ -113,24 +168,32 @@ export const USelection = {
       selection,
       diffIds(selection.asset, idsToRemove),
       selection.customerPoint,
+      selection.zone,
     );
   },
   fromIds(
     assetIds: readonly number[],
     customerPointIds: readonly number[],
+    zoneIds: readonly number[] = EMPTY_NUMBER_ARRAY,
   ): Sel {
-    return make(dedupIds(assetIds), dedupIds(customerPointIds));
+    return make(
+      dedupIds(assetIds),
+      dedupIds(customerPointIds),
+      dedupIds(zoneIds),
+    );
   },
   applyOperation(
     selection: Sel,
-    next: { assetIds: readonly number[]; customerPointIds: readonly number[] },
+    next: KindedIds,
     operation: "add" | "subtract" | undefined,
   ): Sel {
+    const zoneIds = next.zoneIds ?? EMPTY_NUMBER_ARRAY;
     if (operation === "add") {
       return rebuild(
         selection,
         unionIds(selection.asset, next.assetIds),
         unionIds(selection.customerPoint, next.customerPointIds),
+        unionIds(selection.zone, zoneIds),
       );
     }
     if (operation === "subtract") {
@@ -138,20 +201,17 @@ export const USelection = {
         selection,
         diffIds(selection.asset, next.assetIds),
         diffIds(selection.customerPoint, next.customerPointIds),
+        diffIds(selection.zone, zoneIds),
       );
     }
-    return this.fromIds(next.assetIds, next.customerPointIds);
+    return this.fromIds(next.assetIds, next.customerPointIds, zoneIds);
   },
   addId(selection: Sel, kind: Category, id: number): Sel {
-    const existing =
-      kind === "asset" ? selection.asset : selection.customerPoint;
-    if (existing.includes(id)) return selection;
+    if (selection[kind].includes(id)) return selection;
     return this.applyOperation(selection, kindedSingleton(kind, id), "add");
   },
   removeId(selection: Sel, kind: Category, id: number): Sel {
-    const existing =
-      kind === "asset" ? selection.asset : selection.customerPoint;
-    if (!existing.includes(id)) return selection;
+    if (!selection[kind].includes(id)) return selection;
     return this.applyOperation(
       selection,
       kindedSingleton(kind, id),
@@ -159,9 +219,7 @@ export const USelection = {
     );
   },
   toggleId(selection: Sel, kind: Category, id: number): Sel {
-    const existing =
-      kind === "asset" ? selection.asset : selection.customerPoint;
-    return existing.includes(id)
+    return selection[kind].includes(id)
       ? this.removeId(selection, kind, id)
       : this.addId(selection, kind, id);
   },
@@ -169,21 +227,38 @@ export const USelection = {
     return SELECTION_NONE;
   },
   singleAsset(id: IWrappedFeature["id"]): Sel {
-    return { asset: [id], customerPoint: EMPTY_NUMBER_ARRAY };
+    return {
+      asset: [id],
+      customerPoint: EMPTY_NUMBER_ARRAY,
+      zone: EMPTY_NUMBER_ARRAY,
+    };
   },
   singleCustomerPoint(id: number): Sel {
-    return { asset: EMPTY_NUMBER_ARRAY, customerPoint: [id] };
+    return {
+      asset: EMPTY_NUMBER_ARRAY,
+      customerPoint: [id],
+      zone: EMPTY_NUMBER_ARRAY,
+    };
+  },
+  singleZone(id: number): Sel {
+    return {
+      asset: EMPTY_NUMBER_ARRAY,
+      customerPoint: EMPTY_NUMBER_ARRAY,
+      zone: [id],
+    };
   },
   clearInvalidIds(
     selection: Sel,
     assets: AssetsMap,
     customerPoints: CustomerPoints,
+    zones: Zones,
   ): Sel {
     const assetsValid = selection.asset.every((id) => assets.has(id));
     const cpsValid = selection.customerPoint.every((id) =>
       customerPoints.has(id),
     );
-    if (assetsValid && cpsValid) return selection;
+    const zonesValid = selection.zone.every((id) => zones.has(id));
+    if (assetsValid && cpsValid && zonesValid) return selection;
     return SELECTION_NONE;
   },
 };
@@ -224,10 +299,8 @@ const dedupIds = (ids: readonly number[]): readonly number[] => {
   return Array.from(deduped);
 };
 
-const kindedSingleton = (
-  kind: Category,
-  id: number,
-): { assetIds: readonly number[]; customerPointIds: readonly number[] } =>
-  kind === "asset"
-    ? { assetIds: [id], customerPointIds: EMPTY_NUMBER_ARRAY }
-    : { assetIds: EMPTY_NUMBER_ARRAY, customerPointIds: [id] };
+const kindedSingleton = (kind: Category, id: number): KindedIds => ({
+  assetIds: kind === "asset" ? [id] : EMPTY_NUMBER_ARRAY,
+  customerPointIds: kind === "customerPoint" ? [id] : EMPTY_NUMBER_ARRAY,
+  zoneIds: kind === "zone" ? [id] : EMPTY_NUMBER_ARRAY,
+});

@@ -1,7 +1,12 @@
 import { describe, it, expect } from "vitest";
 import { USelection } from "./selection";
 import { AssetsMap } from "src/hydraulic-model";
-import { CustomerPoints, type CustomerPoint } from "@epanet-js/hydraulic-model";
+import {
+  CustomerPoints,
+  type CustomerPoint,
+  type Zone,
+  type Zones,
+} from "@epanet-js/hydraulic-model";
 import type { Asset } from "src/hydraulic-model";
 
 const IDS = { J1: 1, J2: 2, P1: 3 } as const;
@@ -21,6 +26,11 @@ const buildCustomerPoints = (...ids: number[]) => {
   }
   return map;
 };
+
+const buildZones = (...ids: number[]): Zones =>
+  new Map(ids.map((id) => [id, { id } as Zone]));
+
+const noZones = buildZones();
 
 describe("USelection", () => {
   describe("addAssetIds", () => {
@@ -55,6 +65,7 @@ describe("USelection", () => {
         selection,
         assets,
         emptyCustomerPoints,
+        noZones,
       );
       expect(result).toBe(selection);
     });
@@ -65,6 +76,7 @@ describe("USelection", () => {
         selection,
         assets,
         emptyCustomerPoints,
+        noZones,
       );
       expect(USelection.isNone(result)).toBe(true);
     });
@@ -75,6 +87,7 @@ describe("USelection", () => {
         selection,
         assets,
         emptyCustomerPoints,
+        noZones,
       );
       expect(result).toBe(selection);
     });
@@ -85,6 +98,7 @@ describe("USelection", () => {
         selection,
         assets,
         emptyCustomerPoints,
+        noZones,
       );
       expect(USelection.isNone(result)).toBe(true);
     });
@@ -95,6 +109,7 @@ describe("USelection", () => {
         selection,
         emptyAssets,
         customerPoints,
+        noZones,
       );
       expect(result).toBe(selection);
     });
@@ -105,6 +120,7 @@ describe("USelection", () => {
         selection,
         emptyAssets,
         customerPoints,
+        noZones,
       );
       expect(USelection.isNone(result)).toBe(true);
     });
@@ -112,7 +128,12 @@ describe("USelection", () => {
     it("returns none selection unchanged", () => {
       const none = USelection.none();
       expect(
-        USelection.clearInvalidIds(none, emptyAssets, emptyCustomerPoints),
+        USelection.clearInvalidIds(
+          none,
+          emptyAssets,
+          emptyCustomerPoints,
+          noZones,
+        ),
       ).toBe(none);
     });
   });
@@ -179,6 +200,7 @@ describe("USelection", () => {
       expect(USelection.countByKind(USelection.none())).toEqual({
         assets: 0,
         customerPoints: 0,
+        zones: 0,
       });
       expect(USelection.isEmpty(USelection.none())).toBe(true);
 
@@ -186,6 +208,7 @@ describe("USelection", () => {
       expect(USelection.countByKind(mixed)).toEqual({
         assets: 2,
         customerPoints: 1,
+        zones: 0,
       });
       expect(USelection.isEmpty(mixed)).toBe(false);
 
@@ -244,6 +267,7 @@ describe("USelection", () => {
       expect(USelection.countByKind(sel)).toEqual({
         assets: 2,
         customerPoints: 2,
+        zones: 0,
       });
     });
   });
@@ -340,7 +364,7 @@ describe("USelection", () => {
       const customerPoints = buildCustomerPoints(IDS.P1);
       const selection = USelection.fromIds([IDS.J1, IDS.J2], [IDS.P1]);
       expect(
-        USelection.clearInvalidIds(selection, assets, customerPoints),
+        USelection.clearInvalidIds(selection, assets, customerPoints, noZones),
       ).toBe(selection);
     });
 
@@ -350,7 +374,113 @@ describe("USelection", () => {
       const selection = USelection.fromIds([IDS.J1, IDS.J2], [IDS.P1]);
       expect(
         USelection.isNone(
-          USelection.clearInvalidIds(selection, assets, customerPoints),
+          USelection.clearInvalidIds(
+            selection,
+            assets,
+            customerPoints,
+            noZones,
+          ),
+        ),
+      ).toBe(true);
+    });
+  });
+
+  describe("zones", () => {
+    it("selects a single zone", () => {
+      const selection = USelection.singleZone(5);
+
+      expect(USelection.isSingleZone(selection)).toBe(true);
+      expect(USelection.singleZoneId(selection)).toBe(5);
+      expect(USelection.getZoneIds(selection)).toEqual([5]);
+      expect(USelection.isZoneSelected(selection, 5)).toBe(true);
+      expect(USelection.isNone(selection)).toBe(false);
+      expect(USelection.describe(selection)).toBe("single/zone");
+    });
+
+    it("counts zones alongside assets and customer points", () => {
+      const mixed = USelection.fromIds([1], [7], [5, 5, 6]);
+
+      expect(USelection.countByKind(mixed)).toEqual({
+        assets: 1,
+        customerPoints: 1,
+        zones: 2,
+      });
+      expect(USelection.describe(mixed)).toBe("multi/mixed");
+      expect(USelection.describe(USelection.fromIds([], [], [5, 6]))).toBe(
+        "multi/zone",
+      );
+    });
+
+    it("is no longer a single asset or customer point once a zone is added", () => {
+      const asset = USelection.addId(USelection.singleAsset(1), "zone", 5);
+      const customerPoint = USelection.addId(
+        USelection.singleCustomerPoint(7),
+        "zone",
+        5,
+      );
+
+      expect(USelection.isSingleAsset(asset)).toBe(false);
+      expect(USelection.singleAssetId(asset)).toBe(null);
+      expect(USelection.isSingleCustomerPoint(customerPoint)).toBe(false);
+      expect(USelection.isSingleZone(asset)).toBe(false);
+    });
+
+    it("adds, removes and toggles zones", () => {
+      const withZone = USelection.toggleId(USelection.none(), "zone", 5);
+      expect(USelection.isSingleZone(withZone)).toBe(true);
+      expect(USelection.addId(withZone, "zone", 5)).toBe(withZone);
+
+      const twoZones = USelection.addId(withZone, "zone", 6);
+      expect(USelection.getZoneIds(twoZones)).toEqual([5, 6]);
+
+      const backToOne = USelection.removeId(twoZones, "zone", 6);
+      expect(USelection.singleZoneId(backToOne)).toBe(5);
+      expect(USelection.isNone(USelection.toggleId(backToOne, "zone", 5))).toBe(
+        true,
+      );
+    });
+
+    it("keeps the other kinds' references when only zones change", () => {
+      const start = USelection.fromIds([1], [7]);
+      const afterZoneChange = USelection.addId(start, "zone", 5);
+
+      expect(USelection.getAssetIds(afterZoneChange)).toBe(
+        USelection.getAssetIds(start),
+      );
+      expect(USelection.getCustomerPointIds(afterZoneChange)).toBe(
+        USelection.getCustomerPointIds(start),
+      );
+    });
+
+    it("keeps the zone reference when only assets change", () => {
+      const start = USelection.fromIds([1], [], [5]);
+      const afterAssetChange = USelection.addId(start, "asset", 2);
+
+      expect(USelection.getZoneIds(afterAssetChange)).toBe(
+        USelection.getZoneIds(start),
+      );
+    });
+
+    it("clears the selection when a selected zone does not exist", () => {
+      const assets = buildAssetsMap(IDS.J1);
+      const selection = USelection.fromIds([IDS.J1], [], [5]);
+
+      expect(
+        USelection.clearInvalidIds(
+          selection,
+          assets,
+          buildCustomerPoints(),
+          buildZones(5),
+        ),
+      ).toBe(selection);
+      expect(
+        USelection.isNone(
+          USelection.clearInvalidIds(
+            selection,
+            assets,
+            buildCustomerPoints(),
+            buildZones(6),
+          ),
         ),
       ).toBe(true);
     });

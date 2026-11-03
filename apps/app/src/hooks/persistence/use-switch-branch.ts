@@ -41,6 +41,7 @@ function validateSelection(
     selection,
     model.assets,
     model.customerPoints,
+    model.zones,
   );
   set(selectionAtom, { ...validatedSelection });
 }

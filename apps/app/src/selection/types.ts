@@ -1,11 +1,10 @@
 /**
- * The kinds of selectable entities tracked by a selection. Extend with new
- * kinds (e.g. `"zone"`) as needed.
+ * The kinds of selectable entities tracked by a selection.
  */
-export type Category = "asset" | "customerPoint";
+export type Category = "asset" | "customerPoint" | "zone";
 
 /**
- * A selection is a pair of id lists, one per Category. "none" and "single"
+ * A selection is one id list per Category. "none" and "single"
  * are derived notions (see `USelection.isNone` / `isSingleAsset`), not separate
  * representations: keeping the per-kind arrays as the only state lets an update
  * that touches one kind preserve the other kind's array reference, so consumers
@@ -17,4 +16,5 @@ export type Category = "asset" | "customerPoint";
 export interface Sel {
   readonly asset: readonly number[];
   readonly customerPoint: readonly number[];
+  readonly zone: readonly number[];
 }
