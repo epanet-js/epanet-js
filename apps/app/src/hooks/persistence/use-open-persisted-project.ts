@@ -118,7 +118,6 @@ export const useOpenPersistedProject = () => {
         const fetchProject = db.fetchProject;
         const {
           projectSettings,
-          zones,
           selectionSets,
           bookmarks,
           scripts,
@@ -134,7 +133,6 @@ export const useOpenPersistedProject = () => {
           hydraulicModel,
           factories,
           projectSettings,
-          zones,
           selectionSets,
           bookmarks,
           scripts,

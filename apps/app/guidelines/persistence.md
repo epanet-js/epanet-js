@@ -23,25 +23,25 @@ The rule that enforces both: **validate, then save.** Serialize-and-validate a c
 User-initiated edits that mutate a persisted atom go through a persistence transaction hook. The hook validates first; on failure it captures the error, shows `changeNotApplied`, and returns `false` **without** touching the atom. Only once validation passes does it set the atom and persist.
 
 ```typescript
-// src/hooks/persistence/use-zones-transaction.ts — the reference shape
-export const useZonesTransaction = () => {
-  const setZones = useSetAtom(zonesAtom);
+// src/hooks/persistence/use-project-settings-transaction.ts — the reference shape
+export const useProjectSettingsTransaction = () => {
+  const setProjectSettings = useSetAtom(projectSettingsAtom);
   const setDialog = useSetAtom(dialogAtom);
 
   const transact = useCallback(
-    async (next: Zones): Promise<boolean> => {
+    async (next: ProjectSettings): Promise<boolean> => {
       try {
-        serializeZones(next); // validate BEFORE applying
+        serializeProjectSettings(next); // validate BEFORE applying
       } catch (error) {
         captureError(error instanceof Error ? error : new Error(String(error)));
         setDialog({ type: "changeNotApplied" });
         return false; // model untouched, nothing persisted
       }
-      setZones(next);
-      await saveZones(next);
+      setProjectSettings(next);
+      await saveProjectSettings(next);
       return true;
     },
-    [setZones, setDialog],
+    [setProjectSettings, setDialog],
   );
 
   return { transact };
@@ -51,19 +51,19 @@ export const useZonesTransaction = () => {
 Consumers stay thin — compute the next value, delegate persistence to the hook, and bail if it was rejected:
 
 ```typescript
-const { transact } = useZonesTransaction();
-const applied = await transact(nextZones);
+const { transact } = useProjectSettingsTransaction();
+const applied = await transact(nextSettings);
 if (!applied) return; // changeNotApplied is already showing
 ```
 
 ```typescript
 // ❌ Avoid: the atom is updated before (or without) validation, so the UI can hold a value the DB
 // will later reject — the model and DB diverge.
-setZones(nextZones);
-await saveZones(nextZones);
+setProjectSettings(nextSettings);
+await saveProjectSettings(nextSettings);
 ```
 
-Reference hooks: `use-project-settings-transaction.ts`, `use-zones-transaction.ts`, `use-simulation-settings-transaction.ts`, `use-model-transaction.ts` (assets/moments).
+Reference hooks: `use-project-settings-transaction.ts`, `use-simulation-settings-transaction.ts`, `use-model-transaction.ts` (assets/moments).
 
 ## Validate while saving — import only
 

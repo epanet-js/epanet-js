@@ -4,7 +4,6 @@ const silentWrites = new Set([
   "applyChangeSet",
   "setAllSimulationSettings",
   "saveProjectSettings",
-  "setAllZones",
   "insertSelectionSet",
   "renameSelectionSet",
   "deleteSelectionSet",

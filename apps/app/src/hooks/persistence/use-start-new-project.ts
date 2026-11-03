@@ -22,7 +22,6 @@ import {
 } from "@epanet-js/project-settings";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { inpFileInfoAtom, projectFileInfoAtom } from "src/state/file-system";
-import type { Zones } from "@epanet-js/hydraulic-model";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
 import { OPFSStorage } from "src/infra/storage";
 import { getAppId } from "src/infra/app-instance";
@@ -80,7 +79,6 @@ import {
   initialPlaybackState,
   simulationPlaybackAtom,
 } from "src/state/simulation-playback";
-import { zonesDeprecatedAtom } from "src/state/zones";
 import { bookmarksAtom, selectionSetsAtom } from "src/state/collections";
 import {
   type Bookmark,
@@ -103,7 +101,6 @@ export type ProjectLoadInput = {
   hydraulicModel: HydraulicModel;
   factories: ModelFactories;
   projectSettings: ProjectSettings;
-  zones?: Zones;
   selectionSets?: SelectionSet[];
   bookmarks?: Bookmark[];
   scripts?: UserScript[];
@@ -129,7 +126,6 @@ export const resetAppState = (set: Setter, panels: Panel[]) => {
   set(sourceRebuildDurationsAtom, []);
   set(resultsFetchDurationsAtom, []);
   set(simulationPlaybackAtom, initialPlaybackState);
-  set(zonesDeprecatedAtom, new Map());
   set(selectionSetsAtom, initializeSelectionSets());
   set(bookmarksAtom, initializeBookmarks());
   set(userScriptsAtom, []);
@@ -160,7 +156,6 @@ export const loadModel = (
   const {
     factories,
     projectSettings,
-    zones,
     selectionSets,
     bookmarks,
     scripts,
@@ -184,7 +179,6 @@ export const loadModel = (
     },
   };
   set(projectSettingsAtom, mergedProjectSettings);
-  set(zonesDeprecatedAtom, zones ?? new Map());
   set(selectionSetsAtom, selectionSets ?? initializeSelectionSets());
   set(bookmarksAtom, bookmarks ?? initializeBookmarks());
   set(userScriptsAtom, scripts ?? []);
@@ -241,7 +235,7 @@ const replaceProject = async (
     projectSettings: mergedProjectSettings,
     hydraulicModel: input.hydraulicModel,
     simulationSettings: input.simulationSettings,
-    zones: input.zones,
+    zones: input.hydraulicModel.zones,
     selectionSets: input.selectionSets,
     bookmarks: input.bookmarks,
     scripts: input.scripts,

@@ -26,12 +26,10 @@ describe("demo networks", () => {
 
       expect(result.status).toMatch(/^(ok|migrated)$/);
 
-      const { hydraulicModel, zones, customAttributes } = await db.fetchProject(
-        {},
-      );
+      const { hydraulicModel, customAttributes } = await db.fetchProject({});
 
       expect(hydraulicModel.assets.size).toBeGreaterThan(0);
-      expect(zones.size).toBeGreaterThan(0);
+      expect(hydraulicModel.zones.size).toBeGreaterThan(0);
       expect(hydraulicModel.pipeMaterials.length).toBeGreaterThan(0);
       expect(getAttributes(customAttributes, "pipe").length).toBeGreaterThan(0);
     },

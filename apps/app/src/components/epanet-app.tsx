@@ -16,7 +16,6 @@ import React, {
   useState,
 } from "react";
 import { Resizer, useWindowResizeSplits } from "src/components/resizer";
-import { useSyncZonesInModelFlag } from "src/hooks/use-sync-zones-in-model-flag";
 import {
   BottomPanel,
   ActivityBar,
@@ -98,7 +97,6 @@ export function EpanetApp() {
   const { isReady, progress } = useAppReady(isDbReady, areWorkersReady);
   const [map, setMap] = useState<MapEngine | null>(null);
   useWindowResizeSplits();
-  useSyncZonesInModelFlag();
   const userTracking = useUserTracking();
   const { user, isSignedIn } = useAuth();
   const { enableAllTracking } = usePrivacySettings();

@@ -126,7 +126,6 @@ export const useConvertFile = () => {
 
         const started = await startNewProject({
           hydraulicModel,
-          zones,
           selectionSets: selectionSets.map(({ label, assetIds }) =>
             newSelectionSet(label, USelection.fromIds(assetIds, [])),
           ),

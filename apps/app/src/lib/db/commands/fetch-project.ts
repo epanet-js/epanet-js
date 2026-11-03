@@ -1,6 +1,5 @@
 import type { ProjectSettings } from "@epanet-js/project-settings";
 import type { CustomAttributesDefinition } from "@epanet-js/hydraulic-model";
-import type { Zones } from "@epanet-js/hydraulic-model";
 import type { Bookmark, SelectionSet } from "src/lib/collections";
 import type { UserScript } from "src/state/scripts";
 import {
@@ -36,7 +35,6 @@ import { buildScriptsData } from "../mappers/scripts/builders";
 export type Project = {
   projectSettings: ProjectSettings;
   customAttributes: CustomAttributesDefinition;
-  zones: Zones;
   selectionSets: SelectionSet[];
   bookmarks: Bookmark[];
   scripts: UserScript[];
@@ -203,7 +201,6 @@ export const fetchProject = async (
         return {
           projectSettings,
           customAttributes,
-          zones,
           selectionSets,
           bookmarks,
           scripts,

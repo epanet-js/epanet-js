@@ -2,7 +2,6 @@ export {
   buildSimulationSettingsData,
   serializeProjectSettings,
   serializeSimulationSettings,
-  zonesToRows,
 } from "@epanet-js/ejsdb-mappers";
 export { openProject } from "./commands/open-project";
 export type { OpenProjectResult } from "./commands/open-project";
@@ -11,7 +10,6 @@ export { fetchProject } from "./commands/fetch-project";
 export type { Project, FetchProjectPhase } from "./commands/fetch-project";
 export { saveProjectSettings } from "./commands/save-project-settings";
 export { saveCustomAttributes } from "./commands/save-custom-attributes";
-export { saveZones } from "./commands/save-zones";
 export {
   insertSelectionSet,
   renameSelectionSet,

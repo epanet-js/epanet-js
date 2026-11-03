@@ -1540,17 +1540,6 @@ export const api = {
     return timed("getZones", () => readAll("SELECT * FROM zones"));
   },
 
-  async setAllZones(rows: ZoneRow[]): Promise<void> {
-    return withTransaction(
-      "setAllZones",
-      (db) => {
-        db.exec("DELETE FROM zones");
-        bulkInsertZones(rows);
-      },
-      { rows: rows.length },
-    );
-  },
-
   async getSelectionSets(): Promise<unknown[]> {
     return timed("getSelectionSets", () =>
       readAll("SELECT * FROM selection_sets ORDER BY rowid"),

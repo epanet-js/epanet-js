@@ -153,9 +153,9 @@ describe("convertModel", () => {
     expect(zones[0].geometry.type).toEqual("MultiPolygon");
 
     const saved = await fetchProject();
-    expect([...saved.zones.values()].map((zone) => zone.label)).toEqual([
-      "NORTH",
-    ]);
+    expect(
+      [...saved.hydraulicModel.zones.values()].map((zone) => zone.label),
+    ).toEqual(["NORTH"]);
   });
 
   it("opens the project with the selection sets the converter parsed", async () => {
