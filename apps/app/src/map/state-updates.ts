@@ -105,6 +105,7 @@ const detectChanges = (
   hasNewStyles: boolean;
   hasNewAssetsSelection: boolean;
   hasNewCustomerPointsSelection: boolean;
+  hasNewZonesSelection: boolean;
   hasNewEphemeralState: boolean;
   hasEphemeralStateReset: boolean;
   hasEphemeralTargetsChanged: boolean;
@@ -139,6 +140,9 @@ const detectChanges = (
     hasNewCustomerPointsSelection:
       USelection.getCustomerPointIds(state.selection) !==
       USelection.getCustomerPointIds(prev.selection),
+    hasNewZonesSelection:
+      USelection.getZoneIds(state.selection) !==
+      USelection.getZoneIds(prev.selection),
     hasNewEphemeralState: state.ephemeralState !== prev.ephemeralState,
     hasEphemeralStateReset:
       prev.ephemeralState.type !== "none" &&
@@ -284,6 +288,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         hasExceededDeltaBudget,
         hasNewAssetsSelection,
         hasNewCustomerPointsSelection,
+        hasNewZonesSelection,
         hasNewEphemeralState,
         hasEphemeralStateReset,
         hasEphemeralTargetsChanged,
@@ -572,6 +577,10 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
 
       if (hasNewZoneFeatures || hasNewStyles) {
         updateZonesSource(map, mapState.zoneFeatures);
+      }
+
+      if (hasNewZonesSelection || hasNewStyles) {
+        updateSelectedZones(map, USelection.getZoneIds(mapState.selection));
       }
 
       const hasAssetHighlights = mapState.highlights.some(
@@ -968,7 +977,20 @@ const updateZoneColors = (
   );
 };
 
-const ZONE_LAYERS = ["zones-fill", "zones-outline", "zones-labels"] as const;
+const updateSelectedZones = (map: MapEngine, zoneIds: readonly number[]) => {
+  map.setLayerFilter("zones-selected-outline", [
+    "in",
+    ["get", "id"],
+    ["literal", [...zoneIds]],
+  ]);
+};
+
+const ZONE_LAYERS = [
+  "zones-fill",
+  "zones-outline",
+  "zones-selected-outline",
+  "zones-labels",
+] as const;
 
 const toggleZoneLayers = (
   map: MapEngine,
@@ -979,7 +1001,7 @@ const toggleZoneLayers = (
     return;
   }
 
-  map.showLayers(["zones-fill", "zones-outline"]);
+  map.showLayers(["zones-fill", "zones-outline", "zones-selected-outline"]);
 
   if (zone.labelRule) {
     map.showLayers(["zones-labels"]);

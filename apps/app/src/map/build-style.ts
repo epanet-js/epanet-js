@@ -100,6 +100,7 @@ import {
 import {
   zoneFillLayer,
   zoneOutlineLayer,
+  zoneSelectedOutlineLayer,
   zoneLabelsLayer,
 } from "src/map/layers/zones";
 import {
@@ -225,6 +226,7 @@ export function makeLayers({
     gridMajorLayer(),
     zoneFillLayer({ source: "zones" }),
     zoneOutlineLayer({ source: "zones" }),
+    zoneSelectedOutlineLayer({ source: "zones" }),
     zoneLabelsLayer({ source: "zones" }),
     mapOverlayFillLayer({ source: "map-overlay" }),
     mapOverlayOutlineLayer({ source: "map-overlay" }),

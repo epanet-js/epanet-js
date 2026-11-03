@@ -160,6 +160,7 @@ class MapTestEngine {
   resumeOverlayStyleReactions() {}
   addLayer() {}
   setLayerPaintRule() {}
+  setLayerFilter() {}
   setLayerMinZoom() {}
   showLayers() {}
   hideLayers() {}

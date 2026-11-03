@@ -31,6 +31,21 @@ export const zoneOutlineLayer = ({
   },
 });
 
+export const zoneSelectedOutlineLayer = ({
+  source,
+}: {
+  source: DataSource;
+}): LineLayer => ({
+  id: "zones-selected-outline",
+  type: "line",
+  source,
+  filter: ["in", ["get", "id"], ["literal", []]],
+  paint: {
+    "line-color": colors.fuchsia500,
+    "line-width": ["interpolate", ["linear"], ["zoom"], 12, 2, 16, 3],
+  },
+});
+
 export const zoneLabelsLayer = ({
   source,
 }: {

@@ -1,4 +1,9 @@
-export { zoneFillLayer, zoneOutlineLayer, zoneLabelsLayer } from "./layers";
+export {
+  zoneFillLayer,
+  zoneOutlineLayer,
+  zoneSelectedOutlineLayer,
+  zoneLabelsLayer,
+} from "./layers";
 
 export { buildZoneColorExpression } from "./color-expression";
 

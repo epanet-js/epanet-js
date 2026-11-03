@@ -17,6 +17,7 @@ export type LayerId =
   | "icons-reservoirs"
   | "zones-fill"
   | "zones-outline"
+  | "zones-selected-outline"
   | "zones-labels"
   // Delta icon facet: `icons` is the main icon facet; these mirror it for the delta
   // live-set. `delta-selected-icons-halo` is the delta selection halo.
