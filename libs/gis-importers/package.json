@@ -14,7 +14,8 @@
     "lint": "eslint --cache --ext .ts src",
     "lint:fix": "eslint --cache --ext .ts src --fix",
     "check-types": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "codegen": "node scripts/codegen.mjs"
   },
   "dependencies": {
     "@epanet-js/converters": "workspace:^",
@@ -24,6 +25,7 @@
     "@epanet-js/projections": "workspace:^",
     "@epanet-js/quantity": "workspace:*",
     "dxf": "^5.3.1",
+    "flatbuffers": "25.9.23",
     "papaparse": "^5.5.3",
     "shpjs": "^6.2.0"
   },

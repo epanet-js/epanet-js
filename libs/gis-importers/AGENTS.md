@@ -43,6 +43,8 @@ Turns GIS files into the part of a model they describe. The model vocabulary —
 - **A cache holds what the bytes said, never what a caller added.** Two reads with different mappings raise different issues, and the second must not inherit the first's.
 - **What the bytes said still depends on the CRS they were read in, so that is part of the key.** A supplied `crs` is a reading instruction rather than an interpretation — it decides whether a file comes back placed or `coordinateSystemUnknown` — so a second read that supplies one must not be answered from a first that did not. `projections` is deliberately left out: it is the set of definitions we can handle at all, built once per session, and keying on it would turn every re-render into a miss for an answer that did not change.
 
+- **Records keep an attribute a record never stated apart from one it stated as null, and the buffer is never stored.** Turned back into a feature, the first has no property and the second a `null` one, as the file had them. The buffer lives for one read and at most crosses to a worker and back, so changing `schema/gis-records.fbs` needs no migration — anything that starts persisting it makes that a file-format change.
+
 ## An importer: parsed data to `NetworkData`
 
 - **State only the part of the model the source describes**, and leave out everything else. An empty array is a claim that the source had none, which an importer is rarely in a position to make.

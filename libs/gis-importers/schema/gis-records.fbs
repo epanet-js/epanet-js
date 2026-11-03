@@ -1,0 +1,41 @@
+// Parsed GIS records, one buffer per source. Geometry and attributes are
+// columns, so a source of a million records is a handful of typed vectors
+// rather than a million objects.
+namespace GisRecordsFb;
+
+enum GeometryKind : ubyte { None, Point, Line, Polygon, Unknown }
+
+enum ColumnKind : ubyte { Doubles, Texts, Json }
+
+// Absent and Null are distinct: a record that never stated an attribute is
+// not one that stated it as null.
+enum Presence : ubyte { Present, Null, Absent }
+
+table Column {
+  name:string;
+  kind:ColumnKind;
+  // Doubles: one value per record.
+  doubles:[double];
+  // Texts and Json: each record points into the dictionary of distinct values.
+  dictionary:[string];
+  indices:[uint];
+  // Empty when every record states the attribute.
+  presence:[ubyte];
+}
+
+// Every geometry is polygons of rings of positions: a point is one polygon of
+// one ring of one position, a line one polygon of one ring.
+table Records {
+  count:uint;
+  kinds:[ubyte];
+  // End offsets: record -> polygons, polygon -> rings, ring -> positions.
+  record_polygons:[uint];
+  polygon_rings:[uint];
+  ring_positions:[uint];
+  xy:[double];
+  // Empty when no position has a z; NaN where one position has none.
+  z:[double];
+  columns:[Column];
+}
+
+root_type Records;
