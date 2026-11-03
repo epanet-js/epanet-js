@@ -15,7 +15,7 @@ import {
 import { queryContainedAssets } from "@epanet-js/hydraulic-model";
 import {
   ZonesGeoView,
-  queryIntersectingZones,
+  queryContainedZones,
   zonesGeoTransferables,
 } from "@epanet-js/hydraulic-model";
 import { canUseWorker, enrichWorkerError } from "src/infra/worker";
@@ -89,7 +89,7 @@ const runQueryInProcess = (
       : [];
   const zoneIds =
     includeZones && hydraulicModel.zones.size > 0
-      ? queryIntersectingZones(
+      ? queryContainedZones(
           new ZonesGeoView(getEncodedZonesGeoBuffers(hydraulicModel.zones)),
           points,
         )

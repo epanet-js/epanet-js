@@ -11,7 +11,7 @@ import {
   queryContainedCustomerPoints,
   ZonesGeoBuffers,
   ZonesGeoView,
-  queryIntersectingZones,
+  queryContainedZones,
 } from "@epanet-js/hydraulic-model";
 import { queryContainedAssets } from "@epanet-js/hydraulic-model";
 import { EncodedAreaSelectionResult } from "./data";
@@ -46,7 +46,7 @@ function queryContainedFeaturesFromBuffers(
       )
     : [];
   const zoneIds = zonesGeoBuffers
-    ? queryIntersectingZones(new ZonesGeoView(zonesGeoBuffers), points)
+    ? queryContainedZones(new ZonesGeoView(zonesGeoBuffers), points)
     : [];
 
   const assetIdsBuffer = new Uint32Array(assetIds);
