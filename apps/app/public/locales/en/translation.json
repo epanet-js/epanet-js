@@ -519,6 +519,8 @@
   "velocities": "Velocities",
   "asset": "Asset",
   "assets": "Assets",
+  "zone": "Zone",
+  "zones": "Zones",
   "none": "None",
   "globalDefault": "Global default",
   "empty": "Empty",

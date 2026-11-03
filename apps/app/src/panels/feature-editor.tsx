@@ -11,6 +11,7 @@ import {
 import { MultiAssetPanel } from "./multi-asset-panel";
 import { AssetPanel } from "./asset-panel";
 import { CustomerPointPanel } from "./customer-point-panel";
+import { ZonePanel } from "./zone-panel";
 import { Asset } from "src/hydraulic-model";
 import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
 
@@ -23,17 +24,21 @@ export default function FeatureEditor() {
   const { units } = useAtomValue(projectSettingsAtom);
   const isEditionBlocked = useIsEditionBlocked();
 
-  const { assets, customerPoints } = USelection.countByKind(selection);
+  const { assets, customerPoints, zones } = USelection.countByKind(selection);
 
-  if (assets === 0 && customerPoints === 0) {
+  if (assets === 0 && customerPoints === 0 && zones === 0) {
     return <NothingSelected />;
   }
 
-  if (assets === 0 && customerPoints === 1) {
+  if (assets === 0 && customerPoints === 1 && zones === 0) {
     return <CustomerPointPanel />;
   }
 
-  if (assets === 1 && customerPoints === 0) {
+  if (assets === 0 && customerPoints === 0 && zones === 1) {
+    return <ZonePanel />;
+  }
+
+  if (assets === 1 && customerPoints === 0 && zones === 0) {
     const asset = selectedAssets[0] as Asset | undefined;
     if (!asset) {
       return <NothingSelected />;
@@ -47,6 +52,7 @@ export default function FeatureEditor() {
     <MultiAssetPanel
       selectedAssets={selectedAssets}
       selectedCustomerPoints={selectedCustomerPoints}
+      zoneCount={zones}
       readonly={isEditionBlocked}
     />
   );

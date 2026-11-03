@@ -42,10 +42,12 @@ import { useShowPatternsLibrary } from "src/commands/show-patterns-library";
 export function MultiAssetPanel({
   selectedAssets,
   selectedCustomerPoints,
+  zoneCount = 0,
   readonly = false,
 }: {
   selectedAssets: Asset[];
   selectedCustomerPoints: CustomerPoint[];
+  zoneCount?: number;
   readonly?: boolean;
 }) {
   const { formatting, units } = useAtomValue(projectSettingsAtom);
@@ -221,6 +223,7 @@ export function MultiAssetPanel({
         <Header
           assetCount={selectedAssets.length}
           customerPointCount={selectedCustomerPoints.length}
+          zoneCount={zoneCount}
         />
       }
       overflow={true}
@@ -467,6 +470,12 @@ export function MultiAssetPanel({
       {selectedCustomerPoints.length > 0 && (
         <CustomerPointPanelSection customerPoints={selectedCustomerPoints} />
       )}
+
+      {zoneCount > 0 && (
+        <div className="flex items-center h-8 text-size-base font-semibold">
+          {`${translate("zones")} (${zoneCount})`}
+        </div>
+      )}
     </SectionList>
   );
 }
@@ -474,12 +483,14 @@ export function MultiAssetPanel({
 const Header = ({
   assetCount,
   customerPointCount,
+  zoneCount,
 }: {
   assetCount: number;
   customerPointCount: number;
+  zoneCount: number;
 }) => {
   const translate = useTranslate();
-  const totalCount = assetCount + customerPointCount;
+  const totalCount = assetCount + customerPointCount + zoneCount;
 
   return (
     <div className="px-4 pt-4 pb-3">

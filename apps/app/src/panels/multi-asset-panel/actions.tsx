@@ -67,7 +67,7 @@ export function useMultiAssetActions(readonly = false): Action[] {
   const deleteAssetsAction = {
     label: translate("delete"),
     variant: "danger-quiet" as const,
-    applicable: true,
+    applicable: hasAssets || hasCustomerPoints,
     priority: 1,
     disabled: readonly,
     icon: <DeleteIcon />,
