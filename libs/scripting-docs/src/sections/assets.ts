@@ -510,7 +510,13 @@ const EMPTIES = "null leaves it empty, which network review reports";
 const NODE_CHANGES = `  /** ${EMPTIES} */
   elevation?: number | null;
   /** ${CLEARS} */
-  initialQuality?: number | null;`;
+  initialQuality?: number | null;
+  /** null removes the source, with its strength and pattern */
+  chemicalSourceType?: "concen" | "mass" | "flowpaced" | "setpoint" | null;
+  /** ${CLEARS} */
+  chemicalSourceStrength?: number | null;
+  /** the label of a qualitySourceStrength pattern; ${CLEARS} */
+  chemicalSourcePattern?: string | null;`;
 
 const changesType = (owner: string, body: string): TypeDef => ({
   name: `${owner}Changes`,
@@ -531,7 +537,9 @@ const CHANGES_TYPES: TypeDef[] = [
     "Reservoir",
     `${NODE_CHANGES}
   /** ${EMPTIES} */
-  head?: number | null;`,
+  head?: number | null;
+  /** the label of a reservoirHead pattern; ${CLEARS} */
+  headPattern?: string | null;`,
   ),
   changesType(
     "Tank",
@@ -574,8 +582,14 @@ const CHANGES_TYPES: TypeDef[] = [
     `  status?: "on" | "off";
   /** ${CLEARS} */
   speed?: number | null;
+  /** the label of a pumpSpeed pattern; ${CLEARS} */
+  speedPattern?: string | null;
+  /** the label of an efficiency curve; ${CLEARS} */
+  efficiencyCurve?: string | null;
   /** ${CLEARS} */
-  energyPrice?: number | null;`,
+  energyPrice?: number | null;
+  /** the label of an energyPrice pattern; ${CLEARS} */
+  energyPricePattern?: string | null;`,
   ),
   changesType(
     "Valve",
@@ -585,7 +599,9 @@ const CHANGES_TYPES: TypeDef[] = [
   setting?: number | null;
   /** ${CLEARS} */
   minorLoss?: number | null;
-  status?: "active" | "open" | "closed";`,
+  status?: "active" | "open" | "closed";
+  /** the label of a headloss curve for a gpv, or a valve curve for a pcv; ${CLEARS} */
+  curve?: string | null;`,
   ),
 ];
 
@@ -595,7 +611,7 @@ const setOf = (owner: string, example: string): Member =>
     signature: `set(changes: ${owner}Changes): void`,
     summary: `Changes the ${owner.toLowerCase()}'s attributes, in the same units its getters read them.`,
     description:
-      "The asset reads the new values straight away. The changes reach the network when the script finishes, as one change the user can undo; if the script throws, none of them do. Leave out an attribute to keep its value.",
+      "The asset reads the new values straight away. The changes reach the network when the script finishes, as one change the user can undo; if the script throws, none of them do. Leave out an attribute to keep its value. Patterns and curves are named by label, and must be of the type the attribute takes.",
     throws: [
       "`TypeError` when `changes` names an attribute it cannot set, or gives a value of the wrong type.",
     ],
