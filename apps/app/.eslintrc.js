@@ -91,9 +91,9 @@ module.exports = {
       "error",
       {
         selector:
-          "ObjectExpression > Property[key.name='type'][value.type='Literal'][value.value=/^(single|multi)$/]",
+          "ObjectExpression > Property[key.name='asset']:not([value.type='Literal']) ~ Property[key.name='customerPoint']:not([value.type='Literal']), ObjectExpression > Property[key.name='customerPoint']:not([value.type='Literal']) ~ Property[key.name='asset']:not([value.type='Literal'])",
         message:
-          "Do not construct Sel literals directly. Use USelection.single / USelection.singleCustomerPoint / USelection.fromIds / USelection.fromKindedIds instead. (See src/selection/AGENTS.md.)",
+          "Do not construct Sel literals directly. Use USelection.none / USelection.singleAsset / USelection.fromIds instead. (See src/selection/AGENTS.md.)",
       },
     ],
     "no-throw-literal": "error",
