@@ -624,6 +624,41 @@ network.getLink("PU3").setDefinition({ type: "designPointCurve", designPoint: { 
   ],
 });
 
+const setDemandsOf = (owner: string, unit: string, example: string): Member =>
+  memberOf(owner)({
+    name: "setDemands",
+    signature: `setDemands(demands: {
+  /** in ${unit} */
+  base: number;
+  /** the label of a demand pattern; left out or null, the demand has none */
+  pattern?: string | null;
+}[]): void`,
+    summary: `Replaces every demand category of the ${owner === "CustomerPoint" ? "customer point" : owner.toLowerCase()}, or removes them all with \`[]\`.`,
+    description:
+      "Takes the same shape `demands` reads, so a script can read the categories, change them and write them back. The new categories read straight away and reach the network with the other changes.",
+    throws: [
+      "`TypeError` when `demands` is not a list, a category is not an object, `base` is not a number, `pattern` is not the label of a demand pattern, or a category has another field.",
+    ],
+    examples: [{ code: example }],
+  });
+
+const EDITS_AFTER: [owner: string, name: string, added: Member][] = [
+  [
+    "CustomerPoint",
+    "getCustom",
+    setDemandsOf(
+      "CustomerPoint",
+      "units.customerDemand",
+      `network.getCustomerPoint("CP1").setDemands([{ base: 0.3 }]);`,
+    ),
+  ],
+];
+
+const editsAfter = (member: Member): Member[] =>
+  EDITS_AFTER.filter(
+    ([owner, name]) => member.owner === owner && member.name === name,
+  ).map(([, , added]) => added);
+
 const SET_KIND: Member = memberOf("Valve")({
   name: "setKind",
   signature:
@@ -651,7 +686,12 @@ const EDITS_BEFORE = new Map<Member, Member[]>([
   /** ${CLEARS} */
   emitterCoefficient?: number | null;`,
         `network.getNode("J1").set({ elevation: 12, emitterCoefficient: null });`,
-        [QUALITY_SOURCE_BY],
+        ["The demands change through `setDemands`.", QUALITY_SOURCE_BY],
+      ),
+      setDemandsOf(
+        "Junction",
+        "units.baseDemand",
+        `network.getNode("J1").setDemands([{ base: 5 }, { base: 2 }]);`,
       ),
       setQualitySourceOf("Junction", "J1"),
     ],
@@ -781,6 +821,7 @@ export const sectionFor = ({ edits }: DocsCandidates): Section =>
         members: (SECTION.members ?? []).flatMap((member) => [
           ...(EDITS_BEFORE.get(member) ?? []),
           member,
+          ...editsAfter(member),
         ]),
       }
     : SECTION;
