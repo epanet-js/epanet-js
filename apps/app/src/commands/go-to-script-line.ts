@@ -1,6 +1,7 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import { useCallback } from "react";
 import { useActivatePanel } from "src/commands/activate-panel";
+import { useUserTracking } from "src/infra/user-tracking";
 import { SCRIPTS_PANEL_ID } from "src/panels/scripts/create-panel";
 import type { Dock } from "src/panels/docks";
 import { splitsAtom, type Splits } from "src/state/layout";
@@ -30,6 +31,7 @@ export const useGoToScriptLine = (
   const setLineRequest = useSetAtom(scriptLineRequestAtom);
   const setSplits = useSetAtom(splitsAtom);
   const activatePanel = useActivatePanel();
+  const userTracking = useUserTracking();
 
   const dock = placedPanels.find((p) => p.id === SCRIPTS_PANEL_ID)?.dock;
   const goToLine = useCallback(
@@ -48,6 +50,10 @@ export const useGoToScriptLine = (
         );
       }
       activatePanel(SCRIPTS_PANEL_ID);
+      userTracking.capture({
+        name: "script.errorLineOpened",
+        openedScript: !openDraft,
+      });
     },
     [
       dock,
@@ -58,6 +64,7 @@ export const useGoToScriptLine = (
       setLineRequest,
       setSplits,
       activatePanel,
+      userTracking,
     ],
   );
 

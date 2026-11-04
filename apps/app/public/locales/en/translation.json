@@ -140,6 +140,7 @@
     "finishedWithErrors": "Finished with errors",
     "atLine": "at line {{1}}",
     "copyLog": "Copy log",
+    "logCopied": "Copied!",
     "files": "Files",
     "download": "Download",
     "downloadAllAsZip": "Download all as zip",

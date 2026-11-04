@@ -749,6 +749,17 @@ type ScriptAttachmentsZipDownloaded = {
   sizeKb: number;
 };
 
+type ScriptLogCopied = {
+  name: "script.logCopied";
+  linesCount: number;
+  hasError: boolean;
+};
+
+type ScriptErrorLineOpened = {
+  name: "script.errorLineOpened";
+  openedScript: boolean;
+};
+
 type ScriptingApiVisited = {
   name: "scriptingApi.visited";
   source: "menu" | "editor";
@@ -1594,6 +1605,8 @@ export type UserEvent =
   | ScriptDeleted
   | ScriptAttachmentDownloaded
   | ScriptAttachmentsZipDownloaded
+  | ScriptLogCopied
+  | ScriptErrorLineOpened
   | RepoVisited
   | FoundersPartnerLinkVisited
   | SignUpStarted

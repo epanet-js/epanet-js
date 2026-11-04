@@ -1,6 +1,7 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAtom, useAtomValue } from "jotai";
 import { useMove } from "@react-aria/interactions";
+import { Tooltip } from "@epanet-js/ui-kit";
 import {
   scriptRunAtom,
   type ScriptConsoleLine,
@@ -16,6 +17,7 @@ import { Button } from "src/components/elements";
 import { CopyIcon } from "src/icons";
 import { writeToClipboard } from "src/lib/utils";
 import { captureError } from "src/infra/error-tracking";
+import { useUserTracking } from "src/infra/user-tracking";
 import {
   ConsoleLines,
   RunStatus,
@@ -75,22 +77,16 @@ const RunOutput = ({
           {error && <RunErrorLine error={error} run={run} />}
         </div>
         <div className="sticky top-0 shrink-0 flex flex-col items-center py-2 px-1">
-          <Button
-            variant="quiet"
-            size="sm"
-            aria-label={translate("scripting.copyLog")}
-            title={translate("scripting.copyLog")}
+          <CopyLogButton
             disabled={run.lines.length === 0 && !error}
-            onClick={() => {
-              writeToClipboard(
-                logText(run.lines, error, (line) =>
-                  translate("scripting.atLine", String(line)),
-                ),
-              ).catch(captureError);
-            }}
-          >
-            <CopyIcon size="sm" />
-          </Button>
+            linesCount={run.lines.length}
+            hasError={error !== null}
+            getText={() =>
+              logText(run.lines, error, (line) =>
+                translate("scripting.atLine", String(line)),
+              )
+            }
+          />
         </div>
       </div>
       <div
@@ -137,6 +133,61 @@ const RunOutput = ({
         </div>
       </div>
     </div>
+  );
+};
+
+const COPIED_FEEDBACK_MS = 1500;
+
+const CopyLogButton = ({
+  disabled,
+  linesCount,
+  hasError,
+  getText,
+}: {
+  disabled: boolean;
+  linesCount: number;
+  hasError: boolean;
+  getText: () => string;
+}) => {
+  const translate = useTranslate();
+  const userTracking = useUserTracking();
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (!copied) return;
+    const timer = window.setTimeout(() => setCopied(false), COPIED_FEEDBACK_MS);
+    return () => window.clearTimeout(timer);
+  }, [copied]);
+
+  return (
+    <Tooltip
+      content={translate("scripting.logCopied")}
+      side="left"
+      sideOffset={4}
+      open={copied}
+    >
+      <Button
+        variant="quiet"
+        size="sm"
+        aria-label={translate("scripting.copyLog")}
+        title={copied ? undefined : translate("scripting.copyLog")}
+        disabled={disabled}
+        onClick={() => {
+          writeToClipboard(getText())
+            .then(() => {
+              setCopied(true);
+              userTracking.capture({
+                name: "script.logCopied",
+                linesCount,
+                hasError,
+              });
+            })
+            .catch(captureError);
+        }}
+      >
+        <CopyIcon size="sm" />
+      </Button>
+    </Tooltip>
   );
 };
 
