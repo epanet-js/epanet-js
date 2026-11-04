@@ -624,6 +624,58 @@ network.getLink("PU3").setDefinition({ type: "designPointCurve", designPoint: { 
   ],
 });
 
+const SET_CONTROL: Member = memberOf("Pump")({
+  name: "setControl",
+  signature: `setControl(control:
+  | {
+      type: "timed-setting";
+      /** times in seconds from 0, each later than the one before */
+      steps: { time: number; status: "on" | "off"; setting: number }[];
+    }
+  | {
+      type: "level-setting";
+      tank: Tank;
+      /** levels in units.level, on below off */
+      on: { level: number; setting: number };
+      off: { level: number };
+    }
+  | {
+      type: "variable-speed-pump";
+      /** a node, a pipe, or this pump */
+      targetAsset: Asset;
+      /** left out, it follows targetAsset: "level" for a tank, "pressure" for another node, "flow" for a pipe or this pump */
+      quantity?: "pressure" | "level" | "flow";
+      target: number;
+      minSpeed: number;
+      maxSpeed: number;
+      /** other pumps; left out, none */
+      laggedPumps?: Pump[];
+      /** times in seconds from 0, each later than the one before; left out, none */
+      schedule?: { time: number; target: number }[];
+      /** the target tank when targetAsset is a tank; left out or null, none */
+      tankLevels?: { tank: Tank; onLevel: number; offLevel: number } | null;
+    }
+  | null
+): void`,
+  summary:
+    "Replaces the pump's control as a whole, or removes it with `null`, as the controls section in the app does.",
+  description:
+    "Takes the shape `control` reads, so a script can read the control, change it and write it back. Assets are passed as the objects the network hands out. Like the app, setting a control clears `speedPattern`; removing one leaves it. Levels must lie between the tank's `minLevel` and `maxLevel` when it has them. The new control reads straight away and reaches the network with the other changes.",
+  throws: [
+    "`TypeError` when `type` is not one of the three, a field belongs to another type, an asset is not of the kind the field takes, `quantity` does not match `targetAsset`, times are out of order, or levels are out of range or the on level is not below the off level.",
+  ],
+  examples: [
+    {
+      code: `const pump = network.getLink("PU1");
+pump.setControl({ type: "level-setting", tank: network.getNode("T1"), on: { level: 1, setting: 1 }, off: { level: 4 } });
+const booster = network.getLink("PU3");
+if (booster.control?.type === "variable-speed-pump") {
+  booster.setControl({ ...booster.control, maxSpeed: 1.1 });
+}`,
+    },
+  ],
+});
+
 const setDemandsOf = (owner: string, unit: string, example: string): Member =>
   memberOf(owner)({
     name: "setDemands",
@@ -821,9 +873,13 @@ console.log(pipe.diameter, network.units.diameter, pipe.status);`,
   /** the label of an energyPrice pattern; ${CLEARS} */
   energyPricePattern?: string | null;`,
         `network.getLink("PU1").set({ status: "off" });`,
-        [BY_LABEL, "The definition changes through `setDefinition`."],
+        [
+          BY_LABEL,
+          "The definition changes through `setDefinition`, the control through `setControl`.",
+        ],
       ),
       SET_DEFINITION,
+      SET_CONTROL,
     ],
   ],
   [
