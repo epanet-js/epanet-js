@@ -448,19 +448,21 @@ export const createMockResultsReader = (
   getAllValues: (property) => {
     const junctions = Object.values(data.junctions ?? {});
     const pipes = Object.values(data.pipes ?? {});
+    const finite = (values: number[]) =>
+      Float32Array.from(values.filter(Number.isFinite));
     switch (property) {
       case "pressure":
-        return junctions.map((j) => j.pressure ?? 0);
+        return finite(junctions.map((j) => j.pressure ?? 0));
       case "head":
-        return junctions.map((j) => j.head ?? 0);
+        return finite(junctions.map((j) => j.head ?? 0));
       case "actualDemand":
-        return junctions.map((j) => j.demand ?? 0);
+        return finite(junctions.map((j) => j.demand ?? 0));
       case "flow":
-        return pipes.map((p) => p.flow ?? 0);
+        return finite(pipes.map((p) => p.flow ?? 0));
       case "velocity":
-        return pipes.map((p) => p.velocity ?? 0);
+        return finite(pipes.map((p) => p.velocity ?? 0));
       default:
-        return [];
+        return new Float32Array();
     }
   },
   getPumpEnergy: () => null,

@@ -1,5 +1,9 @@
 import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
-import { getSortedDataForProperty } from "./symbology-data-source";
+import { createMockResultsReader } from "src/__helpers__/state";
+import {
+  getSortedDataForProperty,
+  getSortedSimulationDataForBreaks,
+} from "./symbology-data-source";
 
 describe("getSortedDataForProperty", () => {
   const IDS = { P1: 1, P2: 2, P3: 3 } as const;
@@ -30,5 +34,31 @@ describe("getSortedDataForProperty", () => {
     const data = getSortedDataForProperty("diameter", hydraulicModel, null);
 
     expect(data).toEqual([100, 300]);
+  });
+});
+
+describe("simulation data for breaks", () => {
+  const IDS = { J1: 1, J2: 2 } as const;
+
+  it("combines every timestep's values, sorted", async () => {
+    const timesteps = [
+      createMockResultsReader({
+        junctions: { [IDS.J1]: { pressure: 30 } },
+      }),
+      createMockResultsReader({
+        junctions: { [IDS.J1]: { pressure: 10 }, [IDS.J2]: { pressure: 20 } },
+      }),
+    ];
+    const epsReader = {
+      timestepCount: timesteps.length,
+      getResultsForTimestep: (t: number) => Promise.resolve(timesteps[t]),
+    } as never;
+
+    const data = await getSortedSimulationDataForBreaks("pressure", {
+      mode: "allSteps",
+      epsReader,
+    });
+
+    expect(data).toEqual([10, 20, 30]);
   });
 });

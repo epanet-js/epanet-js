@@ -821,8 +821,44 @@ describe("EPSResultsReader", () => {
 
       // Out-of-range timestep returns NullResultsReader
       const resultsReader = await reader.getResultsForTimestep(999);
-      expect(resultsReader.getAllValues("pressure")).toEqual([]);
-      expect(resultsReader.getAllValues("flow")).toEqual([]);
+      expect(resultsReader.getAllValues("pressure")).toHaveLength(0);
+      expect(resultsReader.getAllValues("flow")).toHaveLength(0);
+    });
+
+    it("leaves out non-finite values", async () => {
+      const IDS = { R1: 1, J1: 2, P1: 3 } as const;
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aReservoir(IDS.R1, { head: 10 })
+        .aJunction(IDS.J1, { elevation: 0 })
+        .aPipe(IDS.P1, {
+          startNodeId: IDS.R1,
+          endNodeId: IDS.J1,
+          length: 1000,
+          diameter: 300,
+          roughness: 130,
+        })
+        .build();
+      const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
+        simulationSettings: defaultSimulationSettings,
+      });
+
+      const testAppId = "test-getallvalues-non-finite";
+      await runSimulation(inp, testAppId);
+
+      const storage = new InMemoryStorage(testAppId);
+      const reader = new EPSResultsReader(storage);
+      await reader.initialize();
+      const readSlice = storage.readSlice.bind(storage);
+      storage.readSlice = async (key, offset, length) => {
+        const slice = await readSlice(key, offset, length);
+        new Float32Array(slice).fill(NaN);
+        return slice;
+      };
+
+      const resultsReader = await reader.getResultsForTimestep(0);
+      expect(resultsReader.getAllValues("pressure")).toHaveLength(0);
+      expect(resultsReader.getAllValues("flow")).toHaveLength(0);
     });
   });
 

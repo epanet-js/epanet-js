@@ -141,5 +141,7 @@ export interface ResultsReader {
   getPumpEnergy: (pumpId: number) => PumpEnergySummary | null;
   getLinkSetting: (linkId: number) => number | null;
 
-  getAllValues: (property: SimulationProperty) => number[];
+  // Must return a fresh array, never the reader's own storage: callers sort
+  // and abs it in place.
+  getAllValues: (property: SimulationProperty) => Float32Array;
 }

@@ -14,17 +14,24 @@ export {
   type SimulationProperty,
 } from "@epanet-js/simulation";
 
-export const getSortedSimulationValues = (
+const getSimulationValues = (
   resultsReader: ResultsReader,
   property: SimulationProperty,
   { absValues = false }: { absValues?: boolean } = {},
-): number[] => {
-  let values = resultsReader.getAllValues(property);
+): Float32Array => {
+  const values = resultsReader.getAllValues(property);
   if (absValues) {
-    values = values.map(Math.abs);
+    for (let i = 0; i < values.length; i++) values[i] = Math.abs(values[i]);
   }
-  return values.sort((a, b) => a - b);
+  return values;
 };
+
+export const getSortedSimulationValues = (
+  resultsReader: ResultsReader,
+  property: SimulationProperty,
+  options?: { absValues?: boolean },
+): number[] =>
+  Array.from(getSimulationValues(resultsReader, property, options).sort());
 
 export type BreaksDataMode = "currentStep" | "initial" | "allSteps";
 
@@ -82,23 +89,20 @@ const getAllStepsSortedValues = async (
   const timestepCount = epsReader.timestepCount;
   if (timestepCount <= 0) return null;
 
-  const firstReader = await epsReader.getResultsForTimestep(0);
-  const firstValues = getSortedSimulationValues(firstReader, property, options);
-  const valuesPerTimestep = firstValues.length;
-  if (timestepCount === 1) return firstValues;
-
-  const allValues = new Float32Array(valuesPerTimestep * timestepCount);
-  for (let i = 0; i < valuesPerTimestep; i++) {
-    allValues[i] = firstValues[i];
+  const valuesPerTimestep: Float32Array[] = [];
+  let totalValues = 0;
+  for (let t = 0; t < timestepCount; t++) {
+    const reader = await epsReader.getResultsForTimestep(t);
+    const values = getSimulationValues(reader, property, options);
+    valuesPerTimestep.push(values);
+    totalValues += values.length;
   }
 
-  for (let t = 1; t < timestepCount; t++) {
-    const reader = await epsReader.getResultsForTimestep(t);
-    const values = getSortedSimulationValues(reader, property, options);
-    const offset = t * valuesPerTimestep;
-    for (let i = 0; i < values.length; i++) {
-      allValues[offset + i] = values[i];
-    }
+  const allValues = new Float32Array(totalValues);
+  let offset = 0;
+  for (const values of valuesPerTimestep) {
+    allValues.set(values, offset);
+    offset += values.length;
   }
 
   allValues.sort();

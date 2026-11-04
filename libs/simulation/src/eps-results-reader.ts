@@ -1718,11 +1718,15 @@ class TimestepResultsReader implements ResultsReader {
     return -1;
   }
 
-  getAllValues(property: SimulationProperty): number[] {
+  getAllValues(property: SimulationProperty): Float32Array {
     if (property === "minPressure")
-      return this.nodeMinPressure ? Array.from(this.nodeMinPressure) : [];
+      return this.nodeMinPressure
+        ? this.nodeMinPressure.filter(Number.isFinite)
+        : new Float32Array();
     if (property === "maxPressure")
-      return this.nodeMaxPressure ? Array.from(this.nodeMaxPressure) : [];
+      return this.nodeMaxPressure
+        ? this.nodeMaxPressure.filter(Number.isFinite)
+        : new Float32Array();
 
     const { nodeCount, linkCount } = this.simulationMetadata;
 
@@ -1744,25 +1748,27 @@ class TimestepResultsReader implements ResultsReader {
     const nodeIndex = nodePropertyIndex[property];
     if (nodeIndex !== undefined) {
       const offset = nodeCount * nodeIndex * FLOAT_SIZE;
-      const values = new Array<number>(nodeCount);
-      for (let i = 0; i < nodeCount; i++) {
-        values[i] = this.view.getFloat32(offset + i * FLOAT_SIZE, true);
-      }
-      return values;
+      return this.finiteFloatsAt(offset, nodeCount);
     }
 
     const linkIndex = linkPropertyIndex[property];
     if (linkIndex !== undefined) {
       const nodeDataSize = nodeCount * NODE_RESULT_FLOATS * FLOAT_SIZE;
       const offset = nodeDataSize + linkCount * linkIndex * FLOAT_SIZE;
-      const values = new Array<number>(linkCount);
-      for (let i = 0; i < linkCount; i++) {
-        values[i] = this.view.getFloat32(offset + i * FLOAT_SIZE, true);
-      }
-      return values;
+      return this.finiteFloatsAt(offset, linkCount);
     }
 
-    return [];
+    return new Float32Array();
+  }
+
+  private finiteFloatsAt(offset: number, count: number): Float32Array {
+    const values = new Float32Array(count);
+    let finiteCount = 0;
+    for (let i = 0; i < count; i++) {
+      const value = this.view.getFloat32(offset + i * FLOAT_SIZE, true);
+      if (Number.isFinite(value)) values[finiteCount++] = value;
+    }
+    return values.subarray(0, finiteCount);
   }
 
   getPumpEnergy(pumpId: number): PumpEnergySummary | null {
@@ -1814,8 +1820,8 @@ class NullResultsReader implements ResultsReader {
   getReservoir(): ReservoirSimulation | null {
     return null;
   }
-  getAllValues(): number[] {
-    return [];
+  getAllValues(): Float32Array {
+    return new Float32Array();
   }
   getPumpEnergy(): PumpEnergySummary | null {
     return null;
