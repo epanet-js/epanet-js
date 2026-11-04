@@ -88,6 +88,8 @@ export const VariableSpeedPumpControlsEditor = ({
     : quantityName;
 
   const isScheduled = control.schedule.length > 0;
+  const targetCheck =
+    control.quantity === "pressure" ? numericChecks.positive : undefined;
   const hasSpeedRangeError = control.minSpeed > control.maxSpeed;
   const minSpeedLabel = translate("controls.variableSpeed.minSpeed");
   const maxSpeedLabel = translate("controls.variableSpeed.maxSpeed");
@@ -172,6 +174,7 @@ export const VariableSpeedPumpControlsEditor = ({
               : undefined
           }
           disabled={isScheduled}
+          validate={targetCheck}
           onChangeValue={(value, isEmpty) => {
             if (isEmpty) return;
             update({ target: value });
@@ -193,6 +196,7 @@ export const VariableSpeedPumpControlsEditor = ({
         <ScheduleGrid
           schedule={control.schedule}
           valueHeader={quantityLabel}
+          validate={targetCheck}
           onChange={(schedule) => {
             update({ schedule });
             if (schedule.length > 0) track({ hasSchedule: true });
@@ -644,11 +648,13 @@ export const CheckboxRow = ({
 const ScheduleGrid = ({
   schedule,
   valueHeader,
+  validate,
   onChange,
   readOnly,
 }: {
   schedule: VariableSpeedPumpSchedulePoint[];
   valueHeader: string;
+  validate?: (value: number) => boolean;
   onChange: (schedule: VariableSpeedPumpSchedulePoint[]) => void;
   readOnly: boolean;
 }) => {
@@ -682,10 +688,12 @@ const ScheduleGrid = ({
       floatColumn("target", {
         header: valueHeader,
         size: 80,
-        emptyValue: 0,
+        ...(validate
+          ? { validate: (value: number) => validate(value), required: true }
+          : { emptyValue: 0 }),
       }),
     ],
-    [translate, isTimeInSequence, valueHeader],
+    [translate, isTimeInSequence, valueHeader, validate],
   );
 
   const nextRowAfter = (row: ScheduleRow): ScheduleRow => ({
