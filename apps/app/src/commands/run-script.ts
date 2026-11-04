@@ -46,6 +46,7 @@ import {
   stagingModelDerivedAtom,
 } from "src/state/derived-branch-state";
 import { modelFactoriesAtom } from "src/state/model-factories";
+import { observeIdentifiers } from "src/lib/persistence/observe-identifiers";
 import type { ProjectSettings } from "@epanet-js/project-settings";
 import { projectSettingsAtom } from "src/state/project-settings";
 import {
@@ -105,7 +106,9 @@ export const useRunScript = () => {
         setDialog({ type: "changeNotApplied" });
         return;
       }
-      transact(() => ChangeSet.fromBytes(edits));
+      const changeSet = ChangeSet.fromBytes(edits);
+      observeIdentifiers(store.get(modelFactoriesAtom), changeSet);
+      transact(() => changeSet);
     },
     [store, setDialog, transact],
   );

@@ -2,7 +2,10 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { TooltipProvider } from "@epanet-js/ui-kit";
 import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
-import { changeProperty } from "@epanet-js/hydraulic-model-operations";
+import {
+  changePatterns,
+  changeProperty,
+} from "@epanet-js/hydraulic-model-operations";
 import type { HydraulicModel, Pipe } from "@epanet-js/hydraulic-model";
 import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
 import { setInitialState } from "src/__helpers__/state";
@@ -14,6 +17,7 @@ import {
 import { registerScripting, type ScriptRunOutcome } from "src/lib/scripting";
 import { Store } from "src/state";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
+import { modelFactoriesAtom } from "src/state/model-factories";
 import { userScriptsAtom, type UserScript } from "src/state/scripts";
 import { ScriptsPanel } from "./scripts-panel";
 
@@ -305,6 +309,40 @@ describe("ScriptsPanel", () => {
         expect.objectContaining({ isEditsOn: true }),
       );
       await vi.waitFor(() => expect(diameterOf(store)).toEqual(150));
+    });
+
+    it("keeps the app from reusing the id of a pattern the script added", async () => {
+      stubFeatureOn("FLAG_SCRIPT_EDITS");
+      const user = userEvent.setup();
+      const startScriptRun = vi.fn(({ model }: { model: HydraulicModel }) => ({
+        finished: Promise.resolve<ScriptRunOutcome>({
+          status: "success",
+          edits: changePatterns(
+            model,
+            new Map([[9, { id: 9, label: "NIGHT", multipliers: [1] }]]),
+          ).bytes,
+          selection: null,
+          zoomTo: null,
+          attachments: [],
+          selectionSets: [],
+          bookmarks: [],
+        }),
+        cancel: vi.fn(),
+      }));
+      registerScripting({ startScriptRun, exampleScripts: [] });
+      const store = aStoreWithAPipe();
+      renderPanel(store);
+
+      await user.click(screen.getByRole("button", { name: "Run Resize" }));
+
+      await vi.waitFor(() =>
+        expect(
+          store.get(stagingModelDerivedAtom).patterns.get(9),
+        ).toBeDefined(),
+      );
+      expect(store.get(modelFactoriesAtom).idPools.newId("pattern")).toEqual(
+        10,
+      );
     });
 
     it("runs scripts without edits when the flag is off", async () => {

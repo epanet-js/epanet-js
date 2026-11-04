@@ -2,13 +2,9 @@ import { useCallback } from "react";
 import { useAtomCallback } from "jotai/utils";
 import type { Getter, Setter } from "jotai";
 import { nanoid } from "nanoid";
-import {
-  LabelManager,
-  type LabelType,
-  type ModelFactories,
-} from "@epanet-js/hydraulic-model";
-import type { ChangeSet, EntityKind } from "@epanet-js/change-set";
-import type { IdPool } from "@epanet-js/id-generator";
+import type { ModelFactories } from "@epanet-js/hydraulic-model";
+import type { ChangeSet } from "@epanet-js/change-set";
+import { observeIdentifiers } from "src/lib/persistence/observe-identifiers";
 import { copyModel } from "src/hydraulic-model";
 import { applyChangeSet } from "@epanet-js/hydraulic-model-operations";
 import { buildSimulationSettingsData } from "src/lib/db";
@@ -30,52 +26,6 @@ import type {
   StoredBranches,
   Worktree,
 } from "@epanet-js/worktree";
-
-type Identifiers = { pool: IdPool; labelType: LabelType | null };
-
-const identifiersByEntity: Record<EntityKind, Identifiers | null> = {
-  junction: { pool: "asset", labelType: "junction" },
-  reservoir: { pool: "asset", labelType: "reservoir" },
-  tank: { pool: "asset", labelType: "tank" },
-  pipe: { pool: "asset", labelType: "pipe" },
-  pump: { pool: "asset", labelType: "pump" },
-  valve: { pool: "asset", labelType: "valve" },
-  customerPoint: { pool: "customerPoint", labelType: "customerPoint" },
-  pattern: { pool: "pattern", labelType: "pattern" },
-  curve: { pool: "curve", labelType: "curve" },
-  junctionDemand: null,
-  customerDemand: null,
-  allControls: null,
-  customAttributesDefinition: null,
-  pipeLibrary: null,
-  rawControls: null,
-  zone: { pool: "zone", labelType: null },
-};
-
-const observeIdentifiers = (
-  factories: ModelFactories,
-  changeSet: ChangeSet,
-): void => {
-  const counters = factories.labelCounters;
-
-  for (const entry of changeSet.entries()) {
-    const identifiers = identifiersByEntity[entry.entity];
-    if (!identifiers) continue;
-    const { pool, labelType } = identifiers;
-
-    if (typeof entry.id === "number") {
-      factories.idPools.forPool(pool).observe(entry.id);
-    }
-
-    if (!labelType) continue;
-    const label = entry.get("after", "label");
-    if (typeof label !== "string") continue;
-    const index = LabelManager.generatedIndex(label, labelType);
-    if (index !== null && index + 1 > (counters.get(labelType) ?? 0)) {
-      counters.set(labelType, index + 1);
-    }
-  }
-};
 
 export const getMainState = (get: Getter): BranchState => {
   const worktree = get(worktreeAtom);
