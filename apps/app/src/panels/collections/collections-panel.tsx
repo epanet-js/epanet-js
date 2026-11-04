@@ -182,7 +182,11 @@ export const CollectionsPanel = () => {
 
   const clearActionState = useCallback(() => {
     setActionState(undefined);
-    requestAnimationFrame(() => listRef.current?.focus());
+    requestAnimationFrame(() => {
+      if (document.activeElement && document.activeElement !== document.body)
+        return;
+      listRef.current?.focus();
+    });
   }, []);
 
   const runRow = useCallback(
