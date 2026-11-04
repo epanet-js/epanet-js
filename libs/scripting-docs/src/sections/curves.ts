@@ -3,22 +3,12 @@ import type { DocsCandidates, Member, Section } from "../types";
 
 const network = memberOf("Network");
 const property = propertyOf("Network");
+const curveProperty = propertyOf("Curve");
 
 const SECTION: Section = {
   id: "curves",
   number: "1.5",
   title: "Curves",
-  types: [
-    {
-      name: "Curve",
-      definition: `interface Curve {
-  label: string;
-  type: "pump" | "efficiency" | "volume" | "valve" | "headloss";
-  points: { x: number; y: number }[];
-}`,
-      summary: "A shared curve.",
-    },
-  ],
   members: [
     property("curves", "Curve[]", "Every curve."),
     network({
@@ -26,6 +16,17 @@ const SECTION: Section = {
       signature: "getCurve(label: string): Curve | null",
       summary: "One curve by label, or `null`.",
     }),
+    curveProperty("label", "string", "The curve's label."),
+    curveProperty(
+      "type",
+      '"pump" | "efficiency" | "volume" | "valve" | "headloss"',
+      "What the curve is for.",
+    ),
+    curveProperty(
+      "points",
+      "{ x: number; y: number }[]",
+      "The curve's points.",
+    ),
   ],
 };
 
@@ -52,9 +53,9 @@ network.getNode("T1").setVolumeCurve("SMALL");`,
   ],
 });
 
-const SET_CURVE: Member = network({
-  name: "setCurve",
-  signature: `setCurve(label: string, changes: {
+const SET_CURVE: Member = memberOf("Curve")({
+  name: "set",
+  signature: `set(changes: {
   /** up to 64 bytes of Latin-1 characters, with no spaces or semicolons; unique among curves, ignoring case */
   label?: string;
   /** only while the curve has no type; a curve keeps its type once it has one */
@@ -62,18 +63,17 @@ const SET_CURVE: Member = network({
   /** must fit the rule of the type */
   points?: { x: number; y: number }[];
 }): void`,
-  summary:
-    "Changes a curve found by its label, ignoring case. What `changes` leaves out keeps its value.",
+  summary: "Changes the curve. What `changes` leaves out keeps its value.",
   description:
-    "Takes the shape `getCurve` reads, so a script can read a curve, change it and write it back. When `points` or `type` change, the points are checked against the rule of the curve's type, as `addCurve` describes; a curve without a type takes at least two points with x rising. A change of label alone is not checked, so a curve whose points already break its rule can still be renamed. Everything that uses the curve follows a new label. The change reaches the network with the other changes.",
+    "Takes the shape the curve reads as, so a script can spread a curve, change it and write it back. The curve reads its new values straight away, and keeps working after a change of label. When `points` or `type` change, the points are checked against the rule of the curve's type, as `addCurve` describes; a curve without a type takes at least two points with x rising. A change of label alone is not checked, so a curve whose points already break its rule can still be renamed. Everything that uses the curve follows a new label. The change reaches the network with the other changes.",
   throws: [
-    "`TypeError` when no curve has `label`, the new label is not a valid name or another curve has it, `type` would change a curve's type, `points` is empty, holds something other than `{ x, y }` numbers or breaks the rule of the type, or `changes` has another field.",
+    "`TypeError` when the new label is not a valid name or another curve has it, `type` would change a curve's type, `points` is empty, holds something other than `{ x, y }` numbers or breaks the rule of the type, or `changes` has another field.",
   ],
   examples: [
     {
       code: `const curve = network.getCurve("HEAD");
-network.setCurve(curve.label, { points: curve.points.map(({ x, y }) => ({ x, y: y * 1.1 })) });
-network.setCurve("HEAD", { label: "LIFT" });`,
+curve.set({ points: curve.points.map(({ x, y }) => ({ x, y: y * 1.1 })) });
+curve.set({ label: "LIFT" });`,
     },
   ],
 });

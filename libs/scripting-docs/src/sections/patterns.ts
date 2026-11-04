@@ -3,22 +3,12 @@ import type { DocsCandidates, Member, Section } from "../types";
 
 const network = memberOf("Network");
 const property = propertyOf("Network");
+const patternProperty = propertyOf("Pattern");
 
 const SECTION: Section = {
   id: "patterns",
   number: "1.4",
   title: "Patterns",
-  types: [
-    {
-      name: "Pattern",
-      definition: `interface Pattern {
-  label: string;
-  type: "demand" | "reservoirHead" | "pumpSpeed" | "qualitySourceStrength" | "energyPrice";
-  multipliers: number[];
-}`,
-      summary: "A time pattern.",
-    },
-  ],
   members: [
     property("patterns", "Pattern[]", "Every pattern."),
     network({
@@ -26,6 +16,17 @@ const SECTION: Section = {
       signature: "getPattern(label: string): Pattern | null",
       summary: "One pattern by label, or `null`.",
     }),
+    patternProperty("label", "string", "The pattern's label."),
+    patternProperty(
+      "type",
+      '"demand" | "reservoirHead" | "pumpSpeed" | "qualitySourceStrength" | "energyPrice"',
+      "What the pattern is for.",
+    ),
+    patternProperty(
+      "multipliers",
+      "number[]",
+      "One multiplier per pattern timestep.",
+    ),
   ],
 };
 
@@ -52,9 +53,9 @@ network.getNode("J1").setDemands([{ base: 2, pattern: "NIGHT" }]);`,
   ],
 });
 
-const SET_PATTERN: Member = network({
-  name: "setPattern",
-  signature: `setPattern(label: string, changes: {
+const SET_PATTERN: Member = memberOf("Pattern")({
+  name: "set",
+  signature: `set(changes: {
   /** up to 64 bytes of Latin-1 characters, with no spaces or semicolons; unique among patterns, ignoring case */
   label?: string;
   /** only while the pattern has no type; a pattern keeps its type once it has one */
@@ -62,18 +63,17 @@ const SET_PATTERN: Member = network({
   /** one per pattern timestep */
   multipliers?: number[];
 }): void`,
-  summary:
-    "Changes a pattern found by its label, ignoring case. What `changes` leaves out keeps its value.",
+  summary: "Changes the pattern. What `changes` leaves out keeps its value.",
   description:
-    "Takes the shape `getPattern` reads, so a script can read a pattern, change it and write it back. Everything that uses the pattern follows a new label, so `demands` and the pattern attributes of assets read it straight away. The change reaches the network with the other changes.",
+    "Takes the shape the pattern reads as, so a script can spread a pattern, change it and write it back. The pattern reads its new values straight away, and keeps working after a change of label. Everything that uses the pattern follows a new label, so `demands` and the pattern attributes of assets read it straight away. The change reaches the network with the other changes.",
   throws: [
-    "`TypeError` when no pattern has `label`, the new label is not a valid name or another pattern has it, `type` would change a pattern's type, `multipliers` is empty or holds something other than numbers, or `changes` has another field.",
+    "`TypeError` when the new label is not a valid name or another pattern has it, `type` would change a pattern's type, `multipliers` is empty or holds something other than numbers, or `changes` has another field.",
   ],
   examples: [
     {
       code: `const pattern = network.getPattern("DAILY");
-network.setPattern(pattern.label, { multipliers: pattern.multipliers.map((m) => m * 1.1) });
-network.setPattern("DAILY", { label: "WEEKDAY" });`,
+pattern.set({ multipliers: pattern.multipliers.map((m) => m * 1.1) });
+pattern.set({ label: "WEEKDAY" });`,
     },
   ],
 });

@@ -59,6 +59,16 @@ export const INTERFACES: InterfaceDef[] = [
     summary: "Geodesic helpers in the project length unit.",
   },
   {
+    name: "Pattern",
+    path: "pattern",
+    summary: "A time pattern.",
+  },
+  {
+    name: "Curve",
+    path: "curve",
+    summary: "A shared curve.",
+  },
+  {
     name: "Zones",
     path: "zones",
     summary: "The project's polygon zones.",
