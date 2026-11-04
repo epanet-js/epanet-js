@@ -1,7 +1,6 @@
 import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
-import * as Comlink from "comlink";
 import { runQuery } from "./run-query";
-import { workerAPI } from "./worker-api";
+import { FakeSpatialQueryWorker } from "src/__helpers__/spatial-query-worker";
 import * as workerInfra from "src/infra/worker";
 import { Position } from "src/types";
 
@@ -22,39 +21,6 @@ const aZone = (id: number, ring: Position[]) => ({
   geometry: { type: "MultiPolygon" as const, coordinates: [[ring]] },
   bbox: [0, 0, 0, 0] as [number, number, number, number],
 });
-
-// Bridges `new Worker(...)` to the in-process worker API over a MessageChannel
-// so the worker branch of runQuery can be exercised without spawning a real
-// thread. Comlink talks to `port`, which is wired to the exposed workerAPI.
-class FakeWorker {
-  private readonly port: MessagePort;
-
-  constructor() {
-    const channel = new MessageChannel();
-    Comlink.expose(workerAPI, channel.port1);
-    this.port = channel.port2;
-  }
-
-  postMessage(message: unknown, transfer: Transferable[] = []) {
-    this.port.postMessage(message, transfer);
-  }
-
-  addEventListener(type: string, listener: EventListenerOrEventListenerObject) {
-    this.port.addEventListener(type, listener);
-    this.port.start();
-  }
-
-  removeEventListener(
-    type: string,
-    listener: EventListenerOrEventListenerObject,
-  ) {
-    this.port.removeEventListener(type, listener);
-  }
-
-  terminate() {
-    this.port.close();
-  }
-}
 
 const buildModel = () =>
   HydraulicModelBuilder.with()
@@ -106,7 +72,7 @@ describe("runQuery", () => {
     async ({ canUseWorker }) => {
       vi.spyOn(workerInfra, "canUseWorker").mockReturnValue(canUseWorker);
       if (canUseWorker) {
-        vi.stubGlobal("Worker", FakeWorker);
+        vi.stubGlobal("Worker", FakeSpatialQueryWorker);
       }
 
       const { assetIds, customerPointIds, zoneIds } = await runQuery(

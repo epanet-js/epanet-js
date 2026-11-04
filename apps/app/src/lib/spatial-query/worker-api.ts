@@ -12,6 +12,7 @@ import {
   ZonesGeoBuffers,
   ZonesGeoView,
   queryIntersectingZones,
+  queryZoneContents,
 } from "@epanet-js/hydraulic-model";
 import { queryContainedAssets } from "@epanet-js/hydraulic-model";
 import { EncodedAreaSelectionResult } from "./data";
@@ -23,6 +24,13 @@ export interface SpatialQueryWorkerAPI {
     customerPointsGeoBuffers: CustomerPointsGeoBuffers | undefined,
     zonesGeoBuffers: ZonesGeoBuffers | undefined,
     points: Position[],
+  ) => EncodedAreaSelectionResult;
+  queryZoneContents: (
+    assetIndexBuffers: AssetIndexBuffers,
+    assetsGeoBuffers: AssetsGeoBuffers,
+    customerPointsGeoBuffers: CustomerPointsGeoBuffers | undefined,
+    zonesGeoBuffers: ZonesGeoBuffers,
+    zoneIds: number[],
   ) => EncodedAreaSelectionResult;
 }
 
@@ -49,6 +57,32 @@ function queryContainedFeaturesFromBuffers(
     ? queryIntersectingZones(new ZonesGeoView(zonesGeoBuffers), points)
     : [];
 
+  return encodeResult(assetIds, customerPointIds, zoneIds);
+}
+
+function queryZoneContentsFromBuffers(
+  assetIndexBuffers: AssetIndexBuffers,
+  assetsGeoBuffers: AssetsGeoBuffers,
+  customerPointsGeoBuffers: CustomerPointsGeoBuffers | undefined,
+  zonesGeoBuffers: ZonesGeoBuffers,
+  zoneIds: number[],
+): EncodedAreaSelectionResult {
+  const { assetIds, customerPointIds } = queryZoneContents(
+    new ZonesGeoView(zonesGeoBuffers),
+    new AssetsGeoView(assetsGeoBuffers, new AssetIndexView(assetIndexBuffers)),
+    customerPointsGeoBuffers
+      ? new CustomerPointsGeoView(customerPointsGeoBuffers)
+      : null,
+    zoneIds,
+  );
+  return encodeResult(assetIds, customerPointIds, []);
+}
+
+function encodeResult(
+  assetIds: number[],
+  customerPointIds: number[],
+  zoneIds: number[],
+): EncodedAreaSelectionResult {
   const assetIdsBuffer = new Uint32Array(assetIds);
   const cpIdsBuffer = new Uint32Array(customerPointIds);
   const zoneIdsBuffer = new Uint32Array(zoneIds);
@@ -69,4 +103,5 @@ function queryContainedFeaturesFromBuffers(
 
 export const workerAPI: SpatialQueryWorkerAPI = {
   queryContainedFeatures: queryContainedFeaturesFromBuffers,
+  queryZoneContents: queryZoneContentsFromBuffers,
 };

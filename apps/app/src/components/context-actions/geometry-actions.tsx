@@ -6,6 +6,7 @@ import { B3Variant } from "src/components/elements";
 import { ActionItem } from "./action-item";
 import { useCallback } from "react";
 import { useZoomToSelection } from "src/commands/zoom-to-selection";
+import { useSelectZoneContents } from "src/commands/select-zone-contents";
 import {
   selectedAssetsDerivedAtom,
   selectedCustomerPointsDerivedAtom,
@@ -25,9 +26,12 @@ import {
   ActivateTopologyIcon,
   DeactivateTopologyIcon,
   ChartLineIcon,
+  PolygonalSelectionIcon,
 } from "src/icons";
 import { useAtomValue } from "jotai";
 import { Mode, modeAtom } from "src/state/mode";
+import { selectionAtom } from "src/state/selection";
+import { USelection } from "src/selection";
 import { useSetRedrawMode } from "src/commands/set-redraw-mode";
 import { useIsDrawingAvailable } from "src/hooks/use-is-drawing-available";
 import { useReverseLink } from "src/commands/reverse-link";
@@ -54,6 +58,7 @@ export function GeometryActions({ as }: { as: ActionProps["as"] }) {
 function useSelectionActions(source: ActionProps["as"]): Action[] {
   const translate = useTranslate();
   const zoomToSelection = useZoomToSelection();
+  const selectZoneContents = useSelectZoneContents();
   const deleteSelection = useDeleteSelection();
   const {
     changeSelectedAssetsActiveTopologyStatus: activateDeactivateAction,
@@ -73,6 +78,8 @@ function useSelectionActions(source: ActionProps["as"]): Action[] {
 
   const hasAssets = selectedAssets.length > 0;
   const hasCustomerPoints = selectedCustomerPoints.length > 0;
+  const selection = useAtomValue(selectionAtom);
+  const hasZones = USelection.countByKind(selection).zones > 0;
 
   const onDelete = useCallback(() => {
     const eventSource = source === "context-item" ? "context-menu" : "toolbar";
@@ -97,6 +104,17 @@ function useSelectionActions(source: ActionProps["as"]): Action[] {
         source: source === "context-item" ? "context-menu" : "toolbar",
       });
       return Promise.resolve();
+    },
+  };
+
+  const selectZoneContentsAction = {
+    icon: <PolygonalSelectionIcon />,
+    applicable: hasZones,
+    label: translate("selectZoneContents"),
+    onSelect: function doSelectZoneContents() {
+      return selectZoneContents({
+        source: source === "context-item" ? "context-menu" : "toolbar",
+      });
     },
   };
 
@@ -172,6 +190,7 @@ function useSelectionActions(source: ActionProps["as"]): Action[] {
 
   return [
     zoomToAction,
+    selectZoneContentsAction,
     saveSelectionSetAction,
     reverseAction,
     redrawAction,

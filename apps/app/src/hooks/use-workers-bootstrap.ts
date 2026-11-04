@@ -56,7 +56,7 @@ const preloadProximityAnomaliesWorker = async (): Promise<void> => {
 const preloadSpatialQueryWorker = async (): Promise<void> => {
   if (!canUseWorker()) return;
   const { getSpatialQueryWorker } = await import(
-    "src/map/mode-handlers/area-selection/get-worker"
+    "src/lib/spatial-query/get-worker"
   );
   getSpatialQueryWorker();
 };

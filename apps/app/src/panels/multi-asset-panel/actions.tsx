@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import { useAtomValue } from "jotai";
 import { useTranslate } from "src/hooks/use-translate";
 import { useZoomToSelection } from "src/commands/zoom-to-selection";
+import { useSelectZoneContents } from "src/commands/select-zone-contents";
 import { useDeleteSelection } from "src/commands/delete-selection";
 import {
   useChangeSelectedAssetsActiveTopologyStatus,
@@ -15,6 +16,7 @@ import {
   DeactivateTopologyIcon,
   ChartLineIcon,
   DisconnectIcon,
+  PolygonalSelectionIcon,
 } from "src/icons";
 import { selectionAtom } from "src/state/selection";
 import { Action } from "src/components/action-button";
@@ -31,13 +33,17 @@ import {
 export function useMultiAssetActions(readonly = false): Action[] {
   const translate = useTranslate();
   const zoomToSelection = useZoomToSelection();
+  const selectZoneContents = useSelectZoneContents();
   const deleteSelection = useDeleteSelection();
   const { changeSelectedAssetsActiveTopologyStatus, allActive } =
     useChangeSelectedAssetsActiveTopologyStatus();
   const disconnectCustomerPoints = useDisconnectCustomerPoints();
   const selection = useAtomValue(selectionAtom);
-  const { assets: assetCount, customerPoints: customerPointCount } =
-    USelection.countByKind(selection);
+  const {
+    assets: assetCount,
+    customerPoints: customerPointCount,
+    zones: zoneCount,
+  } = USelection.countByKind(selection);
   const { openCustomGraph } = useCustomGraph();
   const startCollectionDraft = useStartCollectionDraft();
   const isCollectionsAvailable = useIsCollectionsAvailable();
@@ -85,6 +91,16 @@ export function useMultiAssetActions(readonly = false): Action[] {
     },
   };
 
+  const selectZoneContentsAction = {
+    icon: <PolygonalSelectionIcon />,
+    applicable: zoneCount > 0,
+    priority: 5,
+    label: translate("selectZoneContents"),
+    onSelect: function doSelectZoneContents() {
+      return selectZoneContents({ source: "toolbar" });
+    },
+  };
+
   const saveSelectionSetAction = {
     icon: <BookmarkIcon />,
     applicable: isCollectionsAvailable && (hasAssets || hasCustomerPoints),
@@ -125,6 +141,7 @@ export function useMultiAssetActions(readonly = false): Action[] {
 
   return [
     zoomToAction,
+    selectZoneContentsAction,
     saveSelectionSetAction,
     changeActiveTopologyActionItem,
     customGraphAction,

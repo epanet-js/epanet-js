@@ -1,25 +1,19 @@
-import * as Comlink from "comlink";
 import { Position } from "src/types";
 import { AssetId } from "@epanet-js/hydraulic-model";
 import { HydraulicModel } from "src/hydraulic-model/hydraulic-model";
-import {
-  AssetsGeoIndex,
-  assetsGeoTransferables,
-} from "@epanet-js/hydraulic-model";
-import { assetIndexTransferables } from "src/hydraulic-model/asset-index-transferable";
+import { AssetsGeoIndex } from "@epanet-js/hydraulic-model";
 import {
   CustomerPointsGeoIndex,
-  customerPointsGeoTransferables,
   queryContainedCustomerPoints,
 } from "@epanet-js/hydraulic-model";
 import { queryContainedAssets } from "@epanet-js/hydraulic-model";
 import {
   ZonesGeoView,
   queryIntersectingZones,
-  zonesGeoTransferables,
 } from "@epanet-js/hydraulic-model";
 import { canUseWorker, enrichWorkerError } from "src/infra/worker";
-import { getSpatialQueryWorker } from "./get-worker";
+import { getSpatialQueryWorker } from "src/lib/spatial-query/get-worker";
+import { transferArgs } from "src/lib/spatial-query/transfer";
 import {
   EncodedAreaSelectionBuffers,
   EncodedAreaSelectionResult,
@@ -27,7 +21,7 @@ import {
   decodeAreaSelectionResult,
   getEncodedAreaSelectionBuffers,
   getEncodedZonesGeoBuffers,
-} from "./data";
+} from "src/lib/spatial-query/data";
 import { BufferType } from "@epanet-js/buffers";
 
 export type AreaSelectionResult = {
@@ -106,26 +100,8 @@ const runQueryWithWorker = async (
     throw new DOMException("Operation cancelled", "AbortError");
   }
 
-  const assetIndexArg = Comlink.transfer(
-    encoded.assetIndexBuffers,
-    assetIndexTransferables(encoded.assetIndexBuffers),
-  );
-  const assetsGeoArg = Comlink.transfer(
-    encoded.assetsGeoBuffers,
-    assetsGeoTransferables(encoded.assetsGeoBuffers),
-  );
-  const customerPointsGeoArg = encoded.customerPointsGeoBuffers
-    ? Comlink.transfer(
-        encoded.customerPointsGeoBuffers,
-        customerPointsGeoTransferables(encoded.customerPointsGeoBuffers),
-      )
-    : undefined;
-  const zonesGeoArg = encoded.zonesGeoBuffers
-    ? Comlink.transfer(
-        encoded.zonesGeoBuffers,
-        zonesGeoTransferables(encoded.zonesGeoBuffers),
-      )
-    : undefined;
+  const { assetIndexArg, assetsGeoArg, customerPointsGeoArg, zonesGeoArg } =
+    transferArgs(encoded);
 
   const workerAPI = getSpatialQueryWorker();
   try {

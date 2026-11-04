@@ -229,6 +229,13 @@ type SelectionZoomedTo = {
   description: string;
 };
 
+type ZoneContentsSelected = {
+  name: "zone.contentsSelected";
+  source: "toolbar" | "context-menu";
+  zoneCount: number;
+  count: number;
+};
+
 type AssetDeselected = {
   name: "asset.deselected";
   type: Asset["type"];
@@ -1495,6 +1502,7 @@ export type UserEvent =
   | LinkReversed
   | AssetSelected
   | AssetDeselected
+  | ZoneContentsSelected
   | AssetControlChanged
   | AssetControlRemoved
   | AssetControlVariableSpeedControlChanged

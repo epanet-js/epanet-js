@@ -7,12 +7,14 @@ import { useTranslate } from "src/hooks/use-translate";
 import { ActionsBar } from "src/components/actions-bar";
 import type { Action } from "src/components/action-button";
 import { useZoomToSelection } from "src/commands/zoom-to-selection";
-import { ZoomToIcon } from "src/icons";
+import { useSelectZoneContents } from "src/commands/select-zone-contents";
+import { PolygonalSelectionIcon, ZoomToIcon } from "src/icons";
 
 export function ZonePanel() {
   const translate = useTranslate();
   const selection = useAtomValue(selectionAtom);
   const zoomToSelection = useZoomToSelection();
+  const selectZoneContents = useSelectZoneContents();
   const { zones } = useAtomValue(stagingModelDerivedAtom);
   const zoneId = USelection.singleZoneId(selection);
   const zone = zoneId !== null ? zones.get(zoneId) : undefined;
@@ -27,6 +29,16 @@ export function ZonePanel() {
     onSelect: function doZoomTo() {
       zoomToSelection({ source: "toolbar" });
       return Promise.resolve();
+    },
+  };
+
+  const selectContentsAction: Action = {
+    icon: <PolygonalSelectionIcon />,
+    applicable: true,
+    priority: 1,
+    label: translate("selectZoneContents"),
+    onSelect: function doSelectZoneContents() {
+      return selectZoneContents({ source: "toolbar" });
     },
   };
 
@@ -48,7 +60,10 @@ export function ZonePanel() {
               }}
             />
           </div>
-          <ActionsBar actions={[zoomToAction]} className="h-8" />
+          <ActionsBar
+            actions={[zoomToAction, selectContentsAction]}
+            className="h-8"
+          />
         </div>
         <span className="text-size-base text-subtle pl-1">
           {translate("zone")}

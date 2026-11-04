@@ -524,6 +524,7 @@
   "assets": "Assets",
   "zone": "Zone",
   "zones": "Zones",
+  "selectZoneContents": "Select contents",
   "none": "None",
   "globalDefault": "Global default",
   "empty": "Empty",

@@ -66,7 +66,7 @@ vi.mock("src/lib/network-review/proximity-anomalies/get-worker", () => ({
 }));
 
 const getSpatialQueryWorker = vi.fn();
-vi.mock("src/map/mode-handlers/area-selection/get-worker", () => ({
+vi.mock("src/lib/spatial-query/get-worker", () => ({
   getSpatialQueryWorker,
 }));
 
