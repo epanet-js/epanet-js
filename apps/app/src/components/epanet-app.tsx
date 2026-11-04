@@ -1,5 +1,6 @@
 //TODO: CHECK LINTER ERRORS
 "use client";
+import { ScriptEditorProvider } from "src/panels/scripts/script-editor-context";
 import type { MapEngine } from "src/map";
 import { MapCanvas } from "src/map/map-canvas";
 import { MenuBarPlay } from "src/components/menu-bar";
@@ -182,78 +183,80 @@ export function EpanetApp() {
   return (
     <main className={"custom-cursor-family h-dvh flex flex-col bg-popover"}>
       <MapContext.Provider value={map}>
-        <div className={clsx(!isContentViewOpen && "h-24")}>
-          <MenuBarPlay />
-          {!isContentViewOpen && (
-            <Toolbar
-              readonly={isEditionBlocked}
-              customerAllocationDisabled={isCustomerAllocationDisabled}
-            />
-          )}
-        </div>
-        <div
-          className={clsx(
-            layout === "VERTICAL" && "flex-col h-full",
-            "flex grow relative border-t dark:border-gray-900",
-            "pb-10",
-            isContentViewOpen && "invisible",
-          )}
-        >
-          {layout === "HORIZONTAL" && <ActivityBar />}
-          <div
-            className={clsx(
-              layout === "VERTICAL" && "flex-col",
-              "flex grow relative min-w-0 min-h-0",
-            )}
-          >
-            {layout === "HORIZONTAL" && <LeftSidePanel />}
-            <div className="flex-auto flex flex-col relative min-w-0">
-              <DndContext
-                sensors={sensor}
-                modifiers={[restrictToWindowEdges]}
-                onDragEnd={(end) => {
-                  setPersistentTransform((transform) => {
-                    return {
-                      x: transform.x + end.delta.x,
-                      y: transform.y + end.delta.y,
-                    };
-                  });
-                }}
-              >
-                <DraggableMap
-                  persistentTransform={persistentTransform}
-                  setMap={setMap}
-                  layout={layout}
-                  readonly={isEditionBlocked}
-                />
-              </DndContext>
-              {layout === "HORIZONTAL" && <BottomPanel />}
-              {layout === "VERTICAL" && <VerticalPanel />}
-            </div>
-            {layout === "HORIZONTAL" && (
-              <>
-                <SidePanel />
-                <Resizer side="left" isToggleAllowed={false} />
-                <Resizer side="right" isToggleAllowed={false} />
-              </>
+        <ScriptEditorProvider>
+          <div className={clsx(!isContentViewOpen && "h-24")}>
+            <MenuBarPlay />
+            {!isContentViewOpen && (
+              <Toolbar
+                readonly={isEditionBlocked}
+                customerAllocationDisabled={isCustomerAllocationDisabled}
+              />
             )}
           </div>
-          <ContentViews />
-        </div>
-        {!isContentViewOpen && <Drop />}
-        <Dialogs />
-        <ActivateTrialAfterSignIn />
-        {!isContentViewOpen && (
-          <>
-            <CommandBar />
-            <Suspense fallback={null}>
-              <CommandShortcuts />
-              <SimulationPlaybackController />
-            </Suspense>
-          </>
-        )}
-        <Notifications />
-        {!isContentViewOpen && <Footer />}
+          <div
+            className={clsx(
+              layout === "VERTICAL" && "flex-col h-full",
+              "flex grow relative border-t dark:border-gray-900",
+              "pb-10",
+              isContentViewOpen && "invisible",
+            )}
+          >
+            {layout === "HORIZONTAL" && <ActivityBar />}
+            <div
+              className={clsx(
+                layout === "VERTICAL" && "flex-col",
+                "flex grow relative min-w-0 min-h-0",
+              )}
+            >
+              {layout === "HORIZONTAL" && <LeftSidePanel />}
+              <div className="flex-auto flex flex-col relative min-w-0">
+                <DndContext
+                  sensors={sensor}
+                  modifiers={[restrictToWindowEdges]}
+                  onDragEnd={(end) => {
+                    setPersistentTransform((transform) => {
+                      return {
+                        x: transform.x + end.delta.x,
+                        y: transform.y + end.delta.y,
+                      };
+                    });
+                  }}
+                >
+                  <DraggableMap
+                    persistentTransform={persistentTransform}
+                    setMap={setMap}
+                    layout={layout}
+                    readonly={isEditionBlocked}
+                  />
+                </DndContext>
+                {layout === "HORIZONTAL" && <BottomPanel />}
+                {layout === "VERTICAL" && <VerticalPanel />}
+              </div>
+              {layout === "HORIZONTAL" && (
+                <>
+                  <SidePanel />
+                  <Resizer side="left" isToggleAllowed={false} />
+                  <Resizer side="right" isToggleAllowed={false} />
+                </>
+              )}
+            </div>
+            <ContentViews />
+          </div>
+          {!isContentViewOpen && <Drop />}
+          <Dialogs />
+          <ActivateTrialAfterSignIn />
+          {!isContentViewOpen && (
+            <>
+              <CommandBar />
+              <Suspense fallback={null}>
+                <CommandShortcuts />
+                <SimulationPlaybackController />
+              </Suspense>
+            </>
+          )}
+          <Notifications />
+          {!isContentViewOpen && <Footer />}
+        </ScriptEditorProvider>
       </MapContext.Provider>
       <TabCloseGuard />
       <SessionRecoveryGuard />

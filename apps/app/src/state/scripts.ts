@@ -40,8 +40,6 @@ export type ScriptDraft = {
 
 export const scriptDraftAtom = atom<ScriptDraft | null>(null);
 
-export const scriptLineRequestAtom = atom<{ line: number } | null>(null);
-
 export const isSameScript = (a: ScriptDraft, b: ScriptDraft): boolean =>
   a.scriptId === b.scriptId && a.exampleId === b.exampleId;
 

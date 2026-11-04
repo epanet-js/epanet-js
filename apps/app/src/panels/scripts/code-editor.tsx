@@ -25,29 +25,26 @@ import {
   warmUpScriptCompletions,
 } from "./script-completions";
 import type { ScriptingDocsVariant } from "src/lib/script-language";
+import { useScriptEditorRegistry } from "./script-editor-context";
 
 export function CodeEditor({
   initialSource,
   locked,
   docsVariant,
   autoFocus,
-  revealLine,
   onChange,
   onRun,
   onSave,
   onLockedEdit,
-  onLineRevealed,
 }: {
   initialSource: string;
   locked: boolean;
   docsVariant: ScriptingDocsVariant;
   autoFocus: boolean;
-  revealLine: { line: number } | null;
   onChange: (source: string) => void;
   onRun: () => void;
   onSave: () => void;
   onLockedEdit: () => void;
-  onLineRevealed: () => void;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
@@ -60,6 +57,7 @@ export function CodeEditor({
   const onLockedEditRef = useRef(() => callbacksRef.current.onLockedEdit());
   const docsVariantRef = useRef(docsVariant);
   docsVariantRef.current = docsVariant;
+  const registry = useScriptEditorRegistry();
 
   useEffect(() => {
     const parent = containerRef.current;
@@ -117,11 +115,15 @@ export function CodeEditor({
     });
     viewRef.current = view;
     if (initialAutoFocusRef.current) view.focus();
+    const detach = registry?.attach({
+      revealLine: (line) => revealLineIn(view, line),
+    });
     return () => {
+      detach?.();
       viewRef.current = null;
       view.destroy();
     };
-  }, []);
+  }, [registry]);
 
   useEffect(() => {
     viewRef.current?.dispatch({
@@ -131,21 +133,18 @@ export function CodeEditor({
     });
   }, [locked]);
 
-  useEffect(() => {
-    const view = viewRef.current;
-    if (!view || !revealLine) return;
-    const { doc } = view.state;
-    const line = doc.line(Math.min(Math.max(1, revealLine.line), doc.lines));
-    view.dispatch({
-      selection: { anchor: line.from, head: line.to },
-      scrollIntoView: true,
-    });
-    view.focus();
-    onLineRevealed();
-  }, [revealLine, onLineRevealed]);
-
   return <div ref={containerRef} className="h-full [&_.cm-editor]:h-full!" />;
 }
+
+const revealLineIn = (view: EditorView, lineNumber: number) => {
+  const { doc } = view.state;
+  const line = doc.line(Math.min(Math.max(1, lineNumber), doc.lines));
+  view.dispatch({
+    selection: { anchor: line.from, head: line.to },
+    scrollIntoView: true,
+  });
+  view.focus();
+};
 
 const lockExtension = (
   isLocked: boolean,

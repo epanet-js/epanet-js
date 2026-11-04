@@ -3,13 +3,13 @@ import { useCallback } from "react";
 import { useActivatePanel } from "src/commands/activate-panel";
 import { useUserTracking } from "src/infra/user-tracking";
 import { SCRIPTS_PANEL_ID } from "src/panels/scripts/create-panel";
+import { useScriptEditorRegistry } from "src/panels/scripts/script-editor-context";
 import type { Dock } from "src/panels/docks";
 import { splitsAtom, type Splits } from "src/state/layout";
 import { placedPanelsAtom } from "src/state/panels";
 import {
   isSameScript,
   scriptDraftAtom,
-  scriptLineRequestAtom,
   userScriptsAtom,
   type ScriptDraft,
   type UserScript,
@@ -28,7 +28,7 @@ export const useGoToScriptLine = (
   const scripts = useAtomValue(userScriptsAtom);
   const placedPanels = useAtomValue(placedPanelsAtom);
   const setDraft = useSetAtom(scriptDraftAtom);
-  const setLineRequest = useSetAtom(scriptLineRequestAtom);
+  const editorRegistry = useScriptEditorRegistry();
   const setSplits = useSetAtom(splitsAtom);
   const activatePanel = useActivatePanel();
   const userTracking = useUserTracking();
@@ -36,13 +36,13 @@ export const useGoToScriptLine = (
   const dock = placedPanels.find((p) => p.id === SCRIPTS_PANEL_ID)?.dock;
   const goToLine = useCallback(
     (line: number) => {
-      if (!dock) return;
+      if (!dock || !editorRegistry) return;
       if (!openDraft) {
         const draftToOpen = draftToOpenFor(runDraft, scripts);
         if (!draftToOpen) return;
         setDraft(draftToOpen);
       }
-      setLineRequest({ line });
+      editorRegistry.revealLine(line);
       const openKey = OPEN_KEY[dock];
       if (openKey) {
         setSplits((splits) =>
@@ -61,14 +61,14 @@ export const useGoToScriptLine = (
       runDraft,
       scripts,
       setDraft,
-      setLineRequest,
+      editorRegistry,
       setSplits,
       activatePanel,
       userTracking,
     ],
   );
 
-  if (!dock) return null;
+  if (!dock || !editorRegistry) return null;
   const canOpen = openDraft
     ? isSameScript(openDraft, runDraft)
     : draftToOpenFor(runDraft, scripts) !== null;
