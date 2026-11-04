@@ -7,6 +7,7 @@ import {
 import { useTranslate } from "src/hooks/use-translate";
 import { multiAssetPanelCollapseAtom } from "src/state/layout";
 import { simulationDerivedAtom } from "src/state/derived-branch-state";
+import { SelectOnlyZonesButton } from "./select-only-button";
 import {
   ElevationRangeRows,
   PressureRangeRows,
@@ -14,7 +15,13 @@ import {
   useZoneRanges,
 } from "../zone-ranges";
 
-export function ZonePanelSection({ zoneIds }: { zoneIds: readonly number[] }) {
+export function ZonePanelSection({
+  zoneIds,
+  showSelectOnly,
+}: {
+  zoneIds: readonly number[];
+  showSelectOnly: boolean;
+}) {
   const translate = useTranslate();
   const [collapseState, setCollapseState] = useAtom(
     multiAssetPanelCollapseAtom,
@@ -26,6 +33,9 @@ export function ZonePanelSection({ zoneIds }: { zoneIds: readonly number[] }) {
       open={collapseState.zone}
       onOpenChange={(open) =>
         setCollapseState((prev) => ({ ...prev, zone: open }))
+      }
+      action={
+        showSelectOnly ? <SelectOnlyZonesButton zoneIds={zoneIds} /> : undefined
       }
     >
       <ZoneRanges key={zoneIds.join(",")} zoneIds={zoneIds} />

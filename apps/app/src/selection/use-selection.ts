@@ -115,6 +115,16 @@ export const useSelection = (selection: Sel) => {
     activateAssetPanel();
   };
 
+  const selectZones = (zoneIds: readonly number[]) => {
+    userTracking.capture({
+      name: "multiSelect.updated",
+      count: zoneIds.length,
+      operation: "new",
+    });
+    setSelection(USelection.fromIds([], [], zoneIds));
+    activateAssetPanel();
+  };
+
   const toggleZoneSelection = (zoneId: number) => {
     setSelection(USelection.toggleId(selection, "zone", zoneId));
     activateAssetPanel();
@@ -156,6 +166,7 @@ export const useSelection = (selection: Sel) => {
     removeCustomerPointFromSelection,
     isCustomerPointSelected,
     selectZone,
+    selectZones,
     toggleZoneSelection,
     getSelectionIds,
   };

@@ -12,7 +12,7 @@ import {
 } from "src/state/derived-branch-state";
 import { multiAssetPanelCollapseAtom } from "src/state/layout";
 import { selectionAtom } from "src/state/selection";
-import { useSelection } from "src/selection";
+import { USelection, useSelection } from "src/selection";
 import { useUserTracking } from "src/infra/user-tracking";
 import {
   computeCustomerPointsStats,
@@ -43,7 +43,8 @@ export function CustomerPointPanelSection({
     () => customerPoints.map((cp) => cp.id),
     [customerPoints],
   );
-  const showSelectOnly = selectedAssets.length > 0;
+  const showSelectOnly =
+    selectedAssets.length > 0 || USelection.getZoneIds(selection).length > 0;
 
   const { data, isLoading } = useAsyncCompute<
     [

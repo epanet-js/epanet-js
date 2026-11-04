@@ -201,7 +201,7 @@ type MultiSelectUpdated = {
 
 type SelectionNarrowedToAssetType = {
   name: "selection.narrowedToAssetType";
-  type: Asset["type"] | "customerPoint";
+  type: Asset["type"] | "customerPoint" | "zone";
   count: number;
 };
 

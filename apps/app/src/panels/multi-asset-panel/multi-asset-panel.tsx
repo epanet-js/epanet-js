@@ -132,7 +132,8 @@ export function MultiAssetPanel({
 
   const distinctKindsSelected =
     Object.values(assetCounts).filter((c) => c > 0).length +
-    (selectedCustomerPoints.length > 0 ? 1 : 0);
+    (selectedCustomerPoints.length > 0 ? 1 : 0) +
+    (zoneCount > 0 ? 1 : 0);
   const showSelectOnly = distinctKindsSelected > 1;
 
   const handleBatchPropertyChange = useCallback(
@@ -482,7 +483,10 @@ export function MultiAssetPanel({
       )}
 
       {zoneCount > 0 && (
-        <ZonePanelSection zoneIds={USelection.getZoneIds(selection)} />
+        <ZonePanelSection
+          zoneIds={USelection.getZoneIds(selection)}
+          showSelectOnly={showSelectOnly}
+        />
       )}
     </SectionList>
   );

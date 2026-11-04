@@ -102,3 +102,49 @@ export function SelectOnlyCustomerPointsButton({
     </Tooltip>
   );
 }
+
+export function SelectOnlyZonesButton({
+  zoneIds,
+}: {
+  zoneIds: readonly number[];
+}) {
+  const translate = useTranslate();
+  const selection = useAtomValue(selectionAtom);
+  const { selectZones } = useSelection(selection);
+  const userTracking = useUserTracking();
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    userTracking.capture({
+      name: "selection.narrowedToAssetType",
+      type: "zone",
+      count: zoneIds.length,
+    });
+    selectZones(zoneIds);
+  };
+
+  return (
+    <Tooltip
+      delayDuration={700}
+      content={
+        <span className="whitespace-nowrap">
+          {`${translate("select")} ${pluralize(
+            translate,
+            "zone",
+            zoneIds.length,
+            false,
+          )}`}
+        </span>
+      }
+    >
+      <Button
+        variant="quiet"
+        className="h-8 w-8 justify-center"
+        size="xxs"
+        onClick={handleClick}
+      >
+        <PointerClickIcon />
+      </Button>
+    </Tooltip>
+  );
+}
