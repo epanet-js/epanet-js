@@ -513,6 +513,34 @@ describe("build inp", () => {
       );
     });
 
+    it("starts the valve at the control's first pressure, not the model setting", () => {
+      const withZeroSetting = HydraulicModelBuilder.with()
+        .aReservoir(IDS.R1)
+        .aNode(IDS.J1)
+        .aNode(IDS.J2)
+        .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
+        .aValve(IDS.V1, {
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
+          kind: "prv",
+          diameter: 100,
+          setting: 0,
+          minorLoss: 0,
+        })
+        .aFlowModulatingValveControl({
+          linkId: IDS.V1,
+          points,
+          interpolate: true,
+          sensorLinkId: IDS.V1,
+          controlNodeId: IDS.J2,
+        })
+        .build();
+
+      const inp = exportInp(withZeroSetting);
+
+      expect(inp).toContain(`${IDS.V1}\t${IDS.J1}\t${IDS.J2}\t100\tPRV\t20\t0`);
+    });
+
     it("drops the remote-setpoint row of the same valve", () => {
       const hydraulicModel = buildModelWithFmv();
 

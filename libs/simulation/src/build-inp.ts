@@ -32,6 +32,7 @@ import {
   DEFAULT_INITIAL_QUALITY,
   type VariableSpeedPumpControl,
   type FlowModulatingValveControl,
+  getLinkFlowModulatingValve,
 } from "@epanet-js/hydraulic-model";
 import {
   type Projection,
@@ -1094,7 +1095,7 @@ function* valveRows(
       kindFor(valve),
       valve.kind === "gpv"
         ? valveCurveId
-        : String(requiredValue(valve.setting)),
+        : String(requiredValue(valveSetting(hydraulicModel, valve))),
       String(optionalValue(valve.minorLoss, DEFAULT_MINOR_LOSS)),
     ];
     if (valve.kind === "pcv") {
@@ -1104,6 +1105,16 @@ function* valveRows(
     yield valveData.join("\t");
   }
 }
+
+const valveSetting = (
+  hydraulicModel: HydraulicModel,
+  valve: Valve,
+): number | null | undefined => {
+  if (valve.kind !== "prv") return valve.setting;
+  const control = getLinkFlowModulatingValve(hydraulicModel.controls, valve.id);
+  if (!control || control.points.length === 0) return valve.setting;
+  return control.points[0].pressure;
+};
 
 function* demandRows(
   hydraulicModel: HydraulicModel,
