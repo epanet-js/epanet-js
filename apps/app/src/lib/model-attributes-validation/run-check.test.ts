@@ -825,6 +825,79 @@ describe("validateModelAttributes", () => {
         "valve.flowModulatingControl.pressuresIncreasing",
       ]);
     });
+
+    describe("control references", () => {
+      const validPoints = [
+        { flow: 0, pressure: 20 },
+        { flow: 10, pressure: 25 },
+      ];
+
+      // J2 --V1--> J3 --P4--> J5, with the control sensing P4 at J5.
+      const aPrvSensingDownstream = ({
+        linkActive = true,
+        nodeActive = true,
+        controlNodeId = 5,
+        sensorLinkId = 4,
+      }: {
+        linkActive?: boolean;
+        nodeActive?: boolean;
+        controlNodeId?: number;
+        sensorLinkId?: number;
+      } = {}) =>
+        HydraulicModelBuilder.with()
+          .aJunction(2, { elevation: 50 })
+          .aJunction(3, { elevation: 50 })
+          .aJunction(5, { elevation: 50, isActive: nodeActive })
+          .aValve(1, {
+            kind: "prv",
+            startNodeId: 2,
+            endNodeId: 3,
+            diameter: 100,
+            setting: 20,
+          })
+          .aPipe(4, {
+            startNodeId: 3,
+            endNodeId: 5,
+            roughness: 130,
+            diameter: 100,
+            length: 100,
+            isActive: linkActive,
+          })
+          .aFlowModulatingValveControl({
+            linkId: 1,
+            points: validPoints,
+            interpolate: true,
+            sensorLinkId,
+            controlNodeId,
+          })
+          .build();
+
+      it("flags an inactive sensor link as an error", async () => {
+        const model = aPrvSensingDownstream({ linkActive: false });
+
+        const issues = await validateModelAttributes(model);
+
+        expect(issues).toEqual([
+          ["valve.flowModulatingSensorLink.active", [1]],
+        ]);
+        expect(severityOf("valve.flowModulatingSensorLink.active")).toBe(
+          "error",
+        );
+      });
+
+      it("flags an inactive control node as an error", async () => {
+        const model = aPrvSensingDownstream({ nodeActive: false });
+
+        const issues = await validateModelAttributes(model);
+
+        expect(issues).toEqual([
+          ["valve.flowModulatingControlNode.active", [1]],
+        ]);
+        expect(severityOf("valve.flowModulatingControlNode.active")).toBe(
+          "error",
+        );
+      });
+    });
   });
 
   describe("customer point connection", () => {

@@ -1660,6 +1660,8 @@
         "valveFlowModulatingControlPressuresPositive": "Flow modulating control pressures must be positive",
         "valveFlowModulatingControlFlowsIncreasing": "Flow modulating control flows must be strictly increasing",
         "valveFlowModulatingControlPressuresIncreasing": "Flow modulating control pressures must be strictly increasing",
+        "valveFlowModulatingSensorLinkActive": "Flow modulating control flow-through link must be active",
+        "valveFlowModulatingControlNodeActive": "Flow modulating control node must be active",
         "pumpPowerPresent": "Pump power missing",
         "pumpPowerPositive": "Pump power must be positive",
         "pumpCurvePresent": "Pump curve missing",

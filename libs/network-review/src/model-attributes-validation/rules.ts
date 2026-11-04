@@ -1,4 +1,5 @@
 import {
+  Asset,
   CurvePoint,
   effectiveRoughness,
   FlowModulatingValveControl,
@@ -218,6 +219,27 @@ const flowModulatingControlRule = (
   message,
 });
 
+const flowModulatingReferenceRule = (
+  name: "sensorLink" | "controlNode",
+  referenceId: "sensorLinkId" | "controlNodeId",
+): Rule => {
+  const fieldName = `flowModulating${name.charAt(0).toUpperCase()}${name.slice(1)}`;
+  return {
+    id: `valve.${fieldName}.active`,
+    type: "model",
+    entityType: "valve",
+    field: fieldName,
+    accessor: (entity, model) => {
+      const control = flowModulatingControlOf(entity, model);
+      return control ? (model.assets.get(control[referenceId]) ?? null) : null;
+    },
+    appliesWhen: hasFlowModulatingControl,
+    check: (value) => !!value && (value as Asset).isActive,
+    severity: "error",
+    message: "mustBeActive",
+  };
+};
+
 export const RULES: Rule[] = [
   // Node elevation (reservoirs use head, not elevation, so are excluded)
   ...(["junction", "tank"] as const).map(
@@ -278,6 +300,8 @@ export const RULES: Rule[] = [
   flowModulatingControlRule("pressuresPositive", "mustBePositive"),
   flowModulatingControlRule("flowsIncreasing", "mustBeIncreasing"),
   flowModulatingControlRule("pressuresIncreasing", "mustBeIncreasing"),
+  flowModulatingReferenceRule("sensorLink", "sensorLinkId"),
+  flowModulatingReferenceRule("controlNode", "controlNodeId"),
   ...requiredNumeric(
     "pump",
     "power",
