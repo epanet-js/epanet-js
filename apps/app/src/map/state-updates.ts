@@ -84,6 +84,8 @@ import {
 // withDebugInstrumentation warning fires only when isDebugOn.
 const SLOW_UPDATE_WARN_MS = 1000;
 const MAP_STATE_SYNC = "MAP_STATE:SYNC";
+const MAP_STATE_SYNC_REPEATED = "MAP_STATE:SYNC_REPEATED";
+const MAX_REPORTED_SYNC_ERRORS = 5;
 
 // Editions above this many assets cost more to keep separate than to fold back in.
 const MAX_CHANGES_BEFORE_MAP_SYNC = 500;
@@ -251,6 +253,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const selectedMapOperations = useMapOperations();
   const setMapBackendFallback = useSetAtom(mapBackendFallbackAtom);
   const hasFallenBackRef = useRef(false);
+  const syncErrorsRef = useRef({ editionsId: "", count: 0 });
   // Switch to geojson engine if we need to fall back
   const mapOperationsRef = useRef<MapOperations>(selectedMapOperations);
   mapOperationsRef.current = hasFallenBackRef.current
@@ -682,6 +685,23 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     }
   };
 
+  const reportSyncError = (error: unknown) => {
+    const editionsId = freshMapStateRef.current.editionsTracker.id;
+    const syncErrors = syncErrorsRef.current;
+    if (syncErrors.editionsId !== editionsId) {
+      syncErrors.editionsId = editionsId;
+      syncErrors.count = 0;
+    }
+    syncErrors.count++;
+    if (syncErrors.count > MAX_REPORTED_SYNC_ERRORS + 1) return;
+
+    const isRepeated = syncErrors.count > MAX_REPORTED_SYNC_ERRORS;
+    captureError(
+      enrichError(isRepeated ? MAP_STATE_SYNC_REPEATED : MAP_STATE_SYNC, error),
+      { "Map Changes": { ...appliedChangesRef.current } },
+    );
+  };
+
   const queueUpdate = () => {
     if (isRunningRef.current) {
       hasPendingRef.current = true;
@@ -714,9 +734,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
               }
               hasPendingRef.current = true;
             } else {
-              captureError(enrichError(MAP_STATE_SYNC, error), {
-                "Map Changes": { ...appliedChangesRef.current },
-              });
+              reportSyncError(error);
               // Attempt to re-apply
               if (!hasRetried) {
                 hasRetried = true;
