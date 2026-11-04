@@ -64,13 +64,29 @@ const ConsoleLine = ({ line }: { line: ScriptConsoleLine }) => {
       </div>
     );
   }
-  const color =
-    line.level === "error"
-      ? "text-error"
-      : line.level === "warn"
-        ? "text-warning"
-        : "text-default";
+  if (line.level === "error") {
+    return (
+      <div className="-mx-1.5 px-1.5 py-0.5 my-0.5 text-error bg-error-subtle">
+        {line.text}
+      </div>
+    );
+  }
+  const color = line.level === "warn" ? "text-warning" : "text-default";
   return <div className={color}>{line.text}</div>;
+};
+
+const formatRunError = (
+  translate: ReturnType<typeof useTranslate>,
+  {
+    name,
+    message,
+    line,
+  }: { name: string; message: string; line: number | null },
+): string => {
+  const error = `${name}: ${message}`;
+  return line !== null
+    ? translate("scripting.errorAtLine", error, String(line))
+    : error;
 };
 
 export const RunStatus = ({ outcome }: { outcome: ScriptRunOutcome }) => {
@@ -85,17 +101,40 @@ export const RunStatus = ({ outcome }: { outcome: ScriptRunOutcome }) => {
     );
   }
   if (outcome.status === "error") {
-    const { name, message, line } = outcome.error;
-    const error = `${name}: ${message}`;
     return (
       <StatusRow
         icon={<ErrorIcon />}
         iconClass="text-error"
-        text={
-          line !== null
-            ? translate("scripting.errorAtLine", error, String(line))
-            : error
-        }
+        text={translate("scripting.finishedWithErrors")}
+      />
+    );
+  }
+  return (
+    <StatusRow
+      icon={<SuccessIcon />}
+      iconClass="text-success"
+      text={translate("scripting.finished")}
+    />
+  );
+};
+
+const RunStatusDeprecated = ({ outcome }: { outcome: ScriptRunOutcome }) => {
+  const translate = useTranslate();
+  if (outcome.status === "cancelled") {
+    return (
+      <StatusRow
+        icon={<StopSimulationIcon />}
+        iconClass="text-info"
+        text={translate("scripting.runCancelled")}
+      />
+    );
+  }
+  if (outcome.status === "error") {
+    return (
+      <StatusRow
+        icon={<ErrorIcon />}
+        iconClass="text-error"
+        text={formatRunError(translate, outcome.error)}
       />
     );
   }
@@ -114,10 +153,11 @@ export const RunResultDeprecated = ({
   outcome: ScriptRunOutcome;
 }) => {
   const translate = useTranslate();
-  if (outcome.status !== "success") return <RunStatus outcome={outcome} />;
+  if (outcome.status !== "success")
+    return <RunStatusDeprecated outcome={outcome} />;
   return (
     <div className="flex flex-col gap-2">
-      <RunStatus outcome={outcome} />
+      <RunStatusDeprecated outcome={outcome} />
       {outcome.attachments.length > 0 && (
         <div className="flex flex-col gap-1">
           <div className="text-size-small font-semibold text-default">

@@ -7,6 +7,7 @@ export type ScriptConsoleLine =
 
 export type ScriptRunState = {
   name: string;
+  draft: ScriptDraft;
   status: "running" | "finished";
   lines: ScriptConsoleLine[];
   progress: number | null;
@@ -38,6 +39,11 @@ export type ScriptDraft = {
 };
 
 export const scriptDraftAtom = atom<ScriptDraft | null>(null);
+
+export const scriptLineRequestAtom = atom<{ line: number } | null>(null);
+
+export const isSameScript = (a: ScriptDraft, b: ScriptDraft): boolean =>
+  a.scriptId === b.scriptId && a.exampleId === b.exampleId;
 
 export const hasUnsavedChanges = (draft: ScriptDraft): boolean =>
   draft.savedAs === null ||

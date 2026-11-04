@@ -137,6 +137,8 @@
     "runCancelled": "Run cancelled",
     "errorAtLine": "{{1}} (line {{2}})",
     "finished": "Script finished",
+    "finishedWithErrors": "Finished with errors",
+    "atLine": "at line {{1}}",
     "files": "Files",
     "download": "Download",
     "downloadAllAsZip": "Download all as zip",

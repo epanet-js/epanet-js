@@ -51,6 +51,7 @@ import { projectSettingsAtom } from "src/state/project-settings";
 import {
   scriptRunAtom,
   type ScriptConsoleLine,
+  type ScriptDraft,
   type ScriptRunState,
 } from "src/state/scripts";
 import { selectionAtom } from "src/state/selection";
@@ -166,11 +167,13 @@ export const useRunScript = () => {
         source,
         paywalled,
         exampleId,
+        draft,
       }: {
         name: string;
         source: string;
         paywalled: boolean;
         exampleId: string | null;
+        draft: ScriptDraft;
       },
       trigger: "editor" | "list" | "shortcut",
     ) => {
@@ -253,6 +256,7 @@ export const useRunScript = () => {
       const startedAt = performance.now();
       setRun({
         name,
+        draft,
         status: "running",
         lines: [],
         progress: null,

@@ -31,19 +31,23 @@ export function CodeEditor({
   locked,
   docsVariant,
   autoFocus,
+  revealLine,
   onChange,
   onRun,
   onSave,
   onLockedEdit,
+  onLineRevealed,
 }: {
   initialSource: string;
   locked: boolean;
   docsVariant: ScriptingDocsVariant;
   autoFocus: boolean;
+  revealLine: { line: number } | null;
   onChange: (source: string) => void;
   onRun: () => void;
   onSave: () => void;
   onLockedEdit: () => void;
+  onLineRevealed: () => void;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
@@ -126,6 +130,19 @@ export function CodeEditor({
       ),
     });
   }, [locked]);
+
+  useEffect(() => {
+    const view = viewRef.current;
+    if (!view || !revealLine) return;
+    const { doc } = view.state;
+    const line = doc.line(Math.min(Math.max(1, revealLine.line), doc.lines));
+    view.dispatch({
+      selection: { anchor: line.from, head: line.to },
+      scrollIntoView: true,
+    });
+    view.focus();
+    onLineRevealed();
+  }, [revealLine, onLineRevealed]);
 
   return <div ref={containerRef} className="h-full [&_.cm-editor]:h-full!" />;
 }

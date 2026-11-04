@@ -39,6 +39,7 @@ import { dialogAtom } from "src/state/dialog";
 import {
   hasUnsavedChanges,
   scriptDraftAtom,
+  scriptLineRequestAtom,
   scriptRunAtom,
   userScriptsAtom,
   type ScriptDraft,
@@ -272,7 +273,7 @@ const ScriptList = ({ onOpen }: { onOpen: (draft: ScriptDraft) => void }) => {
         secondaryAction={{
           label: translate("scripting.runScript", row.name),
           icon: <PlayIcon size="md" />,
-          onClick: () => runScript(row.run, "list"),
+          onClick: () => runScript({ ...row.run, draft: row.draft }, "list"),
         }}
         showFullLabelOnHover
         actions={row.scriptId ? itemActions : [editAction]}
@@ -371,6 +372,11 @@ const ScriptEditor = ({
   const translate = useTranslate();
   const { isLocked: isEditLocked, openPaywall: openEditPaywall } =
     useFeatureLock("editScripts");
+  const [lineRequest, setLineRequest] = useAtom(scriptLineRequestAtom);
+  const clearLineRequest = useCallback(
+    () => setLineRequest(null),
+    [setLineRequest],
+  );
   const [confirmingDiscard, setConfirmingDiscard] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
   const draftRef = useRef(draft);
@@ -390,6 +396,7 @@ const ScriptEditor = ({
           source: draftRef.current.source,
           paywalled: !isExample(draftRef.current),
           exampleId: draftRef.current.exampleId,
+          draft: draftRef.current,
         },
         trigger,
       ),
@@ -605,10 +612,12 @@ const ScriptEditor = ({
           locked={isEditLocked}
           docsVariant={scriptingDocs.variant}
           autoFocus={!isNewScript}
+          revealLine={lineRequest}
           onChange={(source) => onChange({ ...draftRef.current, source })}
           onRun={() => handleRun("shortcut")}
           onSave={handleSave}
           onLockedEdit={openEditPaywall}
+          onLineRevealed={clearLineRequest}
         />
       </div>
     </div>

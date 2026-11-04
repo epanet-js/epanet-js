@@ -2,6 +2,8 @@ import { useEffect, useRef } from "react";
 import { useAtom, useAtomValue } from "jotai";
 import { useMove } from "@react-aria/interactions";
 import { scriptRunAtom, type ScriptRunState } from "src/state/scripts";
+import type { ScriptRunOutcome } from "src/lib/scripting";
+import { useGoToScriptLine } from "src/commands/go-to-script-line";
 import { panelContentStateAtom } from "src/state/panels";
 import { contentStateFor, withContentState } from "src/panels/panel-template";
 import { accumulateResize } from "src/components/resizer";
@@ -41,6 +43,7 @@ const RunOutput = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const consoleRef = useRef<HTMLDivElement>(null);
   const elapsedMs = useElapsed(run);
+  const error = run.outcome?.status === "error" ? run.outcome.error : null;
   const [contentStates, setContentStates] = useAtom(panelContentStateAtom);
   const sidebarWidth =
     contentStateFor(contentStates, panelId, "script-output")?.sidebarWidth ??
@@ -49,7 +52,7 @@ const RunOutput = ({
   useEffect(() => {
     const el = consoleRef.current;
     if (el) el.scrollTop = el.scrollHeight;
-  }, [run.lines]);
+  }, [run.lines, error]);
 
   return (
     <div ref={containerRef} className="h-full flex flex-row min-h-0">
@@ -57,7 +60,10 @@ const RunOutput = ({
         ref={consoleRef}
         className="flex-1 min-w-0 overflow-auto placemark-scrollbar p-3 font-mono text-size-base text-default whitespace-pre-wrap"
       >
-        <ConsoleLines lines={run.lines} />
+        {!(error && run.lines.length === 0) && (
+          <ConsoleLines lines={run.lines} />
+        )}
+        {error && <RunErrorLine error={error} run={run} />}
       </div>
       <div
         className="relative shrink-0 border-l"
@@ -102,6 +108,37 @@ const RunOutput = ({
           )}
         </div>
       </div>
+    </div>
+  );
+};
+
+const RunErrorLine = ({
+  error: { name, message, line },
+  run,
+}: {
+  error: Extract<ScriptRunOutcome, { status: "error" }>["error"];
+  run: ScriptRunState;
+}) => {
+  const translate = useTranslate();
+  const goToLine = useGoToScriptLine(run.draft);
+  return (
+    <div className="-mx-1.5 px-1.5 py-0.5 my-0.5 text-error bg-error-subtle">
+      <div>{`${name}: ${message}`}</div>
+      {line !== null && (
+        <div className="pl-4">
+          {goToLine ? (
+            <button
+              type="button"
+              className="text-left text-subtle underline underline-offset-2 hover:text-default"
+              onClick={() => goToLine(line)}
+            >
+              {translate("scripting.atLine", String(line))}
+            </button>
+          ) : (
+            translate("scripting.atLine", String(line))
+          )}
+        </div>
+      )}
     </div>
   );
 };
