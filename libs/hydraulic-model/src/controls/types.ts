@@ -210,7 +210,10 @@ export const buildDefaultFlowModulatingValve = (
   id,
   type: "flow-modulating-valve",
   linkId,
-  points: [{ flow: 0, pressure: setting }],
+  points: [
+    { flow: 0, pressure: setting },
+    { flow: 1, pressure: setting + 1 },
+  ],
   interpolate: true,
   sensorLinkId: linkId,
   controlNodeId: outletNodeId,

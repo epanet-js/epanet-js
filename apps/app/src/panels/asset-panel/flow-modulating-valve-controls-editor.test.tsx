@@ -86,7 +86,10 @@ describe("valve controls editor", () => {
       id: expect.any(String),
       type: "flow-modulating-valve",
       linkId: IDS.V1,
-      points: [{ flow: 0, pressure: SETTING }],
+      points: [
+        { flow: 0, pressure: SETTING },
+        { flow: 1, pressure: SETTING + 1 },
+      ],
       interpolate: true,
       sensorLinkId: IDS.V1,
       controlNodeId: IDS.J2,
@@ -103,32 +106,37 @@ describe("valve controls editor", () => {
     await user.click(screen.getByRole("button", { name: /add point/i }));
     expect(lastControl().points).toEqual([
       { flow: 0, pressure: SETTING },
-      { flow: 1, pressure: SETTING },
+      { flow: 1, pressure: SETTING + 1 },
+      { flow: 2, pressure: SETTING + 1 },
     ]);
 
-    await editCell(user, 1, 0, "4");
-    await editCell(user, 1, 1, "30");
+    await editCell(user, 2, 0, "4");
+    await editCell(user, 2, 1, "30");
     await user.click(screen.getByRole("button", { name: /add point/i }));
     expect(lastControl().points).toEqual([
       { flow: 0, pressure: SETTING },
+      { flow: 1, pressure: SETTING + 1 },
       { flow: 4, pressure: 30 },
-      { flow: 8, pressure: 30 },
+      { flow: 7, pressure: 30 },
     ]);
 
-    await openRowActions(user, 1);
+    await openRowActions(user, 2);
     await user.click(screen.getByRole("menuitem", { name: /delete/i }));
     expect(lastControl().points).toEqual([
       { flow: 0, pressure: SETTING },
-      { flow: 8, pressure: 30 },
+      { flow: 1, pressure: SETTING + 1 },
+      { flow: 7, pressure: 30 },
     ]);
   });
 
   it("keeps an out-of-sequence value and flags the cell until the table is fixed", async () => {
     const { user, lastControl } = await renderFlowModulated();
-    await user.click(screen.getByRole("button", { name: /add point/i }));
 
     await editCell(user, 0, 1, "30");
-    expect(lastControl().points.map((p) => p.pressure)).toEqual([30, SETTING]);
+    expect(lastControl().points.map((p) => p.pressure)).toEqual([
+      30,
+      SETTING + 1,
+    ]);
     expect(getCell(0, 1)).toHaveClass("bg-warning-subtle");
     expect(getCell(1, 1)).toHaveClass("bg-warning-subtle");
 
@@ -140,7 +148,6 @@ describe("valve controls editor", () => {
 
   it("inserts a row below halfway to the next flow", async () => {
     const { user, lastControl } = await renderFlowModulated();
-    await user.click(screen.getByRole("button", { name: /add point/i }));
     await editCell(user, 1, 0, "6");
 
     await openRowActions(user, 0);

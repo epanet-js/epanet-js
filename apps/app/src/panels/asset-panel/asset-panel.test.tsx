@@ -791,7 +791,10 @@ describe("AssetPanel", () => {
             id: expect.any(String),
             type: "flow-modulating-valve",
             linkId: IDS.V1,
-            points: [{ flow: 0, pressure: 30 }],
+            points: [
+              { flow: 0, pressure: 30 },
+              { flow: 1, pressure: 31 },
+            ],
             interpolate: true,
             sensorLinkId: IDS.V1,
             controlNodeId: IDS.down,

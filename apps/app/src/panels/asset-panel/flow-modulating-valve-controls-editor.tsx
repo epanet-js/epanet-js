@@ -17,7 +17,10 @@ import {
   type GridColumn,
   floatColumn,
 } from "src/components/data-grid";
-import { getFlowModulatingValvePointErrors } from "src/lib/model-attributes-validation";
+import {
+  FLOW_MODULATING_VALVE_MIN_POINTS,
+  getFlowModulatingValvePointErrors,
+} from "src/lib/model-attributes-validation";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { DeleteIcon, AddIcon } from "src/icons";
@@ -322,7 +325,7 @@ const CurveChart = ({
   }, []);
 
   return (
-    <div ref={containerRef} className="h-[180px] w-full pt-2">
+    <div ref={containerRef} className="h-[120px] w-full pt-2">
       <ReactECharts
         ref={chartRef}
         option={option}
@@ -408,7 +411,8 @@ const PointsGrid = ({
         icon: <DeleteIcon size="sm" />,
         onSelect: (rowIndex: number) =>
           persist(points.filter((_, i) => i !== rowIndex)),
-        hidden: (rowIndex: number) => rowIndex === 0,
+        hidden: (rowIndex: number) =>
+          rowIndex === 0 || points.length <= FLOW_MODULATING_VALVE_MIN_POINTS,
         variant: "destructive" as const,
       },
       {

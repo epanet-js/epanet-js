@@ -7,6 +7,7 @@ export {
   RULES,
   numericChecks,
   flowModulatingValvePointChecks,
+  FLOW_MODULATING_VALVE_MIN_POINTS,
   getFlowModulatingValvePointErrors,
   rulesFor,
   fieldGroupsFor,
