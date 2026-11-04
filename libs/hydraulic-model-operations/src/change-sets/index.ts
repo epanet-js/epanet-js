@@ -16,4 +16,5 @@ export {
   setDemands,
   setPipeLibrary,
   setRawControls,
+  setZone,
 } from "./intents";

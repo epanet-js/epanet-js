@@ -10,3 +10,16 @@ export type Zone = {
 };
 
 export type Zones = Map<ZoneId, Zone>;
+
+export const isZoneLabelAvailable = (
+  zones: Zones,
+  label: string,
+  excludeId?: ZoneId,
+): boolean => {
+  const normalizedLabel = label.toUpperCase();
+  for (const zone of zones.values()) {
+    if (zone.id === excludeId) continue;
+    if (zone.label.toUpperCase() === normalizedLabel) return false;
+  }
+  return true;
+};

@@ -236,6 +236,14 @@ type ZoneContentsSelected = {
   count: number;
 };
 
+type ZoneLabelChanged = {
+  name: "zone.labelChanged";
+};
+
+type ZoneLabelDuplicate = {
+  name: "zone.labelDuplicate";
+};
+
 type AssetDeselected = {
   name: "asset.deselected";
   type: Asset["type"];
@@ -1514,6 +1522,8 @@ export type UserEvent =
   | AssetSelected
   | AssetDeselected
   | ZoneContentsSelected
+  | ZoneLabelChanged
+  | ZoneLabelDuplicate
   | AssetControlChanged
   | AssetControlRemoved
   | AssetControlVariableSpeedControlChanged

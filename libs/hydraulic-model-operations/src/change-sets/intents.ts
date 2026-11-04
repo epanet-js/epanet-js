@@ -15,6 +15,8 @@ import type {
   Patterns,
   PipeMaterial,
   RawControls,
+  Zone,
+  ZoneId,
   Zones,
 } from "@epanet-js/hydraulic-model";
 import type { DemandAssignment } from "../model-operation";
@@ -284,6 +286,24 @@ export const replaceZones =
       }),
       out,
     );
+  };
+
+export const setZone =
+  (ids: ZoneId | readonly ZoneId[], fields: Fields): Intent =>
+  (model, out) => {
+    for (const id of asArray(ids)) {
+      const zone = model.zones.get(id);
+      if (!zone) continue;
+
+      const current: Fields = {};
+      for (const field of Object.keys(fields)) {
+        current[field] = zone[field as keyof Zone] as Cell;
+      }
+
+      const { before, after, changed } = diffFields(current, fields);
+      if (!changed) continue;
+      out.push({ entity: "zone", id, kind: "update", before, after });
+    }
   };
 
 const putSingleton = (

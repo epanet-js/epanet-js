@@ -25,6 +25,7 @@ import {
   changePipeMaterials,
   changeProperty,
   changeRawControls,
+  changeZoneProperty,
   changeZones,
   deleteAssets,
   disconnectCustomers,
@@ -383,6 +384,23 @@ const cases: OperationCase[] = [
         id: IDS.Z2,
         label: "EAST",
         ...aSquare(10),
+      });
+    },
+  },
+  {
+    name: "changeZoneProperty",
+    fixture: aNetwork,
+    run: ({ model }) =>
+      changeZoneProperty(model, {
+        zoneIds: [IDS.Z1],
+        property: "label",
+        value: "SOUTH",
+      }),
+    expectApplied: ({ model }) => {
+      expect(model.zones.get(IDS.Z1)).toEqual({
+        id: IDS.Z1,
+        label: "SOUTH",
+        ...aSquare(0),
       });
     },
   },
