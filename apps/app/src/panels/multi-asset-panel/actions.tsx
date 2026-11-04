@@ -93,7 +93,7 @@ export function useMultiAssetActions(readonly = false): Action[] {
 
   const selectZoneContentsAction = {
     icon: <PolygonalSelectionIcon />,
-    applicable: zoneCount > 0,
+    applicable: zoneCount > 0 && assetCount === 0 && customerPointCount === 0,
     priority: 5,
     label: translate("selectZoneContents"),
     onSelect: function doSelectZoneContents() {

@@ -79,7 +79,11 @@ function useSelectionActions(source: ActionProps["as"]): Action[] {
   const hasAssets = selectedAssets.length > 0;
   const hasCustomerPoints = selectedCustomerPoints.length > 0;
   const selection = useAtomValue(selectionAtom);
-  const hasZones = USelection.countByKind(selection).zones > 0;
+  const selectionCounts = USelection.countByKind(selection);
+  const hasOnlyZones =
+    selectionCounts.zones > 0 &&
+    selectionCounts.assets === 0 &&
+    selectionCounts.customerPoints === 0;
 
   const onDelete = useCallback(() => {
     const eventSource = source === "context-item" ? "context-menu" : "toolbar";
@@ -109,7 +113,7 @@ function useSelectionActions(source: ActionProps["as"]): Action[] {
 
   const selectZoneContentsAction = {
     icon: <PolygonalSelectionIcon />,
-    applicable: hasZones,
+    applicable: hasOnlyZones,
     label: translate("selectZoneContents"),
     onSelect: function doSelectZoneContents() {
       return selectZoneContents({
