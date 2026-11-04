@@ -104,7 +104,16 @@ export function MultiAssetPanel({
   const junctionEditableProperties = BATCH_EDITABLE_PROPERTIES.junction;
   const pipeEditableProperties = BATCH_EDITABLE_PROPERTIES.pipe;
   const pumpEditableProperties = BATCH_EDITABLE_PROPERTIES.pump;
-  const valveEditableProperties = BATCH_EDITABLE_PROPERTIES.valve;
+
+  const valveEditableProperties = useMemo(() => {
+    const base = BATCH_EDITABLE_PROPERTIES.valve;
+    const hasValvesWithControls = assetIdsByType.valve.some((id) =>
+      hydraulicModel.controlsLookup.hasControls(id),
+    );
+    return hasValvesWithControls
+      ? { ...base, setting: { ...base.setting, disabled: true } }
+      : base;
+  }, [assetIdsByType.valve, hydraulicModel.controlsLookup]);
   const reservoirEditableProperties = BATCH_EDITABLE_PROPERTIES.reservoir;
 
   const tankEditableProperties = useMemo(() => {

@@ -149,6 +149,7 @@ export const computeAssetsStatsDeprecated = (
         appendValveStatsDeprecated(
           statsMaps.valve,
           asset as Valve,
+          hydraulicModel.controlsLookup.hasControls(asset.id),
           units,
           formatting,
           simulationResults,
@@ -968,6 +969,7 @@ const buildPumpSectionsDeprecated = (
 const appendValveStatsDeprecated = (
   statsMap: Map<string, PropertyStatsDeprecated>,
   valve: Valve,
+  isSetByControl: boolean,
   units: UnitsSpec,
   formatting: FormattingSpec,
   simulationResults?: ResultsReader | null,
@@ -989,11 +991,15 @@ const appendValveStatsDeprecated = (
   updateQuantityStatsDeprecated(
     statsMap,
     "setting",
-    valve.setting,
+    isSetByControl ? null : valve.setting,
     units,
     formatting,
     id,
-    { emptyLabel: "none" },
+    {
+      emptyLabel: isSetByControl
+        ? "controls.flowModulating.setByControl"
+        : "none",
+    },
   );
   updateQuantityStatsDeprecated(
     statsMap,

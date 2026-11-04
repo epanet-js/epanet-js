@@ -181,7 +181,7 @@ export function floatColumn<TData extends RowData = RowData>(
     decimals?: number;
     isReadOnly?: boolean | ((rowIndex: number) => boolean);
     defaultValue?: number | null | ((rowIndex: number) => number | null);
-    placeholder?: string;
+    placeholder?: string | ((rowIndex: number) => string | undefined);
     toDisplay?: (stored: number) => number;
     fromDisplay?: (displayed: number) => number;
   },
@@ -207,7 +207,10 @@ export function floatColumn<TData extends RowData = RowData>(
       typeof defaultValue === "function"
         ? defaultValue(rowIndex)
         : defaultValue;
-    if (resolved == null) return placeholder;
+    if (resolved == null)
+      return typeof placeholder === "function"
+        ? placeholder(rowIndex)
+        : placeholder;
     return formatLocaleNumber(
       toDisplay ? toDisplay(resolved) : resolved,
       decimals,
@@ -262,7 +265,7 @@ export function floatColumn<TData extends RowData = RowData>(
         return undefined;
       },
       deleteValue: emptyValue,
-      placeholder,
+      placeholder: typeof placeholder === "string" ? placeholder : undefined,
       isReadOnly: readonly,
       defaultValue,
       ...(required !== undefined

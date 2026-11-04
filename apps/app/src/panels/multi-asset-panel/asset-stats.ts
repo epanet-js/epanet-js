@@ -130,6 +130,9 @@ export const computeAssetsStats = (
     tank: new Map<string, Accumulator>(),
   };
 
+  const valveHasControl = (valveId: AssetId) =>
+    hydraulicModel.controlsLookup.hasControls(valveId);
+
   for (const asset of assets) {
     switch (asset.type) {
       case "junction":
@@ -179,6 +182,7 @@ export const computeAssetsStats = (
         appendValveStats(
           statsMaps.valve,
           asset as Valve,
+          valveHasControl(asset.id),
           units,
           formatting,
           simulationResults,
@@ -910,6 +914,7 @@ const buildPumpSections = (
 const appendValveStats = (
   statsMap: Map<string, Accumulator>,
   valve: Valve,
+  hasControl: boolean,
   units: UnitsSpec,
   formatting: FormattingSpec,
   simulationResults?: ResultsReader | null,
@@ -923,15 +928,13 @@ const appendValveStats = (
     "valve." + valve.initialStatus,
     id,
   );
-  updateQuantityStats(
-    statsMap,
-    "setting",
-    valve.setting,
-    units,
-    formatting,
-    id,
-    { emptyLabel: "none" },
-  );
+  const setting = hasControl ? null : valve.setting;
+  const emptyLabel = hasControl
+    ? "controls.flowModulating.setByControl"
+    : "none";
+  updateQuantityStats(statsMap, "setting", setting, units, formatting, id, {
+    emptyLabel,
+  });
   updateQuantityStats(
     statsMap,
     "diameter",

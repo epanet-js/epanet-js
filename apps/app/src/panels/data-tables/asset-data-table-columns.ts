@@ -626,12 +626,14 @@ function _buildColumns(
       isReadOnly,
       defaultValue,
       commitInvalidValues,
+      placeholder,
     }: {
       unit?: Parameters<TranslateUnitFn>[0];
       property?: QuantityProperty;
       isReadOnly?: (rowIndex: number) => boolean;
       defaultValue?: number | null | ((rowIndex: number) => number | null);
       commitInvalidValues?: boolean;
+      placeholder?: (rowIndex: number) => string | undefined;
     } = {},
   ): GridColumn<AssetRow> => {
     const nullable = isNullableColumn(key);
@@ -647,8 +649,18 @@ function _buildColumns(
       commitInvalidValues,
       required: !isOptionalColumn(key),
       defaultValue: defaultValue ?? optionalColumnDefault(key),
+      placeholder,
       emptyValue: emptiable ? null : NON_ZERO_KEYS.has(key) ? undefined : 0,
     });
+  };
+
+  const isSettingSetByControl = (rowIndex: number): boolean => {
+    const row = getRow?.(rowIndex);
+    return (
+      !!row &&
+      !!accessorCtx &&
+      accessorCtx.model.controlsLookup.hasControls(row.id)
+    );
   };
 
   const booleanCol = (
@@ -986,7 +998,13 @@ function _buildColumns(
           })),
         }),
         numericCol("setting", translate("setting"), {
-          isReadOnly: (rowIndex) => getRow?.(rowIndex)?.kind === "gpv",
+          isReadOnly: (rowIndex) =>
+            getRow?.(rowIndex)?.kind === "gpv" ||
+            isSettingSetByControl(rowIndex),
+          placeholder: (rowIndex) =>
+            isSettingSetByControl(rowIndex)
+              ? translate("controls.flowModulating.setByControl")
+              : undefined,
           commitInvalidValues: true,
         }),
         filterableSelectColumn("curveId", {

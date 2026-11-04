@@ -67,6 +67,7 @@ export const EditableField = ({
   ) => void;
 }) => {
   const translate = useTranslate();
+  const isDisabled = readonly || config.disabled === true;
 
   const mixedPlaceholder = hasOnlyEmpty
     ? translate(emptyLabel!)
@@ -84,11 +85,10 @@ export const EditableField = ({
 
     const isRequired = !isOptionalProperty(config.modelProperty);
     const commitInvalidValues = !!config.hasModelValidation;
-    const quantityPlaceholder = !hasOnlyEmpty
-      ? mixedPlaceholder
-      : emptyValue != null
+    const quantityPlaceholder =
+      hasOnlyEmpty && emptyValue != null
         ? localizeDecimal(emptyValue, { decimals })
-        : "";
+        : mixedPlaceholder;
 
     return (
       <NumericField
@@ -98,7 +98,7 @@ export const EditableField = ({
         isRequired={isRequired && !isMixed}
         commitInvalidValues={commitInvalidValues}
         validate={config.validate}
-        disabled={readonly}
+        disabled={isDisabled}
         styleOptions={{}}
         onChangeValue={(newValue, isEmpty) => {
           if (isEmpty) {
@@ -129,7 +129,7 @@ export const EditableField = ({
         : translate(config.statsPrefix + value),
     });
 
-    const options: SelectorListOption<string>[] = !readonly
+    const options: SelectorListOption<string>[] = !isDisabled
       ? config.values.map(toOption)
       : currentValue != null
         ? [toOption(currentValue)]
@@ -159,7 +159,7 @@ export const EditableField = ({
           clearLabel={isClearable ? clearLabel : undefined}
           ariaLabel={label}
           onChange={handleCategoryChange}
-          disabled={readonly}
+          disabled={isDisabled}
         />
       );
     }
@@ -172,7 +172,7 @@ export const EditableField = ({
         onChange={(newValue) => {
           onPropertyChange(config.modelProperty, newValue);
         }}
-        disabled={readonly}
+        disabled={isDisabled}
       />
     );
   }
@@ -231,7 +231,7 @@ export const EditableField = ({
             newValue === null ? undefined : Number(newValue),
           );
         }}
-        disabled={readonly}
+        disabled={isDisabled}
       />
     );
   }
@@ -275,7 +275,7 @@ export const EditableField = ({
       <TriStateCheckbox
         checked={isChecked}
         indeterminate={isMixed}
-        disabled={readonly}
+        disabled={isDisabled}
         ariaLabel={label}
         onChange={(newChecked) => {
           onPropertyChange(config.modelProperty, newChecked);

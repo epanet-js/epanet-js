@@ -15,6 +15,7 @@ import { fieldValidator } from "src/lib/model-attributes-validation";
 
 type CommonConfig = {
   paywall?: PaywallFeature;
+  disabled?: boolean;
 };
 
 type QuantityConfig = CommonConfig & {

@@ -94,6 +94,50 @@ describe("computeAssetsStats (light summary)", () => {
     });
   });
 
+  it("reports a valve whose setting is set by a flow modulating control", () => {
+    const IDS = { J1: 1, J2: 2, J3: 3, V1: 4, V2: 5 } as const;
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1)
+      .aJunction(IDS.J2)
+      .aJunction(IDS.J3)
+      .aValve(IDS.V1, {
+        kind: "prv",
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        setting: 20,
+      })
+      .aValve(IDS.V2, {
+        kind: "prv",
+        startNodeId: IDS.J2,
+        endNodeId: IDS.J3,
+        setting: 25,
+      })
+      .aFlowModulatingValveControl({
+        linkId: IDS.V1,
+        points: [
+          { flow: 0, pressure: 20 },
+          { flow: 10, pressure: 30 },
+        ],
+        interpolate: true,
+        sensorLinkId: IDS.V1,
+        controlNodeId: IDS.J2,
+      })
+      .build();
+
+    const result = compute(hydraulicModel);
+    const setting = find(
+      Object.values(result.data.valve).flat(),
+      "setting",
+    ) as QuantityStats;
+
+    expect(setting.distinctCount).toBe(1);
+    expect(setting.singleValue).toBe(25);
+    expect(setting.emptyBucket).toMatchObject({
+      label: "controls.flowModulating.setByControl",
+      count: 1,
+    });
+  });
+
   it("reports a single distinct value when all assets share it", () => {
     const IDS = { J1: 1, J2: 2 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()

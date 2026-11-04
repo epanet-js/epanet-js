@@ -42,7 +42,7 @@ const ASSET_COMPUTED_KEYS: Record<AssetType, Set<string>> = {
     "customerPointCount",
   ]),
   pump: new Set(["startNode", "endNode"]),
-  valve: new Set(["startNode", "endNode", "targetNodeId"]),
+  valve: new Set(["startNode", "endNode", "targetNodeId", "setting"]),
   reservoir: new Set<string>([]),
   tank: new Set(["minLevel", "maxLevel", "minVolume", "maxVolume"]),
 };
@@ -138,6 +138,11 @@ function computeAssetComputedField(
       }
       // No volume curve → the asset's own value.
       return tank ? (tank as unknown as Record<string, unknown>)[key] : null;
+    }
+    case "setting": {
+      const valve = model.assets.get(id) as Valve | undefined;
+      if (!valve || model.controlsLookup.hasControls(valve.id)) return null;
+      return valve.setting;
     }
     case "targetNodeId": {
       const valve = model.assets.get(id) as Valve | undefined;
