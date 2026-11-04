@@ -383,14 +383,12 @@ const PointsGrid = ({
       floatColumn("flow", {
         header: flowHeader,
         size: 80,
-        emptyValue: 0,
         validate: isFlowValid,
         commitInvalidValues: true,
       }),
       floatColumn("pressure", {
         header: pressureHeader,
         size: 80,
-        emptyValue: 0,
         validate: isPressureValid,
         commitInvalidValues: true,
       }),
