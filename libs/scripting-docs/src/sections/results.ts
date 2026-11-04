@@ -15,7 +15,7 @@ const resultsProperty = propertyOf("SimulationResult");
 
 export const SECTION: Section = {
   id: "results",
-  number: "1.9",
+  number: "1.11",
   title: "Simulation results",
   intro:
     "Results come from the simulation the user last ran from the toolbar, read as it was when the script started. Scripts cannot run a simulation themselves.\n\nRead them from the asset: `junction.results.pressure`, `pipe.results.flow`, documented with each asset type in Assets. That covers most scripts, and looping over every asset reads the timestep once. `results` is the timestep the user had selected in the app; `results.at(i)` and `results.series(property)` reach the asset's other timesteps, and a node's `stats` and a pump's `energy` cover the whole run.\n\nUse `network.results` for the run as a whole: whether it succeeded and is still current (`status`, `isStale`), its `timesteps` and the one the app shows (`currentStep`), and the lowest and highest values across the network (`minValues`, `maxValues`), which read the stored results directly instead of looping over assets.",

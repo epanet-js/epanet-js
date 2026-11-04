@@ -6,7 +6,7 @@ const geo = memberOf("NetworkGeo");
 
 export const SECTION: Section = {
   id: "spatial",
-  number: "1.5",
+  number: "1.7",
   title: "Spatial queries and geometry",
   types: [
     {

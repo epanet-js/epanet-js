@@ -4,7 +4,9 @@ import { GLOBALS, INTERFACES } from "./interfaces";
 import { sectionFor as assetsFor } from "./sections/assets";
 import { SECTION as COLLECTIONS } from "./sections/collections";
 import { SECTION as EXPORT } from "./sections/export";
-import { sectionFor as librariesFor } from "./sections/libraries";
+import { SECTION as CONTROLS_AND_ATTRIBUTES } from "./sections/controls-and-attributes";
+import { SECTION as CURVES } from "./sections/curves";
+import { sectionFor as patternsFor } from "./sections/patterns";
 import {
   COLLECTIONS_SECTION,
   CONSOLE_SECTION,
@@ -63,7 +65,9 @@ const buildDocs = (candidates: DocsCandidates): ScriptingDocs => ({
     OVERVIEW,
     COLLECTIONS,
     assetsFor(candidates),
-    librariesFor(candidates),
+    patternsFor(candidates),
+    CURVES,
+    CONTROLS_AND_ATTRIBUTES,
     SPATIAL,
     TOPOLOGY,
     REVIEW,

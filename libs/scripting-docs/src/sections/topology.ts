@@ -5,7 +5,7 @@ const network = memberOf("Network");
 
 export const SECTION: Section = {
   id: "topology",
-  number: "1.6",
+  number: "1.8",
   title: "Topology and tracing",
   types: [
     {
