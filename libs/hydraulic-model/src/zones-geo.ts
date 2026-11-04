@@ -754,6 +754,15 @@ export class ZonesGeoView {
     return this.polygonsAt(zone, x, y).length > 0;
   }
 
+  zonesAt(x: number, y: number): ZoneId[] {
+    if (!this.zonesIndex) return [];
+    const ids: ZoneId[] = [];
+    for (const zone of this.zonesIndex.search(x, y, x, y)) {
+      if (this.containsPoint(zone, x, y)) ids.push(this.zoneIds[zone]);
+    }
+    return ids;
+  }
+
   classifyLine(zone: number, line: Position[]): "inside" | "boundary" | null {
     if (!this.chunksIndex) return null;
     let candidates: Set<number> | null = null;

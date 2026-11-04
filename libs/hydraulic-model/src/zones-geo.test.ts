@@ -170,6 +170,37 @@ describe("ZonesGeoView.containsPoint", () => {
   });
 });
 
+describe("ZonesGeoView.zonesAt", () => {
+  const zonesView = (zones: Zone[]) =>
+    new ZonesGeoView(
+      encodeZonesGeo(new Map(zones.map((zone) => [zone.id, zone]))),
+    );
+
+  it("returns the zones that contain the point", () => {
+    const view = zonesView([
+      aZone(1, [[square(0, 0, 10, 10)]]),
+      aZone(2, [[square(5, 0, 15, 10)]]),
+      aZone(3, [[square(20, 0, 30, 10)]]),
+    ]);
+
+    expect(view.zonesAt(7, 5).sort()).toEqual([1, 2]);
+    expect(view.zonesAt(25, 5)).toEqual([3]);
+  });
+
+  it("returns nothing for a point in a hole or outside every zone", () => {
+    const view = zonesView([
+      aZone(1, [[square(0, 0, 10, 10), square(4, 4, 6, 6)]]),
+    ]);
+
+    expect(view.zonesAt(5, 5)).toEqual([]);
+    expect(view.zonesAt(15, 5)).toEqual([]);
+  });
+
+  it("returns nothing when there are no zones", () => {
+    expect(zonesView([]).zonesAt(0, 0)).toEqual([]);
+  });
+});
+
 describe("ZonesGeoView.classifyLine", () => {
   const twoParts = aZone(1, [
     [square(0, 0, 10, 10), square(4, 4, 6, 6)],

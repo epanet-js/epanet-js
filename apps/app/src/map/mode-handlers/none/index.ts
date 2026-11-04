@@ -9,6 +9,8 @@ import { useSelection, USelection } from "src/selection";
 import { useKeyboardState } from "src/keyboard/use-keyboard-state";
 import { searchNearbyRenderedFeatures } from "src/map/search";
 import { clickableLayers } from "src/map/layers/layer";
+import { zonesVisibleAtom } from "src/state/map-symbology";
+import { getZonesGeoView } from "src/lib/spatial-query/data";
 
 import { getNode } from "src/hydraulic-model";
 import {
@@ -74,6 +76,7 @@ export function useNoneHandlers({
     toggleZoneSelection,
   } = useSelection(selection);
   const isZoneSelectionOn = useFeatureFlag("FLAG_ZONE_SELECTION");
+  const zonesVisible = useAtomValue(zonesVisibleAtom);
   const { isShiftHeld } = useKeyboardState();
   const {
     setStartPoint,
@@ -101,8 +104,11 @@ export function useNoneHandlers({
     moveActivated: customerPointMoveActivated,
   } = useCustomerPointMoveState();
 
-  const fastMovePointer = (point: mapboxgl.Point) => {
+  const fastMovePointer = (
+    e: mapboxgl.MapMouseEvent | mapboxgl.MapTouchEvent,
+  ) => {
     if (!map) return;
+    const { point } = e;
 
     const features = searchNearbyRenderedFeatures(map, {
       point,
@@ -129,11 +135,15 @@ export function useNoneHandlers({
       }
     }
 
+    if (!hasClickableElement && isZoneSelectionOn) {
+      hasClickableElement = getZoneIdAt(e.lngLat) !== null;
+    }
+
     setCursor(hasClickableElement ? "pointer" : "");
   };
 
   const skipMove = (e: mapboxgl.MapMouseEvent | mapboxgl.MapTouchEvent) => {
-    fastMovePointer(e.point);
+    fastMovePointer(e);
   };
 
   const startElevationFetch = () => {
@@ -177,14 +187,13 @@ export function useNoneHandlers({
     return closest;
   };
 
-  const getClickedZoneId = (
-    e: mapboxgl.MapMouseEvent | mapboxgl.MapTouchEvent,
-  ): number | null => {
-    const [feature] = map.queryRenderedFeatures(e.point, {
-      layers: ["zones-fill"],
-    });
-    const id = Number(feature?.properties?.id);
-    return hydraulicModel.zones.has(id) ? id : null;
+  const getZoneIdAt = (lngLat: mapboxgl.LngLat): number | null => {
+    if (!zonesVisible || hydraulicModel.zones.size === 0) return null;
+    const zoneIds = getZonesGeoView(hydraulicModel.zones).zonesAt(
+      lngLat.lng,
+      lngLat.lat,
+    );
+    return zoneIds.length > 0 ? zoneIds[zoneIds.length - 1] : null;
   };
 
   const handleUp: Handlers["up"] = (e) => {
@@ -479,7 +488,7 @@ export function useNoneHandlers({
           return;
         }
 
-        const clickedZoneId = isZoneSelectionOn ? getClickedZoneId(e) : null;
+        const clickedZoneId = isZoneSelectionOn ? getZoneIdAt(e.lngLat) : null;
         if (clickedZoneId !== null) {
           if (isShiftHeld()) {
             toggleZoneSelection(clickedZoneId);

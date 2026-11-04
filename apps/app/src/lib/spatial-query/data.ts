@@ -9,6 +9,7 @@ import {
   CustomerPoints,
   Zones,
   ZonesGeoBuffers,
+  ZonesGeoView,
   cloneZonesGeoBuffers,
   encodeZonesGeo,
 } from "@epanet-js/hydraulic-model";
@@ -87,6 +88,17 @@ export const getEncodedZonesGeoBuffers = (
     zoneBuffersCache.set(zones, entry);
   }
   return entry;
+};
+
+const zonesViewCache = new WeakMap<Zones, ZonesGeoView>();
+
+export const getZonesGeoView = (zones: Zones): ZonesGeoView => {
+  let view = zonesViewCache.get(zones);
+  if (!view) {
+    view = new ZonesGeoView(getEncodedZonesGeoBuffers(zones));
+    zonesViewCache.set(zones, view);
+  }
+  return view;
 };
 
 export const getEncodedAreaSelectionBuffers = (
