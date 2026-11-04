@@ -512,6 +512,8 @@
   "pressure": "Pressure",
   "minPressure": "Min pressure",
   "maxPressure": "Max pressure",
+  "minElevation": "Min elevation",
+  "maxElevation": "Max elevation",
   "pressures": "Pressures",
   "level": "Level",
   "volume": "Volume",

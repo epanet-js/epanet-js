@@ -55,6 +55,7 @@ export type MultiAssetPanelCollapse = {
   reservoir: boolean;
   tank: boolean;
   customerPoint: boolean;
+  zone: boolean;
 };
 
 const DEFAULT_MULTI_ASSET_PANEL_COLLAPSE: MultiAssetPanelCollapse = {
@@ -65,6 +66,7 @@ const DEFAULT_MULTI_ASSET_PANEL_COLLAPSE: MultiAssetPanelCollapse = {
   reservoir: true,
   tank: true,
   customerPoint: true,
+  zone: true,
 };
 
 const storedMultiAssetPanelCollapseAtom = atomWithStorage<

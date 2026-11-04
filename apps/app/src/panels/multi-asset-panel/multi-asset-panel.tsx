@@ -12,6 +12,7 @@ import {
 import { AssetTypeSections } from "./sections";
 import { MultiCustomAttributesSection } from "./multi-custom-attributes-section";
 import { CustomerPointPanelSection } from "./customer-point-panel-section";
+import { ZonePanelSection } from "./zone-panel-section";
 import { SelectOnlyButton } from "./select-only-button";
 import { useAtom, useAtomValue } from "jotai";
 import { projectSettingsAtom } from "src/state/project-settings";
@@ -35,7 +36,7 @@ import { changeProperty } from "@epanet-js/hydraulic-model-operations";
 import type { ChangeableProperty } from "@epanet-js/hydraulic-model-operations";
 import { activateAssets } from "@epanet-js/hydraulic-model-operations";
 import { deactivateAssets } from "@epanet-js/hydraulic-model-operations";
-import { useSelection } from "src/selection";
+import { USelection, useSelection } from "src/selection";
 import { useShowPumpLibrary } from "src/commands/show-pump-library";
 import { useShowPatternsLibrary } from "src/commands/show-patterns-library";
 
@@ -481,9 +482,7 @@ export function MultiAssetPanel({
       )}
 
       {zoneCount > 0 && (
-        <div className="flex items-center h-8 text-size-base font-semibold">
-          {`${translate("zones")} (${zoneCount})`}
-        </div>
+        <ZonePanelSection zoneIds={USelection.getZoneIds(selection)} />
       )}
     </SectionList>
   );

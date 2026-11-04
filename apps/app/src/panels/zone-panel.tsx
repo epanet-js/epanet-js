@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useAtomValue } from "jotai";
 import {
   baseModelDerivedAtom,
@@ -23,6 +23,14 @@ import { useZoomToSelection } from "src/commands/zoom-to-selection";
 import { useSelectZoneContents } from "src/commands/select-zone-contents";
 import { PolygonalSelectionIcon, ZoomToIcon } from "src/icons";
 import { changeZoneProperty } from "@epanet-js/hydraulic-model-operations";
+import { SectionList } from "src/components/form/fields";
+import { SectionWrapper } from "./asset-panel/ui-components";
+import {
+  ElevationRangeRows,
+  PressureRangeRows,
+  RangeLoader,
+  useZoneRanges,
+} from "./zone-ranges";
 
 export function ZonePanel() {
   const translate = useTranslate();
@@ -153,6 +161,34 @@ export function ZonePanel() {
           {translate("zone")}
         </span>
       </div>
+      <ZoneRangeSections key={zone.id} zoneId={zone.id} />
     </div>
   );
 }
+
+const ZoneRangeSections = ({ zoneId }: { zoneId: number }) => {
+  const translate = useTranslate();
+  const zoneIds = useMemo(() => [zoneId], [zoneId]);
+  const { elevations, pressures, isPending } = useZoneRanges(zoneIds);
+
+  return (
+    <SectionList padding={3} overflow={true}>
+      <SectionWrapper
+        title={translate("modelAttributes")}
+        section="modelAttributes"
+      >
+        {isPending ? (
+          <RangeLoader />
+        ) : (
+          <ElevationRangeRows range={elevations} />
+        )}
+      </SectionWrapper>
+      <SectionWrapper
+        title={translate("simulationResults")}
+        section="simulationResults"
+      >
+        {isPending ? <RangeLoader /> : <PressureRangeRows range={pressures} />}
+      </SectionWrapper>
+    </SectionList>
+  );
+};
