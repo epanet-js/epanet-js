@@ -1,13 +1,21 @@
 import { useEffect, useRef } from "react";
 import { useAtom, useAtomValue } from "jotai";
 import { useMove } from "@react-aria/interactions";
-import { scriptRunAtom, type ScriptRunState } from "src/state/scripts";
+import {
+  scriptRunAtom,
+  type ScriptConsoleLine,
+  type ScriptRunState,
+} from "src/state/scripts";
 import type { ScriptRunOutcome } from "src/lib/scripting";
 import { useGoToScriptLine } from "src/commands/go-to-script-line";
 import { panelContentStateAtom } from "src/state/panels";
 import { contentStateFor, withContentState } from "src/panels/panel-template";
 import { accumulateResize } from "src/components/resizer";
 import { useTranslate } from "src/hooks/use-translate";
+import { Button } from "src/components/elements";
+import { CopyIcon } from "src/icons";
+import { writeToClipboard } from "src/lib/utils";
+import { captureError } from "src/infra/error-tracking";
 import {
   ConsoleLines,
   RunStatus,
@@ -58,12 +66,32 @@ const RunOutput = ({
     <div ref={containerRef} className="h-full flex flex-row min-h-0">
       <div
         ref={consoleRef}
-        className="flex-1 min-w-0 overflow-auto placemark-scrollbar p-3 font-mono text-size-base text-default whitespace-pre-wrap"
+        className="flex-1 min-w-0 flex flex-row items-start overflow-auto placemark-scrollbar"
       >
-        {!(error && run.lines.length === 0) && (
-          <ConsoleLines lines={run.lines} />
-        )}
-        {error && <RunErrorLine error={error} run={run} />}
+        <div className="flex-1 min-w-0 p-3 font-mono text-size-base text-default whitespace-pre-wrap">
+          {!(error && run.lines.length === 0) && (
+            <ConsoleLines lines={run.lines} />
+          )}
+          {error && <RunErrorLine error={error} run={run} />}
+        </div>
+        <div className="sticky top-0 shrink-0 flex flex-col items-center py-2 px-1">
+          <Button
+            variant="quiet"
+            size="sm"
+            aria-label={translate("scripting.copyLog")}
+            title={translate("scripting.copyLog")}
+            disabled={run.lines.length === 0 && !error}
+            onClick={() => {
+              writeToClipboard(
+                logText(run.lines, error, (line) =>
+                  translate("scripting.atLine", String(line)),
+                ),
+              ).catch(captureError);
+            }}
+          >
+            <CopyIcon size="sm" />
+          </Button>
+        </div>
       </div>
       <div
         className="relative shrink-0 border-l"
@@ -112,17 +140,36 @@ const RunOutput = ({
   );
 };
 
+type RunError = Extract<ScriptRunOutcome, { status: "error" }>["error"];
+
+const logText = (
+  lines: ScriptConsoleLine[],
+  error: RunError | null,
+  atLine: (line: number) => string,
+): string => {
+  const text = lines.map((line) =>
+    line.type === "text"
+      ? line.text
+      : [line.columns, ...line.rows].map((row) => row.join("\t")).join("\n"),
+  );
+  if (error) {
+    text.push(`${error.name}: ${error.message}`);
+    if (error.line !== null) text.push(`  ${atLine(error.line)}`);
+  }
+  return text.join("\n");
+};
+
 const RunErrorLine = ({
   error: { name, message, line },
   run,
 }: {
-  error: Extract<ScriptRunOutcome, { status: "error" }>["error"];
+  error: RunError;
   run: ScriptRunState;
 }) => {
   const translate = useTranslate();
   const goToLine = useGoToScriptLine(run.draft);
   return (
-    <div className="-mx-1.5 px-1.5 py-0.5 my-0.5 text-error bg-error-subtle">
+    <div className="-mx-1.5 px-1.5 py-0.5 my-0.5 rounded-sm text-error bg-error-subtle">
       <div>{`${name}: ${message}`}</div>
       {line !== null && (
         <div className="pl-4">

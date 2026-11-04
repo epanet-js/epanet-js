@@ -139,6 +139,7 @@
     "finished": "Script finished",
     "finishedWithErrors": "Finished with errors",
     "atLine": "at line {{1}}",
+    "copyLog": "Copy log",
     "files": "Files",
     "download": "Download",
     "downloadAllAsZip": "Download all as zip",
