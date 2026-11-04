@@ -241,7 +241,7 @@ const appendPipeSymbologyProps = (
       (pipe[property as keyof Pipe] as number | null) ??
       resolveAssetDefault(defaultsResolvers, pipe, property);
   }
-  if (isSimProperty || value !== null) {
+  if (!Number.isNaN(value) && (isSimProperty || value !== null)) {
     feature.properties!.color = colorFor(linkSymbology.colorRule, value ?? 0);
   }
   appendPipeArrowProps(pipe, feature, units, simulationResults);
@@ -277,7 +277,7 @@ const appendJunctionSymbologyProps = (
       (junction[property as keyof Junction] as number | null) ??
       resolveAssetDefault(defaultsResolvers, junction, property);
   }
-  if (isSimProperty || value !== null) {
+  if (!Number.isNaN(value) && (isSimProperty || value !== null)) {
     const fillColor = colorFor(nodeSymbology.colorRule, value ?? 0);
     feature.properties!.color = fillColor;
     feature.properties!.strokeColor = strokeColorFor(fillColor);

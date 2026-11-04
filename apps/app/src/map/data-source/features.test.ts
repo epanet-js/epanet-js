@@ -183,6 +183,40 @@ describe("build optimized source", () => {
       expect(j1.properties!.color).toEqual(j2.properties!.color);
     });
 
+    it("leaves a junction with a NaN simulation result uncolored", async () => {
+      const IDS = { J1: 1 } as const;
+      const symbology: SymbologySpec = {
+        ...nullSymbologySpec,
+        node: aNodeSymbology({
+          colorRule: aRangeColorRule({
+            breaks: [10, 20, 30],
+            property: "pressure",
+            unit: "m",
+            colors: getColors("Temps", 4),
+          }),
+        }),
+      };
+      const { assets } = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, { elevation: 15 })
+        .build();
+      const simulationResults = createMockResultsReader({
+        junctions: { [IDS.J1]: { pressure: NaN } },
+      });
+
+      const features = await buildOptimizedAssetsSource(
+        assets,
+        symbology,
+        defaultUnits,
+        defaultFormatting,
+        fakeTranslateUnit,
+        simulationResults,
+      );
+
+      const [junction] = features;
+      expect(junction.properties!.color).toBeUndefined();
+      expect(junction.properties!.strokeColor).toBeUndefined();
+    });
+
     it("includes labels when specified", async () => {
       const IDS = { J1: 1 } as const;
       const symbology: SymbologySpec = {
@@ -416,6 +450,26 @@ describe("build optimized source", () => {
         hasArrow: false,
       });
       expect(p1.properties!.color).toEqual(p2.properties!.color);
+    });
+
+    it("leaves a pipe with a NaN simulation result uncolored", async () => {
+      const IDS = { p1: 1 } as const;
+      const { assets } = HydraulicModelBuilder.with().aPipe(IDS.p1).build();
+      const simulationResults = createMockResultsReader({
+        pipes: { [IDS.p1]: { flow: NaN } },
+      });
+
+      const features = await buildOptimizedAssetsSource(
+        assets,
+        symbology,
+        defaultUnits,
+        defaultFormatting,
+        fakeTranslateUnit,
+        simulationResults,
+      );
+
+      const [pipe] = features;
+      expect(pipe.properties!.color).toBeUndefined();
     });
 
     it("leaves a null static attribute uncolored so it uses the default color", async () => {
