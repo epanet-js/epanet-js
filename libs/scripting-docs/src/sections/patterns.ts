@@ -78,10 +78,40 @@ network.setPattern("DAILY", { label: "WEEKDAY" });`,
   ],
 });
 
+const DELETE_PATTERN: Member = network({
+  name: "deletePattern",
+  signature: "deletePattern(label: string): void",
+  summary:
+    "Deletes a pattern found by its label, ignoring case, when nothing uses it.",
+  description:
+    "A pattern is in use while a junction or customer point demand, a reservoir's head, a node's quality source, a pump's speed or energy price, or the simulation's global energy price names it. Use is judged on the network as the script has changed it so far, so take the pattern off what uses it first. Its label is free again straight away. The deletion reaches the network with the other changes.",
+  throws: [
+    "`TypeError` when no pattern has `label`, or the pattern is in use.",
+  ],
+  examples: [
+    {
+      title: "Delete every pattern nothing uses",
+      code: `for (const { label } of network.patterns) {
+  try {
+    network.deletePattern(label);
+    console.log("deleted", label);
+  } catch (error) {
+    console.log("kept", label, error.message);
+  }
+}`,
+    },
+  ],
+});
+
 export const sectionFor = ({ edits }: DocsCandidates): Section =>
   edits
     ? {
         ...SECTION,
-        members: [...(SECTION.members ?? []), ADD_PATTERN, SET_PATTERN],
+        members: [
+          ...(SECTION.members ?? []),
+          ADD_PATTERN,
+          SET_PATTERN,
+          DELETE_PATTERN,
+        ],
       }
     : SECTION;

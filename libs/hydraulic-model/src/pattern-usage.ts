@@ -1,31 +1,9 @@
-import {
-  Node,
-  Pump,
-  Reservoir,
-  Tank,
-  Valve,
-  type CurveId,
-  type Demand,
-  type PatternId,
-} from "@epanet-js/hydraulic-model";
-import type { HydraulicModel } from "../hydraulic-model";
-
-export const isCurveInUse = (
-  hydraulicModel: HydraulicModel,
-  curveId: CurveId,
-): boolean => {
-  for (const asset of hydraulicModel.assets.values()) {
-    if (asset instanceof Pump) {
-      if (asset.curveId === curveId || asset.efficiencyCurveId === curveId)
-        return true;
-    } else if (asset instanceof Tank) {
-      if (asset.volumeCurveId === curveId) return true;
-    } else if (asset instanceof Valve) {
-      if (asset.curveId === curveId) return true;
-    }
-  }
-  return false;
-};
+import { Node } from "./asset-types/node";
+import { Pump } from "./asset-types/pump";
+import { Reservoir } from "./asset-types/reservoir";
+import type { Demand } from "./demands";
+import type { HydraulicModel } from "./hydraulic-model";
+import type { PatternId } from "./patterns";
 
 export const isPatternInUse = (
   hydraulicModel: HydraulicModel,

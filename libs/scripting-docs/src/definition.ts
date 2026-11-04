@@ -31,7 +31,7 @@ const READ_ONLY_RULE =
   "Everything is read-only. If the user asks to change the model, say so — do not write a script that assigns to asset fields.";
 
 const EDITS_RULE =
-  "Change assets only with `asset.set(...)` for the attributes its `Changes` type lists, custom attributes with `setCustom(...)`, the demands of a junction or customer point with `setDemands(...)`, a node's quality source with `setQualitySource(...)`, a tank's volume curve with `setVolumeCurve(...)`, a pump's definition with `setDefinition(...)` and its control with `setControl(...)`, and a valve's kind with `setKind(...)`. Add a pattern with `network.addPattern(...)` and change one with `network.setPattern(...)`. Everything else is read-only. If the user asks for another change, say so — never assign to asset fields.";
+  "Change assets only with `asset.set(...)` for the attributes its `Changes` type lists, custom attributes with `setCustom(...)`, the demands of a junction or customer point with `setDemands(...)`, a node's quality source with `setQualitySource(...)`, a tank's volume curve with `setVolumeCurve(...)`, a pump's definition with `setDefinition(...)` and its control with `setControl(...)`, and a valve's kind with `setKind(...)`. Add, change and delete patterns with `network.addPattern(...)`, `network.setPattern(...)` and `network.deletePattern(...)`. Everything else is read-only. If the user asks for another change, say so — never assign to asset fields.";
 
 const AGENT_RULES = [
   "Orient once: start the first script on an unfamiliar model with `console.log(network.stats)` and `console.log(network.units)`.",
@@ -54,7 +54,7 @@ const AGENT_RULES = [
 const buildDocs = (candidates: DocsCandidates): ScriptingDocs => ({
   title: "epanet-js scripting API",
   apiVersion: SCRIPT_API_VERSION,
-  summary: `Sandboxed JavaScript scripting for epanet-js, a browser-based water network modelling app built on the EPANET engine. A script reads the open network — assets, patterns, curves, controls, the pipe library, settings — queries it spatially and topologically, reads the project's zones, runs the app's own review checks, reads the last simulation's results, exports it as INP, and hands results back as the map selection, a zoom, console output and attached files. ${candidates.edits ? "Scripts can change asset attributes and pump controls, and add and change patterns; they cannot otherwise edit the model or run a simulation." : "This version is read-only: scripts cannot edit the model or run a simulation."}`,
+  summary: `Sandboxed JavaScript scripting for epanet-js, a browser-based water network modelling app built on the EPANET engine. A script reads the open network — assets, patterns, curves, controls, the pipe library, settings — queries it spatially and topologically, reads the project's zones, runs the app's own review checks, reads the last simulation's results, exports it as INP, and hands results back as the map selection, a zoom, console output and attached files. ${candidates.edits ? "Scripts can change asset attributes and pump controls, and add, change and delete patterns; they cannot otherwise edit the model or run a simulation." : "This version is read-only: scripts cannot edit the model or run a simulation."}`,
   intro:
     "This is the complete surface a script sees. Everything below is injected into the sandbox; nothing else exists.",
   globals: GLOBALS,

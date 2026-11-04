@@ -16,6 +16,7 @@ import {
   stripTrailingEmptyPoints,
   deepCloneCurves,
   differentCurvesCount,
+  isCurveInUse,
   LabelManager,
 } from "@epanet-js/hydraulic-model";
 import { CurveLibraryIcon } from "src/icons";
@@ -27,7 +28,6 @@ import { notify } from "src/components/notifications";
 import { useUserTracking } from "src/infra/user-tracking";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { getCurveTypeConfig } from "./curve-type-config";
-import { isCurveInUse } from "src/hydraulic-model/utilities/library-usage";
 import { DialogActions, DialogActionsHandle } from "../dialog-actions-row";
 import {
   ImportExportCurvesToolbar,

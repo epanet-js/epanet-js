@@ -20,7 +20,7 @@ import {
   simulationSettingsDerivedAtom,
 } from "src/state/derived-branch-state";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
-import { isPatternInUse } from "src/hydraulic-model/utilities/library-usage";
+import { isPatternInUse } from "@epanet-js/hydraulic-model";
 import { notify } from "src/components/notifications";
 import { useUserTracking } from "src/infra/user-tracking";
 import { modelFactoriesAtom } from "src/state/model-factories";
