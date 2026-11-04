@@ -900,6 +900,136 @@ describe("validateModelAttributes", () => {
     });
   });
 
+  describe("variable speed pump control", () => {
+    const IDS = { J1: 1, J2: 2, J3: 3, PU1: 4, PU2: 5, P1: 6, T1: 7 } as const;
+
+    // J1 --PU1--> J2 --P1--> J3, with PU2 in parallel to PU1 and a free tank.
+    const aVspPump = ({
+      quantity = "pressure",
+      targetId = IDS.J2,
+      laggedPumpIds = [],
+      tankLevels,
+      inactive = [],
+    }: {
+      quantity?: "pressure" | "flow" | "level";
+      targetId?: number;
+      laggedPumpIds?: number[];
+      tankLevels?: { tankId: number; offLevel: number; onLevel: number };
+      inactive?: number[];
+    } = {}) => {
+      const active = (id: number) => ({ isActive: !inactive.includes(id) });
+      return HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, { elevation: 50 })
+        .aJunction(IDS.J2, { elevation: 50, ...active(IDS.J2) })
+        .aJunction(IDS.J3, { elevation: 50 })
+        .aPump(IDS.PU1, {
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
+          definitionType: "power",
+          power: 10,
+        })
+        .aPump(IDS.PU2, {
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
+          definitionType: "power",
+          power: 10,
+          ...active(IDS.PU2),
+        })
+        .aPipe(IDS.P1, {
+          startNodeId: IDS.J2,
+          endNodeId: IDS.J3,
+          roughness: 130,
+          diameter: 100,
+          length: 100,
+          ...active(IDS.P1),
+        })
+        .aTank(IDS.T1, {
+          elevation: 50,
+          initialLevel: 5,
+          diameter: 100,
+          maxLevel: 10,
+          minLevel: 0,
+          ...active(IDS.T1),
+        })
+        .aVariableSpeedPumpControl({
+          linkId: IDS.PU1,
+          quantity,
+          targetId,
+          target: 30,
+          minSpeed: 0.3,
+          maxSpeed: 1,
+          laggedPumpIds,
+          schedule: [],
+          tankLevels,
+        })
+        .build();
+    };
+
+    const vspIssues = async (model: ReturnType<typeof aVspPump>) =>
+      ruleIdsOf(await validateModelAttributes(model)).filter((id) =>
+        id.startsWith("pump.variableSpeed"),
+      );
+
+    it("flags an inactive pressure target node", async () => {
+      const model = aVspPump({ quantity: "pressure", inactive: [IDS.J2] });
+
+      const issues = await validateModelAttributes(model);
+
+      expect(
+        entityIdsOf(issues, "pump.variableSpeedPressureTarget.active"),
+      ).toEqual([IDS.PU1]);
+      expect(severityOf("pump.variableSpeedPressureTarget.active")).toBe(
+        "error",
+      );
+    });
+
+    it("flags an inactive flow target link", async () => {
+      const model = aVspPump({
+        quantity: "flow",
+        targetId: IDS.P1,
+        inactive: [IDS.P1],
+      });
+
+      expect(await vspIssues(model)).toEqual([
+        "pump.variableSpeedFlowTarget.active",
+      ]);
+    });
+
+    it("flags an inactive level target tank", async () => {
+      const model = aVspPump({
+        quantity: "level",
+        targetId: IDS.T1,
+        inactive: [IDS.T1],
+      });
+
+      expect(await vspIssues(model)).toEqual([
+        "pump.variableSpeedLevelTarget.active",
+      ]);
+    });
+
+    it("flags an inactive lag pump", async () => {
+      const model = aVspPump({
+        laggedPumpIds: [IDS.PU2],
+        inactive: [IDS.PU2],
+      });
+
+      expect(await vspIssues(model)).toEqual([
+        "pump.variableSpeedLaggedPumps.active",
+      ]);
+    });
+
+    it("flags an inactive start/stop tank", async () => {
+      const model = aVspPump({
+        tankLevels: { tankId: IDS.T1, offLevel: 8, onLevel: 2 },
+        inactive: [IDS.T1],
+      });
+
+      expect(await vspIssues(model)).toEqual([
+        "pump.variableSpeedTankLevels.active",
+      ]);
+    });
+  });
+
   describe("customer point connection", () => {
     it("flags a disconnected customer point as a warning", async () => {
       const model = HydraulicModelBuilder.with()

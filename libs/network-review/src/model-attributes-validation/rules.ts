@@ -4,6 +4,8 @@ import {
   effectiveRoughness,
   FlowModulatingValveControl,
   getLinkFlowModulatingValve,
+  getLinkVariableSpeedPump,
+  VariableSpeedPumpControl,
   getPumpCurveErrors,
   inferredRoughness,
   Pipe,
@@ -240,6 +242,43 @@ const flowModulatingReferenceRule = (
   };
 };
 
+const variableSpeedControlOf = (
+  entity: ValidatableEntity,
+  model?: HydraulicModel,
+): VariableSpeedPumpControl | null =>
+  model
+    ? getLinkVariableSpeedPump(
+        model.controls,
+        readEntityProp(entity, "id") as number,
+      )
+    : null;
+
+const isActiveAsset = (
+  model: HydraulicModel | undefined,
+  assetId: number,
+): boolean => {
+  const asset = model?.assets.get(assetId);
+  return !!asset && asset.isActive;
+};
+
+const variableSpeedTargetRule = (
+  quantity: VariableSpeedPumpControl["quantity"],
+  name: "Pressure" | "Flow" | "Level",
+): Rule => ({
+  id: `pump.variableSpeed${name}Target.active`,
+  type: "model",
+  entityType: "pump",
+  field: `variableSpeed${name}Target`,
+  accessor: variableSpeedControlOf,
+  appliesWhen: (entity, model) =>
+    variableSpeedControlOf(entity, model)?.quantity === quantity,
+  check: (value, _entity, model) =>
+    !value ||
+    isActiveAsset(model, (value as VariableSpeedPumpControl).targetId),
+  severity: "error",
+  message: "mustBeActive",
+});
+
 export const RULES: Rule[] = [
   // Node elevation (reservoirs use head, not elevation, so are excluded)
   ...(["junction", "tank"] as const).map(
@@ -416,6 +455,40 @@ export const RULES: Rule[] = [
       id: "node.chemicalSourceStrength.nonNegative",
     }),
   ),
+  variableSpeedTargetRule("pressure", "Pressure"),
+  variableSpeedTargetRule("flow", "Flow"),
+  variableSpeedTargetRule("level", "Level"),
+  {
+    id: "pump.variableSpeedLaggedPumps.active",
+    type: "model",
+    entityType: "pump",
+    field: "variableSpeedLaggedPumps",
+    accessor: variableSpeedControlOf,
+    appliesWhen: (entity, model) =>
+      (variableSpeedControlOf(entity, model)?.laggedPumpIds.length ?? 0) > 0,
+    check: (value, _entity, model) =>
+      !value ||
+      (value as VariableSpeedPumpControl).laggedPumpIds.every((id) =>
+        isActiveAsset(model, id),
+      ),
+    severity: "error",
+    message: "mustBeActive",
+  },
+  {
+    id: "pump.variableSpeedTankLevels.active",
+    type: "model",
+    entityType: "pump",
+    field: "variableSpeedTankLevels",
+    accessor: variableSpeedControlOf,
+    appliesWhen: (entity, model) =>
+      variableSpeedControlOf(entity, model)?.tankLevels != null,
+    check: (value, _entity, model) => {
+      const tankLevels = (value as VariableSpeedPumpControl | null)?.tankLevels;
+      return !tankLevels || isActiveAsset(model, tankLevels.tankId);
+    },
+    severity: "error",
+    message: "mustBeActive",
+  },
   // Customer points
   {
     id: "customerPoint.connected",
