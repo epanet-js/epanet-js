@@ -70,13 +70,13 @@ const RunOutput = ({
         ref={consoleRef}
         className="flex-1 min-w-0 flex flex-row items-start overflow-auto placemark-scrollbar"
       >
-        <div className="flex-1 min-w-0 p-3 font-mono text-size-base text-default whitespace-pre-wrap">
+        <div className="flex-1 min-w-0 py-2 pl-3 font-mono text-size-base text-default whitespace-pre-wrap">
           {!(error && run.lines.length === 0) && (
             <ConsoleLines lines={run.lines} />
           )}
           {error && <RunErrorLine error={error} run={run} />}
         </div>
-        <div className="sticky top-0 shrink-0 flex flex-col items-center py-2 px-1">
+        <div className="sticky top-0 shrink-0 flex flex-col items-center p-2">
           <CopyLogButton
             disabled={run.lines.length === 0 && !error}
             linesCount={run.lines.length}
@@ -168,7 +168,8 @@ const CopyLogButton = ({
     >
       <Button
         variant="quiet"
-        size="sm"
+        size="xxs"
+        className="h-8 w-8 justify-center"
         aria-label={translate("scripting.copyLog")}
         title={copied ? undefined : translate("scripting.copyLog")}
         disabled={disabled}
@@ -185,7 +186,7 @@ const CopyLogButton = ({
             .catch(captureError);
         }}
       >
-        <CopyIcon size="sm" />
+        <CopyIcon />
       </Button>
     </Tooltip>
   );
@@ -220,7 +221,7 @@ const RunErrorLine = ({
   const translate = useTranslate();
   const goToLine = useGoToScriptLine(run.draft);
   return (
-    <div className="-mx-1.5 px-1.5 py-0.5 my-0.5 rounded-sm text-error bg-error-subtle">
+    <div className="-ml-1 px-1 py-1.5 rounded-sm text-error bg-error-subtle">
       <div>{`${name}: ${message}`}</div>
       {line !== null && (
         <div className="pl-4">
