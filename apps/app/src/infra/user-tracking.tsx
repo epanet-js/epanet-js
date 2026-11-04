@@ -2050,7 +2050,7 @@ export type UserEvent =
       query: string;
       queryLength: number;
       resultsCount: number;
-      selectedKind?: "asset" | "customerPoint";
+      selectedKind?: "asset" | "customerPoint" | "zone";
       selectedAssetType?: Asset["type"];
       selectedFromRecents?: boolean;
       selectedIndex?: number;

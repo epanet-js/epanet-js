@@ -396,20 +396,23 @@ const cases: OperationCase[] = [
         property: "label",
         value: "SOUTH",
       }),
-    expectApplied: ({ model }) => {
+    expectApplied: ({ model, labelManager }) => {
       expect(model.zones.get(IDS.Z1)).toEqual({
         id: IDS.Z1,
         label: "SOUTH",
         ...aSquare(0),
       });
+      expect(labelManager.isLabelAvailable("SOUTH", "zone")).toBe(false);
+      expect(labelManager.isLabelAvailable("NORTH", "zone")).toBe(true);
     },
   },
   {
     name: "changeZones removing a zone",
     fixture: aNetwork,
     run: ({ model }) => changeZones(model, { zones: new Map() }),
-    expectApplied: ({ model }) => {
+    expectApplied: ({ model, labelManager }) => {
       expect(model.zones.size).toBe(0);
+      expect(labelManager.isLabelAvailable("NORTH", "zone")).toBe(true);
     },
   },
   {

@@ -239,24 +239,34 @@ const applyPattern = (
 };
 
 const applyZone = (
+  labelManager: LabelManager,
   entityId: number | string,
   change: Effective,
   zones: Zones,
 ): void => {
   const id = Number(entityId);
+  const existing = zones.get(id);
 
   if (change.kind === "delete") {
+    if (!existing) return;
     zones.delete(id);
+    labelManager.remove(existing.label, "zone", id);
     return;
   }
 
-  const source = { ...(zones.get(id) ?? {}), ...change.fields };
-  zones.set(id, {
+  const source = { ...(existing ?? {}), ...change.fields };
+  const zone: Zone = {
     id,
     label: source.label as string,
     geometry: source.geometry as Zone["geometry"],
     bbox: source.bbox as Zone["bbox"],
-  });
+  };
+  zones.set(id, zone);
+
+  if (existing && existing.label !== zone.label) {
+    labelManager.remove(existing.label, "zone", id);
+  }
+  labelManager.register(zone.label, "zone", id);
 };
 
 const applyDemand = (
@@ -356,7 +366,7 @@ const applyChanges = (
             break;
           case "zone":
             zones ??= new Map(model.zones);
-            applyZone(id, change, zones);
+            applyZone(labelManager, id, change, zones);
             break;
         }
       }

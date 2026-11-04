@@ -65,6 +65,26 @@ describe("changeZoneProperty", () => {
     expect(hydraulicModel.zones.get(IDS.Z1)!.label).toBe("NORTH");
   });
 
+  it("updates label manager after apply and undo", () => {
+    const { labelManager } = buildTestFactories();
+    const hydraulicModel = buildModel(labelManager);
+
+    const changeSet = changeZoneProperty(hydraulicModel, {
+      zoneIds: [IDS.Z1],
+      property: "label",
+      value: "EAST",
+    });
+    const { undo } = applyOperation(hydraulicModel, changeSet, labelManager);
+
+    expect(labelManager.isLabelAvailable("EAST", "zone")).toBe(false);
+    expect(labelManager.isLabelAvailable("NORTH", "zone")).toBe(true);
+
+    undo();
+
+    expect(labelManager.isLabelAvailable("EAST", "zone")).toBe(true);
+    expect(labelManager.isLabelAvailable("NORTH", "zone")).toBe(false);
+  });
+
   it("throws for a non-existent zone", () => {
     const hydraulicModel = buildModel();
 

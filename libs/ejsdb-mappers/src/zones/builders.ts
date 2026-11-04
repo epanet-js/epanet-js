@@ -1,4 +1,4 @@
-import type { Zone, Zones } from "@epanet-js/hydraulic-model";
+import type { ModelFactories, Zone, Zones } from "@epanet-js/hydraulic-model";
 import {
   parseRows,
   zoneBboxSchema,
@@ -7,16 +7,20 @@ import {
   type ZoneRow,
 } from "@epanet-js/ejsdb";
 
-export const buildZonesData = (rawRows: unknown[]): Zones => {
+export const buildZonesData = (
+  rawRows: unknown[],
+  factories: ModelFactories,
+): Zones => {
   const rows = parseRows(zoneRowSchema, rawRows, "Zone");
   const zones: Zones = new Map();
   for (const row of rows) {
-    zones.set(row.id, {
+    const zone = factories.zoneFactory.load({
       id: row.id,
       label: row.label,
       geometry: parseGeometry(row),
       bbox: parseBbox(row),
     });
+    zones.set(zone.id, zone);
   }
   return zones;
 };

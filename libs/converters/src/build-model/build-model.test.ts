@@ -1766,6 +1766,17 @@ describe("build zones from network data", () => {
     expect(hydraulicModel.zones).toEqual(zones);
   });
 
+  it("registers the zone labels in the label manager", () => {
+    const { factories } = buildModel(
+      aNetwork({ zones: [aZone({ ref: "3", label: "NORTH" })] }),
+      { projections: aCatalogue() },
+    );
+
+    expect(factories.labelManager.isLabelAvailable("NORTH", "zone")).toBe(
+      false,
+    );
+  });
+
   it("generates a label when the source named no zone", () => {
     const { zones } = buildModel(aNetwork({ zones: [aZone({ ref: "3" })] }), {
       projections: aCatalogue(),

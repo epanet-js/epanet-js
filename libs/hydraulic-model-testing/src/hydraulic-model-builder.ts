@@ -479,6 +479,7 @@ export class HydraulicModelBuilder {
 
   aZone(zone: Zone) {
     this.zonesValue.set(zone.id, zone);
+    this.labelManager.register(zone.label, "zone", zone.id);
     return this;
   }
 

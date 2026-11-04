@@ -40,7 +40,10 @@ export const initializeModelFactories = (
       options.labelManager,
     ),
     assetFactory: new AssetFactory(idGenerator, options.labelManager),
-    zoneFactory: new ZoneFactory(options.idPools.forPool("zone")),
+    zoneFactory: new ZoneFactory(
+      options.idPools.forPool("zone"),
+      options.labelManager,
+    ),
     labelManager: options.labelManager,
     labelCounters,
     idGenerator,

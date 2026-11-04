@@ -11,6 +11,7 @@ const idPoolByType: Record<LabelType, IdPool> = {
   customerPoint: "customerPoint",
   pattern: "pattern",
   curve: "curve",
+  zone: "zone",
 };
 
 export const idPoolOf = (type: LabelType): IdPool => idPoolByType[type];

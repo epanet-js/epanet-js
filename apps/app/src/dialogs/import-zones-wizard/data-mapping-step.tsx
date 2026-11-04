@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useTranslate } from "src/hooks/use-translate";
 import { Selector } from "@epanet-js/ui-kit";
 import type { ZoneFeature } from "src/lib/zones";
-import { ZoneLabelGenerator } from "@epanet-js/hydraulic-model";
+import { LabelManager } from "@epanet-js/hydraulic-model";
 
 const PREVIEW_LIMIT = 7;
 
@@ -97,8 +97,8 @@ const buildPreviewLabels = (
   const preview = features.slice(0, PREVIEW_LIMIT);
 
   if (selectedLabel === "none") {
-    const generator = new ZoneLabelGenerator();
-    return preview.map(() => generator.next());
+    const labelManager = new LabelManager();
+    return preview.map((_, index) => labelManager.generateFor("zone", index));
   }
 
   return preview.map((f) => String(f.properties?.[selectedLabel] ?? ""));

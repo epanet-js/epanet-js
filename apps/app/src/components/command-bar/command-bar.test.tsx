@@ -12,6 +12,7 @@ import { TooltipProvider } from "@epanet-js/ui-kit";
 import Mousetrap from "mousetrap";
 
 import { Maybe } from "purify-ts/Maybe";
+import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
 import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { setInitialState } from "src/__helpers__/state";
 import {
@@ -39,6 +40,7 @@ import { USelection } from "src/selection";
 describe("CommandBar", () => {
   beforeEach(() => {
     zoomToMock.mockReset();
+    stubFeatureOff("FLAG_ZONE_SELECTION");
   });
 
   it("renders nothing when the atom is closed", () => {
@@ -154,6 +156,36 @@ describe("CommandBar", () => {
     expect(zoomToMock.mock.calls).toEqual([[Maybe.of([10, 20, 10, 20]), 18]]);
   });
 
+  it("selects a zone and zooms to it on click", async () => {
+    stubFeatureOn("FLAG_ZONE_SELECTION");
+    const user = userEvent.setup();
+    const { store } = setupWithZone();
+    store.set(commandBarOpenAtom, true);
+
+    renderComponent(store);
+
+    await user.type(screen.getByRole("textbox"), "NOR");
+    await waitFor(() => screen.getByText("NORTH"));
+    await user.click(screen.getByText("NORTH"));
+
+    expect(USelection.getZoneIds(store.get(selectionAtom))).toEqual([7]);
+    expect(zoomToMock.mock.calls).toEqual([[USelection.singleZone(7)]]);
+  });
+
+  it("does not find zones when zone selection is off", async () => {
+    const user = userEvent.setup();
+    const { store } = setupWithZone();
+    store.set(commandBarOpenAtom, true);
+
+    renderComponent(store);
+
+    await user.type(screen.getByRole("textbox"), "NOR");
+
+    await waitFor(() =>
+      expect(screen.getByText("No results")).toBeInTheDocument(),
+    );
+  });
+
   it("closes on Escape", async () => {
     const user = userEvent.setup();
     const { store } = setupWithLabels([{ label: "P1", type: "pipe", id: 1 }]);
@@ -230,6 +262,27 @@ const setupWithLabels = (
   );
 
   return { store, labelManager };
+};
+
+const setupWithZone = (): { store: Store } => {
+  const labelManager = new LabelManager();
+  const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
+    .aZone({
+      id: 7,
+      label: "NORTH",
+      geometry: { type: "MultiPolygon", coordinates: [] },
+      bbox: [0, 0, 1, 1],
+    })
+    .build();
+  const store = setInitialState({ hydraulicModel, labelManager });
+  store.set(
+    modelFactoriesAtom,
+    initializeModelFactories({
+      idPools: buildIdPools(),
+      labelManager,
+    }),
+  );
+  return { store };
 };
 
 const switchToNewScenario = (store: Store) => {

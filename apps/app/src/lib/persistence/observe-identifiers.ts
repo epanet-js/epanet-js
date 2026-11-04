@@ -24,7 +24,7 @@ const identifiersByEntity: Record<EntityKind, Identifiers | null> = {
   customAttributesDefinition: null,
   pipeLibrary: null,
   rawControls: null,
-  zone: { pool: "zone", labelType: null },
+  zone: { pool: "zone", labelType: "zone" },
 };
 
 export const observeIdentifiers = (

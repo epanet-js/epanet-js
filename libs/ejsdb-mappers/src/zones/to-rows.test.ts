@@ -1,7 +1,18 @@
 import { describe, it, expect } from "vitest";
-import type { Zones } from "@epanet-js/hydraulic-model";
+import {
+  LabelManager,
+  initializeModelFactories,
+  type Zones,
+} from "@epanet-js/hydraulic-model";
+import { buildTestIdPools } from "../__helpers__/id-pools";
 import { zonesToRows } from "./to-rows";
 import { buildZonesData } from "./builders";
+
+const makeFactories = () =>
+  initializeModelFactories({
+    idPools: buildTestIdPools({}),
+    labelManager: new LabelManager(),
+  });
 
 const validZones = (): Zones =>
   new Map([
@@ -34,7 +45,7 @@ describe("zonesToRows", () => {
 
     const rows = zonesToRows(zones);
 
-    expect(buildZonesData(rows)).toEqual(zones);
+    expect(buildZonesData(rows, makeFactories())).toEqual(zones);
   });
 
   it("throws when a row does not match the schema", () => {
@@ -71,23 +82,36 @@ describe("buildZonesData", () => {
     ...overrides,
   });
 
+  it("registers loaded labels so new zones avoid collisions", () => {
+    const factories = makeFactories();
+    buildZonesData([aRow({})], factories);
+
+    expect(factories.labelManager.isLabelAvailable("Z1", "zone")).toBe(false);
+    expect(
+      factories.zoneFactory.create(validZones().get(1)!.geometry).label,
+    ).not.toBe("Z1");
+  });
+
   it("throws when the geometry is not valid JSON", () => {
-    expect(() => buildZonesData([aRow({ geometry: "{" })])).toThrow(
-      /Zone 1 \(Z1\): geometry is not valid JSON/,
-    );
+    expect(() =>
+      buildZonesData([aRow({ geometry: "{" })], makeFactories()),
+    ).toThrow(/Zone 1 \(Z1\): geometry is not valid JSON/);
   });
 
   it("throws when the geometry is not a MultiPolygon", () => {
     const geometry = JSON.stringify({ type: "Point", coordinates: [0, 0] });
 
-    expect(() => buildZonesData([aRow({ geometry })])).toThrow(
+    expect(() => buildZonesData([aRow({ geometry })], makeFactories())).toThrow(
       /Zone 1 \(Z1\): geometry must be a MultiPolygon of finite-number positions/,
     );
   });
 
   it("throws when the bbox is not an array of numbers", () => {
     expect(() =>
-      buildZonesData([aRow({ bbox: JSON.stringify([0, 0, "1", 1]) })]),
+      buildZonesData(
+        [aRow({ bbox: JSON.stringify([0, 0, "1", 1]) })],
+        makeFactories(),
+      ),
     ).toThrow(/Zone 1 \(Z1\): bbox must be an array of finite numbers/);
   });
 });

@@ -1,9 +1,13 @@
 import { Asset } from "./asset-types";
 import { MAX_CUSTOMER_POINT_LABEL_LENGTH } from "./customer-points";
 import { sharesIdPool } from "./id-pools";
-import { ConsecutiveIdsGenerator, IdGenerator } from "@epanet-js/id-generator";
 
-export type LabelType = Asset["type"] | "pattern" | "curve" | "customerPoint";
+export type LabelType =
+  | Asset["type"]
+  | "pattern"
+  | "curve"
+  | "customerPoint"
+  | "zone";
 
 type LabelLengthRule = {
   maxByteLength?: number;
@@ -27,8 +31,13 @@ const customerPointLabelRule: LabelRule = {
   maxLength: MAX_CUSTOMER_POINT_LABEL_LENGTH,
 };
 
-const rulesForType = (type: LabelType): LabelRule =>
-  type === "customerPoint" ? customerPointLabelRule : defaultLabelRule;
+const zoneLabelRule: LabelRule = {};
+
+const rulesForType = (type: LabelType): LabelRule => {
+  if (type === "customerPoint") return customerPointLabelRule;
+  if (type === "zone") return zoneLabelRule;
+  return defaultLabelRule;
+};
 
 const filterByAllowedChars = (s: string, pattern: RegExp): string =>
   s
@@ -63,9 +72,16 @@ const labelPrefixes: Record<LabelType, string> = {
   pattern: "PAT",
   curve: "C",
   customerPoint: "CP",
+  zone: "Z",
 };
 
-type LabelGroup = "pattern" | "curve" | "node" | "link" | "customerPoint";
+type LabelGroup =
+  | "pattern"
+  | "curve"
+  | "node"
+  | "link"
+  | "customerPoint"
+  | "zone";
 
 export class LabelManager {
   private indexPerType: Map<LabelType, number>;
@@ -330,7 +346,12 @@ const isNodeType = (t: LabelType) =>
   t === "junction" || t === "reservoir" || t === "tank";
 
 const getLabelUniqueGroup = (type: LabelType): LabelGroup => {
-  if (type === "pattern" || type === "curve" || type === "customerPoint") {
+  if (
+    type === "pattern" ||
+    type === "curve" ||
+    type === "customerPoint" ||
+    type === "zone"
+  ) {
     return type;
   }
   return isNodeType(type) ? "node" : "link";
@@ -339,11 +360,3 @@ const getLabelUniqueGroup = (type: LabelType): LabelGroup => {
 const isSameLabelGroup = (typeA: LabelType, typeB: LabelType) => {
   return getLabelUniqueGroup(typeA) === getLabelUniqueGroup(typeB);
 };
-
-export class ZoneLabelGenerator {
-  private idGenerator: IdGenerator = new ConsecutiveIdsGenerator();
-
-  next(): string {
-    return `Z${this.idGenerator.newId()}`;
-  }
-}

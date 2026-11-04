@@ -5,6 +5,7 @@ import {
   stagingModelDerivedAtom,
 } from "src/state/derived-branch-state";
 import { worktreeAtom } from "src/state/scenarios";
+import { modelFactoriesAtom } from "src/state/model-factories";
 import { selectionAtom } from "src/state/selection";
 import { USelection } from "src/selection";
 import { EditableTextField } from "src/components/form/editable-text-field";
@@ -21,7 +22,6 @@ import type { Action } from "src/components/action-button";
 import { useZoomToSelection } from "src/commands/zoom-to-selection";
 import { useSelectZoneContents } from "src/commands/select-zone-contents";
 import { PolygonalSelectionIcon, ZoomToIcon } from "src/icons";
-import { isZoneLabelAvailable } from "@epanet-js/hydraulic-model";
 import { changeZoneProperty } from "@epanet-js/hydraulic-model-operations";
 
 export function ZonePanel() {
@@ -33,6 +33,7 @@ export function ZonePanel() {
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const baseModel = useAtomValue(baseModelDerivedAtom);
   const worktree = useAtomValue(worktreeAtom);
+  const { labelManager } = useAtomValue(modelFactoriesAtom);
   const { transact } = useModelTransaction();
   const { isLocked } = useFeatureLock("zones", "rename");
   const [labelError, setLabelError] = useState<string | null>(null);
@@ -47,7 +48,7 @@ export function ZonePanel() {
         return false;
       }
 
-      if (!isZoneLabelAvailable(hydraulicModel.zones, newLabel, zone.id)) {
+      if (!labelManager.isLabelAvailable(newLabel, "zone", zone.id)) {
         setLabelError(translate("labelDuplicate"));
         userTracking.capture({ name: "zone.labelDuplicate" });
         return true;
@@ -64,7 +65,7 @@ export function ZonePanel() {
       setLabelError(null);
       return false;
     },
-    [zone, hydraulicModel, transact, translate, userTracking],
+    [zone, hydraulicModel, labelManager, transact, translate, userTracking],
   );
 
   const clearLabelError = useCallback(() => {

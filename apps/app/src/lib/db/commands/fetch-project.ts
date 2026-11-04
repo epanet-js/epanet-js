@@ -141,7 +141,6 @@ export const fetchProject = async (
         const pipeLibrary = buildPipeLibraryData(pipeLibraryJson);
         const customAttributes =
           buildCustomAttributesDefinition(customAttributesJson);
-        const zones = buildZonesData(zonesRaw);
         const selectionSets = buildSelectionSetsData(selectionSetsRaw);
         const bookmarks = buildBookmarksData(bookmarksJson);
         const scripts = buildScriptsData(scriptsRaw);
@@ -168,6 +167,7 @@ export const fetchProject = async (
             },
             factories,
           );
+        const zones = buildZonesData(zonesRaw, factories);
         const patterns = buildPatternsData(patternsRaw);
         const curves = buildCurvesData(curvesRaw);
         const rawControls = buildRawControlsData(rawControlsData);

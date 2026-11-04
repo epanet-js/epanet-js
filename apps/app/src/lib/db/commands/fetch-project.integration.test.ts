@@ -403,6 +403,33 @@ describe("fetch-project id pools", () => {
     expect(factories.idPools.newId("zone")).toBe(IDS.ZONE2 + 1);
     expect(factories.idPools.newId("asset")).toBe(IDS.J1 + 1);
   });
+
+  it("registers the zone labels in the label manager", async () => {
+    await importProject({
+      newDb: true,
+      hydraulicModel: HydraulicModelBuilder.with().aJunction(IDS.J1).build(),
+      projectSettings: defaultProjectSettings,
+      simulationSettings: defaultSimulationSettings,
+      zones: new Map([
+        [
+          IDS.ZONE1,
+          {
+            id: IDS.ZONE1,
+            label: "ZA",
+            geometry: aSquare(0),
+            bbox: [0, 0, 1, 1] as BBox,
+          },
+        ],
+      ]),
+    });
+
+    const { factories } = await fetchProject();
+
+    expect(factories.labelManager.isLabelAvailable("ZA", "zone")).toBe(false);
+    expect(
+      factories.labelManager.isLabelAvailable("ZA", "zone", IDS.ZONE1),
+    ).toBe(true);
+  });
 });
 
 describe("fetch-project collections", () => {

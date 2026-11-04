@@ -256,6 +256,18 @@ describe("label manager", () => {
       expect(labelManager.isLabelAvailable("asset1", "junction")).toBe(true);
       expect(labelManager.isLabelAvailable("ASSET1", "tank")).toBe(true);
     });
+
+    it("keeps zone labels unique among zones only", () => {
+      const labelManager = new LabelManager();
+      labelManager.register("NORTH", "zone", 1);
+
+      expect(labelManager.isLabelAvailable("north", "zone")).toBe(false);
+      expect(labelManager.isLabelAvailable("north", "zone", 1)).toBe(true);
+      expect(labelManager.isLabelAvailable("NORTH", "junction")).toBe(true);
+      expect(labelManager.isLabelAvailable("NORTH", "customerPoint")).toBe(
+        true,
+      );
+    });
   });
 
   describe("pattern type", () => {
