@@ -78,10 +78,38 @@ network.setCurve("HEAD", { label: "LIFT" });`,
   ],
 });
 
+const DELETE_CURVE: Member = network({
+  name: "deleteCurve",
+  signature: "deleteCurve(label: string): void",
+  summary:
+    "Deletes a curve found by its label, ignoring case, when nothing uses it.",
+  description:
+    "A curve is in use while a pump takes it as its curve or efficiency curve, a tank as its volume curve, or a valve as its curve. Use is judged on the network as the script has changed it so far, so take the curve off what uses it first. Its label is free again straight away. The deletion reaches the network with the other changes.",
+  throws: ["`TypeError` when no curve has `label`, or the curve is in use."],
+  examples: [
+    {
+      title: "Delete every curve nothing uses",
+      code: `for (const { label } of network.curves) {
+  try {
+    network.deleteCurve(label);
+    console.log("deleted", label);
+  } catch (error) {
+    console.log("kept", label, error.message);
+  }
+}`,
+    },
+  ],
+});
+
 export const sectionFor = ({ edits }: DocsCandidates): Section =>
   edits
     ? {
         ...SECTION,
-        members: [...(SECTION.members ?? []), ADD_CURVE, SET_CURVE],
+        members: [
+          ...(SECTION.members ?? []),
+          ADD_CURVE,
+          SET_CURVE,
+          DELETE_CURVE,
+        ],
       }
     : SECTION;
