@@ -215,6 +215,26 @@ export const getValveCurveErrors = (
 /** Efficiency curves: X strictly increasing (Y unconstrained — bell-shaped). */
 export const getEfficiencyCurveErrors = getGenericCurveErrors;
 
+export const getCurveErrors = (
+  type: CurveType | undefined,
+  points: CurvePoint[],
+): CurveErrorPoint[] => {
+  switch (type) {
+    case "pump":
+      return getPumpCurveErrors(points);
+    case "efficiency":
+      return getEfficiencyCurveErrors(points);
+    case "volume":
+      return getVolumeCurveErrors(points);
+    case "headloss":
+      return getHeadlossCurveErrors(points);
+    case "valve":
+      return getValveCurveErrors(points);
+    default:
+      return getGenericCurveErrors(points);
+  }
+};
+
 export const buildDefaultPumpCurve = (
   curves: Curves,
   labelManager: LabelManager,

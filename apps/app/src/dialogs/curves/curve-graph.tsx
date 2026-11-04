@@ -3,6 +3,7 @@ import {
   CurvePoint,
   CurvePointsType,
   CurveType,
+  getCurveErrors,
 } from "@epanet-js/hydraulic-model";
 import {
   fitCurve,
@@ -113,8 +114,7 @@ const getErrorIndices = (
   curveType: CurveType | undefined,
   points: CurvePoint[],
 ): Set<number> => {
-  const config = getCurveTypeConfig(curveType);
-  const errors = config.getErrors(points);
+  const errors = getCurveErrors(curveType, points);
   const indices = new Set<number>();
   for (const e of errors) {
     indices.add(e.index);

@@ -17,6 +17,7 @@ import {
   deepCloneCurves,
   differentCurvesCount,
   isCurveInUse,
+  getCurveErrors,
   LabelManager,
 } from "@epanet-js/hydraulic-model";
 import { PumpLibraryIcon } from "src/icons";
@@ -27,7 +28,6 @@ import { changeCurves } from "@epanet-js/hydraulic-model-operations";
 import { notify } from "src/components/notifications";
 import { useUserTracking } from "src/infra/user-tracking";
 import { modelFactoriesAtom } from "src/state/model-factories";
-import { getCurveTypeConfig } from "../curves/curve-type-config";
 import { DialogActions, DialogActionsHandle } from "../dialog-actions-row";
 import {
   ImportExportCurvesToolbar,
@@ -193,8 +193,7 @@ export const PumpLibraryDialog = ({
   const invalidCurveIds = useMemo(() => {
     const ids = new Set<CurveId>();
     for (const [id, curve] of cleanedCurves) {
-      const config = getCurveTypeConfig(curve.type);
-      if (config.getErrors(curve.points).length > 0) {
+      if (getCurveErrors(curve.type, curve.points).length > 0) {
         ids.add(id);
       }
     }

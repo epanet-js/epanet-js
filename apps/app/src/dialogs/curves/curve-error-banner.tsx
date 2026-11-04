@@ -1,4 +1,8 @@
-import { CurvePoint, CurveType } from "@epanet-js/hydraulic-model";
+import {
+  CurvePoint,
+  CurveType,
+  getCurveErrors,
+} from "@epanet-js/hydraulic-model";
 import { getCurveTypeConfig } from "./curve-type-config";
 import { useTranslate } from "src/hooks/use-translate";
 import { Callout } from "@epanet-js/ui-kit";
@@ -12,7 +16,7 @@ interface CurveErrorBannerProps {
 export function CurveErrorBanner({ points, curveType }: CurveErrorBannerProps) {
   const translate = useTranslate();
   const curveConfig = getCurveTypeConfig(curveType);
-  const errors = curveConfig.getErrors(points);
+  const errors = getCurveErrors(curveType, points);
 
   if (errors.length === 0) return null;
 

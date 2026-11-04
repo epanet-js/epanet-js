@@ -16,6 +16,7 @@ import {
 import {
   CurvePoint,
   CurveType,
+  getCurveErrors,
   stripTrailingEmptyPoints,
 } from "@epanet-js/hydraulic-model";
 import { useTranslate } from "src/hooks/use-translate";
@@ -96,13 +97,13 @@ export const CurveTable = forwardRef<DataGridRef, CurveTableProps>(
 
     const errorCells = useMemo(() => {
       const meaningful = stripTrailingEmptyPoints(points);
-      const errors = curveConfig.getErrors(meaningful);
+      const errors = getCurveErrors(curveType, meaningful);
       const set = new Set<string>();
       for (const e of errors) {
         set.add(`${e.index}:${e.value}`);
       }
       return set;
-    }, [points, curveConfig]);
+    }, [points, curveType]);
 
     const rowData = useMemo(() => toRows(points), [points]);
 

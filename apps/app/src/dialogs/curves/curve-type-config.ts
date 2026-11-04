@@ -1,14 +1,4 @@
-import {
-  CurveType,
-  CurveErrorPoint,
-  CurvePoint,
-  getPumpCurveErrors,
-  getGenericCurveErrors,
-  getVolumeCurveErrors,
-  getHeadlossCurveErrors,
-  getValveCurveErrors,
-  getEfficiencyCurveErrors,
-} from "@epanet-js/hydraulic-model";
+import { CurveType } from "@epanet-js/hydraulic-model";
 import { QuantityProperty } from "@epanet-js/project-settings";
 
 export interface CurveTypeConfig {
@@ -16,7 +6,6 @@ export interface CurveTypeConfig {
   yLabel: string;
   xQuantity?: QuantityProperty;
   yQuantity?: QuantityProperty;
-  getErrors: (points: CurvePoint[]) => CurveErrorPoint[];
 }
 
 const pumpCurveConfig: CurveTypeConfig = {
@@ -24,7 +13,6 @@ const pumpCurveConfig: CurveTypeConfig = {
   yLabel: "head",
   xQuantity: "flow",
   yQuantity: "head",
-  getErrors: getPumpCurveErrors,
 };
 
 const volumeCurveConfig: CurveTypeConfig = {
@@ -32,7 +20,6 @@ const volumeCurveConfig: CurveTypeConfig = {
   yLabel: "volume",
   xQuantity: "level",
   yQuantity: "volume",
-  getErrors: getVolumeCurveErrors,
 };
 
 const headlossCurveConfig: CurveTypeConfig = {
@@ -40,7 +27,6 @@ const headlossCurveConfig: CurveTypeConfig = {
   yLabel: "headloss",
   xQuantity: "flow",
   yQuantity: "headloss",
-  getErrors: getHeadlossCurveErrors,
 };
 
 const efficiencyCurveConfig: CurveTypeConfig = {
@@ -48,19 +34,16 @@ const efficiencyCurveConfig: CurveTypeConfig = {
   yLabel: "efficiency",
   xQuantity: "flow",
   yQuantity: "efficiency",
-  getErrors: getEfficiencyCurveErrors,
 };
 
 const valveCurveConfig: CurveTypeConfig = {
   xLabel: "percentOpen",
   yLabel: "percentFullFlow",
-  getErrors: getValveCurveErrors,
 };
 
 const defaultCurveConfig: CurveTypeConfig = {
   xLabel: "x",
   yLabel: "y",
-  getErrors: getGenericCurveErrors,
 };
 
 export const getCurveTypeConfig = (type?: CurveType): CurveTypeConfig => {
