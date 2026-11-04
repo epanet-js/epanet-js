@@ -161,8 +161,30 @@ const withoutBbox = (features: Feature[]): Feature[] =>
     return { ...feature, geometry };
   });
 
+const calendarDateOf = (date: Date): string | null =>
+  Number.isNaN(date.getTime())
+    ? null
+    : [
+        String(date.getFullYear()).padStart(4, "0"),
+        String(date.getMonth() + 1).padStart(2, "0"),
+        String(date.getDate()).padStart(2, "0"),
+      ].join("-");
+
+const withCalendarDates = (features: Feature[]): Feature[] =>
+  features.map((feature) => ({
+    ...feature,
+    properties:
+      feature.properties &&
+      Object.fromEntries(
+        Object.entries(feature.properties).map(([name, value]) => [
+          name,
+          value instanceof Date ? calendarDateOf(value) : value,
+        ]),
+      ),
+  }));
+
 const shpjsRead = async (bundle: ShapefileBundle): Promise<Feature[]> =>
-  withoutBbox((await shp(bundle)).features);
+  withCalendarDates(withoutBbox((await shp(bundle)).features));
 
 const read = (bundle: ShapefileBundle): Feature[] => {
   const features: Feature[] = [];

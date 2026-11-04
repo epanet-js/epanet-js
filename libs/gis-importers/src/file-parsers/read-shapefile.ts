@@ -300,12 +300,12 @@ const valueOf = (text: string, type: string): unknown => {
     case "F":
     case "O":
       return parseFloat(text);
+    // Unlike shpjs, a date stays the calendar date it states: a local-midnight
+    // Date becomes the day before once stored in UTC east of Greenwich.
     case "D":
-      return new Date(
-        Number(text.slice(0, 4)),
-        parseInt(text.slice(4, 6), 10) - 1,
-        Number(text.slice(6, 8)),
-      );
+      return /^\d{8}$/.test(text)
+        ? `${text.slice(0, 4)}-${text.slice(4, 6)}-${text.slice(6, 8)}`
+        : null;
     case "L":
       return text.toLowerCase() === "y" || text.toLowerCase() === "t";
     default:
