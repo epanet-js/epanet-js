@@ -206,7 +206,8 @@ export const appendPipeArrowProps = (
 ) => {
   const pipeSimulation = simulationResults?.getPipe(pipe.id);
   const status = pipeSimulation?.status ?? null;
-  const flow = pipeSimulation?.flow ?? null;
+  const simulatedFlow = pipeSimulation?.flow ?? null;
+  const flow = Number.isNaN(simulatedFlow) ? null : simulatedFlow;
   const isReverse = flow && flow < 0;
   feature.properties!.length = convertTo(
     { value: pipe.length ?? 0, unit: units.length },
@@ -317,7 +318,7 @@ const appendLabel = (
       (asset as unknown as Record<string, number | null>)[property] ?? null;
   }
 
-  if (value === null) return;
+  if (value === null || Number.isNaN(value)) return;
 
   const unit = units[property as QuantityProperty];
   const localizedNumber = localizeDecimal(value, {

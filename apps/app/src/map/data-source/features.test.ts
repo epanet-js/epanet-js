@@ -472,6 +472,52 @@ describe("build optimized source", () => {
       expect(pipe.properties!.color).toBeUndefined();
     });
 
+    it("hides the arrow of a pipe with a NaN flow", async () => {
+      const IDS = { p1: 1 } as const;
+      const { assets } = HydraulicModelBuilder.with()
+        .aPipe(IDS.p1, { initialStatus: "open" })
+        .build();
+      const simulationResults = createMockResultsReader({
+        pipes: { [IDS.p1]: { flow: NaN } },
+      });
+
+      const features = await buildOptimizedAssetsSource(
+        assets,
+        symbology,
+        defaultUnits,
+        defaultFormatting,
+        fakeTranslateUnit,
+        simulationResults,
+      );
+
+      const [pipe] = features;
+      expect(pipe.properties!.hasArrow).toBe(false);
+    });
+
+    it("omits the label of a pipe with a NaN result", async () => {
+      const IDS = { p1: 1 } as const;
+      const labelSymbology: SymbologySpec = {
+        ...nullSymbologySpec,
+        link: aLinkSymbology({ labelRule: "flow" }),
+      };
+      const { assets } = HydraulicModelBuilder.with().aPipe(IDS.p1).build();
+      const simulationResults = createMockResultsReader({
+        pipes: { [IDS.p1]: { flow: NaN } },
+      });
+
+      const features = await buildOptimizedAssetsSource(
+        assets,
+        labelSymbology,
+        defaultUnits,
+        defaultFormatting,
+        () => "l/s",
+        simulationResults,
+      );
+
+      const [pipe] = features;
+      expect(pipe.properties!.label).toBeUndefined();
+    });
+
     it("leaves a null static attribute uncolored so it uses the default color", async () => {
       const IDS = { p1: 1 } as const;
       const staticSymbology: SymbologySpec = {

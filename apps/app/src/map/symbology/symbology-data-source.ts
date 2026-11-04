@@ -89,24 +89,23 @@ const getAllStepsSortedValues = async (
   const timestepCount = epsReader.timestepCount;
   if (timestepCount <= 0) return null;
 
-  const valuesPerTimestep: Float32Array[] = [];
+  let allValues = new Float32Array(0);
   let totalValues = 0;
   for (let t = 0; t < timestepCount; t++) {
     const reader = await epsReader.getResultsForTimestep(t);
     const values = getSimulationValues(reader, property, options);
-    valuesPerTimestep.push(values);
+    if (totalValues + values.length > allValues.length) {
+      const grown = new Float32Array(
+        totalValues + values.length * (timestepCount - t),
+      );
+      grown.set(allValues.subarray(0, totalValues));
+      allValues = grown;
+    }
+    allValues.set(values, totalValues);
     totalValues += values.length;
   }
 
-  const allValues = new Float32Array(totalValues);
-  let offset = 0;
-  for (const values of valuesPerTimestep) {
-    allValues.set(values, offset);
-    offset += values.length;
-  }
-
-  allValues.sort();
-  return Array.from(allValues);
+  return Array.from(allValues.subarray(0, totalValues).sort());
 };
 
 const getInitialSortedValues = async (
