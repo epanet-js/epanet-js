@@ -22,11 +22,15 @@ import {
   WGS84_EPSG,
   decodeFeatures,
   failure,
+  hasExtension,
   looksLikeDxf,
+  projectionOfWkt,
   statedCrs,
   suppliedEpsg,
+  textOf,
   type DecodedSource,
 } from "./parse-gis-source";
+import { readShapefile } from "./read-shapefile";
 import { streamFeatureCollection, streamFeatureLines } from "./stream-geojson";
 
 export type ParsedGisRecords = {
@@ -132,9 +136,10 @@ const DXF_PROBE_BYTES = 4096;
 const decode = async (input: GisInput): Promise<DecodedRecords> => {
   const { files } = input;
 
-  if (files.some((file) => gisFormatOf(file.name)?.id === "shapefile")) {
-    return fromFeatures(await decodeFeatures(input));
-  }
+  const shpFile = files.find(
+    (file) => gisFormatOf(file.name)?.id === "shapefile",
+  );
+  if (shpFile) return decodeShapefile(files, shpFile, input);
 
   const primary = files.find((file) => !isGisSecondaryPart(file.name));
   if (primary === undefined) return empty("sourceFilesIncomplete");
@@ -284,5 +289,71 @@ const transformerOf = (code: string): Transform => {
     return createProjectionTransformer(code);
   } catch {
     return failingTransform;
+  }
+};
+
+const decodeShapefile = async (
+  files: SourceFile[],
+  shpFile: SourceFile,
+  { crs, projections }: GisInput,
+): Promise<DecodedRecords> => {
+  const byExtension = (extension: string) =>
+    files.find((file) => hasExtension(file, extension));
+
+  const dbf = byExtension(".dbf");
+  const prjFile = byExtension(".prj");
+  const cpg = byExtension(".cpg");
+  const supplied = suppliedEpsg(crs);
+  const prj = prjFile && supplied === null ? await textOf(prjFile) : undefined;
+
+  const collected = collector();
+  const read = readShapefile(
+    {
+      shp: await shpFile.arrayBuffer(),
+      ...(dbf ? { dbf: await dbf.arrayBuffer() } : {}),
+      ...(cpg ? { cpg: await textOf(cpg) } : {}),
+    },
+    collected.add,
+  );
+  if (!read) return empty("sourceUnreadable");
+
+  const { builder } = collected;
+  if (!builder.hasGeometry()) return empty("sourceEmpty", collected.skipped);
+
+  if (prj === undefined) {
+    return finished(collected, placeIn(builder, supplied, projections));
+  }
+
+  const transform = prjTransformOf(prj);
+  const moved = transform && builder.transformed(transform);
+  if (transform && moved === null) return empty("sourceUnreadable");
+
+  if (builder.mostlyLatLng(moved ?? undefined)) {
+    if (moved) builder.useCoordinates(moved, { keepZ: true });
+    const sourceProjection = projectionOfWkt(prj, projections);
+    return finished(collected, {
+      ...(sourceProjection === null ? {} : { sourceProjection }),
+      issues: [],
+    });
+  }
+
+  const unchanged = moved === null || builder.sameFirstPosition(moved);
+  return finished(collected, {
+    issues: [
+      {
+        code: unchanged
+          ? "coordinateSystemUnsupported"
+          : "coordinateSystemMismatch",
+        severity: "error",
+      },
+    ],
+  });
+};
+
+const prjTransformOf = (prj: string): Transform | null => {
+  try {
+    return createProjectionTransformer(prj);
+  } catch {
+    return null;
   }
 };

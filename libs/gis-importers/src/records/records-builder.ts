@@ -241,6 +241,22 @@ export class RecordsBuilder {
     return inRange * 2 > located;
   }
 
+  /** Whether the first placed position is where `xy` has it too. */
+  sameFirstPosition(xy: Float64Array): boolean {
+    const kinds = this.kinds.view();
+    for (let record = 0; record < this.count; record++) {
+      if ((kinds[record] as GeometryKind) === GeometryKind.None) continue;
+      const ring = this.polygonRings.get(this.recordPolygons.get(record));
+      const position = this.ringPositions.get(ring);
+      if (position === this.ringPositions.get(ring + 1)) continue;
+      return (
+        this.xy.get(position * 2) === xy[position * 2] &&
+        this.xy.get(position * 2 + 1) === xy[position * 2 + 1]
+      );
+    }
+    return true;
+  }
+
   /** The coordinates moved by `transform`, leaving these untouched; null when
    *  the transform throws. */
   transformed(transform: Transform): Float64Array | null {

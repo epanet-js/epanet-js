@@ -228,7 +228,7 @@ const unplaced = (
   issues: [{ code, severity: "error" }],
 });
 
-const hasExtension = (file: SourceFile, extension: string) =>
+export const hasExtension = (file: SourceFile, extension: string) =>
   file.name.toLowerCase().endsWith(extension);
 
 export const decodeFeatures = async (
@@ -453,7 +453,7 @@ const sameFirstGeometry = (a: Feature[], b: Feature[]): boolean => {
 
 const WGS84_WKT_NAMES = new Set(["gcs_wgs_1984", "wgs 84", "wgs84"]);
 
-const projectionOfWkt = (
+export const projectionOfWkt = (
   wkt: string,
   projections: Map<string, Proj4Projection> | undefined,
 ): Proj4Projection | null => {
@@ -674,7 +674,7 @@ const mostlyLatLng = (features: Feature[]): boolean => {
   return inRange * 2 > located;
 };
 
-const textOf = async (file: SourceFile): Promise<string> =>
+export const textOf = async (file: SourceFile): Promise<string> =>
   file.text
     ? file.text()
     : new TextDecoder().decode(new Uint8Array(await file.arrayBuffer()));

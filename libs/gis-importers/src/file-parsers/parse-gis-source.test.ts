@@ -290,9 +290,9 @@ const parseAsFeatures = async (input: GisInput) => {
 };
 
 describe.each([
-  { name: "parseGisSource", parse: parseGisSource },
-  { name: "parseGisRecords", parse: parseAsFeatures },
-])("$name", ({ parse }) => {
+  { name: "parseGisSource", parse: parseGisSource, readsWithShpjs: true },
+  { name: "parseGisRecords", parse: parseAsFeatures, readsWithShpjs: false },
+])("$name", ({ parse, readsWithShpjs }) => {
   const codesOf = async (input: GisInput) => {
     const { issues } = await parse(input);
     return issues.build().map(({ code }) => code);
@@ -622,7 +622,7 @@ describe.each([
     });
   });
 
-  describe("shapefile", () => {
+  describe.runIf(readsWithShpjs)("shapefile", () => {
     beforeEach(() => {
       shp.mockReset();
       shp.mockResolvedValue({
@@ -1260,24 +1260,27 @@ describe.each([
       ]);
     });
 
-    it("leaves them out of a shapefile's placement", async () => {
-      const shapes = [aPoint(IN_METRES), anEmptyPoint()];
-      shp.mockResolvedValueOnce({
-        type: "FeatureCollection",
-        features: shapes,
-      });
+    it.runIf(readsWithShpjs)(
+      "leaves them out of a shapefile's placement",
+      async () => {
+        const shapes = [aPoint(IN_METRES), anEmptyPoint()];
+        shp.mockResolvedValueOnce({
+          type: "FeatureCollection",
+          features: shapes,
+        });
 
-      const { features, issues } = await parse({
-        files: [aBinaryFile("a.shp")],
-        crs: { type: "epsg", code: 3857 },
-        projections,
-      });
+        const { features, issues } = await parse({
+          files: [aBinaryFile("a.shp")],
+          crs: { type: "epsg", code: 3857 },
+          projections,
+        });
 
-      expect(features).toHaveLength(1);
-      expect(issues.build().map(({ code }) => code)).toEqual([
-        "featureCoordinatesInvalid",
-      ]);
-    });
+        expect(features).toHaveLength(1);
+        expect(issues.build().map(({ code }) => code)).toEqual([
+          "featureCoordinatesInvalid",
+        ]);
+      },
+    );
   });
 
   describe("decoding the same input twice", () => {
