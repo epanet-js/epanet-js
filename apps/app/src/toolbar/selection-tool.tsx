@@ -1,193 +1,43 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import * as DD from "@radix-ui/react-dropdown-menu";
-import { Tooltip } from "@epanet-js/ui-kit";
-
 import {
   RectangularSelectionIcon,
   PolygonalSelectionIcon,
   FreeHandSelectionIcon,
 } from "src/icons";
-import { useDrawingMode } from "src/commands/set-drawing-mode";
-import { Mode, MODE_INFO, lastSelectionModeAtom } from "src/state/mode";
-import { useAtom, useAtomValue } from "jotai";
-import { modeAtom } from "src/state/mode";
-import { Button, DDContent, Keycap, StyledItem } from "src/components/elements";
+import { Mode, lastSelectionModeAtom } from "src/state/mode";
 import { useTranslate } from "src/hooks/use-translate";
-import { localizeKeybinding } from "src/infra/i18n";
 import {
   selectionModeShortcut,
   useCycleSelectionMode,
 } from "src/commands/set-area-selection-mode";
-import { useUserTracking } from "src/infra/user-tracking";
-
-const SELECTION_MODES = new Map([
-  [
-    Mode.SELECT_RECTANGULAR,
-    { key: "areaSelection.rectangular", Icon: RectangularSelectionIcon },
-  ],
-  [
-    Mode.SELECT_POLYGONAL,
-    { key: "areaSelection.polygonal", Icon: PolygonalSelectionIcon },
-  ],
-  [
-    Mode.SELECT_FREEHAND,
-    { key: "areaSelection.freehand", Icon: FreeHandSelectionIcon },
-  ],
-]);
-
-const LONG_PRESS_DURATION_MS = 500;
+import { ToolWithOptions } from "./tool-with-options";
 
 export const SelectionTool = () => {
   const translate = useTranslate();
-  const setDrawingMode = useDrawingMode();
-  const { mode: currentMode } = useAtomValue(modeAtom);
-  const userTracking = useUserTracking();
-  const [lastSelectionMode, setLastSelectionMode] = useAtom(
-    lastSelectionModeAtom,
-  );
   const cycleSelectionMode = useCycleSelectionMode();
 
-  const [isOpen, setIsOpen] = useState(false);
-  const longPressTimerRef = useRef<number | null>(null);
-  const wasLongPressRef = useRef(false);
-  const buttonRef = useRef<HTMLButtonElement>(null);
-
-  const handleOpenChange = useCallback((open: boolean) => {
-    setIsOpen(open);
-  }, []);
-
-  const isSelectionModeActive = SELECTION_MODES.has(currentMode);
-
-  const displayedMode = isSelectionModeActive ? currentMode : lastSelectionMode;
-  const displayedSelection =
-    SELECTION_MODES.get(displayedMode) ??
-    SELECTION_MODES.get(Mode.SELECT_POLYGONAL)!;
-
-  const DisplayedIcon = displayedSelection.Icon;
-
-  useEffect(() => {
-    return () => {
-      if (longPressTimerRef.current) {
-        clearTimeout(longPressTimerRef.current);
-      }
-    };
-  }, []);
-
-  const selectMode = useCallback(
-    (mode: Mode) => {
-      setLastSelectionMode(mode);
-      userTracking.capture({
-        name: "drawingMode.enabled",
-        source: "toolbar",
-        type: MODE_INFO[mode].name,
-      });
-      setDrawingMode(mode);
-      setIsOpen(false);
-    },
-    [setLastSelectionMode, userTracking, setDrawingMode],
-  );
-
-  const handlePointerDown = useCallback((e: React.PointerEvent) => {
-    // Prevent Radix's default dropdown toggle behavior
-    e.preventDefault();
-
-    if (e.button === 2) return; // Right-click handled by context menu
-    wasLongPressRef.current = false;
-    longPressTimerRef.current = window.setTimeout(() => {
-      wasLongPressRef.current = true;
-      setIsOpen(true);
-    }, LONG_PRESS_DURATION_MS);
-  }, []);
-
-  const handlePointerUp = useCallback(() => {
-    if (longPressTimerRef.current) {
-      clearTimeout(longPressTimerRef.current);
-      longPressTimerRef.current = null;
-    }
-    if (!wasLongPressRef.current && !isOpen) {
-      const mode = cycleSelectionMode();
-      userTracking.capture({
-        name: "drawingMode.enabled",
-        source: "toolbar",
-        type: MODE_INFO[mode].name,
-      });
-    }
-  }, [isOpen, cycleSelectionMode, userTracking]);
-
-  const handlePointerLeave = useCallback(() => {
-    if (longPressTimerRef.current) {
-      clearTimeout(longPressTimerRef.current);
-      longPressTimerRef.current = null;
-    }
-  }, []);
-
-  const handleContextMenu = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsOpen(true);
-  }, []);
-
   return (
-    <div className="relative">
-      <div className="h-10 w-8 group bn flex items-stretch py-1 focus:outline-hidden">
-        <DD.Root open={isOpen} onOpenChange={handleOpenChange}>
-          <Tooltip
-            content={
-              <div className="flex gap-x-2 items-center">
-                {translate("areaSelection.tool")}
-                <Keycap size="xs">
-                  {localizeKeybinding(selectionModeShortcut)}
-                </Keycap>
-              </div>
-            }
-          >
-            <DD.Trigger asChild>
-              <Button
-                ref={buttonRef}
-                variant="quiet/mode"
-                className="relative"
-                role="radio"
-                aria-checked={isSelectionModeActive}
-                aria-expanded={
-                  isOpen || isSelectionModeActive ? "true" : "false"
-                }
-                aria-label={translate("areaSelection.tool")}
-                onPointerDown={handlePointerDown}
-                onPointerUp={handlePointerUp}
-                onPointerLeave={handlePointerLeave}
-                onContextMenu={handleContextMenu}
-              >
-                <DisplayedIcon />
-                <span
-                  className="absolute bottom-1 right-1 border-l-[5px] border-l-transparent border-b-[5px] border-b-gray-400 aria-expanded:border-b-white"
-                  aria-expanded={
-                    isOpen || isSelectionModeActive ? "true" : "false"
-                  }
-                  aria-hidden="true"
-                />
-              </Button>
-            </DD.Trigger>
-          </Tooltip>
-          <DD.Portal>
-            <DDContent
-              align="start"
-              side="bottom"
-              onEscapeKeyDown={() => {
-                buttonRef.current?.blur();
-              }}
-              onCloseAutoFocus={(e) => {
-                e.preventDefault();
-              }}
-            >
-              {[...SELECTION_MODES].map(([mode, { key, Icon }]) => (
-                <StyledItem key={mode} onSelect={() => selectMode(mode)}>
-                  <Icon />
-                  {translate(key)}
-                </StyledItem>
-              ))}
-            </DDContent>
-          </DD.Portal>
-        </DD.Root>
-      </div>
-    </div>
+    <ToolWithOptions
+      label={translate("areaSelection.tool")}
+      shortcut={selectionModeShortcut}
+      lastModeAtom={lastSelectionModeAtom}
+      cycleMode={cycleSelectionMode}
+      options={[
+        {
+          mode: Mode.SELECT_RECTANGULAR,
+          label: translate("areaSelection.rectangular"),
+          Icon: RectangularSelectionIcon,
+        },
+        {
+          mode: Mode.SELECT_POLYGONAL,
+          label: translate("areaSelection.polygonal"),
+          Icon: PolygonalSelectionIcon,
+        },
+        {
+          mode: Mode.SELECT_FREEHAND,
+          label: translate("areaSelection.freehand"),
+          Icon: FreeHandSelectionIcon,
+        },
+      ]}
+    />
   );
 };
