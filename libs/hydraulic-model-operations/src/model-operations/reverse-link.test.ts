@@ -3,6 +3,7 @@ import { applyOperation } from "../__helpers__/apply-operation";
 import { buildTestFactories } from "@epanet-js/hydraulic-model-testing";
 import type { HydraulicModel } from "@epanet-js/hydraulic-model";
 import type { AssetId, LinkAsset } from "@epanet-js/hydraulic-model";
+import { getLinkFlowModulatingValve } from "@epanet-js/hydraulic-model";
 import { reverseLink } from "./reverse-link";
 
 const { labelManager } = buildTestFactories();
@@ -111,6 +112,58 @@ describe("reverse-link", () => {
       [7.5, 0],
       [0, 0],
     ]);
+  });
+
+  describe("with a flow modulating control", () => {
+    //   J1 --V1--> J2 --P2--> J3
+    const IDS = { J1: 1, J2: 2, J3: 3, V1: 4, P2: 5 } as const;
+    const aValveNetwork = () =>
+      HydraulicModelBuilder.with({ labelManager })
+        .aJunction(IDS.J1, { coordinates: [0, 0] })
+        .aJunction(IDS.J2, { coordinates: [10, 0] })
+        .aJunction(IDS.J3, { coordinates: [20, 0] })
+        .aValve(IDS.V1, {
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
+          kind: "prv",
+          coordinates: [
+            [0, 0],
+            [10, 0],
+          ],
+        })
+        .aPipe(IDS.P2, { startNodeId: IDS.J2, endNodeId: IDS.J3 });
+
+    const points = [
+      { flow: 0, pressure: 20 },
+      { flow: 10, pressure: 30 },
+    ];
+
+    it("puts the sensor link and control node back to their defaults", () => {
+      const model = aValveNetwork()
+        .aFlowModulatingValveControl({
+          linkId: IDS.V1,
+          points,
+          interpolate: false,
+          sensorLinkId: IDS.P2,
+          controlNodeId: IDS.J3,
+        })
+        .build();
+
+      const changeSet = reverse(model, IDS.V1);
+
+      expect(changedEntities(changeSet)).toEqual([
+        "valve:update",
+        "allControls:update",
+      ]);
+      expect(linkOf(model, IDS.V1).connections).toEqual([IDS.J2, IDS.J1]);
+      expect(getLinkFlowModulatingValve(model.controls, IDS.V1)).toMatchObject({
+        linkId: IDS.V1,
+        sensorLinkId: IDS.V1,
+        controlNodeId: IDS.J1,
+        points,
+        interpolate: false,
+      });
+    });
   });
 
   it("handles links with minimal coordinates (2 points)", () => {
