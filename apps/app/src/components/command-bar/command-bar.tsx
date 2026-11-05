@@ -38,18 +38,6 @@ const searchableAssetTypes: ReadonlySet<LabelType> = new Set<LabelType>([
   "valve",
 ]);
 
-const typeLabel = (type: Asset["type"]): string => {
-  const prefixes: Record<Asset["type"], string> = {
-    pipe: "Pipe",
-    junction: "Junction",
-    reservoir: "Reservoir",
-    tank: "Tank",
-    pump: "Pump",
-    valve: "Valve",
-  };
-  return prefixes[type];
-};
-
 const MAX_RECENTS = 10;
 const MAX_RESULTS = 200;
 const recentsByNetwork = new Map<string, SearchOption[]>();
@@ -338,10 +326,10 @@ const CommandBarModal = ({ onClose }: { onClose: () => void }) => {
                   <span className="truncate">{option.label}</span>
                   <span className="text-xs text-subtle shrink-0">
                     {option.data.kind === "asset"
-                      ? typeLabel(option.data.type)
+                      ? translate(option.data.type)
                       : option.data.kind === "zone"
-                        ? "Zone"
-                        : "Customer Point"}
+                        ? translate("zone")
+                        : translate("customerPoint")}
                   </span>
                 </div>
               ))}
