@@ -26,6 +26,7 @@ type ListItemProps<T extends LabelledItem> = {
   icon?: React.ReactNode;
   readOnly?: boolean;
   showFullLabelOnHover?: boolean;
+  depth?: number;
 };
 
 export const ListItem = <T extends LabelledItem>({
@@ -40,6 +41,7 @@ export const ListItem = <T extends LabelledItem>({
   icon,
   readOnly = false,
   showFullLabelOnHover = false,
+  depth = 0,
 }: ListItemProps<T>) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -47,6 +49,7 @@ export const ListItem = <T extends LabelledItem>({
     <li
       data-item-id={item.id}
       aria-selected={isSelected}
+      style={depth > 0 ? { paddingLeft: `${depth}rem` } : undefined}
       className={`group flex items-center justify-between text-sm cursor-pointer h-8 min-w-0 rounded-sm ${
         isSelected
           ? "bg-accent-tint"

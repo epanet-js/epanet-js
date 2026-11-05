@@ -19,6 +19,7 @@ import {
   MIN_SELECTION_SET_SIZE,
   useApplySelectionSet,
   useDeleteSelectionSet,
+  useMoveSelectionSet,
   useRenameSelectionSet,
   useSaveSelectionSet,
 } from "src/commands/selection-sets";
@@ -42,6 +43,7 @@ import {
   ChevronDownIcon,
   ChevronRightIcon,
   CloseIcon,
+  FolderInputIcon,
   PaywallLockIcon,
   PointerClickIcon,
   RenameIcon,
@@ -88,7 +90,12 @@ type Row = RowKey & {
   navId: number;
   label: string;
   kind: "set" | "group" | "bookmark";
+  depth: number;
+  groupId: SelectionSetGroupId | null;
+  count?: number;
 };
+
+const MOVE_ACTION_PREFIX = "move:";
 
 export const CollectionsPanel = () => {
   const translate = useTranslate();
@@ -121,6 +128,7 @@ export const CollectionsPanel = () => {
   const saveSelectionSet = useSaveSelectionSet();
   const applySelectionSet = useApplySelectionSet();
   const renameSelectionSet = useRenameSelectionSet();
+  const moveSelectionSet = useMoveSelectionSet();
   const deleteSelectionSet = useDeleteSelectionSet();
   const createSelectionSetGroup = useCreateSelectionSetGroup();
   const addBookmark = useAddBookmark();
@@ -143,47 +151,91 @@ export const CollectionsPanel = () => {
   >(() => new Set());
   const [pendingDraft, setPendingDraft] = useAtom(pendingCollectionDraftAtom);
 
-  const { groupRows, selectionRows, bookmarkRows, byNavId, addRowNavIds } =
-    useMemo(() => {
-      let navId = 0;
-      const groupRows: Row[] = isGroupsOn
-        ? selectionSetGroups
-            .filter((group) => group.parentId === null)
-            .map((group) => ({
-              navId: ++navId,
-              section: "selectionSets",
-              id: group.id,
-              label: group.label,
-              kind: "group",
-            }))
-        : [];
-      const selectionRows: Row[] = selectionSets.map((set) => ({
-        navId: ++navId,
-        section: "selectionSets",
-        id: set.id,
-        label: set.label,
-        kind: "set",
-      }));
-      const selectionSetsAddRowNavId = isGroupsOn ? undefined : ++navId;
-      const bookmarkRows: Row[] = bookmarks.map((bookmark) => ({
-        navId: ++navId,
-        section: "bookmarks",
-        id: bookmark.id,
-        label: bookmark.label,
-        kind: "bookmark",
-      }));
-      const addRowNavIds: { selectionSets?: number; bookmarks: number } = {
-        selectionSets: selectionSetsAddRowNavId,
-        bookmarks: ++navId,
-      };
-      const byNavId = new Map<number, Row>(
-        [...groupRows, ...selectionRows, ...bookmarkRows].map((row) => [
-          row.navId,
-          row,
-        ]),
-      );
-      return { groupRows, selectionRows, bookmarkRows, byNavId, addRowNavIds };
-    }, [isGroupsOn, selectionSetGroups, selectionSets, bookmarks]);
+  const {
+    selectionSectionRows,
+    groupRows,
+    selectionRows,
+    bookmarkRows,
+    byNavId,
+    addRowNavIds,
+  } = useMemo(() => {
+    let navId = 0;
+    const setRow = (
+      set: (typeof selectionSets)[number],
+      depth: number,
+    ): Row => ({
+      navId: ++navId,
+      section: "selectionSets",
+      id: set.id,
+      label: set.label,
+      kind: "set",
+      depth,
+      groupId: isGroupsOn ? set.groupId : null,
+    });
+    const selectionSectionRows: Row[] = [];
+    if (isGroupsOn) {
+      for (const group of selectionSetGroups) {
+        if (group.parentId !== null) continue;
+        const inside = selectionSets.filter((set) => set.groupId === group.id);
+        selectionSectionRows.push({
+          navId: ++navId,
+          section: "selectionSets",
+          id: group.id,
+          label: group.label,
+          kind: "group",
+          depth: 0,
+          groupId: null,
+          count: inside.length,
+        });
+        for (const set of inside) selectionSectionRows.push(setRow(set, 1));
+      }
+    }
+    const knownGroupIds = new Set(selectionSetGroups.map((group) => group.id));
+    for (const set of selectionSets) {
+      if (isGroupsOn && set.groupId !== null && knownGroupIds.has(set.groupId))
+        continue;
+      selectionSectionRows.push(setRow(set, 0));
+    }
+    const groupRows = selectionSectionRows.filter(
+      (row) => row.kind === "group",
+    );
+    const selectionRows = selectionSectionRows.filter(
+      (row) => row.kind === "set",
+    );
+    const selectionSetsAddRowNavId = isGroupsOn ? undefined : ++navId;
+    const bookmarkRows: Row[] = bookmarks.map((bookmark) => ({
+      navId: ++navId,
+      section: "bookmarks",
+      id: bookmark.id,
+      label: bookmark.label,
+      kind: "bookmark",
+      depth: 0,
+      groupId: null,
+    }));
+    const addRowNavIds: { selectionSets?: number; bookmarks: number } = {
+      selectionSets: selectionSetsAddRowNavId,
+      bookmarks: ++navId,
+    };
+    const byNavId = new Map<number, Row>(
+      [...groupRows, ...selectionRows, ...bookmarkRows].map((row) => [
+        row.navId,
+        row,
+      ]),
+    );
+    return {
+      selectionSectionRows,
+      groupRows,
+      selectionRows,
+      bookmarkRows,
+      byNavId,
+      addRowNavIds,
+    };
+  }, [isGroupsOn, selectionSetGroups, selectionSets, bookmarks]);
+
+  const isRowVisible = useCallback(
+    (row: Row) => row.groupId === null || !collapsedGroupIds.has(row.groupId),
+    [collapsedGroupIds],
+  );
 
   const addRowSectionOf = useCallback(
     (navId: number): SectionType | undefined =>
@@ -193,8 +245,9 @@ export const CollectionsPanel = () => {
 
   const navItems = useMemo(
     (): NavItem<SectionType>[] => [
-      ...groupRows.map((row) => ({ id: row.navId, section: row.section })),
-      ...selectionRows.map((row) => ({ id: row.navId, section: row.section })),
+      ...selectionSectionRows
+        .filter(isRowVisible)
+        .map((row) => ({ id: row.navId, section: row.section })),
       ...(addRowNavIds.selectionSets !== undefined
         ? [
             {
@@ -206,7 +259,7 @@ export const CollectionsPanel = () => {
       ...bookmarkRows.map((row) => ({ id: row.navId, section: row.section })),
       { id: addRowNavIds.bookmarks, section: "bookmarks" },
     ],
-    [groupRows, selectionRows, bookmarkRows, addRowNavIds],
+    [selectionSectionRows, isRowVisible, bookmarkRows, addRowNavIds],
   );
 
   const focusedItem = useMemo((): NavItem<SectionType> | undefined => {
@@ -414,6 +467,16 @@ export const CollectionsPanel = () => {
       return;
     }
 
+    if (action.startsWith(MOVE_ACTION_PREFIX)) {
+      const target = action.slice(MOVE_ACTION_PREFIX.length);
+      moveSelectionSet({
+        setId: row.id,
+        groupId: target === "" ? null : target,
+        source: "panel",
+      });
+      return;
+    }
+
     clearActionState();
     setFocusedRow(null);
     if (row.section === "selectionSets") {
@@ -423,19 +486,51 @@ export const CollectionsPanel = () => {
     }
   };
 
-  const itemActions: ItemAction[] = [
-    {
-      action: "rename",
-      label: translate("rename"),
-      icon: <RenameIcon size="sm" />,
-    },
-    {
-      action: "delete",
-      label: translate("delete"),
-      icon: <CloseIcon size="sm" />,
-      variant: "destructive",
-    },
-  ];
+  const renameAction: ItemAction = {
+    action: "rename",
+    label: translate("rename"),
+    icon: <RenameIcon size="sm" />,
+  };
+  const deleteAction: ItemAction = {
+    action: "delete",
+    label: translate("delete"),
+    icon: <CloseIcon size="sm" />,
+    variant: "destructive",
+  };
+
+  const moveActionFor = (row: Row): ItemAction | null => {
+    if (!isGroupsOn || row.kind !== "set") return null;
+    const targets: ItemAction[] = [
+      ...(row.groupId !== null
+        ? [
+            {
+              action: MOVE_ACTION_PREFIX,
+              label: translate("collections.groups.topLevel"),
+            },
+          ]
+        : []),
+      ...groupRows
+        .filter((group) => group.id !== row.groupId)
+        .map((group) => ({
+          action: `${MOVE_ACTION_PREFIX}${group.id}`,
+          label: group.label,
+        })),
+    ];
+    if (targets.length === 0) return null;
+    return {
+      action: "move",
+      label: translate("collections.selectionSets.moveTo"),
+      icon: <FolderInputIcon size="sm" />,
+      children: targets,
+    };
+  };
+
+  const itemActionsFor = (row: Row): ItemAction[] => {
+    const move = moveActionFor(row);
+    return move
+      ? [renameAction, move, deleteAction]
+      : [renameAction, deleteAction];
+  };
 
   const draftLabel =
     actionState?.action === "creating" ? actionState.label : "";
@@ -471,9 +566,12 @@ export const CollectionsPanel = () => {
               <ChevronDownIcon size="sm" />
             )}
             <span className="truncate">{row.label}</span>
+            {row.count !== undefined && (
+              <span className="shrink-0">({row.count})</span>
+            )}
           </Button>
         </li>
-        {!isCollapsed && (
+        {!isCollapsed && row.count === 0 && (
           <HintRow
             label={translate("collections.groups.empty")}
             className="pl-6"
@@ -490,8 +588,9 @@ export const CollectionsPanel = () => {
       isSelected={row.section === "selectionSets" && row.id === selectedSetId}
       isFocused={focusedRow !== null && isSameRow(row, focusedRow)}
       onSelect={() => handleClickRow(row)}
-      actions={itemActions}
+      actions={itemActionsFor(row)}
       onAction={handleAction}
+      depth={row.depth}
       actionsLabel={moreActionsLabel}
       secondaryAction={
         row.section === "selectionSets"
@@ -565,8 +664,13 @@ export const CollectionsPanel = () => {
                 onCancel={clearActionState}
               />
             )}
-          {groupRows.map(renderGroupRow)}
-          {selectionRows.map(renderRow)}
+          {selectionSectionRows.map((row) =>
+            row.kind === "group"
+              ? renderGroupRow(row)
+              : isRowVisible(row)
+                ? renderRow(row)
+                : null,
+          )}
           {isGroupsOn && isSelectionSectionEmpty && (
             <HintRow
               label={

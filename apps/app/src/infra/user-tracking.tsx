@@ -1919,6 +1919,7 @@ export type UserEvent =
       canManageCollections: boolean;
     }
   | { name: "selectionSet.renamed"; source: "panel" }
+  | { name: "selectionSet.moved"; source: "panel" }
   | { name: "selectionSet.deleted"; source: "panel" }
   | {
       name: "selectionSetGroup.created";

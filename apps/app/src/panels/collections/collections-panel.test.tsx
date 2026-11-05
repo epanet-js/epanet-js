@@ -529,6 +529,46 @@ describe("CollectionsPanel", () => {
       ).not.toBeInTheDocument();
     });
 
+    const saveSetFromMenu = async (name: string) => {
+      await userEvent.click(addMenuButton());
+      await userEvent.click(
+        screen.getByRole("menuitem", { name: "Selection set" }),
+      );
+      await nameIt(name);
+    };
+
+    const moveFromMenu = async (setName: string, target: string) => {
+      await userEvent.click(
+        within(rowOf(setName)).getByRole("button", { name: "More actions" }),
+      );
+      await userEvent.click(
+        screen.getByRole("menuitem", { name: /move to folder/i }),
+      );
+      await userEvent.click(
+        await screen.findByRole("menuitem", { name: target }),
+      );
+    };
+
+    it("moves a set into a folder and back to the top level from its menu", async () => {
+      const store = aStore();
+      store.set(selectionAtom, USelection.fromAssetIds([IDS.J1]));
+      renderPanel(store);
+      await addFolder("DMAs");
+      await saveSetFromMenu("North zone");
+      const [group] = store.get(selectionSetGroupsAtom);
+
+      await moveFromMenu("North zone", "DMAs");
+
+      expect(store.get(selectionSetsAtom)[0].groupId).toBe(group.id);
+      expect(within(rowOf("DMAs")).getByText("(1)")).toBeInTheDocument();
+      expect(screen.queryByText("Empty folder")).not.toBeInTheDocument();
+
+      await moveFromMenu("North zone", "Top level");
+
+      expect(store.get(selectionSetsAtom)[0].groupId).toBeNull();
+      expect(screen.getByText("Empty folder")).toBeInTheDocument();
+    });
+
     it("lists folders before selection sets and reaches both with the arrow keys", async () => {
       const store = aStore();
       store.set(selectionAtom, USelection.fromAssetIds([IDS.J1]));

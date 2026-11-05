@@ -6,6 +6,7 @@ import { useFeatureLock } from "src/components/form/paywall";
 import { usePermissions } from "src/hooks/use-permissions";
 import {
   type CollectionDraftSource,
+  type SelectionSetGroupId,
   type SelectionSetId,
   countSelected,
   existingSelection,
@@ -116,6 +117,31 @@ export const useRenameSelectionSet = () => {
       userTracking.capture({ name: "selectionSet.renamed", source });
     },
     [userTracking, rename, canManageCollections, openPaywall],
+  );
+};
+
+export const useMoveSelectionSet = () => {
+  const userTracking = useUserTracking();
+  const { move } = useSelectionSetsTransaction();
+  const { canManageCollections } = usePermissions();
+  const { openPaywall } = useFeatureLock("selectionSets");
+
+  return useCallback(
+    ({
+      setId,
+      groupId,
+      source,
+    }: {
+      setId: SelectionSetId;
+      groupId: SelectionSetGroupId | null;
+      source: "panel";
+    }) => {
+      if (!canManageCollections) return openPaywall();
+      if (!move({ id: setId, groupId })) return;
+
+      userTracking.capture({ name: "selectionSet.moved", source });
+    },
+    [userTracking, move, canManageCollections, openPaywall],
   );
 };
 

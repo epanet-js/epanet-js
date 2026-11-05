@@ -23,6 +23,7 @@ type EditableListItemProps<T extends LabelledItem> = {
   onLabelChange: (name: string) => boolean;
   onCancel: () => void;
   readOnly?: boolean;
+  depth?: number;
 };
 
 export const EditableListItem = <T extends LabelledItem>({
@@ -41,6 +42,7 @@ export const EditableListItem = <T extends LabelledItem>({
   onCancel,
   icon,
   readOnly = false,
+  depth,
 }: EditableListItemProps<T>) => {
   if (editLabelMode === "inline") {
     return (
@@ -67,6 +69,7 @@ export const EditableListItem = <T extends LabelledItem>({
         onAction={onAction}
         secondaryAction={secondaryAction}
         readOnly={readOnly}
+        depth={depth}
       />
       {editLabelMode === "below" && (
         <ItemInput

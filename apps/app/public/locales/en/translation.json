@@ -2175,7 +2175,8 @@
       "newLabel": "New selection set name",
       "labelPlaceholder": "Selection set name",
       "add": "Add",
-      "new": "Selection set"
+      "new": "Selection set",
+      "moveTo": "Move to folder…"
     },
     "bookmarks": {
       "title": "Bookmarks",
@@ -2192,7 +2193,8 @@
       "new": "Folder",
       "newLabel": "New folder name",
       "labelPlaceholder": "Folder name",
-      "empty": "Empty folder"
+      "empty": "Empty folder",
+      "topLevel": "Top level"
     }
   },
   "tabs": {
