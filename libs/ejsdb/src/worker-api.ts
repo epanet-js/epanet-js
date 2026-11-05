@@ -430,7 +430,7 @@ const BULK_CHUNK_SIZES = {
   customer_point_demands: 7500, //  4 cols × 7500 = 30000 params
   junction_demands: 7500, //  4 cols × 7500 = 30000 params
   zones: 6000, // 5 cols × 6000 = 30000 params
-  selection_sets: 500, // 4 cols, rows carry id-list blobs
+  selection_sets: 500, // 5 cols, rows carry id-list blobs
   scripts: 500, // 5 cols, rows carry script sources
 } as const satisfies Record<(typeof BULK_TABLES)[number], number>;
 
@@ -973,10 +973,16 @@ const bulkInsertZones = (rows: readonly ZoneRow[]) => {
 const bulkInsertSelectionSets = (rows: readonly SelectionSetRow[]) => {
   bulkInsert(
     "selection_sets",
-    ["id", "label", "assets", "customer_points"],
+    ["id", "label", "assets", "customer_points", "zones"],
     rows,
     (row, params) => {
-      params.push(row.id, row.label, row.assets, row.customer_points);
+      params.push(
+        row.id,
+        row.label,
+        row.assets,
+        row.customer_points,
+        row.zones,
+      );
     },
     BULK_CHUNK_SIZES.selection_sets,
   );
@@ -1570,11 +1576,12 @@ export const api = {
     id: string,
     assets: Uint8Array | null,
     customerPoints: Uint8Array | null,
+    zones: Uint8Array | null,
   ): Promise<void> {
     return withTransaction("replaceSelectionSetMembers", (db) => {
       db.exec(
-        "UPDATE selection_sets SET assets = ?, customer_points = ? WHERE id = ?",
-        { bind: [assets, customerPoints, id] },
+        "UPDATE selection_sets SET assets = ?, customer_points = ?, zones = ? WHERE id = ?",
+        { bind: [assets, customerPoints, zones, id] },
       );
     });
   },

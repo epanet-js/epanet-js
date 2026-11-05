@@ -37,6 +37,7 @@ export function useMultiAssetActions(readonly = false): Action[] {
   const selectZoneContents = useSelectZoneContents();
   const deleteSelection = useDeleteSelection();
   const isDeleteZoneOn = useFeatureFlag("FLAG_DELETE_ZONE");
+  const isZoneSelectionOn = useFeatureFlag("FLAG_ZONE_SELECTION");
   const { changeSelectedAssetsActiveTopologyStatus, allActive } =
     useChangeSelectedAssetsActiveTopologyStatus();
   const disconnectCustomerPoints = useDisconnectCustomerPoints();
@@ -109,7 +110,9 @@ export function useMultiAssetActions(readonly = false): Action[] {
 
   const saveSelectionSetAction = {
     icon: <BookmarkIcon />,
-    applicable: isCollectionsAvailable && (hasAssets || hasCustomerPoints),
+    applicable:
+      isCollectionsAvailable &&
+      (hasAssets || hasCustomerPoints || (isZoneSelectionOn && zoneCount > 0)),
     label: translate("collections.selectionSets.save"),
     onSelect: function saveSelectionSet() {
       startCollectionDraft({

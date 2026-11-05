@@ -9,6 +9,24 @@ const aModel = () =>
     .aJunction(3)
     .aJunction(4)
     .aCustomerPoint(7, { coordinates: [0, 0] })
+    .aZone({
+      id: 9,
+      label: "NORTH",
+      geometry: {
+        type: "MultiPolygon",
+        coordinates: [
+          [
+            [
+              [0, 0],
+              [1, 0],
+              [1, 1],
+              [0, 0],
+            ],
+          ],
+        ],
+      },
+      bbox: [0, 0, 1, 1],
+    })
     .build();
 
 describe("largestContainedSet", () => {
@@ -78,6 +96,21 @@ describe("largestContainedSet", () => {
     ).toBeNull();
     expect(
       largestContainedSet([mixed], USelection.fromIds([1, 2], [7]), aModel()),
+    ).toEqual(mixed.id);
+  });
+
+  it("requires the zones of a set as well as its assets", () => {
+    const mixed = newSelectionSet("Mixed", USelection.fromIds([1], [], [9]));
+
+    expect(
+      largestContainedSet([mixed], USelection.fromAssetIds([1, 2]), aModel()),
+    ).toBeNull();
+    expect(
+      largestContainedSet(
+        [mixed],
+        USelection.fromIds([1, 2], [], [9]),
+        aModel(),
+      ),
     ).toEqual(mixed.id);
   });
 

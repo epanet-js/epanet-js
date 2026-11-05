@@ -7,6 +7,7 @@ const aRow = (overrides: Record<string, unknown> = {}) => ({
   label: "Downtown loop",
   assets: encodeIdList([1, 2]),
   customer_points: null,
+  zones: null,
   ...overrides,
 });
 

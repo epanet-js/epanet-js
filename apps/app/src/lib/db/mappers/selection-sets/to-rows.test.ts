@@ -34,6 +34,16 @@ describe("serializeSelectionSets", () => {
     expect(buildSelectionSetsData(rows)).toEqual(selectionSets);
   });
 
+  it("round-trips a set with only zones", () => {
+    const selectionSets = [
+      aSelectionSet({ selection: USelection.fromIds([], [], [9]) }),
+    ];
+
+    const rows = serializeSelectionSets(selectionSets);
+
+    expect(buildSelectionSetsData(rows)).toEqual(selectionSets);
+  });
+
   it("round-trips a set holding many ids", () => {
     const assetIds = Array.from({ length: 200000 }, (_, index) => index + 1);
     const selectionSets = [
@@ -83,12 +93,14 @@ describe("buildSelectionSetsData", () => {
         label: "Readable",
         assets: encodeIdList([1]),
         customer_points: null,
+        zones: null,
       },
       {
         id: "set-2",
         label: "Broken",
         assets: new Uint8Array(6),
         customer_points: null,
+        zones: null,
       },
     ];
 
@@ -99,7 +111,13 @@ describe("buildSelectionSetsData", () => {
 
   it("reads a set stored without ids as an empty selection", () => {
     const rows = [
-      { id: "set-1", label: "Empty", assets: null, customer_points: null },
+      {
+        id: "set-1",
+        label: "Empty",
+        assets: null,
+        customer_points: null,
+        zones: null,
+      },
     ];
 
     expect(buildSelectionSetsData(rows)).toEqual([

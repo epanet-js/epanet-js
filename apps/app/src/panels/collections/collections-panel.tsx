@@ -35,7 +35,7 @@ import {
   RenameIcon,
 } from "src/icons";
 import { PaywallUpgradeBox, useFeatureLock } from "src/components/form/paywall";
-import { USelection } from "src/selection";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { selectionAtom } from "src/state/selection";
 import {
   bookmarksAtom,
@@ -46,8 +46,10 @@ import {
   type CollectionDraftSource,
   type CollectionKind,
   type SelectionSetId,
+  countSelected,
   largestContainedSet,
   matchesSelectionExactly,
+  savableSelection,
 } from "src/lib/collections";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { useStartCollectionDraft } from "src/commands/collection-draft";
@@ -82,8 +84,11 @@ export const CollectionsPanel = () => {
   const selection = useAtomValue(selectionAtom);
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
 
-  const { assets, customerPoints } = USelection.countByKind(selection);
-  const canSaveSelection = assets + customerPoints >= MIN_SELECTION_SET_SIZE;
+  const isZoneSelectionOn = useFeatureFlag("FLAG_ZONE_SELECTION");
+  const savableCount = countSelected(
+    savableSelection(selection, isZoneSelectionOn),
+  );
+  const canSaveSelection = savableCount >= MIN_SELECTION_SET_SIZE;
 
   const [appliedSetId, setAppliedSetId] = useState<SelectionSetId | null>(null);
 
@@ -428,7 +433,7 @@ export const CollectionsPanel = () => {
                   ? translate("collections.selectionSets.saveCurrent")
                   : translate("collections.selectionSets.nothingSelected")
               }
-              count={canSaveSelection ? assets + customerPoints : undefined}
+              count={canSaveSelection ? savableCount : undefined}
               navId={addRowNavIds.selectionSets}
               isFocused={focusedAddRow === "selectionSets"}
               isDisabled={!canSaveSelection}

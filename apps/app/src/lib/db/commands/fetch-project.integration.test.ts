@@ -513,6 +513,7 @@ describe("fetch-project collections", () => {
       label: "Damaged",
       assets: new Uint8Array(6),
       customer_points: null,
+      zones: null,
     });
 
     await expect(fetchProject()).rejects.toThrow(

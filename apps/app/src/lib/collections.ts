@@ -47,8 +47,17 @@ export const newSelectionSet = (
   selection: USelection.fromIds(
     USelection.getAssetIds(selection),
     USelection.getCustomerPointIds(selection),
+    USelection.getZoneIds(selection),
   ),
 });
+
+export const savableSelection = (selection: Sel, includeZones: boolean): Sel =>
+  includeZones
+    ? selection
+    : USelection.fromIds(
+        USelection.getAssetIds(selection),
+        USelection.getCustomerPointIds(selection),
+      );
 
 export const newBookmark = (label: string, bbox: BBox): Bookmark => ({
   id: nanoid(),
@@ -70,8 +79,8 @@ export const removeItem = <T extends Labeled>(
 ): T[] => items.filter((item) => item.id !== id);
 
 export const countSelected = (selection: Sel): number => {
-  const { assets, customerPoints } = USelection.countByKind(selection);
-  return assets + customerPoints;
+  const { assets, customerPoints, zones } = USelection.countByKind(selection);
+  return assets + customerPoints + zones;
 };
 
 export const existingSelection = (
@@ -85,17 +94,22 @@ export const existingSelection = (
     USelection.getCustomerPointIds(selection).filter((id) =>
       hydraulicModel.customerPoints.has(id),
     ),
+    USelection.getZoneIds(selection).filter((id) =>
+      hydraulicModel.zones.has(id),
+    ),
   );
 
 const isContainedBy = (
   members: Sel,
   selectedAssets: ReadonlySet<IWrappedFeature["id"]>,
   selectedCustomerPoints: ReadonlySet<number>,
+  selectedZones: ReadonlySet<number>,
 ): boolean =>
   USelection.getAssetIds(members).every((id) => selectedAssets.has(id)) &&
   USelection.getCustomerPointIds(members).every((id) =>
     selectedCustomerPoints.has(id),
-  );
+  ) &&
+  USelection.getZoneIds(members).every((id) => selectedZones.has(id));
 
 export const largestContainedSet = (
   selectionSets: readonly SelectionSet[],
@@ -106,7 +120,12 @@ export const largestContainedSet = (
   const selectedCustomerPoints = new Set(
     USelection.getCustomerPointIds(selection),
   );
-  if (selectedAssets.size + selectedCustomerPoints.size === 0) return null;
+  const selectedZones = new Set(USelection.getZoneIds(selection));
+  if (
+    selectedAssets.size + selectedCustomerPoints.size + selectedZones.size ===
+    0
+  )
+    return null;
 
   let largest: { id: SelectionSetId; size: number } | null = null;
 
@@ -116,7 +135,12 @@ export const largestContainedSet = (
     if (size === 0) continue;
 
     if (
-      isContainedBy(members, selectedAssets, selectedCustomerPoints) &&
+      isContainedBy(
+        members,
+        selectedAssets,
+        selectedCustomerPoints,
+        selectedZones,
+      ) &&
       (largest === null || size > largest.size)
     ) {
       largest = { id: selectionSet.id, size };
@@ -139,5 +163,6 @@ export const matchesSelectionExactly = (
     members,
     new Set(USelection.getAssetIds(selection)),
     new Set(USelection.getCustomerPointIds(selection)),
+    new Set(USelection.getZoneIds(selection)),
   );
 };

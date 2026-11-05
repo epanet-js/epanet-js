@@ -13,6 +13,7 @@ import {
 } from "src/hooks/use-permissions";
 import { MapContext } from "src/map";
 import { USelection } from "src/selection";
+import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
 import { Store } from "src/state";
 import { selectionAtom } from "src/state/selection";
 import {
@@ -62,6 +63,7 @@ const IDS = {
   J2: 2,
   J3: 3,
   CP1: 7,
+  Z1: 20,
   Deleted: 999,
 } as const;
 
@@ -70,6 +72,24 @@ const aModel = () =>
     .aJunction(IDS.J1, { coordinates: [0, 0] })
     .aJunction(IDS.J2, { coordinates: [10, 20] })
     .aJunction(IDS.J3, { coordinates: [30, 40] })
+    .aZone({
+      id: IDS.Z1,
+      label: "NORTH",
+      geometry: {
+        type: "MultiPolygon",
+        coordinates: [
+          [
+            [
+              [0, 0],
+              [1, 0],
+              [1, 1],
+              [0, 0],
+            ],
+          ],
+        ],
+      },
+      bbox: [0, 0, 1, 1],
+    })
     .build();
 
 const aStore = () => setInitialState({ hydraulicModel: aModel() });
@@ -122,6 +142,34 @@ describe("CollectionsPanel", () => {
       await nameIt("North zone");
 
       expect(screen.getAllByText("North zone")).toHaveLength(2);
+    });
+
+    it("saves the selected zones with zone selection on", async () => {
+      stubFeatureOn("FLAG_ZONE_SELECTION");
+      const store = aStore();
+      store.set(selectionAtom, USelection.fromIds([IDS.J1], [], [IDS.Z1]));
+      renderPanel(store);
+
+      await userEvent.click(saveButton());
+      await nameIt("North zone");
+
+      const [saved] = store.get(selectionSetsAtom);
+      expect(USelection.getAssetIds(saved.selection)).toEqual([IDS.J1]);
+      expect(USelection.getZoneIds(saved.selection)).toEqual([IDS.Z1]);
+    });
+
+    it("leaves the selected zones out with zone selection off", async () => {
+      stubFeatureOff("FLAG_ZONE_SELECTION");
+      const store = aStore();
+      store.set(selectionAtom, USelection.fromIds([IDS.J1], [], [IDS.Z1]));
+      renderPanel(store);
+
+      await userEvent.click(saveButton());
+      await nameIt("North zone");
+
+      const [saved] = store.get(selectionSetsAtom);
+      expect(USelection.getAssetIds(saved.selection)).toEqual([IDS.J1]);
+      expect(USelection.getZoneIds(saved.selection)).toEqual([]);
     });
   });
 
@@ -203,6 +251,23 @@ describe("CollectionsPanel", () => {
         IDS.J2,
       ]);
       expect(zoomTo).not.toHaveBeenCalled();
+    });
+
+    it("selects the zones of a saved set with zone selection off", async () => {
+      stubFeatureOff("FLAG_ZONE_SELECTION");
+      const store = aStore();
+      store.set(selectionSetsAtom, [
+        {
+          id: "set-1",
+          label: "North zone",
+          selection: USelection.fromIds([IDS.J1], [], [IDS.Z1]),
+        },
+      ]);
+      renderPanel(store);
+
+      await userEvent.click(screen.getByText("North zone"));
+
+      expect(USelection.getZoneIds(store.get(selectionAtom))).toEqual([IDS.Z1]);
     });
 
     it("selects only the assets that still exist", async () => {

@@ -13,6 +13,7 @@ export const selectionSetRowSchema = z.object({
   label: z.string().min(1),
   assets: idListSchema,
   customer_points: idListSchema,
+  zones: idListSchema,
 });
 
 export type SelectionSetRow = z.infer<typeof selectionSetRowSchema>;

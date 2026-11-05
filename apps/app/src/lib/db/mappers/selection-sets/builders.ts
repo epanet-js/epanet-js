@@ -15,6 +15,7 @@ export const buildSelectionSetsData = (rawRows: unknown[]): SelectionSet[] => {
     selection: USelection.fromIds(
       decodeIdList(row.assets),
       decodeIdList(row.customer_points),
+      decodeIdList(row.zones),
     ),
   }));
 };

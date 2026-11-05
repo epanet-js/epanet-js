@@ -10,7 +10,9 @@ import {
   countSelected,
   existingSelection,
   newSelectionSet,
+  savableSelection,
 } from "src/lib/collections";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useSelectionSetsTransaction } from "src/hooks/persistence/use-selection-sets-transaction";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { selectionAtom } from "src/state/selection";
@@ -21,6 +23,7 @@ export const MIN_SELECTION_SET_SIZE = 1;
 export const useSaveSelectionSet = () => {
   const userTracking = useUserTracking();
   const { create } = useSelectionSetsTransaction();
+  const isZoneSelectionOn = useFeatureFlag("FLAG_ZONE_SELECTION");
 
   return useAtomCallback(
     useCallback(
@@ -29,7 +32,10 @@ export const useSaveSelectionSet = () => {
         _set,
         { label, source }: { label: string; source: CollectionDraftSource },
       ) => {
-        const selection = get(selectionAtom);
+        const selection = savableSelection(
+          get(selectionAtom),
+          isZoneSelectionOn,
+        );
         const count = countSelected(selection);
         if (count < MIN_SELECTION_SET_SIZE) return;
 
@@ -42,7 +48,7 @@ export const useSaveSelectionSet = () => {
           source,
         });
       },
-      [userTracking, create],
+      [userTracking, create, isZoneSelectionOn],
     ),
   );
 };
