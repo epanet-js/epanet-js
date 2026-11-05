@@ -70,6 +70,21 @@ material.set({ label: "DI" });`,
   ],
 });
 
+const DELETE_PIPE_MATERIAL: Member = network({
+  name: "deletePipeMaterial",
+  signature: "deletePipeMaterial(label: string): void",
+  summary: "Deletes a material found by its label, ignoring case.",
+  description:
+    "Pipes whose `material` names it keep the name, and from then on take no roughness from the library: their `appliedRoughness` is their own roughness, or `null` when they have none. Set the material or the roughness of those pipes first if they need one. Its label is free again straight away, and the material the script holds stops reading. The deletion reaches the network with the other changes.",
+  throws: ["`TypeError` when no material has `label`."],
+  examples: [
+    {
+      code: `network.getLink("P2").set({ roughness: 130 });
+network.deletePipeMaterial("DUCTILE");`,
+    },
+  ],
+});
+
 export const sectionFor = ({ edits }: DocsCandidates): Section =>
   edits
     ? {
@@ -78,6 +93,7 @@ export const sectionFor = ({ edits }: DocsCandidates): Section =>
           ...(SECTION.members ?? []),
           ADD_PIPE_MATERIAL,
           SET_PIPE_MATERIAL,
+          DELETE_PIPE_MATERIAL,
         ],
       }
     : SECTION;
