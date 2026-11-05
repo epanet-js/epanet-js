@@ -122,6 +122,7 @@ export const useSaveAllScriptSelectionSets = () => {
             name: "selectionSet.created",
             count,
             totalSets: get(selectionSetsAtom).length,
+            inGroup: false,
             source: "script-output",
           });
         }

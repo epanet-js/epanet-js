@@ -1,5 +1,5 @@
 import { parseRows, selectionSetGroupRowSchema } from "@epanet-js/ejsdb";
-import type { SelectionSetGroup } from "src/lib/collections";
+import { type SelectionSetGroup, resolveGroupId } from "src/lib/collections";
 
 export const buildSelectionSetGroupsData = (
   rawRows: unknown[],
@@ -10,9 +10,14 @@ export const buildSelectionSetGroupsData = (
     "Selection set group",
   );
 
-  return rows.map((row) => ({
+  const groups = rows.map((row) => ({
     id: row.id,
     label: row.label,
     parentId: row.parent_id,
+  }));
+
+  return groups.map((group) => ({
+    ...group,
+    parentId: resolveGroupId(groups, group.parentId),
   }));
 };

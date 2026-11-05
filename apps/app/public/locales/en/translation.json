@@ -2197,7 +2197,8 @@
       "topLevel": "Top level",
       "delete": "Delete folder",
       "deleteConfirmation_one": "Delete folder \"{{1}}\" and the selection set inside it?",
-      "deleteConfirmation_other": "Delete folder \"{{1}}\" and the {{count}} selection sets inside it?"
+      "deleteConfirmation_other": "Delete folder \"{{1}}\" and the {{count}} selection sets inside it?",
+      "add": "Add to folder"
     }
   },
   "tabs": {

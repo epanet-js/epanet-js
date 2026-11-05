@@ -9,6 +9,7 @@ type ItemInputProps = {
   onCommit: (name: string) => boolean;
   onCancel: () => void;
   forceValidation?: boolean;
+  depth?: number;
 };
 
 export const ItemInput = ({
@@ -19,6 +20,7 @@ export const ItemInput = ({
   onCommit,
   onCancel,
   forceValidation,
+  depth = 0,
 }: ItemInputProps) => {
   const [hasError, setHasError] = useState(false);
 
@@ -30,6 +32,7 @@ export const ItemInput = ({
 
   return (
     <li
+      style={depth > 0 ? { paddingLeft: `${depth}rem` } : undefined}
       className="flex items-center text-sm bg-white dark:bg-gray-700 px-1 h-8"
       data-capture-escape-key
     >

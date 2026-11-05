@@ -609,6 +609,74 @@ describe("CollectionsPanel", () => {
       expect(screen.getByText("Empty folder")).toBeInTheDocument();
     });
 
+    const folderAddButton = (folderName: string) =>
+      within(rowOf(folderName)).getByRole("button", { name: "Add to folder" });
+
+    it("creates a folder inside a folder from the folder's own add menu", async () => {
+      const store = aStore();
+      renderPanel(store);
+      await addFolder("DMAs");
+
+      await userEvent.click(folderAddButton("DMAs"));
+      await userEvent.click(screen.getByRole("menuitem", { name: "Folder" }));
+      await nameIt("North");
+
+      const [dmas, north] = store.get(selectionSetGroupsAtom);
+      expect(north.label).toBe("North");
+      expect(north.parentId).toBe(dmas.id);
+      expect(rowOf("North")).toHaveStyle({ paddingLeft: "1rem" });
+      expect(screen.getAllByText("Empty folder")).toHaveLength(1);
+    });
+
+    it("saves the current selection inside a folder from the folder's own add menu", async () => {
+      const store = aStore();
+      store.set(selectionAtom, USelection.fromAssetIds([IDS.J1]));
+      renderPanel(store);
+      await addFolder("DMAs");
+
+      await userEvent.click(folderAddButton("DMAs"));
+      await userEvent.click(
+        screen.getByRole("menuitem", { name: "Selection set" }),
+      );
+      await nameIt("North zone");
+
+      const [dmas] = store.get(selectionSetGroupsAtom);
+      expect(store.get(selectionSetsAtom)[0].groupId).toBe(dmas.id);
+      expect(within(rowOf("DMAs")).getByText("(1)")).toBeInTheDocument();
+    });
+
+    it("hides a nested folder while its parent is collapsed", async () => {
+      const store = aStore();
+      renderPanel(store);
+      await addFolder("DMAs");
+      await userEvent.click(folderAddButton("DMAs"));
+      await userEvent.click(screen.getByRole("menuitem", { name: "Folder" }));
+      await nameIt("North");
+
+      await userEvent.click(screen.getByText("DMAs"));
+      expect(screen.queryByText("North")).not.toBeInTheDocument();
+
+      await userEvent.click(screen.getByText("DMAs"));
+      expect(screen.getByText("North")).toBeInTheDocument();
+    });
+
+    it("names nested folders by their path in the move menu", async () => {
+      const store = aStore();
+      store.set(selectionAtom, USelection.fromAssetIds([IDS.J1]));
+      renderPanel(store);
+      await addFolder("DMAs");
+      await userEvent.click(folderAddButton("DMAs"));
+      await userEvent.click(screen.getByRole("menuitem", { name: "Folder" }));
+      await nameIt("North");
+      await saveSetFromMenu("North zone");
+
+      await moveFromMenu("North zone", "DMAs / North");
+
+      const [, north] = store.get(selectionSetGroupsAtom);
+      expect(store.get(selectionSetsAtom)[0].groupId).toBe(north.id);
+      expect(within(rowOf("North")).getByText("(1)")).toBeInTheDocument();
+    });
+
     it("lists folders before selection sets and reaches both with the arrow keys", async () => {
       const store = aStore();
       store.set(selectionAtom, USelection.fromAssetIds([IDS.J1]));

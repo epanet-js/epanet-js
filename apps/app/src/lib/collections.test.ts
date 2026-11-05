@@ -1,6 +1,13 @@
 import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { USelection } from "src/selection";
-import { largestContainedSet, newSelectionSet } from "./collections";
+import {
+  childGroups,
+  deleteGroupSubtree,
+  descendantGroupIds,
+  groupPath,
+  largestContainedSet,
+  newSelectionSet,
+} from "./collections";
 
 const aModel = () =>
   HydraulicModelBuilder.with()
@@ -139,5 +146,85 @@ describe("largestContainedSet", () => {
     );
 
     expect(matched).toBeNull();
+  });
+});
+
+describe("selection set groups", () => {
+  const aGroup = (id: string, parentId: string | null) => ({
+    id,
+    label: id.toUpperCase(),
+    parentId,
+  });
+  const aSet = (id: string, groupId: string | null) => ({
+    id,
+    label: id.toUpperCase(),
+    selection: USelection.fromAssetIds([1]),
+    groupId,
+  });
+
+  //  dmas ─┬─ north
+  //        └─ south ─── deep
+  //  pipes
+  const tree = [
+    aGroup("dmas", null),
+    aGroup("north", "dmas"),
+    aGroup("south", "dmas"),
+    aGroup("deep", "south"),
+    aGroup("pipes", null),
+  ];
+
+  it("lists the direct children of a group and the root groups, in order", () => {
+    expect(childGroups(tree, "dmas").map((g) => g.id)).toEqual([
+      "north",
+      "south",
+    ]);
+    expect(childGroups(tree, null).map((g) => g.id)).toEqual(["dmas", "pipes"]);
+  });
+
+  it("collects every nested group below the given one", () => {
+    expect(descendantGroupIds(tree, "dmas").sort()).toEqual([
+      "deep",
+      "north",
+      "south",
+    ]);
+    expect(descendantGroupIds(tree, "deep")).toEqual([]);
+  });
+
+  it("terminates on a cycle it is handed", () => {
+    const cyclic = [aGroup("a", "b"), aGroup("b", "a")];
+
+    expect(descendantGroupIds(cyclic, "a")).toEqual(["b"]);
+    expect(groupPath(cyclic, "a")).toEqual(["B", "A"]);
+  });
+
+  it("lists the labels from the root down to the group", () => {
+    expect(groupPath(tree, "deep")).toEqual(["DMAS", "SOUTH", "DEEP"]);
+    expect(groupPath([aGroup("orphan", "gone")], "orphan")).toEqual(["ORPHAN"]);
+  });
+
+  it("removes a group with its nested groups and the sets inside any of them", () => {
+    const sets = [
+      aSet("north-a", "north"),
+      aSet("deep-a", "deep"),
+      aSet("dmas-a", "dmas"),
+      aSet("mains", "pipes"),
+      aSet("root-set", null),
+    ];
+
+    const result = deleteGroupSubtree(tree, sets, "dmas");
+
+    expect(result.groups.map((g) => g.id)).toEqual(["pipes"]);
+    expect(result.sets.map((s) => s.id)).toEqual(["mains", "root-set"]);
+    expect(result.removedGroupIds.sort()).toEqual([
+      "deep",
+      "dmas",
+      "north",
+      "south",
+    ]);
+    expect(result.removedSetIds.sort()).toEqual([
+      "deep-a",
+      "dmas-a",
+      "north-a",
+    ]);
   });
 });

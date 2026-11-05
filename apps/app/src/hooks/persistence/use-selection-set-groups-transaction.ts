@@ -8,7 +8,7 @@ import { captureError } from "src/infra/error-tracking";
 import {
   type SelectionSetGroup,
   type SelectionSetGroupId,
-  removeItem,
+  deleteGroupSubtree,
 } from "src/lib/collections";
 import { writeQueue } from "src/lib/persistence/write-queue";
 import { dialogAtom } from "src/state/dialog";
@@ -66,14 +66,17 @@ export const useSelectionSetGroupsTransaction = () => {
 
   const remove = useAtomCallback(
     useCallback(
-      (_get, set, id: SelectionSetGroupId) => {
-        set(selectionSetGroupsAtom, (groups) => removeItem(groups, id));
-        set(selectionSetsAtom, (selectionSets) =>
-          selectionSets.filter((selectionSet) => selectionSet.groupId !== id),
+      (get, set, id: SelectionSetGroupId) => {
+        const { groups, sets, removedGroupIds } = deleteGroupSubtree(
+          get(selectionSetGroupsAtom),
+          get(selectionSetsAtom),
+          id,
         );
+        set(selectionSetGroupsAtom, groups);
+        set(selectionSetsAtom, sets);
         markUnsaved(
           set,
-          () => db.deleteSelectionSetGroups([id]),
+          () => db.deleteSelectionSetGroups(removedGroupIds),
           onWriteFailure,
         );
       },

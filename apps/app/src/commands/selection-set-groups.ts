@@ -6,6 +6,7 @@ import { usePermissions } from "src/hooks/use-permissions";
 import {
   type SelectionSetGroup,
   type SelectionSetGroupId,
+  descendantGroupIds,
   newSelectionSetGroup,
 } from "src/lib/collections";
 import { useSelectionSetGroupsTransaction } from "src/hooks/persistence/use-selection-set-groups-transaction";
@@ -79,13 +80,17 @@ export const useDeleteSelectionSetGroup = () => {
       ) => {
         if (!canManageCollections) return openPaywall();
 
+        const subgroupIds = descendantGroupIds(
+          get(selectionSetGroupsAtom),
+          groupId,
+        );
+        const removed = new Set([groupId, ...subgroupIds]);
         userTracking.capture({
           name: "selectionSetGroup.deleted",
-          sets: get(selectionSetsAtom).filter((set) => set.groupId === groupId)
-            .length,
-          subgroups: get(selectionSetGroupsAtom).filter(
-            (group) => group.parentId === groupId,
+          sets: get(selectionSetsAtom).filter(
+            (set) => set.groupId !== null && removed.has(set.groupId),
           ).length,
+          subgroups: subgroupIds.length,
           source,
         });
         remove(groupId);

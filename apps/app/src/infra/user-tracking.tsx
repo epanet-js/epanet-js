@@ -1904,6 +1904,7 @@ export type UserEvent =
       name: "selectionSet.created";
       count: number;
       totalSets: number;
+      inGroup: boolean;
       source: CollectionDraftSource;
     }
   | {

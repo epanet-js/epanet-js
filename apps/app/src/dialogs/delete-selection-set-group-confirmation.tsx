@@ -2,7 +2,10 @@ import { useAtomValue } from "jotai";
 import { BaseDialog, SimpleDialogActions } from "src/components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
 import { useDeleteSelectionSetGroup } from "src/commands/selection-set-groups";
-import type { SelectionSetGroupId } from "src/lib/collections";
+import {
+  type SelectionSetGroupId,
+  descendantGroupIds,
+} from "src/lib/collections";
 import {
   selectionSetGroupsAtom,
   selectionSetsAtom,
@@ -16,11 +19,11 @@ export const DeleteSelectionSetGroupConfirmationDialog = ({
   onClose: () => void;
 }) => {
   const translate = useTranslate();
-  const group = useAtomValue(selectionSetGroupsAtom).find(
-    (candidate) => candidate.id === groupId,
-  );
+  const groups = useAtomValue(selectionSetGroupsAtom);
+  const group = groups.find((candidate) => candidate.id === groupId);
+  const removed = new Set([groupId, ...descendantGroupIds(groups, groupId)]);
   const setCount = useAtomValue(selectionSetsAtom).filter(
-    (set) => set.groupId === groupId,
+    (set) => set.groupId !== null && removed.has(set.groupId),
   ).length;
   const deleteSelectionSetGroup = useDeleteSelectionSetGroup();
 

@@ -66,7 +66,9 @@ import {
   type CollectionKind,
   type SelectionSetGroupId,
   type SelectionSetId,
+  childGroups,
   countSelected,
+  groupPath,
   largestContainedSet,
   matchesSelectionExactly,
   savableSelection,
@@ -83,6 +85,7 @@ type ActionState =
       section: SectionType;
       source: CollectionDraftSource;
       label: string;
+      groupId: SelectionSetGroupId | null;
     }
   | { action: "creatingGroup"; parentId: SelectionSetGroupId | null }
   | { action: "renaming"; section: SectionType; id: string };
@@ -97,7 +100,9 @@ type Row = RowKey & {
   kind: "set" | "group" | "bookmark";
   depth: number;
   groupId: SelectionSetGroupId | null;
+  hidden: boolean;
   count?: number;
+  isEmpty?: boolean;
 };
 
 const MOVE_ACTION_PREFIX = "move:";
@@ -172,6 +177,7 @@ export const CollectionsPanel = () => {
     const setRow = (
       set: (typeof selectionSets)[number],
       depth: number,
+      hidden: boolean,
     ): Row => ({
       navId: ++navId,
       section: "selectionSets",
@@ -180,30 +186,49 @@ export const CollectionsPanel = () => {
       kind: "set",
       depth,
       groupId: isGroupsOn ? set.groupId : null,
+      hidden,
     });
     const selectionSectionRows: Row[] = [];
-    if (isGroupsOn) {
-      for (const group of selectionSetGroups) {
-        if (group.parentId !== null) continue;
+    const knownGroupIds = new Set(selectionSetGroups.map((group) => group.id));
+    const walk = (
+      parentId: SelectionSetGroupId | null,
+      depth: number,
+      hidden: boolean,
+    ) => {
+      const groups =
+        parentId === null
+          ? selectionSetGroups.filter(
+              (group) =>
+                group.parentId === null || !knownGroupIds.has(group.parentId),
+            )
+          : childGroups(selectionSetGroups, parentId);
+      for (const group of groups) {
         const inside = selectionSets.filter((set) => set.groupId === group.id);
+        const hasChildren =
+          childGroups(selectionSetGroups, group.id).length > 0;
         selectionSectionRows.push({
           navId: ++navId,
           section: "selectionSets",
           id: group.id,
           label: group.label,
           kind: "group",
-          depth: 0,
-          groupId: null,
+          depth,
+          groupId: parentId,
+          hidden,
           count: inside.length,
+          isEmpty: inside.length === 0 && !hasChildren,
         });
-        for (const set of inside) selectionSectionRows.push(setRow(set, 1));
+        const hiddenInside = hidden || collapsedGroupIds.has(group.id);
+        walk(group.id, depth + 1, hiddenInside);
+        for (const set of inside)
+          selectionSectionRows.push(setRow(set, depth + 1, hiddenInside));
       }
-    }
-    const knownGroupIds = new Set(selectionSetGroups.map((group) => group.id));
+    };
+    if (isGroupsOn) walk(null, 0, false);
     for (const set of selectionSets) {
       if (isGroupsOn && set.groupId !== null && knownGroupIds.has(set.groupId))
         continue;
-      selectionSectionRows.push(setRow(set, 0));
+      selectionSectionRows.push(setRow(set, 0, false));
     }
     const groupRows = selectionSectionRows.filter(
       (row) => row.kind === "group",
@@ -220,6 +245,7 @@ export const CollectionsPanel = () => {
       kind: "bookmark",
       depth: 0,
       groupId: null,
+      hidden: false,
     }));
     const addRowNavIds: { selectionSets?: number; bookmarks: number } = {
       selectionSets: selectionSetsAddRowNavId,
@@ -239,12 +265,15 @@ export const CollectionsPanel = () => {
       byNavId,
       addRowNavIds,
     };
-  }, [isGroupsOn, selectionSetGroups, selectionSets, bookmarks]);
+  }, [
+    isGroupsOn,
+    selectionSetGroups,
+    selectionSets,
+    bookmarks,
+    collapsedGroupIds,
+  ]);
 
-  const isRowVisible = useCallback(
-    (row: Row) => row.groupId === null || !collapsedGroupIds.has(row.groupId),
-    [collapsedGroupIds],
-  );
+  const isRowVisible = useCallback((row: Row) => !row.hidden, []);
 
   const addRowSectionOf = useCallback(
     (navId: number): SectionType | undefined =>
@@ -310,6 +339,15 @@ export const CollectionsPanel = () => {
       const next = new Set(collapsed);
       if (next.has(groupId)) next.delete(groupId);
       else next.add(groupId);
+      return next;
+    });
+  }, []);
+
+  const expandGroup = useCallback((groupId: SelectionSetGroupId) => {
+    setCollapsedGroupIds((collapsed) => {
+      if (!collapsed.has(groupId)) return collapsed;
+      const next = new Set(collapsed);
+      next.delete(groupId);
       return next;
     });
   }, []);
@@ -418,7 +456,11 @@ export const CollectionsPanel = () => {
       });
     } else if (actionState.action === "creating") {
       if (actionState.section === "selectionSets") {
-        saveSelectionSet({ label: trimmedLabel, source: actionState.source });
+        saveSelectionSet({
+          label: trimmedLabel,
+          source: actionState.source,
+          groupId: actionState.groupId,
+        });
       } else {
         addBookmark({ label: trimmedLabel, source: actionState.source });
       }
@@ -443,15 +485,18 @@ export const CollectionsPanel = () => {
   useEffect(() => {
     if (!pendingDraft) return;
 
+    const groupId = pendingDraft.groupId ?? null;
     setActionState({
       action: "creating",
       section: pendingDraft.kind,
       source: pendingDraft.source,
       label: pendingDraft.label,
+      groupId,
     });
+    if (groupId !== null) expandGroup(groupId);
     listRef.current?.openSection(pendingDraft.kind);
     setPendingDraft(null);
-  }, [pendingDraft, setPendingDraft]);
+  }, [pendingDraft, setPendingDraft, expandGroup]);
 
   const handleNew = (section: SectionType, source: CollectionDraftSource) => {
     clearKeyboardFocus();
@@ -462,7 +507,18 @@ export const CollectionsPanel = () => {
     clearKeyboardFocus();
     if (isLocked) return openPaywall();
     listRef.current?.openSection("selectionSets");
+    if (parentId !== null) expandGroup(parentId);
     setActionState({ action: "creatingGroup", parentId });
+  };
+
+  const handleNewSetIn = (groupId: SelectionSetGroupId) => {
+    clearKeyboardFocus();
+    startCollectionDraft({
+      kind: "selectionSets",
+      source: "collections-group",
+      label: "",
+      groupId,
+    });
   };
 
   const handleAction = (action: string, item: { id: number }) => {
@@ -531,7 +587,7 @@ export const CollectionsPanel = () => {
         .filter((group) => group.id !== row.groupId)
         .map((group) => ({
           action: `${MOVE_ACTION_PREFIX}${group.id}`,
-          label: group.label,
+          label: groupPath(selectionSetGroups, group.id).join(" / "),
         })),
     ];
     if (targets.length === 0) return null;
@@ -554,6 +610,11 @@ export const CollectionsPanel = () => {
 
   const draftLabel =
     actionState?.action === "creating" ? actionState.label : "";
+  const setDraftGroupId =
+    actionState?.action === "creating" &&
+    actionState.section === "selectionSets"
+      ? actionState.groupId
+      : undefined;
 
   const isSelectionSectionEmpty =
     groupRows.length === 0 &&
@@ -563,14 +624,15 @@ export const CollectionsPanel = () => {
 
   const renderGroupRow = (row: Row) => {
     const isCollapsed = collapsedGroupIds.has(row.id);
+    const isMenuOpen = menuOpenGroupId === row.id;
     return (
       <Fragment key={row.id}>
         <li
           data-item-id={row.navId}
+          style={row.depth > 0 ? { paddingLeft: `${row.depth}rem` } : undefined}
           className={clsx(
             "group flex items-center text-sm cursor-pointer h-8 min-w-0 rounded-sm",
-            (focusedRow !== null && isSameRow(row, focusedRow)) ||
-              menuOpenGroupId === row.id
+            (focusedRow !== null && isSameRow(row, focusedRow)) || isMenuOpen
               ? "bg-base-hover"
               : "hover:bg-base-hover",
           )}
@@ -591,20 +653,70 @@ export const CollectionsPanel = () => {
               <span className="shrink-0">({row.count})</span>
             )}
           </Button>
+          <AddMenu
+            label={translate("collections.groups.add")}
+            isLocked={isLocked}
+            onLockedClick={openPaywall}
+            className={isMenuOpen ? "" : "invisible group-hover:visible"}
+            items={[
+              { action: "group", label: translate("collections.groups.new") },
+              {
+                action: "set",
+                label: translate("collections.selectionSets.new"),
+                disabled: !canSaveSelection,
+              },
+            ]}
+            onAction={(action) =>
+              action === "group"
+                ? handleNewGroup(row.id)
+                : handleNewSetIn(row.id)
+            }
+            onOpenChange={(open) => setMenuOpenGroupId(open ? row.id : null)}
+          />
           <ItemActions
             label={moreActionsLabel}
-            isSelected={menuOpenGroupId === row.id}
+            isSelected={isMenuOpen}
             actions={groupActions}
             onAction={(action) => handleAction(action, { id: row.navId })}
             onOpenChange={(open) => setMenuOpenGroupId(open ? row.id : null)}
           />
         </li>
-        {!isCollapsed && row.count === 0 && (
-          <HintRow
-            label={translate("collections.groups.empty")}
-            className="pl-6"
+        {actionState?.action === "creatingGroup" &&
+          actionState.parentId === row.id && (
+            <ItemInput
+              label={translate("collections.groups.newLabel")}
+              value=""
+              placeholder={translate("collections.groups.labelPlaceholder")}
+              onCommit={handleLabelChange}
+              onCancel={clearActionState}
+              depth={row.depth + 1}
+            />
+          )}
+        {setDraftGroupId === row.id && (
+          <ItemInput
+            label={translate("collections.selectionSets.newLabel")}
+            value={draftLabel}
+            forceValidation={draftLabel !== ""}
+            placeholder={translate(
+              "collections.selectionSets.labelPlaceholder",
+            )}
+            onCommit={handleLabelChange}
+            onCancel={clearActionState}
+            depth={row.depth + 1}
           />
         )}
+        {!isCollapsed &&
+          row.isEmpty &&
+          !(
+            actionState?.action === "creatingGroup" &&
+            actionState.parentId === row.id
+          ) &&
+          setDraftGroupId !== row.id && (
+            <HintRow
+              label={translate("collections.groups.empty")}
+              depth={row.depth + 1}
+            />
+          )}
       </Fragment>
     );
   };
@@ -693,11 +805,11 @@ export const CollectionsPanel = () => {
               />
             )}
           {selectionSectionRows.map((row) =>
-            row.kind === "group"
-              ? renderGroupRow(row)
-              : isRowVisible(row)
-                ? renderRow(row)
-                : null,
+            !isRowVisible(row)
+              ? null
+              : row.kind === "group"
+                ? renderGroupRow(row)
+                : renderRow(row),
           )}
           {isGroupsOn && isSelectionSectionEmpty && (
             <HintRow
@@ -708,7 +820,7 @@ export const CollectionsPanel = () => {
               }
             />
           )}
-          {isCreatingIn(actionState, "selectionSets") ? (
+          {setDraftGroupId === null ? (
             <ItemInput
               label={translate("collections.selectionSets.newLabel")}
               value={draftLabel}
@@ -832,14 +944,21 @@ const AddMenu = ({
   onLockedClick,
   items,
   onAction,
+  onOpenChange,
+  className,
 }: {
   label: string;
   isLocked: boolean;
   onLockedClick: () => void;
   items: { action: string; label: string; disabled?: boolean }[];
   onAction: (action: string) => void;
+  onOpenChange?: (open: boolean) => void;
+  className?: string;
 }) => {
-  const buttonClassName = "h-6 w-6 shrink-0 justify-center hover:bg-base-hover";
+  const buttonClassName = clsx(
+    "h-6 w-6 shrink-0 justify-center hover:bg-base-hover",
+    className,
+  );
 
   if (isLocked) {
     return (
@@ -857,13 +976,13 @@ const AddMenu = ({
 
   return (
     <div onClick={(e) => e.stopPropagation()} className="flex shrink-0">
-      <DD.Root modal={false}>
+      <DD.Root modal={false} onOpenChange={onOpenChange}>
         <DD.Trigger asChild>
           <Button
             variant="quiet"
             size="xxs"
             aria-label={label}
-            className={`${buttonClassName} aria-expanded:bg-base-hover`}
+            className={`${buttonClassName} aria-expanded:bg-base-hover aria-expanded:visible`}
           >
             <AddIcon />
           </Button>
@@ -892,18 +1011,10 @@ const AddMenu = ({
   );
 };
 
-const HintRow = ({
-  label,
-  className,
-}: {
-  label: string;
-  className?: string;
-}) => (
+const HintRow = ({ label, depth = 0 }: { label: string; depth?: number }) => (
   <li
-    className={clsx(
-      "flex items-center text-sm h-8 min-w-0 pl-2 text-subtle",
-      className,
-    )}
+    style={{ paddingLeft: `${0.5 + depth}rem` }}
+    className="flex items-center text-sm h-8 min-w-0 text-subtle"
   >
     <span className="truncate">{label}</span>
   </li>

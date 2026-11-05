@@ -31,7 +31,15 @@ export const useSaveSelectionSet = () => {
       (
         get,
         _set,
-        { label, source }: { label: string; source: CollectionDraftSource },
+        {
+          label,
+          source,
+          groupId = null,
+        }: {
+          label: string;
+          source: CollectionDraftSource;
+          groupId?: SelectionSetGroupId | null;
+        },
       ) => {
         const selection = savableSelection(
           get(selectionAtom),
@@ -40,12 +48,13 @@ export const useSaveSelectionSet = () => {
         const count = countSelected(selection);
         if (count < MIN_SELECTION_SET_SIZE) return;
 
-        if (!create(newSelectionSet(label, selection))) return;
+        if (!create(newSelectionSet(label, selection, groupId))) return;
 
         userTracking.capture({
           name: "selectionSet.created",
           count,
           totalSets: get(selectionSetsAtom).length,
+          inGroup: groupId !== null,
           source,
         });
       },

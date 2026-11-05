@@ -8,6 +8,7 @@ export type CollectionKind = "selectionSets" | "bookmarks";
 
 export type CollectionDraftSource =
   | "collections-heading"
+  | "collections-group"
   | "collections-add-row"
   | "context-menu"
   | "toolbar"
@@ -17,6 +18,7 @@ export type CollectionDraft = {
   kind: CollectionKind;
   source: CollectionDraftSource;
   label: string;
+  groupId?: SelectionSetGroupId | null;
 };
 
 export type SelectionSetId = string;
@@ -76,6 +78,69 @@ export const resolveGroupId = (
   id: SelectionSetGroupId | null,
 ): SelectionSetGroupId | null =>
   id !== null && groups.some((group) => group.id === id) ? id : null;
+
+export const childGroups = (
+  groups: readonly SelectionSetGroup[],
+  parentId: SelectionSetGroupId | null,
+): SelectionSetGroup[] => groups.filter((group) => group.parentId === parentId);
+
+export const descendantGroupIds = (
+  groups: readonly SelectionSetGroup[],
+  id: SelectionSetGroupId,
+): SelectionSetGroupId[] => {
+  const descendants: SelectionSetGroupId[] = [];
+  const pending = [id];
+  while (pending.length > 0) {
+    const parentId = pending.pop()!;
+    for (const child of childGroups(groups, parentId)) {
+      if (child.id === id || descendants.includes(child.id)) continue;
+      descendants.push(child.id);
+      pending.push(child.id);
+    }
+  }
+  return descendants;
+};
+
+export const groupPath = (
+  groups: readonly SelectionSetGroup[],
+  id: SelectionSetGroupId,
+): string[] => {
+  const labels: string[] = [];
+  const visited = new Set<SelectionSetGroupId>();
+  let current: SelectionSetGroupId | null = id;
+  while (current !== null && !visited.has(current)) {
+    visited.add(current);
+    const group = groups.find((candidate) => candidate.id === current);
+    if (!group) break;
+    labels.unshift(group.label);
+    current = group.parentId;
+  }
+  return labels;
+};
+
+export const deleteGroupSubtree = (
+  groups: readonly SelectionSetGroup[],
+  sets: readonly SelectionSet[],
+  id: SelectionSetGroupId,
+): {
+  groups: SelectionSetGroup[];
+  sets: SelectionSet[];
+  removedGroupIds: SelectionSetGroupId[];
+  removedSetIds: SelectionSetId[];
+} => {
+  const removedGroupIds = [id, ...descendantGroupIds(groups, id)];
+  const removed = new Set(removedGroupIds);
+  const removedSetIds = sets
+    .filter((set) => set.groupId !== null && removed.has(set.groupId))
+    .map((set) => set.id);
+  const removedSets = new Set(removedSetIds);
+  return {
+    groups: groups.filter((group) => !removed.has(group.id)),
+    sets: sets.filter((set) => !removedSets.has(set.id)),
+    removedGroupIds,
+    removedSetIds,
+  };
+};
 
 export const newSelectionSetGroup = (
   label: string,

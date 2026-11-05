@@ -35,7 +35,8 @@ export const useStartCollectionDraft = () => {
 
   return useAtomCallback(
     useCallback(
-      (get, set, { kind, source, label }: CollectionDraft) => {
+      (get, set, draft: CollectionDraft) => {
+        const { kind, source } = draft;
         if (kind === "selectionSets") {
           userTracking.capture({
             name: "selectionSet.draftStarted",
@@ -62,7 +63,7 @@ export const useStartCollectionDraft = () => {
         }
 
         revealPanel();
-        set(pendingCollectionDraftAtom, { kind, source, label });
+        set(pendingCollectionDraftAtom, draft);
       },
       [revealPanel, userTracking, canManageCollections, openPaywall],
     ),
