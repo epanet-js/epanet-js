@@ -44,7 +44,7 @@ describe("serializeSelectionSets", () => {
 
     const rows = serializeSelectionSets(selectionSets);
 
-    expect(buildSelectionSetsData(rows)).toEqual(selectionSets);
+    expect(buildSelectionSetsData(rows, noGroups)).toEqual(selectionSets);
   });
 
   it("round-trips a set holding many ids", () => {

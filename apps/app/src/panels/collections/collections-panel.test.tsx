@@ -14,7 +14,6 @@ import {
 } from "src/hooks/use-permissions";
 import { MapContext } from "src/map";
 import { USelection } from "src/selection";
-import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
 import { Store } from "src/state";
 import { dialogAtom } from "src/state/dialog";
 import { selectionAtom } from "src/state/selection";
@@ -265,6 +264,7 @@ describe("CollectionsPanel", () => {
           id: "set-1",
           label: "North zone",
           selection: USelection.fromIds([IDS.J1], [], [IDS.Z1]),
+          groupId: null,
         },
       ]);
       renderPanel(store);
@@ -506,7 +506,7 @@ describe("CollectionsPanel", () => {
       await addFolder("DMAs");
 
       expect(screen.getByText("DMAs")).toBeInTheDocument();
-      expect(screen.getByText("Empty folder")).toBeInTheDocument();
+      expect(rowOf("Nothing selected")).toHaveStyle({ paddingLeft: "1rem" });
       expect(
         store.get(selectionSetGroupsAtom).map((group) => group.label),
       ).toEqual(["DMAs"]);
@@ -620,12 +620,14 @@ describe("CollectionsPanel", () => {
 
       expect(store.get(selectionSetsAtom)[0].groupId).toBe(group.id);
       expect(within(rowOf("DMAs")).getByText("(1)")).toBeInTheDocument();
-      expect(screen.queryByText("Empty folder")).not.toBeInTheDocument();
+      expect(
+        screen.queryByText("Save current selection"),
+      ).not.toBeInTheDocument();
 
       await moveFromMenu("North zone", "Top level");
 
       expect(store.get(selectionSetsAtom)[0].groupId).toBeNull();
-      expect(screen.getByText("Empty folder")).toBeInTheDocument();
+      expect(screen.getByText("Save current selection")).toBeInTheDocument();
     });
 
     const folderAddButton = (folderName: string) =>
@@ -644,7 +646,7 @@ describe("CollectionsPanel", () => {
       expect(north.label).toBe("North");
       expect(north.parentId).toBe(dmas.id);
       expect(rowOf("North")).toHaveStyle({ paddingLeft: "1rem" });
-      expect(screen.getAllByText("Empty folder")).toHaveLength(1);
+      expect(screen.getAllByText("Nothing selected")).toHaveLength(1);
     });
 
     it("saves the current selection inside a folder from the folder's own add menu", async () => {
@@ -711,6 +713,9 @@ describe("CollectionsPanel", () => {
 
       await userEvent.keyboard("{ArrowDown}{ArrowDown}");
       expect(rowOf("DMAs")).toHaveClass("bg-base-hover");
+
+      await userEvent.keyboard("{ArrowDown}");
+      expect(rowOf("Nothing selected")).toHaveClass("bg-base-hover");
 
       await userEvent.keyboard("{ArrowDown}");
       expect(rowOf("North zone")).toHaveAttribute("aria-selected", "true");

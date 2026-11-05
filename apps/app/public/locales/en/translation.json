@@ -2193,7 +2193,6 @@
       "new": "Folder",
       "newLabel": "New folder name",
       "labelPlaceholder": "Folder name",
-      "empty": "Empty folder",
       "topLevel": "Top level",
       "delete": "Delete folder",
       "deleteConfirmation_one": "Delete folder \"{{1}}\" and the selection set inside it?",
