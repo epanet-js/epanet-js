@@ -1,13 +1,11 @@
-import type { Zone, ZoneId } from "@epanet-js/hydraulic-model";
+import type { ZoneId } from "@epanet-js/hydraulic-model";
 import type { ChangeSet } from "@epanet-js/change-set";
 import { HydraulicModel } from "@epanet-js/hydraulic-model";
 import { changeSet, setZone, type Fields } from "../change-sets";
 
-type EditableZoneProperty = keyof Omit<Zone, "id">;
-
 type ChangeZonePropertyData = {
   zoneIds: ZoneId[];
-  property: EditableZoneProperty;
+  property: string;
   value: unknown;
 };
 

@@ -1,17 +1,15 @@
 import type { Position } from "geojson";
-import type { Zone, Zones } from "./zones";
+import { Zone, type Zones } from "./zones";
 import {
   encodeZonesGeo,
   queryIntersectingZones,
   ZonesGeoView,
 } from "./zones-geo";
 
-const aZone = (id: number, polygons: Position[][][]): Zone => ({
-  id,
-  label: `Z${id}`,
-  geometry: { type: "MultiPolygon", coordinates: polygons },
-  bbox: [0, 0, 0, 0],
-});
+const aZone = (id: number, polygons: Position[][][]): Zone =>
+  new Zone(id, { type: "MultiPolygon", coordinates: polygons }, [0, 0, 0, 0], {
+    label: `Z${id}`,
+  });
 
 const square = (
   minX: number,

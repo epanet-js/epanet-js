@@ -5,7 +5,10 @@ import type {
   NodeAsset,
 } from "@epanet-js/hydraulic-model";
 import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
-import { buildTestFactories } from "@epanet-js/hydraulic-model-testing";
+import {
+  buildTestFactories,
+  buildZone,
+} from "@epanet-js/hydraulic-model-testing";
 import {
   modelLabels,
   snapshot,
@@ -371,21 +374,23 @@ const cases: OperationCase[] = [
     fixture: aNetwork,
     run: ({ model }) => {
       const zones = new Map(model.zones);
-      zones.set(IDS.Z1, { id: IDS.Z1, label: "SOUTH", ...aSquare(5) });
-      zones.set(IDS.Z2, { id: IDS.Z2, label: "EAST", ...aSquare(10) });
+      zones.set(
+        IDS.Z1,
+        buildZone({ id: IDS.Z1, label: "SOUTH", ...aSquare(5) }),
+      );
+      zones.set(
+        IDS.Z2,
+        buildZone({ id: IDS.Z2, label: "EAST", ...aSquare(10) }),
+      );
       return changeZones(model, { zones });
     },
     expectApplied: ({ model }) => {
-      expect(model.zones.get(IDS.Z1)).toEqual({
-        id: IDS.Z1,
-        label: "SOUTH",
-        ...aSquare(5),
-      });
-      expect(model.zones.get(IDS.Z2)).toEqual({
-        id: IDS.Z2,
-        label: "EAST",
-        ...aSquare(10),
-      });
+      expect(model.zones.get(IDS.Z1)).toEqual(
+        buildZone({ id: IDS.Z1, label: "SOUTH", ...aSquare(5) }),
+      );
+      expect(model.zones.get(IDS.Z2)).toEqual(
+        buildZone({ id: IDS.Z2, label: "EAST", ...aSquare(10) }),
+      );
     },
   },
   {
@@ -398,11 +403,9 @@ const cases: OperationCase[] = [
         value: "SOUTH",
       }),
     expectApplied: ({ model, labelManager }) => {
-      expect(model.zones.get(IDS.Z1)).toEqual({
-        id: IDS.Z1,
-        label: "SOUTH",
-        ...aSquare(0),
-      });
+      expect(model.zones.get(IDS.Z1)).toEqual(
+        buildZone({ id: IDS.Z1, label: "SOUTH", ...aSquare(0) }),
+      );
       expect(labelManager.isLabelAvailable("SOUTH", "zone")).toBe(false);
       expect(labelManager.isLabelAvailable("NORTH", "zone")).toBe(true);
     },

@@ -59,7 +59,6 @@ import {
 import { selectionAtom } from "src/state/selection";
 import { simulationStepAtom } from "src/state/simulation";
 import { bookmarksAtom, selectionSetsAtom } from "src/state/collections";
-import { zonesAtom } from "src/state/zones";
 import { useShowScriptOutput } from "./show-script-output";
 
 const MAX_CONSOLE_LINES = 1000;
@@ -246,7 +245,6 @@ export const useRunScript = () => {
           simulationSettings: store.get(simulationSettingsDerivedAtom),
           projection: store.get(projectSettingsAtom).projection,
         },
-        zones: store.get(zonesAtom),
         lastResults: isScriptResultsOn
           ? { isOn: true, value: lastResultsOf(store.get) }
           : { isOn: false },

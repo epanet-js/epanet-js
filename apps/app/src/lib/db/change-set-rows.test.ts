@@ -22,7 +22,10 @@ import {
   HydraulicModelBuilder,
   buildCustomerPoint,
 } from "@epanet-js/hydraulic-model-testing";
-import { buildTestFactories } from "@epanet-js/hydraulic-model-testing";
+import {
+  buildTestFactories,
+  buildZone,
+} from "@epanet-js/hydraulic-model-testing";
 import { CUSTOM_PROPERTY_PREFIX } from "@epanet-js/hydraulic-model";
 import { CUSTOM_ATTRIBUTE_KEY_PREFIX } from "@epanet-js/ejsdb";
 import { changeSet } from "@epanet-js/hydraulic-model-operations";
@@ -519,7 +522,7 @@ describe("buildChangeSetPayload zones", () => {
   it("writes a zone create as an upsert with stringified geometry and bbox", () => {
     const { model } = aNetwork();
     const zones = new Map(model.zones);
-    zones.set(IDS.Z2, { id: IDS.Z2, label: "SOUTH", ...aSquare(5) });
+    zones.set(IDS.Z2, buildZone({ id: IDS.Z2, label: "SOUTH", ...aSquare(5) }));
 
     const payload = buildChangeSetPayload(
       changeSet(model, "changeZones", [replaceZones(zones)]),
@@ -535,7 +538,7 @@ describe("buildChangeSetPayload zones", () => {
   it("writes a label-only zone edit as a patch", () => {
     const { model } = aNetwork();
     const zones = new Map(model.zones);
-    zones.set(IDS.Z1, { ...zones.get(IDS.Z1)!, label: "EAST" });
+    zones.set(IDS.Z1, buildZone({ id: IDS.Z1, label: "EAST", ...aSquare(0) }));
 
     const payload = buildChangeSetPayload(
       changeSet(model, "changeZones", [replaceZones(zones)]),

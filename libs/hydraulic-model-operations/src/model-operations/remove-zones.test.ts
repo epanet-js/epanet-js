@@ -2,7 +2,10 @@ import { describe, it, expect } from "vitest";
 import { removeZones } from "./remove-zones";
 import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { applyOperation } from "../__helpers__/apply-operation";
-import { buildTestFactories } from "@epanet-js/hydraulic-model-testing";
+import {
+  buildTestFactories,
+  buildZone,
+} from "@epanet-js/hydraulic-model-testing";
 
 const IDS = { Z1: 1, Z2: 2 } as const;
 
@@ -53,11 +56,9 @@ describe("removeZones", () => {
 
     undo();
 
-    expect(hydraulicModel.zones.get(IDS.Z1)).toEqual({
-      id: IDS.Z1,
-      label: "NORTH",
-      ...aSquare(0),
-    });
+    expect(hydraulicModel.zones.get(IDS.Z1)).toEqual(
+      buildZone({ id: IDS.Z1, label: "NORTH", ...aSquare(0) }),
+    );
     expect(labelManager.isLabelAvailable("NORTH", "zone")).toBe(false);
   });
 

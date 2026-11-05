@@ -2,7 +2,10 @@
 import type { Position } from "geojson";
 import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
 import turfBbox from "@turf/bbox";
-import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
+import {
+  HydraulicModelBuilder,
+  type ZoneBuildData,
+} from "@epanet-js/hydraulic-model-testing";
 import {
   AssetsGeoView,
   CustomerPointsGeoView,
@@ -46,7 +49,7 @@ const wavyRing = (
   return ring;
 };
 
-const aZone = (id: number, ring: Position[]): Zone => {
+const aZone = (id: number, ring: Position[]): ZoneBuildData => {
   const geometry = {
     type: "MultiPolygon" as const,
     coordinates: [[ring]],

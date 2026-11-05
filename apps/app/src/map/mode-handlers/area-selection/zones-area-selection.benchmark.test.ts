@@ -4,10 +4,10 @@ import {
   encodeZonesGeo,
   queryIntersectingZones,
   ZonesGeoView,
-  type Zone,
   type Zones,
   type ZonesGeoBuffers,
 } from "@epanet-js/hydraulic-model";
+import { buildZone } from "@epanet-js/hydraulic-model-testing";
 
 const ZONE_COUNT = 1000;
 const VERTICES_PER_ZONE = 1000;
@@ -32,12 +32,12 @@ const buildZones = (): Zones => {
   for (let i = 0; i < ZONE_COUNT; i++) {
     const cx = (i % COLUMNS) * CELL;
     const cy = Math.floor(i / COLUMNS) * CELL;
-    const zone: Zone = {
+    const zone = buildZone({
       id: i + 1,
       label: `Z${i + 1}`,
       geometry: { type: "MultiPolygon", coordinates: [[wavyRing(cx, cy, i)]] },
       bbox: [0, 0, 0, 0],
-    };
+    });
     zones.set(zone.id, zone);
   }
   return zones;

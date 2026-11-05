@@ -6,7 +6,7 @@ import {
   buildCustomerPoint,
 } from "@epanet-js/hydraulic-model-testing";
 import { CustomerPoints } from "@epanet-js/hydraulic-model";
-import type { Zone } from "@epanet-js/hydraulic-model";
+import { Zone } from "@epanet-js/hydraulic-model";
 
 const TURF_EARTH_RADIUS_IN_METERS = 6371008.8;
 const PIPE_LATITUDE = 29.7;
@@ -1010,12 +1010,10 @@ describe("zone-based allocation", () => {
   const buildZone = (
     coordinates: number[][][][],
     bbox: [number, number, number, number],
-  ): Zone => ({
-    id: 1,
-    label: "Test Zone",
-    geometry: { type: "MultiPolygon", coordinates },
-    bbox,
-  });
+  ): Zone =>
+    new Zone(1, { type: "MultiPolygon", coordinates }, bbox, {
+      label: "Test Zone",
+    });
 
   it("excludes customer points outside the selected zone", async () => {
     const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4, CP2: 5 } as const;

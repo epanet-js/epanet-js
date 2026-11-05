@@ -1,7 +1,7 @@
-import type { MultiPolygon } from "geojson";
+import type { BBox, MultiPolygon } from "geojson";
 import turfGetBbox from "@turf/bbox";
 import type { IdGenerator } from "@epanet-js/id-generator";
-import type { Zone } from "../zones";
+import { Zone, type ZoneId } from "../zones";
 import { LabelManager } from "../label-manager";
 
 export class ZoneFactory {
@@ -18,17 +18,24 @@ export class ZoneFactory {
 
   create(geometry: MultiPolygon, label?: string): Zone {
     const id = this.idGenerator.newId();
-    return {
-      id,
+    return new Zone(id, geometry, turfGetBbox(geometry), {
       label: this.resolveLabel(id, label),
-      geometry,
-      bbox: turfGetBbox(geometry),
-    };
+    });
   }
 
-  load(zone: Zone): Zone {
-    this.labelManager.register(zone.label, "zone", zone.id);
-    return zone;
+  load({
+    id,
+    geometry,
+    bbox,
+    label,
+  }: {
+    id: ZoneId;
+    geometry: MultiPolygon;
+    bbox: BBox;
+    label: string;
+  }): Zone {
+    this.labelManager.register(label, "zone", id);
+    return new Zone(id, geometry, bbox, { label });
   }
 
   private resolveLabel(id: number, label?: string): string {

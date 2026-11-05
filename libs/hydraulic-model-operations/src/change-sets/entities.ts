@@ -21,6 +21,8 @@ import {
   type TankProperties,
   Valve,
   type ValveProperties,
+  Zone,
+  type ZoneId,
 } from "@epanet-js/hydraulic-model";
 import type { AssetEntityKind, Cell } from "@epanet-js/change-set";
 
@@ -214,4 +216,25 @@ export const customAttributesFromPlain = (
     byId.set(id, attribute);
   }
   return definition;
+};
+
+export const zoneToFields = (zone: Zone): Fields => {
+  const fields: Fields = {
+    geometry: zone.geometry,
+    bbox: zone.bbox,
+  };
+  for (const key of zone.listProperties()) {
+    fields[key] = zone.getProperty(key) as Cell;
+  }
+  return fields;
+};
+
+export const buildZoneFromFields = (id: ZoneId, fields: Fields): Zone => {
+  const { geometry, bbox, ...properties } = fields;
+  return new Zone(
+    id,
+    geometry as Zone["geometry"],
+    bbox as Zone["bbox"],
+    properties as unknown as { label: string },
+  );
 };

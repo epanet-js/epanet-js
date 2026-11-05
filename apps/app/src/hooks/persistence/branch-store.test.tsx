@@ -10,7 +10,10 @@ import {
   type BranchStore,
   type Worktree,
 } from "@epanet-js/worktree";
-import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
+import {
+  HydraulicModelBuilder,
+  buildZone,
+} from "@epanet-js/hydraulic-model-testing";
 import { setInitialState } from "src/__helpers__/state";
 import { addNode } from "@epanet-js/hydraulic-model-operations";
 import { changeZones } from "@epanet-js/hydraulic-model-operations";
@@ -189,7 +192,7 @@ const addJunction = (store: Store) => {
 
 const importZone = (store: Store, id: number) => {
   const { result } = renderHook(() => useModelTransaction(), withStore(store));
-  const zone = {
+  const zone = buildZone({
     id,
     label: "NORTH",
     geometry: {
@@ -205,8 +208,8 @@ const importZone = (store: Store, id: number) => {
         ],
       ],
     },
-    bbox: [0, 0, 1, 1] as [number, number, number, number],
-  };
+    bbox: [0, 0, 1, 1],
+  });
   const changeSet = changeZones(store.get(stagingModelDerivedAtom), {
     zones: new Map([[id, zone]]),
   });

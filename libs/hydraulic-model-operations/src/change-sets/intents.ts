@@ -15,7 +15,6 @@ import type {
   Patterns,
   PipeMaterial,
   RawControls,
-  Zone,
   ZoneId,
   Zones,
 } from "@epanet-js/hydraulic-model";
@@ -27,6 +26,7 @@ import {
   assetTypeToEntity,
   customAttributesToPlain,
   customerPointToFields,
+  zoneToFields,
 } from "./entities";
 
 export const SINGLETON_ID = 0;
@@ -272,12 +272,6 @@ export const replacePatterns =
     );
   };
 
-const zoneToFields = (zone: Zone): Fields => ({
-  label: zone.label,
-  geometry: zone.geometry,
-  bbox: zone.bbox,
-});
-
 export const replaceZones =
   (zones: Zones): Intent =>
   (model, out) => {
@@ -291,9 +285,10 @@ export const setZone =
       const zone = model.zones.get(id);
       if (!zone) continue;
 
+      const zoneFields = zoneToFields(zone);
       const current: Fields = {};
       for (const field of Object.keys(fields)) {
-        current[field] = zone[field as keyof Zone] as Cell;
+        current[field] = zoneFields[field];
       }
 
       const { before, after, changed } = diffFields(current, fields);

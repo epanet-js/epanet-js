@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   LabelManager,
   initializeModelFactories,
+  Zone,
   type Zones,
 } from "@epanet-js/hydraulic-model";
 import { buildTestIdPools } from "../__helpers__/id-pools";
@@ -14,30 +15,27 @@ const makeFactories = () =>
     labelManager: new LabelManager(),
   });
 
-const validZones = (): Zones =>
-  new Map([
+const aSquare: Zone["geometry"] = {
+  type: "MultiPolygon",
+  coordinates: [
     [
-      1,
-      {
-        id: 1,
-        label: "Z1",
-        geometry: {
-          type: "MultiPolygon" as const,
-          coordinates: [
-            [
-              [
-                [0, 0],
-                [1, 0],
-                [1, 1],
-                [0, 0],
-              ],
-            ],
-          ],
-        },
-        bbox: [0, 0, 1, 1] as [number, number, number, number],
-      },
+      [
+        [0, 0],
+        [1, 0],
+        [1, 1],
+        [0, 0],
+      ],
     ],
-  ]);
+  ],
+};
+
+const aZone = ({
+  label = "Z1",
+  geometry = aSquare,
+}: { label?: string; geometry?: Zone["geometry"] } = {}) =>
+  new Zone(1, geometry, [0, 0, 1, 1], { label });
+
+const validZones = (): Zones => new Map([[1, aZone()]]);
 
 describe("zonesToRows", () => {
   it("produces rows that round-trip through buildZonesData", () => {
@@ -50,7 +48,7 @@ describe("zonesToRows", () => {
 
   it("throws when a row does not match the schema", () => {
     const zones: Zones = new Map([
-      [1, { ...validZones().get(1)!, label: 42 as unknown as string }],
+      [1, aZone({ label: 42 as unknown as string })],
     ]);
 
     expect(() => zonesToRows(zones)).toThrow(
@@ -59,14 +57,12 @@ describe("zonesToRows", () => {
   });
 
   it("throws when a coordinate is not a finite number", () => {
-    const zone = validZones().get(1)!;
     const zones: Zones = new Map([
       [
         1,
-        {
-          ...zone,
+        aZone({
           geometry: { type: "MultiPolygon", coordinates: [[[[0, NaN]]]] },
-        },
+        }),
       ],
     ]);
 

@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import type { BBox } from "@turf/helpers";
 import { bboxOverlaps, computeAdjacency } from "./zone-adjacency";
 import type { Zones } from "@epanet-js/hydraulic-model";
+import { buildZone } from "@epanet-js/hydraulic-model-testing";
 
 describe("bboxOverlaps", () => {
   it("returns true for overlapping bboxes", () => {
@@ -87,25 +88,28 @@ function makeZones(bboxes: BBox[]): Zones {
   const zones: Zones = new Map();
   bboxes.forEach((bbox, i) => {
     const id = i + 1;
-    zones.set(id, {
+    zones.set(
       id,
-      label: `Z${id}`,
-      geometry: {
-        type: "MultiPolygon",
-        coordinates: [
-          [
+      buildZone({
+        id,
+        label: `Z${id}`,
+        geometry: {
+          type: "MultiPolygon",
+          coordinates: [
             [
-              [bbox[0], bbox[1]],
-              [bbox[2], bbox[1]],
-              [bbox[2], bbox[3]],
-              [bbox[0], bbox[3]],
-              [bbox[0], bbox[1]],
+              [
+                [bbox[0], bbox[1]],
+                [bbox[2], bbox[1]],
+                [bbox[2], bbox[3]],
+                [bbox[0], bbox[3]],
+                [bbox[0], bbox[1]],
+              ],
             ],
           ],
-        ],
-      },
-      bbox,
-    });
+        },
+        bbox,
+      }),
+    );
   });
   return zones;
 }

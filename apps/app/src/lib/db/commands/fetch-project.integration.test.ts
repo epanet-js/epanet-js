@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
+import {
+  HydraulicModelBuilder,
+  buildZone,
+} from "@epanet-js/hydraulic-model-testing";
 import { defaultProjectSettings } from "@epanet-js/project-settings";
 import {
   defaultSimulationSettings,
@@ -379,21 +382,21 @@ describe("fetch-project id pools", () => {
       zones: new Map([
         [
           IDS.ZONE1,
-          {
+          buildZone({
             id: IDS.ZONE1,
             label: "ZA",
             geometry: aSquare(0),
             bbox: [0, 0, 1, 1] as BBox,
-          },
+          }),
         ],
         [
           IDS.ZONE2,
-          {
+          buildZone({
             id: IDS.ZONE2,
             label: "ZB",
             geometry: aSquare(2),
             bbox: [2, 0, 3, 1] as BBox,
-          },
+          }),
         ],
       ]),
     });
@@ -413,12 +416,12 @@ describe("fetch-project id pools", () => {
       zones: new Map([
         [
           IDS.ZONE1,
-          {
+          buildZone({
             id: IDS.ZONE1,
             label: "ZA",
             geometry: aSquare(0),
             bbox: [0, 0, 1, 1] as BBox,
-          },
+          }),
         ],
       ]),
     });

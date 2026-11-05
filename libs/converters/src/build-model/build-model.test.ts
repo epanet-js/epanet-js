@@ -25,6 +25,7 @@ import {
   Reservoir,
   Tank,
   Valve,
+  Zone,
   getAttributes,
 } from "@epanet-js/hydraulic-model";
 import { buildModel } from "./build-model";
@@ -1736,10 +1737,9 @@ describe("build zones from network data", () => {
     );
 
     expect([...zones.values()]).toEqual([
-      {
-        id: 1,
-        label: "NORTH",
-        geometry: {
+      new Zone(
+        1,
+        {
           type: "MultiPolygon",
           coordinates: [
             [
@@ -1752,8 +1752,9 @@ describe("build zones from network data", () => {
             ],
           ],
         },
-        bbox: [0, 0, 10, 10],
-      },
+        [0, 0, 10, 10],
+        { label: "NORTH" },
+      ),
     ]);
   });
 

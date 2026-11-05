@@ -2,7 +2,10 @@ import { act, renderHook } from "@testing-library/react";
 import { Provider as JotaiProvider } from "jotai";
 import type { BuildZonesResult } from "@epanet-js/converters";
 import type { Zone, Zones } from "@epanet-js/hydraulic-model";
-import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
+import {
+  HydraulicModelBuilder,
+  buildZone,
+} from "@epanet-js/hydraulic-model-testing";
 import { setInitialState } from "src/__helpers__/state";
 import { useInProcessDb } from "src/lib/db/__test-helpers__/in-process-db";
 import * as db from "src/lib/db";
@@ -15,25 +18,26 @@ import { zonesAtom } from "src/state/zones";
 import type { Store } from "src/state";
 import { useImportZones } from "./import-zones";
 
-const aZone = (id: number, label: string): Zone => ({
-  id,
-  label,
-  geometry: {
-    type: "MultiPolygon",
-    coordinates: [
-      [
+const aZone = (id: number, label: string): Zone =>
+  buildZone({
+    id,
+    label,
+    geometry: {
+      type: "MultiPolygon",
+      coordinates: [
         [
-          [0, 0],
-          [1, 0],
-          [1, 1],
-          [0, 1],
-          [0, 0],
+          [
+            [0, 0],
+            [1, 0],
+            [1, 1],
+            [0, 1],
+            [0, 0],
+          ],
         ],
       ],
-    ],
-  },
-  bbox: [0, 0, 1, 1],
-});
+    },
+    bbox: [0, 0, 1, 1],
+  });
 
 const built = (...zones: Zone[]): BuildZonesResult => ({
   zones: new Map(zones.map((zone) => [zone.id, zone])) as Zones,

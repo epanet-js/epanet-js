@@ -1,4 +1,4 @@
-import { Position } from "geojson";
+import { BBox, MultiPolygon, Position } from "geojson";
 import { nanoid } from "nanoid";
 import {
   PipeProperties,
@@ -23,7 +23,7 @@ import {
   SimpleControl,
   RuleBasedControl,
   AssetFactory,
-  type Zone,
+  Zone,
   type Zones,
 } from "@epanet-js/hydraulic-model";
 import {
@@ -127,6 +127,16 @@ export const buildCustomerPoint = (
     label,
   });
 };
+
+export type ZoneBuildData = {
+  id: number;
+  label: string;
+  geometry: MultiPolygon;
+  bbox: BBox;
+};
+
+export const buildZone = ({ id, label, geometry, bbox }: ZoneBuildData) =>
+  new Zone(id, geometry, bbox, { label });
 
 export class WritableIdGenerator implements IdGenerator {
   private last: number;
@@ -477,7 +487,8 @@ export class HydraulicModelBuilder {
     return this;
   }
 
-  aZone(zone: Zone) {
+  aZone(data: ZoneBuildData) {
+    const zone = buildZone(data);
     this.zonesValue.set(zone.id, zone);
     this.labelManager.register(zone.label, "zone", zone.id);
     return this;

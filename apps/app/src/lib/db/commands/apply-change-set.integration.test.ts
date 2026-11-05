@@ -4,7 +4,10 @@ import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { type Junction, type Pipe } from "@epanet-js/hydraulic-model";
 import type { HydraulicModel } from "src/hydraulic-model";
 import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
-import { buildTestFactories } from "@epanet-js/hydraulic-model-testing";
+import {
+  buildTestFactories,
+  buildZone,
+} from "@epanet-js/hydraulic-model-testing";
 import { changeSet } from "@epanet-js/hydraulic-model-operations";
 import {
   dropAssets,
@@ -120,7 +123,7 @@ describe("apply-change-set integration", () => {
     const { model } = aNetwork();
     await seed(model);
 
-    const zone = {
+    const zone = buildZone({
       id: 1,
       label: "NORTH",
       geometry: {
@@ -136,8 +139,8 @@ describe("apply-change-set integration", () => {
           ],
         ],
       },
-      bbox: [0, 0, 1, 1] as [number, number, number, number],
-    };
+      bbox: [0, 0, 1, 1],
+    });
     const built = changeSet(model, "changeZones", [
       replaceZones(new Map([[zone.id, zone]])),
     ]);

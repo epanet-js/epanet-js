@@ -4,6 +4,7 @@ import { assignZoneColors } from "./color-assignment";
 import { hexToRgb, rgbToHue, hueDistance } from "./hue-distance";
 import { getQualitativePaletteColors } from "./palette-lookup";
 import type { Zones } from "@epanet-js/hydraulic-model";
+import { buildZone } from "@epanet-js/hydraulic-model-testing";
 import { computeAdjacency } from "src/lib/zones/zone-adjacency";
 
 const TEST_PALETTE = getQualitativePaletteColors("Bold");
@@ -83,25 +84,28 @@ function makeZones(bboxes: BBox[]): Zones {
   const zones: Zones = new Map();
   bboxes.forEach((bbox, i) => {
     const id = i + 1;
-    zones.set(id, {
+    zones.set(
       id,
-      label: `Z${id}`,
-      geometry: {
-        type: "MultiPolygon",
-        coordinates: [
-          [
+      buildZone({
+        id,
+        label: `Z${id}`,
+        geometry: {
+          type: "MultiPolygon",
+          coordinates: [
             [
-              [bbox[0], bbox[1]],
-              [bbox[2], bbox[1]],
-              [bbox[2], bbox[3]],
-              [bbox[0], bbox[3]],
-              [bbox[0], bbox[1]],
+              [
+                [bbox[0], bbox[1]],
+                [bbox[2], bbox[1]],
+                [bbox[2], bbox[3]],
+                [bbox[0], bbox[3]],
+                [bbox[0], bbox[1]],
+              ],
             ],
           ],
-        ],
-      },
-      bbox,
-    });
+        },
+        bbox,
+      }),
+    );
   });
   return zones;
 }

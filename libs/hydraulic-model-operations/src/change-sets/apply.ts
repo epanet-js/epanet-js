@@ -24,7 +24,6 @@ import {
   type PatternType,
   type PipeMaterial,
   type RawControls,
-  type Zone,
   type Zones,
 } from "@epanet-js/hydraulic-model";
 import type { HydraulicModel } from "@epanet-js/hydraulic-model";
@@ -34,7 +33,9 @@ import {
   assetToFields,
   buildAssetFromFields,
   buildCustomerPointFromFields,
+  buildZoneFromFields,
   customerPointToFields,
+  zoneToFields,
   entityToAssetType,
   customAttributesFromPlain,
   type PlainCustomAttributes,
@@ -254,13 +255,10 @@ const applyZone = (
     return;
   }
 
-  const source = { ...(existing ?? {}), ...change.fields };
-  const zone: Zone = {
-    id,
-    label: source.label as string,
-    geometry: source.geometry as Zone["geometry"],
-    bbox: source.bbox as Zone["bbox"],
-  };
+  const zone = buildZoneFromFields(id, {
+    ...(existing ? zoneToFields(existing) : {}),
+    ...change.fields,
+  });
   zones.set(id, zone);
 
   if (existing && existing.label !== zone.label) {

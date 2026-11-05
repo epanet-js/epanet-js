@@ -2,7 +2,10 @@ import { describe, it, expect } from "vitest";
 import { changeZoneProperty } from "./change-zone-property";
 import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { applyOperation } from "../__helpers__/apply-operation";
-import { buildTestFactories } from "@epanet-js/hydraulic-model-testing";
+import {
+  buildTestFactories,
+  buildZone,
+} from "@epanet-js/hydraulic-model-testing";
 
 const IDS = { Z1: 1, Z2: 2 } as const;
 
@@ -42,11 +45,9 @@ describe("changeZoneProperty", () => {
     });
     applyOperation(hydraulicModel, changeSet, labelManager);
 
-    expect(hydraulicModel.zones.get(IDS.Z1)).toEqual({
-      id: IDS.Z1,
-      label: "EAST",
-      ...aSquare(0),
-    });
+    expect(hydraulicModel.zones.get(IDS.Z1)).toEqual(
+      buildZone({ id: IDS.Z1, label: "EAST", ...aSquare(0) }),
+    );
     expect(hydraulicModel.zones.get(IDS.Z2)!.label).toBe("SOUTH");
   });
 

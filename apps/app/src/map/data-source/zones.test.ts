@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { buildZoneFeatures } from "./zones";
 import type { MultiPolygon } from "geojson";
 import type { Zone } from "@epanet-js/hydraulic-model";
+import { buildZone } from "@epanet-js/hydraulic-model-testing";
 
 describe("buildZoneFeatures", () => {
   it("builds a feature from a MultiPolygon zone", () => {
@@ -41,9 +42,5 @@ const multiPolygon: MultiPolygon = {
   ],
 };
 
-const makeZone = (id: number, label: string): Zone => ({
-  id,
-  label,
-  geometry: multiPolygon,
-  bbox: [0, 0, 1, 1],
-});
+const makeZone = (id: number, label: string): Zone =>
+  buildZone({ id, label, geometry: multiPolygon, bbox: [0, 0, 1, 1] });
