@@ -3,7 +3,11 @@ import { useCallback } from "react";
 import { useUserTracking } from "src/infra/user-tracking";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { selectionAtom } from "src/state/selection";
-import { customerPointsVisibleAtom } from "src/state/map-symbology";
+import {
+  customerPointsVisibleAtom,
+  zonesVisibleAtom,
+} from "src/state/map-symbology";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { USelection } from "src/selection";
 
 export const selectAllShortcut = "ctrl+a";
@@ -13,6 +17,8 @@ export const useSelectAll = () => {
   const setSelection = useSetAtom(selectionAtom);
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const customerPointsVisible = useAtomValue(customerPointsVisibleAtom);
+  const zonesVisible = useAtomValue(zonesVisibleAtom);
+  const isZoneSelectionOn = useFeatureFlag("FLAG_ZONE_SELECTION");
 
   return useCallback(
     ({ source }: { source: "shortcut" }) => {
@@ -26,8 +32,19 @@ export const useSelectAll = () => {
       const customerPointIds = customerPointsVisible
         ? Array.from(hydraulicModel.customerPoints.keys())
         : [];
-      setSelection(USelection.fromIds(assetIds, customerPointIds));
+      const zoneIds =
+        isZoneSelectionOn && zonesVisible
+          ? Array.from(hydraulicModel.zones.keys())
+          : [];
+      setSelection(USelection.fromIds(assetIds, customerPointIds, zoneIds));
     },
-    [userTracking, setSelection, hydraulicModel, customerPointsVisible],
+    [
+      userTracking,
+      setSelection,
+      hydraulicModel,
+      customerPointsVisible,
+      zonesVisible,
+      isZoneSelectionOn,
+    ],
   );
 };
