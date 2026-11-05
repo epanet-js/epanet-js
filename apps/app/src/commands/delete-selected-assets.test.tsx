@@ -45,8 +45,20 @@ vi.mock("src/hooks/use-paywall", async () => {
   };
 });
 
+vi.mock("src/components/notifications", async (importOriginal) => {
+  const original =
+    await importOriginal<typeof import("src/components/notifications")>();
+  return {
+    ...original,
+    notify: vi.fn(),
+  };
+});
+
+import { notify } from "src/components/notifications";
+
 beforeEach(() => {
   startUpgrade.mockClear();
+  vi.mocked(notify).mockClear();
   permissionsRef.current = resolvePermissions("pro", false, false, false);
 });
 
@@ -240,6 +252,7 @@ describe("delete selected", () => {
     const updatedHydraulicModel = store.get(stagingModelDerivedAtom);
     expect(updatedHydraulicModel.assets.has(IDS.J1)).toBe(false);
     expect(updatedHydraulicModel.zones.has(IDS.Z1)).toBe(false);
+    expect(notify).not.toHaveBeenCalled();
   });
 
   it("keeps selected zones without the zones plan", async () => {
@@ -259,6 +272,27 @@ describe("delete selected", () => {
     expect(startUpgrade).not.toHaveBeenCalled();
     expect(store.get(stagingModelDerivedAtom).zones.has(IDS.Z1)).toBe(true);
     expect(USelection.getZoneIds(store.get(selectionAtom))).toEqual([IDS.Z1]);
+    expect(notify).toHaveBeenCalledWith(
+      expect.objectContaining({ title: "Zones weren't deleted" }),
+    );
+  });
+
+  it("offers an upgrade from the notice about kept zones", async () => {
+    stubFeatureOn("FLAG_DELETE_ZONE");
+    stubUserTracking();
+    permissionsRef.current = resolvePermissions("free", false, false, false);
+    const IDS = { Z1: 1 } as const;
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aZone(aZone(IDS.Z1, "NORTH"))
+      .build();
+    const selection = USelection.fromIds([], [], [IDS.Z1]);
+    const store = setInitialState({ hydraulicModel, selection });
+    renderComponent({ store });
+
+    await triggerCommand();
+    vi.mocked(notify).mock.calls[0][0].action?.onClick();
+
+    expect(startUpgrade).toHaveBeenCalledWith("zones");
   });
 
   it("deletes the assets but keeps the zones of a mixed selection without the zones plan", async () => {
@@ -280,6 +314,9 @@ describe("delete selected", () => {
     expect(updatedHydraulicModel.assets.has(IDS.J1)).toBe(false);
     expect(updatedHydraulicModel.zones.has(IDS.Z1)).toBe(true);
     expect(startUpgrade).not.toHaveBeenCalled();
+    expect(notify).toHaveBeenCalledWith(
+      expect.objectContaining({ title: "Zones weren't deleted" }),
+    );
   });
 
   it("keeps selected zones when zone deletion is off", async () => {

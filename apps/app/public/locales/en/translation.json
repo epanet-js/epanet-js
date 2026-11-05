@@ -526,6 +526,10 @@
   "zone": "Zone",
   "zones": "Zones",
   "selectZoneContents": "Select contents",
+  "zonesNotDeleted": {
+    "title": "Zones weren't deleted",
+    "description": "Deleting zones is a paid feature."
+  },
   "none": "None",
   "globalDefault": "Global default",
   "empty": "Empty",
