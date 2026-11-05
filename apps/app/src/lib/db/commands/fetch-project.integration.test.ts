@@ -505,6 +505,7 @@ describe("fetch-project collections", () => {
       assets: new Uint8Array(6),
       customer_points: null,
       zones: null,
+      group_id: null,
     });
 
     await expect(fetchProject()).rejects.toThrow(

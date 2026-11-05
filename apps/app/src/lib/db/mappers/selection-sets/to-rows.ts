@@ -17,6 +17,7 @@ export const selectionSetToRow = (
     USelection.getCustomerPointIds(selectionSet.selection),
   ),
   zones: encodeIdList(USelection.getZoneIds(selectionSet.selection)),
+  group_id: null,
 });
 
 export const serializeSelectionSets = (

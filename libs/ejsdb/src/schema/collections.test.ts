@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { encodeIdList } from "../id-list";
-import { bookmarksSchema, selectionSetRowSchema } from "./collections";
+import {
+  bookmarksSchema,
+  selectionSetGroupRowSchema,
+  selectionSetRowSchema,
+} from "./collections";
 
 const aRow = (overrides: Record<string, unknown> = {}) => ({
   id: "set-1",
@@ -8,6 +12,7 @@ const aRow = (overrides: Record<string, unknown> = {}) => ({
   assets: encodeIdList([1, 2]),
   customer_points: null,
   zones: null,
+  group_id: null,
   ...overrides,
 });
 
@@ -43,6 +48,41 @@ describe("selectionSetRowSchema", () => {
     expect(selectionSetRowSchema.safeParse(aRow({ label: "" })).success).toBe(
       false,
     );
+  });
+
+  it("accepts a row inside a group and rejects an empty group id", () => {
+    expect(
+      selectionSetRowSchema.safeParse(aRow({ group_id: "group-1" })).success,
+    ).toBe(true);
+    expect(
+      selectionSetRowSchema.safeParse(aRow({ group_id: "" })).success,
+    ).toBe(false);
+  });
+});
+
+describe("selectionSetGroupRowSchema", () => {
+  const aGroup = (overrides: Record<string, unknown> = {}) => ({
+    id: "group-1",
+    label: "North",
+    parent_id: null,
+    ...overrides,
+  });
+
+  it("accepts a root group and a nested one", () => {
+    expect(selectionSetGroupRowSchema.safeParse(aGroup()).success).toBe(true);
+    expect(
+      selectionSetGroupRowSchema.safeParse(aGroup({ parent_id: "group-0" }))
+        .success,
+    ).toBe(true);
+  });
+
+  it("rejects a group without a label or with an empty parent id", () => {
+    expect(
+      selectionSetGroupRowSchema.safeParse(aGroup({ label: "" })).success,
+    ).toBe(false);
+    expect(
+      selectionSetGroupRowSchema.safeParse(aGroup({ parent_id: "" })).success,
+    ).toBe(false);
   });
 });
 

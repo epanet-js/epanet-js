@@ -24,7 +24,10 @@ import type { JunctionDemandRow } from "./schema/junction-demands";
 import type { PatternRow } from "./schema/patterns";
 import type { CurveRow } from "./schema/curves";
 import type { ZoneRow } from "./schema/zones";
-import type { SelectionSetRow } from "./schema/collections";
+import type {
+  SelectionSetGroupRow,
+  SelectionSetRow,
+} from "./schema/collections";
 import type { ScriptRow } from "./schema/scripts";
 import type {
   AssetPatchRow,
@@ -415,6 +418,7 @@ const BULK_TABLES = [
   "customer_point_demands",
   "junction_demands",
   "zones",
+  "selection_set_groups",
   "selection_sets",
   "scripts",
 ] as const;
@@ -430,7 +434,8 @@ const BULK_CHUNK_SIZES = {
   customer_point_demands: 7500, //  4 cols × 7500 = 30000 params
   junction_demands: 7500, //  4 cols × 7500 = 30000 params
   zones: 6000, // 5 cols × 6000 = 30000 params
-  selection_sets: 500, // 5 cols, rows carry id-list blobs
+  selection_set_groups: 10000, // 3 cols × 10000 = 30000 params
+  selection_sets: 500, // 6 cols, rows carry id-list blobs
   scripts: 500, // 5 cols, rows carry script sources
 } as const satisfies Record<(typeof BULK_TABLES)[number], number>;
 
@@ -976,10 +981,29 @@ const bulkInsertZones = (rows: readonly ZoneRow[]) => {
   );
 };
 
+const bulkInsertSelectionSetGroups = (
+  rows: readonly SelectionSetGroupRow[],
+) => {
+  bulkInsert(
+    "selection_set_groups",
+    ["id", "label", "parent_id"],
+    rows,
+    (row, params) => {
+      params.push(row.id, row.label, row.parent_id);
+    },
+    BULK_CHUNK_SIZES.selection_set_groups,
+  );
+};
+
+const replaceSelectionSetGroups = (rows: readonly SelectionSetGroupRow[]) => {
+  db!.exec("DELETE FROM selection_set_groups");
+  bulkInsertSelectionSetGroups(rows);
+};
+
 const bulkInsertSelectionSets = (rows: readonly SelectionSetRow[]) => {
   bulkInsert(
     "selection_sets",
-    ["id", "label", "assets", "customer_points", "zones"],
+    ["id", "label", "assets", "customer_points", "zones", "group_id"],
     rows,
     (row, params) => {
       params.push(
@@ -988,6 +1012,7 @@ const bulkInsertSelectionSets = (rows: readonly SelectionSetRow[]) => {
         row.assets,
         row.customer_points,
         row.zones,
+        row.group_id,
       );
     },
     BULK_CHUNK_SIZES.selection_sets,
@@ -1026,6 +1051,8 @@ const countImportProject = (payload: ImportProjectPayload) => ({
   newDb: payload.newDb ? 1 : 0,
   settings: payload.projectSettings !== null ? 1 : 0,
   pipeLib: payload.pipeLibrary !== null ? 1 : 0,
+  zones: payload.zones?.length ?? 0,
+  groups: payload.selectionSetGroups?.length ?? 0,
   selSets: payload.selectionSets?.length ?? 0,
   bookmarks: payload.bookmarks !== null ? 1 : 0,
   scripts: payload.scripts?.length ?? 0,
@@ -1593,6 +1620,14 @@ export const api = {
     });
   },
 
+  async moveSelectionSet(id: string, groupId: string | null): Promise<void> {
+    return withTransaction("moveSelectionSet", (db) => {
+      db.exec("UPDATE selection_sets SET group_id = ? WHERE id = ?", {
+        bind: [groupId, id],
+      });
+    });
+  },
+
   async setAllSelectionSets(rows: SelectionSetRow[]): Promise<void> {
     return withTransaction(
       "setAllSelectionSets",
@@ -1600,6 +1635,56 @@ export const api = {
         replaceSelectionSets(rows);
       },
       { rows: rows.length },
+    );
+  },
+
+  async getSelectionSetGroups(): Promise<unknown[]> {
+    return timed("getSelectionSetGroups", () =>
+      readAll("SELECT * FROM selection_set_groups ORDER BY rowid"),
+    );
+  },
+
+  async insertSelectionSetGroup(row: SelectionSetGroupRow): Promise<void> {
+    return withTransaction("insertSelectionSetGroup", () => {
+      bulkInsertSelectionSetGroups([row]);
+    });
+  },
+
+  async renameSelectionSetGroup(id: string, label: string): Promise<void> {
+    return withTransaction("renameSelectionSetGroup", (db) => {
+      db.exec("UPDATE selection_set_groups SET label = ? WHERE id = ?", {
+        bind: [label, id],
+      });
+    });
+  },
+
+  async moveSelectionSetGroup(
+    id: string,
+    parentId: string | null,
+  ): Promise<void> {
+    return withTransaction("moveSelectionSetGroup", (db) => {
+      db.exec("UPDATE selection_set_groups SET parent_id = ? WHERE id = ?", {
+        bind: [parentId, id],
+      });
+    });
+  },
+
+  async deleteSelectionSetGroups(ids: string[]): Promise<void> {
+    return withTransaction(
+      "deleteSelectionSetGroups",
+      (db) => {
+        if (ids.length === 0) return;
+        const placeholders = ids.map(() => "?").join(", ");
+        db.exec(
+          `DELETE FROM selection_sets WHERE group_id IN (${placeholders})`,
+          { bind: ids },
+        );
+        db.exec(
+          `DELETE FROM selection_set_groups WHERE id IN (${placeholders})`,
+          { bind: ids },
+        );
+      },
+      { groups: ids.length },
     );
   },
 
@@ -1703,6 +1788,13 @@ export const api = {
         }
         if (payload.pipeLibrary !== null) {
           updatePipeLibrary(payload.pipeLibrary);
+        }
+        if (payload.zones !== null) {
+          db.exec("DELETE FROM zones");
+          bulkInsertZones(payload.zones);
+        }
+        if (payload.selectionSetGroups !== null) {
+          replaceSelectionSetGroups(payload.selectionSetGroups);
         }
         if (payload.selectionSets !== null) {
           replaceSelectionSets(payload.selectionSets);

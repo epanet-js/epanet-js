@@ -16,7 +16,10 @@ import type { JunctionDemandRow } from "./schema/junction-demands";
 import type { PatternRow } from "./schema/patterns";
 import type { CurveRow } from "./schema/curves";
 import type { ZoneRow } from "./schema/zones";
-import type { SelectionSetRow } from "./schema/collections";
+import type {
+  SelectionSetGroupRow,
+  SelectionSetRow,
+} from "./schema/collections";
 import type { ScriptRow } from "./schema/scripts";
 
 export type NewDbResult =
@@ -94,7 +97,8 @@ export type ImportProjectPayload = {
   newDb: boolean;
   projectSettings: string | null;
   pipeLibrary: string | null;
-  zones: ZoneRow[];
+  zones: ZoneRow[] | null;
+  selectionSetGroups: SelectionSetGroupRow[] | null;
   selectionSets: SelectionSetRow[] | null;
   bookmarks: string | null;
   scripts: ScriptRow[] | null;

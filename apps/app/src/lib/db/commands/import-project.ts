@@ -55,6 +55,8 @@ export const importProject = async (
       newDb: input.newDb ?? false,
       projectSettings,
       pipeLibrary,
+      zones,
+      selectionSetGroups: null,
       selectionSets,
       bookmarks,
       scripts,

@@ -14,9 +14,18 @@ export const selectionSetRowSchema = z.object({
   assets: idListSchema,
   customer_points: idListSchema,
   zones: idListSchema,
+  group_id: z.string().min(1).nullable(),
 });
 
 export type SelectionSetRow = z.infer<typeof selectionSetRowSchema>;
+
+export const selectionSetGroupRowSchema = z.object({
+  id: z.string().min(1),
+  label: z.string().min(1),
+  parent_id: z.string().min(1).nullable(),
+});
+
+export type SelectionSetGroupRow = z.infer<typeof selectionSetGroupRowSchema>;
 
 export const bookmarkSchema = z.object({
   id: z.string().min(1),
