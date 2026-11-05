@@ -167,6 +167,7 @@ export type Scripting = {
     zones: Zones;
     lastResults: ScriptGated<ScriptLastResults | null>;
     isEditsOn: boolean;
+    hasScenarios: boolean;
     onEvent: (event: ScriptEvent) => void;
   }) => ScriptRunHandle;
   exampleScripts: ExampleScript[];

@@ -3,7 +3,7 @@ import type { Section } from "../types";
 
 export const SECTION: Section = {
   id: "export",
-  number: "1.11",
+  number: "1.12",
   title: "Export",
   members: [
     memberOf("Network")({

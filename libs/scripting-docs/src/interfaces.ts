@@ -74,6 +74,11 @@ export const INTERFACES: InterfaceDef[] = [
     summary: "A pipe library material: the roughness it has at each age.",
   },
   {
+    name: "CustomAttribute",
+    path: "attribute",
+    summary: "A custom attribute defined for an asset type.",
+  },
+  {
     name: "Zones",
     path: "zones",
     summary: "The project's polygon zones.",

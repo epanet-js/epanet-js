@@ -34,6 +34,7 @@ import {
   type SimulationSettings,
 } from "src/simulation/simulation-settings";
 import { dialogAtom } from "src/state/dialog";
+import { hasScenariosAtom } from "src/state/scenarios";
 import {
   currentFileNameAtom,
   inpFileInfoAtom,
@@ -250,6 +251,7 @@ export const useRunScript = () => {
           ? { isOn: true, value: lastResultsOf(store.get) }
           : { isOn: false },
         isEditsOn: isScriptEditsOn,
+        hasScenarios: store.get(hasScenariosAtom),
         onEvent,
       });
       const startedAt = performance.now();
