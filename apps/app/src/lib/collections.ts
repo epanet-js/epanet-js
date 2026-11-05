@@ -20,12 +20,19 @@ export type CollectionDraft = {
 };
 
 export type SelectionSetId = string;
+export type SelectionSetGroupId = string;
 export type BookmarkId = string;
 
 export type SelectionSet = {
   id: SelectionSetId;
   label: string;
   selection: Sel;
+};
+
+export type SelectionSetGroup = {
+  id: SelectionSetGroupId;
+  label: string;
+  parentId: SelectionSetGroupId | null;
 };
 
 export type Bookmark = {
@@ -35,6 +42,8 @@ export type Bookmark = {
 };
 
 export const initializeSelectionSets = (): SelectionSet[] => [];
+
+export const initializeSelectionSetGroups = (): SelectionSetGroup[] => [];
 
 export const initializeBookmarks = (): Bookmark[] => [];
 
@@ -58,6 +67,15 @@ export const savableSelection = (selection: Sel, includeZones: boolean): Sel =>
         USelection.getAssetIds(selection),
         USelection.getCustomerPointIds(selection),
       );
+
+export const newSelectionSetGroup = (
+  label: string,
+  parentId: SelectionSetGroupId | null = null,
+): SelectionSetGroup => ({
+  id: nanoid(),
+  label,
+  parentId,
+});
 
 export const newBookmark = (label: string, bbox: BBox): Bookmark => ({
   id: nanoid(),

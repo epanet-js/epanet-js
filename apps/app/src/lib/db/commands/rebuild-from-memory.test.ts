@@ -58,6 +58,8 @@ const anInput = () => ({
   hydraulicModel: HydraulicModelBuilder.with().aJunction(1).build(),
   projectSettings: defaultProjectSettings,
   simulationSettings: defaultSimulationSettings,
+  zones: new Map(),
+  selectionSetGroups: [],
   selectionSets: initializeSelectionSets(),
   bookmarks: initializeBookmarks(),
   scripts: [],

@@ -464,7 +464,28 @@ describe("fetch-project collections", () => {
     const project = await fetchProject();
 
     expect(project.selectionSets).toEqual([]);
+    expect(project.selectionSetGroups).toEqual([]);
     expect(project.bookmarks).toEqual([]);
+  });
+
+  it("round-trips selection set groups in the order they were created", async () => {
+    await importProject({
+      newDb: true,
+      hydraulicModel: HydraulicModelBuilder.with().aJunction(1).build(),
+      projectSettings: defaultProjectSettings,
+      simulationSettings: defaultSimulationSettings,
+      selectionSetGroups: [
+        { id: "group-1", label: "DMAS", parentId: null },
+        { id: "group-2", label: "PIPES", parentId: null },
+      ],
+    });
+
+    const project = await fetchProject();
+
+    expect(project.selectionSetGroups).toEqual([
+      { id: "group-1", label: "DMAS", parentId: null },
+      { id: "group-2", label: "PIPES", parentId: null },
+    ]);
   });
 
   it("round-trips selection sets in the order they were created", async () => {

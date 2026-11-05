@@ -79,11 +79,17 @@ import {
   initialPlaybackState,
   simulationPlaybackAtom,
 } from "src/state/simulation-playback";
-import { bookmarksAtom, selectionSetsAtom } from "src/state/collections";
+import {
+  bookmarksAtom,
+  selectionSetGroupsAtom,
+  selectionSetsAtom,
+} from "src/state/collections";
 import {
   type Bookmark,
   type SelectionSet,
+  type SelectionSetGroup,
   initializeBookmarks,
+  initializeSelectionSetGroups,
   initializeSelectionSets,
 } from "src/lib/collections";
 import { hglProfileAtom } from "src/state/hgl-profile";
@@ -101,6 +107,7 @@ export type ProjectLoadInput = {
   hydraulicModel: HydraulicModel;
   factories: ModelFactories;
   projectSettings: ProjectSettings;
+  selectionSetGroups?: SelectionSetGroup[];
   selectionSets?: SelectionSet[];
   bookmarks?: Bookmark[];
   scripts?: UserScript[];
@@ -126,6 +133,7 @@ export const resetAppState = (set: Setter, panels: Panel[]) => {
   set(sourceRebuildDurationsAtom, []);
   set(resultsFetchDurationsAtom, []);
   set(simulationPlaybackAtom, initialPlaybackState);
+  set(selectionSetGroupsAtom, initializeSelectionSetGroups());
   set(selectionSetsAtom, initializeSelectionSets());
   set(bookmarksAtom, initializeBookmarks());
   set(userScriptsAtom, []);
@@ -156,6 +164,7 @@ export const loadModel = (
   const {
     factories,
     projectSettings,
+    selectionSetGroups,
     selectionSets,
     bookmarks,
     scripts,
@@ -179,6 +188,10 @@ export const loadModel = (
     },
   };
   set(projectSettingsAtom, mergedProjectSettings);
+  set(
+    selectionSetGroupsAtom,
+    selectionSetGroups ?? initializeSelectionSetGroups(),
+  );
   set(selectionSetsAtom, selectionSets ?? initializeSelectionSets());
   set(bookmarksAtom, bookmarks ?? initializeBookmarks());
   set(userScriptsAtom, scripts ?? []);
@@ -235,6 +248,8 @@ const replaceProject = async (
     projectSettings: mergedProjectSettings,
     hydraulicModel: input.hydraulicModel,
     simulationSettings: input.simulationSettings,
+    zones: input.hydraulicModel.zones,
+    selectionSetGroups: input.selectionSetGroups,
     selectionSets: input.selectionSets,
     bookmarks: input.bookmarks,
     scripts: input.scripts,

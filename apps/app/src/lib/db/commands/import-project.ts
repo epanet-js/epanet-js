@@ -1,6 +1,11 @@
 import type { HydraulicModel } from "src/hydraulic-model";
 import type { ProjectSettings } from "@epanet-js/project-settings";
-import type { Bookmark, SelectionSet } from "src/lib/collections";
+import type { Zones } from "@epanet-js/hydraulic-model";
+import type {
+  Bookmark,
+  SelectionSet,
+  SelectionSetGroup,
+} from "src/lib/collections";
 import type { UserScript } from "src/state/scripts";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
 import { getWorker, timed } from "@epanet-js/ejsdb";
@@ -18,12 +23,15 @@ import {
   serializeSimulationSettings,
 } from "@epanet-js/ejsdb-mappers";
 import { serializeSelectionSets } from "../mappers/selection-sets/to-rows";
+import { serializeSelectionSetGroups } from "../mappers/selection-set-groups/to-rows";
 import { serializeBookmarks } from "../mappers/bookmarks/to-rows";
 import { serializeScripts } from "../mappers/scripts/to-rows";
 
 export type ImportProjectInput = {
   newDb?: boolean;
   projectSettings?: ProjectSettings;
+  zones?: Zones;
+  selectionSetGroups?: SelectionSetGroup[];
   selectionSets?: SelectionSet[];
   bookmarks?: Bookmark[];
   scripts?: UserScript[];
@@ -42,6 +50,10 @@ export const importProject = async (
       input.hydraulicModel.pipeMaterials.length > 0
         ? serializePipeLibrary(input.hydraulicModel.pipeMaterials)
         : null;
+    const zones = input.zones ? zonesToRows(input.zones) : null;
+    const selectionSetGroups = input.selectionSetGroups
+      ? serializeSelectionSetGroups(input.selectionSetGroups)
+      : null;
     const selectionSets = input.selectionSets
       ? serializeSelectionSets(input.selectionSets)
       : null;
@@ -56,7 +68,7 @@ export const importProject = async (
       projectSettings,
       pipeLibrary,
       zones,
-      selectionSetGroups: null,
+      selectionSetGroups,
       selectionSets,
       bookmarks,
       scripts,
@@ -65,7 +77,6 @@ export const importProject = async (
         input.hydraulicModel.customerPoints,
         input.hydraulicModel.demands.customerPoints,
       ),
-      zones: zonesToRows(input.hydraulicModel.zones),
       patterns: patternsToRows(input.hydraulicModel.patterns),
       curves: curvesToRows(input.hydraulicModel.curves),
       rawControls: serializeRawControls(input.hydraulicModel.rawControls),

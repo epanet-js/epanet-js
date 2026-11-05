@@ -1,6 +1,10 @@
 import type { ProjectSettings } from "@epanet-js/project-settings";
 import type { CustomAttributesDefinition } from "@epanet-js/hydraulic-model";
-import type { Bookmark, SelectionSet } from "src/lib/collections";
+import type {
+  Bookmark,
+  SelectionSet,
+  SelectionSetGroup,
+} from "src/lib/collections";
 import type { UserScript } from "src/state/scripts";
 import {
   defaultSimulationSettings,
@@ -29,12 +33,14 @@ import {
   buildZonesData,
 } from "@epanet-js/ejsdb-mappers";
 import { buildSelectionSetsData } from "../mappers/selection-sets/builders";
+import { buildSelectionSetGroupsData } from "../mappers/selection-set-groups/builders";
 import { buildBookmarksData } from "../mappers/bookmarks/builders";
 import { buildScriptsData } from "../mappers/scripts/builders";
 
 export type Project = {
   projectSettings: ProjectSettings;
   customAttributes: CustomAttributesDefinition;
+  selectionSetGroups: SelectionSetGroup[];
   selectionSets: SelectionSet[];
   bookmarks: Bookmark[];
   scripts: UserScript[];
@@ -101,6 +107,7 @@ export const fetchProject = async (
       pipeLibraryJson,
       customAttributesJson,
       zonesRaw,
+      selectionSetGroupsRaw,
       selectionSetsRaw,
       bookmarksJson,
       scriptsRaw,
@@ -117,6 +124,7 @@ export const fetchProject = async (
         worker.getPipeLibrary(),
         worker.getCustomAttributesDefinition(),
         worker.getZones(),
+        worker.getSelectionSetGroups(),
         worker.getSelectionSets(),
         worker.getBookmarks(),
         worker.getScripts(),
@@ -141,6 +149,9 @@ export const fetchProject = async (
         const pipeLibrary = buildPipeLibraryData(pipeLibraryJson);
         const customAttributes =
           buildCustomAttributesDefinition(customAttributesJson);
+        const selectionSetGroups = buildSelectionSetGroupsData(
+          selectionSetGroupsRaw,
+        );
         const selectionSets = buildSelectionSetsData(selectionSetsRaw);
         const bookmarks = buildBookmarksData(bookmarksJson);
         const scripts = buildScriptsData(scriptsRaw);
@@ -201,6 +212,7 @@ export const fetchProject = async (
         return {
           projectSettings,
           customAttributes,
+          selectionSetGroups,
           selectionSets,
           bookmarks,
           scripts,

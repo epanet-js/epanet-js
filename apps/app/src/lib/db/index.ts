@@ -16,6 +16,10 @@ export {
   deleteSelectionSet,
 } from "./commands/selection-sets";
 export {
+  serializeSelectionSetGroup,
+  serializeSelectionSetGroups,
+} from "./mappers/selection-set-groups/to-rows";
+export {
   serializeSelectionSet,
   serializeSelectionSets,
 } from "./mappers/selection-sets/to-rows";
