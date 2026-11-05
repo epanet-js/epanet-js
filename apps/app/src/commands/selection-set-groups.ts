@@ -8,6 +8,7 @@ import {
   type SelectionSetGroupId,
   descendantGroupIds,
   newSelectionSetGroup,
+  setsInGroupSubtree,
 } from "src/lib/collections";
 import { useSelectionSetGroupsTransaction } from "src/hooks/persistence/use-selection-set-groups-transaction";
 import {
@@ -80,17 +81,12 @@ export const useDeleteSelectionSetGroup = () => {
       ) => {
         if (!canManageCollections) return openPaywall();
 
-        const subgroupIds = descendantGroupIds(
-          get(selectionSetGroupsAtom),
-          groupId,
-        );
-        const removed = new Set([groupId, ...subgroupIds]);
+        const groups = get(selectionSetGroupsAtom);
         userTracking.capture({
           name: "selectionSetGroup.deleted",
-          sets: get(selectionSetsAtom).filter(
-            (set) => set.groupId !== null && removed.has(set.groupId),
-          ).length,
-          subgroups: subgroupIds.length,
+          sets: setsInGroupSubtree(groups, get(selectionSetsAtom), groupId)
+            .length,
+          subgroups: descendantGroupIds(groups, groupId).length,
           source,
         });
         remove(groupId);

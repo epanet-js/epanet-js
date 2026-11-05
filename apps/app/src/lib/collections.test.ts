@@ -7,6 +7,7 @@ import {
   groupPath,
   largestContainedSet,
   newSelectionSet,
+  setsInGroupSubtree,
 } from "./collections";
 
 const aModel = () =>
@@ -200,6 +201,24 @@ describe("selection set groups", () => {
   it("lists the labels from the root down to the group", () => {
     expect(groupPath(tree, "deep")).toEqual(["DMAS", "SOUTH", "DEEP"]);
     expect(groupPath([aGroup("orphan", "gone")], "orphan")).toEqual(["ORPHAN"]);
+  });
+
+  it("counts the sets held anywhere below a group, not only its own", () => {
+    const sets = [
+      aSet("north-a", "north"),
+      aSet("deep-a", "deep"),
+      aSet("mains", "pipes"),
+      aSet("root-set", null),
+    ];
+
+    expect(setsInGroupSubtree(tree, sets, "dmas").map((s) => s.id)).toEqual([
+      "north-a",
+      "deep-a",
+    ]);
+    expect(setsInGroupSubtree(tree, sets, "south").map((s) => s.id)).toEqual([
+      "deep-a",
+    ]);
+    expect(setsInGroupSubtree(tree, sets, "north")).toHaveLength(1);
   });
 
   it("removes a group with its nested groups and the sets inside any of them", () => {

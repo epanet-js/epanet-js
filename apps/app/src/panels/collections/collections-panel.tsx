@@ -72,6 +72,7 @@ import {
   largestContainedSet,
   matchesSelectionExactly,
   savableSelection,
+  setsInGroupSubtree,
 } from "src/lib/collections";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { dialogAtom } from "src/state/dialog";
@@ -545,7 +546,12 @@ export const CollectionsPanel = () => {
     clearActionState();
     setFocusedRow(null);
     if (row.kind === "group") {
-      if ((row.count ?? 0) === 0) {
+      const setsInside = setsInGroupSubtree(
+        selectionSetGroups,
+        selectionSets,
+        row.id,
+      );
+      if (setsInside.length === 0) {
         deleteSelectionSetGroup({ groupId: row.id, source: "panel" });
       } else {
         setDialog({

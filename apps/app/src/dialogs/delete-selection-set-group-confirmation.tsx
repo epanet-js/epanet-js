@@ -4,7 +4,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { useDeleteSelectionSetGroup } from "src/commands/selection-set-groups";
 import {
   type SelectionSetGroupId,
-  descendantGroupIds,
+  setsInGroupSubtree,
 } from "src/lib/collections";
 import {
   selectionSetGroupsAtom,
@@ -20,11 +20,9 @@ export const DeleteSelectionSetGroupConfirmationDialog = ({
 }) => {
   const translate = useTranslate();
   const groups = useAtomValue(selectionSetGroupsAtom);
+  const sets = useAtomValue(selectionSetsAtom);
   const group = groups.find((candidate) => candidate.id === groupId);
-  const removed = new Set([groupId, ...descendantGroupIds(groups, groupId)]);
-  const setCount = useAtomValue(selectionSetsAtom).filter(
-    (set) => set.groupId !== null && removed.has(set.groupId),
-  ).length;
+  const setCount = setsInGroupSubtree(groups, sets, groupId).length;
   const deleteSelectionSetGroup = useDeleteSelectionSetGroup();
 
   if (!group) return null;

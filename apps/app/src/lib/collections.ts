@@ -118,6 +118,15 @@ export const groupPath = (
   return labels;
 };
 
+export const setsInGroupSubtree = (
+  groups: readonly SelectionSetGroup[],
+  sets: readonly SelectionSet[],
+  id: SelectionSetGroupId,
+): SelectionSet[] => {
+  const subtree = new Set([id, ...descendantGroupIds(groups, id)]);
+  return sets.filter((set) => set.groupId !== null && subtree.has(set.groupId));
+};
+
 export const deleteGroupSubtree = (
   groups: readonly SelectionSetGroup[],
   sets: readonly SelectionSet[],
