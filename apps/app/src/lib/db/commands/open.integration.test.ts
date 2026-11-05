@@ -18,6 +18,7 @@ import { importProject } from "./import-project";
 import { openProject } from "./open-project";
 import { useInProcessDb } from "../__test-helpers__/in-process-db";
 import { withTransaction } from "@epanet-js/ejsdb/worker-api";
+import { USelection } from "src/selection";
 
 describe("open integration", () => {
   useInProcessDb();
@@ -235,6 +236,7 @@ describe("open integration", () => {
       db.exec("DROP TABLE scenarios");
       db.exec("DROP TABLE scripts");
       db.exec("ALTER TABLE zones DROP COLUMN custom_attributes");
+      db.exec("ALTER TABLE selection_sets DROP COLUMN zones");
       db.exec("PRAGMA user_version = 21");
     });
     const blob = await exportDb();
@@ -264,6 +266,7 @@ describe("open integration", () => {
     await withTransaction("downgrade", (db) => {
       db.exec("DROP TABLE scripts");
       db.exec("ALTER TABLE zones DROP COLUMN custom_attributes");
+      db.exec("ALTER TABLE selection_sets DROP COLUMN zones");
       db.exec("PRAGMA user_version = 24");
     });
     const blob = await exportDb();
@@ -306,6 +309,7 @@ describe("open integration", () => {
     });
     await withTransaction("downgrade", (db) => {
       db.exec("ALTER TABLE zones DROP COLUMN custom_attributes");
+      db.exec("ALTER TABLE selection_sets DROP COLUMN zones");
       db.exec("PRAGMA user_version = 25");
     });
     const blob = await exportDb();
@@ -315,5 +319,34 @@ describe("open integration", () => {
     expect(result).toMatchObject({ status: "migrated", fileVersion: 25 });
     const project = await fetchProject();
     expect(project.hydraulicModel.zones.get(1)?.label).toBe("NORTH");
+  });
+
+  it("migrates a file saved before selection sets stored zones, keeping its sets", async () => {
+    await importProject({
+      newDb: true,
+      hydraulicModel: HydraulicModelBuilder.with()
+        .aJunction(1, { label: "J1" })
+        .build(),
+      projectSettings: defaultProjectSettings,
+      simulationSettings: defaultSimulationSettings,
+      selectionSets: [
+        { id: "set-1", label: "Loop", selection: USelection.fromIds([1], []) },
+      ],
+    });
+    await withTransaction("downgrade", (db) => {
+      db.exec("ALTER TABLE selection_sets DROP COLUMN zones");
+      db.exec("PRAGMA user_version = 26");
+    });
+    const blob = await exportDb();
+
+    const result = await openProject(new File([blob], "before.epnt"));
+
+    expect(result).toMatchObject({ status: "migrated", fileVersion: 26 });
+    const project = await fetchProject();
+    expect(project.selectionSets).toHaveLength(1);
+    expect(project.selectionSets[0].label).toBe("Loop");
+    expect(USelection.getAssetIds(project.selectionSets[0].selection)).toEqual([
+      1,
+    ]);
   });
 });
