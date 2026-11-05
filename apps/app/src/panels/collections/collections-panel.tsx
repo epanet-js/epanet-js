@@ -26,6 +26,7 @@ import {
 import {
   useCreateSelectionSetGroup,
   useDeleteSelectionSetGroup,
+  useRenameSelectionSetGroup,
 } from "src/commands/selection-set-groups";
 import { Button, DDContent, StyledItem } from "src/components/elements";
 import {
@@ -89,7 +90,8 @@ type ActionState =
       groupId: SelectionSetGroupId | null;
     }
   | { action: "creatingGroup"; parentId: SelectionSetGroupId | null }
-  | { action: "renaming"; section: SectionType; id: string };
+  | { action: "renaming"; section: SectionType; id: string }
+  | { action: "renamingGroup"; id: SelectionSetGroupId };
 
 type RowKey = { section: SectionType; id: string };
 
@@ -142,6 +144,7 @@ export const CollectionsPanel = () => {
   const moveSelectionSet = useMoveSelectionSet();
   const deleteSelectionSet = useDeleteSelectionSet();
   const createSelectionSetGroup = useCreateSelectionSetGroup();
+  const renameSelectionSetGroup = useRenameSelectionSetGroup();
   const deleteSelectionSetGroup = useDeleteSelectionSetGroup();
   const setDialog = useSetAtom(dialogAtom);
   const addBookmark = useAddBookmark();
@@ -449,7 +452,13 @@ export const CollectionsPanel = () => {
     const trimmedLabel = label.trim();
     if (!trimmedLabel) return true;
 
-    if (actionState.action === "creatingGroup") {
+    if (actionState.action === "renamingGroup") {
+      renameSelectionSetGroup({
+        groupId: actionState.id,
+        label: trimmedLabel,
+        source: "panel",
+      });
+    } else if (actionState.action === "creatingGroup") {
       createSelectionSetGroup({
         label: trimmedLabel,
         parentId: actionState.parentId,
@@ -529,7 +538,11 @@ export const CollectionsPanel = () => {
     if (isLocked) return openPaywall();
 
     if (action === "rename") {
-      setActionState({ action: "renaming", section: row.section, id: row.id });
+      setActionState(
+        row.kind === "group"
+          ? { action: "renamingGroup", id: row.id }
+          : { action: "renaming", section: row.section, id: row.id },
+      );
       return;
     }
 
@@ -605,7 +618,7 @@ export const CollectionsPanel = () => {
     };
   };
 
-  const groupActions: ItemAction[] = [deleteAction];
+  const groupActions: ItemAction[] = [renameAction, deleteAction];
 
   const itemActionsFor = (row: Row): ItemAction[] => {
     const move = moveActionFor(row);
@@ -631,62 +644,76 @@ export const CollectionsPanel = () => {
   const renderGroupRow = (row: Row) => {
     const isCollapsed = collapsedGroupIds.has(row.id);
     const isMenuOpen = menuOpenGroupId === row.id;
+    const isRenaming =
+      actionState?.action === "renamingGroup" && actionState.id === row.id;
     return (
       <Fragment key={row.id}>
-        <li
-          data-item-id={row.navId}
-          style={row.depth > 0 ? { paddingLeft: `${row.depth}rem` } : undefined}
-          className={clsx(
-            "group flex items-center text-sm cursor-pointer h-8 min-w-0 rounded-sm",
-            (focusedRow !== null && isSameRow(row, focusedRow)) || isMenuOpen
-              ? "bg-base-hover"
-              : "hover:bg-base-hover",
-          )}
-        >
-          <Button
-            variant="quiet/list"
-            size="sm"
-            onClick={() => handleClickRow(row)}
-            className="flex-1 min-w-0 justify-start hover:bg-transparent dark:hover:bg-transparent focus-visible:ring-0! focus-visible:ring-offset-0!"
-          >
-            {isCollapsed ? (
-              <ChevronRightIcon size="sm" />
-            ) : (
-              <ChevronDownIcon size="sm" />
-            )}
-            <span className="truncate">{row.label}</span>
-            {row.count !== undefined && (
-              <span className="shrink-0">({row.count})</span>
-            )}
-          </Button>
-          <AddMenu
-            label={translate("collections.groups.add")}
-            isLocked={isLocked}
-            onLockedClick={openPaywall}
-            className={isMenuOpen ? "" : "invisible group-hover:visible"}
-            items={[
-              { action: "group", label: translate("collections.groups.new") },
-              {
-                action: "set",
-                label: translate("collections.selectionSets.new"),
-                disabled: !canSaveSelection,
-              },
-            ]}
-            onAction={(action) =>
-              action === "group"
-                ? handleNewGroup(row.id)
-                : handleNewSetIn(row.id)
+        {isRenaming ? (
+          <ItemInput
+            value={row.label}
+            placeholder={translate("collections.groups.labelPlaceholder")}
+            onCommit={handleLabelChange}
+            onCancel={clearActionState}
+            depth={row.depth}
+          />
+        ) : (
+          <li
+            data-item-id={row.navId}
+            style={
+              row.depth > 0 ? { paddingLeft: `${row.depth}rem` } : undefined
             }
-            onOpenChange={(open) => setMenuOpenGroupId(open ? row.id : null)}
-          />
-          <ItemActions
-            label={moreActionsLabel}
-            isSelected={isMenuOpen}
-            actions={groupActions}
-            onAction={(action) => handleAction(action, { id: row.navId })}
-            onOpenChange={(open) => setMenuOpenGroupId(open ? row.id : null)}
-          />
-        </li>
+            className={clsx(
+              "group flex items-center text-sm cursor-pointer h-8 min-w-0 rounded-sm",
+              (focusedRow !== null && isSameRow(row, focusedRow)) || isMenuOpen
+                ? "bg-base-hover"
+                : "hover:bg-base-hover",
+            )}
+          >
+            <Button
+              variant="quiet/list"
+              size="sm"
+              onClick={() => handleClickRow(row)}
+              className="flex-1 min-w-0 justify-start hover:bg-transparent dark:hover:bg-transparent focus-visible:ring-0! focus-visible:ring-offset-0!"
+            >
+              {isCollapsed ? (
+                <ChevronRightIcon size="sm" />
+              ) : (
+                <ChevronDownIcon size="sm" />
+              )}
+              <span className="truncate">{row.label}</span>
+              {row.count !== undefined && (
+                <span className="shrink-0">({row.count})</span>
+              )}
+            </Button>
+            <AddMenu
+              label={translate("collections.groups.add")}
+              isLocked={isLocked}
+              onLockedClick={openPaywall}
+              className={isMenuOpen ? "" : "invisible group-hover:visible"}
+              items={[
+                { action: "group", label: translate("collections.groups.new") },
+                {
+                  action: "set",
+                  label: translate("collections.selectionSets.new"),
+                  disabled: !canSaveSelection,
+                },
+              ]}
+              onAction={(action) =>
+                action === "group"
+                  ? handleNewGroup(row.id)
+                  : handleNewSetIn(row.id)
+              }
+              onOpenChange={(open) => setMenuOpenGroupId(open ? row.id : null)}
+            />
+            <ItemActions
+              label={moreActionsLabel}
+              isSelected={isMenuOpen}
+              actions={groupActions}
+              onAction={(action) => handleAction(action, { id: row.navId })}
+              onOpenChange={(open) => setMenuOpenGroupId(open ? row.id : null)}
+            />
+          </li>
+        )}
         {actionState?.action === "creatingGroup" &&
           actionState.parentId === row.id && (
             <ItemInput

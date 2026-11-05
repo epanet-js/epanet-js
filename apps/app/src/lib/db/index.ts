@@ -18,6 +18,7 @@ export {
 } from "./commands/selection-sets";
 export {
   insertSelectionSetGroup,
+  renameSelectionSetGroup,
   deleteSelectionSetGroups,
 } from "./commands/selection-set-groups";
 export {

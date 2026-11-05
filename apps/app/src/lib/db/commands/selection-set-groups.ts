@@ -22,3 +22,12 @@ export const deleteSelectionSetGroups = async (
     await getWorker().deleteSelectionSetGroups(ids);
   });
 };
+
+export const renameSelectionSetGroup = async (
+  id: SelectionSetGroupId,
+  label: string,
+): Promise<void> => {
+  await timed("renameSelectionSetGroup", async () => {
+    await getWorker().renameSelectionSetGroup(id, label);
+  });
+};

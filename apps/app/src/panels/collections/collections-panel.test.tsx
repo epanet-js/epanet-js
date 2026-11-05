@@ -559,6 +559,25 @@ describe("CollectionsPanel", () => {
       await userEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
     };
 
+    it("renames a folder from its menu", async () => {
+      const store = aStore();
+      renderPanel(store);
+      await addFolder("DMAs");
+
+      await userEvent.click(
+        within(rowOf("DMAs")).getByRole("button", { name: "More actions" }),
+      );
+      await userEvent.click(screen.getByRole("menuitem", { name: "Rename" }));
+      await userEvent.clear(screen.getByRole("textbox"));
+      await nameIt("Zones");
+
+      expect(screen.getByText("Zones")).toBeInTheDocument();
+      expect(screen.queryByText("DMAs")).not.toBeInTheDocument();
+      expect(
+        store.get(selectionSetGroupsAtom).map((group) => group.label),
+      ).toEqual(["Zones"]);
+    });
+
     it("deletes an empty folder from its menu without asking", async () => {
       const store = aStore();
       renderPanel(store);

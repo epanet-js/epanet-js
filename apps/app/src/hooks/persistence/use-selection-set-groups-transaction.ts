@@ -9,6 +9,7 @@ import {
   type SelectionSetGroup,
   type SelectionSetGroupId,
   deleteGroupSubtree,
+  renameItem,
 } from "src/lib/collections";
 import { writeQueue } from "src/lib/persistence/write-queue";
 import { dialogAtom } from "src/state/dialog";
@@ -64,6 +65,32 @@ export const useSelectionSetGroupsTransaction = () => {
     ),
   );
 
+  const rename = useAtomCallback(
+    useCallback(
+      (
+        get,
+        set,
+        { id, label }: { id: SelectionSetGroupId; label: string },
+      ): boolean => {
+        const current = get(selectionSetGroupsAtom).find(
+          (group) => group.id === id,
+        );
+        if (!current) return false;
+        if (!isStorable({ ...current, label })) return false;
+
+        set(selectionSetGroupsAtom, (groups) => renameItem(groups, id, label));
+        markUnsaved(
+          set,
+          () => db.renameSelectionSetGroup(id, label),
+          onWriteFailure,
+        );
+
+        return true;
+      },
+      [isStorable, onWriteFailure],
+    ),
+  );
+
   const remove = useAtomCallback(
     useCallback(
       (get, set, id: SelectionSetGroupId) => {
@@ -84,5 +111,5 @@ export const useSelectionSetGroupsTransaction = () => {
     ),
   );
 
-  return { create, remove };
+  return { create, rename, remove };
 };

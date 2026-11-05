@@ -66,6 +66,31 @@ export const useCreateSelectionSetGroup = () => {
   );
 };
 
+export const useRenameSelectionSetGroup = () => {
+  const userTracking = useUserTracking();
+  const { rename } = useSelectionSetGroupsTransaction();
+  const { canManageCollections } = usePermissions();
+  const { openPaywall } = useFeatureLock("selectionSets");
+
+  return useCallback(
+    ({
+      groupId,
+      label,
+      source,
+    }: {
+      groupId: SelectionSetGroupId;
+      label: string;
+      source: "panel";
+    }) => {
+      if (!canManageCollections) return openPaywall();
+      if (!rename({ id: groupId, label })) return;
+
+      userTracking.capture({ name: "selectionSetGroup.renamed", source });
+    },
+    [userTracking, rename, canManageCollections, openPaywall],
+  );
+};
+
 export const useDeleteSelectionSetGroup = () => {
   const userTracking = useUserTracking();
   const { remove } = useSelectionSetGroupsTransaction();

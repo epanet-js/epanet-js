@@ -80,6 +80,21 @@ describe("useSelectionSetGroupsTransaction", () => {
     expect(store.get(projectDataVersionAtom)).not.toEqual(versionBefore);
   });
 
+  it("stores a renamed group under its new label", async () => {
+    await anEmptyProject();
+    const store = setInitialState({});
+    const { result } = renderTransaction(store);
+
+    await act(async () => {
+      result.current.create(aGroup());
+      result.current.rename({ id: "group-1", label: "Uptown" });
+      await writeQueue.whenIdle();
+    });
+
+    expect(store.get(selectionSetGroupsAtom)[0].label).toBe("Uptown");
+    expect(await storedLabels()).toEqual(["Uptown"]);
+  });
+
   it("drops a deleted group from the project", async () => {
     await anEmptyProject();
     const store = setInitialState({});

@@ -1928,6 +1928,7 @@ export type UserEvent =
       totalGroups: number;
       source: "panel";
     }
+  | { name: "selectionSetGroup.renamed"; source: "panel" }
   | {
       name: "selectionSetGroup.deleted";
       sets: number;
