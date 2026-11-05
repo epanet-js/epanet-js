@@ -1,4 +1,4 @@
-import { useAtomValue, useSetAtom } from "jotai";
+import { useSetAtom } from "jotai";
 import { useAtomCallback } from "jotai/utils";
 import { useCallback } from "react";
 import { useActivatePanel } from "src/commands/activate-panel";
@@ -9,15 +9,9 @@ import type { CollectionDraft } from "src/lib/collections";
 import { COLLECTIONS_PANEL_ID } from "src/panels/collections/create-panel";
 import { pendingCollectionDraftAtom } from "src/state/collections";
 import { defaultSplits, splitsAtom } from "src/state/layout";
-import { activePanelIn, panelsIn } from "src/state/panels";
+import { activePanelIn } from "src/state/panels";
 
-const leftPanelsAtom = panelsIn("left");
 const activeLeftPanelAtom = activePanelIn("left");
-
-export const useIsCollectionsAvailable = (): boolean => {
-  const leftPanels = useAtomValue(leftPanelsAtom);
-  return leftPanels.some((entry) => entry.id === COLLECTIONS_PANEL_ID);
-};
 
 export const useRevealCollectionsPanel = () => {
   const setSplits = useSetAtom(splitsAtom);

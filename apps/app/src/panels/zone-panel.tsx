@@ -24,7 +24,13 @@ import { useSelectZoneContents } from "src/commands/select-zone-contents";
 import { useDeleteSelection } from "src/commands/delete-selection";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
-import { DeleteIcon, PolygonalSelectionIcon, ZoomToIcon } from "src/icons";
+import {
+  BookmarkIcon,
+  DeleteIcon,
+  PolygonalSelectionIcon,
+  ZoomToIcon,
+} from "src/icons";
+import { useStartCollectionDraft } from "src/commands/collection-draft";
 import { changeZoneProperty } from "@epanet-js/hydraulic-model-operations";
 import { SectionList } from "src/components/form/fields";
 import { SectionWrapper } from "./asset-panel/ui-components";
@@ -42,6 +48,7 @@ export function ZonePanel() {
   const zoomToSelection = useZoomToSelection();
   const selectZoneContents = useSelectZoneContents();
   const deleteSelection = useDeleteSelection();
+  const startCollectionDraft = useStartCollectionDraft();
   const isDeleteZoneOn = useFeatureFlag("FLAG_DELETE_ZONE");
   const isEditionBlocked = useIsEditionBlocked();
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
@@ -113,6 +120,20 @@ export function ZonePanel() {
     },
   };
 
+  const saveSelectionSetAction: Action = {
+    icon: <BookmarkIcon />,
+    applicable: true,
+    label: translate("collections.selectionSets.save"),
+    onSelect: function saveSelectionSet() {
+      startCollectionDraft({
+        kind: "selectionSets",
+        source: "toolbar",
+        label: "",
+      });
+      return Promise.resolve();
+    },
+  };
+
   const deleteAction: Action = {
     icon: <DeleteIcon />,
     applicable: isDeleteZoneOn,
@@ -169,7 +190,12 @@ export function ZonePanel() {
             )}
           </div>
           <ActionsBar
-            actions={[zoomToAction, selectContentsAction, deleteAction]}
+            actions={[
+              zoomToAction,
+              selectContentsAction,
+              saveSelectionSetAction,
+              deleteAction,
+            ]}
             className="h-8"
           />
         </div>

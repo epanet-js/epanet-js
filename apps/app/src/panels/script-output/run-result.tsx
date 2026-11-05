@@ -18,7 +18,6 @@ import {
   useSaveScriptBookmark,
   useSaveScriptSelectionSet,
 } from "src/commands/script-output-collections";
-import { useIsCollectionsAvailable } from "src/commands/collection-draft";
 import {
   formatSize,
   useDownloadAttachment,
@@ -40,36 +39,31 @@ export const RunResult = ({
   const saveBookmark = useSaveScriptBookmark();
   const saveAllSelectionSets = useSaveAllScriptSelectionSets();
   const saveAllBookmarks = useSaveAllScriptBookmarks();
-  const isCollectionsAvailable = useIsCollectionsAvailable();
   const { canManageCollections } = usePermissions();
 
   if (outcome.status !== "success") return null;
 
-  const selectionSetActions: ItemAction[] = isCollectionsAvailable
-    ? [
-        {
-          action: "save",
-          label: translate("collections.selectionSets.save"),
-          icon: <BookmarkIcon size="sm" />,
-        },
-      ]
-    : [];
+  const selectionSetActions: ItemAction[] = [
+    {
+      action: "save",
+      label: translate("collections.selectionSets.save"),
+      icon: <BookmarkIcon size="sm" />,
+    },
+  ];
 
-  const bookmarkActions: ItemAction[] = isCollectionsAvailable
-    ? [
-        {
-          action: "save",
-          label: translate("collections.bookmarks.add"),
-          icon: <BookmarkIcon size="sm" />,
-        },
-      ]
-    : [];
+  const bookmarkActions: ItemAction[] = [
+    {
+      action: "save",
+      label: translate("collections.bookmarks.add"),
+      icon: <BookmarkIcon size="sm" />,
+    },
+  ];
 
   const isUnsaved = ({ commit }: { commit: boolean }) =>
     !(commit && canManageCollections);
 
   const saveAllActions = (hasUnsaved: boolean): ItemAction[] =>
-    isCollectionsAvailable && hasUnsaved
+    hasUnsaved
       ? [
           {
             action: "saveAll",

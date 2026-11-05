@@ -6,10 +6,7 @@ import { BookmarkIcon, ChartLineIcon, DeleteIcon, ZoomToIcon } from "src/icons";
 import { Action } from "src/components/action-button";
 import { ActionsBar } from "src/components/actions-bar";
 import { useCustomGraph } from "src/hooks/use-custom-graph";
-import {
-  useIsCollectionsAvailable,
-  useStartCollectionDraft,
-} from "src/commands/collection-draft";
+import { useStartCollectionDraft } from "src/commands/collection-draft";
 
 export function useNodeActions(readonly = false): Action[] {
   const translate = useTranslate();
@@ -17,7 +14,6 @@ export function useNodeActions(readonly = false): Action[] {
   const deleteSelection = useDeleteSelection();
   const { openCustomGraph } = useCustomGraph();
   const startCollectionDraft = useStartCollectionDraft();
-  const isCollectionsAvailable = useIsCollectionsAvailable();
 
   const onDelete = useCallback(() => {
     deleteSelection({ source: "toolbar" });
@@ -55,7 +51,7 @@ export function useNodeActions(readonly = false): Action[] {
 
   const saveSelectionSetAction = {
     icon: <BookmarkIcon />,
-    applicable: isCollectionsAvailable,
+    applicable: true,
     label: translate("collections.selectionSets.save"),
     onSelect: function saveSelectionSet() {
       startCollectionDraft({

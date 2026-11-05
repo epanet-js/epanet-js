@@ -37,10 +37,7 @@ import { useSetRedrawMode } from "src/commands/set-redraw-mode";
 import { useIsDrawingAvailable } from "src/hooks/use-is-drawing-available";
 import { useReverseLink } from "src/commands/reverse-link";
 import { useCustomGraph } from "src/hooks/use-custom-graph";
-import {
-  useIsCollectionsAvailable,
-  useStartCollectionDraft,
-} from "src/commands/collection-draft";
+import { useStartCollectionDraft } from "src/commands/collection-draft";
 
 export function GeometryActions({ as }: { as: ActionProps["as"] }) {
   const actions = useSelectionActions(as);
@@ -73,7 +70,6 @@ function useSelectionActions(source: ActionProps["as"]): Action[] {
   const reverseLinkAction = useReverseLink();
   const { openCustomGraph } = useCustomGraph();
   const startCollectionDraft = useStartCollectionDraft();
-  const isCollectionsAvailable = useIsCollectionsAvailable();
   const selectedAssets = useAtomValue(selectedAssetsDerivedAtom);
   const selectedCustomerPoints = useAtomValue(
     selectedCustomerPointsDerivedAtom,
@@ -134,10 +130,9 @@ function useSelectionActions(source: ActionProps["as"]): Action[] {
   const saveSelectionSetAction = {
     icon: <BookmarkIcon />,
     applicable:
-      isCollectionsAvailable &&
-      (hasAssets ||
-        hasCustomerPoints ||
-        (isZoneSelectionOn && selectionCounts.zones > 0)),
+      hasAssets ||
+      hasCustomerPoints ||
+      (isZoneSelectionOn && selectionCounts.zones > 0),
     label: translate("collections.selectionSets.save"),
     onSelect: function saveSelectionSet() {
       startCollectionDraft({

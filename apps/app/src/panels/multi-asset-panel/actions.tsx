@@ -26,10 +26,7 @@ import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
 import { useCustomGraph } from "src/hooks/use-custom-graph";
 import { USelection } from "src/selection";
 import { useDisconnectCustomerPoints } from "src/commands/customer-point-actions";
-import {
-  useIsCollectionsAvailable,
-  useStartCollectionDraft,
-} from "src/commands/collection-draft";
+import { useStartCollectionDraft } from "src/commands/collection-draft";
 
 export function useMultiAssetActions(readonly = false): Action[] {
   const translate = useTranslate();
@@ -49,7 +46,6 @@ export function useMultiAssetActions(readonly = false): Action[] {
   } = USelection.countByKind(selection);
   const { openCustomGraph } = useCustomGraph();
   const startCollectionDraft = useStartCollectionDraft();
-  const isCollectionsAvailable = useIsCollectionsAvailable();
 
   const hasAssets = assetCount > 0;
   const hasCustomerPoints = customerPointCount > 0;
@@ -111,8 +107,7 @@ export function useMultiAssetActions(readonly = false): Action[] {
   const saveSelectionSetAction = {
     icon: <BookmarkIcon />,
     applicable:
-      isCollectionsAvailable &&
-      (hasAssets || hasCustomerPoints || (isZoneSelectionOn && zoneCount > 0)),
+      hasAssets || hasCustomerPoints || (isZoneSelectionOn && zoneCount > 0),
     label: translate("collections.selectionSets.save"),
     onSelect: function saveSelectionSet() {
       startCollectionDraft({

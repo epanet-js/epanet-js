@@ -24,10 +24,7 @@ import {
 } from "src/commands/change-selected-assets-active-topology-status";
 import { useCustomGraph } from "src/hooks/use-custom-graph";
 import { useIsDrawingAvailable } from "src/hooks/use-is-drawing-available";
-import {
-  useIsCollectionsAvailable,
-  useStartCollectionDraft,
-} from "src/commands/collection-draft";
+import { useStartCollectionDraft } from "src/commands/collection-draft";
 
 export function useLinkActions(readonly = false): Action[] {
   const translate = useTranslate();
@@ -40,7 +37,6 @@ export function useLinkActions(readonly = false): Action[] {
     useChangeSelectedAssetsActiveTopologyStatus();
   const { openCustomGraph } = useCustomGraph();
   const startCollectionDraft = useStartCollectionDraft();
-  const isCollectionsAvailable = useIsCollectionsAvailable();
   const isDrawingAvailable = useIsDrawingAvailable();
 
   const onDelete = useCallback(() => {
@@ -121,7 +117,7 @@ export function useLinkActions(readonly = false): Action[] {
 
   const saveSelectionSetAction = {
     icon: <BookmarkIcon />,
-    applicable: isCollectionsAvailable,
+    applicable: true,
     label: translate("collections.selectionSets.save"),
     onSelect: function saveSelectionSet() {
       startCollectionDraft({
