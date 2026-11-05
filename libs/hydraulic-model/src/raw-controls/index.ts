@@ -17,6 +17,12 @@ export {
   parseRulesFromText,
   parseRawControlsFromText,
   createLabelResolverFromAssets,
+  findUnmatchedControlLabels,
+  findUnmatchedRuleLabels,
 } from "./parse-raw-controls";
 
-export type { LabelResolver } from "./parse-raw-controls";
+export type {
+  LabelResolver,
+  UnmatchedLabel,
+  UnmatchedLabels,
+} from "./parse-raw-controls";

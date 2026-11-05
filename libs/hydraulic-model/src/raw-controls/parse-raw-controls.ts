@@ -15,16 +15,51 @@ export type LabelResolver = (
 const ASSET_KEYWORDS = ["LINK", "NODE", "TANK", "PUMP", "PIPE", "VALVE"];
 const LINK_KEYWORDS = ["LINK", "PIPE", "PUMP", "VALVE"];
 
+export type UnmatchedLabel = {
+  assetType: "link" | "node";
+  label: string;
+};
+
+export type UnmatchedLabels = {
+  text: string;
+  labels: UnmatchedLabel[];
+};
+
 export const parseSimpleControlsFromText = (
   text: string,
   resolveLabel: LabelResolver,
-): SimpleControl[] => {
-  if (!text.trim()) return [];
+): SimpleControl[] =>
+  splitIntoControlLines(text).map((line) =>
+    parseSimpleControl(line, resolveLabel),
+  );
 
-  const lines = text.split("\n").filter((line) => line.trim());
+export const findUnmatchedControlLabels = (
+  text: string,
+  resolveLabel: LabelResolver,
+): UnmatchedLabels[] =>
+  findUnmatchedLabels(
+    splitIntoControlLines(text),
+    resolveLabel,
+    parseSimpleControl,
+  );
 
-  return lines.map((line) => parseSimpleControl(line, resolveLabel));
-};
+const splitIntoControlLines = (text: string): string[] =>
+  text.trim() ? text.split("\n").filter((line) => line.trim()) : [];
+
+const findUnmatchedLabels = (
+  entries: string[],
+  resolveLabel: LabelResolver,
+  parse: (entry: string, resolveLabel: LabelResolver) => unknown,
+): UnmatchedLabels[] =>
+  entries.flatMap((text) => {
+    const labels: UnmatchedLabel[] = [];
+    parse(text, (assetType, label) => {
+      const assetId = resolveLabel(assetType, label);
+      if (assetId === undefined) labels.push({ assetType, label });
+      return assetId;
+    });
+    return labels.length > 0 ? [{ text, labels }] : [];
+  });
 
 const parseSimpleControl = (
   line: string,
@@ -73,6 +108,18 @@ export const parseRulesFromText = (
 
   return ruleBlocks.map((block) => parseRuleBasedControl(block, resolveLabel));
 };
+
+export const findUnmatchedRuleLabels = (
+  text: string,
+  resolveLabel: LabelResolver,
+): UnmatchedLabels[] =>
+  text.trim()
+    ? findUnmatchedLabels(
+        splitIntoRuleBlocks(text),
+        resolveLabel,
+        parseRuleBasedControl,
+      )
+    : [];
 
 export const parseRawControlsFromText = (
   simpleText: string,
