@@ -6,6 +6,7 @@ import { Provider as JotaiProvider } from "jotai";
 import { TooltipProvider } from "@epanet-js/ui-kit";
 import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import "src/__helpers__/locale";
+import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
 import { setInitialState } from "src/__helpers__/state";
 import {
   resolvePermissions,
@@ -18,6 +19,7 @@ import { Store } from "src/state";
 import { selectionAtom } from "src/state/selection";
 import {
   pendingCollectionDraftAtom,
+  selectionSetGroupsAtom,
   selectionSetsAtom,
 } from "src/state/collections";
 import { CollectionsPanel } from "./collections-panel";
@@ -127,6 +129,7 @@ beforeEach(() => {
   zoomTo.mockClear();
   fitBounds.mockClear();
   permissionsRef.current = resolvePermissions("pro", false, false, false);
+  stubFeatureOff("FLAG_SELECTION_SET_GROUPS");
 });
 
 describe("CollectionsPanel", () => {
@@ -479,6 +482,71 @@ describe("CollectionsPanel", () => {
 
       expect(screen.getByText("Nothing selected")).toBeInTheDocument();
       expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+    });
+  });
+
+  describe("folders", () => {
+    beforeEach(() => {
+      stubFeatureOn("FLAG_SELECTION_SET_GROUPS");
+    });
+
+    const addMenuButton = () => screen.getByRole("button", { name: "Add" });
+
+    const addFolder = async (name: string) => {
+      await userEvent.click(addMenuButton());
+      await userEvent.click(screen.getByRole("menuitem", { name: "Folder" }));
+      await nameIt(name);
+    };
+
+    it("creates an empty folder from the heading", async () => {
+      const store = aStore();
+      renderPanel(store);
+
+      await addFolder("DMAs");
+
+      expect(screen.getByText("DMAs")).toBeInTheDocument();
+      expect(screen.getByText("Empty folder")).toBeInTheDocument();
+      expect(
+        store.get(selectionSetGroupsAtom).map((group) => group.label),
+      ).toEqual(["DMAs"]);
+      expect(store.get(selectionSetGroupsAtom)[0].parentId).toBeNull();
+    });
+
+    it("saves the current selection from the heading", async () => {
+      const store = aStore();
+      store.set(selectionAtom, USelection.fromAssetIds([IDS.J1, IDS.J2]));
+      renderPanel(store);
+
+      await userEvent.click(addMenuButton());
+      await userEvent.click(
+        screen.getByRole("menuitem", { name: "Selection set" }),
+      );
+      await nameIt("North zone");
+
+      expect(screen.getByText("North zone")).toBeInTheDocument();
+      expect(
+        screen.queryByText("Save current selection"),
+      ).not.toBeInTheDocument();
+    });
+
+    it("lists folders before selection sets and reaches both with the arrow keys", async () => {
+      const store = aStore();
+      store.set(selectionAtom, USelection.fromAssetIds([IDS.J1]));
+      renderPanel(store);
+      await userEvent.click(addMenuButton());
+      await userEvent.click(
+        screen.getByRole("menuitem", { name: "Selection set" }),
+      );
+      await nameIt("North zone");
+      await addFolder("DMAs");
+      act(() => store.set(selectionAtom, USelection.none()));
+      focusList("DMAs");
+
+      await userEvent.keyboard("{ArrowDown}{ArrowDown}");
+      expect(rowOf("DMAs")).toHaveClass("bg-base-hover");
+
+      await userEvent.keyboard("{ArrowDown}");
+      expect(rowOf("North zone")).toHaveAttribute("aria-selected", "true");
     });
   });
 });

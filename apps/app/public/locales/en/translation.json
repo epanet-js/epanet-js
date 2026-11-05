@@ -2173,7 +2173,9 @@
       "save": "Save selection",
       "selectOnly": "Select only",
       "newLabel": "New selection set name",
-      "labelPlaceholder": "Selection set name"
+      "labelPlaceholder": "Selection set name",
+      "add": "Add",
+      "new": "Selection set"
     },
     "bookmarks": {
       "title": "Bookmarks",
@@ -2185,6 +2187,12 @@
     "upgrade": {
       "title": "Save your own collections",
       "description": "Keep any group of assets or map area to come back to it in one click"
+    },
+    "groups": {
+      "new": "Folder",
+      "newLabel": "New folder name",
+      "labelPlaceholder": "Folder name",
+      "empty": "Empty folder"
     }
   },
   "tabs": {

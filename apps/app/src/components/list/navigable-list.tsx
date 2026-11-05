@@ -132,14 +132,14 @@ function NavigableListInner<S extends string>(
       }
       itemsBySection.get(item.section)!.push(item);
     }
-    for (const section of Object.keys(sectionStatus) as S[]) {
+    for (const section of sections as S[]) {
       result.push({ section });
-      if (sectionStatus[section]) {
+      if (sectionStatus[section] ?? true) {
         result.push(...(itemsBySection.get(section) ?? []));
       }
     }
     return result;
-  }, [navItems, sectionStatus]);
+  }, [navItems, sections, sectionStatus]);
 
   const currentNavIndex = useMemo(() => {
     if (focusedItem) {

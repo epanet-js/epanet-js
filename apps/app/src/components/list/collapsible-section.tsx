@@ -16,6 +16,7 @@ type CollapsibleListSectionProps = {
   children: React.ReactNode;
   action?: { label: string; icon: React.ReactNode; disabled?: boolean };
   onAction?: (sectionType: string) => void;
+  actionSlot?: React.ReactNode;
   menuActions?: ItemAction[];
   menuLabel?: string;
   onMenuAction?: (action: string) => void;
@@ -31,6 +32,7 @@ export const CollapsibleListSection = ({
   onToggle: onToggleProp,
   action,
   onAction,
+  actionSlot,
   menuActions,
   menuLabel,
   onMenuAction,
@@ -61,7 +63,8 @@ export const CollapsibleListSection = ({
             {count !== undefined && <span className="shrink-0">({count})</span>}
           </button>
         </C.Trigger>
-        {!readOnly && action && onAction && (
+        {!readOnly && actionSlot}
+        {!readOnly && !actionSlot && action && onAction && (
           <Button
             variant="quiet"
             size="xxs"
