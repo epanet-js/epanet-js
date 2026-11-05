@@ -1,7 +1,34 @@
 import { parseSignature } from "./signature";
-import type { InterfaceDef, Member, ScriptingDocs, Section } from "./types";
+import type {
+  Chapter,
+  InterfaceDef,
+  Member,
+  ScriptingDocs,
+  Section,
+  SectionDef,
+} from "./types";
 
 export type Appendix = { id: string; number: string; title: string };
+
+export const numberSections = ({
+  preface,
+  chapters,
+}: {
+  preface: SectionDef[];
+  chapters: Chapter[];
+}): Section[] => [
+  ...preface,
+  ...chapters.flatMap(({ subsections = [], ...chapter }, index) => {
+    const number = String(index + 1);
+    return [
+      { ...chapter, number },
+      ...subsections.map((section, subIndex) => ({
+        ...section,
+        number: `${number}.${subIndex + 1}`,
+      })),
+    ];
+  }),
+];
 
 export const sectionTitle = (section: {
   number?: string;

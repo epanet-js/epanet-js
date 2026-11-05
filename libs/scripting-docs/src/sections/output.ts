@@ -1,5 +1,5 @@
 import { memberOf, propertyOf } from "../members";
-import type { Section } from "../types";
+import type { SectionDef } from "../types";
 
 const selection = memberOf("Selection");
 const selected = propertyOf("Selection");
@@ -14,9 +14,8 @@ const bookmark = propertyOf("Bookmark");
 
 const Targets = "Asset | CustomerPoint | (Asset | CustomerPoint)[]";
 
-export const SELECTION_SECTION: Section = {
+export const SELECTION_SECTION: SectionDef = {
   id: "selection",
-  number: "3",
   title: "`selection` — the user's selection in, the script's out",
   members: [
     selected("assets", "Asset[]", "The selected assets."),
@@ -60,9 +59,8 @@ export const SELECTION_SECTION: Section = {
 When the user says "the selected pipes", start from \`selection.pipes\`, and throw a clear error when it is empty: \`if (selection.pipes.length === 0) throw new Error("Select some pipes first")\`.`,
 };
 
-export const MAP_SECTION: Section = {
+export const MAP_SECTION: SectionDef = {
   id: "map",
-  number: "4",
   title: "`map` — the viewport",
   members: [
     viewport("bounds", "BBox | null", "The viewport at run start."),
@@ -80,9 +78,8 @@ export const MAP_SECTION: Section = {
   ],
 };
 
-export const CONSOLE_SECTION: Section = {
+export const CONSOLE_SECTION: SectionDef = {
   id: "console",
-  number: "5",
   title: "`console` — output",
   members: [
     consoleMember({
@@ -112,9 +109,8 @@ export const CONSOLE_SECTION: Section = {
     "`JSON.stringify(asset)` gives `{}` — assets are getters, not data. Build plain objects of the fields you need (`{ pipe: p.label, diameter: p.diameter }`), or pass the asset to `console`/`ui.attachFile`, which print labels.",
 };
 
-export const UI_SECTION: Section = {
+export const UI_SECTION: SectionDef = {
   id: "ui",
-  number: "6",
   title: "`ui` — progress and files",
   members: [
     ui({
@@ -136,9 +132,8 @@ export const UI_SECTION: Section = {
     "Deliver tabular or geographic output as files — CSV, GeoJSON, JSON, INP — and keep `console.table` for at-a-glance summaries.",
 };
 
-export const COLLECTIONS_SECTION: Section = {
+export const COLLECTIONS_SECTION: SectionDef = {
   id: "collections",
-  number: "6",
   title: "`collections` — saved selection sets and bookmarks",
   members: [
     saved(
@@ -246,9 +241,8 @@ export const COLLECTIONS_SECTION: Section = {
     "Apply a saved set with `selection.set([...set.assets, ...set.customerPoints])`, and go to a bookmark with `map.zoomTo(bookmark.bbox)`. Saving selection sets and bookmarks needs a plan that includes Collections. Without it the run still applies its selection, zoom and files, and the run dialog says they were not saved.",
 };
 
-export const ERRORS_SECTION: Section = {
+export const ERRORS_SECTION: SectionDef = {
   id: "errors",
-  number: "7",
   title: "Errors and limits",
   intro: `- **An uncaught error stops the script.** The run dialog shows \`name: message\` and the script line it came from. Selection, zoom, attachments, selection sets and bookmarks are not applied; console lines already printed stay.
 - **API misuse throws early with a specific message**, quoted under each member's **Throws**.

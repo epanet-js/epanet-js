@@ -1,6 +1,6 @@
-import type { Section } from "../types";
+import type { SectionDef } from "../types";
 
-export const SECTION: Section = {
+export const SECTION: SectionDef = {
   id: "how-a-script-runs",
   title: "How a script runs",
   intro: `- **Globals:** \`network\`, \`zones\`, \`selection\`, \`map\`, \`console\`, \`ui\`, \`collections\`. There is no \`fetch\`, DOM, \`require\`/\`import\`, timers (\`setTimeout\`), \`structuredClone\` or network access.

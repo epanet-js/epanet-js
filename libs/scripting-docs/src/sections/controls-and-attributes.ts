@@ -1,12 +1,11 @@
 import { memberOf, propertyOf } from "../members";
-import type { DocsCandidates, Member, Section } from "../types";
+import type { DocsCandidates, Member, SectionDef } from "../types";
 
 const network = memberOf("Network");
 const property = propertyOf("Network");
 
-const SECTION: Section = {
+const SECTION: SectionDef = {
   id: "controls-and-attributes",
-  number: "1.7",
   title: "Controls and allocation rules",
   types: [
     {
@@ -73,7 +72,7 @@ const SET_RAW_RULES: Member = network({
   ],
 });
 
-export const sectionFor = ({ edits }: DocsCandidates): Section =>
+export const sectionFor = ({ edits }: DocsCandidates): SectionDef =>
   edits
     ? {
         ...SECTION,

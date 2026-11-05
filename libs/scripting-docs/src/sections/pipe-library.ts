@@ -1,13 +1,12 @@
 import { memberOf, propertyOf } from "../members";
-import type { DocsCandidates, Member, Section } from "../types";
+import type { DocsCandidates, Member, SectionDef } from "../types";
 
 const network = memberOf("Network");
 const property = propertyOf("Network");
 const materialProperty = propertyOf("PipeMaterial");
 
-const SECTION: Section = {
+const SECTION: SectionDef = {
   id: "pipe-library",
-  number: "1.6",
   title: "Pipe library",
   members: [
     property("pipeMaterials", "PipeMaterial[]", "The pipe library."),
@@ -85,7 +84,7 @@ network.deletePipeMaterial("DUCTILE");`,
   ],
 });
 
-export const sectionFor = ({ edits }: DocsCandidates): Section =>
+export const sectionFor = ({ edits }: DocsCandidates): SectionDef =>
   edits
     ? {
         ...SECTION,

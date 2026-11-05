@@ -1,13 +1,12 @@
 import { memberOf, propertyOf } from "../members";
-import type { DocsCandidates, Member, Section } from "../types";
+import type { DocsCandidates, Member, SectionDef } from "../types";
 
 const network = memberOf("Network");
 const property = propertyOf("Network");
 const patternProperty = propertyOf("Pattern");
 
-const SECTION: Section = {
+const SECTION: SectionDef = {
   id: "patterns",
-  number: "1.4",
   title: "Patterns",
   members: [
     property("patterns", "Pattern[]", "Every pattern."),
@@ -103,7 +102,7 @@ const DELETE_PATTERN: Member = network({
   ],
 });
 
-export const sectionFor = ({ edits }: DocsCandidates): Section =>
+export const sectionFor = ({ edits }: DocsCandidates): SectionDef =>
   edits
     ? {
         ...SECTION,

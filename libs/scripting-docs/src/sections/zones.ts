@@ -1,12 +1,11 @@
 import { memberOf, propertyOf } from "../members";
-import type { Section } from "../types";
+import type { SectionDef } from "../types";
 
 const zones = memberOf("Zones");
 const zone = propertyOf("Zone");
 
-export const SECTION: Section = {
+export const SECTION: SectionDef = {
   id: "zones",
-  number: "2",
   title: "`zones` — the project's polygons",
   intro: `The polygons imported with **File › Import › Zones** — DMAs, pressure zones, supply areas. They are drawn boundaries, unrelated to connectivity: \`network.trace\` walks the pipes and knows nothing about them.
 

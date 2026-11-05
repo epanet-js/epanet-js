@@ -1,11 +1,10 @@
 import { memberOf } from "../members";
-import type { Section } from "../types";
+import type { SectionDef } from "../types";
 
 const network = memberOf("Network");
 
-export const SECTION: Section = {
+export const SECTION: SectionDef = {
   id: "network-overview",
-  number: "1.1",
   title: "Overview",
   intro:
     "Start the first script on an unfamiliar model with `console.log(network.stats)` and `console.log(network.units)`.",

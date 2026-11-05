@@ -1,12 +1,11 @@
 import { memberOf, propertyOf } from "../members";
-import type { Section } from "../types";
+import type { SectionDef } from "../types";
 
 const network = memberOf("Network");
 const geo = memberOf("NetworkGeo");
 
-export const SECTION: Section = {
+export const SECTION: SectionDef = {
   id: "spatial",
-  number: "1.9",
   title: "Spatial queries and geometry",
   types: [
     {

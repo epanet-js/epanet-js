@@ -27,6 +27,7 @@ import { SECTION as SCRIPT_RUNS } from "./sections/script-runs";
 import { SECTION as SPATIAL } from "./sections/spatial";
 import { SECTION as TOPOLOGY } from "./sections/topology";
 import { SECTION as ZONES } from "./sections/zones";
+import { numberSections } from "./outline";
 import type { DocsCandidates, ScriptingDocs } from "./types";
 
 const READ_ONLY_RULE =
@@ -61,30 +62,37 @@ const buildDocs = (candidates: DocsCandidates): ScriptingDocs => ({
     "This is the complete surface a script sees. Everything below is injected into the sandbox; nothing else exists.",
   globals: GLOBALS,
   interfaces: [...INTERFACES, ...RESULTS_INTERFACES],
-  sections: [
-    SCRIPT_RUNS,
-    { id: "network", number: "1", title: "`network` — the model" },
-    OVERVIEW,
-    COLLECTIONS,
-    assetsFor(candidates),
-    patternsFor(candidates),
-    curvesFor(candidates),
-    pipeLibraryFor(candidates),
-    controlsAndAttributesFor(candidates),
-    customAttributesFor(candidates),
-    SPATIAL,
-    TOPOLOGY,
-    REVIEW,
-    EXPORT,
-    RESULTS,
-    ZONES,
-    SELECTION_SECTION,
-    MAP_SECTION,
-    CONSOLE_SECTION,
-    UI_SECTION,
-    COLLECTIONS_SECTION,
-    ERRORS_SECTION,
-  ],
+  sections: numberSections({
+    preface: [SCRIPT_RUNS],
+    chapters: [
+      {
+        id: "network",
+        title: "`network` — the model",
+        subsections: [
+          OVERVIEW,
+          COLLECTIONS,
+          assetsFor(candidates),
+          patternsFor(candidates),
+          curvesFor(candidates),
+          pipeLibraryFor(candidates),
+          controlsAndAttributesFor(candidates),
+          customAttributesFor(candidates),
+          SPATIAL,
+          TOPOLOGY,
+          REVIEW,
+          EXPORT,
+          RESULTS,
+        ],
+      },
+      ZONES,
+      SELECTION_SECTION,
+      MAP_SECTION,
+      CONSOLE_SECTION,
+      UI_SECTION,
+      COLLECTIONS_SECTION,
+      ERRORS_SECTION,
+    ],
+  }),
   agentRules: AGENT_RULES.map((rule) =>
     rule === READ_ONLY_RULE && candidates.edits ? EDITS_RULE : rule,
   ),

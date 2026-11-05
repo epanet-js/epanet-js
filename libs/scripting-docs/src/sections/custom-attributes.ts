@@ -1,12 +1,11 @@
 import { memberOf, propertyOf } from "../members";
-import type { DocsCandidates, Member, Section } from "../types";
+import type { DocsCandidates, Member, SectionDef } from "../types";
 
 const network = memberOf("Network");
 const attributeProperty = propertyOf("CustomAttribute");
 
-const SECTION: Section = {
+const SECTION: SectionDef = {
   id: "custom-attributes",
-  number: "1.8",
   title: "Custom attributes",
   members: [
     network({
@@ -54,7 +53,7 @@ network.getNode("J1").setCustom("Survey year", 2024);`,
   ],
 });
 
-export const sectionFor = ({ edits }: DocsCandidates): Section =>
+export const sectionFor = ({ edits }: DocsCandidates): SectionDef =>
   edits
     ? {
         ...SECTION,

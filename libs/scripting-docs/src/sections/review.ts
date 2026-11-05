@@ -1,11 +1,10 @@
 import { memberOf } from "../members";
-import type { Section } from "../types";
+import type { SectionDef } from "../types";
 
 const network = memberOf("Network");
 
-export const SECTION: Section = {
+export const SECTION: SectionDef = {
   id: "review",
-  number: "1.11",
   title: "Network review and validation",
   intro:
     "These are the app's own checks — a script gets exactly what the Network Review panel and the Run button get. They run on the active network only (inactive assets are left out).",

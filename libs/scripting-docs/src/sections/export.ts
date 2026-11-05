@@ -1,9 +1,8 @@
 import { memberOf } from "../members";
-import type { Section } from "../types";
+import type { SectionDef } from "../types";
 
-export const SECTION: Section = {
+export const SECTION: SectionDef = {
   id: "export",
-  number: "1.12",
   title: "Export",
   members: [
     memberOf("Network")({

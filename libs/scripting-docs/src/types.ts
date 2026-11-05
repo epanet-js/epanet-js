@@ -45,6 +45,10 @@ export type Section = {
   notes?: Markdown;
 };
 
+export type SectionDef = Omit<Section, "number">;
+
+export type Chapter = SectionDef & { subsections?: SectionDef[] };
+
 export type ExampleScript = {
   id: string;
   name: string;

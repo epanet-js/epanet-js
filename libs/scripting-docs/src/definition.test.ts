@@ -69,8 +69,16 @@ describe.each<[string, ScriptingDocs]>([
   });
 
   it("numbers the agent notes and worked examples after the sections", () => {
-    expect(text).toContain("## 8. Notes for AI agents");
-    expect(text).toContain("## 9. Worked examples");
+    expect(text).toContain("## 9. Notes for AI agents");
+    expect(text).toContain("## 10. Worked examples");
+  });
+
+  it("gives every numbered section a number of its own", () => {
+    const numbers = docs.sections.flatMap((section) =>
+      section.number ? [section.number] : [],
+    );
+
+    expect(new Set(numbers).size).toEqual(numbers.length);
   });
 });
 

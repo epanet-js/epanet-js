@@ -3,7 +3,7 @@ import type {
   DocsCandidates,
   Markdown,
   Member,
-  Section,
+  SectionDef,
   TypeDef,
 } from "../types";
 
@@ -197,9 +197,8 @@ const valveResults = resultsOf(
 console.log(struggling.map((valve) => \`\${valve.label}: \${valve.results.statusWarning}\`));`,
 );
 
-const SECTION: Section = {
+const SECTION: SectionDef = {
   id: "assets",
-  number: "1.3",
   title: "Assets",
   intro:
     "Every asset is a read-only object of getters. A value the model has not set reads as `null`.",
@@ -906,7 +905,7 @@ console.log(pipe.diameter, network.units.diameter, pipe.status);`,
   ],
 ]);
 
-export const sectionFor = ({ edits }: DocsCandidates): Section =>
+export const sectionFor = ({ edits }: DocsCandidates): SectionDef =>
   edits
     ? {
         ...SECTION,

@@ -1,13 +1,12 @@
 import { memberOf, propertyOf } from "../members";
-import type { DocsCandidates, Member, Section } from "../types";
+import type { DocsCandidates, Member, SectionDef } from "../types";
 
 const network = memberOf("Network");
 const property = propertyOf("Network");
 const curveProperty = propertyOf("Curve");
 
-const SECTION: Section = {
+const SECTION: SectionDef = {
   id: "curves",
-  number: "1.5",
   title: "Curves",
   members: [
     property("curves", "Curve[]", "Every curve."),
@@ -101,7 +100,7 @@ const DELETE_CURVE: Member = network({
   ],
 });
 
-export const sectionFor = ({ edits }: DocsCandidates): Section =>
+export const sectionFor = ({ edits }: DocsCandidates): SectionDef =>
   edits
     ? {
         ...SECTION,

@@ -1,5 +1,5 @@
 import { memberOf } from "../members";
-import type { Member, Section } from "../types";
+import type { Member, SectionDef } from "../types";
 
 const network = memberOf("Network");
 
@@ -10,9 +10,8 @@ const collection = (name: string, type: string, what: string): Member =>
     summary: what,
   });
 
-export const SECTION: Section = {
+export const SECTION: SectionDef = {
   id: "network-collections",
-  number: "1.2",
   title: "Lists and lookup",
   members: [
     collection("junctions", "Junction", "Every junction."),
