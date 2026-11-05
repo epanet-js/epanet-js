@@ -55,6 +55,7 @@ import { CurveLibraryDialog } from "src/dialogs/curves";
 import { CustomAttributesDialog } from "src/dialogs/custom-attributes";
 import { DeleteScenarioConfirmationDialog } from "src/dialogs/delete-scenario-confirmation";
 import { DeleteScriptConfirmationDialog } from "src/dialogs/delete-script-confirmation";
+import { DeleteSelectionSetGroupConfirmationDialog } from "src/dialogs/delete-selection-set-group-confirmation";
 import { RenameScenarioDialog } from "src/dialogs/rename-scenario";
 import { ScenarioSignInDialog } from "src/dialogs/scenario-sign-in";
 import { ScenariosPaywallConnector } from "src/dialogs/paywall/scenarios-connector";
@@ -497,6 +498,12 @@ export const Dialogs = memo(function Dialogs() {
       <DeleteScriptConfirmationDialog
         scriptId={scriptId}
         scriptName={scriptName}
+        onClose={onClose}
+      />
+    ))
+    .with({ type: "deleteSelectionSetGroupConfirmation" }, ({ groupId }) => (
+      <DeleteSelectionSetGroupConfirmationDialog
+        groupId={groupId}
         onClose={onClose}
       />
     ))

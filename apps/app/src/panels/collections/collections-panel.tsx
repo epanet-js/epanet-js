@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import * as DD from "@radix-ui/react-dropdown-menu";
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import {
   Fragment,
   useCallback,
@@ -72,6 +72,7 @@ import {
   savableSelection,
 } from "src/lib/collections";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
+import { dialogAtom } from "src/state/dialog";
 import { useStartCollectionDraft } from "src/commands/collection-draft";
 
 type SectionType = CollectionKind;
@@ -136,6 +137,7 @@ export const CollectionsPanel = () => {
   const deleteSelectionSet = useDeleteSelectionSet();
   const createSelectionSetGroup = useCreateSelectionSetGroup();
   const deleteSelectionSetGroup = useDeleteSelectionSetGroup();
+  const setDialog = useSetAtom(dialogAtom);
   const addBookmark = useAddBookmark();
   const goToBookmark = useGoToBookmark();
   const renameBookmark = useRenameBookmark();
@@ -487,7 +489,14 @@ export const CollectionsPanel = () => {
     clearActionState();
     setFocusedRow(null);
     if (row.kind === "group") {
-      deleteSelectionSetGroup({ groupId: row.id, source: "panel" });
+      if ((row.count ?? 0) === 0) {
+        deleteSelectionSetGroup({ groupId: row.id, source: "panel" });
+      } else {
+        setDialog({
+          type: "deleteSelectionSetGroupConfirmation",
+          groupId: row.id,
+        });
+      }
     } else if (row.kind === "set") {
       deleteSelectionSet({ setId: row.id, source: "panel" });
     } else {
@@ -534,9 +543,7 @@ export const CollectionsPanel = () => {
     };
   };
 
-  const groupActionsFor = (row: Row): ItemAction[] => [
-    { ...deleteAction, disabled: (row.count ?? 0) > 0 },
-  ];
+  const groupActions: ItemAction[] = [deleteAction];
 
   const itemActionsFor = (row: Row): ItemAction[] => {
     const move = moveActionFor(row);
@@ -587,7 +594,7 @@ export const CollectionsPanel = () => {
           <ItemActions
             label={moreActionsLabel}
             isSelected={menuOpenGroupId === row.id}
-            actions={groupActionsFor(row)}
+            actions={groupActions}
             onAction={(action) => handleAction(action, { id: row.navId })}
             onOpenChange={(open) => setMenuOpenGroupId(open ? row.id : null)}
           />

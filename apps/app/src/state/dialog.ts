@@ -226,6 +226,11 @@ export type DeleteScriptConfirmationDialogState = {
   scriptName: string;
 };
 
+export type DeleteSelectionSetGroupConfirmationDialogState = {
+  type: "deleteSelectionSetGroupConfirmation";
+  groupId: string;
+};
+
 export type ScenarioSignInDialogState = {
   type: "scenarioSignIn";
   source: "scenarioSwitcher" | "exportScenario";
@@ -409,6 +414,7 @@ export type DialogState =
   | CustomAttributesDialogState
   | DeleteScenarioConfirmationDialogState
   | DeleteScriptConfirmationDialogState
+  | DeleteSelectionSetGroupConfirmationDialogState
   | RenameScenarioDialogState
   | ScenarioSignInDialogState
   | FeaturePaywallDialogState

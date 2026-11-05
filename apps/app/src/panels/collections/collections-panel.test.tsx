@@ -16,6 +16,7 @@ import { MapContext } from "src/map";
 import { USelection } from "src/selection";
 import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
 import { Store } from "src/state";
+import { dialogAtom } from "src/state/dialog";
 import { selectionAtom } from "src/state/selection";
 import {
   pendingCollectionDraftAtom,
@@ -549,18 +550,43 @@ describe("CollectionsPanel", () => {
       );
     };
 
-    it("deletes a folder from its menu", async () => {
+    const deleteFromMenu = async (folderName: string) => {
+      await userEvent.click(
+        within(rowOf(folderName)).getByRole("button", {
+          name: "More actions",
+        }),
+      );
+      await userEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
+    };
+
+    it("deletes an empty folder from its menu without asking", async () => {
       const store = aStore();
       renderPanel(store);
       await addFolder("DMAs");
 
-      await userEvent.click(
-        within(rowOf("DMAs")).getByRole("button", { name: "More actions" }),
-      );
-      await userEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
+      await deleteFromMenu("DMAs");
 
       expect(screen.queryByText("DMAs")).not.toBeInTheDocument();
       expect(store.get(selectionSetGroupsAtom)).toEqual([]);
+      expect(store.get(dialogAtom)).toBeNull();
+    });
+
+    it("asks for confirmation before deleting a folder holding sets", async () => {
+      const store = aStore();
+      store.set(selectionAtom, USelection.fromAssetIds([IDS.J1]));
+      renderPanel(store);
+      await addFolder("DMAs");
+      await saveSetFromMenu("North zone");
+      await moveFromMenu("North zone", "DMAs");
+      const [group] = store.get(selectionSetGroupsAtom);
+
+      await deleteFromMenu("DMAs");
+
+      expect(store.get(dialogAtom)).toEqual({
+        type: "deleteSelectionSetGroupConfirmation",
+        groupId: group.id,
+      });
+      expect(screen.getByText("DMAs")).toBeInTheDocument();
     });
 
     it("moves a set into a folder and back to the top level from its menu", async () => {

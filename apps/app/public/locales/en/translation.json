@@ -2194,7 +2194,10 @@
       "newLabel": "New folder name",
       "labelPlaceholder": "Folder name",
       "empty": "Empty folder",
-      "topLevel": "Top level"
+      "topLevel": "Top level",
+      "delete": "Delete folder",
+      "deleteConfirmation_one": "Delete folder \"{{1}}\" and the selection set inside it?",
+      "deleteConfirmation_other": "Delete folder \"{{1}}\" and the {{count}} selection sets inside it?"
     }
   },
   "tabs": {
