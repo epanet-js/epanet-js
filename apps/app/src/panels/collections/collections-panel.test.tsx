@@ -549,6 +549,20 @@ describe("CollectionsPanel", () => {
       );
     };
 
+    it("deletes a folder from its menu", async () => {
+      const store = aStore();
+      renderPanel(store);
+      await addFolder("DMAs");
+
+      await userEvent.click(
+        within(rowOf("DMAs")).getByRole("button", { name: "More actions" }),
+      );
+      await userEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
+
+      expect(screen.queryByText("DMAs")).not.toBeInTheDocument();
+      expect(store.get(selectionSetGroupsAtom)).toEqual([]);
+    });
+
     it("moves a set into a folder and back to the top level from its menu", async () => {
       const store = aStore();
       store.set(selectionAtom, USelection.fromAssetIds([IDS.J1]));

@@ -23,11 +23,15 @@ import {
   useRenameSelectionSet,
   useSaveSelectionSet,
 } from "src/commands/selection-sets";
-import { useCreateSelectionSetGroup } from "src/commands/selection-set-groups";
+import {
+  useCreateSelectionSetGroup,
+  useDeleteSelectionSetGroup,
+} from "src/commands/selection-set-groups";
 import { Button, DDContent, StyledItem } from "src/components/elements";
 import {
   CollapsibleListSection,
   EditableListItem,
+  ItemActions,
   ItemInput,
   NavigableList,
 } from "src/components/list";
@@ -131,6 +135,7 @@ export const CollectionsPanel = () => {
   const moveSelectionSet = useMoveSelectionSet();
   const deleteSelectionSet = useDeleteSelectionSet();
   const createSelectionSetGroup = useCreateSelectionSetGroup();
+  const deleteSelectionSetGroup = useDeleteSelectionSetGroup();
   const addBookmark = useAddBookmark();
   const goToBookmark = useGoToBookmark();
   const renameBookmark = useRenameBookmark();
@@ -149,6 +154,8 @@ export const CollectionsPanel = () => {
   const [collapsedGroupIds, setCollapsedGroupIds] = useState<
     ReadonlySet<SelectionSetGroupId>
   >(() => new Set());
+  const [menuOpenGroupId, setMenuOpenGroupId] =
+    useState<SelectionSetGroupId | null>(null);
   const [pendingDraft, setPendingDraft] = useAtom(pendingCollectionDraftAtom);
 
   const {
@@ -479,7 +486,9 @@ export const CollectionsPanel = () => {
 
     clearActionState();
     setFocusedRow(null);
-    if (row.section === "selectionSets") {
+    if (row.kind === "group") {
+      deleteSelectionSetGroup({ groupId: row.id, source: "panel" });
+    } else if (row.kind === "set") {
       deleteSelectionSet({ setId: row.id, source: "panel" });
     } else {
       deleteBookmark({ bookmarkId: row.id, source: "panel" });
@@ -525,6 +534,10 @@ export const CollectionsPanel = () => {
     };
   };
 
+  const groupActionsFor = (row: Row): ItemAction[] => [
+    { ...deleteAction, disabled: (row.count ?? 0) > 0 },
+  ];
+
   const itemActionsFor = (row: Row): ItemAction[] => {
     const move = moveActionFor(row);
     return move
@@ -549,7 +562,8 @@ export const CollectionsPanel = () => {
           data-item-id={row.navId}
           className={clsx(
             "group flex items-center text-sm cursor-pointer h-8 min-w-0 rounded-sm",
-            focusedRow !== null && isSameRow(row, focusedRow)
+            (focusedRow !== null && isSameRow(row, focusedRow)) ||
+              menuOpenGroupId === row.id
               ? "bg-base-hover"
               : "hover:bg-base-hover",
           )}
@@ -570,6 +584,13 @@ export const CollectionsPanel = () => {
               <span className="shrink-0">({row.count})</span>
             )}
           </Button>
+          <ItemActions
+            label={moreActionsLabel}
+            isSelected={menuOpenGroupId === row.id}
+            actions={groupActionsFor(row)}
+            onAction={(action) => handleAction(action, { id: row.navId })}
+            onOpenChange={(open) => setMenuOpenGroupId(open ? row.id : null)}
+          />
         </li>
         {!isCollapsed && row.count === 0 && (
           <HintRow

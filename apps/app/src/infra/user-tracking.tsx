@@ -1928,6 +1928,12 @@ export type UserEvent =
       source: "panel";
     }
   | {
+      name: "selectionSetGroup.deleted";
+      sets: number;
+      subgroups: number;
+      source: "panel";
+    }
+  | {
       name: "bookmark.draftStarted";
       source: CollectionDraftSource;
       canManageCollections: boolean;
