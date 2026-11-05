@@ -3,10 +3,17 @@ import {
   parseRows,
   selectionSetRowSchema,
 } from "@epanet-js/ejsdb";
-import type { SelectionSet } from "src/lib/collections";
+import {
+  type SelectionSet,
+  type SelectionSetGroup,
+  resolveGroupId,
+} from "src/lib/collections";
 import { USelection } from "src/selection";
 
-export const buildSelectionSetsData = (rawRows: unknown[]): SelectionSet[] => {
+export const buildSelectionSetsData = (
+  rawRows: unknown[],
+  groups: readonly SelectionSetGroup[],
+): SelectionSet[] => {
   const rows = parseRows(selectionSetRowSchema, rawRows, "Selection set");
 
   return rows.map((row) => ({
@@ -17,5 +24,6 @@ export const buildSelectionSetsData = (rawRows: unknown[]): SelectionSet[] => {
       decodeIdList(row.customer_points),
       decodeIdList(row.zones),
     ),
+    groupId: resolveGroupId(groups, row.group_id),
   }));
 };

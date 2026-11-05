@@ -22,6 +22,7 @@ const aSelectionSet = (
   id: "set-1",
   label: "Downtown loop",
   selection: USelection.fromIds([1], []),
+  groupId: null,
   ...overrides,
 });
 
@@ -88,6 +89,28 @@ describe("useSelectionSetsTransaction", () => {
     });
 
     expect(await storedLabels()).toEqual(["Uptown loop"]);
+  });
+
+  it("stores a moved set under its new group", async () => {
+    await importProject({
+      newDb: true,
+      hydraulicModel: HydraulicModelBuilder.with().aJunction(1).build(),
+      projectSettings: defaultProjectSettings,
+      simulationSettings: defaultSimulationSettings,
+      selectionSetGroups: [{ id: "group-1", label: "North", parentId: null }],
+    });
+    const store = setInitialState({});
+    const { result } = renderTransaction(store);
+
+    await act(async () => {
+      result.current.create(aSelectionSet());
+      result.current.move({ id: "set-1", groupId: "group-1" });
+      await writeQueue.whenIdle();
+    });
+
+    expect(store.get(selectionSetsAtom)[0].groupId).toBe("group-1");
+    const { selectionSets } = await fetchProject();
+    expect(selectionSets[0].groupId).toBe("group-1");
   });
 
   it("drops a deleted set from the project", async () => {

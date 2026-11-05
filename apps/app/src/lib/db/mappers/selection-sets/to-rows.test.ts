@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { encodeIdList } from "@epanet-js/ejsdb";
-import type { SelectionSet } from "src/lib/collections";
+import type { SelectionSet, SelectionSetGroup } from "src/lib/collections";
 import { USelection } from "src/selection";
 import { serializeSelectionSets } from "./to-rows";
 import { buildSelectionSetsData } from "./builders";
@@ -11,8 +11,11 @@ const aSelectionSet = (
   id: "set-1",
   label: "Downtown loop",
   selection: USelection.fromIds([1, 2, 3], [4, 5]),
+  groupId: null,
   ...overrides,
 });
+
+const noGroups: SelectionSetGroup[] = [];
 
 describe("serializeSelectionSets", () => {
   it("produces rows that round-trip through buildSelectionSetsData", () => {
@@ -20,7 +23,7 @@ describe("serializeSelectionSets", () => {
 
     const rows = serializeSelectionSets(selectionSets);
 
-    expect(buildSelectionSetsData(rows)).toEqual(selectionSets);
+    expect(buildSelectionSetsData(rows, noGroups)).toEqual(selectionSets);
   });
 
   it("round-trips a set with only assets and one with only customer points", () => {
@@ -31,7 +34,7 @@ describe("serializeSelectionSets", () => {
 
     const rows = serializeSelectionSets(selectionSets);
 
-    expect(buildSelectionSetsData(rows)).toEqual(selectionSets);
+    expect(buildSelectionSetsData(rows, noGroups)).toEqual(selectionSets);
   });
 
   it("round-trips a set with only zones", () => {
@@ -52,7 +55,7 @@ describe("serializeSelectionSets", () => {
 
     const rows = serializeSelectionSets(selectionSets);
 
-    expect(buildSelectionSetsData(rows)).toEqual(selectionSets);
+    expect(buildSelectionSetsData(rows, noGroups)).toEqual(selectionSets);
   });
 
   it("keeps the order the sets were given in", () => {
@@ -94,6 +97,7 @@ describe("buildSelectionSetsData", () => {
         assets: encodeIdList([1]),
         customer_points: null,
         zones: null,
+        group_id: null,
       },
       {
         id: "set-2",
@@ -101,10 +105,11 @@ describe("buildSelectionSetsData", () => {
         assets: new Uint8Array(6),
         customer_points: null,
         zones: null,
+        group_id: null,
       },
     ];
 
-    expect(() => buildSelectionSetsData(rows)).toThrow(
+    expect(() => buildSelectionSetsData(rows, noGroups)).toThrow(
       /Selection set: row data does not match schema/,
     );
   });
@@ -117,11 +122,17 @@ describe("buildSelectionSetsData", () => {
         assets: null,
         customer_points: null,
         zones: null,
+        group_id: null,
       },
     ];
 
-    expect(buildSelectionSetsData(rows)).toEqual([
-      { id: "set-1", label: "Empty", selection: USelection.none() },
+    expect(buildSelectionSetsData(rows, noGroups)).toEqual([
+      {
+        id: "set-1",
+        label: "Empty",
+        selection: USelection.none(),
+        groupId: null,
+      },
     ]);
   });
 });

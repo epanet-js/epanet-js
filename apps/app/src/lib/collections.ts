@@ -27,6 +27,7 @@ export type SelectionSet = {
   id: SelectionSetId;
   label: string;
   selection: Sel;
+  groupId: SelectionSetGroupId | null;
 };
 
 export type SelectionSetGroup = {
@@ -50,6 +51,7 @@ export const initializeBookmarks = (): Bookmark[] => [];
 export const newSelectionSet = (
   label: string,
   selection: Sel,
+  groupId: SelectionSetGroupId | null = null,
 ): SelectionSet => ({
   id: nanoid(),
   label,
@@ -58,6 +60,7 @@ export const newSelectionSet = (
     USelection.getCustomerPointIds(selection),
     USelection.getZoneIds(selection),
   ),
+  groupId,
 });
 
 export const savableSelection = (selection: Sel, includeZones: boolean): Sel =>
@@ -67,6 +70,12 @@ export const savableSelection = (selection: Sel, includeZones: boolean): Sel =>
         USelection.getAssetIds(selection),
         USelection.getCustomerPointIds(selection),
       );
+
+export const resolveGroupId = (
+  groups: readonly SelectionSetGroup[],
+  id: SelectionSetGroupId | null,
+): SelectionSetGroupId | null =>
+  id !== null && groups.some((group) => group.id === id) ? id : null;
 
 export const newSelectionSetGroup = (
   label: string,

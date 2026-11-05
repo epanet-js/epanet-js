@@ -335,7 +335,12 @@ describe("open integration", () => {
       projectSettings: defaultProjectSettings,
       simulationSettings: defaultSimulationSettings,
       selectionSets: [
-        { id: "set-1", label: "Loop", selection: USelection.fromIds([1], []) },
+        {
+          id: "set-1",
+          label: "Loop",
+          selection: USelection.fromIds([1], []),
+          groupId: null,
+        },
       ],
     });
     await withTransaction("downgrade", (db) => {

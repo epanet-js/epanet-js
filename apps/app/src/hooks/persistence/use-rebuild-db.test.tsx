@@ -89,6 +89,7 @@ describe("useRebuildDb", () => {
         id: "set-1",
         label: "Downtown loop",
         selection: USelection.fromIds([1], []),
+        groupId: null,
       },
     ];
     const bookmarks: Bookmark[] = [

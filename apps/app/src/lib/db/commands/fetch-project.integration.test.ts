@@ -22,6 +22,7 @@ import {
 import { useInProcessDb } from "../__test-helpers__/in-process-db";
 import { USelection } from "src/selection";
 import { api } from "@epanet-js/ejsdb/worker-api";
+import { encodeIdList } from "@epanet-js/ejsdb";
 import type { MultiPolygon } from "geojson";
 import type { BBox } from "@turf/helpers";
 
@@ -440,11 +441,13 @@ describe("fetch-project collections", () => {
           id: "set-1",
           label: "Downtown loop",
           selection: USelection.fromIds([1, 2], []),
+          groupId: null,
         },
         {
           id: "set-2",
           label: "Alpha zone",
           selection: USelection.fromIds([2], []),
+          groupId: null,
         },
       ],
       bookmarks: [
@@ -498,11 +501,13 @@ describe("fetch-project collections", () => {
         id: "set-1",
         label: "Downtown loop",
         selection: USelection.fromIds([1, 2], []),
+        groupId: null,
       },
       {
         id: "set-2",
         label: "Alpha zone",
         selection: USelection.fromIds([2], []),
+        groupId: null,
       },
     ]);
   });

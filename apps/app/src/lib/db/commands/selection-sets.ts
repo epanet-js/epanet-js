@@ -1,5 +1,9 @@
 import { getWorker, timed } from "@epanet-js/ejsdb";
-import type { SelectionSet, SelectionSetId } from "src/lib/collections";
+import type {
+  SelectionSet,
+  SelectionSetGroupId,
+  SelectionSetId,
+} from "src/lib/collections";
 import { serializeSelectionSet } from "../mappers/selection-sets/to-rows";
 
 export const insertSelectionSet = async (
@@ -16,6 +20,15 @@ export const renameSelectionSet = async (
 ): Promise<void> => {
   await timed("renameSelectionSet", async () => {
     await getWorker().renameSelectionSet(id, label);
+  });
+};
+
+export const moveSelectionSet = async (
+  id: SelectionSetId,
+  groupId: SelectionSetGroupId | null,
+): Promise<void> => {
+  await timed("moveSelectionSet", async () => {
+    await getWorker().moveSelectionSet(id, groupId);
   });
 };
 

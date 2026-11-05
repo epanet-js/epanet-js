@@ -7,6 +7,7 @@ import * as db from "src/lib/db";
 import { captureError } from "src/infra/error-tracking";
 import {
   type SelectionSet,
+  type SelectionSetGroupId,
   type SelectionSetId,
   removeItem,
   renameItem,
@@ -93,6 +94,41 @@ export const useSelectionSetsTransaction = () => {
     ),
   );
 
+  const move = useAtomCallback(
+    useCallback(
+      (
+        get,
+        set,
+        {
+          id,
+          groupId,
+        }: { id: SelectionSetId; groupId: SelectionSetGroupId | null },
+      ): boolean => {
+        const current = get(selectionSetsAtom).find(
+          (selectionSet) => selectionSet.id === id,
+        );
+        if (!current) return false;
+        if (!isStorable({ ...current, groupId })) return false;
+
+        set(selectionSetsAtom, (selectionSets) =>
+          selectionSets.map((selectionSet) =>
+            selectionSet.id === id
+              ? { ...selectionSet, groupId }
+              : selectionSet,
+          ),
+        );
+        markUnsaved(
+          set,
+          () => db.moveSelectionSet(id, groupId),
+          onWriteFailure,
+        );
+
+        return true;
+      },
+      [isStorable, onWriteFailure],
+    ),
+  );
+
   const remove = useAtomCallback(
     useCallback(
       (_get, set, id: SelectionSetId) => {
@@ -105,5 +141,5 @@ export const useSelectionSetsTransaction = () => {
     ),
   );
 
-  return { create, rename, remove };
+  return { create, rename, move, remove };
 };

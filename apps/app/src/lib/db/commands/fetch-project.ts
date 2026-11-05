@@ -152,7 +152,10 @@ export const fetchProject = async (
         const selectionSetGroups = buildSelectionSetGroupsData(
           selectionSetGroupsRaw,
         );
-        const selectionSets = buildSelectionSetsData(selectionSetsRaw);
+        const selectionSets = buildSelectionSetsData(
+          selectionSetsRaw,
+          selectionSetGroups,
+        );
         const bookmarks = buildBookmarksData(bookmarksJson);
         const scripts = buildScriptsData(scriptsRaw);
 

@@ -13,6 +13,7 @@ export { saveCustomAttributes } from "./commands/save-custom-attributes";
 export {
   insertSelectionSet,
   renameSelectionSet,
+  moveSelectionSet,
   deleteSelectionSet,
 } from "./commands/selection-sets";
 export { insertSelectionSetGroup } from "./commands/selection-set-groups";
