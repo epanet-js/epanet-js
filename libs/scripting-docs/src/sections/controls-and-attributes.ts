@@ -6,15 +6,9 @@ const property = propertyOf("Network");
 
 export const SECTION: Section = {
   id: "controls-and-attributes",
-  number: "1.6",
-  title: "Pipe library, controls and attributes",
+  number: "1.7",
+  title: "Controls and attributes",
   types: [
-    {
-      name: "PipeMaterial",
-      definition:
-        "interface PipeMaterial { label: string; entries: { age: number; roughness: number }[] }",
-      summary: "A pipe library material: the roughness it has at each age.",
-    },
     {
       name: "CustomAttribute",
       definition:
@@ -29,7 +23,6 @@ export const SECTION: Section = {
     },
   ],
   members: [
-    property("pipeMaterials", "PipeMaterial[]", "The pipe library."),
     property(
       "rawControls",
       "string[]",

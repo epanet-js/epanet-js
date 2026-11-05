@@ -69,6 +69,11 @@ export const INTERFACES: InterfaceDef[] = [
     summary: "A shared curve.",
   },
   {
+    name: "PipeMaterial",
+    path: "material",
+    summary: "A pipe library material: the roughness it has at each age.",
+  },
+  {
     name: "Zones",
     path: "zones",
     summary: "The project's polygon zones.",
