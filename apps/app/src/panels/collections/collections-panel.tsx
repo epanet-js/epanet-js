@@ -54,6 +54,9 @@ import {
   RenameIcon,
 } from "src/icons";
 import { PaywallUpgradeBox, useFeatureLock } from "src/components/form/paywall";
+import { isNodeAsset } from "@epanet-js/hydraulic-model";
+import { USelection } from "src/selection";
+import { type Highlight, highlightsAtom } from "src/state/highlights";
 import { selectionAtom } from "src/state/selection";
 import {
   bookmarksAtom,
@@ -484,6 +487,32 @@ export const CollectionsPanel = () => {
     runRow(row);
   };
 
+  const setHighlights = useSetAtom(highlightsAtom);
+  useEffect(() => () => setHighlights([]), [setHighlights]);
+
+  const handleHoverSet = (setId: SelectionSetId, isHovering: boolean) => {
+    if (!isHovering) return setHighlights([]);
+    const selectionSet = selectionSets.find((set) => set.id === setId);
+    if (!selectionSet) return;
+
+    const highlights: Highlight[] = [];
+    for (const assetId of USelection.getAssetIds(selectionSet.selection)) {
+      const asset = hydraulicModel.assets.get(assetId);
+      if (!asset) continue;
+      if (isNodeAsset(asset)) {
+        const [lng, lat] = asset.coordinates;
+        highlights.push({
+          type: "marker",
+          coordinates: [lng, lat],
+          nodeType: asset.feature.properties.type,
+        });
+      } else {
+        highlights.push({ type: "asset", assetId });
+      }
+    }
+    setHighlights(highlights);
+  };
+
   const handleSelectOnly = (row: Row) => {
     clearKeyboardFocus();
     setAppliedSetId(row.id);
@@ -813,6 +842,11 @@ export const CollectionsPanel = () => {
       actions={itemActionsFor(row)}
       onAction={handleAction}
       depth={row.depth}
+      onHover={
+        row.kind === "set"
+          ? (isHovering) => handleHoverSet(row.id, isHovering)
+          : undefined
+      }
       actionsLabel={moreActionsLabel}
       secondaryAction={
         row.section === "selectionSets"
