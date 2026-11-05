@@ -9,8 +9,12 @@ import { fetchProject } from "src/lib/db/commands/fetch-project";
 import { defaultProjectSettings } from "@epanet-js/project-settings";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { writeQueue } from "src/lib/persistence/write-queue";
-import type { SelectionSetGroup } from "src/lib/collections";
-import { selectionSetGroupsAtom } from "src/state/collections";
+import type { SelectionSet, SelectionSetGroup } from "src/lib/collections";
+import { USelection } from "src/selection";
+import {
+  selectionSetGroupsAtom,
+  selectionSetsAtom,
+} from "src/state/collections";
 import { dialogAtom } from "src/state/dialog";
 import { projectDataVersionAtom } from "src/state/project-revision";
 import type { Store } from "src/state";
@@ -92,6 +96,49 @@ describe("useSelectionSetGroupsTransaction", () => {
       "group-2",
     ]);
     expect(await storedLabels()).toEqual(["South"]);
+  });
+
+  it("drops the sets inside a deleted group with it, in memory and in the project", async () => {
+    const groups = [aGroup(), aGroup({ id: "group-2", label: "South" })];
+    const aSet = (id: string, groupId: string | null): SelectionSet => ({
+      id,
+      label: id.toUpperCase(),
+      selection: USelection.fromIds([1], []),
+      groupId,
+    });
+    const sets = [
+      aSet("inside", "group-1"),
+      aSet("elsewhere", "group-2"),
+      aSet("root", null),
+    ];
+    await importProject({
+      newDb: true,
+      hydraulicModel: HydraulicModelBuilder.with().aJunction(1).build(),
+      projectSettings: defaultProjectSettings,
+      simulationSettings: defaultSimulationSettings,
+      selectionSetGroups: groups,
+      selectionSets: sets,
+    });
+    const store = setInitialState({});
+    store.set(selectionSetGroupsAtom, groups);
+    store.set(selectionSetsAtom, sets);
+    const { result } = renderTransaction(store);
+
+    await act(async () => {
+      result.current.remove("group-1");
+      await writeQueue.whenIdle();
+    });
+
+    expect(store.get(selectionSetsAtom).map((s) => s.id)).toEqual([
+      "elsewhere",
+      "root",
+    ]);
+    const project = await fetchProject();
+    expect(project.selectionSetGroups.map((g) => g.id)).toEqual(["group-2"]);
+    expect(project.selectionSets.map((s) => s.id)).toEqual([
+      "elsewhere",
+      "root",
+    ]);
   });
 
   it("refuses a group it could not store and tells the user", async () => {

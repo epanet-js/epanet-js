@@ -12,7 +12,10 @@ import {
 } from "src/lib/collections";
 import { writeQueue } from "src/lib/persistence/write-queue";
 import { dialogAtom } from "src/state/dialog";
-import { selectionSetGroupsAtom } from "src/state/collections";
+import {
+  selectionSetGroupsAtom,
+  selectionSetsAtom,
+} from "src/state/collections";
 import { projectDataVersionAtom } from "src/state/project-revision";
 import { useWriteFailureHandler } from "src/hooks/persistence/use-write-failure-handler";
 
@@ -65,6 +68,9 @@ export const useSelectionSetGroupsTransaction = () => {
     useCallback(
       (_get, set, id: SelectionSetGroupId) => {
         set(selectionSetGroupsAtom, (groups) => removeItem(groups, id));
+        set(selectionSetsAtom, (selectionSets) =>
+          selectionSets.filter((selectionSet) => selectionSet.groupId !== id),
+        );
         markUnsaved(
           set,
           () => db.deleteSelectionSetGroups([id]),
