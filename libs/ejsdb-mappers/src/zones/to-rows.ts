@@ -5,6 +5,7 @@ import {
   zoneRowSchema,
   type ZoneRow,
 } from "@epanet-js/ejsdb";
+import { serializeZoneCustomAttributes } from "./custom-attributes";
 
 export const toZoneRow = (zone: Zone): ZoneRow => {
   const geometryResult = zoneGeometrySchema.safeParse(zone.geometry);
@@ -24,6 +25,7 @@ export const toZoneRow = (zone: Zone): ZoneRow => {
     label: zone.label,
     geometry: JSON.stringify(geometryResult.data),
     bbox: JSON.stringify(bboxResult.data),
+    custom_attributes: serializeZoneCustomAttributes(zone),
   };
   const rowResult = zoneRowSchema.safeParse(candidate);
   if (!rowResult.success) {

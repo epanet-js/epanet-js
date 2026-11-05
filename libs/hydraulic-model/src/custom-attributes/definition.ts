@@ -4,7 +4,7 @@ import {
 } from "@epanet-js/model-schema";
 import type { AssetType } from "../asset-types/types";
 
-export type CustomAttributeAssetType = AssetType | "customerPoint";
+export type CustomAttributeAssetType = AssetType | "customerPoint" | "zone";
 
 export { customAttributeTypes } from "@epanet-js/model-schema";
 export type { CustomAttributeType } from "@epanet-js/model-schema";

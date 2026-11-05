@@ -3,11 +3,11 @@ import {
   getAttributes,
   setAttributes,
   type CustomAttributesDefinition,
+  type HydraulicModel,
 } from "@epanet-js/hydraulic-model";
 import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { buildTestFactories } from "@epanet-js/hydraulic-model-testing";
 import { applyOperation } from "../__helpers__/apply-operation";
-import type { HydraulicModel } from "@epanet-js/hydraulic-model";
 import { changeCustomAttributesDefinition } from "./change-custom-attributes-definition";
 
 const { labelManager } = buildTestFactories();
@@ -88,6 +88,26 @@ describe("change custom attributes definition", () => {
 
     expect(
       hydraulicModel.customerPoints.get(IDS.CP1)!.getProperty("custom-1"),
+    ).toBeNull();
+  });
+
+  it("clears removed attribute values on zones too", () => {
+    const IDS = { Z1: 1 } as const;
+    const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
+      .aCustomAttribute("zone", { id: "custom-1", label: "Area", type: "text" })
+      .aZone({
+        id: IDS.Z1,
+        label: "NORTH",
+        geometry: { type: "MultiPolygon", coordinates: [] },
+        bbox: [0, 0, 1, 1],
+        customAttributes: { "custom-1": "LOW" },
+      })
+      .build();
+
+    run(hydraulicModel, emptyCustomAttributesDefinition());
+
+    expect(
+      hydraulicModel.zones.get(IDS.Z1)!.getProperty("custom-1"),
     ).toBeNull();
   });
 

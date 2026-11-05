@@ -60,6 +60,7 @@ describe("buildCustomAttributesDefinition", () => {
     const definition = definitionOf([
       ["pipe", [attr("custom-1", "Material")]],
       ["customerPoint", [attr("custom-2", "Owner")]],
+      ["zone", [attr("custom-3", "Area")]],
     ]);
 
     const restored = buildCustomAttributesDefinition(
@@ -71,6 +72,9 @@ describe("buildCustomAttributesDefinition", () => {
     ]);
     expect([...restored.get("customerPoint")!.values()]).toEqual([
       attr("custom-2", "Owner"),
+    ]);
+    expect([...restored.get("zone")!.values()]).toEqual([
+      attr("custom-3", "Area"),
     ]);
   });
 });

@@ -1,11 +1,12 @@
 import type { ChangeSet } from "@epanet-js/change-set";
-import { HydraulicModel } from "@epanet-js/hydraulic-model";
 import {
+  HydraulicModel,
   type AssetPropertiesMap,
   CustomerPointId,
+  Demand,
+  type AssetId,
+  type ZoneId,
 } from "@epanet-js/hydraulic-model";
-import { Demand } from "@epanet-js/hydraulic-model";
-import type { AssetId } from "@epanet-js/hydraulic-model";
 
 type NonPatchableKeys = "type" | "connections";
 
@@ -19,6 +20,11 @@ export type AssetPatch = {
 
 export type CustomerPointPatch = {
   id: CustomerPointId;
+  properties: Record<string, unknown>;
+};
+
+export type ZonePatch = {
+  id: ZoneId;
   properties: Record<string, unknown>;
 };
 

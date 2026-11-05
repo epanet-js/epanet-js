@@ -1,8 +1,12 @@
 import { describe, it, expect } from "vitest";
-import type {
-  AssetFactory,
-  LinkAsset,
-  NodeAsset,
+import {
+  type AssetFactory,
+  type LinkAsset,
+  type NodeAsset,
+  emptyCustomAttributesDefinition,
+  getAttributes,
+  getLinkTimedSetting,
+  type HydraulicModel,
 } from "@epanet-js/hydraulic-model";
 import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import {
@@ -39,12 +43,6 @@ import {
 } from "../model-operations";
 import { deactivateAssets } from "../model-operations/deactivate-assets";
 import { reverseLink } from "../model-operations/reverse-link";
-import {
-  emptyCustomAttributesDefinition,
-  getAttributes,
-  getLinkTimedSetting,
-} from "@epanet-js/hydraulic-model";
-import type { HydraulicModel } from "@epanet-js/hydraulic-model";
 import { applyChangeSet } from "./apply";
 
 const IDS = {
@@ -408,6 +406,23 @@ const cases: OperationCase[] = [
       );
       expect(labelManager.isLabelAvailable("SOUTH", "zone")).toBe(false);
       expect(labelManager.isLabelAvailable("NORTH", "zone")).toBe(true);
+    },
+  },
+  {
+    name: "changeZoneProperty on a custom attribute",
+    fixture: () => {
+      const network = aNetwork();
+      network.model.zones.get(IDS.Z1)!.setProperty("custom-1", "LOW");
+      return network;
+    },
+    run: ({ model }) =>
+      changeZoneProperty(model, {
+        zoneIds: [IDS.Z1],
+        property: "custom-1",
+        value: "HIGH",
+      }),
+    expectApplied: ({ model }) => {
+      expect(model.zones.get(IDS.Z1)!.getProperty("custom-1")).toBe("HIGH");
     },
   },
   {

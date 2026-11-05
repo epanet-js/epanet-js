@@ -46,6 +46,23 @@ describe("zonesToRows", () => {
     expect(buildZonesData(rows, makeFactories())).toEqual(zones);
   });
 
+  it("round-trips custom attribute values", () => {
+    const zones = validZones();
+    zones.get(1)!.setProperty("custom-1", "NORTH");
+    zones.get(1)!.setProperty("custom-2", 5);
+
+    const rows = zonesToRows(zones);
+
+    expect(rows[0].custom_attributes).toBe(
+      JSON.stringify({ "custom-1": "NORTH", "custom-2": 5 }),
+    );
+    expect(buildZonesData(rows, makeFactories())).toEqual(zones);
+  });
+
+  it("writes no custom attributes for a zone without values", () => {
+    expect(zonesToRows(validZones())[0].custom_attributes).toBeNull();
+  });
+
   it("throws when a row does not match the schema", () => {
     const zones: Zones = new Map([
       [1, aZone({ label: 42 as unknown as string })],

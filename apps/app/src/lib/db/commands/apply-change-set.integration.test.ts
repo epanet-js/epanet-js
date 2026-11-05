@@ -16,6 +16,7 @@ import {
   replaceZones,
   setAsset,
   setDemands,
+  setZone,
 } from "@epanet-js/hydraulic-model-operations";
 import { applyChangeSetToDb } from "./apply-change-set";
 import { fetchProject } from "./fetch-project";
@@ -150,5 +151,48 @@ describe("apply-change-set integration", () => {
 
     await applyChangeSetToDb(built, "reverse");
     expect((await fetchProject()).hydraulicModel.zones.size).toBe(0);
+  });
+
+  it("writes zone custom attributes and reads them back into the model", async () => {
+    const { model } = aNetwork();
+    await seed(model);
+    const zone = buildZone({
+      id: 1,
+      label: "NORTH",
+      geometry: {
+        type: "MultiPolygon" as const,
+        coordinates: [
+          [
+            [
+              [0, 0],
+              [1, 0],
+              [1, 1],
+              [0, 0],
+            ],
+          ],
+        ],
+      },
+      bbox: [0, 0, 1, 1],
+      customAttributes: { "custom-1": "LOW", "custom-2": 3 },
+    });
+    const created = changeSet(model, "changeZones", [
+      replaceZones(new Map([[zone.id, zone]])),
+    ]);
+    await applyChangeSetToDb(created, "forward");
+    const withZone = (await fetchProject()).hydraulicModel;
+    expect(withZone.zones.get(1)).toEqual(zone);
+
+    const edited = changeSet(withZone, "changeZoneProperty", [
+      setZone(1, { "custom-1": "HIGH", "custom-2": undefined }),
+    ]);
+    await applyChangeSetToDb(edited, "forward");
+    const editedZone = (await fetchProject()).hydraulicModel.zones.get(1)!;
+    expect(editedZone.getProperty("custom-1")).toBe("HIGH");
+    expect(editedZone.hasProperty("custom-2")).toBe(false);
+
+    await applyChangeSetToDb(edited, "reverse");
+    const restoredZone = (await fetchProject()).hydraulicModel.zones.get(1)!;
+    expect(restoredZone.getProperty("custom-1")).toBe("LOW");
+    expect(restoredZone.getProperty("custom-2")).toBe(3);
   });
 });

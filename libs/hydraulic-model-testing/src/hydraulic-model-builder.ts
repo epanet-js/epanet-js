@@ -18,15 +18,11 @@ import {
   Demands,
   Patterns,
   PatternType,
-} from "@epanet-js/hydraulic-model";
-import {
   SimpleControl,
   RuleBasedControl,
   AssetFactory,
   Zone,
   type Zones,
-} from "@epanet-js/hydraulic-model";
-import {
   Controls,
   LevelSettingControl,
   VariableSpeedPumpControl,
@@ -39,9 +35,7 @@ import {
   createEmptyControls,
   setAssetControl,
   buildControlsLookup,
-} from "@epanet-js/hydraulic-model";
-import { AssetIndex } from "@epanet-js/hydraulic-model";
-import {
+  AssetIndex,
   CustomerPointsLookup,
   PumpBuildData,
   TankBuildData,
@@ -54,8 +48,6 @@ import {
   Curves,
   ICurve,
   PipeMaterial,
-} from "@epanet-js/hydraulic-model";
-import {
   CustomAttribute,
   CustomAttributeAssetType,
   CustomAttributesDefinition,
@@ -133,10 +125,22 @@ export type ZoneBuildData = {
   label: string;
   geometry: MultiPolygon;
   bbox: BBox;
+  customAttributes?: Record<string, string | number | null>;
 };
 
-export const buildZone = ({ id, label, geometry, bbox }: ZoneBuildData) =>
-  new Zone(id, geometry, bbox, { label });
+export const buildZone = ({
+  id,
+  label,
+  geometry,
+  bbox,
+  customAttributes = {},
+}: ZoneBuildData) => {
+  const zone = new Zone(id, geometry, bbox, { label });
+  for (const [attributeId, value] of Object.entries(customAttributes)) {
+    if (value !== null) zone.setProperty(attributeId, value);
+  }
+  return zone;
+};
 
 export class WritableIdGenerator implements IdGenerator {
   private last: number;

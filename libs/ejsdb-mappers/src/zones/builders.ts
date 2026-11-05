@@ -6,6 +6,7 @@ import {
   zoneRowSchema,
   type ZoneRow,
 } from "@epanet-js/ejsdb";
+import { applyZoneCustomAttributes } from "./custom-attributes";
 
 export const buildZonesData = (
   rawRows: unknown[],
@@ -20,6 +21,7 @@ export const buildZonesData = (
       geometry: parseGeometry(row),
       bbox: parseBbox(row),
     });
+    applyZoneCustomAttributes(zone, row.custom_attributes);
     zones.set(zone.id, zone);
   }
   return zones;
