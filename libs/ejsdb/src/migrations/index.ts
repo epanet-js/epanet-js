@@ -25,6 +25,7 @@ import m0024 from "./0024_attach_detached_link_endpoints";
 import m0025 from "./0025_scripts.sql?raw";
 import m0026 from "./0026_zone_custom_attributes.sql?raw";
 import m0027 from "./0027_selection_set_zones.sql?raw";
+import m0028 from "./0028_selection_set_groups.sql?raw";
 
 export type MigrationDB = Parameters<typeof m0006>[0];
 
@@ -58,6 +59,7 @@ export const migrations: Migration[] = [
   m0025,
   m0026,
   m0027,
+  m0028,
 ];
 
 export const APP_VERSION = migrations.length;

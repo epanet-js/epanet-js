@@ -237,6 +237,8 @@ describe("open integration", () => {
       db.exec("DROP TABLE scripts");
       db.exec("ALTER TABLE zones DROP COLUMN custom_attributes");
       db.exec("ALTER TABLE selection_sets DROP COLUMN zones");
+      db.exec("DROP TABLE selection_set_groups");
+      db.exec("ALTER TABLE selection_sets DROP COLUMN group_id");
       db.exec("PRAGMA user_version = 21");
     });
     const blob = await exportDb();
@@ -267,6 +269,8 @@ describe("open integration", () => {
       db.exec("DROP TABLE scripts");
       db.exec("ALTER TABLE zones DROP COLUMN custom_attributes");
       db.exec("ALTER TABLE selection_sets DROP COLUMN zones");
+      db.exec("DROP TABLE selection_set_groups");
+      db.exec("ALTER TABLE selection_sets DROP COLUMN group_id");
       db.exec("PRAGMA user_version = 24");
     });
     const blob = await exportDb();
@@ -310,6 +314,8 @@ describe("open integration", () => {
     await withTransaction("downgrade", (db) => {
       db.exec("ALTER TABLE zones DROP COLUMN custom_attributes");
       db.exec("ALTER TABLE selection_sets DROP COLUMN zones");
+      db.exec("DROP TABLE selection_set_groups");
+      db.exec("ALTER TABLE selection_sets DROP COLUMN group_id");
       db.exec("PRAGMA user_version = 25");
     });
     const blob = await exportDb();
@@ -335,6 +341,8 @@ describe("open integration", () => {
     });
     await withTransaction("downgrade", (db) => {
       db.exec("ALTER TABLE selection_sets DROP COLUMN zones");
+      db.exec("DROP TABLE selection_set_groups");
+      db.exec("ALTER TABLE selection_sets DROP COLUMN group_id");
       db.exec("PRAGMA user_version = 26");
     });
     const blob = await exportDb();
