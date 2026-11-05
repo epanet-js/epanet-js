@@ -32,6 +32,7 @@ import {
 } from "src/icons";
 import { useStartCollectionDraft } from "src/commands/collection-draft";
 import { changeZoneProperty } from "@epanet-js/hydraulic-model-operations";
+import type { Zone } from "@epanet-js/hydraulic-model";
 import { SectionList } from "src/components/form/fields";
 import { SectionWrapper } from "./asset-panel/ui-components";
 import {
@@ -40,6 +41,7 @@ import {
   RangeLoader,
   useZoneRanges,
 } from "./zone-ranges";
+import { ZoneCustomAttributesSection } from "./zone-custom-attributes-section";
 
 export function ZonePanel() {
   const translate = useTranslate();
@@ -208,14 +210,17 @@ export function ZonePanel() {
           {translate("zone")}
         </span>
       </div>
-      <ZoneRangeSections key={zone.id} zoneId={zone.id} />
+      <ZoneSections key={zone.id} zone={zone} />
     </div>
   );
 }
 
-const ZoneRangeSections = ({ zoneId }: { zoneId: number }) => {
+const ZoneSections = ({ zone }: { zone: Zone }) => {
   const translate = useTranslate();
-  const zoneIds = useMemo(() => [zoneId], [zoneId]);
+  const isZoneCustomAttributesOn = useFeatureFlag(
+    "FLAG_ZONE_CUSTOM_ATTRIBUTES",
+  );
+  const zoneIds = useMemo(() => [zone.id], [zone.id]);
   const { elevations, pressures, isPending } = useZoneRanges(zoneIds);
 
   return (
@@ -236,6 +241,7 @@ const ZoneRangeSections = ({ zoneId }: { zoneId: number }) => {
       >
         {isPending ? <RangeLoader /> : <PressureRangeRows range={pressures} />}
       </SectionWrapper>
+      {isZoneCustomAttributesOn && <ZoneCustomAttributesSection zone={zone} />}
     </SectionList>
   );
 };

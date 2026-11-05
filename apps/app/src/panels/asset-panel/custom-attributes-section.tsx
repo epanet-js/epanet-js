@@ -1,7 +1,6 @@
 import { useCallback, useMemo } from "react";
 import { useAtomValue } from "jotai";
 import {
-  type CustomAttribute,
   type CustomAttributeAssetType,
   type CustomAttributeId,
   type CustomAttributeValue,
@@ -13,14 +12,10 @@ import type {
   ChangeablePropertyValue,
 } from "@epanet-js/hydraulic-model-operations";
 import { useTranslate } from "src/hooks/use-translate";
-import {
-  useAssetComparison,
-  type PropertyComparison,
-} from "src/hooks/use-asset-comparison";
+import { useAssetComparison } from "src/hooks/use-asset-comparison";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
-import { NumericField } from "src/components/form/numeric-field";
-import { EditableTextField } from "src/components/form/editable-text-field";
-import { PaywalledInlineField, SectionWrapper } from "./ui-components";
+import { SectionWrapper } from "./ui-components";
+import { CustomAttributeRow } from "../custom-attribute-row";
 
 type OnPropertyChange = <P extends ChangeableProperty>(
   name: P,
@@ -88,63 +83,5 @@ export const CustomAttributesSection = ({
         );
       })}
     </SectionWrapper>
-  );
-};
-
-const CustomAttributeRow = ({
-  attribute,
-  value,
-  comparison,
-  onChange,
-}: {
-  attribute: CustomAttribute;
-  value: CustomAttributeValue;
-  comparison: PropertyComparison;
-  onChange: (
-    attributeId: CustomAttributeId,
-    value: CustomAttributeValue,
-  ) => void;
-}) => {
-  const translate = useTranslate();
-  const displayValue = value == null ? "" : String(value);
-
-  const baseDisplayValue = comparison.hasChanged
-    ? comparison.baseValue != null
-      ? String(comparison.baseValue)
-      : translate("none")
-    : undefined;
-
-  return (
-    <PaywalledInlineField
-      name={attribute.label}
-      labelSize="md"
-      hasChanged={comparison.hasChanged}
-      baseDisplayValue={baseDisplayValue}
-      paywall="customAttributes"
-    >
-      {attribute.type === "number" ? (
-        <NumericField
-          key={displayValue}
-          label={attribute.label}
-          displayValue={displayValue}
-          onChangeValue={(newValue, isEmpty) =>
-            onChange(attribute.id, isEmpty ? null : newValue)
-          }
-          styleOptions={{ padding: "md", textSize: "sm" }}
-        />
-      ) : (
-        <EditableTextField
-          key={displayValue}
-          label={attribute.label}
-          value={displayValue}
-          allowEmpty
-          onChangeValue={(newValue) => {
-            onChange(attribute.id, newValue === "" ? null : newValue);
-            return false;
-          }}
-          styleOptions={{ padding: "md", textSize: "sm" }}
-        />
-      )}
-    </PaywalledInlineField>
   );
 };
