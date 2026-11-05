@@ -77,6 +77,24 @@ console.log(network.getNode("J1").getCustom("District"));`,
   ],
 });
 
+const DELETE_CUSTOM_ATTRIBUTE: Member = network({
+  name: "deleteCustomAttribute",
+  signature:
+    'deleteCustomAttribute(type: AssetType | "customerPoint", name: string): void',
+  summary:
+    "Deletes a custom attribute of a type, found by its name ignoring case, with every value it holds.",
+  description:
+    "Every asset or customer point of the type loses its value for the attribute, as when the attribute is deleted in the app. Its name is free again straight away, and the attribute the script holds stops reading. Custom attributes cannot be changed while the project has scenarios. The deletion reaches the network with the other changes.",
+  throws: [
+    '`TypeError` when the project has scenarios, `type` is not an asset type or `"customerPoint"`, or no attribute of the type has `name`.',
+  ],
+  examples: [
+    {
+      code: `network.deleteCustomAttribute("pipe", "Class");`,
+    },
+  ],
+});
+
 export const sectionFor = ({ edits }: DocsCandidates): SectionDef =>
   edits
     ? {
@@ -85,6 +103,7 @@ export const sectionFor = ({ edits }: DocsCandidates): SectionDef =>
           ...(SECTION.members ?? []),
           ADD_CUSTOM_ATTRIBUTE,
           SET_CUSTOM_ATTRIBUTE,
+          DELETE_CUSTOM_ATTRIBUTE,
         ],
       }
     : SECTION;
