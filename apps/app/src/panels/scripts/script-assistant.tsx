@@ -3,6 +3,7 @@ import clsx from "clsx";
 import { useState } from "react";
 import { Button, StyledPopoverContent } from "src/components/elements";
 import { Tooltip } from "@epanet-js/ui-kit";
+import type { ScriptAssistantScope } from "src/lib/script-assistant";
 import type { ScriptGeneration } from "./use-script-generation";
 import {
   AiIcon,
@@ -17,7 +18,7 @@ import {
   VisibilityOnIcon,
 } from "src/icons";
 
-type Scope = "script" | "scriptAndOutput" | "anonymizedNetwork" | "network";
+type Scope = ScriptAssistantScope;
 
 const scopes: {
   value: Scope;
@@ -60,7 +61,7 @@ export const ScriptAssistant = ({
   onStop,
 }: {
   onBack: () => void;
-  onSend: (prompt: string) => void;
+  onSend: (prompt: string, scope: Scope) => void;
   onWriteMyself: () => void;
   generation: ScriptGeneration | null;
   onStop: () => void;
@@ -144,7 +145,7 @@ export const AssistantComposer = ({
   rows: 2 | 3;
   value: string;
   onChange: (value: string) => void;
-  onSend: (prompt: string) => void;
+  onSend: (prompt: string, scope: Scope) => void;
   busy: { prompt: string; status: string } | null;
   onStop: () => void;
   autoFocus?: boolean;
@@ -153,7 +154,7 @@ export const AssistantComposer = ({
   const canSend = value.trim() !== "";
 
   const send = () => {
-    if (canSend) onSend(value.trim());
+    if (canSend) onSend(value.trim(), scope);
   };
 
   if (busy) {

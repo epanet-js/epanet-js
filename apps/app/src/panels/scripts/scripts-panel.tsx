@@ -20,6 +20,10 @@ import { useFeatureLock } from "src/components/form/paywall";
 import { useTranslate } from "src/hooks/use-translate";
 import { useScriptingDocs } from "src/hooks/use-scripting-docs";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import {
+  getScriptAssistant,
+  type ScriptAssistantScope,
+} from "src/lib/script-assistant";
 import { usePermissions } from "src/hooks/use-permissions";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useScriptsTransaction } from "src/hooks/persistence/use-scripts-transaction";
@@ -70,6 +74,7 @@ export const ScriptsPanel = () => {
   const [draft, setDraft] = useAtom(scriptDraftAtom);
   const [isComposing, setIsComposing] = useState(false);
   const isScriptingAssistantOn = useFeatureFlag("FLAG_SCRIPTING_ASSISTANT");
+  const isAssistantOn = isScriptingAssistantOn && getScriptAssistant() !== null;
   const { llmsPath } = useScriptingDocs();
   const translate = useTranslate();
 
@@ -83,27 +88,28 @@ export const ScriptsPanel = () => {
     setDraft(next);
   };
 
-  const handleWrite = (prompt: string) => {
-    generate({ prompt, kind: "write" }, "", ({ source, name }) => {
-      setIsComposing(false);
-      setIsWrittenByAssistant(true);
-      setDraft({
-        ...newScriptDraft(translate, llmsPath),
-        source,
-        name: name ?? translate("scripting.untitled"),
-      });
+  const handleWrite = async (prompt: string, scope: ScriptAssistantScope) => {
+    const written = await generate({ prompt, source: "", scope });
+    if (!written) return;
+    setIsComposing(false);
+    setIsWrittenByAssistant(true);
+    setDraft({
+      ...newScriptDraft(translate, llmsPath),
+      source: written.source,
+      name: written.name,
     });
   };
 
-  const handleGenerate = (prompt: string, source: string) => {
-    generate(
-      { prompt, kind: source.trim() === "" ? "write" : "update" },
-      source,
-      ({ source: generated }) => {
-        setDraft((current) => current && { ...current, source: generated });
-        setSourceVersion((version) => version + 1);
-      },
-    );
+  const handleUpdate = async (
+    prompt: string,
+    scope: ScriptAssistantScope,
+    source: string,
+  ): Promise<boolean> => {
+    const written = await generate({ prompt, source, scope });
+    if (!written) return false;
+    setDraft((current) => current && { ...current, source: written.source });
+    setSourceVersion((version) => version + 1);
+    return true;
   };
 
   if (draft) {
@@ -116,12 +122,12 @@ export const ScriptsPanel = () => {
           setDraft(null);
         }}
         assistant={
-          isScriptingAssistantOn
+          isAssistantOn
             ? {
                 generation,
                 sourceVersion,
                 isWrittenByAssistant,
-                onGenerate: handleGenerate,
+                onGenerate: handleUpdate,
                 onStop: stop,
               }
             : null
@@ -136,7 +142,7 @@ export const ScriptsPanel = () => {
           stop();
           setIsComposing(false);
         }}
-        onSend={handleWrite}
+        onSend={(prompt, scope) => void handleWrite(prompt, scope)}
         generation={generation}
         onStop={stop}
         onWriteMyself={() => openDraft(newScriptDraft(translate, llmsPath))}
@@ -146,7 +152,7 @@ export const ScriptsPanel = () => {
   return (
     <ScriptList
       onOpen={openDraft}
-      onCreate={isScriptingAssistantOn ? () => setIsComposing(true) : null}
+      onCreate={isAssistantOn ? () => setIsComposing(true) : null}
     />
   );
 };
@@ -448,7 +454,11 @@ type EditorAssistant = {
   generation: ScriptGeneration | null;
   sourceVersion: number;
   isWrittenByAssistant: boolean;
-  onGenerate: (prompt: string, source: string) => void;
+  onGenerate: (
+    prompt: string,
+    scope: ScriptAssistantScope,
+    source: string,
+  ) => Promise<boolean>;
   onStop: () => void;
 };
 
@@ -732,9 +742,12 @@ const ScriptEditor = ({
             rows={2}
             value={composerText}
             onChange={setComposerText}
-            onSend={(prompt) => {
-              setComposerText("");
-              assistant.onGenerate(prompt, draftRef.current.source);
+            onSend={(prompt, scope) => {
+              void assistant
+                .onGenerate(prompt, scope, draftRef.current.source)
+                .then((applied) => {
+                  if (applied) setComposerText("");
+                });
             }}
             busy={
               assistant.generation && {
@@ -745,10 +758,7 @@ const ScriptEditor = ({
                     : "Updating script…",
               }
             }
-            onStop={() => {
-              setComposerText(assistant.generation?.prompt ?? "");
-              assistant.onStop();
-            }}
+            onStop={assistant.onStop}
           />
         </section>
       )}
