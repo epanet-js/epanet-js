@@ -10,6 +10,13 @@ describe("customAttributesDefinitionSchema", () => {
     expect(customAttributesDefinitionSchema.parse(data)).toEqual(data);
   });
 
+  it("accepts zone attributes", () => {
+    const data = {
+      zone: [{ id: "custom-1", label: "Area", type: "number" }],
+    };
+    expect(customAttributesDefinitionSchema.parse(data)).toEqual(data);
+  });
+
   it("accepts an empty object", () => {
     expect(customAttributesDefinitionSchema.parse({})).toEqual({});
   });

@@ -189,19 +189,21 @@ const addZone = (payload: WriteBatch, id: number, change: Effective): void => {
   }
 
   if (change.kind === "create") {
-    payload.zoneUpserts.push(
-      rowFrom(
-        id,
-        change.fields,
-        zoneMap,
-      ) as (typeof payload.zoneUpserts)[number],
-    );
+    const candidate = rowFrom(id, change.fields, zoneMap);
+    candidate.custom_attributes = customAttributesFrom(change.fields);
+    payload.zoneUpserts.push(candidate as (typeof payload.zoneUpserts)[number]);
     return;
   }
 
   const candidate = patchFrom(id, change.fields, zoneMap);
-  if (!hasColumns(candidate)) return;
-  payload.zonePatches.push(candidate as (typeof payload.zonePatches)[number]);
+  if (hasColumns(candidate)) {
+    payload.zonePatches.push(candidate as (typeof payload.zonePatches)[number]);
+  }
+
+  const delta = customAttributesDelta(change.fields);
+  if (delta !== null) {
+    payload.zoneCustomAttributeValues.push({ id, delta });
+  }
 };
 
 const demandRows = <T>(

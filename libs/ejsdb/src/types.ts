@@ -134,6 +134,7 @@ export type WriteBatch = {
   customAttributesDefinition: string | null;
   customAttributeValues: AssetCustomAttributeUpdates;
   customerPointCustomAttributeValues: CustomAttributeValueUpdate[];
+  zoneCustomAttributeValues: CustomAttributeValueUpdate[];
 };
 
 export const isEmptyWriteBatch = (payload: WriteBatch): boolean =>
@@ -176,7 +177,8 @@ export const isEmptyWriteBatch = (payload: WriteBatch): boolean =>
   payload.customAttributeValues.pipes.length === 0 &&
   payload.customAttributeValues.pumps.length === 0 &&
   payload.customAttributeValues.valves.length === 0 &&
-  payload.customerPointCustomAttributeValues.length === 0;
+  payload.customerPointCustomAttributeValues.length === 0 &&
+  payload.zoneCustomAttributeValues.length === 0;
 
 export const emptyWriteBatch = (): WriteBatch => ({
   assetDeleteIds: [],
@@ -218,4 +220,5 @@ export const emptyWriteBatch = (): WriteBatch => ({
   customAttributesDefinition: null,
   customAttributeValues: emptyAssetCustomAttributeUpdates(),
   customerPointCustomAttributeValues: [],
+  zoneCustomAttributeValues: [],
 });

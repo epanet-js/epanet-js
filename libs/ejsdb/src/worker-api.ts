@@ -354,10 +354,10 @@ const insertCurve = (row: CurveRow) => {
 
 const insertZone = (row: ZoneRow) => {
   getStmt(
-    `INSERT INTO zones (id, label, geometry, bbox) VALUES (?, ?, ?, ?) ` +
-      `ON CONFLICT(id) DO UPDATE SET label = excluded.label, geometry = excluded.geometry, bbox = excluded.bbox`,
+    `INSERT INTO zones (id, label, geometry, bbox, custom_attributes) VALUES (?, ?, ?, ?, ?) ` +
+      `ON CONFLICT(id) DO UPDATE SET label = excluded.label, geometry = excluded.geometry, bbox = excluded.bbox, custom_attributes = excluded.custom_attributes`,
   )
-    .bind([row.id, row.label, row.geometry, row.bbox])
+    .bind([row.id, row.label, row.geometry, row.bbox, row.custom_attributes])
     .stepReset();
 };
 
@@ -606,7 +606,7 @@ const appendUpdateParams = (
 };
 
 const applyCustomAttributeValues = (
-  table: (typeof ASSET_TYPE_TABLES)[number] | "customer_points",
+  table: (typeof ASSET_TYPE_TABLES)[number] | "customer_points" | "zones",
   updates: readonly CustomAttributeValueUpdate[],
 ): void => {
   if (updates.length === 0) return;
@@ -961,10 +961,16 @@ const bulkInsertJunctionDemands = (rows: readonly JunctionDemandRow[]) => {
 const bulkInsertZones = (rows: readonly ZoneRow[]) => {
   bulkInsert(
     "zones",
-    ["id", "label", "geometry", "bbox"],
+    ["id", "label", "geometry", "bbox", "custom_attributes"],
     rows,
     (row, params) => {
-      params.push(row.id, row.label, row.geometry, row.bbox);
+      params.push(
+        row.id,
+        row.label,
+        row.geometry,
+        row.bbox,
+        row.custom_attributes,
+      );
     },
     BULK_CHUNK_SIZES.zones,
   );
@@ -1188,6 +1194,7 @@ const applyWriteBatch = (label: string, payload: WriteBatch): Promise<void> =>
         insertZone(row);
       }
       bulkUpdate("zones", payload.zonePatches);
+      applyCustomAttributeValues("zones", payload.zoneCustomAttributeValues);
       if (payload.pipeLibraryReplacement !== null) {
         updatePipeLibrary(payload.pipeLibraryReplacement);
       }

@@ -8,6 +8,7 @@ export const customAttributeAssetTypes = [
   "reservoir",
   "tank",
   "customerPoint",
+  "zone",
 ] as const;
 
 export const customAttributeTypes = ["text", "number"] as const;
