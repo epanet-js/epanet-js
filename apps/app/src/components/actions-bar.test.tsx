@@ -6,6 +6,28 @@ import "src/__helpers__/locale";
 import { Action } from "./action-button";
 import { ActionsBar, actionsThatFit } from "./actions-bar";
 
+vi.mock("src/hooks/use-permissions", async () => {
+  const actual = await vi.importActual<
+    typeof import("src/hooks/use-permissions")
+  >("src/hooks/use-permissions");
+  return {
+    ...actual,
+    usePermissions: () =>
+      actual.resolvePermissions("free", false, false, false),
+  };
+});
+
+const startUpgrade = vi.fn();
+vi.mock("src/hooks/use-paywall", async () => {
+  const actual = await vi.importActual<typeof import("src/hooks/use-paywall")>(
+    "src/hooks/use-paywall",
+  );
+  return {
+    ...actual,
+    useStartUpgrade: () => startUpgrade,
+  };
+});
+
 describe("actionsThatFit", () => {
   const buttons = [32, 32, 32, 32, 32, 32];
   const moreButton = 32;
@@ -109,6 +131,34 @@ describe("ActionsBar", () => {
     await user.click(screen.getByRole("menuitem", { name: "Zoom to" }));
 
     expect(onSelect).toHaveBeenCalled();
+  });
+
+  it("marks a locked action as paid and offers an upgrade instead of running it", async () => {
+    const user = userEvent.setup();
+    const onSelect = vi.fn().mockResolvedValue(undefined);
+    stubWidths(500);
+    render(
+      <TooltipProvider>
+        <div data-header>
+          <ActionsBar
+            actions={[
+              {
+                label: "Delete",
+                applicable: true,
+                lockedFeature: "zones",
+                icon: <svg />,
+                onSelect,
+              },
+            ]}
+          />
+        </div>
+      </TooltipProvider>,
+    );
+
+    await user.click(button("Paid feature: Delete") as HTMLElement);
+
+    expect(startUpgrade).toHaveBeenCalledWith("zones");
+    expect(onSelect).not.toHaveBeenCalled();
   });
 
   it("leaves the title the floor it declares", () => {

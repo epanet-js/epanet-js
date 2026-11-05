@@ -15,6 +15,7 @@ import { modeAtom, Mode } from "src/state/mode";
 import { selectionAtom } from "src/state/selection";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { useFeatureLock } from "src/components/form/paywall";
 export const deleteSelectedShortcuts = ["backspace", "del"];
 
 export const useDeleteSelection = () => {
@@ -25,6 +26,7 @@ export const useDeleteSelection = () => {
   const { transact } = useModelTransaction();
   const userTracking = useUserTracking();
   const isDeleteZoneOn = useFeatureFlag("FLAG_DELETE_ZONE");
+  const { isLocked: isZonesLocked } = useFeatureLock("zones", "delete");
 
   const clearSelection = useCallback(() => {
     setSelection(USelection.none());
@@ -36,7 +38,10 @@ export const useDeleteSelection = () => {
     ({ source }: { source: AssetDeleted["source"] }) => {
       const assetIds = USelection.getAssetIds(selection);
       const customerPointIds = USelection.getCustomerPointIds(selection);
-      const zoneIds = isDeleteZoneOn ? USelection.getZoneIds(selection) : [];
+      const selectedZoneIds = isDeleteZoneOn
+        ? USelection.getZoneIds(selection)
+        : [];
+      const zoneIds = isZonesLocked ? [] : selectedZoneIds;
       if (
         assetIds.length === 0 &&
         customerPointIds.length === 0 &&
@@ -112,6 +117,7 @@ export const useDeleteSelection = () => {
       clearSelection,
       userTracking,
       isDeleteZoneOn,
+      isZonesLocked,
     ],
   );
 };

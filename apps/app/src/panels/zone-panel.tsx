@@ -120,6 +120,8 @@ export function ZonePanel() {
     label: translate("delete"),
     variant: "danger-quiet",
     disabled: isEditionBlocked,
+    lockedFeature: "zones",
+    lockSource: "delete",
     onSelect: function doDelete() {
       deleteSelection({ source: "toolbar" });
       return Promise.resolve();

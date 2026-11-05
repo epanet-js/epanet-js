@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslate } from "src/hooks/use-translate";
 import { MoreActionsIcon } from "src/icons";
 import { localizeKeybinding } from "src/infra/i18n";
-import { Action, ActionButton } from "./action-button";
+import { Action, ActionButton, useActionLock } from "./action-button";
 import { Button, DDContent, Keycap, StyledItem } from "./elements";
 
 export function ActionsBar({
@@ -82,26 +82,38 @@ function MoreActions({ actions, label }: { actions: Action[]; label: string }) {
       <DD.Portal>
         <DDContent align="end" side="bottom" className="z-50 min-w-40">
           {actions.map((action) => (
-            <StyledItem
-              key={action.label}
-              variant={action.variant ?? "quiet"}
-              disabled={action.disabled}
-              data-state={action.selected ? "checked" : undefined}
-              className="data-[disabled]:opacity-40 data-[disabled]:cursor-not-allowed"
-              onSelect={(event: Event) => {
-                void action.onSelect(event);
-              }}
-            >
-              {action.icon}
-              <span className="grow whitespace-nowrap">{action.label}</span>
-              {action.shortcut ? (
-                <Keycap size="xs">{localizeKeybinding(action.shortcut)}</Keycap>
-              ) : null}
-            </StyledItem>
+            <MoreActionsItem key={action.label} action={action} />
           ))}
         </DDContent>
       </DD.Portal>
     </DD.Root>
+  );
+}
+
+function MoreActionsItem({ action }: { action: Action }) {
+  const { isLocked, label, onSelect } = useActionLock(action);
+
+  return (
+    <StyledItem
+      variant={action.variant ?? "quiet"}
+      disabled={action.disabled}
+      data-state={action.selected ? "checked" : undefined}
+      aria-disabled={isLocked || undefined}
+      aria-label={isLocked ? label : undefined}
+      className={clsx(
+        "data-[disabled]:opacity-40 data-[disabled]:cursor-not-allowed",
+        isLocked && "opacity-40",
+      )}
+      onSelect={(event: Event) => {
+        void onSelect(event);
+      }}
+    >
+      {action.icon}
+      <span className="grow whitespace-nowrap">{action.label}</span>
+      {action.shortcut ? (
+        <Keycap size="xs">{localizeKeybinding(action.shortcut)}</Keycap>
+      ) : null}
+    </StyledItem>
   );
 }
 
@@ -193,7 +205,8 @@ const recordWidths = (
   widths: Map<string, number>,
 ): void => {
   for (const child of Array.from(container.children)) {
-    const label = child.getAttribute("aria-label");
+    const label =
+      child.getAttribute("data-action") ?? child.getAttribute("aria-label");
     if (label && !widths.has(label)) {
       widths.set(label, (child as HTMLElement).offsetWidth);
     }
