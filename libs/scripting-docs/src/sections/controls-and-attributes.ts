@@ -69,7 +69,30 @@ const SET_RAW_CONTROLS: Member = network({
   ],
 });
 
+const SET_RAW_RULES: Member = network({
+  name: "setRawRules",
+  signature: "setRawRules(rules: string[]): void",
+  summary:
+    "Replaces the `[RULES]` blocks, as saving the controls editor does. `rawControls` keeps its value.",
+  description:
+    "Takes the shape `rawRules` reads, so a script can filter or add rules and write the list back. Each rule is one string: a `RULE <id>` line, then its clauses one per line; lines may be indented, and blank lines are dropped. The label after `LINK`, `NODE`, `TANK`, `PUMP`, `PIPE` or `VALVE` in a clause is matched to an asset, ignoring case, so a rule follows a later rename of its assets and goes away when one of them is deleted. A label that matches no asset is kept as written, with a console warning naming it, and the simulation fails on that rule until it matches. Nothing else in a rule is checked, rule ids included; EPANET reads them when the simulation runs. The change reaches the network with the other changes.",
+  throws: [
+    "`TypeError` when `rules` is not a list of strings, or a rule does not start with `RULE` and its id, or holds another `RULE` line.",
+  ],
+  examples: [
+    {
+      code: `network.setRawRules([
+  ...network.rawRules.filter((rule) => !rule.startsWith("RULE UNRESOLVED")),
+  ["RULE NIGHT", "IF SYSTEM CLOCKTIME >= 10 PM", "THEN LINK V1 STATUS IS CLOSED"].join("\\n"),
+]);`,
+    },
+  ],
+});
+
 export const sectionFor = ({ edits }: DocsCandidates): Section =>
   edits
-    ? { ...SECTION, members: [...(SECTION.members ?? []), SET_RAW_CONTROLS] }
+    ? {
+        ...SECTION,
+        members: [...(SECTION.members ?? []), SET_RAW_CONTROLS, SET_RAW_RULES],
+      }
     : SECTION;
