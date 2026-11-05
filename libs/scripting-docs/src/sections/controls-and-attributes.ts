@@ -1,10 +1,10 @@
 import { memberOf, propertyOf } from "../members";
-import type { Section } from "../types";
+import type { DocsCandidates, Member, Section } from "../types";
 
 const network = memberOf("Network");
 const property = propertyOf("Network");
 
-export const SECTION: Section = {
+const SECTION: Section = {
   id: "controls-and-attributes",
   number: "1.7",
   title: "Controls and attributes",
@@ -48,3 +48,28 @@ export const SECTION: Section = {
   notes:
     "The pumps' structured controls are on `pump.control`, not in `rawControls`. Read both before judging why a pump is off or a valve is closed.",
 };
+
+const SET_RAW_CONTROLS: Member = network({
+  name: "setRawControls",
+  signature: "setRawControls(controls: string[]): void",
+  summary:
+    "Replaces the `[CONTROLS]` lines, as saving the controls editor does. `rawRules` keeps its value.",
+  description:
+    "Takes the shape `rawControls` reads, so a script can filter or add lines and write the list back. Each line is read as the editor reads it: the link after the first word and the node after `IF` are matched to assets by label, ignoring case, so a line follows a later rename of its assets and goes away when one of them is deleted. A label that matches no asset is kept as written, with a console warning naming it, and the simulation fails on that line until it matches. Nothing else in a line is checked; EPANET reads it when the simulation runs. These lines act alongside the pumps' `control`, which they do not change. The change reaches the network with the other changes.",
+  throws: [
+    "`TypeError` when `controls` is not a list of strings, or a control is empty, spans more than one line or has spaces at either end.",
+  ],
+  examples: [
+    {
+      code: `network.setRawControls([
+  ...network.rawControls.filter((line) => !line.startsWith("LINK V1 ")),
+  "LINK V1 CLOSED AT TIME 12",
+]);`,
+    },
+  ],
+});
+
+export const sectionFor = ({ edits }: DocsCandidates): Section =>
+  edits
+    ? { ...SECTION, members: [...(SECTION.members ?? []), SET_RAW_CONTROLS] }
+    : SECTION;
