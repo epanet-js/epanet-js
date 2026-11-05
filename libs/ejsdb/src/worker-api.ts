@@ -1051,7 +1051,6 @@ const countImportProject = (payload: ImportProjectPayload) => ({
   newDb: payload.newDb ? 1 : 0,
   settings: payload.projectSettings !== null ? 1 : 0,
   pipeLib: payload.pipeLibrary !== null ? 1 : 0,
-  zones: payload.zones?.length ?? 0,
   groups: payload.selectionSetGroups?.length ?? 0,
   selSets: payload.selectionSets?.length ?? 0,
   bookmarks: payload.bookmarks !== null ? 1 : 0,
@@ -1788,10 +1787,6 @@ export const api = {
         }
         if (payload.pipeLibrary !== null) {
           updatePipeLibrary(payload.pipeLibrary);
-        }
-        if (payload.zones !== null) {
-          db.exec("DELETE FROM zones");
-          bulkInsertZones(payload.zones);
         }
         if (payload.selectionSetGroups !== null) {
           replaceSelectionSetGroups(payload.selectionSetGroups);

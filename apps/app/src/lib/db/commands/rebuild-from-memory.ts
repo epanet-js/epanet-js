@@ -16,7 +16,7 @@ type RebuildInput = ImportProjectInput &
   Required<
     Pick<
       ImportProjectInput,
-      "zones" | "selectionSetGroups" | "selectionSets" | "bookmarks" | "scripts"
+      "selectionSetGroups" | "selectionSets" | "bookmarks" | "scripts"
     >
   >;
 

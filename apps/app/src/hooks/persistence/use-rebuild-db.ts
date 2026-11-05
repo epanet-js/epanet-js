@@ -68,7 +68,6 @@ export const useRebuildDb = (): (() => Promise<void>) =>
             withDatabaseBusy(() =>
               rebuildDbFromMemory(
                 {
-                  zones: get(zonesAtom),
                   selectionSetGroups: get(selectionSetGroupsAtom),
                   selectionSets: get(selectionSetsAtom),
                   bookmarks: get(bookmarksAtom),

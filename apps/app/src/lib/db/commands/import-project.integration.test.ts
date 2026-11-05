@@ -73,7 +73,7 @@ const payloadFor = (hydraulicModel: HydraulicModel): ImportProjectPayload => ({
   newDb: false,
   projectSettings: null,
   pipeLibrary: null,
-  zones: null,
+  zones: zonesToRows(hydraulicModel.zones),
   selectionSetGroups: null,
   selectionSets: null,
   bookmarks: null,
