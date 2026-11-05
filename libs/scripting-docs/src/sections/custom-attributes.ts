@@ -53,10 +53,38 @@ network.getNode("J1").setCustom("Survey year", 2024);`,
   ],
 });
 
+const SET_CUSTOM_ATTRIBUTE: Member = memberOf("CustomAttribute")({
+  name: "set",
+  signature: `set(changes: {
+  /** up to 64 characters, with no spaces at either end; unique within the type, ignoring case */
+  name?: string;
+  /** only the type the attribute has; a custom attribute keeps its type */
+  type?: "text" | "number";
+}): void`,
+  summary:
+    "Renames the custom attribute. What `changes` leaves out keeps its value.",
+  description:
+    "Takes the shape the attribute reads as, so a script can spread an attribute, change its name and write it back. The attribute reads its new name straight away and keeps working. Every value follows the new name: `getCustom` and `setCustom` take it at once, and the old name reads `null`. Custom attributes cannot be changed while the project has scenarios, as in the app. The change reaches the network with the other changes.",
+  throws: [
+    "`TypeError` when the project has scenarios, the new name is not valid or another attribute of the type has it, `type` is not the attribute's type, or `changes` has another field.",
+  ],
+  examples: [
+    {
+      code: `const zone = network.customAttributes("junction").find((attribute) => attribute.name === "Zone");
+zone.set({ name: "District" });
+console.log(network.getNode("J1").getCustom("District"));`,
+    },
+  ],
+});
+
 export const sectionFor = ({ edits }: DocsCandidates): SectionDef =>
   edits
     ? {
         ...SECTION,
-        members: [...(SECTION.members ?? []), ADD_CUSTOM_ATTRIBUTE],
+        members: [
+          ...(SECTION.members ?? []),
+          ADD_CUSTOM_ATTRIBUTE,
+          SET_CUSTOM_ATTRIBUTE,
+        ],
       }
     : SECTION;
