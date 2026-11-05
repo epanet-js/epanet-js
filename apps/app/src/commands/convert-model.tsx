@@ -112,7 +112,6 @@ export const useConvertFile = () => {
 
         const {
           hydraulicModel,
-          zones,
           selectionSets,
           factories,
           projectSettings,
@@ -171,7 +170,7 @@ export const useConvertFile = () => {
             pipes: network.pipes.length,
             pumps: network.pumps.length,
             valves: network.valves.length,
-            zones: zones.size,
+            zones: hydraulicModel.zones.size,
             selectionSets: selectionSets.length,
             customAttributes: network.customAttributes.length,
           },

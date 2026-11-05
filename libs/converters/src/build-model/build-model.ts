@@ -33,7 +33,6 @@ import {
   HydraulicModel,
   createEmptyDemands,
   initializeHydraulicModel,
-  type Zones,
   Asset,
   AssetFactory,
   AssetId,
@@ -99,7 +98,6 @@ export type BuildModelOptions = {
 
 export type BuildModelResult = {
   hydraulicModel: HydraulicModel;
-  zones: Zones;
   selectionSets: BuiltSelectionSet[];
   issues: Issue[];
   factories: ModelFactories;
@@ -261,7 +259,6 @@ export const buildModel = (
 
   return {
     hydraulicModel,
-    zones,
     selectionSets,
     issues: issues.build(),
     factories,

@@ -1734,7 +1734,7 @@ describe("build zones from network data", () => {
     const { zones } = buildModel(
       aNetwork({ zones: [aZone({ ref: "3", label: "NORTH" })] }),
       { projections: aCatalogue() },
-    );
+    ).hydraulicModel;
 
     expect([...zones.values()]).toEqual([
       new Zone(
@@ -1758,15 +1758,6 @@ describe("build zones from network data", () => {
     ]);
   });
 
-  it("puts the zones in the hydraulic model", () => {
-    const { hydraulicModel, zones } = buildModel(
-      aNetwork({ zones: [aZone({ ref: "3", label: "NORTH" })] }),
-      { projections: aCatalogue() },
-    );
-
-    expect(hydraulicModel.zones).toEqual(zones);
-  });
-
   it("registers the zone labels in the label manager", () => {
     const { factories } = buildModel(
       aNetwork({ zones: [aZone({ ref: "3", label: "NORTH" })] }),
@@ -1781,7 +1772,7 @@ describe("build zones from network data", () => {
   it("generates a label when the source named no zone", () => {
     const { zones } = buildModel(aNetwork({ zones: [aZone({ ref: "3" })] }), {
       projections: aCatalogue(),
-    });
+    }).hydraulicModel;
 
     expect([...zones.values()].map((zone) => zone.label)).toEqual(["Z1"]);
   });
@@ -1806,7 +1797,7 @@ describe("build zones from network data", () => {
         crs: { type: "epsg", code: 3857 },
       }),
       { projections: aCatalogue() },
-    );
+    ).hydraulicModel;
 
     const [zone] = [...zones.values()];
     const ring = zone.geometry.coordinates[0][0];
@@ -1824,7 +1815,7 @@ describe("build zones from network data", () => {
         ],
       }),
       { projections: aCatalogue() },
-    );
+    ).hydraulicModel;
 
     expect(zones.size).toBe(1);
     const [zone] = [...zones.values()];
@@ -1833,7 +1824,9 @@ describe("build zones from network data", () => {
   });
 
   it("builds no zones when the source states none", () => {
-    const { zones } = buildModel(aNetwork(), { projections: aCatalogue() });
+    const { zones } = buildModel(aNetwork(), {
+      projections: aCatalogue(),
+    }).hydraulicModel;
 
     expect(zones.size).toBe(0);
   });
