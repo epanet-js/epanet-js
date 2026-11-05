@@ -1921,6 +1921,12 @@ export type UserEvent =
   | { name: "selectionSet.renamed"; source: "panel" }
   | { name: "selectionSet.deleted"; source: "panel" }
   | {
+      name: "selectionSetGroup.created";
+      depth: number;
+      totalGroups: number;
+      source: "panel";
+    }
+  | {
       name: "bookmark.draftStarted";
       source: CollectionDraftSource;
       canManageCollections: boolean;

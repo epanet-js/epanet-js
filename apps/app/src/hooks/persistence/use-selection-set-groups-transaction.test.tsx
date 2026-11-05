@@ -1,0 +1,94 @@
+import { renderHook, act } from "@testing-library/react";
+import { Provider as JotaiProvider } from "jotai";
+import { setInitialState } from "src/__helpers__/state";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
+import { useInProcessDb } from "src/lib/db/__test-helpers__/in-process-db";
+import { importProject } from "src/lib/db/commands/import-project";
+import { fetchProject } from "src/lib/db/commands/fetch-project";
+import { defaultProjectSettings } from "@epanet-js/project-settings";
+import { defaultSimulationSettings } from "src/simulation/simulation-settings";
+import { writeQueue } from "src/lib/persistence/write-queue";
+import type { SelectionSetGroup } from "src/lib/collections";
+import { selectionSetGroupsAtom } from "src/state/collections";
+import { dialogAtom } from "src/state/dialog";
+import { projectDataVersionAtom } from "src/state/project-revision";
+import type { Store } from "src/state";
+import { useSelectionSetGroupsTransaction } from "./use-selection-set-groups-transaction";
+
+const aGroup = (
+  overrides: Partial<SelectionSetGroup> = {},
+): SelectionSetGroup => ({
+  id: "group-1",
+  label: "North",
+  parentId: null,
+  ...overrides,
+});
+
+const anEmptyProject = () =>
+  importProject({
+    newDb: true,
+    hydraulicModel: HydraulicModelBuilder.with().aJunction(1).build(),
+    projectSettings: defaultProjectSettings,
+    simulationSettings: defaultSimulationSettings,
+  });
+
+const renderTransaction = (store: Store) =>
+  renderHook(() => useSelectionSetGroupsTransaction(), {
+    wrapper: ({ children }) => (
+      <JotaiProvider store={store}>{children}</JotaiProvider>
+    ),
+  });
+
+const storedLabels = async () => {
+  const { selectionSetGroups } = await fetchProject();
+  return selectionSetGroups.map((group) => group.label);
+};
+
+describe("useSelectionSetGroupsTransaction", () => {
+  useInProcessDb();
+
+  it("stores a new group in the project", async () => {
+    await anEmptyProject();
+    const store = setInitialState({});
+    const { result } = renderTransaction(store);
+
+    await act(async () => {
+      result.current.create(aGroup());
+      await writeQueue.whenIdle();
+    });
+
+    expect(store.get(selectionSetGroupsAtom)).toEqual([aGroup()]);
+    expect(await storedLabels()).toEqual(["North"]);
+  });
+
+  it("marks the project as having changes to save", async () => {
+    await anEmptyProject();
+    const store = setInitialState({});
+    const versionBefore = store.get(projectDataVersionAtom);
+    const { result } = renderTransaction(store);
+
+    await act(async () => {
+      result.current.create(aGroup());
+      await writeQueue.whenIdle();
+    });
+
+    expect(store.get(projectDataVersionAtom)).not.toEqual(versionBefore);
+  });
+
+  it("refuses a group it could not store and tells the user", async () => {
+    await anEmptyProject();
+    const store = setInitialState({});
+    const { result } = renderTransaction(store);
+
+    let accepted = true;
+    await act(async () => {
+      accepted = result.current.create(aGroup({ label: "" }));
+      await writeQueue.whenIdle();
+    });
+
+    expect(accepted).toBe(false);
+    expect(store.get(selectionSetGroupsAtom)).toEqual([]);
+    expect(store.get(dialogAtom)).toEqual({ type: "changeNotApplied" });
+    expect(await storedLabels()).toEqual([]);
+  });
+});

@@ -15,6 +15,7 @@ export {
   renameSelectionSet,
   deleteSelectionSet,
 } from "./commands/selection-sets";
+export { insertSelectionSetGroup } from "./commands/selection-set-groups";
 export {
   serializeSelectionSetGroup,
   serializeSelectionSetGroups,
