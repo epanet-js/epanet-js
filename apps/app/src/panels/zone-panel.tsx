@@ -21,7 +21,10 @@ import { ActionsBar } from "src/components/actions-bar";
 import type { Action } from "src/components/action-button";
 import { useZoomToSelection } from "src/commands/zoom-to-selection";
 import { useSelectZoneContents } from "src/commands/select-zone-contents";
-import { PolygonalSelectionIcon, ZoomToIcon } from "src/icons";
+import { useDeleteSelection } from "src/commands/delete-selection";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
+import { DeleteIcon, PolygonalSelectionIcon, ZoomToIcon } from "src/icons";
 import { changeZoneProperty } from "@epanet-js/hydraulic-model-operations";
 import { SectionList } from "src/components/form/fields";
 import { SectionWrapper } from "./asset-panel/ui-components";
@@ -38,6 +41,9 @@ export function ZonePanel() {
   const selection = useAtomValue(selectionAtom);
   const zoomToSelection = useZoomToSelection();
   const selectZoneContents = useSelectZoneContents();
+  const deleteSelection = useDeleteSelection();
+  const isDeleteZoneOn = useFeatureFlag("FLAG_DELETE_ZONE");
+  const isEditionBlocked = useIsEditionBlocked();
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const baseModel = useAtomValue(baseModelDerivedAtom);
   const worktree = useAtomValue(worktreeAtom);
@@ -107,6 +113,19 @@ export function ZonePanel() {
     },
   };
 
+  const deleteAction: Action = {
+    icon: <DeleteIcon />,
+    applicable: isDeleteZoneOn,
+    priority: 0,
+    label: translate("delete"),
+    variant: "danger-quiet",
+    disabled: isEditionBlocked,
+    onSelect: function doDelete() {
+      deleteSelection({ source: "toolbar" });
+      return Promise.resolve();
+    },
+  };
+
   const labelField = (
     <EditableTextField
       label={zone.label}
@@ -148,7 +167,7 @@ export function ZonePanel() {
             )}
           </div>
           <ActionsBar
-            actions={[zoomToAction, selectContentsAction]}
+            actions={[zoomToAction, selectContentsAction, deleteAction]}
             className="h-8"
           />
         </div>

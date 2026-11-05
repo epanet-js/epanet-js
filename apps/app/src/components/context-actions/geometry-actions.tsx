@@ -13,6 +13,7 @@ import {
 } from "src/state/derived-branch-state";
 import { useTranslate } from "src/hooks/use-translate";
 import { useDeleteSelection } from "src/commands/delete-selection";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   useChangeSelectedAssetsActiveTopologyStatus,
   changeActiveTopologyShortcut,
@@ -60,6 +61,7 @@ function useSelectionActions(source: ActionProps["as"]): Action[] {
   const zoomToSelection = useZoomToSelection();
   const selectZoneContents = useSelectZoneContents();
   const deleteSelection = useDeleteSelection();
+  const isDeleteZoneOn = useFeatureFlag("FLAG_DELETE_ZONE");
   const {
     changeSelectedAssetsActiveTopologyStatus: activateDeactivateAction,
     allActive,
@@ -94,7 +96,10 @@ function useSelectionActions(source: ActionProps["as"]): Action[] {
   const deleteAssetsAction = {
     label: translate("delete"),
     variant: "danger-quiet" as B3Variant,
-    applicable: hasAssets || hasCustomerPoints,
+    applicable:
+      hasAssets ||
+      hasCustomerPoints ||
+      (isDeleteZoneOn && selectionCounts.zones > 0),
     icon: <DeleteIcon />,
     onSelect: onDelete,
   };

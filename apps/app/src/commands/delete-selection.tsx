@@ -4,6 +4,7 @@ import {
   deleteAssets,
   mergeChangeSets,
   removeCustomerPoints,
+  removeZones,
 } from "@epanet-js/hydraulic-model-operations";
 import type { ChangeSet } from "@epanet-js/change-set";
 import { AssetDeleted, useUserTracking } from "src/infra/user-tracking";
@@ -13,6 +14,7 @@ import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { modeAtom, Mode } from "src/state/mode";
 import { selectionAtom } from "src/state/selection";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 export const deleteSelectedShortcuts = ["backspace", "del"];
 
 export const useDeleteSelection = () => {
@@ -22,6 +24,7 @@ export const useDeleteSelection = () => {
   const setEphemeralState = useSetAtom(ephemeralStateAtom);
   const { transact } = useModelTransaction();
   const userTracking = useUserTracking();
+  const isDeleteZoneOn = useFeatureFlag("FLAG_DELETE_ZONE");
 
   const clearSelection = useCallback(() => {
     setSelection(USelection.none());
@@ -33,7 +36,13 @@ export const useDeleteSelection = () => {
     ({ source }: { source: AssetDeleted["source"] }) => {
       const assetIds = USelection.getAssetIds(selection);
       const customerPointIds = USelection.getCustomerPointIds(selection);
-      if (assetIds.length === 0 && customerPointIds.length === 0) return;
+      const zoneIds = isDeleteZoneOn ? USelection.getZoneIds(selection) : [];
+      if (
+        assetIds.length === 0 &&
+        customerPointIds.length === 0 &&
+        zoneIds.length === 0
+      )
+        return;
 
       clearSelection();
 
@@ -61,6 +70,13 @@ export const useDeleteSelection = () => {
           source,
         });
       }
+      if (zoneIds.length > 0) {
+        userTracking.capture({
+          name: "zones.deleted",
+          count: zoneIds.length,
+          source,
+        });
+      }
 
       const deleteAssetsData = {
         assetIds: assetIds.slice(),
@@ -81,9 +97,21 @@ export const useDeleteSelection = () => {
             removeCustomerPoints(hydraulicModel, removeCustomerPointsData),
           );
         }
+        if (zoneIds.length > 0) {
+          changeSets.push(
+            removeZones(hydraulicModel, { zoneIds: zoneIds.slice() }),
+          );
+        }
         return mergeChangeSets(changeSets, "deleteSelection");
       });
     },
-    [hydraulicModel, selection, transact, clearSelection, userTracking],
+    [
+      hydraulicModel,
+      selection,
+      transact,
+      clearSelection,
+      userTracking,
+      isDeleteZoneOn,
+    ],
   );
 };

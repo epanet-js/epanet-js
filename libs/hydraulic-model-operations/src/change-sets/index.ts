@@ -4,6 +4,7 @@ export type { Fields } from "./entities";
 export {
   dropAssets,
   dropCustomerPoints,
+  dropZones,
   putAssets,
   putCustomerPoints,
   replaceControls,

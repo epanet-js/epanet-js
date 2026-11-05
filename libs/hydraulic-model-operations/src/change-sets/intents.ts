@@ -272,20 +272,16 @@ export const replacePatterns =
     );
   };
 
+const zoneToFields = (zone: Zone): Fields => ({
+  label: zone.label,
+  geometry: zone.geometry,
+  bbox: zone.bbox,
+});
+
 export const replaceZones =
   (zones: Zones): Intent =>
   (model, out) => {
-    diffKeyed(
-      "zone",
-      model.zones,
-      zones,
-      (zone) => ({
-        label: zone.label,
-        geometry: zone.geometry,
-        bbox: zone.bbox,
-      }),
-      out,
-    );
+    diffKeyed("zone", model.zones, zones, zoneToFields, out);
   };
 
 export const setZone =
@@ -303,6 +299,22 @@ export const setZone =
       const { before, after, changed } = diffFields(current, fields);
       if (!changed) continue;
       out.push({ entity: "zone", id, kind: "update", before, after });
+    }
+  };
+
+export const dropZones =
+  (ids: ZoneId | readonly ZoneId[]): Intent =>
+  (model, out) => {
+    for (const id of asArray(ids)) {
+      const zone = model.zones.get(id);
+      if (!zone) continue;
+      out.push({
+        entity: "zone",
+        id,
+        kind: "delete",
+        before: zoneToFields(zone),
+        after: {},
+      });
     }
   };
 

@@ -4,6 +4,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { useZoomToSelection } from "src/commands/zoom-to-selection";
 import { useSelectZoneContents } from "src/commands/select-zone-contents";
 import { useDeleteSelection } from "src/commands/delete-selection";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   useChangeSelectedAssetsActiveTopologyStatus,
   changeActiveTopologyShortcut,
@@ -35,6 +36,7 @@ export function useMultiAssetActions(readonly = false): Action[] {
   const zoomToSelection = useZoomToSelection();
   const selectZoneContents = useSelectZoneContents();
   const deleteSelection = useDeleteSelection();
+  const isDeleteZoneOn = useFeatureFlag("FLAG_DELETE_ZONE");
   const { changeSelectedAssetsActiveTopologyStatus, allActive } =
     useChangeSelectedAssetsActiveTopologyStatus();
   const disconnectCustomerPoints = useDisconnectCustomerPoints();
@@ -73,7 +75,8 @@ export function useMultiAssetActions(readonly = false): Action[] {
   const deleteAssetsAction = {
     label: translate("delete"),
     variant: "danger-quiet" as const,
-    applicable: hasAssets || hasCustomerPoints,
+    applicable:
+      hasAssets || hasCustomerPoints || (isDeleteZoneOn && zoneCount > 0),
     priority: 1,
     disabled: readonly,
     icon: <DeleteIcon />,

@@ -31,6 +31,7 @@ import {
   disconnectCustomers,
   moveCustomerPoint,
   removeCustomerPoints,
+  removeZones,
   replaceLink,
 } from "../model-operations";
 import { deactivateAssets } from "../model-operations/deactivate-assets";
@@ -412,6 +413,15 @@ const cases: OperationCase[] = [
     run: ({ model }) => changeZones(model, { zones: new Map() }),
     expectApplied: ({ model, labelManager }) => {
       expect(model.zones.size).toBe(0);
+      expect(labelManager.isLabelAvailable("NORTH", "zone")).toBe(true);
+    },
+  },
+  {
+    name: "removeZones",
+    fixture: aNetwork,
+    run: ({ model }) => removeZones(model, { zoneIds: [IDS.Z1] }),
+    expectApplied: ({ model, labelManager }) => {
+      expect(model.zones.has(IDS.Z1)).toBe(false);
       expect(labelManager.isLabelAvailable("NORTH", "zone")).toBe(true);
     },
   },

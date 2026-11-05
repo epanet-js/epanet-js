@@ -23,6 +23,7 @@ export { changeElevations, type NodeElevation } from "./change-elevations";
 export { changeDemandAssignment } from "./change-demand-assignment";
 export { addCustomerPoint } from "./add-customer-point";
 export { removeCustomerPoints } from "./remove-customer-points";
+export { removeZones } from "./remove-zones";
 export { moveCustomerPoint } from "./move-customer-point";
 export { changeCustomerPointLabel } from "./change-customer-point-label";
 export {

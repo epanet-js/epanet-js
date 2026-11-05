@@ -236,6 +236,12 @@ type ZoneContentsSelected = {
   count: number;
 };
 
+type ZonesDeleted = {
+  name: "zones.deleted";
+  count: number;
+  source: AssetDeleted["source"];
+};
+
 type ZoneLabelChanged = {
   name: "zone.labelChanged";
 };
@@ -1677,6 +1683,7 @@ export type UserEvent =
   | CustomerPointLabelDuplicate
   | CustomerPointCreated
   | CustomerPointsRemoved
+  | ZonesDeleted
   | CustomerPointsConnectedCompleted
   | CustomerPointPanelOpened
   | CustomerPointPanelZoomTo
