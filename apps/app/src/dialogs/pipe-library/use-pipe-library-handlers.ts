@@ -7,10 +7,8 @@ import { projectSettingsAtom } from "src/state/project-settings";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import { selectedMaterialLabelAtom } from "src/state/pipe-library";
 import { changePipeMaterials } from "@epanet-js/hydraulic-model-operations";
-import { renameAssignments } from "./rename-materials";
 import {
   detectModelMaterials,
-  validateMaterial,
   type ImportPipeLibraryResult,
 } from "src/hydraulic-model/pipe-materials";
 import { groupErrors, type ImportOutcome } from "src/components/import-outcome";
@@ -19,6 +17,8 @@ import { useImportPipeLibrary } from "src/commands/import-pipe-library";
 import {
   DEFAULT_ROUGHNESS_HW,
   DEFAULT_ROUGHNESS_DW_CM,
+  renameAssignments,
+  validateMaterial,
 } from "@epanet-js/hydraulic-model";
 import type { PipeMaterial, RoughnessEntry } from "@epanet-js/hydraulic-model";
 

@@ -1,6 +1,6 @@
 import Papa from "papaparse";
 import type { PipeMaterial, RoughnessEntry } from "@epanet-js/hydraulic-model";
-import { validateEntry, validateMaterial } from "./validate-material";
+import { validateEntry, validateMaterial } from "@epanet-js/hydraulic-model";
 import type { ImportError, ImportPipeLibraryResult } from "./import-result";
 
 // A material spans as many rows as it has entries, so each entry remembers

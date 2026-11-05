@@ -11,7 +11,7 @@ import { WarningActionBanner } from "../warning-action-banner";
 import { ImportOutcomeReport } from "src/components/import-outcome-report";
 import { ChevronDownIcon, PipeLibraryIcon } from "src/icons";
 import { Button, DDContent, StyledItem } from "src/components/elements";
-import { validateMaterial } from "src/hydraulic-model/pipe-materials";
+import { validateMaterial } from "@epanet-js/hydraulic-model";
 import { usePipeLibraryHandlers } from "./use-pipe-library-handlers";
 
 const IMPORT_KEYS = "pipeLibrary";

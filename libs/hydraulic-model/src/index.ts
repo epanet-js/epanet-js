@@ -20,6 +20,8 @@ export * from "./patterns";
 export * from "./pattern-usage";
 export * from "./pipe-materials";
 export * from "./infer-roughness";
+export * from "./validate-material";
+export * from "./rename-materials";
 export * from "./property-validators";
 export * from "./customer-points";
 export * from "./customer-points-lookup";

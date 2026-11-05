@@ -1,5 +1,6 @@
-import { Pipe, AssetsMap } from "@epanet-js/hydraulic-model";
-import type { HydraulicModel } from "src/hydraulic-model";
+import { Pipe } from "./asset-types";
+import { AssetsMap } from "./assets-map";
+import type { HydraulicModel } from "./hydraulic-model";
 import { renameAssignments } from "./rename-materials";
 
 const toPatches = (assignments: ReturnType<typeof renameAssignments>) =>

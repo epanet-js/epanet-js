@@ -1,5 +1,5 @@
-import type { AssetId } from "@epanet-js/hydraulic-model";
-import type { Pipe, HydraulicModel } from "src/hydraulic-model";
+import type { AssetId, Pipe } from "./asset-types";
+import type { HydraulicModel } from "./hydraulic-model";
 
 export type MaterialRenameAssignment = {
   assetIds: AssetId[];
