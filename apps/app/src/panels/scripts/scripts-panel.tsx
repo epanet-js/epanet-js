@@ -19,6 +19,7 @@ import { useRunScript } from "src/commands/run-script";
 import { useFeatureLock } from "src/components/form/paywall";
 import { useTranslate } from "src/hooks/use-translate";
 import { useScriptingDocs } from "src/hooks/use-scripting-docs";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { usePermissions } from "src/hooks/use-permissions";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useScriptsTransaction } from "src/hooks/persistence/use-scripts-transaction";
@@ -45,6 +46,15 @@ import {
 } from "src/state/scripts";
 import { CodeEditor } from "./code-editor";
 import { exampleNameKey } from "./example-names";
+import {
+  AssistantComposer,
+  AssistantFooter,
+  ScriptAssistant,
+} from "./script-assistant";
+import {
+  useScriptGeneration,
+  type ScriptGeneration,
+} from "./use-script-generation";
 
 const newScriptSource = (
   llmsPath: string,
@@ -58,18 +68,99 @@ console.log("Junctions:", network.stats.junctions, "· Pipes:", network.stats.pi
 
 export const ScriptsPanel = () => {
   const [draft, setDraft] = useAtom(scriptDraftAtom);
+  const [isComposing, setIsComposing] = useState(false);
+  const isScriptingAssistantOn = useFeatureFlag("FLAG_SCRIPTING_ASSISTANT");
+  const { llmsPath } = useScriptingDocs();
+  const translate = useTranslate();
+
+  const { generation, generate, stop } = useScriptGeneration();
+  const [sourceVersion, setSourceVersion] = useState(0);
+  const [isWrittenByAssistant, setIsWrittenByAssistant] = useState(false);
+
+  const openDraft = (next: ScriptDraft) => {
+    setIsComposing(false);
+    setIsWrittenByAssistant(false);
+    setDraft(next);
+  };
+
+  const handleWrite = (prompt: string) => {
+    generate({ prompt, kind: "write" }, "", ({ source, name }) => {
+      setIsComposing(false);
+      setIsWrittenByAssistant(true);
+      setDraft({
+        ...newScriptDraft(translate, llmsPath),
+        source,
+        name: name ?? translate("scripting.untitled"),
+      });
+    });
+  };
+
+  const handleGenerate = (prompt: string, source: string) => {
+    generate(
+      { prompt, kind: source.trim() === "" ? "write" : "update" },
+      source,
+      ({ source: generated }) => {
+        setDraft((current) => current && { ...current, source: generated });
+        setSourceVersion((version) => version + 1);
+      },
+    );
+  };
 
   if (draft) {
     return (
       <ScriptEditor
         draft={draft}
         onChange={setDraft}
-        onClose={() => setDraft(null)}
+        onClose={() => {
+          stop();
+          setDraft(null);
+        }}
+        assistant={
+          isScriptingAssistantOn
+            ? {
+                generation,
+                sourceVersion,
+                isWrittenByAssistant,
+                onGenerate: handleGenerate,
+                onStop: stop,
+              }
+            : null
+        }
       />
     );
   }
-  return <ScriptList onOpen={setDraft} />;
+  if (isComposing) {
+    return (
+      <ScriptAssistant
+        onBack={() => {
+          stop();
+          setIsComposing(false);
+        }}
+        onSend={handleWrite}
+        generation={generation}
+        onStop={stop}
+        onWriteMyself={() => openDraft(newScriptDraft(translate, llmsPath))}
+      />
+    );
+  }
+  return (
+    <ScriptList
+      onOpen={openDraft}
+      onCreate={isScriptingAssistantOn ? () => setIsComposing(true) : null}
+    />
+  );
 };
+
+const newScriptDraft = (
+  translate: ReturnType<typeof useTranslate>,
+  llmsPath: string,
+): ScriptDraft => ({
+  scriptId: null,
+  exampleId: null,
+  name: translate("scripting.untitled"),
+  source: newScriptSource(llmsPath),
+  savedAs: null,
+});
 
 type Section = "myScripts" | "examples";
 
@@ -87,7 +178,13 @@ type Row = {
   scriptId: string | null;
 };
 
-const ScriptList = ({ onOpen }: { onOpen: (draft: ScriptDraft) => void }) => {
+const ScriptList = ({
+  onOpen,
+  onCreate,
+}: {
+  onOpen: (draft: ScriptDraft) => void;
+  onCreate: (() => void) | null;
+}) => {
   const { llmsPath } = useScriptingDocs();
   const runScript = useRunScript();
   const scripts = useAtomValue(userScriptsAtom);
@@ -166,14 +263,9 @@ const ScriptList = ({ onOpen }: { onOpen: (draft: ScriptDraft) => void }) => {
 
   const openNew = useCallback(() => {
     if (isEditLocked) return openEditPaywall();
-    onOpen({
-      scriptId: null,
-      exampleId: null,
-      name: translate("scripting.untitled"),
-      source: newScriptSource(llmsPath),
-      savedAs: null,
-    });
-  }, [isEditLocked, openEditPaywall, onOpen, translate, llmsPath]);
+    if (onCreate) return onCreate();
+    onOpen(newScriptDraft(translate, llmsPath));
+  }, [isEditLocked, openEditPaywall, onCreate, onOpen, translate, llmsPath]);
 
   const handleActivateItem = useCallback(
     (item: NavItem<Section>) => {
@@ -352,14 +444,24 @@ const ScriptList = ({ onOpen }: { onOpen: (draft: ScriptDraft) => void }) => {
   );
 };
 
+type EditorAssistant = {
+  generation: ScriptGeneration | null;
+  sourceVersion: number;
+  isWrittenByAssistant: boolean;
+  onGenerate: (prompt: string, source: string) => void;
+  onStop: () => void;
+};
+
 const ScriptEditor = ({
   draft,
   onChange,
   onClose,
+  assistant,
 }: {
   draft: ScriptDraft;
   onChange: (draft: ScriptDraft) => void;
   onClose: () => void;
+  assistant: EditorAssistant | null;
 }) => {
   const runScript = useRunScript();
   const isRunning = useIsRunning();
@@ -373,6 +475,11 @@ const ScriptEditor = ({
     useFeatureLock("editScripts");
   const [confirmingDiscard, setConfirmingDiscard] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
+  const isGenerating = assistant?.generation != null;
+  const [isComposerOpen, setIsComposerOpen] = useState(
+    assistant?.isWrittenByAssistant ?? false,
+  );
+  const [composerText, setComposerText] = useState("");
   const draftRef = useRef(draft);
   draftRef.current = draft;
 
@@ -487,7 +594,7 @@ const ScriptEditor = ({
             }}
             onDirty={() => setIsRenaming(true)}
             onReset={() => setIsRenaming(false)}
-            autoFocus={isNewScript}
+            autoFocus={isNewScript && !assistant?.isWrittenByAssistant}
             className="min-w-0"
             styleOptions={{
               padding: "sm",
@@ -533,16 +640,18 @@ const ScriptEditor = ({
           >
             <SaveIcon />
           </Button>
-          <Button
-            variant="quiet"
-            aria-label={translate("scripting.run")}
-            title={translate("scripting.run")}
-            className="h-8"
-            onClick={() => handleRun("editor")}
-            disabled={isRunning}
-          >
-            <PlayIcon />
-          </Button>
+          {!assistant && (
+            <Button
+              variant="quiet"
+              aria-label={translate("scripting.run")}
+              title={translate("scripting.run")}
+              className="h-8"
+              onClick={() => handleRun("editor")}
+              disabled={isRunning}
+            >
+              <PlayIcon />
+            </Button>
+          )}
           {draft.scriptId !== null && (
             <DD.Root modal={false}>
               <DD.Trigger asChild>
@@ -602,16 +711,58 @@ const ScriptEditor = ({
       )}
       <div className="flex-auto min-h-0">
         <CodeEditor
+          key={assistant?.sourceVersion ?? 0}
           initialSource={draft.source}
-          locked={isEditLocked}
+          locked={isEditLocked || isGenerating}
           docsVariant={scriptingDocs.variant}
           autoFocus={!isNewScript}
           onChange={(source) => onChange({ ...draftRef.current, source })}
-          onRun={() => handleRun("shortcut")}
+          onRun={() => {
+            if (!isGenerating) handleRun("shortcut");
+          }}
           onSave={handleSave}
-          onLockedEdit={openEditPaywall}
+          onLockedEdit={isGenerating ? () => {} : openEditPaywall}
         />
       </div>
+      {assistant && (isComposerOpen || isGenerating) && (
+        <section aria-label="Ask AI" className="p-2 border-t bg-panel">
+          <AssistantComposer
+            label="Describe a change"
+            placeholder="Describe a change…"
+            rows={2}
+            value={composerText}
+            onChange={setComposerText}
+            onSend={(prompt) => {
+              setComposerText("");
+              assistant.onGenerate(prompt, draftRef.current.source);
+            }}
+            busy={
+              assistant.generation && {
+                prompt: assistant.generation.prompt,
+                status:
+                  assistant.generation.kind === "write"
+                    ? "Writing script…"
+                    : "Updating script…",
+              }
+            }
+            onStop={() => {
+              setComposerText(assistant.generation?.prompt ?? "");
+              assistant.onStop();
+            }}
+          />
+        </section>
+      )}
+      {assistant && (
+        <AssistantFooter
+          isComposerOpen={isComposerOpen || isGenerating}
+          onToggleComposer={() => {
+            if (isEditLocked) return openEditPaywall();
+            setIsComposerOpen((open) => !open);
+          }}
+          onRun={() => handleRun("editor")}
+          isRunDisabled={isRunning || isGenerating}
+        />
+      )}
     </div>
   );
 };

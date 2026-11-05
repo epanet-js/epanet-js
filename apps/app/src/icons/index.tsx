@@ -122,6 +122,10 @@ import {
   InfinityIcon as Infinite,
   Gauge,
   Bot,
+  Sparkles,
+  Funnel,
+  Tag,
+  ArrowUp,
 } from "lucide-react";
 import clsx from "clsx";
 
@@ -188,6 +192,10 @@ export const SlidersHorizontalIcon = icon(SlidersHorizontal);
 export const InfiniteIcon = icon(Infinite);
 export const GaugeIcon = icon(Gauge);
 export const BotIcon = icon(Bot);
+export const AiIcon = icon(Sparkles);
+export const FilterIcon = icon(Funnel);
+export const TagIcon = icon(Tag);
+export const ArrowUpIcon = icon(ArrowUp);
 export const SpinnerIcon: React.FC<IconProps> = (props) => (
   <RefreshIcon {...props} className={`${props.className ?? ""} animate-spin`} />
 );
