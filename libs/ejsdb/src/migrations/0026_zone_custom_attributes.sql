@@ -1,0 +1,1 @@
+ALTER TABLE zones ADD COLUMN custom_attributes TEXT DEFAULT NULL;

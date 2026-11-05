@@ -234,6 +234,7 @@ describe("open integration", () => {
     await withTransaction("downgrade", (db) => {
       db.exec("DROP TABLE scenarios");
       db.exec("DROP TABLE scripts");
+      db.exec("ALTER TABLE zones DROP COLUMN custom_attributes");
       db.exec("PRAGMA user_version = 21");
     });
     const blob = await exportDb();
@@ -262,6 +263,7 @@ describe("open integration", () => {
     });
     await withTransaction("downgrade", (db) => {
       db.exec("DROP TABLE scripts");
+      db.exec("ALTER TABLE zones DROP COLUMN custom_attributes");
       db.exec("PRAGMA user_version = 24");
     });
     const blob = await exportDb();
@@ -272,5 +274,46 @@ describe("open integration", () => {
     const project = await fetchProject();
     expect(project.scripts).toEqual([]);
     expect(project.hydraulicModel.assets.size).toBe(1);
+  });
+
+  it("migrates a file saved before zones stored custom attributes, keeping its zones", async () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aZone({
+        id: 1,
+        label: "NORTH",
+        geometry: {
+          type: "MultiPolygon",
+          coordinates: [
+            [
+              [
+                [0, 0],
+                [1, 0],
+                [1, 1],
+                [0, 0],
+              ],
+            ],
+          ],
+        },
+        bbox: [0, 0, 1, 1],
+      })
+      .build();
+    await importProject({
+      newDb: true,
+      hydraulicModel,
+      zones: hydraulicModel.zones,
+      projectSettings: defaultProjectSettings,
+      simulationSettings: defaultSimulationSettings,
+    });
+    await withTransaction("downgrade", (db) => {
+      db.exec("ALTER TABLE zones DROP COLUMN custom_attributes");
+      db.exec("PRAGMA user_version = 25");
+    });
+    const blob = await exportDb();
+
+    const result = await openProject(new File([blob], "before.epnt"));
+
+    expect(result).toMatchObject({ status: "migrated", fileVersion: 25 });
+    const project = await fetchProject();
+    expect(project.hydraulicModel.zones.get(1)?.label).toBe("NORTH");
   });
 });
