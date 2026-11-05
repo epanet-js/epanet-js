@@ -9,7 +9,10 @@ import {
   newSelectionSetGroup,
 } from "src/lib/collections";
 import { useSelectionSetGroupsTransaction } from "src/hooks/persistence/use-selection-set-groups-transaction";
-import { selectionSetGroupsAtom } from "src/state/collections";
+import {
+  selectionSetGroupsAtom,
+  selectionSetsAtom,
+} from "src/state/collections";
 
 const depthOf = (
   groups: readonly SelectionSetGroup[],
@@ -57,6 +60,37 @@ export const useCreateSelectionSetGroup = () => {
         });
       },
       [userTracking, create, canManageCollections, openPaywall],
+    ),
+  );
+};
+
+export const useDeleteSelectionSetGroup = () => {
+  const userTracking = useUserTracking();
+  const { remove } = useSelectionSetGroupsTransaction();
+  const { canManageCollections } = usePermissions();
+  const { openPaywall } = useFeatureLock("selectionSets");
+
+  return useAtomCallback(
+    useCallback(
+      (
+        get,
+        _set,
+        { groupId, source }: { groupId: SelectionSetGroupId; source: "panel" },
+      ) => {
+        if (!canManageCollections) return openPaywall();
+
+        userTracking.capture({
+          name: "selectionSetGroup.deleted",
+          sets: get(selectionSetsAtom).filter((set) => set.groupId === groupId)
+            .length,
+          subgroups: get(selectionSetGroupsAtom).filter(
+            (group) => group.parentId === groupId,
+          ).length,
+          source,
+        });
+        remove(groupId);
+      },
+      [userTracking, remove, canManageCollections, openPaywall],
     ),
   );
 };

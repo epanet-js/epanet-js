@@ -22,7 +22,6 @@ import {
 import { useInProcessDb } from "../__test-helpers__/in-process-db";
 import { USelection } from "src/selection";
 import { api } from "@epanet-js/ejsdb/worker-api";
-import { encodeIdList } from "@epanet-js/ejsdb";
 import type { MultiPolygon } from "geojson";
 import type { BBox } from "@turf/helpers";
 

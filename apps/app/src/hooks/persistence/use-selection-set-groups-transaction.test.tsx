@@ -1,4 +1,5 @@
-import { renderHook, act } from "@testing-library/react";
+import { act } from "react";
+import { renderHook } from "@testing-library/react";
 import { Provider as JotaiProvider } from "jotai";
 import { setInitialState } from "src/__helpers__/state";
 import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
@@ -73,6 +74,24 @@ describe("useSelectionSetGroupsTransaction", () => {
     });
 
     expect(store.get(projectDataVersionAtom)).not.toEqual(versionBefore);
+  });
+
+  it("drops a deleted group from the project", async () => {
+    await anEmptyProject();
+    const store = setInitialState({});
+    const { result } = renderTransaction(store);
+
+    await act(async () => {
+      result.current.create(aGroup());
+      result.current.create(aGroup({ id: "group-2", label: "South" }));
+      result.current.remove("group-1");
+      await writeQueue.whenIdle();
+    });
+
+    expect(store.get(selectionSetGroupsAtom).map((g) => g.id)).toEqual([
+      "group-2",
+    ]);
+    expect(await storedLabels()).toEqual(["South"]);
   });
 
   it("refuses a group it could not store and tells the user", async () => {

@@ -5,7 +5,11 @@ import { useAtomCallback } from "jotai/utils";
 import { nanoid } from "nanoid";
 import * as db from "src/lib/db";
 import { captureError } from "src/infra/error-tracking";
-import type { SelectionSetGroup } from "src/lib/collections";
+import {
+  type SelectionSetGroup,
+  type SelectionSetGroupId,
+  removeItem,
+} from "src/lib/collections";
 import { writeQueue } from "src/lib/persistence/write-queue";
 import { dialogAtom } from "src/state/dialog";
 import { selectionSetGroupsAtom } from "src/state/collections";
@@ -57,5 +61,19 @@ export const useSelectionSetGroupsTransaction = () => {
     ),
   );
 
-  return { create };
+  const remove = useAtomCallback(
+    useCallback(
+      (_get, set, id: SelectionSetGroupId) => {
+        set(selectionSetGroupsAtom, (groups) => removeItem(groups, id));
+        markUnsaved(
+          set,
+          () => db.deleteSelectionSetGroups([id]),
+          onWriteFailure,
+        );
+      },
+      [onWriteFailure],
+    ),
+  );
+
+  return { create, remove };
 };

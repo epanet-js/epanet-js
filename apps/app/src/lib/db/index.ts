@@ -16,7 +16,10 @@ export {
   moveSelectionSet,
   deleteSelectionSet,
 } from "./commands/selection-sets";
-export { insertSelectionSetGroup } from "./commands/selection-set-groups";
+export {
+  insertSelectionSetGroup,
+  deleteSelectionSetGroups,
+} from "./commands/selection-set-groups";
 export {
   serializeSelectionSetGroup,
   serializeSelectionSetGroups,

@@ -1,5 +1,8 @@
 import { getWorker, timed } from "@epanet-js/ejsdb";
-import type { SelectionSetGroup } from "src/lib/collections";
+import type {
+  SelectionSetGroup,
+  SelectionSetGroupId,
+} from "src/lib/collections";
 import { serializeSelectionSetGroup } from "../mappers/selection-set-groups/to-rows";
 
 export const insertSelectionSetGroup = async (
@@ -9,5 +12,13 @@ export const insertSelectionSetGroup = async (
     await getWorker().insertSelectionSetGroup(
       serializeSelectionSetGroup(group),
     );
+  });
+};
+
+export const deleteSelectionSetGroups = async (
+  ids: SelectionSetGroupId[],
+): Promise<void> => {
+  await timed("deleteSelectionSetGroups", async () => {
+    await getWorker().deleteSelectionSetGroups(ids);
   });
 };
