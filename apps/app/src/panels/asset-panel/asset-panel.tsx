@@ -2168,11 +2168,10 @@ const ValveEditor = ({
   const isSetByControl = flowModulatingControl !== null;
   const showTargetNode = isPrv;
   const outletNodeId = valve.connections[1] ?? null;
-  const isScriptingOn = useFeatureFlag("FLAG_SCRIPTING");
   const { data: tracedDownstreamNodes } = useAsyncCompute<
-    [HydraulicModel, Valve, boolean],
+    [HydraulicModel, Valve],
     NodeAsset[]
-  >(findDownstreamNodes, [hydraulicModel, valve, isScriptingOn], isPrv);
+  >(findDownstreamNodes, [hydraulicModel, valve], isPrv);
   const downstreamNodes = tracedDownstreamNodes ?? EMPTY_NODES;
 
   const flowModulatingTargets = useMemo((): FlowModulatingValveTargets => {

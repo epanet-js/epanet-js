@@ -33,7 +33,6 @@ import {
   simulationBlockers,
 } from "src/lib/network-review";
 import { useReviewChecks } from "src/hooks/use-review-checks";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { errorName, handleError } from "src/infra/errors";
 export const runSimulationShortcut = "shift+enter";
 
@@ -49,7 +48,6 @@ export const useRunSimulation = () => {
   const showNetworkReview = useShowNetworkReview();
   const { ensureFresh } = useReviewChecks();
   const isCheckingRef = useRef(false);
-  const isScriptingOn = useFeatureFlag("FLAG_SCRIPTING");
 
   const runSimulation = useAtomCallback(
     useCallback(
@@ -82,7 +80,6 @@ export const useRunSimulation = () => {
             simulationSettings,
             units: projectSettings.units,
             headlossFormula: projectSettings.headlossFormula,
-            barrierTrace: isScriptingOn,
           });
           const start = performance.now();
 
@@ -337,7 +334,6 @@ export const useRunSimulation = () => {
         userTracking,
         showNetworkReview,
         ensureFresh,
-        isScriptingOn,
       ],
     ),
   );

@@ -4,13 +4,10 @@ import { HydraulicModel } from "src/hydraulic-model/hydraulic-model";
 import * as workerInfra from "src/infra/worker";
 import { findDownstreamNodes } from "./find-downstream-nodes";
 
-describe.each([
-  { isScriptingOn: false, flagState: "off" },
-  { isScriptingOn: true, flagState: "on" },
-])("findDownstreamNodes, FLAG_SCRIPTING $flagState", ({ isScriptingOn }) => {
+describe("findDownstreamNodes", () => {
   const labelsOf = async (model: HydraulicModel, valveId: number) => {
     const valve = model.assets.get(valveId) as unknown as Valve;
-    const nodes = await findDownstreamNodes(model, valve, isScriptingOn);
+    const nodes = await findDownstreamNodes(model, valve);
     return nodes.map((node) => node.label).sort();
   };
 

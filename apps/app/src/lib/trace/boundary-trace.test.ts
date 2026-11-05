@@ -2,7 +2,6 @@ import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { createMockResultsReader } from "src/__helpers__/state";
 import {
   boundaryBarriers,
-  boundaryTraceDeprecated,
   configuredAllowedFlowDirections,
   presetBarriers,
   configuredValveKinds,
@@ -14,20 +13,14 @@ import {
 } from "@epanet-js/hydraulic-model";
 import { AllowedFlowDirection } from "./allowed-flow-direction";
 
-const boundaryTraceWithBarriers: typeof boundaryTraceDeprecated = (
-  start,
-  topology,
-  assetIndex,
-  status,
+const boundaryTrace = (
+  start: Parameters<typeof trace>[0],
+  topology: Parameters<typeof trace>[1],
+  assetIndex: Parameters<typeof boundaryBarriers>[0],
+  status: Parameters<typeof boundaryBarriers>[1],
 ) => trace(start, topology, status, boundaryBarriers(assetIndex, status));
 
-describe.each([
-  { name: "boundaryTraceDeprecated", boundaryTrace: boundaryTraceDeprecated },
-  {
-    name: "trace with boundary barriers",
-    boundaryTrace: boundaryTraceWithBarriers,
-  },
-])("$name", ({ boundaryTrace }) => {
+describe("trace with boundary barriers", () => {
   it("traces through open pipes and junctions", () => {
     const IDS = { J1: 1, J2: 2, J3: 3, P1: 4, P2: 5 } as const;
     const model = HydraulicModelBuilder.with()

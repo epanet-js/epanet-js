@@ -5,7 +5,6 @@ import { runTrace } from "src/lib/trace";
 export const findDownstreamNodes = async (
   hydraulicModel: HydraulicModel,
   valve: Valve,
-  isScriptingOn: boolean,
   signal?: AbortSignal,
 ): Promise<NodeAsset[]> => {
   const endNodeId = valve.connections[1];
@@ -15,7 +14,6 @@ export const findDownstreamNodes = async (
     hydraulicModel,
     null,
     { mode: "boundary", startNodeIds: [endNodeId], startLinkIds: [] },
-    isScriptingOn,
     signal,
   );
 

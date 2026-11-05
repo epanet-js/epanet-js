@@ -4,7 +4,6 @@ import { TraceRunData } from "./encode-trace-buffers";
 import { FlowDirectionView, AllowedFlowDirectionView } from "./trace-buffers";
 import {
   boundaryBarriers,
-  boundaryTraceDeprecated,
   trace,
   type TraceResult,
   type TraceStart,
@@ -18,12 +17,11 @@ export interface TraceWorkerAPI {
     mode: TraceMode,
     start: TraceStart,
     data: TraceRunData,
-    isScriptingOn: boolean,
   ) => TraceResult;
 }
 
 export const workerAPI: TraceWorkerAPI = {
-  runTrace: (mode, start, data, isScriptingOn) => {
+  runTrace: (mode, start, data) => {
     const assetIndex = new AssetIndexView(data.assetIndexBuffers);
     const topology = new TopologyView(data.topologyBuffers, assetIndex);
     const flowDirection = new FlowDirectionView(
@@ -37,19 +35,12 @@ export const workerAPI: TraceWorkerAPI = {
 
     switch (mode) {
       case "boundary":
-        return isScriptingOn
-          ? trace(
-              start,
-              topology,
-              allowedFlowDirection,
-              boundaryBarriers(assetIndex, allowedFlowDirection),
-            )
-          : boundaryTraceDeprecated(
-              start,
-              topology,
-              assetIndex,
-              allowedFlowDirection,
-            );
+        return trace(
+          start,
+          topology,
+          allowedFlowDirection,
+          boundaryBarriers(assetIndex, allowedFlowDirection),
+        );
       case "upstream":
         return upstreamTrace(start, topology, flowDirection);
       case "downstream":
