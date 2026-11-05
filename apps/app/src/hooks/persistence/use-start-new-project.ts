@@ -235,7 +235,6 @@ const replaceProject = async (
     projectSettings: mergedProjectSettings,
     hydraulicModel: input.hydraulicModel,
     simulationSettings: input.simulationSettings,
-    zones: input.hydraulicModel.zones,
     selectionSets: input.selectionSets,
     bookmarks: input.bookmarks,
     scripts: input.scripts,

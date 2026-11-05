@@ -307,7 +307,6 @@ describe("open integration", () => {
     await importProject({
       newDb: true,
       hydraulicModel,
-      zones: hydraulicModel.zones,
       projectSettings: defaultProjectSettings,
       simulationSettings: defaultSimulationSettings,
     });

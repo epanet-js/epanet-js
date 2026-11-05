@@ -14,6 +14,7 @@ import {
   serializeControls,
   junctionDemandsToRows,
   serializeSimulationSettings,
+  zonesToRows,
 } from "@epanet-js/ejsdb-mappers";
 import { fetchProject } from "./fetch-project";
 import { importProject } from "./import-project";
@@ -72,7 +73,7 @@ const payloadFor = (hydraulicModel: HydraulicModel): ImportProjectPayload => ({
   newDb: false,
   projectSettings: null,
   pipeLibrary: null,
-  zones: null,
+  zones: zonesToRows(hydraulicModel.zones),
   selectionSets: null,
   bookmarks: null,
   scripts: null,

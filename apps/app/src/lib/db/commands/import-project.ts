@@ -1,6 +1,5 @@
 import type { HydraulicModel } from "src/hydraulic-model";
 import type { ProjectSettings } from "@epanet-js/project-settings";
-import type { Zones } from "@epanet-js/hydraulic-model";
 import type { Bookmark, SelectionSet } from "src/lib/collections";
 import type { UserScript } from "src/state/scripts";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
@@ -25,7 +24,6 @@ import { serializeScripts } from "../mappers/scripts/to-rows";
 export type ImportProjectInput = {
   newDb?: boolean;
   projectSettings?: ProjectSettings;
-  zones?: Zones;
   selectionSets?: SelectionSet[];
   bookmarks?: Bookmark[];
   scripts?: UserScript[];
@@ -44,7 +42,6 @@ export const importProject = async (
       input.hydraulicModel.pipeMaterials.length > 0
         ? serializePipeLibrary(input.hydraulicModel.pipeMaterials)
         : null;
-    const zones = input.zones ? zonesToRows(input.zones) : null;
     const selectionSets = input.selectionSets
       ? serializeSelectionSets(input.selectionSets)
       : null;
@@ -58,7 +55,6 @@ export const importProject = async (
       newDb: input.newDb ?? false,
       projectSettings,
       pipeLibrary,
-      zones,
       selectionSets,
       bookmarks,
       scripts,
@@ -67,6 +63,7 @@ export const importProject = async (
         input.hydraulicModel.customerPoints,
         input.hydraulicModel.demands.customerPoints,
       ),
+      zones: zonesToRows(input.hydraulicModel.zones),
       patterns: patternsToRows(input.hydraulicModel.patterns),
       curves: curvesToRows(input.hydraulicModel.curves),
       rawControls: serializeRawControls(input.hydraulicModel.rawControls),

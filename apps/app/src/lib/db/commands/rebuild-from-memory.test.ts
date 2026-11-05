@@ -58,7 +58,6 @@ const anInput = () => ({
   hydraulicModel: HydraulicModelBuilder.with().aJunction(1).build(),
   projectSettings: defaultProjectSettings,
   simulationSettings: defaultSimulationSettings,
-  zones: new Map(),
   selectionSets: initializeSelectionSets(),
   bookmarks: initializeBookmarks(),
   scripts: [],
@@ -108,17 +107,6 @@ describe("rebuildDbFromMemory", () => {
 
     expect(importProject).toHaveBeenCalledWith(
       expect.objectContaining({ newDb: true }),
-    );
-  });
-
-  it("includes zones, which every other importProject call site omits", async () => {
-    reinstallSahpool.mockResolvedValue("sahpool");
-    const input = anInput();
-
-    await rebuildDbFromMemory(input);
-
-    expect(importProject).toHaveBeenCalledWith(
-      expect.objectContaining({ zones: input.zones }),
     );
   });
 

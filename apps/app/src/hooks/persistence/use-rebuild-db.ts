@@ -10,7 +10,6 @@ import {
 import { collectDbDiagnostics } from "src/lib/db/commands/collect-diagnostics";
 import { dialogAtom, type DialogState } from "src/state/dialog";
 import { withProgressDialog } from "src/dialogs/progress-dialog";
-import { zonesAtom } from "src/state/zones";
 import { hasScenariosAtom } from "src/state/scenarios";
 import { bookmarksAtom, selectionSetsAtom } from "src/state/collections";
 import { userScriptsAtom } from "src/state/scripts";
@@ -65,7 +64,6 @@ export const useRebuildDb = (): (() => Promise<void>) =>
             withDatabaseBusy(() =>
               rebuildDbFromMemory(
                 {
-                  zones: get(zonesAtom),
                   selectionSets: get(selectionSetsAtom),
                   bookmarks: get(bookmarksAtom),
                   scripts: get(userScriptsAtom),

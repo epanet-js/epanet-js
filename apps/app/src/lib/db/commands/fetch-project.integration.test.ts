@@ -1,8 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  HydraulicModelBuilder,
-  buildZone,
-} from "@epanet-js/hydraulic-model-testing";
+import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { defaultProjectSettings } from "@epanet-js/project-settings";
 import {
   defaultSimulationSettings,
@@ -376,29 +373,23 @@ describe("fetch-project id pools", () => {
   it("continues the zone pool from the zones table, not the asset maximum", async () => {
     await importProject({
       newDb: true,
-      hydraulicModel: HydraulicModelBuilder.with().aJunction(IDS.J1).build(),
+      hydraulicModel: HydraulicModelBuilder.with()
+        .aJunction(IDS.J1)
+        .aZone({
+          id: IDS.ZONE1,
+          label: "ZA",
+          geometry: aSquare(0),
+          bbox: [0, 0, 1, 1] as BBox,
+        })
+        .aZone({
+          id: IDS.ZONE2,
+          label: "ZB",
+          geometry: aSquare(2),
+          bbox: [2, 0, 3, 1] as BBox,
+        })
+        .build(),
       projectSettings: defaultProjectSettings,
       simulationSettings: defaultSimulationSettings,
-      zones: new Map([
-        [
-          IDS.ZONE1,
-          buildZone({
-            id: IDS.ZONE1,
-            label: "ZA",
-            geometry: aSquare(0),
-            bbox: [0, 0, 1, 1] as BBox,
-          }),
-        ],
-        [
-          IDS.ZONE2,
-          buildZone({
-            id: IDS.ZONE2,
-            label: "ZB",
-            geometry: aSquare(2),
-            bbox: [2, 0, 3, 1] as BBox,
-          }),
-        ],
-      ]),
     });
 
     const { factories } = await fetchProject();
@@ -410,20 +401,17 @@ describe("fetch-project id pools", () => {
   it("registers the zone labels in the label manager", async () => {
     await importProject({
       newDb: true,
-      hydraulicModel: HydraulicModelBuilder.with().aJunction(IDS.J1).build(),
+      hydraulicModel: HydraulicModelBuilder.with()
+        .aJunction(IDS.J1)
+        .aZone({
+          id: IDS.ZONE1,
+          label: "ZA",
+          geometry: aSquare(0),
+          bbox: [0, 0, 1, 1] as BBox,
+        })
+        .build(),
       projectSettings: defaultProjectSettings,
       simulationSettings: defaultSimulationSettings,
-      zones: new Map([
-        [
-          IDS.ZONE1,
-          buildZone({
-            id: IDS.ZONE1,
-            label: "ZA",
-            geometry: aSquare(0),
-            bbox: [0, 0, 1, 1] as BBox,
-          }),
-        ],
-      ]),
     });
 
     const { factories } = await fetchProject();

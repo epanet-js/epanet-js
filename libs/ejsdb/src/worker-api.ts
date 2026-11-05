@@ -1026,7 +1026,6 @@ const countImportProject = (payload: ImportProjectPayload) => ({
   newDb: payload.newDb ? 1 : 0,
   settings: payload.projectSettings !== null ? 1 : 0,
   pipeLib: payload.pipeLibrary !== null ? 1 : 0,
-  zones: payload.zones?.length ?? 0,
   selSets: payload.selectionSets?.length ?? 0,
   bookmarks: payload.bookmarks !== null ? 1 : 0,
   scripts: payload.scripts?.length ?? 0,
@@ -1038,6 +1037,7 @@ const countImportProject = (payload: ImportProjectPayload) => ({
   v: payload.assets.valves.length,
   cp: payload.customerPoints.customerPoints.length,
   cpDem: payload.customerPoints.demands.length,
+  zones: payload.zones.length,
   pat: payload.patterns.length,
   cur: payload.curves.length,
   jDem: payload.junctionDemands.length,
@@ -1704,10 +1704,6 @@ export const api = {
         if (payload.pipeLibrary !== null) {
           updatePipeLibrary(payload.pipeLibrary);
         }
-        if (payload.zones !== null) {
-          db.exec("DELETE FROM zones");
-          bulkInsertZones(payload.zones);
-        }
         if (payload.selectionSets !== null) {
           replaceSelectionSets(payload.selectionSets);
         }
@@ -1732,6 +1728,9 @@ export const api = {
         db.exec("DELETE FROM customer_points");
         bulkInsertCustomerPoints(payload.customerPoints.customerPoints);
         bulkInsertCustomerPointDemands(payload.customerPoints.demands);
+
+        db.exec("DELETE FROM zones");
+        bulkInsertZones(payload.zones);
 
         db.exec("DELETE FROM patterns");
         for (const row of payload.patterns) insertPattern(row);

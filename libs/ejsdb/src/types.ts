@@ -94,7 +94,7 @@ export type ImportProjectPayload = {
   newDb: boolean;
   projectSettings: string | null;
   pipeLibrary: string | null;
-  zones: ZoneRow[] | null;
+  zones: ZoneRow[];
   selectionSets: SelectionSetRow[] | null;
   bookmarks: string | null;
   scripts: ScriptRow[] | null;
