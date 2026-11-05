@@ -135,7 +135,6 @@
     "cancelling": "Cancelling…",
     "noConsoleOutput": "No console output",
     "runCancelled": "Run cancelled",
-    "errorAtLine": "{{1}} (line {{2}})",
     "finished": "Script finished",
     "finishedWithErrors": "Finished with errors",
     "atLine": "at line {{1}}",
@@ -144,7 +143,6 @@
     "files": "Files",
     "download": "Download",
     "downloadAllAsZip": "Download all as zip",
-    "collectionsNotSaved": "Not saved. Your plan does not include collections.",
     "saveAll": "Save all",
     "paywall": {
       "title": "Upgrade to use scripts",

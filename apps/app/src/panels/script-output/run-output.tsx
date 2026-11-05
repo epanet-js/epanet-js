@@ -1,21 +1,13 @@
 import { useEffect, useState } from "react";
 import { strToU8, zip } from "fflate";
 import type { ReactNode } from "react";
-import { Button } from "src/components/elements";
 import { FileSystemHelpers } from "src/infra/storage";
 import { captureError } from "src/infra/error-tracking";
-import { PaywallLockButton } from "src/components/form/paywall";
-import { usePermissions } from "src/hooks/use-permissions";
 import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
 import type { ScriptAttachment, ScriptRunOutcome } from "src/lib/scripting";
 import type { ScriptConsoleLine, ScriptRunState } from "src/state/scripts";
-import {
-  DownloadIcon,
-  ErrorIcon,
-  StopSimulationIcon,
-  SuccessIcon,
-} from "src/icons";
+import { ErrorIcon, StopSimulationIcon, SuccessIcon } from "src/icons";
 
 export const ConsoleLines = ({ lines }: { lines: ScriptConsoleLine[] }) => {
   const translate = useTranslate();
@@ -75,20 +67,6 @@ const ConsoleLine = ({ line }: { line: ScriptConsoleLine }) => {
   return <div className={color}>{line.text}</div>;
 };
 
-const formatRunError = (
-  translate: ReturnType<typeof useTranslate>,
-  {
-    name,
-    message,
-    line,
-  }: { name: string; message: string; line: number | null },
-): string => {
-  const error = `${name}: ${message}`;
-  return line !== null
-    ? translate("scripting.errorAtLine", error, String(line))
-    : error;
-};
-
 export const RunStatus = ({ outcome }: { outcome: ScriptRunOutcome }) => {
   const translate = useTranslate();
   if (outcome.status === "cancelled") {
@@ -115,104 +93,6 @@ export const RunStatus = ({ outcome }: { outcome: ScriptRunOutcome }) => {
       iconClass="text-success"
       text={translate("scripting.finished")}
     />
-  );
-};
-
-const RunStatusDeprecated = ({ outcome }: { outcome: ScriptRunOutcome }) => {
-  const translate = useTranslate();
-  if (outcome.status === "cancelled") {
-    return (
-      <StatusRow
-        icon={<StopSimulationIcon />}
-        iconClass="text-info"
-        text={translate("scripting.runCancelled")}
-      />
-    );
-  }
-  if (outcome.status === "error") {
-    return (
-      <StatusRow
-        icon={<ErrorIcon />}
-        iconClass="text-error"
-        text={formatRunError(translate, outcome.error)}
-      />
-    );
-  }
-  return (
-    <StatusRow
-      icon={<SuccessIcon />}
-      iconClass="text-success"
-      text={translate("scripting.finished")}
-    />
-  );
-};
-
-export const RunResultDeprecated = ({
-  outcome,
-}: {
-  outcome: ScriptRunOutcome;
-}) => {
-  const translate = useTranslate();
-  if (outcome.status !== "success")
-    return <RunStatusDeprecated outcome={outcome} />;
-  return (
-    <div className="flex flex-col gap-2">
-      <RunStatusDeprecated outcome={outcome} />
-      {outcome.attachments.length > 0 && (
-        <div className="flex flex-col gap-1">
-          <div className="text-size-small font-semibold text-default">
-            {translate("scripting.files")}
-          </div>
-          {outcome.attachments.map((attachment) => (
-            <AttachmentRow key={attachment.name} attachment={attachment} />
-          ))}
-        </div>
-      )}
-      {outcome.selectionSets.length > 0 && (
-        <CollectionsResult
-          title={translate("collections.selectionSets.title")}
-          labels={outcome.selectionSets.map((s) => s.label)}
-        />
-      )}
-      {outcome.bookmarks.length > 0 && (
-        <CollectionsResult
-          title={translate("collections.bookmarks.title")}
-          labels={outcome.bookmarks.map((b) => b.label)}
-        />
-      )}
-    </div>
-  );
-};
-
-const CollectionsResult = ({
-  title,
-  labels,
-}: {
-  title: string;
-  labels: string[];
-}) => {
-  const translate = useTranslate();
-  const { canManageCollections } = usePermissions();
-
-  return (
-    <div className="flex flex-col gap-1">
-      <div className="flex items-center gap-1 text-size-small font-semibold text-default">
-        {title}
-        {!canManageCollections && (
-          <PaywallLockButton feature="selectionSets" label={title} />
-        )}
-      </div>
-      {!canManageCollections && (
-        <div className="text-size-base text-subtle">
-          {translate("scripting.collectionsNotSaved")}
-        </div>
-      )}
-      {labels.map((label, i) => (
-        <div key={i} className="truncate text-size-base" title={label}>
-          {label}
-        </div>
-      ))}
-    </div>
   );
 };
 
@@ -244,25 +124,6 @@ export const useDownloadAttachmentsZip = () => {
       void FileSystemHelpers.downloadFile(fileName, data);
     });
   };
-};
-
-const AttachmentRow = ({ attachment }: { attachment: ScriptAttachment }) => {
-  const translate = useTranslate();
-  const downloadAttachment = useDownloadAttachment();
-  return (
-    <div className="flex items-center gap-2 text-size-base">
-      <span className="truncate flex-auto" title={attachment.name}>
-        {attachment.name}
-      </span>
-      <span className="text-size-small text-subtle tabular-nums shrink-0">
-        {formatSize(attachment.content.length)}
-      </span>
-      <Button size="xs" onClick={() => downloadAttachment(attachment)}>
-        <DownloadIcon size="sm" />
-        {translate("scripting.download")}
-      </Button>
-    </div>
-  );
 };
 
 const StatusRow = ({

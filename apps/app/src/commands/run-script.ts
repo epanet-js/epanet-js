@@ -83,7 +83,6 @@ export const useRunScript = () => {
   isEditionBlockedRef.current = isEditionBlocked;
   const { create: createSelectionSet } = useSelectionSetsTransaction();
   const { transact: saveBookmarks } = useBookmarksTransaction();
-  const isScriptOutputPanelOn = useFeatureFlag("FLAG_SCRIPT_OUTPUT_PANEL");
   const showScriptOutput = useShowScriptOutput();
 
   const currentViewport = useCallback((): ScriptViewport | null => {
@@ -135,14 +134,12 @@ export const useRunScript = () => {
       }
       if (canManageCollections) {
         for (const { label, targets, commit } of outcome.selectionSets) {
-          if (isScriptOutputPanelOn && !commit) continue;
+          if (!commit) continue;
           const members = existing(targets);
           if (countSelected(members) === 0) continue;
           createSelectionSet(newSelectionSet(label, members));
         }
-        const bookmarks = isScriptOutputPanelOn
-          ? outcome.bookmarks.filter(({ commit }) => commit)
-          : outcome.bookmarks;
+        const bookmarks = outcome.bookmarks.filter(({ commit }) => commit);
         if (bookmarks.length > 0) {
           saveBookmarks([
             ...store.get(bookmarksAtom),
@@ -157,7 +154,6 @@ export const useRunScript = () => {
       setSelection,
       zoomTo,
       canManageCollections,
-      isScriptOutputPanelOn,
       createSelectionSet,
       saveBookmarks,
     ],
@@ -270,7 +266,7 @@ export const useRunScript = () => {
         cancel: handle.cancel,
       });
       setDialog({ type: "scriptRun" });
-      if (isScriptOutputPanelOn) showScriptOutput();
+      showScriptOutput();
 
       void handle.finished.then((outcome) => {
         const finishedAt = performance.now();
@@ -281,10 +277,8 @@ export const useRunScript = () => {
           finishedAt,
         }));
         applyOutcome(outcome, model.version);
-        if (isScriptOutputPanelOn) {
-          if (store.get(dialogAtom)?.type === "scriptRun") setDialog(null);
-          showScriptOutput();
-        }
+        if (store.get(dialogAtom)?.type === "scriptRun") setDialog(null);
+        showScriptOutput();
         const success = outcome.status === "success" ? outcome : null;
         userTracking.capture({
           name: "script.runFinished",
@@ -313,7 +307,6 @@ export const useRunScript = () => {
       openPaywall,
       isScriptResultsOn,
       isScriptEditsOn,
-      isScriptOutputPanelOn,
       showScriptOutput,
     ],
   );

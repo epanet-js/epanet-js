@@ -1,16 +1,10 @@
 import * as Progress from "@radix-ui/react-progress";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useAtom } from "jotai";
 import { BaseDialog, SimpleDialogActions } from "src/components/dialog";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useTranslate } from "src/hooks/use-translate";
 import { scriptRunAtom, type ScriptRunState } from "src/state/scripts";
-import {
-  ConsoleLines,
-  RunResultDeprecated,
-  formatElapsed,
-  useElapsed,
-} from "src/panels/script-output/run-output";
+import { formatElapsed, useElapsed } from "src/panels/script-output/run-output";
 
 export const ScriptRunDialog = ({ onClose }: { onClose: () => void }) => {
   const [run, setRun] = useAtom(scriptRunAtom);
@@ -35,16 +29,9 @@ const RunningScriptDialog = ({
   onClose: () => void;
 }) => {
   const translate = useTranslate();
-  const isScriptOutputPanelOn = useFeatureFlag("FLAG_SCRIPT_OUTPUT_PANEL");
   const [cancelling, setCancelling] = useState(false);
-  const consoleRef = useRef<HTMLDivElement>(null);
   const elapsedMs = useElapsed(run);
   const running = run.status === "running";
-
-  useEffect(() => {
-    const el = consoleRef.current;
-    if (el) el.scrollTop = el.scrollHeight;
-  }, [run.lines]);
 
   return (
     <BaseDialog
@@ -77,17 +64,6 @@ const RunningScriptDialog = ({
     >
       <div className="p-4 text-size-base text-default flex flex-col gap-4">
         {running && <RunProgress run={run} elapsedMs={elapsedMs} />}
-        {!isScriptOutputPanelOn && (
-          <>
-            {run.outcome && <RunResultDeprecated outcome={run.outcome} />}
-            <div
-              ref={consoleRef}
-              className="h-64 overflow-auto placemark-scrollbar bg-panel border rounded p-4 font-mono text-size-base text-default whitespace-pre-wrap"
-            >
-              <ConsoleLines lines={run.lines} />
-            </div>
-          </>
-        )}
       </div>
     </BaseDialog>
   );
