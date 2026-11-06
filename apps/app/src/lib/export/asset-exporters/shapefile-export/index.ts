@@ -10,13 +10,25 @@ import {
   type ExportedAssetTypes,
   type ExportedFile,
 } from "../../types";
-import { SHAPE_POINT, SHAPE_POLYLINE, WGS84_WKT, CPG_BYTES } from "./constants";
+import {
+  SHAPE_POINT,
+  SHAPE_POLYGON,
+  SHAPE_POLYLINE,
+  WGS84_WKT,
+  CPG_BYTES,
+} from "./constants";
 import { AssetWriter } from "./asset-writer";
 import { buildSchema } from "./schema";
-import { writePoint, writePolyLine } from "./geometry-writer";
+import {
+  polygonRecordBytes,
+  shapefileRings,
+  writePoint,
+  writePolyLine,
+  writePolygon,
+} from "./geometry-writer";
 import { writeDbfHeader, writeDbfRecord } from "./dbf-writer";
 import { writeShpHeader, writeShxHeader, patchBbox } from "./shp-header";
-import { FILE_NAMES } from "../constants";
+import { FILE_NAMES, ZONES_FILE_NAME } from "../constants";
 import {
   buildExportDefaults,
   resolveExportProperties,
@@ -29,6 +41,7 @@ import {
 import { createProjectionMapper } from "@epanet-js/projections";
 import { type Position } from "geojson";
 import { getEsriWktString } from "@epanet-js/projections";
+import { exportedZones, zoneFieldKeys, zoneFieldValue } from "../zone-fields";
 
 const CUSTOMER_POINT_FIELDS = [
   "label",
@@ -233,8 +246,62 @@ export const exportShapefiles = async (
     );
   }
 
-  for (const type in writers) {
-    const writer = writers[type as ExportedAssetTypes];
+  const zones = exportedZones(hydraulicModel, options);
+  const zoneWriter = new AssetWriter(SHAPE_POLYGON);
+  if (zones.length > 0) {
+    const zoneRings = zones.map((zone) =>
+      shapefileRings(
+        zone.geometry.coordinates.map((polygon) =>
+          polygon.map((ring) => ring.map(([x, y]) => transformCoord([x, y]))),
+        ),
+      ),
+    );
+    zoneWriter.recordCount = zones.length;
+    for (const rings of zoneRings) {
+      zoneWriter.shpBodyBytes += polygonRecordBytes(rings);
+    }
+    const keys = zoneFieldKeys(hydraulicModel);
+    zoneWriter.frozenSchema = buildSchema(
+      keys,
+      encoder,
+      "zone",
+      hydraulicModel.customAttributes,
+    );
+    zoneWriter.allocate();
+    writeShpHeader(zoneWriter);
+    writeShxHeader(zoneWriter);
+    writeDbfHeader(zoneWriter);
+
+    zones.forEach((zone, index) => {
+      const recordIndex = zoneWriter.nextRecordIndex();
+      const shxOffsetWords = zoneWriter.shpCursor / 2;
+      const contentLengthWords = writePolygon(
+        zoneWriter,
+        zoneRings[index],
+        recordIndex,
+      );
+      zoneWriter.shxView.setUint32(zoneWriter.shxCursor, shxOffsetWords, false);
+      zoneWriter.shxView.setUint32(
+        zoneWriter.shxCursor + 4,
+        contentLengthWords,
+        false,
+      );
+      zoneWriter.shxCursor += 8;
+
+      const props: Record<string, unknown> = {};
+      for (const key of keys) props[key] = zoneFieldValue(zone, key);
+      writeDbfRecord(zoneWriter, props, {}, encoder);
+    });
+  }
+
+  const outputs: [string, AssetWriter][] = [
+    ...(Object.keys(writers) as ExportedAssetTypes[]).map(
+      (type): [string, AssetWriter] => [FILE_NAMES[type], writers[type]],
+    ),
+    [ZONES_FILE_NAME, zoneWriter],
+  ];
+
+  for (const [, writer] of outputs) {
     if (writer.recordCount === 0) continue;
 
     patchBbox(writer);
@@ -244,11 +311,8 @@ export const exportShapefiles = async (
   const result: ExportedFile[] = [];
   const prjContent = await buildPrjContent(projection);
 
-  for (const t in writers) {
-    const type = t as ExportedAssetTypes;
-    const writer = writers[type];
+  for (const [fileName, writer] of outputs) {
     if (writer.recordCount === 0) continue;
-    const fileName = FILE_NAMES[type];
 
     result.push({
       fileName: `${fileName}.shp`,

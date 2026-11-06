@@ -9,3 +9,5 @@ export const FILE_NAMES: Record<ExportedAssetTypes, string> = {
   valve: "valves",
   customerPoint: "customer-points",
 };
+
+export const ZONES_FILE_NAME = "zones";

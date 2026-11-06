@@ -464,3 +464,54 @@ describe("exportXlsx", () => {
     expect(wb.SheetNames).toEqual(["Assets  network", "Assets  network 2"]);
   });
 });
+
+describe("exportXlsx zones", () => {
+  it("writes a zones sheet with the label and custom attributes", async () => {
+    const { handle, getWorkbook } = makeMockHandle();
+
+    await exportXlsx(handle, aZoneModel(), WGS84, translate, {
+      includeZones: true,
+    });
+
+    expect(sheetRows(getWorkbook(), "zones")).toEqual([
+      ["label", "Area", "Pop"],
+      ["NORTH", "LOW", 7],
+      ["SOUTH"],
+    ]);
+  });
+
+  it("leaves zones out unless asked to include them", async () => {
+    const { handle, getWorkbook } = makeMockHandle();
+
+    await exportXlsx(handle, aZoneModel(), WGS84, translate);
+
+    expect(getWorkbook().SheetNames).not.toContain("zones");
+  });
+});
+
+const aSquare = (x: number, size = 1) => [
+  [x, 0],
+  [x + size, 0],
+  [x + size, size],
+  [x, size],
+  [x, 0],
+];
+
+const aZoneModel = () =>
+  HydraulicModelBuilder.with()
+    .aCustomAttribute("zone", { id: "custom-1", label: "Area", type: "text" })
+    .aCustomAttribute("zone", { id: "custom-2", label: "Pop", type: "number" })
+    .aZone({
+      id: 1,
+      label: "NORTH",
+      geometry: { type: "MultiPolygon", coordinates: [[aSquare(0)]] },
+      bbox: [0, 0, 1, 1],
+      customAttributes: { "custom-1": "LOW", "custom-2": 7 },
+    })
+    .aZone({
+      id: 2,
+      label: "SOUTH",
+      geometry: { type: "MultiPolygon", coordinates: [[aSquare(5)]] },
+      bbox: [5, 0, 6, 1],
+    })
+    .build();

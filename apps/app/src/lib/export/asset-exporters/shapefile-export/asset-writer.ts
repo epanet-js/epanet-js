@@ -1,7 +1,7 @@
 import { type Field } from "./schema";
 
 export class AssetWriter {
-  readonly shapeType: 1 | 3;
+  readonly shapeType: 1 | 3 | 5;
   recordCount = 0;
   shpBodyBytes = 0;
   frozenSchema: Field[] = [];
@@ -28,7 +28,7 @@ export class AssetWriter {
 
   private _recordIndex = 0;
 
-  constructor(shapeType: 1 | 3) {
+  constructor(shapeType: 1 | 3 | 5) {
     this.shapeType = shapeType;
   }
 

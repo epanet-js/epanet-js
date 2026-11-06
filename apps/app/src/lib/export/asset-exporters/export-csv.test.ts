@@ -382,3 +382,60 @@ const parseCsvRows = (lines: string[]) => {
     return Object.fromEntries(headers.map((h, i) => [h, values[i] ?? ""]));
   });
 };
+
+describe("export-csv zones", () => {
+  it("writes a zones file with the label and custom attributes", async () => {
+    const files = exportCsv(aZoneModel(), WGS84, translate, {
+      includeZones: true,
+    });
+    const rows = parseCsvRows(await readCsv(findFile(files, "zones.csv")));
+
+    expect(rows).toEqual([
+      { label: "NORTH", Area: "LOW", Pop: "7" },
+      { label: "SOUTH", Area: "", Pop: "" },
+    ]);
+  });
+
+  it("writes only the selected zones", async () => {
+    const files = exportCsv(aZoneModel(), WGS84, translate, {
+      includeZones: true,
+      zoneIdFilter: new Set([2]),
+    });
+    const rows = parseCsvRows(await readCsv(findFile(files, "zones.csv")));
+
+    expect(rows.map((row) => row.label)).toEqual(["SOUTH"]);
+  });
+
+  it("leaves zones out unless asked to include them", () => {
+    const files = exportCsv(aZoneModel(), WGS84, translate);
+
+    expect(files.map((file) => file.fileName)).not.toContain("zones.csv");
+  });
+});
+
+const aSquare = (x: number, size = 1) => [
+  [x, 0],
+  [x + size, 0],
+  [x + size, size],
+  [x, size],
+  [x, 0],
+];
+
+const aZoneModel = () =>
+  HydraulicModelBuilder.with()
+    .aCustomAttribute("zone", { id: "custom-1", label: "Area", type: "text" })
+    .aCustomAttribute("zone", { id: "custom-2", label: "Pop", type: "number" })
+    .aZone({
+      id: 1,
+      label: "NORTH",
+      geometry: { type: "MultiPolygon", coordinates: [[aSquare(0)]] },
+      bbox: [0, 0, 1, 1],
+      customAttributes: { "custom-1": "LOW", "custom-2": 7 },
+    })
+    .aZone({
+      id: 2,
+      label: "SOUTH",
+      geometry: { type: "MultiPolygon", coordinates: [[aSquare(5)]] },
+      bbox: [5, 0, 6, 1],
+    })
+    .build();

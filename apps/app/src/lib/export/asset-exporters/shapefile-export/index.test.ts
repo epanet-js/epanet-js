@@ -508,3 +508,106 @@ describe("exportShapefiles", () => {
     expect(text).toContain("My Local Grid");
   });
 });
+
+describe("exportShapefiles zones", () => {
+  const ringsOf = (view: DataView) => {
+    const numParts = view.getUint32(144, true);
+    const numPoints = view.getUint32(148, true);
+    const starts = Array.from({ length: numParts }, (_, i) =>
+      view.getUint32(152 + 4 * i, true),
+    );
+    const pointsAt = 152 + 4 * numParts;
+    const points = Array.from({ length: numPoints }, (_, i) => [
+      view.getFloat64(pointsAt + 16 * i, true),
+      view.getFloat64(pointsAt + 16 * i + 8, true),
+    ]);
+    return starts.map((start, i) =>
+      points.slice(start, starts[i + 1] ?? numPoints),
+    );
+  };
+
+  it("writes zones as polygons with the label and custom attributes", async () => {
+    const files = await exportShapefiles(aZoneModel(), WGS84, translate, {
+      includeZones: true,
+    });
+    const shp = files.find((f) => f.fileName === "zones.shp")!;
+    const dbf = files.find((f) => f.fileName === "zones.dbf")!;
+    const view = await blobView(shp.blob);
+    const dbfBytes = await blobBytes(dbf.blob);
+
+    expect(view.getUint32(32, true)).toBe(5);
+    expect(view.getUint32(108, true)).toBe(5);
+    expect(readDbfField(dbfBytes, 0, "LABEL")).toBe("NORTH");
+    expect(readDbfField(dbfBytes, 0, "AREA")).toBe("LOW");
+    expect(Number(readDbfField(dbfBytes, 0, "POP"))).toBe(7);
+    expect(readDbfField(dbfBytes, 1, "AREA")).toBe("");
+  });
+
+  it("writes outer rings clockwise and holes counter-clockwise", async () => {
+    const outer = [
+      [0, 0],
+      [4, 0],
+      [4, 4],
+      [0, 4],
+      [0, 0],
+    ];
+    const hole = [
+      [1, 1],
+      [1, 2],
+      [2, 2],
+      [2, 1],
+      [1, 1],
+    ];
+    const model = HydraulicModelBuilder.with()
+      .aZone({
+        id: 1,
+        label: "NORTH",
+        geometry: { type: "MultiPolygon", coordinates: [[outer, hole]] },
+        bbox: [0, 0, 4, 4],
+      })
+      .build();
+
+    const files = await exportShapefiles(model, WGS84, translate, {
+      includeZones: true,
+    });
+    const shp = files.find((f) => f.fileName === "zones.shp")!;
+
+    expect(ringsOf(await blobView(shp.blob))).toEqual([
+      [...outer].reverse(),
+      [...hole].reverse(),
+    ]);
+  });
+
+  it("leaves zones out unless asked to include them", async () => {
+    const files = await exportShapefiles(aZoneModel(), WGS84, translate);
+
+    expect(fileNames(files)).not.toContain("zones.shp");
+  });
+});
+
+const aSquare = (x: number, size = 1) => [
+  [x, 0],
+  [x + size, 0],
+  [x + size, size],
+  [x, size],
+  [x, 0],
+];
+
+const aZoneModel = () =>
+  HydraulicModelBuilder.with()
+    .aCustomAttribute("zone", { id: "custom-1", label: "Area", type: "text" })
+    .aCustomAttribute("zone", { id: "custom-2", label: "Pop", type: "number" })
+    .aZone({
+      id: 1,
+      label: "NORTH",
+      geometry: { type: "MultiPolygon", coordinates: [[aSquare(0)]] },
+      bbox: [0, 0, 1, 1],
+      customAttributes: { "custom-1": "LOW", "custom-2": 7 },
+    })
+    .aZone({
+      id: 2,
+      label: "SOUTH",
+      geometry: { type: "MultiPolygon", coordinates: [[aSquare(5)]] },
+      bbox: [5, 0, 6, 1],
+    })
+    .build();

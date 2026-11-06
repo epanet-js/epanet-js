@@ -53,6 +53,8 @@ export type AssetExportOptions = {
   includeSimulationResults?: boolean;
   assetIdsFilter?: Set<number> | null;
   customerPointIdFilter?: Set<number> | null;
+  includeZones?: boolean;
+  zoneIdFilter?: Set<number> | null;
   resultsReader?: ResultsReader;
 };
 

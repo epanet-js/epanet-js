@@ -3,7 +3,7 @@ import { Asset, HydraulicModel, Projection } from "src/hydraulic-model";
 import { ResultsReader } from "src/simulation";
 import { AssetExportOptions, ExportedAssetTypes, ExportedFile } from "../types";
 import { CustomerPoint } from "@epanet-js/hydraulic-model";
-import { FILE_NAMES } from "./constants";
+import { FILE_NAMES, ZONES_FILE_NAME } from "./constants";
 import { NUM_DECIMAL_PLACES, COORDINATE_DECIMAL_PLACES } from "../constants";
 import { createProjectionMapper } from "@epanet-js/projections";
 import {
@@ -17,6 +17,7 @@ import {
 } from "./valve-target-node";
 import { buildPropertyNameResolver } from "./property-names";
 import { Position } from "geojson";
+import { exportedZones, zoneFieldKeys, zoneFieldValue } from "./zone-fields";
 
 export const exportCsv = (
   hydraulicModel: HydraulicModel,
@@ -248,7 +249,22 @@ export const exportCsv = (
     });
   }
 
-  return Object.entries(buffers)
+  const zones = exportedZones(hydraulicModel, options);
+  const zoneFiles: ExportedFile[] = [];
+  if (zones.length > 0) {
+    const keys = zoneFieldKeys(hydraulicModel);
+    const lines = [
+      keys
+        .map((key) => escapeCsvField(resolvePropertyName("zone", key)))
+        .join(","),
+      ...zones.map((zone) =>
+        keys.map((key) => formatCsvValue(zoneFieldValue(zone, key))).join(","),
+      ),
+    ];
+    zoneFiles.push(csvFile(ZONES_FILE_NAME, `${lines.join("\n")}\n`));
+  }
+
+  const assetFiles = Object.entries(buffers)
     .filter(([t]) => offsets[t as ExportedAssetTypes] > 0)
     .map(([t, buffer]) => {
       const type = t as ExportedAssetTypes;
@@ -265,6 +281,26 @@ export const exportCsv = (
         }),
       };
     });
+
+  return [...assetFiles, ...zoneFiles];
+};
+
+const csvFile = (name: string, content: string): ExportedFile => ({
+  fileName: `${name}.csv`,
+  extensions: [".csv"],
+  mimeTypes: ["text/csv"],
+  description: "CSV File",
+  blob: new Blob([content], { type: "text/csv" }),
+});
+
+const formatCsvValue = (value: string | number | null): string => {
+  if (value === null) return "";
+  if (typeof value === "number") {
+    return Math.trunc(value) === value
+      ? value.toString()
+      : value.toFixed(NUM_DECIMAL_PLACES);
+  }
+  return escapeCsvField(value);
 };
 
 const escapeCsvField = (value: string): string =>

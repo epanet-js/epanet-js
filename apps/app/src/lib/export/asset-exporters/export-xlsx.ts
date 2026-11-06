@@ -4,7 +4,7 @@ import { Asset, HydraulicModel, Projection } from "src/hydraulic-model";
 import { ResultsReader } from "src/simulation";
 import { AssetExportOptions, ExportedAssetTypes } from "../types";
 import { CustomerPoint } from "@epanet-js/hydraulic-model";
-import { FILE_NAMES } from "./constants";
+import { FILE_NAMES, ZONES_FILE_NAME } from "./constants";
 import { NUM_DECIMAL_PLACES, COORDINATE_DECIMAL_PLACES } from "../constants";
 import { createProjectionMapper } from "@epanet-js/projections";
 import {
@@ -22,6 +22,9 @@ import {
   PropertyNameResolver,
 } from "./property-names";
 import { Position } from "geojson";
+import { exportedZones, zoneFieldKeys, zoneFieldValue } from "./zone-fields";
+
+type SheetType = ExportedAssetTypes | "zone";
 
 const MAX_ROWS = 1_048_575;
 
@@ -60,10 +63,13 @@ export const exportXlsx = async (
     (t) => (assetTypeCounts.get(t) ?? 0) > 0,
   );
   const hasCustomerPoints = customerPointCount > 0;
+  const zones = exportedZones(hydraulicModel, options);
+  const hasZones = zones.length > 0;
 
-  const sheetTypes: ExportedAssetTypes[] = [
+  const sheetTypes: SheetType[] = [
     ...activeAssetTypes,
     ...(hasCustomerPoints ? (["customerPoint"] as const) : []),
+    ...(hasZones ? (["zone"] as const) : []),
   ];
   const sheetNames = buildSheetNames(sheetTypes, translate);
 
@@ -180,6 +186,24 @@ export const exportXlsx = async (
           closeSheetEntry(customerSheetEntry);
         }
 
+        if (hasZones) {
+          const zoneSheetEntry = openSheetEntry(zip, sheetTypes.length);
+          const keys = zoneFieldKeys(hydraulicModel);
+          pushRow(
+            zoneSheetEntry,
+            1,
+            keys.map((key) => resolvePropertyName("zone", key)),
+          );
+          zones.forEach((zone, index) => {
+            pushRow(
+              zoneSheetEntry,
+              index + 2,
+              keys.map((key) => zoneFieldValue(zone, key)),
+            );
+          });
+          closeSheetEntry(zoneSheetEntry);
+        }
+
         zip.end();
       } catch (err) {
         reject(err);
@@ -196,7 +220,7 @@ export const exportXlsx = async (
 const XLSX_SHEET_NAME_MAX_LENGTH = 31;
 const INVALID_SHEET_NAME_CHARS = /[\\/?*[\]:]/g;
 
-const SHEET_NAME_KEYS: Record<ExportedAssetTypes, string> = {
+const SHEET_NAME_KEYS: Record<SheetType, string> = {
   junction: "junctions",
   reservoir: "reservoirs",
   tank: "tanks",
@@ -204,10 +228,11 @@ const SHEET_NAME_KEYS: Record<ExportedAssetTypes, string> = {
   pump: "pumps",
   valve: "valves",
   customerPoint: "customerPoints",
+  zone: "zones",
 };
 
 const buildSheetNames = (
-  types: ExportedAssetTypes[],
+  types: SheetType[],
   translate: TranslateFn,
 ): string[] => {
   const usedNames = new Set<string>();
@@ -216,7 +241,8 @@ const buildSheetNames = (
       translate(SHEET_NAME_KEYS[type])
         .replace(INVALID_SHEET_NAME_CHARS, " ")
         .trim()
-        .slice(0, XLSX_SHEET_NAME_MAX_LENGTH) || FILE_NAMES[type];
+        .slice(0, XLSX_SHEET_NAME_MAX_LENGTH) ||
+      (type === "zone" ? ZONES_FILE_NAME : FILE_NAMES[type]);
 
     let candidate = base;
     for (let suffix = 2; usedNames.has(candidate); suffix++) {

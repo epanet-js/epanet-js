@@ -8,7 +8,7 @@ import {
 import { AssetExportOptions, ExportedAssetTypes, ExportedFile } from "../types";
 import { ResultsReader } from "src/simulation";
 import { Feature, Position } from "geojson";
-import { FILE_NAMES } from "./constants";
+import { FILE_NAMES, ZONES_FILE_NAME } from "./constants";
 import { NUM_DECIMAL_PLACES, COORDINATE_DECIMAL_PLACES } from "../constants";
 import { createProjectionMapper } from "@epanet-js/projections";
 import {
@@ -25,6 +25,7 @@ import {
   buildPropertyNameResolver,
   PropertyNameResolver,
 } from "./property-names";
+import { exportedZones, zoneFieldKeys, zoneFieldValue } from "./zone-fields";
 
 const GEOJSON_END = `]}`;
 
@@ -167,7 +168,48 @@ export const exportGeoJson = (
   const endByteLength = encoder.encode(GEOJSON_END).length;
   const emptyFileLength = headerByteLength + endByteLength;
 
-  return Object.entries(buffers)
+  const zones = exportedZones(hydraulicModel, options);
+  const zoneFiles: ExportedFile[] = [];
+  if (zones.length > 0) {
+    const keys = zoneFieldKeys(hydraulicModel);
+    const roundPosition = ([x, y, ...rest]: Position): Position => {
+      const [sx, sy] = transformCoord([x, y]);
+      return [
+        Number(sx.toFixed(COORDINATE_DECIMAL_PLACES)),
+        Number(sy.toFixed(COORDINATE_DECIMAL_PLACES)),
+        ...rest,
+      ];
+    };
+    const features = zones.map((zone) => {
+      const properties: Record<string, unknown> = {};
+      for (const key of keys) {
+        const value = zoneFieldValue(zone, key);
+        if (value !== null) properties[key] = value;
+      }
+      return JSON.stringify({
+        type: "Feature",
+        geometry: {
+          type: "MultiPolygon",
+          coordinates: zone.geometry.coordinates.map((polygon) =>
+            polygon.map((ring) => ring.map(roundPosition)),
+          ),
+        },
+        properties: localizePropertyKeys(
+          properties,
+          "zone",
+          resolvePropertyName,
+        ),
+      });
+    });
+    zoneFiles.push(
+      geoJsonFile(
+        ZONES_FILE_NAME,
+        `${header}${features.join(",")}${GEOJSON_END}`,
+      ),
+    );
+  }
+
+  const assetFiles = Object.entries(buffers)
     .filter(([t]) => offsets[t as ExportedAssetTypes] > emptyFileLength)
     .map(([t, buffer]) => {
       const type = t as ExportedAssetTypes;
@@ -184,7 +226,17 @@ export const exportGeoJson = (
         }),
       };
     });
+
+  return [...assetFiles, ...zoneFiles];
 };
+
+const geoJsonFile = (name: string, content: string): ExportedFile => ({
+  fileName: `${name}.geojson`,
+  extensions: [".geojson"],
+  mimeTypes: ["text/geo+json"],
+  description: "GeoJSON File",
+  blob: new Blob([content], { type: "text/geo+json" }),
+});
 
 const buildSimulationResultsReader = (resultsReader?: ResultsReader) => {
   if (!resultsReader) {
@@ -241,7 +293,7 @@ const prefixSimulationKeys = (simulationResults: Record<string, unknown>) => {
 
 const localizePropertyKeys = (
   properties: Record<string, unknown>,
-  assetType: ExportedAssetTypes,
+  assetType: ExportedAssetTypes | "zone",
   resolvePropertyName: PropertyNameResolver,
 ): Record<string, unknown> => {
   const localized: Record<string, unknown> = {};

@@ -439,3 +439,58 @@ const mockResultsReader = (pressure: number, demand: number) =>
     getPump: vi.fn().mockReturnValue({}),
     getValve: vi.fn().mockReturnValue({}),
   }) as unknown as ResultsReader;
+
+describe("export-geojson zones", () => {
+  it("writes a zones file of multipolygons with the label and custom attributes", async () => {
+    const files = exportGeoJson(aZoneModel(), WGS84, translate, {
+      includeZones: true,
+    });
+    const geoJson = await parseGeoJson(findFile(files, "zones.geojson"));
+
+    expect(geoJson.features).toEqual([
+      {
+        type: "Feature",
+        geometry: { type: "MultiPolygon", coordinates: [[aSquare(0)]] },
+        properties: { label: "NORTH", Area: "LOW", Pop: 7 },
+      },
+      {
+        type: "Feature",
+        geometry: { type: "MultiPolygon", coordinates: [[aSquare(5)]] },
+        properties: { label: "SOUTH" },
+      },
+    ]);
+  });
+
+  it("leaves zones out unless asked to include them", () => {
+    const files = exportGeoJson(aZoneModel(), WGS84, translate);
+
+    expect(files.map((file) => file.fileName)).not.toContain("zones.geojson");
+  });
+});
+
+const aSquare = (x: number, size = 1) => [
+  [x, 0],
+  [x + size, 0],
+  [x + size, size],
+  [x, size],
+  [x, 0],
+];
+
+const aZoneModel = () =>
+  HydraulicModelBuilder.with()
+    .aCustomAttribute("zone", { id: "custom-1", label: "Area", type: "text" })
+    .aCustomAttribute("zone", { id: "custom-2", label: "Pop", type: "number" })
+    .aZone({
+      id: 1,
+      label: "NORTH",
+      geometry: { type: "MultiPolygon", coordinates: [[aSquare(0)]] },
+      bbox: [0, 0, 1, 1],
+      customAttributes: { "custom-1": "LOW", "custom-2": 7 },
+    })
+    .aZone({
+      id: 2,
+      label: "SOUTH",
+      geometry: { type: "MultiPolygon", coordinates: [[aSquare(5)]] },
+      bbox: [5, 0, 6, 1],
+    })
+    .build();

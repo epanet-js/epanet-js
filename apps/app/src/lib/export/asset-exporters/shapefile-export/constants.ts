@@ -1,5 +1,6 @@
 export const SHAPE_POINT = 1 as const;
 export const SHAPE_POLYLINE = 3 as const;
+export const SHAPE_POLYGON = 5 as const;
 
 export const DBF_NUMBER_LENGTH = 19;
 export const DBF_NUMBER_DECIMALS = 6;
