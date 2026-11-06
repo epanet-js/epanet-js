@@ -522,6 +522,9 @@ const NODE_CHANGES = `  /** ${EMPTIES} */
 const BY_LABEL =
   "Patterns and curves are named by label, and must be of the type the attribute takes.";
 
+const LABEL_RULE =
+  "A label is unique among the nodes or among the links, ignoring case, and is up to 64 bytes of Latin-1 characters with no spaces or semicolons. The old label stops finding the asset straight away; to swap two labels, go through a third.";
+
 const setOf = (
   owner: string,
   changes: string,
@@ -531,15 +534,18 @@ const setOf = (
   memberOf(owner)({
     name: "set",
     signature: `set(changes: {
+  label?: string;
 ${changes}
 }): void`,
     summary: `Changes the ${owner.toLowerCase()}'s attributes, in the same units its getters read them.`,
     description: [
       "The asset reads the new values straight away. The changes reach the network when the script finishes, as one change the user can undo; if the script throws, none of them do. Leave out an attribute to keep its value.",
+      LABEL_RULE,
       ...notes,
     ].join(" "),
     throws: [
       "`TypeError` when `changes` names an attribute it cannot set, or gives a value of the wrong type. For an attribute another method changes, the message names that method.",
+      "`TypeError` when `label` is not a valid label, or another asset has it.",
     ],
     examples: [{ code: example }],
   });
@@ -707,7 +713,24 @@ const setCustomOf = (owner: string, example: string): Member =>
     examples: [{ code: example }],
   });
 
+const SET_CUSTOMER_POINT: Member = memberOf("CustomerPoint")({
+  name: "set",
+  signature: `set(changes: {
+  label?: string;
+}): void`,
+  summary: "Changes the customer point's label.",
+  description:
+    "A label is unique among the customer points, ignoring case, and is up to 64 characters. The customer point reads the new label straight away and the old one stops finding it; the change reaches the network with the other changes.",
+  throws: [
+    "`TypeError` when `changes` names anything else, `label` is not a valid label, or another customer point has it.",
+  ],
+  examples: [
+    { code: `network.getCustomerPoint("CP1").set({ label: "CP-NORTH" });` },
+  ],
+});
+
 const EDITS_AFTER: [owner: string, name: string, added: Member][] = [
+  ["CustomerPoint", "getCustom", SET_CUSTOMER_POINT],
   [
     "Asset",
     "getCustom",
