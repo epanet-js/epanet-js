@@ -32,10 +32,12 @@ type CustomChange = (
 export const CustomAttributesSection = ({
   asset,
   type,
+  readonly = false,
   onPropertyChange,
 }: {
   asset: Asset;
   type: CustomAttributeAssetType;
+  readonly?: boolean;
   onPropertyChange: OnPropertyChange;
 }) => {
   const translate = useTranslate();
@@ -78,6 +80,7 @@ export const CustomAttributesSection = ({
             attribute={attribute}
             value={value}
             comparison={getComparison(attribute.id, value)}
+            readOnly={readonly}
             onChange={handleChange}
           />
         );

@@ -186,12 +186,18 @@ export function ZonePanel() {
           {translate("zone")}
         </span>
       </div>
-      <ZoneSections key={zone.id} zone={zone} />
+      <ZoneSections key={zone.id} zone={zone} readOnly={isEditionBlocked} />
     </div>
   );
 }
 
-const ZoneSections = ({ zone }: { zone: Zone }) => {
+const ZoneSections = ({
+  zone,
+  readOnly,
+}: {
+  zone: Zone;
+  readOnly: boolean;
+}) => {
   const translate = useTranslate();
   const isZoneCustomAttributesOn = useFeatureFlag(
     "FLAG_ZONE_CUSTOM_ATTRIBUTES",
@@ -217,7 +223,9 @@ const ZoneSections = ({ zone }: { zone: Zone }) => {
       >
         {isPending ? <RangeLoader /> : <PressureRangeRows range={pressures} />}
       </SectionWrapper>
-      {isZoneCustomAttributesOn && <ZoneCustomAttributesSection zone={zone} />}
+      {isZoneCustomAttributesOn && (
+        <ZoneCustomAttributesSection zone={zone} readOnly={readOnly} />
+      )}
     </SectionList>
   );
 };

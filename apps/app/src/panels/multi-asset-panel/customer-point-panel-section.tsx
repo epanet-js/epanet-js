@@ -25,8 +25,10 @@ import { MultiCustomerPointCustomAttributesSection } from "./multi-customer-poin
 
 export function CustomerPointPanelSection({
   customerPoints,
+  readonly = false,
 }: {
   customerPoints: CustomerPoint[];
+  readonly?: boolean;
 }) {
   const translate = useTranslate();
   const { units, formatting } = useAtomValue(projectSettingsAtom);
@@ -130,6 +132,7 @@ export function CustomerPointPanelSection({
             customAttributes={
               <MultiCustomerPointCustomAttributesSection
                 customerPointIds={customerPointIds}
+                readonly={readonly}
                 onSelectCustomerPoints={handleSelect}
               />
             }

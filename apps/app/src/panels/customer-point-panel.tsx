@@ -20,6 +20,7 @@ import { TextRow, QuantityRow } from "./asset-panel/ui-components";
 import { DemandCategoriesEditor } from "./asset-panel/demands-editor";
 import { CustomerPointCustomAttributesSection } from "./customer-point-custom-attributes-section";
 import { EditableTextField } from "src/components/form/editable-text-field";
+import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
 import { useLabelMaxLength } from "src/hooks/use-label-max-length";
 import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -46,6 +47,7 @@ export function CustomerPointPanel() {
   const { transact } = useModelTransaction();
   const zoomTo = useZoomTo();
   const { units } = useAtomValue(projectSettingsAtom);
+  const isEditionBlocked = useIsEditionBlocked();
   const selectedCustomerPointId = USelection.singleCustomerPointId(selection);
   const customerPoint =
     selectedCustomerPointId !== null
@@ -279,7 +281,10 @@ export function CustomerPointPanel() {
             readOnly={true}
           />
         </SectionWrapper>
-        <CustomerPointCustomAttributesSection customerPoint={customerPoint} />
+        <CustomerPointCustomAttributesSection
+          customerPoint={customerPoint}
+          readOnly={isEditionBlocked}
+        />
       </SectionList>
     </div>
   );

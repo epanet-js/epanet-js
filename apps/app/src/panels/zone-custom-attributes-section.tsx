@@ -16,7 +16,13 @@ import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { SectionWrapper } from "./asset-panel/ui-components";
 import { CustomAttributeRow } from "./custom-attribute-row";
 
-export const ZoneCustomAttributesSection = ({ zone }: { zone: Zone }) => {
+export const ZoneCustomAttributesSection = ({
+  zone,
+  readOnly = false,
+}: {
+  zone: Zone;
+  readOnly?: boolean;
+}) => {
   const translate = useTranslate();
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const { transact } = useModelTransaction();
@@ -72,6 +78,7 @@ export const ZoneCustomAttributesSection = ({ zone }: { zone: Zone }) => {
             attribute={attribute}
             value={value}
             comparison={getComparison(attribute.id, value)}
+            readOnly={readOnly}
             onChange={handleChange}
           />
         );

@@ -579,6 +579,7 @@ const JunctionEditor = ({
       <CustomAttributesSection
         asset={junction}
         type="junction"
+        readonly={readonly}
         onPropertyChange={onPropertyChange}
       />
       <SectionWrapper
@@ -952,6 +953,7 @@ const PipeEditor = ({
       <CustomAttributesSection
         asset={pipe}
         type="pipe"
+        readonly={readonly}
         onPropertyChange={onPropertyChange}
       />
       {(customerCount > 0 ||
@@ -1172,6 +1174,7 @@ const ReservoirEditor = ({
       <CustomAttributesSection
         asset={reservoir}
         type="reservoir"
+        readonly={readonly}
         onPropertyChange={onPropertyChange}
       />
       <SectionWrapper title={translate("quality")} section="quality">
@@ -1398,6 +1401,7 @@ const TankEditor = ({
       <CustomAttributesSection
         asset={tank}
         type="tank"
+        readonly={readonly}
         onPropertyChange={onPropertyChange}
       />
       <SectionWrapper title={translate("quality")} section="quality">
@@ -2408,6 +2412,7 @@ const ValveEditor = ({
       <CustomAttributesSection
         asset={valve}
         type="valve"
+        readonly={readonly}
         onPropertyChange={onPropertyChange}
       />
       {showControls && (
@@ -2699,6 +2704,7 @@ const PumpEditor = ({
       <CustomAttributesSection
         asset={pump}
         type="pump"
+        readonly={readonly}
         onPropertyChange={onPropertyChange}
       />
       <SectionWrapper title={translate("controls.title")} section="controls">

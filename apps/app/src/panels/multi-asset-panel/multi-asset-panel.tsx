@@ -479,7 +479,10 @@ export function MultiAssetPanel({
       )}
 
       {selectedCustomerPoints.length > 0 && (
-        <CustomerPointPanelSection customerPoints={selectedCustomerPoints} />
+        <CustomerPointPanelSection
+          customerPoints={selectedCustomerPoints}
+          readonly={readonly}
+        />
       )}
 
       {zoneCount > 0 && (
