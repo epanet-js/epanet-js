@@ -5,14 +5,12 @@ import { useOrganization } from "src/hooks/use-organization";
 import { useEffectivePlan } from "src/hooks/use-effective-plan";
 import { Plan, isTrialActive } from "@epanet-js/account-plans";
 import { isDemoNetworkAtom } from "src/state/file-system";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export type Permissions = {
   canAddCustomLayers: boolean;
   canUseScenarios: boolean;
   canUseElevations: boolean;
   canRefreshElevations: boolean;
-  canUseZones: boolean;
   canUsePipeAttributes: boolean;
   canUseAdvancedModelBuild: boolean;
   canValidateModelAttributes: boolean;
@@ -31,7 +29,6 @@ export const resolvePermissions = (
   trialActive: boolean,
   isOrgAdmin: boolean,
   isDemoNetwork: boolean,
-  isFreeZonesOn = false,
 ): Permissions => {
   const hasPaidAccess =
     ["pro", "education", "personal", "teams"].includes(plan) || trialActive;
@@ -40,7 +37,6 @@ export const resolvePermissions = (
     canUseScenarios: hasPaidAccess || isDemoNetwork,
     canUseElevations: hasPaidAccess,
     canRefreshElevations: hasPaidAccess,
-    canUseZones: hasPaidAccess || isDemoNetwork || isFreeZonesOn,
     canUsePipeAttributes: hasPaidAccess || isDemoNetwork,
     canUseAdvancedModelBuild:
       ["pro", "teams", "education"].includes(plan) || trialActive,
@@ -64,16 +60,9 @@ export const usePermissions = (): Permissions => {
   const membership = "membership" in org ? org.membership : null;
   const isOrgAdmin = membership?.role === "org:admin";
   const isDemoNetwork = useAtomValue(isDemoNetworkAtom);
-  const isFreeZonesOn = useFeatureFlag("FLAG_FREE_ZONES");
   return useMemo(
     () =>
-      resolvePermissions(
-        effectivePlan,
-        trialActive,
-        isOrgAdmin,
-        isDemoNetwork,
-        isFreeZonesOn,
-      ),
-    [effectivePlan, trialActive, isOrgAdmin, isDemoNetwork, isFreeZonesOn],
+      resolvePermissions(effectivePlan, trialActive, isOrgAdmin, isDemoNetwork),
+    [effectivePlan, trialActive, isOrgAdmin, isDemoNetwork],
   );
 };

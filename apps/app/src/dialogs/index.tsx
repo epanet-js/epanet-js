@@ -61,7 +61,6 @@ import { ScenarioSignInDialog } from "src/dialogs/scenario-sign-in";
 import { ScenariosPaywallConnector } from "src/dialogs/paywall/scenarios-connector";
 import { ElevationsPaywallConnector } from "src/dialogs/paywall/elevations-connector";
 import { CustomLayersPaywallConnector } from "src/dialogs/paywall/custom-layers-connector";
-import { ZonesPaywallConnector } from "src/dialogs/paywall/zones-connector";
 import { PipeLibraryPaywallConnector } from "src/dialogs/paywall/pipe-library-connector";
 import { CustomAttributesPaywallConnector } from "src/dialogs/paywall/custom-attributes-connector";
 import { ConvertModelPaywallConnector } from "src/dialogs/paywall/convert-model-connector";
@@ -306,9 +305,6 @@ export const Dialogs = memo(function Dialogs() {
     }
     if (dialog.feature === "customLayers") {
       return <CustomLayersPaywallConnector onClose={onClose} />;
-    }
-    if (dialog.feature === "zones") {
-      return <ZonesPaywallConnector onClose={onClose} />;
     }
     if (dialog.feature === "pipeLibrary") {
       return <PipeLibraryPaywallConnector onClose={onClose} />;

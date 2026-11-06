@@ -97,9 +97,6 @@ function useSelectionActions(source: ActionProps["as"]): Action[] {
       hasAssets ||
       hasCustomerPoints ||
       (isDeleteZoneOn && selectionCounts.zones > 0),
-    lockedFeature:
-      !hasAssets && !hasCustomerPoints ? ("zones" as const) : undefined,
-    lockSource: "delete" as const,
     icon: <DeleteIcon />,
     onSelect: onDelete,
   };

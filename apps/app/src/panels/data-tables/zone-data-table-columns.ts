@@ -5,7 +5,6 @@ import type { FormattingSpec } from "@epanet-js/project-settings";
 import type { ZoneRow } from "./zone-data-table-data";
 import {
   customAttributeColumns,
-  lockHeaderAction,
   type AttributesLock,
 } from "./custom-attribute-columns";
 
@@ -15,7 +14,6 @@ export function buildZoneColumns(
   validateLabel: (label: string, row: ZoneRow) => boolean,
   customAttributes: CustomAttribute[] = [],
   customAttributesLock?: AttributesLock,
-  labelLock?: AttributesLock,
   labelMaxLength?: number,
 ): GridColumn<ZoneRow>[] {
   const labelColumn = textColumn<ZoneRow>("label", {
@@ -23,14 +21,7 @@ export function buildZoneColumns(
     validate: validateLabel,
     cleanLabel: (raw) =>
       LabelManager.sanitizeLabel(raw, "zone", labelMaxLength),
-    isReadOnly: !!labelLock,
   });
-  if (labelLock) {
-    labelColumn.meta = {
-      ...labelColumn.meta,
-      customHeaderActions: [lockHeaderAction(labelLock, translate)],
-    };
-  }
 
   return [
     labelColumn,

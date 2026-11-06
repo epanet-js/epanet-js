@@ -90,8 +90,6 @@ export const ZoneDataTable = memo(function ZoneDataTableInner({
     isLocked: customAttributesLocked,
     openPaywall: openCustomAttributesPaywall,
   } = useFeatureLock("customAttributes");
-  const { isLocked: renameLocked, openPaywall: openRenamePaywall } =
-    useFeatureLock("zones", "rename");
   const zonesVisible = useAtomValue(zonesVisibleAtom);
   const { selectZones } = useSelection(selection);
   const zoomTo = useZoomTo();
@@ -121,9 +119,6 @@ export const ZoneDataTable = memo(function ZoneDataTableInner({
     const customAttributesLock = customAttributesLocked
       ? { openPaywall: openCustomAttributesPaywall, icon: <PaywallLockIcon /> }
       : undefined;
-    const labelLock = renameLocked
-      ? { openPaywall: openRenamePaywall, icon: <PaywallLockIcon /> }
-      : undefined;
     return buildZoneColumns(
       translate,
       formatting,
@@ -134,7 +129,6 @@ export const ZoneDataTable = memo(function ZoneDataTableInner({
       },
       customAttributes,
       customAttributesLock,
-      labelLock,
       labelMaxLength,
     );
   }, [
@@ -144,8 +138,6 @@ export const ZoneDataTable = memo(function ZoneDataTableInner({
     customAttributes,
     customAttributesLocked,
     openCustomAttributesPaywall,
-    renameLocked,
-    openRenamePaywall,
     labelMaxLength,
   ]);
 

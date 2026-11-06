@@ -250,7 +250,6 @@ export type PaywallFeature =
   | "refreshElevations"
   | "customLayers"
   | "pipeAttributes"
-  | "zones"
   | "pipeLibrary"
   | "customAttributes"
   | "selectionSets"

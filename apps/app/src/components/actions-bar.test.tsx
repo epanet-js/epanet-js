@@ -145,7 +145,7 @@ describe("ActionsBar", () => {
               {
                 label: "Delete",
                 applicable: true,
-                lockedFeature: "zones",
+                lockedFeature: "customAttributes",
                 icon: <svg />,
                 onSelect,
               },
@@ -157,7 +157,7 @@ describe("ActionsBar", () => {
 
     await user.click(button("Paid feature: Delete") as HTMLElement);
 
-    expect(startUpgrade).toHaveBeenCalledWith("zones");
+    expect(startUpgrade).toHaveBeenCalledWith("customAttributes");
     expect(onSelect).not.toHaveBeenCalled();
   });
 

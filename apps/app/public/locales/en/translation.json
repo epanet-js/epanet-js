@@ -526,10 +526,6 @@
   "zone": "Zone",
   "zones": "Zones",
   "selectZoneContents": "Select contents",
-  "zonesNotDeleted": {
-    "title": "Zones weren't deleted",
-    "description": "Deleting zones is a paid feature."
-  },
   "none": "None",
   "globalDefault": "Global default",
   "empty": "Empty",
@@ -911,7 +907,6 @@
     "filterSplitAndRules": "Filter, split by value and custom rules",
     "pipeYearAndMaterials": "Pipe year and materials",
     "customAttributes": "Custom attributes",
-    "zones": "Zones",
     "largeModels": "Models over 100K assets",
     "saveBuildSettings": "Save build settings"
   },
@@ -2105,13 +2100,6 @@
       "explain": "Your current zones will be permanently deleted and replaced with the zones from your new import.",
       "question": "Are you sure you want to proceed?",
       "deleteAndImport": "Delete and import"
-    },
-    "paywall": {
-      "title": "Upgrade to import zones",
-      "description1": "Bring your zones into epanet-js and use them directly in your model.",
-      "description2": "Overlay pressure zones or metered areas to easily map your network’s footprint and understand your network at a glance.",
-      "plans": "Zone overlays are available on paid plans.",
-      "trial": "Zone overlays are a paid feature. Activate your free trial to get full access for 14 days—no credit card required."
     }
   },
   "pipeLibrary": {

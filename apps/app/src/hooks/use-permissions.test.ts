@@ -8,7 +8,6 @@ describe("resolvePermissions", () => {
     expect(p.canAddCustomLayers).toBe(false);
     expect(p.canUseScenarios).toBe(false);
     expect(p.canUseElevations).toBe(false);
-    expect(p.canUseZones).toBe(false);
     expect(p.canUsePipeAttributes).toBe(false);
     expect(p.canValidateModelAttributes).toBe(false);
     expect(p.canUsePipeLibrary).toBe(false);
@@ -25,7 +24,6 @@ describe("resolvePermissions", () => {
       expect(p.canAddCustomLayers).toBe(true);
       expect(p.canUseScenarios).toBe(true);
       expect(p.canUseElevations).toBe(true);
-      expect(p.canUseZones).toBe(true);
       expect(p.canUsePipeAttributes).toBe(true);
       expect(p.canValidateModelAttributes).toBe(true);
       expect(p.canUsePipeLibrary).toBe(true);
@@ -41,7 +39,6 @@ describe("resolvePermissions", () => {
     expect(p.canAddCustomLayers).toBe(true);
     expect(p.canUseScenarios).toBe(true);
     expect(p.canUseElevations).toBe(true);
-    expect(p.canUseZones).toBe(true);
     expect(p.canUsePipeAttributes).toBe(true);
     expect(p.canValidateModelAttributes).toBe(true);
     expect(p.canUpgrade).toBe(false);
@@ -53,7 +50,6 @@ describe("resolvePermissions", () => {
     expect(p.canAddCustomLayers).toBe(true);
     expect(p.canUseScenarios).toBe(true);
     expect(p.canUseElevations).toBe(true);
-    expect(p.canUseZones).toBe(true);
     expect(p.canUsePipeAttributes).toBe(true);
     expect(p.canUseAdvancedModelBuild).toBe(true);
     expect(p.canValidateModelAttributes).toBe(true);
@@ -66,7 +62,6 @@ describe("resolvePermissions", () => {
   it("free plan on a demo network can use the features the demo showcases", () => {
     const p = resolvePermissions("free", false, false, true);
     expect(p.canUsePipeAttributes).toBe(true);
-    expect(p.canUseZones).toBe(true);
     expect(p.canUsePipeLibrary).toBe(true);
     expect(p.canUseCustomAttributes).toBe(true);
     expect(p.canUseScenarios).toBe(true);

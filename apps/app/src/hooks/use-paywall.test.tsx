@@ -7,7 +7,6 @@ const defaultPermissions: Permissions = {
   canUseScenarios: false,
   canUseElevations: false,
   canRefreshElevations: false,
-  canUseZones: false,
   canUsePipeAttributes: false,
   canUseAdvancedModelBuild: false,
   canValidateModelAttributes: false,

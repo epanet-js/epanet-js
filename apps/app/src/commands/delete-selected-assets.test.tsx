@@ -15,52 +15,6 @@ import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { USelection } from "src/selection";
 import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
-import {
-  resolvePermissions,
-  type Permissions,
-} from "src/hooks/use-permissions";
-
-const permissionsRef: { current: Permissions } = {
-  current: resolvePermissions("pro", false, false, false),
-};
-
-vi.mock("src/hooks/use-permissions", async () => {
-  const actual = await vi.importActual<
-    typeof import("src/hooks/use-permissions")
-  >("src/hooks/use-permissions");
-  return {
-    ...actual,
-    usePermissions: () => permissionsRef.current,
-  };
-});
-
-const startUpgrade = vi.fn();
-vi.mock("src/hooks/use-paywall", async () => {
-  const actual = await vi.importActual<typeof import("src/hooks/use-paywall")>(
-    "src/hooks/use-paywall",
-  );
-  return {
-    ...actual,
-    useStartUpgrade: () => startUpgrade,
-  };
-});
-
-vi.mock("src/components/notifications", async (importOriginal) => {
-  const original =
-    await importOriginal<typeof import("src/components/notifications")>();
-  return {
-    ...original,
-    notify: vi.fn(),
-  };
-});
-
-import { notify } from "src/components/notifications";
-
-beforeEach(() => {
-  startUpgrade.mockClear();
-  vi.mocked(notify).mockClear();
-  permissionsRef.current = resolvePermissions("pro", false, false, false);
-});
 
 const aZone = (id: number, label: string) => ({
   id,
@@ -252,71 +206,6 @@ describe("delete selected", () => {
     const updatedHydraulicModel = store.get(stagingModelDerivedAtom);
     expect(updatedHydraulicModel.assets.has(IDS.J1)).toBe(false);
     expect(updatedHydraulicModel.zones.has(IDS.Z1)).toBe(false);
-    expect(notify).not.toHaveBeenCalled();
-  });
-
-  it("keeps selected zones without the zones plan", async () => {
-    stubFeatureOn("FLAG_DELETE_ZONE");
-    stubUserTracking();
-    permissionsRef.current = resolvePermissions("free", false, false, false);
-    const IDS = { Z1: 1 } as const;
-    const hydraulicModel = HydraulicModelBuilder.with()
-      .aZone(aZone(IDS.Z1, "NORTH"))
-      .build();
-    const selection = USelection.fromIds([], [], [IDS.Z1]);
-    const store = setInitialState({ hydraulicModel, selection });
-    renderComponent({ store });
-
-    await triggerCommand();
-
-    expect(startUpgrade).not.toHaveBeenCalled();
-    expect(store.get(stagingModelDerivedAtom).zones.has(IDS.Z1)).toBe(true);
-    expect(USelection.getZoneIds(store.get(selectionAtom))).toEqual([IDS.Z1]);
-    expect(notify).toHaveBeenCalledWith(
-      expect.objectContaining({ title: "Zones weren't deleted" }),
-    );
-  });
-
-  it("offers an upgrade from the notice about kept zones", async () => {
-    stubFeatureOn("FLAG_DELETE_ZONE");
-    stubUserTracking();
-    permissionsRef.current = resolvePermissions("free", false, false, false);
-    const IDS = { Z1: 1 } as const;
-    const hydraulicModel = HydraulicModelBuilder.with()
-      .aZone(aZone(IDS.Z1, "NORTH"))
-      .build();
-    const selection = USelection.fromIds([], [], [IDS.Z1]);
-    const store = setInitialState({ hydraulicModel, selection });
-    renderComponent({ store });
-
-    await triggerCommand();
-    vi.mocked(notify).mock.calls[0][0].action?.onClick();
-
-    expect(startUpgrade).toHaveBeenCalledWith("zones");
-  });
-
-  it("deletes the assets but keeps the zones of a mixed selection without the zones plan", async () => {
-    stubFeatureOn("FLAG_DELETE_ZONE");
-    stubUserTracking();
-    permissionsRef.current = resolvePermissions("free", false, false, false);
-    const IDS = { J1: 1, Z1: 2 } as const;
-    const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction(IDS.J1)
-      .aZone(aZone(IDS.Z1, "NORTH"))
-      .build();
-    const selection = USelection.fromIds([IDS.J1], [], [IDS.Z1]);
-    const store = setInitialState({ hydraulicModel, selection });
-    renderComponent({ store });
-
-    await triggerCommand();
-
-    const updatedHydraulicModel = store.get(stagingModelDerivedAtom);
-    expect(updatedHydraulicModel.assets.has(IDS.J1)).toBe(false);
-    expect(updatedHydraulicModel.zones.has(IDS.Z1)).toBe(true);
-    expect(startUpgrade).not.toHaveBeenCalled();
-    expect(notify).toHaveBeenCalledWith(
-      expect.objectContaining({ title: "Zones weren't deleted" }),
-    );
   });
 
   it("keeps selected zones when zone deletion is off", async () => {

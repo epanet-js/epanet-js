@@ -9,11 +9,6 @@ import { modelFactoriesAtom } from "src/state/model-factories";
 import { selectionAtom } from "src/state/selection";
 import { USelection } from "src/selection";
 import { EditableTextField } from "src/components/form/editable-text-field";
-import {
-  PaywallLockButton,
-  PaywallOverlay,
-  useFeatureLock,
-} from "src/components/form/paywall";
 import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
@@ -58,7 +53,6 @@ export function ZonePanel() {
   const worktree = useAtomValue(worktreeAtom);
   const { labelManager } = useAtomValue(modelFactoriesAtom);
   const { transact } = useModelTransaction();
-  const { isLocked } = useFeatureLock("zones", "rename");
   const [labelError, setLabelError] = useState<string | null>(null);
   const zoneId = USelection.singleZoneId(selection);
   const zone = zoneId !== null ? hydraulicModel.zones.get(zoneId) : undefined;
@@ -143,31 +137,11 @@ export function ZonePanel() {
     label: translate("delete"),
     variant: "danger-quiet",
     disabled: isEditionBlocked,
-    lockedFeature: "zones",
-    lockSource: "delete",
     onSelect: function doDelete() {
       deleteSelection({ source: "toolbar" });
       return Promise.resolve();
     },
   };
-
-  const labelField = (
-    <EditableTextField
-      label={zone.label}
-      value={zone.label}
-      onChangeValue={handleLabelChange}
-      onReset={clearLabelError}
-      onDirty={clearLabelError}
-      hasError={!!labelError}
-      styleOptions={{
-        padding: "sm",
-        ghostBorder: true,
-        fontWeight: "semibold",
-        textSize: "sm",
-        width: "content",
-      }}
-    />
-  );
 
   return (
     <div className="flex flex-col grow overflow-hidden">
@@ -177,19 +151,21 @@ export function ZonePanel() {
         )}
         <div className="flex items-center justify-between gap-2">
           <div className="min-w-0 flex-1 flex items-center gap-1">
-            {isLocked ? (
-              <>
-                <PaywallOverlay feature="zones" ariaLabel={translate("rename")}>
-                  {labelField}
-                </PaywallOverlay>
-                <PaywallLockButton
-                  feature="zones"
-                  label={translate("rename")}
-                />
-              </>
-            ) : (
-              labelField
-            )}
+            <EditableTextField
+              label={zone.label}
+              value={zone.label}
+              onChangeValue={handleLabelChange}
+              onReset={clearLabelError}
+              onDirty={clearLabelError}
+              hasError={!!labelError}
+              styleOptions={{
+                padding: "sm",
+                ghostBorder: true,
+                fontWeight: "semibold",
+                textSize: "sm",
+                width: "content",
+              }}
+            />
           </div>
           <ActionsBar
             actions={[

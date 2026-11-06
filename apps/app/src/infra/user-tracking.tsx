@@ -849,7 +849,6 @@ type ImportCustomerPointsStarted = {
 type ImportZonesStarted = {
   name: "importZones.started";
   source: string;
-  canUseZones: boolean;
 };
 
 type ImportCustomerPointsCompleted = {

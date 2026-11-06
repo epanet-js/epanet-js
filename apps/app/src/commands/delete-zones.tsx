@@ -4,7 +4,6 @@ import { removeZones } from "@epanet-js/hydraulic-model-operations";
 import { type ZoneId } from "@epanet-js/hydraulic-model";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import { AssetDeleted, useUserTracking } from "src/infra/user-tracking";
-import { useFeatureLock } from "src/components/form/paywall";
 import { USelection } from "src/selection";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { selectionAtom } from "src/state/selection";
@@ -14,15 +13,10 @@ export const useDeleteZones = () => {
   const [selection, setSelection] = useAtom(selectionAtom);
   const { transact } = useModelTransaction();
   const userTracking = useUserTracking();
-  const { isLocked, openPaywall } = useFeatureLock("zones", "delete");
 
   return useCallback(
     (zoneIds: ZoneId[], source: AssetDeleted["source"]) => {
       if (zoneIds.length === 0) return;
-      if (isLocked) {
-        openPaywall();
-        return;
-      }
 
       userTracking.capture({
         name: "zones.deleted",
@@ -44,14 +38,6 @@ export const useDeleteZones = () => {
 
       transact(() => removeZones(hydraulicModel, { zoneIds }));
     },
-    [
-      hydraulicModel,
-      selection,
-      setSelection,
-      transact,
-      userTracking,
-      isLocked,
-      openPaywall,
-    ],
+    [hydraulicModel, selection, setSelection, transact, userTracking],
   );
 };

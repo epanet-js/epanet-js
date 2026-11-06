@@ -74,9 +74,6 @@ export function useMultiAssetActions(readonly = false): Action[] {
     variant: "danger-quiet" as const,
     applicable:
       hasAssets || hasCustomerPoints || (isDeleteZoneOn && zoneCount > 0),
-    lockedFeature:
-      !hasAssets && !hasCustomerPoints ? ("zones" as const) : undefined,
-    lockSource: "delete" as const,
     priority: 1,
     disabled: readonly,
     icon: <DeleteIcon />,

@@ -15,10 +15,6 @@ import { modeAtom, Mode } from "src/state/mode";
 import { selectionAtom } from "src/state/selection";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { useFeatureLock } from "src/components/form/paywall";
-import { useTranslate } from "src/hooks/use-translate";
-import { notify } from "src/components/notifications";
-import { WarningIcon } from "src/icons";
 export const deleteSelectedShortcuts = ["backspace", "del"];
 
 export const useDeleteSelection = () => {
@@ -28,10 +24,7 @@ export const useDeleteSelection = () => {
   const setEphemeralState = useSetAtom(ephemeralStateAtom);
   const { transact } = useModelTransaction();
   const userTracking = useUserTracking();
-  const translate = useTranslate();
   const isDeleteZoneOn = useFeatureFlag("FLAG_DELETE_ZONE");
-  const { isLocked: isZonesLocked, openPaywall: openZonesPaywall } =
-    useFeatureLock("zones", "delete");
 
   const clearSelection = useCallback(() => {
     setSelection(USelection.none());
@@ -43,24 +36,7 @@ export const useDeleteSelection = () => {
     ({ source }: { source: AssetDeleted["source"] }) => {
       const assetIds = USelection.getAssetIds(selection);
       const customerPointIds = USelection.getCustomerPointIds(selection);
-      const selectedZoneIds = isDeleteZoneOn
-        ? USelection.getZoneIds(selection)
-        : [];
-      const zoneIds = isZonesLocked ? [] : selectedZoneIds;
-      if (isZonesLocked && selectedZoneIds.length > 0) {
-        notify({
-          variant: "warning",
-          Icon: WarningIcon,
-          title: translate("zonesNotDeleted.title"),
-          description: translate("zonesNotDeleted.description"),
-          action: {
-            label: translate("upgrade"),
-            variant: "default",
-            align: "inline",
-            onClick: openZonesPaywall,
-          },
-        });
-      }
+      const zoneIds = isDeleteZoneOn ? USelection.getZoneIds(selection) : [];
       if (
         assetIds.length === 0 &&
         customerPointIds.length === 0 &&
@@ -136,9 +112,6 @@ export const useDeleteSelection = () => {
       clearSelection,
       userTracking,
       isDeleteZoneOn,
-      isZonesLocked,
-      openZonesPaywall,
-      translate,
     ],
   );
 };

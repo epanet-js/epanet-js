@@ -1,5 +1,4 @@
 import { useTranslate } from "src/hooks/use-translate";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { CheckIcon } from "src/icons";
 import { FeaturesList } from "../upgrade";
 import { FeaturePaywall, type FeaturePaywallConfig } from "./feature-paywall";
@@ -9,24 +8,19 @@ const advancedFeatureKeys = [
   "filterSplitAndRules",
   "pipeYearAndMaterials",
   "customAttributes",
-  "zones",
   "largeModels",
   "saveBuildSettings",
 ];
 
 const AdvancedFeatures = () => {
   const translate = useTranslate();
-  const isFreeZonesOn = useFeatureFlag("FLAG_FREE_ZONES");
-  const featureKeys = isFreeZonesOn
-    ? advancedFeatureKeys.filter((key) => key !== "zones")
-    : advancedFeatureKeys;
 
   return (
     <div className="flex flex-col h-full overflow-y-auto px-4 bg-base">
       <div className="m-auto">
         <div className="flex flex-col justify-between flex-1">
           <FeaturesList
-            items={featureKeys.map((key) => ({
+            items={advancedFeatureKeys.map((key) => ({
               feature: translate(`modelBuilderPaywall.${key}`),
               Icon: CheckIcon,
               iconColor: "text-success",
