@@ -118,6 +118,24 @@ export const groupPath = (
   return labels;
 };
 
+export const canMoveGroup = (
+  groups: readonly SelectionSetGroup[],
+  id: SelectionSetGroupId,
+  parentId: SelectionSetGroupId | null,
+): boolean => {
+  if (parentId === null) return true;
+  if (parentId === id) return false;
+  if (!groups.some((group) => group.id === parentId)) return false;
+  return !descendantGroupIds(groups, id).includes(parentId);
+};
+
+export const moveGroup = (
+  groups: readonly SelectionSetGroup[],
+  id: SelectionSetGroupId,
+  parentId: SelectionSetGroupId | null,
+): SelectionSetGroup[] =>
+  groups.map((group) => (group.id === id ? { ...group, parentId } : group));
+
 export const setsInGroupSubtree = (
   groups: readonly SelectionSetGroup[],
   sets: readonly SelectionSet[],

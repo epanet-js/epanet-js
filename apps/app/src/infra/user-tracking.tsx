@@ -1929,6 +1929,7 @@ export type UserEvent =
       source: "panel";
     }
   | { name: "selectionSetGroup.renamed"; source: "panel" }
+  | { name: "selectionSetGroup.moved"; depth: number; source: "panel" }
   | {
       name: "selectionSetGroup.deleted";
       sets: number;

@@ -23,6 +23,15 @@ export const deleteSelectionSetGroups = async (
   });
 };
 
+export const moveSelectionSetGroup = async (
+  id: SelectionSetGroupId,
+  parentId: SelectionSetGroupId | null,
+): Promise<void> => {
+  await timed("moveSelectionSetGroup", async () => {
+    await getWorker().moveSelectionSetGroup(id, parentId);
+  });
+};
+
 export const renameSelectionSetGroup = async (
   id: SelectionSetGroupId,
   label: string,

@@ -95,6 +95,23 @@ describe("useSelectionSetGroupsTransaction", () => {
     expect(await storedLabels()).toEqual(["Uptown"]);
   });
 
+  it("moves a group int a new parent", async () => {
+    await anEmptyProject();
+    const store = setInitialState({});
+    const { result } = renderTransaction(store);
+
+    await act(async () => {
+      result.current.create(aGroup());
+      result.current.create(aGroup({ id: "group-2", label: "South" }));
+      result.current.move({ id: "group-2", parentId: "group-1" });
+      await writeQueue.whenIdle();
+    });
+
+    expect(store.get(selectionSetGroupsAtom)[1].parentId).toBe("group-1");
+    const { selectionSetGroups } = await fetchProject();
+    expect(selectionSetGroups[1].parentId).toBe("group-1");
+  });
+
   it("drops a deleted group from the project", async () => {
     await anEmptyProject();
     const store = setInitialState({});

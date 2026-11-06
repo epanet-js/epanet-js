@@ -1,11 +1,13 @@
 import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { USelection } from "src/selection";
 import {
+  canMoveGroup,
   childGroups,
   deleteGroupSubtree,
   descendantGroupIds,
   groupPath,
   largestContainedSet,
+  moveGroup,
   newSelectionSet,
   setsInGroupSubtree,
 } from "./collections";
@@ -201,6 +203,25 @@ describe("selection set groups", () => {
   it("lists the labels from the root down to the group", () => {
     expect(groupPath(tree, "deep")).toEqual(["DMAS", "SOUTH", "DEEP"]);
     expect(groupPath([aGroup("orphan", "gone")], "orphan")).toEqual(["ORPHAN"]);
+  });
+
+  it("lets a group move anywhere but into itself or its own subtree", () => {
+    expect(canMoveGroup(tree, "south", null)).toBe(true);
+    expect(canMoveGroup(tree, "south", "pipes")).toBe(true);
+    expect(canMoveGroup(tree, "south", "north")).toBe(true);
+    expect(canMoveGroup(tree, "south", "south")).toBe(false);
+    expect(canMoveGroup(tree, "south", "deep")).toBe(false);
+    expect(canMoveGroup(tree, "dmas", "deep")).toBe(false);
+    expect(canMoveGroup(tree, "south", "gone")).toBe(false);
+  });
+
+  it("re-parents a group and leaves the rest untouched", () => {
+    const moved = moveGroup(tree, "south", "pipes");
+
+    expect(moved.find((g) => g.id === "south")?.parentId).toBe("pipes");
+    expect(moved.filter((g) => g.id !== "south")).toEqual(
+      tree.filter((g) => g.id !== "south"),
+    );
   });
 
   it("counts the sets held anywhere below a group, not only its own", () => {

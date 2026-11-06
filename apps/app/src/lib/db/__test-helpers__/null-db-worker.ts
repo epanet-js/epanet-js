@@ -11,6 +11,7 @@ const silentWrites = new Set([
   "setAllSelectionSets",
   "insertSelectionSetGroup",
   "renameSelectionSetGroup",
+  "moveSelectionSetGroup",
   "deleteSelectionSetGroups",
   "saveBookmarks",
   "saveScript",

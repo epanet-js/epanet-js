@@ -26,6 +26,7 @@ import {
 import {
   useCreateSelectionSetGroup,
   useDeleteSelectionSetGroup,
+  useMoveSelectionSetGroup,
   useRenameSelectionSetGroup,
 } from "src/commands/selection-set-groups";
 import { Button, DDContent, StyledItem } from "src/components/elements";
@@ -71,6 +72,7 @@ import {
   type SelectionSetId,
   childGroups,
   countSelected,
+  descendantGroupIds,
   groupPath,
   largestContainedSet,
   matchesSelectionExactly,
@@ -150,6 +152,7 @@ export const CollectionsPanel = () => {
   const deleteSelectionSet = useDeleteSelectionSet();
   const createSelectionSetGroup = useCreateSelectionSetGroup();
   const renameSelectionSetGroup = useRenameSelectionSetGroup();
+  const moveSelectionSetGroup = useMoveSelectionSetGroup();
   const deleteSelectionSetGroup = useDeleteSelectionSetGroup();
   const setDialog = useSetAtom(dialogAtom);
   const addBookmark = useAddBookmark();
@@ -620,11 +623,16 @@ export const CollectionsPanel = () => {
 
     if (action.startsWith(MOVE_ACTION_PREFIX)) {
       const target = action.slice(MOVE_ACTION_PREFIX.length);
-      moveSelectionSet({
-        setId: row.id,
-        groupId: target === "" ? null : target,
-        source: "panel",
-      });
+      const targetId = target === "" ? null : target;
+      if (row.kind === "group") {
+        moveSelectionSetGroup({
+          groupId: row.id,
+          parentId: targetId,
+          source: "panel",
+        });
+      } else {
+        moveSelectionSet({ setId: row.id, groupId: targetId, source: "panel" });
+      }
       return;
     }
 
@@ -664,7 +672,12 @@ export const CollectionsPanel = () => {
   };
 
   const moveActionFor = (row: Row): ItemAction | null => {
-    if (!isGroupsOn || row.kind !== "set") return null;
+    if (!isGroupsOn || row.kind === "bookmark") return null;
+    const excluded = new Set(
+      row.kind === "group"
+        ? [row.id, ...descendantGroupIds(selectionSetGroups, row.id)]
+        : [],
+    );
     const targets: ItemAction[] = [
       ...(row.groupId !== null
         ? [
@@ -675,7 +688,7 @@ export const CollectionsPanel = () => {
           ]
         : []),
       ...groupRows
-        .filter((group) => group.id !== row.groupId)
+        .filter((group) => group.id !== row.groupId && !excluded.has(group.id))
         .map((group) => ({
           action: `${MOVE_ACTION_PREFIX}${group.id}`,
           label: groupPath(selectionSetGroups, group.id).join(" / "),
@@ -689,8 +702,6 @@ export const CollectionsPanel = () => {
       children: targets,
     };
   };
-
-  const groupActions: ItemAction[] = [renameAction, deleteAction];
 
   const itemActionsFor = (row: Row): ItemAction[] => {
     const move = moveActionFor(row);
@@ -774,7 +785,7 @@ export const CollectionsPanel = () => {
             <ItemActions
               label={moreActionsLabel}
               isSelected={isMenuOpen}
-              actions={groupActions}
+              actions={itemActionsFor(row)}
               onAction={(action) => handleAction(action, { id: row.navId })}
               onOpenChange={(open) => setMenuOpenGroupId(open ? row.id : null)}
             />

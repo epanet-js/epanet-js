@@ -91,6 +91,41 @@ export const useRenameSelectionSetGroup = () => {
   );
 };
 
+export const useMoveSelectionSetGroup = () => {
+  const userTracking = useUserTracking();
+  const { move } = useSelectionSetGroupsTransaction();
+  const { canManageCollections } = usePermissions();
+  const { openPaywall } = useFeatureLock("selectionSets");
+
+  return useAtomCallback(
+    useCallback(
+      (
+        get,
+        _set,
+        {
+          groupId,
+          parentId,
+          source,
+        }: {
+          groupId: SelectionSetGroupId;
+          parentId: SelectionSetGroupId | null;
+          source: "panel";
+        },
+      ) => {
+        if (!canManageCollections) return openPaywall();
+        if (!move({ id: groupId, parentId })) return;
+
+        userTracking.capture({
+          name: "selectionSetGroup.moved",
+          depth: depthOf(get(selectionSetGroupsAtom), parentId),
+          source,
+        });
+      },
+      [userTracking, move, canManageCollections, openPaywall],
+    ),
+  );
+};
+
 export const useDeleteSelectionSetGroup = () => {
   const userTracking = useUserTracking();
   const { remove } = useSelectionSetGroupsTransaction();

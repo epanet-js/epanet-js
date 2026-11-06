@@ -8,7 +8,9 @@ import { captureError } from "src/infra/error-tracking";
 import {
   type SelectionSetGroup,
   type SelectionSetGroupId,
+  canMoveGroup,
   deleteGroupSubtree,
+  moveGroup,
   renameItem,
 } from "src/lib/collections";
 import { writeQueue } from "src/lib/persistence/write-queue";
@@ -91,6 +93,37 @@ export const useSelectionSetGroupsTransaction = () => {
     ),
   );
 
+  const move = useAtomCallback(
+    useCallback(
+      (
+        get,
+        set,
+        {
+          id,
+          parentId,
+        }: { id: SelectionSetGroupId; parentId: SelectionSetGroupId | null },
+      ): boolean => {
+        const groups = get(selectionSetGroupsAtom);
+        const current = groups.find((group) => group.id === id);
+        if (!current) return false;
+        if (!canMoveGroup(groups, id, parentId)) return false;
+        if (!isStorable({ ...current, parentId })) return false;
+
+        set(selectionSetGroupsAtom, (groups) =>
+          moveGroup(groups, id, parentId),
+        );
+        markUnsaved(
+          set,
+          () => db.moveSelectionSetGroup(id, parentId),
+          onWriteFailure,
+        );
+
+        return true;
+      },
+      [isStorable, onWriteFailure],
+    ),
+  );
+
   const remove = useAtomCallback(
     useCallback(
       (get, set, id: SelectionSetGroupId) => {
@@ -111,5 +144,5 @@ export const useSelectionSetGroupsTransaction = () => {
     ),
   );
 
-  return { create, rename, remove };
+  return { create, rename, move, remove };
 };
