@@ -12,11 +12,22 @@ export type ScriptAssistantRequest = {
 
 export type WrittenScript = { source: string; name: string };
 
+export type ScriptAssistantFailure =
+  | "signedOut"
+  | "notEnabled"
+  | "limitReached"
+  | "tooLong"
+  | "unavailable";
+
+export type ScriptAssistantResult =
+  | { status: "written"; script: WrittenScript }
+  | { status: "failed"; reason: ScriptAssistantFailure; detail: string };
+
 export type ScriptAssistant = {
   writeScript: (
     request: ScriptAssistantRequest,
     options: { signal: AbortSignal; token: string | null },
-  ) => Promise<WrittenScript>;
+  ) => Promise<ScriptAssistantResult>;
 };
 
 let assistant: ScriptAssistant | null = null;

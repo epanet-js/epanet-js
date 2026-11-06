@@ -21,8 +21,11 @@ import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { userScriptsAtom, type UserScript } from "src/state/scripts";
 import { ScriptsPanel } from "./scripts-panel";
+import { notify } from "src/components/notifications";
+import { captureError, captureWarning } from "src/infra/error-tracking";
 import {
   registerScriptAssistant,
+  type ScriptAssistantFailure,
   type ScriptAssistantRequest,
   type WrittenScript,
 } from "src/lib/script-assistant";
@@ -39,7 +42,24 @@ const writes: {
   signal: AbortSignal;
   token: string | null;
   resolve: (written: WrittenScript) => void;
+  fail: (reason: ScriptAssistantFailure, detail: string) => void;
+  reject: (error: Error) => void;
 }[] = [];
+
+vi.mock("src/components/notifications", async () => ({
+  ...(await vi.importActual<typeof import("src/components/notifications")>(
+    "src/components/notifications",
+  )),
+  notify: vi.fn(),
+}));
+
+vi.mock("src/infra/error-tracking", async () => ({
+  ...(await vi.importActual<typeof import("src/infra/error-tracking")>(
+    "src/infra/error-tracking",
+  )),
+  captureError: vi.fn(),
+  captureWarning: vi.fn(),
+}));
 
 vi.mock("./code-editor", () => ({
   CodeEditor: ({
@@ -144,10 +164,21 @@ describe("ScriptsPanel", () => {
     beforeEach(() => {
       stubFeatureOn("FLAG_SCRIPTING_ASSISTANT");
       writes.length = 0;
+      vi.mocked(notify).mockClear();
+      vi.mocked(captureError).mockClear();
+      vi.mocked(captureWarning).mockClear();
       registerScriptAssistant({
         writeScript: (request, { signal, token }) =>
           new Promise((resolve, reject) => {
-            writes.push({ request, signal, token, resolve });
+            writes.push({
+              request,
+              signal,
+              token,
+              resolve: (script) => resolve({ status: "written", script }),
+              fail: (reason, detail) =>
+                resolve({ status: "failed", reason, detail }),
+              reject,
+            });
             signal.addEventListener("abort", () => reject(signal.reason));
           }),
       });
@@ -257,6 +288,91 @@ describe("ScriptsPanel", () => {
         expect(
           screen.getByRole("textbox", { name: "Describe a change" }),
         ).toHaveValue("");
+      });
+
+      const sendDescription = async () => {
+        const user = userEvent.setup();
+        const store = setInitialState({
+          hydraulicModel: HydraulicModelBuilder.with().build(),
+        });
+        renderPanel(store);
+
+        await user.click(screen.getByRole("button", { name: /new/i }));
+        await user.type(
+          screen.getByRole("textbox", {
+            name: "Describe the script you want",
+          }),
+          "Select small pipes",
+        );
+        await user.click(screen.getByRole("button", { name: "Send" }));
+      };
+
+      it("says why it failed and hands the description back", async () => {
+        await sendDescription();
+
+        writes[0].fail("limitReached", "402 limitReached");
+
+        await waitFor(() =>
+          expect(notify).toHaveBeenCalledWith(
+            expect.objectContaining({
+              variant: "error",
+              title: "You've used all your assistant credit",
+            }),
+          ),
+        );
+        expect(captureWarning).toHaveBeenCalledWith(
+          "The script assistant refused: 402 limitReached",
+        );
+        expect(captureError).not.toHaveBeenCalled();
+        expect(
+          await screen.findByRole("textbox", {
+            name: "Describe the script you want",
+          }),
+        ).toHaveValue("Select small pipes");
+        expect(
+          screen.queryByRole("textbox", { name: "Source" }),
+        ).not.toBeInTheDocument();
+      });
+
+      it("reports an unavailable router as an error", async () => {
+        await sendDescription();
+
+        writes[0].fail("unavailable", "502 unavailable");
+
+        await waitFor(() =>
+          expect(notify).toHaveBeenCalledWith(
+            expect.objectContaining({ title: "We couldn't write the script" }),
+          ),
+        );
+        expect(captureError).toHaveBeenCalledWith(
+          new Error("The script assistant failed: 502 unavailable"),
+        );
+        expect(captureWarning).not.toHaveBeenCalled();
+      });
+
+      it("treats a request that never arrives as unavailable", async () => {
+        await sendDescription();
+        const error = new TypeError("Failed to fetch");
+
+        writes[0].reject(error);
+
+        await waitFor(() =>
+          expect(notify).toHaveBeenCalledWith(
+            expect.objectContaining({ title: "We couldn't write the script" }),
+          ),
+        );
+        expect(captureError).toHaveBeenCalledWith(error);
+      });
+
+      it("stays quiet when the user stops it", async () => {
+        const user = userEvent.setup();
+        await sendDescription();
+
+        await user.click(screen.getByRole("button", { name: "Stop" }));
+
+        expect(writes[0].signal.aborted).toBe(true);
+        expect(notify).not.toHaveBeenCalled();
+        expect(captureError).not.toHaveBeenCalled();
       });
 
       it("stops and hands the description back", async () => {
