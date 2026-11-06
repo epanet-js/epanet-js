@@ -699,7 +699,7 @@ const setDemandsOf = (owner: string, unit: string, example: string): Member =>
     examples: [{ code: example }],
   });
 
-const setCustomOf = (owner: string, example: string): Member =>
+export const setCustomOf = (owner: string, example: string): Member =>
   memberOf(owner)({
     name: "setCustom",
     signature: "setCustom(name: string, value: string | number | null): void",

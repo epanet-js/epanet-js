@@ -33,7 +33,7 @@ const SECTION: SectionDef = {
 
 const ADD_CUSTOM_ATTRIBUTE: Member = network({
   name: "addCustomAttribute",
-  signature: `addCustomAttribute(type: AssetType | "customerPoint", attribute: {
+  signature: `addCustomAttribute(type: AssetType | "customerPoint" | "zone", attribute: {
   /** up to 64 characters, with no spaces at either end; unique within the type, ignoring case */
   name: string;
   /** fixed once added */
@@ -41,9 +41,9 @@ const ADD_CUSTOM_ATTRIBUTE: Member = network({
 }): CustomAttribute`,
   summary: "Defines a custom attribute for a type and returns it.",
   description:
-    "The attribute reads straight away through `customAttributes`, and every asset or customer point of the type can take a value for it with `setCustom` at once. Its type does not change later. Custom attributes cannot be changed while the project has scenarios, as in the app. The change reaches the network with the other changes.",
+    "The attribute reads straight away through `customAttributes`, and every asset, customer point or zone of the type can take a value for it with `setCustom` at once. Its type does not change later. Custom attributes cannot be changed while the project has scenarios, as in the app. The change reaches the network with the other changes.",
   throws: [
-    '`TypeError` when the project has scenarios, `type` is not an asset type or `"customerPoint"`, `name` is not valid or another attribute of the type has it, the attribute\'s `type` is not `"text"` or `"number"`, or `attribute` has another field.',
+    '`TypeError` when the project has scenarios, `type` is not an asset type, `"customerPoint"` or `"zone"`, `name` is not valid or another attribute of the type has it, the attribute\'s `type` is not `"text"` or `"number"`, or `attribute` has another field.',
   ],
   examples: [
     {
@@ -84,7 +84,7 @@ const DELETE_CUSTOM_ATTRIBUTE: Member = network({
   summary:
     "Deletes a custom attribute of a type, found by its name ignoring case, with every value it holds.",
   description:
-    "Every asset or customer point of the type loses its value for the attribute, as when the attribute is deleted in the app. Its name is free again straight away, and the attribute the script holds stops reading. Custom attributes cannot be changed while the project has scenarios. The deletion reaches the network with the other changes.",
+    "Every asset, customer point or zone of the type loses its value for the attribute, as when the attribute is deleted in the app. Its name is free again straight away, and the attribute the script holds stops reading. Custom attributes cannot be changed while the project has scenarios. The deletion reaches the network with the other changes.",
   throws: [
     '`TypeError` when the project has scenarios, `type` is not an asset type or `"customerPoint"`, or no attribute of the type has `name`.',
   ],
@@ -95,12 +95,24 @@ const DELETE_CUSTOM_ATTRIBUTE: Member = network({
   ],
 });
 
+const CUSTOM_ATTRIBUTES_WITH_ZONES: Member = network({
+  name: "customAttributes",
+  signature:
+    'customAttributes(type: AssetType | "customerPoint" | "zone"): CustomAttribute[]',
+  summary: "The custom attributes defined for a type.",
+  description: "Read a value with `asset.getCustom(name)`.",
+  throws: [
+    "`network.customAttributes expects one of junction, reservoir, tank, pipe, pump, valve, customerPoint, zone`",
+  ],
+});
+
 export const sectionFor = ({ edits }: DocsCandidates): SectionDef =>
   edits
     ? {
         ...SECTION,
         members: [
-          ...(SECTION.members ?? []),
+          CUSTOM_ATTRIBUTES_WITH_ZONES,
+          ...(SECTION.members ?? []).slice(1),
           ADD_CUSTOM_ATTRIBUTE,
           SET_CUSTOM_ATTRIBUTE,
           DELETE_CUSTOM_ATTRIBUTE,

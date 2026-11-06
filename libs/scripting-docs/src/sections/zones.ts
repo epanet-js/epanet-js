@@ -1,10 +1,11 @@
 import { memberOf, propertyOf } from "../members";
-import type { SectionDef } from "../types";
+import type { DocsCandidates, Member, SectionDef } from "../types";
+import { setCustomOf } from "./assets";
 
 const zones = memberOf("Zones");
 const zone = propertyOf("Zone");
 
-export const SECTION: SectionDef = {
+const SECTION: SectionDef = {
   id: "zones",
   title: "`zones` — the project's polygons",
   intro: `The polygons imported with **File › Import › Zones** — DMAs, pressure zones, supply areas. They are drawn boundaries, unrelated to connectivity: \`network.trace\` walks the pipes and knows nothing about them.
@@ -66,3 +67,39 @@ A node, a customer point or a \`[lng, lat]\` position is inside a zone when its 
   notes:
     "`console` and `ui.attachFile` print a zone as its label. Zones are the same in every scenario.",
 };
+
+const ZONE_EDITS: Member[] = [
+  memberOf("Zone")({
+    name: "getCustom",
+    signature: "getCustom(name: string): string | number | null",
+    summary: "A custom attribute's value by its name, or `null`.",
+  }),
+  setCustomOf(
+    "Zone",
+    `network.addCustomAttribute("zone", { name: "Owner", type: "text" });
+zones.get("NORTH").setCustom("Owner", "OPERATIONS");`,
+  ),
+  memberOf("Zone")({
+    name: "set",
+    signature: `set(changes: {
+  label?: string;
+}): void`,
+    summary: "Changes the zone's label.",
+    description:
+      "A label is unique among the zones, ignoring case. The zone reads the new label straight away and `zones.get` stops finding the old one; the change reaches the network with the other changes.",
+    throws: [
+      "`TypeError` when `changes` names anything else, `label` is empty or not a string, or another zone has it.",
+    ],
+    examples: [{ code: `zones.get("NORTH").set({ label: "NORTH-EAST" });` }],
+  }),
+];
+
+export const sectionFor = ({ edits }: DocsCandidates): SectionDef =>
+  edits
+    ? {
+        ...SECTION,
+        members: [...(SECTION.members ?? []), ...ZONE_EDITS],
+        notes:
+          "`console` and `ui.attachFile` print a zone as its label. A change made in a scenario stays in that scenario.",
+      }
+    : SECTION;
