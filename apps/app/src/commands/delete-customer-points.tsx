@@ -29,7 +29,8 @@ export const useDeleteCustomerPoints = () => {
       if (selectedCpIds.some((id) => removed.has(id))) {
         const remainingCps = selectedCpIds.filter((id) => !removed.has(id));
         const assetIds = USelection.getAssetIds(selection).slice();
-        setSelection(USelection.fromIds(assetIds, remainingCps));
+        const zoneIds = USelection.getZoneIds(selection);
+        setSelection(USelection.fromIds(assetIds, remainingCps, zoneIds));
       }
 
       transact(() =>

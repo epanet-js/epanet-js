@@ -43,7 +43,11 @@ export const useDeleteAssets = () => {
           (id) => !deletedSet.has(id),
         );
         setSelection(
-          USelection.fromIds(remainingAssetIds, currentCustomerPointIds),
+          USelection.fromIds(
+            remainingAssetIds,
+            currentCustomerPointIds,
+            USelection.getZoneIds(selection),
+          ),
         );
       }
 

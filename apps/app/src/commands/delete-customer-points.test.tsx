@@ -10,6 +10,25 @@ import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { USelection } from "src/selection";
 
+const aZone = (id: number) => ({
+  id,
+  label: "NORTH",
+  geometry: {
+    type: "MultiPolygon" as const,
+    coordinates: [
+      [
+        [
+          [0, 0],
+          [1, 0],
+          [1, 1],
+          [0, 0],
+        ],
+      ],
+    ],
+  },
+  bbox: [0, 0, 1, 1] as [number, number, number, number],
+});
+
 describe("useDeleteCustomerPoints", () => {
   it("removes the given customer points and leaves the rest", async () => {
     const IDS = { CP1: 100, CP2: 101 } as const;
@@ -50,6 +69,23 @@ describe("useDeleteCustomerPoints", () => {
     const updatedSelection = store.get(selectionAtom);
     expect(USelection.getCustomerPointIds(updatedSelection)).toEqual([IDS.CP2]);
     expect(USelection.getAssetIds(updatedSelection)).toEqual([IDS.J1]);
+  });
+
+  it("keeps selected zones when removing selected customer points", async () => {
+    const IDS = { CP1: 100, Z1: 1 } as const;
+    stubUserTracking();
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aCustomerPoint(IDS.CP1, { coordinates: [0, 0] })
+      .aZone(aZone(IDS.Z1))
+      .build();
+    const selection = USelection.fromIds([], [IDS.CP1], [IDS.Z1]);
+    const store = setInitialState({ hydraulicModel, selection });
+    renderComponent({ store, ids: [IDS.CP1] });
+
+    await triggerCommand();
+
+    const updatedSelection = store.get(selectionAtom);
+    expect(USelection.getZoneIds(updatedSelection)).toEqual([IDS.Z1]);
   });
 
   it("does nothing for an empty list", async () => {
