@@ -60,12 +60,12 @@ export const ToolHeader = ({
   return (
     <div
       ref={headerRef}
-      className="grid grid-cols-[auto_1fr] gap-x-1 items-start w-full border-b pl-1 py-3"
+      className="grid grid-cols-[auto_1fr] gap-x-1 items-start w-full border-b pl-1 py-2"
       tabIndex={autoFocus ? 0 : undefined}
       onKeyDown={autoFocus ? handleKeyDown : undefined}
     >
       <Button
-        className="h-8 w-4 justify-center -my-1.5"
+        className="h-6 w-6 justify-center -my-0.5"
         size="xxs"
         variant={"quiet"}
         aria-label={translate("back")}

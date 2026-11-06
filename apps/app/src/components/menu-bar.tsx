@@ -294,7 +294,12 @@ export const SideMenu = () => {
   return (
     <div className="relative">
       <div className="flex justify-end md:hidden">
-        <Button variant="quiet" onClick={toggleMenu}>
+        <Button
+          className="h-8 w-8 justify-center"
+          size="xxs"
+          variant="quiet"
+          onClick={toggleMenu}
+        >
           <MenuIcon />
         </Button>
       </div>
