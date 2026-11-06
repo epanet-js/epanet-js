@@ -43,10 +43,8 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
   const isZoneCustomAttributesOn = useFeatureFlag(
     "FLAG_ZONE_CUSTOM_ATTRIBUTES",
   );
-  const {
-    isLocked: customAttributesLocked,
-    openPaywall: openCustomAttributesPaywall,
-  } = useFeatureLock("customAttributes");
+  const { isLocked: customAttributesLocked } =
+    useFeatureLock("customAttributes");
   const [selectedAttributes, setSelectedAttributes] = useState<string[]>([]);
   const importZones = useImportZones();
   const { projections } = useProjections();
@@ -158,20 +156,13 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
     [isZoneCustomAttributesOn, customAttributesLocked, selectedAttributes],
   );
 
-  const handleToggleAttribute = useCallback(
-    (name: string) => {
-      if (customAttributesLocked) {
-        openCustomAttributesPaywall();
-        return;
-      }
-      setSelectedAttributes((prev) =>
-        prev.includes(name)
-          ? prev.filter((selected) => selected !== name)
-          : [...prev, name],
-      );
-    },
-    [customAttributesLocked, openCustomAttributesPaywall],
-  );
+  const handleToggleAttribute = useCallback((name: string) => {
+    setSelectedAttributes((prev) =>
+      prev.includes(name)
+        ? prev.filter((selected) => selected !== name)
+        : [...prev, name],
+    );
+  }, []);
 
   const handleImport = useCallback(async () => {
     if (!readResult) return;

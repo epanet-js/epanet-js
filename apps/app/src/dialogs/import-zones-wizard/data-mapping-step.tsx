@@ -1,7 +1,7 @@
 import { useId, useMemo } from "react";
 import { useTranslate } from "src/hooks/use-translate";
 import { MultiSelector, Selector } from "@epanet-js/ui-kit";
-import { PaywallLockButton } from "src/components/form/paywall";
+import { PaywallLockIcon } from "src/icons";
 import type { ZoneFeature } from "src/lib/zones";
 import { LabelManager } from "@epanet-js/hydraulic-model";
 
@@ -93,6 +93,10 @@ const AttributesSelector = ({
   const translate = useTranslate();
   const selectorId = useId();
   const title = translate("customAttributes.title");
+  const handleToggle = (name: string) => {
+    if (attributes.isLocked) return;
+    attributes.onToggle(name);
+  };
   const options = attributes.options.map((name) => ({
     label: name,
     value: name,
@@ -100,23 +104,28 @@ const AttributesSelector = ({
 
   return (
     <div className="flex flex-col gap-1">
-      <div className="h-7 flex items-center gap-1">
-        <label
-          htmlFor={selectorId}
-          className="text-size-base text-subtle font-semibold"
-        >
-          {title}
-        </label>
+      <label
+        htmlFor={selectorId}
+        className="h-7 flex items-center gap-1 min-w-0 text-size-base text-subtle"
+      >
+        <span className="shrink-0 font-semibold">{title}</span>
         {attributes.isLocked && (
-          <PaywallLockButton feature="customAttributes" label={title} />
+          <>
+            <span aria-hidden className="shrink-0 flex items-center">
+              <PaywallLockIcon size="sm" />
+            </span>
+            <span className="min-w-0 truncate text-size-small">
+              {translate("paywall.tooltip")}
+            </span>
+          </>
         )}
-      </div>
+      </label>
       <MultiSelector<string>
         id={selectorId}
         options={options}
         selected={attributes.selected}
-        onOptionSelected={attributes.onToggle}
-        onOptionRemoved={attributes.onToggle}
+        onOptionSelected={handleToggle}
+        onOptionRemoved={handleToggle}
         valueLabel={translate(
           "importZones.dataMappingStep.attributesSelectedCount",
           String(attributes.selected.length),
