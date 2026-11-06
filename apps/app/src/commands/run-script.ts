@@ -28,6 +28,7 @@ import {
   newSelectionSet,
 } from "src/lib/collections";
 import { USelection, type Sel } from "src/selection";
+import type { Zones } from "@epanet-js/hydraulic-model";
 import { chooseUnitSystem, defaultAccuracy } from "src/simulation/build-inp";
 import {
   defaultHydraulicsValues,
@@ -77,6 +78,7 @@ export const useRunScript = () => {
   const userTracking = useUserTracking();
   const isScriptResultsOn = useFeatureFlag("FLAG_SCRIPT_RESULTS");
   const isScriptEditsOn = useFeatureFlag("FLAG_SCRIPT_EDITS");
+  const isDeleteZoneOn = useFeatureFlag("FLAG_DELETE_ZONE");
   const { transact } = useModelTransaction();
   const isEditionBlocked = useIsEditionBlocked();
   const isEditionBlockedRef = useRef(isEditionBlocked);
@@ -108,8 +110,14 @@ export const useRunScript = () => {
       const changeSet = ChangeSet.fromBytes(edits);
       observeIdentifiers(store.get(modelFactoriesAtom), changeSet);
       transact(() => changeSet);
+      setSelection(
+        withoutDeletedZones(
+          store.get(selectionAtom),
+          store.get(stagingModelDerivedAtom).zones,
+        ),
+      );
     },
-    [store, setDialog, transact],
+    [store, setDialog, setSelection, transact],
   );
 
   const applyOutcome = useCallback(
@@ -250,6 +258,7 @@ export const useRunScript = () => {
           : { isOn: false },
         isEditsOn: isScriptEditsOn,
         hasScenarios: store.get(hasScenariosAtom),
+        isDeleteZoneOn,
         onEvent,
       });
       const startedAt = performance.now();
@@ -307,10 +316,16 @@ export const useRunScript = () => {
       openPaywall,
       isScriptResultsOn,
       isScriptEditsOn,
+      isDeleteZoneOn,
       showScriptOutput,
     ],
   );
 };
+
+const withoutDeletedZones = (selection: Sel, zones: Zones): Sel =>
+  USelection.getZoneIds(selection)
+    .filter((id) => !zones.has(id))
+    .reduce((kept, id) => USelection.removeId(kept, "zone", id), selection);
 
 const selectedTargets = (selection: Sel): ScriptTargets => ({
   assetIds: [...USelection.getAssetIds(selection)],

@@ -166,6 +166,7 @@ export type Scripting = {
     lastResults: ScriptGated<ScriptLastResults | null>;
     isEditsOn: boolean;
     hasScenarios: boolean;
+    isDeleteZoneOn: boolean;
     onEvent: (event: ScriptEvent) => void;
   }) => ScriptRunHandle;
   exampleScripts: ExampleScript[];

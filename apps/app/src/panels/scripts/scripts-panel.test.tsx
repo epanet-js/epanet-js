@@ -5,6 +5,7 @@ import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import {
   changePatterns,
   changeProperty,
+  removeZones,
 } from "@epanet-js/hydraulic-model-operations";
 import type { HydraulicModel, Pipe } from "@epanet-js/hydraulic-model";
 import { AuthMockProvider } from "src/__helpers__/auth-mock";
@@ -22,6 +23,8 @@ import {
 import { registerScripting, type ScriptRunOutcome } from "src/lib/scripting";
 import { Store } from "src/state";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
+import { selectionAtom } from "src/state/selection";
+import { USelection } from "src/selection";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { userScriptsAtom, type UserScript } from "src/state/scripts";
 import { ScriptsPanel } from "./scripts-panel";
@@ -594,6 +597,88 @@ describe("ScriptsPanel", () => {
 
     const diameterOf = (store: Store) =>
       (store.get(stagingModelDerivedAtom).assets.get(IDS.P1) as Pipe).diameter;
+
+    it("passes whether zones can be deleted to the run", async () => {
+      stubFeaturesOn(["FLAG_SCRIPT_EDITS", "FLAG_DELETE_ZONE"]);
+      const user = userEvent.setup();
+      const startScriptRun = aRunThatSetsTheDiameter();
+      registerScripting({ startScriptRun, exampleScripts: [] });
+      renderPanel(aStoreWithAPipe());
+
+      await user.click(screen.getByRole("button", { name: "Run Resize" }));
+
+      expect(startScriptRun).toHaveBeenCalledWith(
+        expect.objectContaining({ isDeleteZoneOn: true }),
+      );
+    });
+
+    it("keeps a zone the script deleted out of the selection", async () => {
+      stubFeaturesOn(["FLAG_SCRIPT_EDITS", "FLAG_DELETE_ZONE"]);
+      const user = userEvent.setup();
+      const ZONES = { DELETED: 10, KEPT: 11 } as const;
+      const square = {
+        geometry: {
+          type: "MultiPolygon" as const,
+          coordinates: [
+            [
+              [
+                [0, 0],
+                [1, 0],
+                [1, 1],
+                [0, 0],
+              ],
+            ],
+          ],
+        },
+        bbox: [0, 0, 1, 1] as [number, number, number, number],
+      };
+      const store = setInitialState({
+        hydraulicModel: HydraulicModelBuilder.with()
+          .aZone({ id: ZONES.DELETED, label: "NORTH", ...square })
+          .aZone({ id: ZONES.KEPT, label: "SOUTH", ...square })
+          .build(),
+      });
+      store.set(
+        selectionAtom,
+        USelection.fromIds([], [], [ZONES.DELETED, ZONES.KEPT]),
+      );
+      store.set(userScriptsAtom, [
+        {
+          id: "1",
+          name: "Remove zone",
+          source: "network.deleteZone('NORTH');",
+          apiVersion: 1,
+          updatedAt: 0,
+        },
+      ]);
+      registerScripting({
+        startScriptRun: vi.fn(({ model }: { model: HydraulicModel }) => ({
+          finished: Promise.resolve<ScriptRunOutcome>({
+            status: "success",
+            edits: removeZones(model, { zoneIds: [ZONES.DELETED] }).bytes,
+            selection: null,
+            zoomTo: null,
+            attachments: [],
+            selectionSets: [],
+            bookmarks: [],
+          }),
+          cancel: vi.fn(),
+        })),
+        exampleScripts: [],
+      });
+      renderPanel(store);
+
+      await user.click(screen.getByRole("button", { name: "Run Remove zone" }));
+
+      await waitFor(() =>
+        expect(
+          store.get(stagingModelDerivedAtom).zones.has(ZONES.DELETED),
+        ).toBe(false),
+      );
+      expect(USelection.getZoneIds(store.get(selectionAtom))).toEqual([
+        ZONES.KEPT,
+      ]);
+    });
 
     it("applies the edits a script hands back to the network", async () => {
       stubFeatureOn("FLAG_SCRIPT_EDITS");
