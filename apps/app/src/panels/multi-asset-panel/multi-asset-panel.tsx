@@ -489,6 +489,7 @@ export function MultiAssetPanel({
         <ZonePanelSection
           zoneIds={USelection.getZoneIds(selection)}
           showSelectOnly={showSelectOnly}
+          readonly={readonly}
         />
       )}
     </SectionList>
