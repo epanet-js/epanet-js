@@ -54,7 +54,7 @@ describe("buildSummaryRows", () => {
 
     expect(rows).toEqual([
       { label: "NORTH", values: ["LOW"], featureCount: 1 },
-      { label: "NORTH (2)", values: ["HIGH"], featureCount: 1 },
+      { label: "NORTH_1", values: ["HIGH"], featureCount: 1 },
       { label: "SOUTH", values: ["LOW"], featureCount: 2 },
     ]);
   });

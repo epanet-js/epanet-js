@@ -47,6 +47,30 @@ describe("ZoneFactory", () => {
     expect(labelManager.isLabelAvailable("NORTH", "zone", zone.id)).toBe(true);
   });
 
+  it("gives a zone a free label when the one asked for is taken", () => {
+    const labelManager = new LabelManager();
+    labelManager.register("NORTH", "zone", 99);
+    const factory = new ZoneFactory(
+      new ConsecutiveIdsGenerator(),
+      labelManager,
+    );
+
+    expect(factory.create(geometry, "North").label).toBe("North_1");
+    expect(labelManager.isLabelAvailable("North_1", "zone")).toBe(false);
+  });
+
+  it("keeps a long label whole when it adds a suffix", () => {
+    const label = "NORTH DISTRICT METERED AREA BOUNDARY";
+    const labelManager = new LabelManager();
+    labelManager.register(label, "zone", 99);
+    const factory = new ZoneFactory(
+      new ConsecutiveIdsGenerator(),
+      labelManager,
+    );
+
+    expect(factory.create(geometry, label).label).toBe(`${label}_1`);
+  });
+
   it("skips labels already taken by other zones when generating", () => {
     const labelManager = new LabelManager();
     labelManager.register("Z1", "zone", 99);

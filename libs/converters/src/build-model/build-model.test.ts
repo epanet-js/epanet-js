@@ -1719,6 +1719,45 @@ describe("build custom attributes from network data", () => {
     expect(junction.getProperty("custom-1")).toBeUndefined();
   });
 
+  it("defines a zone attribute and sets its value on the zone", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        customAttributes: [anAttribute({ ref: "7", name: "AREA" })],
+        zones: [
+          aZone({ ref: "3", label: "NORTH", customAttributes: { "7": "LOW" } }),
+        ],
+      }),
+      { projections: aCatalogue() },
+    );
+
+    expect(getAttributes(hydraulicModel.customAttributes, "zone")).toEqual([
+      { id: "custom-1", label: "AREA", type: "text" },
+    ]);
+    const [zone] = [...hydraulicModel.zones.values()];
+    expect(zone.getProperty("custom-1")).toEqual("LOW");
+  });
+
+  it("keeps zones sharing a label apart when their attributes conflict", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        customAttributes: [anAttribute({ ref: "7", name: "AREA" })],
+        zones: [
+          aZone({ ref: "3", label: "NORTH", customAttributes: { "7": "LOW" } }),
+          aZone({
+            ref: "4",
+            label: "NORTH",
+            customAttributes: { "7": "HIGH" },
+          }),
+        ],
+      }),
+      { projections: aCatalogue() },
+    );
+
+    expect(
+      [...hydraulicModel.zones.values()].map((zone) => zone.label),
+    ).toEqual(["NORTH", "NORTH_1"]);
+  });
+
   it("defines nothing when the source states no attributes", () => {
     const { hydraulicModel } = buildModel(
       aNetwork({ junctions: [aJunction({ ref: "1", label: "J1" })] }),

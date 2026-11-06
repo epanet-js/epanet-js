@@ -40,8 +40,15 @@ export class ZoneFactory {
 
   private resolveLabel(id: number, label?: string): string {
     if (label !== undefined) {
-      this.labelManager.register(label, "zone", id);
-      return label;
+      const available = this.labelManager.isLabelAvailable(label, "zone")
+        ? label
+        : this.labelManager.generateNextLabel(
+            label,
+            {},
+            { continueCounter: false },
+          );
+      this.labelManager.register(available, "zone", id);
+      return available;
     }
     return this.labelManager.generateFor("zone", id);
   }

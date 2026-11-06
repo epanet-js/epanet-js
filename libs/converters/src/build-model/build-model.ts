@@ -23,7 +23,7 @@ import type {
   ZoneData,
 } from "../network-data";
 import { IssueCollector } from "../issues";
-import { buildZones } from "./build-zones";
+import { buildZones, type ZoneAttributePlan } from "./build-zones";
 import {
   buildSelectionSets,
   type BuiltSelectionSet,
@@ -245,6 +245,7 @@ export const buildModel = (
   const { zones } = buildZones(
     reprojectZones(network.zones, toWgs84),
     factories.zoneFactory,
+    zoneAttributePlan(network, customAttributes.ids),
   );
   hydraulicModel.zones = zones;
 
@@ -289,6 +290,7 @@ const customAttributeAssetTypes: CustomAttributeAssetType[] = [
   "pump",
   "valve",
   "customerPoint",
+  "zone",
 ];
 
 const planCustomAttributes = (
@@ -317,6 +319,7 @@ const planCustomAttributes = (
   collect("pump", network.pumps);
   collect("valve", network.valves);
   collect("customerPoint", network.customerPoints);
+  collect("zone", network.zones);
 
   let definition = emptyCustomAttributesDefinition();
   const ids: CustomAttributeIds = new Map();
@@ -342,6 +345,21 @@ const planCustomAttributes = (
   }
 
   return { definition, ids };
+};
+
+const zoneAttributePlan = (
+  network: NetworkData,
+  ids: CustomAttributeIds,
+): ZoneAttributePlan => {
+  const idByRef = ids.get("zone");
+  const plan: ZoneAttributePlan = new Map();
+  if (idByRef === undefined) return plan;
+
+  for (const { ref, type } of network.customAttributes) {
+    const id = idByRef.get(ref);
+    if (id !== undefined) plan.set(ref, { id, type });
+  }
+  return plan;
 };
 
 const resolveCustomAttributes = (

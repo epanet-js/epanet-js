@@ -34,7 +34,6 @@ type Group = {
   label: string | undefined;
   records: ZoneData[];
   values: Map<CustomAttributeId, AttributeValue>;
-  conflicted: boolean;
 };
 
 export const buildZones = (
@@ -53,16 +52,12 @@ export const buildZones = (
     const values = resolveValues(record, attributes);
 
     if (record.label === undefined) {
-      groups.push({
-        label: undefined,
-        records: [record],
-        values,
-        conflicted: false,
-      });
+      groups.push({ label: undefined, records: [record], values });
       continue;
     }
 
-    const sameLabel = groupsByLabel.get(record.label) ?? [];
+    const key = record.label.toUpperCase();
+    const sameLabel = groupsByLabel.get(key) ?? [];
     const group = sameLabel.find((candidate) => !conflicts(candidate, values));
     if (group) {
       group.records.push(record);
@@ -70,30 +65,18 @@ export const buildZones = (
       continue;
     }
 
-    const created: Group = {
-      label: record.label,
-      records: [record],
-      values,
-      conflicted: sameLabel.length > 0,
-    };
+    const created: Group = { label: record.label, records: [record], values };
     sameLabel.push(created);
-    groupsByLabel.set(record.label, sameLabel);
+    groupsByLabel.set(key, sameLabel);
     groups.push(created);
   }
 
-  const takenLabels = new Set(groupsByLabel.keys());
-
   for (const group of groups) {
-    const label =
-      group.conflicted && group.label !== undefined
-        ? suffixed(group.label, takenLabels)
-        : group.label;
-
     const geometry: MultiPolygon = {
       type: "MultiPolygon",
       coordinates: group.records.flatMap((record) => record.polygons),
     };
-    const zone = zoneFactory.create(geometry, label);
+    const zone = zoneFactory.create(geometry, group.label);
     for (const [id, value] of group.values) zone.setProperty(id, value);
     zones.set(zone.id, zone);
 
@@ -103,7 +86,7 @@ export const buildZones = (
         featureCount: group.records.length,
       });
     }
-    if (group.conflicted && group.label !== undefined) {
+    if (group.label !== undefined && zone.label !== group.label) {
       renamedZones.push({ label: zone.label, originalLabel: group.label });
     }
   }
@@ -148,14 +131,4 @@ const conflicts = (
     if (existing !== undefined && existing !== value) return true;
   }
   return false;
-};
-
-const suffixed = (label: string, taken: Set<string>): string => {
-  for (let n = 2; ; n++) {
-    const candidate = `${label} (${n})`;
-    if (!taken.has(candidate)) {
-      taken.add(candidate);
-      return candidate;
-    }
-  }
 };

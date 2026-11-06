@@ -144,11 +144,11 @@ describe("buildZones", () => {
 
     expect([...zones.values()].map((zone) => zone.label)).toEqual([
       "NORTH",
-      "NORTH (2)",
+      "NORTH_1",
     ]);
     expect(zones.get(2)!.getProperty("custom-1")).toBe("HIGH");
     expect(renamedZones).toEqual([
-      { label: "NORTH (2)", originalLabel: "NORTH" },
+      { label: "NORTH_1", originalLabel: "NORTH" },
     ]);
   });
 
@@ -164,14 +164,14 @@ describe("buildZones", () => {
     );
 
     expect(zones.size).toBe(2);
-    expect(mergedZones).toEqual([{ label: "NORTH (2)", featureCount: 2 }]);
+    expect(mergedZones).toEqual([{ label: "NORTH_1", featureCount: 2 }]);
   });
 
   it("skips a suffix the source already uses as a label", () => {
     const { zones } = buildZones(
       [
         aZone({ label: "NORTH", customAttributes: { AREA: "LOW" } }),
-        aZone({ label: "NORTH (2)" }),
+        aZone({ label: "NORTH_1" }),
         aZone({ label: "NORTH", customAttributes: { AREA: "HIGH" } }),
       ],
       aZoneFactory(),
@@ -180,9 +180,21 @@ describe("buildZones", () => {
 
     expect([...zones.values()].map((zone) => zone.label)).toEqual([
       "NORTH",
-      "NORTH (2)",
-      "NORTH (3)",
+      "NORTH_1",
+      "NORTH_2",
     ]);
+  });
+
+  it("merges zones whose labels differ only in case, keeping the first spelling", () => {
+    const { zones, mergedZones, renamedZones } = buildZones(
+      [aZone({ label: "North" }), aZone({ label: "NORTH" }, otherSquare)],
+      aZoneFactory(),
+      plan,
+    );
+
+    expect([...zones.values()].map((zone) => zone.label)).toEqual(["North"]);
+    expect(mergedZones).toEqual([{ label: "North", featureCount: 2 }]);
+    expect(renamedZones).toEqual([]);
   });
 
   it("compares values after converting them to the attribute's type", () => {
