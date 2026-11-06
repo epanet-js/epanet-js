@@ -120,6 +120,7 @@ export const CollectionsPanel = () => {
   const selectOnlyLabel = translate("collections.selectionSets.selectOnly");
   const { isLocked, openPaywall } = useFeatureLock("selectionSets");
   const isGroupsOn = useFeatureFlag("FLAG_SELECTION_SET_GROUPS");
+  const isHighlightOn = useFeatureFlag("FLAG_HIGHLIGHT_SELECTION_SETS");
   const selectionSets = useAtomValue(selectionSetsAtom);
   const selectionSetGroups = useAtomValue(selectionSetGroupsAtom);
   const bookmarks = useAtomValue(bookmarksAtom);
@@ -843,7 +844,7 @@ export const CollectionsPanel = () => {
       onAction={handleAction}
       depth={row.depth}
       onHover={
-        row.kind === "set"
+        isHighlightOn && row.kind === "set"
           ? (isHovering) => handleHoverSet(row.id, isHovering)
           : undefined
       }
