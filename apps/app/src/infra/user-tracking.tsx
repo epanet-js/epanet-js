@@ -723,6 +723,7 @@ type ScriptRunStarted = {
   isExample: boolean;
   exampleId: string;
   isDemoNetwork: boolean;
+  writtenByAssistant: boolean;
 };
 
 type ScriptRunFinished = {
@@ -731,6 +732,7 @@ type ScriptRunFinished = {
   status: "success" | "error" | "cancelled";
   durationMs: number;
   isExample: boolean;
+  writtenByAssistant: boolean;
   errorName: string;
   consoleLinesCount: number;
   attachmentsCount: number;
@@ -773,6 +775,25 @@ type ScriptLogCopied = {
 type ScriptErrorLineOpened = {
   name: "script.errorLineOpened";
   openedScript: boolean;
+};
+
+type ScriptComposerOpened = {
+  name: "script.composerOpened";
+};
+
+type ScriptGenerationRequested = {
+  name: "script.generationRequested";
+  kind: "write" | "update";
+  scope: string;
+  promptLength: number;
+};
+
+type ScriptGenerationFinished = {
+  name: "script.generationFinished";
+  kind: "write" | "update";
+  status: "written" | "failed" | "stopped";
+  reason: string;
+  durationMs: number;
 };
 
 type ScriptingApiVisited = {
@@ -1623,6 +1644,9 @@ export type UserEvent =
   | ScriptAttachmentsZipDownloaded
   | ScriptLogCopied
   | ScriptErrorLineOpened
+  | ScriptComposerOpened
+  | ScriptGenerationRequested
+  | ScriptGenerationFinished
   | RepoVisited
   | FoundersPartnerLinkVisited
   | SignUpStarted

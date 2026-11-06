@@ -3,6 +3,7 @@ import { notify } from "src/components/notifications";
 import { useAuth } from "src/hooks/use-auth";
 import { ErrorIcon } from "src/icons";
 import { captureError, captureWarning } from "src/infra/error-tracking";
+import { useUserTracking } from "src/infra/user-tracking";
 import {
   getScriptAssistant,
   type ScriptAssistantFailure,
@@ -59,6 +60,7 @@ const reportFailure = (reason: ScriptAssistantFailure, detail: string) => {
 
 export const useScriptGeneration = () => {
   const { getToken } = useAuth();
+  const userTracking = useUserTracking();
   const [generation, setGeneration] = useState<ScriptGeneration | null>(null);
   const controllerRef = useRef<AbortController | null>(null);
 
@@ -76,9 +78,26 @@ export const useScriptGeneration = () => {
       controllerRef.current?.abort();
       const controller = new AbortController();
       controllerRef.current = controller;
-      setGeneration({
-        prompt: request.prompt,
-        kind: request.source.trim() === "" ? "write" : "update",
+      const kind = request.source.trim() === "" ? "write" : "update";
+      const startedAt = performance.now();
+      const captureFinished = (
+        status: "written" | "failed" | "stopped",
+        reason = "",
+      ) =>
+        userTracking.capture({
+          name: "script.generationFinished",
+          kind,
+          status,
+          reason,
+          durationMs: Math.round(performance.now() - startedAt),
+        });
+
+      setGeneration({ prompt: request.prompt, kind });
+      userTracking.capture({
+        name: "script.generationRequested",
+        kind,
+        scope: request.scope,
+        promptLength: request.prompt.length,
       });
 
       try {
@@ -87,17 +106,27 @@ export const useScriptGeneration = () => {
           signal: controller.signal,
           token,
         });
-        if (controller.signal.aborted) return null;
-        if (result.status === "written") return result.script;
+        if (controller.signal.aborted) {
+          captureFinished("stopped");
+          return null;
+        }
+        if (result.status === "written") {
+          captureFinished("written");
+          return result.script;
+        }
 
+        captureFinished("failed", result.reason);
         reportFailure(result.reason, result.detail);
         notifyFailure(result.reason);
         return null;
       } catch (error) {
-        if (!controller.signal.aborted) {
-          captureError(error as Error);
-          notifyFailure("unavailable");
+        if (controller.signal.aborted) {
+          captureFinished("stopped");
+          return null;
         }
+        captureFinished("failed", "unavailable");
+        captureError(error as Error);
+        notifyFailure("unavailable");
         return null;
       } finally {
         if (controllerRef.current === controller) {
@@ -106,7 +135,7 @@ export const useScriptGeneration = () => {
         }
       }
     },
-    [getToken],
+    [getToken, userTracking],
   );
 
   useEffect(() => () => controllerRef.current?.abort(), []);

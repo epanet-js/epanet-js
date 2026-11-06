@@ -78,6 +78,7 @@ export const ScriptsPanel = () => {
   const { llmsPath, variant: docsVariant } = useScriptingDocs();
   const translate = useTranslate();
 
+  const userTracking = useUserTracking();
   const { generation, generate, stop } = useScriptGeneration();
   const [sourceVersion, setSourceVersion] = useState(0);
   const [isWrittenByAssistant, setIsWrittenByAssistant] = useState(false);
@@ -108,6 +109,7 @@ export const ScriptsPanel = () => {
     const written = await generate({ prompt, source, scope, docsVariant });
     if (!written) return false;
     setDraft((current) => current && { ...current, source: written.source });
+    setIsWrittenByAssistant(true);
     setSourceVersion((version) => version + 1);
     return true;
   };
@@ -152,7 +154,14 @@ export const ScriptsPanel = () => {
   return (
     <ScriptList
       onOpen={openDraft}
-      onCreate={isAssistantOn ? () => setIsComposing(true) : null}
+      onCreate={
+        isAssistantOn
+          ? () => {
+              userTracking.capture({ name: "script.composerOpened" });
+              setIsComposing(true);
+            }
+          : null
+      }
     />
   );
 };
@@ -372,7 +381,11 @@ const ScriptList = ({
         secondaryAction={{
           label: translate("scripting.runScript", row.name),
           icon: <PlayIcon size="md" />,
-          onClick: () => runScript({ ...row.run, draft: row.draft }, "list"),
+          onClick: () =>
+            runScript(
+              { ...row.run, draft: row.draft, writtenByAssistant: false },
+              "list",
+            ),
         }}
         showFullLabelOnHover
         actions={row.scriptId ? itemActions : [editAction]}
@@ -510,10 +523,11 @@ const ScriptEditor = ({
           paywalled: !isExample(draftRef.current),
           exampleId: draftRef.current.exampleId,
           draft: draftRef.current,
+          writtenByAssistant: assistant?.isWrittenByAssistant ?? false,
         },
         trigger,
       ),
-    [runScript, nameOf],
+    [runScript, nameOf, assistant?.isWrittenByAssistant],
   );
 
   const handleSave = useCallback((): boolean => {

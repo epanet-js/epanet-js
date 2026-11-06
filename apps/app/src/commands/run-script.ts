@@ -175,12 +175,14 @@ export const useRunScript = () => {
         paywalled,
         exampleId,
         draft,
+        writtenByAssistant,
       }: {
         name: string;
         source: string;
         paywalled: boolean;
         exampleId: string | null;
         draft: ScriptDraft;
+        writtenByAssistant: boolean;
       },
       trigger: "editor" | "list" | "shortcut",
     ) => {
@@ -195,6 +197,7 @@ export const useRunScript = () => {
         isExample: exampleId !== null,
         exampleId: exampleId ?? "",
         isDemoNetwork: store.get(isDemoNetworkAtom),
+        writtenByAssistant,
       });
       if (paywalled && !canRunScripts) return openPaywall();
 
@@ -295,6 +298,7 @@ export const useRunScript = () => {
           status: outcome.status,
           durationMs: Math.round(finishedAt - startedAt),
           isExample: exampleId !== null,
+          writtenByAssistant,
           errorName: outcome.status === "error" ? outcome.error.name : "",
           consoleLinesCount,
           attachmentsCount: success?.attachments.length ?? 0,
