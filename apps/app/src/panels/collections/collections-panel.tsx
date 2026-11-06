@@ -70,6 +70,7 @@ import {
   type CollectionKind,
   type SelectionSetGroupId,
   type SelectionSetId,
+  ancestorGroupIds,
   childGroups,
   countSelected,
   descendantGroupIds,
@@ -175,6 +176,10 @@ export const CollectionsPanel = () => {
   >(() => new Set());
   const [menuOpenGroupId, setMenuOpenGroupId] =
     useState<SelectionSetGroupId | null>(null);
+  const [rowToReveal, setRowToReveal] = useState<{
+    row: RowKey;
+    groupId: SelectionSetGroupId | null;
+  } | null>(null);
   const [pendingDraft, setPendingDraft] = useAtom(pendingCollectionDraftAtom);
 
   const {
@@ -396,6 +401,38 @@ export const CollectionsPanel = () => {
       return next;
     });
   }, []);
+
+  const expandGroupPath = useCallback(
+    (groupId: SelectionSetGroupId) => {
+      const path = [groupId, ...ancestorGroupIds(selectionSetGroups, groupId)];
+      setCollapsedGroupIds((collapsed) => {
+        if (!path.some((id) => collapsed.has(id))) return collapsed;
+        const next = new Set(collapsed);
+        for (const id of path) next.delete(id);
+        return next;
+      });
+    },
+    [selectionSetGroups],
+  );
+
+  useEffect(() => {
+    if (!rowToReveal) return;
+    const rows = [...byNavId.values()];
+    const scrollTo = (row: Row | undefined) =>
+      row &&
+      listRef.current
+        ?.querySelector(`[data-item-id="${row.navId}"]`)
+        ?.scrollIntoView?.({ block: "nearest" });
+    scrollTo(rows.find((candidate) => isSameRow(candidate, rowToReveal.row)));
+    if (rowToReveal.groupId !== null)
+      scrollTo(
+        rows.find(
+          (candidate) =>
+            candidate.kind === "group" && candidate.id === rowToReveal.groupId,
+        ),
+      );
+    setRowToReveal(null);
+  }, [rowToReveal, byNavId]);
 
   const runRow = useCallback(
     (row: Row) => {
@@ -633,6 +670,11 @@ export const CollectionsPanel = () => {
       } else {
         moveSelectionSet({ setId: row.id, groupId: targetId, source: "panel" });
       }
+      if (targetId !== null) expandGroupPath(targetId);
+      setRowToReveal({
+        row: { section: row.section, id: row.id },
+        groupId: targetId,
+      });
       return;
     }
 

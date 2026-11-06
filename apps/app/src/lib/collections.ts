@@ -101,6 +101,21 @@ export const descendantGroupIds = (
   return descendants;
 };
 
+export const ancestorGroupIds = (
+  groups: readonly SelectionSetGroup[],
+  id: SelectionSetGroupId,
+): SelectionSetGroupId[] => {
+  const ancestors: SelectionSetGroupId[] = [];
+  const visited = new Set<SelectionSetGroupId>([id]);
+  let current = groups.find((group) => group.id === id)?.parentId ?? null;
+  while (current !== null && !visited.has(current)) {
+    visited.add(current);
+    ancestors.push(current);
+    current = groups.find((group) => group.id === current)?.parentId ?? null;
+  }
+  return ancestors;
+};
+
 export const groupPath = (
   groups: readonly SelectionSetGroup[],
   id: SelectionSetGroupId,

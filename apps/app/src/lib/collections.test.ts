@@ -1,6 +1,7 @@
 import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { USelection } from "src/selection";
 import {
+  ancestorGroupIds,
   canMoveGroup,
   childGroups,
   deleteGroupSubtree,
@@ -198,6 +199,14 @@ describe("selection set groups", () => {
 
     expect(descendantGroupIds(cyclic, "a")).toEqual(["b"]);
     expect(groupPath(cyclic, "a")).toEqual(["B", "A"]);
+  });
+
+  it("lists the parents of a group from the nearest up to the root", () => {
+    expect(ancestorGroupIds(tree, "deep")).toEqual(["south", "dmas"]);
+    expect(ancestorGroupIds(tree, "dmas")).toEqual([]);
+    expect(ancestorGroupIds([aGroup("a", "b"), aGroup("b", "a")], "a")).toEqual(
+      ["b"],
+    );
   });
 
   it("lists the labels from the root down to the group", () => {
