@@ -57,6 +57,8 @@ export const EditableListItem = <T extends LabelledItem>({
         sanitize={sanitize}
         onCommit={onLabelChange}
         onCancel={onCancel}
+        depth={depth}
+        indentGuides={indentGuides}
       />
     );
   }
@@ -86,6 +88,8 @@ export const EditableListItem = <T extends LabelledItem>({
           onCommit={onLabelChange}
           onCancel={onCancel}
           forceValidation
+          depth={depth}
+          indentGuides={indentGuides}
         />
       )}
     </>
