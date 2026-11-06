@@ -8,7 +8,11 @@ import {
 } from "@epanet-js/hydraulic-model-operations";
 import type { HydraulicModel, Pipe } from "@epanet-js/hydraulic-model";
 import { AuthMockProvider } from "src/__helpers__/auth-mock";
-import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
+import {
+  stubFeatureOff,
+  stubFeatureOn,
+  stubFeaturesOn,
+} from "src/__helpers__/feature-flags";
 import { setInitialState } from "src/__helpers__/state";
 import { CommandContainer } from "src/commands/__helpers__/command-container";
 import {
@@ -235,6 +239,7 @@ describe("ScriptsPanel", () => {
           prompt: "Select small pipes",
           source: "",
           scope: "script",
+          docsVariant: "official",
         });
         expect(writes[0].token).toEqual("session-token");
         expect(screen.getByText("Writing script…")).toBeVisible();
@@ -271,6 +276,7 @@ describe("ScriptsPanel", () => {
           prompt: "Also export a CSV",
           source: "selectSmallPipes();",
           scope: "script",
+          docsVariant: "official",
         });
         expect(screen.getByText("Updating script…")).toBeVisible();
         expect(screen.getByRole("button", { name: "Run" })).toBeDisabled();
@@ -306,6 +312,14 @@ describe("ScriptsPanel", () => {
         );
         await user.click(screen.getByRole("button", { name: "Send" }));
       };
+
+      it("asks for the edits docs when the user has script edits", async () => {
+        stubFeaturesOn(["FLAG_SCRIPTING_ASSISTANT", "FLAG_SCRIPT_EDITS"]);
+
+        await sendDescription();
+
+        expect(writes[0].request.docsVariant).toEqual("editsCandidate");
+      });
 
       it("says why it failed and hands the description back", async () => {
         await sendDescription();

@@ -75,7 +75,7 @@ export const ScriptsPanel = () => {
   const [isComposing, setIsComposing] = useState(false);
   const isScriptingAssistantOn = useFeatureFlag("FLAG_SCRIPTING_ASSISTANT");
   const isAssistantOn = isScriptingAssistantOn && getScriptAssistant() !== null;
-  const { llmsPath } = useScriptingDocs();
+  const { llmsPath, variant: docsVariant } = useScriptingDocs();
   const translate = useTranslate();
 
   const { generation, generate, stop } = useScriptGeneration();
@@ -89,7 +89,7 @@ export const ScriptsPanel = () => {
   };
 
   const handleWrite = async (prompt: string, scope: ScriptAssistantScope) => {
-    const written = await generate({ prompt, source: "", scope });
+    const written = await generate({ prompt, source: "", scope, docsVariant });
     if (!written) return;
     setIsComposing(false);
     setIsWrittenByAssistant(true);
@@ -105,7 +105,7 @@ export const ScriptsPanel = () => {
     scope: ScriptAssistantScope,
     source: string,
   ): Promise<boolean> => {
-    const written = await generate({ prompt, source, scope });
+    const written = await generate({ prompt, source, scope, docsVariant });
     if (!written) return false;
     setDraft((current) => current && { ...current, source: written.source });
     setSourceVersion((version) => version + 1);

@@ -1,3 +1,5 @@
+import type { ScriptingDocsVariant } from "src/lib/script-language";
+
 export type ScriptAssistantScope =
   | "script"
   | "scriptAndOutput"
@@ -8,6 +10,7 @@ export type ScriptAssistantRequest = {
   prompt: string;
   source: string;
   scope: ScriptAssistantScope;
+  docsVariant: ScriptingDocsVariant;
 };
 
 export type WrittenScript = { source: string; name: string };
