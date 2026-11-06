@@ -11,7 +11,6 @@ import { USelection } from "src/selection";
 import { useSelection } from "src/selection";
 import { customerPointsDerivedAtom } from "src/state/derived-branch-state";
 import { zonesAtom } from "src/state/zones";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { selectionAtom } from "src/state/selection";
 import { currentFileNameAtom } from "src/state/file-system";
@@ -73,7 +72,6 @@ const CommandBarModal = ({ onClose }: { onClose: () => void }) => {
   const { labelManager } = useAtomValue(modelFactoriesAtom);
   const customerPoints = useAtomValue(customerPointsDerivedAtom);
   const zones = useAtomValue(zonesAtom);
-  const isZoneSelectionOn = useFeatureFlag("FLAG_ZONE_SELECTION");
   const selection = useAtomValue(selectionAtom);
   const currentFileName = useAtomValue(currentFileNameAtom);
   const { selectAsset, selectCustomerPoint, selectZone } =
@@ -94,7 +92,7 @@ const CommandBarModal = ({ onClose }: { onClose: () => void }) => {
         return customerPoints.has(option.data.rawId);
       }
       if (option.data.kind === "zone") {
-        return isZoneSelectionOn && zones.has(option.data.rawId);
+        return zones.has(option.data.rawId);
       }
       const assetData = option.data;
       const results = labelManager.search(option.label, 1);
@@ -102,7 +100,7 @@ const CommandBarModal = ({ onClose }: { onClose: () => void }) => {
         (r) => r.id === assetData.rawId && r.type === assetData.type,
       );
     });
-  }, [networkKey, labelManager, customerPoints, zones, isZoneSelectionOn]);
+  }, [networkKey, labelManager, customerPoints, zones]);
 
   const addRecent = useCallback(
     (option: SearchOption) => {
@@ -122,7 +120,7 @@ const CommandBarModal = ({ onClose }: { onClose: () => void }) => {
         .filter(
           (entry) =>
             entry.type === "customerPoint" ||
-            (entry.type === "zone" && isZoneSelectionOn) ||
+            entry.type === "zone" ||
             searchableAssetTypes.has(entry.type),
         )
         .map((entry): SearchOption => {
@@ -151,7 +149,7 @@ const CommandBarModal = ({ onClose }: { onClose: () => void }) => {
           };
         });
     },
-    [labelManager, getRecents, isZoneSelectionOn],
+    [labelManager, getRecents],
   );
 
   const [query, setQuery] = useState("");

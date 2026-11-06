@@ -46,7 +46,6 @@ export function ZonePanel() {
   const selectZoneContents = useSelectZoneContents();
   const deleteSelection = useDeleteSelection();
   const startCollectionDraft = useStartCollectionDraft();
-  const isDeleteZoneOn = useFeatureFlag("FLAG_DELETE_ZONE");
   const isEditionBlocked = useIsEditionBlocked();
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const baseModel = useAtomValue(baseModelDerivedAtom);
@@ -132,7 +131,7 @@ export function ZonePanel() {
 
   const deleteAction: Action = {
     icon: <DeleteIcon />,
-    applicable: isDeleteZoneOn,
+    applicable: true,
     priority: 0,
     label: translate("delete"),
     variant: "danger-quiet",

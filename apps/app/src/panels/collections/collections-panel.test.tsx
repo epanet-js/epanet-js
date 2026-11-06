@@ -147,8 +147,7 @@ describe("CollectionsPanel", () => {
       expect(screen.getAllByText("North zone")).toHaveLength(2);
     });
 
-    it("saves the selected zones with zone selection on", async () => {
-      stubFeatureOn("FLAG_ZONE_SELECTION");
+    it("saves the selected zones", async () => {
       const store = aStore();
       store.set(selectionAtom, USelection.fromIds([IDS.J1], [], [IDS.Z1]));
       renderPanel(store);
@@ -161,22 +160,6 @@ describe("CollectionsPanel", () => {
       expect(USelection.getZoneIds(saved.selection)).toEqual([IDS.Z1]);
     });
 
-    it("leaves the selected zones out with zone selection off", async () => {
-      stubFeatureOff("FLAG_ZONE_SELECTION");
-      const store = aStore();
-      store.set(selectionAtom, USelection.fromIds([IDS.J1], [], [IDS.Z1]));
-      renderPanel(store);
-
-      await userEvent.click(saveButton());
-      await nameIt("North zone");
-
-      const [saved] = store.get(selectionSetsAtom);
-      expect(USelection.getAssetIds(saved.selection)).toEqual([IDS.J1]);
-      expect(USelection.getZoneIds(saved.selection)).toEqual([]);
-    });
-  });
-
-  describe("adding from a section heading", () => {
     it("opens a collapsed section to name a bookmark from its heading", async () => {
       const store = aStore();
       renderPanel(store);
@@ -256,8 +239,7 @@ describe("CollectionsPanel", () => {
       expect(zoomTo).not.toHaveBeenCalled();
     });
 
-    it("selects the zones of a saved set with zone selection off", async () => {
-      stubFeatureOff("FLAG_ZONE_SELECTION");
+    it("selects the zones of a saved set", async () => {
       const store = aStore();
       store.set(selectionSetsAtom, [
         {

@@ -30,7 +30,6 @@ import throttle from "lodash/throttle";
 import { useClickedAsset } from "../utils";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const stateUpdateTime = 16;
 
@@ -75,7 +74,6 @@ export function useNoneHandlers({
     selectZone,
     toggleZoneSelection,
   } = useSelection(selection);
-  const isZoneSelectionOn = useFeatureFlag("FLAG_ZONE_SELECTION");
   const zonesVisible = useAtomValue(zonesVisibleAtom);
   const { isShiftHeld } = useKeyboardState();
   const {
@@ -135,7 +133,7 @@ export function useNoneHandlers({
       }
     }
 
-    if (!hasClickableElement && isZoneSelectionOn) {
+    if (!hasClickableElement) {
       hasClickableElement = getZoneIdAt(e.lngLat) !== null;
     }
 
@@ -488,7 +486,7 @@ export function useNoneHandlers({
           return;
         }
 
-        const clickedZoneId = isZoneSelectionOn ? getZoneIdAt(e.lngLat) : null;
+        const clickedZoneId = getZoneIdAt(e.lngLat);
         if (clickedZoneId !== null) {
           if (isShiftHeld()) {
             toggleZoneSelection(clickedZoneId);

@@ -7,7 +7,6 @@ import {
   customerPointsVisibleAtom,
   zonesVisibleAtom,
 } from "src/state/map-symbology";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { runQuery } from "./run-query";
 import { captureError } from "src/infra/error-tracking";
 
@@ -18,7 +17,6 @@ export const useAreaSelection = (context: HandlerContext) => {
   const setSelection = useSetAtom(selectionAtom);
   const customerPointsVisible = useAtomValue(customerPointsVisibleAtom);
   const zonesVisible = useAtomValue(zonesVisibleAtom);
-  const isZoneSelectionOn = useFeatureFlag("FLAG_ZONE_SELECTION");
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const abort = () => {
@@ -43,7 +41,7 @@ export const useAreaSelection = (context: HandlerContext) => {
         controller.signal,
         undefined,
         customerPointsVisible,
-        isZoneSelectionOn && zonesVisible,
+        zonesVisible,
       );
 
       if (controller.signal.aborted) {

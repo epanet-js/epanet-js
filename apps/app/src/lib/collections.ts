@@ -65,14 +65,6 @@ export const newSelectionSet = (
   groupId,
 });
 
-export const savableSelection = (selection: Sel, includeZones: boolean): Sel =>
-  includeZones
-    ? selection
-    : USelection.fromIds(
-        USelection.getAssetIds(selection),
-        USelection.getCustomerPointIds(selection),
-      );
-
 export const resolveGroupId = (
   groups: readonly SelectionSetGroup[],
   id: SelectionSetGroupId | null,

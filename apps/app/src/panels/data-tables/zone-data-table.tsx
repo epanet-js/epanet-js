@@ -35,7 +35,6 @@ import { DeleteIcon, PointerClickIcon, PaywallLockIcon } from "src/icons";
 import { notify } from "src/components/notifications";
 import { useTranslate } from "src/hooks/use-translate";
 import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useFeatureLock } from "src/components/form/paywall";
 import { RingSpinner } from "src/components/ring-spinner";
 import { useLabelMaxLength } from "src/hooks/use-label-max-length";
@@ -85,7 +84,6 @@ export const ZoneDataTable = memo(function ZoneDataTableInner({
   const { transact } = useModelTransaction();
   const translate = useTranslate();
   const isEditionBlocked = useIsEditionBlocked();
-  const isDeleteZoneOn = useFeatureFlag("FLAG_DELETE_ZONE");
   const {
     isLocked: customAttributesLocked,
     openPaywall: openCustomAttributesPaywall,
@@ -246,7 +244,7 @@ export const ZoneDataTable = memo(function ZoneDataTableInner({
     }),
     [translate, deleteZones, getZoneIdsFromRange],
   );
-  const showDelete = isDeleteZoneOn && !isEditionBlocked;
+  const showDelete = !isEditionBlocked;
 
   const selectInMap = useCallback(
     (ids: ZoneId[], source: "cell-context" | "gutter-context") => {

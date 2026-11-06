@@ -14,7 +14,6 @@ import { useDeleteSelection } from "./delete-selection";
 import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { USelection } from "src/selection";
-import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
 
 const aZone = (id: number, label: string) => ({
   id,
@@ -170,7 +169,6 @@ describe("delete selected", () => {
   });
 
   it("deletes selected zones", async () => {
-    stubFeatureOn("FLAG_DELETE_ZONE");
     stubUserTracking();
     const IDS = { Z1: 1, Z2: 2 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
@@ -190,7 +188,6 @@ describe("delete selected", () => {
   });
 
   it("deletes a mixed selection of assets and zones", async () => {
-    stubFeatureOn("FLAG_DELETE_ZONE");
     stubUserTracking();
     const IDS = { J1: 1, Z1: 2 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
@@ -206,23 +203,6 @@ describe("delete selected", () => {
     const updatedHydraulicModel = store.get(stagingModelDerivedAtom);
     expect(updatedHydraulicModel.assets.has(IDS.J1)).toBe(false);
     expect(updatedHydraulicModel.zones.has(IDS.Z1)).toBe(false);
-  });
-
-  it("keeps selected zones when zone deletion is off", async () => {
-    stubFeatureOff("FLAG_DELETE_ZONE");
-    stubUserTracking();
-    const IDS = { Z1: 1 } as const;
-    const hydraulicModel = HydraulicModelBuilder.with()
-      .aZone(aZone(IDS.Z1, "NORTH"))
-      .build();
-    const selection = USelection.fromIds([], [], [IDS.Z1]);
-    const store = setInitialState({ hydraulicModel, selection });
-    renderComponent({ store });
-
-    await triggerCommand();
-
-    expect(store.get(stagingModelDerivedAtom).zones.has(IDS.Z1)).toBe(true);
-    expect(USelection.getZoneIds(store.get(selectionAtom))).toEqual([IDS.Z1]);
   });
 
   it("does nothing when no assets selected", async () => {

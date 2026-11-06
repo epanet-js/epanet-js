@@ -14,7 +14,6 @@ import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { modeAtom, Mode } from "src/state/mode";
 import { selectionAtom } from "src/state/selection";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 export const deleteSelectedShortcuts = ["backspace", "del"];
 
 export const useDeleteSelection = () => {
@@ -24,7 +23,6 @@ export const useDeleteSelection = () => {
   const setEphemeralState = useSetAtom(ephemeralStateAtom);
   const { transact } = useModelTransaction();
   const userTracking = useUserTracking();
-  const isDeleteZoneOn = useFeatureFlag("FLAG_DELETE_ZONE");
 
   const clearSelection = useCallback(() => {
     setSelection(USelection.none());
@@ -36,7 +34,7 @@ export const useDeleteSelection = () => {
     ({ source }: { source: AssetDeleted["source"] }) => {
       const assetIds = USelection.getAssetIds(selection);
       const customerPointIds = USelection.getCustomerPointIds(selection);
-      const zoneIds = isDeleteZoneOn ? USelection.getZoneIds(selection) : [];
+      const zoneIds = USelection.getZoneIds(selection);
       if (
         assetIds.length === 0 &&
         customerPointIds.length === 0 &&
@@ -105,13 +103,6 @@ export const useDeleteSelection = () => {
         return mergeChangeSets(changeSets, "deleteSelection");
       });
     },
-    [
-      hydraulicModel,
-      selection,
-      transact,
-      clearSelection,
-      userTracking,
-      isDeleteZoneOn,
-    ],
+    [hydraulicModel, selection, transact, clearSelection, userTracking],
   );
 };

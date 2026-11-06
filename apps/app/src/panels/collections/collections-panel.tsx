@@ -80,7 +80,6 @@ import {
   groupPath,
   largestContainedSet,
   matchesSelectionExactly,
-  savableSelection,
   setsInGroupSubtree,
 } from "src/lib/collections";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
@@ -134,11 +133,8 @@ export const CollectionsPanel = () => {
   const selection = useAtomValue(selectionAtom);
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
 
-  const isZoneSelectionOn = useFeatureFlag("FLAG_ZONE_SELECTION");
-  const savableCount = countSelected(
-    savableSelection(selection, isZoneSelectionOn),
-  );
-  const canSaveSelection = savableCount >= MIN_SELECTION_SET_SIZE;
+  const selectedCount = countSelected(selection);
+  const canSaveSelection = selectedCount >= MIN_SELECTION_SET_SIZE;
 
   const [appliedSetId, setAppliedSetId] = useState<SelectionSetId | null>(null);
 
@@ -900,7 +896,7 @@ export const CollectionsPanel = () => {
                   ? translate("collections.selectionSets.saveCurrent")
                   : translate("collections.selectionSets.nothingSelected")
               }
-              count={canSaveSelection ? savableCount : undefined}
+              count={canSaveSelection ? selectedCount : undefined}
               navId={row.addRowNavId}
               depth={row.depth + 1}
               indentGuides={childGuides(row.guides, true)}
@@ -1034,7 +1030,7 @@ export const CollectionsPanel = () => {
                     ? translate("collections.selectionSets.saveCurrent")
                     : translate("collections.selectionSets.nothingSelected")
                 }
-                count={canSaveSelection ? savableCount : undefined}
+                count={canSaveSelection ? selectedCount : undefined}
                 navId={addRowNavIds.selectionSets}
                 isFocused={focusedAddRow === "selectionSets"}
                 isDisabled={!canSaveSelection}
