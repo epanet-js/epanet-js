@@ -1,4 +1,4 @@
-import type { AssetId, AssetType } from "@epanet-js/hydraulic-model";
+import type { AssetId, AssetType, ZoneId } from "@epanet-js/hydraulic-model";
 import { type PanelOfType, newPanelId } from "src/panels/panel";
 
 export const createAssetTablePanel = (
@@ -33,6 +33,23 @@ export const createCustomerPointTablePanel = ({
   availableInVerticalLayout: true,
   closable,
   ...(customerPointIds ? { customerPointIds } : {}),
+});
+
+export const createZoneTablePanel = ({
+  id = newPanelId(),
+  closable = true,
+  zoneIds,
+}: {
+  id?: string;
+  closable?: boolean;
+  zoneIds?: readonly ZoneId[];
+} = {}): PanelOfType<"zone-table"> => ({
+  id,
+  type: "zone-table",
+  initialDock: "bottom",
+  availableInVerticalLayout: true,
+  closable,
+  ...(zoneIds ? { zoneIds } : {}),
 });
 
 const DEFAULT_ASSET_TYPES: AssetType[] = [

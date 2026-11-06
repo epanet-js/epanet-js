@@ -1,5 +1,5 @@
 import { nanoid } from "nanoid";
-import type { AssetId, AssetType } from "@epanet-js/hydraulic-model";
+import type { AssetId, AssetType, ZoneId } from "@epanet-js/hydraulic-model";
 import type { HorizontalDock } from "./docks";
 
 type Common = {
@@ -18,6 +18,10 @@ export type Panel =
   | (Common & {
       type: "customer-point-table";
       customerPointIds?: readonly number[];
+    })
+  | (Common & {
+      type: "zone-table";
+      zoneIds?: readonly ZoneId[];
     })
   | (Common & { type: "hgl-profile" })
   | (Common & { type: "network-review" })
@@ -45,6 +49,8 @@ export const panelTrackingName = (panel: Panel): string => {
       return [panel.type, panel.customerPointIds ? "selection" : "all"].join(
         ":",
       );
+    case "zone-table":
+      return [panel.type, panel.zoneIds ? "selection" : "all"].join(":");
     default:
       return panel.type;
   }

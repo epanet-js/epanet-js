@@ -10,6 +10,7 @@ import { Checkbox } from "src/components/form/Checkbox";
 import { useTranslate } from "src/hooks/use-translate";
 import {
   CUSTOMER_POINTS_TABLE,
+  ZONES_TABLE,
   type DataTableType,
   useOpenDataTables,
 } from "src/commands/open-data-tables";
@@ -17,6 +18,7 @@ import { OPENABLE_ASSET_TYPES } from "src/panels/data-tables/create-panel";
 import { selectionAtom } from "src/state/selection";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { USelection } from "src/selection";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 type Choice = { tableType: DataTableType; label: string };
 
@@ -34,12 +36,14 @@ export const OpenDataTablesDialog = ({ onClose }: { onClose: () => void }) => {
   const openDataTables = useOpenDataTables();
   const selection = useAtomValue(selectionAtom);
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
+  const isZoneTableOn = useFeatureFlag("FLAG_ZONE_CUSTOM_ATTRIBUTES");
   const totalCounts = useMemo(() => {
     const counts = new Map<DataTableType, number>();
     for (const asset of hydraulicModel.assets.values()) {
       counts.set(asset.type, (counts.get(asset.type) ?? 0) + 1);
     }
     counts.set(CUSTOMER_POINTS_TABLE, hydraulicModel.customerPoints.size);
+    counts.set(ZONES_TABLE, hydraulicModel.zones.size);
     return counts;
   }, [hydraulicModel]);
 
@@ -53,8 +57,16 @@ export const OpenDataTablesDialog = ({ onClose }: { onClose: () => void }) => {
         label: translate(assetTypeLabelKeys[assetType]),
       })),
       { tableType: CUSTOMER_POINTS_TABLE, label: translate("customerPoints") },
+      ...(isZoneTableOn
+        ? [
+            {
+              tableType: ZONES_TABLE,
+              label: translate("zones"),
+            } satisfies Choice,
+          ]
+        : []),
     ],
-    [translate],
+    [translate, isZoneTableOn],
   );
 
   const selectedCounts = useMemo(() => {
@@ -66,6 +78,8 @@ export const OpenDataTablesDialog = ({ onClose }: { onClose: () => void }) => {
     }
     const customerPoints = USelection.getCustomerPointIds(selection).length;
     if (customerPoints > 0) counts.set(CUSTOMER_POINTS_TABLE, customerPoints);
+    const zones = USelection.getZoneIds(selection).length;
+    if (zones > 0) counts.set(ZONES_TABLE, zones);
     return counts;
   }, [selection, hydraulicModel]);
 

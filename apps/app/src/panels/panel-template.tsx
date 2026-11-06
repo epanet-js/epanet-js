@@ -7,7 +7,11 @@ import type { Dock, HorizontalDock } from "./docks";
 import { PanelDockContext } from "./panel-dock-context";
 import type { Panel, PanelOfType, PanelType } from "./panel";
 import type { DataGridState } from "src/components/data-grid";
-import { assetTablePanel, customerPointTablePanel } from "./data-tables/panel";
+import {
+  assetTablePanel,
+  customerPointTablePanel,
+  zoneTablePanel,
+} from "./data-tables/panel";
 import { hglProfilePanel } from "./hgl-profile/panel";
 import { networkReviewPanel } from "./network-review/panel";
 import { collectionsPanel } from "./collections/panel";
@@ -55,6 +59,7 @@ export type PanelLayout = {
 export type PanelContentStateByType = {
   "asset-table": DataGridState;
   "customer-point-table": DataGridState;
+  "zone-table": DataGridState;
   "hgl-profile": undefined;
   "network-review": undefined;
   collections: undefined;
@@ -70,6 +75,7 @@ export type PanelContentState =
 const panelTemplates = {
   "asset-table": assetTablePanel,
   "customer-point-table": customerPointTablePanel,
+  "zone-table": zoneTablePanel,
   "hgl-profile": hglProfilePanel,
   "network-review": networkReviewPanel,
   collections: collectionsPanel,

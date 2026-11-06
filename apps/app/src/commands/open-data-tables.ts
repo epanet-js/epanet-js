@@ -5,6 +5,7 @@ import type { Panel } from "src/panels/panel";
 import {
   createAssetTablePanel,
   createCustomerPointTablePanel,
+  createZoneTablePanel,
 } from "src/panels/data-tables/create-panel";
 import { splitsAtom } from "src/state/layout";
 import { panelsAtom } from "src/state/panels";
@@ -15,7 +16,12 @@ import { useActivatePanel } from "./activate-panel";
 
 export const CUSTOMER_POINTS_TABLE = "customerPoints";
 
-export type DataTableType = AssetType | typeof CUSTOMER_POINTS_TABLE;
+export const ZONES_TABLE = "zones";
+
+export type DataTableType =
+  | AssetType
+  | typeof CUSTOMER_POINTS_TABLE
+  | typeof ZONES_TABLE;
 
 export type DataTableScope = "all" | "selection";
 
@@ -35,10 +41,24 @@ export const useOpenDataTables = () => {
     ({ tableTypes, scope = "all" }: OpenDataTablesRequest) => {
       if (tableTypes.length === 0) return;
 
-      const selectedIdsFor = (tableType: DataTableType) =>
-        tableType === CUSTOMER_POINTS_TABLE
-          ? [...USelection.getCustomerPointIds(selection)]
-          : [...USelection.getAssetIds(selection)];
+      const selectedIdsFor = (tableType: DataTableType) => {
+        if (tableType === CUSTOMER_POINTS_TABLE)
+          return [...USelection.getCustomerPointIds(selection)];
+        if (tableType === ZONES_TABLE)
+          return [...USelection.getZoneIds(selection)];
+        return [...USelection.getAssetIds(selection)];
+      };
+
+      const createPanel = (
+        tableType: DataTableType,
+        ids: number[] | undefined,
+      ): Panel => {
+        if (tableType === CUSTOMER_POINTS_TABLE)
+          return createCustomerPointTablePanel({ customerPointIds: ids });
+        if (tableType === ZONES_TABLE)
+          return createZoneTablePanel({ zoneIds: ids });
+        return createAssetTablePanel(tableType, { assetIds: ids });
+      };
 
       const created: Panel[] = [];
 
@@ -46,11 +66,7 @@ export const useOpenDataTables = () => {
         const ids =
           scope === "selection" ? selectedIdsFor(tableType) : undefined;
 
-        created.push(
-          tableType === CUSTOMER_POINTS_TABLE
-            ? createCustomerPointTablePanel({ customerPointIds: ids })
-            : createAssetTablePanel(tableType, { assetIds: ids }),
-        );
+        created.push(createPanel(tableType, ids));
       }
 
       if (created.length > 0) {

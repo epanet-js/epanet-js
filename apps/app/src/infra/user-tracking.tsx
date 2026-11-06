@@ -244,6 +244,7 @@ type ZonesDeleted = {
 
 type ZoneLabelChanged = {
   name: "zone.labelChanged";
+  count?: number;
 };
 
 type ZoneLabelDuplicate = {
@@ -1956,7 +1957,7 @@ export type UserEvent =
     }
   | {
       name: "dataTables.copied";
-      type: Asset["type"] | "customerPoint";
+      type: Asset["type"] | "customerPoint" | "zone";
       requestedRows: number;
       rows: number;
       cols: number;
@@ -1967,7 +1968,7 @@ export type UserEvent =
     }
   | {
       name: "dataTables.pasted";
-      type: Asset["type"] | "customerPoint";
+      type: Asset["type"] | "customerPoint" | "zone";
       rows: number;
       cols: number;
       allRows: boolean;
@@ -1976,13 +1977,13 @@ export type UserEvent =
     }
   | {
       name: "dataTables.sorted";
-      type: Asset["type"] | "customerPoint";
+      type: Asset["type"] | "customerPoint" | "zone";
       property: string;
       direction: "asc" | "desc";
     }
   | {
       name: "dataTables.selectedInMap";
-      type: Asset["type"] | "customerPoint";
+      type: Asset["type"] | "customerPoint" | "zone";
       source: "cell-context" | "gutter-context";
       count: number;
     }
