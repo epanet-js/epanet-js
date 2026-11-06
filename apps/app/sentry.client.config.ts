@@ -53,6 +53,18 @@ Sentry.init({
     );
     if (isMapboxTileAbort) return null;
 
+    // A SyntaxError reaching window.onerror is caused by JS engines without
+    // full ES2020 support failing to parse features like ?.
+    // A good number of Sentry issues are from crawlers behind spoofed user agents,
+    // adding noise. This prevents these issues from reaching Sentry
+    const isScriptParseError = event.exception?.values?.some(
+      (value) =>
+        value.type === "SyntaxError" &&
+        value.mechanism?.type === "onerror" &&
+        /Unexpected token/.test(value.value ?? ""),
+    );
+    if (isScriptParseError) return null;
+
     if (
       error instanceof Error &&
       "details" in error &&
