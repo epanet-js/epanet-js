@@ -6,6 +6,8 @@ import { Button } from "../elements";
 import { ItemActions, type ItemAction } from "./item-actions";
 import { useNavigableListContext } from "./navigable-list";
 
+const SECTION_CHEVRON_CENTER_REM = 0.75;
+
 type CollapsibleListSectionProps = {
   title: string;
   count?: number;
@@ -21,6 +23,7 @@ type CollapsibleListSectionProps = {
   menuLabel?: string;
   onMenuAction?: (action: string) => void;
   readOnly?: boolean;
+  showIndentGuide?: boolean;
 };
 
 export const CollapsibleListSection = ({
@@ -38,6 +41,7 @@ export const CollapsibleListSection = ({
   onMenuAction,
   children,
   readOnly = false,
+  showIndentGuide = false,
 }: CollapsibleListSectionProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const ctx = useNavigableListContext();
@@ -87,7 +91,16 @@ export const CollapsibleListSection = ({
         )}
       </div>
       <C.Content>
-        <ul className="pl-4">{children}</ul>
+        <ul className="relative pl-4">
+          {showIndentGuide && (
+            <span
+              aria-hidden
+              className="pointer-events-none absolute top-0 bottom-4 border-l border-base"
+              style={{ left: `${SECTION_CHEVRON_CENTER_REM}rem` }}
+            />
+          )}
+          {children}
+        </ul>
       </C.Content>
     </C.Root>
   );

@@ -33,11 +33,14 @@ import { Button, DDContent, StyledItem } from "src/components/elements";
 import {
   CollapsibleListSection,
   EditableListItem,
+  IndentGuides,
+  childGuides,
   ItemActions,
   ItemInput,
   NavigableList,
 } from "src/components/list";
 import type {
+  IndentGuide,
   ItemAction,
   NavItem,
   NavigableListHandle,
@@ -111,6 +114,7 @@ type Row = RowKey & {
   hidden: boolean;
   count?: number;
   addRowNavId?: number;
+  guides: IndentGuide[];
 };
 
 type AddRowTarget = SectionType | { groupId: SelectionSetGroupId };
@@ -195,6 +199,7 @@ export const CollectionsPanel = () => {
       set: (typeof selectionSets)[number],
       depth: number,
       hidden: boolean,
+      guides: IndentGuide[],
     ): Row => ({
       navId: ++navId,
       section: "selectionSets",
@@ -204,6 +209,7 @@ export const CollectionsPanel = () => {
       depth,
       groupId: isGroupsOn ? set.groupId : null,
       hidden,
+      guides,
     });
     const selectionSectionRows: Row[] = [];
     const knownGroupIds = new Set(selectionSetGroups.map((group) => group.id));
@@ -211,6 +217,7 @@ export const CollectionsPanel = () => {
       parentId: SelectionSetGroupId | null,
       depth: number,
       hidden: boolean,
+      parentGuides: IndentGuide[],
     ) => {
       const groups =
         parentId === null
@@ -219,8 +226,17 @@ export const CollectionsPanel = () => {
                 group.parentId === null || !knownGroupIds.has(group.parentId),
             )
           : childGroups(selectionSetGroups, parentId);
-      for (const group of groups) {
+      const setsOfParent =
+        parentId === null
+          ? []
+          : selectionSets.filter((set) => set.groupId === parentId);
+      const guidesFor = (isLast: boolean) =>
+        parentId === null ? [] : childGuides(parentGuides, isLast);
+      for (const [index, group] of groups.entries()) {
         const inside = selectionSets.filter((set) => set.groupId === group.id);
+        const guides = guidesFor(
+          index === groups.length - 1 && setsOfParent.length === 0,
+        );
         const isEmpty =
           inside.length === 0 &&
           childGroups(selectionSetGroups, group.id).length === 0;
@@ -235,18 +251,26 @@ export const CollectionsPanel = () => {
           hidden,
           count: inside.length,
           addRowNavId: isEmpty ? ++navId : undefined,
+          guides,
         });
         const hiddenInside = hidden || collapsedGroupIds.has(group.id);
-        walk(group.id, depth + 1, hiddenInside);
-        for (const set of inside)
-          selectionSectionRows.push(setRow(set, depth + 1, hiddenInside));
+        walk(group.id, depth + 1, hiddenInside, guides);
+        for (const [setIndex, set] of inside.entries())
+          selectionSectionRows.push(
+            setRow(
+              set,
+              depth + 1,
+              hiddenInside,
+              childGuides(guides, setIndex === inside.length - 1),
+            ),
+          );
       }
     };
-    if (isGroupsOn) walk(null, 0, false);
+    if (isGroupsOn) walk(null, 0, false, []);
     for (const set of selectionSets) {
       if (isGroupsOn && set.groupId !== null && knownGroupIds.has(set.groupId))
         continue;
-      selectionSectionRows.push(setRow(set, 0, false));
+      selectionSectionRows.push(setRow(set, 0, false, []));
     }
     const groupRows = selectionSectionRows.filter(
       (row) => row.kind === "group",
@@ -265,6 +289,7 @@ export const CollectionsPanel = () => {
       depth: 0,
       groupId: null,
       hidden: false,
+      guides: [],
     }));
     const addRowNavIds: { selectionSets?: number; bookmarks: number } = {
       selectionSets: selectionSetsAddRowNavId,
@@ -765,6 +790,7 @@ export const CollectionsPanel = () => {
     const isMenuOpen = menuOpenGroupId === row.id;
     const isRenaming =
       actionState?.action === "renamingGroup" && actionState.id === row.id;
+    const inputGuides = childGuides(row.guides, row.addRowNavId !== undefined);
     return (
       <Fragment key={row.id}>
         {isRenaming ? (
@@ -774,6 +800,7 @@ export const CollectionsPanel = () => {
             onCommit={handleLabelChange}
             onCancel={clearActionState}
             depth={row.depth}
+            indentGuides={row.guides}
           />
         ) : (
           <li
@@ -782,12 +809,13 @@ export const CollectionsPanel = () => {
               row.depth > 0 ? { paddingLeft: `${row.depth}rem` } : undefined
             }
             className={clsx(
-              "group flex items-center text-sm cursor-pointer h-8 min-w-0 rounded-sm",
+              "group relative flex items-center text-sm cursor-pointer h-8 min-w-0 rounded-sm",
               (focusedRow !== null && isSameRow(row, focusedRow)) || isMenuOpen
                 ? "bg-base-hover"
                 : "hover:bg-base-hover",
             )}
           >
+            <IndentGuides guides={row.guides} />
             <Button
               variant="quiet/list"
               size="sm"
@@ -842,6 +870,7 @@ export const CollectionsPanel = () => {
               onCommit={handleLabelChange}
               onCancel={clearActionState}
               depth={row.depth + 1}
+              indentGuides={inputGuides}
             />
           )}
         {setDraftGroupId === row.id && (
@@ -855,6 +884,7 @@ export const CollectionsPanel = () => {
             onCommit={handleLabelChange}
             onCancel={clearActionState}
             depth={row.depth + 1}
+            indentGuides={inputGuides}
           />
         )}
         {!isCollapsed &&
@@ -873,6 +903,7 @@ export const CollectionsPanel = () => {
               count={canSaveSelection ? savableCount : undefined}
               navId={row.addRowNavId}
               depth={row.depth + 1}
+              indentGuides={childGuides(row.guides, true)}
               isFocused={
                 typeof focusedAddRow === "object" &&
                 focusedAddRow?.groupId === row.id
@@ -896,6 +927,7 @@ export const CollectionsPanel = () => {
       actions={itemActionsFor(row)}
       onAction={handleAction}
       depth={row.depth}
+      indentGuides={row.guides}
       onHover={
         isHighlightOn && row.kind === "set"
           ? (isHovering) => handleHoverSet(row.id, isHovering)
@@ -929,6 +961,7 @@ export const CollectionsPanel = () => {
       >
         <CollapsibleListSection
           sectionType="selectionSets"
+          showIndentGuide={isGroupsOn}
           title={translate("collections.selectionSets.title")}
           count={selectionSets.length}
           isFocused={focusedSection === "selectionSets"}
@@ -1062,6 +1095,7 @@ const CurrentStateRow = ({
   count,
   navId,
   depth = 0,
+  indentGuides = [],
   isFocused,
   isDisabled = false,
   isLocked = false,
@@ -1071,6 +1105,7 @@ const CurrentStateRow = ({
   count?: number;
   navId: number;
   depth?: number;
+  indentGuides?: readonly IndentGuide[];
   isFocused: boolean;
   isDisabled?: boolean;
   isLocked?: boolean;
@@ -1080,11 +1115,12 @@ const CurrentStateRow = ({
     data-item-id={navId}
     style={depth > 0 ? { paddingLeft: `${depth}rem` } : undefined}
     className={clsx(
-      "flex items-center text-sm h-8 min-w-0 rounded-sm",
+      "relative flex items-center text-sm h-8 min-w-0 rounded-sm",
       isFocused && "bg-base-hover",
       !isFocused && !isDisabled && "hover:bg-base-hover",
     )}
   >
+    <IndentGuides guides={indentGuides} />
     <Button
       variant="quiet/list"
       size="sm"

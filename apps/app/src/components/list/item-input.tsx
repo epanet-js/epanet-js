@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { EditableTextFieldWithConfirmation } from "../form/editable-text-field-with-confirmation";
+import { type IndentGuide, IndentGuides } from "./indent-guides";
 
 type ItemInputProps = {
   label?: string;
@@ -10,6 +11,7 @@ type ItemInputProps = {
   onCancel: () => void;
   forceValidation?: boolean;
   depth?: number;
+  indentGuides?: readonly IndentGuide[];
 };
 
 export const ItemInput = ({
@@ -21,6 +23,7 @@ export const ItemInput = ({
   onCancel,
   forceValidation,
   depth = 0,
+  indentGuides = [],
 }: ItemInputProps) => {
   const [hasError, setHasError] = useState(false);
 
@@ -33,9 +36,10 @@ export const ItemInput = ({
   return (
     <li
       style={depth > 0 ? { paddingLeft: `${depth}rem` } : undefined}
-      className="flex items-center text-sm bg-white dark:bg-gray-700 px-1 h-8"
+      className="relative flex items-center text-sm bg-white dark:bg-gray-700 px-1 h-8"
       data-capture-escape-key
     >
+      <IndentGuides guides={indentGuides} />
       <EditableTextFieldWithConfirmation
         label={label || value}
         value={value}

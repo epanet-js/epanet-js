@@ -1,6 +1,8 @@
 export { ListItem } from "./list-item";
 export { EditableListItem } from "./editable-item";
 export { ItemInput } from "./item-input";
+export { IndentGuides, childGuides } from "./indent-guides";
+export type { IndentGuide } from "./indent-guides";
 export { ItemActions } from "./item-actions";
 export { CollapsibleListSection } from "./collapsible-section";
 export { NavigableList } from "./navigable-list";
