@@ -247,7 +247,8 @@ export const CollectionsPanel = () => {
           depth,
           groupId: parentId,
           hidden,
-          count: inside.length,
+          count: setsInGroupSubtree(selectionSetGroups, selectionSets, group.id)
+            .length,
           addRowNavId: isEmpty ? ++navId : undefined,
           trailing,
         });

@@ -678,6 +678,7 @@ describe("CollectionsPanel", () => {
       const [, north] = store.get(selectionSetGroupsAtom);
       expect(store.get(selectionSetsAtom)[0].groupId).toBe(north.id);
       expect(within(rowOf("North")).getByText("(1)")).toBeInTheDocument();
+      expect(within(rowOf("DMAs")).getByText("(1)")).toBeInTheDocument();
     });
 
     it("lists folders before selection sets and reaches both with the arrow keys", async () => {
