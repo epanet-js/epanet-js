@@ -15,7 +15,7 @@ export type WrittenScript = { source: string; name: string };
 export type ScriptAssistant = {
   writeScript: (
     request: ScriptAssistantRequest,
-    options: { signal: AbortSignal },
+    options: { signal: AbortSignal; token: string | null },
   ) => Promise<WrittenScript>;
 };
 

@@ -7,6 +7,7 @@ import {
   changeProperty,
 } from "@epanet-js/hydraulic-model-operations";
 import type { HydraulicModel, Pipe } from "@epanet-js/hydraulic-model";
+import { AuthMockProvider } from "src/__helpers__/auth-mock";
 import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
 import { setInitialState } from "src/__helpers__/state";
 import { CommandContainer } from "src/commands/__helpers__/command-container";
@@ -26,9 +27,17 @@ import {
   type WrittenScript,
 } from "src/lib/script-assistant";
 
+vi.mock("src/hooks/use-auth", async () => {
+  const { useAuthMock } = await vi.importActual<
+    typeof import("src/__helpers__/auth-mock")
+  >("src/__helpers__/auth-mock");
+  return { useAuth: useAuthMock };
+});
+
 const writes: {
   request: ScriptAssistantRequest;
   signal: AbortSignal;
+  token: string | null;
   resolve: (written: WrittenScript) => void;
 }[] = [];
 
@@ -136,9 +145,9 @@ describe("ScriptsPanel", () => {
       stubFeatureOn("FLAG_SCRIPTING_ASSISTANT");
       writes.length = 0;
       registerScriptAssistant({
-        writeScript: (request, { signal }) =>
+        writeScript: (request, { signal, token }) =>
           new Promise((resolve, reject) => {
-            writes.push({ request, signal, resolve });
+            writes.push({ request, signal, token, resolve });
             signal.addEventListener("abort", () => reject(signal.reason));
           }),
       });
@@ -196,6 +205,7 @@ describe("ScriptsPanel", () => {
           source: "",
           scope: "script",
         });
+        expect(writes[0].token).toEqual("session-token");
         expect(screen.getByText("Writing script…")).toBeVisible();
         expect(
           screen.queryByRole("button", { name: "Write script myself" }),
@@ -825,10 +835,12 @@ describe("ScriptsPanel", () => {
 
   const renderPanel = (store: Store) =>
     render(
-      <CommandContainer store={store}>
-        <TooltipProvider>
-          <ScriptsPanel />
-        </TooltipProvider>
-      </CommandContainer>,
+      <AuthMockProvider isSignedIn>
+        <CommandContainer store={store}>
+          <TooltipProvider>
+            <ScriptsPanel />
+          </TooltipProvider>
+        </CommandContainer>
+      </AuthMockProvider>,
     );
 });

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useAuth } from "src/hooks/use-auth";
 import { captureError } from "src/infra/error-tracking";
 import {
   getScriptAssistant,
@@ -12,6 +13,7 @@ export type ScriptGeneration = {
 };
 
 export const useScriptGeneration = () => {
+  const { getToken } = useAuth();
   const [generation, setGeneration] = useState<ScriptGeneration | null>(null);
   const controllerRef = useRef<AbortController | null>(null);
 
@@ -35,8 +37,10 @@ export const useScriptGeneration = () => {
       });
 
       try {
+        const token = await getToken();
         const written = await assistant.writeScript(request, {
           signal: controller.signal,
+          token,
         });
         return controller.signal.aborted ? null : written;
       } catch (error) {
@@ -49,7 +53,7 @@ export const useScriptGeneration = () => {
         }
       }
     },
-    [],
+    [getToken],
   );
 
   useEffect(() => () => controllerRef.current?.abort(), []);
