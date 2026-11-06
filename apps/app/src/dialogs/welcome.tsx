@@ -40,7 +40,6 @@ import anglianWaterLogoUrl from "src/assets/images/logos/anglian-water-logo.webp
 import atkinsRealisLogoUrl from "src/assets/images/logos/atkins-realis-logo.svg";
 import tetraTechLogoUrl from "src/assets/images/logos/tetra-tech-logo.svg";
 import iteratingLogoUrl from "src/assets/images/logos/iterating-logo-muted-padded.svg";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useIsDrawingAvailable } from "src/hooks/use-is-drawing-available";
 import { useIsModelBuilderAvailable } from "src/hooks/use-is-model-builder-available";
 import type { RecentFileEntry } from "src/lib/recent-files";
@@ -238,11 +237,8 @@ const foundingPartners = [
 ] as const;
 
 const FoundingPartners = () => {
-  const isTetraTechPartnerOn = useFeatureFlag("FLAG_TETRA_TECH_PARTNER");
   const translate = useTranslate();
   const userTracking = useUserTracking();
-
-  if (!isTetraTechPartnerOn) return <FoundingPartnersDeprecated />;
 
   return (
     <section className="mt-4 mb-1 text-size-small text-center shrink-0">
@@ -273,105 +269,6 @@ const FoundingPartners = () => {
         ))}
       </ul>
     </section>
-  );
-};
-
-const FoundingPartnersDeprecated = () => {
-  const translate = useTranslate();
-  const userTracking = useUserTracking();
-  return (
-    <div className="bg-panel rounded-lg p-4 mt-6 text-size-small text-center shrink-0">
-      <h3 className="pb-2 text-subtle font-bold">
-        {translate("foundersPartnerTitle")}
-      </h3>
-      <div className="flex gap-4 place-content-between">
-        <a
-          className=""
-          href="https://optimatics.com/"
-          target="_blank"
-          onClick={() => {
-            userTracking.capture({
-              name: "foundersPartner.visited",
-              link: "optimatics",
-            });
-          }}
-        >
-          <img
-            src={optimaticsLogoUrl.src}
-            className="block h-7.5 mt-3.75"
-            height="30"
-          />
-        </a>
-        <a
-          href="https://www.affinitywater.co.uk/"
-          target="_blank"
-          className="pt-4"
-          onClick={() => {
-            userTracking.capture({
-              name: "foundersPartner.visited",
-              link: "affinityWater",
-            });
-          }}
-        >
-          <img
-            src={affinityWaterLogoUrl.src}
-            className="block h-3.5"
-            height="14"
-          />
-        </a>
-        <a
-          href="https://www.atkinsrealis.com/"
-          target="_blank"
-          className="pt-3"
-          onClick={() => {
-            userTracking.capture({
-              name: "foundersPartner.visited",
-              link: "atkinsRealis",
-            });
-          }}
-        >
-          <img
-            src={atkinsRealisLogoUrl.src}
-            className="block h-3.5"
-            height="14"
-          />
-        </a>
-        <a
-          href="https://www.anglianwater.co.uk/"
-          target="_blank"
-          className="pt-3 -mt-5.75"
-          onClick={() => {
-            userTracking.capture({
-              name: "foundersPartner.visited",
-              link: "anglianWater",
-            });
-          }}
-        >
-          <img
-            src={anglianWaterLogoUrl.src}
-            className="block h-10"
-            height="40"
-          />
-        </a>
-      </div>
-      <p className="text-subtle">
-        {translate("foundersPartnerDescription")}{" "}
-        <a
-          href="https://help.epanetjs.com/Founding-Partner-program-2f6e18c9f0f680d8be27c05c0b5844bb"
-          target="_blank"
-          className="underline text-violet-500"
-          onClick={() => {
-            userTracking.capture({
-              name: "foundersPartner.visited",
-              link: "foundersPartners",
-            });
-          }}
-        >
-          {translate("foundersPartnerLearnMore")}
-        </a>
-        .
-      </p>
-    </div>
   );
 };
 
@@ -410,7 +307,6 @@ const SmallDeviceWarning = () => {
 
 const DemoNetworks = () => {
   const translate = useTranslate();
-  const isTetraTechPartnerOn = useFeatureFlag("FLAG_TETRA_TECH_PARTNER");
 
   const demoModels = [
     {
@@ -428,7 +324,7 @@ const DemoNetworks = () => {
   ];
 
   return (
-    <div className={isTetraTechPartnerOn ? "pb-4" : undefined}>
+    <div className="pb-4">
       <h2 className="pt-2 pb-2 font-bold text-subtle">
         {translate("demoNetworksTitle")}
       </h2>
