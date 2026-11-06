@@ -125,6 +125,7 @@ export type ZoneData = {
   ref: string;
   label?: string;
   polygons: Position[][][];
+  customAttributes?: CustomAttributeValues;
 };
 
 export type SelectionSetData = {

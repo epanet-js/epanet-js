@@ -104,6 +104,32 @@ describe("zones importFromSource", () => {
     ]);
   });
 
+  it("carries mapped custom attributes and declares them", async () => {
+    const { network } = await importSource({
+      ...filesOf([aZone({ AREA: "LOW", POP: 7 })]),
+      config: { customAttributes: ["AREA", "POP", "ABSENT"] },
+    });
+
+    expect(network.zones![0].customAttributes).toEqual({
+      AREA: "LOW",
+      POP: 7,
+    });
+    expect(network.customAttributes).toEqual([
+      { ref: "AREA", name: "AREA", type: "text" },
+      { ref: "POP", name: "POP", type: "number" },
+    ]);
+  });
+
+  it("leaves a zone's attributes out when it states none", async () => {
+    const { network } = await importSource({
+      ...filesOf([aZone({ AREA: "" })]),
+      config: { customAttributes: ["AREA"] },
+    });
+
+    expect(network.zones![0].customAttributes).toBeUndefined();
+    expect(network.customAttributes).toEqual([]);
+  });
+
   it("reads a multipolygon as one zone of several polygons", async () => {
     const island: Feature = {
       type: "Feature",

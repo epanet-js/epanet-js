@@ -1,7 +1,13 @@
 import { act, renderHook } from "@testing-library/react";
 import { Provider as JotaiProvider } from "jotai";
 import type { BuildZonesResult } from "@epanet-js/converters";
-import type { Zone, Zones } from "@epanet-js/hydraulic-model";
+import {
+  getAttributes,
+  setAttributes,
+  type CustomAttributesDefinition,
+  type Zone,
+  type Zones,
+} from "@epanet-js/hydraulic-model";
 import {
   HydraulicModelBuilder,
   buildZone,
@@ -18,10 +24,15 @@ import { zonesAtom } from "src/state/zones";
 import type { Store } from "src/state";
 import { useImportZones } from "./import-zones";
 
-const aZone = (id: number, label: string): Zone =>
+const aZone = (
+  id: number,
+  label: string,
+  customAttributes: Record<string, string | number> = {},
+): Zone =>
   buildZone({
     id,
     label,
+    customAttributes,
     geometry: {
       type: "MultiPolygon",
       coordinates: [
@@ -42,6 +53,7 @@ const aZone = (id: number, label: string): Zone =>
 const built = (...zones: Zone[]): BuildZonesResult => ({
   zones: new Map(zones.map((zone) => [zone.id, zone])) as Zones,
   mergedZones: [],
+  renamedZones: [],
 });
 
 const withStore = (store: Store) => ({
@@ -64,11 +76,15 @@ const aProject = async (): Promise<Store> => {
   return store;
 };
 
-const importZones = async (store: Store, result: BuildZonesResult) => {
+const importZones = async (
+  store: Store,
+  result: BuildZonesResult,
+  customAttributes?: CustomAttributesDefinition,
+) => {
   const { result: hook } = renderHook(() => useImportZones(), withStore(store));
   let imported: BuildZonesResult | null = null;
   await act(async () => {
-    imported = await hook.current(result);
+    imported = await hook.current(result, customAttributes);
     await writeQueue.whenIdle();
   });
   return imported;
@@ -114,6 +130,27 @@ describe("useImportZones", () => {
     expect(zoneLabels(store.get(zonesAtom))).toEqual(["EAST"]);
     const { hydraulicModel } = await db.fetchProject();
     expect(zoneLabels(hydraulicModel.zones)).toEqual(["EAST"]);
+  });
+
+  it("adds the imported attribute definitions with the zones", async () => {
+    const store = await aProject();
+    const definition = setAttributes(
+      store.get(stagingModelDerivedAtom).customAttributes,
+      "zone",
+      [{ id: "custom-1", label: "Area", type: "text" }],
+    );
+
+    await importZones(
+      store,
+      built(aZone(1, "NORTH", { "custom-1": "LOW" })),
+      definition,
+    );
+
+    const { hydraulicModel } = await db.fetchProject();
+    expect(getAttributes(hydraulicModel.customAttributes, "zone")).toEqual([
+      { id: "custom-1", label: "Area", type: "text" },
+    ]);
+    expect(hydraulicModel.zones.get(1)!.getProperty("custom-1")).toBe("LOW");
   });
 
   it("undoes an import", async () => {

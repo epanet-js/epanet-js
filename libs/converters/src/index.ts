@@ -56,4 +56,6 @@ export type {
   BuildModelResult,
   BuildZonesResult,
   MergedZoneInfo,
+  RenamedZoneInfo,
+  ZoneAttributePlan,
 } from "./build-model";

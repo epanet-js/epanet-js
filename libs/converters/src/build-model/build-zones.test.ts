@@ -3,7 +3,7 @@ import type { Position } from "geojson";
 import type { ZoneData } from "../network-data";
 import { ZoneFactory } from "@epanet-js/hydraulic-model";
 import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
-import { buildZones } from "./build-zones";
+import { buildZones, type ZoneAttributePlan } from "./build-zones";
 
 describe("buildZones", () => {
   it("generates labels for zones the source did not name", () => {
@@ -97,6 +97,119 @@ describe("buildZones", () => {
     expect(mergedZones).toEqual([]);
   });
 
+  it("merges zones with the same label and agreeing attributes", () => {
+    const { zones, mergedZones } = buildZones(
+      [
+        aZone({ label: "NORTH", customAttributes: { AREA: "LOW" } }),
+        aZone(
+          { label: "NORTH", customAttributes: { AREA: "LOW", POP: 7 } },
+          otherSquare,
+        ),
+      ],
+      aZoneFactory(),
+      plan,
+    );
+
+    expect(zones.size).toBe(1);
+    expect(zones.get(1)!.getProperty("custom-1")).toBe("LOW");
+    expect(zones.get(1)!.getProperty("custom-2")).toBe(7);
+    expect(mergedZones).toEqual([{ label: "NORTH", featureCount: 2 }]);
+  });
+
+  it("lets an empty value merge with any value", () => {
+    const { zones } = buildZones(
+      [
+        aZone({ label: "NORTH" }),
+        aZone({ label: "NORTH", customAttributes: { AREA: "LOW" } }),
+        aZone({ label: "NORTH", customAttributes: { POP: 7 } }),
+      ],
+      aZoneFactory(),
+      plan,
+    );
+
+    expect(zones.size).toBe(1);
+    expect(zones.get(1)!.getProperty("custom-1")).toBe("LOW");
+    expect(zones.get(1)!.getProperty("custom-2")).toBe(7);
+  });
+
+  it("gives a zone with conflicting attributes a suffixed label", () => {
+    const { zones, renamedZones } = buildZones(
+      [
+        aZone({ label: "NORTH", customAttributes: { AREA: "LOW" } }),
+        aZone({ label: "NORTH", customAttributes: { AREA: "HIGH" } }),
+      ],
+      aZoneFactory(),
+      plan,
+    );
+
+    expect([...zones.values()].map((zone) => zone.label)).toEqual([
+      "NORTH",
+      "NORTH (2)",
+    ]);
+    expect(zones.get(2)!.getProperty("custom-1")).toBe("HIGH");
+    expect(renamedZones).toEqual([
+      { label: "NORTH (2)", originalLabel: "NORTH" },
+    ]);
+  });
+
+  it("joins the first zone of that label it does not conflict with", () => {
+    const { zones, mergedZones } = buildZones(
+      [
+        aZone({ label: "NORTH", customAttributes: { AREA: "LOW" } }),
+        aZone({ label: "NORTH", customAttributes: { AREA: "HIGH" } }),
+        aZone({ label: "NORTH", customAttributes: { AREA: "HIGH" } }),
+      ],
+      aZoneFactory(),
+      plan,
+    );
+
+    expect(zones.size).toBe(2);
+    expect(mergedZones).toEqual([{ label: "NORTH (2)", featureCount: 2 }]);
+  });
+
+  it("skips a suffix the source already uses as a label", () => {
+    const { zones } = buildZones(
+      [
+        aZone({ label: "NORTH", customAttributes: { AREA: "LOW" } }),
+        aZone({ label: "NORTH (2)" }),
+        aZone({ label: "NORTH", customAttributes: { AREA: "HIGH" } }),
+      ],
+      aZoneFactory(),
+      plan,
+    );
+
+    expect([...zones.values()].map((zone) => zone.label)).toEqual([
+      "NORTH",
+      "NORTH (2)",
+      "NORTH (3)",
+    ]);
+  });
+
+  it("compares values after converting them to the attribute's type", () => {
+    const { zones } = buildZones(
+      [
+        aZone({ label: "NORTH", customAttributes: { AREA: 1, POP: 1 } }),
+        aZone({ label: "NORTH", customAttributes: { AREA: "1", POP: "1.0" } }),
+      ],
+      aZoneFactory(),
+      plan,
+    );
+
+    expect(zones.size).toBe(1);
+    expect(zones.get(1)!.getProperty("custom-1")).toBe("1");
+    expect(zones.get(1)!.getProperty("custom-2")).toBe(1);
+  });
+
+  it("leaves out attributes the plan does not name", () => {
+    const { zones } = buildZones(
+      [aZone({ label: "NORTH", customAttributes: { OTHER: "LOW" } })],
+      aZoneFactory(),
+      plan,
+    );
+
+    expect(zones.get(1)!.listProperties()).toEqual(["label"]);
+  });
+
   it("gives every zone a bounding box", () => {
     const { zones } = buildZones([aZone({}, otherSquare)], aZoneFactory());
 
@@ -126,6 +239,11 @@ const otherSquare: Position[] = [
   [3, 3],
   [2, 2],
 ];
+
+const plan: ZoneAttributePlan = new Map([
+  ["AREA", { id: "custom-1", type: "text" }],
+  ["POP", { id: "custom-2", type: "number" }],
+]);
 
 const aZoneFactory = () => new ZoneFactory(new ConsecutiveIdsGenerator());
 

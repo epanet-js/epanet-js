@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useAtomValue } from "jotai";
 import { useTranslate } from "src/hooks/use-translate";
 import { WizardContainer } from "src/components/wizard/wizard-container";
@@ -9,16 +9,21 @@ import { useDialogState } from "src/components/dialog";
 import { useProjections } from "src/hooks/use-projections";
 import { getLabelProperties, type ReadZoneFeaturesResult } from "src/lib/zones";
 import { zonesImporter } from "@epanet-js/gis-importers";
-import { buildZones, type MergedZoneInfo } from "@epanet-js/converters";
+import { buildZones, type RenamedZoneInfo } from "@epanet-js/converters";
 import { ZoneFactory } from "@epanet-js/hydraulic-model";
 import { useImportZones } from "src/commands/import-zones";
 import { useUserTracking } from "src/infra/user-tracking";
 import { modelFactoriesAtom } from "src/state/model-factories";
+import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { useFeatureLock } from "src/components/form/paywall";
 import type { GisFiles } from "src/components/gis-drop-zone";
 import { DataInputStep } from "./data-input-step";
 import { DataMappingStep } from "./data-mapping-step";
 import { CompleteStep } from "./complete-step";
 import { readZonesWithImporter } from "./read-zones";
+import { planZoneAttributes } from "./plan-zone-attributes";
+import { buildSummaryRows, type SummaryRow } from "./import-summary";
 
 const DATA_INPUT_STEP_NUMBER = 1;
 const DATA_MAPPING_STEP_NUMBER = 2;
@@ -34,6 +39,15 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
   const userTracking = useUserTracking();
   const { idPools } = useAtomValue(modelFactoriesAtom);
   const { closeDialog } = useDialogState();
+  const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
+  const isZoneCustomAttributesOn = useFeatureFlag(
+    "FLAG_ZONE_CUSTOM_ATTRIBUTES",
+  );
+  const {
+    isLocked: customAttributesLocked,
+    openPaywall: openCustomAttributesPaywall,
+  } = useFeatureLock("customAttributes");
+  const [selectedAttributes, setSelectedAttributes] = useState<string[]>([]);
   const importZones = useImportZones();
   const { projections } = useProjections();
   const [currentStep, setCurrentStep] = useState(DATA_INPUT_STEP_NUMBER);
@@ -44,7 +58,9 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
   const [readResult, setReadResult] = useState<ReadZoneFeaturesResult | null>(
     null,
   );
-  const [mergedZones, setMergedZones] = useState<MergedZoneInfo[]>([]);
+  const [summaryColumns, setSummaryColumns] = useState<string[]>([]);
+  const [summaryRows, setSummaryRows] = useState<SummaryRow[]>([]);
+  const [renamedZones, setRenamedZones] = useState<RenamedZoneInfo[]>([]);
   const [importedZoneCount, setImportedZoneCount] = useState(0);
 
   const steps = [
@@ -122,24 +138,72 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
     setCurrentStep(DATA_MAPPING_STEP_NUMBER);
   }, [readResult, userTracking]);
 
+  const availableProperties = readResult
+    ? getLabelProperties(readResult.features)
+    : [];
+  const attributeOptions = useMemo(
+    () =>
+      readResult
+        ? [...readResult.uniqueProperties].filter(
+            (property) => property !== selectedLabel,
+          )
+        : [],
+    [readResult, selectedLabel],
+  );
+  const importedAttributes = useMemo(
+    () =>
+      isZoneCustomAttributesOn && !customAttributesLocked
+        ? selectedAttributes
+        : [],
+    [isZoneCustomAttributesOn, customAttributesLocked, selectedAttributes],
+  );
+
+  const handleToggleAttribute = useCallback(
+    (name: string) => {
+      if (customAttributesLocked) {
+        openCustomAttributesPaywall();
+        return;
+      }
+      setSelectedAttributes((prev) =>
+        prev.includes(name)
+          ? prev.filter((selected) => selected !== name)
+          : [...prev, name],
+      );
+    },
+    [customAttributesLocked, openCustomAttributesPaywall],
+  );
+
   const handleImport = useCallback(async () => {
     if (!readResult) return;
 
     userTracking.capture({ name: "importZones.dataMapping.next" });
 
     const labelProperty = selectedLabel === "none" ? undefined : selectedLabel;
+    const customAttributes = importedAttributes;
     const { network } = await zonesImporter.importFromFeatures(
       readResult.features,
-      { mapping: { label: labelProperty ?? null } },
+      { mapping: { label: labelProperty ?? null }, customAttributes },
     );
+    const declared = network.customAttributes ?? [];
+    const attributesPlan =
+      declared.length > 0
+        ? planZoneAttributes(hydraulicModel.customAttributes, declared)
+        : undefined;
     const built = buildZones(
       network.zones ?? [],
       new ZoneFactory(idPools.forPool("zone")),
+      attributesPlan?.plan,
     );
 
-    const result = await importZones(built);
+    const result = await importZones(built, attributesPlan?.definition);
     if (!result) return;
-    setMergedZones(result.mergedZones);
+    const columns = declared.flatMap(({ ref, name }) => {
+      const attribute = attributesPlan?.plan.get(ref);
+      return attribute ? [{ id: attribute.id, label: name }] : [];
+    });
+    setSummaryColumns(columns.map(({ label }) => label));
+    setSummaryRows(buildSummaryRows(result, columns));
+    setRenamedZones(result.renamedZones);
     const zonesCount = result.zones.size;
     setImportedZoneCount(zonesCount);
 
@@ -150,7 +214,15 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
     });
 
     setCurrentStep(COMPLETE_STEP_NUMBER);
-  }, [readResult, selectedLabel, importZones, userTracking, idPools]);
+  }, [
+    readResult,
+    selectedLabel,
+    importedAttributes,
+    hydraulicModel,
+    importZones,
+    userTracking,
+    idPools,
+  ]);
 
   const goBack = useCallback(() => {
     userTracking.capture({ name: "importZones.dataMapping.back" });
@@ -179,13 +251,10 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
         property: value,
       });
       setSelectedLabel(value);
+      setSelectedAttributes((prev) => prev.filter((name) => name !== value));
     },
     [userTracking],
   );
-
-  const availableProperties = readResult
-    ? getLabelProperties(readResult.features)
-    : [];
 
   const footer =
     currentStep === DATA_INPUT_STEP_NUMBER ? (
@@ -231,12 +300,24 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
             availableProperties={availableProperties}
             features={readResult?.features ?? []}
             onSelectLabel={handleSelectLabel}
+            attributes={
+              isZoneCustomAttributesOn
+                ? {
+                    options: attributeOptions,
+                    selected: selectedAttributes,
+                    isLocked: customAttributesLocked,
+                    onToggle: handleToggleAttribute,
+                  }
+                : undefined
+            }
           />
         )}
         {currentStep === COMPLETE_STEP_NUMBER && (
           <CompleteStep
             numZones={importedZoneCount}
-            mergedZones={mergedZones}
+            columns={summaryColumns}
+            rows={summaryRows}
+            renamedZones={renamedZones}
           />
         )}
       </WizardContent>

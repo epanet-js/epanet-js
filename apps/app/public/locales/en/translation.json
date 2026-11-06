@@ -2082,14 +2082,18 @@
       "description": "Choose a property to use as zone label, or auto-generate labels.",
       "none": "None (auto-generate labels)",
       "previewHeader": "Label",
-      "previewMore": "... and {{1}} more"
+      "previewMore": "... and {{1}} more",
+      "attributesPlaceholder": "No custom attributes",
+      "attributesSelectedCount": "{{1}} custom attributes"
     },
     "completeStep": {
       "title": "Complete",
       "summary": "Imported {{1}} zones.",
       "mergedSummary": "Merged {{1}} zones from multiple features:",
       "mergedLabelHeader": "Zone",
-      "mergedFeaturesHeader": "Number of merged features"
+      "mergedFeaturesHeader": "Number of merged features",
+      "renamedSummary": "Renamed {{1}} zones whose attributes conflict with another zone of the same label",
+      "renamedZone": "{{1}} was imported as {{2}}"
     },
     "errors": {
       "invalidFile": "The selected file could not be read.",

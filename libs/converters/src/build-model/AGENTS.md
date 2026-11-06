@@ -12,5 +12,5 @@ Turns the `NetworkData` a converter returns into a hydraulic model. It is the co
 - Valve schedules are built as raw controls until timed controls support valves.
 - A node's activity is derived from its links, never read from the source: it stays active while any link into it is active, or when it has no links.
 - A record's label is the source's label, never its ref: an empty one is generated, and a taken one is de-duplicated.
-- Zones sharing a label merge into one; unnamed zones never merge.
+- Zones sharing a label merge into one unless they state different values for the same custom attribute, compared after converting to the attribute's type; an empty value never conflicts. A zone that conflicts takes the first free `(n)` suffix and is reported in `renamedZones`. Unnamed zones never merge.
 - Custom attribute definitions are returned with the model, separately from the values on each asset; the caller must persist both.

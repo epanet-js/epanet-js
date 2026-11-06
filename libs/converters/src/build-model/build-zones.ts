@@ -1,47 +1,161 @@
 import type { MultiPolygon } from "geojson";
 import type { ZoneData } from "../network-data";
-import type { ZoneFactory, Zones } from "@epanet-js/hydraulic-model";
+import type {
+  CustomAttributeId,
+  CustomAttributeType,
+  ZoneFactory,
+  Zones,
+} from "@epanet-js/hydraulic-model";
 
 export type MergedZoneInfo = {
   label: string;
   featureCount: number;
 };
 
+export type RenamedZoneInfo = {
+  label: string;
+  originalLabel: string;
+};
+
 export type BuildZonesResult = {
   zones: Zones;
   mergedZones: MergedZoneInfo[];
+  renamedZones: RenamedZoneInfo[];
+};
+
+export type ZoneAttributePlan = Map<
+  string,
+  { id: CustomAttributeId; type: CustomAttributeType }
+>;
+
+type AttributeValue = string | number;
+
+type Group = {
+  label: string | undefined;
+  records: ZoneData[];
+  values: Map<CustomAttributeId, AttributeValue>;
+  conflicted: boolean;
 };
 
 export const buildZones = (
   records: ZoneData[],
   zoneFactory: ZoneFactory,
+  attributes: ZoneAttributePlan = new Map(),
 ): BuildZonesResult => {
   const zones: Zones = new Map();
   const mergedZones: MergedZoneInfo[] = [];
+  const renamedZones: RenamedZoneInfo[] = [];
 
-  const groups = new Map<string | ZoneData, ZoneData[]>();
+  const groups: Group[] = [];
+  const groupsByLabel = new Map<string, Group[]>();
+
   for (const record of records) {
-    const key = record.label ?? record;
-    const group = groups.get(key);
-    if (group) group.push(record);
-    else groups.set(key, [record]);
+    const values = resolveValues(record, attributes);
+
+    if (record.label === undefined) {
+      groups.push({
+        label: undefined,
+        records: [record],
+        values,
+        conflicted: false,
+      });
+      continue;
+    }
+
+    const sameLabel = groupsByLabel.get(record.label) ?? [];
+    const group = sameLabel.find((candidate) => !conflicts(candidate, values));
+    if (group) {
+      group.records.push(record);
+      for (const [id, value] of values) group.values.set(id, value);
+      continue;
+    }
+
+    const created: Group = {
+      label: record.label,
+      records: [record],
+      values,
+      conflicted: sameLabel.length > 0,
+    };
+    sameLabel.push(created);
+    groupsByLabel.set(record.label, sameLabel);
+    groups.push(created);
   }
 
-  for (const [key, group] of groups) {
+  const takenLabels = new Set(groupsByLabel.keys());
+
+  for (const group of groups) {
+    const label =
+      group.conflicted && group.label !== undefined
+        ? suffixed(group.label, takenLabels)
+        : group.label;
+
     const geometry: MultiPolygon = {
       type: "MultiPolygon",
-      coordinates: group.flatMap((record) => record.polygons),
+      coordinates: group.records.flatMap((record) => record.polygons),
     };
-    const zone = zoneFactory.create(
-      geometry,
-      typeof key === "string" ? key : undefined,
-    );
+    const zone = zoneFactory.create(geometry, label);
+    for (const [id, value] of group.values) zone.setProperty(id, value);
     zones.set(zone.id, zone);
 
-    if (group.length > 1) {
-      mergedZones.push({ label: zone.label, featureCount: group.length });
+    if (group.records.length > 1) {
+      mergedZones.push({
+        label: zone.label,
+        featureCount: group.records.length,
+      });
+    }
+    if (group.conflicted && group.label !== undefined) {
+      renamedZones.push({ label: zone.label, originalLabel: group.label });
     }
   }
 
-  return { zones, mergedZones };
+  return { zones, mergedZones, renamedZones };
+};
+
+const resolveValues = (
+  record: ZoneData,
+  attributes: ZoneAttributePlan,
+): Map<CustomAttributeId, AttributeValue> => {
+  const values = new Map<CustomAttributeId, AttributeValue>();
+  for (const [ref, raw] of Object.entries(record.customAttributes ?? {})) {
+    const attribute = attributes.get(ref);
+    if (!attribute) continue;
+
+    const value = convert(raw, attribute.type);
+    if (value !== null) values.set(attribute.id, value);
+  }
+  return values;
+};
+
+const convert = (
+  value: AttributeValue,
+  type: CustomAttributeType,
+): AttributeValue | null => {
+  if (type === "text") return String(value);
+  if (typeof value === "number") return value;
+
+  const trimmed = value.trim();
+  if (trimmed === "") return null;
+  const parsed = Number(trimmed);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
+const conflicts = (
+  group: Group,
+  values: Map<CustomAttributeId, AttributeValue>,
+): boolean => {
+  for (const [id, value] of values) {
+    const existing = group.values.get(id);
+    if (existing !== undefined && existing !== value) return true;
+  }
+  return false;
+};
+
+const suffixed = (label: string, taken: Set<string>): string => {
+  for (let n = 2; ; n++) {
+    const candidate = `${label} (${n})`;
+    if (!taken.has(candidate)) {
+      taken.add(candidate);
+      return candidate;
+    }
+  }
 };

@@ -1,15 +1,14 @@
 import type { Feature, Position } from "geojson";
-import {
-  IssueCollector,
-  type CustomAttributeData,
-  type CustomAttributeValues,
-  type CustomerPointData,
-} from "@epanet-js/converters";
+import { IssueCollector, type CustomerPointData } from "@epanet-js/converters";
 import type { GisInput, ImportOptions, ImportResult } from "../importer";
 import type { ImportConfig } from "../import-config";
 import { parseGisSource } from "../file-parsers/parse-gis-source";
 import { createTimeSlicer, throwIfAborted } from "../time-slice";
 import { numberOf } from "../number-value";
+import {
+  declareCustomAttributes,
+  readCustomAttributes,
+} from "../custom-attributes";
 
 export type CustomerPointRole = "label" | "demand";
 
@@ -57,7 +56,10 @@ export const importCustomerPointsFromFeatures = async (
   return {
     network: {
       customerPoints,
-      customAttributes: declarations(customAttributeNames, customerPoints),
+      customAttributes: declareCustomAttributes(
+        customAttributeNames,
+        customerPoints,
+      ),
       ...(config.units === undefined ? {} : { units: config.units }),
     },
     issues: collected,
@@ -197,40 +199,3 @@ const readDemand = (
 
   return demand;
 };
-
-const readCustomAttributes = (
-  feature: Feature,
-  names: string[],
-): CustomAttributeValues | null => {
-  const values: CustomAttributeValues = {};
-  let stated = false;
-
-  for (const name of names) {
-    const value: unknown = feature.properties?.[name];
-    if (value === null || value === undefined || value === "") continue;
-
-    values[name] = typeof value === "number" ? value : String(value);
-    stated = true;
-  }
-
-  return stated ? values : null;
-};
-
-const declarations = (
-  names: string[],
-  points: CustomerPointData[],
-): CustomAttributeData[] =>
-  names
-    .filter((name) =>
-      points.some((point) => point.customAttributes?.[name] !== undefined),
-    )
-    .map((name) => ({
-      ref: name,
-      name,
-      type: points.every((point) => {
-        const value = point.customAttributes?.[name];
-        return value === undefined || typeof value === "number";
-      })
-        ? ("number" as const)
-        : ("text" as const),
-    }));

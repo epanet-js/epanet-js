@@ -4,6 +4,10 @@ import type { GisInput, ImportOptions, ImportResult } from "../importer";
 import type { ImportConfig } from "../import-config";
 import { parseGisSource } from "../file-parsers/parse-gis-source";
 import { createTimeSlicer, throwIfAborted } from "../time-slice";
+import {
+  declareCustomAttributes,
+  readCustomAttributes,
+} from "../custom-attributes";
 
 export type ZoneRole = "label";
 
@@ -25,6 +29,7 @@ export const importZonesFromFeatures = async (
   const limit = config.recordLimit ?? features.length;
 
   const zones: ZoneData[] = [];
+  const customAttributeNames = config.customAttributes ?? [];
 
   const end = Math.min(features.length, limit);
   const sliceIfDue = createTimeSlicer();
@@ -36,7 +41,7 @@ export const importZonesFromFeatures = async (
       const zone = importFeature(
         features[index],
         String(index),
-        labelProperty,
+        { labelProperty, customAttributeNames },
         issues,
       );
       if (zone !== null) zones.push(zone);
@@ -46,7 +51,13 @@ export const importZonesFromFeatures = async (
     throwIfAborted(signal);
   }
 
-  return { network: { zones }, issues: collected };
+  return {
+    network: {
+      zones,
+      customAttributes: declareCustomAttributes(customAttributeNames, zones),
+    },
+    issues: collected,
+  };
 };
 
 export const importZonesFromSource = async (
@@ -73,10 +84,15 @@ export const importZonesFromSource = async (
   };
 };
 
+type ReadOptions = {
+  labelProperty: string | null;
+  customAttributeNames: string[];
+};
+
 const importFeature = (
   feature: Feature,
   ref: string,
-  labelProperty: string | null,
+  { labelProperty, customAttributeNames }: ReadOptions,
   issues: IssueCollector,
 ): ZoneData | null => {
   const geometry = feature.geometry;
@@ -120,6 +136,9 @@ const importFeature = (
 
   const label = readLabel(feature, labelProperty);
   if (label !== null) zone.label = label;
+
+  const customAttributes = readCustomAttributes(feature, customAttributeNames);
+  if (customAttributes !== null) zone.customAttributes = customAttributes;
 
   return zone;
 };

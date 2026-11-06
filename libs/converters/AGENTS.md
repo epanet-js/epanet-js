@@ -329,8 +329,8 @@ everywhere else. That is why a value is `string | number` and never `null`.
 
 ## A zone is a named boundary, and nothing hydraulic hangs off it
 
-`NetworkData.zones` is a `ZoneData[]` — `ref`, `label?` and `polygons`, the same `ref`-as-join-key
-shape every other record uses. Nothing in the model points at a zone and a zone points at nothing:
+`NetworkData.zones` is a `ZoneData[]` — `ref`, `label?`, `polygons` and `customAttributes?`, the
+same `ref`-as-join-key shape every other record uses. Nothing in the model points at a zone and a zone points at nothing:
 it is a boundary a person drew round part of the network, and what falls inside it is decided by
 geometry, not by a reference the source has to keep in step.
 
