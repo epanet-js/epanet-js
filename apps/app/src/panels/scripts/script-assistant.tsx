@@ -3,6 +3,7 @@ import clsx from "clsx";
 import { useState } from "react";
 import { Button, StyledPopoverContent } from "src/components/elements";
 import { Tooltip } from "@epanet-js/ui-kit";
+import { useTranslate } from "src/hooks/use-translate";
 import type { ScriptAssistantScope } from "src/lib/script-assistant";
 import type { ScriptGeneration } from "./use-script-generation";
 import {
@@ -20,37 +21,11 @@ import {
 
 type Scope = ScriptAssistantScope;
 
-const scopes: {
-  value: Scope;
-  label: string;
-  description: string;
-  available: boolean;
-}[] = [
-  {
-    value: "script",
-    label: "Script only",
-    description: "Your message and this script.",
-    available: true,
-  },
-  {
-    value: "scriptAndOutput",
-    label: "Script + console output",
-    description: "Adds the output of the last run, errors included.",
-    available: false,
-  },
-  {
-    value: "anonymizedNetwork",
-    label: "Script + anonymized network",
-    description:
-      "Adds every asset and its attributes, without labels, custom attributes or coordinates.",
-    available: false,
-  },
-  {
-    value: "network",
-    label: "Script + whole network",
-    description: "Adds every asset, its attributes and the last results.",
-    available: false,
-  },
+const scopes: { value: Scope; available: boolean }[] = [
+  { value: "script", available: true },
+  { value: "scriptAndOutput", available: false },
+  { value: "anonymizedNetwork", available: false },
+  { value: "network", available: false },
 ];
 
 export const ScriptAssistant = ({
@@ -66,40 +41,41 @@ export const ScriptAssistant = ({
   generation: ScriptGeneration | null;
   onStop: () => void;
 }) => {
+  const translate = useTranslate();
   const [prompt, setPrompt] = useState("");
 
   return (
     <div className="h-full min-h-0 flex flex-col">
       <div className="flex items-center gap-1 px-2 py-2 border-b">
-        <Button variant="quiet" aria-label="Back" onClick={onBack}>
+        <Button variant="quiet" aria-label={translate("back")} onClick={onBack}>
           <ChevronLeftIcon />
         </Button>
         <h1 className="min-w-0 truncate px-1 text-sm font-semibold">
-          Create a script
+          {translate("scripting.createScript")}
         </h1>
       </div>
       <div className="flex-auto min-h-0 overflow-y-auto">
         <div className="min-h-full flex flex-col justify-center px-5 py-6">
           <AiIcon size="2xl" className="self-center text-subtle" />
           <h2 className="py-4 text-center text-size-base font-semibold text-subtle">
-            Describe the script you want
+            {translate("scripting.assistant.describeScript")}
           </h2>
           <ul className="flex flex-col gap-2 mb-4 text-size-base text-subtle">
             <Hint icon={<FilterIcon size="md" />}>
-              Say what to find, like pipes at or below 100 mm or nodes under 20
-              m of pressure.
+              {translate("scripting.assistant.hintFind")}
             </Hint>
             <Hint icon={<TableIcon size="md" />}>
-              Say what to hand back: a table, a CSV file or a selection on the
-              map.
+              {translate("scripting.assistant.hintResult")}
             </Hint>
             <Hint icon={<TagIcon size="md" />}>
-              Use the names in your model: zones, custom attributes, patterns.
+              {translate("scripting.assistant.hintNames")}
             </Hint>
           </ul>
           <AssistantComposer
-            label="Describe the script you want"
-            placeholder="Select every pipe at or below 100 mm and export them as CSV"
+            label={translate("scripting.assistant.describeScript")}
+            placeholder={translate(
+              "scripting.assistant.describeScriptPlaceholder",
+            )}
             rows={3}
             value={prompt}
             onChange={setPrompt}
@@ -107,7 +83,7 @@ export const ScriptAssistant = ({
             busy={
               generation && {
                 prompt: generation.prompt,
-                status: "Writing script…",
+                status: translate("scripting.assistant.writing"),
               }
             }
             onStop={onStop}
@@ -121,7 +97,7 @@ export const ScriptAssistant = ({
             tabIndex={generation ? -1 : undefined}
             className={clsx("self-center mt-4", generation && "invisible")}
           >
-            Write script myself
+            {translate("scripting.assistant.writeMyself")}
           </Button>
         </div>
       </div>
@@ -150,6 +126,7 @@ export const AssistantComposer = ({
   onStop: () => void;
   autoFocus?: boolean;
 }) => {
+  const translate = useTranslate();
   const [scope, setScope] = useState<Scope>("script");
   const canSend = value.trim() !== "";
 
@@ -179,7 +156,7 @@ export const AssistantComposer = ({
           </span>
           <Button variant="default" size="xs" onClick={onStop} className="h-7">
             <StopSimulationIcon size="sm" />
-            Stop
+            {translate("scripting.assistant.stop")}
           </Button>
         </div>
       </div>
@@ -207,8 +184,8 @@ export const AssistantComposer = ({
         <ScopeSelector value={scope} onChange={setScope} />
         <Button
           variant="primary"
-          aria-label="Send"
-          title="Send"
+          aria-label={translate("scripting.assistant.send")}
+          title={translate("scripting.assistant.send")}
           disabled={!canSend}
           onClick={send}
           className="h-7 w-7 justify-center"
@@ -230,34 +207,41 @@ export const AssistantFooter = ({
   onToggleComposer: () => void;
   onRun: () => void;
   isRunDisabled: boolean;
-}) => (
-  <div className="flex items-center gap-2 p-2 border-t">
-    <Tooltip delayDuration={700} content="Ask AI">
-      <Button
-        variant="quiet"
-        aria-label="Ask AI"
-        aria-pressed={isComposerOpen}
-        onClick={onToggleComposer}
-        className={clsx(
-          "h-8 w-8 justify-center",
-          isComposerOpen && "bg-base-hover text-accent",
-        )}
+}) => {
+  const translate = useTranslate();
+
+  return (
+    <div className="flex items-center gap-2 p-2 border-t">
+      <Tooltip
+        delayDuration={700}
+        content={translate("scripting.assistant.askAi")}
       >
-        <AiIcon />
+        <Button
+          variant="quiet"
+          aria-label={translate("scripting.assistant.askAi")}
+          aria-pressed={isComposerOpen}
+          onClick={onToggleComposer}
+          className={clsx(
+            "h-8 w-8 justify-center",
+            isComposerOpen && "bg-base-hover text-accent",
+          )}
+        >
+          <AiIcon />
+        </Button>
+      </Tooltip>
+      <Button
+        variant="primary"
+        size="full-width"
+        onClick={onRun}
+        disabled={isRunDisabled}
+        className="h-8"
+      >
+        <PlayIcon />
+        {translate("scripting.run")}
       </Button>
-    </Tooltip>
-    <Button
-      variant="primary"
-      size="full-width"
-      onClick={onRun}
-      disabled={isRunDisabled}
-      className="h-8"
-    >
-      <PlayIcon />
-      Run
-    </Button>
-  </div>
-);
+    </div>
+  );
+};
 
 const Hint = ({
   icon,
@@ -279,8 +263,10 @@ const ScopeSelector = ({
   value: Scope;
   onChange: (scope: Scope) => void;
 }) => {
+  const translate = useTranslate();
   const [isOpen, setIsOpen] = useState(false);
-  const current = scopes.find((scope) => scope.value === value) ?? scopes[0];
+  const scopeLabel = (scope: Scope) =>
+    translate(`scripting.assistant.scopes.${scope}.label`);
 
   return (
     <Popover.Root open={isOpen} onOpenChange={setIsOpen}>
@@ -288,11 +274,14 @@ const ScopeSelector = ({
         <Button
           variant="default"
           size="xs"
-          aria-label={`What the AI can see: ${current.label}`}
+          aria-label={translate(
+            "scripting.assistant.whatTheAiCanSeeValue",
+            scopeLabel(value),
+          )}
           className="h-7 gap-1 whitespace-nowrap"
         >
           <VisibilityOnIcon size="sm" />
-          {current.label}
+          {scopeLabel(value)}
           <ChevronDownIcon size="sm" />
         </Button>
       </Popover.Trigger>
@@ -308,7 +297,7 @@ const ScopeSelector = ({
             id="script-assistant-scope-title"
             className="pb-2 text-size-base font-semibold text-default"
           >
-            What the AI can see
+            {translate("scripting.assistant.whatTheAiCanSee")}
           </h3>
           <div role="radiogroup" className="flex flex-col gap-0.5">
             {scopes.map((scope) => {
@@ -339,10 +328,12 @@ const ScopeSelector = ({
                   />
                   <span className="flex flex-col gap-y-0.5">
                     <span className="text-size-base font-semibold text-default">
-                      {scope.label}
+                      {scopeLabel(scope.value)}
                     </span>
                     <span className="text-size-small text-subtle">
-                      {scope.description}
+                      {translate(
+                        `scripting.assistant.scopes.${scope.value}.description`,
+                      )}
                     </span>
                   </span>
                 </label>

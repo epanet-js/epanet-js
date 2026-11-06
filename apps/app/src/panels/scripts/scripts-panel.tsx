@@ -751,10 +751,15 @@ const ScriptEditor = ({
         />
       </div>
       {assistant && (isComposerOpen || isGenerating) && (
-        <section aria-label="Ask AI" className="p-2 border-t bg-panel">
+        <section
+          aria-label={translate("scripting.assistant.askAi")}
+          className="p-2 border-t bg-panel"
+        >
           <AssistantComposer
-            label="Describe a change"
-            placeholder="Describe a change…"
+            label={translate("scripting.assistant.describeChange")}
+            placeholder={translate(
+              "scripting.assistant.describeChangePlaceholder",
+            )}
             rows={2}
             value={composerText}
             onChange={setComposerText}
@@ -770,8 +775,8 @@ const ScriptEditor = ({
                 prompt: assistant.generation.prompt,
                 status:
                   assistant.generation.kind === "write"
-                    ? "Writing script…"
-                    : "Updating script…",
+                    ? translate("scripting.assistant.writing")
+                    : translate("scripting.assistant.updating"),
               }
             }
             onStop={assistant.onStop}

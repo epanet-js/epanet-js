@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { notify } from "src/components/notifications";
 import { useAuth } from "src/hooks/use-auth";
+import { useTranslate } from "src/hooks/use-translate";
 import { ErrorIcon } from "src/icons";
 import { captureError, captureWarning } from "src/infra/error-tracking";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -16,38 +17,18 @@ export type ScriptGeneration = {
   kind: "write" | "update";
 };
 
-const failureMessages: Record<
-  ScriptAssistantFailure,
-  { title: string; description: string }
-> = {
-  signedOut: {
-    title: "You're signed out",
-    description: "Sign in again, then send your request.",
-  },
-  notEnabled: {
-    title: "The assistant isn't enabled for your account",
-    description: "Contact support to get access.",
-  },
-  limitReached: {
-    title: "You've used all your assistant credit",
-    description: "Contact support to add more.",
-  },
-  tooLong: {
-    title: "This request is too long",
-    description: "Shorten your message or the script, then try again.",
-  },
-  unavailable: {
-    title: "We couldn't write the script",
-    description: "Try again. If the error persists, contact support.",
-  },
-};
-
-const notifyFailure = (reason: ScriptAssistantFailure) =>
+const notifyFailure = (
+  reason: ScriptAssistantFailure,
+  translate: ReturnType<typeof useTranslate>,
+) =>
   notify({
     variant: "error",
     Icon: ErrorIcon,
     id: "script-assistant-failure",
-    ...failureMessages[reason],
+    title: translate(`scripting.assistant.failures.${reason}.title`),
+    description: translate(
+      `scripting.assistant.failures.${reason}.description`,
+    ),
   });
 
 const reportFailure = (reason: ScriptAssistantFailure, detail: string) => {
@@ -61,6 +42,7 @@ const reportFailure = (reason: ScriptAssistantFailure, detail: string) => {
 export const useScriptGeneration = () => {
   const { getToken } = useAuth();
   const userTracking = useUserTracking();
+  const translate = useTranslate();
   const [generation, setGeneration] = useState<ScriptGeneration | null>(null);
   const controllerRef = useRef<AbortController | null>(null);
 
@@ -117,7 +99,7 @@ export const useScriptGeneration = () => {
 
         captureFinished("failed", result.reason);
         reportFailure(result.reason, result.detail);
-        notifyFailure(result.reason);
+        notifyFailure(result.reason, translate);
         return null;
       } catch (error) {
         if (controller.signal.aborted) {
@@ -126,7 +108,7 @@ export const useScriptGeneration = () => {
         }
         captureFinished("failed", "unavailable");
         captureError(error as Error);
-        notifyFailure("unavailable");
+        notifyFailure("unavailable", translate);
         return null;
       } finally {
         if (controllerRef.current === controller) {
@@ -135,7 +117,7 @@ export const useScriptGeneration = () => {
         }
       }
     },
-    [getToken, userTracking],
+    [getToken, userTracking, translate],
   );
 
   useEffect(() => () => controllerRef.current?.abort(), []);
