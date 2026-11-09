@@ -4,6 +4,11 @@ import { vi } from "vitest";
 import { contentViewAtom } from "src/state/content-view";
 import { ModelBuildView } from "./model-build-view";
 
+vi.mock("src/global-config", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("src/global-config")>()),
+  modelBuilderUrl: "https://builder.example/?embedded=true",
+}));
+
 vi.mock("src/hooks/use-feature-flags", () => ({
   useEnabledFeatureFlags: () => [],
   useFeatureFlag: () => false,
