@@ -2,14 +2,14 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
 import { ModelBuilderFrame } from "./model-builder-iframe";
 
-const v2Url = vi.hoisted(() => "https://v2.example/?embedded=true");
+const builderUrl = vi.hoisted(() => "https://builder.example/?embedded=true");
 const openProjectFile = vi.hoisted(() => vi.fn());
 const enabledFlags = vi.hoisted(() => ({ value: [] as string[] }));
 const reportFeatureFlagUsage = vi.hoisted(() => vi.fn());
 
 vi.mock("src/global-config", async (importOriginal) => ({
   ...(await importOriginal<typeof import("src/global-config")>()),
-  modelBuilderUrl: v2Url,
+  modelBuilderUrl: builderUrl,
 }));
 
 vi.mock("src/hooks/use-feature-flags", () => ({
@@ -55,13 +55,13 @@ describe("ModelBuilderFrame", () => {
     enabledFlags.value = [];
   });
 
-  it("loads the v2 model-builder URL", () => {
+  it("loads the model-builder URL", () => {
     render(<ModelBuilderFrame onContextChange={vi.fn()} />);
 
     const src = new URL(
       screen.getByTitle<HTMLIFrameElement>("Import from GIS").src,
     );
-    expect(`${src.origin}${src.pathname}`).toBe("https://v2.example/");
+    expect(`${src.origin}${src.pathname}`).toBe("https://builder.example/");
     expect(src.searchParams.get("embedded")).toBe("true");
   });
 

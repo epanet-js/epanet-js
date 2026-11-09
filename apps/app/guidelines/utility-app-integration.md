@@ -309,12 +309,11 @@ A preview of the main app should point at a matching preview of the util, not at
    ```ts
    const branch = process.env.VERCEL_GIT_COMMIT_REF;
    const modelBuilderUrl =
-     process.env.NEXT_PUBLIC_MODEL_BUILDER_URL ||
-     (branch && process.env.VERCEL_ENV === "preview"
+     branch && process.env.VERCEL_ENV === "preview"
        ? `https://utils-git-${slugify(branch)}-<org>.vercel.app/model-builder?mode=embed`
-       : "https://utils.epanetjs.com/model-builder?mode=embed");
+       : (process.env.NEXT_PUBLIC_MODEL_BUILDER_URL as string);
    ```
-   Production builds fall back to the canonical URL. Use `VERCEL_ENV` (`production` / `preview` / `development`) to gate the derivation.
+   Production builds read `NEXT_PUBLIC_MODEL_BUILDER_URL`. Use `VERCEL_ENV` (`production` / `preview` / `development`) to gate the derivation.
 
 ### Origin allowlist for previews
 
@@ -453,7 +452,7 @@ The util code calls `transport.track(...)` and `transport.getFlag(...)` everywhe
 
 The following describes what is shipped today. It uses the **cross-origin model** and diverges from the target protocol; treat it as legacy until migrated.
 
-**Location:** [src/views/model-builder-iframe.tsx](src/views/model-builder-iframe.tsx), URL configured in [src/global-config.ts](src/global-config.ts) as `modelBuilderUrl` (from `NEXT_PUBLIC_MODEL_BUILDER_V2_URL`, then `NEXT_PUBLIC_MODEL_BUILDER_URL`, defaulting to `https://utils.epanetjs.com/model-builder?embedded=true`).
+**Location:** [src/views/model-builder-iframe.tsx](src/views/model-builder-iframe.tsx), URL configured in [src/global-config.ts](src/global-config.ts) as `modelBuilderUrl` (from `NEXT_PUBLIC_MODEL_BUILDER_URL`, which has no default).
 
 **Direction:** util → main only. No host → util messages, no handshake, no round-trip.
 
