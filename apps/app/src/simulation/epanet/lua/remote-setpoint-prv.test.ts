@@ -29,6 +29,26 @@ describe("remote setpoint PRV", () => {
       true,
     );
   });
+
+  it("stops at minimum pressure setting when another source holds the remote node above target", async () => {
+    const result = await runSimulation(
+      buildUnreachableNetworkInp(),
+      APP_ID,
+      () => {},
+    );
+    expect(result.status).not.toBe("failure");
+
+    const { pressures, settings } = await getResults();
+
+    expect(pressures.every((pressure) => pressure > REMOTE_TARGET + 5)).toBe(
+      true,
+    );
+    expect(
+      settings
+        .slice(1)
+        .every((setting) => Math.abs(setting - SETTING_FLOOR) < 1e-3),
+    ).toBe(true);
+  });
 });
 
 const getResults = async (): Promise<{
@@ -59,11 +79,15 @@ const IDS = {
   P1: 5, // reservoir -> valve upstream
   V1: 6, // the remote-setpoint PRV
   P2: 7, // valve outlet -> remote node
+  R2: 8, // a second source that pins the remote node, when present
+  P3: 9, // second source -> remote node
   DEMAND_PATTERN: 100,
 } as const;
 
 const APP_ID = "remote-setpoint-prv-test";
 const REMOTE_TARGET = 30;
+const SETTING_FLOOR = 0.01;
+const HOLDING_HEAD = 60;
 const BASE_DEMAND = 10;
 const DEMAND_MULTIPLIER = 3;
 const PATTERN_FACTORS = [1.0, 1.4, 0.6, 1.7, 0.5, 1.2];
@@ -106,6 +130,60 @@ const buildNetworkInp = (): string => {
   const simulationSettings = SimulationSettingsBuilder.with()
     .globalDemandMultiplier(DEMAND_MULTIPLIER)
     .timing({ duration: 6 * 3600 }) // 6 one-hour steps; 1h timesteps by default
+    .build();
+
+  return buildInp(hydraulicModel, {
+    units: presets.LPS.units,
+    simulationSettings,
+  });
+};
+
+//   R1 --P1-- N1 --V1(PRV)-- J1 --P2-- J2 (demand) --P3-- R2 (head above target)
+const buildUnreachableNetworkInp = (): string => {
+  const hydraulicModel = HydraulicModelBuilder.with()
+    .aReservoir(IDS.R1, { head: 100 })
+    .aReservoir(IDS.R2, { head: HOLDING_HEAD })
+    .aJunction(IDS.N1, { elevation: 0 })
+    .aJunction(IDS.J1, { elevation: 0 })
+    .aJunction(IDS.J2, { elevation: 0 })
+    .aJunctionDemand(IDS.J2, [
+      { baseDemand: BASE_DEMAND, patternId: IDS.DEMAND_PATTERN },
+    ])
+    .aDemandPattern(IDS.DEMAND_PATTERN, "DEM", PATTERN_FACTORS)
+    .aPipe(IDS.P1, {
+      startNodeId: IDS.R1,
+      endNodeId: IDS.N1,
+      length: 100,
+      diameter: 400,
+      roughness: 100,
+    })
+    .aValve(IDS.V1, {
+      startNodeId: IDS.N1,
+      endNodeId: IDS.J1,
+      diameter: 400,
+      kind: "prv",
+      setting: REMOTE_TARGET,
+      targetNodeId: IDS.J2,
+    })
+    .aPipe(IDS.P2, {
+      startNodeId: IDS.J1,
+      endNodeId: IDS.J2,
+      length: 1500,
+      diameter: 200,
+      roughness: 100,
+    })
+    .aPipe(IDS.P3, {
+      startNodeId: IDS.R2,
+      endNodeId: IDS.J2,
+      length: 100,
+      diameter: 400,
+      roughness: 100,
+    })
+    .build();
+
+  const simulationSettings = SimulationSettingsBuilder.with()
+    .globalDemandMultiplier(DEMAND_MULTIPLIER)
+    .timing({ duration: 6 * 3600 })
     .build();
 
   return buildInp(hydraulicModel, {
