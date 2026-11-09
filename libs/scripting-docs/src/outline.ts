@@ -45,7 +45,7 @@ export const sectionLevel = (section: { number?: string }): number =>
 
 export const appendixOf = (
   docs: ScriptingDocs,
-): { agentNotes: Appendix; workedExamples: Appendix } => {
+): { agentNotes: Appendix; workedExamples: Appendix; apiIndex: Appendix } => {
   const next =
     Math.max(
       0,
@@ -64,8 +64,67 @@ export const appendixOf = (
       number: String(next + 1),
       title: "Worked examples",
     },
+    apiIndex: {
+      id: "api-index",
+      number: String(next + 2),
+      title: "API index",
+    },
   };
 };
+
+export type ObjectIndexGroup = {
+  from: InterfaceDef;
+  section: Section | null;
+  members: Member[];
+};
+
+export type ObjectIndex = { iface: InterfaceDef; groups: ObjectIndexGroup[] };
+
+const ownMembersBySection = (
+  docs: ScriptingDocs,
+  iface: InterfaceDef,
+): { section: Section; members: Member[] }[] =>
+  docs.sections.flatMap((section) => {
+    const members = (section.members ?? []).filter(
+      (member) => member.owner === iface.name,
+    );
+    return members.length > 0 ? [{ section, members }] : [];
+  });
+
+const ancestorsOf = (
+  docs: ScriptingDocs,
+  iface: InterfaceDef,
+): InterfaceDef[] => {
+  const parent = docs.interfaces.find(
+    (candidate) => candidate.name === iface.extends,
+  );
+  return parent ? [parent, ...ancestorsOf(docs, parent)] : [];
+};
+
+export const objectIndexOf = (docs: ScriptingDocs): ObjectIndex[] =>
+  [...docs.interfaces]
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map((iface) => {
+      const own = ownMembersBySection(docs, iface);
+      const groups: ObjectIndexGroup[] = own.map(({ section, members }) => ({
+        from: iface,
+        section: own.length > 1 ? section : null,
+        members,
+      }));
+      const seen = new Set(
+        own.flatMap(({ members }) => members.map((member) => member.name)),
+      );
+      for (const ancestor of ancestorsOf(docs, iface)) {
+        const members = ownMembersBySection(docs, ancestor)
+          .flatMap((group) => group.members)
+          .filter((member) => !seen.has(member.name));
+        members.forEach((member) => seen.add(member.name));
+        if (members.length > 0) {
+          groups.push({ from: ancestor, section: null, members });
+        }
+      }
+      return { iface, groups };
+    });
 
 export const ownersOf = (
   docs: ScriptingDocs,

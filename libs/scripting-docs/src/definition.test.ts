@@ -1,5 +1,6 @@
 import { SCRIPT_API_VERSION } from "./api-version";
 import { editsCandidateDocs, scriptingDocs } from "./definition";
+import { objectIndexOf } from "./outline";
 import { renderLlmsTxt } from "./render/markdown";
 import { callForm, parseSignature } from "./signature";
 import type { ScriptingDocs } from "./types";
@@ -79,6 +80,65 @@ describe.each<[string, ScriptingDocs]>([
     );
 
     expect(new Set(numbers).size).toEqual(numbers.length);
+  });
+
+  describe("object index", () => {
+    const index = objectIndexOf(docs);
+    const entryOf = (name: string) =>
+      index.find(({ iface }) => iface.name === name)!;
+    const namesIn = (name: string) =>
+      entryOf(name).groups.flatMap((group) =>
+        group.members.map((member) => member.name),
+      );
+
+    it("lists every interface", () => {
+      expect(index.map(({ iface }) => iface.name).sort()).toEqual(
+        docs.interfaces.map((iface) => iface.name).sort(),
+      );
+    });
+
+    it("lists every member under its owner", () => {
+      const missing = members.filter(
+        (member) => !namesIn(member.owner).includes(member.name),
+      );
+
+      expect(missing.map((member) => member.name)).toEqual([]);
+    });
+
+    it("adds the members an object inherits", () => {
+      const inheritedFrom = entryOf("Pipe")
+        .groups.map((group) => group.from.name)
+        .filter((name) => name !== "Pipe");
+
+      expect(inheritedFrom).toEqual(["LinkAsset", "Asset"]);
+      expect(namesIn("Pipe")).toEqual(
+        expect.arrayContaining(["diameter", "startNode", "label"]),
+      );
+    });
+
+    it("shows a member an object redefines once, as its own", () => {
+      const duplicated = index.flatMap(({ iface }) => {
+        const names = namesIn(iface.name);
+        return names.filter((name, i) => names.indexOf(name) !== i);
+      });
+
+      expect(duplicated).toEqual([]);
+      const results = entryOf("Pipe").groups.find((group) =>
+        group.members.some((member) => member.name === "results"),
+      );
+      expect(results?.from.name).toEqual("Pipe");
+    });
+
+    it("groups an object by section only when it spans several", () => {
+      expect(
+        entryOf("Network").groups.every((group) => group.section !== null),
+      ).toBe(true);
+      expect(entryOf("Pipe").groups.map((group) => group.section)).toEqual([
+        null,
+        null,
+        null,
+      ]);
+    });
   });
 });
 

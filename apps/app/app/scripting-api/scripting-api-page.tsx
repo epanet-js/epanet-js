@@ -1,9 +1,11 @@
 import {
   appendixOf,
+  objectIndexOf,
   sectionLevel,
   sectionTitle,
   type ScriptingDocs,
 } from "@epanet-js/scripting-docs";
+import { ApiIndex, indexAnchor, typesAnchor } from "./api-index";
 import { CodeBlock } from "./code-block";
 import { Prose, inline } from "./prose";
 import { SectionHeading, SectionView, anchorsOf } from "./reference";
@@ -21,8 +23,9 @@ export const ScriptingApiPage = ({
   isCandidate: boolean;
 }) => {
   const anchors = anchorsOf(docs);
-  const { agentNotes, workedExamples } = appendixOf(docs);
+  const { agentNotes, workedExamples, apiIndex } = appendixOf(docs);
   const contents = [...docs.sections, agentNotes, workedExamples];
+  const objects = objectIndexOf(docs);
 
   return (
     <div className="min-h-screen bg-base text-default">
@@ -101,6 +104,31 @@ export const ScriptingApiPage = ({
               </li>
             ))}
           </ul>
+          <div className="mb-3 mt-6 font-semibold uppercase tracking-wide text-subtle">
+            <a href={`#${apiIndex.id}`} className="hover:text-accent">
+              {apiIndex.title}
+            </a>
+          </div>
+          <ul className="space-y-1">
+            {objects.map(({ iface }) => (
+              <li key={iface.name}>
+                <a
+                  href={`#${indexAnchor(iface)}`}
+                  className="font-mono text-default hover:text-accent"
+                >
+                  {iface.name}
+                </a>
+              </li>
+            ))}
+            <li>
+              <a
+                href={`#${typesAnchor}`}
+                className="text-default hover:text-accent"
+              >
+                All types
+              </a>
+            </li>
+          </ul>
         </nav>
 
         <main className="min-w-0 flex-1 py-8">
@@ -114,6 +142,13 @@ export const ScriptingApiPage = ({
               {llmsPath}
             </a>
             : this reference as one plain-text file.
+          </p>
+          <p className="mt-2 text-size-base text-subtle">
+            Looking for something specific? The{" "}
+            <a href={`#${apiIndex.id}`} className={linkClassName}>
+              API index
+            </a>{" "}
+            lists everything each object has.
           </p>
           <Prose markdown={docs.intro} anchors={anchors} />
 
@@ -155,6 +190,13 @@ export const ScriptingApiPage = ({
               </details>
             ))}
           </section>
+
+          <ApiIndex
+            docs={docs}
+            section={apiIndex}
+            objects={objects}
+            anchors={anchors}
+          />
         </main>
       </div>
     </div>

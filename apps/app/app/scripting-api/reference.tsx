@@ -25,7 +25,13 @@ const interfaceAnchor = (section: Section, iface: InterfaceDef): string =>
 
 const TYPE_NAME = /([A-Z][A-Za-z]*(?:\.[A-Z][A-Za-z]*)?)/;
 
-const TypeText = ({ text, anchors }: { text: string; anchors: Anchors }) => (
+export const TypeText = ({
+  text,
+  anchors,
+}: {
+  text: string;
+  anchors: Anchors;
+}) => (
   <>
     {text.split(TYPE_NAME).map((part, index) => {
       const anchor = index % 2 === 1 ? anchors.get(part) : undefined;
@@ -65,7 +71,7 @@ export const anchorsOf = (docs: ScriptingDocs): Anchors => {
   return anchors;
 };
 
-const Heading = ({
+export const Heading = ({
   level,
   id,
   className,

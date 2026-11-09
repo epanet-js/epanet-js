@@ -17,9 +17,10 @@ export type {
 } from "./types";
 export {
   appendixOf,
+  objectIndexOf,
   ownersOf,
   sectionLevel,
   sectionTitle,
   splitMembers,
 } from "./outline";
-export type { Appendix } from "./outline";
+export type { Appendix, ObjectIndex, ObjectIndexGroup } from "./outline";
