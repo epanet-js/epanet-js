@@ -408,7 +408,7 @@ describe("boundary trace across inactive assets", () => {
   const model = HydraulicModelBuilder.with()
     .aJunction(IDS.J1)
     .aJunction(IDS.J2)
-    .aJunction(IDS.J3)
+    .aJunction(IDS.J3, { isActive: false })
     .aJunction(IDS.J4, { isActive: false })
     .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
     .aPipe(IDS.P2, {
@@ -424,7 +424,7 @@ describe("boundary trace across inactive assets", () => {
     .build();
 
   const fromActive = [IDS.J1, IDS.J2, IDS.P1];
-  const fromInactive = [IDS.J2, IDS.J3, IDS.J4, IDS.P2, IDS.P3];
+  const fromInactive = [IDS.J3, IDS.J4, IDS.P2, IDS.P3];
   const sorted = (ids: number[]) => [...ids].sort((a, b) => a - b);
 
   const boundaryRun = (input: {
@@ -450,7 +450,7 @@ describe("boundary trace across inactive assets", () => {
   });
 
   it("follows the same rule through the worker buffers", () => {
-    const data = encodeTraceData(model, null, "array");
+    const data = encodeTraceData(model, null, "boundary");
     const traced = (linkIds: number[], startsOnActiveAsset: boolean) => {
       const result = workerAPI.runTrace(
         "boundary",
@@ -463,6 +463,30 @@ describe("boundary trace across inactive assets", () => {
 
     expect(traced([IDS.P1], true)).toEqual(sorted(fromActive));
     expect(traced([IDS.P3], false)).toEqual(sorted(fromInactive));
+  });
+});
+
+describe("upstream trace through the worker buffers", () => {
+  it("follows simulated flow to where the water comes from", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3 } as const;
+    const model = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1)
+      .aJunction(IDS.J2)
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
+      .build();
+    const reader = createMockResultsReader({
+      pipes: { [IDS.P1]: { flow: 5 } },
+    });
+
+    const result = workerAPI.runTrace(
+      "upstream",
+      { nodeIds: [IDS.J2], linkIds: [] },
+      encodeTraceData(model, reader, "upstream"),
+      true,
+    );
+
+    expect(result.nodeIds).toEqual(expect.arrayContaining([IDS.J1, IDS.J2]));
+    expect(result.linkIds).toEqual([IDS.P1]);
   });
 });
 
@@ -687,7 +711,7 @@ describe("weightedTrace without limits", () => {
     for (let seed = 1; seed <= 200; seed++) {
       const model = aRandomModel(random(seed));
       const directions = new AllowedFlowDirection(model.assets, null);
-      const data = encodeTraceData(model, null, "array");
+      const data = encodeTraceData(model, null, "boundary");
 
       for (const [nodeId] of model.assetIndex.iterateNodes()) {
         const start = { nodeIds: [nodeId], linkIds: [] };

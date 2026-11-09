@@ -31,32 +31,37 @@ export const workerAPI: TraceWorkerAPI = {
   runTrace: (mode, start, data, startsOnActiveAsset) => {
     const assetIndex = new AssetIndexView(data.assetIndexBuffers);
     const topology = new TopologyView(data.topologyBuffers, assetIndex);
-    const flowDirection = new FlowDirectionView(
-      data.flowDirectionBuffers,
-      assetIndex,
-    );
-    const allowedFlowDirection = new AllowedFlowDirectionView(
-      data.allowedFlowDirectionBuffers,
-      assetIndex,
-    );
 
     switch (mode) {
-      case "boundary":
+      case "boundary": {
+        const allowedFlowDirection = new AllowedFlowDirectionView(
+          data.allowedFlowDirectionBuffers!,
+          assetIndex,
+        );
         return trace(
           start,
           topology,
           anyBarrier(
             boundaryBarriers(topology, assetIndex, allowedFlowDirection),
             activeTopologyBarriers(
-              new ActiveTopologyView(data.activeTopologyBuffers, assetIndex),
+              new ActiveTopologyView(data.activeTopologyBuffers!, assetIndex),
               startsOnActiveAsset,
             ),
           ),
         );
+      }
       case "upstream":
-        return upstreamTrace(start, topology, flowDirection);
+        return upstreamTrace(
+          start,
+          topology,
+          new FlowDirectionView(data.flowDirectionBuffers!, assetIndex),
+        );
       case "downstream":
-        return downstreamTrace(start, topology, flowDirection);
+        return downstreamTrace(
+          start,
+          topology,
+          new FlowDirectionView(data.flowDirectionBuffers!, assetIndex),
+        );
     }
   },
 };

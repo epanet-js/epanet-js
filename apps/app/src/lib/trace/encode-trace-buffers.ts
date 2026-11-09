@@ -22,19 +22,20 @@ import {
 } from "./trace-buffers";
 import { FlowDirection } from "./flow-direction";
 import { AllowedFlowDirection } from "./allowed-flow-direction";
-import type { FlowDirectionQueries } from "./types";
+import type { FlowDirectionQueries, TraceMode } from "./types";
 
 export type TraceRunData = {
   topologyBuffers: TopologyBuffers;
   assetIndexBuffers: AssetIndexBuffers;
-  flowDirectionBuffers: FlowDirectionBuffers;
-  allowedFlowDirectionBuffers: AllowedFlowDirectionBuffers;
-  activeTopologyBuffers: ActiveTopologyBuffers;
+  flowDirectionBuffers: FlowDirectionBuffers | null;
+  allowedFlowDirectionBuffers: AllowedFlowDirectionBuffers | null;
+  activeTopologyBuffers: ActiveTopologyBuffers | null;
 };
 
 export function encodeTraceData(
   model: HydraulicModel,
   resultsReader: ResultsReader | null,
+  mode: TraceMode,
   bufferType: BufferType = "array",
 ): TraceRunData {
   const assetIndexEncoder = new AssetIndexEncoder(model.assetIndex, bufferType);
@@ -58,39 +59,57 @@ export function encodeTraceData(
     allowedFlowDirectionStatus,
     bufferType,
   );
-  const activeTopologyEncoder = new ActiveTopologyEncoder(
-    model.assetIndex,
-    configuredActiveTopology(model.assets),
-    bufferType,
-  );
 
   return {
     topologyBuffers: topologyEncoder.encode(),
     assetIndexBuffers: assetIndexEncoder.encode(),
-    flowDirectionBuffers: flowDirectionEncoder.encode(),
-    allowedFlowDirectionBuffers: allowedFlowDirectionEncoder.encode(),
-    activeTopologyBuffers: activeTopologyEncoder.encode(),
+    flowDirectionBuffers:
+      mode === "boundary" ? null : flowDirectionEncoder.encode(),
+    allowedFlowDirectionBuffers:
+      mode === "boundary" ? allowedFlowDirectionEncoder.encode() : null,
+    activeTopologyBuffers:
+      mode === "boundary"
+        ? new ActiveTopologyEncoder(
+            model.assetIndex,
+            configuredActiveTopology(model.assets),
+            bufferType,
+          ).encode()
+        : null,
   };
 }
 
 class ActiveTopologyEncoder {
   constructor(
     private assetIndex: AssetIndexQueries,
-    private links: ActiveTopologyQueries,
+    private activeTopology: ActiveTopologyQueries,
     private bufferType: BufferType,
   ) {}
 
   encode(): ActiveTopologyBuffers {
-    const buffer = createBuffer(this.assetIndex.linkCount, this.bufferType);
-    const view = new Uint8Array(buffer);
+    const activeLinks = createBuffer(
+      this.assetIndex.linkCount,
+      this.bufferType,
+    );
+    const activeNodes = createBuffer(
+      this.assetIndex.nodeCount,
+      this.bufferType,
+    );
+    const linksView = new Uint8Array(activeLinks);
+    const nodesView = new Uint8Array(activeNodes);
 
     let linkIdx = 0;
     for (const [linkId] of this.assetIndex.iterateLinks()) {
-      view[linkIdx] = this.links.isLinkActive(linkId) ? 1 : 0;
+      linksView[linkIdx] = this.activeTopology.isLinkActive(linkId) ? 1 : 0;
       linkIdx++;
     }
 
-    return { activeTopology: buffer };
+    let nodeIdx = 0;
+    for (const [nodeId] of this.assetIndex.iterateNodes()) {
+      nodesView[nodeIdx] = this.activeTopology.isNodeActive(nodeId) ? 1 : 0;
+      nodeIdx++;
+    }
+
+    return { activeLinks, activeNodes };
   }
 }
 

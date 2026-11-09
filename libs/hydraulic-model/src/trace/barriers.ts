@@ -153,15 +153,21 @@ export const configuredActiveTopology = (
   assets: AssetsMap,
 ): ActiveTopologyQueries => ({
   isLinkActive: (linkId) => assets.get(linkId)?.isActive ?? false,
+  isNodeActive: (nodeId) => assets.get(nodeId)?.isActive ?? false,
 });
 
 export const activeTopologyBarriers = (
-  links: ActiveTopologyQueries,
+  activeTopology: ActiveTopologyQueries,
   startsOnActiveAsset: boolean,
 ): TraceBarriers => ({
-  nodeStopReason: () => null,
+  nodeStopReason: (nodeId) =>
+    activeTopology.isNodeActive(nodeId) !== startsOnActiveAsset
+      ? "barrier"
+      : null,
   linkStopReason: (linkId) =>
-    links.isLinkActive(linkId) !== startsOnActiveAsset ? "barrier" : null,
+    activeTopology.isLinkActive(linkId) !== startsOnActiveAsset
+      ? "barrier"
+      : null,
 });
 
 export const anyBarrier = (...barriers: TraceBarriers[]): TraceBarriers => ({

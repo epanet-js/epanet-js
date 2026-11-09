@@ -111,7 +111,7 @@ const runWithWorker = async (
     throw new DOMException("Operation cancelled", "AbortError");
   }
 
-  const data = encodeTraceData(model, resultsReader, "array");
+  const data = encodeTraceData(model, resultsReader, input.mode);
   const start: TraceStart = {
     nodeIds: input.startNodeIds,
     linkIds: input.startLinkIds,

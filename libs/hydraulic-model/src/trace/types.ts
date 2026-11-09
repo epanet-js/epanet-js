@@ -39,6 +39,7 @@ export interface TraceBarriers {
 
 export interface ActiveTopologyQueries {
   isLinkActive(linkId: AssetId): boolean;
+  isNodeActive(nodeId: AssetId): boolean;
 }
 
 export type TraceStopReason = "barrier" | "closed" | "direction";
