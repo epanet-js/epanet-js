@@ -1,6 +1,7 @@
 VSP_PRESSURE_TOL_M = 0.005
 VSP_FLOW_TOL_LPS = 0.001
 VSP_LEVEL_TOL_M = 0.01
+VSP_HEAD_TOL_M = 0.02
 VSP_SPEED_TOL = 0.0001
 VSP_MIN_WRITTEN_STEP = 0.0002
 VSP_MAX_STEP_WITHOUT_SLOPE = 0.1
@@ -36,6 +37,7 @@ vsp_volume_per_flow_second = 0.001
 vsp_flow_tol = VSP_FLOW_TOL_LPS
 vsp_pressure_tol = VSP_PRESSURE_TOL_M
 vsp_level_tol = VSP_LEVEL_TOL_M
+vsp_head_tol = VSP_HEAD_TOL_M
 vsp_states = {}
 vsp_step_time = -1
 vsp_solving_step_time = 0
@@ -65,6 +67,7 @@ function vspSetRunUnits()
     vsp_flow_tol = VSP_FLOW_TOL_LPS * flow.per_lps
     vsp_pressure_tol = VSP_PRESSURE_TOL_M * pressure_per_meter
     vsp_level_tol = VSP_LEVEL_TOL_M * flow.length_per_meter
+    vsp_head_tol = VSP_HEAD_TOL_M * flow.length_per_meter
 end
 
 function vspClockAt(run_time)
@@ -106,6 +109,35 @@ end
 
 function vspIsMeasured(value)
     return math.abs(value) < VSP_UNMEASURED_HEAD
+end
+
+function vspHeadGain(row)
+    return -link(row.pump_id).headloss
+end
+
+function vspAtPassThrough(gain)
+    return gain >= 0 and gain <= 2 * vsp_head_tol
+end
+
+function vspLearnGainSlope(st, speed, gain)
+    if st.previous_gain == nil then return end
+    if math.abs(speed - st.previous_gain_speed) < VSP_SPEED_TOL then return end
+    local slope = (gain - st.previous_gain) / (speed - st.previous_gain_speed)
+    if slope > 0 then st.gain_slope = slope end
+end
+
+function vspPassThroughFloor(st, speed, gain)
+    if st.gain_slope == nil then return 0 end
+    return speed - (gain - vsp_head_tol) / st.gain_slope
+end
+
+function vspNextSpeedToPassThrough(row, st, speed, gain)
+    local new_speed = speed + VSP_MAX_STEP_WITHOUT_SLOPE
+    if st.gain_slope ~= nil then
+        new_speed = vspClampedStep(speed, speed + (vsp_head_tol - gain) / st.gain_slope, VSP_MAX_STEP_ON_LEARNED_SLOPE)
+    end
+    if math.abs(new_speed - speed) <= VSP_SPEED_TOL then new_speed = speed + VSP_MIN_WRITTEN_STEP end
+    return math.max(row.min_speed, math.min(row.max_speed, new_speed))
 end
 
 function vspClampedLevelTarget(row, tank, run_time, schedules)
@@ -173,6 +205,7 @@ end
 function vspResetBracket(row, st)
     st.bracket_low, st.bracket_high = 0, row.max_speed + VSP_SPEED_TOL
     st.halvings = 0
+    st.previous_gain = nil
 end
 
 function vspTryLagClosed(row, st, running_lags, value, speed)
@@ -199,6 +232,9 @@ function vspNewState(speed)
         restored_settled_speed = false,
         first_call_of_step = false,
         required_inflow = 0,
+        previous_gain = nil,
+        previous_gain_speed = nil,
+        gain_slope = nil,
     }
 end
 
@@ -238,6 +274,7 @@ function vspYieldedToControl(row, st, speed, value, running_lags)
     vspWriteSpeed(row, st, st.settled_speed, running_lags)
     st.restored_settled_speed = true
     st.previous_speed, st.previous_value = speed, value
+    st.previous_gain = nil
     return true
 end
 
@@ -287,6 +324,7 @@ function vspRunAtMaxSpeed(row, st, speed, running_lags)
     if speed >= row.max_speed - VSP_SPEED_TOL then return end
     vspWriteSpeed(row, st, row.max_speed, running_lags)
     st.previous_speed, st.previous_value = speed, nil
+    st.previous_gain = nil
 end
 
 function vspNarrowBracket(st, speed, value, target)
@@ -385,11 +423,25 @@ function vspHold(row, schedules)
         return
     end
 
-    vspNarrowBracket(st, speed, value, target)
-    local new_speed = vspKeptInsideBracket(row, st, speed, vspNextSpeed(row, st, speed, value, target))
+    local gain = vspHeadGain(row)
+    vspLearnGainSlope(st, speed, gain)
+    local over_target = value > target
+    if over_target and vspAtPassThrough(gain) then return end
+
+    local new_speed
+    if over_target and gain < 0 then
+        vspNarrowBracket(st, speed, gain, vsp_head_tol)
+        new_speed = vspNextSpeedToPassThrough(row, st, speed, gain)
+    else
+        vspNarrowBracket(st, speed, value, target)
+        new_speed = vspNextSpeed(row, st, speed, value, target)
+        if over_target then new_speed = math.max(new_speed, vspPassThroughFloor(st, speed, gain)) end
+    end
+    new_speed = vspKeptInsideBracket(row, st, speed, new_speed)
     if math.abs(new_speed - speed) > VSP_SPEED_TOL then
         vspWriteSpeed(row, st, new_speed, running_lags)
         st.previous_speed, st.previous_value = speed, value
+        st.previous_gain, st.previous_gain_speed = gain, speed
     end
 end
 
@@ -421,6 +473,7 @@ function vspRefresh(row, run_time, step_skipped, schedules)
     end
     if st then
         st.previous_speed, st.previous_value = speed, value
+        if speed > 0 then st.previous_gain, st.previous_gain_speed = vspHeadGain(row), speed end
         if speed > 0 and not st.held_by_control then st.settled_speed = speed end
     end
     local running_pumps = 0

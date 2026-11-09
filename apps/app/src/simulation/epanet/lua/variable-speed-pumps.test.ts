@@ -196,6 +196,40 @@ describe.each(UNIT_SYSTEMS)("variable speed pumps in $name", (units) => {
       }
     });
 
+    it("opens up instead of removing head when pump exceeds maximum flow and control node is over target pressure", async () => {
+      const minSpeed = 0.1;
+      const reader = await simulate(
+        units,
+        pressureNetwork(units, {
+          targetId: IDS.J2,
+          target: 30,
+          factors: [1.5, 4],
+          minSpeed,
+          maxSpeed: 2,
+          reservoirHead: 38,
+        }),
+        { allowWarnings: true },
+      );
+
+      const pressures = await junctionPressures(reader, IDS.J2);
+      const speeds = await pumpSettings(reader, IDS.PU1);
+      const heads = await pumpHeads(reader, IDS.PU1);
+
+      for (const step of stepsWithFactor([1.5, 4], 1.5)) {
+        expect(speeds[step]).toBeGreaterThan(minSpeed + 0.1);
+        expect(Math.abs(heads[step])).toBeLessThan(units.length(HEAD_TOL));
+        expect(pressures[step]).toBeGreaterThan(
+          units.pressure(30 + PRESSURE_TOL),
+        );
+      }
+      for (const step of stepsWithFactor([1.5, 4], 4)) {
+        expect(Math.abs(heads[step])).toBeGreaterThan(units.length(1));
+        expect(Math.abs(pressures[step] - units.pressure(30))).toBeLessThan(
+          units.pressure(PRESSURE_TOL),
+        );
+      }
+    });
+
     it("stays at maximum speed when the target needs more", async () => {
       const maxSpeed = 0.72;
       const reader = await simulate(
@@ -524,6 +558,7 @@ const TANK_ELEVATION = 20;
 const PRESSURE_TOL = 0.1;
 const FLOW_TOL = 0.1;
 const LEVEL_TOL = 0.05;
+const HEAD_TOL = 0.05;
 
 type Schedule = { time: number; target: number }[];
 
@@ -545,6 +580,7 @@ const pressureNetwork = (
     maxSpeed = 1,
     schedule = [],
     initialStatus = "on",
+    reservoirHead = 0,
   }: {
     targetId: number;
     target: number;
@@ -553,10 +589,11 @@ const pressureNetwork = (
     maxSpeed?: number;
     schedule?: Schedule;
     initialStatus?: "on" | "off";
+    reservoirHead?: number;
   },
 ) =>
   HydraulicModelBuilder.with()
-    .aReservoir(IDS.R1, { head: 0 })
+    .aReservoir(IDS.R1, { head: units.length(reservoirHead) })
     .aJunction(IDS.J1, { elevation: 0 })
     .aJunction(IDS.J2, { elevation: 0 })
     .aJunctionDemand(IDS.J2, [
@@ -990,6 +1027,9 @@ const pumpFlows = async (reader: EPSResultsReader, id: number) =>
 
 const pumpSettings = async (reader: EPSResultsReader, id: number) =>
   Array.from((await reader.getTimeSeries(id, "pump", "setting"))!.values);
+
+const pumpHeads = async (reader: EPSResultsReader, id: number) =>
+  Array.from((await reader.getTimeSeries(id, "pump", "head"))!.values);
 
 const stepCount = DURATION / HOUR + 1;
 
