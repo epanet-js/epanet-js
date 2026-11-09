@@ -1,6 +1,6 @@
 import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { createMockResultsReader } from "src/__helpers__/state";
-import { upstreamTrace } from "./upstream-trace";
+import { upstreamTrace } from "./flow-trace";
 import { FlowDirection } from "./flow-direction";
 
 describe("upstreamTrace", () => {

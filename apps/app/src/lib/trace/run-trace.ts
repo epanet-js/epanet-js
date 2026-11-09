@@ -25,8 +25,7 @@ import { topologyTransferables } from "src/hydraulic-model/topology/topology-tra
 import { assetIndexTransferables } from "src/hydraulic-model/asset-index-transferable";
 import { FlowDirection } from "./flow-direction";
 import { TraceMode } from "./types";
-import { upstreamTrace } from "./upstream-trace";
-import { downstreamTrace } from "./downstream-trace";
+import { upstreamTrace, downstreamTrace } from "./flow-trace";
 import { getTraceWorker } from "./get-worker";
 
 export interface TraceInput {

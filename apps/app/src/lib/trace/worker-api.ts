@@ -15,8 +15,7 @@ import {
   type TraceStart,
 } from "@epanet-js/hydraulic-model";
 import { TraceMode } from "./types";
-import { upstreamTrace } from "./upstream-trace";
-import { downstreamTrace } from "./downstream-trace";
+import { upstreamTrace, downstreamTrace } from "./flow-trace";
 
 export interface TraceWorkerAPI {
   runTrace: (
