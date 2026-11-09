@@ -6,8 +6,10 @@ import {
   AssetIndexBuffers,
 } from "src/hydraulic-model/asset-index-transferable";
 import {
+  configuredActiveTopology,
   type AllowedFlowDirectionQueries,
   type AssetIndexQueries,
+  type ActiveTopologyQueries,
 } from "@epanet-js/hydraulic-model";
 import {
   TopologyEncoder,
@@ -16,6 +18,7 @@ import {
 import {
   FlowDirectionBuffers,
   AllowedFlowDirectionBuffers,
+  ActiveTopologyBuffers,
 } from "./trace-buffers";
 import { FlowDirection } from "./flow-direction";
 import { AllowedFlowDirection } from "./allowed-flow-direction";
@@ -26,6 +29,7 @@ export type TraceRunData = {
   assetIndexBuffers: AssetIndexBuffers;
   flowDirectionBuffers: FlowDirectionBuffers;
   allowedFlowDirectionBuffers: AllowedFlowDirectionBuffers;
+  activeTopologyBuffers: ActiveTopologyBuffers;
 };
 
 export function encodeTraceData(
@@ -54,13 +58,40 @@ export function encodeTraceData(
     allowedFlowDirectionStatus,
     bufferType,
   );
+  const activeTopologyEncoder = new ActiveTopologyEncoder(
+    model.assetIndex,
+    configuredActiveTopology(model.assets),
+    bufferType,
+  );
 
   return {
     topologyBuffers: topologyEncoder.encode(),
     assetIndexBuffers: assetIndexEncoder.encode(),
     flowDirectionBuffers: flowDirectionEncoder.encode(),
     allowedFlowDirectionBuffers: allowedFlowDirectionEncoder.encode(),
+    activeTopologyBuffers: activeTopologyEncoder.encode(),
   };
+}
+
+class ActiveTopologyEncoder {
+  constructor(
+    private assetIndex: AssetIndexQueries,
+    private links: ActiveTopologyQueries,
+    private bufferType: BufferType,
+  ) {}
+
+  encode(): ActiveTopologyBuffers {
+    const buffer = createBuffer(this.assetIndex.linkCount, this.bufferType);
+    const view = new Uint8Array(buffer);
+
+    let linkIdx = 0;
+    for (const [linkId] of this.assetIndex.iterateLinks()) {
+      view[linkIdx] = this.links.isLinkActive(linkId) ? 1 : 0;
+      linkIdx++;
+    }
+
+    return { activeTopology: buffer };
+  }
 }
 
 class AllowedFlowDirectionEncoder {

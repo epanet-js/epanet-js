@@ -6,6 +6,7 @@ import { TopologyQueries } from "../topology";
 import {
   AllowedFlowDirection,
   AllowedFlowDirectionQueries,
+  ActiveTopologyQueries,
   TraceBarriers,
 } from "./types";
 
@@ -147,6 +148,21 @@ export const presetBarriers = (
     },
   };
 };
+
+export const configuredActiveTopology = (
+  assets: AssetsMap,
+): ActiveTopologyQueries => ({
+  isLinkActive: (linkId) => assets.get(linkId)?.isActive ?? false,
+});
+
+export const activeTopologyBarriers = (
+  links: ActiveTopologyQueries,
+  startsOnActiveAsset: boolean,
+): TraceBarriers => ({
+  nodeStopReason: () => null,
+  linkStopReason: (linkId) =>
+    links.isLinkActive(linkId) !== startsOnActiveAsset ? "barrier" : null,
+});
 
 export const anyBarrier = (...barriers: TraceBarriers[]): TraceBarriers => ({
   nodeStopReason: (nodeId) => {

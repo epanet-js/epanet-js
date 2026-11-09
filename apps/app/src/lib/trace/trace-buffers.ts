@@ -4,6 +4,7 @@ import {
   AllowedFlowDirection,
   type AllowedFlowDirectionQueries,
   type AllowedFlowDirectionValue,
+  type ActiveTopologyQueries,
 } from "@epanet-js/hydraulic-model";
 import { AssetIndexView } from "src/hydraulic-model/asset-index-transferable";
 import {
@@ -43,6 +44,38 @@ export class AllowedFlowDirectionView implements AllowedFlowDirectionQueries {
     const idx = this.assetIndex.getLinkIndex(linkId);
     if (idx === null) return AllowedFlowDirection.NONE;
     return this.array[idx] as AllowedFlowDirectionValue;
+  }
+}
+
+export interface ActiveTopologyBuffers {
+  activeTopology: BinaryData;
+}
+
+export function activeTopologyTransferables(
+  b: ActiveTopologyBuffers,
+): ArrayBuffer[] {
+  return b.activeTopology instanceof ArrayBuffer ? [b.activeTopology] : [];
+}
+
+export class ActiveTopologyView implements ActiveTopologyQueries {
+  private _view?: Uint8Array;
+
+  constructor(
+    private buffers: ActiveTopologyBuffers,
+    private assetIndex: AssetIndexView,
+  ) {}
+
+  private get array(): Uint8Array {
+    if (!this._view) {
+      this._view = new Uint8Array(this.buffers.activeTopology);
+    }
+    return this._view;
+  }
+
+  isLinkActive(linkId: AssetId): boolean {
+    const idx = this.assetIndex.getLinkIndex(linkId);
+    if (idx === null) return false;
+    return this.array[idx] === 1;
   }
 }
 

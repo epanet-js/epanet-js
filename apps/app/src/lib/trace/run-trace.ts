@@ -1,8 +1,11 @@
 import * as Comlink from "comlink";
 
 import {
+  activeTopologyBarriers,
+  anyBarrier,
   AssetId,
   boundaryBarriers,
+  configuredActiveTopology,
   trace,
   type TraceResult,
   type TraceStart,
@@ -14,6 +17,7 @@ import { encodeTraceData } from "./encode-trace-buffers";
 import {
   flowDirectionTransferables,
   allowedFlowDirectionTransferables,
+  activeTopologyTransferables,
 } from "./trace-buffers";
 import { topologyTransferables } from "src/hydraulic-model/topology/topology-transferable";
 import { assetIndexTransferables } from "src/hydraulic-model/asset-index-transferable";
@@ -50,6 +54,14 @@ export const runTrace = async (
   return [...result.nodeIds, ...result.linkIds];
 };
 
+const startsOnActiveAsset = (
+  model: HydraulicModel,
+  input: TraceInput,
+): boolean =>
+  [...input.startNodeIds, ...input.startLinkIds].some(
+    (id) => model.assets.get(id)?.isActive,
+  );
+
 function runSync(
   model: HydraulicModel,
   resultsReader: ResultsReader | null,
@@ -70,10 +82,16 @@ function runSync(
       return trace(
         start,
         model.topology,
-        boundaryBarriers(
-          model.topology,
-          model.assetIndex,
-          allowedFlowDirection,
+        anyBarrier(
+          boundaryBarriers(
+            model.topology,
+            model.assetIndex,
+            allowedFlowDirection,
+          ),
+          activeTopologyBarriers(
+            configuredActiveTopology(model.assets),
+            startsOnActiveAsset(model, input),
+          ),
         ),
       );
     case "upstream":
@@ -103,11 +121,17 @@ const runWithWorker = async (
     ...assetIndexTransferables(data.assetIndexBuffers),
     ...flowDirectionTransferables(data.flowDirectionBuffers),
     ...allowedFlowDirectionTransferables(data.allowedFlowDirectionBuffers),
+    ...activeTopologyTransferables(data.activeTopologyBuffers),
   ]);
 
   const workerAPI = getTraceWorker();
   try {
-    const result = await workerAPI.runTrace(input.mode, start, transferData);
+    const result = await workerAPI.runTrace(
+      input.mode,
+      start,
+      transferData,
+      startsOnActiveAsset(model, input),
+    );
     if (signal?.aborted) {
       throw new DOMException("Operation cancelled", "AbortError");
     }

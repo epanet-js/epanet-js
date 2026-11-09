@@ -37,6 +37,10 @@ export interface TraceBarriers {
   linkStopReason(linkId: AssetId, fromNodeId: AssetId): TraceStopReason | null;
 }
 
+export interface ActiveTopologyQueries {
+  isLinkActive(linkId: AssetId): boolean;
+}
+
 export type TraceStopReason = "barrier" | "closed" | "direction";
 
 export type WeightedTraceStopReason = TraceStopReason | "limit";

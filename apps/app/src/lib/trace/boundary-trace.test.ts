@@ -16,6 +16,7 @@ import {
 } from "@epanet-js/hydraulic-model";
 import { AllowedFlowDirection } from "./allowed-flow-direction";
 import { encodeTraceData } from "./encode-trace-buffers";
+import { runTrace } from "./run-trace";
 import { workerAPI } from "./worker-api";
 
 const boundaryTrace = (
@@ -394,6 +395,77 @@ describe("trace with boundary barriers", () => {
   });
 });
 
+describe("boundary trace across inactive assets", () => {
+  const IDS = {
+    J1: 1,
+    J2: 2,
+    J3: 3,
+    J4: 4,
+    P1: 5,
+    P2: 6,
+    P3: 7,
+  } as const;
+  const model = HydraulicModelBuilder.with()
+    .aJunction(IDS.J1)
+    .aJunction(IDS.J2)
+    .aJunction(IDS.J3)
+    .aJunction(IDS.J4, { isActive: false })
+    .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
+    .aPipe(IDS.P2, {
+      startNodeId: IDS.J2,
+      endNodeId: IDS.J3,
+      isActive: false,
+    })
+    .aPipe(IDS.P3, {
+      startNodeId: IDS.J3,
+      endNodeId: IDS.J4,
+      isActive: false,
+    })
+    .build();
+
+  const fromActive = [IDS.J1, IDS.J2, IDS.P1];
+  const fromInactive = [IDS.J2, IDS.J3, IDS.J4, IDS.P2, IDS.P3];
+  const sorted = (ids: number[]) => [...ids].sort((a, b) => a - b);
+
+  const boundaryRun = (input: {
+    startNodeIds?: number[];
+    startLinkIds?: number[];
+  }) =>
+    runTrace(model, null, {
+      mode: "boundary",
+      startNodeIds: input.startNodeIds ?? [],
+      startLinkIds: input.startLinkIds ?? [],
+    });
+
+  it("stops at inactive links when started from an active asset", async () => {
+    const assetIds = await boundaryRun({ startNodeIds: [IDS.J1] });
+
+    expect(sorted(assetIds)).toEqual(sorted(fromActive));
+  });
+
+  it("stays within inactive links when started from an inactive link", async () => {
+    const assetIds = await boundaryRun({ startLinkIds: [IDS.P3] });
+
+    expect(sorted(assetIds)).toEqual(sorted(fromInactive));
+  });
+
+  it("follows the same rule through the worker buffers", () => {
+    const data = encodeTraceData(model, null, "array");
+    const traced = (linkIds: number[], startsOnActiveAsset: boolean) => {
+      const result = workerAPI.runTrace(
+        "boundary",
+        { nodeIds: [], linkIds },
+        data,
+        startsOnActiveAsset,
+      );
+      return sorted([...result.nodeIds, ...result.linkIds]);
+    };
+
+    expect(traced([IDS.P1], true)).toEqual(sorted(fromActive));
+    expect(traced([IDS.P3], false)).toEqual(sorted(fromInactive));
+  });
+});
+
 describe("trace stops", () => {
   it("reports each barrier it stopped at, why, and where it came from", () => {
     const IDS = {
@@ -624,7 +696,7 @@ describe("weightedTrace without limits", () => {
           model.topology,
           boundaryBarriers(model.topology, model.assetIndex, directions),
         );
-        const onBuffers = workerAPI.runTrace("boundary", start, data);
+        const onBuffers = workerAPI.runTrace("boundary", start, data, true);
 
         expect(sorted(onBuffers.nodeIds)).toEqual(sorted(onModel.nodeIds));
         expect(sorted(onBuffers.linkIds)).toEqual(sorted(onModel.linkIds));
