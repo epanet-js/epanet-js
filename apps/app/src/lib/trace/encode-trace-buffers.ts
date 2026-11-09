@@ -7,6 +7,7 @@ import {
 } from "src/hydraulic-model/asset-index-transferable";
 import {
   configuredActiveTopology,
+  configuredAllowedFlowDirections,
   type AllowedFlowDirectionQueries,
   type AssetIndexQueries,
   type ActiveTopologyQueries,
@@ -21,7 +22,6 @@ import {
   ActiveTopologyBuffers,
 } from "./trace-buffers";
 import { FlowDirection } from "./flow-direction";
-import { AllowedFlowDirection } from "./allowed-flow-direction";
 import type { FlowDirectionQueries, TraceMode } from "./types";
 
 export type TraceRunData = {
@@ -50,13 +50,9 @@ export function encodeTraceData(
     flowDirectionStatus,
     bufferType,
   );
-  const allowedFlowDirectionStatus = new AllowedFlowDirection(
-    model.assets,
-    resultsReader,
-  );
   const allowedFlowDirectionEncoder = new AllowedFlowDirectionEncoder(
     model.assetIndex,
-    allowedFlowDirectionStatus,
+    configuredAllowedFlowDirections(model.assets),
     bufferType,
   );
 

@@ -7,6 +7,7 @@ import {
   AssetId,
   boundaryBarriers,
   configuredActiveTopology,
+  configuredAllowedFlowDirections,
   trace,
   type TraceResult,
   type TraceStart,
@@ -23,7 +24,6 @@ import {
 import { topologyTransferables } from "src/hydraulic-model/topology/topology-transferable";
 import { assetIndexTransferables } from "src/hydraulic-model/asset-index-transferable";
 import { FlowDirection } from "./flow-direction";
-import { AllowedFlowDirection } from "./allowed-flow-direction";
 import { TraceMode } from "./types";
 import { upstreamTrace } from "./upstream-trace";
 import { downstreamTrace } from "./downstream-trace";
@@ -45,12 +45,9 @@ export const runTrace = async (
     throw new DOMException("Operation cancelled", "AbortError");
   }
 
-  const effectiveResultsReader =
-    input.mode === "boundary" ? null : resultsReader;
-
   const result = canUseWorker()
-    ? await runWithWorker(hydraulicModel, effectiveResultsReader, input, signal)
-    : runSync(hydraulicModel, effectiveResultsReader, input);
+    ? await runWithWorker(hydraulicModel, resultsReader, input, signal)
+    : runSync(hydraulicModel, resultsReader, input);
 
   return [...result.nodeIds, ...result.linkIds];
 };
@@ -61,10 +58,7 @@ function runSync(
   input: TraceInput,
 ): TraceResult {
   const status = new FlowDirection(model.assets, resultsReader);
-  const allowedFlowDirection = new AllowedFlowDirection(
-    model.assets,
-    resultsReader,
-  );
+  const allowedFlowDirection = configuredAllowedFlowDirections(model.assets);
   const start: TraceStart = {
     nodeIds: input.startNodeIds,
     linkIds: input.startLinkIds,

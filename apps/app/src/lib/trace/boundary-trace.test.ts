@@ -14,7 +14,6 @@ import {
   type AllowedFlowDirectionQueries,
   type TraceStop,
 } from "@epanet-js/hydraulic-model";
-import { AllowedFlowDirection } from "./allowed-flow-direction";
 import { encodeTraceData } from "./encode-trace-buffers";
 import { runTrace } from "./run-trace";
 import { workerAPI } from "./worker-api";
@@ -37,7 +36,7 @@ describe("trace with boundary barriers", () => {
       .aPipe(IDS.P2, { startNodeId: IDS.J2, endNodeId: IDS.J3 })
       .build();
 
-    const traversal = new AllowedFlowDirection(model.assets, null);
+    const traversal = configuredAllowedFlowDirections(model.assets);
     const result = boundaryTrace(
       { nodeIds: [IDS.J1], linkIds: [] },
       model.topology,
@@ -61,7 +60,7 @@ describe("trace with boundary barriers", () => {
       .aPipe(IDS.P2, { startNodeId: IDS.T1, endNodeId: IDS.J2 })
       .build();
 
-    const traversal = new AllowedFlowDirection(model.assets, null);
+    const traversal = configuredAllowedFlowDirections(model.assets);
     const result = boundaryTrace(
       { nodeIds: [IDS.J1], linkIds: [] },
       model.topology,
@@ -85,7 +84,7 @@ describe("trace with boundary barriers", () => {
       .aPump(IDS.PU1, { startNodeId: IDS.J2, endNodeId: IDS.J3 })
       .build();
 
-    const traversal = new AllowedFlowDirection(model.assets, null);
+    const traversal = configuredAllowedFlowDirections(model.assets);
     const result = boundaryTrace(
       { nodeIds: [IDS.J1], linkIds: [] },
       model.topology,
@@ -113,7 +112,7 @@ describe("trace with boundary barriers", () => {
       })
       .build();
 
-    const traversal = new AllowedFlowDirection(model.assets, null);
+    const traversal = configuredAllowedFlowDirections(model.assets);
     const result = boundaryTrace(
       { nodeIds: [IDS.J1], linkIds: [] },
       model.topology,
@@ -141,7 +140,7 @@ describe("trace with boundary barriers", () => {
       .aPipe(IDS.P1, { startNodeId: IDS.J2, endNodeId: IDS.J3 })
       .build();
 
-    const traversal = new AllowedFlowDirection(model.assets, null);
+    const traversal = configuredAllowedFlowDirections(model.assets);
 
     // Forward direction: J1 → J2 through CV pipe works
     const forward = boundaryTrace(
@@ -174,7 +173,7 @@ describe("trace with boundary barriers", () => {
       .aPipe(IDS.P2, { startNodeId: IDS.J2, endNodeId: IDS.J3 })
       .build();
 
-    const traversal = new AllowedFlowDirection(model.assets, null);
+    const traversal = configuredAllowedFlowDirections(model.assets);
     const result = boundaryTrace(
       { nodeIds: [IDS.J1, IDS.J2], linkIds: [IDS.P1] },
       model.topology,
@@ -200,7 +199,7 @@ describe("trace with boundary barriers", () => {
       })
       .build();
 
-    const traversal = new AllowedFlowDirection(model.assets, null);
+    const traversal = configuredAllowedFlowDirections(model.assets);
     const result = boundaryTrace(
       { nodeIds: [IDS.J1], linkIds: [] },
       model.topology,
@@ -227,7 +226,7 @@ describe("trace with boundary barriers", () => {
       })
       .build();
 
-    const traversal = new AllowedFlowDirection(model.assets, null);
+    const traversal = configuredAllowedFlowDirections(model.assets);
     const result = boundaryTrace(
       { nodeIds: [IDS.J1], linkIds: [] },
       model.topology,
@@ -254,7 +253,7 @@ describe("trace with boundary barriers", () => {
       })
       .build();
 
-    const traversal = new AllowedFlowDirection(model.assets, null);
+    const traversal = configuredAllowedFlowDirections(model.assets);
     const result = boundaryTrace(
       { nodeIds: [IDS.J1], linkIds: [] },
       model.topology,
@@ -264,134 +263,6 @@ describe("trace with boundary barriers", () => {
 
     expect(result.linkIds).not.toContain(IDS.TCV);
     expect(result.nodeIds).not.toContain(IDS.J3);
-  });
-
-  it("uses simulation status over initialStatus for pipes", () => {
-    const IDS = { J1: 1, J2: 2, J3: 3, P1: 4, P2: 5 } as const;
-    const model = HydraulicModelBuilder.with()
-      .aJunction(IDS.J1)
-      .aJunction(IDS.J2)
-      .aJunction(IDS.J3)
-      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
-      .aPipe(IDS.P2, {
-        startNodeId: IDS.J2,
-        endNodeId: IDS.J3,
-        initialStatus: "closed",
-      })
-      .build();
-
-    // Simulation says P2 is open with flow, overriding initialStatus "closed"
-    const reader = createMockResultsReader({
-      pipes: { [IDS.P1]: { flow: 5 }, [IDS.P2]: { flow: 3 } },
-    });
-
-    const traversal = new AllowedFlowDirection(model.assets, reader);
-    const result = boundaryTrace(
-      { nodeIds: [IDS.J1], linkIds: [] },
-      model.topology,
-      model.assetIndex,
-      traversal,
-    );
-
-    expect(result.linkIds).toContain(IDS.P2);
-    expect(result.nodeIds).toContain(IDS.J3);
-  });
-
-  it("treats pipe as boundary when simulation says closed", () => {
-    const IDS = { J1: 1, J2: 2, J3: 3, P1: 4, P2: 5 } as const;
-    const model = HydraulicModelBuilder.with()
-      .aJunction(IDS.J1)
-      .aJunction(IDS.J2)
-      .aJunction(IDS.J3)
-      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
-      .aPipe(IDS.P2, { startNodeId: IDS.J2, endNodeId: IDS.J3 })
-      .build();
-
-    // Simulation says P2 is closed, even though initialStatus is "open"
-    const reader = createMockResultsReader({});
-    reader.getPipe = (id: number) => {
-      if (id === IDS.P2)
-        return {
-          type: "pipe",
-          flow: 0,
-          velocity: 0,
-          headloss: 0,
-          unitHeadloss: 0,
-          status: "closed",
-          waterAge: null,
-          waterTrace: null,
-          chemicalConcentration: null,
-        };
-      return {
-        type: "pipe",
-        flow: 0,
-        velocity: 0,
-        headloss: 0,
-        unitHeadloss: 0,
-        status: "open",
-        waterAge: null,
-        waterTrace: null,
-        chemicalConcentration: null,
-      };
-    };
-
-    const traversal = new AllowedFlowDirection(model.assets, reader);
-    const result = boundaryTrace(
-      { nodeIds: [IDS.J1], linkIds: [] },
-      model.topology,
-      model.assetIndex,
-      traversal,
-    );
-
-    expect(result.linkIds).not.toContain(IDS.P2);
-    expect(result.nodeIds).not.toContain(IDS.J3);
-  });
-
-  it("uses simulation status over initialStatus for TCV valves", () => {
-    const IDS = { J1: 1, J2: 2, J3: 3, P1: 4, TCV: 5 } as const;
-    const model = HydraulicModelBuilder.with()
-      .aJunction(IDS.J1)
-      .aJunction(IDS.J2)
-      .aJunction(IDS.J3)
-      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
-      .aValve(IDS.TCV, {
-        startNodeId: IDS.J2,
-        endNodeId: IDS.J3,
-        kind: "tcv",
-        initialStatus: "closed",
-      })
-      .build();
-
-    // Simulation says TCV is active with flow, overriding initialStatus "closed"
-    const reader = createMockResultsReader({
-      pipes: { [IDS.P1]: { flow: 5 } },
-    });
-    reader.getValve = (id: number) => {
-      if (id === IDS.TCV)
-        return {
-          type: "valve",
-          flow: 3,
-          velocity: 0,
-          headloss: 0,
-          status: "active",
-          statusWarning: null,
-          waterAge: null,
-          waterTrace: null,
-          chemicalConcentration: null,
-        };
-      return null;
-    };
-
-    const traversal = new AllowedFlowDirection(model.assets, reader);
-    const result = boundaryTrace(
-      { nodeIds: [IDS.J1], linkIds: [] },
-      model.topology,
-      model.assetIndex,
-      traversal,
-    );
-
-    expect(result.linkIds).toContain(IDS.TCV);
-    expect(result.nodeIds).toContain(IDS.J3);
   });
 });
 
@@ -527,7 +398,7 @@ describe("trace stops", () => {
       .aPipe(IDS.P3, { startNodeId: IDS.J1, endNodeId: IDS.T1 })
       .build();
 
-    const traversal = new AllowedFlowDirection(model.assets, null);
+    const traversal = configuredAllowedFlowDirections(model.assets);
     const result = trace(
       { nodeIds: [IDS.J1], linkIds: [] },
       model.topology,
@@ -580,7 +451,7 @@ describe("trace stops", () => {
       })
       .build();
 
-    const traversal = new AllowedFlowDirection(model.assets, null);
+    const traversal = configuredAllowedFlowDirections(model.assets);
     const result = trace(
       { nodeIds: [IDS.J1], linkIds: [] },
       model.topology,
@@ -710,7 +581,7 @@ describe("weightedTrace without limits", () => {
 
     for (let seed = 1; seed <= 200; seed++) {
       const model = aRandomModel(random(seed));
-      const directions = new AllowedFlowDirection(model.assets, null);
+      const directions = configuredAllowedFlowDirections(model.assets);
       const data = encodeTraceData(model, null, "boundary");
 
       for (const [nodeId] of model.assetIndex.iterateNodes()) {
