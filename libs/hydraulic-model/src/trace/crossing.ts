@@ -14,7 +14,7 @@ export const crossingRules = (
   return {
     linkStopReason: (linkId: AssetId, fromNodeId: AssetId) =>
       barriers.linkStopReason(linkId, fromNodeId),
-    isNodeBarrier: (nodeId: AssetId) => barriers.isNodeBarrier(nodeId),
+    nodeStopReason: (nodeId: AssetId) => barriers.nodeStopReason(nodeId),
     otherEnd,
   };
 };

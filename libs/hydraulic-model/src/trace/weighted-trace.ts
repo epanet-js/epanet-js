@@ -48,7 +48,7 @@ export function weightedTrace(
     const { id: nodeId } = heap.pop()!;
     if (done.has(nodeId)) continue;
 
-    if (rules.isNodeBarrier(nodeId)) {
+    if (rules.nodeStopReason(nodeId) !== null) {
       distances.delete(nodeId);
       continue;
     }
@@ -74,10 +74,11 @@ export function weightedTrace(
 
       const neighborId = rules.otherEnd(linkId, nodeId);
       if (!done.has(neighborId)) {
-        if (rules.isNodeBarrier(neighborId)) {
+        const neighborStop = rules.nodeStopReason(neighborId);
+        if (neighborStop !== null) {
           stops.record({
             assetId: neighborId,
-            reason: "barrier",
+            reason: neighborStop,
             fromNodeId: nodeId,
             viaLinkId: linkId,
           });

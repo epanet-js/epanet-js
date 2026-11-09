@@ -80,12 +80,12 @@ const typeBarriers = (
   };
 
   return {
-    isNodeBarrier: (nodeId) => {
+    nodeStopReason: (nodeId) => {
       const nodeType = assetIndex.getNodeType(nodeId);
-      return (
+      const isStopped =
         (nodeType === "tank" && presets.has("tanks")) ||
-        (nodeType === "reservoir" && presets.has("reservoirs"))
-      );
+        (nodeType === "reservoir" && presets.has("reservoirs"));
+      return isStopped ? "barrier" : null;
     },
     linkStopReason: (linkId) =>
       isLinkOfStoppedType(linkId) ? "barrier" : null,
@@ -97,7 +97,7 @@ export const respectingFlowDirection = (
   topology: TopologyQueries,
   status: AllowedFlowDirectionQueries,
 ): TraceBarriers => ({
-  isNodeBarrier: (nodeId) => barriers.isNodeBarrier(nodeId),
+  nodeStopReason: (nodeId) => barriers.nodeStopReason(nodeId),
   linkStopReason: (linkId, fromNodeId) => {
     const direction = status.getAllowedFlowDirection(linkId);
     if (direction === AllowedFlowDirection.NONE) return "closed";
@@ -138,7 +138,7 @@ export const presetBarriers = (
   const selected = new Set(presets);
   const byType = typeBarriers(selected, assetIndex, status);
   return {
-    isNodeBarrier: (nodeId) => byType.isNodeBarrier(nodeId),
+    nodeStopReason: (nodeId) => byType.nodeStopReason(nodeId),
     linkStopReason: (linkId, fromNodeId) => {
       const reason = byType.linkStopReason(linkId, fromNodeId);
       if (reason !== null) return reason;
@@ -149,7 +149,13 @@ export const presetBarriers = (
 };
 
 export const anyBarrier = (...barriers: TraceBarriers[]): TraceBarriers => ({
-  isNodeBarrier: (nodeId) => barriers.some((b) => b.isNodeBarrier(nodeId)),
+  nodeStopReason: (nodeId) => {
+    for (const barrier of barriers) {
+      const reason = barrier.nodeStopReason(nodeId);
+      if (reason !== null) return reason;
+    }
+    return null;
+  },
   linkStopReason: (linkId, fromNodeId) => {
     for (const barrier of barriers) {
       const reason = barrier.linkStopReason(linkId, fromNodeId);
