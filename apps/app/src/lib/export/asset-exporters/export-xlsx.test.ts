@@ -469,23 +469,13 @@ describe("exportXlsx zones", () => {
   it("writes a zones sheet with the label and custom attributes", async () => {
     const { handle, getWorkbook } = makeMockHandle();
 
-    await exportXlsx(handle, aZoneModel(), WGS84, translate, {
-      includeZones: true,
-    });
+    await exportXlsx(handle, aZoneModel(), WGS84, translate);
 
     expect(sheetRows(getWorkbook(), "zones")).toEqual([
       ["label", "Area", "Pop"],
       ["NORTH", "LOW", 7],
       ["SOUTH"],
     ]);
-  });
-
-  it("leaves zones out unless asked to include them", async () => {
-    const { handle, getWorkbook } = makeMockHandle();
-
-    await exportXlsx(handle, aZoneModel(), WGS84, translate);
-
-    expect(getWorkbook().SheetNames).not.toContain("zones");
   });
 });
 

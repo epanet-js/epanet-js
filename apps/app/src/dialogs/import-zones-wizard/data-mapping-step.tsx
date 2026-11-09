@@ -6,7 +6,6 @@ import type { ZoneFeature } from "src/lib/zones";
 import { LabelManager } from "@epanet-js/hydraulic-model";
 
 const PREVIEW_LIMIT = 7;
-const NO_ATTRIBUTES: string[] = [];
 
 export type AttributesSelection = {
   options: string[];
@@ -26,7 +25,7 @@ export const DataMappingStep = ({
   availableProperties: string[];
   features: ZoneFeature[];
   onSelectLabel: (value: string) => void;
-  attributes?: AttributesSelection;
+  attributes: AttributesSelection;
 }) => {
   const translate = useTranslate();
   const labelSelectorId = useId();
@@ -37,7 +36,7 @@ export const DataMappingStep = ({
     value: property,
   }));
 
-  const previewAttributes = attributes?.selected ?? NO_ATTRIBUTES;
+  const previewAttributes = attributes.selected;
   const previewRows = useMemo(
     () => buildPreviewRows(features, selectedLabel, previewAttributes),
     [features, selectedLabel, previewAttributes],
@@ -45,15 +44,8 @@ export const DataMappingStep = ({
 
   return (
     <div className="flex flex-col gap-2">
-      {!attributes && (
-        <p className="text-size-base text-default mb-2">
-          {translate("importZones.dataMappingStep.description")}
-        </p>
-      )}
       <div className="flex gap-2">
-        <div
-          className={`${attributes ? "basis-1/2" : "flex-1"} min-w-0 flex flex-col gap-1`}
-        >
+        <div className="basis-1/2 min-w-0 flex flex-col gap-1">
           <label
             htmlFor={labelSelectorId}
             className="h-7 flex items-center text-size-base text-subtle font-semibold"
@@ -70,11 +62,9 @@ export const DataMappingStep = ({
             onChange={(value) => onSelectLabel(value ?? "none")}
           />
         </div>
-        {attributes && (
-          <div className="basis-1/2 min-w-0">
-            <AttributesSelector attributes={attributes} />
-          </div>
-        )}
+        <div className="basis-1/2 min-w-0">
+          <AttributesSelector attributes={attributes} />
+        </div>
       </div>
       <PreviewTable
         attributes={previewAttributes}

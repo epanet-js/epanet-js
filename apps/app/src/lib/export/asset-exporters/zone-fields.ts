@@ -6,8 +6,7 @@ export const exportedZones = (
   hydraulicModel: HydraulicModel,
   options?: AssetExportOptions,
 ): Zone[] => {
-  if (!options?.includeZones) return [];
-  const filter = options.zoneIdFilter ?? null;
+  const filter = options?.zoneIdFilter ?? null;
   return [...hydraulicModel.zones.values()].filter(
     (zone) => filter === null || filter.has(zone.id),
   );

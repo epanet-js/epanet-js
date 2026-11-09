@@ -20,7 +20,6 @@ export type DataExportOptions = {
   // null means "no filter, export all" (callers must be explicit).
   assetIdFilter: Set<number> | null;
   customerPointIdFilter: Set<number> | null;
-  includeZones?: boolean;
   zoneIdFilter?: Set<number> | null;
 };
 
@@ -78,7 +77,6 @@ export const useExportAssetData = () => {
               includeSimulationResults: options.includeSimulationResults,
               assetIdsFilter: options.assetIdFilter,
               customerPointIdFilter: options.customerPointIdFilter,
-              includeZones: options.includeZones,
               zoneIdFilter: options.zoneIdFilter,
               resultsReader,
             },

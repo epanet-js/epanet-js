@@ -11,7 +11,6 @@ import { simulationStepAtom } from "src/state/simulation";
 import { dialogAtom } from "src/state/dialog";
 import { selectionAtom } from "src/state/selection";
 import { USelection } from "src/selection";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import type { ExportFormat } from "src/lib/export/types";
 
 const exportFormats: { value: ExportFormat; labelKey: string }[] = [
@@ -20,8 +19,6 @@ const exportFormats: { value: ExportFormat; labelKey: string }[] = [
   { value: "shapefile", labelKey: "exportShapefile" },
   { value: "xlsx", labelKey: "exportXlsx" },
 ];
-
-const NO_ZONES: readonly number[] = [];
 
 export const ExportAssetDataDialog = ({ onClose }: { onClose: () => void }) => {
   const translate = useTranslate();
@@ -41,10 +38,7 @@ export const ExportAssetDataDialog = ({ onClose }: { onClose: () => void }) => {
   const selection = useAtomValue(selectionAtom);
   const selectedAssetIds = USelection.getAssetIds(selection);
   const selectedCustomerPointIds = USelection.getCustomerPointIds(selection);
-  const isZoneExportOn = useFeatureFlag("FLAG_ZONE_CUSTOM_ATTRIBUTES");
-  const selectedZoneIds = isZoneExportOn
-    ? USelection.getZoneIds(selection)
-    : NO_ZONES;
+  const selectedZoneIds = USelection.getZoneIds(selection);
   const hasSelection =
     selectedAssetIds.length > 0 ||
     selectedCustomerPointIds.length > 0 ||
@@ -73,7 +67,6 @@ export const ExportAssetDataDialog = ({ onClose }: { onClose: () => void }) => {
       simulationStep,
       assetIdFilter,
       customerPointIdFilter,
-      includeZones: isZoneExportOn,
       zoneIdFilter,
     });
   }, [
@@ -81,7 +74,6 @@ export const ExportAssetDataDialog = ({ onClose }: { onClose: () => void }) => {
     selectedAssetIds,
     selectedCustomerPointIds,
     selectedZoneIds,
-    isZoneExportOn,
     setDialogState,
     exportAssetData,
     format,

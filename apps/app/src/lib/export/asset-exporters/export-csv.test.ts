@@ -385,9 +385,7 @@ const parseCsvRows = (lines: string[]) => {
 
 describe("export-csv zones", () => {
   it("writes a zones file with the label and custom attributes", async () => {
-    const files = exportCsv(aZoneModel(), WGS84, translate, {
-      includeZones: true,
-    });
+    const files = exportCsv(aZoneModel(), WGS84, translate);
     const rows = parseCsvRows(await readCsv(findFile(files, "zones.csv")));
 
     expect(rows).toEqual([
@@ -398,18 +396,11 @@ describe("export-csv zones", () => {
 
   it("writes only the selected zones", async () => {
     const files = exportCsv(aZoneModel(), WGS84, translate, {
-      includeZones: true,
       zoneIdFilter: new Set([2]),
     });
     const rows = parseCsvRows(await readCsv(findFile(files, "zones.csv")));
 
     expect(rows.map((row) => row.label)).toEqual(["SOUTH"]);
-  });
-
-  it("leaves zones out unless asked to include them", () => {
-    const files = exportCsv(aZoneModel(), WGS84, translate);
-
-    expect(files.map((file) => file.fileName)).not.toContain("zones.csv");
   });
 });
 

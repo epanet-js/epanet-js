@@ -442,9 +442,7 @@ const mockResultsReader = (pressure: number, demand: number) =>
 
 describe("export-geojson zones", () => {
   it("writes a zones file of multipolygons with the label and custom attributes", async () => {
-    const files = exportGeoJson(aZoneModel(), WGS84, translate, {
-      includeZones: true,
-    });
+    const files = exportGeoJson(aZoneModel(), WGS84, translate);
     const geoJson = await parseGeoJson(findFile(files, "zones.geojson"));
 
     expect(geoJson.features).toEqual([
@@ -459,12 +457,6 @@ describe("export-geojson zones", () => {
         properties: { label: "SOUTH" },
       },
     ]);
-  });
-
-  it("leaves zones out unless asked to include them", () => {
-    const files = exportGeoJson(aZoneModel(), WGS84, translate);
-
-    expect(files.map((file) => file.fileName)).not.toContain("zones.geojson");
   });
 });
 

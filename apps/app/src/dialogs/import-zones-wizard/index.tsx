@@ -15,7 +15,6 @@ import { useImportZones } from "src/commands/import-zones";
 import { useUserTracking } from "src/infra/user-tracking";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useFeatureLock } from "src/components/form/paywall";
 import type { GisFiles } from "src/components/gis-drop-zone";
 import { DataInputStep } from "./data-input-step";
@@ -40,9 +39,6 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
   const { idPools } = useAtomValue(modelFactoriesAtom);
   const { closeDialog } = useDialogState();
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
-  const isZoneCustomAttributesOn = useFeatureFlag(
-    "FLAG_ZONE_CUSTOM_ATTRIBUTES",
-  );
   const { isLocked: customAttributesLocked } =
     useFeatureLock("customAttributes");
   const [selectedAttributes, setSelectedAttributes] = useState<string[]>([]);
@@ -149,11 +145,8 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
     [readResult, selectedLabel],
   );
   const importedAttributes = useMemo(
-    () =>
-      isZoneCustomAttributesOn && !customAttributesLocked
-        ? selectedAttributes
-        : [],
-    [isZoneCustomAttributesOn, customAttributesLocked, selectedAttributes],
+    () => (customAttributesLocked ? [] : selectedAttributes),
+    [customAttributesLocked, selectedAttributes],
   );
 
   const handleToggleAttribute = useCallback((name: string) => {
@@ -291,16 +284,12 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
             availableProperties={availableProperties}
             features={readResult?.features ?? []}
             onSelectLabel={handleSelectLabel}
-            attributes={
-              isZoneCustomAttributesOn
-                ? {
-                    options: attributeOptions,
-                    selected: selectedAttributes,
-                    isLocked: customAttributesLocked,
-                    onToggle: handleToggleAttribute,
-                  }
-                : undefined
-            }
+            attributes={{
+              options: attributeOptions,
+              selected: selectedAttributes,
+              isLocked: customAttributesLocked,
+              onToggle: handleToggleAttribute,
+            }}
           />
         )}
         {currentStep === COMPLETE_STEP_NUMBER && (

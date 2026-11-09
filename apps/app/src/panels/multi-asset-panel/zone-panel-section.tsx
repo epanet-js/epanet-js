@@ -6,7 +6,6 @@ import {
   SectionList,
 } from "src/components/form/fields";
 import { useTranslate } from "src/hooks/use-translate";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useSelection } from "src/selection";
 import { selectionAtom } from "src/state/selection";
@@ -33,9 +32,6 @@ export function ZonePanelSection({
   const translate = useTranslate();
   const [collapseState, setCollapseState] = useAtom(
     multiAssetPanelCollapseAtom,
-  );
-  const isZoneCustomAttributesOn = useFeatureFlag(
-    "FLAG_ZONE_CUSTOM_ATTRIBUTES",
   );
   const selection = useAtomValue(selectionAtom);
   const { selectZones } = useSelection(selection);
@@ -69,13 +65,11 @@ export function ZonePanelSection({
         key={zoneIds.join(",")}
         zoneIds={zoneIds}
         customAttributes={
-          isZoneCustomAttributesOn && (
-            <MultiZoneCustomAttributesSection
-              zoneIds={zoneIds}
-              readonly={readonly}
-              onSelectZones={handleSelect}
-            />
-          )
+          <MultiZoneCustomAttributesSection
+            zoneIds={zoneIds}
+            readonly={readonly}
+            onSelectZones={handleSelect}
+          />
         }
       />
     </CollapsibleSection>

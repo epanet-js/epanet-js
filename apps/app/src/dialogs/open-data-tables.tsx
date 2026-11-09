@@ -18,7 +18,6 @@ import { OPENABLE_ASSET_TYPES } from "src/panels/data-tables/create-panel";
 import { selectionAtom } from "src/state/selection";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { USelection } from "src/selection";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 type Choice = { tableType: DataTableType; label: string };
 
@@ -36,7 +35,6 @@ export const OpenDataTablesDialog = ({ onClose }: { onClose: () => void }) => {
   const openDataTables = useOpenDataTables();
   const selection = useAtomValue(selectionAtom);
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
-  const isZoneTableOn = useFeatureFlag("FLAG_ZONE_CUSTOM_ATTRIBUTES");
   const totalCounts = useMemo(() => {
     const counts = new Map<DataTableType, number>();
     for (const asset of hydraulicModel.assets.values()) {
@@ -57,16 +55,9 @@ export const OpenDataTablesDialog = ({ onClose }: { onClose: () => void }) => {
         label: translate(assetTypeLabelKeys[assetType]),
       })),
       { tableType: CUSTOMER_POINTS_TABLE, label: translate("customerPoints") },
-      ...(isZoneTableOn
-        ? [
-            {
-              tableType: ZONES_TABLE,
-              label: translate("zones"),
-            } satisfies Choice,
-          ]
-        : []),
+      { tableType: ZONES_TABLE, label: translate("zones") },
     ],
-    [translate, isZoneTableOn],
+    [translate],
   );
 
   const selectedCounts = useMemo(() => {

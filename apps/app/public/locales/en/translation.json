@@ -2072,7 +2072,6 @@
     },
     "dataMappingStep": {
       "title": "Data mapping",
-      "description": "Choose a property to use as zone label, or auto-generate labels.",
       "none": "None (auto-generate labels)",
       "previewHeader": "Label",
       "previewMore": "... and {{1}} more",

@@ -17,7 +17,6 @@ import type { Action } from "src/components/action-button";
 import { useZoomToSelection } from "src/commands/zoom-to-selection";
 import { useSelectZoneContents } from "src/commands/select-zone-contents";
 import { useDeleteSelection } from "src/commands/delete-selection";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
 import {
   BookmarkIcon,
@@ -198,9 +197,6 @@ const ZoneSections = ({
   readOnly: boolean;
 }) => {
   const translate = useTranslate();
-  const isZoneCustomAttributesOn = useFeatureFlag(
-    "FLAG_ZONE_CUSTOM_ATTRIBUTES",
-  );
   const zoneIds = useMemo(() => [zone.id], [zone.id]);
   const { elevations, pressures, isPending } = useZoneRanges(zoneIds);
 
@@ -222,9 +218,7 @@ const ZoneSections = ({
       >
         {isPending ? <RangeLoader /> : <PressureRangeRows range={pressures} />}
       </SectionWrapper>
-      {isZoneCustomAttributesOn && (
-        <ZoneCustomAttributesSection zone={zone} readOnly={readOnly} />
-      )}
+      <ZoneCustomAttributesSection zone={zone} readOnly={readOnly} />
     </SectionList>
   );
 };

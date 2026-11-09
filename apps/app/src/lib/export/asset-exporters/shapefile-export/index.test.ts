@@ -527,9 +527,7 @@ describe("exportShapefiles zones", () => {
   };
 
   it("writes zones as polygons with the label and custom attributes", async () => {
-    const files = await exportShapefiles(aZoneModel(), WGS84, translate, {
-      includeZones: true,
-    });
+    const files = await exportShapefiles(aZoneModel(), WGS84, translate);
     const shp = files.find((f) => f.fileName === "zones.shp")!;
     const dbf = files.find((f) => f.fileName === "zones.dbf")!;
     const view = await blobView(shp.blob);
@@ -567,21 +565,13 @@ describe("exportShapefiles zones", () => {
       })
       .build();
 
-    const files = await exportShapefiles(model, WGS84, translate, {
-      includeZones: true,
-    });
+    const files = await exportShapefiles(model, WGS84, translate);
     const shp = files.find((f) => f.fileName === "zones.shp")!;
 
     expect(ringsOf(await blobView(shp.blob))).toEqual([
       [...outer].reverse(),
       [...hole].reverse(),
     ]);
-  });
-
-  it("leaves zones out unless asked to include them", async () => {
-    const files = await exportShapefiles(aZoneModel(), WGS84, translate);
-
-    expect(fileNames(files)).not.toContain("zones.shp");
   });
 });
 

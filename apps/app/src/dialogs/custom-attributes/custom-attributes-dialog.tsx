@@ -10,7 +10,6 @@ import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import { changeCustomAttributesDefinition } from "@epanet-js/hydraulic-model-operations";
 import { useUserTracking } from "src/infra/user-tracking";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { Callout } from "@epanet-js/ui-kit";
 import { VerticalResizer } from "../vertical-resizer";
 import { DialogActions, DialogActionsHandle } from "../dialog-actions-row";
@@ -91,16 +90,6 @@ export const CustomAttributesDialog = ({
   const userTracking = useUserTracking();
   const hasScenarios = useAtomValue(hasScenariosAtom);
   const isEditionBlocked = useIsEditionBlocked() || hasScenarios;
-  const isZoneCustomAttributesOn = useFeatureFlag(
-    "FLAG_ZONE_CUSTOM_ATTRIBUTES",
-  );
-  const visibleAssetTypes = useMemo(
-    () =>
-      isZoneCustomAttributesOn
-        ? ASSET_TYPE_ORDER
-        : ASSET_TYPE_ORDER.filter((assetType) => assetType !== "zone"),
-    [isZoneCustomAttributesOn],
-  );
 
   const savedSnapshotRef = useRef<string>(serialize(savedDefinition));
 
@@ -209,7 +198,7 @@ export const CustomAttributesDialog = ({
         <div className="shrink-0 flex">
           <CustomAttributesSidebar
             width={sidebarWidth}
-            assetTypes={visibleAssetTypes}
+            assetTypes={ASSET_TYPE_ORDER}
             definition={edited}
             selectedAssetType={selectedAssetType}
             invalidAssetTypes={invalidAssetTypes}
