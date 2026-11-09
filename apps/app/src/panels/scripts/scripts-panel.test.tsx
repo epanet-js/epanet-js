@@ -646,7 +646,7 @@ describe("ScriptsPanel", () => {
         {
           id: "1",
           name: "Remove zone",
-          source: "network.deleteZone('NORTH');",
+          source: "zones.delete('NORTH');",
           apiVersion: 1,
           updatedAt: 0,
         },

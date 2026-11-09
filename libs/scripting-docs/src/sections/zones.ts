@@ -94,16 +94,16 @@ zones.get("NORTH").setCustom("Owner", "OPERATIONS");`,
   }),
 ];
 
-const DELETE_ZONE: Member = memberOf("Network")({
-  name: "deleteZone",
-  signature: "deleteZone(label: string): void",
+const DELETE_ZONE: Member = zones({
+  name: "delete",
+  signature: "delete(label: string): void",
   summary: "Deletes a zone by its label, ignoring case.",
   description:
     "The zone leaves `zones` straight away and its label is free again. A zone the script still holds stops reading. The deletion reaches the network with the other changes.",
   throws: [
     "`TypeError` when no zone has that label, or deleting zones is not available yet.",
   ],
-  examples: [{ code: `network.deleteZone("NORTH");` }],
+  examples: [{ code: `zones.delete("NORTH");` }],
 });
 
 export const sectionFor = ({ edits }: DocsCandidates): SectionDef =>
