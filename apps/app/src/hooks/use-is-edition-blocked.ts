@@ -5,7 +5,13 @@ import { isPlayingAtom } from "src/state/simulation-playback";
 import { historyPendingAtom } from "src/state/transactions";
 import { worktreeAtom } from "src/state/scenarios";
 
-export const useIsEditionBlocked = () => {
+export type EditionBlock =
+  | "branchLocked"
+  | "playing"
+  | "historyPending"
+  | "scenarioReadOnly";
+
+export const useEditionBlock = (): EditionBlock | null => {
   const isBranchLocked = useIsBranchLocked();
   const isPlaying = useAtomValue(isPlayingAtom);
   const isHistoryPending = useAtomValue(historyPendingAtom);
@@ -13,5 +19,11 @@ export const useIsEditionBlocked = () => {
   const { canUseScenarios } = usePermissions();
   const isScenarioReadOnly =
     worktree.activeBranchId !== worktree.mainId && !canUseScenarios;
-  return isBranchLocked || isPlaying || isHistoryPending || isScenarioReadOnly;
+  if (isBranchLocked) return "branchLocked";
+  if (isPlaying) return "playing";
+  if (isHistoryPending) return "historyPending";
+  if (isScenarioReadOnly) return "scenarioReadOnly";
+  return null;
 };
+
+export const useIsEditionBlocked = () => useEditionBlock() !== null;

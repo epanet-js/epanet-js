@@ -16,7 +16,7 @@ const READ_ONLY = {
 
 const WITH_EDITS = {
   running: `A change to the model reads back straight away, within the run. The changes and the script's output — ${OUTPUT} — are applied together when the script ends successfully. ${FAILED_RUN} is applied`,
-  values: `**Frozen values, changed through methods.** ${ASSIGNING} Change the model with the methods this reference lists, such as \`asset.set(...)\`.`,
+  values: `**Frozen values, changed through methods.** ${ASSIGNING} Change the model with the methods this reference lists, such as \`asset.set(...)\`. A method that changes the model throws when the project cannot be edited right now, for example on Main once the project has scenarios; the message says why.`,
 };
 
 const introOf = ({ running, values }: typeof READ_ONLY): string =>

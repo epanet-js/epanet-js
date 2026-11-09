@@ -168,6 +168,7 @@ export type Scripting = {
     isEditsOn: boolean;
     hasScenarios: boolean;
     isDeleteZoneOn: boolean;
+    editsBlockedReason: string | null;
     onEvent: (event: ScriptEvent) => void;
   }) => ScriptRunHandle;
   exampleScripts: ExampleScript[];

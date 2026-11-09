@@ -24,6 +24,8 @@ import { registerScripting, type ScriptRunOutcome } from "src/lib/scripting";
 import { Store } from "src/state";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { selectionAtom } from "src/state/selection";
+import { worktreeAtom } from "src/state/scenarios";
+import { dialogAtom } from "src/state/dialog";
 import { USelection } from "src/selection";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { userScriptsAtom, type UserScript } from "src/state/scripts";
@@ -610,6 +612,83 @@ describe("ScriptsPanel", () => {
 
       expect(startScriptRun).toHaveBeenCalledWith(
         expect.objectContaining({ isDeleteZoneOn: true }),
+      );
+    });
+
+    const lockMain = (store: Store) => {
+      const worktree = store.get(worktreeAtom);
+      const main = worktree.branches.get(worktree.mainId)!;
+      store.set(worktreeAtom, {
+        ...worktree,
+        branches: new Map(worktree.branches).set(worktree.mainId, {
+          ...main,
+          status: "locked",
+        }),
+      });
+      return store;
+    };
+
+    it("tells the run why it cannot edit on a locked Main", async () => {
+      stubFeaturesOn(["FLAG_SCRIPT_EDITS"]);
+      const user = userEvent.setup();
+      const startScriptRun = aRunThatSetsTheDiameter();
+      registerScripting({ startScriptRun, exampleScripts: [] });
+      renderPanel(lockMain(aStoreWithAPipe()));
+
+      await user.click(screen.getByRole("button", { name: "Run Resize" }));
+
+      expect(startScriptRun).toHaveBeenCalledWith(
+        expect.objectContaining({
+          editsBlockedReason:
+            "This script cannot change Main while the project has scenarios. Switch to a scenario and run it again.",
+        }),
+      );
+    });
+
+    it("applies nothing else from a run whose edits are refused", async () => {
+      stubFeaturesOn(["FLAG_SCRIPT_EDITS"]);
+      const user = userEvent.setup();
+      const run = aRunThatSetsTheDiameter();
+      const startScriptRun = vi.fn(({ model }: { model: HydraulicModel }) => {
+        const handle = run({ model });
+        return {
+          ...handle,
+          finished: handle.finished.then(
+            (outcome) =>
+              ({
+                ...outcome,
+                selection: { assetIds: [IDS.P1], customerPointIds: [] },
+              }) as ScriptRunOutcome,
+          ),
+        };
+      });
+      registerScripting({ startScriptRun, exampleScripts: [] });
+      const store = lockMain(aStoreWithAPipe());
+      renderPanel(store);
+      const selectionBefore = store.get(selectionAtom);
+
+      await user.click(screen.getByRole("button", { name: "Run Resize" }));
+
+      await waitFor(() =>
+        expect(store.get(dialogAtom)).toMatchObject({
+          type: "changeNotApplied",
+        }),
+      );
+      expect(diameterOf(store)).toEqual(100);
+      expect(store.get(selectionAtom)).toBe(selectionBefore);
+    });
+
+    it("runs with no reason when the model can be edited", async () => {
+      stubFeaturesOn(["FLAG_SCRIPT_EDITS"]);
+      const user = userEvent.setup();
+      const startScriptRun = aRunThatSetsTheDiameter();
+      registerScripting({ startScriptRun, exampleScripts: [] });
+      renderPanel(aStoreWithAPipe());
+
+      await user.click(screen.getByRole("button", { name: "Run Resize" }));
+
+      expect(startScriptRun).toHaveBeenCalledWith(
+        expect.objectContaining({ editsBlockedReason: null }),
       );
     });
 

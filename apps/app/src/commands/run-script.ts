@@ -17,7 +17,10 @@ import { useZoomTo } from "src/hooks/use-zoom-to";
 import { usePermissions } from "src/hooks/use-permissions";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useFeatureLock } from "src/components/form/paywall";
-import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
+import {
+  useEditionBlock,
+  type EditionBlock,
+} from "src/hooks/use-is-edition-blocked";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useSelectionSetsTransaction } from "src/hooks/persistence/use-selection-sets-transaction";
@@ -80,9 +83,9 @@ export const useRunScript = () => {
   const isScriptEditsOn = useFeatureFlag("FLAG_SCRIPT_EDITS");
   const isDeleteZoneOn = useFeatureFlag("FLAG_DELETE_ZONE");
   const { transact } = useModelTransaction();
-  const isEditionBlocked = useIsEditionBlocked();
-  const isEditionBlockedRef = useRef(isEditionBlocked);
-  isEditionBlockedRef.current = isEditionBlocked;
+  const editionBlock = useEditionBlock();
+  const editionBlockRef = useRef(editionBlock);
+  editionBlockRef.current = editionBlock;
   const { create: createSelectionSet } = useSelectionSetsTransaction();
   const { transact: saveBookmarks } = useBookmarksTransaction();
   const showScriptOutput = useShowScriptOutput();
@@ -100,12 +103,12 @@ export const useRunScript = () => {
   }, [map]);
 
   const applyEdits = useCallback(
-    (edits: Uint8Array, modelVersion: string) => {
+    (edits: Uint8Array, modelVersion: string): boolean => {
       const isModelUnchanged =
         store.get(stagingModelDerivedAtom).version === modelVersion;
-      if (isEditionBlockedRef.current || !isModelUnchanged) {
+      if (editionBlockRef.current !== null || !isModelUnchanged) {
         setDialog({ type: "changeNotApplied" });
-        return;
+        return false;
       }
       const changeSet = ChangeSet.fromBytes(edits);
       observeIdentifiers(store.get(modelFactoriesAtom), changeSet);
@@ -116,6 +119,7 @@ export const useRunScript = () => {
           store.get(stagingModelDerivedAtom).zones,
         ),
       );
+      return true;
     },
     [store, setDialog, setSelection, transact],
   );
@@ -123,7 +127,7 @@ export const useRunScript = () => {
   const applyOutcome = useCallback(
     (outcome: ScriptRunOutcome, modelVersion: string) => {
       if (outcome.status !== "success") return;
-      if (outcome.edits) applyEdits(outcome.edits, modelVersion);
+      if (outcome.edits && !applyEdits(outcome.edits, modelVersion)) return;
       const { assets, customerPoints } = store.get(stagingModelDerivedAtom);
       const existing = ({ assetIds, customerPointIds }: ScriptTargets) =>
         USelection.fromIds(
@@ -262,6 +266,8 @@ export const useRunScript = () => {
         isEditsOn: isScriptEditsOn,
         hasScenarios: store.get(hasScenariosAtom),
         isDeleteZoneOn,
+        editsBlockedReason:
+          editionBlockRef.current && EDITS_BLOCKED[editionBlockRef.current],
         onEvent,
       });
       const startedAt = performance.now();
@@ -324,6 +330,17 @@ export const useRunScript = () => {
       showScriptOutput,
     ],
   );
+};
+
+const EDITS_BLOCKED: Record<EditionBlock, string> = {
+  branchLocked:
+    "This script cannot change Main while the project has scenarios. Switch to a scenario and run it again.",
+  playing:
+    "This script cannot change the network while the simulation is playing. Stop the playback and run it again.",
+  historyPending:
+    "This script cannot change the network while an undo or redo is in progress. Run it again.",
+  scenarioReadOnly:
+    "This script cannot change this scenario because it is read-only on your plan.",
 };
 
 const withoutDeletedZones = (selection: Sel, zones: Zones): Sel =>
