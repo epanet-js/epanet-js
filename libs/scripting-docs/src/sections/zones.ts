@@ -51,7 +51,7 @@ A node, a customer point or a \`[lng, lat]\` position is inside a zone when its 
       signature: "contains(target: ZoneTarget): boolean",
       summary: "Whether the zone contains the target.",
       throws: [
-        "`zone.contains expects a [lng, lat] position, an asset, an asset label or a customer point`",
+        '`zone.contains on "X" expects a [lng, lat] position, an asset, an asset label or a customer point`',
       ],
       examples: [
         {
