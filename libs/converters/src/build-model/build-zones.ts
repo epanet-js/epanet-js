@@ -2,10 +2,14 @@ import type { MultiPolygon } from "geojson";
 import type { ZoneData } from "../network-data";
 import type {
   CustomAttributeId,
-  CustomAttributeType,
   ZoneFactory,
   Zones,
 } from "@epanet-js/hydraulic-model";
+import {
+  resolveCustomAttributeValues,
+  type AttributeValue,
+  type CustomAttributePlan,
+} from "./custom-attributes";
 
 export type MergedZoneInfo = {
   label: string;
@@ -23,13 +27,6 @@ export type BuildZonesResult = {
   renamedZones: RenamedZoneInfo[];
 };
 
-export type ZoneAttributePlan = Map<
-  string,
-  { id: CustomAttributeId; type: CustomAttributeType }
->;
-
-type AttributeValue = string | number;
-
 type Group = {
   label: string | undefined;
   records: ZoneData[];
@@ -39,7 +36,7 @@ type Group = {
 export const buildZones = (
   records: ZoneData[],
   zoneFactory: ZoneFactory,
-  attributes: ZoneAttributePlan = new Map(),
+  attributes: CustomAttributePlan = new Map(),
 ): BuildZonesResult => {
   const zones: Zones = new Map();
   const mergedZones: MergedZoneInfo[] = [];
@@ -49,7 +46,7 @@ export const buildZones = (
   const groupsByLabel = new Map<string, Group[]>();
 
   for (const record of records) {
-    const values = resolveValues(record, attributes);
+    const values = resolveCustomAttributeValues(record, attributes);
 
     if (record.label === undefined) {
       groups.push({ label: undefined, records: [record], values });
@@ -92,34 +89,6 @@ export const buildZones = (
   }
 
   return { zones, mergedZones, renamedZones };
-};
-
-const resolveValues = (
-  record: ZoneData,
-  attributes: ZoneAttributePlan,
-): Map<CustomAttributeId, AttributeValue> => {
-  const values = new Map<CustomAttributeId, AttributeValue>();
-  for (const [ref, raw] of Object.entries(record.customAttributes ?? {})) {
-    const attribute = attributes.get(ref);
-    if (!attribute) continue;
-
-    const value = convert(raw, attribute.type);
-    if (value !== null) values.set(attribute.id, value);
-  }
-  return values;
-};
-
-const convert = (
-  value: AttributeValue,
-  type: CustomAttributeType,
-): AttributeValue | null => {
-  if (type === "text") return String(value);
-  if (typeof value === "number") return value;
-
-  const trimmed = value.trim();
-  if (trimmed === "") return null;
-  const parsed = Number(trimmed);
-  return Number.isFinite(parsed) ? parsed : null;
 };
 
 const conflicts = (

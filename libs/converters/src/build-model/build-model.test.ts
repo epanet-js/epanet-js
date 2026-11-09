@@ -1632,6 +1632,36 @@ describe("build custom attributes from network data", () => {
     expect(junction.getProperty("custom-1")).toEqual(125);
   });
 
+  it("converts each value to the type of its attribute", () => {
+    const { hydraulicModel } = buildModel(
+      aNetwork({
+        customAttributes: [
+          anAttribute({ ref: "7", name: "DIAMETER", type: "number" }),
+          anAttribute({ ref: "8", name: "CODE", type: "text" }),
+        ],
+        junctions: [
+          aJunction({
+            ref: "1",
+            label: "J1",
+            customAttributes: { "7": "125", "8": 40 },
+          }),
+          aJunction({
+            ref: "2",
+            label: "J2",
+            customAttributes: { "7": "INS" },
+          }),
+        ],
+      }),
+      { projections: aCatalogue() },
+    );
+
+    const first = getByLabel(hydraulicModel.assets, "J1") as Junction;
+    const second = getByLabel(hydraulicModel.assets, "J2") as Junction;
+    expect(first.getProperty("custom-1")).toEqual(125);
+    expect(first.getProperty("custom-2")).toEqual("40");
+    expect(second.hasProperty("custom-1")).toEqual(false);
+  });
+
   it("gives each kind its own attribute even when the name repeats", () => {
     const { hydraulicModel } = buildModel(
       aNetwork({

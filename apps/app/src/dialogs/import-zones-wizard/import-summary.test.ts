@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 import type { ZoneData } from "@epanet-js/converters";
-import { buildZones, type ZoneAttributePlan } from "@epanet-js/converters";
+import { buildZones, type CustomAttributePlan } from "@epanet-js/converters";
 import { ZoneFactory } from "@epanet-js/hydraulic-model";
 import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
 import { buildSummaryRows } from "./import-summary";
 
-const plan: ZoneAttributePlan = new Map([
+const plan: CustomAttributePlan = new Map([
   ["AREA", { id: "custom-1", type: "text" }],
 ]);
 const columns = [{ id: "custom-1", label: "AREA" }];

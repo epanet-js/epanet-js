@@ -3,6 +3,7 @@ import {
   updateHydraulicModelAssets,
 } from "src/hydraulic-model/hydraulic-model";
 import {
+  CustomAttributesDefinition,
   CustomerPoint,
   CustomerPointsLookup,
 } from "@epanet-js/hydraulic-model";
@@ -11,6 +12,7 @@ import { Demand } from "@epanet-js/hydraulic-model";
 type AddCustomerPointsOptions = {
   preserveJunctionDemands?: boolean;
   customerPointDemands?: Map<number, Demand[]>;
+  customAttributes?: CustomAttributesDefinition;
 };
 
 export const addCustomerPoints = (
@@ -53,6 +55,8 @@ export const addCustomerPoints = (
     version: hydraulicModel.version,
     customerPoints: updatedCustomerPoints,
     customerPointsLookup: updatedLookup,
+    customAttributes:
+      options.customAttributes ?? hydraulicModel.customAttributes,
     demands: demandsChanged
       ? {
           ...hydraulicModel.demands,

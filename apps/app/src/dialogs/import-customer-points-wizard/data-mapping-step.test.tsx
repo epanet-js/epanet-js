@@ -8,6 +8,13 @@ import { stubProjectionsReady } from "src/__helpers__/projections";
 import { setWizardState } from "./__helpers__/wizard-state";
 import { renderWizard } from "./__helpers__/render-wizard";
 
+const permissions = { canUseCustomAttributes: true };
+
+vi.mock("src/hooks/use-permissions", async () => ({
+  ...(await vi.importActual("src/hooks/use-permissions")),
+  usePermissions: () => permissions,
+}));
+
 const aPoint = (
   coordinates: [number, number],
   properties: Record<string, unknown>,
@@ -28,6 +35,7 @@ describe("DataMappingStep", () => {
   beforeEach(() => {
     stubUserTracking();
     stubProjectionsReady();
+    permissions.canUseCustomAttributes = true;
   });
 
   describe("optional demand attribute + default value", () => {
@@ -253,6 +261,77 @@ describe("DataMappingStep", () => {
       expect(screen.getByText("CP2")).toBeInTheDocument();
       expect(screen.queryByText("CP3")).not.toBeInTheDocument();
       expect(screen.queryByText("CP4")).not.toBeInTheDocument();
+    });
+  });
+
+  describe("custom attributes", () => {
+    const pointsWithAttributes = () => [
+      aPoint([0.001, 0.001], { name: "Alpha", zone: "NORTH" }),
+      aPoint([0.002, 0.002], { name: "Beta", zone: "SOUTH" }),
+    ];
+
+    const renderMappingStep = async () => {
+      const store = setInitialState({
+        hydraulicModel: HydraulicModelBuilder.with().build(),
+      });
+      setWizardState(store, {
+        sourceFiles: [aSourceFile(pointsWithAttributes())],
+        inputData: { properties: new Set(["name", "zone"]) },
+      });
+      renderWizard(store);
+      await waitFor(() => {
+        expect(screen.getByText(/Customer points \(2\)/)).toBeInTheDocument();
+      });
+    };
+
+    const selector = () =>
+      screen.getByRole("combobox", { name: /custom attributes/i });
+
+    it("previews the selected attribute as a column", async () => {
+      const user = userEvent.setup();
+      await renderMappingStep();
+
+      await user.click(selector());
+      await user.click(await screen.findByRole("option", { name: "zone" }));
+
+      expect(
+        await screen.findByRole("columnheader", { name: "zone" }),
+      ).toBeInTheDocument();
+      expect(screen.getByText("NORTH")).toBeInTheDocument();
+      expect(screen.getByText("SOUTH")).toBeInTheDocument();
+    });
+
+    it("does not offer the attribute used as the label", async () => {
+      const user = userEvent.setup();
+      await renderMappingStep();
+
+      await user.click(screen.getByRole("combobox", { name: "Label" }));
+      await user.click(await screen.findByRole("option", { name: "name" }));
+      await waitFor(() => {
+        expect(screen.getByText("Alpha")).toBeInTheDocument();
+      });
+
+      await user.click(selector());
+
+      expect(
+        await screen.findByRole("option", { name: "zone" }),
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByRole("option", { name: "name" }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("selects nothing while the feature is locked", async () => {
+      permissions.canUseCustomAttributes = false;
+      const user = userEvent.setup();
+      await renderMappingStep();
+
+      await user.click(selector());
+      await user.click(await screen.findByRole("option", { name: "zone" }));
+
+      expect(
+        screen.queryByRole("columnheader", { name: "zone" }),
+      ).not.toBeInTheDocument();
     });
   });
 });

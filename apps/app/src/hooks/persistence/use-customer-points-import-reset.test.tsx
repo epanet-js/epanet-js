@@ -1,7 +1,8 @@
-import { renderHook, act } from "@testing-library/react";
+import { renderHook, act, waitFor } from "@testing-library/react";
 import { Provider as JotaiProvider } from "jotai";
 import {
   LabelManager,
+  getAttributes,
   initializeModelFactories,
 } from "@epanet-js/hydraulic-model";
 import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
@@ -9,6 +10,10 @@ import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { setInitialState } from "src/__helpers__/state";
 import { buildIdPools } from "src/lib/id-pools";
 import { useInProcessDb } from "src/lib/db/__test-helpers__/in-process-db";
+import { fetchProject } from "src/lib/db/commands/fetch-project";
+import { importProject } from "src/lib/db/commands/import-project";
+import { defaultProjectSettings } from "@epanet-js/project-settings";
+import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import type { Store } from "src/state";
 import { useCustomerPointsImportReset } from "./use-customer-points-import-reset";
@@ -82,5 +87,42 @@ describe("useCustomerPointsImportReset id pools", () => {
 
     expect(store.get(modelFactoriesAtom)).toBe(before);
     expect(before.idPools.newId("customerPoint")).toBe(SEEDS.customerPoint + 1);
+  });
+});
+
+describe("useCustomerPointsImportReset custom attributes", () => {
+  useInProcessDb();
+
+  it("persists the custom attributes definition of the import", async () => {
+    await importProject({
+      newDb: true,
+      hydraulicModel: HydraulicModelBuilder.with().build(),
+      projectSettings: defaultProjectSettings,
+      simulationSettings: defaultSimulationSettings,
+    });
+    const store = aStore();
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aCustomAttribute("customerPoint", {
+        id: "custom-1",
+        label: "Zone",
+        type: "text",
+      })
+      .build();
+    const { result } = renderHook(() => useCustomerPointsImportReset(), {
+      wrapper: ({ children }) => (
+        <JotaiProvider store={store}>{children}</JotaiProvider>
+      ),
+    });
+
+    await act(async () => {
+      await result.current.customerPointsImportReset({ hydraulicModel });
+    });
+
+    await waitFor(async () => {
+      const { hydraulicModel: saved } = await fetchProject();
+      expect(getAttributes(saved.customAttributes, "customerPoint")).toEqual([
+        { id: "custom-1", label: "Zone", type: "text" },
+      ]);
+    });
   });
 });

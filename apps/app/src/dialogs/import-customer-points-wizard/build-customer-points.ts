@@ -1,5 +1,9 @@
 import type { Feature, Position } from "geojson";
-import type { CustomerPointData } from "@epanet-js/converters";
+import {
+  resolveCustomAttributeValues,
+  type CustomAttributePlan,
+  type CustomerPointData,
+} from "@epanet-js/converters";
 import {
   CustomerPointFactory,
   CustomerPoint,
@@ -18,6 +22,7 @@ export type BuildCustomerPointsOptions = {
   patternId: PatternId | null;
   defaultDemand: number | null;
   labelMaxLength?: number;
+  attributes?: CustomAttributePlan;
   issues: CustomerPointsIssuesAccumulator;
   signal?: AbortSignal;
 };
@@ -45,6 +50,7 @@ export const buildCustomerPoints = async (
     patternId,
     defaultDemand,
     labelMaxLength,
+    attributes = new Map(),
     issues,
     signal,
   }: BuildCustomerPointsOptions,
@@ -80,6 +86,12 @@ export const buildCustomerPoints = async (
 
       try {
         const customerPoint = factory.create(coordinates, label);
+        for (const [id, value] of resolveCustomAttributeValues(
+          record,
+          attributes,
+        )) {
+          customerPoint.setProperty(id, value);
+        }
         customerPoints.push(customerPoint);
         demands.set(
           customerPoint.id,

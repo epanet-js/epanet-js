@@ -21,7 +21,7 @@ import { DataInputStep } from "./data-input-step";
 import { DataMappingStep } from "./data-mapping-step";
 import { CompleteStep } from "./complete-step";
 import { readZonesWithImporter } from "./read-zones";
-import { planZoneAttributes } from "./plan-zone-attributes";
+import { planImportAttributes } from "src/lib/custom-attributes/plan-import-attributes";
 import { buildSummaryRows, type SummaryRow } from "./import-summary";
 
 const DATA_INPUT_STEP_NUMBER = 1;
@@ -171,7 +171,11 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
     const declared = network.customAttributes ?? [];
     const attributesPlan =
       declared.length > 0
-        ? planZoneAttributes(hydraulicModel.customAttributes, declared)
+        ? planImportAttributes(
+            hydraulicModel.customAttributes,
+            "zone",
+            declared,
+          )
         : undefined;
     const built = buildZones(
       network.zones ?? [],

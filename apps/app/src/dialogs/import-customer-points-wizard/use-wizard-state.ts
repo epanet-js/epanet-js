@@ -18,6 +18,7 @@ const initialState: WizardState = {
   inputData: null,
   selectedDemandProperty: null,
   selectedLabelProperty: null,
+  selectedCustomAttributes: [],
   coordinateAttributes: null,
   isLoading: false,
   error: null,
@@ -82,6 +83,13 @@ export const useWizardState = (): WizardState & {
     setWizardState((prev) => ({ ...prev, selectedLabelProperty: property }));
   };
 
+  const setSelectedCustomAttributes = (attributes: string[]) => {
+    setWizardState((prev) => ({
+      ...prev,
+      selectedCustomAttributes: attributes,
+    }));
+  };
+
   const setCoordinateAttributes = (attributes: CoordinateAttributes | null) => {
     setWizardState((prev) => ({ ...prev, coordinateAttributes: attributes }));
   };
@@ -137,6 +145,7 @@ export const useWizardState = (): WizardState & {
     setInputData,
     setSelectedDemandProperty,
     setSelectedLabelProperty,
+    setSelectedCustomAttributes,
     setCoordinateAttributes,
     resetWizardData,
     setError,

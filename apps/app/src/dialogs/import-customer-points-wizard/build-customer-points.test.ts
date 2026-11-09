@@ -1,5 +1,8 @@
 import type { Feature } from "geojson";
-import type { CustomerPointData } from "@epanet-js/converters";
+import type {
+  CustomAttributePlan,
+  CustomerPointData,
+} from "@epanet-js/converters";
 import { CustomerPointFactory, LabelManager } from "@epanet-js/hydraulic-model";
 import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
 import { CustomerPointsIssuesAccumulator } from "./issues";
@@ -24,6 +27,7 @@ const build = async (
     patternId: number | null;
     defaultDemand: number | null;
     toDemand: (value: number) => number;
+    attributes: CustomAttributePlan;
   }> = {},
 ) => {
   const issues = new CustomerPointsIssuesAccumulator();
@@ -36,6 +40,7 @@ const build = async (
     patternId: overrides.patternId ?? null,
     defaultDemand:
       overrides.defaultDemand === undefined ? null : overrides.defaultDemand,
+    attributes: overrides.attributes,
     issues,
   });
   return { ...result, issues: issues.buildResult() };
@@ -81,5 +86,21 @@ describe("buildCustomerPoints", () => {
     expect(demands.get(customerPoints[0].id)).toEqual([
       { baseDemand: 1, patternId: 3 },
     ]);
+  });
+
+  it("stores planned custom attributes under their ids", async () => {
+    const { customerPoints } = await build(
+      [
+        {
+          ...aRecord("0", [0.001, 0.001]),
+          customAttributes: { ZONE: "NORTH", UNPLANNED: "ignored" },
+        },
+      ],
+      [aFeature([0.001, 0.001])],
+      { attributes: new Map([["ZONE", { id: "custom-1", type: "text" }]]) },
+    );
+
+    expect(customerPoints[0].getProperty("custom-1")).toBe("NORTH");
+    expect(customerPoints[0].hasProperty("UNPLANNED")).toBe(false);
   });
 });

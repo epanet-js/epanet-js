@@ -103,6 +103,7 @@ export const ImportCustomerPointsWizard: React.FC<
         {
           preserveJunctionDemands: keepDemands,
           customerPointDemands: parsedDataSummary.customerPointDemands,
+          customAttributes: parsedDataSummary.attributes?.definition,
         },
       );
 

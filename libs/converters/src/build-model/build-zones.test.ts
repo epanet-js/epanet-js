@@ -3,7 +3,8 @@ import type { Position } from "geojson";
 import type { ZoneData } from "../network-data";
 import { ZoneFactory } from "@epanet-js/hydraulic-model";
 import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
-import { buildZones, type ZoneAttributePlan } from "./build-zones";
+import { buildZones } from "./build-zones";
+import type { CustomAttributePlan } from "./custom-attributes";
 
 describe("buildZones", () => {
   it("generates labels for zones the source did not name", () => {
@@ -252,7 +253,7 @@ const otherSquare: Position[] = [
   [2, 2],
 ];
 
-const plan: ZoneAttributePlan = new Map([
+const plan: CustomAttributePlan = new Map([
   ["AREA", { id: "custom-1", type: "text" }],
   ["POP", { id: "custom-2", type: "number" }],
 ]);

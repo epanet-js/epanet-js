@@ -1,4 +1,9 @@
-import { CustomerPoint, CustomerPointId } from "@epanet-js/hydraulic-model";
+import {
+  CustomAttributeId,
+  CustomAttributesDefinition,
+  CustomerPoint,
+  CustomerPointId,
+} from "@epanet-js/hydraulic-model";
 import { Demand } from "@epanet-js/hydraulic-model";
 import { CustomerPointsParserIssues } from "./issues";
 import { Unit } from "@epanet-js/quantity";
@@ -14,6 +19,10 @@ export type ParsedDataSummary = {
   issues: CustomerPointsParserIssues | null;
   totalCount: number;
   demandImportUnit: Unit;
+  attributes?: {
+    definition: CustomAttributesDefinition;
+    columns: { id: CustomAttributeId; label: string }[];
+  };
 };
 
 export type InputData = {
@@ -30,6 +39,7 @@ export type WizardState = {
   inputData: InputData | null;
   selectedDemandProperty: string | null;
   selectedLabelProperty: string | null;
+  selectedCustomAttributes: string[];
   coordinateAttributes: CoordinateAttributes | null;
   isLoading: boolean;
   error: string | null;
@@ -48,6 +58,7 @@ export type WizardActions = {
   setInputData: (data: InputData | null) => void;
   setSelectedDemandProperty: (property: string | null) => void;
   setSelectedLabelProperty: (property: string | null) => void;
+  setSelectedCustomAttributes: (attributes: string[]) => void;
   setCoordinateAttributes: (attributes: CoordinateAttributes | null) => void;
   resetWizardData: () => void;
   setError: (error: string | null) => void;

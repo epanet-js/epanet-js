@@ -1432,6 +1432,10 @@
           "label": "Default demand",
           "description": "Used when no demand attribute is selected."
         },
+        "attributesSelector": {
+          "placeholder": "No custom attributes",
+          "selectedCount": "{{1}} custom attributes"
+        },
         "coordinateSelector": {
           "x": "Longitude / X",
           "y": "Latitude / Y",

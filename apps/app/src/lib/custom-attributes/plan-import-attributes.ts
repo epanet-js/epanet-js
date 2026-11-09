@@ -1,6 +1,6 @@
 import type {
   CustomAttributeData,
-  ZoneAttributePlan,
+  CustomAttributePlan,
 } from "@epanet-js/converters";
 import {
   MAX_LABEL_LENGTH,
@@ -10,15 +10,17 @@ import {
   normalizeLabel,
   setAttributes,
   type CustomAttribute,
+  type CustomAttributeAssetType,
   type CustomAttributesDefinition,
 } from "@epanet-js/hydraulic-model";
 
-export const planZoneAttributes = (
+export const planImportAttributes = (
   definition: CustomAttributesDefinition,
+  assetType: CustomAttributeAssetType,
   declared: CustomAttributeData[],
-): { definition: CustomAttributesDefinition; plan: ZoneAttributePlan } => {
-  const plan: ZoneAttributePlan = new Map();
-  const attributes = [...getAttributes(definition, "zone")];
+): { definition: CustomAttributesDefinition; plan: CustomAttributePlan } => {
+  const plan: CustomAttributePlan = new Map();
+  const attributes = [...getAttributes(definition, assetType)];
   const byLabel = new Map<string, CustomAttribute>(
     attributes.map((attribute) => [normalizeLabel(attribute.label), attribute]),
   );
@@ -40,5 +42,5 @@ export const planZoneAttributes = (
     plan.set(ref, { id: attribute.id, type });
   }
 
-  return { definition: setAttributes(definition, "zone", attributes), plan };
+  return { definition: setAttributes(definition, assetType, attributes), plan };
 };

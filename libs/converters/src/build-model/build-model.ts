@@ -23,7 +23,11 @@ import type {
   ZoneData,
 } from "../network-data";
 import { IssueCollector } from "../issues";
-import { buildZones, type ZoneAttributePlan } from "./build-zones";
+import { buildZones } from "./build-zones";
+import {
+  resolveCustomAttributeValues,
+  type CustomAttributePlan,
+} from "./custom-attributes";
 import {
   buildSelectionSets,
   type BuiltSelectionSet,
@@ -55,7 +59,6 @@ import {
   AssetType,
   CustomAttribute,
   CustomAttributeAssetType,
-  CustomAttributeId,
   CustomerPointFactory,
   CustomAttributesDefinition,
   LevelSettingControl,
@@ -245,7 +248,7 @@ export const buildModel = (
   const { zones } = buildZones(
     reprojectZones(network.zones, toWgs84),
     factories.zoneFactory,
-    zoneAttributePlan(network, customAttributes.ids),
+    customAttributes.ids.get("zone"),
   );
   hydraulicModel.zones = zones;
 
@@ -277,10 +280,7 @@ export const buildModel = (
   };
 };
 
-type CustomAttributeIds = Map<
-  CustomAttributeAssetType,
-  Map<string, CustomAttributeId>
->;
+type CustomAttributeIds = Map<CustomAttributeAssetType, CustomAttributePlan>;
 
 const customAttributeAssetTypes: CustomAttributeAssetType[] = [
   "junction",
@@ -328,17 +328,17 @@ const planCustomAttributes = (
   for (const type of customAttributeAssetTypes) {
     const carried = carriedByType.get(type) as Set<string>;
     const attributes: CustomAttribute[] = [];
-    const idByRef = new Map<string, CustomAttributeId>();
+    const plan: CustomAttributePlan = new Map();
 
     for (const { ref, name, type: valueType } of network.customAttributes) {
       if (!carried.has(ref)) continue;
 
       const id = buildCustomAttributeId(seed++);
-      idByRef.set(ref, id);
+      plan.set(ref, { id, type: valueType });
       attributes.push({ id, label: name, type: valueType });
     }
 
-    ids.set(type, idByRef);
+    ids.set(type, plan);
     if (attributes.length > 0) {
       definition = setAttributes(definition, type, attributes);
     }
@@ -347,36 +347,15 @@ const planCustomAttributes = (
   return { definition, ids };
 };
 
-const zoneAttributePlan = (
-  network: NetworkData,
-  ids: CustomAttributeIds,
-): ZoneAttributePlan => {
-  const idByRef = ids.get("zone");
-  const plan: ZoneAttributePlan = new Map();
-  if (idByRef === undefined) return plan;
-
-  for (const { ref, type } of network.customAttributes) {
-    const id = idByRef.get(ref);
-    if (id !== undefined) plan.set(ref, { id, type });
-  }
-  return plan;
-};
-
 const resolveCustomAttributes = (
   values: CustomAttributeValues | undefined,
-  idByRef: Map<string, CustomAttributeId> | undefined,
+  plan: CustomAttributePlan | undefined,
 ): Record<string, string | number> | undefined => {
-  if (values === undefined || idByRef === undefined) return undefined;
+  if (values === undefined || plan === undefined) return undefined;
 
-  const resolved: Record<string, string | number> = {};
-  for (const [ref, value] of Object.entries(values)) {
-    const id = idByRef.get(ref);
-    if (id === undefined) continue;
-
-    resolved[id] = value;
-  }
-
-  return resolved;
+  return Object.fromEntries(
+    resolveCustomAttributeValues({ customAttributes: values }, plan),
+  );
 };
 
 const reprojectZones = (

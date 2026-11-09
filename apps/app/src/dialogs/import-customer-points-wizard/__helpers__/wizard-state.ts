@@ -17,6 +17,7 @@ export const setWizardState = (
     inputData: null,
     selectedDemandProperty: null,
     selectedLabelProperty: null,
+    selectedCustomAttributes: [],
     coordinateAttributes: null,
     isLoading: false,
     error: null,

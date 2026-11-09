@@ -50,12 +50,16 @@ export type {
 } from "@epanet-js/hydraulic-model";
 export type { IssueCode, IssueSeverity, Issue } from "./issues";
 export { IssueCollector, issueCodes } from "./issues";
-export { buildModel, buildZones } from "./build-model";
+export {
+  buildModel,
+  buildZones,
+  resolveCustomAttributeValues,
+} from "./build-model";
 export type {
   BuildModelOptions,
   BuildModelResult,
   BuildZonesResult,
   MergedZoneInfo,
   RenamedZoneInfo,
-  ZoneAttributePlan,
+  CustomAttributePlan,
 } from "./build-model";
