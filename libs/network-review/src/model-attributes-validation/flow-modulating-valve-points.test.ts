@@ -11,11 +11,10 @@ describe("flowModulatingValvePointChecks", () => {
     { flow: 20, pressure: 30 },
   ];
 
-  it("accepts strictly increasing flows and pressures", () => {
+  it("accepts strictly increasing flows and positive pressures", () => {
     expect(checks.flowsNonNegative(valid)).toBe(true);
     expect(checks.pressuresPositive(valid)).toBe(true);
     expect(checks.flowsIncreasing(valid)).toBe(true);
-    expect(checks.pressuresIncreasing(valid)).toBe(true);
   });
 
   it("rejects a negative flow but allows zero", () => {
@@ -42,19 +41,6 @@ describe("flowModulatingValvePointChecks", () => {
     expect(checks.flowsIncreasing(decreasing)).toBe(false);
   });
 
-  it("rejects repeated or decreasing pressures", () => {
-    const repeated = [
-      { flow: 0, pressure: 20 },
-      { flow: 10, pressure: 20 },
-    ];
-    const decreasing = [
-      { flow: 0, pressure: 30 },
-      { flow: 10, pressure: 20 },
-    ];
-    expect(checks.pressuresIncreasing(repeated)).toBe(false);
-    expect(checks.pressuresIncreasing(decreasing)).toBe(false);
-  });
-
   it("accepts a single point and an empty table", () => {
     for (const check of Object.values(checks)) {
       expect(check([{ flow: 0, pressure: 20 }])).toBe(true);
@@ -73,14 +59,14 @@ describe("getFlowModulatingValvePointErrors", () => {
     expect([...errors.pressure]).toEqual([]);
   });
 
-  it("flags both rows of a value that does not increase", () => {
+  it("flags both rows of a flow that does not increase", () => {
     const errors = getFlowModulatingValvePointErrors([
       { flow: 0, pressure: 20 },
       { flow: 10, pressure: 20 },
       { flow: 10, pressure: 30 },
     ]);
     expect([...errors.flow]).toEqual([1, 2]);
-    expect([...errors.pressure]).toEqual([0, 1]);
+    expect([...errors.pressure]).toEqual([]);
   });
 
   it("flags a negative flow and a zero pressure", () => {

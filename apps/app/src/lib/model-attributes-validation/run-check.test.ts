@@ -808,24 +808,6 @@ describe("validateModelAttributes", () => {
       ]);
     });
 
-    it("flags pressures that repeat or decrease", async () => {
-      const repeated = aPrvWithControl([
-        { flow: 0, pressure: 20 },
-        { flow: 10, pressure: 20 },
-      ]);
-      const decreasing = aPrvWithControl([
-        { flow: 0, pressure: 30 },
-        { flow: 10, pressure: 20 },
-      ]);
-
-      expect(ruleIdsOf(await validateModelAttributes(repeated))).toEqual([
-        "valve.flowModulatingControl.pressuresIncreasing",
-      ]);
-      expect(ruleIdsOf(await validateModelAttributes(decreasing))).toEqual([
-        "valve.flowModulatingControl.pressuresIncreasing",
-      ]);
-    });
-
     describe("control references", () => {
       const validPoints = [
         { flow: 0, pressure: 20 },

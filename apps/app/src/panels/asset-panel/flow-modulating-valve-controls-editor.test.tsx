@@ -132,16 +132,25 @@ describe("valve controls editor", () => {
   it("keeps an out-of-sequence value and flags the cell until the table is fixed", async () => {
     const { user, lastControl } = await renderFlowModulated();
 
+    await editCell(user, 0, 0, "5");
+    expect(lastControl().points.map((p) => p.flow)).toEqual([5, 1]);
+    expect(getCell(0, 0)).toHaveClass("bg-warning-subtle");
+    expect(getCell(1, 0)).toHaveClass("bg-warning-subtle");
+
+    await editCell(user, 1, 0, "8");
+    expect(lastControl().points.map((p) => p.flow)).toEqual([5, 8]);
+    expect(getCell(0, 0)).not.toHaveClass("bg-warning-subtle");
+    expect(getCell(1, 0)).not.toHaveClass("bg-warning-subtle");
+  });
+
+  it("accepts pressures that decrease", async () => {
+    const { user, lastControl } = await renderFlowModulated();
+
     await editCell(user, 0, 1, "30");
     expect(lastControl().points.map((p) => p.pressure)).toEqual([
       30,
       SETTING + 1,
     ]);
-    expect(getCell(0, 1)).toHaveClass("bg-warning-subtle");
-    expect(getCell(1, 1)).toHaveClass("bg-warning-subtle");
-
-    await editCell(user, 1, 1, "40");
-    expect(lastControl().points.map((p) => p.pressure)).toEqual([30, 40]);
     expect(getCell(0, 1)).not.toHaveClass("bg-warning-subtle");
     expect(getCell(1, 1)).not.toHaveClass("bg-warning-subtle");
   });

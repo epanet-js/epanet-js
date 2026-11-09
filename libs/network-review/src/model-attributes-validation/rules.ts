@@ -338,7 +338,6 @@ export const RULES: Rule[] = [
   flowModulatingControlRule("flowsNonNegative", "mustBeNonNegative"),
   flowModulatingControlRule("pressuresPositive", "mustBePositive"),
   flowModulatingControlRule("flowsIncreasing", "mustBeIncreasing"),
-  flowModulatingControlRule("pressuresIncreasing", "mustBeIncreasing"),
   flowModulatingReferenceRule("sensorLink", "sensorLinkId"),
   flowModulatingReferenceRule("controlNode", "controlNodeId"),
   ...requiredNumeric(

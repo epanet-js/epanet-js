@@ -17,8 +17,6 @@ export const flowModulatingValvePointChecks = {
     points.every((point) => point.pressure > 0),
   flowsIncreasing: (points: Points): boolean =>
     isStrictlyIncreasing(points, "flow"),
-  pressuresIncreasing: (points: Points): boolean =>
-    isStrictlyIncreasing(points, "pressure"),
 };
 
 export type FlowModulatingValvePointErrors = {
@@ -44,8 +42,7 @@ export const getFlowModulatingValvePointErrors = (
   const pressure = new Set<number>();
   points.forEach((point, index) => {
     if (point.flow < 0 || !isInSequence(points, index, "flow")) flow.add(index);
-    if (point.pressure <= 0 || !isInSequence(points, index, "pressure"))
-      pressure.add(index);
+    if (point.pressure <= 0) pressure.add(index);
   });
   return { flow, pressure };
 };
