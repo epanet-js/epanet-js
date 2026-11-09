@@ -1,7 +1,6 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
-import type { EChartsOption } from "echarts";
 import {
   FlowModulatingValveControl,
   LinkAsset,
@@ -9,15 +8,12 @@ import {
 } from "@epanet-js/hydraulic-model";
 import type { UnitsSpec } from "@epanet-js/project-settings";
 import {
-  buildCurveChartOption,
   FlowModulatingValveTargets,
   ValveControlsEditor,
 } from "./flow-modulating-valve-controls-editor";
 
 vi.mock("echarts-for-react", () => ({
-  default: ({ option }: { option: EChartsOption }) => (
-    <div data-testid="curve-chart" data-option={JSON.stringify(option)} />
-  ),
+  default: () => <div data-testid="curve-chart" />,
 }));
 
 const IDS = { V1: 1, J1: 2, J2: 3, J3: 4, P1: 5, PU1: 6 } as const;
@@ -187,50 +183,19 @@ describe("valve controls editor", () => {
     expect(lastControl().controlNodeId).toBe(IDS.J2);
   });
 
-  it("draws a step curve when linear interpolation is off", async () => {
+  it("toggles linear interpolation", async () => {
     const { user, lastControl } = await renderFlowModulated();
-    expect(chartSeries().step).toBe(false);
 
     await user.click(
       screen.getByRole("checkbox", { name: "Linear interpolation" }),
     );
 
     expect(lastControl().interpolate).toBe(false);
-    expect(chartSeries().step).toBe("end");
-  });
-});
-
-describe("buildCurveChartOption", () => {
-  it("extends the first and last pressures flat to the chart edges", () => {
-    const option = buildCurveChartOption(
-      [
-        { flow: 7, pressure: 30 },
-        { flow: 3, pressure: 20 },
-      ],
-      true,
-      { flowLabel: "Flow", pressureLabel: "Pressure" },
-    );
-    const [series] = option.series as { data: unknown[] }[];
-
-    expect(series.data).toEqual([
-      { value: [0, 20], symbol: "none" },
-      [3, 20],
-      [7, 30],
-      { value: [7.8, 30], symbol: "none" },
-    ]);
-    expect(option.xAxis).toMatchObject({ min: 0, max: 7.8, name: "Flow" });
   });
 });
 
 const lastControlOf = (onChange: ReturnType<typeof vi.fn>) =>
   onChange.mock.lastCall![0] as FlowModulatingValveControl;
-
-const chartSeries = () => {
-  const option = JSON.parse(
-    screen.getByTestId("curve-chart").getAttribute("data-option")!,
-  ) as { series: { step: false | string }[] };
-  return option.series[0];
-};
 
 const selectOption = async (
   user: ReturnType<typeof userEvent.setup>,

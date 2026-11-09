@@ -1,6 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef } from "react";
-import ReactECharts from "echarts-for-react";
-import type { EChartsOption } from "echarts";
+import { useCallback, useMemo } from "react";
 import { Selector } from "@epanet-js/ui-kit";
 import {
   AssetId,
@@ -11,7 +9,6 @@ import {
   NodeAsset,
 } from "@epanet-js/hydraulic-model";
 import type { UnitsSpec } from "@epanet-js/project-settings";
-import { localizeDecimal } from "@epanet-js/i18n";
 import {
   DataGrid,
   type GridColumn,
@@ -26,12 +23,12 @@ import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { DeleteIcon, AddIcon } from "src/icons";
 import { InlineField, NestedSection } from "src/components/form/fields";
 import { TextField } from "src/components/form/text-field";
-import { colors } from "src/lib/constants";
 import { useUserTracking } from "src/infra/user-tracking";
 import {
   CheckboxRow,
   useAssetHighlight,
 } from "./variable-speed-pump-controls-editor";
+import { CurveChart } from "./flow-modulating-valve-control-editor-chart";
 
 export type FlowModulatingValveTargets = {
   nodes: NodeAsset[];
@@ -45,7 +42,6 @@ type ControlType = "none" | "flowModulated";
 type PointRow = { flow: number; pressure: number };
 
 const FLOW_STEP_WITHOUT_SLOPE = 1;
-const CHART_EDGE_MARGIN = 0.2;
 
 const selectorStyleOptions = {
   border: true,
@@ -143,14 +139,10 @@ export const FlowModulatingValveControlsEditor = ({
 
   const withUnit = (label: string, unit: string) =>
     unit ? `${label} (${unit})` : label;
-  const flowLabel = withUnit(
-    translate("flow"),
-    translateUnit(targets.units.flow),
-  );
-  const pressureLabel = withUnit(
-    translate("pressure"),
-    translateUnit(targets.units.pressure),
-  );
+  const flowUnit = translateUnit(targets.units.flow);
+  const pressureUnit = translateUnit(targets.units.pressure);
+  const flowLabel = withUnit(translate("flow"), flowUnit);
+  const pressureLabel = withUnit(translate("pressure"), pressureUnit);
 
   const update = (changes: Partial<FlowModulatingValveControl>) => {
     onControlChange({ ...control, ...changes });
@@ -219,121 +211,9 @@ export const FlowModulatingValveControlsEditor = ({
         interpolate={control.interpolate}
         flowLabel={flowLabel}
         pressureLabel={pressureLabel}
+        units={{ flow: flowUnit, pressure: pressureUnit }}
       />
     </NestedSection>
-  );
-};
-
-export const buildCurveChartOption = (
-  points: FlowModulatingValvePoint[],
-  interpolate: boolean,
-  { flowLabel, pressureLabel }: { flowLabel: string; pressureLabel: string },
-): EChartsOption => {
-  const sorted = [...points].sort((a, b) => a.flow - b.flow);
-  const first = sorted[0];
-  const last = sorted[sorted.length - 1];
-  const span = first && last ? last.flow - first.flow : 0;
-  const margin =
-    (span > 0 ? span : Math.max(Math.abs(last?.flow ?? 0), 1)) *
-    CHART_EDGE_MARGIN;
-  const xMin = first ? Math.min(0, first.flow) : 0;
-  const xMax = last ? last.flow + margin : 1;
-
-  const edge = (flow: number, pressure: number) => ({
-    value: [flow, pressure],
-    symbol: "none",
-  });
-  const data =
-    first && last
-      ? [
-          edge(xMin, first.pressure),
-          ...sorted.map(({ flow, pressure }) => [flow, pressure]),
-          edge(xMax, last.pressure),
-        ]
-      : [];
-
-  const axis = (name: string) => ({
-    type: "value" as const,
-    name,
-    nameLocation: "middle" as const,
-    nameGap: 24,
-    nameTextStyle: { color: colors.gray500, fontSize: 12 },
-    scale: true,
-    splitLine: {
-      show: true,
-      lineStyle: { color: colors.gray300, type: "dashed" as const },
-    },
-    axisLine: { show: true, lineStyle: { color: colors.gray300 } },
-    axisTick: { show: true, lineStyle: { color: colors.gray300 } },
-    axisLabel: {
-      color: colors.gray500,
-      fontSize: 12,
-      hideOverlap: true,
-      formatter: (value: number) => localizeDecimal(value),
-    },
-  });
-
-  return {
-    animation: false,
-    grid: { top: 8, right: 8, bottom: 36, left: 48, containLabel: false },
-    xAxis: { ...axis(flowLabel), min: xMin, max: xMax },
-    yAxis: { ...axis(pressureLabel), nameGap: 36 },
-    tooltip: { trigger: "item" },
-    series: [
-      {
-        type: "line",
-        data,
-        step: interpolate ? false : "end",
-        symbol: "circle",
-        symbolSize: 6,
-        lineStyle: { color: colors.purple500, width: 2 },
-        itemStyle: { color: colors.purple500 },
-        smooth: false,
-      },
-    ],
-  };
-};
-
-const CurveChart = ({
-  points,
-  interpolate,
-  flowLabel,
-  pressureLabel,
-}: {
-  points: FlowModulatingValvePoint[];
-  interpolate: boolean;
-  flowLabel: string;
-  pressureLabel: string;
-}) => {
-  const option = useMemo(
-    () =>
-      buildCurveChartOption(points, interpolate, { flowLabel, pressureLabel }),
-    [points, interpolate, flowLabel, pressureLabel],
-  );
-
-  const chartRef = useRef<ReactECharts>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(function resizeChart() {
-    const container = containerRef.current;
-    if (!container) return;
-    const resizeObserver = new ResizeObserver(() => {
-      chartRef.current?.getEchartsInstance().resize();
-    });
-    resizeObserver.observe(container);
-    return () => resizeObserver.disconnect();
-  }, []);
-
-  return (
-    <div ref={containerRef} className="h-[120px] w-full pt-2">
-      <ReactECharts
-        ref={chartRef}
-        option={option}
-        notMerge
-        style={{ height: "100%", width: "100%" }}
-        opts={{ renderer: "svg" }}
-      />
-    </div>
   );
 };
 
