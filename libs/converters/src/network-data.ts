@@ -200,11 +200,19 @@ export type VariableSpeedPumpControlData = {
   tankLevels?: VariableSpeedPumpTankLevelsData;
 };
 
+export type FlowModulatedSetpointInterpolation = "linear" | "step";
+
+export type FlowModulatedSetpointPointData = {
+  flow: number;
+  pressure: number;
+};
+
 export type FlowModulatedSetpointControlData = {
   type: "flowModulatedSetpoint";
   link: ControlLinkRef;
   source: ControlLinkRef;
-  curveRef: string;
+  points: FlowModulatedSetpointPointData[];
+  interpolation: FlowModulatedSetpointInterpolation;
 };
 
 export type ControlData =

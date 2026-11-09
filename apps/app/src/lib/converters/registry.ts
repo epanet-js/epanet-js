@@ -12,6 +12,7 @@ export type ConverterSettings = {
   freeDischargeInlet: boolean;
   remoteSetpointPrv: boolean;
   variableSpeedPumps: boolean;
+  flowModulatingValves: boolean;
 };
 
 const converters = new Map<ConverterVendor, Converter>();

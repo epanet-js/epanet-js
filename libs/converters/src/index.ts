@@ -29,6 +29,8 @@ export type {
   ControlNodeKind,
   ControlNodeRef,
   FlowModulatedSetpointControlData,
+  FlowModulatedSetpointInterpolation,
+  FlowModulatedSetpointPointData,
   TankFloatControlData,
   TankLevelControlData,
   TimedSettingControlData,

@@ -55,6 +55,9 @@ export const useConvertFile = () => {
   const variableSpeedPumps = useFeatureFlag(
     "FLAG_SYNERGI_VARIABLE_SPEED_PUMPS",
   );
+  const flowModulatingValves = useFeatureFlag(
+    "FLAG_SYNERGI_FLOW_MODULATING_VALVES",
+  );
   const setDialogState = useSetAtom(dialogAtom);
   const setInpFileInfo = useSetAtom(inpFileInfoAtom);
   const setProjectFileInfo = useSetAtom(projectFileInfoAtom);
@@ -93,6 +96,7 @@ export const useConvertFile = () => {
           freeDischargeInlet,
           remoteSetpointPrv,
           variableSpeedPumps,
+          flowModulatingValves,
         });
         const { network, issues } = await converter.parseNetworkData({
           files: [file],
@@ -199,6 +203,7 @@ export const useConvertFile = () => {
       freeDischargeInlet,
       remoteSetpointPrv,
       variableSpeedPumps,
+      flowModulatingValves,
       projections,
       labelMaxLength,
       startNewProject,

@@ -4,6 +4,7 @@ import type {
   ControlLinkRef,
   ControlNodeRef,
   CustomAttributeValues,
+  FlowModulatedSetpointControlData,
   TankLevelControlData,
   TimedSettingControlData,
   VariableSpeedPumpControlData,
@@ -61,6 +62,7 @@ import {
   CustomAttributeAssetType,
   CustomerPointFactory,
   CustomAttributesDefinition,
+  FlowModulatingValveControl,
   LevelSettingControl,
   SimpleControl,
   Valve,
@@ -894,7 +896,7 @@ const addControls = (
       continue;
     }
 
-    const control = controlOf(controlData, context, issues);
+    const control = controlOf(controlData, hydraulicModel, context, issues);
     if (control === undefined) continue;
 
     built.push(control);
@@ -906,25 +908,35 @@ const addControls = (
 
 const controlOf = (
   controlData: ControlData,
+  hydraulicModel: HydraulicModel,
   context: LinkContext,
   issues: IssueCollector,
-): LevelSettingControl | VariableSpeedPumpControl | undefined => {
+):
+  | LevelSettingControl
+  | VariableSpeedPumpControl
+  | FlowModulatingValveControl
+  | undefined => {
   switch (controlData.type) {
     case "tankLevel":
       return tankLevelControlOf(controlData, context);
     case "variableSpeedPump":
       return variableSpeedPumpControlOf(controlData, context, issues);
+    case "flowModulatedSetpoint":
+      return flowModulatingValveControlOf(
+        controlData,
+        hydraulicModel,
+        context,
+        issues,
+      );
     default:
       return undefined;
   }
 };
 
 // A float modulates as the tank fills; EPANET can only shut a link or open it,
-// and a two-state stand-in reads as support for something we do not model. A
-// setpoint following the flow has no form at all.
+// and a two-state stand-in reads as support for something we do not model.
 const unsupported: Record<string, IssueCode> = {
   tankFloat: "tankFloatControlUnsupported",
-  flowModulatedSetpoint: "flowModulatedSetpointUnsupported",
 };
 
 const rawControlsFor = (
@@ -955,6 +967,7 @@ const rawControlsFor = (
         ? undefined
         : levelRows(controlData, linkId, hydraulicModel, context);
     case "variableSpeedPump":
+    case "flowModulatedSetpoint":
       return undefined;
     default:
       return [];
@@ -1153,6 +1166,49 @@ const targetConverterFor = (
     case "flow":
       return toFlow;
   }
+};
+
+const flowModulatingValveControlOf = (
+  control: FlowModulatedSetpointControlData,
+  hydraulicModel: HydraulicModel,
+  { linkIdByRef, toFlow, toPressure }: LinkContext,
+  issues: IssueCollector,
+): FlowModulatingValveControl | undefined => {
+  const linkId = linkIdByRef.get(control.link.ref);
+  const valve =
+    linkId === undefined ? undefined : hydraulicModel.assets.get(linkId);
+  const sensorLinkId = linkIdByRef.get(control.source.ref);
+  const isPrv = valve?.type === "valve" && (valve as Valve).kind === "prv";
+  if (
+    linkId === undefined ||
+    !isPrv ||
+    sensorLinkId === undefined ||
+    control.points.length === 0
+  ) {
+    issues.add({
+      code: "flowModulatedSetpointUnsupported",
+      severity: "warning",
+      ref: control.link.ref,
+    });
+    return undefined;
+  }
+
+  const prv = valve as Valve;
+  const points = control.points.map(({ flow, pressure }) => ({
+    flow: toFlow(flow),
+    pressure: toPressure(pressure),
+  }));
+  prv.setProperty("setting", points[0].pressure);
+
+  return {
+    id: createControlId(),
+    type: "flow-modulating-valve",
+    linkId,
+    points,
+    interpolate: control.interpolation !== "step",
+    sensorLinkId,
+    controlNodeId: prv.targetNodeId ?? prv.connections[1],
+  };
 };
 
 const tankLevelControlOf = (
