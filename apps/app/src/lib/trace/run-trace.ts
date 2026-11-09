@@ -3,6 +3,7 @@ import * as Comlink from "comlink";
 import {
   activeTopologyBarriers,
   anyBarrier,
+  anyStartIsActive,
   AssetId,
   boundaryBarriers,
   configuredActiveTopology,
@@ -54,14 +55,6 @@ export const runTrace = async (
   return [...result.nodeIds, ...result.linkIds];
 };
 
-const startsOnActiveAsset = (
-  model: HydraulicModel,
-  input: TraceInput,
-): boolean =>
-  [...input.startNodeIds, ...input.startLinkIds].some(
-    (id) => model.assets.get(id)?.isActive,
-  );
-
 function runSync(
   model: HydraulicModel,
   resultsReader: ResultsReader | null,
@@ -90,7 +83,7 @@ function runSync(
           ),
           activeTopologyBarriers(
             configuredActiveTopology(model.assets),
-            startsOnActiveAsset(model, input),
+            anyStartIsActive(model.assets, start),
           ),
         ),
       );
@@ -130,7 +123,7 @@ const runWithWorker = async (
       input.mode,
       start,
       transferData,
-      startsOnActiveAsset(model, input),
+      anyStartIsActive(model.assets, start),
     );
     if (signal?.aborted) {
       throw new DOMException("Operation cancelled", "AbortError");

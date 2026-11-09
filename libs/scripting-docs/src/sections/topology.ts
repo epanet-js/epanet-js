@@ -27,13 +27,13 @@ export const SECTION: SectionDef = {
       name: "TraceStop",
       definition: `interface TraceStop {
   asset: Asset;
-  reason: "stopAt" | "closed" | "direction" | "limit";
+  reason: "stopAt" | "closed" | "direction" | "limit" | "activeTopology";
   from: NodeAsset;
   via: LinkAsset | null;
 }`,
       summary:
         "Where a trace stopped and why: the barrier, and the node it was reached from.",
-      description: `\`stopAt\`: the asset matched a preset or function. \`closed\`: a closed pipe or valve, or a pump that is off. \`direction\`: a one-way link (a pump, a check-valve pipe, any valve except a TCV) reached from its end node. \`closed\` and \`direction\` only come from the default mode. In \`"upstream"\` and \`"downstream"\` mode, \`closed\` is a link with no flow in the run — closed, off, or flowing less than 0.001 — and \`direction\` is a link whose water flows the other way. \`limit\`: a node past \`maxDistance\` or \`maxHops\`. \`via\` is the link that led to a node barrier, and \`null\` when the barrier is the link itself.`,
+      description: `\`stopAt\`: the asset matched a preset or function. \`closed\`: a closed pipe or valve, or a pump that is off. \`direction\`: a one-way link (a pump, a check-valve pipe, any valve except a TCV) reached from its end node. \`closed\` and \`direction\` only come from the default mode. In \`"upstream"\` and \`"downstream"\` mode, \`closed\` is a link with no flow in the run — closed, off, or flowing less than 0.001 — and \`direction\` is a link whose water flows the other way. \`limit\`: a node past \`maxDistance\` or \`maxHops\`. \`activeTopology\`: an asset whose active state differs from the trace's start, in the default mode only. \`via\` is the link that led to a node barrier, and \`null\` when the barrier is the link itself.`,
     },
     {
       name: "TraceResult",
@@ -60,7 +60,7 @@ export const SECTION: SectionDef = {
       summary:
         "The walk over the pipes to reach for. By default it is the app's Trace tool, boundary mode: the pressure zone around `start`.",
       description:
-        'By default it grows through open links in the direction water may flow, never crossing a closed link or a one-way link from its end node; `mode: "connected"` crosses both. It stops at every barrier in `stopAt`. Barrier nodes are not included. `stoppedAt` says where it stopped and why. A start node that is itself a barrier is left out, as in the Trace tool; a start link is always included.',
+        'By default it grows through open links in the direction water may flow, never crossing a closed link or a one-way link from its end node; `mode: "connected"` crosses both. From an active start it does not enter inactive assets, and from an inactive start it stays among inactive assets (the start counts as active if any of several starts is); `mode: "connected"` ignores this. It stops at every barrier in `stopAt`. Barrier nodes are not included. `stoppedAt` says where it stopped and why. A start node that is itself a barrier is left out, as in the Trace tool; a start link is always included.',
       params: [
         {
           name: "options.mode",

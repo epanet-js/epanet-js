@@ -8,6 +8,7 @@ import {
   AllowedFlowDirectionQueries,
   ActiveTopologyQueries,
   TraceBarriers,
+  TraceStart,
 } from "./types";
 
 const typeStopPresets = [
@@ -156,17 +157,23 @@ export const configuredActiveTopology = (
   isNodeActive: (nodeId) => assets.get(nodeId)?.isActive ?? false,
 });
 
+export const anyStartIsActive = (
+  assets: AssetsMap,
+  start: TraceStart,
+): boolean =>
+  [...start.nodeIds, ...start.linkIds].some((id) => assets.get(id)?.isActive);
+
 export const activeTopologyBarriers = (
   activeTopology: ActiveTopologyQueries,
   startsOnActiveAsset: boolean,
 ): TraceBarriers => ({
   nodeStopReason: (nodeId) =>
     activeTopology.isNodeActive(nodeId) !== startsOnActiveAsset
-      ? "barrier"
+      ? "activeTopology"
       : null,
   linkStopReason: (linkId) =>
     activeTopology.isLinkActive(linkId) !== startsOnActiveAsset
-      ? "barrier"
+      ? "activeTopology"
       : null,
 });
 

@@ -42,7 +42,11 @@ export interface ActiveTopologyQueries {
   isNodeActive(nodeId: AssetId): boolean;
 }
 
-export type TraceStopReason = "barrier" | "closed" | "direction";
+export type TraceStopReason =
+  | "barrier"
+  | "closed"
+  | "direction"
+  | "activeTopology";
 
 export type WeightedTraceStopReason = TraceStopReason | "limit";
 
