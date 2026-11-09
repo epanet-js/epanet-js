@@ -2,9 +2,9 @@ import { useCallback } from "react";
 import { useAuth } from "src/hooks/use-auth";
 import { isAuthEnabled } from "src/global-config";
 import { useSetAtom } from "jotai";
-import { dialogAtom } from "src/state/dialog";
+import { dialogAtom, type UrlDialogType } from "src/state/dialog";
 
-const buildAfterSignupUrl = (dialogType: string) => {
+const buildAfterSignupUrl = (dialogType: UrlDialogType) => {
   const pathname = window.location.pathname;
   const query = window.location.search;
   const params = new URLSearchParams(query);

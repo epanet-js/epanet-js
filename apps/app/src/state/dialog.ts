@@ -438,15 +438,17 @@ export type DialogState =
   | AllocateCustomerPointsWarningDialogState
   | null;
 
+export type UrlDialogType = ActivatingTrialDialogState["type"];
+
+export const parseUrlDialog = (type: string | null): DialogState =>
+  type === "activatingTrial" ? { type } : null;
+
 export const dialogFromUrl = (): DialogState => {
   if (typeof window === "undefined") return null;
 
   const params = new URLSearchParams(window.location.search);
 
-  const dialog = params.get("dialog");
-  if (!dialog) return null;
-
-  return { type: dialog } as DialogState;
+  return parseUrlDialog(params.get("dialog"));
 };
 
 export const dialogAtom = atomWithReset<DialogState>(null);

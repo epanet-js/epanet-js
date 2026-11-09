@@ -1,7 +1,8 @@
 import { useEffect } from "react";
 import { useSetAtom } from "jotai";
 import { useSearchParams } from "next/navigation";
-import { dialogAtom, type DialogState } from "src/state/dialog";
+import { captureWarning } from "src/infra/error-tracking";
+import { dialogAtom, parseUrlDialog } from "src/state/dialog";
 
 const dialogParam = "dialog";
 
@@ -17,7 +18,9 @@ export const DialogFromUrl = () => {
 
   useEffect(() => {
     if (!dialogType) return;
-    setDialogState({ type: dialogType } as DialogState);
+    const dialog = parseUrlDialog(dialogType);
+    if (dialog) setDialogState(dialog);
+    else captureWarning(`Unknown dialog in URL: ${dialogType}`);
     removeDialogParam();
   }, [dialogType, setDialogState]);
 
