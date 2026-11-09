@@ -124,11 +124,13 @@ export class MapEngine {
     element,
     handlers,
     onControlClick,
+    onContextRestored,
     initialViewport,
   }: {
     element: HTMLDivElement;
     handlers: HandlersRef;
     onControlClick: (event: CustomMapControlClick) => void;
+    onContextRestored: () => void;
     initialViewport?: InitialViewport;
   }) {
     const defaultStart = {
@@ -186,6 +188,9 @@ export class MapEngine {
     map.on("zoom", (e: mapboxgl.MapBoxZoomEvent) =>
       this.handlers.current.onZoom(e),
     );
+    // Mapbox can't draw again on a restored context, so the owner must replace
+    // this engine.
+    map.on("webglcontextrestored", onContextRestored);
 
     this.map = map;
   }

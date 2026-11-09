@@ -42,6 +42,7 @@ import { useAtom, useAtomValue } from "jotai";
 import { useHotkeys } from "src/keyboard/hotkeys";
 import { useAtomCallback } from "jotai/utils";
 import { isDebugAppStateOn, isDebugOn } from "src/infra/debug-mode";
+import { captureWarning } from "src/infra/error-tracking";
 import { useMapStateUpdates } from "./state-updates";
 import { clickableLayers } from "./layers/layer";
 import { SatelliteToggle } from "./SatelliteToggle";
@@ -111,6 +112,8 @@ const MapStateUpdates = ({ map }: { map: MapEngine | null }) => {
   return null;
 };
 
+const MAX_CONTEXT_RESTARTS = 3;
+
 export const MapCanvas = memo(function MapCanvas({
   setMap,
 }: {
@@ -147,6 +150,8 @@ export const MapCanvas = memo(function MapCanvas({
   const cursor = useAtomValue(cursorStyleAtom);
   const isEditionBlocked = useIsEditionBlocked();
   const [initError, setInitError] = useState<boolean>(false);
+  const [contextRestarts, setContextRestarts] = useState<number>(0);
+  const [activeEngine, setActiveEngine] = useState<MapEngine | null>(null);
 
   // Refs
   const mapRef: React.MutableRefObject<MapEngine | null> =
@@ -173,15 +178,24 @@ export const MapCanvas = memo(function MapCanvas({
   useEffect(() => {
     if (mapRef.current) return;
     if (!mapDivRef.current || !mapHandlers) return;
+    if (contextRestarts > MAX_CONTEXT_RESTARTS) {
+      setInitError(true);
+      return;
+    }
 
     try {
       mapRef.current = new MapEngine({
         element: mapDivRef.current,
         handlers: mapHandlers as MutableRefObject<MapHandlers>,
         onControlClick,
+        onContextRestored: () => {
+          captureWarning("Map rebuilt after WebGL context was restored");
+          setContextRestarts((restarts) => restarts + 1);
+        },
         initialViewport: readViewport(),
       });
       setMap(mapRef.current);
+      setActiveEngine(mapRef.current);
     } catch (error) {
       if (error && (error as Error).message.match(/webgl/i)) {
         setInitError(true);
@@ -192,12 +206,20 @@ export const MapCanvas = memo(function MapCanvas({
 
     return () => {
       setMap(null);
+      setActiveEngine(null);
       if (mapRef.current && "remove" in mapRef.current) {
         mapRef.current.remove();
       }
       mapRef.current = null;
     };
-  }, [mapRef, mapDivRef, setMap, onControlClick, readViewport]);
+  }, [
+    mapRef,
+    mapDivRef,
+    setMap,
+    onControlClick,
+    readViewport,
+    contextRestarts,
+  ]);
 
   if (isDebugOn) (window as any).mapEngine = mapRef.current;
 
@@ -417,7 +439,7 @@ export const MapCanvas = memo(function MapCanvas({
 
   return (
     <CM.Root modal={false} onOpenChange={onOpenChange}>
-      <MapStateUpdates map={mapRef.current} />
+      <MapStateUpdates map={activeEngine} />
       <CM.Trigger asChild onContextMenu={onContextMenu}>
         <div
           className={clsx("w-full h-full mapboxgl-map", cursorStyle)}

@@ -233,6 +233,11 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const pendingDeltaCleanupRef = useRef(false);
   const consolidatedSelectionRef = useRef<Set<AssetId>>(new Set());
   const lastAppliedMapStateRef = useRef<MapState>(nullMapState);
+  const appliedEngineRef = useRef(map);
+  if (appliedEngineRef.current !== map) {
+    appliedEngineRef.current = map;
+    lastAppliedMapStateRef.current = nullMapState;
+  }
   const freshMapStateRef = useRef<MapState>(mapState);
   freshMapStateRef.current = mapState;
   const appliedChangesRef = useRef<ReturnType<typeof detectChanges> | null>(
