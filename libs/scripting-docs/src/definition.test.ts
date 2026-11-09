@@ -143,6 +143,14 @@ describe.each<[string, ScriptingDocs]>([
 });
 
 describe("candidates", () => {
+  it("documents the examples that edit the model only with edits on", () => {
+    const edits = (docs: ScriptingDocs) =>
+      docs.exampleScripts.filter((example) => example.needsEdits);
+
+    expect(edits(scriptingDocs)).toEqual([]);
+    expect(edits(editsCandidateDocs).length).toBeGreaterThan(0);
+  });
+
   it("keeps the edits candidate out of the official docs", () => {
     expect(renderLlmsTxt(scriptingDocs)).not.toContain("set(changes: {");
     expect(renderLlmsTxt(editsCandidateDocs)).toContain("set(changes: {");

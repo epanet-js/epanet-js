@@ -5,6 +5,7 @@ export const exampleScripts: ExampleScript[] = [
     id: "select-small-pipes",
     name: "Select small pipes",
     paid: false,
+    needsEdits: false,
     source: `const MAX_DIAMETER = 100; // select pipes at or below this (project units)
 
 const small = network.pipes.filter((p) => p.diameter <= MAX_DIAMETER);
@@ -21,6 +22,7 @@ map.zoomTo(small);
     id: "pipe-length-by-diameter",
     name: "Pipe length by diameter",
     paid: false,
+    needsEdits: false,
     source: `// Uses the selected pipes, or every pipe when nothing is selected.
 const pipes = selection.isEmpty
   ? network.pipes
@@ -44,9 +46,43 @@ console.table(
 `,
   },
   {
+    id: "scale-demands",
+    name: "Scale demands by a percentage",
+    paid: true,
+    needsEdits: true,
+    source: `const PERCENT = 10; // 10 raises every demand by 10%, -10 lowers it by 10%
+
+// Uses the selected junctions and customer points, or all of them when nothing is selected.
+const junctions = selection.isEmpty ? network.junctions : selection.junctions;
+const customerPoints = selection.isEmpty ? network.customerPoints : selection.customerPoints;
+if (junctions.length + customerPoints.length === 0) {
+  throw new Error("Select junctions or customer points, or clear the selection");
+}
+
+const factor = 1 + PERCENT / 100;
+const scaled = (demands) => demands.map((d) => ({ ...d, base: d.base * factor }));
+const round = (n) => Math.round(n * 1000) / 1000;
+const totals = () => ({
+  junctions: round(junctions.reduce((sum, j) => sum + j.baseDemand, 0)),
+  customerPoints: round(customerPoints.reduce((sum, cp) => sum + cp.demand, 0)),
+});
+
+const before = totals();
+for (const junction of junctions) junction.setDemands(scaled(junction.demands));
+for (const point of customerPoints) point.setDemands(scaled(point.demands));
+
+// A change reads back straight away, and the whole run is one step to undo.
+console.table([
+  { when: "before", ...before },
+  { when: "after", ...totals() },
+]);
+`,
+  },
+  {
     id: "export-pipes-csv",
     name: "Export pipes to CSV",
     paid: false,
+    needsEdits: false,
     source: `const pipes = network.pipes;
 const rows = ["label,diameter,length,start,end"];
 for (const [i, p] of pipes.entries()) {
@@ -63,6 +99,7 @@ ui.attachFile("pipes.csv", rows.join("\\n"));
     id: "count-by-custom-attribute",
     name: "Count by custom attribute",
     paid: false,
+    needsEdits: false,
     source: `const ATTRIBUTE = "Class"; // the custom attribute's name, as in the asset panel
 const TYPE = "pipe"; // the asset type it is defined for
 
@@ -90,6 +127,7 @@ if (missing.length > 0) selection.set(missing);
     id: "expand-selection",
     name: "Expand selection by one hop",
     paid: false,
+    needsEdits: false,
     source: `if (selection.isEmpty) throw new Error("Select some assets first");
 const start = selection.assets;
 
@@ -118,6 +156,7 @@ map.zoomTo([...expanded]);
     id: "trace-zone",
     name: "Trace the zone around the selection",
     paid: false,
+    needsEdits: false,
     source: `const MAIN_DIAMETER = 300; // stop at pipes at or above this (project units)
 
 // The Trace tool's boundary mode stops at tanks, reservoirs, pumps, closed
@@ -155,6 +194,7 @@ map.zoomTo(assets);
     id: "zone-summary",
     name: "Summarise each zone",
     paid: false,
+    needsEdits: false,
     source: `// Counts the junctions, pipe length and customer demand inside each zone
 // imported with File > Import > Zones. A pipe counts only when all of it is
 // inside, so one crossing a boundary is in no zone.
@@ -188,9 +228,48 @@ if (outside.length > 0) {
 `,
   },
   {
+    id: "tag-assets-by-zone",
+    name: "Tag assets with their zone",
+    paid: true,
+    needsEdits: true,
+    source: `const ATTRIBUTE = "Zone";
+const ZONE_DEMAND = "Base demand";
+
+if (zones.count === 0) throw new Error("Import zones first: File › Import › Zones");
+
+const define = (type, name, valueType) => {
+  const exists = network.customAttributes(type).some((a) => a.name.toLowerCase() === name.toLowerCase());
+  if (!exists) network.addCustomAttribute(type, { name, type: valueType });
+};
+define("junction", ATTRIBUTE, "text");
+define("pipe", ATTRIBUTE, "text");
+define("zone", ZONE_DEMAND, "number");
+
+// A pipe is in a zone only when the whole line is, so one crossing a boundary is left empty.
+const assets = [...network.junctions, ...network.pipes];
+const demands = new Map(zones.list.map((zone) => [zone, 0]));
+const outside = [];
+for (const [i, asset] of assets.entries()) {
+  ui.progress(i / assets.length);
+  const [zone] = zones.at(asset);
+  asset.setCustom(ATTRIBUTE, zone?.label ?? null);
+  if (!zone) outside.push(asset);
+  else if (asset.type === "junction") demands.set(zone, demands.get(zone) + asset.baseDemand);
+}
+ui.progress(1);
+
+for (const [zone, demand] of demands) zone.setCustom(ZONE_DEMAND, demand);
+
+console.table([...demands].map(([zone, demand]) => ({ zone, [ZONE_DEMAND]: Math.round(demand * 1000) / 1000 })));
+console.log(\`\${assets.length - outside.length} assets tagged · \${outside.length} outside every zone, selected on the map\`);
+selection.set(outside);
+`,
+  },
+  {
     id: "network-review",
     name: "Network review report",
     paid: true,
+    needsEdits: false,
     source: `const PROXIMITY = network.units.length === "ft" ? 1.5 : 0.5; // the review panel's default (project units)
 
 // The Network Review panel's checks in one pass: the checks behind Run
@@ -247,9 +326,65 @@ if (findings.length === 0) {
 `,
   },
   {
+    id: "upsize-fastest-pipes",
+    name: "Upsize the fastest pipes",
+    paid: true,
+    needsEdits: true,
+    source: `const COUNT = 5; // how many of the fastest pipes to upsize, when no pipe is selected
+const SIZES = network.units.diameter === "mm"
+  ? [50, 80, 100, 150, 200, 250, 300, 350, 400, 500, 600, 700, 800, 900, 1000, 1200]
+  : [2, 3, 4, 6, 8, 10, 12, 14, 16, 18, 20, 24, 30, 36, 42, 48];
+
+if (!network.results) throw new Error("Run a simulation first");
+if (network.results.isStale) console.warn("The results are from before the last change to the model");
+
+const peakVelocity = (pipe) =>
+  (pipe.results?.series("velocity") ?? []).reduce((peak, v) => Math.max(peak, Math.abs(v)), 0);
+
+const byVelocity = (pipes) =>
+  pipes
+    .map((pipe) => ({ pipe, velocity: peakVelocity(pipe) }))
+    .filter(({ velocity }) => velocity > 0)
+    .sort((a, b) => b.velocity - a.velocity);
+
+// The selected pipes that carry water, or else the fastest in the network.
+const selected = byVelocity(selection.pipes);
+if (selection.pipes.length > 0 && selected.length === 0) {
+  console.warn("The selected pipes carry no flow, so this uses the fastest pipes in the network");
+}
+const fastest = selected.length > 0 ? selected : byVelocity(network.pipes).slice(0, COUNT);
+if (fastest.length === 0) throw new Error("No pipe has flow in the results");
+
+const rows = [];
+const upsized = [];
+for (const { pipe, velocity } of fastest) {
+  const size = SIZES.find((s) => s > pipe.diameter);
+  if (size === undefined) continue;
+  // The same flow through a wider pipe: velocity falls with the square of the diameter.
+  const estimate = velocity * (pipe.diameter / size) ** 2;
+  rows.push({
+    pipe,
+    from: pipe.diameter,
+    to: size,
+    "peak velocity": Math.round(velocity * 100) / 100,
+    estimated: Math.round(estimate * 100) / 100,
+  });
+  pipe.set({ diameter: size });
+  upsized.push(pipe);
+}
+
+console.log(\`\${upsized.length} pipes upsized · diameter in \${network.units.diameter}, velocity in \${network.units.velocity}\`);
+console.table(rows);
+console.log("Run the simulation again to see the effect");
+selection.set(upsized);
+map.zoomTo(upsized);
+`,
+  },
+  {
     id: "water-source",
     name: "Where does this node get its water?",
     paid: false,
+    needsEdits: false,
     source: `// The path from each reservoir and tank to the selected node. weightBy
 // makes a pipe cost length / diameter⁵, roughly how its headloss grows, so
 // the path follows the large pipes the water would take rather than the
@@ -293,9 +428,61 @@ map.zoomTo(assets);
 `,
   },
   {
+    id: "renew-oldest-pipes",
+    name: "Renew the oldest pipes",
+    paid: true,
+    needsEdits: true,
+    source: `const COUNT = 20; // how many of the oldest pipes to renew, when no pipe is selected
+const NEW_MATERIAL = "uPVC"; // must be in the pipe library
+const RENEWAL_YEAR = 2026;
+
+if (!network.getPipeMaterial(NEW_MATERIAL)) {
+  throw new Error(\`\${NEW_MATERIAL} is not in the pipe library — change NEW_MATERIAL\`);
+}
+
+// The selected pipes, or the oldest ones that have an install year.
+const pipes = selection.pipes.length > 0
+  ? selection.pipes
+  : network.pipes
+      .filter((pipe) => pipe.year !== null)
+      .sort((a, b) => a.year - b.year)
+      .slice(0, COUNT);
+if (pipes.length === 0) throw new Error("No pipe has an install year — select the pipes to renew");
+
+const rows = new Map();
+for (const pipe of pipes) {
+  const material = pipe.material ?? "(none)";
+  const before = pipe.appliedRoughness;
+  // A new material and year, and no roughness of its own: the library sets the rest.
+  pipe.set({ material: NEW_MATERIAL, year: RENEWAL_YEAR, roughness: null });
+  const row = rows.get(material) ?? { material, pipes: 0, length: 0, before: 0, after: 0 };
+  row.pipes += 1;
+  row.length += pipe.length;
+  row.before += before ?? pipe.appliedRoughness;
+  row.after += pipe.appliedRoughness;
+  rows.set(material, row);
+}
+
+console.log(\`\${pipes.length} pipes renewed as \${NEW_MATERIAL} · length in \${network.units.length}\`);
+console.table(
+  [...rows.values()].map(({ material, pipes, length, before, after }) => ({
+    material,
+    pipes,
+    length: Math.round(length),
+    "mean roughness before": Math.round(before / pipes),
+    "mean roughness after": Math.round(after / pipes),
+  })),
+);
+console.log("Run the simulation again to see the effect");
+selection.set(pipes);
+map.zoomTo(pipes);
+`,
+  },
+  {
     id: "pattern-and-curve-usage",
     name: "Pattern and curve usage",
     paid: false,
+    needsEdits: false,
     source: `// Finds what uses each pattern and curve, and which ones nothing uses.
 const patternUses = new Map(network.patterns.map((p) => [p.label, []]));
 const curveUses = new Map(network.curves.map((c) => [c.label, []]));

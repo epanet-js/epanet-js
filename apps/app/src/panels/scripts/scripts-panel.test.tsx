@@ -124,6 +124,7 @@ describe("ScriptsPanel", () => {
           name: "Select small pipes",
           source: "console.log(1);",
           paid: false,
+          needsEdits: false,
         },
       ],
     });
@@ -897,6 +898,7 @@ describe("ScriptsPanel", () => {
             name: "Select small pipes",
             source: "console.log(1);",
             paid: false,
+            needsEdits: false,
           },
         ],
       });
@@ -922,12 +924,14 @@ describe("ScriptsPanel", () => {
             name: "Select small pipes",
             source: "",
             paid: false,
+            needsEdits: false,
           },
           {
             id: "network-review",
             name: "Network review report",
             source: "",
             paid: true,
+            needsEdits: false,
           },
         ],
       });
@@ -939,6 +943,34 @@ describe("ScriptsPanel", () => {
       expect(
         screen.queryByRole("button", { name: "Network review report" }),
       ).not.toBeInTheDocument();
+    });
+
+    it("shows the examples that edit the model only with edits on", () => {
+      registerScripting({
+        startScriptRun: vi.fn(),
+        exampleScripts: [
+          {
+            id: "scale-demands",
+            name: "Scale demands by a percentage",
+            source: "",
+            paid: false,
+            needsEdits: true,
+          },
+        ],
+      });
+      const { unmount } = renderPanel(aStoreWith([]));
+
+      expect(
+        screen.queryByRole("button", { name: "Scale demands by a percentage" }),
+      ).not.toBeInTheDocument();
+      unmount();
+
+      stubFeaturesOn(["FLAG_SCRIPT_EDITS"]);
+      renderPanel(aStoreWith([]));
+
+      expect(
+        screen.getByRole("button", { name: "Scale demands by a percentage" }),
+      ).toBeVisible();
     });
 
     it("offers the paywall instead of creating a script", async () => {

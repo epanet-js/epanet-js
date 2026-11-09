@@ -115,7 +115,11 @@
       "zone-summary": "Summarise each zone",
       "network-review": "Network review report",
       "water-source": "Where does this node get its water?",
-      "pattern-and-curve-usage": "Pattern and curve usage"
+      "pattern-and-curve-usage": "Pattern and curve usage",
+      "scale-demands": "Scale demands by a percentage",
+      "tag-assets-by-zone": "Tag assets with their zone",
+      "upsize-fastest-pipes": "Upsize the fastest pipes",
+      "renew-oldest-pipes": "Renew the oldest pipes"
     },
     "newScript": "New script",
     "createScript": "Create a script",

@@ -96,7 +96,9 @@ const buildDocs = (candidates: DocsCandidates): ScriptingDocs => ({
   agentRules: AGENT_RULES.map((rule) =>
     rule === READ_ONLY_RULE && candidates.edits ? EDITS_RULE : rule,
   ),
-  exampleScripts,
+  exampleScripts: exampleScripts.filter(
+    (example) => candidates.edits || !example.needsEdits,
+  ),
 });
 
 export const scriptingDocs = buildDocs({ edits: false });
