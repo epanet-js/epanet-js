@@ -1,45 +1,19 @@
 import { AssetId } from "../asset-types";
 import { TopologyQueries } from "../topology";
-import {
-  AllowedFlowDirection,
-  AllowedFlowDirectionQueries,
-  TraceBarriers,
-  TraceStop,
-  TraceStopReason,
-} from "./types";
+import { TraceBarriers, TraceStop } from "./types";
 
 export const crossingRules = (
   topology: TopologyQueries,
-  status: AllowedFlowDirectionQueries,
   barriers: TraceBarriers,
 ) => {
-  const linkStopReason = (
-    linkId: AssetId,
-    fromNodeId: AssetId,
-  ): TraceStopReason | null => {
-    const direction = status.getAllowedFlowDirection(linkId);
-    if (direction === AllowedFlowDirection.NONE) return "closed";
-    if (barriers.isLinkBarrier(linkId)) return "barrier";
-
-    // DOWNSTREAM (CV pipe): can only traverse from start node
-    if (direction === AllowedFlowDirection.DOWNSTREAM) {
-      const [startNode] = topology.getNodes(linkId);
-      if (fromNodeId !== startNode) return "direction";
-    }
-    if (direction === AllowedFlowDirection.UPSTREAM) {
-      const [, endNode] = topology.getNodes(linkId);
-      if (fromNodeId !== endNode) return "direction";
-    }
-    return null;
-  };
-
   const otherEnd = (linkId: AssetId, nodeId: AssetId): AssetId => {
     const [startNode, endNode] = topology.getNodes(linkId);
     return startNode === nodeId ? endNode : startNode;
   };
 
   return {
-    linkStopReason,
+    linkStopReason: (linkId: AssetId, fromNodeId: AssetId) =>
+      barriers.linkStopReason(linkId, fromNodeId),
     isNodeBarrier: (nodeId: AssetId) => barriers.isNodeBarrier(nodeId),
     otherEnd,
   };

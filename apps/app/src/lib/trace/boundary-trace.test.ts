@@ -1,24 +1,29 @@
 import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { createMockResultsReader } from "src/__helpers__/state";
 import {
+  AllowedFlowDirection as AFD,
   boundaryBarriers,
   configuredAllowedFlowDirections,
   presetBarriers,
+  respectingFlowDirection,
   configuredValveKinds,
   stopPresets,
   trace,
   unrestrictedFlowDirections,
   weightedTrace,
+  type AllowedFlowDirectionQueries,
   type TraceStop,
 } from "@epanet-js/hydraulic-model";
 import { AllowedFlowDirection } from "./allowed-flow-direction";
+import { encodeTraceData } from "./encode-trace-buffers";
+import { workerAPI } from "./worker-api";
 
 const boundaryTrace = (
   start: Parameters<typeof trace>[0],
   topology: Parameters<typeof trace>[1],
-  assetIndex: Parameters<typeof boundaryBarriers>[0],
-  status: Parameters<typeof boundaryBarriers>[1],
-) => trace(start, topology, status, boundaryBarriers(assetIndex, status));
+  assetIndex: Parameters<typeof boundaryBarriers>[1],
+  status: Parameters<typeof boundaryBarriers>[2],
+) => trace(start, topology, boundaryBarriers(topology, assetIndex, status));
 
 describe("trace with boundary barriers", () => {
   it("traces through open pipes and junctions", () => {
@@ -430,8 +435,7 @@ describe("trace stops", () => {
     const result = trace(
       { nodeIds: [IDS.J1], linkIds: [] },
       model.topology,
-      traversal,
-      boundaryBarriers(model.assetIndex, traversal),
+      boundaryBarriers(model.topology, model.assetIndex, traversal),
     );
 
     expect(result.stops).toHaveLength(4);
@@ -484,8 +488,7 @@ describe("trace stops", () => {
     const result = trace(
       { nodeIds: [IDS.J1], linkIds: [] },
       model.topology,
-      traversal,
-      boundaryBarriers(model.assetIndex, traversal),
+      boundaryBarriers(model.topology, model.assetIndex, traversal),
     );
 
     expect(result.linkIds).toContain(IDS.CV);
@@ -553,6 +556,82 @@ describe("weightedTrace without limits", () => {
   const stopsOf = (stops: TraceStop<string>[]) =>
     stops.map(({ assetId, reason }) => `${assetId}:${reason}`).sort();
 
+  it("stops a link for closed, then barrier, then direction, from either side", () => {
+    const anyDirection: AllowedFlowDirectionQueries = {
+      getAllowedFlowDirection: (linkId) =>
+        [AFD.NONE, AFD.BOTH, AFD.DOWNSTREAM, AFD.UPSTREAM][linkId % 4],
+    };
+
+    for (let seed = 1; seed <= 200; seed++) {
+      const next = random(seed);
+      const model = aRandomModel(next);
+      const walks = [
+        configuredAllowedFlowDirections(model.assets),
+        unrestrictedFlowDirections,
+        anyDirection,
+      ];
+
+      for (const walk of walks) {
+        const presets = stopPresets.filter(() => next() < 0.3);
+        const presetsOnly = presetBarriers(
+          presets,
+          model.assetIndex,
+          walk,
+          configuredValveKinds(model.assets),
+        );
+        const barriers = respectingFlowDirection(
+          presetsOnly,
+          model.topology,
+          walk,
+        );
+
+        const expectedReason = (linkId: number, fromNodeId: number) => {
+          const direction = walk.getAllowedFlowDirection(linkId);
+          const [startNode, endNode] = model.topology.getNodes(linkId);
+          if (direction === AFD.NONE) return "closed";
+          if (presetsOnly.linkStopReason(linkId, fromNodeId) !== null)
+            return "barrier";
+          if (direction === AFD.DOWNSTREAM && fromNodeId !== startNode)
+            return "direction";
+          if (direction === AFD.UPSTREAM && fromNodeId !== endNode)
+            return "direction";
+          return null;
+        };
+
+        for (const [linkId] of model.assetIndex.iterateLinks()) {
+          for (const fromNodeId of model.topology.getNodes(linkId)) {
+            expect(barriers.linkStopReason(linkId, fromNodeId)).toBe(
+              expectedReason(linkId, fromNodeId),
+            );
+          }
+        }
+      }
+    }
+  });
+
+  it("gives the same boundary trace through the worker buffers as on the model", () => {
+    const sorted = (ids: number[]) => [...ids].sort((a, b) => a - b);
+
+    for (let seed = 1; seed <= 200; seed++) {
+      const model = aRandomModel(random(seed));
+      const directions = new AllowedFlowDirection(model.assets, null);
+      const data = encodeTraceData(model, null, "array");
+
+      for (const [nodeId] of model.assetIndex.iterateNodes()) {
+        const start = { nodeIds: [nodeId], linkIds: [] };
+        const onModel = trace(
+          start,
+          model.topology,
+          boundaryBarriers(model.topology, model.assetIndex, directions),
+        );
+        const onBuffers = workerAPI.runTrace("boundary", start, data);
+
+        expect(sorted(onBuffers.nodeIds)).toEqual(sorted(onModel.nodeIds));
+        expect(sorted(onBuffers.linkIds)).toEqual(sorted(onModel.linkIds));
+      }
+    }
+  });
+
   it("reaches the same nodes and links, and stops at the same assets for the same reasons, as trace", () => {
     for (let seed = 1; seed <= 200; seed++) {
       const next = random(seed);
@@ -578,12 +657,21 @@ describe("weightedTrace without limits", () => {
 
       const walk = seed % 2 === 0 ? unrestrictedFlowDirections : directions;
 
-      const traced = trace(start, model.topology, walk, barriers);
-      const weighted = weightedTrace(start, model.topology, walk, barriers, {
-        maxDistance: Infinity,
-        maxHops: Infinity,
-        lengthOf: () => 1,
-      });
+      const traced = trace(
+        start,
+        model.topology,
+        respectingFlowDirection(barriers, model.topology, walk),
+      );
+      const weighted = weightedTrace(
+        start,
+        model.topology,
+        respectingFlowDirection(barriers, model.topology, walk),
+        {
+          maxDistance: Infinity,
+          maxHops: Infinity,
+          lengthOf: () => 1,
+        },
+      );
 
       expect({
         seed,

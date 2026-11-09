@@ -3,7 +3,6 @@ import { MinHeap } from "../min-heap";
 import { TopologyQueries } from "../topology";
 import { crossingRules, stopRecorder } from "./crossing";
 import {
-  AllowedFlowDirectionQueries,
   TraceBarriers,
   TraceLimits,
   TraceStart,
@@ -14,11 +13,10 @@ import {
 export function weightedTrace(
   start: TraceStart,
   topology: TopologyQueries,
-  status: AllowedFlowDirectionQueries,
   barriers: TraceBarriers,
   { maxDistance, maxHops, lengthOf }: TraceLimits,
 ): WeightedTraceResult {
-  const rules = crossingRules(topology, status, barriers);
+  const rules = crossingRules(topology, barriers);
   const stops = stopRecorder<WeightedTraceStopReason>();
   const distances = new Map<AssetId, number>();
   const hops = new Map<AssetId, number>();

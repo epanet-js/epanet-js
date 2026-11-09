@@ -1732,8 +1732,11 @@ const remoteFlowDirectionOf = (
     const { nodeIds } = trace(
       start,
       hydraulicModel.topology,
-      directions,
-      boundaryBarriers(hydraulicModel.assetIndex, directions),
+      boundaryBarriers(
+        hydraulicModel.topology,
+        hydraulicModel.assetIndex,
+        directions,
+      ),
     );
     const reached = new Set(nodeIds);
     if (reached.has(linkStartId) === reached.has(linkEndId)) return null;

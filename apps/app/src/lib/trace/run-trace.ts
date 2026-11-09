@@ -70,8 +70,11 @@ function runSync(
       return trace(
         start,
         model.topology,
-        allowedFlowDirection,
-        boundaryBarriers(model.assetIndex, allowedFlowDirection),
+        boundaryBarriers(
+          model.topology,
+          model.assetIndex,
+          allowedFlowDirection,
+        ),
       );
     case "upstream":
       return upstreamTrace(start, model.topology, status);

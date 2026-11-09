@@ -34,7 +34,7 @@ export type TraceResult = {
 
 export interface TraceBarriers {
   isNodeBarrier(nodeId: AssetId): boolean;
-  isLinkBarrier(linkId: AssetId): boolean;
+  linkStopReason(linkId: AssetId, fromNodeId: AssetId): TraceStopReason | null;
 }
 
 export type TraceStopReason = "barrier" | "closed" | "direction";

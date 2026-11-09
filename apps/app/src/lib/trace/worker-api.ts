@@ -38,8 +38,7 @@ export const workerAPI: TraceWorkerAPI = {
         return trace(
           start,
           topology,
-          allowedFlowDirection,
-          boundaryBarriers(assetIndex, allowedFlowDirection),
+          boundaryBarriers(topology, assetIndex, allowedFlowDirection),
         );
       case "upstream":
         return upstreamTrace(start, topology, flowDirection);
