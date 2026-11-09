@@ -22,6 +22,7 @@ export const issueCodes = [
   "valveKindUnknown",
   "valveScheduleUnreadable",
   "valveOperatingRuleUnsupported",
+  "valveParallelRegulatorUnsupported",
   "pumpDefinitionUnsupported",
   "pumpControlUnsupported",
   "pumpSpeedControlUnsupported",
