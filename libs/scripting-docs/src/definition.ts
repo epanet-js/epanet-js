@@ -23,7 +23,7 @@ import {
   SECTION as RESULTS,
 } from "./sections/results";
 import { SECTION as REVIEW } from "./sections/review";
-import { SECTION as SCRIPT_RUNS } from "./sections/script-runs";
+import { sectionFor as scriptRunsFor } from "./sections/script-runs";
 import { SECTION as SPATIAL } from "./sections/spatial";
 import { SECTION as TOPOLOGY } from "./sections/topology";
 import { sectionFor as zonesFor } from "./sections/zones";
@@ -63,7 +63,7 @@ const buildDocs = (candidates: DocsCandidates): ScriptingDocs => ({
   globals: GLOBALS,
   interfaces: [...INTERFACES, ...RESULTS_INTERFACES],
   sections: numberSections({
-    preface: [SCRIPT_RUNS],
+    preface: [scriptRunsFor(candidates)],
     chapters: [
       {
         id: "network",
