@@ -4,7 +4,8 @@ export {
   validateAsset,
   countValidationIssues,
 } from "./run-check";
-export { RULES } from "./rules";
+export { RULES, valveReferenceFields, pumpReferenceFields } from "./rules";
+export type { ValveReferenceField, PumpReferenceField } from "./rules";
 export { numericChecks } from "./checks";
 export {
   FLOW_MODULATING_VALVE_MIN_POINTS,

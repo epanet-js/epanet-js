@@ -16,6 +16,8 @@ export {
   RULES_BY_ID,
 } from "@epanet-js/network-review";
 export type {
+  ValveReferenceField,
+  PumpReferenceField,
   Severity,
   EntityType,
   ValidatableEntity,

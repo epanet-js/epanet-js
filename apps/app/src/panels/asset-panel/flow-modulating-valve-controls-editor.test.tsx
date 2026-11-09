@@ -34,6 +34,7 @@ const aLink = (id: number, label: string, type: string) =>
   ({ id, label, type, isNode: false, isActive: true }) as unknown as LinkAsset;
 
 const TARGETS: FlowModulatingValveTargets = {
+  isValid: () => true,
   nodes: [aNode(IDS.J1, "J1"), aNode(IDS.J2, "J2"), aNode(IDS.J3, "J3")],
   links: [
     aLink(IDS.V1, "V1", "valve"),

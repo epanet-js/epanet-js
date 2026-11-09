@@ -17,6 +17,7 @@ import {
 import {
   FLOW_MODULATING_VALVE_MIN_POINTS,
   getFlowModulatingValvePointErrors,
+  type ValveReferenceField,
 } from "src/lib/model-attributes-validation";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
@@ -31,6 +32,7 @@ import {
 import { CurveChart } from "./flow-modulating-valve-control-editor-chart";
 
 export type FlowModulatingValveTargets = {
+  isValid: (field: ValveReferenceField, value: unknown) => boolean;
   nodes: NodeAsset[];
   links: LinkAsset[];
   outletNodeId: AssetId | null;
@@ -163,6 +165,7 @@ export const FlowModulatingValveControlsEditor = ({
   return (
     <NestedSection className="pb-2">
       <SensorLinkField
+        validate={(value) => targets.isValid("flowModulatingSensorLink", value)}
         control={control}
         links={targets.links}
         onChange={(sensorLinkId) => {
@@ -173,6 +176,9 @@ export const FlowModulatingValveControlsEditor = ({
         readOnly={readOnly}
       />
       <ControlNodeField
+        validate={(value) =>
+          targets.isValid("flowModulatingControlNode", value)
+        }
         control={control}
         nodes={targets.nodes}
         outletNodeId={targets.outletNodeId}
@@ -337,12 +343,14 @@ const PointsGrid = ({
 };
 
 const SensorLinkField = ({
+  validate,
   control,
   links,
   onChange,
   onHighlightChange,
   readOnly,
 }: {
+  validate: (value: AssetId) => boolean;
   control: FlowModulatingValveControl;
   links: LinkAsset[];
   onChange: (sensorLinkId: AssetId) => void;
@@ -350,6 +358,7 @@ const SensorLinkField = ({
   readOnly: boolean;
 }) => {
   const translate = useTranslate();
+  const isInvalid = !validate(control.sensorLinkId);
   const flowThroughLabel = translate("controls.flowModulating.flowThrough");
   const thisValveLabel = translate("controls.flowModulating.thisValve");
   const options = useMemo(
@@ -380,6 +389,7 @@ const SensorLinkField = ({
         ) : (
           <Selector
             ariaLabel={flowThroughLabel}
+            invalid={isInvalid}
             options={options}
             selected={isValveSelected ? null : control.sensorLinkId}
             nullable
@@ -387,7 +397,10 @@ const SensorLinkField = ({
             clearLabel={thisValveLabel}
             onChange={(linkId) => onChange(linkId ?? control.linkId)}
             onActiveOptionChange={onHighlightChange}
-            styleOptions={selectorStyleOptions}
+            styleOptions={{
+              ...selectorStyleOptions,
+              variant: isInvalid ? "warning" : "default",
+            }}
           />
         )}
       </div>
@@ -396,6 +409,7 @@ const SensorLinkField = ({
 };
 
 const ControlNodeField = ({
+  validate,
   control,
   nodes,
   outletNodeId,
@@ -403,6 +417,7 @@ const ControlNodeField = ({
   onHighlightChange,
   readOnly,
 }: {
+  validate: (value: AssetId) => boolean;
   control: FlowModulatingValveControl;
   nodes: NodeAsset[];
   outletNodeId: AssetId | null;
@@ -411,6 +426,7 @@ const ControlNodeField = ({
   readOnly: boolean;
 }) => {
   const translate = useTranslate();
+  const isInvalid = !validate(control.controlNodeId);
   const controlNodeLabel = translate("controls.flowModulating.controlNode");
   const outletNode = nodes.find((node) => node.id === outletNodeId);
   const outletLabel = outletNode
@@ -444,6 +460,7 @@ const ControlNodeField = ({
         ) : (
           <Selector
             ariaLabel={controlNodeLabel}
+            invalid={isInvalid}
             options={options}
             selected={isOutletSelected ? null : control.controlNodeId}
             nullable
@@ -454,7 +471,10 @@ const ControlNodeField = ({
               if (next !== null) onChange(next);
             }}
             onActiveOptionChange={onHighlightChange}
-            styleOptions={selectorStyleOptions}
+            styleOptions={{
+              ...selectorStyleOptions,
+              variant: isInvalid ? "warning" : "default",
+            }}
           />
         )}
       </div>

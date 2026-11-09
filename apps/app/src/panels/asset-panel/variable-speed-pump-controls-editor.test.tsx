@@ -37,6 +37,7 @@ const aLink = <T,>(id: number, label: string, type: string) =>
   ({ id, label, type, isNode: false }) as unknown as T;
 
 const TARGETS: VariableSpeedPumpTargets = {
+  isValid: () => true,
   nodes: [
     aNode(IDS.J1, "J1", "junction"),
     aNode(IDS.J2, "J2", "junction"),

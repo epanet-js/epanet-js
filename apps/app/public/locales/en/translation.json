@@ -1727,6 +1727,7 @@
         "valveFlowModulatingControlPressuresIncreasing": "Flow modulating control pressures must be strictly increasing",
         "valveFlowModulatingSensorLinkActive": "Flow modulating control flow-through link must be active",
         "valveFlowModulatingControlNodeActive": "Flow modulating control node must be active",
+        "valveTargetNodeActive": "PRV target node must be active",
         "pumpVariableSpeedPressureTargetActive": "Variable speed pump pressure target node must be active",
         "pumpVariableSpeedFlowTargetActive": "Variable speed pump flow target link must be active",
         "pumpVariableSpeedLevelTargetActive": "Variable speed pump level target tank must be active",

@@ -882,6 +882,40 @@ describe("validateModelAttributes", () => {
     });
   });
 
+  describe("prv target node", () => {
+    const aPrvWithTarget = ({ targetActive }: { targetActive: boolean }) =>
+      HydraulicModelBuilder.with()
+        .aJunction(2, { elevation: 50 })
+        .aJunction(3, { elevation: 50 })
+        .aJunction(5, { elevation: 50, isActive: targetActive })
+        .aValve(1, {
+          kind: "prv",
+          startNodeId: 2,
+          endNodeId: 3,
+          diameter: 100,
+          setting: 20,
+          targetNodeId: 5,
+        })
+        .build();
+
+    it("flags an inactive target node as an error", async () => {
+      const model = aPrvWithTarget({ targetActive: false });
+
+      const issues = await validateModelAttributes(model);
+
+      expect(entityIdsOf(issues, "valve.targetNode.active")).toEqual([1]);
+      expect(severityOf("valve.targetNode.active")).toBe("error");
+    });
+
+    it("accepts an active target node", async () => {
+      const model = aPrvWithTarget({ targetActive: true });
+
+      expect(ruleIdsOf(await validateModelAttributes(model))).not.toContain(
+        "valve.targetNode.active",
+      );
+    });
+  });
+
   describe("variable speed pump control", () => {
     const IDS = { J1: 1, J2: 2, J3: 3, PU1: 4, PU2: 5, P1: 6, T1: 7 } as const;
 

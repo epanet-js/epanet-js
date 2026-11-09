@@ -581,6 +581,7 @@ type LibrarySelectRowProps<P extends string> = {
 };
 
 type SelectRowPropsBase<P extends string, T extends SelectRowValue> = {
+  validate?: (value: T) => boolean;
   name: P;
   label?: string;
   options: SelectorListOption<T>[];
@@ -637,11 +638,15 @@ export function SelectRow<P extends string, T extends SelectRowValue>({
   onChange,
   isOptional = true,
   onHighlightChange,
+  validate,
 }: SelectorRowProps<P, T>) {
   const translate = useTranslate();
   const actualLabel = label || translate(name);
 
-  const hasError = !isOptional && selected === null;
+  const hasError =
+    selected === null
+      ? !isOptional
+      : validate !== undefined && !validate(selected);
 
   const baseDisplayValue = comparison?.hasChanged
     ? comparison.baseValue != null

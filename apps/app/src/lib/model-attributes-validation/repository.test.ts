@@ -3,6 +3,8 @@ import {
   rulesFor,
   firstFailure,
   fieldValidator,
+  pumpReferenceFields,
+  valveReferenceFields,
   type ValidatableEntity,
 } from "@epanet-js/network-review";
 
@@ -107,5 +109,15 @@ describe("repository is the shared source", () => {
     for (const entityType of ["pipe", "valve", "tank", "pump"] as const) {
       expect(rulesFor(entityType).length).toBeGreaterThan(0);
     }
+  });
+});
+
+describe("reference fields", () => {
+  it.each(valveReferenceFields)("has a valve rule for %s", (field) => {
+    expect(rulesFor("valve", field)).not.toEqual([]);
+  });
+
+  it.each(pumpReferenceFields)("has a pump rule for %s", (field) => {
+    expect(rulesFor("pump", field)).not.toEqual([]);
   });
 });

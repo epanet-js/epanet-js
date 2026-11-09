@@ -75,6 +75,8 @@ import { deactivateAssets } from "@epanet-js/hydraulic-model-operations";
 import {
   fieldValidator,
   numericChecks,
+  type ValveReferenceField,
+  type PumpReferenceField,
 } from "src/lib/model-attributes-validation";
 import {
   getLinkNodes,
@@ -2178,7 +2180,10 @@ const ValveEditor = ({
   >(findDownstreamNodes, [hydraulicModel, valve], isPrv);
   const downstreamNodes = tracedDownstreamNodes ?? EMPTY_NODES;
 
-  const flowModulatingTargets = useMemo((): FlowModulatingValveTargets => {
+  const flowModulatingTargetLists = useMemo((): Omit<
+    FlowModulatingValveTargets,
+    "isValid"
+  > => {
     const nodes: NodeAsset[] = [];
     const links: LinkAsset[] = [];
     if (showControls) {
@@ -2200,15 +2205,30 @@ const ValveEditor = ({
         if (!asset.isNode) links.push(asset as LinkAsset);
       }
     }
-    return { nodes, links, outletNodeId, units };
+    return {
+      nodes,
+      links,
+      outletNodeId,
+      units,
+    };
   }, [
-    showControls,
     hydraulicModel.assets,
+    showControls,
     downstreamNodes,
     flowModulatingControl,
     outletNodeId,
     units,
   ]);
+
+  const isValveFieldValid = useCallback(
+    (field: ValveReferenceField, value: unknown) =>
+      fieldValidator("valve", field, valve, hydraulicModel)?.(value) ?? true,
+    [valve, hydraulicModel],
+  );
+  const flowModulatingTargets = useMemo(
+    () => ({ ...flowModulatingTargetLists, isValid: isValveFieldValid }),
+    [flowModulatingTargetLists, isValveFieldValid],
+  );
 
   const targetNode =
     valve.targetNodeId !== undefined
@@ -2218,6 +2238,18 @@ const ValveEditor = ({
   const targetNodeComparison = getComparison<AssetId | null>(
     "targetNodeId",
     targetNodeId,
+  );
+
+  const selectedTargetNodeId = isSetByControl
+    ? flowModulatingControl.controlNodeId
+    : targetNodeId;
+  const validateTargetNode = fieldValidator(
+    "valve",
+    (isSetByControl
+      ? "flowModulatingControlNode"
+      : "targetNode") satisfies ValveReferenceField,
+    valve,
+    hydraulicModel,
   );
 
   const targetNodeOptions = useMemo((): TargetNodeOption[] => {
@@ -2362,12 +2394,9 @@ const ValveEditor = ({
         {showTargetNode && (
           <SelectRow
             name="targetNode"
-            selected={
-              isSetByControl
-                ? flowModulatingControl.controlNodeId
-                : targetNodeId
-            }
+            selected={selectedTargetNodeId}
             options={targetNodeOptions}
+            validate={validateTargetNode}
             nullable
             placeholder={endNode ? endNode.label : translate("select") + "..."}
             comparison={isSetByControl ? undefined : targetNodeComparison}
@@ -2565,7 +2594,7 @@ const PumpEditor = ({
   );
 
   const outletNodeId = pump.connections[1] ?? null;
-  const variableSpeedPumpTargets = useMemo(() => {
+  const variableSpeedPumpTargetLists = useMemo(() => {
     const nodes: NodeAsset[] = [];
     const pipes: Pipe[] = [];
     const pumps: Pump[] = [];
@@ -2574,8 +2603,24 @@ const PumpEditor = ({
       else if (asset.type === "pipe") pipes.push(asset as Pipe);
       else if (asset.type === "pump") pumps.push(asset as Pump);
     }
-    return { nodes, pipes, pumps, outletNodeId, units };
+    return {
+      nodes,
+      pipes,
+      pumps,
+      outletNodeId,
+      units,
+    };
   }, [hydraulicModel.assets, outletNodeId, units]);
+
+  const isPumpFieldValid = useCallback(
+    (field: PumpReferenceField, value: unknown) =>
+      fieldValidator("pump", field, pump, hydraulicModel)?.(value) ?? true,
+    [pump, hydraulicModel],
+  );
+  const variableSpeedPumpTargets = useMemo(
+    () => ({ ...variableSpeedPumpTargetLists, isValid: isPumpFieldValid }),
+    [variableSpeedPumpTargetLists, isPumpFieldValid],
+  );
 
   const pumpControl =
     [...hydraulicModel.controlsLookup.getControls(pump.id)].find(

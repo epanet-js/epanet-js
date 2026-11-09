@@ -13,7 +13,10 @@ import {
 } from "@epanet-js/hydraulic-model";
 import type { UnitsSpec } from "@epanet-js/project-settings";
 import { localizeDecimal } from "@epanet-js/i18n";
-import { numericChecks } from "src/lib/model-attributes-validation";
+import {
+  numericChecks,
+  type PumpReferenceField,
+} from "src/lib/model-attributes-validation";
 import {
   DataGrid,
   type GridColumn,
@@ -37,6 +40,7 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { validateLevelSetting } from "./pump-level-based-controls";
 
 export type VariableSpeedPumpTargets = {
+  isValid: (field: PumpReferenceField, value: unknown) => boolean;
   nodes: NodeAsset[];
   pipes: Pipe[];
   pumps: Pump[];
@@ -105,6 +109,11 @@ export const VariableSpeedPumpControlsEditor = ({
     [targets.nodes],
   );
 
+  const validateLagPump = useCallback(
+    (pumpId: AssetId) => targets.isValid("variableSpeedLaggedPumps", [pumpId]),
+    [targets],
+  );
+
   const lagCandidates = useMemo(
     () => targets.pumps.filter((pump) => pump.id !== control.linkId),
     [targets.pumps, control.linkId],
@@ -135,6 +144,9 @@ export const VariableSpeedPumpControlsEditor = ({
     <NestedSection className="pb-2">
       {control.quantity === "flow" ? (
         <FlowTargetField
+          validate={(value) =>
+            targets.isValid("variableSpeedFlowTarget", value)
+          }
           control={control}
           pipes={targets.pipes}
           onChange={(targetId) => {
@@ -147,6 +159,14 @@ export const VariableSpeedPumpControlsEditor = ({
         />
       ) : (
         <NodeTargetField
+          validate={(value) =>
+            targets.isValid(
+              control.quantity === "level"
+                ? "variableSpeedLevelTarget"
+                : "variableSpeedPressureTarget",
+              value,
+            )
+          }
           control={control}
           nodes={targets.nodes}
           outletNodeId={targets.outletNodeId}
@@ -254,6 +274,7 @@ export const VariableSpeedPumpControlsEditor = ({
 
       <hr className=" my-1" />
       <LagPumpsSection
+        validate={validateLagPump}
         laggedPumpIds={control.laggedPumpIds}
         candidates={lagCandidates}
         onChange={(laggedPumpIds) => {
@@ -268,6 +289,9 @@ export const VariableSpeedPumpControlsEditor = ({
         <>
           <hr className=" my-1" />
           <TankLevelsSection
+            validate={(tankId) =>
+              targets.isValid("variableSpeedTankLevels", tankId)
+            }
             tankLevels={control.tankLevels}
             tanks={tanks}
             fixedTankId={control.quantity === "level" ? control.targetId : null}
@@ -298,6 +322,7 @@ const defaultLevelsFor = (tank: Tank): VariableSpeedPumpTankLevels => ({
 });
 
 const TankLevelsSection = ({
+  validate,
   tankLevels,
   tanks,
   fixedTankId,
@@ -306,6 +331,7 @@ const TankLevelsSection = ({
   onHighlightChange,
   readOnly,
 }: {
+  validate: (value: AssetId) => boolean;
   tankLevels: VariableSpeedPumpTankLevels | undefined;
   tanks: Tank[];
   fixedTankId: AssetId | null;
@@ -380,6 +406,9 @@ const TankLevelsSection = ({
     [tanks],
   );
 
+  const isTankInactive =
+    !!draft && draft.tankId !== null && !validate(draft.tankId);
+
   const hasOrderError = errors.includes("order");
   const hasOffError = errors.includes("offOutOfRange") || hasOrderError;
   const hasOnError = errors.includes("onOutOfRange") || hasOrderError;
@@ -425,6 +454,7 @@ const TankLevelsSection = ({
                 ) : (
                   <Selector
                     ariaLabel={tankLabel}
+                    invalid={isTankInactive}
                     options={tankOptions}
                     selected={draft.tankId}
                     nullable
@@ -435,7 +465,10 @@ const TankLevelsSection = ({
                       commit(next ? defaultLevelsFor(next) : NO_TANK);
                     }}
                     onActiveOptionChange={onHighlightChange}
-                    styleOptions={selectorStyleOptions}
+                    styleOptions={{
+                      ...selectorStyleOptions,
+                      variant: isTankInactive ? "warning" : "default",
+                    }}
                   />
                 )}
               </div>
@@ -501,6 +534,7 @@ const LevelField = ({
 );
 
 const NodeTargetField = ({
+  validate,
   control,
   nodes,
   outletNodeId,
@@ -508,6 +542,7 @@ const NodeTargetField = ({
   onHighlightChange,
   readOnly,
 }: {
+  validate: (value: AssetId) => boolean;
   control: VariableSpeedPumpControl;
   nodes: NodeAsset[];
   outletNodeId: AssetId | null;
@@ -516,6 +551,7 @@ const NodeTargetField = ({
   readOnly: boolean;
 }) => {
   const translate = useTranslate();
+  const isInvalid = !validate(control.targetId);
   const atNodeLabel = translate("controls.variableSpeed.atNode");
   const outletNode = nodes.find((node) => node.id === outletNodeId);
   const outletLabel = outletNode
@@ -548,6 +584,7 @@ const NodeTargetField = ({
         ) : (
           <Selector
             ariaLabel={atNodeLabel}
+            invalid={isInvalid}
             options={options}
             selected={isOutletSelected ? null : control.targetId}
             nullable
@@ -561,7 +598,10 @@ const NodeTargetField = ({
               if (node) onChange(node);
             }}
             onActiveOptionChange={onHighlightChange}
-            styleOptions={selectorStyleOptions}
+            styleOptions={{
+              ...selectorStyleOptions,
+              variant: isInvalid ? "warning" : "default",
+            }}
           />
         )}
       </div>
@@ -570,12 +610,14 @@ const NodeTargetField = ({
 };
 
 const FlowTargetField = ({
+  validate,
   control,
   pipes,
   onChange,
   onHighlightChange,
   readOnly,
 }: {
+  validate: (value: AssetId) => boolean;
   control: VariableSpeedPumpControl;
   pipes: Pipe[];
   onChange: (targetId: AssetId) => void;
@@ -583,6 +625,7 @@ const FlowTargetField = ({
   readOnly: boolean;
 }) => {
   const translate = useTranslate();
+  const isInvalid = !validate(control.targetId);
   const flowThroughLabel = translate("controls.variableSpeed.flowThrough");
   const thisPumpLabel = translate("controls.variableSpeed.thisPump");
   const options = useMemo(
@@ -606,6 +649,7 @@ const FlowTargetField = ({
         ) : (
           <Selector
             ariaLabel={flowThroughLabel}
+            invalid={isInvalid}
             options={options}
             selected={isPumpSelected ? null : control.targetId}
             nullable
@@ -613,7 +657,10 @@ const FlowTargetField = ({
             clearLabel={thisPumpLabel}
             onChange={(pipeId) => onChange(pipeId ?? control.linkId)}
             onActiveOptionChange={onHighlightChange}
-            styleOptions={selectorStyleOptions}
+            styleOptions={{
+              ...selectorStyleOptions,
+              variant: isInvalid ? "warning" : "default",
+            }}
           />
         )}
       </div>
@@ -757,12 +804,14 @@ const ScheduleGrid = ({
 };
 
 const LagPumpsSection = ({
+  validate,
   laggedPumpIds,
   candidates,
   onChange,
   onHighlightChange,
   readOnly,
 }: {
+  validate: (value: AssetId) => boolean;
   laggedPumpIds: AssetId[];
   candidates: Pump[];
   onChange: (laggedPumpIds: AssetId[]) => void;
@@ -796,6 +845,7 @@ const LagPumpsSection = ({
       />
       {isEnabled && (
         <LagPumpsGrid
+          validate={validate}
           rows={rows}
           candidates={candidates}
           onChange={commit}
@@ -817,12 +867,14 @@ const haveSamePumps = (a: AssetId[], b: AssetId[]) =>
   a.length === b.length && a.every((id, i) => id === b[i]);
 
 const LagPumpsGrid = ({
+  validate,
   rows,
   candidates,
   onChange,
   onHighlightChange,
   readOnly,
 }: {
+  validate: (value: AssetId) => boolean;
   rows: LagRow[];
   candidates: Pump[];
   onChange: (rows: LagRow[]) => void;
@@ -845,10 +897,11 @@ const LagPumpsGrid = ({
         placeholder: translate("none"),
         emptyOptionLabel: translate("none"),
         emptyValue: null,
+        validate,
         onHighlightChange,
       }),
     ],
-    [translate, options, onHighlightChange],
+    [translate, options, validate, onHighlightChange],
   );
 
   const createRow = useCallback((): LagRow => ({ pumpId: null }), []);
