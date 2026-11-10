@@ -293,10 +293,6 @@ const applyChanges = (
   const touchedEntities = new Set<EntityKind>();
   const touchedAssetIds: AssetId[] = [];
 
-  let curves: Curves | null = null;
-  let patterns: Map<number, Pattern> | null = null;
-  let zones: Zones | null = null;
-
   let count = 0;
   const buckets = new Map<string, EntityChange[]>();
   for (const item of changes) {
@@ -328,12 +324,10 @@ const applyChanges = (
             applyCustomerPoint(model, labelManager, id, change);
             break;
           case "curve":
-            curves ??= new Map(model.curves);
-            applyCurve(labelManager, id, change, curves);
+            applyCurve(labelManager, id, change, model.curves);
             break;
           case "pattern":
-            patterns ??= new Map(model.patterns);
-            applyPattern(labelManager, id, change, patterns);
+            applyPattern(labelManager, id, change, model.patterns);
             break;
           case "allControls": {
             const next = wholeValueOf<Controls>(change.fields);
@@ -359,17 +353,12 @@ const applyChanges = (
             model.rawControls = wholeValueOf<RawControls>(change.fields);
             break;
           case "zone":
-            zones ??= new Map(model.zones);
-            applyZone(labelManager, id, change, zones);
+            applyZone(labelManager, id, change, model.zones);
             break;
         }
       }
     }
   }
-
-  if (curves) model.curves = curves;
-  if (patterns) model.patterns = patterns;
-  if (zones) model.zones = zones;
 
   return { touchedEntities, touchedAssetIds, count };
 };
