@@ -32,6 +32,7 @@ export const issueCodes = [
   "customAttributeValueUnreadable",
   "zoneGeometryUnreadable",
   "selectionSetMembersUnreadable",
+  "selectionSetGroupUnreadable",
   "unitSystemMissing",
   "unitSystemUnsupported",
   "coordinateSystemMissing",

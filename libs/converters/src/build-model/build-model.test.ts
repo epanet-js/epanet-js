@@ -2372,6 +2372,157 @@ describe("build selection sets from network data", () => {
 
     expect(selectionSets.map((set) => set.label)).toEqual(["Selection set 5"]);
   });
+
+  const groupIssues = (issues: { code: string }[]) =>
+    issues.filter((issue) => issue.code === "selectionSetGroupUnreadable");
+
+  it("keeps the group each set names", () => {
+    const { selectionSetGroups, selectionSets, issues } = buildModel(
+      {
+        ...twoJunctionsAndAPipe(),
+        selectionSetGroups: [{ ref: "g", label: "AREAS" }],
+        selectionSets: [
+          {
+            ref: "5",
+            label: "NORTH",
+            groupRef: "g",
+            nodeRefs: ["1"],
+            linkRefs: [],
+          },
+          { ref: "6", label: "SOUTH", nodeRefs: ["2"], linkRefs: [] },
+        ],
+      },
+      { projections: aCatalogue() },
+    );
+
+    expect(selectionSetGroups).toEqual([{ ref: "g", label: "AREAS" }]);
+    expect(
+      selectionSets.map(({ label, groupRef }) => ({ label, groupRef })),
+    ).toEqual([
+      { label: "NORTH", groupRef: "g" },
+      { label: "SOUTH", groupRef: undefined },
+    ]);
+    expect(issues).toEqual([]);
+  });
+
+  it("keeps a group with no sets", () => {
+    const { selectionSetGroups } = buildModel(
+      {
+        ...twoJunctionsAndAPipe(),
+        selectionSetGroups: [{ ref: "g", label: "EMPTY" }],
+      },
+      { projections: aCatalogue() },
+    );
+
+    expect(selectionSetGroups).toEqual([{ ref: "g", label: "EMPTY" }]);
+  });
+
+  it("orders nested groups so that every parent comes before its children", () => {
+    const { selectionSetGroups, issues } = buildModel(
+      {
+        ...twoJunctionsAndAPipe(),
+        selectionSetGroups: [
+          { ref: "leaf", label: "LEAF", parentRef: "mid" },
+          { ref: "mid", label: "MID", parentRef: "top" },
+          { ref: "top", label: "TOP" },
+          { ref: "other", label: "OTHER" },
+        ],
+      },
+      { projections: aCatalogue() },
+    );
+
+    expect(selectionSetGroups).toEqual([
+      { ref: "top", label: "TOP" },
+      { ref: "mid", label: "MID", parentRef: "top" },
+      { ref: "leaf", label: "LEAF", parentRef: "mid" },
+      { ref: "other", label: "OTHER" },
+    ]);
+    expect(issues).toEqual([]);
+  });
+
+  it("puts a set naming an unknown group at the top level, and reports issue", () => {
+    const { selectionSets, issues } = buildModel(
+      {
+        ...twoJunctionsAndAPipe(),
+        selectionSets: [
+          {
+            ref: "5",
+            label: "NORTH",
+            groupRef: "ghost",
+            nodeRefs: ["1"],
+            linkRefs: [],
+          },
+        ],
+      },
+      { projections: aCatalogue() },
+    );
+
+    expect(selectionSets[0].groupRef).toBeUndefined();
+    expect(groupIssues(issues)).toEqual([
+      {
+        code: "selectionSetGroupUnreadable",
+        severity: "warning",
+        ref: "ghost",
+      },
+    ]);
+  });
+
+  it("puts a group naming an unknown parent at the top level, and reports issue", () => {
+    const { selectionSetGroups, issues } = buildModel(
+      {
+        ...twoJunctionsAndAPipe(),
+        selectionSetGroups: [{ ref: "g", label: "AREAS", parentRef: "ghost" }],
+      },
+      { projections: aCatalogue() },
+    );
+
+    expect(selectionSetGroups).toEqual([{ ref: "g", label: "AREAS" }]);
+    expect(groupIssues(issues)).toEqual([
+      { code: "selectionSetGroupUnreadable", severity: "warning", ref: "g" },
+    ]);
+  });
+
+  it("breaks a loop of parents at the first group in it, and reports issue", () => {
+    const { selectionSetGroups, issues } = buildModel(
+      {
+        ...twoJunctionsAndAPipe(),
+        selectionSetGroups: [
+          { ref: "a", label: "A", parentRef: "b" },
+          { ref: "b", label: "B", parentRef: "a" },
+          { ref: "self", label: "SELF", parentRef: "self" },
+        ],
+      },
+      { projections: aCatalogue() },
+    );
+
+    expect(selectionSetGroups).toEqual([
+      { ref: "a", label: "A" },
+      { ref: "b", label: "B", parentRef: "a" },
+      { ref: "self", label: "SELF" },
+    ]);
+    expect(groupIssues(issues)).toEqual([
+      { code: "selectionSetGroupUnreadable", severity: "warning", ref: "a" },
+      { code: "selectionSetGroupUnreadable", severity: "warning", ref: "self" },
+    ]);
+  });
+
+  it("keeps the first of two groups sharing a ref, and reports issue", () => {
+    const { selectionSetGroups, issues } = buildModel(
+      {
+        ...twoJunctionsAndAPipe(),
+        selectionSetGroups: [
+          { ref: "g", label: "FIRST" },
+          { ref: "g", label: "SECOND" },
+        ],
+      },
+      { projections: aCatalogue() },
+    );
+
+    expect(selectionSetGroups).toEqual([{ ref: "g", label: "FIRST" }]);
+    expect(groupIssues(issues)).toEqual([
+      { code: "selectionSetGroupUnreadable", severity: "warning", ref: "g" },
+    ]);
+  });
 });
 
 const aNetwork = (data: Partial<NetworkData> = {}): NetworkData => ({

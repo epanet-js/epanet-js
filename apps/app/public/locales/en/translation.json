@@ -70,6 +70,8 @@
       "zoneGeometryUnreadable_other": "{{count}} Zone boundaries have too few points to make polygons, so they were not imported",
       "selectionSetMembersUnreadable_one": "1 Selection set references an asset not found in the model, so it was not imported",
       "selectionSetMembersUnreadable_other": "{{count}} Selection sets reference assets not found in the model, so they were not imported",
+      "selectionSetGroupUnreadable_one": "1 Selection set folder could not be placed in the folder tree, so its contents were imported at the top level",
+      "selectionSetGroupUnreadable_other": "{{count}} Selection set folders could not be placed in the folder tree, so their contents were imported at the top level",
       "sourceUnreadable": "The file could not be read. It may be corrupted, or in a format we do not read yet.",
       "sourceEmpty": "The file has nothing we can import.",
       "sourceFilesIncomplete": "Some of the files this source needs are missing. Add them and try again.",

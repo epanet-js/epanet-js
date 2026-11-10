@@ -32,6 +32,7 @@ import {
 import {
   buildSelectionSets,
   type BuiltSelectionSet,
+  type BuiltSelectionSetGroup,
 } from "./build-selection-sets";
 import { inferNodeIsActive } from "./active-topology";
 import {
@@ -103,6 +104,7 @@ export type BuildModelOptions = {
 
 export type BuildModelResult = {
   hydraulicModel: HydraulicModel;
+  selectionSetGroups: BuiltSelectionSetGroup[];
   selectionSets: BuiltSelectionSet[];
   issues: Issue[];
   factories: ModelFactories;
@@ -254,7 +256,8 @@ export const buildModel = (
   );
   hydraulicModel.zones = zones;
 
-  const selectionSets = buildSelectionSets(
+  const { selectionSetGroups, selectionSets } = buildSelectionSets(
+    network.selectionSetGroups,
     network.selectionSets,
     {
       nodeIdByRef: (ref) => nodeIdByRef.get(ref)?.id,
@@ -265,6 +268,7 @@ export const buildModel = (
 
   return {
     hydraulicModel,
+    selectionSetGroups,
     selectionSets,
     issues: issues.build(),
     factories,
