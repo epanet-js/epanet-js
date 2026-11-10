@@ -297,13 +297,52 @@ export class RecordsBuilder {
     });
   }
 
+  /** Records holding a position that is not a pair of finite numbers. */
+  recordsWithInvalidPositions(xy: Float64Array): number[] {
+    const invalid: number[] = [];
+    for (let record = 0; record < this.count; record++) {
+      const [from, to] = this.positionRangeOf(record);
+      for (let position = from; position < to; position++) {
+        if (
+          !Number.isFinite(xy[position * 2]) ||
+          !Number.isFinite(xy[position * 2 + 1])
+        ) {
+          invalid.push(record);
+          break;
+        }
+      }
+    }
+    return invalid;
+  }
+
+  /** The positions of `record` as they stand, before any `useCoordinates`. */
+  positionsOf(record: number): Position[] {
+    const [from, to] = this.positionRangeOf(record);
+    const positions: Position[] = [];
+    for (let position = from; position < to; position++) {
+      const z = this.z?.get(position);
+      positions.push(
+        z === undefined || Number.isNaN(z)
+          ? [this.xy.get(position * 2), this.xy.get(position * 2 + 1)]
+          : [this.xy.get(position * 2), this.xy.get(position * 2 + 1), z],
+      );
+    }
+    return positions;
+  }
+
+  private positionRangeOf(record: number): [number, number] {
+    const firstRing = this.polygonRings.get(this.recordPolygons.get(record));
+    const lastRing = this.polygonRings.get(this.recordPolygons.get(record + 1));
+    return [
+      this.ringPositions.get(firstRing),
+      this.ringPositions.get(lastRing),
+    ];
+  }
+
   private isRecordLatLng(record: number, xy: Float64Array): boolean {
     if ((this.kinds.get(record) as GeometryKind) === GeometryKind.Unknown)
       return false;
-    const firstRing = this.polygonRings.get(this.recordPolygons.get(record));
-    const lastRing = this.polygonRings.get(this.recordPolygons.get(record + 1));
-    const from = this.ringPositions.get(firstRing);
-    const to = this.ringPositions.get(lastRing);
+    const [from, to] = this.positionRangeOf(record);
     for (let position = from; position < to; position++) {
       if (!isLatLng(xy[position * 2], xy[position * 2 + 1])) {
         return false;

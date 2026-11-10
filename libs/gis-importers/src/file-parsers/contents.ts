@@ -200,8 +200,9 @@ export const recordsContentsOf = (
   }
 
   for (const name of records.attributes) {
+    const valueAt = records.readerOf(name);
     for (let index = 0; index < records.count; index++) {
-      tallyValue(tallies[index], name, records.valueOf(index, name));
+      tallyValue(tallies[index], name, valueAt(index));
     }
   }
 

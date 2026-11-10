@@ -175,6 +175,14 @@ export class GisRecords {
     return this.table.reader(attribute)?.(this.recordAt(index));
   }
 
+  /** Reads one attribute by index, finding its column once. */
+  readerOf(attribute: string): (index: number) => unknown {
+    const reader = this.table.reader(attribute);
+    const indices = this.indices;
+    if (reader === undefined) return () => undefined;
+    return indices === null ? reader : (index) => reader(indices[index]);
+  }
+
   propertiesOf(index: number): Record<string, unknown> {
     const record = this.recordAt(index);
     const properties: Record<string, unknown> = {};

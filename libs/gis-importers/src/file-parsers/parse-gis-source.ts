@@ -1,7 +1,7 @@
 import type { Feature, FeatureCollection, Geometry, Position } from "geojson";
 import shp from "shpjs";
 import {
-  convertGeoJsonToWGS84,
+  createProjectionTransformer,
   extractEPSGFromGeoJSON,
   findProjectionByCode,
   isLikelyLatLng,
@@ -91,18 +91,64 @@ export const parseGisSource = async (
 const POSITION_NUMBERS = 2;
 const LINE_POSITIONS = 2;
 
+export type Unprojectable = { index: number; raw: unknown };
+
+/** A placement, with the features it took off the globe still to report. */
+type Placed = DecodedSource & { unprojectable?: Unprojectable[] };
+
 const placeUsable = async (
   records: Feature[],
-  place: (features: Feature[]) => DecodedSource | Promise<DecodedSource>,
+  place: (features: Feature[]) => Placed | Promise<Placed>,
 ): Promise<DecodedSource> => {
   const { features, skipped } = asSingleParts(records);
-  const decoded = features.some(hasGeometry)
-    ? await place(features)
-    : failure("sourceEmpty");
+  return features.some(hasGeometry)
+    ? reported(await place(features), skipped)
+    : reported(failure("sourceEmpty"), skipped);
+};
 
-  return skipped.length === 0
+const reported = (
+  { unprojectable = [], ...decoded }: Placed,
+  skipped: Issue[],
+): DecodedSource => {
+  const warnings = coordinateWarnings(skipped, unprojectable);
+  return warnings.length === 0
     ? decoded
-    : { ...decoded, issues: [...decoded.issues, ...skipped] };
+    : { ...decoded, issues: [...decoded.issues, ...warnings] };
+};
+
+/** The records skipped at read and those the CRS took off the globe, in the
+ *  order the file has them. */
+export const coordinateWarnings = (
+  skipped: Issue[],
+  unprojectable: Unprojectable[],
+): Issue[] => {
+  const refs = refsOf(
+    unprojectable.map(({ index }) => index),
+    skipped,
+  );
+  const dropped: Issue[] = unprojectable.map(({ raw }, index) => ({
+    code: "featureCoordinatesInvalid",
+    severity: "warning",
+    ref: String(refs[index]),
+    raw,
+  }));
+  return [...skipped, ...dropped].sort((a, b) => Number(a.ref) - Number(b.ref));
+};
+
+/** The ref each feature was counted under, given the records skipped before
+ *  it, which took a ref but no feature. */
+const refsOf = (indices: number[], skipped: Issue[]): number[] => {
+  const skippedRefs = skipped.map(({ ref }) => Number(ref));
+  let before = 0;
+  return indices.map((index) => {
+    while (
+      before < skippedRefs.length &&
+      skippedRefs[before] <= index + before
+    ) {
+      before += 1;
+    }
+    return index + before;
+  });
 };
 
 const asSingleParts = (
@@ -184,6 +230,48 @@ const isLine = (positions: Position[]): boolean =>
 
 const isRing = (ring: Position[]): boolean =>
   Array.isArray(ring) && ring.every(isPosition);
+
+type Transform = (position: Position) => Position;
+
+const movedBy = (coordinates: unknown, transform: Transform): unknown =>
+  typeof (coordinates as unknown[])[0] === "number"
+    ? transform(coordinates as Position)
+    : (coordinates as unknown[]).map((inner) => movedBy(inner, transform));
+
+const geometryMovedBy = (geometry: Geometry, transform: Transform): Geometry =>
+  geometry.type === "GeometryCollection"
+    ? {
+        ...geometry,
+        geometries: geometry.geometries.map((inner) =>
+          geometryMovedBy(inner, transform),
+        ),
+      }
+    : ({
+        ...geometry,
+        coordinates: movedBy(geometry.coordinates, transform),
+      } as Geometry);
+
+const reprojected = (features: Feature[], transform: Transform): Feature[] =>
+  features.map((feature) =>
+    feature.geometry
+      ? { ...feature, geometry: geometryMovedBy(feature.geometry, transform) }
+      : feature,
+  );
+
+/** `projected` without the features it took off the globe, each reported as
+ *  `written` had it. */
+const withoutUnprojectable = (
+  written: Feature[],
+  projected: Feature[],
+): { features: Feature[]; unprojectable: Unprojectable[] } => {
+  const features: Feature[] = [];
+  const unprojectable: Unprojectable[] = [];
+  projected.forEach((feature, index) => {
+    if (singlePartsOf(feature).length > 0) features.push(feature);
+    else unprojectable.push({ index, raw: written[index] });
+  });
+  return { features, unprojectable };
+};
 
 const resultOf = (decoded: DecodedSource): ParsedGisSource => {
   const issues = new IssueCollector();
@@ -273,9 +361,19 @@ const parseCsv = (content: string, input: GisInput): DecodedSource => {
   });
 
   return {
-    ...placed,
+    ...reported(
+      {
+        ...placed,
+        ...(placed.unprojectable && {
+          unprojectable: placed.unprojectable.map(({ index, raw }) => ({
+            index,
+            raw: (raw as Feature).properties,
+          })),
+        }),
+      },
+      parsed.skipped,
+    ),
     statedOrder: parsed.headers,
-    issues: [...placed.issues, ...parsed.skipped],
   };
 };
 
@@ -303,7 +401,7 @@ const DXF_START = /^(?:\s*999[^\n]*\n[^\n]*\n)*\s*0[^\S\n]*\r?\n\s*SECTION/;
 export const looksLikeDxf = (content: string): boolean =>
   DXF_START.test(content);
 
-const parseDxf = async (
+export const parseDxf = async (
   bytes: ArrayBuffer,
   { crs, projections }: GisInput,
 ): Promise<DecodedSource> => {
@@ -324,7 +422,7 @@ const placeAsDrawingStates = (
   features: Feature[],
   stated: DxfStatedCrs,
   projections: Map<string, Proj4Projection> | undefined,
-): DecodedSource => {
+): Placed => {
   if (stated.bounds !== undefined && !mostlyInside(features, stated.bounds)) {
     return unplaced(features, "coordinateSystemMismatch");
   }
@@ -392,45 +490,65 @@ const parseShapefile = async (
 
   const input: ShapefileInput = { shp: await shpFile.arrayBuffer() };
   if (dbf) input.dbf = await dbf.arrayBuffer();
-  if (prj && supplied === null) input.prj = await textOf(prj);
   if (cpg) input.cpg = await textOf(cpg);
+  const prjText = prj && supplied === null ? await textOf(prj) : undefined;
 
   const records = await decodeBundle(input);
   if (records === null) return failure("sourceUnreadable");
 
-  return placeUsable(records, async (features) => {
-    const prj = input.prj;
-    if (prj === undefined) {
-      return placeFeatures({ features, epsg: supplied, projections });
+  if (prjText === undefined) {
+    return placeUsable(records, (features) =>
+      placeFeatures({ features, epsg: supplied, projections }),
+    );
+  }
+
+  const transform = prjTransformOf(prjText);
+  return placeUsable(records, (features) => {
+    let projected: Feature[];
+    try {
+      projected = transform ? reprojected(features, transform) : features;
+    } catch {
+      return failure("sourceUnreadable");
     }
-
-    if (mostlyLatLng(features)) {
-      const sourceProjection = projectionOfWkt(prj, projections);
-
-      return {
-        features,
-        ...(sourceProjection === null ? {} : { sourceProjection }),
-        issues: [],
-      };
-    }
-
-    const withoutPrj = { ...input };
-    delete withoutPrj.prj;
-    const rewritten = await decodeBundle(withoutPrj);
-    const written =
-      rewritten === null ? features : asSingleParts(rewritten).features;
-    const error = sameFirstGeometry(written, features)
-      ? "coordinateSystemUnsupported"
-      : "coordinateSystemMismatch";
-
-    return unplaced(written, error);
+    return placeAsPrjStates(features, projected, prjText, projections);
   });
+};
+
+const prjTransformOf = (prj: string): Transform | null => {
+  try {
+    const transform = createProjectionTransformer(prj);
+    return ([x, y, ...rest]) => [...transform([x, y]), ...rest];
+  } catch {
+    return null;
+  }
+};
+
+const placeAsPrjStates = (
+  written: Feature[],
+  projected: Feature[],
+  prj: string,
+  projections: Map<string, Proj4Projection> | undefined,
+): Placed => {
+  if (!mostlyLatLng(projected)) {
+    return unplaced(
+      written,
+      sameFirstGeometry(written, projected)
+        ? "coordinateSystemUnsupported"
+        : "coordinateSystemMismatch",
+    );
+  }
+
+  const sourceProjection = projectionOfWkt(prj, projections);
+  return {
+    ...withoutUnprojectable(written, projected),
+    ...(sourceProjection === null ? {} : { sourceProjection }),
+    issues: [],
+  };
 };
 
 type ShapefileInput = {
   shp: ArrayBuffer;
   dbf?: ArrayBuffer;
-  prj?: string;
   cpg?: string;
 };
 
@@ -526,11 +644,7 @@ type Placement = {
   projections?: Map<string, Proj4Projection>;
 };
 
-const placeFeatures = ({
-  features,
-  epsg,
-  projections,
-}: Placement): DecodedSource => {
+const placeFeatures = ({ features, epsg, projections }: Placement): Placed => {
   if (epsg === null) return assumeWgs84(features);
 
   const attempt = placeIn(features, epsg, projections);
@@ -552,7 +666,7 @@ const placeIn = (
   features: Feature[],
   epsg: number,
   projections: Map<string, Proj4Projection> | undefined,
-): DecodedSource | PlacementError => {
+): Placed | PlacementError => {
   if (epsg === WGS84_EPSG) {
     return mostlyLatLng(features)
       ? { features, issues: [] }
@@ -571,20 +685,18 @@ const placeIn = (
 const placeWith = (
   features: Feature[],
   projection: Proj4Projection,
-): DecodedSource | PlacementError => {
-  let converted: FeatureCollection;
+): Placed | PlacementError => {
+  let projected: Feature[];
   try {
-    converted = convertGeoJsonToWGS84(
-      { type: "FeatureCollection", features },
-      projection.code,
-    );
+    const transform = createProjectionTransformer(projection.code);
+    projected = reprojected(features, ([x, y]) => transform([x, y]));
   } catch {
     return "coordinateSystemMismatch";
   }
 
-  return mostlyLatLng(converted.features)
+  return mostlyLatLng(projected)
     ? {
-        features: converted.features,
+        ...withoutUnprojectable(features, projected),
         sourceProjection: projection,
         issues: [],
       }

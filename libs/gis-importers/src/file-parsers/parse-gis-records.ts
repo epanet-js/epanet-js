@@ -1,4 +1,4 @@
-import type { Feature } from "geojson";
+import type { Feature, Geometry, Position } from "geojson";
 import {
   createProjectionTransformer,
   findProjectionByCode,
@@ -9,11 +9,7 @@ import {
   type Issue,
   type SourceFile,
 } from "@epanet-js/converters";
-import type {
-  CoordinateAttributes,
-  GisInput,
-  RecordsContents,
-} from "../importer";
+import type { GisInput, RecordsContents } from "../importer";
 import { GisRecords } from "../records/gis-records";
 import { RecordsBuilder, type Transform } from "../records/records-builder";
 import { recordsContentsOf } from "./contents";
@@ -24,6 +20,8 @@ import {
   failure,
   hasExtension,
   looksLikeDxf,
+  parseDxf,
+  coordinateWarnings,
   projectionOfWkt,
   statedCrs,
   suppliedEpsg,
@@ -48,58 +46,12 @@ type DecodedRecords = {
   contents?: RecordsContents;
 };
 
-type CacheEntry = {
-  files: SourceFile[];
-  suppliedEpsg: number | null;
-  suppliedAttributes: string | null;
-  decoded: DecodedRecords;
-};
-const cache = new WeakMap<SourceFile, CacheEntry>();
-
-const suppliedAttributes = (
-  attributes?: CoordinateAttributes,
-): string | null =>
-  attributes === undefined ? null : `${attributes.x}\u0000${attributes.y}`;
-
-const sameInput = (
-  entry: CacheEntry,
-  files: SourceFile[],
-  epsg: number | null,
-  attributes: string | null,
-): boolean =>
-  !isDetached(entry.decoded.records) &&
-  entry.suppliedEpsg === epsg &&
-  entry.suppliedAttributes === attributes &&
-  entry.files.length === files.length &&
-  entry.files.every((file, index) => file === files[index]);
-
-/** A caller that transferred the buffer to another thread has taken it. */
-const isDetached = (records: GisRecords): boolean =>
-  records.data.bytes.byteLength === 0;
-
 export const parseGisRecords = async (
   input: GisInput,
-): Promise<ParsedGisRecords> => {
-  const { files } = input;
-  const key = files[0];
-  if (key === undefined) return resultOf(empty("sourceEmpty"));
-
-  const epsg = suppliedEpsg(input.crs);
-  const attributes = suppliedAttributes(input.coordinateAttributes);
-  const cached = cache.get(key);
-  if (cached && sameInput(cached, files, epsg, attributes)) {
-    return resultOf(cached.decoded);
-  }
-
-  const decoded = await decode(input);
-  cache.set(key, {
-    files,
-    suppliedEpsg: epsg,
-    suppliedAttributes: attributes,
-    decoded,
-  });
-  return resultOf(decoded);
-};
+): Promise<ParsedGisRecords> =>
+  resultOf(
+    input.files.length === 0 ? empty("sourceEmpty") : await decode(input),
+  );
 
 const resultOf = (decoded: DecodedRecords): ParsedGisRecords => {
   const issues = new IssueCollector();
@@ -149,9 +101,10 @@ const decode = async (input: GisInput): Promise<DecodedRecords> => {
     return fromFeatures(await decodeFeatures(input));
   }
 
-  const bytes = new Uint8Array(await primary.arrayBuffer());
+  const buffer = await primary.arrayBuffer();
+  const bytes = new Uint8Array(buffer);
   const probe = new TextDecoder().decode(bytes.subarray(0, DXF_PROBE_BYTES));
-  if (looksLikeDxf(probe)) return fromFeatures(await decodeFeatures(input));
+  if (looksLikeDxf(probe)) return fromFeatures(await parseDxf(buffer, input));
 
   return decodeGeoJson(bytes, input);
 };
@@ -204,18 +157,84 @@ const collector = (): Collected => {
   };
 };
 
-type Placed = { sourceProjection?: Proj4Projection; issues: Issue[] };
+type Unprojectable = { record: number; written: Position[] };
+
+type Placed = {
+  sourceProjection?: Proj4Projection;
+  issues: Issue[];
+  unprojectable?: Unprojectable[];
+};
+
+/** The records `moved` takes off the globe, with their positions as the file
+ *  wrote them; read before the builder takes up `moved`. */
+const unprojectableOf = (
+  builder: RecordsBuilder,
+  moved: Float64Array,
+): Unprojectable[] =>
+  builder
+    .recordsWithInvalidPositions(moved)
+    .map((record) => ({ record, written: builder.positionsOf(record) }));
 
 const finished = (
   { builder, skipped }: Collected,
   placed: Placed,
-): DecodedRecords => ({
-  records: GisRecords.fromData({ bytes: builder.encode(), indices: null }),
-  ...(placed.sourceProjection === undefined
-    ? {}
-    : { sourceProjection: placed.sourceProjection }),
-  issues: [...placed.issues, ...skipped],
-});
+): DecodedRecords => {
+  const bytes = builder.encode();
+  const all = GisRecords.fromData({ bytes, indices: null });
+  const unprojectable = placed.unprojectable ?? [];
+  const invalid = unprojectable.map(({ record }) => record);
+
+  return {
+    records:
+      invalid.length === 0
+        ? all
+        : GisRecords.fromData({ bytes, indices: keptOf(all.count, invalid) }),
+    ...(placed.sourceProjection === undefined
+      ? {}
+      : { sourceProjection: placed.sourceProjection }),
+    issues: [
+      ...placed.issues,
+      ...coordinateWarnings(
+        skipped,
+        unprojectable.map(({ record, written }) => ({
+          index: record,
+          raw: asWritten(all.toFeature(record), written),
+        })),
+      ),
+    ],
+  };
+};
+
+/** `feature` with its positions put back the way the file wrote them. */
+const asWritten = (feature: Feature, written: Position[]): Feature => {
+  const geometry = feature.geometry;
+  if (geometry === null || geometry.type === "GeometryCollection") {
+    return feature;
+  }
+  let next = 0;
+  const restored = (coordinates: unknown): unknown =>
+    typeof (coordinates as unknown[])[0] === "number"
+      ? written[next++]
+      : (coordinates as unknown[]).map(restored);
+  return {
+    ...feature,
+    geometry: {
+      ...geometry,
+      coordinates: restored(geometry.coordinates),
+    } as Geometry,
+  };
+};
+
+const keptOf = (count: number, dropped: number[]): Uint32Array => {
+  const kept = new Uint32Array(count - dropped.length);
+  let next = 0;
+  let skip = 0;
+  for (let record = 0; record < count; record++) {
+    if (dropped[skip] === record) skip += 1;
+    else kept[next++] = record;
+  }
+  return kept;
+};
 
 const decodeGeoJson = (
   bytes: Uint8Array,
@@ -276,8 +295,9 @@ const placeIn = (
     };
   }
 
+  const unprojectable = unprojectableOf(builder, moved);
   builder.useCoordinates(moved, { keepZ: false });
-  return { sourceProjection: projection, issues: [] };
+  return { sourceProjection: projection, issues: [], unprojectable };
 };
 
 const failingTransform: Transform = () => {
@@ -326,14 +346,18 @@ const decodeShapefile = async (
 
   const transform = prjTransformOf(prj);
   const moved = transform && builder.transformed(transform);
-  if (transform && moved === null) return empty("sourceUnreadable");
+  if (transform && moved === null) {
+    return empty("sourceUnreadable", collected.skipped);
+  }
 
   if (builder.mostlyLatLng(moved ?? undefined)) {
+    const unprojectable = moved ? unprojectableOf(builder, moved) : [];
     if (moved) builder.useCoordinates(moved, { keepZ: true });
     const sourceProjection = projectionOfWkt(prj, projections);
     return finished(collected, {
       ...(sourceProjection === null ? {} : { sourceProjection }),
       issues: [],
+      unprojectable,
     });
   }
 

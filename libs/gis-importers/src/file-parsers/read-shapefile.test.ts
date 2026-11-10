@@ -365,6 +365,9 @@ const MERCATOR_PRJ =
 const WGS84_PRJ =
   'GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]';
 
+const UTM_31N_PRJ =
+  'PROJCS["WGS_1984_UTM_Zone_31N",GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Transverse_Mercator"],PARAMETER["False_Easting",500000.0],PARAMETER["False_Northing",0.0],PARAMETER["Central_Meridian",3.0],PARAMETER["Scale_Factor",0.9996],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]';
+
 const WEB_MERCATOR: Proj4Projection = {
   type: "proj4",
   id: "EPSG:3857",
@@ -463,6 +466,32 @@ describe("parseGisRecords reads a shapefile bundle as parseGisSource does", () =
       }),
       projections,
     });
+  });
+
+  it("leaves out, as written, the records the .prj cannot place", async () => {
+    const files = bundleOf({
+      shapes: [
+        aPoint([500000, 5700000]),
+        aPoint([1e8, 0]),
+        aPoint([500100, 5700100]),
+      ],
+      prj: UTM_31N_PRJ,
+    });
+    await expectSameParse({ files, projections });
+
+    const { issues } = await parseGisRecords({ files, projections });
+    expect(issues.build()).toEqual([
+      {
+        code: "featureCoordinatesInvalid",
+        severity: "warning",
+        ref: "1",
+        raw: {
+          type: "Feature",
+          geometry: { type: "Point", coordinates: [1e8, 0] },
+          properties: { NAME: "N1" },
+        },
+      },
+    ]);
   });
 
   it("keeps the records as written when the .prj cannot be applied", async () => {
