@@ -617,6 +617,7 @@ const addPipe = (
     roughness: pipeData.roughness,
     minorLoss: pipeData.minorLoss,
     material: pipeData.material,
+    year: pipeData.year,
     initialStatus: pipeData.initialStatus,
   });
 
