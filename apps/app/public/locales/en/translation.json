@@ -121,7 +121,8 @@
       "scale-demands": "Scale demands by a percentage",
       "tag-assets-by-zone": "Tag assets with their zone",
       "upsize-fastest-pipes": "Upsize the fastest pipes",
-      "renew-oldest-pipes": "Renew the oldest pipes"
+      "renew-oldest-pipes": "Renew the oldest pipes",
+      "infer-pipe-attributes": "Infer missing pipe attributes"
     },
     "newScript": "New script",
     "createScript": "Create a script",

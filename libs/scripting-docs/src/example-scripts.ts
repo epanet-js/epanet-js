@@ -48,7 +48,7 @@ console.table(
   {
     id: "scale-demands",
     name: "Scale demands by a percentage",
-    paid: true,
+    paid: false,
     needsEdits: true,
     source: `const PERCENT = 10; // 10 raises every demand by 10%, -10 lowers it by 10%
 
@@ -230,7 +230,7 @@ if (outside.length > 0) {
   {
     id: "tag-assets-by-zone",
     name: "Tag assets with their zone",
-    paid: true,
+    paid: false,
     needsEdits: true,
     source: `const ATTRIBUTE = "Zone";
 const ZONE_DEMAND = "Base demand";
@@ -328,7 +328,7 @@ if (findings.length === 0) {
   {
     id: "upsize-fastest-pipes",
     name: "Upsize the fastest pipes",
-    paid: true,
+    paid: false,
     needsEdits: true,
     source: `const COUNT = 5; // how many of the fastest pipes to upsize, when no pipe is selected
 const SIZES = network.units.diameter === "mm"
@@ -430,7 +430,7 @@ map.zoomTo(assets);
   {
     id: "renew-oldest-pipes",
     name: "Renew the oldest pipes",
-    paid: true,
+    paid: false,
     needsEdits: true,
     source: `const COUNT = 20; // how many of the oldest pipes to renew, when no pipe is selected
 const NEW_MATERIAL = "uPVC"; // must be in the pipe library
@@ -476,6 +476,191 @@ console.table(
 console.log("Run the simulation again to see the effect");
 selection.set(pipes);
 map.zoomTo(pipes);
+`,
+  },
+  {
+    id: "infer-pipe-attributes",
+    name: "Infer missing pipe attributes",
+    paid: false,
+    needsEdits: true,
+    source: `// Infer missing pipe attributes from the nearest pipe that has a value.
+//
+// For each attribute, every pipe with a value is a donor. A pipe without one
+// takes the value of the nearest donor, measured along the run of empty pipes
+// between them. A direct neighbour is at distance 0, so it always qualifies.
+// Uses the selected pipes, or every pipe when no pipe is selected. Donors are
+// always the whole network.
+
+const INFER = { diameter: true, material: true, year: true };
+
+// How far to carry a value through pipes that have none, in the project
+// length unit. 0 fills direct neighbours only. Infinity has no limit.
+const MAX_DISTANCE = Infinity;
+
+// Carry values across valves (they count as zero length). Pumps are never crossed.
+const CROSS_VALVES = true;
+
+// Values to treat as empty, on top of a blank. Material ignores case,
+// e.g. material: ["", "UNKNOWN", "UNK"].
+const ALSO_MISSING = { diameter: [0], material: [""], year: [0] };
+
+// ---------------------------------------------------------------------------
+
+const attributes = Object.keys(INFER).filter((attribute) => INFER[attribute]);
+if (attributes.length === 0) throw new Error("Nothing to infer: turn something on in INFER");
+if (!(MAX_DISTANCE >= 0)) throw new Error("MAX_DISTANCE must be 0 or more");
+
+const scope = selection.pipes.length > 0 ? new Set(selection.pipes) : null;
+const pipes = network.pipes;
+
+const normalise = (value) => (typeof value === "string" ? value.trim().toUpperCase() : value);
+const lengthOf = (pipe) => pipe.length || pipe.geometryLength || 0;
+
+// A small binary heap of [distance, node].
+const makeHeap = () => {
+  const items = [];
+  return {
+    get size() {
+      return items.length;
+    },
+    push(item) {
+      items.push(item);
+      let i = items.length - 1;
+      while (i > 0) {
+        const parent = (i - 1) >> 1;
+        if (items[parent][0] <= items[i][0]) break;
+        [items[parent], items[i]] = [items[i], items[parent]];
+        i = parent;
+      }
+    },
+    pop() {
+      const top = items[0];
+      const last = items.pop();
+      if (items.length > 0) {
+        items[0] = last;
+        let i = 0;
+        for (;;) {
+          const left = 2 * i + 1;
+          const right = left + 1;
+          let smallest = i;
+          if (left < items.length && items[left][0] < items[smallest][0]) smallest = left;
+          if (right < items.length && items[right][0] < items[smallest][0]) smallest = right;
+          if (smallest === i) break;
+          [items[smallest], items[i]] = [items[i], items[smallest]];
+          i = smallest;
+        }
+      }
+      return top;
+    },
+  };
+};
+
+// The nearest donor for every junction, walking out from all donors at once.
+// network.trace gives the distance to the nearest start but not which start
+// it was, so this is a multi-source Dijkstra over node.links.
+const nearestDonors = (attribute, missing) => {
+  const best = new Map(); // node -> { distance, value, donor, mixed }
+  const heap = makeHeap();
+  const offer = (node, distance, value, donor, mixed) => {
+    if (node.type !== "junction") return;
+    const current = best.get(node);
+    if (!current || distance < current.distance) {
+      best.set(node, { distance, value, donor, mixed });
+      heap.push([distance, node]);
+    } else if (distance === current.distance && value !== current.value) {
+      current.mixed = true; // two different values equally close
+    }
+  };
+
+  for (const pipe of pipes) {
+    if (missing.has(pipe)) continue;
+    offer(pipe.startNode, 0, pipe[attribute], pipe, false);
+    offer(pipe.endNode, 0, pipe[attribute], pipe, false);
+  }
+
+  while (heap.size > 0) {
+    const [distance, node] = heap.pop();
+    const current = best.get(node);
+    if (distance > current.distance) continue;
+    for (const link of node.links) {
+      let step;
+      if (link.type === "pipe" && missing.has(link)) step = lengthOf(link);
+      else if (link.type === "valve" && CROSS_VALVES) step = 0;
+      else continue;
+      const next = distance + step;
+      if (next > MAX_DISTANCE) continue;
+      const other = link.startNode === node ? link.endNode : link.startNode;
+      offer(other, next, current.value, current.donor, current.mixed);
+    }
+  }
+  return best;
+};
+
+const csvCell = (value) => {
+  const text = String(value);
+  return /[",\\n]/.test(text) ? \`"\${text.replace(/"/g, '""')}"\` : text;
+};
+
+const summary = [];
+const csv = ["pipe,attribute,value,donor,distance,ambiguous"];
+const changed = new Set();
+
+for (const [index, attribute] of attributes.entries()) {
+  ui.progress(index / attributes.length, \`Inferring \${attribute}\`);
+
+  const empty = ALSO_MISSING[attribute].map(normalise);
+  const missing = new Set(
+    pipes.filter((pipe) => pipe[attribute] === null || empty.includes(normalise(pipe[attribute]))),
+  );
+  const todo = [...missing].filter((pipe) => !scope || scope.has(pipe));
+  const best = nearestDonors(attribute, missing);
+
+  // Work everything out before writing, so an inferred value is never a donor.
+  const fills = [];
+  const unresolved = [];
+  for (const pipe of todo) {
+    const a = best.get(pipe.startNode);
+    const b = best.get(pipe.endNode);
+    const pick = !b || (a && a.distance <= b.distance) ? a : b;
+    if (!pick) {
+      unresolved.push(pipe);
+      continue;
+    }
+    const ambiguous = pick.mixed || Boolean(a && b && a.distance === b.distance && a.value !== b.value);
+    fills.push({ pipe, ...pick, ambiguous });
+  }
+
+  for (const { pipe, value, donor, distance, ambiguous } of fills) {
+    pipe.set({ [attribute]: value });
+    changed.add(pipe);
+    csv.push([pipe.label, attribute, value, donor.label, Math.round(distance * 100) / 100, ambiguous].map(csvCell).join(","));
+  }
+
+  const ambiguous = fills.filter((fill) => fill.ambiguous).map((fill) => fill.pipe);
+  if (fills.length > 0) collections.saveSelectionSet(\`Inferred \${attribute}\`, fills.map((fill) => fill.pipe));
+  if (ambiguous.length > 0) collections.saveSelectionSet(\`Inferred \${attribute}: ambiguous\`, ambiguous);
+  if (unresolved.length > 0) collections.saveSelectionSet(\`Still missing \${attribute}\`, unresolved);
+
+  summary.push({
+    attribute,
+    missing: todo.length,
+    filled: fills.length,
+    ambiguous: ambiguous.length,
+    "still missing": unresolved.length,
+  });
+}
+ui.progress(1);
+
+const limit = MAX_DISTANCE === Infinity ? "no distance limit" : \`up to \${MAX_DISTANCE} \${network.units.length}\`;
+console.log(\`\${scope ? scope.size + " selected" : pipes.length} pipes checked · \${limit}\`);
+console.table(summary);
+
+if (changed.size === 0) {
+  console.log("Nothing was filled in");
+} else {
+  ui.attachFile("inferred-values.csv", csv.join("\\n"));
+  selection.set([...changed]);
+}
 `,
   },
   {
