@@ -101,6 +101,6 @@ const buildDocs = (candidates: DocsCandidates): ScriptingDocs => ({
   ),
 });
 
-export const scriptingDocs = buildDocs({ edits: false });
+export const scriptingDocs = buildDocs({ edits: true });
 
-export const editsCandidateDocs = buildDocs({ edits: true });
+export const editsCandidateDocs = scriptingDocs;

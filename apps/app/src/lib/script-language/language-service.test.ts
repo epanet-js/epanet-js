@@ -1,4 +1,4 @@
-import { editsCandidateDocs, scriptingDocs } from "@epanet-js/scripting-docs";
+import { scriptingDocs } from "@epanet-js/scripting-docs";
 import { createScriptLanguageService } from "./language-service";
 
 describe("script language service", () => {
@@ -83,19 +83,12 @@ describe("script language service", () => {
     );
   });
 
-  it("completes pipe edits only from the edits candidate", () => {
-    const candidate = createScriptLanguageService(editsCandidateDocs);
-    const source = "network.pipes[0].";
-    const options = "network.pipes[0].set({ ";
+  it("completes pipe edits", () => {
+    const names = (source: string) =>
+      completionsAtEnd(source).map((completion) => completion.name);
 
-    const names = (completions: { name: string }[]) =>
-      completions.map((completion) => completion.name);
-
-    expect(names(completionsAtEnd(source))).not.toContain("set");
-    expect(names(candidate.completionsAt(source, source.length))).toContain(
-      "set",
-    );
-    expect(names(candidate.completionsAt(options, options.length))).toEqual(
+    expect(names("network.pipes[0].")).toContain("set");
+    expect(names("network.pipes[0].set({ ")).toEqual(
       expect.arrayContaining([
         "diameter",
         "length",
