@@ -527,6 +527,7 @@ const aNetwork = (data: Partial<NetworkData> = {}): NetworkData => ({
   controls: [],
   customAttributes: [],
   zones: [],
+  selectionSetGroups: [],
   selectionSets: [],
   customerPoints: [],
   units: {},

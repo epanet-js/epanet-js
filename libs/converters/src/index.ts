@@ -20,6 +20,7 @@ export type {
   SourceValveKind,
   ReservoirData,
   SelectionSetData,
+  SelectionSetGroupData,
   SourceCrs,
   SourceUnits,
   TankData,
