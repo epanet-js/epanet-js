@@ -21,7 +21,11 @@ import {
 } from "src/state/derived-branch-state";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { zonesAtom } from "src/state/zones";
-import { selectionSetsAtom } from "src/state/collections";
+import {
+  selectionSetGroupsAtom,
+  selectionSetsAtom,
+} from "src/state/collections";
+import type { SelectionSet, SelectionSetGroup } from "src/lib/collections";
 import { USelection } from "src/selection";
 import { Store } from "src/state";
 import { dialogAtom } from "src/state/dialog";
@@ -166,9 +170,19 @@ describe("convertModel", () => {
           { ref: "1", label: "J1", coordinates: [0, 0] },
           { ref: "2", label: "J2", coordinates: [10, 0] },
         ],
-        pipes: [{ ref: "10", label: "P1", startNodeRef: "1", endNodeRef: "2" }],
+        selectionSetGroups: [
+          { ref: "top", label: "AREAS" },
+          { ref: "sub", label: "NORTH AREAS", parentRef: "top" },
+        ],
         selectionSets: [
-          { ref: "5", label: "NORTH", nodeRefs: ["1"], linkRefs: ["10"] },
+          {
+            ref: "5",
+            label: "NORTH",
+            groupRef: "sub",
+            nodeRefs: ["1"],
+            linkRefs: [],
+          },
+          { ref: "6", label: "SOUTH", nodeRefs: ["2"], linkRefs: [] },
         ],
       }),
       issues: [],
@@ -181,21 +195,27 @@ describe("convertModel", () => {
 
     await waitForNotLoading();
 
-    const hydraulicModel = store.get(stagingModelDerivedAtom);
-    const junction = getByLabel(hydraulicModel.assets, "J1")!;
-    const pipe = getByLabel(hydraulicModel.assets, "P1")!;
+    const expectGrouped = (
+      groups: SelectionSetGroup[],
+      sets: SelectionSet[],
+    ) => {
+      const top = groups.find((group) => group.label === "AREAS")!;
+      const sub = groups.find((group) => group.label === "NORTH AREAS")!;
+      expect(top.parentId).toBeNull();
+      expect(sub.parentId).toEqual(top.id);
+      expect(sets.map(({ label, groupId }) => ({ label, groupId }))).toEqual([
+        { label: "NORTH", groupId: sub.id },
+        { label: "SOUTH", groupId: null },
+      ]);
+    };
 
-    const selectionSets = store.get(selectionSetsAtom);
-    expect(selectionSets.map((set) => set.label)).toEqual(["NORTH"]);
-    expect(
-      [...USelection.getAssetIds(selectionSets[0].selection)].sort(),
-    ).toEqual([junction.id, pipe.id].sort());
+    expectGrouped(
+      store.get(selectionSetGroupsAtom),
+      store.get(selectionSetsAtom),
+    );
 
     const saved = await fetchProject();
-    expect(saved.selectionSets.map((set) => set.label)).toEqual(["NORTH"]);
-    expect(
-      [...USelection.getAssetIds(saved.selectionSets[0].selection)].sort(),
-    ).toEqual([junction.id, pipe.id].sort());
+    expectGrouped(saved.selectionSetGroups, saved.selectionSets);
   });
 
   it("opens the project with the custom attributes the converter parsed", async () => {
