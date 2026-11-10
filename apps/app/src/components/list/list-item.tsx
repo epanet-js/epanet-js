@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Tooltip } from "@epanet-js/ui-kit";
 import { ItemAction, ItemActions } from "./item-actions";
 import { Button } from "../elements";
-import { type IndentGuide, IndentGuides } from "./indent-guides";
+import { IndentGuides, rowIndent } from "./indent-guides";
 
 type LabelledItem = {
   id: number;
@@ -28,7 +28,7 @@ type ListItemProps<T extends LabelledItem> = {
   readOnly?: boolean;
   showFullLabelOnHover?: boolean;
   depth?: number;
-  indentGuides?: readonly IndentGuide[];
+  activeIndentGuide?: number;
   onHover?: (isHovering: boolean) => void;
 };
 
@@ -45,7 +45,7 @@ export const ListItem = <T extends LabelledItem>({
   readOnly = false,
   showFullLabelOnHover = false,
   depth = 0,
-  indentGuides = [],
+  activeIndentGuide,
   onHover,
 }: ListItemProps<T>) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -54,7 +54,7 @@ export const ListItem = <T extends LabelledItem>({
     <li
       data-item-id={item.id}
       aria-selected={isSelected}
-      style={depth > 0 ? { paddingLeft: `${depth}rem` } : undefined}
+      style={{ paddingLeft: rowIndent(depth) }}
       onPointerEnter={onHover && (() => onHover(true))}
       onPointerLeave={onHover && (() => onHover(false))}
       className={`group relative flex items-center justify-between text-sm cursor-pointer h-8 min-w-0 rounded-sm ${
@@ -65,7 +65,7 @@ export const ListItem = <T extends LabelledItem>({
             : "hover:bg-base-hover"
       }`}
     >
-      <IndentGuides guides={indentGuides} />
+      <IndentGuides depth={depth} activeLevel={activeIndentGuide} />
       <Button
         variant="quiet/list"
         size="sm"

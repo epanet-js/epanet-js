@@ -3,6 +3,7 @@ import { useState } from "react";
 
 import { ChevronDownIcon, ChevronRightIcon } from "src/icons";
 import { Button } from "../elements";
+import { indentGuideClass, SECTION_INDENT_STYLE } from "./indent-guides";
 import { ItemActions, type ItemAction } from "./item-actions";
 import { useNavigableListContext } from "./navigable-list";
 
@@ -24,6 +25,7 @@ type CollapsibleListSectionProps = {
   onMenuAction?: (action: string) => void;
   readOnly?: boolean;
   showIndentGuide?: boolean;
+  isIndentGuideActive?: boolean;
 };
 
 export const CollapsibleListSection = ({
@@ -42,6 +44,7 @@ export const CollapsibleListSection = ({
   children,
   readOnly = false,
   showIndentGuide = false,
+  isIndentGuideActive = false,
 }: CollapsibleListSectionProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const ctx = useNavigableListContext();
@@ -91,15 +94,15 @@ export const CollapsibleListSection = ({
         )}
       </div>
       <C.Content>
-        <ul className="relative pl-4">
+        <ul className="relative" style={SECTION_INDENT_STYLE}>
+          {children}
           {showIndentGuide && (
             <span
               aria-hidden
-              className="pointer-events-none absolute top-0 bottom-4 border-l border-base"
+              className={indentGuideClass(isIndentGuideActive)}
               style={{ left: `${SECTION_CHEVRON_CENTER_REM}rem` }}
             />
           )}
-          {children}
         </ul>
       </C.Content>
     </C.Root>

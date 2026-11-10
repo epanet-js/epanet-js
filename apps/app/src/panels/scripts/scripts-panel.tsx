@@ -9,6 +9,7 @@ import {
   ItemInput,
   ListItem,
   NavigableList,
+  rowIndent,
 } from "src/components/list";
 import type {
   ItemAction,
@@ -423,6 +424,7 @@ const ScriptList = ({
           {myRows.map(renderRow)}
           <li
             data-item-id={newRowNavId}
+            style={{ paddingLeft: rowIndent() }}
             className={clsx(
               "flex items-center text-sm h-8 min-w-0 rounded-sm",
               focusedItem?.id === newRowNavId

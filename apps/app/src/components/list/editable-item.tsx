@@ -1,4 +1,3 @@
-import type { IndentGuide } from "./indent-guides";
 import { ItemAction } from "./item-actions";
 import { ItemInput } from "./item-input";
 import { ListItem, type ItemSecondaryAction } from "./list-item";
@@ -25,7 +24,7 @@ type EditableListItemProps<T extends LabelledItem> = {
   onCancel: () => void;
   readOnly?: boolean;
   depth?: number;
-  indentGuides?: readonly IndentGuide[];
+  activeIndentGuide?: number;
   onHover?: (isHovering: boolean) => void;
 };
 
@@ -46,7 +45,7 @@ export const EditableListItem = <T extends LabelledItem>({
   icon,
   readOnly = false,
   depth,
-  indentGuides,
+  activeIndentGuide,
   onHover,
 }: EditableListItemProps<T>) => {
   if (editLabelMode === "inline") {
@@ -58,7 +57,7 @@ export const EditableListItem = <T extends LabelledItem>({
         onCommit={onLabelChange}
         onCancel={onCancel}
         depth={depth}
-        indentGuides={indentGuides}
+        activeIndentGuide={activeIndentGuide}
       />
     );
   }
@@ -77,7 +76,7 @@ export const EditableListItem = <T extends LabelledItem>({
         secondaryAction={secondaryAction}
         readOnly={readOnly}
         depth={depth}
-        indentGuides={indentGuides}
+        activeIndentGuide={activeIndentGuide}
         onHover={onHover}
       />
       {editLabelMode === "below" && (
@@ -89,7 +88,7 @@ export const EditableListItem = <T extends LabelledItem>({
           onCancel={onCancel}
           forceValidation
           depth={depth}
-          indentGuides={indentGuides}
+          activeIndentGuide={activeIndentGuide}
         />
       )}
     </>

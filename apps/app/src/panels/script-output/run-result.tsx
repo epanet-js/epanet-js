@@ -4,6 +4,7 @@ import { Button } from "src/components/elements";
 import {
   CollapsibleListSection,
   ListItem,
+  rowIndent,
   type ItemAction,
 } from "src/components/list";
 import { usePermissions } from "src/hooks/use-permissions";
@@ -213,7 +214,10 @@ const AttachmentItem = ({ attachment }: { attachment: ScriptAttachment }) => {
   const translate = useTranslate();
   const downloadAttachment = useDownloadAttachment();
   return (
-    <li className="flex items-center text-sm h-8 min-w-0 rounded-sm hover:bg-base-hover">
+    <li
+      style={{ paddingLeft: rowIndent() }}
+      className="flex items-center text-sm h-8 min-w-0 rounded-sm hover:bg-base-hover"
+    >
       <Button
         variant="quiet/list"
         size="sm"

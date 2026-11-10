@@ -1,37 +1,37 @@
 import clsx from "clsx";
+import type { CSSProperties } from "react";
 
-export type IndentGuide = "full" | "end";
+export const SECTION_INDENT_STYLE = {
+  "--list-indent": "1rem",
+} as CSSProperties;
+
+export const rowIndent = (depth = 0, extra?: string) =>
+  `calc(var(--list-indent, 0px) + ${depth}rem${extra ? ` + ${extra}` : ""})`;
+
+export const indentGuideClass = (isActive: boolean) =>
+  clsx(
+    "pointer-events-none absolute top-0 bottom-0 border-l",
+    isActive ? "border-gray-400 dark:border-gray-500" : "border-base",
+  );
 
 const CHEVRON_CENTER_REM = 0.875;
 
-export const rowGuides = (
-  trailing: readonly boolean[],
-  isLeaf: boolean,
-): IndentGuide[] => {
-  const guides: IndentGuide[] = [];
-  let ends = isLeaf;
-  for (let level = trailing.length - 1; level >= 0; level--) {
-    ends = ends && trailing[level];
-    guides[level] = ends ? "end" : "full";
-  }
-  return guides;
-};
-
 export const IndentGuides = ({
-  guides,
+  depth,
+  activeLevel,
 }: {
-  guides: readonly IndentGuide[];
+  depth: number;
+  activeLevel?: number;
 }) => (
   <>
-    {guides.map((guide, level) => (
+    {Array.from({ length: depth }, (_, level) => (
       <span
         key={level}
         aria-hidden
-        className={clsx(
-          "pointer-events-none absolute top-0 border-l border-base",
-          guide === "end" ? "h-1/2" : "bottom-0",
-        )}
-        style={{ left: `${level + CHEVRON_CENTER_REM}rem` }}
+        className={indentGuideClass(level === activeLevel)}
+        style={{
+          left: `calc(var(--list-indent, 0px) + ${level + CHEVRON_CENTER_REM}rem)`,
+        }}
       />
     ))}
   </>

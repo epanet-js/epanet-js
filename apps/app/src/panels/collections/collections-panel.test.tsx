@@ -488,7 +488,9 @@ describe("CollectionsPanel", () => {
       await addFolder("DMAs");
 
       expect(screen.getByText("DMAs")).toBeInTheDocument();
-      expect(rowOf("Nothing selected")).toHaveStyle({ paddingLeft: "1rem" });
+      expect(rowOf("Nothing selected")).toHaveStyle({
+        paddingLeft: "calc(var(--list-indent, 0px) + 1rem)",
+      });
       expect(
         store.get(selectionSetGroupsAtom).map((group) => group.label),
       ).toEqual(["DMAs"]);
@@ -627,7 +629,9 @@ describe("CollectionsPanel", () => {
       const [dmas, north] = store.get(selectionSetGroupsAtom);
       expect(north.label).toBe("North");
       expect(north.parentId).toBe(dmas.id);
-      expect(rowOf("North")).toHaveStyle({ paddingLeft: "1rem" });
+      expect(rowOf("North")).toHaveStyle({
+        paddingLeft: "calc(var(--list-indent, 0px) + 1rem)",
+      });
       expect(screen.getAllByText("Nothing selected")).toHaveLength(1);
     });
 
