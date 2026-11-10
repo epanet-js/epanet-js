@@ -1,4 +1,5 @@
 import {
+  Fragment,
   type MouseEvent,
   useCallback,
   useEffect,
@@ -16,6 +17,19 @@ const CHART_EDGE_MARGIN = 0.2;
 const CHART_READOUT_OFFSET = 12;
 const CHART_READOUT_DECIMALS = 2;
 
+const flowRange = (sorted: FlowModulatingValvePoint[]) => {
+  const first = sorted[0];
+  const last = sorted[sorted.length - 1];
+  const span = first && last ? last.flow - first.flow : 0;
+  const margin =
+    (span > 0 ? span : Math.max(Math.abs(last?.flow ?? 0), 1)) *
+    CHART_EDGE_MARGIN;
+  return {
+    xMin: first ? Math.min(0, first.flow) : 0,
+    xMax: last ? last.flow + margin : 1,
+  };
+};
+
 export const buildCurveChartOption = (
   points: FlowModulatingValvePoint[],
   interpolate: boolean,
@@ -24,12 +38,7 @@ export const buildCurveChartOption = (
   const sorted = [...points].sort((a, b) => a.flow - b.flow);
   const first = sorted[0];
   const last = sorted[sorted.length - 1];
-  const span = first && last ? last.flow - first.flow : 0;
-  const margin =
-    (span > 0 ? span : Math.max(Math.abs(last?.flow ?? 0), 1)) *
-    CHART_EDGE_MARGIN;
-  const xMin = first ? Math.min(0, first.flow) : 0;
-  const xMax = last ? last.flow + margin : 1;
+  const { xMin, xMax } = flowRange(sorted);
 
   const edge = (flow: number, pressure: number) => ({
     value: [flow, pressure],
@@ -108,22 +117,39 @@ export const pressureAt = (
   return before.pressure + ratio * (after.pressure - before.pressure);
 };
 
-export const formatCurveReadout = (
-  { flow, pressure }: FlowModulatingValvePoint,
-  units: CurveUnits,
-): string => {
-  const format = new Intl.NumberFormat(getLocale(), {
+type CurveReadoutRow = { key: keyof CurveUnits; value: string; unit: string };
+
+const readoutFormatter = () =>
+  new Intl.NumberFormat(getLocale(), {
     minimumFractionDigits: CHART_READOUT_DECIMALS,
     maximumFractionDigits: CHART_READOUT_DECIMALS,
   });
-  const withUnit = (value: number, unit: string) => {
-    const text = format.format(value);
-    return unit ? `${text} ${unit}` : text;
-  };
-  return `${withUnit(flow, units.flow)}: ${withUnit(pressure, units.pressure)}`;
+
+export const formatCurveReadout = (
+  { flow, pressure }: FlowModulatingValvePoint,
+  units: CurveUnits,
+): CurveReadoutRow[] => {
+  const format = readoutFormatter();
+  return [
+    { key: "flow", value: format.format(flow), unit: units.flow },
+    { key: "pressure", value: format.format(pressure), unit: units.pressure },
+  ];
 };
 
-type CurveReadout = { x: number; y: number; text: string };
+export const curveReadoutWidth = (points: FlowModulatingValvePoint[]) => {
+  const sorted = [...points].sort((a, b) => a.flow - b.flow);
+  const { xMin, xMax } = flowRange(sorted);
+  const pressures = points.map((point) => point.pressure);
+  const extremes = [xMin, xMax, Math.min(...pressures), Math.max(...pressures)];
+  const format = readoutFormatter();
+  return Math.max(
+    ...extremes
+      .filter(Number.isFinite)
+      .map((value) => format.format(value).length),
+  );
+};
+
+type CurveReadout = { x: number; y: number; rows: CurveReadoutRow[] };
 
 export const CurveChart = ({
   points,
@@ -143,6 +169,7 @@ export const CurveChart = ({
       buildCurveChartOption(points, interpolate, { flowLabel, pressureLabel }),
     [points, interpolate, flowLabel, pressureLabel],
   );
+  const valueWidth = useMemo(() => curveReadoutWidth(points), [points]);
 
   const chartRef = useRef<ReactECharts>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -170,7 +197,7 @@ export const CurveChart = ({
       setReadout({
         x: event.clientX - containerRect.left,
         y: event.clientY - containerRect.top,
-        text: formatCurveReadout({ flow, pressure }, units),
+        rows: formatCurveReadout({ flow, pressure }, units),
       });
     },
     [points, interpolate, units],
@@ -206,7 +233,7 @@ export const CurveChart = ({
       {readout && (
         <div
           role="status"
-          className="pointer-events-none absolute z-20 whitespace-nowrap rounded border bg-popover px-2 py-1 text-size-small text-default tabular-nums shadow-xs"
+          className="pointer-events-none absolute z-20 grid grid-cols-[auto_auto] gap-x-1 whitespace-nowrap rounded border bg-popover px-2 py-1 text-size-small text-default tabular-nums shadow-xs"
           style={{
             left: readoutOnLeft
               ? readout.x - CHART_READOUT_OFFSET
@@ -215,7 +242,17 @@ export const CurveChart = ({
             transform: readoutOnLeft ? "translateX(-100%)" : undefined,
           }}
         >
-          {readout.text}
+          {readout.rows.map(({ key, value, unit }) => (
+            <Fragment key={key}>
+              <span
+                className="text-right"
+                style={{ minWidth: `${valueWidth}ch` }}
+              >
+                {value}
+              </span>
+              <span>{unit}</span>
+            </Fragment>
+          ))}
         </div>
       )}
     </div>
