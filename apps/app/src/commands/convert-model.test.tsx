@@ -26,7 +26,6 @@ import {
   selectionSetsAtom,
 } from "src/state/collections";
 import type { SelectionSet, SelectionSetGroup } from "src/lib/collections";
-import { USelection } from "src/selection";
 import { Store } from "src/state";
 import { dialogAtom } from "src/state/dialog";
 import { Junction, Pipe, Reservoir, Tank, Valve } from "src/hydraulic-model";
