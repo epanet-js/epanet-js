@@ -516,12 +516,15 @@ const parseShapefile = async (
 
 const prjTransformOf = (prj: string): Transform | null => {
   try {
-    const transform = createProjectionTransformer(prj);
-    return ([x, y, ...rest]) => [...transform([x, y]), ...rest];
+    return keepingZ(createProjectionTransformer(prj));
   } catch {
     return null;
   }
 };
+
+const keepingZ =
+  (transform: (position: [number, number]) => [number, number]): Transform =>
+  ([x, y, ...rest]) => [...transform([x, y]), ...rest];
 
 const placeAsPrjStates = (
   written: Feature[],

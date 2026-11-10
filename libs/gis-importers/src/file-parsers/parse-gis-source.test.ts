@@ -431,6 +431,17 @@ describe.each([
       expect(issues.build()).toEqual([]);
     });
 
+    it("drops the height of a record an EPSG code reprojects", async () => {
+      const { features } = await parse({
+        files: [aCollection([aPoint([...IN_METRES, 12])], "EPSG:3857")],
+        projections,
+      });
+
+      const { coordinates } = features[0].geometry as { coordinates: Position };
+
+      expect(coordinates).toHaveLength(2);
+    });
+
     it("refuses a CRS it has no definition for", async () => {
       const codes = await codesOf({
         files: [aCollection([aPoint(IN_METRES)], "EPSG:27700")],

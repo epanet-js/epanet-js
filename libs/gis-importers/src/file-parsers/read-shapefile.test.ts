@@ -368,6 +368,15 @@ const WGS84_PRJ =
 const UTM_31N_PRJ =
   'PROJCS["WGS_1984_UTM_Zone_31N",GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Transverse_Mercator"],PARAMETER["False_Easting",500000.0],PARAMETER["False_Northing",0.0],PARAMETER["Central_Meridian",3.0],PARAMETER["Scale_Factor",0.9996],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]';
 
+const BRITISH_GRID_PRJ =
+  'PROJCS["OSGB 1936 / British National Grid",GEOGCS["OSGB 1936",DATUM["OSGB_1936",SPHEROID["Airy 1830",6377563.396,299.3249646],TOWGS84[446.448,-125.157,542.06,0.15,0.247,0.842,-20.489]],PRIMEM["Greenwich",0],UNIT["degree",0.0174532925199433]],PROJECTION["Transverse_Mercator"],PARAMETER["latitude_of_origin",49],PARAMETER["central_meridian",-2],PARAMETER["scale_factor",0.9996012717],PARAMETER["false_easting",400000],PARAMETER["false_northing",-100000],UNIT["metre",1]]';
+
+const STATE_PLANE_FEET_PRJ =
+  'PROJCS["NAD_1983_StatePlane_California_III_FIPS_0403_Feet",GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Lambert_Conformal_Conic"],PARAMETER["False_Easting",6561666.666666666],PARAMETER["False_Northing",1640416.666666667],PARAMETER["Central_Meridian",-120.5],PARAMETER["Standard_Parallel_1",37.06666666666667],PARAMETER["Standard_Parallel_2",38.43333333333333],PARAMETER["Latitude_Of_Origin",36.5],UNIT["Foot_US",0.3048006096012192]]';
+
+const EQUAL_AREA_PRJ =
+  'PROJCS["ETRS_1989_LAEA",GEOGCS["GCS_ETRS_1989",DATUM["D_ETRS_1989",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Lambert_Azimuthal_Equal_Area"],PARAMETER["False_Easting",4321000.0],PARAMETER["False_Northing",3210000.0],PARAMETER["Central_Meridian",10.0],PARAMETER["Latitude_Of_Origin",52.0],UNIT["Meter",1.0]]';
+
 const WEB_MERCATOR: Proj4Projection = {
   type: "proj4",
   id: "EPSG:3857",
@@ -440,6 +449,64 @@ describe("parseGisRecords reads a shapefile bundle as parseGisSource does", () =
       files: bundleOf({ shapes: inMetres, prj: MERCATOR_PRJ }),
       projections,
     });
+  });
+
+  it.each([
+    {
+      grid: "a transverse mercator with a datum shift",
+      prj: BRITISH_GRID_PRJ,
+      at: [530000, 180000],
+      lonLat: [-0.1284, 51.504],
+    },
+    {
+      grid: "a conformal conic in US feet",
+      prj: STATE_PLANE_FEET_PRJ,
+      at: [6010000, 2110000],
+      lonLat: [-122.4089, 37.7742],
+    },
+    {
+      grid: "an azimuthal equal-area",
+      prj: EQUAL_AREA_PRJ,
+      at: [4321000, 3210000],
+      lonLat: [10, 52],
+    },
+  ])(
+    "reprojects from a .prj for $grid, keeping z",
+    async ({ prj, at: [x, y], lonLat: [longitude, latitude] }) => {
+      const files = bundleOf({
+        shapeType: POINT_Z,
+        shapes: [aPoint([x, y, 12]), aPoint([x + 100, y + 100, 13])],
+        prj,
+      });
+      await expectSameParse({ files, projections });
+
+      const { records, issues } = await parseGisRecords({ files, projections });
+      const [placedLongitude, placedLatitude, height] = (
+        records.toGeometry(0) as { coordinates: number[] }
+      ).coordinates;
+
+      expect(issues.build()).toEqual([]);
+      expect(placedLongitude).toBeCloseTo(longitude, 3);
+      expect(placedLatitude).toBeCloseTo(latitude, 3);
+      expect(height).toBe(12);
+    },
+  );
+
+  it("drops z when a supplied CRS places the bundle", async () => {
+    const input = {
+      files: bundleOf({
+        shapeType: POINT_Z,
+        shapes: [aPoint([500000, 6000000, 12]), aPoint([500100, 6000100, 13])],
+      }),
+      crs: { type: "epsg", code: 3857 } as const,
+      projections,
+    };
+    await expectSameParse(input);
+
+    const { records } = await parseGisRecords(input);
+    const { coordinates } = records.toGeometry(0) as { coordinates: number[] };
+
+    expect(coordinates).toHaveLength(2);
   });
 
   it("reprojects polygons with holes from the .prj", async () => {
