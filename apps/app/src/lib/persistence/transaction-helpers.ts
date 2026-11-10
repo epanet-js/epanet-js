@@ -56,10 +56,17 @@ export function settleAppliedModel(
     ? new Map(hydraulicModel.curves)
     : hydraulicModel.curves;
 
+  const demands =
+    report.touchedEntities.has("junctionDemand") ||
+    report.touchedEntities.has("customerDemand")
+      ? { ...hydraulicModel.demands }
+      : hydraulicModel.demands;
+
   return {
     ...updatedHydraulicModel,
     version: stateId,
     customerPoints,
     curves,
+    demands,
   };
 }

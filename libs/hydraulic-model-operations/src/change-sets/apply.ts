@@ -295,7 +295,6 @@ const applyChanges = (
 
   let curves: Curves | null = null;
   let patterns: Map<number, Pattern> | null = null;
-  let demandsChanged = false;
   let zones: Zones | null = null;
 
   let count = 0;
@@ -349,11 +348,9 @@ const applyChanges = (
             break;
           case "junctionDemand":
             applyDemand(id, change, model.demands.junctions);
-            demandsChanged = true;
             break;
           case "customerDemand":
             applyDemand(id, change, model.demands.customerPoints);
-            demandsChanged = true;
             break;
           case "pipeLibrary":
             model.pipeMaterials = wholeValueOf<PipeMaterial[]>(change.fields);
@@ -373,7 +370,6 @@ const applyChanges = (
   if (curves) model.curves = curves;
   if (patterns) model.patterns = patterns;
   if (zones) model.zones = zones;
-  if (demandsChanged) model.demands = { ...model.demands };
 
   return { touchedEntities, touchedAssetIds, count };
 };
