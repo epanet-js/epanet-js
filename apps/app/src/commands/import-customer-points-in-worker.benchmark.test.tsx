@@ -7,7 +7,7 @@ import userEvent from "@testing-library/user-event";
 import { aTestFile } from "src/__helpers__/file";
 import { setInitialState } from "src/__helpers__/state";
 import { CommandContainer } from "./__helpers__/command-container";
-import { useImportCustomerPoints } from "./import-customer-points";
+import { useOpenCustomerPointsImport } from "./open-customer-points-import";
 import toast from "react-hot-toast";
 import { parseInp } from "src/import/inp";
 import { promises as fs } from "fs";
@@ -238,12 +238,12 @@ const triggerCommand = async () => {
 };
 
 const TestableComponent = () => {
-  const importCustomerPoints = useImportCustomerPoints();
+  const openCustomerPointsImport = useOpenCustomerPointsImport();
 
   return (
     <button
       aria-label="importCustomerPoints"
-      onClick={() => importCustomerPoints({ source: "benchmark" })}
+      onClick={() => openCustomerPointsImport({ source: "benchmark" })}
     >
       Import Customer Points
     </button>

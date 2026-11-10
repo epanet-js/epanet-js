@@ -18,6 +18,7 @@ import { modelFactoriesAtom } from "src/state/model-factories";
 import {
   buildCustomerPointPreviewFactory,
   CustomerPoint,
+  LabelManager,
   MAX_CUSTOMER_POINT_LABEL_LENGTH,
 } from "@epanet-js/hydraulic-model";
 import {
@@ -34,7 +35,12 @@ import { buildCustomerPoints } from "./build-customer-points";
 import { collectImportIssues } from "./collect-import-issues";
 import { useLabelMaxLength } from "src/hooks/use-label-max-length";
 import { localizeDecimal } from "@epanet-js/i18n";
-import { WizardState, WizardActions, ParsedDataSummary } from "./types";
+import {
+  WizardState,
+  WizardActions,
+  ParsedDataSummary,
+  type BuildAllCustomerPoints,
+} from "./types";
 import { UnitsSpec } from "@epanet-js/project-settings";
 import { WizardActions as WizardActionsComponent } from "src/components/wizard";
 import { convertTo } from "@epanet-js/quantity";
@@ -50,7 +56,9 @@ import { sourceErrorKey } from "./source-error-key";
 import { awaitsCoordinates } from "./use-wizard-state";
 import { useFeatureLock } from "src/components/form/paywall";
 import { planImportAttributes } from "src/lib/custom-attributes/plan-import-attributes";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 const CONSTANT_PATTERN_ID = 0;
+const MAX_PREVIEW_ROWS = 15;
 
 /** Failures the attributes the user named are answerable for. */
 const COORDINATE_CODES = new Set([
@@ -73,6 +81,7 @@ export const DataMappingStep: React.FC<{
   const projectSettings = useAtomValue(projectSettingsAtom);
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const { labelManager, idPools } = useAtomValue(modelFactoriesAtom);
+  const isCpImportChangesetOn = useFeatureFlag("FLAG_CP_IMPORT_CHANGESET");
   const labelMaxLength = useLabelMaxLength();
   const { isLocked: customAttributesLocked } =
     useFeatureLock("customAttributes");
@@ -192,31 +201,47 @@ export const DataMappingStep: React.FC<{
             : undefined;
 
         const previewIdGenerator = idPools.forPool("customerPoint").copy();
+        const records = network.customerPoints ?? [];
+        const buildOptions = {
+          toDemand: (value: number) =>
+            convertTo({ value, unit: demandImportUnit }, demandTargetUnit),
+          patternId,
+          defaultDemand: defaultDemandValue,
+          labelMaxLength,
+          attributes: attributesPlan?.plan,
+        };
 
-        const built = await buildCustomerPoints(
-          network.customerPoints ?? [],
-          features,
-          {
-            factory: buildCustomerPointPreviewFactory(
-              labelManager,
-              previewIdGenerator,
-            ),
-            toDemand: (value) =>
-              convertTo({ value, unit: demandImportUnit }, demandTargetUnit),
-            patternId,
-            defaultDemand: defaultDemandValue,
-            labelMaxLength,
-            attributes: attributesPlan?.plan,
-            issues,
-            signal,
-          },
-        );
+        const built = await buildCustomerPoints(records, features, {
+          ...buildOptions,
+          factory: buildCustomerPointPreviewFactory(
+            isCpImportChangesetOn ? new LabelManager() : labelManager,
+            previewIdGenerator,
+          ),
+          createLimit: isCpImportChangesetOn ? MAX_PREVIEW_ROWS : undefined,
+          issues,
+          signal,
+        });
 
-        const { customerPoints, demands } = built;
+        const { customerPoints, demands, validCount } = built;
+
+        const buildAll: BuildAllCustomerPoints = (
+          factory,
+          { onProgress, signal: buildSignal },
+        ) =>
+          buildCustomerPoints(records, features, {
+            ...buildOptions,
+            factory,
+            issues: new CustomerPointsIssuesAccumulator(),
+            onProgress,
+            signal: buildSignal,
+          });
 
         setParsedDataSummary({
           validCustomerPoints: customerPoints,
-          idGenerator: previewIdGenerator,
+          validCount,
+          ...(isCpImportChangesetOn
+            ? { buildAll }
+            : { idGenerator: previewIdGenerator }),
           customerPointDemands: demands,
           issues: issues.buildResult(),
           totalCount: features.length,
@@ -231,7 +256,7 @@ export const DataMappingStep: React.FC<{
         });
         setLoading(false);
 
-        if (customerPoints.length === 0) {
+        if (validCount === 0) {
           userTracking.capture({
             name: "importCustomerPoints.dataMapping.noValidPoints",
             fileName: primaryFile.name,
@@ -240,7 +265,7 @@ export const DataMappingStep: React.FC<{
 
         userTracking.capture({
           name: "importCustomerPoints.dataMapping.customerPointsLoaded",
-          validCount: customerPoints.length,
+          validCount,
           issuesCount: issues.count(),
           totalCount: features.length,
           fileName: primaryFile.name,
@@ -267,6 +292,7 @@ export const DataMappingStep: React.FC<{
       customAttributesLocked,
       hydraulicModel.customAttributes,
       labelManager,
+      isCpImportChangesetOn,
       idPools,
       labelMaxLength,
       setParsedDataSummary,
@@ -493,8 +519,7 @@ export const DataMappingStep: React.FC<{
     inputData && isLoading && !parsedDataSummary && !awaitingCoordinates;
   const showDataPreview = parsedDataSummary;
   const showNoDataMessage = !inputData;
-  const validCount = parsedDataSummary?.validCustomerPoints.length || 0;
-  const MAX_PREVIEW_ROWS = 15;
+  const validCount = parsedDataSummary?.validCount || 0;
 
   const isNextDisabled =
     isLoading ||
@@ -801,7 +826,7 @@ export const CustomerPointsTable: React.FC<CustomerPointsTableProps> = ({
   const customerDemandUnit = wizardState.units.customerDemand;
   const customerDemandPerDayUnit = wizardState.units.customerDemandPerDay;
   const attributeColumns = parsedDataSummary.attributes?.columns ?? [];
-  const validCount = customerPoints.length;
+  const { validCount } = parsedDataSummary;
   const validPreview = customerPoints.slice(0, maxPreviewRows);
   const validHasMore = validCount > maxPreviewRows;
 

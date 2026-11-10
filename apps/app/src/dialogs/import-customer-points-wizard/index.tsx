@@ -1,4 +1,5 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { useAtomValue } from "jotai";
 import { Callout } from "@epanet-js/ui-kit";
 import { ErrorIcon } from "src/icons";
@@ -21,8 +22,16 @@ import { useProjections } from "src/hooks/use-projections";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { addCustomerPoints } from "src/hydraulic-model/mutations/add-customer-points";
 import { useCustomerPointsImportReset } from "src/hooks/persistence/use-customer-points-import-reset";
+import { useImportCustomerPoints } from "src/commands/import-customer-points";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { notify } from "src/components/notifications";
 import { SuccessIcon } from "src/icons";
+import type { ParsedDataSummary } from "./types";
+import { ImportProgressPanel, type ImportProgress } from "./import-progress";
+import { modelFactoriesAtom } from "src/state/model-factories";
+import { CustomerPointFactory, LabelManager } from "@epanet-js/hydraulic-model";
+import { isAbortError } from "src/infra/abort";
+import { waitForPaint } from "src/infra/yield-to-main";
 const stepNames = {
   1: "dataInput",
   2: "dataMapping",
@@ -50,8 +59,16 @@ export const ImportCustomerPointsWizard: React.FC<
 
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const { customerPointsImportReset } = useCustomerPointsImportReset();
+  const importCustomerPoints = useImportCustomerPoints();
+  const isCpImportChangesetOn = useFeatureFlag("FLAG_CP_IMPORT_CHANGESET");
+  const { idPools } = useAtomValue(modelFactoriesAtom);
+  const [importProgress, setImportProgress] = useState<ImportProgress | null>(
+    null,
+  );
+  const buildAbort = useRef<AbortController | null>(null);
 
   const handleClose = useCallback(() => {
+    buildAbort.current?.abort();
     wizardState.reset();
     onClose();
   }, [wizardState, onClose]);
@@ -86,6 +103,76 @@ export const ImportCustomerPointsWizard: React.FC<
     handleClose();
   }, [userTracking, handleClose, wizardState.currentStep]);
 
+  const applyWithReset = useCallback(
+    (summary: ParsedDataSummary, keepDemands: boolean): number => {
+      const updatedHydraulicModel = addCustomerPoints(
+        hydraulicModel,
+        summary.validCustomerPoints,
+        {
+          preserveJunctionDemands: keepDemands,
+          customerPointDemands: summary.customerPointDemands,
+          customAttributes: summary.attributes?.definition,
+        },
+      );
+
+      void customerPointsImportReset({
+        hydraulicModel: updatedHydraulicModel,
+        idGenerator: summary.idGenerator,
+      });
+
+      return updatedHydraulicModel.customerPoints.size;
+    },
+    [hydraulicModel, customerPointsImportReset],
+  );
+
+  const applyWithChangeSet = useCallback(
+    async (
+      summary: ParsedDataSummary,
+      keepDemands: boolean,
+    ): Promise<number | null> => {
+      if (!summary.buildAll) return null;
+
+      const controller = new AbortController();
+      buildAbort.current = controller;
+      const showProgress = (progress: ImportProgress) =>
+        flushSync(() => setImportProgress(progress));
+
+      let shownPercent = 0;
+      showProgress({ phase: "building", fraction: 0 });
+      await waitForPaint();
+
+      const { customerPoints, demands } = await summary.buildAll(
+        new CustomerPointFactory(
+          idPools.forPool("customerPoint"),
+          new LabelManager(),
+        ),
+        {
+          signal: controller.signal,
+          onProgress: (processed, total) => {
+            const fraction = total === 0 ? 1 : processed / total;
+            const percent = Math.floor(fraction * 100);
+            if (percent === shownPercent) return;
+            shownPercent = percent;
+            showProgress({ phase: "building", fraction });
+          },
+        },
+      );
+
+      showProgress({ phase: "applying" });
+      await waitForPaint();
+
+      const applied = importCustomerPoints({
+        customerPoints,
+        customerPointDemands: demands,
+        preserveJunctionDemands: keepDemands,
+        customAttributes: summary.attributes?.definition,
+      });
+
+      return applied ? customerPoints.length : null;
+    },
+    [importCustomerPoints, idPools],
+  );
+
   const handleFinish = useCallback(async () => {
     const { parsedDataSummary, keepDemands, setProcessing, setError } =
       wizardState;
@@ -95,24 +182,10 @@ export const ImportCustomerPointsWizard: React.FC<
     await new Promise((resolve) => setTimeout(resolve, 10));
 
     try {
-      const customerPointsToAdd = parsedDataSummary.validCustomerPoints;
-
-      const updatedHydraulicModel = addCustomerPoints(
-        hydraulicModel,
-        customerPointsToAdd,
-        {
-          preserveJunctionDemands: keepDemands,
-          customerPointDemands: parsedDataSummary.customerPointDemands,
-          customAttributes: parsedDataSummary.attributes?.definition,
-        },
-      );
-
-      const importedCount = updatedHydraulicModel.customerPoints.size;
-
-      void customerPointsImportReset({
-        hydraulicModel: updatedHydraulicModel,
-        idGenerator: parsedDataSummary.idGenerator,
-      });
+      const importedCount = isCpImportChangesetOn
+        ? await applyWithChangeSet(parsedDataSummary, keepDemands)
+        : applyWithReset(parsedDataSummary, keepDemands);
+      if (importedCount === null) return;
 
       userTracking.capture({
         name: "importCustomerPoints.completed",
@@ -129,15 +202,18 @@ export const ImportCustomerPointsWizard: React.FC<
       });
 
       handleClose();
-    } catch {
+    } catch (error) {
+      if (isAbortError(error)) return;
       setError("Import failed. Please try again.");
     } finally {
       setProcessing(false);
+      setImportProgress(null);
     }
   }, [
     wizardState,
-    hydraulicModel,
-    customerPointsImportReset,
+    isCpImportChangesetOn,
+    applyWithChangeSet,
+    applyWithReset,
     userTracking,
     translate,
     handleClose,
@@ -199,7 +275,7 @@ export const ImportCustomerPointsWizard: React.FC<
                 awaitsCoordinates(wizardState) ||
                 !!error ||
                 (parsedDataSummary
-                  ? parsedDataSummary.validCustomerPoints.length === 0
+                  ? parsedDataSummary.validCount === 0
                   : !inputData),
             }}
           />
@@ -277,13 +353,16 @@ export const ImportCustomerPointsWizard: React.FC<
                 projections={projections}
               />
             )}
-            {currentStep === 3 && (
+            {currentStep === 3 && !importProgress && (
               <DemandOptionsStep
                 onNext={handleNext}
                 onBack={handleBack}
                 renderActions={false}
                 wizardState={wizardState}
               />
+            )}
+            {currentStep === 3 && importProgress && (
+              <ImportProgressPanel progress={importProgress} />
             )}
           </>
         )}

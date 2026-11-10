@@ -1469,6 +1469,10 @@
       },
       "dataPreviewStep": "Data mapping",
       "demandOptionsStep": "Demand options",
+      "importProgress": {
+        "building": "Building customer points...",
+        "applying": "Applying changes..."
+      },
       "allocationStepLabel": "Customers allocation",
       "dataMapping": {
         "title": "Data mapping",

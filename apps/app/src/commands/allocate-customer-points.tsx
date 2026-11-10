@@ -2,11 +2,11 @@ import { useCallback } from "react";
 import { useSetAtom, useAtomValue } from "jotai";
 import { dialogAtom } from "src/state/dialog";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
-import { useImportCustomerPoints } from "./import-customer-points";
+import { useOpenCustomerPointsImport } from "./open-customer-points-import";
 
 export const useAllocateCustomerPoints = () => {
   const setDialogState = useSetAtom(dialogAtom);
-  const importCustomerPoints = useImportCustomerPoints();
+  const openCustomerPointsImport = useOpenCustomerPointsImport();
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
 
   const allocateCustomerPoints = useCallback(() => {
@@ -14,7 +14,7 @@ export const useAllocateCustomerPoints = () => {
       setDialogState({
         type: "allocateCustomerPointsWarning",
         onImport: () => {
-          importCustomerPoints({ source: "allocate" });
+          openCustomerPointsImport({ source: "allocate" });
         },
       });
     } else {
@@ -23,7 +23,7 @@ export const useAllocateCustomerPoints = () => {
   }, [
     hydraulicModel.customerPoints.size,
     setDialogState,
-    importCustomerPoints,
+    openCustomerPointsImport,
   ]);
 
   return allocateCustomerPoints;

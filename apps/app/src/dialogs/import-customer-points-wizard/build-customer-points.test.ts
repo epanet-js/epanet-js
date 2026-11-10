@@ -28,6 +28,8 @@ const build = async (
     defaultDemand: number | null;
     toDemand: (value: number) => number;
     attributes: CustomAttributePlan;
+    createLimit: number;
+    onProgress: (processed: number, total: number) => void;
   }> = {},
 ) => {
   const issues = new CustomerPointsIssuesAccumulator();
@@ -41,12 +43,51 @@ const build = async (
     defaultDemand:
       overrides.defaultDemand === undefined ? null : overrides.defaultDemand,
     attributes: overrides.attributes,
+    createLimit: overrides.createLimit,
+    onProgress: overrides.onProgress,
     issues,
   });
   return { ...result, issues: issues.buildResult() };
 };
 
 describe("buildCustomerPoints", () => {
+  it("creates up to the limit but counts every valid record", async () => {
+    const { customerPoints, demands, validCount } = await build(
+      [
+        aRecord("0", [0.001, 0.001]),
+        aRecord("1", [432000, 5812000]),
+        aRecord("2", [0.002, 0.002]),
+        aRecord("3", [0.003, 0.003]),
+      ],
+      [
+        aFeature([0.001, 0.001]),
+        aFeature([432000, 5812000]),
+        aFeature([0.002, 0.002]),
+        aFeature([0.003, 0.003]),
+      ],
+      { createLimit: 2 },
+    );
+
+    expect(customerPoints.map(({ coordinates }) => coordinates)).toEqual([
+      [0.001, 0.001],
+      [0.002, 0.002],
+    ]);
+    expect(demands.size).toBe(2);
+    expect(validCount).toBe(3);
+  });
+
+  it("reports progress through the records", async () => {
+    const progress: [number, number][] = [];
+
+    await build(
+      [aRecord("0", [0.001, 0.001]), aRecord("1", [0.002, 0.002])],
+      [aFeature([0.001, 0.001]), aFeature([0.002, 0.002])],
+      { onProgress: (processed, total) => progress.push([processed, total]) },
+    );
+
+    expect(progress.at(-1)).toEqual([2, 2]);
+  });
+
   it("skips records outside lat/lng, which is every projection we could not apply", async () => {
     const { customerPoints, issues } = await build(
       [aRecord("0", [432000, 5812000]), aRecord("1", [0.001, 0.001])],

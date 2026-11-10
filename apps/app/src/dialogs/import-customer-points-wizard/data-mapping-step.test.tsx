@@ -3,8 +3,15 @@ import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { setInitialState } from "src/__helpers__/state";
 import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
+import {
+  LabelManager,
+  initializeModelFactories,
+} from "@epanet-js/hydraulic-model";
+import { buildIdPools } from "src/lib/id-pools";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { stubProjectionsReady } from "src/__helpers__/projections";
+import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
+import { modelFactoriesAtom } from "src/state/model-factories";
 import { setWizardState } from "./__helpers__/wizard-state";
 import { renderWizard } from "./__helpers__/render-wizard";
 
@@ -36,6 +43,52 @@ describe("DataMappingStep", () => {
     stubUserTracking();
     stubProjectionsReady();
     permissions.canUseCustomAttributes = true;
+  });
+
+  describe("generated labels over existing customer points", () => {
+    const renderOverExistingLabel = () => {
+      const store = setInitialState({
+        hydraulicModel: HydraulicModelBuilder.with().build(),
+      });
+      const labelManager = new LabelManager();
+      labelManager.generateFor("customerPoint", 1);
+      store.set(
+        modelFactoriesAtom,
+        initializeModelFactories({
+          idPools: buildIdPools({
+            asset: 0,
+            customerPoint: 1,
+            pattern: 0,
+            curve: 0,
+            zone: 0,
+          }),
+          labelManager,
+        }),
+      );
+
+      setWizardState(store, {
+        sourceFiles: [aSourceFile([aPoint([0.001, 0.001], { value: 1 })])],
+        inputData: { properties: new Set(["value"]) },
+      });
+
+      renderWizard(store);
+    };
+
+    it("restarts the numbering when the import commits a change set", async () => {
+      stubFeatureOn("FLAG_CP_IMPORT_CHANGESET");
+
+      renderOverExistingLabel();
+
+      expect(await screen.findByTitle("CP1")).toBeInTheDocument();
+    });
+
+    it("avoids the existing labels on the reset path", async () => {
+      stubFeatureOff("FLAG_CP_IMPORT_CHANGESET");
+
+      renderOverExistingLabel();
+
+      expect(await screen.findByTitle("CP2")).toBeInTheDocument();
+    });
   });
 
   describe("optional demand attribute + default value", () => {

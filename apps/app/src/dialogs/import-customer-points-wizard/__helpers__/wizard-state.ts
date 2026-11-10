@@ -48,6 +48,7 @@ export const createValidParsedDataSummary = (): ParsedDataSummary => {
         coordinates: [0.002, 0.002],
       }),
     ],
+    validCount: 2,
     customerPointDemands,
     issues: null,
     totalCount: 2,
@@ -70,6 +71,7 @@ export const createParsedDataSummaryWithIssues = (): ParsedDataSummary => {
         coordinates: [0.002, 0.002],
       }),
     ],
+    validCount: 2,
     customerPointDemands,
     issues: {
       skippedNonPointFeatures: [
@@ -119,6 +121,7 @@ export const createParsedDataSummaryWithInvalidDemands =
           coordinates: [0.001, 0.001],
         }),
       ],
+      validCount: 1,
       customerPointDemands,
       issues: {
         skippedInvalidDemands: [

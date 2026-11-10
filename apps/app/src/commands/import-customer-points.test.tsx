@@ -1,719 +1,187 @@
-import { render, screen, waitFor } from "@testing-library/react";
-import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
-import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
-import { Store } from "src/state";
-import { Junction } from "@epanet-js/hydraulic-model";
+import { act, renderHook, waitFor } from "@testing-library/react";
+import { Provider as JotaiProvider } from "jotai";
 import {
+  LabelManager,
+  emptyCustomAttributesDefinition,
+  getAttributes,
   getCustomerPointDemands,
-  getJunctionDemands,
-  getTotalCustomerDemand,
+  initializeModelFactories,
+  setAttributes,
 } from "@epanet-js/hydraulic-model";
-import userEvent from "@testing-library/user-event";
-import { aTestFile } from "src/__helpers__/file";
-import { setInitialState } from "src/__helpers__/state";
-import { CommandContainer } from "./__helpers__/command-container";
+import {
+  buildCustomerPoint,
+  HydraulicModelBuilder,
+} from "@epanet-js/hydraulic-model-testing";
+import { aSingleSelection, setInitialState } from "src/__helpers__/state";
+import { buildIdPools } from "src/lib/id-pools";
+import { useInProcessDb } from "src/lib/db/__test-helpers__/in-process-db";
+import { fetchProject } from "src/lib/db/commands/fetch-project";
+import * as db from "src/lib/db";
+import { defaultProjectSettings } from "@epanet-js/project-settings";
+import { defaultSimulationSettings } from "src/simulation/simulation-settings";
+import { useUndoableTransactions } from "src/hooks/persistence/use-undoable-transactions";
+import { useHasUnsavedChanges } from "src/hooks/use-has-unsaved-changes";
+import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
+import { modelFactoriesAtom } from "src/state/model-factories";
+import { selectionAtom } from "src/state/selection";
+import { USelection } from "src/selection";
+import type { Store } from "src/state";
 import { useImportCustomerPoints } from "./import-customer-points";
-import { stubUserTracking } from "src/__helpers__/user-tracking";
-import toast from "react-hot-toast";
 
-describe.skip("importCustomerPoints", () => {
-  beforeEach(() => {
-    toast.remove();
-  });
+const IDS = { J1: 1, OLD: 10, NEW: 121 } as const;
 
-  it("imports GeoJSON customer points correctly", async () => {
-    const IDS = { CP1: 1, CP2: 2 } as const;
-    const store = createStoreWithPipes();
-
-    renderComponent({ store });
-
-    const geoJsonContent = JSON.stringify({
-      type: "FeatureCollection",
-      features: [
-        {
-          type: "Feature",
-          geometry: {
-            type: "Point",
-            coordinates: [0.0003, 0.0003],
-          },
-          properties: {
-            name: "Customer A",
-            type: "Residential",
-            demand: 25.5,
-          },
-        },
-        {
-          type: "Feature",
-          geometry: {
-            type: "Point",
-            coordinates: [0.0007, 0.0007],
-          },
-          properties: {
-            name: "Customer B",
-            type: "Commercial",
-            demand: 150.0,
-          },
-        },
-      ],
-    });
-    const file = aTestFile({
-      filename: "customer-points.geojson",
-      content: geoJsonContent,
-    });
-
-    await triggerCommand();
-    await waitForWizardToOpen();
-
-    expectWizardStep("data input");
-
-    await uploadFileInWizard(file);
-
-    expectWizardStep("data preview");
-
-    await userEvent.click(screen.getByRole("button", { name: /next/i }));
-
-    expectWizardStep("demand options");
-
-    await userEvent.click(screen.getByRole("button", { name: /next/i }));
-
-    expectWizardStep("customers allocation");
-
-    await waitForAllocations();
-
-    await waitFor(() => {
-      expect(
-        screen.getByText(/2 customer points will be allocated/i),
-      ).toBeInTheDocument();
-    });
-
-    await userEvent.click(
-      screen.getByRole("button", { name: /apply changes/i }),
-    );
-    await expectSuccessNotification(2);
-
-    const hydraulicModel = store.get(stagingModelDerivedAtom);
-    expect(hydraulicModel.customerPoints.size).toBe(2);
-
-    const customerPoint1 = hydraulicModel.customerPoints.get(IDS.CP1);
-    const customerPoint2 = hydraulicModel.customerPoints.get(IDS.CP2);
-
-    expect(customerPoint1).toBeDefined();
-    expect(customerPoint1?.coordinates).toEqual([0.0003, 0.0003]);
-    const cp1Demands = getCustomerPointDemands(hydraulicModel.demands, IDS.CP1);
-    expect(cp1Demands[0]?.baseDemand).toBeCloseTo(0.000295, 6);
-
-    expect(customerPoint2).toBeDefined();
-    expect(customerPoint2?.coordinates).toEqual([0.0007, 0.0007]);
-    const cp2Demands = getCustomerPointDemands(hydraulicModel.demands, IDS.CP2);
-    expect(cp2Demands[0]?.baseDemand).toBeCloseTo(0.00174, 5);
-  });
-
-  it("assigns IDs starting from 1 for empty model", async () => {
-    const IDS = { CP1: 1, CP2: 2 } as const;
-    const store = createStoreWithPipes();
-
-    renderComponent({ store });
-
-    const geoJsonContent = createGeoJSONContent();
-    const file = aTestFile({
-      filename: "customer-points.geojson",
-      content: geoJsonContent,
-    });
-
-    await triggerCommand();
-    await waitForWizardToOpen();
-
-    expectWizardStep("data input");
-
-    await uploadFileInWizard(file);
-
-    expectWizardStep("data preview");
-
-    await userEvent.click(screen.getByRole("button", { name: /next/i }));
-
-    expectWizardStep("demand options");
-
-    await userEvent.click(screen.getByRole("button", { name: /next/i }));
-
-    expectWizardStep("customers allocation");
-
-    await waitForAllocations();
-
-    await userEvent.click(
-      screen.getByRole("button", { name: /apply changes/i }),
-    );
-    await expectSuccessNotification();
-
-    const hydraulicModel = store.get(stagingModelDerivedAtom);
-    expect(hydraulicModel.customerPoints.has(IDS.CP1)).toBe(true);
-    expect(hydraulicModel.customerPoints.has(IDS.CP2)).toBe(true);
-  });
-
-  it("skips non-Point geometries", async () => {
-    const IDS = { CP1: 1 } as const;
-    const store = createStoreWithPipes();
-
-    renderComponent({ store });
-
-    const mixedGeometryContent = createMixedGeometryGeoJSON();
-    const file = aTestFile({
-      filename: "mixed-geometry.geojson",
-      content: mixedGeometryContent,
-    });
-
-    await triggerCommand();
-    await waitForWizardToOpen();
-    expectWizardStep("data input");
-    await uploadFileInWizard(file);
-    expectWizardStep("data preview");
-
-    await userEvent.click(screen.getByRole("button", { name: /next/i }));
-    expectWizardStep("demand options");
-
-    await userEvent.click(screen.getByRole("button", { name: /next/i }));
-    expectWizardStep("customers allocation");
-
-    await waitForAllocations();
-
-    await userEvent.click(
-      screen.getByRole("button", { name: /apply changes/i }),
-    );
-    await expectSuccessNotification(1);
-
-    const hydraulicModel = store.get(stagingModelDerivedAtom);
-    expect(hydraulicModel.customerPoints.size).toBe(1);
-    expect(hydraulicModel.customerPoints.get(IDS.CP1)?.coordinates).toEqual([
-      0.0004, 0.0004,
-    ]);
-  });
-
-  it("keeps existing demands when add on top option is selected", async () => {
-    const IDS = { J1: 1, J2: 2, P1: 3 } as const;
-    const store = setInitialState({
-      hydraulicModel: HydraulicModelBuilder.with()
-        .aJunction(IDS.J1, {
-          coordinates: [0, 0],
-        })
-        .aJunctionDemand(IDS.J1, [{ baseDemand: 30 }])
-        .aJunction(IDS.J2, {
-          coordinates: [0.001, 0.001],
-        })
-        .aJunctionDemand(IDS.J2, [{ baseDemand: 45 }])
-        .aPipe(IDS.P1, {
-          startNodeId: IDS.J1,
-          endNodeId: IDS.J2,
-          diameter: 150,
-          coordinates: [
-            [0, 0],
-            [0.001, 0.001],
-          ],
-        })
-        .build(),
-    });
-
-    renderComponent({ store });
-
-    const geoJsonContent = JSON.stringify({
-      type: "FeatureCollection",
-      features: [
-        {
-          type: "Feature",
-          geometry: { type: "Point", coordinates: [0.0003, 0.0003] },
-          properties: { demand: 20 },
-        },
-      ],
-    });
-
-    const file = aTestFile({
-      filename: "customer-points.geojson",
-      content: geoJsonContent,
-    });
-
-    await triggerCommand();
-    await waitForWizardToOpen();
-    expectWizardStep("data input");
-    await uploadFileInWizard(file);
-    expectWizardStep("data preview");
-
-    await userEvent.click(screen.getByRole("button", { name: /next/i }));
-    expectWizardStep("demand options");
-
-    await userEvent.click(
-      screen.getByLabelText(/add customer demands on top/i),
-    );
-
-    await userEvent.click(screen.getByRole("button", { name: /next/i }));
-
-    expectWizardStep("customers allocation");
-
-    await waitForAllocations();
-
-    await userEvent.click(
-      screen.getByRole("button", { name: /apply changes/i }),
-    );
-    await expectSuccessNotification();
-
-    const hydraulicModel = store.get(stagingModelDerivedAtom);
-    const junction = hydraulicModel.assets.get(IDS.J1) as Junction;
-
-    expect(getJunctionDemands(hydraulicModel.demands, junction.id)).toBe([
-      { baseDemand: 30 },
-    ]);
-
-    const junctionCustomerPoints =
-      hydraulicModel.customerPointsLookup.getCustomerPoints(IDS.J1);
-    expect(junctionCustomerPoints?.size).toBe(1);
-    expect(
-      getTotalCustomerDemand(
-        junction.id,
-        hydraulicModel.customerPointsLookup,
-        hydraulicModel.demands,
-        hydraulicModel.patterns,
-      ),
-    ).toBeCloseTo(0.000231, 6);
-  });
-
-  it("replaces existing demands when replace option is selected", async () => {
-    const IDS = { J1: 1, J2: 2, P1: 3 } as const;
-    const store = setInitialState({
-      hydraulicModel: HydraulicModelBuilder.with()
-        .aJunction(IDS.J1, {
-          coordinates: [0, 0],
-        })
-        .aJunctionDemand(IDS.J1, [{ baseDemand: 40 }])
-        .aJunction(IDS.J2, {
-          coordinates: [0.001, 0.001],
-        })
-        .aJunctionDemand(IDS.J2, [{ baseDemand: 60 }])
-        .aPipe(IDS.P1, {
-          startNodeId: IDS.J1,
-          endNodeId: IDS.J2,
-          diameter: 150,
-          coordinates: [
-            [0, 0],
-            [0.001, 0.001],
-          ],
-        })
-        .build(),
-    });
-
-    renderComponent({ store });
-
-    const geoJsonContent = JSON.stringify({
-      type: "FeatureCollection",
-      features: [
-        {
-          type: "Feature",
-          geometry: { type: "Point", coordinates: [0.0002, 0.0002] },
-          properties: { demand: 25 },
-        },
-      ],
-    });
-
-    const file = aTestFile({
-      filename: "customer-points.geojson",
-      content: geoJsonContent,
-    });
-
-    await triggerCommand();
-    await waitForWizardToOpen();
-    expectWizardStep("data input");
-    await uploadFileInWizard(file);
-    expectWizardStep("data preview");
-
-    await userEvent.click(screen.getByRole("button", { name: /next/i }));
-    expectWizardStep("demand options");
-
-    await userEvent.click(screen.getByRole("button", { name: /next/i }));
-
-    expectWizardStep("customers allocation");
-
-    await waitForAllocations();
-
-    await userEvent.click(
-      screen.getByRole("button", { name: /apply changes/i }),
-    );
-    await expectSuccessNotification();
-
-    const hydraulicModel = store.get(stagingModelDerivedAtom);
-    const junction = hydraulicModel.assets.get(IDS.J1) as Junction;
-
-    expect(getJunctionDemands(hydraulicModel.demands, junction.id)).toBe([]);
-
-    const junctionCustomerPoints =
-      hydraulicModel.customerPointsLookup.getCustomerPoints(IDS.J1);
-    expect(junctionCustomerPoints?.size).toBe(1);
-    expect(
-      getTotalCustomerDemand(
-        junction.id,
-        hydraulicModel.customerPointsLookup,
-        hydraulicModel.demands,
-        hydraulicModel.patterns,
-      ),
-    ).toBeCloseTo(0.000289, 6);
-  });
-
-  it("closes wizard when cancel is clicked", async () => {
-    const userTracking = stubUserTracking();
-    const store = createStoreWithPipes();
-
-    renderComponent({ store });
-
-    await triggerCommand();
-    await waitForWizardToOpen();
-
-    await userEvent.click(screen.getByRole("button", { name: /close/i }));
-
-    await waitFor(() => {
-      expect(screen.queryByText(/import customer/)).not.toBeInTheDocument();
-    });
-
-    expect(userTracking.capture).toHaveBeenCalledWith({
-      name: "importCustomerPoints.dataInput.cancel",
-    });
-  });
-
-  it("imports valid points and skips invalid ones from mixed data", async () => {
-    const store = createStoreWithPipes();
-
-    renderComponent({ store });
-
-    const mixedData = createMixedValidInvalidGeoJSON();
-    const file = aTestFile({
-      filename: "mixed-data.geojson",
-      content: mixedData,
-    });
-
-    await triggerCommand();
-    await waitForWizardToOpen();
-
-    expectWizardStep("data input");
-
-    await uploadFileInWizard(file);
-
-    expectWizardStep("data preview");
-
-    await userEvent.click(screen.getByRole("button", { name: /next/i }));
-
-    expectWizardStep("demand options");
-
-    await userEvent.click(screen.getByRole("button", { name: /next/i }));
-
-    expectWizardStep("customers allocation");
-
-    await waitForAllocations();
-
-    await userEvent.click(
-      screen.getByRole("button", { name: /apply changes/i }),
-    );
-    await expectSuccessNotification(2);
-
-    const hydraulicModel = store.get(stagingModelDerivedAtom);
-    expect(hydraulicModel.customerPoints.size).toBe(2);
-  });
-
-  describe("warning dialog behavior", () => {
-    it("shows warning when existing customer points exist", async () => {
-      const IDS = { J1: 1, EXISTING: 2 } as const;
-      const store = setInitialState({
-        hydraulicModel: HydraulicModelBuilder.with()
-          .aJunction(IDS.J1, { coordinates: [0, 0] })
-          .aCustomerPoint(IDS.EXISTING, {
-            coordinates: [5, 5],
-          })
-          .aCustomerPointDemand(IDS.EXISTING, [{ baseDemand: 100 }])
-          .build(),
-      });
-
-      renderComponent({ store });
-
-      await triggerCommand();
-
-      expect(screen.getByText(/permanently delete/)).toBeInTheDocument();
-      expect(
-        screen.getByRole("button", { name: /Delete and Import/ }),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole("button", { name: "Cancel" }),
-      ).toBeInTheDocument();
-    });
-
-    it("opens wizard directly when no existing customer points", async () => {
-      const store = createStoreWithPipes();
-
-      renderComponent({ store });
-
-      await triggerCommand();
-
-      expect(screen.queryByText(/permanently delete/)).not.toBeInTheDocument();
-      await waitForWizardToOpen();
-      expect(
-        screen.getByRole("navigation", { name: /import wizard steps/i }),
-      ).toBeInTheDocument();
-    });
-  });
+const withStore = (store: Store) => ({
+  wrapper: ({ children }: { children: React.ReactNode }) => (
+    <JotaiProvider store={store}>{children}</JotaiProvider>
+  ),
 });
 
-const triggerCommand = async () => {
-  await userEvent.click(
-    screen.getByRole("button", { name: "importCustomerPoints" }),
-  );
-};
-
-const TestableComponent = () => {
-  const importCustomerPoints = useImportCustomerPoints();
-
-  return (
-    <button
-      aria-label="importCustomerPoints"
-      onClick={() => importCustomerPoints({ source: "test" })}
-    >
-      Import Customer Points
-    </button>
-  );
-};
-
-const createGeoJSONContent = (): string => {
-  return JSON.stringify({
-    type: "FeatureCollection",
-    features: [
-      {
-        type: "Feature",
-        geometry: {
-          type: "Point",
-          coordinates: [0.0002, 0.0002],
-        },
-        properties: {
-          name: "Customer A",
-          type: "Residential",
-          demand: 25.5,
-        },
-      },
-      {
-        type: "Feature",
-        geometry: {
-          type: "Point",
-          coordinates: [0.0008, 0.0008],
-        },
-        properties: {
-          name: "Customer B",
-          type: "Commercial",
-          demand: 150.0,
-        },
-      },
-    ],
+const aSavedProject = async (): Promise<Store> => {
+  const hydraulicModel = HydraulicModelBuilder.with()
+    .aJunction(IDS.J1)
+    .aCustomerPoint(IDS.OLD, { coordinates: [1, 1], label: "OLD" })
+    .aCustomerPointDemand(IDS.OLD, [{ baseDemand: 5 }])
+    .build();
+  const store = setInitialState({
+    hydraulicModel,
+    isProjectSaved: true,
+    selection: aSingleSelection({ id: IDS.J1 }),
   });
-};
-
-const createMixedGeometryGeoJSON = (): string => {
-  return JSON.stringify({
-    type: "FeatureCollection",
-    features: [
-      {
-        type: "Feature",
-        geometry: {
-          type: "Point",
-          coordinates: [0.0004, 0.0004],
-        },
-        properties: {
-          name: "Point Customer",
-          type: "Residential",
-        },
-      },
-      {
-        type: "Feature",
-        geometry: {
-          type: "LineString",
-          coordinates: [
-            [0.001, 0.002],
-            [0.003, 0.004],
-          ],
-        },
-        properties: {
-          name: "Line Feature",
-          type: "Should be skipped",
-        },
-      },
-      {
-        type: "Feature",
-        geometry: {
-          type: "Polygon",
-          coordinates: [
-            [
-              [0, 0],
-              [10, 0],
-              [10, 10],
-              [0, 10],
-              [0, 0],
-            ],
-          ],
-        },
-        properties: {
-          name: "Polygon Feature",
-          type: "Should be skipped",
-        },
-      },
-    ],
-  });
-};
-
-const createMixedValidInvalidGeoJSON = (): string => {
-  return JSON.stringify({
-    type: "FeatureCollection",
-    features: [
-      {
-        type: "Feature",
-        geometry: {
-          type: "Point",
-          coordinates: [0.0005, 0.0005],
-        },
-        properties: {
-          name: "Valid Customer A",
-          demand: 25.5,
-        },
-      },
-      {
-        type: "Feature",
-        geometry: {
-          type: "Point",
-          coordinates: [0.0006, 0.0006],
-        },
-        properties: {
-          name: "Valid Customer B",
-          demand: 150,
-        },
-      },
-      {
-        type: "Feature",
-        geometry: {
-          type: "LineString",
-          coordinates: [
-            [10, 20],
-            [30, 40],
-          ],
-        },
-        properties: {
-          name: "Invalid Line Feature",
-          demand: 100,
-        },
-      },
-      {
-        type: "Feature",
-        geometry: {
-          type: "Point",
-          coordinates: [50],
-        },
-        properties: {
-          name: "Invalid Coordinates",
-          demand: 75,
-        },
-      },
-      {
-        type: "Feature",
-        geometry: {
-          type: "Polygon",
-          coordinates: [
-            [
-              [0, 0],
-              [10, 0],
-              [10, 10],
-              [0, 10],
-              [0, 0],
-            ],
-          ],
-        },
-        properties: {
-          name: "Invalid Polygon",
-          demand: 200,
-        },
-      },
-    ],
-  });
-};
-
-const createStoreWithPipes = (
-  additionalSetup?: (builder: HydraulicModelBuilder) => HydraulicModelBuilder,
-) => {
-  const IDS = { J1: 1, J2: 2, P1: 3 } as const;
-  const baseModel = HydraulicModelBuilder.with()
-    .aJunction(IDS.J1, { coordinates: [0, 0] })
-    .aJunction(IDS.J2, { coordinates: [0.001, 0.001] })
-    .aPipe(IDS.P1, {
-      startNodeId: IDS.J1,
-      endNodeId: IDS.J2,
-      diameter: 150, // Within maxDiameter: 200 limit
-      coordinates: [
-        [0, 0],
-        [0.001, 0.001],
-      ],
-    });
-
-  const finalModel = additionalSetup ? additionalSetup(baseModel) : baseModel;
-
-  return setInitialState({
-    hydraulicModel: finalModel.build(),
-  });
-};
-
-const renderComponent = ({ store }: { store: Store }) => {
-  render(
-    <CommandContainer store={store}>
-      <TestableComponent />
-    </CommandContainer>,
-  );
-};
-
-const waitForWizardToOpen = async () => {
-  await waitFor(
-    () => screen.getByRole("navigation", { name: /import wizard steps/i }),
-    { timeout: 3000 },
-  );
-};
-
-const uploadFileInWizard = async (file: File) => {
-  const dropZone = screen.getByTestId("customer-points-drop-zone");
-  expect(dropZone).toBeInTheDocument();
-
-  await userEvent.click(dropZone);
-
-  const fileInput = document.querySelector(
-    'input[type="file"]',
-  ) as HTMLInputElement;
-  expect(fileInput).toBeInTheDocument();
-
-  await userEvent.upload(fileInput, file);
-};
-
-const waitForAllocations = async () => {
-  // Wait for allocation computation to complete
-  await waitFor(() => {
-    expect(
-      screen.queryByText("Computing allocations..."),
-    ).not.toBeInTheDocument();
-  });
-
-  // Wait for allocation summary to appear
-  await waitFor(() => {
-    expect(screen.getByText(/Allocation summary/)).toBeInTheDocument();
-  });
-};
-
-const expectWizardStep = (stepName: string) => {
-  expect(
-    screen.getByRole("tab", {
-      name: new RegExp(stepName, "i"),
-      current: "step",
+  store.set(
+    modelFactoriesAtom,
+    initializeModelFactories({
+      idPools: buildIdPools({
+        asset: 30,
+        customerPoint: 20,
+        pattern: 40,
+        curve: 50,
+        zone: 60,
+      }),
+      labelManager: new LabelManager(),
     }),
-  ).toBeInTheDocument();
+  );
+  await db.importProject({
+    newDb: true,
+    hydraulicModel,
+    projectSettings: defaultProjectSettings,
+    simulationSettings: defaultSimulationSettings,
+  });
+  return store;
 };
 
-const expectSuccessNotification = async (count?: number) => {
-  await waitFor(() => {
-    expect(screen.getByText(/import successful/i)).toBeInTheDocument();
+const aCustomerPointWithArea = () => {
+  const customerPoint = buildCustomerPoint(IDS.NEW, {
+    coordinates: [2, 2],
+    label: "NEW",
   });
-  if (count !== undefined) {
-    await waitFor(() => {
-      expect(screen.getByText(/import successful/i)).toBeInTheDocument();
-    });
-  }
+  customerPoint.setProperty("custom-1", "North");
+  return customerPoint;
 };
+
+const applyImport = (store: Store) => {
+  const { result } = renderHook(
+    () => useImportCustomerPoints(),
+    withStore(store),
+  );
+  let applied = false;
+  act(() => {
+    applied = result.current({
+      customerPoints: [aCustomerPointWithArea()],
+      customerPointDemands: new Map([[IDS.NEW, [{ baseDemand: 7 }]]]),
+      preserveJunctionDemands: true,
+      customAttributes: setAttributes(
+        emptyCustomAttributesDefinition(),
+        "customerPoint",
+        [{ id: "custom-1", label: "Area", type: "text" }],
+      ),
+    });
+  });
+  return applied;
+};
+
+const undo = (store: Store) => {
+  const { result } = renderHook(
+    () => useUndoableTransactions(),
+    withStore(store),
+  );
+  act(() => {
+    result.current.historyControl("undo");
+  });
+};
+
+describe("useImportCustomerPoints", () => {
+  useInProcessDb();
+
+  it("replaces the customer points in the model", async () => {
+    const store = await aSavedProject();
+
+    expect(applyImport(store)).toBe(true);
+
+    const model = store.get(stagingModelDerivedAtom);
+    expect([...model.customerPoints.keys()]).toEqual([IDS.NEW]);
+    expect(getCustomerPointDemands(model.demands, IDS.NEW)).toEqual([
+      { baseDemand: 7 },
+    ]);
+  });
+
+  it("saves the imported points and attributes to the project", async () => {
+    const store = await aSavedProject();
+
+    applyImport(store);
+
+    await waitFor(async () => {
+      const { hydraulicModel: saved } = await fetchProject();
+      expect([...saved.customerPoints.keys()]).toEqual([IDS.NEW]);
+      expect(saved.customerPoints.get(IDS.NEW)?.getProperty("custom-1")).toBe(
+        "North",
+      );
+      expect(getAttributes(saved.customAttributes, "customerPoint")).toEqual([
+        { id: "custom-1", label: "Area", type: "text" },
+      ]);
+    });
+  });
+
+  it("registers the imported labels and releases the replaced ones", async () => {
+    const store = await aSavedProject();
+    const { labelManager } = store.get(modelFactoriesAtom);
+    labelManager.register("OLD", "customerPoint", IDS.OLD);
+
+    applyImport(store);
+
+    expect(labelManager.isLabelAvailable("NEW", "customerPoint")).toBe(false);
+    expect(labelManager.isLabelAvailable("OLD", "customerPoint")).toBe(true);
+  });
+
+  it("clears the selection", async () => {
+    const store = await aSavedProject();
+
+    applyImport(store);
+
+    expect(store.get(selectionAtom)).toEqual(USelection.none());
+  });
+
+  it("restores the replaced customer points on undo", async () => {
+    const store = await aSavedProject();
+
+    applyImport(store);
+    undo(store);
+
+    const model = store.get(stagingModelDerivedAtom);
+    expect([...model.customerPoints.keys()]).toEqual([IDS.OLD]);
+    expect(getCustomerPointDemands(model.demands, IDS.OLD)).toEqual([
+      { baseDemand: 5 },
+    ]);
+  });
+
+  it("reports unsaved changes", async () => {
+    const store = await aSavedProject();
+
+    applyImport(store);
+
+    const { result } = renderHook(
+      () => useHasUnsavedChanges(),
+      withStore(store),
+    );
+    expect(result.current).toBe(true);
+  });
+});

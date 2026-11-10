@@ -8,7 +8,7 @@ import { useImportCustomerPointsDisabled } from "src/hooks/use-import-customer-p
 import { useTranslate } from "src/hooks/use-translate";
 import { notify } from "src/components/notifications";
 
-export const useImportCustomerPoints = () => {
+export const useOpenCustomerPointsImport = () => {
   const setDialogState = useSetAtom(dialogAtom);
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const userTracking = useUserTracking();
@@ -16,7 +16,7 @@ export const useImportCustomerPoints = () => {
   const isDisabled = useImportCustomerPointsDisabled();
   const translate = useTranslate();
 
-  const importCustomerPoints = useCallback(
+  const openCustomerPointsImport = useCallback(
     ({ source }: { source: string }) => {
       onlyEarlyAccess(() => {
         userTracking.capture({
@@ -61,5 +61,5 @@ export const useImportCustomerPoints = () => {
     ],
   );
 
-  return importCustomerPoints;
+  return openCustomerPointsImport;
 };

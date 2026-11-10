@@ -13,6 +13,15 @@ export const yieldToMain = (): Promise<void> => {
   return new Promise((resolve) => setTimeout(resolve, 0));
 };
 
+export const waitForPaint = (): Promise<void> =>
+  new Promise((resolve) => {
+    if (typeof requestAnimationFrame !== "function") {
+      setTimeout(resolve, 0);
+      return;
+    }
+    requestAnimationFrame(() => setTimeout(resolve, 0));
+  });
+
 const MAIN_THREAD_SLICE_MS = 16;
 
 export const createTimeSlicer = (
