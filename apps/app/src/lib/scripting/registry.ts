@@ -107,8 +107,6 @@ export type ScriptSimulationStatus =
   | "failure"
   | "stopped";
 
-export type ScriptGated<T> = { isOn: false } | { isOn: true; value: T };
-
 export type ScriptLastResults = {
   status: ScriptSimulationStatus;
   report: string;
@@ -164,8 +162,7 @@ export type Scripting = {
     project: ScriptProject;
     simulation: ScriptSimulationSettings;
     inp: { simulationSettings: SimulationSettings; projection: Projection };
-    lastResults: ScriptGated<ScriptLastResults | null>;
-    isEditsOn: boolean;
+    lastResults: ScriptLastResults | null;
     hasScenarios: boolean;
     isDeleteZoneOn: boolean;
     editsBlockedReason: string | null;

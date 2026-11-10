@@ -79,8 +79,6 @@ export const useRunScript = () => {
   const { canManageCollections, canRunScripts } = usePermissions();
   const { openPaywall } = useFeatureLock("runScripts");
   const userTracking = useUserTracking();
-  const isScriptResultsOn = useFeatureFlag("FLAG_SCRIPT_RESULTS");
-  const isScriptEditsOn = useFeatureFlag("FLAG_SCRIPT_EDITS");
   const isDeleteZoneOn = useFeatureFlag("FLAG_DELETE_ZONE");
   const { transact } = useModelTransaction();
   const editionBlock = useEditionBlock();
@@ -260,10 +258,7 @@ export const useRunScript = () => {
           simulationSettings: store.get(simulationSettingsDerivedAtom),
           projection: store.get(projectSettingsAtom).projection,
         },
-        lastResults: isScriptResultsOn
-          ? { isOn: true, value: lastResultsOf(store.get) }
-          : { isOn: false },
-        isEditsOn: isScriptEditsOn,
+        lastResults: lastResultsOf(store.get),
         hasScenarios: store.get(hasScenariosAtom),
         isDeleteZoneOn,
         editsBlockedReason:
@@ -324,8 +319,6 @@ export const useRunScript = () => {
       userTracking,
       canRunScripts,
       openPaywall,
-      isScriptResultsOn,
-      isScriptEditsOn,
       isDeleteZoneOn,
       showScriptOutput,
     ],

@@ -319,12 +319,10 @@ describe("ScriptsPanel", () => {
         await user.click(screen.getByRole("button", { name: "Send" }));
       };
 
-      it("asks for the edits docs when the user has script edits", async () => {
-        stubFeaturesOn(["FLAG_SCRIPTING_ASSISTANT", "FLAG_SCRIPT_EDITS"]);
-
+      it("asks for the released docs", async () => {
         await sendDescription();
 
-        expect(writes[0].request.docsVariant).toEqual("editsCandidate");
+        expect(writes[0].request.docsVariant).toEqual("official");
       });
 
       it("says why it failed and hands the description back", async () => {
@@ -602,7 +600,7 @@ describe("ScriptsPanel", () => {
       (store.get(stagingModelDerivedAtom).assets.get(IDS.P1) as Pipe).diameter;
 
     it("passes whether zones can be deleted to the run", async () => {
-      stubFeaturesOn(["FLAG_SCRIPT_EDITS", "FLAG_DELETE_ZONE"]);
+      stubFeaturesOn(["FLAG_DELETE_ZONE"]);
       const user = userEvent.setup();
       const startScriptRun = aRunThatSetsTheDiameter();
       registerScripting({ startScriptRun, exampleScripts: [] });
@@ -629,7 +627,6 @@ describe("ScriptsPanel", () => {
     };
 
     it("tells the run why it cannot edit on a locked Main", async () => {
-      stubFeaturesOn(["FLAG_SCRIPT_EDITS"]);
       const user = userEvent.setup();
       const startScriptRun = aRunThatSetsTheDiameter();
       registerScripting({ startScriptRun, exampleScripts: [] });
@@ -646,7 +643,6 @@ describe("ScriptsPanel", () => {
     });
 
     it("applies nothing else from a run whose edits are refused", async () => {
-      stubFeaturesOn(["FLAG_SCRIPT_EDITS"]);
       const user = userEvent.setup();
       const run = aRunThatSetsTheDiameter();
       const startScriptRun = vi.fn(({ model }: { model: HydraulicModel }) => {
@@ -679,7 +675,6 @@ describe("ScriptsPanel", () => {
     });
 
     it("runs with no reason when the model can be edited", async () => {
-      stubFeaturesOn(["FLAG_SCRIPT_EDITS"]);
       const user = userEvent.setup();
       const startScriptRun = aRunThatSetsTheDiameter();
       registerScripting({ startScriptRun, exampleScripts: [] });
@@ -693,7 +688,7 @@ describe("ScriptsPanel", () => {
     });
 
     it("keeps a zone the script deleted out of the selection", async () => {
-      stubFeaturesOn(["FLAG_SCRIPT_EDITS", "FLAG_DELETE_ZONE"]);
+      stubFeaturesOn(["FLAG_DELETE_ZONE"]);
       const user = userEvent.setup();
       const ZONES = { DELETED: 10, KEPT: 11 } as const;
       const square = {
@@ -761,7 +756,6 @@ describe("ScriptsPanel", () => {
     });
 
     it("applies the edits a script hands back to the network", async () => {
-      stubFeatureOn("FLAG_SCRIPT_EDITS");
       const user = userEvent.setup();
       const startScriptRun = aRunThatSetsTheDiameter();
       registerScripting({ startScriptRun, exampleScripts: [] });
@@ -770,14 +764,10 @@ describe("ScriptsPanel", () => {
 
       await user.click(screen.getByRole("button", { name: "Run Resize" }));
 
-      expect(startScriptRun).toHaveBeenCalledWith(
-        expect.objectContaining({ isEditsOn: true }),
-      );
       await vi.waitFor(() => expect(diameterOf(store)).toEqual(150));
     });
 
     it("keeps the app from reusing the id of a pattern the script added", async () => {
-      stubFeatureOn("FLAG_SCRIPT_EDITS");
       const user = userEvent.setup();
       const startScriptRun = vi.fn(({ model }: { model: HydraulicModel }) => ({
         finished: Promise.resolve<ScriptRunOutcome>({
@@ -807,23 +797,6 @@ describe("ScriptsPanel", () => {
       );
       expect(store.get(modelFactoriesAtom).idPools.newId("pattern")).toEqual(
         10,
-      );
-    });
-
-    it("runs scripts without edits when the flag is off", async () => {
-      stubFeatureOff("FLAG_SCRIPT_EDITS");
-      const user = userEvent.setup();
-      const startScriptRun = vi.fn().mockReturnValue({
-        finished: new Promise(() => {}),
-        cancel: vi.fn(),
-      });
-      registerScripting({ startScriptRun, exampleScripts: [] });
-      renderPanel(aStoreWithAPipe());
-
-      await user.click(screen.getByRole("button", { name: "Run Resize" }));
-
-      expect(startScriptRun).toHaveBeenCalledWith(
-        expect.objectContaining({ isEditsOn: false }),
       );
     });
   });
@@ -1022,34 +995,6 @@ describe("ScriptsPanel", () => {
       expect(
         screen.queryByRole("button", { name: "Network review report" }),
       ).not.toBeInTheDocument();
-    });
-
-    it("shows the examples that edit the model only with edits on", () => {
-      registerScripting({
-        startScriptRun: vi.fn(),
-        exampleScripts: [
-          {
-            id: "scale-demands",
-            name: "Scale demands by a percentage",
-            source: "",
-            paid: false,
-            needsEdits: true,
-          },
-        ],
-      });
-      const { unmount } = renderPanel(aStoreWith([]));
-
-      expect(
-        screen.queryByRole("button", { name: "Scale demands by a percentage" }),
-      ).not.toBeInTheDocument();
-      unmount();
-
-      stubFeaturesOn(["FLAG_SCRIPT_EDITS"]);
-      renderPanel(aStoreWith([]));
-
-      expect(
-        screen.getByRole("button", { name: "Scale demands by a percentage" }),
-      ).toBeVisible();
     });
 
     it("offers the paywall instead of creating a script", async () => {

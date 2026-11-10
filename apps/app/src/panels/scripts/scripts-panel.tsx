@@ -211,7 +211,6 @@ const ScriptList = ({
   const { isLocked: isEditLocked, openPaywall: openEditPaywall } =
     useFeatureLock("editScripts");
   const { canRunScripts } = usePermissions();
-  const isScriptEditsOn = useFeatureFlag("FLAG_SCRIPT_EDITS");
   const listRef = useRef<NavigableListHandle>(null);
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [focusedItem, setFocusedItem] = useState<NavItem<Section> | undefined>(
@@ -241,7 +240,6 @@ const ScriptList = ({
     const newRowNavId = scripts.length + 1;
     const exampleRows: Row[] = (getScripting()?.exampleScripts ?? [])
       .filter((example) => !example.paid || canRunScripts)
-      .filter((example) => !example.needsEdits || isScriptEditsOn)
       .map((example, index) => {
         const name = translate(exampleNameKey(example.id));
         return {
@@ -268,7 +266,7 @@ const ScriptList = ({
       [...myRows, ...exampleRows].map((row) => [row.navId, row]),
     );
     return { myRows, exampleRows, newRowNavId, byNavId };
-  }, [scripts, canRunScripts, isScriptEditsOn, translate]);
+  }, [scripts, canRunScripts, translate]);
 
   const navItems = useMemo(
     (): NavItem<Section>[] => [
