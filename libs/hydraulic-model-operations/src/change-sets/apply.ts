@@ -295,8 +295,7 @@ const applyChanges = (
 
   let curves: Curves | null = null;
   let patterns: Map<number, Pattern> | null = null;
-  let junctionDemands: Map<number, Demand[]> | null = null;
-  let customerDemands: Map<number, Demand[]> | null = null;
+  let demandsChanged = false;
   let zones: Zones | null = null;
 
   let count = 0;
@@ -349,12 +348,12 @@ const applyChanges = (
             );
             break;
           case "junctionDemand":
-            junctionDemands ??= new Map(model.demands.junctions);
-            applyDemand(id, change, junctionDemands);
+            applyDemand(id, change, model.demands.junctions);
+            demandsChanged = true;
             break;
           case "customerDemand":
-            customerDemands ??= new Map(model.demands.customerPoints);
-            applyDemand(id, change, customerDemands);
+            applyDemand(id, change, model.demands.customerPoints);
+            demandsChanged = true;
             break;
           case "pipeLibrary":
             model.pipeMaterials = wholeValueOf<PipeMaterial[]>(change.fields);
@@ -374,13 +373,7 @@ const applyChanges = (
   if (curves) model.curves = curves;
   if (patterns) model.patterns = patterns;
   if (zones) model.zones = zones;
-  if (junctionDemands || customerDemands) {
-    model.demands = {
-      ...model.demands,
-      junctions: junctionDemands ?? model.demands.junctions,
-      customerPoints: customerDemands ?? model.demands.customerPoints,
-    };
-  }
+  if (demandsChanged) model.demands = { ...model.demands };
 
   return { touchedEntities, touchedAssetIds, count };
 };

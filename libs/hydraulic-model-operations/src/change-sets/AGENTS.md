@@ -71,6 +71,10 @@ deliberately; a create that lands before what it points at has no other guard.
 It does not touch the id generator, re-sort assets, or set `version`; those
 belong to `applyChange` in the app's `src/lib/persistence/transaction-helpers.ts`.
 
+- **The applier mutates the model's structures in place; a model that shares
+  any with another (a branch, a snapshot) must copy them first — `copyModel` is
+  that copy.**
+
 - **Build assets with the constructor, never `AssetFactory`.** The factory would
   mint an id, register a label on the shared `LabelManager`, and coerce
   `undefined → null` — all wrong when reconstructing a value that already
