@@ -1,5 +1,6 @@
 import * as Sentry from "@sentry/nextjs";
 import { Plan } from "@epanet-js/account-plans";
+import type { FileIntegrity } from "@epanet-js/ejsdb-tag";
 
 const isDebugMode = (): boolean => process.env.NODE_ENV === "development";
 
@@ -108,9 +109,11 @@ export const setFlagsContext = (flagsEnabled: string[]) => {
   );
 };
 
-export const setProjectFileContext = (info: { isTampered: boolean }) => {
-  Sentry.setContext("Project file", info);
-  Sentry.setTag("projectFile.isTampered", info.isTampered);
+export type ProjectFileIntegrity = FileIntegrity | "unknown" | "not-from-file";
+
+export const setProjectFileContext = (integrity: ProjectFileIntegrity) => {
+  Sentry.setContext("Project file", { integrity });
+  Sentry.setTag("projectFile.integrity", integrity);
 };
 
 export const setErrorContext = (

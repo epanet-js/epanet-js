@@ -233,7 +233,7 @@ const replaceProject = async (
   input: ProjectLoadInput,
 ) => {
   set(simulationDerivedAtom, initialSimulationState);
-  setProjectFileContext({ isTampered: false });
+  setProjectFileContext("not-from-file");
   await clearSimulationStorage();
   const mergedProjectSettings: ProjectSettings = {
     ...input.projectSettings,

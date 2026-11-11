@@ -41,14 +41,20 @@ export type OpenDbResult =
       integrity: FileIntegrity;
       label: string | null;
     }
-  | { status: "too-new"; fileVersion: number; appVersion: number }
-  | { status: "corrupt"; errorDetails: string }
+  | {
+      status: "too-new";
+      fileVersion: number;
+      appVersion: number;
+      integrity: FileIntegrity;
+    }
+  | { status: "corrupt"; errorDetails: string; integrity: FileIntegrity }
   | { status: "internal"; errorDetails: string }
   | {
       status: "migration-failed";
       errorDetails: string;
       fileVersion: number;
       appVersion: number;
+      integrity: FileIntegrity;
     };
 
 export type CustomerPointDemandUpdate = {

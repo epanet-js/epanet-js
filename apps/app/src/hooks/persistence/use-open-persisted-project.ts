@@ -97,14 +97,14 @@ export const useOpenPersistedProject = () => {
           db.openProject(file),
         );
 
+        setProjectFileContext(
+          "integrity" in result ? result.integrity : "unknown",
+        );
+
         if (result.status !== "ok" && result.status !== "migrated") {
           trace.end();
           return result;
         }
-
-        setProjectFileContext({
-          isTampered: result.integrity === "tampered",
-        });
 
         let uniqueId: string | null = null;
         try {
