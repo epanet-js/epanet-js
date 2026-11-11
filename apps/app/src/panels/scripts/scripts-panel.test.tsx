@@ -224,6 +224,32 @@ describe("ScriptsPanel", () => {
       ).toHaveFocus();
     });
 
+    it("lists what the AI can see with the current scope checked", async () => {
+      const user = userEvent.setup();
+      const store = setInitialState({
+        hydraulicModel: HydraulicModelBuilder.with().build(),
+      });
+      renderPanel(store);
+
+      await user.click(screen.getByRole("button", { name: /new/i }));
+      await user.click(
+        screen.getByRole("button", {
+          name: "What the assistant can see: Script only",
+        }),
+      );
+
+      expect(screen.getByText("What the assistant can see")).toBeVisible();
+      expect(
+        screen.getByRole("option", { name: /Script only/ }),
+      ).toHaveAttribute("aria-selected", "true");
+      expect(
+        screen.getByRole("option", { name: /Script only/ }),
+      ).toHaveTextContent("Your message and this script.");
+      expect(
+        screen.getByRole("option", { name: /Script \+ whole network/ }),
+      ).toHaveAttribute("aria-disabled", "true");
+    });
+
     it("collapses the assistant in the editor and keeps run", async () => {
       const user = userEvent.setup();
       const store = setInitialState({

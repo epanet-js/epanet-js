@@ -2,6 +2,7 @@ import * as Popover from "@radix-ui/react-popover";
 import clsx from "clsx";
 import { useState } from "react";
 import { Button, StyledPopoverContent } from "src/components/elements";
+import { SelectorList } from "@epanet-js/ui-kit";
 import { useTranslate } from "src/hooks/use-translate";
 import type { ScriptAssistantScope } from "src/lib/script-assistant";
 import type { ScriptGeneration } from "./use-script-generation";
@@ -274,58 +275,37 @@ const ScopeSelector = ({
       <Popover.Portal>
         <StyledPopoverContent
           size="sm"
+          flush="yes"
           align="start"
           side="top"
           sideOffset={4}
           aria-labelledby="script-assistant-scope-title"
+          onOpenAutoFocus={(e) => e.preventDefault()}
+          className="flex flex-col overflow-hidden text-size-base"
         >
           <h3
             id="script-assistant-scope-title"
-            className="pb-2 text-size-base font-semibold text-default"
+            className="px-3 pt-3 pb-1 text-size-base font-semibold text-default"
           >
             {translate("scripting.assistant.whatTheAiCanSee")}
           </h3>
-          <div role="radiogroup" className="flex flex-col gap-0.5">
-            {scopes.map((scope) => {
-              const isChecked = scope.value === value;
-              return (
-                <label
-                  key={scope.value}
-                  className={clsx(
-                    "flex items-start gap-x-2 -mx-1 px-1 py-2 rounded-sm",
-                    isChecked && "bg-accent-tint",
-                    scope.available
-                      ? "cursor-pointer"
-                      : "cursor-not-allowed opacity-50",
-                    scope.available && !isChecked && "hover:bg-base-hover",
-                  )}
-                >
-                  <input
-                    type="radio"
-                    name="script-assistant-scope"
-                    value={scope.value}
-                    checked={isChecked}
-                    disabled={!scope.available}
-                    onChange={() => {
-                      onChange(scope.value);
-                      setIsOpen(false);
-                    }}
-                    className="mt-0.5 shrink-0 text-accent-hover focus:ring-accent disabled:opacity-50"
-                  />
-                  <span className="flex flex-col gap-y-0.5">
-                    <span className="text-size-base font-semibold text-default">
-                      {scopeLabel(scope.value)}
-                    </span>
-                    <span className="text-size-small text-subtle">
-                      {translate(
-                        `scripting.assistant.scopes.${scope.value}.description`,
-                      )}
-                    </span>
-                  </span>
-                </label>
-              );
-            })}
-          </div>
+          <SelectorList<Scope>
+            options={scopes.map((scope) => ({
+              value: scope.value,
+              label: scopeLabel(scope.value),
+              description: translate(
+                `scripting.assistant.scopes.${scope.value}.description`,
+              ),
+              disabled: !scope.available,
+            }))}
+            selected={value}
+            onCommit={(scope) => {
+              if (scope !== null) onChange(scope);
+              setIsOpen(false);
+            }}
+            onClose={() => setIsOpen(false)}
+            descriptionPlacement="below"
+          />
         </StyledPopoverContent>
       </Popover.Portal>
     </Popover.Root>

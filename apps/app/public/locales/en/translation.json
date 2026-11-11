@@ -168,8 +168,8 @@
       "create": "Create",
       "update": "Update",
       "stop": "Stop",
-      "whatTheAiCanSee": "What the AI can see",
-      "whatTheAiCanSeeValue": "What the AI can see: {{1}}",
+      "whatTheAiCanSee": "What the assistant can see",
+      "whatTheAiCanSeeValue": "What the assistant can see: {{1}}",
       "scopes": {
         "script": {
           "label": "Script only",

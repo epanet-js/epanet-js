@@ -53,6 +53,11 @@ export type SelectorListProps<T extends string | number | boolean> = {
    * option, e.g. highlight it elsewhere in the UI.
    */
   onActiveOptionChange?: (value: T | null) => void;
+  /**
+   * Where option descriptions go: beside the label, or on their own line
+   * under it. "below" grows each row to fit and is never virtualized.
+   */
+  descriptionPlacement?: "inline" | "below";
 };
 
 const VIRTUALIZATION_THRESHOLD = 100;
@@ -104,9 +109,11 @@ export function BaseSelectorList<T extends string | number | boolean>({
   maxVisibleOptions = 5,
   initialQuery = "",
   onActiveOptionChange,
+  descriptionPlacement = "inline",
 }: SelectorListProps<T>) {
   const ui = useUIConfig();
-  const virtualized = options.length > VIRTUALIZATION_THRESHOLD;
+  const isStacked = descriptionPlacement === "below";
+  const virtualized = !isStacked && options.length > VIRTUALIZATION_THRESHOLD;
   const [query, setQuery] = useState(initialQuery);
   const [activeIndex, setActiveIndex] = useState<number>(() => {
     if (selected === null) return NO_INDEX;
@@ -495,7 +502,8 @@ export function BaseSelectorList<T extends string | number | boolean>({
         aria-disabled={isOptionDisabled}
         style={virtualStyle}
         className={clsx(
-          "flex items-center justify-between gap-4 h-8 px-2 rounded-sm",
+          "flex justify-between gap-4 px-2 rounded-sm",
+          isStacked ? "items-start min-h-8 py-1.5" : "items-center h-8",
           virtualStyle && "absolute top-0 left-1 right-1",
           isOptionDisabled
             ? "cursor-default text-disabled"
@@ -515,19 +523,37 @@ export function BaseSelectorList<T extends string | number | boolean>({
         onMouseDown={(e) => e.preventDefault()}
         onClick={isOptionDisabled ? undefined : () => onCommit(option.value)}
       >
-        <span className="flex items-baseline gap-1 min-w-0">
-          {option.icon && (
-            <span className="self-center flex shrink-0">{option.icon}</span>
-          )}
-          <span className={clsx(virtualStyle && "truncate")}>
-            {option.label}
+        {isStacked ? (
+          <span className="flex flex-col gap-y-0.5 min-w-0">
+            <span className="flex items-center gap-1">
+              {option.icon && (
+                <span className="flex shrink-0">{option.icon}</span>
+              )}
+              <span>{option.label}</span>
+            </span>
+            {option.description && (
+              <span className="text-size-small text-subtle">
+                {option.description}
+              </span>
+            )}
           </span>
-          {option.description && (
-            <span className="text-subtle">{option.description}</span>
-          )}
-        </span>
+        ) : (
+          <span className="flex items-baseline gap-1 min-w-0">
+            {option.icon && (
+              <span className="self-center flex shrink-0">{option.icon}</span>
+            )}
+            <span className={clsx(virtualStyle && "truncate")}>
+              {option.label}
+            </span>
+            {option.description && (
+              <span className="text-subtle">{option.description}</span>
+            )}
+          </span>
+        )}
         {option.value === selected && (
-          <CheckIcon className="text-accent shrink-0" />
+          <CheckIcon
+            className={clsx("text-accent shrink-0", isStacked && "mt-0.5")}
+          />
         )}
       </li>
     );
@@ -596,7 +622,7 @@ export function BaseSelectorList<T extends string | number | boolean>({
       {showList && (
         <div
           ref={setScrollElement}
-          style={{ maxHeight: maxListHeight }}
+          style={isStacked ? undefined : { maxHeight: maxListHeight }}
           className="outline-hidden min-h-0 overflow-auto scroll-shadows [scrollbar-width:thin]"
         >
           {virtualized ? (
