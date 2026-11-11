@@ -8,10 +8,14 @@ import {
   type CollectionDraftSource,
   type SelectionSetGroupId,
   type SelectionSetId,
+  SET_PATH_SEPARATOR,
   countSelected,
   existingSelection,
   newSelectionSet,
+  splitSetPath,
 } from "src/lib/collections";
+import type { Sel } from "src/selection";
+import { useEnsureSelectionSetGroupPath } from "src/commands/selection-set-groups";
 import { useSelectionSetsTransaction } from "src/hooks/persistence/use-selection-sets-transaction";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { selectionAtom } from "src/state/selection";
@@ -19,9 +23,10 @@ import { selectionSetsAtom } from "src/state/collections";
 
 export const MIN_SELECTION_SET_SIZE = 1;
 
-export const useSaveSelectionSet = () => {
+export const useCreateSelectionSet = () => {
   const userTracking = useUserTracking();
   const { create } = useSelectionSetsTransaction();
+  const ensureGroupPath = useEnsureSelectionSetGroupPath();
 
   return useAtomCallback(
     useCallback(
@@ -29,20 +34,34 @@ export const useSaveSelectionSet = () => {
         get,
         _set,
         {
-          label,
+          label: name,
+          selection,
           source,
-          groupId = null,
+          groupId: parentId = null,
         }: {
           label: string;
+          selection: Sel;
           source: CollectionDraftSource;
           groupId?: SelectionSetGroupId | null;
         },
-      ) => {
-        const selection = get(selectionAtom);
+      ): boolean => {
         const count = countSelected(selection);
-        if (count < MIN_SELECTION_SET_SIZE) return;
+        if (count < MIN_SELECTION_SET_SIZE) return false;
 
-        if (!create(newSelectionSet(label, selection, groupId))) return;
+        const { groupLabels, label } = name.includes(SET_PATH_SEPARATOR)
+          ? splitSetPath(name)
+          : { groupLabels: [], label: name };
+        if (!label) return false;
+
+        const ensured = ensureGroupPath({
+          groupLabels,
+          parentId,
+          source: source === "script-output" ? "script-output" : "panel",
+        });
+        if (!ensured) return false;
+        const { groupId } = ensured;
+
+        if (!create(newSelectionSet(label, selection, groupId))) return false;
 
         userTracking.capture({
           name: "selectionSet.created",
@@ -51,8 +70,30 @@ export const useSaveSelectionSet = () => {
           inGroup: groupId !== null,
           source,
         });
+        return true;
       },
-      [userTracking, create],
+      [userTracking, create, ensureGroupPath],
+    ),
+  );
+};
+
+export const useSaveSelectionSet = () => {
+  const createSelectionSet = useCreateSelectionSet();
+
+  return useAtomCallback(
+    useCallback(
+      (
+        get,
+        _set,
+        input: {
+          label: string;
+          source: CollectionDraftSource;
+          groupId?: SelectionSetGroupId | null;
+        },
+      ) => {
+        createSelectionSet({ ...input, selection: get(selectionAtom) });
+      },
+      [createSelectionSet],
     ),
   );
 };

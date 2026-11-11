@@ -125,6 +125,57 @@ export const groupPath = (
   return labels;
 };
 
+export const SET_PATH_SEPARATOR = "/";
+
+export const splitSetPath = (
+  path: string,
+): { groupLabels: string[]; label: string } => {
+  const groupLabels = path
+    .split(SET_PATH_SEPARATOR)
+    .map((segment) => segment.trim())
+    .filter((segment) => segment.length > 0);
+  const label = groupLabels.pop() ?? "";
+  return { groupLabels, label };
+};
+
+export const setPath = (
+  groups: readonly SelectionSetGroup[],
+  set: Pick<SelectionSet, "label" | "groupId">,
+): string =>
+  [
+    ...(set.groupId === null ? [] : groupPath(groups, set.groupId)),
+    set.label,
+  ].join(SET_PATH_SEPARATOR);
+
+export const ensureGroupPath = (
+  groups: readonly SelectionSetGroup[],
+  groupLabels: readonly string[],
+  parentId: SelectionSetGroupId | null = null,
+): {
+  groupId: SelectionSetGroupId | null;
+  pendingCreation: SelectionSetGroup[];
+} => {
+  const pendingCreation: SelectionSetGroup[] = [];
+  let groupId = resolveGroupId(groups, parentId);
+  for (const label of groupLabels) {
+    const parent = groupId;
+    let group =
+      pendingCreation.length === 0
+        ? groups.find(
+            (candidate) =>
+              candidate.label === label &&
+              resolveGroupId(groups, candidate.parentId) === parent,
+          )
+        : undefined;
+    if (!group) {
+      group = newSelectionSetGroup(label, parent);
+      pendingCreation.push(group);
+    }
+    groupId = group.id;
+  }
+  return { groupId, pendingCreation };
+};
+
 export const canMoveGroup = (
   groups: readonly SelectionSetGroup[],
   id: SelectionSetGroupId,

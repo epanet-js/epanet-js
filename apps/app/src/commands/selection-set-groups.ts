@@ -7,6 +7,7 @@ import {
   type SelectionSetGroup,
   type SelectionSetGroupId,
   descendantGroupIds,
+  ensureGroupPath,
   newSelectionSetGroup,
   setsInGroupSubtree,
 } from "src/lib/collections";
@@ -62,6 +63,48 @@ export const useCreateSelectionSetGroup = () => {
         });
       },
       [userTracking, create, canManageCollections, openPaywall],
+    ),
+  );
+};
+
+export const useEnsureSelectionSetGroupPath = () => {
+  const userTracking = useUserTracking();
+  const { create } = useSelectionSetGroupsTransaction();
+
+  return useAtomCallback(
+    useCallback(
+      (
+        get,
+        _set,
+        {
+          groupLabels,
+          parentId,
+          source,
+        }: {
+          groupLabels: readonly string[];
+          parentId: SelectionSetGroupId | null;
+          source: "panel" | "script-output";
+        },
+      ): { groupId: SelectionSetGroupId | null } | null => {
+        const { groupId, pendingCreation } = ensureGroupPath(
+          get(selectionSetGroupsAtom),
+          groupLabels,
+          parentId,
+        );
+        for (const group of pendingCreation) {
+          if (!create(group)) return null;
+
+          const groups = get(selectionSetGroupsAtom);
+          userTracking.capture({
+            name: "selectionSetGroup.created",
+            depth: depthOf(groups, group.parentId),
+            totalGroups: groups.length,
+            source,
+          });
+        }
+        return { groupId };
+      },
+      [userTracking, create],
     ),
   );
 };

@@ -6,11 +6,14 @@ import {
   childGroups,
   deleteGroupSubtree,
   descendantGroupIds,
+  ensureGroupPath,
   groupPath,
   largestContainedSet,
   moveGroup,
   newSelectionSet,
+  setPath,
   setsInGroupSubtree,
+  splitSetPath,
 } from "./collections";
 
 const aModel = () =>
@@ -212,6 +215,57 @@ describe("selection set groups", () => {
   it("lists the labels from the root down to the group", () => {
     expect(groupPath(tree, "deep")).toEqual(["DMAS", "SOUTH", "DEEP"]);
     expect(groupPath([aGroup("orphan", "gone")], "orphan")).toEqual(["ORPHAN"]);
+  });
+
+  it("writes a set's path as its group labels and its own, joined by slashes", () => {
+    expect(setPath(tree, aSet("loop", "deep"))).toBe("DMAS/SOUTH/DEEP/LOOP");
+    expect(setPath(tree, aSet("loop", null))).toBe("LOOP");
+    expect(setPath(tree, aSet("loop", "gone"))).toBe("LOOP");
+  });
+
+  it("splits a path into group labels and the set's own, dropping empty parts", () => {
+    expect(splitSetPath("DMAS/SOUTH/LOOP")).toEqual({
+      groupLabels: ["DMAS", "SOUTH"],
+      label: "LOOP",
+    });
+    expect(splitSetPath(" /DMAS // LOOP / ")).toEqual({
+      groupLabels: ["DMAS"],
+      label: "LOOP",
+    });
+    expect(splitSetPath("LOOP")).toEqual({ groupLabels: [], label: "LOOP" });
+    expect(splitSetPath(" / ")).toEqual({ groupLabels: [], label: "" });
+  });
+
+  it("finds the group a path leads to without creating any that exist", () => {
+    expect(ensureGroupPath(tree, ["DMAS", "SOUTH", "DEEP"])).toEqual({
+      groupId: "deep",
+      pendingCreation: [],
+    });
+    expect(ensureGroupPath(tree, [])).toEqual({
+      groupId: null,
+      pendingCreation: [],
+    });
+    expect(ensureGroupPath(tree, ["DEEP"], "south").groupId).toBe("deep");
+  });
+
+  it("creates the groups a path is missing, below the ones it found", () => {
+    const { groupId, pendingCreation } = ensureGroupPath(tree, [
+      "DMAS",
+      "WEST",
+      "DEEP",
+    ]);
+
+    expect(pendingCreation.map(({ label }) => label)).toEqual(["WEST", "DEEP"]);
+    expect(pendingCreation[0].parentId).toBe("dmas");
+    expect(pendingCreation[1].parentId).toBe(pendingCreation[0].id);
+    expect(groupId).toBe(pendingCreation[1].id);
+  });
+
+  it("matches a path against group labels by exact case", () => {
+    const { groupId, pendingCreation } = ensureGroupPath(tree, ["dmas"]);
+
+    expect(pendingCreation).toHaveLength(1);
+    expect(groupId).toBe(pendingCreation[0].id);
   });
 
   it("lets a group move anywhere but into itself or its own subtree", () => {
