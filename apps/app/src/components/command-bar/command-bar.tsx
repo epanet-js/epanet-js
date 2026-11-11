@@ -269,9 +269,9 @@ const CommandBarModal = ({ onClose }: { onClose: () => void }) => {
         className="absolute inset-0 bg-black/30 dark:bg-black/50"
         onClick={() => finish("dismissed")}
       />
-      <div className="relative z-10 w-[560px] max-w-[90vw] bg-popover rounded-lg shadow-2xl border border-gray-200 dark:border-gray-600 overflow-hidden">
+      <div className="relative z-10 w-[560px] max-w-[90vw] bg-popover rounded-lg shadow-2xl border overflow-hidden">
         <div className="flex items-center px-3 border-b">
-          <span className="text-gray-400 dark:text-gray-500" aria-hidden>
+          <span className="text-subtle" aria-hidden>
             <SearchIcon size="lg" />
           </span>
           <input
@@ -283,7 +283,7 @@ const CommandBarModal = ({ onClose }: { onClose: () => void }) => {
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
             placeholder={translate("assetSearch.placeholder")}
-            className="flex-1 bg-transparent border-0 px-2 py-3 text-sm text-gray-800 dark:text-gray-100 placeholder:italic placeholder:text-gray-400 dark:placeholder:text-gray-500 outline-hidden focus:outline-hidden focus-visible:outline-hidden focus:ring-0 focus-visible:ring-0 focus:border-transparent focus:shadow-none"
+            className="flex-1 bg-transparent border-0 px-2 py-3 text-sm text-default placeholder:italic placeholder:text-subtle outline-hidden focus:outline-hidden focus-visible:outline-hidden focus:ring-0 focus-visible:ring-0 focus:border-transparent focus:shadow-none"
           />
         </div>
         <div
@@ -293,7 +293,7 @@ const CommandBarModal = ({ onClose }: { onClose: () => void }) => {
           className="max-h-[360px] overflow-y-auto p-1"
         >
           {results.length === 0 ? (
-            <div className="px-3 py-4 text-sm text-gray-400">
+            <div className="px-3 py-4 text-sm text-subtle">
               {query.trim().length > 0
                 ? "No results"
                 : translate("assetSearch.emptyHint")}
@@ -301,7 +301,7 @@ const CommandBarModal = ({ onClose }: { onClose: () => void }) => {
           ) : (
             <>
               {query.trim().length === 0 && (
-                <div className="px-3 pt-1.5 pb-0.5 text-[10px] font-medium uppercase tracking-wide text-gray-400 dark:text-gray-500">
+                <div className="px-3 pt-1.5 pb-0.5 text-[10px] font-medium uppercase tracking-wide text-subtle">
                   {translate("assetSearch.recents")}
                 </div>
               )}

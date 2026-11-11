@@ -52,7 +52,7 @@ export const PaywallLockButton = ({
         type="button"
         aria-label={`${tooltip}: ${label}`}
         onClick={openPaywall}
-        className="shrink-0 w-7 h-7 flex items-center justify-center rounded-xs text-gray-500 hover:text-gray-700 hover:bg-gray-200 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-700"
+        className="shrink-0 w-7 h-7 flex items-center justify-center rounded-xs text-subtle hover:text-default hover:bg-base-hover"
       >
         <PaywallLockIcon />
       </button>
