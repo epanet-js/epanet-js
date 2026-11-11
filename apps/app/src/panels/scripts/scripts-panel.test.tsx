@@ -50,7 +50,11 @@ const writes: {
   signal: AbortSignal;
   token: string | null;
   resolve: (written: WrittenScript) => void;
-  fail: (reason: ScriptAssistantFailure, detail: string) => void;
+  fail: (
+    reason: ScriptAssistantFailure,
+    detail: string,
+    httpStatus: number,
+  ) => void;
   reject: (error: Error) => void;
 }[] = [];
 
@@ -176,8 +180,8 @@ describe("ScriptsPanel", () => {
               signal,
               token,
               resolve: (script) => resolve({ status: "written", script }),
-              fail: (reason, detail) =>
-                resolve({ status: "failed", reason, detail }),
+              fail: (reason, detail, httpStatus) =>
+                resolve({ status: "failed", reason, detail, httpStatus }),
               reject,
             });
             signal.addEventListener("abort", () => reject(signal.reason));
@@ -404,7 +408,7 @@ describe("ScriptsPanel", () => {
       it("says why it failed and hands the description back", async () => {
         await sendDescription();
 
-        writes[0].fail("limitReached", "402 limitReached");
+        writes[0].fail("limitReached", "402 limitReached", 402);
 
         expect(
           await screen.findByText("You've used all your assistant credit"),
@@ -423,16 +427,32 @@ describe("ScriptsPanel", () => {
         ).not.toBeInTheDocument();
       });
 
-      it("reports an unavailable router as an error", async () => {
+      it("reports an unavailable router as a warning", async () => {
         await sendDescription();
 
-        writes[0].fail("unavailable", "502 unavailable");
+        writes[0].fail("unavailable", "502 unavailable", 502);
+
+        expect(
+          await screen.findByText("We couldn't write the script"),
+        ).toBeVisible();
+        expect(captureWarning).toHaveBeenCalledWith(
+          "The script assistant is unavailable",
+          undefined,
+          { response: { status: 502, detail: "502 unavailable" } },
+        );
+        expect(captureError).not.toHaveBeenCalled();
+      });
+
+      it("reports a request the router cannot read as an error", async () => {
+        await sendDescription();
+
+        writes[0].fail("unavailable", "400 invalidRequest", 400);
 
         expect(
           await screen.findByText("We couldn't write the script"),
         ).toBeVisible();
         expect(captureError).toHaveBeenCalledWith(
-          new Error("The script assistant failed: 502 unavailable"),
+          new Error("The script assistant failed: 400 invalidRequest"),
         );
         expect(captureWarning).not.toHaveBeenCalled();
       });
@@ -446,7 +466,11 @@ describe("ScriptsPanel", () => {
         expect(
           await screen.findByText("We couldn't write the script"),
         ).toBeVisible();
-        expect(captureError).toHaveBeenCalledWith(error);
+        expect(captureWarning).toHaveBeenCalledWith(
+          "The script assistant could not be reached",
+          error,
+        );
+        expect(captureError).not.toHaveBeenCalled();
       });
 
       it("stays quiet when the user stops it", async () => {
@@ -475,7 +499,7 @@ describe("ScriptsPanel", () => {
         );
         await user.click(screen.getByRole("button", { name: "Update" }));
 
-        writes[1].fail("answerTooLong", "502 answerTooLong");
+        writes[1].fail("answerTooLong", "502 answerTooLong", 502);
 
         expect(
           await screen.findByText("The answer was too long"),

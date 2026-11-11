@@ -25,7 +25,12 @@ export type ScriptAssistantFailure =
 
 export type ScriptAssistantResult =
   | { status: "written"; script: WrittenScript }
-  | { status: "failed"; reason: ScriptAssistantFailure; detail: string };
+  | {
+      status: "failed";
+      reason: ScriptAssistantFailure;
+      detail: string;
+      httpStatus: number;
+    };
 
 export type ScriptAssistant = {
   writeScript: (

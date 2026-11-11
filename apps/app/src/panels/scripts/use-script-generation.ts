@@ -14,11 +14,19 @@ export type ScriptGeneration = {
   kind: "write" | "update";
 };
 
-const reportFailure = (reason: ScriptAssistantFailure, detail: string) => {
-  if (reason === "unavailable") {
-    captureError(new Error(`The script assistant failed: ${detail}`));
-  } else {
+const reportFailure = (
+  reason: ScriptAssistantFailure,
+  detail: string,
+  httpStatus: number,
+) => {
+  if (reason !== "unavailable") {
     captureWarning(`The script assistant refused: ${detail}`);
+  } else if (httpStatus >= 500) {
+    captureWarning("The script assistant is unavailable", undefined, {
+      response: { status: httpStatus, detail },
+    });
+  } else {
+    captureError(new Error(`The script assistant failed: ${detail}`));
   }
 };
 
@@ -83,7 +91,7 @@ export const useScriptGeneration = () => {
         }
 
         captureFinished("failed", result.reason);
-        reportFailure(result.reason, result.detail);
+        reportFailure(result.reason, result.detail, result.httpStatus);
         setFailure(result.reason);
         return null;
       } catch (error) {
@@ -92,7 +100,7 @@ export const useScriptGeneration = () => {
           return null;
         }
         captureFinished("failed", "unavailable");
-        captureError(error as Error);
+        captureWarning("The script assistant could not be reached", error);
         setFailure("unavailable");
         return null;
       } finally {
