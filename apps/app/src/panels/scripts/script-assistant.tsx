@@ -30,7 +30,7 @@ const scopes: { value: Scope; available: boolean }[] = [
   { value: "script", available: true },
   { value: "scriptAndOutput", available: false },
   { value: "anonymizedNetwork", available: false },
-  { value: "network", available: false },
+  { value: "fullNetwork", available: false },
 ];
 
 export const ScriptAssistant = ({

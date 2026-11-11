@@ -173,19 +173,19 @@
       "scopes": {
         "script": {
           "label": "Script only",
-          "description": "Your message and this script."
+          "description": "Your request and this script."
         },
         "scriptAndOutput": {
-          "label": "Script + console output",
-          "description": "Adds the output of the last run, errors included."
+          "label": "Script and console output",
+          "description": "Also shares the console output from the last run."
         },
         "anonymizedNetwork": {
-          "label": "Script + anonymized network",
-          "description": "Adds every asset and its attributes, without labels, custom attributes or coordinates."
+          "label": "Script and anonymized network",
+          "description": "Also shares your network, without labels, custom attributes or coordinates."
         },
-        "network": {
-          "label": "Script + whole network",
-          "description": "Adds every asset, its attributes and the last results."
+        "fullNetwork": {
+          "label": "Script and full network",
+          "description": "Also shares your whole network."
         }
       },
       "failures": {

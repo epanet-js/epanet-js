@@ -4,7 +4,7 @@ export type ScriptAssistantScope =
   | "script"
   | "scriptAndOutput"
   | "anonymizedNetwork"
-  | "network";
+  | "fullNetwork";
 
 export type ScriptAssistantRequest = {
   prompt: string;

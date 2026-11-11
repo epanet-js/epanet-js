@@ -235,9 +235,9 @@ describe("ScriptsPanel", () => {
       ).toHaveAttribute("aria-selected", "true");
       expect(
         screen.getByRole("option", { name: /Script only/ }),
-      ).toHaveTextContent("Your message and this script.");
+      ).toHaveTextContent("Your request and this script.");
       expect(
-        screen.getByRole("option", { name: /Script \+ whole network/ }),
+        screen.getByRole("option", { name: /Script and full network/ }),
       ).toHaveAttribute("aria-disabled", "true");
     });
 
