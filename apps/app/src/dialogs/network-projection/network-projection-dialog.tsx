@@ -397,7 +397,7 @@ export const NetworkProjectionDialog = ({
       }
     >
       <div className="flex-1 flex min-h-0 overflow-hidden">
-        <div className="shrink-0 w-[300px] border-r p-4 flex flex-col min-h-0">
+        <div className="shrink-0 w-75 border-r pt-4 px-4 flex flex-col min-h-0">
           <ProjectionSearch
             projections={projections}
             onLocationSelect={handleLocationSelect}

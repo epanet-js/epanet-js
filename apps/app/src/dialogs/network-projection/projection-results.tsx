@@ -68,7 +68,7 @@ export const ProjectionResults = ({
       <p className="text-size-small text-subtle mb-2 shrink-0">
         {t("networkProjection.matchingProjections")} ({results.length})
       </p>
-      <ul className="space-y-0.5 min-h-0 overflow-y-auto scroll-shadows">
+      <ul className="min-h-0 overflow-y-auto scroll-shadows">
         {results.map((p) => {
           const isSelected = selectedProjection?.id === p.id;
           return (
