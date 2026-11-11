@@ -161,8 +161,8 @@ export const DataInputStep: React.FC<{
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 overflow-y-auto grow">
         {/* Left Column - File Input */}
-        <div className="bg-base dark:bg-slate-800 space-y-6 h-full md:p-6 p-2">
-          <h2 className="text-size-heading-3 font-semibold text-slate-900 px-3 dark:text-white">
+        <div className="bg-base space-y-6 h-full md:p-6 p-2">
+          <h2 className="text-size-heading-3 font-semibold text-default px-3">
             {translate("importCustomerPoints.dataSource.title")}
           </h2>
 
@@ -196,8 +196,8 @@ export const DataInputStep: React.FC<{
         </div>
 
         {/* Right Column - Video Tutorial */}
-        <div className="bg-base dark:bg-slate-800 h-full space-y-6 md:p-6 p-2">
-          <h2 className="text-size-heading-3 font-semibold text-slate-900 dark:text-white">
+        <div className="bg-base h-full space-y-6 md:p-6 p-2">
+          <h2 className="text-size-heading-3 font-semibold text-default">
             {translate("importCustomerPoints.wizard.videoTutorial.title")}
           </h2>
           <div
@@ -251,7 +251,7 @@ export const DataInputStep: React.FC<{
             </div>
           </div>
 
-          <p className="text-slate-700 dark:text-slate-300 text-size-base">
+          <p className="text-default text-size-base">
             <Trans
               i18nKey="importCustomerPoints.wizard.videoTutorial.description"
               components={{
@@ -259,7 +259,7 @@ export const DataInputStep: React.FC<{
                   <a
                     href={customerPointsImportGuide}
                     target="_blank"
-                    className="text-purple-700 dark:text-purple-300 underline"
+                    className="text-accent-hover underline"
                   />
                 ),
               }}

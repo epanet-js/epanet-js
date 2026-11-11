@@ -25,7 +25,7 @@ export const DataInputStep = (props: DataInputStepProps) => {
 
   return (
     <>
-      <h2 className="text-size-heading-3 font-semibold text-slate-900 px-3 pt-3 pb-3 dark:text-white">
+      <h2 className="text-size-heading-3 font-semibold text-default px-3 pt-3 pb-3">
         {translate("importZones.dataInputStep.addFromFile")}
       </h2>
       <GisDropZone
