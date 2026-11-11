@@ -36,7 +36,7 @@ export const ItemInput = ({
   return (
     <li
       style={{ paddingLeft: rowIndent(depth, "3px") }}
-      className="relative flex items-center text-sm bg-white dark:bg-gray-700 pr-1 h-8"
+      className="relative flex items-center text-sm bg-popover pr-1 h-8"
       data-capture-escape-key
     >
       <IndentGuides depth={depth} activeLevel={activeIndentGuide} />

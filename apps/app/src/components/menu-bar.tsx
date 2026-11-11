@@ -76,7 +76,7 @@ export const MenuBarPlay = memo(function MenuBar() {
   const { canManageOrganization } = usePermissions();
 
   return (
-    <div className="flex justify-between h-12 pr-2 text-black">
+    <div className="flex justify-between h-12 pr-2 text-default">
       <div className="flex items-center">
         <div
           className="py-1 pl-2 pr-2 inline-flex cursor-pointer"
