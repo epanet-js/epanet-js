@@ -241,7 +241,7 @@ describe("ScriptsPanel", () => {
       ).toHaveAttribute("aria-disabled", "true");
     });
 
-    it("collapses the assistant in the editor and keeps run", async () => {
+    it("starts the assistant collapsed on a script written by hand", async () => {
       const user = userEvent.setup();
       const store = setInitialState({
         hydraulicModel: HydraulicModelBuilder.with().build(),
@@ -254,12 +254,45 @@ describe("ScriptsPanel", () => {
       );
 
       expect(
+        screen.queryByRole("textbox", { name: "Describe a change" }),
+      ).not.toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Run" })).toBeEnabled();
+
+      await user.click(
+        screen.getByRole("button", { name: "Scripting assistant" }),
+      );
+
+      expect(
+        screen.getByRole("textbox", { name: "Describe a change" }),
+      ).toBeVisible();
+    });
+
+    it("opens a script with the assistant as it was last left", async () => {
+      const user = userEvent.setup();
+      const store = setInitialState({
+        hydraulicModel: HydraulicModelBuilder.with().build(),
+      });
+      store.set(userScriptsAtom, [
+        { id: "1", name: "Saved", source: "", apiVersion: 1, updatedAt: 0 },
+      ]);
+      renderPanel(store);
+      const openSaved = async () => {
+        await user.click(
+          screen.getByRole("button", { name: "More actions for Saved" }),
+        );
+        await user.click(screen.getByRole("menuitem", { name: "Edit" }));
+      };
+
+      await openSaved();
+      expect(
         screen.getByRole("textbox", { name: "Describe a change" }),
       ).toBeVisible();
 
       await user.click(
         screen.getByRole("button", { name: "Scripting assistant" }),
       );
+      await user.click(screen.getByRole("button", { name: "Back" }));
+      await openSaved();
 
       expect(
         screen.queryByRole("textbox", { name: "Describe a change" }),

@@ -47,6 +47,7 @@ import { getScripting } from "src/lib/scripting";
 import { dialogAtom } from "src/state/dialog";
 import {
   hasUnsavedChanges,
+  isScriptAssistantOpenAtom,
   scriptDraftAtom,
   scriptRunAtom,
   userScriptsAtom,
@@ -508,7 +509,18 @@ const ScriptEditor = ({
   const [confirmingDiscard, setConfirmingDiscard] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
   const isGenerating = assistant?.generation != null;
-  const [isAssistantOpen, setIsAssistantOpen] = useState(true);
+  const [wasAssistantOpen, rememberAssistantOpen] = useAtom(
+    isScriptAssistantOpenAtom,
+  );
+  const [isAssistantOpen, setIsAssistantOpen] = useState(() =>
+    isNewDraft(draft)
+      ? (assistant?.isWrittenByAssistant ?? false)
+      : wasAssistantOpen,
+  );
+  const toggleAssistant = (open: boolean) => {
+    setIsAssistantOpen(open);
+    rememberAssistantOpen(open);
+  };
   const [composerHeight, setComposerHeight] = useState<number | null>(null);
   const codeAreaRef = useRef<HTMLDivElement>(null);
   const composerBoxRef = useRef<HTMLDivElement>(null);
@@ -594,7 +606,7 @@ const ScriptEditor = ({
   };
 
   const isExampleCopy = isExample(draft);
-  const isNewScript = draft.scriptId === null && draft.savedAs === null;
+  const isNewScript = isNewDraft(draft);
 
   return (
     <div className="h-full min-h-0 flex flex-col">
@@ -777,7 +789,7 @@ const ScriptEditor = ({
           <CollapsibleSection
             title={translate("scripting.assistant.title")}
             open={isAssistantOpen}
-            onOpenChange={setIsAssistantOpen}
+            onOpenChange={toggleAssistant}
             autoIndent={false}
           >
             <div className="pb-2">
@@ -829,6 +841,9 @@ const ScriptEditor = ({
 
 const MIN_COMPOSER_HEIGHT = 58;
 const MIN_CODE_HEIGHT = 120;
+
+const isNewDraft = (draft: ScriptDraft) =>
+  draft.scriptId === null && draft.savedAs === null;
 
 const isExample = (draft: ScriptDraft) =>
   draft.scriptId === null && draft.savedAs !== null;
