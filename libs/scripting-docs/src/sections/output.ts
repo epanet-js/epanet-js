@@ -139,10 +139,14 @@ export const COLLECTIONS_SECTION: SectionDef = {
     saved(
       "selectionSets",
       "SelectionSet[]",
-      "The project's selection sets, in the Collections panel's order, as they were when the script started.",
-      "Sets saved during the run are not in the list. Labels can repeat, so pick a set with `find` or `filter` on the label and handle more than one match.",
+      "The project's selection sets, in the order they were saved, as they were when the script started.",
+      "Sets saved during the run are not in the list. Labels can repeat, so pick a set with `find` or `filter` on the label and handle more than one match. A set inside folders carries the folder name in its label.",
     ),
-    selectionSet("label", "string", "The set's name. Not unique."),
+    selectionSet(
+      "label",
+      "string",
+      "The set's name, after the folders it sits in from the outermost in, separated by `/`: `North/Mains/Loop` is the set `Loop` in the folder `Mains` inside `North`. A set outside any folder is its name alone. Not unique.",
+    ),
     selectionSet(
       "assets",
       "Asset[]",
@@ -177,7 +181,7 @@ export const COLLECTIONS_SECTION: SectionDef = {
         {
           name: "label",
           description:
-            "The set's name. Leading and trailing spaces are dropped.",
+            "The set's name. Leading and trailing spaces are dropped. A `/` puts the set in folders when it is saved to the project: `North/Mains/Loop` saves the set `Loop` in the folder `Mains` inside `North`, creating the folders that do not exist yet and reusing the ones that do. Spaces around each part are dropped, and so are empty parts. A label with nothing but `/` is not saved.",
         },
         {
           name: "options.commit",
@@ -191,6 +195,10 @@ export const COLLECTIONS_SECTION: SectionDef = {
         },
         {
           code: 'collections.saveSelectionSet("Pumps", network.pumps, { commit: true });',
+        },
+        {
+          title: "Into a folder",
+          code: 'collections.saveSelectionSet("Review/Valves", network.valves);',
         },
       ],
       throws: [
