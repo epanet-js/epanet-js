@@ -319,6 +319,41 @@ const RowResizer = ({
   </button>
 );
 
+export const HeightResizer = memo(function HeightResizerInner({
+  getBounds,
+  onResize,
+}: {
+  getBounds: () => { height: number; min: number; max: number };
+  onResize: (height: number) => void;
+}) {
+  const drag = useRef<{ accumulated: number; min: number; max: number } | null>(
+    null,
+  );
+
+  const { moveProps } = useMove({
+    onMoveStart() {
+      const { height, min, max } = getBounds();
+      drag.current = { accumulated: height, min, max: Math.max(min, max) };
+    },
+    onMove(e) {
+      if (drag.current === null) return;
+      const { min, max } = drag.current;
+      const { accumulated, value } = accumulateResize(
+        drag.current.accumulated,
+        -e.deltaY,
+        { min, max },
+      );
+      drag.current.accumulated = accumulated;
+      onResize(value);
+    },
+    onMoveEnd() {
+      drag.current = null;
+    },
+  });
+
+  return <RowResizer moveProps={moveProps} />;
+});
+
 export const BottomResizer = memo(function BottomResizerInner() {
   const { moveProps } = useResizeBottom();
 

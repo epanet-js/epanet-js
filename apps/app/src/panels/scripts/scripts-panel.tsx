@@ -5,6 +5,7 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import { Button, DDContent, StyledItem } from "src/components/elements";
 import { EditableTextField } from "src/components/form/editable-text-field";
 import { CollapsibleSection } from "src/components/form/fields";
+import { HeightResizer } from "src/components/resizer";
 import {
   CollapsibleListSection,
   ItemInput,
@@ -503,6 +504,9 @@ const ScriptEditor = ({
   const [isRenaming, setIsRenaming] = useState(false);
   const isGenerating = assistant?.generation != null;
   const [isAssistantOpen, setIsAssistantOpen] = useState(true);
+  const [composerHeight, setComposerHeight] = useState<number | null>(null);
+  const codeAreaRef = useRef<HTMLDivElement>(null);
+  const composerBoxRef = useRef<HTMLDivElement>(null);
   const [composerText, setComposerText] = useState("");
   const draftRef = useRef(draft);
   draftRef.current = draft;
@@ -734,7 +738,7 @@ const ScriptEditor = ({
           {translate("scripting.exampleCopyHint")}
         </div>
       )}
-      <div className="flex-auto min-h-0">
+      <div ref={codeAreaRef} className="flex-auto min-h-0">
         <CodeEditor
           key={assistant?.sourceVersion ?? 0}
           initialSource={draft.source}
@@ -750,7 +754,21 @@ const ScriptEditor = ({
         />
       </div>
       {assistant && (
-        <section className="px-3 py-1 border-t bg-panel">
+        <section className="relative px-3 py-1 border-t bg-panel">
+          {isAssistantOpen && (
+            <HeightResizer
+              getBounds={() => {
+                const height = composerBoxRef.current?.offsetHeight ?? 0;
+                const codeHeight = codeAreaRef.current?.offsetHeight ?? 0;
+                return {
+                  height,
+                  min: MIN_COMPOSER_HEIGHT,
+                  max: height + codeHeight - MIN_CODE_HEIGHT,
+                };
+              }}
+              onResize={setComposerHeight}
+            />
+          )}
           <CollapsibleSection
             title={translate("scripting.assistant.title")}
             open={isAssistantOpen}
@@ -786,6 +804,8 @@ const ScriptEditor = ({
                   }
                 }
                 onStop={assistant.onStop}
+                height={composerHeight}
+                boxRef={composerBoxRef}
               />
             </div>
           </CollapsibleSection>
@@ -800,6 +820,9 @@ const ScriptEditor = ({
     </div>
   );
 };
+
+const MIN_COMPOSER_HEIGHT = 58;
+const MIN_CODE_HEIGHT = 120;
 
 const isExample = (draft: ScriptDraft) =>
   draft.scriptId === null && draft.savedAs !== null;

@@ -118,6 +118,8 @@ export const AssistantComposer = ({
   busy,
   onStop,
   autoFocus = false,
+  height = null,
+  boxRef,
 }: {
   label: string;
   placeholder: string;
@@ -130,6 +132,8 @@ export const AssistantComposer = ({
   busy: { prompt: string; status: string } | null;
   onStop: () => void;
   autoFocus?: boolean;
+  height?: number | null;
+  boxRef?: React.Ref<HTMLDivElement>;
 }) => {
   const translate = useTranslate();
   const [scope, setScope] = useState<Scope>("script");
@@ -142,11 +146,19 @@ export const AssistantComposer = ({
   if (busy) {
     return (
       <div role="status" aria-live="polite">
-        <div className="rounded-sm border border-strong bg-base p-2">
+        <div
+          ref={boxRef}
+          style={height !== null ? { height } : undefined}
+          className="flex flex-col rounded-sm border border-strong bg-base p-2"
+        >
           <p
             className={clsx(
               "text-size-base text-subtle whitespace-pre-wrap break-words",
-              rows === 3 ? "h-15 line-clamp-3" : "h-10 line-clamp-2",
+              height !== null
+                ? "flex-1 min-h-0 overflow-hidden"
+                : rows === 3
+                  ? "h-15 line-clamp-3"
+                  : "h-10 line-clamp-2",
             )}
           >
             {busy.prompt}
@@ -168,7 +180,11 @@ export const AssistantComposer = ({
 
   return (
     <div>
-      <div className="rounded-sm border border-strong bg-base p-2 focus-within:border-accent focus-within:ring-1 focus-within:ring-accent">
+      <div
+        ref={boxRef}
+        style={height !== null ? { height } : undefined}
+        className="flex flex-col rounded-sm border border-strong bg-base p-2 focus-within:border-accent focus-within:ring-1 focus-within:ring-accent"
+      >
         <textarea
           aria-label={label}
           placeholder={placeholder}
@@ -186,7 +202,10 @@ export const AssistantComposer = ({
           }}
           rows={rows}
           autoFocus={autoFocus}
-          className="block w-full resize-none border-0 bg-transparent p-0 text-size-base text-default outline-none focus:ring-0 placeholder:text-subtle"
+          className={clsx(
+            "block w-full resize-none border-0 bg-transparent p-0 text-size-base text-default outline-none focus:ring-0 placeholder:text-subtle",
+            height !== null && "flex-1 min-h-0",
+          )}
         />
       </div>
       <div className="flex items-center justify-between gap-2 mt-2">
