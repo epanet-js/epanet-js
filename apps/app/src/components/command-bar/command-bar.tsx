@@ -315,7 +315,7 @@ const CommandBarModal = ({ onClose }: { onClose: () => void }) => {
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => commit(option, index)}
                   className={clsx(
-                    "flex items-center justify-between gap-2 px-3 py-2 text-sm rounded-sm cursor-pointer text-gray-900 dark:text-gray-100",
+                    "flex items-center justify-between gap-2 px-3 py-2 text-sm rounded-sm cursor-pointer text-default",
                     index === activeIndex
                       ? "bg-base-hover"
                       : "hover:bg-base-hover",

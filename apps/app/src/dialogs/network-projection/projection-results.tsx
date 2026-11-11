@@ -81,10 +81,8 @@ export const ProjectionResults = ({
                 onClick={() => onSelect(p)}
                 className={clsx(
                   "w-full text-left px-2 py-1.5 text-size-base rounded-sm",
-                  isSelected
-                    ? "bg-accent-tint"
-                    : "hover:bg-purple-50 dark:hover:bg-gray-700",
-                  "text-default dark:text-gray-200",
+                  isSelected ? "bg-accent-tint" : "hover:bg-base-hover",
+                  "text-default",
                 )}
               >
                 <span className="block">{p.name}</span>

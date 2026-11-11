@@ -41,7 +41,7 @@ export const CustomAttributesSidebar = ({
               "flex items-center justify-between gap-2 px-4 py-1.5 rounded-sm text-size-base text-left",
               isSelected
                 ? "bg-accent-tint text-default"
-                : "text-default hover:bg-gray-100 dark:hover:bg-gray-800",
+                : "text-default hover:bg-base-hover",
             )}
           >
             <span className="min-w-0 flex items-baseline gap-1">
