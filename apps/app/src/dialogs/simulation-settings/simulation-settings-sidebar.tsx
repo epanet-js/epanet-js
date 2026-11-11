@@ -25,7 +25,7 @@ export const SimulationSettingsSidebar = ({
   const invalidSections = useInvalidSectionIds();
   return (
     <nav className="w-64 shrink-0 p-3 overflow-y-auto">
-      <ul className="flex flex-col gap-0.5">
+      <ul className="flex flex-col">
         {simulationSettingsCategories.map((category) => {
           const subcategoryIds =
             category.subcategories?.map((sub) => sub.id) ?? [];
@@ -58,7 +58,7 @@ export const SimulationSettingsSidebar = ({
                 )}
               </button>
               {category.subcategories && (
-                <ul className="flex flex-col gap-0.5 mt-0.5">
+                <ul className="flex flex-col">
                   {category.subcategories.map((sub) => (
                     <li key={sub.id}>
                       <button
