@@ -39,11 +39,11 @@ const SimulationSummaryDialogNew = ({
     },
     warning: {
       title: translate("simulationWarning"),
-      iconClass: "text-yellow-500",
+      iconClass: "text-warning",
     },
     failure: {
       title: translate("simulationFailure"),
-      iconClass: "text-red-500",
+      iconClass: "text-error",
     },
     stopped: {
       title: translate("simulationStopped"),

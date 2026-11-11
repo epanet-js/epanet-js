@@ -521,7 +521,7 @@ const ExcludedPipesWarning = ({
 
 const ErrorMessage = ({ error }: { error: string }) => (
   <div className="bg-error-subtle border border-red-200 rounded-md p-3">
-    <p className="text-red-700 text-size-base">{error}</p>
+    <p className="text-error text-size-base">{error}</p>
   </div>
 );
 
@@ -681,7 +681,7 @@ const AllocationSummaryPanel: React.FC<AllocationSummaryPanelProps> = ({
             {zoneUnallocated > 0 && (
               <div className="flex items-center">
                 <WarningIcon className="text-warning mr-2" />
-                <span className="text-size-base text-orange-700">
+                <span className="text-size-base text-warning">
                   {translate(
                     "allocateCustomerPoints.dialog.unallocatedPoints",
                     localizeDecimal(zoneUnallocated),
@@ -741,7 +741,7 @@ const AllocationSummaryPanel: React.FC<AllocationSummaryPanelProps> = ({
         {unallocatedCount > 0 && (
           <div className="flex items-center">
             <WarningIcon className="text-warning mr-2" />
-            <span className="text-size-base text-orange-700">
+            <span className="text-size-base text-warning">
               {translate(
                 "allocateCustomerPoints.dialog.unallocatedPoints",
                 localizeDecimal(unallocatedCount),

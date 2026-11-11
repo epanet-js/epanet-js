@@ -234,7 +234,7 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
                         type="button"
                         onClick={() => handleRemoveRule(index)}
                         disabled={rules.length <= 1}
-                        className="p-1 text-red-400 hover:text-red-600 disabled:opacity-30 disabled:cursor-not-allowed"
+                        className="p-1 text-error disabled:opacity-30 disabled:cursor-not-allowed"
                         title={translate(
                           "importCustomerPoints.wizard.allocationStep.table.removeRuleTooltip",
                         )}

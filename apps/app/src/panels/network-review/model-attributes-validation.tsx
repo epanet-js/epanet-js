@@ -36,13 +36,7 @@ import {
 import { ruleLabelKey } from "./rule-labels";
 
 const SeverityIcon = ({ severity }: { severity: "error" | "warning" }) => (
-  <span
-    className={
-      severity === "error"
-        ? "text-red-600 dark:text-red-400"
-        : "text-orange-500 dark:text-orange-400"
-    }
-  >
+  <span className={severity === "error" ? "text-error" : "text-warning"}>
     {severity === "error" ? <ErrorIcon /> : <WarningIcon />}
   </span>
 );

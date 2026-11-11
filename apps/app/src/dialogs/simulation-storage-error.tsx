@@ -31,7 +31,7 @@ export const SimulationStorageErrorDialog = ({
     >
       <div className="p-4 text-size-base text-default space-y-2">
         <p className="flex items-start gap-2">
-          <div className="m-width-0 mt-0.5 text-red-500">
+          <div className="m-width-0 mt-0.5 text-error">
             <ErrorIcon />
           </div>
           {translate("simulationStorageErrorExplain")}

@@ -50,7 +50,7 @@ const useSettled = <T,>(value: T, delayMs: number): T => {
 
 const CheckRowDetail = ({ detail }: { detail: string }) => (
   <div className="flex items-center gap-1">
-    <span className="shrink-0 text-orange-500 dark:text-orange-400">
+    <span className="shrink-0 text-warning">
       <WarningIcon size={12} />
     </span>
     <span className="text-subtle truncate">{detail}</span>

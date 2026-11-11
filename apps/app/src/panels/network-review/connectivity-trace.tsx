@@ -257,7 +257,7 @@ const SubnetworkItem = ({
         </div>
         <div className="text-subtle flex items-center gap-1 w-full">
           {showWarning && (
-            <span className="shrink-0 text-orange-500 dark:text-orange-400">
+            <span className="shrink-0 text-warning">
               <WarningIcon size={12} />
             </span>
           )}
