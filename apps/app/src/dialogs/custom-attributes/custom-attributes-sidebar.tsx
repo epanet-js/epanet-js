@@ -38,9 +38,9 @@ export const CustomAttributesSidebar = ({
             type="button"
             onClick={() => onSelect(assetType)}
             className={clsx(
-              "flex items-center justify-between gap-2 px-4 py-1.5 rounded-md text-size-base text-left",
+              "flex items-center justify-between gap-2 px-4 py-1.5 rounded-sm text-size-base text-left",
               isSelected
-                ? "bg-purple-100 text-purple-900 dark:bg-purple-900/40 dark:text-purple-100"
+                ? "bg-accent-tint text-default"
                 : "text-default hover:bg-gray-100 dark:hover:bg-gray-800",
             )}
           >
