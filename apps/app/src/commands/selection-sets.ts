@@ -8,9 +8,9 @@ import {
   type CollectionDraftSource,
   type SelectionSetGroupId,
   type SelectionSetId,
-  SET_PATH_SEPARATOR,
   countSelected,
   existingSelection,
+  hasPathSeparator,
   newSelectionSet,
   splitSetPath,
 } from "src/lib/collections";
@@ -50,7 +50,7 @@ export const useCreateSelectionSet = () => {
         const count = countSelected(selection);
         if (count < MIN_SELECTION_SET_SIZE) return "skipped";
 
-        const { groupLabels, label } = name.includes(SET_PATH_SEPARATOR)
+        const { groupLabels, label } = hasPathSeparator(name)
           ? splitSetPath(name)
           : { groupLabels: [], label: name };
         if (!label) return "skipped";

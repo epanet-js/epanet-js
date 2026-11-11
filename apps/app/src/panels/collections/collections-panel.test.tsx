@@ -215,6 +215,53 @@ describe("CollectionsPanel", () => {
     });
   });
 
+  describe("a name holding a slash", () => {
+    it("is refused when renaming a set", async () => {
+      const store = aStore();
+      store.set(selectionAtom, USelection.fromAssetIds([IDS.J1, IDS.J2]));
+      renderPanel(store);
+      await userEvent.click(saveButton());
+      await nameIt("Loop");
+
+      await userEvent.click(
+        within(rowOf("Loop")).getByRole("button", { name: "More actions" }),
+      );
+      await userEvent.click(screen.getByRole("menuitem", { name: "Rename" }));
+      await userEvent.clear(screen.getByRole("textbox"));
+      await nameIt("North/Loop");
+
+      expect(store.get(selectionSetsAtom).map((set) => set.label)).toEqual([
+        "Loop",
+      ]);
+      expect(screen.getByRole("textbox")).toBeInTheDocument();
+    });
+
+    it("is refused when naming or renaming a folder", async () => {
+      stubFeatureOn("FLAG_SELECTION_SET_GROUPS");
+      const store = aStore();
+      renderPanel(store);
+
+      await userEvent.click(screen.getByRole("button", { name: "Add" }));
+      await userEvent.click(screen.getByRole("menuitem", { name: "Folder" }));
+      await nameIt("DMAs/North");
+
+      expect(store.get(selectionSetGroupsAtom)).toEqual([]);
+
+      await userEvent.clear(screen.getByRole("textbox"));
+      await nameIt("DMAs");
+      await userEvent.click(
+        within(rowOf("DMAs")).getByRole("button", { name: "More actions" }),
+      );
+      await userEvent.click(screen.getByRole("menuitem", { name: "Rename" }));
+      await userEvent.clear(screen.getByRole("textbox"));
+      await nameIt("DMAs/North");
+
+      expect(
+        store.get(selectionSetGroupsAtom).map((group) => group.label),
+      ).toEqual(["DMAs"]);
+    });
+  });
+
   describe("a draft that names the folders for its set", () => {
     it("creates the missing folders when the draft is saved, not before", async () => {
       stubFeatureOn("FLAG_SELECTION_SET_GROUPS");

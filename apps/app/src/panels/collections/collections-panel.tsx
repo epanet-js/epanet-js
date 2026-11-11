@@ -77,6 +77,7 @@ import {
   countSelected,
   descendantGroupIds,
   groupPath,
+  hasPathSeparator,
   largestContainedSet,
   matchesSelectionExactly,
   setsInGroupSubtree,
@@ -587,6 +588,10 @@ export const CollectionsPanel = () => {
 
     const trimmedLabel = label.trim();
     if (!trimmedLabel) return true;
+
+    const isBookmark =
+      "section" in actionState && actionState.section === "bookmarks";
+    if (!isBookmark && hasPathSeparator(trimmedLabel)) return true;
 
     if (actionState.action === "renamingGroup") {
       renameSelectionSetGroup({

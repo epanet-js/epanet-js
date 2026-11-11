@@ -128,6 +128,9 @@ export const groupPath = (
 
 export const SET_PATH_SEPARATOR = "/";
 
+export const hasPathSeparator = (label: string): boolean =>
+  label.includes(SET_PATH_SEPARATOR);
+
 export const splitSetPath = (
   path: string,
 ): { groupLabels: string[]; label: string } => {
