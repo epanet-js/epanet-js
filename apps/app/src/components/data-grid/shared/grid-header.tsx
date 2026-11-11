@@ -202,7 +202,7 @@ function HeaderCell<T>({
                   "h-6 w-6 flex items-center justify-center rounded-xs",
                   isSelected
                     ? "text-white hover:bg-white/20"
-                    : "text-gray-600 hover:bg-gray-200",
+                    : "text-subtle hover:bg-base-hover",
                 )}
               >
                 {action.icon}

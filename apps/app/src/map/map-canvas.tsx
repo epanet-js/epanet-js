@@ -460,7 +460,7 @@ const MapError = () => {
   return (
     <div className="flex flex-col items-center justify-center w-full h-full">
       <div className="flex flex-col items-start max-w-(--breakpoint-sm) p-6">
-        <h3 className="text-md font-semibold text-gray-700 mb-4">
+        <h3 className="text-md font-semibold text-default mb-4">
           {translate("cannotRenderMap")}
         </h3>
         <p className="text-sm mb-2">{translate("cannotRenderMapExplain")}</p>

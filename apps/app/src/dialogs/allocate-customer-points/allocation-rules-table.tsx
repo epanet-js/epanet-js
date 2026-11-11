@@ -134,7 +134,7 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
               )}
             </tr>
           </thead>
-          <tbody className="bg-base divide-y divide-gray-200">
+          <tbody className="bg-base divide-y">
             {rules.map((rule, index) => (
               <tr
                 key={index}

@@ -429,7 +429,7 @@ export const ChartContainer = memo(function ChartContainer({
                 textAlign: "right",
                 fontSize: 12,
                 lineHeight: 1,
-                color: "#374151",
+                color: "var(--color-subtle)",
                 pointerEvents: "none",
               }}
             >

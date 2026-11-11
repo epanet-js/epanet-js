@@ -519,7 +519,7 @@ const DemoNetworkCard = ({ demoNetwork }: { demoNetwork: DemoModel }) => {
   };
   return (
     <div
-      className="flex flex-col max-w-[250px] items-center gap-x-2 bg-base shadow-md rounded-lg border cursor-pointer hover:bg-gray-400/10"
+      className="flex flex-col max-w-[250px] items-center gap-x-2 bg-base shadow-md rounded-lg border cursor-pointer hover:bg-base-hover"
       onClick={handleOpenDemoModel}
     >
       <div className="shrink-0">

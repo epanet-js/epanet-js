@@ -173,8 +173,8 @@ const TabButton = ({
       className={clsx(
         "text-size-base py-1 px-3 focus:outline-hidden border-t border-l border-b last:border-r",
         isActive
-          ? "text-default border-b-white -mb-px"
-          : "text-subtle border-b-transparent hover:text-black dark:hover:text-gray-200 bg-panel",
+          ? "text-default border-b-(--color-background-base) -mb-px"
+          : "text-subtle border-b-transparent hover:text-default bg-panel",
       )}
     >
       {label}

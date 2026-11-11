@@ -178,12 +178,12 @@ const ZoneColorRampSelector = ({
   const triggerStyles = clsx(
     "flex items-center gap-x-2 justify-between w-full min-w-[90px]",
     "border rounded-xs",
-    "text-sm text-gray-700",
+    "text-sm text-default",
     "focus:ring-inset focus:ring-1 focus:ring-accent focus:bg-purple-300/10",
     "p-2 min-h-9 w-full",
   );
 
-  const contentStyles = `bg-white w-(--radix-select-trigger-width) border text-sm rounded-xs shadow-md z-50`;
+  const contentStyles = `bg-popover w-(--radix-select-trigger-width) border text-sm rounded-xs shadow-md z-50`;
 
   return (
     <Select.Root>

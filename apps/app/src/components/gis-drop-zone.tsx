@@ -439,7 +439,7 @@ const SelectedFileList = ({
       : undefined;
 
   return (
-    <div className="relative p-3 bg-base rounded-md border border-gray-200">
+    <div className="relative p-3 bg-base rounded-md border">
       <button
         type="button"
         onClick={(e) => {
@@ -482,12 +482,12 @@ const SelectedFileList = ({
         </div>
         {groupType === "shapefile" &&
           (waitingMessage ? (
-            <span className="flex items-center gap-1 mt-1 text-xs text-slate-600">
+            <span className="flex items-center gap-1 mt-1 text-size-base text-subtle">
               {translate(waitingMessage.translationKey)}
             </span>
           ) : (
-            <span className="flex items-center gap-1 mt-1 text-xs">
-              <CheckIcon className="h-3 w-3 text-green-700" />
+            <span className="flex items-center gap-1 mt-1 text-size-base">
+              <CheckIcon className="h-4 w-4 text-success" />
               {translate("dropZone.shapefileReady")}
             </span>
           ))}
