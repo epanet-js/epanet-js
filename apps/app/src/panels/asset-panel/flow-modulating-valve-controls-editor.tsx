@@ -21,7 +21,8 @@ import {
 } from "src/lib/model-attributes-validation";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
-import { DeleteIcon, AddIcon } from "src/icons";
+import { useShowControls } from "src/commands/show-controls";
+import { DeleteIcon, AddIcon, ExternalLinkIcon } from "src/icons";
 import { InlineField, NestedSection } from "src/components/form/fields";
 import { TextField } from "src/components/form/text-field";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -57,6 +58,7 @@ export const ValveControlsEditor = ({
   control,
   targets,
   onControlChange,
+  hasRawControls = false,
   readOnly = false,
 }: {
   valveId: AssetId;
@@ -64,9 +66,11 @@ export const ValveControlsEditor = ({
   control: FlowModulatingValveControl | null;
   targets: FlowModulatingValveTargets;
   onControlChange: (control: FlowModulatingValveControl | null) => void;
+  hasRawControls?: boolean;
   readOnly?: boolean;
 }) => {
   const translate = useTranslate();
+  const showControls = useShowControls();
   const controlType: ControlType = control ? "flowModulated" : "none";
   const canBeFlowModulated = targets.outletNodeId !== null;
 
@@ -118,6 +122,16 @@ export const ValveControlsEditor = ({
           onControlChange={onControlChange}
           readOnly={readOnly}
         />
+      )}
+      {hasRawControls && (
+        <button
+          type="button"
+          onClick={() => showControls({ source: "assetPanel" })}
+          className="flex items-center gap-x-1.5 py-1 text-size-base font-semibold text-orange-800 cursor-pointer"
+        >
+          <ExternalLinkIcon size="md" />
+          <span>{translate("controls.rawControlsDetected")}</span>
+        </button>
       )}
     </>
   );

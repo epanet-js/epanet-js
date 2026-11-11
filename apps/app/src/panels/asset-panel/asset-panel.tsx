@@ -129,7 +129,11 @@ import {
   type FlowModulatingValveTargets,
 } from "./flow-modulating-valve-controls-editor";
 import { PumpDefinitionDetails } from "./pump-definition-details";
-import { getAttribute, isCustomProperty } from "@epanet-js/hydraulic-model";
+import {
+  getAttribute,
+  isCustomProperty,
+  type RawControls,
+} from "@epanet-js/hydraulic-model";
 import { CustomAttributesSection } from "./custom-attributes-section";
 import { NumericTable } from "src/components/form/numeric-table";
 import { useShowPatternsLibrary } from "src/commands/show-patterns-library";
@@ -2455,6 +2459,10 @@ const ValveEditor = ({
             onControlChange={(control) =>
               onControlChange(valve.id, control, flowModulatingControl)
             }
+            hasRawControls={isReferencedByRawControls(
+              hydraulicModel.rawControls,
+              valve.id,
+            )}
             readOnly={readonly}
           />
         </SectionWrapper>
@@ -2638,14 +2646,10 @@ const PumpEditor = ({
     return leadPump ? { id: leadPump.id, label: leadPump.label } : null;
   }, [hydraulicModel.controls, hydraulicModel.assets, pump.id]);
 
-  const { rawControls } = hydraulicModel;
-  const hasRawControls =
-    rawControls.simple.some((c) =>
-      c.assetReferences.some((ref) => ref.assetId === pump.id),
-    ) ||
-    rawControls.rules.some((r) =>
-      r.assetReferences.some((ref) => ref.assetId === pump.id),
-    );
+  const hasRawControls = isReferencedByRawControls(
+    hydraulicModel.rawControls,
+    pump.id,
+  );
 
   const handleControlChangeForPump = (control: Control | null) => {
     onControlChange(pump.id, control, pumpControl);
@@ -3594,6 +3598,17 @@ const ValveCurveField = ({
     </BlockComparisonField>
   );
 };
+
+const isReferencedByRawControls = (
+  rawControls: RawControls,
+  assetId: AssetId,
+): boolean =>
+  rawControls.simple.some((control) =>
+    control.assetReferences.some((ref) => ref.assetId === assetId),
+  ) ||
+  rawControls.rules.some((rule) =>
+    rule.assetReferences.some((ref) => ref.assetId === assetId),
+  );
 
 function getCustomerPointsPattern(
   customerPoints: CustomerPoint[],

@@ -1,12 +1,14 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
+import { Provider, createStore } from "jotai";
 import {
   FlowModulatingValveControl,
   LinkAsset,
   NodeAsset,
 } from "@epanet-js/hydraulic-model";
 import type { UnitsSpec } from "@epanet-js/project-settings";
+import { dialogAtom } from "src/state/dialog";
 import {
   FlowModulatingValveTargets,
   ValveControlsEditor,
@@ -47,9 +49,11 @@ const TARGETS: FlowModulatingValveTargets = {
 
 const Harness = ({
   initialControl = null,
+  hasRawControls = false,
   onChange,
 }: {
   initialControl?: FlowModulatingValveControl | null;
+  hasRawControls?: boolean;
   onChange: (control: FlowModulatingValveControl | null) => void;
 }) => {
   const [control, setControl] = useState(initialControl);
@@ -59,6 +63,7 @@ const Harness = ({
       setting={SETTING}
       control={control}
       targets={TARGETS}
+      hasRawControls={hasRawControls}
       onControlChange={(next) => {
         onChange(next);
         setControl(next);
@@ -192,6 +197,22 @@ describe("valve controls editor", () => {
     );
 
     expect(lastControl().interpolate).toBe(false);
+  });
+
+  it("opens the controls dialog from the legacy controls notice", async () => {
+    const user = userEvent.setup();
+    const store = createStore();
+    render(
+      <Provider store={store}>
+        <Harness hasRawControls onChange={vi.fn()} />
+      </Provider>,
+    );
+
+    await user.click(
+      screen.getByRole("button", { name: /legacy epanet controls detected/i }),
+    );
+
+    expect(store.get(dialogAtom)).toEqual({ type: "controls" });
   });
 });
 
