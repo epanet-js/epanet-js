@@ -117,7 +117,7 @@ export const Callout = ({
         {children && <div className="text-size-base">{children}</div>}
         {details && (
           <details className="text-size-small">
-            <summary className="cursor-pointer text-gray-600 hover:text-gray-800">
+            <summary className="cursor-pointer text-subtle hover:text-default">
               {detailsLabel}
             </summary>
             <pre className="mt-1 whitespace-pre-wrap wrap-break-word font-mono text-default bg-white/60 rounded-sm p-2 max-h-40 overflow-auto">
