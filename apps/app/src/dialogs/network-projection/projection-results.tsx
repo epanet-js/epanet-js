@@ -82,7 +82,7 @@ export const ProjectionResults = ({
                 className={clsx(
                   "w-full text-left px-2 py-1.5 text-size-base rounded-sm",
                   isSelected
-                    ? "bg-purple-100 dark:bg-purple-900/30"
+                    ? "bg-accent-tint"
                     : "hover:bg-purple-50 dark:hover:bg-gray-700",
                   "text-default dark:text-gray-200",
                 )}
