@@ -1,6 +1,6 @@
 import * as Popover from "@radix-ui/react-popover";
 import clsx from "clsx";
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { Button, StyledPopoverContent } from "src/components/elements";
 import { Callout, SelectorList } from "@epanet-js/ui-kit";
 import { useTranslate } from "src/hooks/use-translate";
@@ -23,6 +23,8 @@ import {
 } from "src/icons";
 
 type Scope = ScriptAssistantScope;
+
+const MAX_GROWN_LINES = 5;
 
 const scopes: { value: Scope; available: boolean }[] = [
   { value: "script", available: true },
@@ -147,6 +149,25 @@ export const AssistantComposer = ({
   const translate = useTranslate();
   const [scope, setScope] = useState<Scope>("script");
   const canSend = value.trim() !== "";
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useLayoutEffect(
+    function growWithText() {
+      const textarea = textareaRef.current;
+      if (!textarea) return;
+      if (height !== null) {
+        textarea.style.height = "";
+        return;
+      }
+      const lineHeight = parseFloat(getComputedStyle(textarea).lineHeight);
+      textarea.style.height = "auto";
+      const maxHeight = Number.isNaN(lineHeight)
+        ? Infinity
+        : lineHeight * MAX_GROWN_LINES;
+      textarea.style.height = `${Math.min(textarea.scrollHeight, maxHeight)}px`;
+    },
+    [value, height],
+  );
 
   const send = () => {
     if (canSend) onSend(value.trim(), scope);
@@ -165,9 +186,7 @@ export const AssistantComposer = ({
               "text-size-base text-subtle whitespace-pre-wrap break-words",
               height !== null
                 ? "flex-1 min-h-0 overflow-hidden"
-                : rows === 3
-                  ? "h-15 line-clamp-3"
-                  : "h-10 line-clamp-2",
+                : clsx("line-clamp-5", rows === 3 ? "min-h-15" : "min-h-10"),
             )}
           >
             {busy.prompt}
@@ -195,6 +214,7 @@ export const AssistantComposer = ({
         className="flex flex-col rounded-sm border border-strong bg-base p-2 focus-within:border-accent focus-within:ring-1 focus-within:ring-accent"
       >
         <textarea
+          ref={textareaRef}
           aria-label={label}
           placeholder={placeholder}
           value={value}
