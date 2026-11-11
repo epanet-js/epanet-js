@@ -224,6 +224,32 @@ describe("ScriptsPanel", () => {
       ).toHaveFocus();
     });
 
+    it("collapses the assistant in the editor and keeps run", async () => {
+      const user = userEvent.setup();
+      const store = setInitialState({
+        hydraulicModel: HydraulicModelBuilder.with().build(),
+      });
+      renderPanel(store);
+
+      await user.click(screen.getByRole("button", { name: /new/i }));
+      await user.click(
+        screen.getByRole("button", { name: "Write script myself" }),
+      );
+
+      expect(
+        screen.getByRole("textbox", { name: "Describe a change" }),
+      ).toBeVisible();
+
+      await user.click(
+        screen.getByRole("button", { name: "Scripting assistant" }),
+      );
+
+      expect(
+        screen.queryByRole("textbox", { name: "Describe a change" }),
+      ).not.toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Run" })).toBeEnabled();
+    });
+
     describe("while the assistant writes", () => {
       it("opens the written script in the editor", async () => {
         const user = userEvent.setup();

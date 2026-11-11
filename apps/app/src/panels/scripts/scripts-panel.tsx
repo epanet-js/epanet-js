@@ -4,6 +4,7 @@ import clsx from "clsx";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { Button, DDContent, StyledItem } from "src/components/elements";
 import { EditableTextField } from "src/components/form/editable-text-field";
+import { CollapsibleSection } from "src/components/form/fields";
 import {
   CollapsibleListSection,
   ItemInput,
@@ -501,9 +502,7 @@ const ScriptEditor = ({
   const [confirmingDiscard, setConfirmingDiscard] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
   const isGenerating = assistant?.generation != null;
-  const [isComposerOpen, setIsComposerOpen] = useState(
-    assistant?.isWrittenByAssistant ?? false,
-  );
+  const [isAssistantOpen, setIsAssistantOpen] = useState(true);
   const [composerText, setComposerText] = useState("");
   const draftRef = useRef(draft);
   draftRef.current = draft;
@@ -750,48 +749,50 @@ const ScriptEditor = ({
           onLockedEdit={isGenerating ? () => {} : openEditPaywall}
         />
       </div>
-      {assistant && (isComposerOpen || isGenerating) && (
-        <section
-          aria-label={translate("scripting.assistant.askAi")}
-          className="p-2 border-t bg-panel"
-        >
-          <AssistantComposer
-            label={translate("scripting.assistant.describeChange")}
-            placeholder={translate(
-              "scripting.assistant.describeChangePlaceholder",
-            )}
-            submitLabel={translate("scripting.assistant.update")}
-            submitVariant="default"
-            rows={2}
-            value={composerText}
-            onChange={setComposerText}
-            onSend={(prompt, scope) => {
-              void assistant
-                .onGenerate(prompt, scope, draftRef.current.source)
-                .then((applied) => {
-                  if (applied) setComposerText("");
-                });
-            }}
-            busy={
-              assistant.generation && {
-                prompt: assistant.generation.prompt,
-                status:
-                  assistant.generation.kind === "write"
-                    ? translate("scripting.assistant.writing")
-                    : translate("scripting.assistant.updating"),
-              }
-            }
-            onStop={assistant.onStop}
-          />
+      {assistant && (
+        <section className="px-3 py-1 border-t bg-panel">
+          <CollapsibleSection
+            title={translate("scripting.assistant.title")}
+            open={isAssistantOpen}
+            onOpenChange={setIsAssistantOpen}
+            autoIndent={false}
+          >
+            <div className="pb-2">
+              <AssistantComposer
+                label={translate("scripting.assistant.describeChange")}
+                placeholder={translate(
+                  "scripting.assistant.describeChangePlaceholder",
+                )}
+                submitLabel={translate("scripting.assistant.update")}
+                submitVariant="default"
+                rows={2}
+                value={composerText}
+                onChange={setComposerText}
+                onSend={(prompt, scope) => {
+                  if (isEditLocked) return openEditPaywall();
+                  void assistant
+                    .onGenerate(prompt, scope, draftRef.current.source)
+                    .then((applied) => {
+                      if (applied) setComposerText("");
+                    });
+                }}
+                busy={
+                  assistant.generation && {
+                    prompt: assistant.generation.prompt,
+                    status:
+                      assistant.generation.kind === "write"
+                        ? translate("scripting.assistant.writing")
+                        : translate("scripting.assistant.updating"),
+                  }
+                }
+                onStop={assistant.onStop}
+              />
+            </div>
+          </CollapsibleSection>
         </section>
       )}
       {assistant && (
         <AssistantFooter
-          isComposerOpen={isComposerOpen || isGenerating}
-          onToggleComposer={() => {
-            if (isEditLocked) return openEditPaywall();
-            setIsComposerOpen((open) => !open);
-          }}
           onRun={() => handleRun("editor")}
           isRunDisabled={isRunning || isGenerating}
         />

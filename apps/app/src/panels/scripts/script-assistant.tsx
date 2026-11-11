@@ -2,7 +2,6 @@ import * as Popover from "@radix-ui/react-popover";
 import clsx from "clsx";
 import { useState } from "react";
 import { Button, StyledPopoverContent } from "src/components/elements";
-import { Tooltip } from "@epanet-js/ui-kit";
 import { useTranslate } from "src/hooks/use-translate";
 import type { ScriptAssistantScope } from "src/lib/script-assistant";
 import type { ScriptGeneration } from "./use-script-generation";
@@ -206,13 +205,9 @@ export const AssistantComposer = ({
 };
 
 export const AssistantFooter = ({
-  isComposerOpen,
-  onToggleComposer,
   onRun,
   isRunDisabled,
 }: {
-  isComposerOpen: boolean;
-  onToggleComposer: () => void;
   onRun: () => void;
   isRunDisabled: boolean;
 }) => {
@@ -220,23 +215,6 @@ export const AssistantFooter = ({
 
   return (
     <div className="flex items-center gap-2 p-2 border-t">
-      <Tooltip
-        delayDuration={700}
-        content={translate("scripting.assistant.askAi")}
-      >
-        <Button
-          variant="quiet"
-          aria-label={translate("scripting.assistant.askAi")}
-          aria-pressed={isComposerOpen}
-          onClick={onToggleComposer}
-          className={clsx(
-            "h-8 w-8 justify-center",
-            isComposerOpen && "bg-base-hover text-accent",
-          )}
-        >
-          <AiIcon />
-        </Button>
-      </Tooltip>
       <Button
         variant="primary"
         size="full-width"

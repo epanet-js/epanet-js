@@ -154,7 +154,7 @@
     "downloadAllAsZip": "Download all as zip",
     "saveAll": "Save all",
     "assistant": {
-      "askAi": "Ask AI",
+      "title": "Scripting assistant",
       "describeScript": "Describe the script you want",
       "describeScriptPlaceholder": "Select every pipe at or below 100 mm and export them as CSV",
       "describeChange": "Describe a change",
