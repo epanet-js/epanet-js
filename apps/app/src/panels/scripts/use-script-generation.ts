@@ -1,8 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { notify } from "src/components/notifications";
 import { useAuth } from "src/hooks/use-auth";
-import { useTranslate } from "src/hooks/use-translate";
-import { ErrorIcon } from "src/icons";
 import { captureError, captureWarning } from "src/infra/error-tracking";
 import { useUserTracking } from "src/infra/user-tracking";
 import {
@@ -17,20 +14,6 @@ export type ScriptGeneration = {
   kind: "write" | "update";
 };
 
-const notifyFailure = (
-  reason: ScriptAssistantFailure,
-  translate: ReturnType<typeof useTranslate>,
-) =>
-  notify({
-    variant: "error",
-    Icon: ErrorIcon,
-    id: "script-assistant-failure",
-    title: translate(`scripting.assistant.failures.${reason}.title`),
-    description: translate(
-      `scripting.assistant.failures.${reason}.description`,
-    ),
-  });
-
 const reportFailure = (reason: ScriptAssistantFailure, detail: string) => {
   if (reason === "unavailable") {
     captureError(new Error(`The script assistant failed: ${detail}`));
@@ -42,14 +25,15 @@ const reportFailure = (reason: ScriptAssistantFailure, detail: string) => {
 export const useScriptGeneration = () => {
   const { getToken } = useAuth();
   const userTracking = useUserTracking();
-  const translate = useTranslate();
   const [generation, setGeneration] = useState<ScriptGeneration | null>(null);
+  const [failure, setFailure] = useState<ScriptAssistantFailure | null>(null);
   const controllerRef = useRef<AbortController | null>(null);
 
   const stop = useCallback(() => {
     controllerRef.current?.abort();
     controllerRef.current = null;
     setGeneration(null);
+    setFailure(null);
   }, []);
 
   const generate = useCallback(
@@ -75,6 +59,7 @@ export const useScriptGeneration = () => {
         });
 
       setGeneration({ prompt: request.prompt, kind });
+      setFailure(null);
       userTracking.capture({
         name: "script.generationRequested",
         kind,
@@ -99,7 +84,7 @@ export const useScriptGeneration = () => {
 
         captureFinished("failed", result.reason);
         reportFailure(result.reason, result.detail);
-        notifyFailure(result.reason, translate);
+        setFailure(result.reason);
         return null;
       } catch (error) {
         if (controller.signal.aborted) {
@@ -108,7 +93,7 @@ export const useScriptGeneration = () => {
         }
         captureFinished("failed", "unavailable");
         captureError(error as Error);
-        notifyFailure("unavailable", translate);
+        setFailure("unavailable");
         return null;
       } finally {
         if (controllerRef.current === controller) {
@@ -117,10 +102,10 @@ export const useScriptGeneration = () => {
         }
       }
     },
-    [getToken, userTracking, translate],
+    [getToken, userTracking],
   );
 
   useEffect(() => () => controllerRef.current?.abort(), []);
 
-  return { generation, generate, stop };
+  return { generation, failure, generate, stop };
 };

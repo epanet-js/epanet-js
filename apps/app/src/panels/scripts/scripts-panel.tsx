@@ -25,6 +25,7 @@ import { useScriptingDocs } from "src/hooks/use-scripting-docs";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   getScriptAssistant,
+  type ScriptAssistantFailure,
   type ScriptAssistantScope,
 } from "src/lib/script-assistant";
 import { usePermissions } from "src/hooks/use-permissions";
@@ -82,11 +83,12 @@ export const ScriptsPanel = () => {
   const translate = useTranslate();
 
   const userTracking = useUserTracking();
-  const { generation, generate, stop } = useScriptGeneration();
+  const { generation, failure, generate, stop } = useScriptGeneration();
   const [sourceVersion, setSourceVersion] = useState(0);
   const [isWrittenByAssistant, setIsWrittenByAssistant] = useState(false);
 
   const openDraft = (next: ScriptDraft) => {
+    stop();
     setIsComposing(false);
     setIsWrittenByAssistant(false);
     setDraft(next);
@@ -130,6 +132,7 @@ export const ScriptsPanel = () => {
           isAssistantOn
             ? {
                 generation,
+                failure,
                 sourceVersion,
                 isWrittenByAssistant,
                 onGenerate: handleUpdate,
@@ -149,6 +152,7 @@ export const ScriptsPanel = () => {
         }}
         onSend={(prompt, scope) => void handleWrite(prompt, scope)}
         generation={generation}
+        failure={failure}
         onStop={stop}
         onWriteMyself={() => openDraft(newScriptDraft(translate, llmsPath))}
       />
@@ -469,6 +473,7 @@ const ScriptList = ({
 
 type EditorAssistant = {
   generation: ScriptGeneration | null;
+  failure: ScriptAssistantFailure | null;
   sourceVersion: number;
   isWrittenByAssistant: boolean;
   onGenerate: (
@@ -804,6 +809,7 @@ const ScriptEditor = ({
                   }
                 }
                 onStop={assistant.onStop}
+                failure={assistant.failure}
                 height={composerHeight}
                 boxRef={composerBoxRef}
               />

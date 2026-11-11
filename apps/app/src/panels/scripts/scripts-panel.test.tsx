@@ -30,7 +30,6 @@ import { USelection } from "src/selection";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { userScriptsAtom, type UserScript } from "src/state/scripts";
 import { ScriptsPanel } from "./scripts-panel";
-import { notify } from "src/components/notifications";
 import { captureError, captureWarning } from "src/infra/error-tracking";
 import {
   registerScriptAssistant,
@@ -54,13 +53,6 @@ const writes: {
   fail: (reason: ScriptAssistantFailure, detail: string) => void;
   reject: (error: Error) => void;
 }[] = [];
-
-vi.mock("src/components/notifications", async () => ({
-  ...(await vi.importActual<typeof import("src/components/notifications")>(
-    "src/components/notifications",
-  )),
-  notify: vi.fn(),
-}));
 
 vi.mock("src/infra/error-tracking", async () => ({
   ...(await vi.importActual<typeof import("src/infra/error-tracking")>(
@@ -174,7 +166,6 @@ describe("ScriptsPanel", () => {
     beforeEach(() => {
       stubFeatureOn("FLAG_SCRIPTING_ASSISTANT");
       writes.length = 0;
-      vi.mocked(notify).mockClear();
       vi.mocked(captureError).mockClear();
       vi.mocked(captureWarning).mockClear();
       registerScriptAssistant({
@@ -382,14 +373,9 @@ describe("ScriptsPanel", () => {
 
         writes[0].fail("limitReached", "402 limitReached");
 
-        await waitFor(() =>
-          expect(notify).toHaveBeenCalledWith(
-            expect.objectContaining({
-              variant: "error",
-              title: "You've used all your assistant credit",
-            }),
-          ),
-        );
+        expect(
+          await screen.findByText("You've used all your assistant credit"),
+        ).toBeVisible();
         expect(captureWarning).toHaveBeenCalledWith(
           "The script assistant refused: 402 limitReached",
         );
@@ -409,11 +395,9 @@ describe("ScriptsPanel", () => {
 
         writes[0].fail("unavailable", "502 unavailable");
 
-        await waitFor(() =>
-          expect(notify).toHaveBeenCalledWith(
-            expect.objectContaining({ title: "We couldn't write the script" }),
-          ),
-        );
+        expect(
+          await screen.findByText("We couldn't write the script"),
+        ).toBeVisible();
         expect(captureError).toHaveBeenCalledWith(
           new Error("The script assistant failed: 502 unavailable"),
         );
@@ -426,11 +410,9 @@ describe("ScriptsPanel", () => {
 
         writes[0].reject(error);
 
-        await waitFor(() =>
-          expect(notify).toHaveBeenCalledWith(
-            expect.objectContaining({ title: "We couldn't write the script" }),
-          ),
-        );
+        expect(
+          await screen.findByText("We couldn't write the script"),
+        ).toBeVisible();
         expect(captureError).toHaveBeenCalledWith(error);
       });
 
@@ -441,8 +423,42 @@ describe("ScriptsPanel", () => {
         await user.click(screen.getByRole("button", { name: "Stop" }));
 
         expect(writes[0].signal.aborted).toBe(true);
-        expect(notify).not.toHaveBeenCalled();
+        expect(
+          screen.queryByText("We couldn't write the script"),
+        ).not.toBeInTheDocument();
         expect(captureError).not.toHaveBeenCalled();
+      });
+
+      it("says the answer was too long next to the change it was asked for", async () => {
+        const user = userEvent.setup();
+        await sendDescription();
+        writes[0].resolve({
+          source: "selectSmallPipes();",
+          name: "Small pipes",
+        });
+        await user.type(
+          await screen.findByRole("textbox", { name: "Describe a change" }),
+          "Rewrite everything",
+        );
+        await user.click(screen.getByRole("button", { name: "Update" }));
+
+        writes[1].fail("answerTooLong", "502 answerTooLong");
+
+        expect(
+          await screen.findByText("The answer was too long"),
+        ).toBeVisible();
+        expect(
+          screen.getByRole("textbox", { name: "Describe a change" }),
+        ).toHaveValue("Rewrite everything");
+        expect(screen.getByRole("textbox", { name: "Source" })).toHaveValue(
+          "selectSmallPipes();",
+        );
+
+        await user.click(screen.getByRole("button", { name: "Update" }));
+
+        expect(
+          screen.queryByText("The answer was too long"),
+        ).not.toBeInTheDocument();
       });
 
       it("stops and hands the description back", async () => {

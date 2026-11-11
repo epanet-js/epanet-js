@@ -20,6 +20,7 @@ export type ScriptAssistantFailure =
   | "notEnabled"
   | "limitReached"
   | "tooLong"
+  | "answerTooLong"
   | "unavailable";
 
 export type ScriptAssistantResult =

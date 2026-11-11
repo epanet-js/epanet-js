@@ -2,14 +2,18 @@ import * as Popover from "@radix-ui/react-popover";
 import clsx from "clsx";
 import { useState } from "react";
 import { Button, StyledPopoverContent } from "src/components/elements";
-import { SelectorList } from "@epanet-js/ui-kit";
+import { Callout, SelectorList } from "@epanet-js/ui-kit";
 import { useTranslate } from "src/hooks/use-translate";
-import type { ScriptAssistantScope } from "src/lib/script-assistant";
+import type {
+  ScriptAssistantFailure,
+  ScriptAssistantScope,
+} from "src/lib/script-assistant";
 import type { ScriptGeneration } from "./use-script-generation";
 import {
   AiIcon,
   ChevronDownIcon,
   ChevronLeftIcon,
+  ErrorIcon,
   FilterIcon,
   PlayIcon,
   StopSimulationIcon,
@@ -32,12 +36,14 @@ export const ScriptAssistant = ({
   onSend,
   onWriteMyself,
   generation,
+  failure,
   onStop,
 }: {
   onBack: () => void;
   onSend: (prompt: string, scope: Scope) => void;
   onWriteMyself: () => void;
   generation: ScriptGeneration | null;
+  failure: ScriptAssistantFailure | null;
   onStop: () => void;
 }) => {
   const translate = useTranslate();
@@ -88,6 +94,7 @@ export const ScriptAssistant = ({
               }
             }
             onStop={onStop}
+            failure={failure}
             autoFocus
           />
           <Button
@@ -120,6 +127,7 @@ export const AssistantComposer = ({
   autoFocus = false,
   height = null,
   boxRef,
+  failure,
 }: {
   label: string;
   placeholder: string;
@@ -134,6 +142,7 @@ export const AssistantComposer = ({
   autoFocus?: boolean;
   height?: number | null;
   boxRef?: React.Ref<HTMLDivElement>;
+  failure: ScriptAssistantFailure | null;
 }) => {
   const translate = useTranslate();
   const [scope, setScope] = useState<Scope>("script");
@@ -208,6 +217,17 @@ export const AssistantComposer = ({
           )}
         />
       </div>
+      {failure && (
+        <Callout
+          variant="error"
+          Icon={ErrorIcon}
+          title={translate(`scripting.assistant.failures.${failure}.title`)}
+          description={translate(
+            `scripting.assistant.failures.${failure}.description`,
+          )}
+          className="mt-2 rounded-md"
+        />
+      )}
       <div className="flex items-center justify-between gap-2 mt-2">
         <ScopeSelector value={scope} onChange={setScope} />
         <Button

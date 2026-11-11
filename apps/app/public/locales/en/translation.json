@@ -205,6 +205,10 @@
           "title": "This request is too long",
           "description": "Shorten your message or the script, then try again."
         },
+        "answerTooLong": {
+          "title": "The answer was too long",
+          "description": "Ask for less at once, or split the request into smaller steps."
+        },
         "unavailable": {
           "title": "We couldn't write the script",
           "description": "Try again. If the error persists, contact support."
