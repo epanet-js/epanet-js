@@ -361,4 +361,62 @@ describe("open integration", () => {
       1,
     ]);
   });
+
+  it("migrates a file whose selection set labels hold slashes, moving the sets into groups", async () => {
+    await importProject({
+      newDb: true,
+      hydraulicModel: HydraulicModelBuilder.with()
+        .aJunction(1, { label: "J1" })
+        .build(),
+      projectSettings: defaultProjectSettings,
+      simulationSettings: defaultSimulationSettings,
+      selectionSetGroups: [{ id: "group-1", label: "NORTH", parentId: null }],
+      selectionSets: [
+        {
+          id: "set-1",
+          label: "NORTH/Mains/Loop",
+          selection: USelection.fromIds([1], []),
+          groupId: null,
+        },
+        {
+          id: "set-2",
+          label: "Plain",
+          selection: USelection.fromIds([1], []),
+          groupId: null,
+        },
+      ],
+    });
+    await withTransaction("downgrade", (db) => {
+      db.exec("PRAGMA user_version = 28");
+    });
+    const blob = await exportDb();
+
+    const result = await openProject(new File([blob], "before.epnt"));
+
+    expect(result).toMatchObject({ status: "migrated", fileVersion: 28 });
+    const project = await fetchProject();
+    expect(
+      project.selectionSetGroups.map(({ label, parentId }) => ({
+        label,
+        parentId,
+      })),
+    ).toEqual([
+      { label: "NORTH", parentId: null },
+      { label: "Mains", parentId: "group-1" },
+    ]);
+    const mains = project.selectionSetGroups[1];
+    expect(
+      project.selectionSets.map(({ id, label, groupId }) => ({
+        id,
+        label,
+        groupId,
+      })),
+    ).toEqual([
+      { id: "set-1", label: "Loop", groupId: mains.id },
+      { id: "set-2", label: "Plain", groupId: null },
+    ]);
+    expect(USelection.getAssetIds(project.selectionSets[0].selection)).toEqual([
+      1,
+    ]);
+  });
 });
