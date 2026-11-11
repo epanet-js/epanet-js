@@ -736,6 +736,9 @@ const ScriptEditor = ({
         <div className="flex flex-col gap-2 px-3 py-2 border-b text-size-small">
           <span>{translate("scripting.unsavedChanges")}</span>
           <div className="flex items-center justify-end gap-2">
+            <Button size="xs" variant="danger" onClick={onClose}>
+              {translate("dialog.discardChanges")}
+            </Button>
             <Button
               size="xs"
               onClick={() => {
@@ -743,9 +746,6 @@ const ScriptEditor = ({
               }}
             >
               {translate("dialog.saveChanges")}
-            </Button>
-            <Button size="xs" variant="danger" onClick={onClose}>
-              {translate("dialog.discardChanges")}
             </Button>
           </div>
         </div>
