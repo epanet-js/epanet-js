@@ -70,7 +70,7 @@ export const ExportSimulationResultsProgressDialog = ({
     >
       <div className="p-4 space-y-2">
         <p className="tabular-nums text-size-base text-default flex items-center gap-1.5">
-          {isComplete && <SuccessIcon className="text-green-600 shrink-0" />}
+          {isComplete && <SuccessIcon className="text-success shrink-0" />}
           {propertyText ? (
             <>
               <span>{propertyText}</span>

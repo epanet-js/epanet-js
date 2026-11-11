@@ -92,13 +92,13 @@ export const SettingsSection = ({
 );
 
 const SectionHeader = ({ children }: { children: React.ReactNode }) => (
-  <h3 className="sticky top-0 bg-popover -mt-3 -mx-3 pt-4 px-3 pb-2 z-5 text-base font-semibold text-default dark:text-white">
+  <h3 className="sticky top-0 bg-popover -mt-3 -mx-3 pt-4 px-3 pb-2 z-5 text-base font-semibold text-default">
     {children}
   </h3>
 );
 
 const SubsectionHeader = ({ children }: { children: React.ReactNode }) => (
-  <div className="sticky top-12 z-3 px-3 py-2 -mx-3 bg-popover text-size-base font-semibold text-default dark:text-white">
+  <div className="sticky top-12 z-3 px-3 py-2 -mx-3 bg-popover text-size-base font-semibold text-default">
     {children}
   </div>
 );
