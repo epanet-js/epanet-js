@@ -103,7 +103,7 @@ export const ScriptAssistant = ({
             onClick={onWriteMyself}
             aria-hidden={generation !== null}
             tabIndex={generation ? -1 : undefined}
-            className={clsx("self-center mt-4", generation && "invisible")}
+            className={clsx("self-center mt-12", generation && "invisible")}
           >
             {translate("scripting.assistant.writeMyself")}
           </Button>
@@ -276,7 +276,7 @@ const Hint = ({
   icon: React.ReactNode;
   children: React.ReactNode;
 }) => (
-  <li className="flex items-start gap-1">
+  <li className="flex items-start gap-2">
     <span className="shrink-0 mt-0.5">{icon}</span>
     <span>{children}</span>
   </li>
