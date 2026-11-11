@@ -94,6 +94,7 @@ type ActionState =
       source: CollectionDraftSource;
       label: string;
       groupId: SelectionSetGroupId | null;
+      groupLabels: string[];
     }
   | { action: "creatingGroup"; parentId: SelectionSetGroupId | null }
   | { action: "renaming"; section: SectionType; id: string }
@@ -605,6 +606,7 @@ export const CollectionsPanel = () => {
           label: trimmedLabel,
           source: actionState.source,
           groupId: actionState.groupId,
+          groupLabels: actionState.groupLabels,
         });
       } else {
         addBookmark({ label: trimmedLabel, source: actionState.source });
@@ -637,6 +639,7 @@ export const CollectionsPanel = () => {
       source: pendingDraft.source,
       label: pendingDraft.label,
       groupId,
+      groupLabels: pendingDraft.groupLabels ?? [],
     });
     if (groupId !== null) expandGroup(groupId);
     listRef.current?.openSection(pendingDraft.kind);

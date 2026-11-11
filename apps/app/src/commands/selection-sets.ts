@@ -38,30 +38,33 @@ export const useCreateSelectionSet = () => {
           selection,
           source,
           groupId: parentId = null,
+          groupLabels: outerGroupLabels = [],
         }: {
           label: string;
           selection: Sel;
           source: CollectionDraftSource;
           groupId?: SelectionSetGroupId | null;
+          groupLabels?: string[];
         },
-      ): boolean => {
+      ): "created" | "skipped" | "failed" => {
         const count = countSelected(selection);
-        if (count < MIN_SELECTION_SET_SIZE) return false;
+        if (count < MIN_SELECTION_SET_SIZE) return "skipped";
 
         const { groupLabels, label } = name.includes(SET_PATH_SEPARATOR)
           ? splitSetPath(name)
           : { groupLabels: [], label: name };
-        if (!label) return false;
+        if (!label) return "skipped";
 
         const ensured = ensureGroupPath({
-          groupLabels,
+          groupLabels: [...outerGroupLabels, ...groupLabels],
           parentId,
           source: source === "script-output" ? "script-output" : "panel",
         });
-        if (!ensured) return false;
+        if (!ensured) return "failed";
         const { groupId } = ensured;
 
-        if (!create(newSelectionSet(label, selection, groupId))) return false;
+        if (!create(newSelectionSet(label, selection, groupId)))
+          return "failed";
 
         userTracking.capture({
           name: "selectionSet.created",
@@ -70,7 +73,7 @@ export const useCreateSelectionSet = () => {
           inGroup: groupId !== null,
           source,
         });
-        return true;
+        return "created";
       },
       [userTracking, create, ensureGroupPath],
     ),
@@ -89,6 +92,7 @@ export const useSaveSelectionSet = () => {
           label: string;
           source: CollectionDraftSource;
           groupId?: SelectionSetGroupId | null;
+          groupLabels?: string[];
         },
       ) => {
         createSelectionSet({ ...input, selection: get(selectionAtom) });

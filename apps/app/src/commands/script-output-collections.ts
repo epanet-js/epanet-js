@@ -7,7 +7,7 @@ import {
 } from "src/commands/collection-draft";
 import { useFeatureLock } from "src/components/form/paywall";
 import { useBookmarksTransaction } from "src/hooks/persistence/use-bookmarks-transaction";
-import { useSelectionSetsTransaction } from "src/hooks/persistence/use-selection-sets-transaction";
+import { useCreateSelectionSet } from "src/commands/selection-sets";
 import { usePermissions } from "src/hooks/use-permissions";
 import { useZoomTo } from "src/hooks/use-zoom-to";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -18,14 +18,13 @@ import type {
   ScriptSelectionSet,
 } from "src/lib/scripting";
 import {
-  countSelected,
   existingSelection,
   newBookmark,
-  newSelectionSet,
+  splitSetPath,
 } from "src/lib/collections";
 import { MapContext } from "src/map";
 import { USelection } from "src/selection";
-import { bookmarksAtom, selectionSetsAtom } from "src/state/collections";
+import { bookmarksAtom } from "src/state/collections";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { selectionAtom } from "src/state/selection";
 
@@ -57,7 +56,7 @@ export const useSaveScriptSelectionSet = () => {
       startCollectionDraft({
         kind: "selectionSets",
         source: "script-output",
-        label: selectionSet.label,
+        ...splitSetPath(selectionSet.label),
       });
     },
     [applySelectionSet, startCollectionDraft],
@@ -96,8 +95,7 @@ export const useGoToScriptBookmark = () => {
 };
 
 export const useSaveAllScriptSelectionSets = () => {
-  const userTracking = useUserTracking();
-  const { create } = useSelectionSetsTransaction();
+  const createSelectionSet = useCreateSelectionSet();
   const { canManageCollections } = usePermissions();
   const { openPaywall } = useFeatureLock("selectionSets");
   const revealPanel = useRevealCollectionsPanel();
@@ -114,21 +112,16 @@ export const useSaveAllScriptSelectionSets = () => {
             USelection.fromIds(targets.assetIds, targets.customerPointIds),
             model,
           );
-          const count = countSelected(selection);
-          if (count === 0) continue;
-          if (!create(newSelectionSet(label, selection))) return;
-
-          userTracking.capture({
-            name: "selectionSet.created",
-            count,
-            totalSets: get(selectionSetsAtom).length,
-            inGroup: false,
+          const outcome = createSelectionSet({
+            label,
+            selection,
             source: "script-output",
           });
+          if (outcome === "failed") return;
         }
         revealPanel();
       },
-      [canManageCollections, openPaywall, create, userTracking, revealPanel],
+      [canManageCollections, openPaywall, createSelectionSet, revealPanel],
     ),
   );
 };

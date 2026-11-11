@@ -23,13 +23,9 @@ import {
 } from "src/hooks/use-is-edition-blocked";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import { useUserTracking } from "src/infra/user-tracking";
-import { useSelectionSetsTransaction } from "src/hooks/persistence/use-selection-sets-transaction";
+import { useCreateSelectionSet } from "src/commands/selection-sets";
 import { useBookmarksTransaction } from "src/hooks/persistence/use-bookmarks-transaction";
-import {
-  countSelected,
-  newBookmark,
-  newSelectionSet,
-} from "src/lib/collections";
+import { newBookmark, setPath } from "src/lib/collections";
 import { USelection, type Sel } from "src/selection";
 import type { Zones } from "@epanet-js/hydraulic-model";
 import { chooseUnitSystem, defaultAccuracy } from "src/simulation/build-inp";
@@ -62,7 +58,11 @@ import {
 } from "src/state/scripts";
 import { selectionAtom } from "src/state/selection";
 import { simulationStepAtom } from "src/state/simulation";
-import { bookmarksAtom, selectionSetsAtom } from "src/state/collections";
+import {
+  bookmarksAtom,
+  selectionSetGroupsAtom,
+  selectionSetsAtom,
+} from "src/state/collections";
 import { useShowScriptOutput } from "./show-script-output";
 
 const MAX_CONSOLE_LINES = 1000;
@@ -84,7 +84,7 @@ export const useRunScript = () => {
   const editionBlock = useEditionBlock();
   const editionBlockRef = useRef(editionBlock);
   editionBlockRef.current = editionBlock;
-  const { create: createSelectionSet } = useSelectionSetsTransaction();
+  const createSelectionSet = useCreateSelectionSet();
   const { transact: saveBookmarks } = useBookmarksTransaction();
   const showScriptOutput = useShowScriptOutput();
 
@@ -145,9 +145,11 @@ export const useRunScript = () => {
       if (canManageCollections) {
         for (const { label, targets, commit } of outcome.selectionSets) {
           if (!commit) continue;
-          const members = existing(targets);
-          if (countSelected(members) === 0) continue;
-          createSelectionSet(newSelectionSet(label, members));
+          createSelectionSet({
+            label,
+            selection: existing(targets),
+            source: "script-output",
+          });
         }
         const bookmarks = outcome.bookmarks.filter(({ commit }) => commit);
         if (bookmarks.length > 0) {
@@ -237,12 +239,10 @@ export const useRunScript = () => {
         factories: store.get(modelFactoriesAtom),
         units: store.get(projectSettingsAtom).units,
         selected: selectedTargets(store.get(selectionAtom)),
-        selectionSets: store
-          .get(selectionSetsAtom)
-          .map(({ label, selection }) => ({
-            label,
-            targets: selectedTargets(selection),
-          })),
+        selectionSets: store.get(selectionSetsAtom).map((selectionSet) => ({
+          label: setPath(store.get(selectionSetGroupsAtom), selectionSet),
+          targets: selectedTargets(selectionSet.selection),
+        })),
         bookmarks: store
           .get(bookmarksAtom)
           .map(({ label, bbox: [west, south, east, north] }) => ({

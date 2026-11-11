@@ -19,6 +19,7 @@ export type CollectionDraft = {
   source: CollectionDraftSource;
   label: string;
   groupId?: SelectionSetGroupId | null;
+  groupLabels?: string[];
 };
 
 export type SelectionSetId = string;

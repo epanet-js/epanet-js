@@ -215,6 +215,37 @@ describe("CollectionsPanel", () => {
     });
   });
 
+  describe("a draft that names the folders for its set", () => {
+    it("creates the missing folders when the draft is saved, not before", async () => {
+      stubFeatureOn("FLAG_SELECTION_SET_GROUPS");
+      const store = aStore();
+      store.set(selectionSetGroupsAtom, [
+        { id: "review", label: "Review", parentId: null },
+      ]);
+      store.set(selectionAtom, USelection.fromAssetIds([IDS.J1, IDS.J2]));
+      store.set(pendingCollectionDraftAtom, {
+        kind: "selectionSets",
+        source: "script-output",
+        label: "Isolated nodes",
+        groupLabels: ["Review", "Dead ends"],
+      });
+      renderPanel(store);
+
+      expect(screen.getByRole("textbox")).toHaveValue("Isolated nodes");
+      expect(store.get(selectionSetGroupsAtom)).toHaveLength(1);
+      await userEvent.keyboard("{Enter}");
+
+      const [review, deadEnds] = store.get(selectionSetGroupsAtom);
+      expect(deadEnds).toMatchObject({
+        label: "Dead ends",
+        parentId: review.id,
+      });
+      expect(store.get(selectionSetsAtom)).toMatchObject([
+        { label: "Isolated nodes", groupId: deadEnds.id },
+      ]);
+    });
+  });
+
   describe("applying a selection set", () => {
     it("selects the set without moving the map from its select button", async () => {
       const store = aStore();
