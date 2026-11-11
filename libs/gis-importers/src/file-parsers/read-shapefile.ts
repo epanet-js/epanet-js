@@ -298,8 +298,11 @@ const valueOf = (text: string, type: string): unknown => {
   switch (type) {
     case "N":
     case "F":
-    case "O":
-      return parseFloat(text);
+    case "O": {
+      if (text === "") return null;
+      const number = parseFloat(text);
+      return Number.isNaN(number) ? text : number;
+    }
     // Unlike shpjs, a date stays the calendar date it states: a local-midnight
     // Date becomes the day before once stored in UTC east of Greenwich.
     case "D":

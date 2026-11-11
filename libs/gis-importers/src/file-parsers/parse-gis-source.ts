@@ -560,10 +560,20 @@ const decodeBundle = async (
 ): Promise<Feature[] | null> => {
   try {
     const collection: FeatureCollection = await shp(input);
-    return collection.features ?? [];
+    return (collection.features ?? []).map(withoutNaN);
   } catch {
     return null;
   }
+};
+
+// shpjs reads a blank number as NaN; it is no value.
+const withoutNaN = (feature: Feature): Feature => {
+  const properties = feature.properties;
+  if (!properties) return feature;
+  for (const name in properties) {
+    if (Number.isNaN(properties[name])) properties[name] = null;
+  }
+  return feature;
 };
 
 const sameFirstGeometry = (a: Feature[], b: Feature[]): boolean => {

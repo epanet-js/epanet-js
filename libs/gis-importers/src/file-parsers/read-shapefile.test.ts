@@ -170,7 +170,7 @@ const calendarDateOf = (date: Date): string | null =>
         String(date.getDate()).padStart(2, "0"),
       ].join("-");
 
-const withCalendarDates = (features: Feature[]): Feature[] =>
+const withReadableValues = (features: Feature[]): Feature[] =>
   features.map((feature) => ({
     ...feature,
     properties:
@@ -178,13 +178,17 @@ const withCalendarDates = (features: Feature[]): Feature[] =>
       Object.fromEntries(
         Object.entries(feature.properties).map(([name, value]) => [
           name,
-          value instanceof Date ? calendarDateOf(value) : value,
+          value instanceof Date
+            ? calendarDateOf(value)
+            : Number.isNaN(value)
+              ? null
+              : value,
         ]),
       ),
   }));
 
 const shpjsRead = async (bundle: ShapefileBundle): Promise<Feature[]> =>
-  withCalendarDates(withoutBbox((await shp(bundle)).features));
+  withReadableValues(withoutBbox((await shp(bundle)).features));
 
 const read = (bundle: ShapefileBundle): Feature[] => {
   const features: Feature[] = [];
