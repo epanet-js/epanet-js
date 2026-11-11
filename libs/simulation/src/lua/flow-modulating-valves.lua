@@ -13,6 +13,8 @@ FMVALVE_PRESSURE_PER_METER = {
 
 FMVALVE_US_FLOW_UNITS = { cfs = true, gpm = true, mgd = true, imgd = true, afd = true }
 
+FMVALVE_GRAVITY_SCALED_PRESSURES = { psi = true, kpa = true, bar = true }
+
 fmvalve_tol            = FMVALVE_TOL_M
 fmvalve_remote_tol     = FMVALVE_REMOTE_TOL_M
 fmvalve_setting_tol    = FMVALVE_SETTING_TOL_M
@@ -27,8 +29,13 @@ function fmvalveSetRunUnits()
     fmvalve_remote_tol = FMVALVE_REMOTE_TOL_M * pressure_per_meter
     fmvalve_setting_tol = FMVALVE_SETTING_TOL_M * pressure_per_meter
     fmvalve_min_setting = FMVALVE_MIN_SETTING_M * pressure_per_meter
-    fmvalve_pressure_per_length = pressure_per_meter
-    if FMVALVE_US_FLOW_UNITS[u.flow] then fmvalve_pressure_per_length = pressure_per_meter * 0.3048 end
+    local pressure_per_length = pressure_per_meter
+    if FMVALVE_US_FLOW_UNITS[u.flow] then pressure_per_length = pressure_per_length * 0.3048 end
+    if FMVALVE_GRAVITY_SCALED_PRESSURES[u.pressure] then
+        pressure_per_length = pressure_per_length * options().specific_gravity
+    end
+    fmvalve_pressure_per_length = pressure_per_length
+end
 end
 
 function fmvalveLookup(flow, flows, pressures, interpolate)

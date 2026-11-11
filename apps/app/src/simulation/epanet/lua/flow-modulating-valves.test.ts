@@ -62,9 +62,11 @@ const usCustomary = (preset: keyof Presets, perCfs: number): Units => ({
 });
 
 const LPS = metric("LPS", 1, "mwc");
+const LPM_KPA = metric("LPM", 60, "kPa");
 
 const UNIT_SYSTEMS = [
   LPS,
+  LPM_KPA,
   metric("LPM", 60, "kPa"),
   metric("MLD", 0.0864, "bar"),
   metric("CMH", 3.6, "fwc"),
@@ -143,6 +145,21 @@ describe("flow-modulating valves", () => {
     expectOnCurve(LPS, flows, pressures, true);
     expectAllNear(pressures, LINEAR_PRESSURES, PRESSURE_TOL);
   });
+
+  it("opens fully against the inlet pressure of a denser fluid", async () => {
+    const { reader } = await run(
+      LPM_KPA,
+      fmvNetwork(LPM_KPA, { controlNodeId: IDS.J2, sourceHead: 25 }),
+      (settings) => settings.specificGravity(1.3),
+    );
+
+    const inletPressures = await junctionPressures(reader, IDS.J0);
+    const outletPressures = await junctionPressures(reader, IDS.J1);
+
+    expect(
+      Math.abs(outletPressures[PEAK_STEP] - inletPressures[PEAK_STEP]),
+    ).toBeLessThan(LPM_KPA.pressure(PRESSURE_TOL));
+  });
 });
 
 const IDS = {
@@ -218,14 +235,16 @@ const fmvNetwork = (
     interpolate = true,
     sensorLinkId = IDS.V1,
     controlNodeId = IDS.J1,
+    sourceHead = 60,
   }: {
     interpolate?: boolean;
     sensorLinkId?: number;
     controlNodeId?: number;
+    sourceHead?: number;
   } = {},
 ) =>
   HydraulicModelBuilder.with()
-    .aReservoir(IDS.R1, { head: units.length(60) })
+    .aReservoir(IDS.R1, { head: units.length(sourceHead) })
     .aJunction(IDS.J0, { elevation: 0 })
     .aJunction(IDS.J1, { elevation: 0 })
     .aJunction(IDS.J2, { elevation: units.length(2) })
