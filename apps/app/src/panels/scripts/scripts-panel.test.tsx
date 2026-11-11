@@ -208,12 +208,12 @@ describe("ScriptsPanel", () => {
       await user.click(screen.getByRole("button", { name: /new/i }));
 
       expect(screen.getByText("Describe the script you want")).toBeVisible();
-      expect(screen.getByRole("button", { name: "Send" })).toBeDisabled();
+      expect(screen.getByRole("button", { name: "Create" })).toBeDisabled();
       await user.type(
         screen.getByRole("textbox", { name: "Describe the script you want" }),
         "Select small pipes",
       );
-      expect(screen.getByRole("button", { name: "Send" })).toBeEnabled();
+      expect(screen.getByRole("button", { name: "Create" })).toBeEnabled();
 
       await user.click(
         screen.getByRole("button", { name: "Write script myself" }),
@@ -239,7 +239,7 @@ describe("ScriptsPanel", () => {
           }),
           "Select small pipes",
         );
-        await user.click(screen.getByRole("button", { name: "Send" }));
+        await user.click(screen.getByRole("button", { name: "Create" }));
 
         expect(writes[0].request).toEqual({
           prompt: "Select small pipes",
@@ -276,7 +276,7 @@ describe("ScriptsPanel", () => {
           screen.getByRole("textbox", { name: "Describe a change" }),
           "Also export a CSV",
         );
-        await user.click(screen.getByRole("button", { name: "Send" }));
+        await user.click(screen.getByRole("button", { name: "Update" }));
 
         expect(writes[1].request).toEqual({
           prompt: "Also export a CSV",
@@ -316,7 +316,7 @@ describe("ScriptsPanel", () => {
           }),
           "Select small pipes",
         );
-        await user.click(screen.getByRole("button", { name: "Send" }));
+        await user.click(screen.getByRole("button", { name: "Create" }));
       };
 
       it("asks for the released docs", async () => {
@@ -407,7 +407,7 @@ describe("ScriptsPanel", () => {
           }),
           "Select small pipes",
         );
-        await user.click(screen.getByRole("button", { name: "Send" }));
+        await user.click(screen.getByRole("button", { name: "Create" }));
         await user.click(screen.getByRole("button", { name: "Stop" }));
 
         expect(writes[0].signal.aborted).toBe(true);

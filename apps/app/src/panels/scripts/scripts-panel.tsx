@@ -760,6 +760,8 @@ const ScriptEditor = ({
             placeholder={translate(
               "scripting.assistant.describeChangePlaceholder",
             )}
+            submitLabel={translate("scripting.assistant.update")}
+            submitVariant="default"
             rows={2}
             value={composerText}
             onChange={setComposerText}

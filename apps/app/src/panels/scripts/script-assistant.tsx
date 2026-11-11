@@ -8,7 +8,6 @@ import type { ScriptAssistantScope } from "src/lib/script-assistant";
 import type { ScriptGeneration } from "./use-script-generation";
 import {
   AiIcon,
-  ArrowUpIcon,
   ChevronDownIcon,
   ChevronLeftIcon,
   FilterIcon,
@@ -76,6 +75,8 @@ export const ScriptAssistant = ({
             placeholder={translate(
               "scripting.assistant.describeScriptPlaceholder",
             )}
+            submitLabel={translate("scripting.assistant.create")}
+            submitVariant="primary"
             rows={3}
             value={prompt}
             onChange={setPrompt}
@@ -108,6 +109,8 @@ export const ScriptAssistant = ({
 export const AssistantComposer = ({
   label,
   placeholder,
+  submitLabel,
+  submitVariant,
   rows,
   value,
   onChange,
@@ -118,6 +121,8 @@ export const AssistantComposer = ({
 }: {
   label: string;
   placeholder: string;
+  submitLabel: string;
+  submitVariant: "primary" | "default";
   rows: 2 | 3;
   value: string;
   onChange: (value: string) => void;
@@ -136,19 +141,17 @@ export const AssistantComposer = ({
 
   if (busy) {
     return (
-      <div
-        role="status"
-        aria-live="polite"
-        className="rounded-sm border border-strong bg-base p-2"
-      >
-        <p
-          className={clsx(
-            "text-size-base text-subtle whitespace-pre-wrap break-words",
-            rows === 3 ? "h-15 line-clamp-3" : "h-10 line-clamp-2",
-          )}
-        >
-          {busy.prompt}
-        </p>
+      <div role="status" aria-live="polite">
+        <div className="rounded-sm border border-strong bg-base p-2">
+          <p
+            className={clsx(
+              "text-size-base text-subtle whitespace-pre-wrap break-words",
+              rows === 3 ? "h-15 line-clamp-3" : "h-10 line-clamp-2",
+            )}
+          >
+            {busy.prompt}
+          </p>
+        </div>
         <div className="flex items-center gap-2 mt-2">
           <AiIcon className="text-accent animate-pulse" />
           <span className="flex-1 text-size-small font-medium text-default">
@@ -164,33 +167,38 @@ export const AssistantComposer = ({
   }
 
   return (
-    <div className="rounded-sm border border-strong bg-base p-2 focus-within:border-accent focus-within:ring-1 focus-within:ring-accent">
-      <textarea
-        aria-label={label}
-        placeholder={placeholder}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
-            e.preventDefault();
-            send();
-          }
-        }}
-        rows={rows}
-        autoFocus={autoFocus}
-        className="block w-full resize-none border-0 bg-transparent p-0 text-size-base text-default outline-none focus:ring-0 placeholder:text-subtle"
-      />
+    <div>
+      <div className="rounded-sm border border-strong bg-base p-2 focus-within:border-accent focus-within:ring-1 focus-within:ring-accent">
+        <textarea
+          aria-label={label}
+          placeholder={placeholder}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onKeyDown={(e) => {
+            if (
+              e.key === "Enter" &&
+              !e.shiftKey &&
+              !e.nativeEvent.isComposing
+            ) {
+              e.preventDefault();
+              send();
+            }
+          }}
+          rows={rows}
+          autoFocus={autoFocus}
+          className="block w-full resize-none border-0 bg-transparent p-0 text-size-base text-default outline-none focus:ring-0 placeholder:text-subtle"
+        />
+      </div>
       <div className="flex items-center justify-between gap-2 mt-2">
         <ScopeSelector value={scope} onChange={setScope} />
         <Button
-          variant="primary"
-          aria-label={translate("scripting.assistant.send")}
-          title={translate("scripting.assistant.send")}
+          variant={submitVariant}
+          size="xs"
           disabled={!canSend}
           onClick={send}
-          className="h-7 w-7 justify-center"
+          className="h-7"
         >
-          <ArrowUpIcon />
+          {submitLabel}
         </Button>
       </div>
     </div>
@@ -272,7 +280,7 @@ const ScopeSelector = ({
     <Popover.Root open={isOpen} onOpenChange={setIsOpen}>
       <Popover.Trigger asChild>
         <Button
-          variant="default"
+          variant="quiet"
           size="xs"
           aria-label={translate(
             "scripting.assistant.whatTheAiCanSeeValue",
