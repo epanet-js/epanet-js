@@ -202,13 +202,11 @@ describe("ScriptsPanel", () => {
 
       await user.click(screen.getByRole("button", { name: /new/i }));
 
-      expect(
-        screen.getByText("Describe a change or what to find"),
-      ).toBeVisible();
+      expect(screen.getByText("What should the script do?")).toBeVisible();
       expect(screen.getByRole("button", { name: "Create" })).toBeDisabled();
       await user.type(
         screen.getByRole("textbox", {
-          name: "Describe a change or what to find",
+          name: "What should the script do?",
         }),
         "Select small pipes",
       );
@@ -321,7 +319,7 @@ describe("ScriptsPanel", () => {
         await user.click(screen.getByRole("button", { name: /new/i }));
         await user.type(
           screen.getByRole("textbox", {
-            name: "Describe a change or what to find",
+            name: "What should the script do?",
           }),
           "Select small pipes",
         );
@@ -398,7 +396,7 @@ describe("ScriptsPanel", () => {
         await user.click(screen.getByRole("button", { name: /new/i }));
         await user.type(
           screen.getByRole("textbox", {
-            name: "Describe a change or what to find",
+            name: "What should the script do?",
           }),
           "Select small pipes",
         );
@@ -425,7 +423,7 @@ describe("ScriptsPanel", () => {
         expect(captureError).not.toHaveBeenCalled();
         expect(
           await screen.findByRole("textbox", {
-            name: "Describe a change or what to find",
+            name: "What should the script do?",
           }),
         ).toHaveValue("Select small pipes");
         expect(
@@ -534,7 +532,7 @@ describe("ScriptsPanel", () => {
         await user.click(screen.getByRole("button", { name: /new/i }));
         await user.type(
           screen.getByRole("textbox", {
-            name: "Describe a change or what to find",
+            name: "What should the script do?",
           }),
           "Select small pipes",
         );
@@ -547,7 +545,7 @@ describe("ScriptsPanel", () => {
         ).not.toBeInTheDocument();
         expect(
           screen.getByRole("textbox", {
-            name: "Describe a change or what to find",
+            name: "What should the script do?",
           }),
         ).toHaveValue("Select small pipes");
         expect(

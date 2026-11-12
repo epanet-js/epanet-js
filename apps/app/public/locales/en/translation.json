@@ -155,9 +155,9 @@
     "saveAll": "Save all",
     "assistant": {
       "title": "Scripting assistant",
-      "describeScript": "Describe a change or what to find",
+      "describeScript": "What should the script do?",
       "exampleExportCsv": "“Select every pipe at or below 100 mm and export them as CSV”",
-      "describeScriptPlaceholder": "Describe your script…",
+      "describeScriptPlaceholder": "Describe a change or what to find",
       "describeChange": "Describe a change",
       "describeChangePlaceholder": "Describe a change…",
       "writeMyself": "Write script myself",
