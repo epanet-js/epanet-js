@@ -24,7 +24,6 @@ type VariableSpeedPump = {
   minSpeed: number;
   maxSpeed: number;
   laggedPumpIds: string[];
-  remoteFlowDirection: 1 | -1;
   schedule: VspSchedulePoint[];
 };
 
@@ -87,9 +86,8 @@ const variableSpeedPumpStruct = ({
   minSpeed,
   maxSpeed,
   laggedPumpIds,
-  remoteFlowDirection,
 }: VariableSpeedPump) =>
-  `{"${pumpId}","${type}","${targetId}",${target},${minSpeed},${maxSpeed},${luaStringList(laggedPumpIds)},${remoteFlowDirection}}`;
+  `{"${pumpId}","${type}","${targetId}",${target},${minSpeed},${maxSpeed},${luaStringList(laggedPumpIds)}}`;
 
 const variableSpeedPumpSchedule = (schedule: VspSchedulePoint[]) =>
   `{${schedule.map(({ time, target }) => `{${time},${target}}`).join(",")}}`;
@@ -208,7 +206,6 @@ export const LuaScriptBuilder = () => {
     minSpeed: number,
     maxSpeed: number,
     laggedPumpIds: string[],
-    remoteFlowDirection: 1 | -1,
     schedule: VspSchedulePoint[] = [],
   ) =>
     variableSpeedPumps.push({
@@ -219,7 +216,6 @@ export const LuaScriptBuilder = () => {
       minSpeed,
       maxSpeed,
       laggedPumpIds,
-      remoteFlowDirection,
       schedule,
     });
 

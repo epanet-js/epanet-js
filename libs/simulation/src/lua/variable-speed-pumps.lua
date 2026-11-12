@@ -53,7 +53,6 @@ function vspRow(fields)
         min_speed = fields[5],
         max_speed = fields[6],
         lag_ids = fields[7],
-        remote_flow_direction = fields[8],
     }
 end
 
@@ -102,7 +101,7 @@ function vspMeasuredValue(row)
     if row.kind == "level" then return vspTankNetInflow(row.element_id) end
     if row.kind == "flow" then
         if row.element_id == "" then return link(row.pump_id).flow end
-        return link(row.element_id).flow * row.remote_flow_direction
+        return link(row.element_id).flow
     end
     return node(row.element_id).pressure
 end

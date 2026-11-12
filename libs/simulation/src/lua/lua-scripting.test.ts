@@ -35,7 +35,6 @@ describe("LuaScriptBuilder", () => {
         0.3,
         1,
         ["PU2", "PU3"],
-        1,
         [
           { time: 0, target: 3 },
           { time: 21600, target: 4.5 },
@@ -49,7 +48,7 @@ describe("LuaScriptBuilder", () => {
       expect(script).toContain("function on_hydraulics_solved()");
 
       const invocation =
-        '{{"PU1","level","T1",4.5,0.3,1,{"PU2","PU3"},1}}, {["PU1"]={{0,3},{21600,4.5}}}';
+        '{{"PU1","level","T1",4.5,0.3,1,{"PU2","PU3"}}}, {["PU1"]={{0,3},{21600,4.5}}}';
       expect(script).not.toContain("on_open");
       expect(script).toContain(`vsp_step(${invocation})`);
       expect(script).toContain(`vsp_solved(${invocation})`);
@@ -57,22 +56,15 @@ describe("LuaScriptBuilder", () => {
 
     it("combines every pump into one call and passes empty tables when there are no lagged pumps or schedules", () => {
       const builder = LuaScriptBuilder();
-      builder.withVariableSpeedPump("PU1", "level", "T1", 4.5, 0.3, 1, [], 1);
-      builder.withVariableSpeedPump(
-        "PU4",
-        "pressure",
-        "J9",
-        30,
-        0.5,
-        1,
-        ["PU5"],
-        -1,
-      );
+      builder.withVariableSpeedPump("PU1", "level", "T1", 4.5, 0.3, 1, []);
+      builder.withVariableSpeedPump("PU4", "pressure", "J9", 30, 0.5, 1, [
+        "PU5",
+      ]);
 
       const script = builder.build().join("\n");
 
       const invocation =
-        '{{"PU1","level","T1",4.5,0.3,1,{},1},{"PU4","pressure","J9",30,0.5,1,{"PU5"},-1}}, {}';
+        '{{"PU1","level","T1",4.5,0.3,1,{}},{"PU4","pressure","J9",30,0.5,1,{"PU5"}}}, {}';
       expect(script).toContain(`vsp_step(${invocation})`);
       expect(script).toContain(`vsp_solved(${invocation})`);
     });
@@ -159,7 +151,7 @@ describe("LuaScriptBuilder", () => {
     it("emits the fragments in order and calls each from one pair of handlers", () => {
       const builder = LuaScriptBuilder();
       builder.withFlowModulatingValve(linearValve);
-      builder.withVariableSpeedPump("PU1", "pressure", "J9", 30, 0.5, 1, [], 1);
+      builder.withVariableSpeedPump("PU1", "pressure", "J9", 30, 0.5, 1, []);
       builder.withRemoteSetpointPrv("V5", "J5", 30, "J6");
 
       const script = builder.build().join("\n");
@@ -178,7 +170,7 @@ describe("LuaScriptBuilder", () => {
         [
           "function on_hydraulic_step()",
           '    simulate_remote_setpoint_prv("V5", "J5", 30, "J6")',
-          '    vsp_step({{"PU1","pressure","J9",30,0.5,1,{},1}}, {})',
+          '    vsp_step({{"PU1","pressure","J9",30,0.5,1,{}}}, {})',
           "    fmvalve_step(FMVALVE_VALVES)",
           "end",
         ].join("\n"),
@@ -186,7 +178,7 @@ describe("LuaScriptBuilder", () => {
       expect(script).toContain(
         [
           "function on_hydraulics_solved()",
-          '    vsp_solved({{"PU1","pressure","J9",30,0.5,1,{},1}}, {})',
+          '    vsp_solved({{"PU1","pressure","J9",30,0.5,1,{}}}, {})',
           "end",
         ].join("\n"),
       );

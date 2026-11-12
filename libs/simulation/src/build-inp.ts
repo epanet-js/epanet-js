@@ -54,7 +54,6 @@ import {
   getJunctionDemands,
 } from "@epanet-js/hydraulic-model";
 import { effectiveRoughness } from "@epanet-js/hydraulic-model";
-import { remoteFlowDirectionOf } from "@epanet-js/hydraulic-model";
 
 type SimulationPipeStatus = "Open" | "Closed" | "CV";
 type SimulationPumpStatus = "Open" | "Closed";
@@ -1533,15 +1532,6 @@ function* scriptRows(
       .filter((id) => isAssetInSimulation(hydraulicModel, id))
       .map((id) => resolveLinkId(hydraulicModel, idMap, id));
 
-    const remoteFlowDirection =
-      control.quantity === "flow"
-        ? remoteFlowDirectionOf(
-            hydraulicModel,
-            control.linkId,
-            control.targetId,
-          )
-        : 1;
-
     builder.withVariableSpeedPump(
       pumpId,
       control.quantity,
@@ -1550,7 +1540,6 @@ function* scriptRows(
       control.minSpeed,
       control.maxSpeed,
       laggedPumpIds,
-      remoteFlowDirection,
       control.schedule,
     );
   }
