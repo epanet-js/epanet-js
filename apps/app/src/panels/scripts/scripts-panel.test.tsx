@@ -233,13 +233,15 @@ describe("ScriptsPanel", () => {
         }),
       );
 
-      expect(screen.getByText("What the assistant can see")).toBeVisible();
+      expect(
+        screen.getByRole("dialog", { name: "What the assistant can see" }),
+      ).toBeVisible();
       expect(
         screen.getByRole("option", { name: /Script only/ }),
       ).toHaveAttribute("aria-selected", "true");
       expect(
         screen.getByRole("option", { name: /Script only/ }),
-      ).toHaveTextContent("Your request and this script.");
+      ).toHaveTextContent("Shares your request and this script.");
       expect(
         screen.getByRole("option", { name: /Script and full network/ }),
       ).toHaveAttribute("aria-disabled", "true");

@@ -338,16 +338,10 @@ const ScopeSelector = ({
           align="start"
           side="top"
           sideOffset={4}
-          aria-labelledby="script-assistant-scope-title"
+          aria-label={translate("scripting.assistant.whatTheAiCanSee")}
           onOpenAutoFocus={(e) => e.preventDefault()}
           className="flex flex-col overflow-hidden text-size-base"
         >
-          <h3
-            id="script-assistant-scope-title"
-            className="px-3 pt-3 pb-1 text-size-base font-semibold text-default"
-          >
-            {translate("scripting.assistant.whatTheAiCanSee")}
-          </h3>
           <SelectorList<Scope>
             options={scopes.map((scope) => ({
               value: scope.value,

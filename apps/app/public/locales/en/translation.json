@@ -173,7 +173,7 @@
       "scopes": {
         "script": {
           "label": "Script only",
-          "description": "Your request and this script."
+          "description": "Shares your request and this script."
         },
         "scriptAndOutput": {
           "label": "Script and console output",
