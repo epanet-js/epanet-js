@@ -1743,6 +1743,7 @@
         "pumpVariableSpeedLevelTargetActive": "Variable speed pump level target tank must be active",
         "pumpVariableSpeedLaggedPumpsActive": "Variable speed pump lag pumps must be active",
         "pumpVariableSpeedTankLevelsActive": "Variable speed pump start/stop tank must be active",
+        "pumpVariableSpeedDischargeNotBackfeeding": "Variable speed pump must not feed back into itself",
         "pumpPowerPresent": "Pump power missing",
         "pumpPowerPositive": "Pump power must be positive",
         "pumpCurvePresent": "Pump curve missing",

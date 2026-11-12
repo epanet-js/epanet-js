@@ -9,6 +9,7 @@ import {
   getPumpCurveErrors,
   inferredRoughness,
   Pipe,
+  Pump,
   HydraulicModel,
 } from "@epanet-js/hydraulic-model";
 import { EntityType, Rule, Severity, ValidatableEntity } from "./types";
@@ -23,6 +24,7 @@ import {
   FLOW_MODULATING_VALVE_MIN_POINTS,
   flowModulatingValvePointChecks,
 } from "./flow-modulating-valve-points";
+import { pumpBackfeedsItself } from "./pump-backfeed";
 
 const field =
   (name: string) =>
@@ -282,6 +284,19 @@ const variableSpeedTargetRule = (
   message: "mustBeActive",
 });
 
+const variableSpeedDischargeNotBackfeeding: Rule = {
+  id: "pump.variableSpeedDischarge.notBackfeeding",
+  type: "model",
+  entityType: "pump",
+  accessor: (entity) => entity,
+  appliesWhen: (entity, model) =>
+    isActiveEntity(entity) && variableSpeedControlOf(entity, model) !== null,
+  check: (_value, entity, model) =>
+    !entity || !model || !pumpBackfeedsItself(entity as Pump, model),
+  severity: "warning",
+  message: "backfeedsItself",
+};
+
 export const valveReferenceFields = [
   "targetNode",
   "flowModulatingSensorLink",
@@ -525,6 +540,7 @@ export const RULES: Rule[] = [
     severity: "error",
     message: "mustBeActive",
   },
+  variableSpeedDischargeNotBackfeeding,
   // Customer points
   {
     id: "customerPoint.connected",

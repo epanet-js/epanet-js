@@ -1046,6 +1046,69 @@ describe("validateModelAttributes", () => {
     });
   });
 
+  describe("variable speed pump backfeed", () => {
+    const IDS = {
+      J1: 1,
+      J2: 2,
+      J3: 3,
+      PU1: 4,
+      PU2: 5,
+      P1: 6,
+      P2: 7,
+      V1: 8,
+      T1: 9,
+      R1: 10,
+    } as const;
+    const RULE_ID = "pump.variableSpeedDischarge.notBackfeeding";
+
+    const aPumpFrom = (suctionId: number) =>
+      HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, { elevation: 10 })
+        .aJunction(IDS.J2, { elevation: 10 })
+        .aJunction(IDS.J3, { elevation: 10 })
+        .aPump(IDS.PU1, { startNodeId: suctionId, endNodeId: IDS.J2 })
+        .aPipe(IDS.P1, { startNodeId: IDS.J2, endNodeId: IDS.J3 });
+
+    const withVsp = (builder: HydraulicModelBuilder) =>
+      builder.aVariableSpeedPumpControl({
+        linkId: IDS.PU1,
+        quantity: "pressure",
+        targetId: IDS.J2,
+        target: 30,
+        minSpeed: 0.3,
+        maxSpeed: 1,
+        laggedPumpIds: [],
+        schedule: [],
+      });
+
+    const flaggedPumps = async (builder: HydraulicModelBuilder) =>
+      entityIdsOf(await validateModelAttributes(builder.build()), RULE_ID);
+
+    it("flags a pump whose downstream node reaches its upstream node", async () => {
+      const builder = withVsp(aPumpFrom(IDS.J1)).aPipe(IDS.P2, {
+        startNodeId: IDS.J3,
+        endNodeId: IDS.J1,
+      });
+
+      expect(await flaggedPumps(builder)).toEqual([IDS.PU1]);
+      expect(severityOf(RULE_ID)).toBe("warning");
+    });
+
+    it("flags a loop that returns through a control valve", async () => {
+      const builder = withVsp(aPumpFrom(IDS.J1)).aValve(IDS.V1, {
+        startNodeId: IDS.J3,
+        endNodeId: IDS.J1,
+        kind: "prv",
+      });
+
+      expect(await flaggedPumps(builder)).toEqual([IDS.PU1]);
+    });
+
+    it("does not flag a pump with no way back", async () => {
+      expect(await flaggedPumps(withVsp(aPumpFrom(IDS.J1)))).toBeUndefined();
+    });
+  });
+
   describe("customer point connection", () => {
     it("flags a disconnected customer point as a warning", async () => {
       const model = HydraulicModelBuilder.with()
