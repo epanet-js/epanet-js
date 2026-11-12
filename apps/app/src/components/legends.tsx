@@ -81,15 +81,19 @@ const Legend = ({
         }}
       >
         <div className="flex w-full items-center justify-between">
-          <div className="text-size-small text-wrap select-none">{title}</div>
+          <div className="text-size-base font-semibold text-wrap select-none">
+            {title}
+          </div>
           <span className="shrink-0">
             {isExpanded ? <ChevronDownIcon /> : <ChevronRightIcon />}
           </span>
         </div>
         {isExpanded &&
           (isUnavailable ? (
-            <div className="flex items-start gap-1 text-size-small text-subtle select-none">
-              <WarningIcon className="shrink-0 text-warning" />
+            <div className="flex items-start gap-1 text-size-base select-none">
+              <span className="flex h-5 shrink-0 items-center">
+                <WarningIcon className="text-warning" />
+              </span>
               <span>{translate("mapThemes.legendUnavailable")}</span>
             </div>
           ) : (
@@ -110,7 +114,7 @@ const LegendContainer = ({
   return (
     <div
       className={clsx(
-        "space-y-1 text-size-small bg-base w-32",
+        "space-y-1 text-size-small bg-base w-48",
         "rounded-sm border shadow-md",
       )}
       onClick={onClick}
@@ -138,7 +142,7 @@ export const LegendRamp = ({ colorRule }: { colorRule: RangeColorRule }) => {
         return (
           <div
             key={breaks[i] + "_" + i}
-            className="absolute left-full ml-2 text-size-small whitespace-nowrap select-none"
+            className="absolute left-full ml-2 text-size-base whitespace-nowrap select-none"
             style={{
               top: `${topPct}%`,
               transform: "translateY(-50%)",

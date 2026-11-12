@@ -2291,6 +2291,6 @@
     "deleteDescription": "“{{1}}” will be deleted.",
     "newThemeName": "New theme",
     "copyName": "{{1}} copy",
-    "legendUnavailable": "Data not available. Run a simulation."
+    "legendUnavailable": "Run a simulation to see results"
   }
 }
