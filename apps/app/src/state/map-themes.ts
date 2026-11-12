@@ -102,8 +102,9 @@ export const resolveThemeColorRule = (
     rampName: rule.rampName,
     reversedRamp: rule.reversedRamp,
     colors: rule.colors,
+    breaks: rule.breaks,
   };
-  if (rule.mode === "manual") return { ...styled, breaks: rule.breaks };
+  if (rule.mode === "manual") return styled;
   return applyMode(styled, rule.mode, sortedData).colorRule;
 };
 

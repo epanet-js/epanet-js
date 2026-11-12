@@ -69,6 +69,28 @@ describe("applying a map theme", () => {
 
     expect(store.get(nodeSymbologyAtom).colorRule!.breaks).toEqual([10, 20]);
   });
+
+  it("keeps its number of classes when the data can't produce breaks", () => {
+    const flatModel = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1, { elevation: 10 })
+      .aJunction(IDS.J2, { elevation: 10 })
+      .build();
+    const store = setInitialState({ hydraulicModel: flatModel });
+    const colors = ["#1", "#2", "#3", "#4", "#5", "#6", "#7"];
+    store.set(mapThemesAtom, [
+      anElevationTheme({
+        mode: "prettyBreaks",
+        colors,
+        breaks: [1, 2, 3, 4, 5, 6],
+      }),
+    ]);
+
+    store.set(mapThemeActionAtom, { type: "apply", id: "elevations" });
+
+    const colorRule = store.get(nodeSymbologyAtom).colorRule!;
+    expect(colorRule.colors).toEqual(colors);
+    expect(colorRule.breaks).toEqual([1, 2, 3, 4, 5, 6]);
+  });
 });
 
 describe("unsaved theme changes", () => {
