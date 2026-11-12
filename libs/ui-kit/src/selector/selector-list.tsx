@@ -532,7 +532,12 @@ export function BaseSelectorList<T extends string | number | boolean>({
               <span>{option.label}</span>
             </span>
             {option.description && (
-              <span className="text-size-small text-subtle">
+              <span
+                className={clsx(
+                  "text-size-small",
+                  isOptionDisabled ? "text-disabled" : "text-subtle",
+                )}
+              >
                 {option.description}
               </span>
             )}
@@ -546,7 +551,11 @@ export function BaseSelectorList<T extends string | number | boolean>({
               {option.label}
             </span>
             {option.description && (
-              <span className="text-subtle">{option.description}</span>
+              <span
+                className={isOptionDisabled ? "text-disabled" : "text-subtle"}
+              >
+                {option.description}
+              </span>
             )}
           </span>
         )}
