@@ -14,11 +14,9 @@ import {
   ChevronDownIcon,
   ChevronLeftIcon,
   ErrorIcon,
-  FilterIcon,
   PlayIcon,
   StopSimulationIcon,
-  TableIcon,
-  TagIcon,
+  TipIcon,
   VisibilityOnIcon,
 } from "src/icons";
 
@@ -68,14 +66,8 @@ export const ScriptAssistant = ({
             {translate("scripting.assistant.describeScript")}
           </h2>
           <ul className="flex flex-col gap-2 mb-4 text-size-base text-subtle">
-            <Hint icon={<FilterIcon size="md" />}>
-              {translate("scripting.assistant.hintFind")}
-            </Hint>
-            <Hint icon={<TableIcon size="md" />}>
-              {translate("scripting.assistant.hintResult")}
-            </Hint>
-            <Hint icon={<TagIcon size="md" />}>
-              {translate("scripting.assistant.hintNames")}
+            <Hint icon={<TipIcon size="md" />}>
+              {translate("scripting.assistant.exampleExportCsv")}
             </Hint>
           </ul>
           <AssistantComposer

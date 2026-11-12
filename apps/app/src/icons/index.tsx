@@ -123,6 +123,7 @@ import {
   Gauge,
   Bot,
   Sparkles,
+  Lightbulb,
   Funnel,
   Tag,
   ArrowUp,
@@ -193,6 +194,7 @@ export const InfiniteIcon = icon(Infinite);
 export const GaugeIcon = icon(Gauge);
 export const BotIcon = icon(Bot);
 export const AiIcon = icon(Sparkles);
+export const TipIcon = icon(Lightbulb);
 export const FilterIcon = icon(Funnel);
 export const TagIcon = icon(Tag);
 export const ArrowUpIcon = icon(ArrowUp);
