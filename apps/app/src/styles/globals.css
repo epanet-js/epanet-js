@@ -116,7 +116,7 @@ body:has(.custom-cursor-family) .cursor-allscroll .mapboxgl-canvas-container {
 }
 
 body:has(.custom-cursor-family) .placemark-cursor-pointer .mapboxgl-canvas-container,
-body:has(.custom-cursor-family) :is(
+body:has(.custom-cursor-family) :where(
   a,
   button,
   [type="submit"],

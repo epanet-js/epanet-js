@@ -102,7 +102,7 @@ const PanelHeading = ({
   <h2
     className={clsx(
       "-mx-3 flex h-8 items-center px-3 text-size-small font-semibold text-default",
-      separated && "mt-2 pt-2 border-t border-base",
+      separated ? "mt-2 pt-2 border-t border-base" : "-mt-1",
     )}
   >
     {title}

@@ -43,7 +43,7 @@ export const MapThemeBar = () => {
     <div className="flex items-center gap-2 pb-2">
       <label
         htmlFor={selectorId}
-        className="shrink-0 text-size-base text-subtle"
+        className="shrink-0 mr-2 text-size-base text-subtle"
       >
         {translate("mapThemes.theme")}
       </label>
@@ -62,7 +62,7 @@ export const MapThemeBar = () => {
             aria-label={translate(
               isModified ? "mapThemes.actionsUnsaved" : "mapThemes.actions",
             )}
-            className="relative h-8 w-8 shrink-0 justify-center hover:bg-base-hover aria-expanded:bg-base-hover"
+            className="relative -ml-1 h-8 w-8 shrink-0 justify-center hover:bg-base-hover aria-expanded:bg-base-hover"
           >
             <MoreActionsIcon />
             {isModified && (
