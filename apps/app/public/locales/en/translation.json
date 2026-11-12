@@ -2272,5 +2272,24 @@
   "tabs": {
     "scrollLeft": "Scroll tabs left",
     "scrollRight": "Scroll tabs right"
+  },
+  "mapThemes": {
+    "symbology": "Symbology",
+    "mapData": "Map data",
+    "theme": "Theme",
+    "defaultTheme": "Default",
+    "actions": "Theme actions",
+    "actionsUnsaved": "Theme actions, unsaved changes",
+    "saveAsNew": "Save as new theme…",
+    "saveChangesTo": "Save changes to “{{1}}”",
+    "resetChanges": "Reset changes",
+    "rename": "Rename…",
+    "delete": "Delete…",
+    "saveAsNewTitle": "Save as new theme",
+    "renameTitle": "Rename theme",
+    "deleteTitle": "Delete theme",
+    "deleteDescription": "“{{1}}” will be deleted.",
+    "newThemeName": "New theme",
+    "copyName": "{{1}} copy"
   }
 }

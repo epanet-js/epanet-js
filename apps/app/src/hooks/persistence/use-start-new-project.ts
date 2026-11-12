@@ -62,6 +62,7 @@ import {
   nodeSizeAtom,
 } from "src/state/map-symbology";
 import { nullSymbologySpec, defaultNodeSizeConfig } from "src/map/symbology";
+import { resetActiveMapThemeAtom } from "src/state/map-themes";
 import { modeAtom, Mode } from "src/state/mode";
 import {
   ephemeralStateAtom,
@@ -124,6 +125,7 @@ export const resetAppState = (set: Setter, panels: Panel[]) => {
   set(savedSymbologiesAtom, new Map());
   set(propertyColorConfigAtom, defaultPropertyColorConfigs);
   set(nodeSizeAtom, defaultNodeSizeConfig);
+  set(resetActiveMapThemeAtom);
   set(modeAtom, { mode: Mode.NONE });
   set(hglProfileAtom, null);
   set(resetPanelsAtom, panels);

@@ -1,4 +1,5 @@
 import { atom, useAtom } from "jotai";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { PersistenceMetadataMemory } from "src/lib/persistence/ipersistence";
 import { SYMBOLIZATION_NONE } from "src/types";
 import {
@@ -125,7 +126,7 @@ export const nodeSymbologyAtom = atom<NodeSymbology>(nullSymbologySpec.node);
 export const linkSymbologyAtom = atom<LinkSymbology>(nullSymbologySpec.link);
 export const nodeSizeAtom = atom<NodeSizeConfig>(defaultNodeSizeConfig);
 
-const customerPointsSymbologyAtom = atom<CustomerPointsSymbology>(
+export const customerPointsSymbologyAtom = atom<CustomerPointsSymbology>(
   nullSymbologySpec.customerPoints,
 );
 
@@ -133,7 +134,7 @@ export const customerPointsVisibleAtom = atom(
   (get) => get(customerPointsSymbologyAtom).visible,
 );
 
-const zoneSymbologyAtom = atom<ZoneSymbology>(nullSymbologySpec.zone);
+export const zoneSymbologyAtom = atom<ZoneSymbology>(nullSymbologySpec.zone);
 
 export const zonesVisibleAtom = atom((get) => get(zoneSymbologyAtom).visible);
 
@@ -185,6 +186,7 @@ export const symbologyAtom = atom((get) => {
 });
 
 export const useSymbologyState = () => {
+  const isMapThemesOn = useFeatureFlag("FLAG_MAP_THEMES");
   const [savedSymbologies, setSavedAnalyises] = useAtom(savedSymbologiesAtom);
   const [nodeSymbology, setNodesActive] = useAtom(nodeSymbologyAtom);
   const [linkSymbology, setLinksActive] = useAtom(linkSymbologyAtom);
@@ -206,7 +208,7 @@ export const useSymbologyState = () => {
     }
 
     let newNodeSymbology: NodeSymbology;
-    if (savedSymbologies.has(property)) {
+    if (!isMapThemesOn && savedSymbologies.has(property)) {
       newNodeSymbology = savedSymbologies.get(property) as NodeSymbology;
     } else {
       newNodeSymbology = initializeFn();
@@ -233,7 +235,7 @@ export const useSymbologyState = () => {
     }
 
     let newLinkSymbology: LinkSymbology;
-    if (savedSymbologies.has(property)) {
+    if (!isMapThemesOn && savedSymbologies.has(property)) {
       newLinkSymbology = savedSymbologies.get(property) as LinkSymbology;
     } else {
       newLinkSymbology = initializeFn();

@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import clsx from "clsx";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { isPlayingAtom } from "src/state/simulation-playback";
 import * as Popover from "@radix-ui/react-popover";
@@ -47,6 +48,9 @@ import { ElevationsEditor } from "./elevations-editor";
 import { ProjectionSection } from "./projection-section";
 import { TextField } from "src/components/form/text-field";
 import { zoneFeaturesAtom } from "src/state/zone-features";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { MapThemeBar } from "./map-theme-bar";
+import { isColorPropertyAvailable } from "src/map/symbology/property-availability";
 
 const colorPropertyLabelFor = (
   property: string,
@@ -84,16 +88,38 @@ const MapStylingSectionWrapper = ({
   );
 };
 
+const PanelHeading = ({
+  title,
+  separated = false,
+}: {
+  title: string;
+  separated?: boolean;
+}) => (
+  <h2
+    className={clsx(
+      "-mx-3 flex h-8 items-center px-3 text-size-small font-semibold text-default",
+      separated && "mt-2 pt-2 border-t border-base",
+    )}
+  >
+    {title}
+  </h2>
+);
+
 export const MapStylingEditor = () => {
   const translate = useTranslate();
   const isGridOn = useAtomValue(showGridAtom);
   const isPlaying = useAtomValue(isPlayingAtom);
   const zoneFeatures = useAtomValue(zoneFeaturesAtom);
   const showZoneSymbology = zoneFeatures.length > 0;
+  const isMapThemesOn = useFeatureFlag("FLAG_MAP_THEMES");
 
   return (
     <div className="flex-auto overflow-y-auto placemark-scrollbar ">
       <SectionList gap={1} padding={3}>
+        {isMapThemesOn && (
+          <PanelHeading title={translate("mapThemes.symbology")} />
+        )}
+        {isMapThemesOn && <MapThemeBar />}
         <SymbologyEditor
           geometryType="node"
           properties={supportedNodeProperties}
@@ -104,6 +130,9 @@ export const MapStylingEditor = () => {
         />
         {showZoneSymbology && <ZoneSymbologySection />}
         <CustomerPointsSection readonly={isPlaying} />
+        {isMapThemesOn && (
+          <PanelHeading title={translate("mapThemes.mapData")} separated />
+        )}
         {!isGridOn && <ElevationsEditor />}
         {!isGridOn && (
           <MapStylingSectionWrapper
@@ -118,16 +147,6 @@ export const MapStylingEditor = () => {
     </div>
   );
 };
-
-const simulationProperties = [
-  "flow",
-  "velocity",
-  "unitHeadloss",
-  "pressure",
-  "actualDemand",
-  "head",
-  "waterAge",
-];
 
 type LabelSelectOption = SupportedProperty | null | "label";
 
@@ -151,20 +170,11 @@ const SymbologyEditor = ({
     updateLinkDefaultColor,
   } = useSymbologyState();
   const symbology = geometryType === "node" ? nodeSymbology : linkSymbology;
-  const hasCompletedSimulation =
-    "epsResultsReader" in simulation && !!simulation.epsResultsReader;
-  const isEpsSimulation =
-    "epsResultsReader" in simulation &&
-    (simulation.epsResultsReader?.timestepCount ?? 0) > 1;
-  const hasWaterAge =
-    hasCompletedSimulation &&
-    simulation.epsResultsReader?.qualityType === "age";
-  const hasWaterTrace =
-    hasCompletedSimulation &&
-    simulation.epsResultsReader?.qualityType === "trace";
-  const hasChemical =
-    hasCompletedSimulation &&
-    simulation.epsResultsReader?.qualityType === "chemical";
+  const isMapThemesOn = useFeatureFlag("FLAG_MAP_THEMES");
+  const isSelectedUnavailable =
+    isMapThemesOn &&
+    !!symbology.colorRule &&
+    !isColorPropertyAvailable(symbology.colorRule.property, simulation);
   const { units } = useAtomValue(projectSettingsAtom);
 
   const { changeColorBy } = useChangeColorBy(geometryType);
@@ -177,32 +187,15 @@ const SymbologyEditor = ({
     return properties
       .map((type) => {
         const unit = units[unitKeyFor(type)] ?? null;
-        const isSimProp = simulationProperties.includes(type);
         const label = `${colorPropertyLabelFor(type, translate)} ${unit ? `(${translateUnit(unit)})` : ""}`;
         return {
           value: type,
           label,
-          disabled:
-            (!hasCompletedSimulation && isSimProp) ||
-            ((type === "minPressure" || type === "maxPressure") &&
-              !isEpsSimulation) ||
-            (type === "waterAge" && !hasWaterAge) ||
-            (type === "waterTrace" && !hasWaterTrace) ||
-            (type === "chemicalConcentration" && !hasChemical),
+          disabled: !isColorPropertyAvailable(type, simulation),
         };
       })
       .sort((a, b) => Number(a.disabled) - Number(b.disabled));
-  }, [
-    properties,
-    units,
-    translate,
-    translateUnit,
-    hasCompletedSimulation,
-    isEpsSimulation,
-    hasWaterAge,
-    hasWaterTrace,
-    hasChemical,
-  ]);
+  }, [properties, units, translate, translateUnit, simulation]);
 
   const labelByOptions = useMemo(() => {
     const labelOption = {
@@ -290,6 +283,15 @@ const SymbologyEditor = ({
               void changeColorBy(v as SupportedProperty | null);
             }}
             disabled={readonly}
+            invalid={isSelectedUnavailable}
+            styleOptions={
+              isSelectedUnavailable ? { variant: "warning" } : undefined
+            }
+            triggerClassName={
+              isSelectedUnavailable
+                ? "[&>div:first-child]:text-subtle"
+                : undefined
+            }
           />
         )}
       </InlineField>

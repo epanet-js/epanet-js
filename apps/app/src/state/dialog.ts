@@ -231,6 +231,11 @@ export type DeleteSelectionSetGroupConfirmationDialogState = {
   groupId: string;
 };
 
+export type MapThemeDialogState =
+  | { type: "saveMapThemeAsNew" }
+  | { type: "renameMapTheme"; themeId: string }
+  | { type: "deleteMapThemeConfirmation"; themeId: string };
+
 export type ScenarioSignInDialogState = {
   type: "scenarioSignIn";
   source: "scenarioSwitcher" | "exportScenario";
@@ -415,6 +420,7 @@ export type DialogState =
   | DeleteScriptConfirmationDialogState
   | DeleteSelectionSetGroupConfirmationDialogState
   | RenameScenarioDialogState
+  | MapThemeDialogState
   | ScenarioSignInDialogState
   | FeaturePaywallDialogState
   | ElevationTileErrorsDialogState

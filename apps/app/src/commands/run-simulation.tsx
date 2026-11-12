@@ -1,3 +1,4 @@
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useSetAtom } from "jotai";
 import { useAtomCallback } from "jotai/utils";
 import { useCallback, useRef } from "react";
@@ -48,6 +49,7 @@ export const useRunSimulation = () => {
   const showNetworkReview = useShowNetworkReview();
   const { ensureFresh } = useReviewChecks();
   const isCheckingRef = useRef(false);
+  const isMapThemesOn = useFeatureFlag("FLAG_MAP_THEMES");
 
   const runSimulation = useAtomCallback(
     useCallback(
@@ -133,15 +135,18 @@ export const useRunSimulation = () => {
           if (status === "success" || status === "warning") {
             if (simulationSettings.qualitySimulationType !== "age") {
               set(clearQuickGraphPropertyAtom, "waterAge");
-              set(clearSymbologyForPropertyAtom, "waterAge");
+              if (!isMapThemesOn)
+                set(clearSymbologyForPropertyAtom, "waterAge");
             }
             if (simulationSettings.qualitySimulationType !== "trace") {
               set(clearQuickGraphPropertyAtom, "waterTrace");
-              set(clearSymbologyForPropertyAtom, "waterTrace");
+              if (!isMapThemesOn)
+                set(clearSymbologyForPropertyAtom, "waterTrace");
             }
             if (simulationSettings.qualitySimulationType !== "chemical") {
               set(clearQuickGraphPropertyAtom, "chemicalConcentration");
-              set(clearSymbologyForPropertyAtom, "chemicalConcentration");
+              if (!isMapThemesOn)
+                set(clearSymbologyForPropertyAtom, "chemicalConcentration");
             }
           }
 
@@ -334,6 +339,7 @@ export const useRunSimulation = () => {
         userTracking,
         showNetworkReview,
         ensureFresh,
+        isMapThemesOn,
       ],
     ),
   );
