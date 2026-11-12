@@ -137,14 +137,20 @@ const QUALITATIVE_MAX_SIZE = 11 as keyof CBColors["colors"];
 export const ColorRampSelector = ({
   geometryType,
   readonly = false,
+  disabled = false,
 }: {
   geometryType: "node" | "link" | "zone";
   readonly?: boolean;
+  disabled?: boolean;
 }) =>
   geometryType === "zone" ? (
     <ZoneColorRampSelector readonly={readonly} />
   ) : (
-    <AssetColorRampSelector geometryType={geometryType} readonly={readonly} />
+    <AssetColorRampSelector
+      geometryType={geometryType}
+      readonly={readonly}
+      disabled={disabled}
+    />
   );
 
 const ZoneColorRampSelector = ({
@@ -218,9 +224,11 @@ const ZoneColorRampSelector = ({
 const AssetColorRampSelector = ({
   geometryType,
   readonly = false,
+  disabled = false,
 }: {
   geometryType: "node" | "link";
   readonly?: boolean;
+  disabled?: boolean;
 }) => {
   const translate = useTranslate();
   const {
@@ -234,7 +242,7 @@ const AssetColorRampSelector = ({
 
   const rampPreview = (
     <span
-      className="w-full h-5 border rounded-md"
+      className={clsx("w-full h-5 border rounded-md", disabled && "opacity-50")}
       style={{
         background: linearGradient({
           colors: rampColors,
@@ -255,15 +263,17 @@ const AssetColorRampSelector = ({
   const triggerStyles = clsx(
     "flex items-center gap-x-2 justify-between w-full min-w-[90px]",
     "border rounded-xs",
-    "text-size-base text-default",
-    "focus:ring-inset focus:ring-1 focus:ring-accent focus:bg-purple-300/10",
+    "text-size-base",
+    disabled
+      ? "text-subtle cursor-not-allowed bg-base-disabled"
+      : "text-default focus:ring-inset focus:ring-1 focus:ring-accent focus:bg-purple-300/10",
     "p-2 min-h-9 w-full",
   );
 
   const contentStyles = `bg-base w-(--radix-select-trigger-width) border text-size-base rounded-xs shadow-md z-50`;
 
   return (
-    <Select.Root>
+    <Select.Root disabled={disabled}>
       <Select.Trigger
         tabIndex={1}
         aria-label={`${translate(geometryType)} ${translate("ramp")}`}

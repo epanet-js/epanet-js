@@ -2290,6 +2290,7 @@
     "deleteTitle": "Delete theme",
     "deleteDescription": "“{{1}}” will be deleted.",
     "newThemeName": "New theme",
-    "copyName": "{{1}} copy"
+    "copyName": "{{1}} copy",
+    "legendUnavailable": "Data not available. Run a simulation."
   }
 }

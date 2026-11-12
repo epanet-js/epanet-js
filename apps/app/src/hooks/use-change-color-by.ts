@@ -18,6 +18,8 @@ import {
 } from "src/state/derived-branch-state";
 import { useSymbologyState } from "src/state/map-symbology";
 import { projectSettingsAtom } from "src/state/project-settings";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { isColorPropertyAvailable } from "src/map/symbology/property-availability";
 
 export type ColorBySelection = SupportedProperty | null;
 
@@ -32,6 +34,7 @@ export const useChangeColorBy = (geometryType: "node" | "link") => {
   const { units } = useAtomValue(projectSettingsAtom);
   const { switchNodeSymbologyTo, switchLinkSymbologyTo } = useSymbologyState();
   const [isWorking, setIsWorking] = useState(false);
+  const isMapThemesOn = useFeatureFlag("FLAG_MAP_THEMES");
 
   const fetchSortedData = useCallback(
     async (property: SupportedProperty): Promise<number[] | null> => {
@@ -85,11 +88,15 @@ export const useChangeColorBy = (geometryType: "node" | "link") => {
 
       const canApplySymbology =
         !isSimulationProperty(property) || !!simulationResults;
-      if (!canApplySymbology) return;
+      if (!canApplySymbology && !isMapThemesOn) return;
+
+      const hasData =
+        canApplySymbology && isColorPropertyAvailable(property, simulation);
 
       setIsWorking(true);
       try {
-        const sortedData = await fetchSortedData(property);
+        const sortedData =
+          isMapThemesOn && !hasData ? [] : await fetchSortedData(property);
         if (!sortedData) return;
 
         if (geometryType === "node") {
@@ -113,6 +120,8 @@ export const useChangeColorBy = (geometryType: "node" | "link") => {
       switchNodeSymbologyTo,
       switchLinkSymbologyTo,
       fetchSortedData,
+      isMapThemesOn,
+      simulation,
     ],
   );
 

@@ -5,15 +5,24 @@ import { localizeDecimal } from "@epanet-js/i18n";
 import { useUserTracking } from "src/infra/user-tracking";
 import { RangeColorRule } from "src/map/symbology/range-color-rule";
 import { useAtomValue } from "jotai";
-import { linkSymbologyAtom, nodeSymbologyAtom } from "src/state/map-symbology";
+import {
+  linkColorRuleAvailableAtom,
+  linkSymbologyAtom,
+  nodeColorRuleAvailableAtom,
+  nodeSymbologyAtom,
+} from "src/state/map-symbology";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useState } from "react";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import clsx from "clsx";
-import { ChevronDownIcon, ChevronRightIcon } from "src/icons";
+import { ChevronDownIcon, ChevronRightIcon, WarningIcon } from "src/icons";
 
 export const Legends = () => {
   const nodeSymbology = useAtomValue(nodeSymbologyAtom);
   const linkSymbology = useAtomValue(linkSymbologyAtom);
+  const isNodeRuleAvailable = useAtomValue(nodeColorRuleAvailableAtom);
+  const isLinkRuleAvailable = useAtomValue(linkColorRuleAvailableAtom);
+  const isMapThemesOn = useFeatureFlag("FLAG_MAP_THEMES");
 
   const isSmOrLarger = useBreakpoint("sm");
   if (!isSmOrLarger) return null;
@@ -21,16 +30,28 @@ export const Legends = () => {
   return (
     <div className="space-y-1 absolute w-48 top-2 left-2">
       {!!nodeSymbology.colorRule && (
-        <Legend symbology={nodeSymbology.colorRule} />
+        <Legend
+          symbology={nodeSymbology.colorRule}
+          isUnavailable={isMapThemesOn && !isNodeRuleAvailable}
+        />
       )}
       {!!linkSymbology.colorRule && (
-        <Legend symbology={linkSymbology.colorRule} />
+        <Legend
+          symbology={linkSymbology.colorRule}
+          isUnavailable={isMapThemesOn && !isLinkRuleAvailable}
+        />
       )}
     </div>
   );
 };
 
-const Legend = ({ symbology }: { symbology: RangeColorRule }) => {
+const Legend = ({
+  symbology,
+  isUnavailable = false,
+}: {
+  symbology: RangeColorRule;
+  isUnavailable?: boolean;
+}) => {
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
   const userTracking = useUserTracking();
@@ -65,7 +86,15 @@ const Legend = ({ symbology }: { symbology: RangeColorRule }) => {
             {isExpanded ? <ChevronDownIcon /> : <ChevronRightIcon />}
           </span>
         </div>
-        {isExpanded && <LegendRamp colorRule={symbology} />}
+        {isExpanded &&
+          (isUnavailable ? (
+            <div className="flex items-start gap-1 text-size-small text-subtle select-none">
+              <WarningIcon className="shrink-0 text-warning" />
+              <span>{translate("mapThemes.legendUnavailable")}</span>
+            </div>
+          ) : (
+            <LegendRamp colorRule={symbology} />
+          ))}
       </div>
     </LegendContainer>
   );

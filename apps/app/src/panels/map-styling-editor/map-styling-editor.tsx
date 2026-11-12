@@ -17,7 +17,11 @@ import {
   type ZoneLabelRule,
   type ZoneColorRule,
 } from "src/map/symbology/symbology-types";
-import { useSymbologyState } from "src/state/map-symbology";
+import {
+  linkColorRuleAvailableAtom,
+  nodeColorRuleAvailableAtom,
+  useSymbologyState,
+} from "src/state/map-symbology";
 import { useChangeColorBy } from "src/hooks/use-change-color-by";
 import { Checkbox } from "src/components/form/Checkbox";
 import { ColorRampSelector } from "src/components/color-ramp-selector";
@@ -171,10 +175,12 @@ const SymbologyEditor = ({
   } = useSymbologyState();
   const symbology = geometryType === "node" ? nodeSymbology : linkSymbology;
   const isMapThemesOn = useFeatureFlag("FLAG_MAP_THEMES");
-  const isSelectedUnavailable =
-    isMapThemesOn &&
-    !!symbology.colorRule &&
-    !isColorPropertyAvailable(symbology.colorRule.property, simulation);
+  const isColorRuleAvailable = useAtomValue(
+    geometryType === "node"
+      ? nodeColorRuleAvailableAtom
+      : linkColorRuleAvailableAtom,
+  );
+  const isSelectedUnavailable = isMapThemesOn && !isColorRuleAvailable;
   const { units } = useAtomValue(projectSettingsAtom);
 
   const { changeColorBy } = useChangeColorBy(geometryType);
@@ -191,11 +197,14 @@ const SymbologyEditor = ({
         return {
           value: type,
           label,
-          disabled: !isColorPropertyAvailable(type, simulation),
+          disabled:
+            !isMapThemesOn && !isColorPropertyAvailable(type, simulation),
+          isAvailable: isColorPropertyAvailable(type, simulation),
         };
       })
-      .sort((a, b) => Number(a.disabled) - Number(b.disabled));
-  }, [properties, units, translate, translateUnit, simulation]);
+      .sort((a, b) => Number(!a.isAvailable) - Number(!b.isAvailable))
+      .map(({ isAvailable: _isAvailable, ...option }) => option);
+  }, [properties, units, translate, translateUnit, simulation, isMapThemesOn]);
 
   const labelByOptions = useMemo(() => {
     const labelOption = {
@@ -283,15 +292,6 @@ const SymbologyEditor = ({
               void changeColorBy(v as SupportedProperty | null);
             }}
             disabled={readonly}
-            invalid={isSelectedUnavailable}
-            styleOptions={
-              isSelectedUnavailable ? { variant: "warning" } : undefined
-            }
-            triggerClassName={
-              isSelectedUnavailable
-                ? "[&>div:first-child]:text-subtle"
-                : undefined
-            }
           />
         )}
       </InlineField>
@@ -309,6 +309,7 @@ const SymbologyEditor = ({
                   numIntervals={symbology.colorRule.breaks.length + 1}
                   geometryType={geometryType}
                   readonly={readonly}
+                  disabled={isSelectedUnavailable}
                 />
               </InlineField>
               <InlineField
@@ -319,6 +320,7 @@ const SymbologyEditor = ({
                 <ColorRampSelector
                   geometryType={geometryType}
                   readonly={readonly}
+                  disabled={isSelectedUnavailable}
                 />
               </InlineField>
             </>
@@ -555,11 +557,13 @@ const RangeColorRuleEditorTrigger = ({
   mode,
   numIntervals,
   readonly,
+  disabled = false,
 }: {
   geometryType: "node" | "link";
   mode: RangeMode;
   numIntervals: number;
   readonly?: boolean;
+  disabled?: boolean;
 }) => {
   const translate = useTranslate();
   const placement = useOutsidePanelPlacement();
@@ -571,7 +575,7 @@ const RangeColorRuleEditorTrigger = ({
   ) : (
     <Popover.Root>
       <Popover.Trigger asChild>
-        <SelectorLikeButton>
+        <SelectorLikeButton disabled={disabled}>
           {translate(mode)}, {numIntervals}
         </SelectorLikeButton>
       </Popover.Trigger>

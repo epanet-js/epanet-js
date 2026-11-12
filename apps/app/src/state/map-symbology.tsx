@@ -1,5 +1,8 @@
 import { atom, useAtom } from "jotai";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { simulationDerivedAtom } from "src/state/derived-branch-state";
+import type { SimulationState } from "src/state/simulation";
+import { isColorPropertyAvailable } from "src/map/symbology/property-availability";
 import { PersistenceMetadataMemory } from "src/lib/persistence/ipersistence";
 import { SYMBOLIZATION_NONE } from "src/types";
 import {
@@ -137,6 +140,19 @@ export const customerPointsVisibleAtom = atom(
 export const zoneSymbologyAtom = atom<ZoneSymbology>(nullSymbologySpec.zone);
 
 export const zonesVisibleAtom = atom((get) => get(zoneSymbologyAtom).visible);
+
+const isRuleAvailable = (
+  rule: NodeSymbology["colorRule"],
+  simulation: SimulationState,
+) => !rule || isColorPropertyAvailable(rule.property, simulation);
+
+export const nodeColorRuleAvailableAtom = atom((get) =>
+  isRuleAvailable(get(nodeSymbologyAtom).colorRule, get(simulationDerivedAtom)),
+);
+
+export const linkColorRuleAvailableAtom = atom((get) =>
+  isRuleAvailable(get(linkSymbologyAtom).colorRule, get(simulationDerivedAtom)),
+);
 
 /**
  * Write-only atom: clears the active node/link symbology when its color rule
