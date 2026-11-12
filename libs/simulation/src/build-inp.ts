@@ -54,13 +54,7 @@ import {
   getJunctionDemands,
 } from "@epanet-js/hydraulic-model";
 import { effectiveRoughness } from "@epanet-js/hydraulic-model";
-import {
-  boundaryBarriers,
-  trace,
-  AllowedFlowDirection as AllowedFlowDirections,
-  getAllowedFlowDirectionFromAssetConfig,
-  type AllowedFlowDirectionQueries,
-} from "@epanet-js/hydraulic-model";
+import { remoteFlowDirectionOf } from "@epanet-js/hydraulic-model";
 
 type SimulationPipeStatus = "Open" | "Closed" | "CV";
 type SimulationPumpStatus = "Open" | "Closed";
@@ -1713,63 +1707,6 @@ const remoteSetpointTargetOf = (
   const target = hydraulicModel.assets.get(valve.targetNodeId);
   if (!target || !target.isNode || !target.isActive) return null;
   return target as NodeAsset;
-};
-
-const remoteFlowDirectionOf = (
-  hydraulicModel: HydraulicModel,
-  pumpId: AssetId,
-  linkId: AssetId,
-): 1 | -1 => {
-  if (pumpId === linkId) return 1;
-
-  const [suctionNodeId, dischargeNodeId] =
-    hydraulicModel.topology.getNodes(pumpId);
-  const [linkStartId, linkEndId] = hydraulicModel.topology.getNodes(linkId);
-
-  const reachedEnd = (fromNodeId: AssetId) => {
-    const start = { nodeIds: [fromNodeId], linkIds: [] };
-    const directions = alongSimulatedLinksExcept(hydraulicModel, linkId);
-    const { nodeIds } = trace(
-      start,
-      hydraulicModel.topology,
-      boundaryBarriers(
-        hydraulicModel.topology,
-        hydraulicModel.assetIndex,
-        directions,
-      ),
-    );
-    const reached = new Set(nodeIds);
-    if (reached.has(linkStartId) === reached.has(linkEndId)) return null;
-    return reached.has(linkStartId) ? "start" : "end";
-  };
-
-  const fromDischarge = reachedEnd(dischargeNodeId);
-  if (fromDischarge !== null) return fromDischarge === "start" ? 1 : -1;
-
-  const fromSuction = reachedEnd(suctionNodeId);
-  if (fromSuction !== null) return fromSuction === "end" ? 1 : -1;
-
-  return 1;
-};
-
-const alongSimulatedLinksExcept = (
-  hydraulicModel: HydraulicModel,
-  excludedLinkId: AssetId,
-): AllowedFlowDirectionQueries => {
-  return {
-    getAllowedFlowDirection: (linkId) => {
-      if (
-        linkId === excludedLinkId ||
-        !isAssetInSimulation(hydraulicModel, linkId)
-      ) {
-        return AllowedFlowDirections.NONE;
-      }
-      const asset = hydraulicModel.assets.get(linkId);
-      return asset
-        ? getAllowedFlowDirectionFromAssetConfig(asset)
-        : AllowedFlowDirections.NONE;
-    },
-  };
 };
 
 const scriptedVariableSpeedPumps = (

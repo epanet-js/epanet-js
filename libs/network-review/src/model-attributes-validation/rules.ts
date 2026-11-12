@@ -11,6 +11,7 @@ import {
   Pipe,
   Pump,
   HydraulicModel,
+  remoteFlowDirectionOf,
 } from "@epanet-js/hydraulic-model";
 import { EntityType, Rule, Severity, ValidatableEntity } from "./types";
 import {
@@ -297,6 +298,26 @@ const variableSpeedDischargeNotBackfeeding: Rule = {
   message: "backfeedsItself",
 };
 
+const variableSpeedFlowTargetSameDirection: Rule = {
+  id: "pump.variableSpeedFlowTarget.sameDirection",
+  type: "model",
+  entityType: "pump",
+  accessor: (entity, model) =>
+    variableSpeedControlOf(entity, model)?.targetId ?? null,
+  appliesWhen: (entity, model) =>
+    isActiveEntity(entity) &&
+    variableSpeedControlOf(entity, model)?.quantity === "flow",
+  check: (value, entity, model) => {
+    if (!entity || !model || value === null) return true;
+    const target = model.assets.get(value as AssetId);
+    if (!target || !target.isActive || !target.isLink) return true;
+    const pumpId = readEntityProp(entity, "id") as AssetId;
+    return remoteFlowDirectionOf(model, pumpId, target.id) === 1;
+  },
+  severity: "warning",
+  message: "mustFollowPumpDirection",
+};
+
 export const valveReferenceFields = [
   "targetNode",
   "flowModulatingSensorLink",
@@ -541,6 +562,7 @@ export const RULES: Rule[] = [
     message: "mustBeActive",
   },
   variableSpeedDischargeNotBackfeeding,
+  variableSpeedFlowTargetSameDirection,
   // Customer points
   {
     id: "customerPoint.connected",

@@ -1109,6 +1109,56 @@ describe("validateModelAttributes", () => {
     });
   });
 
+  describe("variable speed pump flow target direction", () => {
+    const IDS = { J1: 1, J2: 2, J3: 3, J4: 4, PU1: 5, P1: 6 } as const;
+    const RULE_ID = "pump.variableSpeedFlowTarget.sameDirection";
+
+    const aPump = () =>
+      HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, { elevation: 10 })
+        .aJunction(IDS.J2, { elevation: 10 })
+        .aJunction(IDS.J3, { elevation: 10 })
+        .aJunction(IDS.J4, { elevation: 10 })
+        .aPump(IDS.PU1, { startNodeId: IDS.J2, endNodeId: IDS.J3 });
+
+    const targetingFlowOf = (
+      builder: HydraulicModelBuilder,
+      targetId: number,
+    ) =>
+      builder.aVariableSpeedPumpControl({
+        linkId: IDS.PU1,
+        quantity: "flow",
+        targetId,
+        target: 30,
+        minSpeed: 0.3,
+        maxSpeed: 1,
+        laggedPumpIds: [],
+        schedule: [],
+      });
+
+    const flaggedPumps = async (builder: HydraulicModelBuilder) =>
+      entityIdsOf(await validateModelAttributes(builder.build()), RULE_ID);
+
+    it("flags a downstream target drawn against the pump", async () => {
+      const builder = targetingFlowOf(
+        aPump().aPipe(IDS.P1, { startNodeId: IDS.J4, endNodeId: IDS.J3 }),
+        IDS.P1,
+      );
+
+      expect(await flaggedPumps(builder)).toEqual([IDS.PU1]);
+      expect(severityOf(RULE_ID)).toBe("warning");
+    });
+
+    it("flags an upstream target drawn against the pump", async () => {
+      const builder = targetingFlowOf(
+        aPump().aPipe(IDS.P1, { startNodeId: IDS.J2, endNodeId: IDS.J1 }),
+        IDS.P1,
+      );
+
+      expect(await flaggedPumps(builder)).toEqual([IDS.PU1]);
+    });
+  });
+
   describe("customer point connection", () => {
     it("flags a disconnected customer point as a warning", async () => {
       const model = HydraulicModelBuilder.with()
