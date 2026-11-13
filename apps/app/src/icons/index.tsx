@@ -111,6 +111,7 @@ import {
   Waypoints,
   X,
   CirclePause,
+  CircleStop,
   Zap,
   ChartLine,
   FolderDown,
@@ -184,6 +185,7 @@ export const WarningIcon = icon(TriangleAlert);
 export const ExternalLinkIcon = icon(SquareArrowOutUpRight);
 export const ErrorIcon = icon(CircleX);
 export const StopSimulationIcon = icon(CirclePause);
+export const StopIcon = icon(CircleStop);
 export const UserIcon = icon(User);
 export const RefreshIcon = icon(RefreshCw);
 export const ClockIcon = icon(Clock);

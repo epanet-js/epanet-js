@@ -15,7 +15,7 @@ import {
   ChevronLeftIcon,
   ErrorIcon,
   PlayIcon,
-  StopSimulationIcon,
+  StopIcon,
   TipIcon,
   VisibilityOnIcon,
 } from "src/icons";
@@ -190,7 +190,7 @@ export const AssistantComposer = ({
             {busy.status}
           </span>
           <Button variant="default" size="xs" onClick={onStop} className="h-7">
-            <StopSimulationIcon size="sm" />
+            <StopIcon size="sm" />
             {translate("scripting.assistant.stop")}
           </Button>
         </div>
