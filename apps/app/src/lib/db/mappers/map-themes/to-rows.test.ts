@@ -135,8 +135,8 @@ describe("buildMapThemes", () => {
       spec: toMapThemeSpec(aSymbology()),
     };
     const json = JSON.stringify([
-      { id: "broken", name: "Broken", spec_version: 1, spec: {} },
-      { ...valid, spec_version: 1 },
+      { id: "broken", name: "Broken", spec: {} },
+      valid,
     ]);
 
     expect(buildMapThemes(json)).toEqual([valid]);

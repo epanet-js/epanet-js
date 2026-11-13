@@ -1,8 +1,6 @@
 import { z } from "zod";
 import { mapThemeBasemapStyles, mapThemeRangeModes } from "./enums";
 
-export const MAP_THEME_SPEC_VERSION = 1;
-
 const finite = z.number().finite();
 
 export const mapThemeSpecSchema = z
@@ -81,7 +79,6 @@ export type MapThemeSpec = z.infer<typeof mapThemeSpecSchema>;
 export const mapThemeRecordSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
-  spec_version: z.literal(MAP_THEME_SPEC_VERSION),
   spec: mapThemeSpecSchema,
 });
 
