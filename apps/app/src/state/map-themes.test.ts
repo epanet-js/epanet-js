@@ -3,6 +3,7 @@ import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { aNodeSymbology, setInitialState } from "src/__helpers__/state";
 import { nullSymbologySpec } from "src/map/symbology/symbology-types";
 import { linkSymbologyAtom, nodeSymbologyAtom } from "src/state/map-symbology";
+import { basemapAtom, selectBasemapAtom } from "src/state/map";
 import {
   DEFAULT_MAP_THEME_ID,
   activeMapThemeIdAtom,
@@ -140,6 +141,34 @@ describe("unsaved theme changes", () => {
     expect(theme.name).toEqual("My theme");
     expect(store.get(activeMapThemeIdAtom)).toEqual(theme.id);
     expect(store.get(isMapThemeModifiedAtom)).toBe(false);
+  });
+});
+
+describe("the basemap in a map theme", () => {
+  it("is switched when the theme is applied", () => {
+    const theme = anElevationTheme();
+    const satellite = {
+      style: "satellite" as const,
+      visible: true,
+      labels: false,
+      opacity: 0.65,
+    };
+    const store = aStoreWith([
+      { ...theme, symbology: { ...theme.symbology, basemap: satellite } },
+    ]);
+
+    store.set(mapThemeActionAtom, { type: "apply", id: "elevations" });
+
+    expect(store.get(basemapAtom)).toEqual(satellite);
+  });
+
+  it("counts as an unsaved change when it is changed", () => {
+    const store = aStoreWith([anElevationTheme()]);
+    store.set(mapThemeActionAtom, { type: "apply", id: "elevations" });
+
+    store.set(selectBasemapAtom, "outdoors");
+
+    expect(store.get(isMapThemeModifiedAtom)).toBe(true);
   });
 });
 

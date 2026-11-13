@@ -4,7 +4,15 @@ import { Tooltip } from "@epanet-js/ui-kit";
 import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
 import { isPlayingAtom } from "src/state/simulation-playback";
-import { layerConfigAtom } from "src/state/map";
+import {
+  basemapAtom,
+  baseLayerConfigAtom,
+  customBasemapAtom,
+  customLayersAtom,
+  layerConfigAtom,
+  selectBasemapAtom,
+  type BasemapStyle,
+} from "src/state/map";
 import * as E from "src/components/elements";
 import { Button } from "src/components/elements";
 import * as P from "@radix-ui/react-popover";
@@ -43,10 +51,7 @@ import { ReactNode, Suspense, useCallback, useRef, useState } from "react";
 import { match } from "ts-pattern";
 import { getTileJSON, get, getMapboxLayerURL } from "src/lib/utils";
 import clamp from "lodash/clamp";
-import {
-  maybeDeleteOldMapboxLayer,
-  useLayerConfigState,
-} from "src/map/layer-config";
+import { useLayerConfigState } from "src/map/layer-config";
 import { Selector } from "@epanet-js/ui-kit";
 import { useUserTracking } from "src/infra/user-tracking";
 import { localizeDecimal } from "@epanet-js/i18n";
@@ -167,8 +172,7 @@ function MapboxLayer({
   const setMode = useSetAtom(layerModeAtom);
   const { applyChanges } = useLayerConfigState();
   const isEditing = !!layer;
-  const layerConfigs = useAtomValue(layerConfigAtom);
-  const items = [...layerConfigs.values()];
+  const baseLayer = useAtomValue(baseLayerConfigAtom);
   const userTracking = useUserTracking();
 
   const initialValues =
@@ -190,22 +194,17 @@ function MapboxLayer({
         [FORM_ERROR]: "Could not load style",
       };
     }
-    const { deleteLayerConfigs, oldAt, oldMapboxLayer } =
-      maybeDeleteOldMapboxLayer(items);
     userTracking.capture({ name: "customLayer.added", type: "MAPBOX" });
     applyChanges({
-      deleteLayerConfigs,
       putLayerConfigs: [
         {
           ...values,
           name,
           visibility: true,
-          labelVisibility: oldMapboxLayer
-            ? oldMapboxLayer.labelVisibility
-            : true,
+          labelVisibility: baseLayer.labelVisibility,
           tms: false,
           opacity: 1,
-          at: oldAt || getNextAt(items),
+          at: baseLayer.at,
           id: newFeatureId(),
         },
       ],
@@ -466,7 +465,7 @@ function XYZLayer({
   );
 }
 
-export function AddLayer() {
+export function AddLayer({ showBasemap = true }: { showBasemap?: boolean }) {
   const translate = useTranslate();
   const [isOpen, setOpen] = useState<boolean>(false);
   const [mode, setMode] = useAtom(layerModeAtom);
@@ -631,15 +630,17 @@ export function AddLayer() {
                       {translate("customLayers.webServices")}
                     </div>
                     <div className="space-y-2 grid grid-cols-1">
-                      <LayerTypeButton
-                        type="BASEMAP"
-                        mode="basemap"
-                        needsUpgrade={false}
-                        onModeChange={handleModeChange}
-                        onUpgrade={handleUpgrade}
-                      >
-                        {translate("basemap")}
-                      </LayerTypeButton>
+                      {showBasemap && (
+                        <LayerTypeButton
+                          type="BASEMAP"
+                          mode="basemap"
+                          needsUpgrade={false}
+                          onModeChange={handleModeChange}
+                          onUpgrade={handleUpgrade}
+                        >
+                          {translate("basemap")}
+                        </LayerTypeButton>
+                      )}
                       <LayerTypeButton
                         type="XYZ"
                         mode="custom-xyz"
@@ -738,43 +739,23 @@ export function AddLayer() {
 
 const BaseMapOptions = ({ onDone }: { onDone?: () => void }) => {
   const userTracking = useUserTracking();
-  const { applyChanges } = useLayerConfigState();
-  const layerConfigs = useAtomValue(layerConfigAtom);
-  const items = [...layerConfigs.values()];
-  const nextAt = getNextAt(items);
+  const baseLayer = useAtomValue(baseLayerConfigAtom);
+  const selectBasemap = useSetAtom(selectBasemapAtom);
 
   return (
     <>
-      {Object.entries(basemaps).map(([id, mapboxLayer]) => (
+      {(Object.keys(basemaps) as BasemapStyle[]).map((style) => (
         <DefaultLayerItem
-          key={id}
-          mapboxLayer={mapboxLayer}
+          key={style}
+          mapboxLayer={basemaps[style]}
           onSelect={(layer) => {
-            const { deleteLayerConfigs, oldAt, oldMapboxLayer } =
-              maybeDeleteOldMapboxLayer(items);
             userTracking.capture({
               name: "baseMap.changed",
               newBasemap: layer.name,
-              oldBasemap: oldMapboxLayer ? oldMapboxLayer.name : "",
+              oldBasemap: baseLayer.name,
               source: "popover",
             });
-
-            applyChanges({
-              deleteLayerConfigs,
-              putLayerConfigs: [
-                {
-                  ...layer,
-                  visibility: true,
-                  tms: false,
-                  opacity: mapboxLayer.opacity,
-                  at: oldAt || nextAt,
-                  id: newFeatureId(),
-                  labelVisibility: oldMapboxLayer
-                    ? oldMapboxLayer.labelVisibility
-                    : true,
-                } as ILayerConfig,
-              ],
-            });
+            selectBasemap(style);
             onDone && onDone();
           }}
         />
@@ -944,42 +925,24 @@ const BaseMapItem = ({
 }) => {
   const translate = useTranslate();
   const isRaster = layerConfig.name.includes("Satellite");
-  const { applyChanges } = useLayerConfigState();
-  const layerConfigs = useAtomValue(layerConfigAtom);
-  const items = [...layerConfigs.values()];
-  const nextAt = getNextAt(items);
+  const basemap = useAtomValue(basemapAtom);
+  const selectBasemap = useSetAtom(selectBasemapAtom);
   const userTracking = useUserTracking();
 
-  const basemapOptions = Object.entries(basemaps).map(([, mapboxLayer]) => ({
-    value: mapboxLayer.name,
-    label: mapboxLayer.name,
-  }));
-  const handleBasemapChange = (name: string) => {
-    const newMapboxLayer = Object.values(basemaps).find((l) => l.name === name);
-    if (!newMapboxLayer) return;
-
-    const { deleteLayerConfigs, oldAt, oldMapboxLayer } =
-      maybeDeleteOldMapboxLayer(items);
+  const basemapOptions = (Object.keys(basemaps) as BasemapStyle[]).map(
+    (style) => ({
+      value: style,
+      label: basemaps[style].name,
+    }),
+  );
+  const handleBasemapChange = (style: BasemapStyle) => {
     userTracking.capture({
       name: "baseMap.changed",
-      newBasemap: name,
-      oldBasemap: oldMapboxLayer ? oldMapboxLayer.name : "",
+      newBasemap: basemaps[style].name,
+      oldBasemap: layerConfig.name,
       source: "dropdown",
     });
-    applyChanges({
-      deleteLayerConfigs,
-      putLayerConfigs: [
-        {
-          ...newMapboxLayer,
-          visibility: true,
-          tms: false,
-          opacity: newMapboxLayer.opacity,
-          at: oldAt || nextAt,
-          id: newFeatureId(),
-          labelVisibility: layerConfig ? layerConfig.labelVisibility : true,
-        },
-      ],
-    });
+    selectBasemap(style);
   };
   const basemapStyleOptions = {
     border: false,
@@ -997,7 +960,7 @@ const BaseMapItem = ({
           <Selector
             ariaLabel="basemaps"
             options={basemapOptions}
-            selected={layerConfig.name}
+            selected={basemap.style}
             onChange={handleBasemapChange}
             styleOptions={basemapStyleOptions}
           />
@@ -1465,6 +1428,42 @@ function SortableLayerConfig({
           <Draggable />
         </div>
       )}
+      <LayerConfigContent layerConfig={layerConfig} readonly={readonly} />
+    </div>
+  );
+}
+
+function BaseLayerConfig({
+  readonly,
+  showBasemap,
+}: {
+  readonly: boolean;
+  showBasemap: boolean;
+}) {
+  const layerConfig = useAtomValue(baseLayerConfigAtom);
+  const customBasemap = useAtomValue(customBasemapAtom);
+
+  if (!showBasemap && !customBasemap) return null;
+
+  return (
+    <div className="group flex gap-x-2 items-start -ml-1">
+      <div className="invisible flex items-center h-8">
+        <Draggable />
+      </div>
+      <LayerConfigContent layerConfig={layerConfig} readonly={readonly} />
+    </div>
+  );
+}
+
+function LayerConfigContent({
+  layerConfig,
+  readonly,
+}: {
+  layerConfig: ILayerConfig;
+  readonly: boolean;
+}) {
+  return (
+    <>
       {layerConfig.type === "MAPBOX" && layerConfig.isBasemap && (
         <BaseMapItem layerConfig={layerConfig} readonly={readonly} />
       )}
@@ -1480,7 +1479,7 @@ function SortableLayerConfig({
       {layerConfig.type === "GEOJSON" && (
         <VectorFileItem layerConfig={layerConfig} readonly={readonly} />
       )}
-    </div>
+    </>
   );
 }
 
@@ -1541,11 +1540,14 @@ function SortableGroup({
   );
 }
 
-export function LayersEditor() {
-  const layerConfigs = useAtomValue(layerConfigAtom);
+export function LayersEditor({
+  showBasemap = true,
+}: {
+  showBasemap?: boolean;
+}) {
+  const items = useAtomValue(customLayersAtom);
   const { applyChanges } = useLayerConfigState();
   const isPlaying = useAtomValue(isPlayingAtom);
-  const items = [...layerConfigs.values()];
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -1573,7 +1575,8 @@ export function LayersEditor() {
         allItems={items}
         readonly={isPlaying}
       />
-      {!isPlaying && <AddLayer />}
+      <BaseLayerConfig readonly={isPlaying} showBasemap={showBasemap} />
+      {!isPlaying && <AddLayer showBasemap={showBasemap} />}
     </>
   );
 }

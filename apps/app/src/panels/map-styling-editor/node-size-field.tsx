@@ -14,6 +14,7 @@ import { strokeColorFor } from "@epanet-js/map";
 import { SelectorLikeButton } from "@epanet-js/ui-kit";
 import { InlineField } from "src/components/form/fields";
 import * as E from "src/components/elements";
+import { InlineSlider } from "src/components/form/inline-slider";
 import { useOutsidePanelPlacement } from "./popover-placement";
 
 // Kept strictly below LAYER_MAX_ZOOM so the radius interpolation stops stay ascending.
@@ -234,42 +235,19 @@ const ZoomRangeSlider = ({
   );
 };
 
-const SizeSlider = ({
-  id,
-  value,
-  onChange,
-  ariaLabel,
-  disabled,
-}: {
+const SizeSlider = (props: {
   id?: string;
   value: number;
   onChange: (value: number) => void;
   ariaLabel: string;
   disabled?: boolean;
 }) => (
-  <div className="flex flex-1 items-center gap-2 h-8">
-    <Slider.Root
-      className="relative flex items-center grow h-8 select-none touch-none"
-      min={SIZE_SLIDER_MIN}
-      max={SIZE_SLIDER_MAX}
-      step={SIZE_SLIDER_STEP}
-      value={[value]}
-      onValueChange={([next]) => onChange(next)}
-      disabled={disabled}
-    >
-      <Slider.Track className="relative grow rounded-full h-2 bg-gray-200 dark:bg-gray-700">
-        <Slider.Range className="absolute h-full rounded-full bg-accent" />
-      </Slider.Track>
-      <Slider.Thumb
-        id={id}
-        aria-label={ariaLabel}
-        className="block w-4 h-4 rounded-full bg-base border-2 border-accent shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-accent cursor-pointer"
-      />
-    </Slider.Root>
-    <span className="text-size-base text-subtle tabular-nums w-4 text-right shrink-0">
-      {value}
-    </span>
-  </div>
+  <InlineSlider
+    {...props}
+    min={SIZE_SLIDER_MIN}
+    max={SIZE_SLIDER_MAX}
+    step={SIZE_SLIDER_STEP}
+  />
 );
 
 function NodeSizeEditor({

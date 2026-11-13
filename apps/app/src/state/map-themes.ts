@@ -31,6 +31,7 @@ import {
   stagingModelDerivedAtom,
 } from "src/state/derived-branch-state";
 import { projectSettingsAtom } from "src/state/project-settings";
+import { basemapAtom, defaultBasemapState, type Basemap } from "src/state/map";
 
 export type MapThemeSymbology = {
   node: NodeSymbology;
@@ -38,6 +39,7 @@ export type MapThemeSymbology = {
   nodeSize: NodeSizeConfig;
   zone: ZoneSymbology;
   customerPoints: CustomerPointsSymbology;
+  basemap: Basemap;
 };
 
 export type MapTheme = {
@@ -54,6 +56,7 @@ export const defaultMapThemeSymbology: MapThemeSymbology = {
   nodeSize: defaultNodeSizeConfig,
   zone: nullSymbologySpec.zone,
   customerPoints: nullSymbologySpec.customerPoints,
+  basemap: defaultBasemapState,
 };
 
 export const mapThemesAtom = atom<MapTheme[]>([]);
@@ -71,6 +74,7 @@ const currentMapThemeSymbologyAtom = atom(
     nodeSize: get(nodeSizeAtom),
     zone: get(zoneSymbologyAtom),
     customerPoints: get(customerPointsSymbologyAtom),
+    basemap: get(basemapAtom),
   }),
 );
 
@@ -114,6 +118,7 @@ const setSymbology = (set: Setter, symbology: MapThemeSymbology) => {
   set(nodeSizeAtom, symbology.nodeSize);
   set(zoneSymbologyAtom, symbology.zone);
   set(customerPointsSymbologyAtom, symbology.customerPoints);
+  set(basemapAtom, symbology.basemap);
   set(appliedMapThemeSymbologyAtom, symbology);
 };
 

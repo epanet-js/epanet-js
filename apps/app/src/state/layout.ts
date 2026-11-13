@@ -131,6 +131,7 @@ export type MapStylingPanelSectionExpanded = {
   zoneSymbology: boolean;
   elevations: boolean;
   layers: boolean;
+  basemap: boolean;
   projection: boolean;
 };
 
@@ -144,6 +145,7 @@ export const mapStylingPanelSectionsExpandedAtom =
       zoneSymbology: true,
       elevations: true,
       layers: true,
+      basemap: true,
       projection: true,
     },
   );

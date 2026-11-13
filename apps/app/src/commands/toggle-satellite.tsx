@@ -1,46 +1,22 @@
-import { useAtomValue } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { useCallback } from "react";
-import { basemaps } from "src/map/basemaps";
-import { newFeatureId } from "src/lib/id";
 import {
-  maybeDeleteOldMapboxLayer,
-  useLayerConfigState,
-} from "src/map/layer-config";
-import { layerConfigAtom } from "src/state/map";
-import { ILayerConfig } from "src/types";
+  basemapAtom,
+  customBasemapAtom,
+  selectBasemapAtom,
+} from "src/state/map";
 
 export const toggleSatelliteShorcut = "b";
 
 export const useToggleSatellite = () => {
-  const layerConfigs = useAtomValue(layerConfigAtom);
-  const { applyChanges } = useLayerConfigState();
+  const basemap = useAtomValue(basemapAtom);
+  const customBasemap = useAtomValue(customBasemapAtom);
+  const selectBasemap = useSetAtom(selectBasemapAtom);
 
   const toggleSatellite = useCallback(() => {
-    const items = [...layerConfigs.values()];
-
-    const { deleteLayerConfigs, oldAt, oldMapboxLayer } =
-      maybeDeleteOldMapboxLayer(items);
-
-    const newBaseMap =
-      oldMapboxLayer && oldMapboxLayer.name === basemaps.monochrome.name
-        ? basemaps.satellite
-        : basemaps.monochrome;
-
-    const newLayerConfig: ILayerConfig = {
-      ...newBaseMap,
-      visibility: true,
-      tms: false,
-      opacity: newBaseMap.opacity,
-      at: oldAt || "a0",
-      id: newFeatureId(),
-      labelVisibility: oldMapboxLayer ? oldMapboxLayer.labelVisibility : true,
-    };
-
-    applyChanges({
-      deleteLayerConfigs,
-      putLayerConfigs: [newLayerConfig],
-    });
-  }, [layerConfigs, applyChanges]);
+    const isMonochrome = !customBasemap && basemap.style === "monochrome";
+    selectBasemap(isMonochrome ? "satellite" : "monochrome");
+  }, [basemap, customBasemap, selectBasemap]);
 
   return toggleSatellite;
 };

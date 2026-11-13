@@ -9,7 +9,7 @@ import {
 } from "src/state/file-system";
 import { RecentFilesStore } from "src/lib/recent-files";
 import { InMemoryKeyValueStore } from "src/infra/storage";
-import { layerConfigAtom } from "src/state/map";
+import { basemapAtom, defaultBasemapState, type Basemap } from "src/state/map";
 import { modeAtom } from "src/state/mode";
 import {
   SimulationFinished,
@@ -22,7 +22,7 @@ import type { ResultsReader } from "@epanet-js/simulation";
 import { Mode } from "src/state/mode";
 import { Asset, HydraulicModel } from "src/hydraulic-model";
 import { ExportOptions } from "src/types/export";
-import { ILayerConfig, LayerConfigMap } from "src/types";
+import { ILayerConfig } from "src/types";
 import type { Sel } from "src/selection";
 import { USelection } from "src/selection";
 import { nanoid } from "nanoid";
@@ -56,7 +56,7 @@ export const setInitialState = (
     sessionHistory?: SessionHistory;
     selection?: Sel;
     fileInfo?: FileInfo | null;
-    layerConfigs?: LayerConfigMap;
+    basemap?: Basemap;
     nodeSymbology?: NodeSymbology;
     linkSymbology?: LinkSymbology;
     locale?: Locale;
@@ -75,7 +75,7 @@ export const setInitialState = (
     sessionHistory = new SessionHistory(hydraulicModel.version),
     selection = USelection.none(),
     fileInfo = null,
-    layerConfigs = new Map(),
+    basemap = { ...defaultBasemapState, visible: false },
     nodeSymbology = nullSymbologySpec.node,
     linkSymbology = nullSymbologySpec.link,
     locale = "en",
@@ -95,7 +95,7 @@ export const setInitialState = (
   store.set(selectionAtom, selection);
   store.set(simulationStepAtom, simulationStep);
   store.set(inpFileInfoAtom, fileInfo);
-  store.set(layerConfigAtom, layerConfigs);
+  store.set(basemapAtom, basemap);
   store.set(nodeSymbologyAtom, nodeSymbology);
   store.set(linkSymbologyAtom, linkSymbology);
   store.set(localeAtom, locale);

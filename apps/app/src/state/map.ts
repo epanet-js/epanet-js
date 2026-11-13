@@ -11,6 +11,7 @@ import { DEFAULT_CENTER, DEFAULT_ZOOM } from "@epanet-js/map";
 import type { InitialViewport } from "@epanet-js/map";
 import { basemaps } from "src/map/basemaps";
 import { satelliteLimitedZoom } from "src/map/satellite-resolution";
+import { sortAts } from "src/lib/parse-stored";
 import {
   MapEditionsTracker,
   nullMapEditionsTracker,
@@ -62,27 +63,119 @@ export const mapViewportAtom = atom<InitialViewport>({
   zoom: DEFAULT_ZOOM,
 });
 
-const defaultLayerConfigs: ILayerConfig[] = [
-  {
-    ...basemaps.monochrome,
+export type BasemapStyle = keyof typeof basemaps;
+
+export type Basemap = {
+  style: BasemapStyle;
+  visible: boolean;
+  labels: boolean;
+  opacity: number;
+};
+
+export type CustomBasemapConfig = Extract<ILayerConfig, { type: "MAPBOX" }>;
+
+export const BASEMAP_LAYER_ID = "default-basemap";
+
+export const defaultBasemapState: Basemap = {
+  style: "monochrome",
+  visible: true,
+  labels: true,
+  opacity: 1,
+};
+
+export const basemapAtom = atom<Basemap>(defaultBasemapState);
+
+export const customBasemapAtom = atom<CustomBasemapConfig | null>(null);
+
+export const customLayersAtom = atom<ILayerConfig[]>([]);
+
+const toBasemapLayerConfig = (basemap: Basemap): ILayerConfig => {
+  const { thumbnailClass: _thumbnailClass, ...template } =
+    basemaps[basemap.style];
+  return {
+    ...template,
+    id: BASEMAP_LAYER_ID,
     at: "a0",
-    opacity: 1,
     tms: false,
-    labelVisibility: true,
-    visibility: true,
-    id: "default-basemap",
-  },
-];
+    opacity: basemap.opacity,
+    visibility: basemap.visible,
+    labelVisibility: basemap.labels,
+  };
+};
 
-const layerConfigArrayAtom = atom<ILayerConfig[]>(defaultLayerConfigs);
+const basemapStyleNamed = (name: string): BasemapStyle | undefined =>
+  (Object.keys(basemaps) as BasemapStyle[]).find(
+    (style) => basemaps[style].name === name,
+  );
 
-export const layerConfigAtom = atom(
-  (get): LayerConfigMap => {
-    const arr = get(layerConfigArrayAtom);
-    return new Map(arr.map((l) => [l.id, l]));
-  },
-  (_get, set, newMap: LayerConfigMap) => {
-    set(layerConfigArrayAtom, [...newMap.values()]);
+export const basemapLayerConfigAtom = atom<ILayerConfig>((get) =>
+  toBasemapLayerConfig(get(basemapAtom)),
+);
+
+export const baseLayerConfigAtom = atom<ILayerConfig>(
+  (get) => get(customBasemapAtom) ?? get(basemapLayerConfigAtom),
+);
+
+export const layerConfigAtom = atom((get): LayerConfigMap => {
+  const base = get(baseLayerConfigAtom);
+  return new Map([
+    ...get(customLayersAtom).map((l) => [l.id, l] as const),
+    [base.id, base],
+  ]);
+});
+
+export const selectBasemapAtom = atom(null, (get, set, style: BasemapStyle) => {
+  const customBasemap = get(customBasemapAtom);
+  const labels = customBasemap
+    ? customBasemap.labelVisibility
+    : get(basemapAtom).labels;
+  set(customBasemapAtom, null);
+  set(basemapAtom, {
+    style,
+    visible: true,
+    labels,
+    opacity: basemaps[style].opacity,
+  });
+});
+
+export const applyLayerConfigChangesAtom = atom(
+  null,
+  (
+    get,
+    set,
+    {
+      putLayerConfigs = [],
+      deleteLayerConfigs = [],
+    }: {
+      putLayerConfigs?: ILayerConfig[];
+      deleteLayerConfigs?: ILayerConfig["id"][];
+    },
+  ) => {
+    const customLayers = new Map(get(customLayersAtom).map((l) => [l.id, l]));
+
+    for (const layerId of deleteLayerConfigs) {
+      if (get(customBasemapAtom)?.id === layerId) set(customBasemapAtom, null);
+      customLayers.delete(layerId);
+    }
+
+    for (const layer of putLayerConfigs) {
+      if (layer.type === "MAPBOX" && layer.isBasemap) {
+        const style = basemapStyleNamed(layer.name);
+        if (!style) continue;
+        set(basemapAtom, {
+          style,
+          visible: layer.visibility,
+          labels: layer.labelVisibility,
+          opacity: layer.opacity,
+        });
+      } else if (layer.type === "MAPBOX") {
+        set(customBasemapAtom, layer);
+      } else {
+        customLayers.set(layer.id, layer);
+      }
+    }
+
+    set(customLayersAtom, [...customLayers.values()].sort(sortAts));
   },
 );
 

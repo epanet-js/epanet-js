@@ -2,7 +2,6 @@ import { act, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { setInitialState } from "src/__helpers__/state";
 import { basemaps } from "src/map/basemaps";
-import { ILayerConfig } from "src/types";
 import { USelection } from "src/selection";
 import { selectionAtom } from "src/state/selection";
 import { Store } from "src/state";
@@ -121,16 +120,13 @@ const renderSatelliteMap = async ({ isSignedIn }: { isSignedIn: boolean }) => {
   );
   auth.setSignedIn(isSignedIn);
 
-  const satellite: ILayerConfig = {
-    ...basemaps.satellite,
-    id: "basemap",
-    at: "a0",
-    tms: false,
-    visibility: true,
-    labelVisibility: true,
-  };
   const store = setInitialState({
-    layerConfigs: new Map([["basemap", satellite]]),
+    basemap: {
+      style: "satellite",
+      visible: true,
+      labels: true,
+      opacity: basemaps.satellite.opacity,
+    },
   });
 
   const map = await renderMap(store);

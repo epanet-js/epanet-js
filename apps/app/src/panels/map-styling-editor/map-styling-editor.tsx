@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import clsx from "clsx";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { isPlayingAtom } from "src/state/simulation-playback";
@@ -54,6 +54,13 @@ import { TextField } from "src/components/form/text-field";
 import { zoneFeaturesAtom } from "src/state/zone-features";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { MapThemeBar } from "./map-theme-bar";
+import { InlineSlider } from "src/components/form/inline-slider";
+import { basemaps } from "src/map/basemaps";
+import {
+  basemapAtom,
+  selectBasemapAtom,
+  type BasemapStyle,
+} from "src/state/map";
 import { isColorPropertyAvailable } from "src/map/symbology/property-availability";
 
 const colorPropertyLabelFor = (
@@ -80,7 +87,7 @@ const MapStylingSectionWrapper = ({
   return (
     <CollapsibleSection
       title={title}
-      open={sections[section]}
+      open={sections[section] ?? true}
       onOpenChange={(open) =>
         setSections((prev) => ({ ...prev, [section]: open }))
       }
@@ -134,6 +141,7 @@ export const MapStylingEditor = () => {
         />
         {showZoneSymbology && <ZoneSymbologySection />}
         <CustomerPointsSection readonly={isPlaying} />
+        {isMapThemesOn && !isGridOn && <BasemapSection readonly={isPlaying} />}
         {isMapThemesOn && (
           <PanelHeading title={translate("mapThemes.mapData")} separated />
         )}
@@ -143,7 +151,7 @@ export const MapStylingEditor = () => {
             title={translate("layers")}
             section="layers"
           >
-            <LayersEditor />
+            <LayersEditor showBasemap={!isMapThemesOn} />
           </MapStylingSectionWrapper>
         )}
         <ProjectionSection />
@@ -428,18 +436,139 @@ const CustomerPointsSection = ({ readonly }: { readonly?: boolean }) => {
         labelSize="sm"
         layout="fixed-label"
       >
-        <Checkbox
-          checked={customerPointsSymbology.visible}
-          aria-label={`${translate("customerPoints")} ${translate("visible")}`}
-          onChange={handleVisibilityChange}
-          disabled={readonly}
-        />
+        <div className="p-2 flex items-center h-[38px]">
+          <Checkbox
+            checked={customerPointsSymbology.visible}
+            aria-label={`${translate("customerPoints")} ${translate("visible")}`}
+            onChange={handleVisibilityChange}
+            disabled={readonly}
+          />
+        </div>
       </InlineField>
     </MapStylingSectionWrapper>
   );
 };
 
 const zoneRuleOptions = [{ label: "Label", value: "label" }];
+
+const BasemapSection = ({ readonly }: { readonly?: boolean }) => {
+  const translate = useTranslate();
+  const userTracking = useUserTracking();
+  const [basemap, setBasemap] = useAtom(basemapAtom);
+  const selectBasemap = useSetAtom(selectBasemapAtom);
+
+  const styleOptions = (Object.keys(basemaps) as BasemapStyle[]).map(
+    (style) => ({ value: style, label: basemaps[style].name }),
+  );
+
+  const handleStyleChange = (style: BasemapStyle) => {
+    userTracking.capture({
+      name: "baseMap.changed",
+      newBasemap: basemaps[style].name,
+      oldBasemap: basemaps[basemap.style].name,
+      source: "dropdown",
+    });
+    selectBasemap(style);
+  };
+
+  const handleVisibilityChange = () => {
+    userTracking.capture({
+      name: "layerVisibility.changed",
+      visible: !basemap.visible,
+      type: "MAPBOX",
+    });
+    setBasemap({ ...basemap, visible: !basemap.visible });
+  };
+
+  const [draftOpacity, setDraftOpacity] = useState<number | null>(null);
+  const opacityPct = draftOpacity ?? Math.round(basemap.opacity * 100);
+
+  const handleOpacityCommit = (pct: number) => {
+    setDraftOpacity(null);
+    userTracking.capture({
+      name: "layerOpacity.changed",
+      newValue: pct / 100,
+      oldValue: basemap.opacity,
+      type: "MAPBOX",
+    });
+    setBasemap({ ...basemap, opacity: pct / 100 });
+  };
+
+  const handleLabelsChange = () => {
+    userTracking.capture({
+      name: "layerLabelVisibility.changed",
+      visible: !basemap.labels,
+      type: "MAPBOX",
+    });
+    setBasemap({ ...basemap, labels: !basemap.labels });
+  };
+
+  return (
+    <MapStylingSectionWrapper title={translate("basemap")} section="basemap">
+      <InlineField
+        name={translate("mapThemes.basemapStyle")}
+        labelSize="sm"
+        layout="fixed-label"
+      >
+        <Selector
+          ariaLabel={`${translate("basemap")} ${translate("mapThemes.basemapStyle")}`}
+          options={styleOptions}
+          selected={basemap.style}
+          onChange={handleStyleChange}
+          disabled={readonly}
+        />
+      </InlineField>
+      <InlineField
+        name={translate("visible")}
+        labelSize="sm"
+        layout="fixed-label"
+      >
+        <div className="p-2 flex items-center h-[38px]">
+          <Checkbox
+            checked={basemap.visible}
+            aria-label={`${translate("basemap")} ${translate("visible")}`}
+            onChange={handleVisibilityChange}
+            disabled={readonly}
+          />
+        </div>
+      </InlineField>
+      <InlineField
+        name={translate("labels")}
+        labelSize="sm"
+        layout="fixed-label"
+      >
+        <div className="p-2 flex items-center h-[38px]">
+          <Checkbox
+            checked={basemap.labels}
+            aria-label={`${translate("basemap")} ${translate("labels")}`}
+            onChange={handleLabelsChange}
+            disabled={readonly}
+          />
+        </div>
+      </InlineField>
+      {basemap.style === "satellite" && (
+        <InlineField
+          name={translate("mapThemes.basemapOpacity")}
+          labelSize="sm"
+          layout="fixed-label"
+        >
+          <InlineSlider
+            value={opacityPct}
+            min={0}
+            max={100}
+            step={1}
+            onChange={setDraftOpacity}
+            onCommit={handleOpacityCommit}
+            ariaLabel={`${translate("basemap")} ${translate("mapThemes.basemapOpacity")}`}
+            valueLabel={`${opacityPct}%`}
+            valueClassName="w-10"
+            disabled={readonly}
+          />
+        </InlineField>
+      )}
+    </MapStylingSectionWrapper>
+  );
+};
 
 const ZoneSymbologySection = () => {
   const translate = useTranslate();
@@ -489,11 +618,13 @@ const ZoneSymbologySection = () => {
         labelSize="sm"
         layout="fixed-label"
       >
-        <Checkbox
-          checked={zoneSymbology.visible}
-          aria-label={`${translate("zoneSymbology")} ${translate("visible")}`}
-          onChange={handleVisibilityChange}
-        />
+        <div className="p-2 flex items-center h-[38px]">
+          <Checkbox
+            checked={zoneSymbology.visible}
+            aria-label={`${translate("zoneSymbology")} ${translate("visible")}`}
+            onChange={handleVisibilityChange}
+          />
+        </div>
       </InlineField>
       <InlineField
         name={translate("colorBy")}

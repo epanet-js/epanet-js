@@ -2291,6 +2291,8 @@
     "deleteDescription": "“{{1}}” will be deleted.",
     "newThemeName": "New theme",
     "copyName": "{{1}} copy",
-    "legendUnavailable": "Run a simulation to see results"
+    "legendUnavailable": "Run a simulation to see results",
+    "basemapStyle": "Style",
+    "basemapOpacity": "Opacity"
   }
 }
