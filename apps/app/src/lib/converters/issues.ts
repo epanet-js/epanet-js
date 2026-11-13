@@ -2,6 +2,7 @@ import type { IssueCode, Issue } from "@epanet-js/converters";
 
 export type IssueRef = {
   ref: string;
+  label?: string;
   context: string[];
 };
 
@@ -31,16 +32,21 @@ export const groupIssues = (issues: Issue[]): IssueGroup[] => {
         code: issue.code,
         count: 1,
         context,
-        refs: issue.ref === undefined ? [] : [{ ref: issue.ref, context }],
+        refs: refsOf(issue, context),
       });
       continue;
     }
 
     group.count += 1;
-    if (issue.ref !== undefined) group.refs.push({ ref: issue.ref, context });
+    group.refs.push(...refsOf(issue, context));
   }
 
   return [...groups.values()];
+};
+
+const refsOf = ({ ref, label }: Issue, context: string[]): IssueRef[] => {
+  if (ref === undefined) return [];
+  return [label === undefined ? { ref, context } : { ref, label, context }];
 };
 
 const contextValues = (issue: Issue): string[] =>

@@ -896,6 +896,7 @@ describe("valve remote target", () => {
       code: "remotePressureControlUnsupported",
       severity: "warning",
       ref: "10",
+      label: "V1",
     });
   });
 
@@ -916,6 +917,7 @@ describe("valve remote target", () => {
       code: "remotePressureControlUnsupported",
       severity: "warning",
       ref: "10",
+      label: "V1",
     });
   });
 
@@ -953,6 +955,7 @@ describe("valve remote target", () => {
       code: "remotePressureControlUnsupported",
       severity: "warning",
       ref: "10",
+      label: "V1",
     });
   });
 });
@@ -1714,6 +1717,7 @@ describe("build controls from network data", () => {
           code: "flowModulatedSetpointUnsupported",
           severity: "warning",
           ref: "10",
+          label: "V1",
         },
       ]);
     });
@@ -2357,7 +2361,12 @@ describe("build selection sets from network data", () => {
 
     expect(selectionSets).toEqual([]);
     expect(issues).toEqual([
-      { code: "selectionSetMembersUnreadable", severity: "warning", ref: "5" },
+      {
+        code: "selectionSetMembersUnreadable",
+        severity: "warning",
+        ref: "5",
+        label: "NORTH",
+      },
     ]);
   });
 

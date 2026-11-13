@@ -72,4 +72,24 @@ describe("issue collector", () => {
       "nodeFixedHeadUnsupported",
     ]);
   });
+
+  it("carries the label of the record an issue is about", () => {
+    const collector = new IssueCollector();
+
+    collector.add({
+      code: "linkEndpointMissing",
+      severity: "warning",
+      ref: "1",
+      label: "MyPipe",
+    });
+
+    expect(collector.build()).toEqual([
+      {
+        code: "linkEndpointMissing",
+        severity: "warning",
+        ref: "1",
+        label: "MyPipe",
+      },
+    ]);
+  });
 });

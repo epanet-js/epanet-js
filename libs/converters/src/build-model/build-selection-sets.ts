@@ -50,6 +50,7 @@ export const buildSelectionSets = (
         code: "selectionSetMembersUnreadable",
         severity: "warning",
         ref: record.ref,
+        label: record.label,
       });
       continue;
     }

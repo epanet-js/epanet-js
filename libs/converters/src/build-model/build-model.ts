@@ -206,6 +206,7 @@ export const buildModel = (
   const linkContext: LinkContext = {
     ...context,
     linkIdByRef: new Map<string, AssetId>(),
+    linkLabelByRef: new Map<string, string>(),
     lengthUnit: spec.units.length,
     defaultRoughness: getDefaultRoughness(headlossFormula),
     toLength: converterFor(network.units.length, spec.units.length),
@@ -402,6 +403,7 @@ type NodeContext = {
 
 type LinkContext = NodeContext & {
   linkIdByRef: Map<string, AssetId>;
+  linkLabelByRef: Map<string, string>;
   lengthUnit: Unit;
   defaultRoughness: number;
   toLength: (value: number) => number;
@@ -758,7 +760,7 @@ const addValve = (
   if (geometry === null) return;
 
   const kind = valveKindOf(valveData);
-  const targetNodeId = remoteTargetOf(valveData, kind, context, issues);
+  const targetNodeId = remoteTargetOf(valveData, kind, context);
   const valve = assetFactory.createValve({
     ...linkProperties(valveData, "valve", geometry, context),
     kind,
@@ -776,25 +778,26 @@ const addValve = (
     geometry.connections,
     context,
   );
+
+  if (valveData.targetNodeRef !== undefined && targetNodeId === undefined) {
+    issues.add({
+      code: "remotePressureControlUnsupported",
+      severity: "warning",
+      ref: valveData.ref,
+      label: valve.label,
+    });
+  }
 };
 
 const remoteTargetOf = (
-  { ref, targetNodeRef }: ValveData,
+  { targetNodeRef }: ValveData,
   kind: ValveKind,
   { nodeIdByRef }: LinkContext,
-  issues: IssueCollector,
 ): AssetId | undefined => {
   if (targetNodeRef === undefined) return undefined;
 
   const target = nodeIdByRef.get(targetNodeRef);
-  if (kind === "prv" && target !== undefined) return target.id;
-
-  issues.add({
-    code: "remotePressureControlUnsupported",
-    severity: "warning",
-    ref,
-  });
-  return undefined;
+  return kind === "prv" ? target?.id : undefined;
 };
 
 const unknownValveFallback = "tcv" as const satisfies ValveKind;
@@ -849,12 +852,13 @@ const registerLink = (
   link: LinkAsset,
   ref: string,
   connections: LinkConnections,
-  { linkIdByRef }: LinkContext,
+  { linkIdByRef, linkLabelByRef }: LinkContext,
 ) => {
   hydraulicModel.assets.set(link.id, link);
   hydraulicModel.assetIndex.addLink(link.id);
   hydraulicModel.topology.addLink(link.id, connections[0], connections[1]);
   linkIdByRef.set(ref, link.id);
+  linkLabelByRef.set(ref, link.label);
 };
 
 const deactivateStrandedNodes = (
@@ -956,6 +960,7 @@ const rawControlsFor = (
       code,
       severity: "warning",
       ref: controlData.link.ref,
+      label: context.linkLabelByRef.get(controlData.link.ref),
     });
     return [];
   }
@@ -965,7 +970,13 @@ const rawControlsFor = (
 
   switch (controlData.type) {
     case "timedSetting":
-      reportScheduledRemoteTarget(controlData, linkId, hydraulicModel, issues);
+      reportScheduledRemoteTarget(
+        controlData,
+        linkId,
+        hydraulicModel,
+        context,
+        issues,
+      );
       return scheduleRows(controlData, linkId, hydraulicModel, context);
     case "tankLevel":
       return controlData.link.kind === "pump"
@@ -983,6 +994,7 @@ const reportScheduledRemoteTarget = (
   { link }: TimedSettingControlData,
   linkId: AssetId,
   hydraulicModel: HydraulicModel,
+  context: LinkContext,
   issues: IssueCollector,
 ): void => {
   const asset = hydraulicModel.assets.get(linkId);
@@ -993,6 +1005,7 @@ const reportScheduledRemoteTarget = (
     code: "remotePressureControlUnsupported",
     severity: "warning",
     ref: link.ref,
+    label: context.linkLabelByRef.get(link.ref),
   });
 };
 
@@ -1107,6 +1120,7 @@ const variableSpeedPumpControlOf = (
       code: "pumpSpeedControlUnsupported",
       severity: "warning",
       ref: control.link.ref,
+      label: context.linkLabelByRef.get(control.link.ref),
     });
     return undefined;
   }
@@ -1176,9 +1190,10 @@ const targetConverterFor = (
 const flowModulatingValveControlOf = (
   control: FlowModulatedSetpointControlData,
   hydraulicModel: HydraulicModel,
-  { linkIdByRef, toFlow, toPressure }: LinkContext,
+  context: LinkContext,
   issues: IssueCollector,
 ): FlowModulatingValveControl | undefined => {
+  const { linkIdByRef, toFlow, toPressure } = context;
   const linkId = linkIdByRef.get(control.link.ref);
   const valve =
     linkId === undefined ? undefined : hydraulicModel.assets.get(linkId);
@@ -1194,6 +1209,7 @@ const flowModulatingValveControlOf = (
       code: "flowModulatedSetpointUnsupported",
       severity: "warning",
       ref: control.link.ref,
+      label: context.linkLabelByRef.get(control.link.ref),
     });
     return undefined;
   }

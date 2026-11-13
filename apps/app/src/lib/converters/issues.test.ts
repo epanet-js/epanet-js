@@ -104,6 +104,23 @@ describe("groupIssues", () => {
     ]);
   });
 
+  it("carries the label of a ref that has one", () => {
+    const groups = groupIssues([
+      {
+        code: "linkEndpointMissing",
+        severity: "warning",
+        ref: "3",
+        label: "MyPipe",
+      },
+      { code: "linkEndpointMissing", severity: "warning", ref: "4" },
+    ]);
+
+    expect(groups[0].refs).toEqual([
+      { ref: "3", label: "MyPipe", context: [] },
+      { ref: "4", context: [] },
+    ]);
+  });
+
   it("stringifies numeric context values", () => {
     const groups = groupIssues([
       {

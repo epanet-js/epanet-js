@@ -117,9 +117,9 @@ const IssueGroupSummary = ({ group }: { group: IssueGroup }) => {
     <div>
       <p>{translate(key, group.count)}:</p>
       <div className="flex flex-col gap-y-0.5 items-start">
-        {visible.map(({ ref, context }) => (
+        {visible.map(({ ref, label, context }) => (
           <span key={ref}>
-            - {ref}
+            - {label ?? ref}
             {context.length > 0 && ` (${context.join(", ")})`}
           </span>
         ))}
