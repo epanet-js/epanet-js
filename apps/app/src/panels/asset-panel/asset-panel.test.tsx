@@ -31,7 +31,6 @@ import FeatureEditor from "../feature-editor";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@epanet-js/ui-kit";
 import { USelection } from "src/selection";
-import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("AssetPanel", () => {
   describe("with a pipe", () => {
@@ -764,7 +763,6 @@ describe("AssetPanel", () => {
           .build();
 
       it("locks the target node and setting to the control while a flow-modulated control is set", async () => {
-        stubFeatureOn("FLAG_FLOW_MODULATING_VALVES");
         const store = setInitialState({
           hydraulicModel: aPrvModel(),
           selectedAssetId: IDS.V1,
@@ -826,7 +824,6 @@ describe("AssetPanel", () => {
       });
 
       it("offers only the nodes downstream of the valve as control node", async () => {
-        stubFeatureOn("FLAG_FLOW_MODULATING_VALVES");
         const store = setInitialState({
           hydraulicModel: aPrvModel(),
           selectedAssetId: IDS.V1,
@@ -854,27 +851,6 @@ describe("AssetPanel", () => {
         expect(
           screen.queryByRole("option", { name: "DOWN" }),
         ).not.toBeInTheDocument();
-      });
-
-      it("hides the controls section when the flag is off", () => {
-        stubFeatureOff("FLAG_FLOW_MODULATING_VALVES");
-        const store = setInitialState({
-          hydraulicModel: aPrvModel(),
-          selectedAssetId: IDS.V1,
-        });
-
-        renderComponent(store);
-
-        expect(screen.queryByText("Controls")).not.toBeInTheDocument();
-        expect(
-          screen.queryByRole("combobox", { name: "Type" }),
-        ).not.toBeInTheDocument();
-        expect(
-          screen.getByRole("combobox", { name: /target node/i }),
-        ).toBeInTheDocument();
-        expect(screen.getByRole("textbox", { name: /setting/i })).toHaveValue(
-          "30",
-        );
       });
     });
 

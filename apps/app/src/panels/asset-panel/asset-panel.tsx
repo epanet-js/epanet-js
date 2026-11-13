@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useCallback, useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   Asset,
   Junction,
@@ -2167,10 +2166,7 @@ const ValveEditor = ({
   };
 
   const isPrv = valve.kind === "prv";
-  const isFlowModulatingValvesOn = useFeatureFlag(
-    "FLAG_FLOW_MODULATING_VALVES",
-  );
-  const showControls = isPrv && isFlowModulatingValvesOn;
+  const showControls = isPrv;
   const flowModulatingControl = showControls
     ? getValveControl(hydraulicModel.controlsLookup, valve.id)
     : null;
