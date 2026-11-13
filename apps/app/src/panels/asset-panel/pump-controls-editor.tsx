@@ -6,8 +6,8 @@ import {
   buildDefaultLevelSetting,
   buildDefaultVspPressureControl,
   buildTimedSetting,
-  Control,
   Patterns,
+  PumpControl,
   PumpStatus,
   Tank,
   TimedSettingStep,
@@ -42,7 +42,7 @@ const selectorStyleOptions = {
   paddingY: 2,
 } as const;
 
-const controlTypeFor = (control: Control | null): ControlType => {
+const controlTypeFor = (control: PumpControl | null): ControlType => {
   if (control?.type === "level-setting") return "levelBased";
   if (control?.type === "timed-setting") return "timeBased";
   if (control?.type === "variable-speed-pump")
@@ -73,10 +73,10 @@ export const PumpControlsEditor = ({
   linkId: AssetId;
   initialStatus: PumpStatus;
   initialSpeed: number;
-  control: Control | null;
+  control: PumpControl | null;
   tanks: Tank[];
   levelUnit: Unit;
-  onControlChange: (control: Control | null) => void;
+  onControlChange: (control: PumpControl | null) => void;
   variableSpeedPumpTargets?: VariableSpeedPumpTargets;
   controllingPump?: { id: AssetId; label: string } | null;
   hasRawControls?: boolean;

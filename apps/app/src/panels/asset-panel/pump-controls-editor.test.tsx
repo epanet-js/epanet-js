@@ -2,7 +2,7 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import {
-  Control,
+  PumpControl,
   Patterns,
   PumpStatus,
   Tank,
@@ -59,10 +59,10 @@ const Harness = ({
   initialStatus?: PumpStatus;
   initialSpeed?: number;
   tanks?: Tank[];
-  initialControl?: Control | null;
-  onChange?: (control: Control | null) => void;
+  initialControl?: PumpControl | null;
+  onChange?: (control: PumpControl | null) => void;
 }) => {
-  const [control, setControl] = useState<Control | null>(initialControl);
+  const [control, setControl] = useState<PumpControl | null>(initialControl);
   return (
     <PumpControlsEditor
       linkId={PUMP_ID}
@@ -81,7 +81,7 @@ const Harness = ({
 
 const renderEditor = (
   initialStatus: PumpStatus = "on",
-  onChange?: (control: Control | null) => void,
+  onChange?: (control: PumpControl | null) => void,
   tanks: Tank[] = DEFAULT_TANKS,
 ) =>
   render(
@@ -534,12 +534,12 @@ describe("pattern-based", () => {
     onControlChange,
     onSpeedPatternChange,
   }: {
-    initialControl?: Control | null;
+    initialControl?: PumpControl | null;
     initialSpeedPatternId?: number;
-    onControlChange?: (control: Control | null) => void;
+    onControlChange?: (control: PumpControl | null) => void;
     onSpeedPatternChange?: (id: number | undefined) => void;
   }) => {
-    const [control, setControl] = useState<Control | null>(initialControl);
+    const [control, setControl] = useState<PumpControl | null>(initialControl);
     const [speedPatternId, setSpeedPatternId] = useState(initialSpeedPatternId);
     return (
       <PumpControlsEditor

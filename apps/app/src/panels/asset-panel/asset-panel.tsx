@@ -80,13 +80,15 @@ import {
 } from "src/lib/model-attributes-validation";
 import {
   getLinkNodes,
+  getPumpControl,
+  getValveControl,
   pickTargetNodeOptions,
 } from "@epanet-js/hydraulic-model";
 import {
   type AssetId,
   type Control,
-  type FlowModulatingValveControl,
   type LinkAsset,
+  type PumpControl,
 } from "@epanet-js/hydraulic-model";
 import { isNodeAsset } from "@epanet-js/hydraulic-model";
 import { highlightsAtom } from "src/state/highlights";
@@ -2170,10 +2172,7 @@ const ValveEditor = ({
   );
   const showControls = isPrv && isFlowModulatingValvesOn;
   const flowModulatingControl = showControls
-    ? ([...hydraulicModel.controlsLookup.getControls(valve.id)].find(
-        (c): c is FlowModulatingValveControl =>
-          c.type === "flow-modulating-valve" && c.linkId === valve.id,
-      ) ?? null)
+    ? getValveControl(hydraulicModel.controlsLookup, valve.id)
     : null;
   const isSetByControl = flowModulatingControl !== null;
   const showTargetNode = isPrv;
@@ -2630,10 +2629,7 @@ const PumpEditor = ({
     [variableSpeedPumpTargetLists, isPumpFieldValid],
   );
 
-  const pumpControl =
-    [...hydraulicModel.controlsLookup.getControls(pump.id)].find(
-      (c) => c.linkId === pump.id,
-    ) ?? null;
+  const pumpControl = getPumpControl(hydraulicModel.controlsLookup, pump.id);
 
   const controllingPump = useMemo(() => {
     const lead = hydraulicModel.controls.find(
@@ -2651,7 +2647,7 @@ const PumpEditor = ({
     pump.id,
   );
 
-  const handleControlChangeForPump = (control: Control | null) => {
+  const handleControlChangeForPump = (control: PumpControl | null) => {
     onControlChange(pump.id, control, pumpControl);
   };
 
