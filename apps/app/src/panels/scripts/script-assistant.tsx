@@ -54,10 +54,15 @@ export const ScriptAssistant = ({
   return (
     <div className="h-full min-h-0 flex flex-col">
       <div className="flex items-center gap-1 px-2 py-2 border-b">
-        <Button variant="quiet" aria-label={translate("back")} onClick={onBack}>
+        <Button
+          variant="quiet"
+          className="h-8 w-8 justify-center"
+          aria-label={translate("back")}
+          onClick={onBack}
+        >
           <ChevronLeftIcon />
         </Button>
-        <h1 className="min-w-0 truncate px-1 text-sm font-semibold">
+        <h1 className="min-w-0 -ml-1 truncate px-1 text-sm font-semibold">
           {translate("scripting.createScript")}
         </h1>
       </div>
