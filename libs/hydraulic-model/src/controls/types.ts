@@ -69,11 +69,28 @@ export type FlowModulatingValveControl = {
   controlNodeId: AssetId;
 };
 
-export type Control =
+export type PumpControl =
   | TimedSettingControl
   | LevelSettingControl
-  | VariableSpeedPumpControl
-  | FlowModulatingValveControl;
+  | VariableSpeedPumpControl;
+
+export type ValveControl = FlowModulatingValveControl;
+
+export type Control = PumpControl | ValveControl;
+
+export const isPumpControl = (control: Control): control is PumpControl => {
+  switch (control.type) {
+    case "timed-setting":
+    case "level-setting":
+    case "variable-speed-pump":
+      return true;
+    case "flow-modulating-valve":
+      return false;
+  }
+};
+
+export const isValveControl = (control: Control): control is ValveControl =>
+  !isPumpControl(control);
 
 export type Controls = Control[];
 

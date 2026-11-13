@@ -3,11 +3,14 @@ import {
   buildDefaultVspFlowControl,
   buildDefaultLevelSetting,
   buildDefaultVspPressureControl,
+  buildDefaultFlowModulatingValve,
   buildVariableSpeedPump,
   buildTimedSetting,
   createEmptyControls,
   getLinkLevelSetting,
   getLinkTimedSetting,
+  isPumpControl,
+  isValveControl,
   setAssetControl,
 } from "./types";
 
@@ -246,6 +249,26 @@ describe("controls helpers", () => {
         schedule: [],
         tankLevels: T1_LEVELS,
       });
+    });
+  });
+
+  describe("isPumpControl and isValveControl", () => {
+    const tank = buildTank({ id: 20 });
+    const pumpControls = [
+      buildTimedSetting(IDS.P1, []),
+      buildDefaultLevelSetting(IDS.P1, tank.id, 0, 5, 1),
+      buildDefaultVspFlowControl(IDS.P1),
+    ];
+    const valveControl = buildDefaultFlowModulatingValve(IDS.P2, 30, 40);
+
+    it.each(pumpControls)("takes $type as a pump control", (control) => {
+      expect(isPumpControl(control)).toBe(true);
+      expect(isValveControl(control)).toBe(false);
+    });
+
+    it("takes flow-modulating-valve as a valve control", () => {
+      expect(isValveControl(valveControl)).toBe(true);
+      expect(isPumpControl(valveControl)).toBe(false);
     });
   });
 });
