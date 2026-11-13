@@ -1,4 +1,4 @@
-import { Feature, Position } from "geojson";
+import { Position } from "geojson";
 import { BaseAsset, AssetId, AssetProperties, NO_ASSET_ID } from "./base-asset";
 import measureLength from "@turf/length";
 import { isSamePosition } from "@epanet-js/geometry";
@@ -132,23 +132,45 @@ export const measureLinkLength = (
   );
 };
 
-export const findLargestSegment = <T>(link: Link<T>): [Position, Position] => {
-  let maxLength = -1;
-  let maxSegment = null;
+export type LinkMidpoint = {
+  position: Position;
+  segment: [Position, Position];
+};
 
-  for (const segment of link.segments) {
-    const length = measureLength({
-      type: "Feature",
-      properties: {},
-      geometry: {
-        type: "LineString",
-        coordinates: segment,
-      },
-    } as Feature);
-    if (length > maxLength) {
-      maxLength = length;
-      maxSegment = segment;
+const DEGREES_TO_RADIANS = Math.PI / 180;
+
+const flatSegmentLength = ([[startX, startY], [endX, endY]]: [
+  Position,
+  Position,
+]): number => {
+  const dx =
+    (endX - startX) * Math.cos(((startY + endY) / 2) * DEGREES_TO_RADIANS);
+  const dy = endY - startY;
+  return Math.sqrt(dx * dx + dy * dy);
+};
+
+export const findLinkMidpoint = <T>(link: Link<T>): LinkMidpoint => {
+  const segments = link.segments;
+  const lengths = segments.map(flatSegmentLength);
+  const halfway = lengths.reduce((total, length) => total + length, 0) / 2;
+
+  let walked = 0;
+  for (let i = 0; i < segments.length; i++) {
+    const length = lengths[i];
+    if (length > 0 && walked + length >= halfway) {
+      const [[startX, startY], [endX, endY]] = segments[i];
+      const along = (halfway - walked) / length;
+      return {
+        position: [
+          startX + (endX - startX) * along,
+          startY + (endY - startY) * along,
+        ],
+        segment: segments[i],
+      };
     }
+    walked += length;
   }
-  return maxSegment as [Position, Position];
+
+  const [[x, y]] = segments[0];
+  return { position: [x, y], segment: segments[0] };
 };

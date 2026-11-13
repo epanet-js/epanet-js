@@ -32,7 +32,7 @@ describe("build icons source", () => {
 
       const geometry = features[0].geometry as Point;
       expect(geometry.type).toEqual("Point");
-      expect(geometry.coordinates[0]).toBeCloseTo(15);
+      expect(geometry.coordinates[0]).toBeCloseTo(15.7, 1);
       expect(geometry.coordinates[1]).toBeCloseTo(1.5, 0.1);
     });
 
@@ -94,8 +94,28 @@ describe("build icons source", () => {
 
       const geometry = features[0].geometry as Point;
       expect(geometry.type).toEqual("Point");
-      expect(geometry.coordinates[0]).toBeCloseTo(15);
+      expect(geometry.coordinates[0]).toBeCloseTo(15.7, 1);
       expect(geometry.coordinates[1]).toBeCloseTo(1.5, 0.1);
+    });
+
+    it("places the icon halfway along a valve with two nearly equal segments", () => {
+      const IDS = { p1: 1, v1: 2 } as const;
+      const { assets } = HydraulicModelBuilder.with()
+        .aPipe(IDS.p1)
+        .aValve(IDS.v1, {
+          coordinates: [
+            [10, 1],
+            [10, 1.0001],
+            [10.0000001, 1.00020001],
+          ],
+        })
+        .build();
+
+      const features = buildIconPointsSource(assets, new Set());
+
+      const geometry = features[0].geometry as Point;
+      expect(geometry.coordinates[0]).toBeCloseTo(10, 6);
+      expect(geometry.coordinates[1]).toBeCloseTo(1.0001, 6);
     });
 
     it("uses simulation status when available", () => {
@@ -155,7 +175,7 @@ describe("build icons source", () => {
 
       const geometry = features[0].geometry as Point;
       expect(geometry.type).toEqual("Point");
-      expect(geometry.coordinates[0]).toBeCloseTo(15);
+      expect(geometry.coordinates[0]).toBeCloseTo(15.7, 1);
       expect(geometry.coordinates[1]).toBeCloseTo(1.5, 0.1);
     });
 

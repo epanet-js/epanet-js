@@ -1,13 +1,12 @@
 import { AssetId, AssetsMap, Pipe, Pump, Reservoir } from "src/hydraulic-model";
 import {
   Link,
-  findLargestSegment,
+  findLinkMidpoint,
   Valve,
   controlKinds,
   Tank,
 } from "@epanet-js/hydraulic-model";
 import { Feature } from "src/types";
-import calculateMidpoint from "@turf/midpoint";
 import calculateBearing from "@turf/bearing";
 import type { ResultsReader } from "@epanet-js/simulation";
 
@@ -70,9 +69,8 @@ const buildDirectionalLinkIcon = <T extends Link<any>>(
   getIconProperties: (asset: T) => Record<string, any>,
 ): Feature => {
   const featureId = asset.id;
-  const largestSegment = findLargestSegment(asset);
-  const center = calculateMidpoint(...largestSegment);
-  const bearing = calculateBearing(...largestSegment);
+  const { position, segment } = findLinkMidpoint(asset);
+  const bearing = calculateBearing(...segment);
 
   return {
     type: "Feature",
@@ -85,7 +83,7 @@ const buildDirectionalLinkIcon = <T extends Link<any>>(
     },
     geometry: {
       type: "Point",
-      coordinates: center.geometry.coordinates,
+      coordinates: position,
     },
   };
 };

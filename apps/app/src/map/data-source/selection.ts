@@ -2,7 +2,7 @@ import { AssetsMap, Asset, AssetId, Pipe, Pump } from "src/hydraulic-model";
 import { Feature } from "src/types";
 import { USelection } from "src/selection";
 import type { Sel } from "src/selection";
-import { findLargestSegment, Link, Valve } from "@epanet-js/hydraulic-model";
+import { findLinkMidpoint, Link, Valve } from "@epanet-js/hydraulic-model";
 import {
   buildFeatureId,
   appendPipeStatus,
@@ -135,13 +135,7 @@ export const buildLinkIconSelectionFeature = (
   asset: Asset,
   featureId: AssetId,
 ): Feature => {
-  const linkAsset = asset as Link<any>;
-  const largestSegment = findLargestSegment(linkAsset);
-
-  // Fast midpoint calculation (avoid Turf overhead)
-  const [[lon1, lat1], [lon2, lat2]] = largestSegment;
-  const centerLon = (lon1 + lon2) / 2;
-  const centerLat = (lat1 + lat2) / 2;
+  const { position } = findLinkMidpoint(asset as Link<any>);
 
   return {
     type: "Feature",
@@ -152,7 +146,7 @@ export const buildLinkIconSelectionFeature = (
     },
     geometry: {
       type: "Point",
-      coordinates: [centerLon, centerLat],
+      coordinates: position,
     },
   };
 };
