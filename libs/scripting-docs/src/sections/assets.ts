@@ -242,6 +242,18 @@ const SECTION: SectionDef = {
       summary:
         "A pump's structured control from the app. Times are in seconds.",
     },
+    {
+      name: "ValveControl",
+      definition: `type ValveControl = {
+  type: "flow-modulating-valve";
+  sensorLink: LinkAsset;
+  controlNode: NodeAsset;
+  interpolate: boolean;
+  points: { flow: number; pressure: number }[];
+};`,
+      summary:
+        "A PRV's structured control from the app: the pressure it holds at `controlNode` for the flow through `sensorLink`. Flows are in `units.flow`, pressures in `units.pressure`.",
+    },
     ...RESULTS_TYPES,
   ],
   members: [
@@ -469,6 +481,12 @@ const SECTION: SectionDef = {
       "targetNode",
       "NodeAsset | null",
       "A PRV's remote set-point node, or `null`.",
+    ),
+    valve(
+      "control",
+      "ValveControl | null",
+      "The valve's structured control from the app.",
+      "Valve controls are here, not in `network.rawControls`. Only a PRV takes one.",
     ),
     valveResults,
 
@@ -782,6 +800,39 @@ valve.set({ setting: 12 });`,
   ],
 });
 
+const SET_VALVE_CONTROL: Member = memberOf("Valve")({
+  name: "setControl",
+  signature: `setControl(control:
+  | {
+      type: "flow-modulating-valve";
+      /** left out, this valve */
+      sensorLink?: LinkAsset;
+      /** left out, the end node of the valve */
+      controlNode?: NodeAsset;
+      /** left out, true: the pressure between two points follows the line between them; false, it holds the last point reached */
+      interpolate?: boolean;
+      /** at least two; flows in units.flow from 0, each higher than the one before; pressures in units.pressure, above 0 */
+      points: { flow: number; pressure: number }[];
+    }
+  | null
+): void`,
+  summary:
+    "Replaces a PRV's control as a whole, or removes it with `null`, as the controls section in the app does.",
+  description:
+    "Takes the shape `control` reads, so a script can read the control, change it and write it back. Assets are passed as the objects the network hands out. `setting` and `targetNode` keep their values. The new control reads straight away and reaches the network with the other changes.",
+  throws: [
+    '`TypeError` when the valve is not a prv, `type` is not `"flow-modulating-valve"`, a field is not one it sets, `sensorLink` is not a link or `controlNode` is not a node, there are fewer than two points, or the flows or pressures are out of range or out of order.',
+  ],
+  examples: [
+    {
+      code: `const valve = network.getLink("V1");
+valve.setKind("prv");
+valve.setControl({ type: "flow-modulating-valve", points: [{ flow: 0, pressure: 25 }, { flow: 40, pressure: 35 }] });
+valve.setControl({ ...valve.control, controlNode: network.getNode("J1") });`,
+    },
+  ],
+});
+
 const EDITS_BEFORE = new Map<Member, Member[]>([
   [
     junctionResults,
@@ -921,9 +972,13 @@ console.log(pipe.diameter, network.units.diameter, pipe.status);`,
   /** a prv only: a node from targetNodeOptions(); ${CLEARS} */
   targetNode?: NodeAsset | null;`,
         `network.getLink("V1").set({ setting: 45 });`,
-        [BY_LABEL, "The kind changes through `setKind`."],
+        [
+          BY_LABEL,
+          "The kind changes through `setKind`, the control through `setControl`.",
+        ],
       ),
       SET_KIND,
+      SET_VALVE_CONTROL,
     ],
   ],
 ]);
