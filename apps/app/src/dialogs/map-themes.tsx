@@ -1,13 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtomValue } from "jotai";
+import { useMapThemeAction } from "src/hooks/persistence/use-map-theme-action";
 import clsx from "clsx";
 import { BaseDialog, SimpleDialogActions } from "src/components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
-import {
-  activeMapThemeIdAtom,
-  mapThemeActionAtom,
-  mapThemesAtom,
-} from "src/state/map-themes";
+import { activeMapThemeIdAtom, mapThemesAtom } from "src/state/map-themes";
 
 export const SaveMapThemeAsNewDialog = ({
   onClose,
@@ -17,7 +14,7 @@ export const SaveMapThemeAsNewDialog = ({
   const translate = useTranslate();
   const themes = useAtomValue(mapThemesAtom);
   const activeId = useAtomValue(activeMapThemeIdAtom);
-  const dispatch = useSetAtom(mapThemeActionAtom);
+  const dispatch = useMapThemeAction();
   const activeTheme = themes.find((t) => t.id === activeId);
 
   return (
@@ -43,7 +40,7 @@ export const RenameMapThemeDialog = ({
 }) => {
   const translate = useTranslate();
   const themes = useAtomValue(mapThemesAtom);
-  const dispatch = useSetAtom(mapThemeActionAtom);
+  const dispatch = useMapThemeAction();
   const theme = themes.find((t) => t.id === themeId);
 
   if (!theme) return null;
@@ -67,7 +64,7 @@ export const DeleteMapThemeConfirmationDialog = ({
 }) => {
   const translate = useTranslate();
   const themes = useAtomValue(mapThemesAtom);
-  const dispatch = useSetAtom(mapThemeActionAtom);
+  const dispatch = useMapThemeAction();
   const theme = themes.find((t) => t.id === themeId);
 
   if (!theme) return null;

@@ -22,3 +22,20 @@ export type {
   ValveKind,
   ValveStatus,
 } from "@epanet-js/model-schema";
+
+export const mapThemeRangeModes = [
+  "prettyBreaks",
+  "ckmeans",
+  "equalQuantiles",
+  "equalIntervals",
+  "manual",
+] as const;
+export type MapThemeRangeMode = (typeof mapThemeRangeModes)[number];
+
+export const mapThemeBasemapStyles = [
+  "monochrome",
+  "satellite",
+  "outdoors",
+  "streets",
+] as const;
+export type MapThemeBasemapStyle = (typeof mapThemeBasemapStyles)[number];

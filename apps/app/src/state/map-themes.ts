@@ -1,4 +1,5 @@
 import { atom, type Getter, type Setter } from "jotai";
+import type { MapThemeSpec } from "@epanet-js/ejsdb";
 import isEqual from "lodash/isEqual";
 import { nanoid } from "nanoid";
 import type { UnitsSpec } from "@epanet-js/project-settings";
@@ -9,7 +10,6 @@ import {
   type CustomerPointsSymbology,
   type LinkSymbology,
   type NodeSymbology,
-  type SupportedProperty,
   type ZoneSymbology,
 } from "src/map/symbology/symbology-types";
 import { defaultNodeSizeConfig, type NodeSizeConfig } from "src/map/symbology";
@@ -32,6 +32,14 @@ import {
 } from "src/state/derived-branch-state";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { basemapAtom, defaultBasemapState, type Basemap } from "src/state/map";
+import {
+  buildMapThemeSymbology,
+  type ThemeColorRule,
+} from "src/lib/db/mappers/map-themes/builders";
+import {
+  serializeMapThemes,
+  toMapThemeSpec,
+} from "src/lib/db/mappers/map-themes/to-rows";
 
 export type MapThemeSymbology = {
   node: NodeSymbology;
@@ -45,7 +53,7 @@ export type MapThemeSymbology = {
 export type MapTheme = {
   id: string;
   name: string;
-  symbology: MapThemeSymbology;
+  spec: MapThemeSpec;
 };
 
 export const DEFAULT_MAP_THEME_ID = "default";
@@ -59,7 +67,17 @@ export const defaultMapThemeSymbology: MapThemeSymbology = {
   basemap: defaultBasemapState,
 };
 
-export const mapThemesAtom = atom<MapTheme[]>([]);
+const mapThemesListAtom = atom<MapTheme[]>([]);
+
+export const mapThemesAtom = atom(
+  (get) => get(mapThemesListAtom),
+  (get, set, update: MapTheme[] | ((prev: MapTheme[]) => MapTheme[])) => {
+    const next =
+      typeof update === "function" ? update(get(mapThemesListAtom)) : update;
+    serializeMapThemes(next);
+    set(mapThemesListAtom, next);
+  },
+);
 
 export const activeMapThemeIdAtom = atom<string>(DEFAULT_MAP_THEME_ID);
 
@@ -87,17 +105,20 @@ export const isMapThemeModifiedAtom = atom(
 );
 
 export const resolveThemeColorRule = (
-  rule: RangeColorRule,
+  rule: ThemeColorRule,
   units: UnitsSpec,
   hydraulicModel: HydraulicModel,
   simulationResults: ResultsReader | null,
 ): RangeColorRule => {
-  const property = rule.property as SupportedProperty;
+  const { property } = rule;
+  const absValues = Boolean(
+    symbologyBuilders[property](units, []).colorRule!.absValues,
+  );
   const sortedData =
     property === "waterTrace"
       ? []
       : getSortedDataForProperty(property, hydraulicModel, simulationResults, {
-          absValues: Boolean(rule.absValues),
+          absValues,
         });
   const base = symbologyBuilders[property](units, sortedData).colorRule!;
   const styled: RangeColorRule = {
@@ -124,22 +145,17 @@ const setSymbology = (set: Setter, symbology: MapThemeSymbology) => {
 
 const applyTheme = (get: Getter, set: Setter, themeId: string) => {
   const theme = get(mapThemesAtom).find((t) => t.id === themeId);
-  const stored = theme ? theme.symbology : defaultMapThemeSymbology;
   const id = theme ? theme.id : DEFAULT_MAP_THEME_ID;
 
   const { units } = get(projectSettingsAtom);
   const hydraulicModel = get(stagingModelDerivedAtom);
   const simulationResults = get(simulationResultsDerivedAtom);
-  const resolve = (rule: RangeColorRule | null) =>
-    rule
-      ? resolveThemeColorRule(rule, units, hydraulicModel, simulationResults)
-      : null;
 
-  const symbology: MapThemeSymbology = {
-    ...stored,
-    node: { ...stored.node, colorRule: resolve(stored.node.colorRule) },
-    link: { ...stored.link, colorRule: resolve(stored.link.colorRule) },
-  };
+  const symbology = theme
+    ? buildMapThemeSymbology(theme.spec, (rule) =>
+        resolveThemeColorRule(rule, units, hydraulicModel, simulationResults),
+      )
+    : defaultMapThemeSymbology;
 
   setSymbology(set, symbology);
   set(activeMapThemeIdAtom, id);
@@ -163,7 +179,11 @@ export const mapThemeActionAtom = atom(
         return;
       case "saveAsNew": {
         const symbology = get(currentMapThemeSymbologyAtom);
-        const theme: MapTheme = { id: nanoid(), name: action.name, symbology };
+        const theme: MapTheme = {
+          id: nanoid(),
+          name: action.name,
+          spec: toMapThemeSpec(symbology),
+        };
         set(mapThemesAtom, (prev) => [...prev, theme]);
         set(activeMapThemeIdAtom, theme.id);
         set(appliedMapThemeSymbologyAtom, symbology);
@@ -173,8 +193,9 @@ export const mapThemeActionAtom = atom(
         const id = get(activeMapThemeIdAtom);
         if (id === DEFAULT_MAP_THEME_ID) return;
         const symbology = get(currentMapThemeSymbologyAtom);
+        const spec = toMapThemeSpec(symbology);
         set(mapThemesAtom, (prev) =>
-          prev.map((t) => (t.id === id ? { ...t, symbology } : t)),
+          prev.map((t) => (t.id === id ? { ...t, spec } : t)),
         );
         set(appliedMapThemeSymbologyAtom, symbology);
         return;
@@ -195,7 +216,7 @@ export const mapThemeActionAtom = atom(
         const copy: MapTheme = {
           id: nanoid(),
           name: action.name,
-          symbology: source.symbology,
+          spec: source.spec,
         };
         set(mapThemesAtom, (prev) => [...prev, copy]);
         applyTheme(get, set, copy.id);
@@ -210,7 +231,7 @@ export const mapThemeActionAtom = atom(
   },
 );
 
-export const resetActiveMapThemeAtom = atom(null, (_get, set) => {
+export const resetActiveMapThemeAtom = atom(null, (get, set) => {
   set(activeMapThemeIdAtom, DEFAULT_MAP_THEME_ID);
-  set(appliedMapThemeSymbologyAtom, defaultMapThemeSymbology);
+  set(appliedMapThemeSymbologyAtom, get(currentMapThemeSymbologyAtom));
 });

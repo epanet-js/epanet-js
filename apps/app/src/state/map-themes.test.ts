@@ -12,7 +12,9 @@ import {
   mapThemeActionAtom,
   mapThemesAtom,
   type MapTheme,
+  type MapThemeSymbology,
 } from "src/state/map-themes";
+import { toMapThemeSpec } from "src/lib/db/mappers/map-themes/to-rows";
 
 const IDS = { J1: 1, J2: 2, J3: 3 } as const;
 
@@ -25,10 +27,11 @@ const aModel = () =>
 
 const anElevationTheme = (
   rule: Parameters<typeof aNodeSymbology>[0]["colorRule"] = {},
+  symbology: Partial<MapThemeSymbology> = {},
 ): MapTheme => ({
   id: "elevations",
   name: "Elevations",
-  symbology: {
+  spec: toMapThemeSpec({
     ...defaultMapThemeSymbology,
     node: aNodeSymbology({
       colorRule: {
@@ -39,7 +42,8 @@ const anElevationTheme = (
         ...rule,
       },
     }),
-  },
+    ...symbology,
+  }),
 });
 
 const aStoreWith = (themes: MapTheme[]) => {
@@ -146,16 +150,13 @@ describe("unsaved theme changes", () => {
 
 describe("the basemap in a map theme", () => {
   it("is switched when the theme is applied", () => {
-    const theme = anElevationTheme();
     const satellite = {
       style: "satellite" as const,
       visible: true,
       labels: false,
       opacity: 0.65,
     };
-    const store = aStoreWith([
-      { ...theme, symbology: { ...theme.symbology, basemap: satellite } },
-    ]);
+    const store = aStoreWith([anElevationTheme({}, { basemap: satellite })]);
 
     store.set(mapThemeActionAtom, { type: "apply", id: "elevations" });
 
@@ -182,5 +183,18 @@ describe("deleting a map theme", () => {
     expect(store.get(mapThemesAtom)).toEqual([]);
     expect(store.get(activeMapThemeIdAtom)).toEqual(DEFAULT_MAP_THEME_ID);
     expect(store.get(nodeSymbologyAtom)).toEqual(nullSymbologySpec.node);
+  });
+});
+
+describe("applying a stored map theme", () => {
+  it("drops the color rule for a property this version doesn't know", () => {
+    const theme = anElevationTheme();
+    const store = aStoreWith([
+      { ...theme, spec: { ...theme.spec, nodeColorBy: "futureProperty" } },
+    ]);
+
+    store.set(mapThemeActionAtom, { type: "apply", id: "elevations" });
+
+    expect(store.get(nodeSymbologyAtom).colorRule).toBeNull();
   });
 });

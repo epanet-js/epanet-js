@@ -1,5 +1,6 @@
 import { useId } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
+import { useMapThemeAction } from "src/hooks/persistence/use-map-theme-action";
 import * as DD from "@radix-ui/react-dropdown-menu";
 import { Selector } from "@epanet-js/ui-kit";
 import {
@@ -15,7 +16,6 @@ import {
   DEFAULT_MAP_THEME_ID,
   activeMapThemeIdAtom,
   isMapThemeModifiedAtom,
-  mapThemeActionAtom,
   mapThemesAtom,
 } from "src/state/map-themes";
 
@@ -24,7 +24,7 @@ export const MapThemeBar = () => {
   const themes = useAtomValue(mapThemesAtom);
   const activeId = useAtomValue(activeMapThemeIdAtom);
   const isModified = useAtomValue(isMapThemeModifiedAtom);
-  const dispatch = useSetAtom(mapThemeActionAtom);
+  const dispatch = useMapThemeAction();
   const setDialog = useSetAtom(dialogAtom);
   const selectorId = useId();
 

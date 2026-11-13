@@ -11,6 +11,7 @@ export * from "./zones";
 export * from "./collections";
 export * from "./scripts";
 export * from "./pipe-library";
+export * from "./map-themes";
 export * from "./custom-attributes-definition";
 export * from "./custom-attributes-data";
 export * from "./patches";
