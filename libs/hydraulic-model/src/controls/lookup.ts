@@ -1,5 +1,12 @@
 import { AssetId } from "../asset-types";
-import { Control, Controls } from "./types";
+import {
+  Control,
+  Controls,
+  PumpControl,
+  ValveControl,
+  isPumpControl,
+  isValveControl,
+} from "./types";
 
 export class ControlsLookup {
   private lookup: Map<AssetId, Set<Control>> = new Map();
@@ -69,6 +76,26 @@ export const buildControlsLookup = (controls: Controls): ControlsLookup => {
     lookup.addControl(control);
   }
   return lookup;
+};
+
+export const getPumpControl = (
+  lookup: ControlsLookup,
+  pumpId: AssetId,
+): PumpControl | null => {
+  for (const control of lookup.getControls(pumpId)) {
+    if (control.linkId === pumpId && isPumpControl(control)) return control;
+  }
+  return null;
+};
+
+export const getValveControl = (
+  lookup: ControlsLookup,
+  valveId: AssetId,
+): ValveControl | null => {
+  for (const control of lookup.getControls(valveId)) {
+    if (control.linkId === valveId && isValveControl(control)) return control;
+  }
+  return null;
 };
 
 const referencedIds = (control: Control): AssetId[] => {

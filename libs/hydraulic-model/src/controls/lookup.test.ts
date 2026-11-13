@@ -1,5 +1,10 @@
 import { expect, describe, it } from "vitest";
-import { ControlsLookup, buildControlsLookup } from "./lookup";
+import {
+  ControlsLookup,
+  buildControlsLookup,
+  getPumpControl,
+  getValveControl,
+} from "./lookup";
 import {
   LevelSettingControl,
   TimedSettingControl,
@@ -53,6 +58,15 @@ const aVariableSpeedPumpControl = (
     },
     id,
   );
+
+const aValveControl = (linkId: number, sensorLinkId: number) =>
+  buildFlowModulatingValve({
+    linkId,
+    points: [],
+    interpolate: true,
+    sensorLinkId,
+    controlNodeId: 99,
+  });
 
 describe("ControlsLookup", () => {
   it("finds a level-setting control by both its link and its tank", () => {
@@ -234,5 +248,44 @@ describe("ControlsLookup", () => {
     for (const id of Object.values(IDS)) {
       expect(lookup.hasControls(id)).toBe(false);
     }
+  });
+});
+
+describe("getPumpControl", () => {
+  const IDS = { P1: 1, P2: 2, T1: 3, V1: 4 } as const;
+
+  it("returns the control set on the pump", () => {
+    const control = aLevelControl("c1", IDS.P1, IDS.T1);
+    const lookup = buildControlsLookup([control]);
+
+    expect(getPumpControl(lookup, IDS.P1)).toBe(control);
+  });
+
+  it("ignores controls that only reference the pump", () => {
+    const lead = aVariableSpeedPumpControl("c1", {
+      linkId: IDS.P1,
+      targetId: IDS.P1,
+      laggedPumpIds: [IDS.P2],
+    });
+    const lookup = buildControlsLookup([lead]);
+
+    expect(getPumpControl(lookup, IDS.P2)).toBeNull();
+  });
+});
+
+describe("getValveControl", () => {
+  const IDS = { V1: 1, V2: 2, P1: 3 } as const;
+
+  it("returns the control set on the valve", () => {
+    const control = aValveControl(IDS.V1, IDS.V1);
+    const lookup = buildControlsLookup([control]);
+
+    expect(getValveControl(lookup, IDS.V1)).toBe(control);
+  });
+
+  it("ignores controls that only reference the valve", () => {
+    const lookup = buildControlsLookup([aValveControl(IDS.V1, IDS.V2)]);
+
+    expect(getValveControl(lookup, IDS.V2)).toBeNull();
   });
 });

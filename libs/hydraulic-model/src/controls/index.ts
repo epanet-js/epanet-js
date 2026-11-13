@@ -33,7 +33,12 @@ export {
   setAssetControl,
 } from "./types";
 
-export { ControlsLookup, buildControlsLookup } from "./lookup";
+export {
+  ControlsLookup,
+  buildControlsLookup,
+  getPumpControl,
+  getValveControl,
+} from "./lookup";
 export {
   detachControlReferences,
   remapControlLinkReference,
