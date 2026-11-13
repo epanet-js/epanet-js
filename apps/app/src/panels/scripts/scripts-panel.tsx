@@ -613,6 +613,7 @@ const ScriptEditor = ({
       <div className="flex items-center gap-1 px-2 py-2 border-b">
         <Button
           variant="quiet"
+          className="h-8 w-8 justify-center"
           aria-label={translate("back")}
           onClick={handleBack}
           disabled={confirmingDiscard}
@@ -624,7 +625,7 @@ const ScriptEditor = ({
             type="button"
             title={draft.name}
             onClick={openEditPaywall}
-            className="min-w-0 truncate px-1 text-sm font-semibold text-left"
+            className="min-w-0 -ml-1 truncate px-1 text-sm font-semibold text-left"
           >
             {draft.name}
           </button>
@@ -641,7 +642,7 @@ const ScriptEditor = ({
             onDirty={() => setIsRenaming(true)}
             onReset={() => setIsRenaming(false)}
             autoFocus={isNewScript && !assistant?.isWrittenByAssistant}
-            className="min-w-0"
+            className="min-w-0 -ml-1"
             styleOptions={{
               padding: "sm",
               ghostBorder: true,
