@@ -1973,6 +1973,13 @@ export type UserEvent =
   | { name: "bookmark.visited"; source: "panel" }
   | { name: "bookmark.renamed"; source: "panel" }
   | { name: "bookmark.deleted"; source: "panel" }
+  | { name: "mapTheme.applied"; isDefault: boolean; source: "panel" }
+  | { name: "mapTheme.created"; totalThemes: number; source: "panel" }
+  | { name: "mapTheme.saved"; source: "panel" }
+  | { name: "mapTheme.changesReset"; source: "panel" }
+  | { name: "mapTheme.renamed"; source: "panel" }
+  | { name: "mapTheme.duplicated"; totalThemes: number; source: "panel" }
+  | { name: "mapTheme.deleted"; wasActive: boolean; source: "panel" }
   | {
       name: "dataTables.cellEdited";
       type: Asset["type"];

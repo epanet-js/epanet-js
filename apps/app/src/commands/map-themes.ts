@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import { useAtomCallback } from "jotai/utils";
 import { nanoid } from "nanoid";
+import { useUserTracking } from "src/infra/user-tracking";
 import { useMapThemesTransaction } from "src/hooks/persistence/use-map-themes-transaction";
 import {
   activeMapThemeIdAtom,
@@ -11,7 +12,7 @@ import {
   resetMapThemeChangesAtom,
 } from "src/state/map-themes";
 
-export const useApplyMapTheme = () => {
+const useSwitchMapTheme = () => {
   const { setActive } = useMapThemesTransaction();
 
   return useAtomCallback(
@@ -26,7 +27,25 @@ export const useApplyMapTheme = () => {
   );
 };
 
+export const useApplyMapTheme = () => {
+  const userTracking = useUserTracking();
+  const switchMapTheme = useSwitchMapTheme();
+
+  return useCallback(
+    (id: string | null) => {
+      switchMapTheme(id);
+      userTracking.capture({
+        name: "mapTheme.applied",
+        isDefault: id === null,
+        source: "panel",
+      });
+    },
+    [switchMapTheme, userTracking],
+  );
+};
+
 export const useSaveMapThemeAsNew = () => {
+  const userTracking = useUserTracking();
   const { save, setActive } = useMapThemesTransaction();
 
   return useAtomCallback(
@@ -41,14 +60,20 @@ export const useSaveMapThemeAsNew = () => {
 
         setActive(theme.id);
         set(markMapThemeAppliedAtom);
+        userTracking.capture({
+          name: "mapTheme.created",
+          totalThemes: get(mapThemesAtom).length,
+          source: "panel",
+        });
         return true;
       },
-      [save, setActive],
+      [save, setActive, userTracking],
     ),
   );
 };
 
 export const useSaveMapThemeChanges = () => {
+  const userTracking = useUserTracking();
   const { save } = useMapThemesTransaction();
 
   return useAtomCallback(
@@ -61,25 +86,50 @@ export const useSaveMapThemeChanges = () => {
           return false;
 
         set(markMapThemeAppliedAtom);
+        userTracking.capture({ name: "mapTheme.saved", source: "panel" });
         return true;
       },
-      [save],
+      [save, userTracking],
     ),
   );
 };
 
-export const useResetMapThemeChanges = () =>
-  useAtomCallback(
-    useCallback((_get, set) => {
-      set(resetMapThemeChangesAtom);
-    }, []),
-  );
+export const useResetMapThemeChanges = () => {
+  const userTracking = useUserTracking();
 
-export const useRenameMapTheme = () => useMapThemesTransaction().rename;
+  return useAtomCallback(
+    useCallback(
+      (_get, set) => {
+        set(resetMapThemeChangesAtom);
+        userTracking.capture({
+          name: "mapTheme.changesReset",
+          source: "panel",
+        });
+      },
+      [userTracking],
+    ),
+  );
+};
+
+export const useRenameMapTheme = () => {
+  const userTracking = useUserTracking();
+  const { rename } = useMapThemesTransaction();
+
+  return useCallback(
+    ({ id, name }: { id: string; name: string }): boolean => {
+      if (!rename({ id, name })) return false;
+
+      userTracking.capture({ name: "mapTheme.renamed", source: "panel" });
+      return true;
+    },
+    [rename, userTracking],
+  );
+};
 
 export const useDuplicateMapTheme = () => {
+  const userTracking = useUserTracking();
   const { save } = useMapThemesTransaction();
-  const applyMapTheme = useApplyMapTheme();
+  const switchMapTheme = useSwitchMapTheme();
 
   return useAtomCallback(
     useCallback(
@@ -89,26 +139,37 @@ export const useDuplicateMapTheme = () => {
         const copy = { id: nanoid(), name, spec: source.spec };
         if (!save(copy)) return false;
 
-        applyMapTheme(copy.id);
+        switchMapTheme(copy.id);
+        userTracking.capture({
+          name: "mapTheme.duplicated",
+          totalThemes: get(mapThemesAtom).length,
+          source: "panel",
+        });
         return true;
       },
-      [save, applyMapTheme],
+      [save, switchMapTheme, userTracking],
     ),
   );
 };
 
 export const useDeleteMapTheme = () => {
+  const userTracking = useUserTracking();
   const { remove } = useMapThemesTransaction();
-  const applyMapTheme = useApplyMapTheme();
+  const switchMapTheme = useSwitchMapTheme();
 
   return useAtomCallback(
     useCallback(
       (get, _set, id: string) => {
         const wasActive = get(activeMapThemeIdAtom) === id;
         remove(id);
-        if (wasActive) applyMapTheme(null);
+        if (wasActive) switchMapTheme(null);
+        userTracking.capture({
+          name: "mapTheme.deleted",
+          wasActive,
+          source: "panel",
+        });
       },
-      [remove, applyMapTheme],
+      [remove, switchMapTheme, userTracking],
     ),
   );
 };
