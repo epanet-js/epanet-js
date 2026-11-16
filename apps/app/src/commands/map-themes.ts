@@ -126,32 +126,6 @@ export const useRenameMapTheme = () => {
   );
 };
 
-export const useDuplicateMapTheme = () => {
-  const userTracking = useUserTracking();
-  const { save } = useMapThemesTransaction();
-  const switchMapTheme = useSwitchMapTheme();
-
-  return useAtomCallback(
-    useCallback(
-      (get, _set, { id, name }: { id: string; name: string }): boolean => {
-        const source = get(mapThemesAtom).find((t) => t.id === id);
-        if (!source) return false;
-        const copy = { id: nanoid(), name, spec: source.spec };
-        if (!save(copy)) return false;
-
-        switchMapTheme(copy.id);
-        userTracking.capture({
-          name: "mapTheme.duplicated",
-          totalThemes: get(mapThemesAtom).length,
-          source: "panel",
-        });
-        return true;
-      },
-      [save, switchMapTheme, userTracking],
-    ),
-  );
-};
-
 export const useDeleteMapTheme = () => {
   const userTracking = useUserTracking();
   const { remove } = useMapThemesTransaction();

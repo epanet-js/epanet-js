@@ -2,7 +2,6 @@ import { useId } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import {
   useApplyMapTheme,
-  useDuplicateMapTheme,
   useResetMapThemeChanges,
   useSaveMapThemeChanges,
 } from "src/commands/map-themes";
@@ -17,6 +16,7 @@ import {
 import { MoreActionsIcon } from "src/icons";
 import { useTranslate } from "src/hooks/use-translate";
 import { dialogAtom } from "src/state/dialog";
+import { isPlayingAtom } from "src/state/simulation-playback";
 import {
   activeMapThemeIdAtom,
   isMapThemeModifiedAtom,
@@ -33,7 +33,7 @@ export const MapThemeBar = () => {
   const applyMapTheme = useApplyMapTheme();
   const saveChanges = useSaveMapThemeChanges();
   const resetChanges = useResetMapThemeChanges();
-  const duplicateMapTheme = useDuplicateMapTheme();
+  const isPlaying = useAtomValue(isPlayingAtom);
   const setDialog = useSetAtom(dialogAtom);
   const selectorId = useId();
 
@@ -41,7 +41,6 @@ export const MapThemeBar = () => {
   const isDefault = !activeTheme;
   const defaultName = translate("mapThemes.defaultTheme");
   const activeName = activeTheme ? activeTheme.name : defaultName;
-  const copyNameOf = (name: string) => translate("mapThemes.copyName", name);
 
   const options = themes.map((t) => ({ value: t.id, label: t.name }));
 
@@ -59,6 +58,7 @@ export const MapThemeBar = () => {
             id={selectorId}
             options={[{ value: DEFAULT_THEME_OPTION, label: defaultName }]}
             selected={DEFAULT_THEME_OPTION}
+            disabled={isPlaying}
             onChange={() => applyMapTheme(null)}
           />
         ) : (
@@ -69,6 +69,7 @@ export const MapThemeBar = () => {
             nullable
             placeholder={defaultName}
             clearLabel={defaultName}
+            disabled={isPlaying}
             onChange={(id) => applyMapTheme(id)}
           />
         )}
@@ -77,6 +78,7 @@ export const MapThemeBar = () => {
         <DD.Trigger asChild>
           <Button
             variant="quiet"
+            disabled={isPlaying}
             aria-label={translate(
               isModified ? "mapThemes.actionsUnsaved" : "mapThemes.actions",
             )}
@@ -116,18 +118,6 @@ export const MapThemeBar = () => {
               }
             >
               {translate("mapThemes.rename")}
-            </MenuItem>
-            <MenuItem
-              disabled={isDefault}
-              onSelect={() =>
-                activeTheme &&
-                duplicateMapTheme({
-                  id: activeTheme.id,
-                  name: copyNameOf(activeTheme.name),
-                })
-              }
-            >
-              {translate("duplicate")}
             </MenuItem>
             <DDSeparator />
             <MenuItem

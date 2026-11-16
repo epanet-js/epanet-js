@@ -2306,7 +2306,7 @@
     "saveAsNewTitle": "Save as new theme",
     "renameTitle": "Rename theme",
     "deleteTitle": "Delete theme",
-    "deleteDescription": "“{{1}}” will be deleted.",
+    "deleteDescription": "The “{{1}}” theme will be deleted.",
     "newThemeName": "New theme",
     "copyName": "{{1}} copy",
     "legendUnavailable": "Run a simulation to see results",

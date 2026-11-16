@@ -1979,7 +1979,6 @@ export type UserEvent =
   | { name: "mapTheme.saved"; source: "panel" }
   | { name: "mapTheme.changesReset"; source: "panel" }
   | { name: "mapTheme.renamed"; source: "panel" }
-  | { name: "mapTheme.duplicated"; totalThemes: number; source: "panel" }
   | { name: "mapTheme.deleted"; wasActive: boolean; source: "panel" }
   | {
       name: "dataTables.cellEdited";

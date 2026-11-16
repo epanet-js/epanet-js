@@ -19,7 +19,6 @@ import type { Store } from "src/state";
 import {
   useApplyMapTheme,
   useDeleteMapTheme,
-  useDuplicateMapTheme,
   useSaveMapThemeAsNew,
   useSaveMapThemeChanges,
 } from "./map-themes";
@@ -40,7 +39,6 @@ const renderCommands = (store: Store) =>
       apply: useApplyMapTheme(),
       saveAsNew: useSaveMapThemeAsNew(),
       saveChanges: useSaveMapThemeChanges(),
-      duplicate: useDuplicateMapTheme(),
       remove: useDeleteMapTheme(),
     }),
     {
@@ -111,24 +109,6 @@ describe("map theme commands", () => {
 
     expect(store.get(mapThemesAtom)).toEqual([]);
     expect(store.get(isMapThemeModifiedAtom)).toBe(true);
-  });
-
-  it("apply a duplicated theme", async () => {
-    await anEmptyProject();
-    const store = setInitialState({ hydraulicModel });
-    const commands = renderCommands(store);
-    act(() => {
-      commands.current.saveAsNew("My theme");
-    });
-    const [source] = store.get(mapThemesAtom);
-
-    act(() => {
-      commands.current.duplicate({ id: source.id, name: "My theme copy" });
-    });
-
-    const [, copy] = store.get(mapThemesAtom);
-    expect(copy).toMatchObject({ name: "My theme copy", spec: source.spec });
-    expect(store.get(activeMapThemeIdAtom)).toEqual(copy.id);
   });
 
   it("fall back to the default theme when the active one is deleted", async () => {
