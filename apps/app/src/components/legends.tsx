@@ -28,7 +28,7 @@ export const Legends = () => {
   if (!isSmOrLarger) return null;
 
   return (
-    <div className="space-y-1 absolute w-48 top-2 left-2">
+    <div className="absolute top-2 left-2 flex flex-col gap-1 w-max min-w-32 max-w-48">
       {!!nodeSymbology.colorRule && (
         <Legend
           symbology={nodeSymbology.colorRule}
@@ -114,7 +114,7 @@ const LegendContainer = ({
   return (
     <div
       className={clsx(
-        "space-y-1 text-size-small bg-base w-48",
+        "space-y-1 text-size-small bg-base",
         "rounded-sm border shadow-md",
       )}
       onClick={onClick}
