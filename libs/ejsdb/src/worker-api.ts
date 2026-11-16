@@ -29,6 +29,7 @@ import type {
   SelectionSetRow,
 } from "./schema/collections";
 import type { ScriptRow } from "./schema/scripts";
+import type { MapThemeRow } from "./schema/map-themes";
 import type {
   AssetPatchRow,
   CustomerPointPatchRow,
@@ -421,6 +422,7 @@ const BULK_TABLES = [
   "selection_set_groups",
   "selection_sets",
   "scripts",
+  "map_themes",
 ] as const;
 
 const BULK_CHUNK_SIZES = {
@@ -437,6 +439,7 @@ const BULK_CHUNK_SIZES = {
   selection_set_groups: 10000, // 3 cols × 10000 = 30000 params
   selection_sets: 500, // 6 cols, rows carry id-list blobs
   scripts: 500, // 5 cols, rows carry script sources
+  map_themes: 500, // 3 cols, rows carry theme specs
 } as const satisfies Record<(typeof BULK_TABLES)[number], number>;
 
 const buildBulkInsertSql = (
@@ -1047,6 +1050,33 @@ const replaceScripts = (rows: readonly ScriptRow[]) => {
   );
 };
 
+const MAP_THEME_COLUMNS = ["id", "name", "spec"] as const;
+
+const appendMapThemeParams = (row: MapThemeRow, params: unknown[]) => {
+  params.push(row.id, row.name, row.spec);
+};
+
+const replaceMapThemes = (
+  rows: readonly MapThemeRow[],
+  activeMapThemeId: string | null,
+) => {
+  db!.exec("DELETE FROM map_themes");
+  bulkInsert(
+    "map_themes",
+    MAP_THEME_COLUMNS,
+    rows,
+    appendMapThemeParams,
+    BULK_CHUNK_SIZES.map_themes,
+  );
+  updateActiveMapThemeId(activeMapThemeId);
+};
+
+const updateActiveMapThemeId = (id: string | null) => {
+  db!.exec("UPDATE project SET active_map_theme_id = ? WHERE id = 1", {
+    bind: [id],
+  });
+};
+
 const countImportProject = (payload: ImportProjectPayload) => ({
   newDb: payload.newDb ? 1 : 0,
   settings: payload.projectSettings !== null ? 1 : 0,
@@ -1055,6 +1085,7 @@ const countImportProject = (payload: ImportProjectPayload) => ({
   selSets: payload.selectionSets?.length ?? 0,
   bookmarks: payload.bookmarks !== null ? 1 : 0,
   scripts: payload.scripts?.length ?? 0,
+  mapThemes: payload.mapThemes?.length ?? 0,
   j: payload.assets.junctions.length,
   r: payload.assets.reservoirs.length,
   t: payload.assets.tanks.length,
@@ -1738,6 +1769,49 @@ export const api = {
     });
   },
 
+  async getMapThemes(): Promise<unknown[]> {
+    return timed("getMapThemes", () =>
+      readAll("SELECT id, name, spec FROM map_themes ORDER BY rowid"),
+    );
+  },
+
+  async saveMapTheme(row: MapThemeRow): Promise<void> {
+    return withTransaction("saveMapTheme", (db) => {
+      const params: unknown[] = [];
+      appendMapThemeParams(row, params);
+      db.exec(
+        `INSERT INTO map_themes (${MAP_THEME_COLUMNS.join(", ")}) VALUES (?, ?, ?)
+         ON CONFLICT(id) DO UPDATE SET name = excluded.name, spec = excluded.spec`,
+        { bind: params },
+      );
+    });
+  },
+
+  async deleteMapTheme(id: string): Promise<void> {
+    return withTransaction("deleteMapTheme", (db) => {
+      db.exec("DELETE FROM map_themes WHERE id = ?", { bind: [id] });
+    });
+  },
+
+  async getActiveMapThemeId(): Promise<string | null> {
+    return timed("getActiveMapThemeId", async () => {
+      await ready;
+      if (!db) throw new Error("No database open");
+      const rows = db.exec(
+        "SELECT active_map_theme_id FROM project WHERE id = 1",
+        { returnValue: "resultRows" },
+      ) as (string | null)[][];
+      if (rows.length === 0) return null;
+      return rows[0][0];
+    });
+  },
+
+  async saveActiveMapThemeId(id: string | null): Promise<void> {
+    return withTransaction("saveActiveMapThemeId", () => {
+      updateActiveMapThemeId(id);
+    });
+  },
+
   async getIdPools(): Promise<IdPoolMaxima> {
     return timed("getIdPools", async () => {
       await ready;
@@ -1809,6 +1883,9 @@ export const api = {
         }
         if (payload.scripts !== null) {
           replaceScripts(payload.scripts);
+        }
+        if (payload.mapThemes !== null) {
+          replaceMapThemes(payload.mapThemes, payload.activeMapThemeId);
         }
 
         for (const table of ASSET_TYPE_TABLES) {

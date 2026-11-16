@@ -1,6 +1,11 @@
 import { useId } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { useMapThemeAction } from "src/hooks/persistence/use-map-theme-action";
+import {
+  useApplyMapTheme,
+  useDuplicateMapTheme,
+  useResetMapThemeChanges,
+  useSaveMapThemeChanges,
+} from "src/commands/map-themes";
 import * as DD from "@radix-ui/react-dropdown-menu";
 import { Selector } from "@epanet-js/ui-kit";
 import {
@@ -23,7 +28,10 @@ export const MapThemeBar = () => {
   const themes = useAtomValue(mapThemesAtom);
   const activeId = useAtomValue(activeMapThemeIdAtom);
   const isModified = useAtomValue(isMapThemeModifiedAtom);
-  const dispatch = useMapThemeAction();
+  const applyMapTheme = useApplyMapTheme();
+  const saveChanges = useSaveMapThemeChanges();
+  const resetChanges = useResetMapThemeChanges();
+  const duplicateMapTheme = useDuplicateMapTheme();
   const setDialog = useSetAtom(dialogAtom);
   const selectorId = useId();
 
@@ -51,7 +59,7 @@ export const MapThemeBar = () => {
           nullable
           placeholder={defaultName}
           clearLabel={defaultName}
-          onChange={(id) => dispatch({ type: "apply", id })}
+          onChange={(id) => applyMapTheme(id)}
         />
       </div>
       <DD.Root modal={false}>
@@ -81,14 +89,11 @@ export const MapThemeBar = () => {
             </StyledItem>
             <MenuItem
               disabled={isDefault || !isModified}
-              onSelect={() => dispatch({ type: "saveChanges" })}
+              onSelect={() => saveChanges()}
             >
               {translate("mapThemes.saveChangesTo", activeName)}
             </MenuItem>
-            <MenuItem
-              disabled={!isModified}
-              onSelect={() => dispatch({ type: "resetChanges" })}
-            >
+            <MenuItem disabled={!isModified} onSelect={() => resetChanges()}>
               {translate("mapThemes.resetChanges")}
             </MenuItem>
             <DDSeparator />
@@ -105,8 +110,7 @@ export const MapThemeBar = () => {
               disabled={isDefault}
               onSelect={() =>
                 activeTheme &&
-                dispatch({
-                  type: "duplicate",
+                duplicateMapTheme({
                   id: activeTheme.id,
                   name: copyNameOf(activeTheme.name),
                 })

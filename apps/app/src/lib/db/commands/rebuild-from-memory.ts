@@ -16,7 +16,12 @@ type RebuildInput = ImportProjectInput &
   Required<
     Pick<
       ImportProjectInput,
-      "selectionSetGroups" | "selectionSets" | "bookmarks" | "scripts"
+      | "selectionSetGroups"
+      | "selectionSets"
+      | "bookmarks"
+      | "scripts"
+      | "mapThemes"
+      | "activeMapThemeId"
     >
   >;
 

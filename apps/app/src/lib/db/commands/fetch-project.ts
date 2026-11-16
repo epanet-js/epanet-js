@@ -6,6 +6,7 @@ import type {
   SelectionSetGroup,
 } from "src/lib/collections";
 import type { UserScript } from "src/state/scripts";
+import type { MapTheme } from "src/state/map-themes";
 import {
   defaultSimulationSettings,
   type SimulationSettings,
@@ -36,6 +37,7 @@ import { buildSelectionSetsData } from "../mappers/selection-sets/builders";
 import { buildSelectionSetGroupsData } from "../mappers/selection-set-groups/builders";
 import { buildBookmarksData } from "../mappers/bookmarks/builders";
 import { buildScriptsData } from "../mappers/scripts/builders";
+import { buildMapThemesData } from "../mappers/map-themes/builders";
 
 export type Project = {
   projectSettings: ProjectSettings;
@@ -44,6 +46,8 @@ export type Project = {
   selectionSets: SelectionSet[];
   bookmarks: Bookmark[];
   scripts: UserScript[];
+  mapThemes: MapTheme[];
+  activeMapThemeId: string | null;
   hydraulicModel: HydraulicModel;
   factories: ModelFactories;
   simulationSettings: SimulationSettings;
@@ -111,6 +115,8 @@ export const fetchProject = async (
       selectionSetsRaw,
       bookmarksJson,
       scriptsRaw,
+      mapThemesRaw,
+      activeMapThemeId,
       patternsRaw,
       junctionDemandsRaw,
       curvesRaw,
@@ -128,6 +134,8 @@ export const fetchProject = async (
         worker.getSelectionSets(),
         worker.getBookmarks(),
         worker.getScripts(),
+        worker.getMapThemes(),
+        worker.getActiveMapThemeId(),
         worker.getPatterns(),
         worker.getJunctionDemands(),
         worker.getCurves(),
@@ -158,6 +166,7 @@ export const fetchProject = async (
         );
         const bookmarks = buildBookmarksData(bookmarksJson);
         const scripts = buildScriptsData(scriptsRaw);
+        const mapThemes = buildMapThemesData(mapThemesRaw);
 
         const factories = buildFactories(idMaxima);
         const { idGenerator } = factories;
@@ -219,6 +228,8 @@ export const fetchProject = async (
           selectionSets,
           bookmarks,
           scripts,
+          mapThemes,
+          activeMapThemeId,
           hydraulicModel,
           factories,
           simulationSettings,

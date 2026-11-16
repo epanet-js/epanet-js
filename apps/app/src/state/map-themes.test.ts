@@ -5,11 +5,10 @@ import { nullSymbologySpec } from "src/map/symbology/symbology-types";
 import { linkSymbologyAtom, nodeSymbologyAtom } from "src/state/map-symbology";
 import { basemapAtom, selectBasemapAtom } from "src/state/map";
 import {
-  activeMapThemeIdAtom,
+  applyMapThemeSymbologyAtom,
   defaultMapThemeSymbology,
   isMapThemeModifiedAtom,
-  mapThemeActionAtom,
-  mapThemesAtom,
+  resetMapThemeChangesAtom,
   type MapTheme,
   type MapThemeSymbology,
 } from "src/state/map-themes";
@@ -45,31 +44,27 @@ const anElevationTheme = (
   }),
 });
 
-const aStoreWith = (themes: MapTheme[]) => {
-  const store = setInitialState({ hydraulicModel: aModel() });
-  store.set(mapThemesAtom, themes);
-  return store;
-};
+const aStore = () => setInitialState({ hydraulicModel: aModel() });
 
 describe("applying a map theme", () => {
   it("recomputes automatic breaks from the model and keeps its colors", () => {
-    const store = aStoreWith([anElevationTheme()]);
+    const store = aStore();
 
-    store.set(mapThemeActionAtom, { type: "apply", id: "elevations" });
+    store.set(applyMapThemeSymbologyAtom, anElevationTheme());
 
     const colorRule = store.get(nodeSymbologyAtom).colorRule!;
     expect(colorRule.breaks).toEqual([30, 60]);
     expect(colorRule.colors).toEqual(["#000001", "#000002", "#000003"]);
-    expect(store.get(activeMapThemeIdAtom)).toEqual("elevations");
     expect(store.get(isMapThemeModifiedAtom)).toBe(false);
   });
 
   it("keeps manual breaks", () => {
-    const store = aStoreWith([
-      anElevationTheme({ mode: "manual", breaks: [10, 20] }),
-    ]);
+    const store = aStore();
 
-    store.set(mapThemeActionAtom, { type: "apply", id: "elevations" });
+    store.set(
+      applyMapThemeSymbologyAtom,
+      anElevationTheme({ mode: "manual", breaks: [10, 20] }),
+    );
 
     expect(store.get(nodeSymbologyAtom).colorRule!.breaks).toEqual([10, 20]);
   });
@@ -81,68 +76,57 @@ describe("applying a map theme", () => {
       .build();
     const store = setInitialState({ hydraulicModel: flatModel });
     const colors = ["#1", "#2", "#3", "#4", "#5", "#6", "#7"];
-    store.set(mapThemesAtom, [
+
+    store.set(
+      applyMapThemeSymbologyAtom,
       anElevationTheme({
         mode: "prettyBreaks",
         colors,
         breaks: [1, 2, 3, 4, 5, 6],
       }),
-    ]);
-
-    store.set(mapThemeActionAtom, { type: "apply", id: "elevations" });
+    );
 
     const colorRule = store.get(nodeSymbologyAtom).colorRule!;
     expect(colorRule.colors).toEqual(colors);
     expect(colorRule.breaks).toEqual([1, 2, 3, 4, 5, 6]);
   });
+
+  it("goes back to the default symbology without a theme", () => {
+    const store = aStore();
+    store.set(applyMapThemeSymbologyAtom, anElevationTheme());
+
+    store.set(applyMapThemeSymbologyAtom, null);
+
+    expect(store.get(nodeSymbologyAtom)).toEqual(nullSymbologySpec.node);
+    expect(store.get(isMapThemeModifiedAtom)).toBe(false);
+  });
+
+  it("drops the color rule for a property this version doesn't know", () => {
+    const theme = anElevationTheme();
+
+    const store = aStore();
+    store.set(applyMapThemeSymbologyAtom, {
+      ...theme,
+      spec: { ...theme.spec, nodeColorBy: "futureProperty" },
+    });
+
+    expect(store.get(nodeSymbologyAtom).colorRule).toBeNull();
+  });
 });
 
 describe("unsaved theme changes", () => {
-  it("are detected, reset and saved", () => {
-    const store = aStoreWith([anElevationTheme()]);
-    store.set(mapThemeActionAtom, { type: "apply", id: "elevations" });
-    const edited = { ...nullSymbologySpec.link, labelRule: "label" };
+  it("are detected and reset", () => {
+    const store = aStore();
+    store.set(applyMapThemeSymbologyAtom, anElevationTheme());
 
-    store.set(linkSymbologyAtom, edited);
+    store.set(linkSymbologyAtom, {
+      ...nullSymbologySpec.link,
+      labelRule: "label",
+    });
     expect(store.get(isMapThemeModifiedAtom)).toBe(true);
 
-    store.set(mapThemeActionAtom, { type: "resetChanges" });
+    store.set(resetMapThemeChangesAtom);
     expect(store.get(linkSymbologyAtom)).toEqual(nullSymbologySpec.link);
-    expect(store.get(isMapThemeModifiedAtom)).toBe(false);
-
-    store.set(linkSymbologyAtom, edited);
-    store.set(mapThemeActionAtom, { type: "saveChanges" });
-    expect(store.get(isMapThemeModifiedAtom)).toBe(false);
-
-    store.set(mapThemeActionAtom, { type: "apply", id: null });
-    store.set(mapThemeActionAtom, { type: "apply", id: "elevations" });
-    expect(store.get(linkSymbologyAtom)).toEqual(edited);
-  });
-
-  it("are not saved over the default theme", () => {
-    const store = aStoreWith([]);
-    store.set(linkSymbologyAtom, {
-      ...nullSymbologySpec.link,
-      labelRule: "label",
-    });
-
-    store.set(mapThemeActionAtom, { type: "saveChanges" });
-
-    expect(store.get(isMapThemeModifiedAtom)).toBe(true);
-  });
-
-  it("become a new theme with save as new", () => {
-    const store = aStoreWith([]);
-    store.set(linkSymbologyAtom, {
-      ...nullSymbologySpec.link,
-      labelRule: "label",
-    });
-
-    store.set(mapThemeActionAtom, { type: "saveAsNew", name: "My theme" });
-
-    const [theme] = store.get(mapThemesAtom);
-    expect(theme.name).toEqual("My theme");
-    expect(store.get(activeMapThemeIdAtom)).toEqual(theme.id);
     expect(store.get(isMapThemeModifiedAtom)).toBe(false);
   });
 });
@@ -155,45 +139,22 @@ describe("the basemap in a map theme", () => {
       labels: false,
       opacity: 0.65,
     };
-    const store = aStoreWith([anElevationTheme({}, { basemap: satellite })]);
+    const store = aStore();
 
-    store.set(mapThemeActionAtom, { type: "apply", id: "elevations" });
+    store.set(
+      applyMapThemeSymbologyAtom,
+      anElevationTheme({}, { basemap: satellite }),
+    );
 
     expect(store.get(basemapAtom)).toEqual(satellite);
   });
 
   it("counts as an unsaved change when it is changed", () => {
-    const store = aStoreWith([anElevationTheme()]);
-    store.set(mapThemeActionAtom, { type: "apply", id: "elevations" });
+    const store = aStore();
+    store.set(applyMapThemeSymbologyAtom, anElevationTheme());
 
     store.set(selectBasemapAtom, "outdoors");
 
     expect(store.get(isMapThemeModifiedAtom)).toBe(true);
-  });
-});
-
-describe("deleting a map theme", () => {
-  it("falls back to the default theme when it was active", () => {
-    const store = aStoreWith([anElevationTheme()]);
-    store.set(mapThemeActionAtom, { type: "apply", id: "elevations" });
-
-    store.set(mapThemeActionAtom, { type: "delete", id: "elevations" });
-
-    expect(store.get(mapThemesAtom)).toEqual([]);
-    expect(store.get(activeMapThemeIdAtom)).toBeNull();
-    expect(store.get(nodeSymbologyAtom)).toEqual(nullSymbologySpec.node);
-  });
-});
-
-describe("applying a stored map theme", () => {
-  it("drops the color rule for a property this version doesn't know", () => {
-    const theme = anElevationTheme();
-    const store = aStoreWith([
-      { ...theme, spec: { ...theme.spec, nodeColorBy: "futureProperty" } },
-    ]);
-
-    store.set(mapThemeActionAtom, { type: "apply", id: "elevations" });
-
-    expect(store.get(nodeSymbologyAtom).colorRule).toBeNull();
   });
 });

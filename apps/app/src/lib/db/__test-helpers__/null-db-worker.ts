@@ -16,6 +16,9 @@ const silentWrites = new Set([
   "saveBookmarks",
   "saveScript",
   "deleteScript",
+  "saveMapTheme",
+  "deleteMapTheme",
+  "saveActiveMapThemeId",
   "saveCustomAttributesDefinition",
 ]);
 

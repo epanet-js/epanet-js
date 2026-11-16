@@ -1,4 +1,10 @@
-import { mapThemeRecordSchema, type MapThemeSpec } from "@epanet-js/ejsdb";
+import {
+  mapThemeRowSchema,
+  mapThemeSpecSchema,
+  parseRows,
+  type MapThemeRow,
+  type MapThemeSpec,
+} from "@epanet-js/ejsdb";
 import type { RangeColorRule } from "src/map/symbology/range-color-rule";
 import type { MapTheme, MapThemeSymbology } from "src/state/map-themes";
 
@@ -70,9 +76,16 @@ export const toMapThemeSpec = (symbology: MapThemeSymbology): MapThemeSpec => {
   };
 };
 
-export const serializeMapThemes = (themes: readonly MapTheme[]): string =>
-  JSON.stringify(
-    themes.map(({ id, name, spec }) =>
-      mapThemeRecordSchema.parse({ id, name, spec }),
-    ),
-  );
+const mapThemeToRow = (theme: MapTheme): MapThemeRow => ({
+  id: theme.id,
+  name: theme.name,
+  spec: JSON.stringify(mapThemeSpecSchema.parse(theme.spec)),
+});
+
+export const serializeMapThemes = (
+  themes: readonly MapTheme[],
+): MapThemeRow[] =>
+  parseRows(mapThemeRowSchema, themes.map(mapThemeToRow), "Map theme");
+
+export const serializeMapTheme = (theme: MapTheme): MapThemeRow =>
+  serializeMapThemes([theme])[0];

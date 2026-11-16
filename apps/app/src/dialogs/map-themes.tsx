@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { useAtomValue } from "jotai";
-import { useMapThemeAction } from "src/hooks/persistence/use-map-theme-action";
+import {
+  useDeleteMapTheme,
+  useRenameMapTheme,
+  useSaveMapThemeAsNew,
+} from "src/commands/map-themes";
 import clsx from "clsx";
 import { BaseDialog, SimpleDialogActions } from "src/components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
@@ -14,7 +18,7 @@ export const SaveMapThemeAsNewDialog = ({
   const translate = useTranslate();
   const themes = useAtomValue(mapThemesAtom);
   const activeId = useAtomValue(activeMapThemeIdAtom);
-  const dispatch = useMapThemeAction();
+  const saveAsNew = useSaveMapThemeAsNew();
   const activeTheme = themes.find((t) => t.id === activeId);
 
   return (
@@ -25,7 +29,7 @@ export const SaveMapThemeAsNewDialog = ({
           ? translate("mapThemes.copyName", activeTheme.name)
           : translate("mapThemes.newThemeName")
       }
-      onSave={(name) => dispatch({ type: "saveAsNew", name })}
+      onSave={(name) => saveAsNew(name)}
       onClose={onClose}
     />
   );
@@ -40,7 +44,7 @@ export const RenameMapThemeDialog = ({
 }) => {
   const translate = useTranslate();
   const themes = useAtomValue(mapThemesAtom);
-  const dispatch = useMapThemeAction();
+  const renameMapTheme = useRenameMapTheme();
   const theme = themes.find((t) => t.id === themeId);
 
   if (!theme) return null;
@@ -49,7 +53,7 @@ export const RenameMapThemeDialog = ({
     <MapThemeNameDialog
       title={translate("mapThemes.renameTitle")}
       initialName={theme.name}
-      onSave={(name) => dispatch({ type: "rename", id: themeId, name })}
+      onSave={(name) => renameMapTheme({ id: themeId, name })}
       onClose={onClose}
     />
   );
@@ -64,7 +68,7 @@ export const DeleteMapThemeConfirmationDialog = ({
 }) => {
   const translate = useTranslate();
   const themes = useAtomValue(mapThemesAtom);
-  const dispatch = useMapThemeAction();
+  const deleteMapTheme = useDeleteMapTheme();
   const theme = themes.find((t) => t.id === themeId);
 
   if (!theme) return null;
@@ -81,7 +85,7 @@ export const DeleteMapThemeConfirmationDialog = ({
           actionVariant="danger"
           onAction={() => {
             onClose();
-            dispatch({ type: "delete", id: themeId });
+            deleteMapTheme(themeId);
           }}
           secondary={{ action: translate("dialog.cancel"), onClick: onClose }}
         />

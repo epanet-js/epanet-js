@@ -17,6 +17,7 @@ import {
   selectionSetsAtom,
 } from "src/state/collections";
 import { userScriptsAtom } from "src/state/scripts";
+import { activeMapThemeIdAtom, mapThemesAtom } from "src/state/map-themes";
 import { projectSettingsAtom } from "src/state/project-settings";
 import {
   stagingModelDerivedAtom,
@@ -72,6 +73,8 @@ export const useRebuildDb = (): (() => Promise<void>) =>
                   selectionSets: get(selectionSetsAtom),
                   bookmarks: get(bookmarksAtom),
                   scripts: get(userScriptsAtom),
+                  mapThemes: get(mapThemesAtom),
+                  activeMapThemeId: get(activeMapThemeIdAtom),
                   projectSettings: get(projectSettingsAtom),
                   hydraulicModel: get(stagingModelDerivedAtom),
                   simulationSettings: get(simulationSettingsDerivedAtom),

@@ -7,6 +7,8 @@ import {
 import { USelection } from "src/selection";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { defaultProjectSettings } from "@epanet-js/project-settings";
+import { defaultMapThemeSymbology } from "src/state/map-themes";
+import { toMapThemeSpec } from "../mappers/map-themes/to-rows";
 
 const reinstallSahpool = vi.fn<(appId: string) => Promise<string>>();
 const configure =
@@ -62,6 +64,8 @@ const anInput = () => ({
   selectionSets: initializeSelectionSets(),
   bookmarks: initializeBookmarks(),
   scripts: [],
+  mapThemes: [],
+  activeMapThemeId: null,
 });
 
 beforeEach(() => {
@@ -111,7 +115,7 @@ describe("rebuildDbFromMemory", () => {
     );
   });
 
-  it("includes the collections and scripts, which every other importProject call site omits", async () => {
+  it("includes the collections, scripts and map themes, which every other importProject call site omits", async () => {
     reinstallSahpool.mockResolvedValue("sahpool");
     const input = {
       ...anInput(),
@@ -135,6 +139,14 @@ describe("rebuildDbFromMemory", () => {
           updatedAt: 0,
         },
       ],
+      mapThemes: [
+        {
+          id: "theme-1",
+          name: "Pressure",
+          spec: toMapThemeSpec(defaultMapThemeSymbology),
+        },
+      ],
+      activeMapThemeId: "theme-1",
     };
 
     await rebuildDbFromMemory(input);
@@ -144,6 +156,8 @@ describe("rebuildDbFromMemory", () => {
         selectionSets: input.selectionSets,
         bookmarks: input.bookmarks,
         scripts: input.scripts,
+        mapThemes: input.mapThemes,
+        activeMapThemeId: "theme-1",
       }),
     );
   });

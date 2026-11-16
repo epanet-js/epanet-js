@@ -8,7 +8,7 @@ import {
 import { serializeMapThemes, toMapThemeSpec } from "./to-rows";
 import {
   buildMapThemeSymbology,
-  buildMapThemes,
+  buildMapThemesData,
   type ThemeColorRule,
 } from "./builders";
 
@@ -100,12 +100,12 @@ describe("map theme spec", () => {
 });
 
 describe("serializeMapThemes", () => {
-  it("produces records that read back through buildMapThemes", () => {
+  it("produces rows that read back through buildMapThemesData", () => {
     const themes = [
       { id: "theme-1", name: "Pressure", spec: toMapThemeSpec(aSymbology()) },
     ];
 
-    expect(buildMapThemes(serializeMapThemes(themes))).toEqual(themes);
+    expect(buildMapThemesData(serializeMapThemes(themes))).toEqual(themes);
   });
 
   it("refuses a theme without a name", () => {
@@ -127,22 +127,16 @@ describe("serializeMapThemes", () => {
   });
 });
 
-describe("buildMapThemes", () => {
-  it("skips a record that can't be read and keeps the rest", () => {
-    const valid = {
-      id: "theme-1",
-      name: "Pressure",
-      spec: toMapThemeSpec(aSymbology()),
-    };
-    const json = JSON.stringify([
-      { id: "broken", name: "Broken", spec: {} },
-      valid,
-    ]);
-
-    expect(buildMapThemes(json)).toEqual([valid]);
-  });
-
-  it("reads nothing from data that isn't JSON", () => {
-    expect(buildMapThemes("not-json")).toEqual([]);
+describe("buildMapThemesData", () => {
+  it("refuses a theme it cannot understand", () => {
+    expect(() =>
+      buildMapThemesData([{ id: "theme-1", name: "Broken", spec: "nope" }]),
+    ).toThrow(/Map theme: spec is not valid JSON/);
+    expect(() =>
+      buildMapThemesData([{ id: "theme-1", name: "Broken", spec: "{}" }]),
+    ).toThrow(/Map theme: spec does not match schema/);
+    expect(() =>
+      buildMapThemesData([{ id: "theme-1", name: "", spec: "{}" }]),
+    ).toThrow(/Map theme: row data does not match schema/);
   });
 });

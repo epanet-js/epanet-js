@@ -21,6 +21,7 @@ import type {
   SelectionSetRow,
 } from "./schema/collections";
 import type { ScriptRow } from "./schema/scripts";
+import type { MapThemeRow } from "./schema/map-themes";
 
 export type NewDbResult =
   | { status: "ok" }
@@ -108,6 +109,8 @@ export type ImportProjectPayload = {
   selectionSets: SelectionSetRow[] | null;
   bookmarks: string | null;
   scripts: ScriptRow[] | null;
+  mapThemes: MapThemeRow[] | null;
+  activeMapThemeId: string | null;
   assets: AssetRows;
   customerPoints: CustomerPointsData;
   patterns: PatternRow[];

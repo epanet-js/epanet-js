@@ -76,10 +76,10 @@ export const mapThemeSpecSchema = z
 
 export type MapThemeSpec = z.infer<typeof mapThemeSpecSchema>;
 
-export const mapThemeRecordSchema = z.object({
+export const mapThemeRowSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
-  spec: mapThemeSpecSchema,
+  spec: z.string(),
 });
 
-export type MapThemeRecord = z.infer<typeof mapThemeRecordSchema>;
+export type MapThemeRow = z.infer<typeof mapThemeRowSchema>;

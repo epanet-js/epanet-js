@@ -1,4 +1,9 @@
-import { mapThemeRecordSchema, type MapThemeSpec } from "@epanet-js/ejsdb";
+import {
+  mapThemeRowSchema,
+  mapThemeSpecSchema,
+  parseRows,
+  type MapThemeSpec,
+} from "@epanet-js/ejsdb";
 import {
   supportedLinkProperties,
   supportedNodeProperties,
@@ -48,24 +53,29 @@ const assetLabelRule = (
     ? value
     : null;
 
-export const buildMapThemes = (json: string | null): MapTheme[] => {
-  if (json === null) return [];
-
+const buildMapThemeSpec = (json: string): MapThemeSpec => {
   let raw: unknown;
   try {
     raw = JSON.parse(json);
-  } catch {
-    return [];
+  } catch (error) {
+    throw new Error("Map theme: spec is not valid JSON", { cause: error });
   }
-  if (!Array.isArray(raw)) return [];
 
-  return raw.flatMap((item) => {
-    const result = mapThemeRecordSchema.safeParse(item);
-    if (!result.success) return [];
-    const { id, name, spec } = result.data;
-    return [{ id, name, spec }];
-  });
+  const result = mapThemeSpecSchema.safeParse(raw);
+  if (!result.success) {
+    throw new Error(
+      `Map theme: spec does not match schema — ${result.error.message}`,
+    );
+  }
+  return result.data;
 };
+
+export const buildMapThemesData = (rawRows: unknown[]): MapTheme[] =>
+  parseRows(mapThemeRowSchema, rawRows, "Map theme").map((row) => ({
+    id: row.id,
+    name: row.name,
+    spec: buildMapThemeSpec(row.spec),
+  }));
 
 export const buildMapThemeSymbology = (
   spec: MapThemeSpec,

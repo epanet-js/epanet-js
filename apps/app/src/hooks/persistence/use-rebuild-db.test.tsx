@@ -4,6 +4,12 @@ import { setInitialState } from "src/__helpers__/state";
 import { Store } from "src/state";
 import { dialogAtom } from "src/state/dialog";
 import { bookmarksAtom, selectionSetsAtom } from "src/state/collections";
+import {
+  activeMapThemeIdAtom,
+  defaultMapThemeSymbology,
+  mapThemesAtom,
+} from "src/state/map-themes";
+import { toMapThemeSpec } from "src/lib/db/mappers/map-themes/to-rows";
 import type { Bookmark } from "src/lib/collections";
 import { USelection } from "src/selection";
 import { initializeWorktree, type Branch } from "@epanet-js/worktree";
@@ -82,7 +88,7 @@ beforeEach(() => {
 });
 
 describe("useRebuildDb", () => {
-  it("carries the collections into the rebuilt db", async () => {
+  it("carries the collections and map themes into the rebuilt db", async () => {
     const store = setInitialState({});
     const selectionSets = [
       {
@@ -95,8 +101,17 @@ describe("useRebuildDb", () => {
     const bookmarks: Bookmark[] = [
       { id: "bookmark-1", label: "North reservoir", bbox: [-1, -2, 3, 4] },
     ];
+    const mapThemes = [
+      {
+        id: "theme-1",
+        name: "Pressure",
+        spec: toMapThemeSpec(defaultMapThemeSymbology),
+      },
+    ];
     store.set(selectionSetsAtom, selectionSets);
     store.set(bookmarksAtom, bookmarks);
+    store.set(mapThemesAtom, mapThemes);
+    store.set(activeMapThemeIdAtom, "theme-1");
     const { result } = renderRebuild(store);
 
     await act(async () => {
@@ -104,7 +119,12 @@ describe("useRebuildDb", () => {
     });
 
     expect(rebuildDbFromMemory).toHaveBeenCalledWith(
-      expect.objectContaining({ selectionSets, bookmarks }),
+      expect.objectContaining({
+        selectionSets,
+        bookmarks,
+        mapThemes,
+        activeMapThemeId: "theme-1",
+      }),
       expect.anything(),
     );
   });

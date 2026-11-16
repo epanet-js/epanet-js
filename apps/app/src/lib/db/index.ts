@@ -34,6 +34,12 @@ export { saveScript, deleteScript } from "./commands/scripts";
 export { serializeScript } from "./mappers/scripts/to-rows";
 export { saveBookmarks } from "./commands/save-bookmarks";
 export { serializeBookmarks } from "./mappers/bookmarks/to-rows";
+export {
+  saveMapTheme,
+  deleteMapTheme,
+  saveActiveMapThemeId,
+} from "./commands/map-themes";
+export { serializeMapTheme } from "./mappers/map-themes/to-rows";
 export { setAllSimulationSettings } from "./commands/set-all-simulation-settings";
 export { applyChangeSetToDb } from "./commands/apply-change-set";
 export { importProject } from "./commands/import-project";

@@ -62,7 +62,12 @@ import {
   nodeSizeAtom,
 } from "src/state/map-symbology";
 import { nullSymbologySpec, defaultNodeSizeConfig } from "src/map/symbology";
-import { resetActiveMapThemeAtom } from "src/state/map-themes";
+import {
+  activeMapThemeIdAtom,
+  mapThemesAtom,
+  resetActiveMapThemeAtom,
+  type MapTheme,
+} from "src/state/map-themes";
 import { modeAtom, Mode } from "src/state/mode";
 import {
   ephemeralStateAtom,
@@ -112,6 +117,8 @@ export type ProjectLoadInput = {
   selectionSets?: SelectionSet[];
   bookmarks?: Bookmark[];
   scripts?: UserScript[];
+  mapThemes?: MapTheme[];
+  activeMapThemeId?: string | null;
   simulationSettings: SimulationSettings;
   autoElevations?: boolean;
 };
@@ -125,6 +132,7 @@ export const resetAppState = (set: Setter, panels: Panel[]) => {
   set(savedSymbologiesAtom, new Map());
   set(propertyColorConfigAtom, defaultPropertyColorConfigs);
   set(nodeSizeAtom, defaultNodeSizeConfig);
+  set(mapThemesAtom, []);
   set(resetActiveMapThemeAtom);
   set(modeAtom, { mode: Mode.NONE });
   set(hglProfileAtom, null);
@@ -170,6 +178,8 @@ export const loadModel = (
     selectionSets,
     bookmarks,
     scripts,
+    mapThemes,
+    activeMapThemeId,
     simulationSettings,
     autoElevations,
   } = input;
@@ -197,6 +207,8 @@ export const loadModel = (
   set(selectionSetsAtom, selectionSets ?? initializeSelectionSets());
   set(bookmarksAtom, bookmarks ?? initializeBookmarks());
   set(userScriptsAtom, scripts ?? []);
+  set(mapThemesAtom, mapThemes ?? []);
+  set(activeMapThemeIdAtom, activeMapThemeId ?? null);
   if (autoElevations !== undefined) {
     set(autoElevationsAtom, autoElevations);
   }

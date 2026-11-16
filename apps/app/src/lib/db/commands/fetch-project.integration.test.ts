@@ -24,6 +24,8 @@ import { USelection } from "src/selection";
 import { api } from "@epanet-js/ejsdb/worker-api";
 import type { MultiPolygon } from "geojson";
 import type { BBox } from "@turf/helpers";
+import { defaultMapThemeSymbology } from "src/state/map-themes";
+import { toMapThemeSpec } from "../mappers/map-themes/to-rows";
 
 describe("fetch-project integration", () => {
   useInProcessDb();
@@ -536,5 +538,74 @@ describe("fetch-project collections", () => {
     await expect(fetchProject()).rejects.toThrow(
       /Selection set: row data does not match schema/,
     );
+  });
+
+  describe("map themes", () => {
+    const aTheme = (id: string, name: string) => ({
+      id,
+      name,
+      spec: toMapThemeSpec(defaultMapThemeSymbology),
+    });
+
+    const importWithThemes = () =>
+      importProject({
+        newDb: true,
+        hydraulicModel: HydraulicModelBuilder.with().aJunction(1).build(),
+        projectSettings: defaultProjectSettings,
+        simulationSettings: defaultSimulationSettings,
+        mapThemes: [aTheme("theme-1", "Pressure"), aTheme("theme-2", "Zones")],
+        activeMapThemeId: "theme-2",
+      });
+
+    it("returns no themes and none active when none were stored", async () => {
+      await importProject({
+        newDb: true,
+        hydraulicModel: HydraulicModelBuilder.with().aJunction(1).build(),
+        projectSettings: defaultProjectSettings,
+        simulationSettings: defaultSimulationSettings,
+      });
+
+      const project = await fetchProject();
+
+      expect(project.mapThemes).toEqual([]);
+      expect(project.activeMapThemeId).toBeNull();
+    });
+
+    it("round-trips themes in the order they were created, with the active one", async () => {
+      await importWithThemes();
+
+      const project = await fetchProject();
+
+      expect(project.mapThemes).toEqual([
+        aTheme("theme-1", "Pressure"),
+        aTheme("theme-2", "Zones"),
+      ]);
+      expect(project.activeMapThemeId).toEqual("theme-2");
+    });
+
+    it("keeps a theme in its place when it is saved again", async () => {
+      await importWithThemes();
+      await api.saveMapTheme({
+        id: "theme-1",
+        name: "Renamed",
+        spec: JSON.stringify(toMapThemeSpec(defaultMapThemeSymbology)),
+      });
+
+      const project = await fetchProject();
+
+      expect(project.mapThemes.map((theme) => theme.name)).toEqual([
+        "Renamed",
+        "Zones",
+      ]);
+    });
+
+    it("refuses to load a project holding a theme it cannot read", async () => {
+      await importWithThemes();
+      await api.saveMapTheme({ id: "theme-3", name: "Damaged", spec: "{}" });
+
+      await expect(fetchProject()).rejects.toThrow(
+        /Map theme: spec does not match schema/,
+      );
+    });
   });
 });

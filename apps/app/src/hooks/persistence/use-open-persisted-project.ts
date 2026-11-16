@@ -25,6 +25,8 @@ import { startTrace, type Trace } from "src/infra/trace";
 import { isTraceProjectOpenOn } from "src/infra/debug-mode";
 import { markProjectSavedAtom } from "src/state/project-revision";
 import type { FileIntegrity } from "@epanet-js/ejsdb-tag";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { applyMapThemeSymbologyAtom } from "src/state/map-themes";
 
 type RestoredBranches = {
   worktree: Worktree;
@@ -85,6 +87,7 @@ export type OpenPersistedProjectResult =
 
 export const useOpenPersistedProject = () => {
   const defaultPanelsFor = useDefaultPanels();
+  const isMapThemesOn = useFeatureFlag("FLAG_MAP_THEMES");
   const openPersistedProject = useAtomCallback(
     useCallback(
       async (
@@ -122,6 +125,8 @@ export const useOpenPersistedProject = () => {
           selectionSets,
           bookmarks,
           scripts,
+          mapThemes,
+          activeMapThemeId,
           hydraulicModel,
           factories,
           simulationSettings,
@@ -138,6 +143,7 @@ export const useOpenPersistedProject = () => {
           selectionSets,
           bookmarks,
           scripts,
+          ...(isMapThemesOn && { mapThemes, activeMapThemeId }),
           simulationSettings,
           autoElevations: projectSettings.projection.type !== "xy-grid",
         };
@@ -166,6 +172,12 @@ export const useOpenPersistedProject = () => {
         trace.measure("commit-scenarios", () =>
           commitStoredBranches(set, worktree, branchStates),
         );
+        if (isMapThemesOn) {
+          set(
+            applyMapThemeSymbologyAtom,
+            mapThemes.find((theme) => theme.id === activeMapThemeId) ?? null,
+          );
+        }
         set(markProjectSavedAtom);
         trace.end();
         return {
@@ -177,7 +189,7 @@ export const useOpenPersistedProject = () => {
           plan: result.label,
         };
       },
-      [defaultPanelsFor],
+      [defaultPanelsFor, isMapThemesOn],
     ),
   );
 

@@ -6,6 +6,7 @@ import type {
   SelectionSetGroup,
 } from "src/lib/collections";
 import type { UserScript } from "src/state/scripts";
+import type { MapTheme } from "src/state/map-themes";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
 import { getWorker, timed } from "@epanet-js/ejsdb";
 import {
@@ -25,6 +26,7 @@ import { serializeSelectionSets } from "../mappers/selection-sets/to-rows";
 import { serializeSelectionSetGroups } from "../mappers/selection-set-groups/to-rows";
 import { serializeBookmarks } from "../mappers/bookmarks/to-rows";
 import { serializeScripts } from "../mappers/scripts/to-rows";
+import { serializeMapThemes } from "../mappers/map-themes/to-rows";
 
 export type ImportProjectInput = {
   newDb?: boolean;
@@ -33,6 +35,8 @@ export type ImportProjectInput = {
   selectionSets?: SelectionSet[];
   bookmarks?: Bookmark[];
   scripts?: UserScript[];
+  mapThemes?: MapTheme[];
+  activeMapThemeId?: string | null;
   hydraulicModel: HydraulicModel;
   simulationSettings: SimulationSettings;
 };
@@ -58,6 +62,9 @@ export const importProject = async (
       ? serializeBookmarks(input.bookmarks)
       : null;
     const scripts = input.scripts ? serializeScripts(input.scripts) : null;
+    const mapThemes = input.mapThemes
+      ? serializeMapThemes(input.mapThemes)
+      : null;
     const assets = assetsToRows(input.hydraulicModel.assets.values());
 
     const result = await getWorker().importProject({
@@ -68,6 +75,8 @@ export const importProject = async (
       selectionSets,
       bookmarks,
       scripts,
+      mapThemes,
+      activeMapThemeId: input.activeMapThemeId ?? null,
       assets,
       customerPoints: customerPointsToRows(
         input.hydraulicModel.customerPoints,
