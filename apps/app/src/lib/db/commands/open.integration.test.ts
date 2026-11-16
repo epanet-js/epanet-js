@@ -233,6 +233,8 @@ describe("open integration", () => {
       simulationSettings: defaultSimulationSettings,
     });
     await withTransaction("downgrade", (db) => {
+      db.exec("DROP TABLE map_themes");
+      db.exec("ALTER TABLE project DROP COLUMN active_map_theme_id");
       db.exec("DROP TABLE scenarios");
       db.exec("DROP TABLE scripts");
       db.exec("ALTER TABLE zones DROP COLUMN custom_attributes");
@@ -266,6 +268,8 @@ describe("open integration", () => {
       simulationSettings: defaultSimulationSettings,
     });
     await withTransaction("downgrade", (db) => {
+      db.exec("DROP TABLE map_themes");
+      db.exec("ALTER TABLE project DROP COLUMN active_map_theme_id");
       db.exec("DROP TABLE scripts");
       db.exec("ALTER TABLE zones DROP COLUMN custom_attributes");
       db.exec("ALTER TABLE selection_sets DROP COLUMN zones");
@@ -311,6 +315,8 @@ describe("open integration", () => {
       simulationSettings: defaultSimulationSettings,
     });
     await withTransaction("downgrade", (db) => {
+      db.exec("DROP TABLE map_themes");
+      db.exec("ALTER TABLE project DROP COLUMN active_map_theme_id");
       db.exec("ALTER TABLE zones DROP COLUMN custom_attributes");
       db.exec("ALTER TABLE selection_sets DROP COLUMN zones");
       db.exec("DROP TABLE selection_set_groups");
@@ -344,6 +350,8 @@ describe("open integration", () => {
       ],
     });
     await withTransaction("downgrade", (db) => {
+      db.exec("DROP TABLE map_themes");
+      db.exec("ALTER TABLE project DROP COLUMN active_map_theme_id");
       db.exec("ALTER TABLE selection_sets DROP COLUMN zones");
       db.exec("DROP TABLE selection_set_groups");
       db.exec("ALTER TABLE selection_sets DROP COLUMN group_id");
@@ -360,6 +368,36 @@ describe("open integration", () => {
     expect(USelection.getAssetIds(project.selectionSets[0].selection)).toEqual([
       1,
     ]);
+  });
+
+  it("migrates a file saved before map themes were stored, opening with none", async () => {
+    await importProject({
+      newDb: true,
+      hydraulicModel: HydraulicModelBuilder.with()
+        .aJunction(1, { label: "J1" })
+        .build(),
+      projectSettings: defaultProjectSettings,
+      simulationSettings: defaultSimulationSettings,
+    });
+    await withTransaction("downgrade", (db) => {
+      db.exec("DROP TABLE map_themes");
+      db.exec("ALTER TABLE project DROP COLUMN active_map_theme_id");
+      db.exec("PRAGMA user_version = 29");
+    });
+    const blob = await exportDb();
+
+    const result = await openProject(new File([blob], "before.epnt"));
+
+    expect(result).toMatchObject({ status: "migrated", fileVersion: 29 });
+    const rows = await withTransaction("read", (db) =>
+      db.exec(
+        "SELECT (SELECT COUNT(*) FROM map_themes), active_map_theme_id FROM project",
+        { returnValue: "resultRows" },
+      ),
+    );
+    expect(rows).toEqual([[0, null]]);
+    const project = await fetchProject();
+    expect(project.hydraulicModel.assets.size).toBe(1);
   });
 
   it("migrates a file whose selection set labels hold slashes, moving the sets into groups", async () => {
@@ -387,6 +425,8 @@ describe("open integration", () => {
       ],
     });
     await withTransaction("downgrade", (db) => {
+      db.exec("DROP TABLE map_themes");
+      db.exec("ALTER TABLE project DROP COLUMN active_map_theme_id");
       db.exec("PRAGMA user_version = 28");
     });
     const blob = await exportDb();

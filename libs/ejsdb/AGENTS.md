@@ -33,6 +33,7 @@ Any of these breaks file compatibility unless a migration ships with it:
   - `project.settings`
   - `project.pipe_library`
   - `project.bookmarks`
+  - `map_themes.spec`
   - `pumps.curve_points`
   - `patterns.multipliers`
   - `curves.points`
