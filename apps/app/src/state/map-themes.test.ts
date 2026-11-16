@@ -5,7 +5,6 @@ import { nullSymbologySpec } from "src/map/symbology/symbology-types";
 import { linkSymbologyAtom, nodeSymbologyAtom } from "src/state/map-symbology";
 import { basemapAtom, selectBasemapAtom } from "src/state/map";
 import {
-  DEFAULT_MAP_THEME_ID,
   activeMapThemeIdAtom,
   defaultMapThemeSymbology,
   isMapThemeModifiedAtom,
@@ -115,7 +114,7 @@ describe("unsaved theme changes", () => {
     store.set(mapThemeActionAtom, { type: "saveChanges" });
     expect(store.get(isMapThemeModifiedAtom)).toBe(false);
 
-    store.set(mapThemeActionAtom, { type: "apply", id: DEFAULT_MAP_THEME_ID });
+    store.set(mapThemeActionAtom, { type: "apply", id: null });
     store.set(mapThemeActionAtom, { type: "apply", id: "elevations" });
     expect(store.get(linkSymbologyAtom)).toEqual(edited);
   });
@@ -181,7 +180,7 @@ describe("deleting a map theme", () => {
     store.set(mapThemeActionAtom, { type: "delete", id: "elevations" });
 
     expect(store.get(mapThemesAtom)).toEqual([]);
-    expect(store.get(activeMapThemeIdAtom)).toEqual(DEFAULT_MAP_THEME_ID);
+    expect(store.get(activeMapThemeIdAtom)).toBeNull();
     expect(store.get(nodeSymbologyAtom)).toEqual(nullSymbologySpec.node);
   });
 });

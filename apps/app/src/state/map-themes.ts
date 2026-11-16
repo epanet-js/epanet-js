@@ -56,8 +56,6 @@ export type MapTheme = {
   spec: MapThemeSpec;
 };
 
-export const DEFAULT_MAP_THEME_ID = "default";
-
 export const defaultMapThemeSymbology: MapThemeSymbology = {
   node: nullSymbologySpec.node,
   link: nullSymbologySpec.link,
@@ -79,7 +77,7 @@ export const mapThemesAtom = atom(
   },
 );
 
-export const activeMapThemeIdAtom = atom<string>(DEFAULT_MAP_THEME_ID);
+export const activeMapThemeIdAtom = atom<string | null>(null);
 
 const appliedMapThemeSymbologyAtom = atom<MapThemeSymbology>(
   defaultMapThemeSymbology,
@@ -143,9 +141,9 @@ const setSymbology = (set: Setter, symbology: MapThemeSymbology) => {
   set(appliedMapThemeSymbologyAtom, symbology);
 };
 
-const applyTheme = (get: Getter, set: Setter, themeId: string) => {
+const applyTheme = (get: Getter, set: Setter, themeId: string | null) => {
   const theme = get(mapThemesAtom).find((t) => t.id === themeId);
-  const id = theme ? theme.id : DEFAULT_MAP_THEME_ID;
+  const id = theme ? theme.id : null;
 
   const { units } = get(projectSettingsAtom);
   const hydraulicModel = get(stagingModelDerivedAtom);
@@ -162,7 +160,7 @@ const applyTheme = (get: Getter, set: Setter, themeId: string) => {
 };
 
 export type MapThemeAction =
-  | { type: "apply"; id: string }
+  | { type: "apply"; id: string | null }
   | { type: "saveAsNew"; name: string }
   | { type: "saveChanges" }
   | { type: "resetChanges" }
@@ -191,7 +189,7 @@ export const mapThemeActionAtom = atom(
       }
       case "saveChanges": {
         const id = get(activeMapThemeIdAtom);
-        if (id === DEFAULT_MAP_THEME_ID) return;
+        if (id === null) return;
         const symbology = get(currentMapThemeSymbologyAtom);
         const spec = toMapThemeSpec(symbology);
         set(mapThemesAtom, (prev) =>
@@ -224,14 +222,13 @@ export const mapThemeActionAtom = atom(
       }
       case "delete":
         set(mapThemesAtom, (prev) => prev.filter((t) => t.id !== action.id));
-        if (get(activeMapThemeIdAtom) === action.id)
-          applyTheme(get, set, DEFAULT_MAP_THEME_ID);
+        if (get(activeMapThemeIdAtom) === action.id) applyTheme(get, set, null);
         return;
     }
   },
 );
 
 export const resetActiveMapThemeAtom = atom(null, (get, set) => {
-  set(activeMapThemeIdAtom, DEFAULT_MAP_THEME_ID);
+  set(activeMapThemeIdAtom, null);
   set(appliedMapThemeSymbologyAtom, get(currentMapThemeSymbologyAtom));
 });

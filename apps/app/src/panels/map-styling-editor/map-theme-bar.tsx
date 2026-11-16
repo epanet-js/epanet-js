@@ -13,7 +13,6 @@ import { MoreActionsIcon } from "src/icons";
 import { useTranslate } from "src/hooks/use-translate";
 import { dialogAtom } from "src/state/dialog";
 import {
-  DEFAULT_MAP_THEME_ID,
   activeMapThemeIdAtom,
   isMapThemeModifiedAtom,
   mapThemesAtom,
@@ -34,10 +33,7 @@ export const MapThemeBar = () => {
   const activeName = activeTheme ? activeTheme.name : defaultName;
   const copyNameOf = (name: string) => translate("mapThemes.copyName", name);
 
-  const options = [
-    { value: DEFAULT_MAP_THEME_ID, label: defaultName },
-    ...themes.map((t) => ({ value: t.id, label: t.name })),
-  ];
+  const options = themes.map((t) => ({ value: t.id, label: t.name }));
 
   return (
     <div className="flex items-center gap-2 pb-2">
@@ -51,7 +47,10 @@ export const MapThemeBar = () => {
         <Selector
           id={selectorId}
           options={options}
-          selected={activeTheme ? activeTheme.id : DEFAULT_MAP_THEME_ID}
+          selected={activeTheme ? activeTheme.id : null}
+          nullable
+          placeholder={defaultName}
+          clearLabel={defaultName}
           onChange={(id) => dispatch({ type: "apply", id })}
         />
       </div>
