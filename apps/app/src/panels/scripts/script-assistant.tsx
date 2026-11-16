@@ -9,6 +9,7 @@ import type {
   ScriptAssistantScope,
 } from "src/lib/script-assistant";
 import type { ScriptGeneration } from "./use-script-generation";
+import { useGenerationStatus } from "./use-generation-status";
 import {
   AiIcon,
   ChevronDownIcon,
@@ -48,6 +49,7 @@ export const ScriptAssistant = ({
 }) => {
   const translate = useTranslate();
   const [prompt, setPrompt] = useState("");
+  const status = useGenerationStatus(generation);
 
   return (
     <div className="h-full min-h-0 flex flex-col">
@@ -82,10 +84,9 @@ export const ScriptAssistant = ({
             onChange={setPrompt}
             onSend={onSend}
             busy={
-              generation && {
-                prompt: generation.prompt,
-                status: translate("scripting.assistant.writing"),
-              }
+              generation && status !== null
+                ? { prompt: generation.prompt, status: status }
+                : null
             }
             onStop={onStop}
             failure={failure}

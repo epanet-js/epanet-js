@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { TooltipProvider } from "@epanet-js/ui-kit";
 import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
@@ -404,6 +404,45 @@ describe("ScriptsPanel", () => {
         );
         await user.click(screen.getByRole("button", { name: "Create" }));
       };
+
+      describe("as time passes", () => {
+        beforeEach(() => {
+          vi.useFakeTimers({ shouldAdvanceTime: true });
+        });
+
+        afterEach(() => {
+          vi.useRealTimers();
+        });
+
+        const wait = (ms: number) =>
+          act(() => {
+            vi.advanceTimersByTime(ms);
+          });
+
+        it("says what it is doing while it writes and updates", async () => {
+          await sendDescription();
+
+          expect(screen.getByText("Writing script…")).toBeVisible();
+          wait(3_000);
+          expect(screen.getByText("Reading request…")).toBeVisible();
+          wait(77_000);
+          expect(screen.getByText("Almost done…")).toBeVisible();
+
+          writes[0].resolve({ source: "selectSmallPipes();", name: "Pipes" });
+          const user = userEvent.setup({
+            advanceTimers: vi.advanceTimersByTime,
+          });
+          await user.type(
+            await screen.findByRole("textbox", { name: "Describe a change" }),
+            "Also export a CSV",
+          );
+          await user.click(screen.getByRole("button", { name: "Update" }));
+
+          expect(screen.getByText("Updating script…")).toBeVisible();
+          wait(3_000);
+          expect(screen.getByText("Reading script…")).toBeVisible();
+        });
+      });
 
       it("asks for the released docs", async () => {
         await sendDescription();

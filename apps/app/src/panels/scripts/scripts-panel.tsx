@@ -65,6 +65,7 @@ import {
   useScriptGeneration,
   type ScriptGeneration,
 } from "./use-script-generation";
+import { useGenerationStatus } from "./use-generation-status";
 
 const newScriptSource = (
   llmsPath: string,
@@ -523,6 +524,7 @@ const ScriptEditor = ({
   const [confirmingDiscard, setConfirmingDiscard] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
   const isGenerating = assistant?.generation != null;
+  const generationStatus = useGenerationStatus(assistant?.generation ?? null);
   const [wasAssistantOpen, rememberAssistantOpen] = useAtom(
     isScriptAssistantOpenAtom,
   );
@@ -827,13 +829,12 @@ const ScriptEditor = ({
                     });
                 }}
                 busy={
-                  assistant.generation && {
-                    prompt: assistant.generation.prompt,
-                    status:
-                      assistant.generation.kind === "write"
-                        ? translate("scripting.assistant.writing")
-                        : translate("scripting.assistant.updating"),
-                  }
+                  assistant.generation && generationStatus !== null
+                    ? {
+                        prompt: assistant.generation.prompt,
+                        status: generationStatus,
+                      }
+                    : null
                 }
                 onStop={assistant.onStop}
                 failure={assistant.failure}
