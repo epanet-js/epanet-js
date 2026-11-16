@@ -23,6 +23,8 @@ import {
   mapThemesAtom,
 } from "src/state/map-themes";
 
+const DEFAULT_THEME_OPTION = "default";
+
 export const MapThemeBar = () => {
   const translate = useTranslate();
   const themes = useAtomValue(mapThemesAtom);
@@ -52,15 +54,24 @@ export const MapThemeBar = () => {
         {translate("mapThemes.theme")}
       </label>
       <div className="flex-1 min-w-0">
-        <Selector
-          id={selectorId}
-          options={options}
-          selected={activeTheme ? activeTheme.id : null}
-          nullable
-          placeholder={defaultName}
-          clearLabel={defaultName}
-          onChange={(id) => applyMapTheme(id)}
-        />
+        {themes.length === 0 ? (
+          <Selector
+            id={selectorId}
+            options={[{ value: DEFAULT_THEME_OPTION, label: defaultName }]}
+            selected={DEFAULT_THEME_OPTION}
+            onChange={() => applyMapTheme(null)}
+          />
+        ) : (
+          <Selector
+            id={selectorId}
+            options={options}
+            selected={activeTheme ? activeTheme.id : null}
+            nullable
+            placeholder={defaultName}
+            clearLabel={defaultName}
+            onChange={(id) => applyMapTheme(id)}
+          />
+        )}
       </div>
       <DD.Root modal={false}>
         <DD.Trigger asChild>
