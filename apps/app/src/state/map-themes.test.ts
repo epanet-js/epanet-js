@@ -3,7 +3,7 @@ import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { aNodeSymbology, setInitialState } from "src/__helpers__/state";
 import { nullSymbologySpec } from "src/map/symbology/symbology-types";
 import { linkSymbologyAtom, nodeSymbologyAtom } from "src/state/map-symbology";
-import { basemapAtom, selectBasemapAtom } from "src/state/map";
+import { basemapAtom, layerConfigAtom, selectBasemapAtom } from "src/state/map";
 import {
   applyMapThemeSymbologyAtom,
   defaultMapThemeSymbology,
@@ -147,6 +147,18 @@ describe("the basemap in a map theme", () => {
     );
 
     expect(store.get(basemapAtom)).toEqual(satellite);
+  });
+
+  it("leaves the map layers alone when the theme uses the same basemap", () => {
+    const store = setInitialState({
+      hydraulicModel: aModel(),
+      basemap: defaultMapThemeSymbology.basemap,
+    });
+    const layersBefore = store.get(layerConfigAtom);
+
+    store.set(applyMapThemeSymbologyAtom, anElevationTheme());
+
+    expect(store.get(layerConfigAtom)).toBe(layersBefore);
   });
 
   it("counts as an unsaved change when it is changed", () => {

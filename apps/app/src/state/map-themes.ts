@@ -1,4 +1,4 @@
-import { atom, type Setter } from "jotai";
+import { atom, type Getter, type Setter } from "jotai";
 import type { MapThemeSpec } from "@epanet-js/ejsdb";
 import isEqual from "lodash/isEqual";
 import type { UnitsSpec } from "@epanet-js/project-settings";
@@ -117,13 +117,18 @@ export const resolveThemeColorRule = (
   return applyMode(styled, rule.mode, sortedData).colorRule;
 };
 
-const setSymbology = (set: Setter, symbology: MapThemeSymbology) => {
+const setSymbology = (
+  get: Getter,
+  set: Setter,
+  symbology: MapThemeSymbology,
+) => {
   set(nodeSymbologyAtom, symbology.node);
   set(linkSymbologyAtom, symbology.link);
   set(nodeSizeAtom, symbology.nodeSize);
   set(zoneSymbologyAtom, symbology.zone);
   set(customerPointsSymbologyAtom, symbology.customerPoints);
-  set(basemapAtom, symbology.basemap);
+  if (!isEqual(get(basemapAtom), symbology.basemap))
+    set(basemapAtom, symbology.basemap);
   set(appliedMapThemeSymbologyAtom, symbology);
 };
 
@@ -140,7 +145,7 @@ export const applyMapThemeSymbologyAtom = atom(
         )
       : defaultMapThemeSymbology;
 
-    setSymbology(set, symbology);
+    setSymbology(get, set, symbology);
   },
 );
 
@@ -153,7 +158,7 @@ export const markMapThemeAppliedAtom = atom(null, (get, set) => {
 });
 
 export const resetMapThemeChangesAtom = atom(null, (get, set) => {
-  setSymbology(set, get(appliedMapThemeSymbologyAtom));
+  setSymbology(get, set, get(appliedMapThemeSymbologyAtom));
 });
 
 export const resetActiveMapThemeAtom = atom(null, (get, set) => {
