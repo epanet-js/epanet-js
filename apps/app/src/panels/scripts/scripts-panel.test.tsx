@@ -330,6 +330,7 @@ describe("ScriptsPanel", () => {
           source: "",
           scope: "script",
           docsVariant: "official",
+          locale: "en",
         });
         expect(writes[0].token).toEqual("session-token");
         expect(screen.getByText("Writing script…")).toBeVisible();
@@ -367,6 +368,7 @@ describe("ScriptsPanel", () => {
           source: "selectSmallPipes();",
           scope: "script",
           docsVariant: "official",
+          locale: "en",
         });
         expect(screen.getByText("Updating script…")).toBeVisible();
         expect(screen.getByRole("button", { name: "Run" })).toBeDisabled();

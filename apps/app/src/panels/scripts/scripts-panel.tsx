@@ -21,6 +21,7 @@ import type {
 import { useRunScript } from "src/commands/run-script";
 import { useFeatureLock } from "src/components/form/paywall";
 import { useTranslate } from "src/hooks/use-translate";
+import { useLocale } from "src/hooks/use-locale";
 import { useScriptingDocs } from "src/hooks/use-scripting-docs";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
@@ -82,6 +83,7 @@ export const ScriptsPanel = () => {
   const isAssistantOn = isScriptingAssistantOn && getScriptAssistant() !== null;
   const { llmsPath, variant: docsVariant } = useScriptingDocs();
   const translate = useTranslate();
+  const { locale } = useLocale();
 
   const userTracking = useUserTracking();
   const { generation, failure, generate, stop } = useScriptGeneration();
@@ -96,7 +98,13 @@ export const ScriptsPanel = () => {
   };
 
   const handleWrite = async (prompt: string, scope: ScriptAssistantScope) => {
-    const written = await generate({ prompt, source: "", scope, docsVariant });
+    const written = await generate({
+      prompt,
+      source: "",
+      scope,
+      docsVariant,
+      locale,
+    });
     if (!written) return;
     setIsComposing(false);
     setIsWrittenByAssistant(true);
@@ -112,7 +120,13 @@ export const ScriptsPanel = () => {
     scope: ScriptAssistantScope,
     source: string,
   ): Promise<boolean> => {
-    const written = await generate({ prompt, source, scope, docsVariant });
+    const written = await generate({
+      prompt,
+      source,
+      scope,
+      docsVariant,
+      locale,
+    });
     if (!written) return false;
     setDraft((current) => current && { ...current, source: written.source });
     setIsWrittenByAssistant(true);

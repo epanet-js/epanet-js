@@ -1,3 +1,4 @@
+import type { Locale } from "@epanet-js/i18n/locale";
 import type { ScriptingDocsVariant } from "src/lib/script-language";
 
 export type ScriptAssistantScope =
@@ -11,6 +12,7 @@ export type ScriptAssistantRequest = {
   source: string;
   scope: ScriptAssistantScope;
   docsVariant: ScriptingDocsVariant;
+  locale: Locale;
 };
 
 export type WrittenScript = { source: string; name: string };
