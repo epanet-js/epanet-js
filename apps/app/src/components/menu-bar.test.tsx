@@ -6,9 +6,7 @@ import { AuthMockProvider, aUser } from "src/__helpers__/auth-mock";
 import { stubLocale } from "src/__helpers__/locale";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { User } from "src/auth-types";
-import { billingUrl } from "src/global-config";
 import { useTranslate } from "src/hooks/use-translate";
-import { dialogAtom } from "src/state/dialog";
 import { TrialOrUpgradeButton } from "./menu-bar";
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
@@ -20,76 +18,28 @@ describe("trial or upgrade button", () => {
     stubLocale("en");
   });
 
-  it("counts the trial down and opens the billing portal", async () => {
+  it("counts the trial down and opens the plan cards", async () => {
     const open = stubOpen();
-    const { store } = renderButton({
+    const onUpgrade = vi.fn();
+    renderButton({
       user: aUser({
         hasUsedTrial: true,
         trialEndsAt: inThreeDays,
         subscriptionStatus: "trialing",
       }),
+      onUpgrade,
     });
 
     await userEvent.click(
       screen.getByRole("button", { name: "Trial: 3 days remaining" }),
     );
 
-    expect(open).toHaveBeenCalledWith(
-      `${billingUrl}/portal?locale=en`,
-      "_blank",
-      "noopener,noreferrer",
-    );
-    expect(store.get(dialogAtom)).toEqual({ type: "waitingForPayment" });
+    expect(onUpgrade).toHaveBeenCalled();
+    expect(open).not.toHaveBeenCalled();
   });
 
-  it("says the trial expired once stripe pauses it", async () => {
+  it("says the trial expired and opens the plan cards", async () => {
     const open = stubOpen();
-    renderButton({ user: anEndedTrial() });
-
-    await userEvent.click(
-      screen.getByRole("button", { name: "Trial expired" }),
-    );
-
-    expect(open).toHaveBeenCalledWith(
-      `${billingUrl}/portal?locale=en`,
-      "_blank",
-      "noopener,noreferrer",
-    );
-  });
-
-  it("sends the language the app is being read in", async () => {
-    stubLocale("es");
-    const open = stubOpen();
-    renderButton({ user: anEndedTrial() });
-
-    await userEvent.click(
-      screen.getByRole("button", { name: "Trial expired" }),
-    );
-
-    expect(open).toHaveBeenCalledWith(
-      `${billingUrl}/portal?locale=es`,
-      "_blank",
-      "noopener,noreferrer",
-    );
-  });
-
-  it("records which trial state sent them to the portal", async () => {
-    stubOpen();
-    const { userTracking } = renderButton({ user: anEndedTrial() });
-
-    await userEvent.click(
-      screen.getByRole("button", { name: "Trial expired" }),
-    );
-
-    expect(userTracking.capture).toHaveBeenCalledWith({
-      name: "billingPortal.opened",
-      source: "menu",
-      trial: "ended",
-    });
-  });
-
-  it("does not open the plan cards for a trialist", async () => {
-    stubOpen();
     const onUpgrade = vi.fn();
     renderButton({ user: anEndedTrial(), onUpgrade });
 
@@ -97,7 +47,8 @@ describe("trial or upgrade button", () => {
       screen.getByRole("button", { name: "Trial expired" }),
     );
 
-    expect(onUpgrade).not.toHaveBeenCalled();
+    expect(onUpgrade).toHaveBeenCalled();
+    expect(open).not.toHaveBeenCalled();
   });
 
   it("keeps the plan cards for someone who never trialled", async () => {
@@ -154,7 +105,7 @@ describe("trial or upgrade button", () => {
     onUpgrade?: () => void;
   } = {}) => {
     const store = createStore();
-    const userTracking = stubUserTracking();
+    stubUserTracking();
 
     const Subject = () => (
       <TrialOrUpgradeButton
@@ -172,6 +123,6 @@ describe("trial or upgrade button", () => {
       </AuthMockProvider>,
     );
 
-    return { store, container, userTracking };
+    return { container };
   };
 });

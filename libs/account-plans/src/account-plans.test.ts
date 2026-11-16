@@ -120,17 +120,15 @@ describe("resolveTrialCta", () => {
     });
   });
 
-  it("asks a paused trial to pay", () => {
+  it("says a paused trial has ended", () => {
     expect(resolve({ subscriptionStatus: "paused" })).toEqual({
       kind: "ended",
-      payable: true,
     });
   });
 
-  it("asks a failing card to pay", () => {
+  it("says a trial with a failing card has ended", () => {
     expect(resolve({ subscriptionStatus: "past_due" })).toEqual({
       kind: "ended",
-      payable: true,
     });
   });
 
@@ -158,18 +156,14 @@ describe("resolveTrialCta", () => {
 });
 
 describe("hasBillingAccount", () => {
-  const user = (plan: Plan, hasUsedTrial = false) => ({ plan, hasUsedTrial });
+  const user = (plan: Plan) => ({ plan });
 
   it("has one once a plan has been purchased", () => {
     expect(hasBillingAccount(user("pro"))).toBe(true);
     expect(hasBillingAccount(user("personal"))).toBe(true);
   });
 
-  it("has one once the trial has started, even after it ended", () => {
-    expect(hasBillingAccount(user("free", true))).toBe(true);
-  });
-
-  it("has none for a free user who never trialled", () => {
+  it("has none for a free user, trialling or not", () => {
     expect(hasBillingAccount(user("free"))).toBe(false);
   });
 

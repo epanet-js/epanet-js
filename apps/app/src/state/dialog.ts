@@ -444,10 +444,12 @@ export type DialogState =
   | AllocateCustomerPointsWarningDialogState
   | null;
 
-export type UrlDialogType = ActivatingTrialDialogState["type"];
+export type UrlDialogType =
+  | ActivatingTrialDialogState["type"]
+  | UpgradeDialogState["type"];
 
 export const parseUrlDialog = (type: string | null): DialogState =>
-  type === "activatingTrial" ? { type } : null;
+  type === "activatingTrial" || type === "upgrade" ? { type } : null;
 
 export const dialogFromUrl = (): DialogState => {
   if (typeof window === "undefined") return null;

@@ -22,10 +22,8 @@ export const isTrialAvailable = (user: {
 
 const purchasablePlans: Plan[] = ["pro", "personal"];
 
-export const hasBillingAccount = (user: {
-  plan: Plan;
-  hasUsedTrial: boolean;
-}): boolean => purchasablePlans.includes(user.plan) || user.hasUsedTrial;
+export const hasBillingAccount = (user: { plan: Plan }): boolean =>
+  purchasablePlans.includes(user.plan);
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
@@ -38,10 +36,8 @@ export const getTrialDaysRemaining = (trialEndsAt: string): number => {
 
 export type TrialCta =
   | { kind: "running"; daysRemaining: number }
-  | { kind: "ended"; payable: boolean }
+  | { kind: "ended" }
   | { kind: "none" };
-
-const payableAfterTrial: SubscriptionStatus[] = ["paused", "past_due"];
 
 export const resolveTrialCta = (user: {
   hasUsedTrial: boolean;
@@ -65,10 +61,5 @@ export const resolveTrialCta = (user: {
   )
     return { kind: "none" };
 
-  return {
-    kind: "ended",
-    payable:
-      user.subscriptionStatus !== null &&
-      payableAfterTrial.includes(user.subscriptionStatus),
-  };
+  return { kind: "ended" };
 };

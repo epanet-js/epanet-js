@@ -26,7 +26,6 @@ import { useShowShortcuts } from "src/commands/show-shortcuts";
 import { TrialCta, resolveTrialCta } from "@epanet-js/account-plans";
 import { useEffectivePlan } from "src/hooks/use-effective-plan";
 import { usePermissions } from "src/hooks/use-permissions";
-import { useBillingPortal } from "src/hooks/use-billing-portal";
 import { PlanLabel } from "./plan-label";
 import { useAtomValue, useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
@@ -411,7 +410,6 @@ export const SideMenu = () => {
                         source: "menu",
                       });
                     }}
-                    onNavigate={() => setIsOpen(false)}
                   />
                 )}
                 <UserButton />
@@ -467,17 +465,13 @@ export const TrialOrUpgradeButton = ({
   translate,
   size,
   onUpgrade,
-  onNavigate,
 }: {
   user: User;
   translate: TranslateFn;
   size?: "full-width";
   onUpgrade: () => void;
-  onNavigate?: () => void;
 }) => {
   const { canUpgrade } = usePermissions();
-  const userTracking = useUserTracking();
-  const { openBillingPortal } = useBillingPortal();
 
   const trial = useMemo(() => {
     if (!canUpgrade) return { kind: "none" } as TrialCta;
@@ -493,22 +487,8 @@ export const TrialOrUpgradeButton = ({
     const isUrgent = isEnded || trial.daysRemaining === 0;
     const colorClass = isUrgent ? "text-warning" : "text-accent-hover";
 
-    const manageBilling = () => {
-      userTracking.capture({
-        name: "billingPortal.opened",
-        source: "menu",
-        trial: trial.kind,
-      });
-      onNavigate?.();
-      openBillingPortal();
-    };
-
     return (
-      <Button
-        variant="quiet"
-        size={size}
-        onClick={isEnded && !trial.payable ? onUpgrade : manageBilling}
-      >
+      <Button variant="quiet" size={size} onClick={onUpgrade}>
         <span className={`${colorClass} font-medium`}>{label}</span>
       </Button>
     );
