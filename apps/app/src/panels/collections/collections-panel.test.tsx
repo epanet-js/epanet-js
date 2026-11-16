@@ -6,7 +6,6 @@ import { Provider as JotaiProvider } from "jotai";
 import { TooltipProvider } from "@epanet-js/ui-kit";
 import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import "src/__helpers__/locale";
-import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
 import { setInitialState } from "src/__helpers__/state";
 import {
   resolvePermissions,
@@ -111,10 +110,19 @@ const saveButton = () =>
   screen.getByRole("button", { name: /^save current selection/i });
 const addBookmarkButton = () =>
   screen.getByRole("button", { name: "Save current map area" });
+const addMenuButton = () => screen.getByRole("button", { name: "Add" });
 
 const nameIt = async (name: string) => {
   await userEvent.keyboard(name);
   await userEvent.keyboard("{Enter}");
+};
+
+const saveSetFromMenu = async (name: string) => {
+  await userEvent.click(addMenuButton());
+  await userEvent.click(
+    screen.getByRole("menuitem", { name: "Selection set" }),
+  );
+  await nameIt(name);
 };
 
 const rowOf = (name: string | RegExp) =>
@@ -129,7 +137,6 @@ beforeEach(() => {
   zoomTo.mockClear();
   fitBounds.mockClear();
   permissionsRef.current = resolvePermissions("pro", false, false, false);
-  stubFeatureOff("FLAG_SELECTION_SET_GROUPS");
 });
 
 describe("CollectionsPanel", () => {
@@ -139,10 +146,8 @@ describe("CollectionsPanel", () => {
       store.set(selectionAtom, USelection.fromAssetIds([IDS.J1, IDS.J2]));
       renderPanel(store);
 
-      await userEvent.click(saveButton());
-      await nameIt("North zone");
-      await userEvent.click(saveButton());
-      await nameIt("North zone");
+      await saveSetFromMenu("North zone");
+      await saveSetFromMenu("North zone");
 
       expect(screen.getAllByText("North zone")).toHaveLength(2);
     });
@@ -237,7 +242,6 @@ describe("CollectionsPanel", () => {
     });
 
     it("is refused when naming or renaming a folder", async () => {
-      stubFeatureOn("FLAG_SELECTION_SET_GROUPS");
       const store = aStore();
       renderPanel(store);
 
@@ -264,7 +268,6 @@ describe("CollectionsPanel", () => {
 
   describe("a draft that names the folders for its set", () => {
     it("creates the missing folders when the draft is saved, not before", async () => {
-      stubFeatureOn("FLAG_SELECTION_SET_GROUPS");
       const store = aStore();
       store.set(selectionSetGroupsAtom, [
         { id: "review", label: "Review", parentId: null },
@@ -363,8 +366,7 @@ describe("CollectionsPanel", () => {
   describe("the selected set and the keyboard", () => {
     const saveSet = async (name: string, assetIds: number[]) => {
       act(() => store.set(selectionAtom, USelection.fromAssetIds(assetIds)));
-      await userEvent.click(saveButton());
-      await nameIt(name);
+      await saveSetFromMenu(name);
     };
 
     let store: Store;
@@ -547,12 +549,6 @@ describe("CollectionsPanel", () => {
   });
 
   describe("folders", () => {
-    beforeEach(() => {
-      stubFeatureOn("FLAG_SELECTION_SET_GROUPS");
-    });
-
-    const addMenuButton = () => screen.getByRole("button", { name: "Add" });
-
     const addFolder = async (name: string) => {
       await userEvent.click(addMenuButton());
       await userEvent.click(screen.getByRole("menuitem", { name: "Folder" }));
@@ -591,14 +587,6 @@ describe("CollectionsPanel", () => {
         screen.queryByText("Save current selection"),
       ).not.toBeInTheDocument();
     });
-
-    const saveSetFromMenu = async (name: string) => {
-      await userEvent.click(addMenuButton());
-      await userEvent.click(
-        screen.getByRole("menuitem", { name: "Selection set" }),
-      );
-      await nameIt(name);
-    };
 
     const moveFromMenu = async (setName: string, target: string) => {
       await userEvent.click(

@@ -126,7 +126,6 @@ export const CollectionsPanel = () => {
   const moreActionsLabel = translate("moreActions");
   const selectOnlyLabel = translate("collections.selectionSets.selectOnly");
   const { isLocked, openPaywall } = useFeatureLock("selectionSets");
-  const isGroupsOn = useFeatureFlag("FLAG_SELECTION_SET_GROUPS");
   const isHighlightOn = useFeatureFlag("FLAG_HIGHLIGHT_SELECTION_SETS");
   const selectionSets = useAtomValue(selectionSetsAtom);
   const selectionSetGroups = useAtomValue(selectionSetGroupsAtom);
@@ -204,7 +203,7 @@ export const CollectionsPanel = () => {
       label: set.label,
       kind: "set",
       depth,
-      groupId: isGroupsOn ? set.groupId : null,
+      groupId: set.groupId,
       hidden,
       ancestors,
     });
@@ -251,10 +250,9 @@ export const CollectionsPanel = () => {
           );
       }
     };
-    if (isGroupsOn) walk(null, 0, false, []);
+    walk(null, 0, false, []);
     for (const set of selectionSets) {
-      if (isGroupsOn && set.groupId !== null && knownGroupIds.has(set.groupId))
-        continue;
+      if (set.groupId !== null && knownGroupIds.has(set.groupId)) continue;
       selectionSectionRows.push(setRow(set, 0, false, []));
     }
     const groupRows = selectionSectionRows.filter(
@@ -264,7 +262,7 @@ export const CollectionsPanel = () => {
       (row) => row.kind === "set",
     );
     const selectionSetsAddRowNavId =
-      isGroupsOn && selectionSectionRows.length > 0 ? undefined : ++navId;
+      selectionSectionRows.length > 0 ? undefined : ++navId;
     const bookmarkRows: Row[] = bookmarks.map((bookmark) => ({
       navId: ++navId,
       section: "bookmarks",
@@ -294,13 +292,7 @@ export const CollectionsPanel = () => {
       byNavId,
       addRowNavIds,
     };
-  }, [
-    isGroupsOn,
-    selectionSetGroups,
-    selectionSets,
-    bookmarks,
-    collapsedGroupIds,
-  ]);
+  }, [selectionSetGroups, selectionSets, bookmarks, collapsedGroupIds]);
 
   const isRowVisible = useCallback((row: Row) => !row.hidden, []);
 
@@ -743,7 +735,7 @@ export const CollectionsPanel = () => {
   };
 
   const moveActionFor = (row: Row): ItemAction | null => {
-    if (!isGroupsOn || row.kind === "bookmark") return null;
+    if (row.kind === "bookmark") return null;
     const excluded = new Set(
       row.kind === "group"
         ? [row.id, ...descendantGroupIds(selectionSetGroups, row.id)]
@@ -965,7 +957,7 @@ export const CollectionsPanel = () => {
       >
         <CollapsibleListSection
           sectionType="selectionSets"
-          showIndentGuide={isGroupsOn}
+          showIndentGuide={true}
           isIndentGuideActive={activeGroupId === null}
           title={translate("collections.selectionSets.title")}
           count={selectionSets.length}
@@ -977,29 +969,27 @@ export const CollectionsPanel = () => {
           }}
           onAction={() => handleNew("selectionSets", "collections-heading")}
           actionSlot={
-            isGroupsOn ? (
-              <AddMenu
-                label={translate("collections.selectionSets.add")}
-                isLocked={isLocked}
-                onLockedClick={openPaywall}
-                items={[
-                  {
-                    action: "group",
-                    label: translate("collections.groups.new"),
-                  },
-                  {
-                    action: "set",
-                    label: translate("collections.selectionSets.new"),
-                    disabled: !canSaveSelection,
-                  },
-                ]}
-                onAction={(action) =>
-                  action === "group"
-                    ? handleNewGroup(null)
-                    : handleNew("selectionSets", "collections-heading")
-                }
-              />
-            ) : undefined
+            <AddMenu
+              label={translate("collections.selectionSets.add")}
+              isLocked={isLocked}
+              onLockedClick={openPaywall}
+              items={[
+                {
+                  action: "group",
+                  label: translate("collections.groups.new"),
+                },
+                {
+                  action: "set",
+                  label: translate("collections.selectionSets.new"),
+                  disabled: !canSaveSelection,
+                },
+              ]}
+              onAction={(action) =>
+                action === "group"
+                  ? handleNewGroup(null)
+                  : handleNew("selectionSets", "collections-heading")
+              }
+            />
           }
         >
           {actionState?.action === "creatingGroup" &&
