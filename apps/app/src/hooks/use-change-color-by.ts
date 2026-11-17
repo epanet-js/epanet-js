@@ -16,7 +16,7 @@ import {
   stagingModelDerivedAtom,
   simulationResultsDerivedAtom,
 } from "src/state/derived-branch-state";
-import { useSymbologyState } from "src/state/map-symbology";
+import { useSymbologyState } from "src/hooks/use-symbology-state";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { isColorPropertyAvailable } from "src/map/symbology/property-availability";

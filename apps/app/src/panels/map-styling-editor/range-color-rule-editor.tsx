@@ -33,7 +33,7 @@ import {
 import { Selector } from "@epanet-js/ui-kit";
 import * as d3 from "d3-array";
 import { useUserTracking } from "src/infra/user-tracking";
-import { useSymbologyState } from "src/state/map-symbology";
+import { useSymbologyState } from "src/hooks/use-symbology-state";
 import { LinkSymbology, NodeSymbology } from "src/map/symbology";
 import { notify } from "src/components/notifications";
 import {

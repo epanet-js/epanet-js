@@ -20,8 +20,8 @@ import {
 import {
   linkColorRuleAvailableAtom,
   nodeColorRuleAvailableAtom,
-  useSymbologyState,
 } from "src/state/map-symbology";
+import { useSymbologyState } from "src/hooks/use-symbology-state";
 import { useChangeColorBy } from "src/hooks/use-change-color-by";
 import { Checkbox } from "src/components/form/Checkbox";
 import { ColorRampSelector } from "src/components/color-ramp-selector";

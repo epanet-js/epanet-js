@@ -15,7 +15,7 @@ import {
   stagingModelDerivedAtom,
   simulationResultsDerivedAtom,
 } from "src/state/derived-branch-state";
-import { useSymbologyState } from "src/state/map-symbology";
+import { useSymbologyState } from "src/hooks/use-symbology-state";
 
 export type RegenerateResult = {
   colorRule: RangeColorRule;

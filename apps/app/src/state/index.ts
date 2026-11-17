@@ -80,7 +80,6 @@ export {
   memoryMetaAtom,
   savedSymbologiesAtom,
   symbologyAtom,
-  useSymbologyState,
 } from "src/state/map-symbology";
 
 // Mode

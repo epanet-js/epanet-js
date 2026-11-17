@@ -124,18 +124,37 @@ export const layerConfigAtom = atom((get): LayerConfigMap => {
   ]);
 });
 
-export const selectBasemapAtom = atom(null, (get, set, style: BasemapStyle) => {
-  const customBasemap = get(customBasemapAtom);
-  const labels = customBasemap
-    ? customBasemap.labelVisibility
-    : get(basemapAtom).labels;
-  set(customBasemapAtom, null);
-  set(basemapAtom, {
+export const basemapForStyle = (
+  style: BasemapStyle,
+  current: Basemap,
+  customBasemap: CustomBasemapConfig | null,
+): Basemap => ({
+  style,
+  visible: true,
+  labels: customBasemap ? customBasemap.labelVisibility : current.labels,
+  opacity: basemaps[style].opacity,
+});
+
+export const basemapFromLayerConfig = (layer: ILayerConfig): Basemap | null => {
+  if (layer.type !== "MAPBOX" || !layer.isBasemap) return null;
+  const style = basemapStyleNamed(layer.name);
+  if (!style) return null;
+  return {
     style,
-    visible: true,
-    labels,
-    opacity: basemaps[style].opacity,
-  });
+    visible: layer.visibility,
+    labels: layer.labelVisibility,
+    opacity: layer.opacity,
+  };
+};
+
+export const selectBasemapAtom = atom(null, (get, set, style: BasemapStyle) => {
+  const basemap = basemapForStyle(
+    style,
+    get(basemapAtom),
+    get(customBasemapAtom),
+  );
+  set(customBasemapAtom, null);
+  set(basemapAtom, basemap);
 });
 
 export const applyLayerConfigChangesAtom = atom(
@@ -160,14 +179,8 @@ export const applyLayerConfigChangesAtom = atom(
 
     for (const layer of putLayerConfigs) {
       if (layer.type === "MAPBOX" && layer.isBasemap) {
-        const style = basemapStyleNamed(layer.name);
-        if (!style) continue;
-        set(basemapAtom, {
-          style,
-          visible: layer.visibility,
-          labels: layer.labelVisibility,
-          opacity: layer.opacity,
-        });
+        const basemap = basemapFromLayerConfig(layer);
+        if (basemap) set(basemapAtom, basemap);
       } else if (layer.type === "MAPBOX") {
         set(customBasemapAtom, layer);
       } else {
