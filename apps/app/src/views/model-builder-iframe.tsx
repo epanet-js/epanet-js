@@ -13,6 +13,7 @@ import {
 import { usePermissions } from "src/hooks/use-permissions";
 import { useStartUpgrade } from "src/hooks/use-paywall";
 import { modelBuilderUrl } from "src/global-config";
+import { useAuth } from "src/hooks/use-auth";
 
 type ModelBuildAccess = "full" | "limited";
 
@@ -155,6 +156,7 @@ export const ModelBuilderFrame = ({
   const reportFeatureFlagUsage = useReportFeatureFlagUsage();
   const { canUseAdvancedModelBuild } = usePermissions();
   const startUpgrade = useStartUpgrade();
+  const { user } = useAuth();
   const access: ModelBuildAccess = canUseAdvancedModelBuild
     ? "full"
     : "limited";
@@ -180,9 +182,27 @@ export const ModelBuilderFrame = ({
     );
   }, [access]);
 
+  const sendUser = useCallback(() => {
+    iframeRef.current?.contentWindow?.postMessage(
+      {
+        type: "userChanged",
+        data: {
+          user: user.id
+            ? { id: user.id, email: user.email, plan: user.plan }
+            : null,
+        },
+      },
+      new URL(modelBuilderUrl).origin,
+    );
+  }, [user.id, user.email, user.plan]);
+
   useEffect(() => {
     sendLocale();
   }, [sendLocale]);
+
+  useEffect(() => {
+    sendUser();
+  }, [sendUser]);
 
   useEffect(() => {
     sendAccess();
@@ -253,6 +273,7 @@ export const ModelBuilderFrame = ({
           setIsLoading(false);
           sendLocale();
           sendAccess();
+          sendUser();
         }}
         sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads"
         title={translate("importFromGIS")}
