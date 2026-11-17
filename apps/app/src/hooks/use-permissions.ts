@@ -20,6 +20,7 @@ export type Permissions = {
   canImportSynergi: boolean;
   canRunScripts: boolean;
   canEditScripts: boolean;
+  canUseScriptAssistant: boolean;
   canUpgrade: boolean;
   canManageOrganization: boolean;
 };
@@ -47,6 +48,7 @@ export const resolvePermissions = (
     canImportSynergi: hasPaidAccess,
     canRunScripts: hasPaidAccess || isDemoNetwork,
     canEditScripts: hasPaidAccess || isDemoNetwork,
+    canUseScriptAssistant: (plan === "pro" && !trialActive) || plan === "teams",
     canUpgrade: plan === "free",
     canManageOrganization: isOrgAdmin,
   };

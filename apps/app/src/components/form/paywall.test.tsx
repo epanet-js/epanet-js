@@ -21,6 +21,7 @@ const defaultPermissions: Permissions = {
   canImportSynergi: false,
   canRunScripts: false,
   canEditScripts: false,
+  canUseScriptAssistant: false,
   canUpgrade: true,
   canManageOrganization: false,
 };

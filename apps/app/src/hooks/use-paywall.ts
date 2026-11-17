@@ -70,6 +70,10 @@ const FEATURE_CONFIG: Record<PaywallFeature, FeatureConfig> = {
     permission: "canEditScripts",
     dialog: { type: "featurePaywall", feature: "editScripts" },
   },
+  scriptAssistant: {
+    permission: "canUseScriptAssistant",
+    dialog: { type: "upgrade", feature: "scriptAssistant" },
+  },
 };
 
 // Pure routing: the dialog that starts the upgrade flow for a feature,

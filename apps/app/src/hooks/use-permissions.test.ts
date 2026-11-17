@@ -116,6 +116,33 @@ describe("resolvePermissions", () => {
     });
   });
 
+  it.each(["pro", "teams"] satisfies Plan[])(
+    "%s plan can use the scripting assistant",
+    (plan) => {
+      expect(
+        resolvePermissions(plan, false, false, false).canUseScriptAssistant,
+      ).toBe(true);
+    },
+  );
+
+  it.each(["free", "personal", "education"] satisfies Plan[])(
+    "%s plan cannot use the scripting assistant, even on a demo network",
+    (plan) => {
+      expect(
+        resolvePermissions(plan, false, false, true).canUseScriptAssistant,
+      ).toBe(false);
+    },
+  );
+
+  it("an active trial cannot use the scripting assistant", () => {
+    expect(
+      resolvePermissions("free", true, false, false).canUseScriptAssistant,
+    ).toBe(false);
+    expect(
+      resolvePermissions("pro", true, false, false).canUseScriptAssistant,
+    ).toBe(false);
+  });
+
   it("org admin can manage organization", () => {
     const p = resolvePermissions("teams", false, true, false);
     expect(p.canManageOrganization).toBe(true);

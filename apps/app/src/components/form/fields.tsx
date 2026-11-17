@@ -324,6 +324,7 @@ export const CollapsibleSection = ({
   className,
   children,
   action,
+  trailing,
   hasChanged = false,
   separator = false,
   indicatorPosition = "left",
@@ -337,6 +338,7 @@ export const CollapsibleSection = ({
   className?: string;
   children: React.ReactNode;
   action?: React.ReactNode;
+  trailing?: React.ReactNode;
   hasChanged?: boolean;
   separator?: boolean;
   indicatorPosition?: "left" | "right";
@@ -390,6 +392,7 @@ export const CollapsibleSection = ({
               {showSeparator && <div className="flex-1 border-b ml-2" />}
               {!showSeparator && <div className="flex-1" />}
               {action && <div className="h-8 w-8 -my-1">{action}</div>}
+              {trailing}
               {indicatorPosition === "right" ? (
                 open ? (
                   <ChevronDownIcon />

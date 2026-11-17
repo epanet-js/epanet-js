@@ -781,6 +781,16 @@ type ScriptComposerOpened = {
   name: "script.composerOpened";
 };
 
+type ScriptAssistantUpgradeSeen = {
+  name: "script.assistantUpgradeSeen";
+  source: "composer" | "editor";
+};
+
+type ScriptAssistantUpgradeClicked = {
+  name: "script.assistantUpgradeClicked";
+  source: "composer" | "editor";
+};
+
 type ScriptGenerationRequested = {
   name: "script.generationRequested";
   kind: "write" | "update";
@@ -1646,6 +1656,8 @@ export type UserEvent =
   | ScriptLogCopied
   | ScriptErrorLineOpened
   | ScriptComposerOpened
+  | ScriptAssistantUpgradeSeen
+  | ScriptAssistantUpgradeClicked
   | ScriptGenerationRequested
   | ScriptGenerationFinished
   | RepoVisited

@@ -25,6 +25,7 @@ import {
   useIsTrialEmailRefused,
 } from "src/hooks/use-activate-trial";
 import { usePermissions } from "src/hooks/use-permissions";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { signUpUrl } from "src/global-config";
 import {
   ArrowLeftIcon,
@@ -293,6 +294,7 @@ const PricingProPlan = ({
   source: UpgradeOrigin;
 }) => {
   const translate = useTranslate();
+  const isScriptingAssistantOn = useFeatureFlag("FLAG_SCRIPTING_ASSISTANT");
   const { user, isSignedIn } = useAuth();
   const isTrialEmailRefused = useIsTrialEmailRefused();
   const canStartTrial =
@@ -324,6 +326,9 @@ const PricingProPlan = ({
               checkItem(translate("customAttributesItem")),
               checkItem(translate("pricingPlans.pro.customMapLayers")),
               checkItem(translate("scriptingItem")),
+              ...(isScriptingAssistantOn
+                ? [checkItem(translate("scriptingAssistantItem"))]
+                : []),
               checkItem(translate("professionalSupport")),
             ]}
           />
@@ -359,6 +364,7 @@ const PricingPersonalPlan = ({
   source: UpgradeOrigin;
 }) => {
   const translate = useTranslate();
+  const isScriptingAssistantOn = useFeatureFlag("FLAG_SCRIPTING_ASSISTANT");
 
   return (
     <div className="relative bg-base border border-purple-100 rounded-lg shadow-md shadow-purple-300 flex flex-col justify-between">
@@ -381,6 +387,15 @@ const PricingPersonalPlan = ({
             checkItem(translate("customAttributesItem")),
             checkItem(translate("pricingPlans.pro.customMapLayers")),
             checkItem(translate("scriptingItem")),
+            ...(isScriptingAssistantOn
+              ? [
+                  {
+                    feature: translate("scriptingAssistantItem"),
+                    Icon: CloseIcon,
+                    iconColor: "text-red-500",
+                  },
+                ]
+              : []),
             {
               feature: translate("professionalSupport"),
               Icon: CloseIcon,

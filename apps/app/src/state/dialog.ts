@@ -262,7 +262,8 @@ export type PaywallFeature =
   | "modelBuilder"
   | "convertModel"
   | "runScripts"
-  | "editScripts";
+  | "editScripts"
+  | "scriptAssistant";
 
 export type FeaturePaywallDialogState = {
   type: "featurePaywall";

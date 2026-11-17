@@ -1,9 +1,12 @@
 import * as Popover from "@radix-ui/react-popover";
 import clsx from "clsx";
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Button, StyledPopoverContent } from "src/components/elements";
 import { Callout, SelectorList } from "@epanet-js/ui-kit";
 import { useTranslate } from "src/hooks/use-translate";
+import { useStartUpgrade } from "src/hooks/use-paywall";
+import { useUserTracking } from "src/infra/user-tracking";
+import { UpgradeCard } from "src/components/form/paywall";
 import type {
   ScriptAssistantFailure,
   ScriptAssistantScope,
@@ -25,6 +28,40 @@ import {
 
 type Scope = ScriptAssistantScope;
 
+export const AssistantUpgrade = ({
+  source,
+}: {
+  source: "composer" | "editor";
+}) => {
+  const translate = useTranslate();
+  const startUpgrade = useStartUpgrade();
+  const userTracking = useUserTracking();
+
+  useEffect(() => {
+    userTracking.capture({ name: "script.assistantUpgradeSeen", source });
+  }, [userTracking, source]);
+
+  return (
+    <UpgradeCard
+      title={translate("scripting.assistant.upgrade.title")}
+      description={translate("scripting.assistant.upgrade.description")}
+    >
+      <Button
+        variant="primary"
+        onClick={() => {
+          userTracking.capture({
+            name: "script.assistantUpgradeClicked",
+            source,
+          });
+          startUpgrade("scriptAssistant");
+        }}
+      >
+        {translate("upgrade")}
+      </Button>
+    </UpgradeCard>
+  );
+};
+
 const MAX_GROWN_LINES = 5;
 
 const scopes: { value: Scope; available: boolean }[] = [
@@ -35,6 +72,7 @@ const scopes: { value: Scope; available: boolean }[] = [
 ];
 
 export const ScriptAssistant = ({
+  isLocked,
   onBack,
   onSend,
   onWriteMyself,
@@ -42,6 +80,7 @@ export const ScriptAssistant = ({
   failure,
   onStop,
 }: {
+  isLocked: boolean;
   onBack: () => void;
   onSend: (prompt: string, scope: Scope) => void;
   onWriteMyself: () => void;
@@ -79,26 +118,30 @@ export const ScriptAssistant = ({
               {translate("scripting.assistant.exampleExportCsv")}
             </Hint>
           </ul>
-          <AssistantComposer
-            label={translate("scripting.assistant.describeScript")}
-            placeholder={translate(
-              "scripting.assistant.describeScriptPlaceholder",
-            )}
-            submitLabel={translate("scripting.assistant.create")}
-            submitVariant="primary"
-            rows={3}
-            value={prompt}
-            onChange={setPrompt}
-            onSend={onSend}
-            busy={
-              generation && status !== null
-                ? { prompt: generation.prompt, status: status }
-                : null
-            }
-            onStop={onStop}
-            failure={failure}
-            autoFocus
-          />
+          {isLocked ? (
+            <AssistantUpgrade source="composer" />
+          ) : (
+            <AssistantComposer
+              label={translate("scripting.assistant.describeScript")}
+              placeholder={translate(
+                "scripting.assistant.describeScriptPlaceholder",
+              )}
+              submitLabel={translate("scripting.assistant.create")}
+              submitVariant="primary"
+              rows={3}
+              value={prompt}
+              onChange={setPrompt}
+              onSend={onSend}
+              busy={
+                generation && status !== null
+                  ? { prompt: generation.prompt, status: status }
+                  : null
+              }
+              onStop={onStop}
+              failure={failure}
+              autoFocus
+            />
+          )}
           <Button
             variant="default"
             size="sm"

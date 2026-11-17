@@ -318,6 +318,72 @@ describe("ScriptsPanel", () => {
       expect(screen.getByRole("button", { name: "Run" })).toBeEnabled();
     });
 
+    describe("during a trial", () => {
+      beforeEach(() => {
+        permissionsRef.current = resolvePermissions("free", true, false, false);
+      });
+
+      it("offers an upgrade instead of the assistant when creating a script", async () => {
+        const user = userEvent.setup();
+        const store = setInitialState({
+          hydraulicModel: HydraulicModelBuilder.with().build(),
+        });
+        renderPanel(store);
+
+        await user.click(screen.getByRole("button", { name: /new/i }));
+
+        expect(
+          screen.queryByRole("textbox", { name: "What should the script do?" }),
+        ).not.toBeInTheDocument();
+        expect(
+          screen.getByText("Write scripts faster with the assistant"),
+        ).toBeVisible();
+        expect(
+          screen.getByText(
+            "“Select every pipe at or below 100 mm and export them as CSV”",
+          ),
+        ).toBeVisible();
+
+        await user.click(screen.getByRole("button", { name: "Upgrade" }));
+        expect(startUpgrade).toHaveBeenLastCalledWith("scriptAssistant");
+
+        await user.click(
+          screen.getByRole("button", { name: "Write script myself" }),
+        );
+        expect(
+          screen.getByRole("textbox", { name: "Value for: Script name" }),
+        ).toHaveFocus();
+      });
+
+      it("offers an upgrade inside the editor's assistant section", async () => {
+        const user = userEvent.setup();
+        const store = setInitialState({
+          hydraulicModel: HydraulicModelBuilder.with().build(),
+        });
+        store.set(userScriptsAtom, [
+          { id: "1", name: "Saved", source: "", apiVersion: 1, updatedAt: 0 },
+        ]);
+        renderPanel(store);
+
+        await user.click(
+          screen.getByRole("button", { name: "More actions for Saved" }),
+        );
+        await user.click(screen.getByRole("menuitem", { name: "Edit" }));
+
+        expect(
+          screen.getByRole("button", {
+            name: "Paid feature: Scripting assistant",
+          }),
+        ).toBeVisible();
+        expect(
+          screen.queryByRole("textbox", { name: "Describe a change" }),
+        ).not.toBeInTheDocument();
+
+        await user.click(screen.getByRole("button", { name: "Upgrade" }));
+        expect(startUpgrade).toHaveBeenLastCalledWith("scriptAssistant");
+      });
+    });
+
     describe("while the assistant writes", () => {
       it("opens the written script in the editor", async () => {
         const user = userEvent.setup();

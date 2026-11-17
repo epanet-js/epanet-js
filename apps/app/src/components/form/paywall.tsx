@@ -121,6 +121,26 @@ export const PaywallOverlay = ({
   );
 };
 
+export const UpgradeCard = ({
+  title,
+  description,
+  className,
+  children,
+}: {
+  title: string;
+  description: string;
+  className?: string;
+  children: React.ReactNode;
+}) => (
+  <div
+    className={`rounded-lg border border-purple-200 bg-base p-4 shadow-md dark:border-purple-900 ${className ?? ""}`}
+  >
+    <h3 className="font-bold text-size-base">{title}</h3>
+    <p className="mt-1 mb-3 text-subtle text-size-base">{description}</p>
+    {children}
+  </div>
+);
+
 // Bordered CTA card explaining a paid feature, with an Upgrade button that opens
 // the paywall. Useful for list-shaped paywalls where a per-field lock icon
 // wouldn't convey that the whole list is gated.
@@ -160,9 +180,7 @@ export const PaywallUpgradeBox = ({
   };
 
   return (
-    <div className="mx-3 mb-3 rounded-lg border border-purple-200 bg-base p-4 shadow-md dark:border-purple-900">
-      <h3 className="font-bold text-size-base">{title}</h3>
-      <p className="mt-1 mb-3 text-subtle text-size-base">{description}</p>
+    <UpgradeCard title={title} description={description} className="mx-3 mb-3">
       {!canStartTrial ? (
         <Button variant="primary" onClick={openPaywall}>
           {translate("upgrade")}
@@ -189,6 +207,6 @@ export const PaywallUpgradeBox = ({
           </Button>
         </SignInButton>
       )}
-    </div>
+    </UpgradeCard>
   );
 };

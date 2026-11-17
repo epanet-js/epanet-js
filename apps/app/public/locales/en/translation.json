@@ -161,6 +161,10 @@
       "describeChange": "Describe a change",
       "describeChangePlaceholder": "Describe a change…",
       "writeMyself": "Write script myself",
+      "upgrade": {
+        "title": "Write scripts faster with the assistant",
+        "description": "Describe what you need and the scripting assistant writes the script for you."
+      },
       "writing": "Writing script…",
       "updating": "Updating script…",
       "progress": {
@@ -975,6 +979,7 @@
   "professionalSupport": "Professional support",
   "customAttributesItem": "Custom attributes",
   "scriptingItem": "Scripting",
+  "scriptingAssistantItem": "Scripting assistant",
   "customElevations": "Custom elevations sources",
   "scenariosItem": "Scenarios",
   "modelBuilderItem": "Model builder",

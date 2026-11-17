@@ -60,6 +60,7 @@ import { exampleNameKey } from "./example-names";
 import {
   AssistantComposer,
   AssistantFooter,
+  AssistantUpgrade,
   ScriptAssistant,
 } from "./script-assistant";
 import {
@@ -83,6 +84,7 @@ export const ScriptsPanel = () => {
   const [isComposing, setIsComposing] = useState(false);
   const isScriptingAssistantOn = useFeatureFlag("FLAG_SCRIPTING_ASSISTANT");
   const isAssistantOn = isScriptingAssistantOn && getScriptAssistant() !== null;
+  const { canUseScriptAssistant } = usePermissions();
   const { llmsPath, variant: docsVariant } = useScriptingDocs();
   const translate = useTranslate();
   const { locale } = useLocale();
@@ -167,6 +169,7 @@ export const ScriptsPanel = () => {
                 syntaxError,
                 sourceVersion,
                 isWrittenByAssistant,
+                isLocked: !canUseScriptAssistant,
                 onGenerate: handleUpdate,
                 onStop: stop,
               }
@@ -178,6 +181,7 @@ export const ScriptsPanel = () => {
   if (isComposing) {
     return (
       <ScriptAssistant
+        isLocked={!canUseScriptAssistant}
         onBack={() => {
           stop();
           setIsComposing(false);
@@ -509,6 +513,7 @@ type EditorAssistant = {
   syntaxError: ScriptSyntaxError | null;
   sourceVersion: number;
   isWrittenByAssistant: boolean;
+  isLocked: boolean;
   onGenerate: (
     prompt: string,
     scope: ScriptAssistantScope,
@@ -806,7 +811,7 @@ const ScriptEditor = ({
       </div>
       {assistant && (
         <section className="relative px-3 py-1 border-t bg-panel">
-          {isAssistantOpen && (
+          {isAssistantOpen && !assistant.isLocked && (
             <HeightResizer
               getBounds={() => {
                 const height = composerBoxRef.current?.offsetHeight ?? 0;
@@ -821,44 +826,62 @@ const ScriptEditor = ({
             />
           )}
           <CollapsibleSection
-            title={translate("scripting.assistant.title")}
+            title={
+              assistant.isLocked ? (
+                <>
+                  <span className="sr-only">{`${translate("paywall.tooltip")}: `}</span>
+                  {translate("scripting.assistant.title")}
+                </>
+              ) : (
+                translate("scripting.assistant.title")
+              )
+            }
+            trailing={
+              assistant.isLocked ? (
+                <PaywallLockIcon size="sm" className="text-subtle" />
+              ) : null
+            }
             open={isAssistantOpen}
             onOpenChange={toggleAssistant}
             autoIndent={false}
           >
             <div className="pb-2">
-              <AssistantComposer
-                label={translate("scripting.assistant.describeChange")}
-                placeholder={translate(
-                  "scripting.assistant.describeChangePlaceholder",
-                )}
-                submitLabel={translate("scripting.assistant.update")}
-                submitVariant="default"
-                rows={2}
-                value={composerText}
-                onChange={setComposerText}
-                onSend={(prompt, scope) => {
-                  if (isEditLocked) return openEditPaywall();
-                  void assistant
-                    .onGenerate(prompt, scope, draftRef.current.source)
-                    .then((applied) => {
-                      if (applied) setComposerText("");
-                    });
-                }}
-                busy={
-                  assistant.generation && generationStatus !== null
-                    ? {
-                        prompt: assistant.generation.prompt,
-                        status: generationStatus,
-                      }
-                    : null
-                }
-                onStop={assistant.onStop}
-                failure={assistant.failure}
-                syntaxError={assistant.syntaxError}
-                height={composerHeight}
-                boxRef={composerBoxRef}
-              />
+              {assistant.isLocked ? (
+                <AssistantUpgrade source="editor" />
+              ) : (
+                <AssistantComposer
+                  label={translate("scripting.assistant.describeChange")}
+                  placeholder={translate(
+                    "scripting.assistant.describeChangePlaceholder",
+                  )}
+                  submitLabel={translate("scripting.assistant.update")}
+                  submitVariant="default"
+                  rows={2}
+                  value={composerText}
+                  onChange={setComposerText}
+                  onSend={(prompt, scope) => {
+                    if (isEditLocked) return openEditPaywall();
+                    void assistant
+                      .onGenerate(prompt, scope, draftRef.current.source)
+                      .then((applied) => {
+                        if (applied) setComposerText("");
+                      });
+                  }}
+                  busy={
+                    assistant.generation && generationStatus !== null
+                      ? {
+                          prompt: assistant.generation.prompt,
+                          status: generationStatus,
+                        }
+                      : null
+                  }
+                  onStop={assistant.onStop}
+                  failure={assistant.failure}
+                  syntaxError={assistant.syntaxError}
+                  height={composerHeight}
+                  boxRef={composerBoxRef}
+                />
+              )}
             </div>
           </CollapsibleSection>
         </section>
