@@ -27,6 +27,7 @@ import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   getScriptAssistant,
   type ScriptAssistantFailure,
+  type ScriptSyntaxError,
   type ScriptAssistantScope,
 } from "src/lib/script-assistant";
 import { usePermissions } from "src/hooks/use-permissions";
@@ -90,29 +91,36 @@ export const ScriptsPanel = () => {
   const { generation, failure, generate, stop } = useScriptGeneration();
   const [sourceVersion, setSourceVersion] = useState(0);
   const [isWrittenByAssistant, setIsWrittenByAssistant] = useState(false);
+  const [syntaxError, setSyntaxError] = useState<ScriptSyntaxError | null>(
+    null,
+  );
 
   const openDraft = (next: ScriptDraft) => {
     stop();
     setIsComposing(false);
     setIsWrittenByAssistant(false);
+    setSyntaxError(null);
     setDraft(next);
   };
 
   const handleWrite = async (prompt: string, scope: ScriptAssistantScope) => {
-    const written = await generate({
+    const generated = await generate({
       prompt,
       source: "",
       scope,
       docsVariant,
       locale,
     });
-    if (!written) return;
+    if (!generated) return;
+    const { script } = generated;
     setIsComposing(false);
     setIsWrittenByAssistant(true);
+    setSyntaxError(generated.syntaxError);
+    const blank = newScriptDraft(translate, llmsPath);
     setDraft({
-      ...newScriptDraft(translate, llmsPath),
-      source: written.source,
-      name: written.name,
+      ...blank,
+      source: script.source,
+      name: script.name ?? blank.name,
     });
   };
 
@@ -121,16 +129,19 @@ export const ScriptsPanel = () => {
     scope: ScriptAssistantScope,
     source: string,
   ): Promise<boolean> => {
-    const written = await generate({
+    setSyntaxError(null);
+    const generated = await generate({
       prompt,
       source,
       scope,
       docsVariant,
       locale,
     });
-    if (!written) return false;
-    setDraft((current) => current && { ...current, source: written.source });
+    if (!generated) return false;
+    const { script } = generated;
+    setDraft((current) => current && { ...current, source: script.source });
     setIsWrittenByAssistant(true);
+    setSyntaxError(generated.syntaxError);
     setSourceVersion((version) => version + 1);
     return true;
   };
@@ -139,9 +150,13 @@ export const ScriptsPanel = () => {
     return (
       <ScriptEditor
         draft={draft}
-        onChange={setDraft}
+        onChange={(next) => {
+          if (next.source !== draft.source) setSyntaxError(null);
+          setDraft(next);
+        }}
         onClose={() => {
           stop();
+          setSyntaxError(null);
           setDraft(null);
         }}
         assistant={
@@ -149,6 +164,7 @@ export const ScriptsPanel = () => {
             ? {
                 generation,
                 failure,
+                syntaxError,
                 sourceVersion,
                 isWrittenByAssistant,
                 onGenerate: handleUpdate,
@@ -490,6 +506,7 @@ const ScriptList = ({
 type EditorAssistant = {
   generation: ScriptGeneration | null;
   failure: ScriptAssistantFailure | null;
+  syntaxError: ScriptSyntaxError | null;
   sourceVersion: number;
   isWrittenByAssistant: boolean;
   onGenerate: (
@@ -838,6 +855,7 @@ const ScriptEditor = ({
                 }
                 onStop={assistant.onStop}
                 failure={assistant.failure}
+                syntaxError={assistant.syntaxError}
                 height={composerHeight}
                 boxRef={composerBoxRef}
               />

@@ -793,6 +793,7 @@ type ScriptGenerationFinished = {
   kind: "write" | "update";
   status: "written" | "failed" | "stopped";
   reason: string;
+  syntax: "valid" | "repaired" | "invalid" | null;
   durationMs: number;
 };
 

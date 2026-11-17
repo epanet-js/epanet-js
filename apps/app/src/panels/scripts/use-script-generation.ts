@@ -6,8 +6,14 @@ import {
   getScriptAssistant,
   type ScriptAssistantFailure,
   type ScriptAssistantRequest,
+  type ScriptSyntaxError,
   type WrittenScript,
 } from "src/lib/script-assistant";
+
+export type GeneratedScript = {
+  script: WrittenScript;
+  syntaxError: ScriptSyntaxError | null;
+};
 
 export type ScriptGeneration = {
   prompt: string;
@@ -45,7 +51,9 @@ export const useScriptGeneration = () => {
   }, []);
 
   const generate = useCallback(
-    async (request: ScriptAssistantRequest): Promise<WrittenScript | null> => {
+    async (
+      request: ScriptAssistantRequest,
+    ): Promise<GeneratedScript | null> => {
       const assistant = getScriptAssistant();
       if (!assistant) return null;
 
@@ -57,12 +65,14 @@ export const useScriptGeneration = () => {
       const captureFinished = (
         status: "written" | "failed" | "stopped",
         reason = "",
+        syntax: "valid" | "repaired" | "invalid" | null = null,
       ) =>
         userTracking.capture({
           name: "script.generationFinished",
           kind,
           status,
           reason,
+          syntax,
           durationMs: Math.round(performance.now() - startedAt),
         });
 
@@ -86,8 +96,13 @@ export const useScriptGeneration = () => {
           return null;
         }
         if (result.status === "written") {
-          captureFinished("written");
-          return result.script;
+          const { script, syntaxError, repaired } = result;
+          captureFinished(
+            "written",
+            "",
+            syntaxError ? "invalid" : repaired ? "repaired" : "valid",
+          );
+          return { script, syntaxError };
         }
 
         captureFinished("failed", result.reason);

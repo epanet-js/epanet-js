@@ -35,6 +35,7 @@ import {
   registerScriptAssistant,
   type ScriptAssistantFailure,
   type ScriptAssistantRequest,
+  type ScriptSyntaxError,
   type WrittenScript,
 } from "src/lib/script-assistant";
 
@@ -49,7 +50,10 @@ const writes: {
   request: ScriptAssistantRequest;
   signal: AbortSignal;
   token: string | null;
-  resolve: (written: WrittenScript) => void;
+  resolve: (
+    written: WrittenScript,
+    syntaxError?: ScriptSyntaxError | null,
+  ) => void;
   fail: (
     reason: ScriptAssistantFailure,
     detail: string,
@@ -179,7 +183,13 @@ describe("ScriptsPanel", () => {
               request,
               signal,
               token,
-              resolve: (script) => resolve({ status: "written", script }),
+              resolve: (script, syntaxError = null) =>
+                resolve({
+                  status: "written",
+                  script,
+                  syntaxError,
+                  repaired: false,
+                }),
               fail: (reason, detail, httpStatus) =>
                 resolve({ status: "failed", reason, detail, httpStatus }),
               reject,
@@ -404,6 +414,43 @@ describe("ScriptsPanel", () => {
         );
         await user.click(screen.getByRole("button", { name: "Create" }));
       };
+
+      it("names a script the assistant left unnamed", async () => {
+        await sendDescription();
+
+        writes[0].resolve({ source: "run();", name: null });
+
+        expect(
+          await screen.findByRole("textbox", {
+            name: "Value for: Script name",
+          }),
+        ).toHaveValue("Untitled script");
+      });
+
+      it("warns of a syntax error left in the script until it is edited", async () => {
+        const user = userEvent.setup();
+        await sendDescription();
+
+        writes[0].resolve(
+          { source: "run(;", name: "Broken" },
+          { message: "Unexpected token", line: 1, column: 5 },
+        );
+
+        expect(
+          await screen.findByText("This script has a syntax error"),
+        ).toBeVisible();
+        expect(
+          screen.getByText(
+            "Line 1, column 5. Describe the fix, or edit the script.",
+          ),
+        ).toBeVisible();
+
+        await user.type(screen.getByRole("textbox", { name: "Source" }), ")");
+
+        expect(
+          screen.queryByText("This script has a syntax error"),
+        ).not.toBeInTheDocument();
+      });
 
       describe("as time passes", () => {
         beforeEach(() => {

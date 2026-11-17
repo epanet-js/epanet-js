@@ -7,6 +7,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import type {
   ScriptAssistantFailure,
   ScriptAssistantScope,
+  ScriptSyntaxError,
 } from "src/lib/script-assistant";
 import type { ScriptGeneration } from "./use-script-generation";
 import { useGenerationStatus } from "./use-generation-status";
@@ -19,6 +20,7 @@ import {
   StopIcon,
   TipIcon,
   VisibilityOnIcon,
+  WarningIcon,
 } from "src/icons";
 
 type Scope = ScriptAssistantScope;
@@ -128,6 +130,7 @@ export const AssistantComposer = ({
   height = null,
   boxRef,
   failure,
+  syntaxError = null,
 }: {
   label: string;
   placeholder: string;
@@ -143,6 +146,7 @@ export const AssistantComposer = ({
   height?: number | null;
   boxRef?: React.Ref<HTMLDivElement>;
   failure: ScriptAssistantFailure | null;
+  syntaxError?: ScriptSyntaxError | null;
 }) => {
   const translate = useTranslate();
   const [scope, setScope] = useState<Scope>("script");
@@ -242,6 +246,19 @@ export const AssistantComposer = ({
           title={translate(`scripting.assistant.failures.${failure}.title`)}
           description={translate(
             `scripting.assistant.failures.${failure}.description`,
+          )}
+          className="mt-2 rounded-md"
+        />
+      )}
+      {syntaxError && (
+        <Callout
+          variant="warning"
+          Icon={WarningIcon}
+          title={translate("scripting.assistant.syntaxError.title")}
+          description={translate(
+            "scripting.assistant.syntaxError.description",
+            String(syntaxError.line),
+            String(syntaxError.column),
           )}
           className="mt-2 rounded-md"
         />

@@ -15,7 +15,13 @@ export type ScriptAssistantRequest = {
   locale: Locale;
 };
 
-export type WrittenScript = { source: string; name: string };
+export type WrittenScript = { source: string; name: string | null };
+
+export type ScriptSyntaxError = {
+  message: string;
+  line: number;
+  column: number;
+};
 
 export type ScriptAssistantFailure =
   | "signedOut"
@@ -26,7 +32,12 @@ export type ScriptAssistantFailure =
   | "unavailable";
 
 export type ScriptAssistantResult =
-  | { status: "written"; script: WrittenScript }
+  | {
+      status: "written";
+      script: WrittenScript;
+      syntaxError: ScriptSyntaxError | null;
+      repaired: boolean;
+    }
   | {
       status: "failed";
       reason: ScriptAssistantFailure;

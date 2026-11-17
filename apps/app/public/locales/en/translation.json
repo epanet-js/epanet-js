@@ -225,6 +225,10 @@
           "title": "We couldn't write the script",
           "description": "Try again. If the error persists, contact support."
         }
+      },
+      "syntaxError": {
+        "title": "This script has a syntax error",
+        "description": "Line {{1}}, column {{2}}. Describe the fix, or edit the script."
       }
     },
     "paywall": {
