@@ -263,7 +263,8 @@ export type PaywallFeature =
   | "convertModel"
   | "runScripts"
   | "editScripts"
-  | "scriptAssistant";
+  | "scriptAssistant"
+  | "sensorData";
 
 export type FeaturePaywallDialogState = {
   type: "featurePaywall";

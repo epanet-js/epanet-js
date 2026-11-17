@@ -13,6 +13,7 @@ describe("resolvePermissions", () => {
     expect(p.canUsePipeLibrary).toBe(false);
     expect(p.canUseCustomAttributes).toBe(false);
     expect(p.canImportSynergi).toBe(false);
+    expect(p.canImportSensorData).toBe(false);
     expect(p.canUpgrade).toBe(true);
     expect(p.canManageOrganization).toBe(false);
   });
@@ -29,6 +30,7 @@ describe("resolvePermissions", () => {
       expect(p.canUsePipeLibrary).toBe(true);
       expect(p.canUseCustomAttributes).toBe(true);
       expect(p.canImportSynergi).toBe(true);
+      expect(p.canImportSensorData).toBe(true);
       expect(p.canUpgrade).toBe(false);
       expect(p.canManageOrganization).toBe(false);
     },
@@ -37,6 +39,7 @@ describe("resolvePermissions", () => {
   it("education plan has paid features but not early-access features", () => {
     const p = resolvePermissions("education", false, false, false);
     expect(p.canAddCustomLayers).toBe(true);
+    expect(p.canImportSensorData).toBe(true);
     expect(p.canUseScenarios).toBe(true);
     expect(p.canUseElevations).toBe(true);
     expect(p.canUsePipeAttributes).toBe(true);
@@ -55,6 +58,7 @@ describe("resolvePermissions", () => {
     expect(p.canValidateModelAttributes).toBe(true);
     expect(p.canUseCustomAttributes).toBe(true);
     expect(p.canImportSynergi).toBe(true);
+    expect(p.canImportSensorData).toBe(true);
     expect(p.canUpgrade).toBe(true);
     expect(p.canManageOrganization).toBe(false);
   });
@@ -65,6 +69,7 @@ describe("resolvePermissions", () => {
     expect(p.canUsePipeLibrary).toBe(true);
     expect(p.canUseCustomAttributes).toBe(true);
     expect(p.canUseScenarios).toBe(true);
+    expect(p.canImportSensorData).toBe(true);
     expect(p.canAddCustomLayers).toBe(false);
     expect(p.canUseElevations).toBe(false);
     expect(p.canValidateModelAttributes).toBe(false);

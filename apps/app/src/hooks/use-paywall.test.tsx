@@ -14,6 +14,7 @@ const defaultPermissions: Permissions = {
   canUseCustomAttributes: false,
   canManageCollections: false,
   canImportSynergi: false,
+  canImportSensorData: false,
   canRunScripts: false,
   canEditScripts: false,
   canUseScriptAssistant: false,
@@ -114,5 +115,20 @@ describe("usePaywall", () => {
       type: "featurePaywall",
       feature: "convertModel",
     });
+  });
+
+  it("returns the featurePaywall dialog for sensorData when locked", () => {
+    expect(captureDialog("sensorData")).toEqual({
+      type: "featurePaywall",
+      feature: "sensorData",
+    });
+  });
+
+  it("returns null for sensorData when the user has the permission", () => {
+    permissionsRef.current = {
+      ...defaultPermissions,
+      canImportSensorData: true,
+    };
+    expect(captureDialog("sensorData")).toBeNull();
   });
 });

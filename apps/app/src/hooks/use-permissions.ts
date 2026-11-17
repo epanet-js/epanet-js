@@ -18,6 +18,7 @@ export type Permissions = {
   canUseCustomAttributes: boolean;
   canManageCollections: boolean;
   canImportSynergi: boolean;
+  canImportSensorData: boolean;
   canRunScripts: boolean;
   canEditScripts: boolean;
   canUseScriptAssistant: boolean;
@@ -46,6 +47,7 @@ export const resolvePermissions = (
     canUseCustomAttributes: hasPaidAccess || isDemoNetwork,
     canManageCollections: hasPaidAccess || isDemoNetwork,
     canImportSynergi: hasPaidAccess,
+    canImportSensorData: hasPaidAccess || isDemoNetwork,
     canRunScripts: hasPaidAccess || isDemoNetwork,
     canEditScripts: hasPaidAccess || isDemoNetwork,
     canUseScriptAssistant: (plan === "pro" && !trialActive) || plan === "teams",

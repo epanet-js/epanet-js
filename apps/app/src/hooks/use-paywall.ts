@@ -74,6 +74,10 @@ const FEATURE_CONFIG: Record<PaywallFeature, FeatureConfig> = {
     permission: "canUseScriptAssistant",
     dialog: { type: "upgrade", feature: "scriptAssistant" },
   },
+  sensorData: {
+    permission: "canImportSensorData",
+    dialog: { type: "featurePaywall", feature: "sensorData" },
+  },
 };
 
 // Pure routing: the dialog that starts the upgrade flow for a feature,

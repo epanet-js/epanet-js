@@ -71,6 +71,7 @@ import { CustomAttributesPaywallConnector } from "src/dialogs/paywall/custom-att
 import { ConvertModelPaywallConnector } from "src/dialogs/paywall/convert-model-connector";
 import { ModelBuilderPaywallConnector } from "src/dialogs/paywall/model-builder-connector";
 import { ScriptingPaywallConnector } from "src/dialogs/paywall/scripting-connector";
+import { SensorDataPaywallConnector } from "src/dialogs/paywall/sensor-data-connector";
 import { ElevationTileErrorsDialog } from "src/dialogs/elevation-tile-errors";
 import { GisImportErrorsDialog } from "src/dialogs/gis-import-errors";
 import { ActivatingTrialDialog } from "src/dialogs/activating-trial";
@@ -327,6 +328,9 @@ export const Dialogs = memo(function Dialogs() {
       return (
         <ScriptingPaywallConnector feature={dialog.feature} onClose={onClose} />
       );
+    }
+    if (dialog.feature === "sensorData") {
+      return <SensorDataPaywallConnector onClose={onClose} />;
     }
     return <ElevationsPaywallConnector onClose={onClose} />;
   }

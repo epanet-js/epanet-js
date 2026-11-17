@@ -122,6 +122,7 @@ import {
   SlidersHorizontal,
   InfinityIcon as Infinite,
   Gauge,
+  Radio,
   Bot,
   Sparkles,
   Lightbulb,
@@ -302,6 +303,7 @@ export const TableIcon = icon(Table);
 export const CustomAttributesIcon = icon(ListPlus);
 export const SelectPathIcon = icon(SquareDashedMousePointer);
 export const ChartLineIcon = icon(ChartLine);
+export const SensorsIcon = icon(Radio);
 export const PipeLibraryIcon = icon(BookText);
 export const NetworkReviewIcon = icon(ListChecks);
 export const BookmarkIcon = icon(Bookmark);

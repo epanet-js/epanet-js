@@ -19,6 +19,7 @@ const defaultPermissions: Permissions = {
   canUseCustomAttributes: false,
   canManageCollections: false,
   canImportSynergi: false,
+  canImportSensorData: false,
   canRunScripts: false,
   canEditScripts: false,
   canUseScriptAssistant: false,
