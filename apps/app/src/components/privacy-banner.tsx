@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Trans } from "react-i18next";
 import { useAuth } from "src/hooks/use-auth";
 import {
   type PrivacyPreferences,
@@ -147,12 +148,12 @@ const PreferencesView = ({
             <h3 className="text-size-base font-semibold text-default mb-1">
               {translate("privacyBanner.productAnalyticsTitle")}
             </h3>
-            <p
-              className="text-size-base text-default"
-              dangerouslySetInnerHTML={{
-                __html: translate("privacyBanner.productAnalyticsDescription"),
-              }}
-            />
+            <p className="text-size-base text-default">
+              <Trans
+                i18nKey="privacyBanner.productAnalyticsDescription"
+                components={{ strong: <strong /> }}
+              />
+            </p>
           </div>
           <div className="shrink-0">
             <StyledSwitch
