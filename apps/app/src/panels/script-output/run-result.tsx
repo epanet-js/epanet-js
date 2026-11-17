@@ -223,15 +223,15 @@ const AttachmentItem = ({ attachment }: { attachment: ScriptAttachment }) => {
         size="sm"
         onClick={() => downloadAttachment(attachment)}
         aria-label={`${translate("scripting.download")}: ${attachment.name}`}
-        className="flex-1 min-w-0 self-stretch justify-start hover:bg-transparent dark:hover:bg-transparent"
+        className="group flex-1 min-w-0 self-stretch justify-start hover:bg-transparent dark:hover:bg-transparent"
       >
-        <DownloadIcon size="sm" />
-        <span className="truncate" title={attachment.name}>
+        <span className="truncate font-normal" title={attachment.name}>
           {attachment.name}
         </span>
-        <span className="ml-auto shrink-0 font-normal text-subtle tabular-nums">
+        <span className="shrink-0 font-normal text-subtle tabular-nums">
           {formatSize(attachment.content.length)}
         </span>
+        <DownloadIcon className="ml-auto" />
       </Button>
     </li>
   );
