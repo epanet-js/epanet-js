@@ -109,11 +109,13 @@ export const PipeLibraryDialog = () => {
           </div>
           <div className="flex-1 flex flex-col min-h-0 w-full">
             {importOutcome && (
-              <ImportOutcomeReport
-                outcome={importOutcome}
-                translationKeys={IMPORT_KEYS}
-                onDismiss={handleDismissImportOutcome}
-              />
+              <div className="p-3 pl-0">
+                <ImportOutcomeReport
+                  outcome={importOutcome}
+                  translationKeys={IMPORT_KEYS}
+                  onDismiss={handleDismissImportOutcome}
+                />
+              </div>
             )}
             {selectedMaterial ? (
               <>

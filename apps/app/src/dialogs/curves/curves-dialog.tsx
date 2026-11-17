@@ -301,11 +301,13 @@ export const CurveLibraryDialog = ({
           </div>
           <div className="flex-1 flex flex-col min-h-0 w-full">
             {importOutcome && (
-              <ImportOutcomeReport
-                outcome={importOutcome}
-                translationKeys={CURVES_IMPORT_KEYS}
-                onDismiss={() => setImportOutcome(null)}
-              />
+              <div className="p-3 pl-0">
+                <ImportOutcomeReport
+                  outcome={importOutcome}
+                  translationKeys={CURVES_IMPORT_KEYS}
+                  onDismiss={() => setImportOutcome(null)}
+                />
+              </div>
             )}
             {selectedCurveId ? (
               (() => {
