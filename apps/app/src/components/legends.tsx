@@ -15,7 +15,7 @@ import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useState } from "react";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import clsx from "clsx";
-import { ChevronDownIcon, ChevronRightIcon, WarningIcon } from "src/icons";
+import { ChevronDownIcon, ChevronRightIcon } from "src/icons";
 
 export const Legends = () => {
   const nodeSymbology = useAtomValue(nodeSymbologyAtom);
@@ -90,11 +90,8 @@ const Legend = ({
         </div>
         {isExpanded &&
           (isUnavailable ? (
-            <div className="flex items-start gap-1 text-size-base select-none">
-              <span className="flex h-5 shrink-0 items-center">
-                <WarningIcon className="text-warning" />
-              </span>
-              <span>{translate("mapThemes.legendUnavailable")}</span>
+            <div className="text-size-base text-subtle select-none">
+              {translate("notAvailable")}
             </div>
           ) : (
             <LegendRamp colorRule={symbology} />

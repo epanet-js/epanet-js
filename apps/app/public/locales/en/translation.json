@@ -2309,7 +2309,6 @@
     "deleteDescription": "The “{{1}}” theme will be deleted.",
     "newThemeName": "New theme",
     "copyName": "{{1}} copy",
-    "legendUnavailable": "Run a simulation to see results",
     "basemapStyle": "Style",
     "basemapOpacity": "Opacity"
   }
