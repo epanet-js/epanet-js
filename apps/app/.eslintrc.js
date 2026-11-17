@@ -187,6 +187,7 @@ module.exports = {
         "src/panels/panel-template.tsx",
         "src/panels/activity-bar/**",
         "src/panels/bottom-dock/**",
+        "src/panels/dock-tabs/**",
         "src/panels/left-dock/**",
         "src/panels/right-dock/**",
         "src/panels/vertical-dock/**",

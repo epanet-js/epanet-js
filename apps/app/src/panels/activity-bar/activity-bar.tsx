@@ -1,14 +1,7 @@
-import { memo, useCallback } from "react";
+import { memo } from "react";
 import { useAtomValue } from "jotai";
 import { selectAtom } from "jotai/utils";
-import {
-  DndContext,
-  PointerSensor,
-  closestCenter,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-} from "@dnd-kit/core";
+import { DndContext, closestCenter } from "@dnd-kit/core";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import {
   SortableContext,
@@ -19,10 +12,10 @@ import { RailTabList } from "src/components/rail-tab";
 import { useTranslate } from "src/hooks/use-translate";
 import { activePanelIn, panelsIn } from "src/state/panels";
 import { splitsAtom } from "src/state/layout";
-import { useReorderPanel } from "src/commands/reorder-panel";
 import { useToggleLeftPanelTab } from "src/commands/toggle-left-panel-tab";
 import { PanelIcon, panelLabel } from "../panel-template";
 import { PanelRailTab } from "./panel-rail-tab";
+import { useTabReorder } from "../dock-tabs/dock-tabs";
 
 const leftPanelsAtom = panelsIn("left");
 const activeLeftPanelAtom = activePanelIn("left");
@@ -33,20 +26,8 @@ export const ActivityBar = memo(function ActivityBarInner() {
   const activePanel = useAtomValue(activeLeftPanelAtom);
   const isOpen = useAtomValue(leftOpenAtom);
   const translate = useTranslate();
-  const reorderPanel = useReorderPanel();
   const toggleTab = useToggleLeftPanelTab();
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
-  );
-
-  const handleDragEnd = useCallback(
-    ({ active, over }: DragEndEvent) => {
-      if (!over || active.id === over.id) return;
-      reorderPanel(String(active.id), String(over.id));
-    },
-    [reorderPanel],
-  );
+  const { sensors, onDragEnd } = useTabReorder();
 
   if (panels.length < 2) return null;
 
@@ -61,7 +42,7 @@ export const ActivityBar = memo(function ActivityBarInner() {
         sensors={sensors}
         collisionDetection={closestCenter}
         modifiers={[restrictToVerticalAxis]}
-        onDragEnd={handleDragEnd}
+        onDragEnd={onDragEnd}
       >
         <RailTabList>
           <SortableContext
