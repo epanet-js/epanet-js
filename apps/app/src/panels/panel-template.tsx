@@ -119,19 +119,4 @@ export const PanelIcon = ({ panel }: { panel: Panel }) => {
   return <Icon panel={panel} />;
 };
 
-export const contentStateFor = <T extends PanelType>(
-  states: Record<string, PanelContentState>,
-  panelId: string,
-  _panelType: T,
-): PanelContentStateByType[T] | undefined =>
-  states[panelId] as PanelContentStateByType[T] | undefined;
-
-export const withContentState = <T extends PanelType>(
-  states: Record<string, PanelContentState>,
-  panelId: string,
-  _panelType: T,
-  contentState: PanelContentStateByType[T],
-): Record<string, PanelContentState> => ({
-  ...states,
-  [panelId]: contentState,
-});
+export { contentStateFor, withContentState } from "./panel-content-state";

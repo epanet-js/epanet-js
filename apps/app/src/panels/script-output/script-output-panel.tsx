@@ -10,7 +10,10 @@ import {
 import type { ScriptRunOutcome } from "src/lib/scripting";
 import { useGoToScriptLine } from "src/commands/go-to-script-line";
 import { panelContentStateAtom } from "src/state/panels";
-import { contentStateFor, withContentState } from "src/panels/panel-template";
+import {
+  contentStateFor,
+  withContentState,
+} from "src/panels/panel-content-state";
 import { accumulateResize } from "src/components/resizer";
 import { useTranslate } from "src/hooks/use-translate";
 import { Button } from "src/components/elements";

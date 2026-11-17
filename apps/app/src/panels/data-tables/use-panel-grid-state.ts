@@ -1,11 +1,11 @@
 import { useSetAtom, useStore } from "jotai";
 import { useCallback, useRef } from "react";
 import type { PanelType } from "src/panels/panel";
+import type { PanelContentStateByType } from "src/panels/panel-template";
 import {
-  type PanelContentStateByType,
   contentStateFor,
   withContentState,
-} from "src/panels/panel-template";
+} from "src/panels/panel-content-state";
 import { panelContentStateAtom } from "src/state/panels";
 
 export const usePanelGridState = <T extends PanelType>(

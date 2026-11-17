@@ -181,6 +181,35 @@ module.exports = {
       },
     },
     {
+      // panel-template imports every panel: a runtime import back is a cycle.
+      files: ["src/panels/**/*.ts", "src/panels/**/*.tsx"],
+      excludedFiles: [
+        "src/panels/panel-template.tsx",
+        "src/panels/activity-bar/**",
+        "src/panels/bottom-dock/**",
+        "src/panels/left-dock/**",
+        "src/panels/right-dock/**",
+        "src/panels/vertical-dock/**",
+        "**/*.test.ts",
+        "**/*.test.tsx",
+      ],
+      rules: {
+        "@typescript-eslint/no-restricted-imports": [
+          "error",
+          {
+            patterns: [
+              {
+                group: ["src/panels/panel-template", "**/panel-template"],
+                allowTypeImports: true,
+                message:
+                  "Circular import: import types only. Content-state helpers are in panel-content-state.",
+              },
+            ],
+          },
+        ],
+      },
+    },
+    {
       files: ["./vendor/*/*"],
       rules: {
         complexity: 0,
