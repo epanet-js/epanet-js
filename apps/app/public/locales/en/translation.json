@@ -2202,6 +2202,70 @@
       "deleteAndImport": "Delete and import"
     }
   },
+  "sensorData": {
+    "menuEntry": "Sensor data",
+    "paywall": {
+      "title": "Upgrade to import sensor data",
+      "description1": "Import the readings from your field sensors and see them next to your simulation results.",
+      "description2": "Compare measured and simulated values for any asset to check how well your model matches reality.",
+      "plans": "Sensor data import is available on paid plans.",
+      "trial": "Sensor data import is a paid feature. Activate your free trial to get full access for 14 days—no credit card required."
+    },
+    "import": {
+      "title": "Import sensor data",
+      "importAction": "Import",
+      "removeFile": "Remove file",
+      "sessionNote": "Sensor data is kept for this session only. It is not saved in the project file.",
+      "format": {
+        "title": "File format",
+        "columns": "One row per sensor, with the columns Sensor name, Type and Asset label, followed by the readings. Type is what the sensor measures, such as pressure, head, demand, level, flow or velocity, and must be one the asset supports.",
+        "readings": "Each reading is matched to a report time step of the simulation, starting at 0:00. Readings must be complete, with no gaps, and in the project units."
+      },
+      "preview": {
+        "sensor": "Sensor",
+        "type": "Type",
+        "asset": "Asset",
+        "readings": "Readings",
+        "previewMore": "... and {{1}} more"
+      },
+      "warningDialog": {
+        "explain": "Your current sensor data will be deleted and replaced with the sensors from your new import.",
+        "question": "Are you sure you want to proceed?",
+        "deleteAndImport": "Delete and import"
+      },
+      "toast": {
+        "title": "Sensor data imported",
+        "imported_one": "{{count}} sensor imported",
+        "imported_other": "{{count}} sensors imported",
+        "importedAndSkipped_one": "{{count}} sensor imported, {{1}} skipped",
+        "importedAndSkipped_other": "{{count}} sensors imported, {{1}} skipped"
+      },
+      "readyToImport": "Ready to import",
+      "readyWithWarnings": "Ready to import, with warnings",
+      "issuesFound": "Found issues in the file",
+      "nothingToImport": "No sensors can be imported",
+      "added": "{{1}} to import",
+      "ignored": "{{1}} skipped",
+      "issues": "Issues",
+      "atRow": "{{1}} (row {{2}})",
+      "atRows": "{{1}} (rows {{2}})",
+      "andMoreRows": "{{1}} and {{2}} more",
+      "missingName": "Missing sensor name. Sensor skipped",
+      "duplicateName": "Duplicate sensor name. Later rows skipped",
+      "noReadings": "No readings. Sensor skipped",
+      "invalidReading": "Missing or invalid reading. Sensor skipped",
+      "missingAsset": "Missing asset label. Sensor skipped",
+      "assetNotFound": "Asset not found in the model. Sensor skipped",
+      "missingType": "Missing sensor type. Sensor skipped",
+      "unsupportedType": "Sensor type not supported by the asset. Sensor skipped",
+      "ambiguousAsset": "Asset label shared by a node and a link that both support the sensor type. Sensor skipped",
+      "duplicateSensorOnAsset": "The asset already has a sensor of this type. Sensor skipped",
+      "readingsDontCoverDuration": "Readings do not cover the simulation duration exactly. Sensors imported anyway; review the file or the time settings of the simulation",
+      "notAValidSensorFile": "This does not look like a sensor data file. Expected columns are Sensor name, Type, Asset label and Readings.",
+      "unsupportedFormat": "Only .csv and .xlsx files can be imported",
+      "unreadableFile": "The selected file could not be read."
+    }
+  },
   "pipeLibrary": {
     "menuLabel": "Pipe library",
     "issues": "Issues",

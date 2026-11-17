@@ -124,6 +124,15 @@ export type ImportCustomerPointsWizardState = {
   type: "importCustomerPointsWizard";
 };
 
+export type ImportSensorDataDialogState = {
+  type: "importSensorData";
+};
+
+export type ImportSensorDataWarningDialogState = {
+  type: "importSensorDataWarning";
+  onContinue: () => void;
+};
+
 export type ImportCustomerPointsWarningDialogState = {
   type: "importCustomerPointsWarning";
   onContinue: () => void;
@@ -401,6 +410,8 @@ export type DialogState =
   | UpgradeDialogState
   | ImportCustomerPointsWizardState
   | ImportCustomerPointsWarningDialogState
+  | ImportSensorDataDialogState
+  | ImportSensorDataWarningDialogState
   | PreSimulationChecksDialogState
   | UnexpectedErrorDialogState
   | ChangeNotAppliedDialogState

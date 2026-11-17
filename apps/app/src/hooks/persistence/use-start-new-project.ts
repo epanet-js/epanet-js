@@ -105,6 +105,7 @@ import {
   type UserScript,
 } from "src/state/scripts";
 import { resetPanelsAtom } from "src/state/panels";
+import { sensorsAtom } from "src/state/sensor-data";
 import type { Panel } from "src/panels/panel";
 import { useDefaultPanels } from "src/panels/use-default-panels";
 import { contentViewAtom } from "src/state/content-view";
@@ -137,6 +138,7 @@ export const resetAppState = (set: Setter, panels: Panel[]) => {
   set(modeAtom, { mode: Mode.NONE });
   set(hglProfileAtom, null);
   set(resetPanelsAtom, panels);
+  set(sensorsAtom, []);
   set(ephemeralStateAtom, { type: "none" });
   set(pipeDrawingDefaultsAtom, {});
   set(autoElevationsAtom, true);

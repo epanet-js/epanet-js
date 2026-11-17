@@ -395,7 +395,7 @@ body.dark .mapboxgl-ctrl-attrib-button {
 }
 
 .scroll-shadows::before {
-  top: 0;
+  top: var(--scroll-shadow-top, 0px);
   margin-top: calc(-1 * var(--scroll-shadow-inset, 0px));
   margin-bottom: calc(var(--scroll-shadow-inset, 0px) - 10px);
   background: radial-gradient(farthest-side at 50% 0, rgba(0, 0, 0, 0.12), transparent);

@@ -878,6 +878,24 @@ type ImportCustomerPointsStarted = {
   source: string;
 };
 
+type SensorDataImportStarted = {
+  name: "sensorData.importStarted";
+  source: string;
+};
+
+type SensorDataImported = {
+  name: "sensorData.imported";
+  sensorsCount: number;
+  skippedCount: number;
+  typeCounts: Record<string, number>;
+  hasTimingWarning: boolean;
+};
+
+type SensorDataImportRefused = {
+  name: "sensorData.importRefused";
+  reason: string;
+};
+
 type ImportZonesStarted = {
   name: "importZones.started";
   source: string;
@@ -1701,6 +1719,9 @@ export type UserEvent =
   | ImportZonesWarningDialogProceed
   | ImportZonesWarningDialogCancel
   | ImportZonesStarted
+  | SensorDataImportStarted
+  | SensorDataImported
+  | SensorDataImportRefused
   | ImportZonesWizardNext
   | ImportZonesWizardBack
   | ImportZonesWizardCancel

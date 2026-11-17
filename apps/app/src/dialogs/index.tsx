@@ -41,6 +41,8 @@ import { ScriptRunDialog } from "src/dialogs/script-run";
 import { UnexpectedErrorDialog } from "src/dialogs/unexpected-error";
 import { ChangeNotAppliedDialog } from "src/dialogs/change-not-applied";
 import { ImportCustomerPointsWizard } from "src/dialogs/import-customer-points-wizard";
+import { ImportSensorDataDialog } from "src/dialogs/import-sensor-data";
+import { ImportSensorDataWarningDialog } from "src/dialogs/import-sensor-data-warning";
 import { EarlyAccessDialog } from "src/dialogs/early-access";
 import { ImportCustomerPointsWarningDialog } from "src/dialogs/import-customer-points-warning";
 import { ImportZonesWarningDialog } from "src/dialogs/import-zones-warning";
@@ -200,6 +202,17 @@ export const Dialogs = memo(function Dialogs() {
   }
   if (dialog.type === "importCustomerPointsWizard") {
     return <ImportCustomerPointsWizard isOpen={true} onClose={onClose} />;
+  }
+  if (dialog.type === "importSensorData") {
+    return <ImportSensorDataDialog onClose={onClose} />;
+  }
+  if (dialog.type === "importSensorDataWarning") {
+    return (
+      <ImportSensorDataWarningDialog
+        onContinue={dialog.onContinue}
+        onClose={onClose}
+      />
+    );
   }
   if (dialog.type === "allocateCustomerPoints") {
     return <AllocateCustomerPointsDialog isOpen={true} onClose={onClose} />;

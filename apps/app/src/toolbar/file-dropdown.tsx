@@ -21,6 +21,7 @@ import {
   FolderInputIcon,
   FolderOutputIcon,
   ZonesIcon,
+  SensorsIcon,
 } from "src/icons";
 import { useAtomValue, useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
@@ -41,6 +42,7 @@ import { useAuth } from "src/hooks/use-auth";
 import { useTranslate } from "src/hooks/use-translate";
 import { useOpenCustomerPointsImport } from "src/commands/open-customer-points-import";
 import { useOpenZonesImport } from "src/commands/open-zones-import";
+import { useOpenSensorDataImport } from "src/commands/open-sensor-data-import";
 import { useImportZonesDisabled } from "src/hooks/use-import-zones-disabled";
 import { useImportCustomerPointsDisabled } from "src/hooks/use-import-customer-points-disabled";
 import { useRecentFiles } from "src/hooks/use-recent-files";
@@ -269,9 +271,30 @@ const ImportSubmenu = () => {
             <ZonesIcon />
             {translate("importZones.menuTitle")}
           </StyledItem>
+
+          <SensorDataItem />
         </DDSubContent>
       </DD.Portal>
     </DD.Sub>
+  );
+};
+
+const SensorDataItem = () => {
+  const isSensorDataOn = useFeatureFlag("FLAG_SENSOR_DATA");
+  const openSensorDataImport = useOpenSensorDataImport();
+  const translate = useTranslate();
+
+  if (!isSensorDataOn) return null;
+
+  return (
+    <StyledItem
+      onSelect={() => {
+        openSensorDataImport({ source: "toolbar" });
+      }}
+    >
+      <SensorsIcon />
+      {translate("sensorData.menuEntry")}
+    </StyledItem>
   );
 };
 
