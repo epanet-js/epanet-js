@@ -10,26 +10,12 @@ const fromSchema =
   (value: unknown): boolean =>
     schema.safeParse(value).success;
 
-const range = ({
-  min,
-  max,
-  int = false,
-}: {
-  min?: number;
-  max?: number;
-  int?: boolean;
-}): ((value: unknown) => boolean) => {
-  let schema = int ? z.number().int() : z.number();
-  if (min !== undefined) schema = schema.min(min);
-  if (max !== undefined) schema = schema.max(max);
-  return fromSchema(schema);
-};
-
 export const numericChecks = {
   positive: fromSchema(z.number().positive()),
   nonNegative: fromSchema(z.number().nonnegative()),
-  unitRange: range({ min: 0, max: 1 }),
-  year: range({ min: 1000, max: 9999, int: true }),
+  unitRange: fromSchema(z.number().min(0).max(1)),
+  year: (value: unknown) =>
+    typeof value === "number" && isValidInstallationYear(value),
 } satisfies Record<string, (value: number) => boolean>;
 
 export type NumericCheckName = keyof typeof numericChecks;
