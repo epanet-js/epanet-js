@@ -13,6 +13,12 @@ export const toRuleLabelToken = (ruleId: string) =>
 const pseudoRuleLabelKeys: Record<string, string> = {
   "asset.connected": "networkReview.orphanAssets.rule",
   "subNetwork.supplySource.present": "networkReview.connectivityTrace.rule",
+  "pump.notFeedingItself":
+    "networkReview.topologyChecks.rule.pumpFeedingItself",
+  "valve.notFeedingItself":
+    "networkReview.topologyChecks.rule.valveFeedingItself",
+  "junction.supplied":
+    "networkReview.topologyChecks.rule.junctionWithoutSupply",
 };
 
 export const ruleLabelKey = (ruleId: string) =>

@@ -5,6 +5,7 @@ import {
   getJunctionDemands,
   respectingFlowDirection,
   trace,
+  weightedTrace,
   type AllowedFlowDirectionQueries,
   type AssetId,
   type AssetIndexQueries,
@@ -12,12 +13,27 @@ import {
   type HydraulicModel,
   type TopologyQueries,
   type TraceBarriers,
+  type TraceResult,
 } from "@epanet-js/hydraulic-model";
 
 export type TopologyIssues = {
   selfFeedingPumps: AssetId[];
   selfFeedingValves: AssetId[];
   junctionsWithoutSupply: AssetId[];
+};
+
+export const PUMP_FEEDING_ITSELF_RULE_ID = "pump.notFeedingItself" as const;
+export const VALVE_FEEDING_ITSELF_RULE_ID = "valve.notFeedingItself" as const;
+export const JUNCTION_WITHOUT_SUPPLY_RULE_ID = "junction.supplied" as const;
+
+export type TopologyRuleId =
+  | typeof PUMP_FEEDING_ITSELF_RULE_ID
+  | typeof VALVE_FEEDING_ITSELF_RULE_ID
+  | typeof JUNCTION_WITHOUT_SUPPLY_RULE_ID;
+
+export type TopologyIssue = {
+  ruleId: TopologyRuleId;
+  assetIds: AssetId[];
 };
 
 export interface JunctionDemandQueries {
@@ -50,6 +66,63 @@ export function findTopologyIssues(
   };
 }
 
+export const listTopologyIssues = (issues: TopologyIssues): TopologyIssue[] => [
+  ...issues.selfFeedingPumps.map((pumpId) => ({
+    ruleId: PUMP_FEEDING_ITSELF_RULE_ID,
+    assetIds: [pumpId],
+  })),
+  ...issues.selfFeedingValves.map((valveId) => ({
+    ruleId: VALVE_FEEDING_ITSELF_RULE_ID,
+    assetIds: [valveId],
+  })),
+  ...(issues.junctionsWithoutSupply.length > 0
+    ? [
+        {
+          ruleId: JUNCTION_WITHOUT_SUPPLY_RULE_ID,
+          assetIds: issues.junctionsWithoutSupply,
+        },
+      ]
+    : []),
+];
+
+export function findReturnPath(
+  linkId: AssetId,
+  topology: TopologyQueries,
+  assetIndex: AssetIndexQueries,
+  directions: AllowedFlowDirectionQueries,
+): TraceResult | null {
+  const [upstreamNodeId, downstreamNodeId] = topology.getNodes(linkId);
+  const barriers = followingFlowUntilSources(topology, assetIndex, directions);
+  const { distances: linksAway } = weightedTrace(
+    { nodeIds: [downstreamNodeId], linkIds: [] },
+    topology,
+    barriers,
+    { maxDistance: Infinity, maxHops: Infinity, lengthOf: () => 1 },
+  );
+  if (!linksAway.has(upstreamNodeId)) return null;
+
+  const nodeIds = [upstreamNodeId];
+  const linkIds: AssetId[] = [];
+  let nodeId = upstreamNodeId;
+
+  while (nodeId !== downstreamNodeId) {
+    const previous = previousStep(
+      nodeId,
+      linkId,
+      topology,
+      barriers,
+      linksAway,
+    );
+    if (previous === null) return null;
+
+    nodeIds.unshift(previous.nodeId);
+    linkIds.unshift(previous.linkId);
+    nodeId = previous.nodeId;
+  }
+
+  return { nodeIds, linkIds };
+}
+
 export const configuredJunctionDemands = (
   model: HydraulicModel,
 ): JunctionDemandQueries => ({
@@ -72,11 +145,7 @@ function findSelfFeedingLinks(
   assetIndex: AssetIndexQueries,
   directions: AllowedFlowDirectionQueries,
 ): Pick<TopologyIssues, "selfFeedingPumps" | "selfFeedingValves"> {
-  const followingFlowUntilSources = respectingFlowDirection(
-    stoppingAtSources(assetIndex),
-    topology,
-    directions,
-  );
+  const barriers = followingFlowUntilSources(topology, assetIndex, directions);
   const selfFeedingPumps: AssetId[] = [];
   const selfFeedingValves: AssetId[] = [];
 
@@ -95,7 +164,7 @@ function findSelfFeedingLinks(
     const { nodeIds } = trace(
       { nodeIds: [outletNodeId], linkIds: [] },
       topology,
-      followingFlowUntilSources,
+      barriers,
     );
     if (!nodeIds.includes(inletNodeId)) continue;
 
@@ -135,6 +204,36 @@ function findJunctionsWithoutSupply(
       demands.carriesDemand(nodeId),
   );
 }
+
+const previousStep = (
+  nodeId: AssetId,
+  excludedLinkId: AssetId,
+  topology: TopologyQueries,
+  barriers: TraceBarriers,
+  linksAway: Map<AssetId, number>,
+): { nodeId: AssetId; linkId: AssetId } | null => {
+  const previousLinksAway = linksAway.get(nodeId)! - 1;
+
+  for (const linkId of topology.getLinks(nodeId)) {
+    if (linkId === excludedLinkId) continue;
+
+    const [startNodeId, endNodeId] = topology.getNodes(linkId);
+    const previousNodeId = startNodeId === nodeId ? endNodeId : startNodeId;
+    if (linksAway.get(previousNodeId) !== previousLinksAway) continue;
+    if (barriers.linkStopReason(linkId, previousNodeId) !== null) continue;
+
+    return { nodeId: previousNodeId, linkId };
+  }
+
+  return null;
+};
+
+const followingFlowUntilSources = (
+  topology: TopologyQueries,
+  assetIndex: AssetIndexQueries,
+  directions: AllowedFlowDirectionQueries,
+): TraceBarriers =>
+  respectingFlowDirection(stoppingAtSources(assetIndex), topology, directions);
 
 const stoppingAtSources = (assetIndex: AssetIndexQueries): TraceBarriers => ({
   nodeStopReason: (nodeId) => (isSource(assetIndex, nodeId) ? "barrier" : null),

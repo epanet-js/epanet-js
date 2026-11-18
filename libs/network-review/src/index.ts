@@ -41,7 +41,14 @@ export {
 } from "./crossing-pipes";
 export {
   findTopologyIssues,
+  findReturnPath,
+  listTopologyIssues,
   configuredJunctionDemands,
+  PUMP_FEEDING_ITSELF_RULE_ID,
+  VALVE_FEEDING_ITSELF_RULE_ID,
+  JUNCTION_WITHOUT_SUPPLY_RULE_ID,
+  type TopologyIssue,
+  type TopologyRuleId,
   type JunctionDemandQueries,
   type TopologyIssues,
 } from "./topology-issues";

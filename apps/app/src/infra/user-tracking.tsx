@@ -1236,6 +1236,7 @@ type NetworkReviewChecked = {
     | "networkReview.proximityAnomalies.opened"
     | "networkReview.connectivityTrace.opened"
     | "networkReview.crossingPipes.opened"
+    | "networkReview.topologyChecks.opened"
     | "networkReview.modelAttributesValidation.opened";
 };
 
@@ -1244,6 +1245,7 @@ type NetworkReviewChanged =
       name:
         | "networkReview.orphanAssets.changed"
         | "networkReview.connectivityTrace.changed"
+        | "networkReview.topologyChecks.changed"
         | "networkReview.crossingPipes.changed";
       count: number;
     }
@@ -1309,6 +1311,7 @@ type NetworkReviewBack = {
     | "networkReview.proximityAnomalies.back"
     | "networkReview.connectivityTrace.back"
     | "networkReview.crossingPipes.back"
+    | "networkReview.topologyChecks.back"
     | "networkReview.modelAttributesValidation.back";
   count: number;
 };

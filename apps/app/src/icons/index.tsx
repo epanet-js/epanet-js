@@ -109,6 +109,7 @@ import {
   Upload,
   User,
   Waypoints,
+  Repeat2,
   X,
   CirclePause,
   CircleStop,
@@ -276,6 +277,7 @@ export const ConnectIcon = icon(Link2);
 export const DisconnectIcon = icon(Link2Off);
 export const HouseIcon = icon(House);
 export const ConnectivityTraceIcon = icon(Waypoints);
+export const TopologyChecksIcon = icon(Repeat2);
 export const OrphanNodeIcon = icon(CircleDotDashed);
 export const EmptyStateIcon = icon(SquircleDashed);
 export const NoIssuesIcon = icon(Goal);

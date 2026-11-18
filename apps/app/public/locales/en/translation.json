@@ -1683,6 +1683,23 @@
       "pipesCount_one": "1 pipe",
       "pipesCount_other": "{{count}} pipes"
     },
+    "topologyChecks": {
+      "title": "Topology checks",
+      "description": "Find pumps and valves in flow loops, and customers without supply",
+      "summary_zero": "No issues found",
+      "summary_one": "1 issue found",
+      "summary_other": "{{count}} issues found",
+      "emptyMessage": "No topology issues found",
+      "pumpFeedingItself": "Pump {{1}} feeds itself",
+      "valveFeedingItself": "Valve {{1}} feeds itself",
+      "junctionsWithoutSupply_one": "1 junction without supply",
+      "junctionsWithoutSupply_other": "{{count}} junctions without supply",
+      "rule": {
+        "pumpFeedingItself": "Pumps feeding themselves",
+        "valveFeedingItself": "Valves feeding themselves",
+        "junctionWithoutSupply": "Junctions without supply"
+      }
+    },
     "orphanAssets": {
       "title": "Orphan assets",
       "rule": "Assets not connected",

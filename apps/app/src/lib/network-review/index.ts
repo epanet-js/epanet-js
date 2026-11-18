@@ -16,6 +16,8 @@ export {
 } from "./connectivity-trace";
 export type { SubNetwork } from "./connectivity-trace";
 
+export { findTopologyIssues } from "./topology-checks";
+
 export { findCrossingPipes } from "./crossing-pipes";
 export type { CrossingPipe } from "./crossing-pipes";
 

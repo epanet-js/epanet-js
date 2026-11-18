@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAtom, useAtomValue } from "jotai";
 import { Button } from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
@@ -9,6 +9,7 @@ import {
   OrphanNodeIcon,
   PipesCrossinIcon,
   ProximityCheckIcon,
+  TopologyChecksIcon,
   WarningIcon,
 } from "src/icons";
 import { OrphanAssets } from "./orphan-assets";
@@ -22,6 +23,7 @@ import { LoadingState } from "./common";
 import { ProximityAnomalies } from "./proximity-anomalies";
 import { CrossingPipes } from "./crossing-pipes";
 import { ConnectivityTrace } from "./connectivity-trace";
+import { TopologyChecks } from "./topology-checks";
 import { ModelAttributesValidation } from "./model-attributes-validation";
 import { EarlyAccessBadge } from "src/components/early-access-badge";
 import { useEarlyAccess } from "src/hooks/use-early-access";
@@ -32,6 +34,7 @@ import {
 } from "src/state/network-review";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { useReviewChecks } from "src/hooks/use-review-checks";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const LOADING_OVERLAY_DELAY_MS = 300;
 const MIN_OVERLAY_VISIBLE_MS = 400;
@@ -107,6 +110,8 @@ export function NetworkReview() {
       return <CrossingPipes onGoBack={goBackToSummary} />;
     case CheckType.connectivityTrace:
       return <ConnectivityTrace onGoBack={goBackToSummary} />;
+    case CheckType.topologyChecks:
+      return <TopologyChecks onGoBack={goBackToSummary} />;
     case CheckType.modelAttributesValidation:
       return <ModelAttributesValidation onGoBack={goBackToSummary} />;
     default:
@@ -123,6 +128,7 @@ const allChecks = [
   CheckType.proximityAnomalies,
   CheckType.crossingPipes,
   CheckType.connectivityTrace,
+  CheckType.topologyChecks,
   CheckType.modelAttributesValidation,
 ];
 
@@ -133,6 +139,14 @@ function NetworkReviewSummary({
 }) {
   const translate = useTranslate();
   const { ensureFresh } = useReviewChecks();
+  const isTopologyChecksOn = useFeatureFlag("FLAG_TOPOLOGY_CHECKS");
+  const checks = useMemo(
+    () =>
+      isTopologyChecksOn
+        ? allChecks
+        : allChecks.filter((check) => check !== CheckType.topologyChecks),
+    [isTopologyChecksOn],
+  );
   const reviewResults = useAtomValue(reviewResultsAtom);
   const [isRunning, setIsRunning] = useState(false);
   const { isSignedIn, isLoaded } = useAuth();
@@ -206,38 +220,36 @@ function NetworkReviewSummary({
   const issueCount = (checkType: CheckType): number => {
     if (!isBlockingCheck(checkType)) return 0;
 
-    const entry = reviewResults[checkType];
-    if (!entry) return 0;
-
     // Every row counts what the check's own page lists. Attribute validation
     // lists one row per failing rule, each carrying its own affected-asset
     // count, so its issueCount — a total across assets — would not match.
-    return checkType === CheckType.modelAttributesValidation
-      ? entry.items.length
-      : entry.issueCount;
+    if (checkType === CheckType.modelAttributesValidation)
+      return reviewResults[checkType]?.items.length ?? 0;
+
+    return reviewResults[checkType]?.issueCount ?? 0;
   };
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
-      const currentIndex = allChecks.findIndex(
+      const currentIndex = checks.findIndex(
         (check) => check === selectedCheckType,
       );
 
       switch (e.key) {
         case "ArrowDown":
           e.preventDefault();
-          const nextIndex = Math.min(currentIndex + 1, allChecks.length - 1);
-          setSelectedCheckType(allChecks[nextIndex]);
+          const nextIndex = Math.min(currentIndex + 1, checks.length - 1);
+          setSelectedCheckType(checks[nextIndex]);
           break;
         case "ArrowUp":
           e.preventDefault();
           const prevIndex = Math.max(currentIndex - 1, 0);
-          setSelectedCheckType(allChecks[prevIndex]);
+          setSelectedCheckType(checks[prevIndex]);
           break;
         case "Enter":
           e.preventDefault();
           if (currentIndex === -1) break;
-          const selectedCheck = allChecks[currentIndex];
+          const selectedCheck = checks[currentIndex];
           onClick(selectedCheck);
           break;
 
@@ -247,7 +259,7 @@ function NetworkReviewSummary({
           break;
       }
     },
-    [selectedCheckType, onClick],
+    [checks, selectedCheckType, onClick],
   );
 
   return (
@@ -269,7 +281,7 @@ function NetworkReviewSummary({
         {translate("networkReview.description")}
       </div>
       <div className="relative flex-auto px-1">
-        {allChecks.map((checkType) => (
+        {checks.map((checkType) => (
           <ReviewCheck
             key={checkType}
             checkType={checkType}
@@ -291,6 +303,7 @@ const iconsByCheckType = {
   [CheckType.orphanAssets]: <OrphanNodeIcon />,
   [CheckType.connectivityTrace]: <ConnectivityTraceIcon />,
   [CheckType.proximityAnomalies]: <ProximityCheckIcon />,
+  [CheckType.topologyChecks]: <TopologyChecksIcon />,
   [CheckType.crossingPipes]: <PipesCrossinIcon />,
   [CheckType.modelAttributesValidation]: <MissingAttributeIcon />,
 };
@@ -300,6 +313,7 @@ const labelKeyByCheckType = {
   [CheckType.connectivityTrace]: "networkReview.connectivityTrace.title",
   [CheckType.proximityAnomalies]: "networkReview.proximityAnomalies.title",
   [CheckType.crossingPipes]: "networkReview.crossingPipes.title",
+  [CheckType.topologyChecks]: "networkReview.topologyChecks.title",
   [CheckType.modelAttributesValidation]:
     "networkReview.modelAttributesValidation.title",
 };

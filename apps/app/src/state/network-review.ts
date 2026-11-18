@@ -3,6 +3,7 @@ import type { CheckType, SubNetwork } from "src/lib/network-review";
 import type { AssetId } from "@epanet-js/hydraulic-model";
 import type { Unit } from "@epanet-js/quantity";
 import type { ValidationIssues } from "src/lib/model-attributes-validation";
+import type { TopologyIssues } from "@epanet-js/network-review";
 
 export type ReviewCheckEntry<T> = {
   modelVersion: string;
@@ -14,6 +15,7 @@ export type ReviewResults = {
   [CheckType.modelAttributesValidation]?: ReviewCheckEntry<ValidationIssues>;
   [CheckType.orphanAssets]?: ReviewCheckEntry<AssetId[]>;
   [CheckType.connectivityTrace]?: ReviewCheckEntry<SubNetwork[]>;
+  [CheckType.topologyChecks]?: ReviewCheckEntry<TopologyIssues>;
 };
 
 export const reviewResultsAtom = atom<ReviewResults>({});

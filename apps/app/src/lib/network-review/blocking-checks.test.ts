@@ -173,6 +173,25 @@ describe("failingRuleIds", () => {
     ]);
   });
 
+  it("reports each failing topology rule once", () => {
+    const results: BlockingCheckResult[] = [
+      {
+        check: CheckType.topologyChecks,
+        issueCount: 3,
+        items: {
+          selfFeedingPumps: [IDS.P1, IDS.P2],
+          selfFeedingValves: [],
+          junctionsWithoutSupply: [IDS.J1, IDS.J2],
+        },
+      },
+    ];
+
+    expect(failingRuleIds(results)).toEqual([
+      "pump.notFeedingItself",
+      "junction.supplied",
+    ]);
+  });
+
   it("skips checks that found nothing", async () => {
     const results = await runBlockingChecks(aValidModel());
 

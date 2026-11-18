@@ -3,6 +3,8 @@ import {
   ORPHAN_ASSETS_RULE_ID,
   UNSUPPLIED_SUBNETWORK_RULE_ID,
   blocksSimulation,
+  listTopologyIssues,
+  type TopologyIssues,
 } from "@epanet-js/network-review";
 import { HydraulicModel } from "src/hydraulic-model";
 import {
@@ -17,11 +19,13 @@ import {
   SubNetwork,
   unsuppliedSubNetworks,
 } from "./connectivity-trace";
+import { findTopologyIssues } from "./topology-checks";
 
 export const blockingChecks = [
   CheckType.modelAttributesValidation,
   CheckType.orphanAssets,
   CheckType.connectivityTrace,
+  CheckType.topologyChecks,
 ] as const;
 
 export type BlockingCheckType = (typeof blockingChecks)[number];
@@ -37,6 +41,11 @@ export type BlockingCheckResult =
       check: CheckType.connectivityTrace;
       issueCount: number;
       items: SubNetwork[];
+    }
+  | {
+      check: CheckType.topologyChecks;
+      issueCount: number;
+      items: TopologyIssues;
     };
 
 type Runner = (
@@ -66,6 +75,14 @@ const runners: Record<BlockingCheckType, Runner> = {
     return {
       check: CheckType.connectivityTrace,
       issueCount: unsuppliedSubNetworks(items).length,
+      items,
+    };
+  },
+  [CheckType.topologyChecks]: async (model, signal) => {
+    const items = await findTopologyIssues(model, signal);
+    return {
+      check: CheckType.topologyChecks,
+      issueCount: listTopologyIssues(items).length,
       items,
     };
   },
@@ -108,6 +125,7 @@ export const simulationBlockers = (
 const reportOrder = [
   CheckType.orphanAssets,
   CheckType.connectivityTrace,
+  CheckType.topologyChecks,
   CheckType.modelAttributesValidation,
 ] as const;
 
@@ -121,7 +139,14 @@ export const failingRuleIds = (results: BlockingCheckResult[]): string[] =>
     const result = results.find((candidate) => candidate.check === check);
     if (!result || result.issueCount === 0) return [];
 
-    return result.check === CheckType.modelAttributesValidation
-      ? result.items.map(([ruleId]) => ruleId)
-      : [topologyRuleIds[result.check] ?? result.check];
+    switch (result.check) {
+      case CheckType.modelAttributesValidation:
+        return result.items.map(([ruleId]) => ruleId);
+      case CheckType.topologyChecks:
+        return [
+          ...new Set(listTopologyIssues(result.items).map((i) => i.ruleId)),
+        ];
+      default:
+        return [topologyRuleIds[result.check] ?? result.check];
+    }
   });

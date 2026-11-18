@@ -6,6 +6,7 @@ import {
 } from "@epanet-js/hydraulic-model";
 import {
   configuredJunctionDemands,
+  findReturnPath,
   findTopologyIssues,
 } from "@epanet-js/network-review";
 import { HydraulicModel } from "src/hydraulic-model";
@@ -255,5 +256,72 @@ describe("findTopologyIssues", () => {
 
       expect(topologyIssuesOf(model).junctionsWithoutSupply).toEqual([]);
     });
+  });
+});
+
+describe("findReturnPath", () => {
+  const returnPathOf = (model: HydraulicModel, linkId: number) =>
+    findReturnPath(
+      linkId,
+      new ActiveTopology(model.topology, model.assets),
+      new ActiveAssetIndex(model.assetIndex, model.assets),
+      configuredAllowedFlowDirections(model.assets),
+    );
+
+  const aPumpBetweenJunctions = () =>
+    HydraulicModelBuilder.with()
+      .aJunction(IDS.J1)
+      .aJunction(IDS.J2)
+      .aJunction(IDS.J3)
+      .aPump(IDS.PU1, { startNodeId: IDS.J1, endNodeId: IDS.J2 });
+
+  it("returns the path from the downstream node back upstream", () => {
+    const model = aPumpBetweenJunctions()
+      .aPipe(IDS.P1, { startNodeId: IDS.J2, endNodeId: IDS.J3 })
+      .aPipe(IDS.P2, { startNodeId: IDS.J3, endNodeId: IDS.J1 })
+      .build();
+
+    expect(returnPathOf(model, IDS.PU1)).toEqual({
+      nodeIds: [IDS.J2, IDS.J3, IDS.J1],
+      linkIds: [IDS.P1, IDS.P2],
+    });
+  });
+
+  it("prefers the path with fewer links", () => {
+    const model = aPumpBetweenJunctions()
+      .aPipe(IDS.P1, { startNodeId: IDS.J2, endNodeId: IDS.J3 })
+      .aPipe(IDS.P2, { startNodeId: IDS.J3, endNodeId: IDS.J1 })
+      .aPipe(IDS.P3, { startNodeId: IDS.J2, endNodeId: IDS.J1 })
+      .build();
+
+    expect(returnPathOf(model, IDS.PU1)).toEqual({
+      nodeIds: [IDS.J2, IDS.J1],
+      linkIds: [IDS.P3],
+    });
+  });
+
+  it("does not return through a link flowing the other way", () => {
+    const model = aPumpBetweenJunctions()
+      .aPipe(IDS.P1, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        initialStatus: "cv",
+      })
+      .aPipe(IDS.P2, { startNodeId: IDS.J2, endNodeId: IDS.J3 })
+      .aPipe(IDS.P3, { startNodeId: IDS.J3, endNodeId: IDS.J1 })
+      .build();
+
+    expect(returnPathOf(model, IDS.PU1)).toEqual({
+      nodeIds: [IDS.J2, IDS.J3, IDS.J1],
+      linkIds: [IDS.P2, IDS.P3],
+    });
+  });
+
+  it("returns null without a return path", () => {
+    const model = aPumpBetweenJunctions()
+      .aPipe(IDS.P1, { startNodeId: IDS.J2, endNodeId: IDS.J3 })
+      .build();
+
+    expect(returnPathOf(model, IDS.PU1)).toBeNull();
   });
 });

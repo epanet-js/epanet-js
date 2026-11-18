@@ -3,5 +3,6 @@ export const enum CheckType {
   orphanAssets = "orphanAssets",
   proximityAnomalies = "proximityAnomalies",
   crossingPipes = "crossingPipes",
+  topologyChecks = "topologyChecks",
   modelAttributesValidation = "modelAttributesValidation",
 }
