@@ -72,7 +72,7 @@ export const MapThemeSelector = ({
           onOpenAutoFocus={(e) => e.preventDefault()}
           className={clsx(
             "bg-popover min-w-(--radix-popover-trigger-width) max-h-(--radix-popover-content-available-height)",
-            "border text-size-base rounded-md shadow-md z-50 mt-1 overflow-hidden flex flex-col",
+            "border border-strong text-size-base rounded-base shadow-md z-50 mt-1 overflow-hidden flex flex-col",
           )}
         >
           {hasThemes ? (

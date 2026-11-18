@@ -810,7 +810,7 @@ const OpacitySetting = ({
           className="text-size-small
  px-1 py-0.5
  border-strong
- rounded-xs
+ rounded-base
  dark:bg-transparent
  opacity-50 hover:opacity-100 focus:opacity-100
  w-12"
@@ -1268,7 +1268,7 @@ const VectorFileItem = ({
                 layout="fixed-label"
                 labelSize="md"
               >
-                <div className="h-7 border rounded-xs overflow-hidden">
+                <div className="h-7 border rounded-base overflow-hidden">
                   <ColorPopover
                     color={layerConfig.color}
                     onChange={(color) =>
@@ -1601,7 +1601,7 @@ const LayerTypeButton = ({
 const UpgradeTag = () => {
   const translate = useTranslate();
   return (
-    <span className="bg-purple-100 text-accent text-size-small px-1 rounded-md">
+    <span className="bg-purple-100 text-accent text-size-small px-1 rounded-micro">
       {translate("upgrade").toUpperCase()}
     </span>
   );

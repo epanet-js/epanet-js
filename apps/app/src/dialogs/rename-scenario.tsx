@@ -130,7 +130,7 @@ function RenameField({
         ref={inputRef}
         type="text"
         className={clsx(
-          "w-full px-3 py-2 border rounded-xs text-size-base text-default bg-popover focus-visible:ring-inset focus-visible:border-transparent",
+          "w-full px-3 py-2 border rounded-base text-size-base text-default bg-popover focus-visible:ring-inset focus-visible:border-transparent",
           meta.error && meta.touched
             ? "border-warning focus-visible:bg-warning-subtle focus-visible:ring-warning"
             : "border-strong focus-visible:bg-purple-300/10 dark:focus-visible:bg-purple-700/40 focus-visible:ring-accent",

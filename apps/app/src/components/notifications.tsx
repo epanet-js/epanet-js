@@ -22,7 +22,7 @@ export default function Notifications({
       containerClassName=""
       containerStyle={{}}
       toastOptions={{
-        className: "bg-base text-default ring-1 ring-subtle rounded-md",
+        className: "bg-base text-default ring-1 ring-subtle rounded-base",
         duration,
         success: {
           duration: successDuration,
@@ -104,7 +104,7 @@ export const notify = ({
           action={action}
           onActionClick={() => toast.remove(t.id)}
           onDismiss={dismissable ? () => toast.remove(t.id) : undefined}
-          className="shadow-md rounded-lg"
+          className="shadow-md"
         />
       </div>
     ),

@@ -876,7 +876,7 @@ export const ConnectedCustomersRow = ({
         <P.Trigger
           aria-label={`Connected customers: ${customerCount}`}
           onKeyDown={handleTriggerKeyDown}
-          className="text-left text-size-base p-2 text-default bg-base border border-strong rounded-xs hover:bg-base-hover focus-visible:ring-inset focus-visible:ring-1 focus-visible:ring-accent aria-expanded:ring-1 aria-expanded:ring-accent w-full flex items-center gap-x-2 tabular-nums"
+          className="text-left text-size-base p-2 text-default bg-base border border-strong rounded-base hover:bg-base-hover focus-visible:ring-inset focus-visible:ring-1 focus-visible:ring-accent aria-expanded:ring-1 aria-expanded:ring-accent w-full flex items-center gap-x-2 tabular-nums"
         >
           <MultipleValuesIcon />
           {customerCount}
@@ -962,7 +962,7 @@ const CustomerPointsPopover = ({
 
   return (
     <div onKeyDown={handleContentKeyDown}>
-      <div className="font-sans text-subtle dark:text-gray-100 text-size-small text-left py-2 flex font-bold border-b rounded-t">
+      <div className="font-sans text-subtle dark:text-gray-100 text-size-small text-left py-2 flex font-bold border-b rounded-t-base">
         <div className="flex-auto px-2">{translate("customer")}</div>
         <div className="px-2">
           {translate("demand")} ({translateUnit(customerUnit)})
@@ -975,7 +975,7 @@ const CustomerPointsPopover = ({
         tabIndex={0}
       >
         <div
-          className="w-full relative rounded-sm"
+          className="w-full relative rounded-base"
           style={{
             height: `${rowVirtualizer.getTotalSize()}px`,
           }}

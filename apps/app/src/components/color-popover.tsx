@@ -63,7 +63,7 @@ export function ColorPopover({
     <P.Root>
       <P.Trigger asChild disabled={readonly}>
         <button
-          className="h-full w-full rounded-xs"
+          className="h-full w-full rounded-base"
           aria-label={ariaLabel}
           data-color={color}
           disabled={readonly}
@@ -74,7 +74,7 @@ export function ColorPopover({
         <div className="space-y-2">
           <div
             className="border border-white"
-            style={{ borderRadius: 5 }}
+            style={{ borderRadius: "var(--radius-base)" }}
             onPointerUp={handlePointerUp}
           >
             <HexColorPicker

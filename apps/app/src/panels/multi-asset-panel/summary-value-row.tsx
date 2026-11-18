@@ -132,7 +132,7 @@ export const LazyStatsPopoverButton = ({
     <P.Root open={isOpen} onOpenChange={handleOpenChange}>
       <P.Trigger
         aria-label={`Stats for: ${label}`}
-        className="shrink-0 w-7 h-7 flex items-center justify-center rounded-xs text-subtle hover:text-default hover:bg-base-hover"
+        className="shrink-0 w-7 h-7 flex items-center justify-center rounded-base text-subtle hover:text-default hover:bg-base-hover"
       >
         <MultipleValuesIcon />
       </P.Trigger>

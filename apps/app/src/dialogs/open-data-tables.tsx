@@ -167,7 +167,7 @@ export const OpenDataTablesDialog = ({ onClose }: { onClose: () => void }) => {
             {translate("dataTables.picker.prompt")}
           </p>
 
-          <div className="border rounded-sm">
+          <div className="border rounded-base">
             <BaseMultiSelectorList<DataTableType>
               options={options}
               selected={Array.from(checked)}

@@ -14,7 +14,7 @@ export const MapToolbar = ({ readonly = false }: { readonly?: boolean }) => {
       <div
         className={clsx(
           "pointer-events-auto flex flex-col bg-base",
-          "rounded-sm border shadow-md",
+          "rounded-base border shadow-md",
         )}
       >
         <div className="flex items-center justify-center px-2 py-1">

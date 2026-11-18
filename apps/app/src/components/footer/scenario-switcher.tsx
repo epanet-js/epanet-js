@@ -148,7 +148,7 @@ export const ScenarioSwitcher = () => {
         <Tooltip content={translate("scenarios.enableScenarios")} side="top">
           <button
             onClick={handleCreateScenario}
-            className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 text-size-base text-accent-hover bg-accent-tint hover:bg-purple-100 border border-purple-200 rounded-md transition-colors"
+            className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 text-size-base text-accent-hover bg-accent-tint hover:bg-purple-100 border border-purple-200 rounded-base transition-colors"
           >
             <ScenarioIcon size="sm" />
             <span>{translate("scenarios.enableScenarios")}</span>
@@ -354,7 +354,7 @@ const ScenarioRow = ({
       </StyledItem>
       <DD.Root>
         <DD.Trigger asChild>
-          <button className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover/scenario:opacity-100 data-[state=open]:opacity-100 p-1 rounded-sm hover:bg-base-hover text-subtle">
+          <button className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover/scenario:opacity-100 data-[state=open]:opacity-100 p-1 rounded-base hover:bg-base-hover text-subtle">
             <MoreActionsIcon size="md" />
           </button>
         </DD.Trigger>

@@ -508,7 +508,7 @@ export function BaseSelectorList<T extends string | number | boolean>({
         aria-disabled={isOptionDisabled}
         style={virtualStyle}
         className={clsx(
-          "flex justify-between gap-4 px-2 rounded-sm",
+          "flex justify-between gap-4 px-2 rounded-micro",
           isStacked ? "items-start min-h-8 py-1.5" : "items-center h-8",
           virtualStyle && "absolute top-0 left-1 right-1",
           isOptionDisabled
@@ -596,7 +596,7 @@ export function BaseSelectorList<T extends string | number | boolean>({
         role="option"
         style={virtualStyle}
         className={clsx(
-          "flex items-center h-8 px-2 cursor-pointer text-accent rounded-sm",
+          "flex items-center h-8 px-2 cursor-pointer text-accent rounded-micro",
           virtualStyle
             ? "absolute top-0 left-1 right-1 border-t border"
             : filtered.length > 0 && "border-t border mt-1",
@@ -641,7 +641,7 @@ export function BaseSelectorList<T extends string | number | boolean>({
             placeholder={searchPlaceholder ?? ui.searchPlaceholder}
             aria-invalid={isNewQueryInvalid || undefined}
             className={clsx(
-              "w-full h-8 px-2 text-size-base border rounded-sm outline-hidden",
+              "w-full h-8 px-2 text-size-base border rounded-base outline-hidden",
               isNewQueryInvalid
                 ? "border-warning focus:border-warning focus:ring-1 focus:ring-warning"
                 : "border-strong focus:border-accent focus:ring-1 focus:ring-accent",
@@ -693,7 +693,7 @@ export function BaseSelectorList<T extends string | number | boolean>({
           <button
             type="button"
             className={clsx(
-              "flex items-center justify-between gap-4 w-full h-8 px-2 italic cursor-pointer text-default rounded-sm",
+              "flex items-center justify-between gap-4 w-full h-8 px-2 italic cursor-pointer text-default rounded-micro",
               activeIndex === clearIdx
                 ? "bg-base-hover"
                 : "hover:bg-base-hover",
@@ -721,7 +721,7 @@ export function BaseSelectorList<T extends string | number | boolean>({
                 type="button"
                 aria-disabled={action.disabled}
                 className={clsx(
-                  "flex items-center justify-between gap-4 w-full h-8 px-2 rounded-sm",
+                  "flex items-center justify-between gap-4 w-full h-8 px-2 rounded-micro",
                   action.disabled
                     ? "cursor-default text-disabled"
                     : "cursor-pointer text-default",

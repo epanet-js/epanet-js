@@ -14,7 +14,7 @@ export const FormatInfo = () => {
       <Popover.Trigger asChild>
         <button
           type="button"
-          className="p-1 rounded-md text-subtle hover:text-default hover:bg-base-hover"
+          className="p-1 rounded-base text-subtle hover:text-default hover:bg-base-hover"
           aria-label={label}
         >
           <InfoIcon />

@@ -407,7 +407,7 @@ export const NetworkProjectionDialog = ({
           />
 
           {isSearchUnavailable && (
-            <p className="mt-2 text-size-base p-2 border text-warning border-warning rounded-md bg-warning-subtle shrink-0">
+            <p className="mt-2 text-size-base p-2 border text-warning border-warning rounded-base bg-warning-subtle shrink-0">
               {t("networkProjection.searchUnavailable")}
             </p>
           )}
@@ -426,7 +426,7 @@ export const NetworkProjectionDialog = ({
                 showEmptyState={!!selectedLocation || !!initialProjection}
               />
               {projectionError && (
-                <p className="mt-2 text-size-base text-error p-2 border border-red-200 dark:border-red-800 rounded-md bg-error-subtle dark:bg-red-950 shrink-0">
+                <p className="mt-2 text-size-base text-error p-2 border border-red-200 dark:border-red-800 rounded-base bg-error-subtle dark:bg-red-950 shrink-0">
                   {projectionError}
                 </p>
               )}

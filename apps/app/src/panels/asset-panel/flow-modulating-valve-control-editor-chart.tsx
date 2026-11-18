@@ -233,7 +233,7 @@ export const CurveChart = ({
       {readout && (
         <div
           role="status"
-          className="pointer-events-none absolute z-20 grid grid-cols-[auto_auto] gap-x-1 whitespace-nowrap rounded border bg-popover px-2 py-1 text-size-small text-default tabular-nums shadow-xs"
+          className="pointer-events-none absolute z-20 grid grid-cols-[auto_auto] gap-x-1 whitespace-nowrap rounded-base border bg-popover px-2 py-1 text-size-small text-default tabular-nums shadow-xs"
           style={{
             left: readoutOnLeft
               ? readout.x - CHART_READOUT_OFFSET

@@ -136,7 +136,7 @@ export const GisDropZone: React.FC<GisDropZoneProps> = ({
       onDrop={handleDrop}
       onClick={undefined}
       className={`
-        flex flex-col gap-3 rounded-lg transition-all duration-200 border-4 p-2
+        flex flex-col gap-3 rounded-card transition-all duration-200 border-4 p-2
         ${hasFiles && dragState === "over" ? "border-dashed border-accent" : "border-transparent"}
       `}
       data-testid={testId}
@@ -307,7 +307,7 @@ const Badge = ({
   variant: "green" | "gray";
 }) => (
   <span
-    className={`px-2 py-0.5 rounded text-xs ${
+    className={`px-2 py-0.5 rounded-micro text-xs ${
       variant === "green"
         ? "bg-green-100 text-green-700"
         : "bg-gray-100 text-gray-700"
@@ -348,7 +348,7 @@ const AddMoreFilesButton = ({
     onClick={onClick}
     disabled={disabled}
     className={`
-      w-full text-center px-4 py-2 text-sm font-medium text-white rounded
+      w-full text-center px-4 py-2 text-sm font-medium text-white rounded-base
       cursor-pointer transition-colors flex items-center justify-center gap-2
       bg-accent hover:bg-accent-hover
       ${disabled ? "opacity-50 cursor-not-allowed" : ""}
@@ -379,7 +379,7 @@ const FileDropArea = ({
   <div
     onClick={onClick}
     className={`
-      min-h-[100px] border-2 border-dashed rounded-lg
+      min-h-[100px] border-2 border-dashed rounded-card
       flex flex-col items-center justify-center p-8 cursor-pointer
       transition-all duration-200 ease-in-out
       ${dragState === "idle" ? "border-strong bg-panel hover:border-gray-400 hover:bg-base-hover" : ""}
@@ -439,14 +439,14 @@ const SelectedFileList = ({
       : undefined;
 
   return (
-    <div className="relative p-3 bg-base rounded-md border">
+    <div className="relative p-3 bg-base rounded-base border">
       <button
         type="button"
         onClick={(e) => {
           e.stopPropagation();
           onRemove();
         }}
-        className="absolute top-2 right-2 p-0.5 rounded hover:bg-base-hover text-subtle hover:text-default"
+        className="absolute top-2 right-2 p-0.5 rounded-base hover:bg-base-hover text-subtle hover:text-default"
         aria-label="Remove files"
       >
         <CloseIcon className="h-4 w-4" />

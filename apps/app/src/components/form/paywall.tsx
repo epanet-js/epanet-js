@@ -52,7 +52,7 @@ export const PaywallLockButton = ({
         type="button"
         aria-label={`${tooltip}: ${label}`}
         onClick={openPaywall}
-        className="shrink-0 w-7 h-7 flex items-center justify-center rounded-xs text-subtle hover:text-default hover:bg-base-hover"
+        className="shrink-0 w-7 h-7 flex items-center justify-center rounded-base text-subtle hover:text-default hover:bg-base-hover"
       >
         <PaywallLockIcon />
       </button>
@@ -133,7 +133,7 @@ export const UpgradeCard = ({
   children: React.ReactNode;
 }) => (
   <div
-    className={`rounded-lg border border-purple-200 bg-base p-4 shadow-md dark:border-purple-900 ${className ?? ""}`}
+    className={`rounded-base border border-purple-200 bg-base p-4 shadow-md dark:border-purple-900 ${className ?? ""}`}
   >
     <h3 className="font-bold text-size-base">{title}</h3>
     <p className="mt-1 mb-3 text-subtle text-size-base">{description}</p>

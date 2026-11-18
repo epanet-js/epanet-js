@@ -249,11 +249,11 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
               autoComplete="off"
               className={clsx(
                 "flex items-center gap-x-2 w-full min-w-[90px]",
-                "border rounded-xs border-base py-2 pr-2 text-size-base",
+                "border rounded-base border-strong py-2 pr-2 text-size-base",
                 showPlaceholderIcon ? "pl-7" : "pl-2",
                 "outline-hidden focus:outline-hidden focus-visible:outline-hidden",
                 disabled
-                  ? "cursor-not-allowed bg-base-disabled border-strong text-disabled"
+                  ? "cursor-not-allowed bg-base-disabled text-disabled"
                   : "text-default bg-popover focus:ring-inset focus:ring-1 focus:ring-accent focus:bg-purple-300/10 focus:border-transparent",
                 triggerClassName,
               )}
@@ -272,7 +272,7 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
             side={side === "auto" ? "bottom" : side}
             avoidCollisions={side === "auto"}
             align="start"
-            className="bg-popover w-(--anchor-width,100%) min-w-[220px] border text-size-base rounded-md shadow-md z-50 mt-1 max-h-60 overflow-auto p-1"
+            className="bg-popover w-(--anchor-width,100%) min-w-[220px] border border-strong text-size-base rounded-base shadow-md z-50 mt-1 max-h-60 overflow-auto p-1"
             onOpenAutoFocus={(e) => e.preventDefault()}
             onCloseAutoFocus={(e) => e.preventDefault()}
             onEscapeKeyDown={() => setOpen(false)}
@@ -300,7 +300,7 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
                     role="option"
                     aria-selected={index === activeIndex}
                     className={clsx(
-                      "px-2 py-2 cursor-pointer w-full text-left text-default hover:bg-base-hover rounded-sm",
+                      "px-2 py-2 cursor-pointer w-full text-left text-default hover:bg-base-hover rounded-micro",
                       index === activeIndex && "bg-base-hover",
                     )}
                     onMouseEnter={() => handleOptionMouseEnter(index)}

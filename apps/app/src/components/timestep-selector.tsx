@@ -107,7 +107,7 @@ export const TimestepSelectorUI = ({
       className={clsx(
         "flex items-center",
         !isInline &&
-          "p-1 bg-base rounded-xs border shadow-[0_2px_10px_2px_rgba(0,0,0,0.1)]",
+          "p-1 bg-base rounded-base border shadow-[0_2px_10px_2px_rgba(0,0,0,0.1)]",
       )}
     >
       {!compact && (
@@ -162,7 +162,7 @@ export const TimestepSpeedWarning = () => {
     <div
       className={clsx(
         "flex items-start gap-1.5 text-size-small px-2 py-1 bg-panel/80 max-w-[16rem]",
-        "rounded-sm border shadow-md",
+        "rounded-base border shadow-md",
       )}
     >
       <WarningIcon className="shrink-0 mt-px text-warning" />
@@ -227,7 +227,7 @@ const SpeedButton = () => {
         <Button
           variant="quiet/mode"
           size="xxs"
-          className="h-8 px-1 rounded-sm"
+          className="h-8 px-1 rounded-base"
           aria-label={translate("selectPlaybackSpeed")}
         >
           <div className="leading-none text-center">
@@ -323,7 +323,7 @@ const TimestepDropdown = ({
         <Popover.Content
           align="end"
           sideOffset={4}
-          className="bg-base border text-size-base rounded-md shadow-md z-50 overflow-hidden min-w-(--radix-popover-trigger-width)"
+          className="bg-base border border-strong text-size-base rounded-base shadow-md z-50 overflow-hidden min-w-(--radix-popover-trigger-width)"
           onKeyDown={(event) => {
             if (event.code === "Escape" || event.code === "Enter") {
               event.stopPropagation();
@@ -356,7 +356,7 @@ const TimestepDropdown = ({
                     }}
                     className={clsx(
                       "absolute left-0 right-0 flex items-center justify-between gap-4 px-2",
-                      "text-left cursor-pointer hover:bg-base-hover focus:bg-base-hover rounded-xs",
+                      "text-left cursor-pointer hover:bg-base-hover focus:bg-base-hover rounded-micro",
                     )}
                     style={{
                       height: ROW_HEIGHT,

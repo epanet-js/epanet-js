@@ -199,7 +199,7 @@ function HeaderCell<T>({
                   action.onClick();
                 }}
                 className={clsx(
-                  "h-6 w-6 flex items-center justify-center rounded-xs",
+                  "h-6 w-6 flex items-center justify-center rounded-base",
                   isSelected
                     ? "text-white hover:bg-white/20"
                     : "text-subtle hover:bg-base-hover",

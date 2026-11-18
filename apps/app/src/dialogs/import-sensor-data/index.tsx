@@ -135,16 +135,16 @@ export const ImportSensorDataDialog = ({
           variant="info"
           description={translate("sensorData.import.sessionNote")}
           Icon={InfoIcon}
-          className="shrink-0 rounded-md"
+          className="shrink-0"
         />
 
         {result && file ? (
           <>
-            <div className="flex shrink-0 items-center gap-2 px-3 py-2 border rounded-md text-size-base">
+            <div className="flex shrink-0 items-center gap-2 px-3 py-2 border rounded-base text-size-base">
               <span className="grow truncate">{file.name}</span>
               <button
                 type="button"
-                className="p-1 rounded-md text-subtle hover:text-default hover:bg-base-hover"
+                className="p-1 rounded-base text-subtle hover:text-default hover:bg-base-hover"
                 onClick={handleRemoveFile}
                 aria-label={translate("sensorData.import.removeFile")}
               >
@@ -169,7 +169,6 @@ export const ImportSensorDataDialog = ({
                 variant="error"
                 description={translate(`sensorData.import.${refusal}`)}
                 Icon={ErrorIcon}
-                className="rounded-md"
               />
             )}
           </>

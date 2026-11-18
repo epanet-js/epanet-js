@@ -14,10 +14,10 @@ export type TooltipVariant = "default" | "contrast";
 type ContentProps = ComponentPropsWithoutRef<typeof RadixTooltip.Content>;
 
 const DEFAULT_STYLE =
-  "z-20 max-w-md rounded border bg-popover px-2 py-1 text-size-base text-default shadow-xs";
+  "z-20 max-w-md rounded-base border bg-popover px-2 py-1 text-size-base text-default shadow-xs";
 
 const CONTRAST_STYLE =
-  "z-20 max-w-48 rounded-sm bg-popover-inverse px-2 py-1 text-size-small text-default-inverse shadow-lg";
+  "z-20 max-w-48 rounded-base bg-popover-inverse px-2 py-1 text-size-small text-default-inverse shadow-lg";
 
 const TooltipContent = forwardRef<
   ElementRef<typeof RadixTooltip.Content>,

@@ -252,7 +252,7 @@ function styledInput({
       "font-normal": fontWeight === "normal",
       "font-semibold": fontWeight === "semibold",
     },
-    "rounded-xs block overflow-hidden whitespace-nowrap text-ellipsis",
+    "rounded-base block overflow-hidden whitespace-nowrap text-ellipsis",
     width === "content" ? "field-sizing-content w-fit min-w-16" : "w-full",
     isInteractive && "focus-visible:ring-inset",
   );

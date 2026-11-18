@@ -10,7 +10,7 @@ import { groupIssues, type IssueGroup } from "src/lib/converters";
 const initialRefsShown = 3;
 
 const issuesBoxClasses =
-  "p-2 flex flex-col gap-y-4 ml-3 mt-2 border font-mono rounded-xs text-size-base bg-panel text-default max-h-75 overflow-y-auto";
+  "p-2 flex flex-col gap-y-4 ml-3 mt-2 border font-mono rounded-base text-size-base bg-panel text-default max-h-75 overflow-y-auto";
 
 export const ConvertModelFailedDialog = ({
   issues,

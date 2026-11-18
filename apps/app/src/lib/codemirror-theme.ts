@@ -80,7 +80,7 @@ export const placemarkBaseTheme = EditorView.theme({
 
   ".cm-tooltip": {
     color: "var(--highlight-tooltip-text)",
-    borderRadius: "2px",
+    borderRadius: "var(--radius-base)",
     boxShadow:
       "rgb(255, 255, 255) 0px 0px 0px 0px, rgb(229, 229, 229) 0px 0px 0px 1px, rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.06) 0px 2px 4px -1px",
     backgroundColor: background,

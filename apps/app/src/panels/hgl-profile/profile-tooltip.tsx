@@ -71,7 +71,7 @@ export function ProfileTooltip({
         pointerEvents: "none",
         background: "var(--color-popover)",
         border: "1px solid var(--color-border)",
-        borderRadius: 4,
+        borderRadius: "var(--radius-base)",
         padding: "6px 8px",
         fontSize: 12,
         lineHeight: 1.5,

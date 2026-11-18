@@ -102,7 +102,6 @@ export const ControlsDialog = () => {
               <Callout
                 variant="info"
                 title={translate("controls.nativeControlsInfoTitle")}
-                className="rounded-lg"
               >
                 <div className="space-y-2">
                   <p>{translate("controls.nativeControlsInfoDescription")}</p>
@@ -204,7 +203,7 @@ const ControlsTextArea = ({
       onChange={(e) => setFieldValue(name, e.target.value)}
       placeholder={placeholder}
       readOnly={readOnly}
-      className="w-full h-64 p-3 font-mono text-size-base bg-base border border-strong rounded-xs resize-none focus-visible:outline-hidden focus-visible:border-transparent focus-visible:ring-accent focus-visible:ring-inset"
+      className="w-full h-64 p-3 font-mono text-size-base bg-base border border-strong rounded-base resize-none focus-visible:outline-hidden focus-visible:border-transparent focus-visible:ring-accent focus-visible:ring-inset"
     />
   );
 };

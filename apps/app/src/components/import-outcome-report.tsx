@@ -65,7 +65,7 @@ export const ImportOutcomeReport = ({
     // card's background and icon rather than by a nested bubble.
     <div
       className={clsx(
-        "relative flex items-start gap-2 py-3 pl-4 pr-4 rounded-md",
+        "relative flex items-start gap-2 py-3 pl-4 pr-4 rounded-base",
         background,
       )}
     >
@@ -103,7 +103,7 @@ export const ImportOutcomeReport = ({
               />
               {translate(`${translationKeys}.issues`)}
             </summary>
-            <ul className="mt-2 list-disc rounded-md border bg-popover p-3 pl-8 space-y-1">
+            <ul className="mt-2 list-disc rounded-base border bg-popover p-3 pl-8 space-y-1">
               {outcome.issues.map((issue) => (
                 <li key={issue.code}>
                   {describeIssue(issue, translate, translationKeys)}
@@ -114,7 +114,7 @@ export const ImportOutcomeReport = ({
         )}
       </div>
       <button
-        className="absolute top-2.5 right-2.5 p-1 rounded-md text-subtle hover:text-default focus:outline-hidden focus:ring-2 focus:ring-inset focus:ring-accent"
+        className="absolute top-2.5 right-2.5 p-1 rounded-base text-subtle hover:text-default focus:outline-hidden focus:ring-2 focus:ring-inset focus:ring-accent"
         onClick={onDismiss}
         aria-label={translate("dismiss")}
         type="button"

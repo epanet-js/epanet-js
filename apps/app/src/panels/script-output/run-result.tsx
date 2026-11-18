@@ -216,7 +216,7 @@ const AttachmentItem = ({ attachment }: { attachment: ScriptAttachment }) => {
   return (
     <li
       style={{ paddingLeft: rowIndent() }}
-      className="flex items-center text-sm h-8 min-w-0 rounded-sm hover:bg-base-hover"
+      className="flex items-center text-sm h-8 min-w-0 rounded-base hover:bg-base-hover"
     >
       <Button
         variant="quiet/list"

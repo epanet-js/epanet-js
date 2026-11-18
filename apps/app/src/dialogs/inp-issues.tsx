@@ -224,7 +224,7 @@ const CoordinatesIssues = ({
         {translate("issuesSummary")}{" "}
       </Button>
       {isExpaned && (
-        <div className="p-2 flex flex-col gap-y-4 ml-3 mt-2 border font-mono rounded-xs text-size-base bg-panel text-default max-h-75 overflow-y-auto">
+        <div className="p-2 flex flex-col gap-y-4 ml-3 mt-2 border font-mono rounded-base text-size-base bg-panel text-default max-h-75 overflow-y-auto">
           {sections.map(
             ({ labelKey, ids }) =>
               ids && <IdList key={labelKey} labelKey={labelKey} ids={ids} />,
@@ -259,7 +259,7 @@ const IssuesSummary = ({ issues }: { issues: ParserIssues }) => {
         {translate("issuesSummary")}{" "}
       </Button>
       {isExpaned && (
-        <div className="p-2 flex flex-col gap-y-4 ml-3 mt-2 border font-mono rounded-xs text-size-base bg-panel text-default max-h-75 overflow-y-auto">
+        <div className="p-2 flex flex-col gap-y-4 ml-3 mt-2 border font-mono rounded-base text-size-base bg-panel text-default max-h-75 overflow-y-auto">
           {issues.unsupportedSections && (
             <div>
               <p>{translate("useOfUnsupported")}:</p>

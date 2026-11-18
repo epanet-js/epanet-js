@@ -201,7 +201,7 @@ function styledInput({
       "text-size-base": textSize === "sm",
       "text-md": textSize === "md",
     },
-    "rounded-xs block overflow-hidden whitespace-nowrap text-ellipsis w-full placeholder:italic",
+    "rounded-base block overflow-hidden whitespace-nowrap text-ellipsis w-full placeholder:italic",
     "focus-visible:ring-inset",
   );
 }

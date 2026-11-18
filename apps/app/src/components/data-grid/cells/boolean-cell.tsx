@@ -61,7 +61,7 @@ export function BooleanCell({
         onChange={toggle}
         onKeyDown={handleKeyDown}
         className={clsx(
-          "w-4 h-4 text-accent border-strong rounded-sm outline-hidden focus:ring-0",
+          "w-4 h-4 text-accent border-strong rounded-base outline-hidden focus:ring-0",
           readOnly ? "cursor-not-allowed opacity-50" : "cursor-pointer",
         )}
       />

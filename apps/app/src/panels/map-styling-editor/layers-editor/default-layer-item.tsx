@@ -22,7 +22,7 @@ export function DefaultLayerItem({
       side="left"
       delayDuration={0}
       zIndex={30}
-      className="p-1! bg-popover! rounded-md! shadow-md!"
+      className="p-1! bg-popover! rounded-base! shadow-md!"
     >
       <button
         onClick={() => {

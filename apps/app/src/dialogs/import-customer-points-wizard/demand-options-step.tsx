@@ -24,18 +24,13 @@ export const DemandOptionsStep: React.FC<{
         </h2>
 
         {error && (
-          <Callout
-            variant="error"
-            description={error}
-            Icon={ErrorIcon}
-            className="rounded-md"
-          />
+          <Callout variant="error" description={error} Icon={ErrorIcon} />
         )}
 
         <div className="space-y-4">
           <div className="space-y-3">
             <label
-              className={`flex items-start space-x-3 cursor-pointer rounded-md p-3 border-2 transition-colors ${
+              className={`flex items-start space-x-3 cursor-pointer rounded-card p-3 border-2 transition-colors ${
                 keepDemands
                   ? "border-accent bg-accent-tint"
                   : " bg-base hover:border-strong hover:bg-panel"
@@ -69,7 +64,7 @@ export const DemandOptionsStep: React.FC<{
             </label>
 
             <label
-              className={`flex items-start space-x-3 cursor-pointer rounded-md p-3 border-2 transition-colors ${
+              className={`flex items-start space-x-3 cursor-pointer rounded-card p-3 border-2 transition-colors ${
                 !keepDemands
                   ? "border-accent bg-accent-tint"
                   : " bg-base hover:border-strong hover:bg-panel"

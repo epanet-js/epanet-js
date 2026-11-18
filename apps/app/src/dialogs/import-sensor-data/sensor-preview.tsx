@@ -75,7 +75,7 @@ export const SensorPreview = ({
   return (
     <div className="flex flex-col gap-3 flex-1 min-h-0">
       {preview.length > 0 && (
-        <div className="min-h-0 border rounded-md overflow-auto overscroll-none scroll-shadows [--scroll-shadow-top:calc(var(--spacing)*9)]">
+        <div className="min-h-0 border rounded-base overflow-auto overscroll-none scroll-shadows [--scroll-shadow-top:calc(var(--spacing)*9)]">
           <table className="w-full table-fixed text-size-base">
             <colgroup>
               <col />

@@ -91,7 +91,7 @@ export const SessionsRecovery = ({
         <div
           role="radiogroup"
           aria-label={translate("restoreUnsavedWorkTitle")}
-          className="flex flex-col p-1 border rounded-md max-h-72 overflow-y-auto"
+          className="flex flex-col p-1 border rounded-base max-h-72 overflow-y-auto"
         >
           {sortedSessions.map((session) => (
             <SessionOption
@@ -128,7 +128,7 @@ const SessionOption = ({
   return (
     <label
       className={clsx(
-        "flex items-start gap-x-3 px-3 py-2 rounded-sm cursor-pointer transition-colors",
+        "flex items-start gap-x-3 px-3 py-2 rounded-base cursor-pointer transition-colors",
         isSelected ? "bg-accent-tint" : "hover:bg-panel",
       )}
     >

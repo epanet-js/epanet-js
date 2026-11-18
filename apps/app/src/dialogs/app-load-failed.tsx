@@ -30,7 +30,7 @@ export const AppLoadFailedDialog = ({
             <summary className="cursor-pointer text-subtle hover:text-default">
               Show details
             </summary>
-            <pre className="mt-2 whitespace-pre-wrap wrap-break-word font-mono text-default bg-panel border rounded-sm p-2 max-h-40 overflow-auto">
+            <pre className="mt-2 whitespace-pre-wrap wrap-break-word font-mono text-default bg-panel border rounded-base p-2 max-h-40 overflow-auto">
               {modal.errorMessage}
             </pre>
           </details>

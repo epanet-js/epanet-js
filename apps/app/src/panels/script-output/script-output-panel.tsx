@@ -224,7 +224,7 @@ const RunErrorLine = ({
   const translate = useTranslate();
   const goToLine = useGoToScriptLine(run.draft);
   return (
-    <div className="-ml-1 px-1 py-1.5 rounded-sm text-error bg-error-subtle">
+    <div className="-ml-1 px-1 py-1.5 rounded-base text-error bg-error-subtle">
       <div>{`${name}: ${message}`}</div>
       {line !== null && (
         <div className="pl-4">

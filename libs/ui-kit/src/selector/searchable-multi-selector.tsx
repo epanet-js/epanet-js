@@ -236,7 +236,7 @@ function SearchableMultiSelectorList<T extends string | number>({
           }}
           onKeyDown={handleKeyDown}
           placeholder={searchPlaceholder ?? ui.searchPlaceholder}
-          className="w-full h-8 px-2 text-size-base border rounded-sm outline-hidden border-strong focus:border-accent focus:ring-1 focus:ring-accent"
+          className="w-full h-8 px-2 text-size-base border rounded-base outline-hidden border-strong focus:border-accent focus:ring-1 focus:ring-accent"
         />
       </div>
       <div
@@ -380,7 +380,7 @@ export function SearchableMultiSelector<T extends string | number>({
           avoidCollisions={side === "auto"}
           align="start"
           collisionPadding={8}
-          className="bg-popover min-w-(--radix-popover-trigger-width) max-h-(--radix-popover-content-available-height) border text-size-base rounded-md shadow-md z-50 mt-1 overflow-hidden flex flex-col"
+          className="bg-popover min-w-(--radix-popover-trigger-width) max-h-(--radix-popover-content-available-height) border border-strong text-size-base rounded-base shadow-md z-50 mt-1 overflow-hidden flex flex-col"
           onOpenAutoFocus={(event) => event.preventDefault()}
           onCloseAutoFocus={(event) => {
             event.preventDefault();

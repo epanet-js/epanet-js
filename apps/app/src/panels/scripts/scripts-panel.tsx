@@ -481,7 +481,7 @@ const ScriptList = ({
             data-item-id={newRowNavId}
             style={{ paddingLeft: rowIndent() }}
             className={clsx(
-              "flex items-center text-sm h-8 min-w-0 rounded-sm",
+              "flex items-center text-sm h-8 min-w-0 rounded-base",
               focusedItem?.id === newRowNavId
                 ? "bg-base-hover"
                 : "hover:bg-base-hover",

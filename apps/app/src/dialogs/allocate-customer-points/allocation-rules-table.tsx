@@ -85,7 +85,7 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
 
   if (rules.length === 0) {
     return (
-      <div className="text-center py-8 bg-panel rounded-lg border-2 border-dashed border-strong">
+      <div className="text-center py-8 bg-panel rounded-base border-2 border-dashed border-strong">
         <p className="text-subtle text-size-base">
           {translate(
             "importCustomerPoints.wizard.allocationStep.table.noRulesMessage",
@@ -97,7 +97,7 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
 
   return (
     <>
-      <div className="bg-base border rounded-lg overflow-hidden">
+      <div className="bg-base border rounded-base overflow-hidden">
         <table className="w-full">
           <thead className="bg-panel border-b">
             <tr>

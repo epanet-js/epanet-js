@@ -58,7 +58,7 @@ const ConsoleLine = ({ line }: { line: ScriptConsoleLine }) => {
   }
   if (line.level === "error") {
     return (
-      <div className="-ml-1 px-1 py-1.5 rounded-sm text-error bg-error-subtle">
+      <div className="-ml-1 px-1 py-1.5 rounded-base text-error bg-error-subtle">
         {line.text}
       </div>
     );

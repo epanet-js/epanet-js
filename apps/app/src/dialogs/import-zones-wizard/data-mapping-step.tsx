@@ -144,7 +144,7 @@ const PreviewTable = ({
   const translate = useTranslate();
 
   return (
-    <div className="mt-4 border rounded-md overflow-x-auto">
+    <div className="mt-4 border rounded-base overflow-x-auto">
       <table className="w-full text-size-base">
         <thead>
           <tr className="bg-panel">

@@ -169,7 +169,7 @@ const MapThemeNameDialog = ({
             value={name}
             onChange={(e) => setName(e.target.value)}
             className={clsx(
-              "w-full px-3 py-2 border rounded-sm text-size-base",
+              "w-full px-3 py-2 border rounded-base text-size-base",
               "border-strong focus-visible:ring-accent",
             )}
           />

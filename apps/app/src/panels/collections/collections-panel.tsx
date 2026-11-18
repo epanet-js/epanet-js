@@ -802,7 +802,7 @@ export const CollectionsPanel = () => {
             data-item-id={row.navId}
             style={{ paddingLeft: rowIndent(row.depth) }}
             className={clsx(
-              "group relative flex items-center text-sm cursor-pointer h-8 min-w-0 rounded-sm",
+              "group relative flex items-center text-sm cursor-pointer h-8 min-w-0 rounded-base",
               (focusedRow !== null && isSameRow(row, focusedRow)) || isMenuOpen
                 ? "bg-base-hover"
                 : "hover:bg-base-hover",
@@ -1110,7 +1110,7 @@ const CurrentStateRow = ({
     data-item-id={navId}
     style={{ paddingLeft: rowIndent(depth) }}
     className={clsx(
-      "relative flex items-center text-sm h-8 min-w-0 rounded-sm",
+      "relative flex items-center text-sm h-8 min-w-0 rounded-base",
       isFocused && "bg-base-hover",
       !isFocused && !isDisabled && "hover:bg-base-hover",
     )}

@@ -224,7 +224,7 @@ export const AssistantComposer = ({
         <div
           ref={boxRef}
           style={height !== null ? { height } : undefined}
-          className="flex flex-col rounded-sm border border-strong bg-base p-2"
+          className="flex flex-col rounded-base border border-strong bg-base p-2"
         >
           <p
             className={clsx(
@@ -256,7 +256,7 @@ export const AssistantComposer = ({
       <div
         ref={boxRef}
         style={height !== null ? { height } : undefined}
-        className="flex flex-col rounded-sm border border-strong bg-base p-2 focus-within:border-accent focus-within:ring-1 focus-within:ring-accent"
+        className="flex flex-col rounded-base border border-strong bg-base p-2 focus-within:border-accent focus-within:ring-1 focus-within:ring-accent"
       >
         <textarea
           ref={textareaRef}
@@ -290,7 +290,7 @@ export const AssistantComposer = ({
           description={translate(
             `scripting.assistant.failures.${failure}.description`,
           )}
-          className="mt-2 rounded-md"
+          className="mt-2"
         />
       )}
       {syntaxError && (
@@ -303,7 +303,7 @@ export const AssistantComposer = ({
             String(syntaxError.line),
             String(syntaxError.column),
           )}
-          className="mt-2 rounded-md"
+          className="mt-2"
         />
       )}
       <div className="flex items-center justify-between gap-2 mt-2">

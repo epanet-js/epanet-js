@@ -48,7 +48,7 @@ export function StyledDropOverlay({
 }: React.PropsWithChildren<Record<string, unknown>>) {
   return (
     <div className="absolute inset-0 z-50 flex items-center justify-center bg-gray-500/75 pointer-events-none">
-      <div className="px-3 py-2 text-white bg-gray-500 rounded-md max-w-md">
+      <div className="px-3 py-2 text-white bg-gray-500 rounded-base max-w-md">
         {children}
       </div>
     </div>
@@ -77,7 +77,7 @@ export function Badge({
         },
         `inline-flex uppercase
     text-gray-700 dark:text-gray-100
-    font-bold text-xs px-1.5 py-0.5 rounded`,
+    font-bold text-xs px-1.5 py-0.5 rounded-micro`,
       )}
     >
       {children}
@@ -271,7 +271,7 @@ export const styledDialogContent = ({
 
   return clsx(
     size === "auto" ? "w-fit" : "w-full",
-    "flex flex-col rounded-lg",
+    "flex flex-col rounded-dialog",
     "text-left bg-base shadow-md",
     "dark:text-white dark:shadow-none dark:border dark:border-black",
     widthClass,
@@ -305,7 +305,7 @@ export const styledCheckbox = ({
       "text-gray-500 border-gray-500 hover:border-gray-700 dark:hover:border-gray-300 focus:ring-gray-500":
         variant === "default",
     },
-    `bg-transparent rounded-sm dark:ring-offset-gray-700`,
+    `bg-transparent rounded-base dark:ring-offset-gray-700`,
   ]);
 
 export const FieldCheckbox = classed(Field)(styledCheckbox);
@@ -352,7 +352,7 @@ export const StyledPopoverContent = classed(Popover.Content)(
       z-20
       bg-base
       dark:text-white
-      border rounded-md`,
+      border border-strong rounded-base`,
     ),
 );
 
@@ -383,9 +383,9 @@ export const StyledLabelSpan = classed.span(
 
 export const contentLike = `p-1
     bg-popover
-    rounded-md
+    rounded-base
     shadow-md
-    border
+    border border-strong
     content-layout z-30`;
 
 export const DDContent = classed(DD.Content)(contentLike);
@@ -413,7 +413,7 @@ export const menuItemLike = ({
         variant === "destructive" || variant === "danger-quiet",
     },
     `cursor-pointer
-    rounded-sm
+    rounded-micro
     flex items-center
     w-full
     h-8 pl-3 pr-3
@@ -481,7 +481,7 @@ export const Keycap = classed.div(({ size = "sm" }: { size?: B3Size }) => [
   },
   `text-center
   dark:bg-gray-700/50
-  rounded
+  rounded-base
   ring-1 ring-gray-100 dark:ring-black
   border border-b-4 border-r-2
   border-gray-300 dark:border-gray-500`,
@@ -504,9 +504,9 @@ export const TextWell = classed.div(
         (variant === "destructive" || variant === "primary") && size === "xs",
       "text-xs": size === "xs",
       "text-gray-700 dark:text-gray-300": variant === "default",
-      "text-red-700 dark:text-red-100 bg-red-50 dark:bg-red-900 rounded-sm":
+      "text-red-700 dark:text-red-100 bg-red-50 dark:bg-red-900 rounded-base":
         variant === "destructive",
-      "bg-panel border dark:bg-gray-900 rounded-sm": variant === "primary",
+      "bg-panel border dark:bg-gray-900 rounded-base": variant === "primary",
     }),
 );
 

@@ -52,7 +52,7 @@ export function ActionsCell({
               <DD.Item
                 key={index}
                 className={clsx(
-                  "rounded-sm flex items-center w-full h-8 px-3 text-size-base gap-x-2 outline-hidden",
+                  "rounded-micro flex items-center w-full h-8 px-3 text-size-base gap-x-2 outline-hidden",
                   isDisabled
                     ? "text-disabled cursor-not-allowed"
                     : isDestructive

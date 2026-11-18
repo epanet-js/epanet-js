@@ -71,7 +71,7 @@ export const WelcomeDialog = () => {
           <div className="absolute top-6 right-6 z-10">
             <DialogCloseX />
           </div>
-          <div className="bg-panel sm:border-r border-b sm:border-b-0 rounded-t-lg sm:rounded-t-none sm:rounded-tl-lg sm:rounded-bl-lg col-span-1 md:w-max flex flex-col p-6 gap-6">
+          <div className="bg-panel sm:border-r border-b sm:border-b-0 col-span-1 md:w-max flex flex-col p-6 gap-6">
             <div className="pl-1">
               <LogoIconAndWordmarkIcon size={147} />
             </div>
@@ -173,7 +173,6 @@ export const WelcomeDialog = () => {
                 <Callout
                   variant="info"
                   title={translate("startNotificationLanguageTitle")}
-                  className="rounded-lg"
                 >
                   {translate("startNotificationLanguageDescription")}
                 </Callout>
@@ -275,11 +274,7 @@ const FoundingPartners = () => {
 const SmallDeviceWarning = () => {
   const translate = useTranslate();
   return (
-    <Callout
-      variant="warning"
-      title={translate("headsUpSmallScreen")}
-      className="rounded-lg"
-    >
+    <Callout variant="warning" title={translate("headsUpSmallScreen")}>
       <p>{translate("smallScreenExplain")}</p>
       <hr className="my-4" />
       <p className="pb-2">{translate("hereYourOptions")}:</p>
@@ -409,7 +404,7 @@ const RecentFileCard = ({
   onRemove: () => void;
 }) => (
   <div
-    className="group flex flex-col rounded-lg border shadow-xs cursor-pointer hover:bg-panel overflow-hidden min-w-0"
+    className="group flex flex-col rounded-card border shadow-xs cursor-pointer hover:bg-panel overflow-hidden min-w-0"
     onClick={onOpen}
   >
     <div className="relative bg-panel shrink-0" style={{ aspectRatio: "5/4" }}>
@@ -473,7 +468,7 @@ const DemoAsRecentCard = ({ demoNetwork }: { demoNetwork: DemoModel }) => {
 
   return (
     <div
-      className="flex flex-col rounded-lg border shadow-xs cursor-pointer hover:bg-panel overflow-hidden min-w-0"
+      className="flex flex-col rounded-card border shadow-xs cursor-pointer hover:bg-panel overflow-hidden min-w-0"
       onClick={handleClick}
     >
       <div
@@ -519,7 +514,7 @@ const DemoNetworkCard = ({ demoNetwork }: { demoNetwork: DemoModel }) => {
   };
   return (
     <div
-      className="flex flex-col max-w-[250px] items-center gap-x-2 bg-base shadow-md rounded-lg border cursor-pointer hover:bg-base-hover"
+      className="flex flex-col max-w-[250px] items-center gap-x-2 bg-base shadow-md rounded-card border cursor-pointer hover:bg-base-hover"
       onClick={handleOpenDemoModel}
     >
       <div className="shrink-0">
@@ -529,7 +524,7 @@ const DemoNetworkCard = ({ demoNetwork }: { demoNetwork: DemoModel }) => {
           width={247}
           height={200}
           quality={90}
-          className="rounded-tl-md rounded-tr-md object-cover"
+          className="rounded-t-card object-cover"
         />
       </div>
       <div className="flex flex-col p-3">

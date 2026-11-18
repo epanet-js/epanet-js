@@ -171,7 +171,7 @@ export const DataInputStep: React.FC<{
               variant="error"
               description={error}
               Icon={ErrorIcon}
-              className="mx-3 rounded-md"
+              className="mx-3"
             />
           )}
 
@@ -202,7 +202,7 @@ export const DataInputStep: React.FC<{
           </h2>
           <div
             style={{ height: 216 }}
-            className="relative overflow-hidden rounded-lg shadow-lg cursor-pointer"
+            className="relative overflow-hidden rounded-base shadow-lg cursor-pointer"
             onClick={() =>
               window.open(
                 customerPointsImportVideoUrl,
@@ -238,7 +238,7 @@ export const DataInputStep: React.FC<{
               </div>
 
               {/* Video duration indicator */}
-              <div className="absolute bottom-3 right-3 bg-black/70 text-white text-size-small px-2 py-1 rounded-sm">
+              <div className="absolute bottom-3 right-3 bg-black/70 text-white text-size-small px-2 py-1 rounded-micro">
                 5:23
               </div>
 

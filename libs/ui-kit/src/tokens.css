@@ -83,6 +83,12 @@
   --text-size-base--line-height: 1.25rem;
   --text-size-small: 0.75rem;
   --text-size-small--line-height: 1rem;
+
+  /* Semantic radii */
+  --radius-micro: 0.125rem;
+  --radius-base: 0.25rem;
+  --radius-card: 0.5rem;
+  --radius-dialog: 0.5rem;
 }
 
 /*

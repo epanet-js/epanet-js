@@ -368,7 +368,7 @@ export const ExportSimulationResultsDialog = ({
             onChange={(e) =>
               setFormat(e.target.value as SimulationExportFormat)
             }
-            className="w-full px-3 py-2 border border-strong rounded-sm text-size-base focus:outline-hidden focus:ring-1 focus:ring-accent"
+            className="w-full px-3 py-2 border border-strong rounded-base text-size-base focus:outline-hidden focus:ring-1 focus:ring-accent"
           >
             {exportFormats.map(({ value, labelKey }) => (
               <option key={value} value={value}>
@@ -386,7 +386,7 @@ export const ExportSimulationResultsDialog = ({
             checked={selectedAssetsOnly}
             disabled={!hasSelection}
             onChange={(e) => setSelectedAssetsOnly(e.target.checked)}
-            className="rounded-sm text-accent-hover focus:ring-accent disabled:opacity-50"
+            className="rounded-base text-accent-hover focus:ring-accent disabled:opacity-50"
           />
           <span className="text-size-base text-default">
             {translate("exportSelectedAssetsOnly")}
@@ -400,7 +400,7 @@ export const ExportSimulationResultsDialog = ({
                 checked={nodeAllChecked}
                 indeterminate={nodeIndeterminate}
                 onChange={toggleAllNodes}
-                className="rounded-sm text-accent-hover focus:ring-accent"
+                className="rounded-base text-accent-hover focus:ring-accent"
               />
               <span className="text-size-base font-medium text-default">
                 {translate("nodes")}
@@ -424,7 +424,7 @@ export const ExportSimulationResultsDialog = ({
                           [key]: e.target.checked,
                         }))
                       }
-                      className="rounded text-accent-hover focus:ring-accent disabled:opacity-50"
+                      className="rounded-base text-accent-hover focus:ring-accent disabled:opacity-50"
                     />
                     <span className="text-size-base text-default">
                       {translate(translationKey)}
@@ -441,7 +441,7 @@ export const ExportSimulationResultsDialog = ({
                 checked={linkAllChecked}
                 indeterminate={linkIndeterminate}
                 onChange={toggleAllLinks}
-                className="rounded-sm text-accent-hover focus:ring-accent"
+                className="rounded-base text-accent-hover focus:ring-accent"
               />
               <span className="text-size-base font-medium text-default">
                 {translate("links")}
@@ -465,7 +465,7 @@ export const ExportSimulationResultsDialog = ({
                           [key]: e.target.checked,
                         }))
                       }
-                      className="rounded-sm text-accent-hover focus:ring-accent disabled:opacity-50"
+                      className="rounded-base text-accent-hover focus:ring-accent disabled:opacity-50"
                     />
                     <span className="text-size-base text-default">
                       {translate(translationKey)}
@@ -479,7 +479,7 @@ export const ExportSimulationResultsDialog = ({
 
         {showSizeWarning && (
           <div
-            className={`p-3 rounded-md space-y-1 ${
+            className={`p-3 rounded-base space-y-1 ${
               exceedsLimit
                 ? "bg-error-subtle border border-red-200"
                 : "bg-yellow-50 border border-yellow-200"

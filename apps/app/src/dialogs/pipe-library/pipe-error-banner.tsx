@@ -22,7 +22,7 @@ export function PipeErrorBanner({
       title={translate("pipeLibrary.validation.invalidMaterial", materialLabel)}
       description={translate(`pipeLibrary.${error.code}`)}
       Icon={TriangleAlert}
-      className="shrink-0 mb-3 mr-3 rounded-md"
+      className="shrink-0 mb-3 mr-3"
     />
   );
 }

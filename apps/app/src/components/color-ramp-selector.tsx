@@ -163,7 +163,7 @@ const ZoneColorRampSelector = ({
 
   const rampPreview = (
     <span
-      className="w-full h-5 border rounded-md"
+      className="w-full h-5 border rounded-base"
       style={{
         background: linearGradient({
           colors: rampColors,
@@ -175,7 +175,7 @@ const ZoneColorRampSelector = ({
 
   if (readonly) {
     return (
-      <div className="flex items-center w-full min-w-[90px] border rounded-xs p-2 min-h-9">
+      <div className="flex items-center w-full min-w-[90px] border border-strong rounded-base p-2 min-h-9">
         {rampPreview}
       </div>
     );
@@ -183,13 +183,13 @@ const ZoneColorRampSelector = ({
 
   const triggerStyles = clsx(
     "flex items-center gap-x-2 justify-between w-full min-w-[90px]",
-    "border rounded-xs",
+    "border border-strong rounded-base",
     "text-sm text-default",
     "focus:ring-inset focus:ring-1 focus:ring-accent focus:bg-purple-300/10",
     "p-2 min-h-9 w-full",
   );
 
-  const contentStyles = `bg-popover w-(--radix-select-trigger-width) border text-sm rounded-xs shadow-md z-50`;
+  const contentStyles = `bg-popover w-(--radix-select-trigger-width) border border-strong text-sm rounded-base shadow-md z-50`;
 
   return (
     <Select.Root>
@@ -242,7 +242,10 @@ const AssetColorRampSelector = ({
 
   const rampPreview = (
     <span
-      className={clsx("w-full h-5 border rounded-md", disabled && "opacity-50")}
+      className={clsx(
+        "w-full h-5 border rounded-base",
+        disabled && "opacity-50",
+      )}
       style={{
         background: linearGradient({
           colors: rampColors,
@@ -254,7 +257,7 @@ const AssetColorRampSelector = ({
 
   if (readonly) {
     return (
-      <div className="flex items-center w-full min-w-[90px] border rounded-xs p-2 min-h-9">
+      <div className="flex items-center w-full min-w-[90px] border border-strong rounded-base p-2 min-h-9">
         {rampPreview}
       </div>
     );
@@ -262,7 +265,7 @@ const AssetColorRampSelector = ({
 
   const triggerStyles = clsx(
     "flex items-center gap-x-2 justify-between w-full min-w-[90px]",
-    "border rounded-xs",
+    "border border-strong rounded-base",
     "text-size-base",
     disabled
       ? "text-subtle cursor-not-allowed bg-base-disabled"
@@ -270,7 +273,7 @@ const AssetColorRampSelector = ({
     "p-2 min-h-9 w-full",
   );
 
-  const contentStyles = `bg-base w-(--radix-select-trigger-width) border text-size-base rounded-xs shadow-md z-50`;
+  const contentStyles = `bg-base w-(--radix-select-trigger-width) border border-strong text-size-base rounded-base shadow-md z-50`;
 
   return (
     <Select.Root disabled={disabled}>
@@ -405,7 +408,7 @@ function RampPreview({
   return (
     <div
       title={name}
-      className={clsx("w-full h-5 rounded-md", { "rotate-180": reverse })}
+      className={clsx("w-full h-5 rounded-base", { "rotate-180": reverse })}
       style={{
         background: linearGradient({
           colors,

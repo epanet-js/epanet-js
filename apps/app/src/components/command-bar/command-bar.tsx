@@ -269,7 +269,7 @@ const CommandBarModal = ({ onClose }: { onClose: () => void }) => {
         className="absolute inset-0 bg-black/30 dark:bg-black/50"
         onClick={() => finish("dismissed")}
       />
-      <div className="relative z-10 w-[560px] max-w-[90vw] bg-popover rounded-lg shadow-2xl border overflow-hidden">
+      <div className="relative z-10 w-[560px] max-w-[90vw] bg-popover rounded-dialog shadow-2xl border overflow-hidden">
         <div className="flex items-center px-3 border-b">
           <span className="text-subtle" aria-hidden>
             <SearchIcon size="lg" />
@@ -315,7 +315,7 @@ const CommandBarModal = ({ onClose }: { onClose: () => void }) => {
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => commit(option, index)}
                   className={clsx(
-                    "flex items-center justify-between gap-2 px-3 py-2 text-sm rounded-sm cursor-pointer text-default",
+                    "flex items-center justify-between gap-2 px-3 py-2 text-sm rounded-micro cursor-pointer text-default",
                     index === activeIndex
                       ? "bg-base-hover"
                       : "hover:bg-base-hover",

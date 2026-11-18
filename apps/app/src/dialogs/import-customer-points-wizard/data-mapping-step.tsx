@@ -727,7 +727,7 @@ export const DataMappingStep: React.FC<{
             variant="error"
             description={error}
             Icon={ErrorIcon}
-            className="rounded-md mt-4"
+            className="mt-4"
           />
         )}
 
@@ -848,7 +848,7 @@ export const CustomerPointsTable: React.FC<CustomerPointsTableProps> = ({
           localizeDecimal(validCount),
         )}
       </h4>
-      <div className="overflow-x-auto mt-2 border rounded-lg">
+      <div className="overflow-x-auto mt-2 border rounded-base">
         <table className="min-w-full text-size-base">
           <thead className="bg-panel sticky top-0">
             <tr>
@@ -961,7 +961,7 @@ export const IssuesSummary: React.FC<IssuesSummaryProps> = ({ issues }) => {
         )}
       </h2>
       <div className="space-y-4">
-        <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+        <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-base">
           <p className="text-size-base text-yellow-800">
             {translate(
               "importCustomerPoints.wizard.dataMapping.messages.skippedRowsWarning",
@@ -1040,7 +1040,7 @@ export const IssueSection: React.FC<IssueSectionProps> = ({
   const translate = useTranslate();
 
   return (
-    <div className="border rounded-md">
+    <div className="border rounded-base">
       <button
         className="w-full px-3 py-2 text-left text-size-base text-default hover:bg-panel flex items-center justify-between"
         onClick={() => setIsExpanded(!isExpanded)}
@@ -1056,7 +1056,7 @@ export const IssueSection: React.FC<IssueSectionProps> = ({
             {features.slice(0, 3).map((feature, index) => (
               <div
                 key={index}
-                className="text-size-small font-mono bg-base p-2 rounded-sm border text-default"
+                className="text-size-small font-mono bg-base p-2 rounded-base border text-default"
               >
                 {JSON.stringify(feature)}
               </div>

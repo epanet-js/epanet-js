@@ -138,7 +138,7 @@ export const BaseDialog = ({
           >
             <SelectorPortalContainer container={contentEl}>
               <DefaultErrorBoundary>
-                <div className="modal-container flex flex-col flex-nowrap flex-1 min-h-0">
+                <div className="modal-container flex flex-col flex-nowrap flex-1 min-h-0 rounded-[inherit] overflow-hidden">
                   {!title && <Dialog.Title className="sr-only" />}
                   {title && <DialogHeader title={title} badge={badge} />}
                   <div className="modal-content flex flex-col flex-1 overflow-y-auto min-h-0">

@@ -842,7 +842,7 @@ export const SettingsRow = ({
     <span className="text-size-base text-default dark:text-gray-200">
       {label}
       {badge && (
-        <span className="ml-2 px-1.5 py-0.5 text-[10px] font-medium rounded-sm bg-panel text-subtle">
+        <span className="ml-2 px-1.5 py-0.5 text-[10px] font-medium rounded-micro bg-panel text-subtle">
           {badge}
         </span>
       )}

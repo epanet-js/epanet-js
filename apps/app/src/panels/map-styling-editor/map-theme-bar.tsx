@@ -54,7 +54,7 @@ export const MapThemeBar = () => {
   return (
     <div
       className={clsx(
-        "flex items-center -mx-1 mb-1 p-1 rounded-sm",
+        "flex items-center -mx-1 mb-1 p-1 rounded-base",
         isModified && "bg-accent-tint",
       )}
     >

@@ -231,6 +231,6 @@ function styledInput({
       "text-md": textSize === "md",
     },
 
-    "rounded-xs block tabular-nums overflow-hidden whitespace-nowrap text-ellipsis focus-visible:ring-inset w-full placeholder:italic placeholder:text-subtle",
+    "rounded-base block tabular-nums overflow-hidden whitespace-nowrap text-ellipsis focus-visible:ring-inset w-full placeholder:italic placeholder:text-subtle",
   );
 }

@@ -31,7 +31,7 @@ export function MultiSelectorRow<T extends string | number>({
       aria-disabled={isOptionDisabled}
       style={style}
       className={clsx(
-        "flex items-center gap-2 h-8 px-2 rounded-sm",
+        "flex items-center gap-2 h-8 px-2 rounded-micro",
         style && "absolute top-0 left-1 right-1",
         isOptionDisabled
           ? "cursor-default text-disabled"
@@ -47,7 +47,7 @@ export function MultiSelectorRow<T extends string | number>({
       <span
         aria-hidden="true"
         className={clsx(
-          "flex items-center justify-center w-4 h-4 rounded border shrink-0",
+          "flex items-center justify-center w-4 h-4 rounded-base border shrink-0",
           isSelected
             ? "bg-accent border-transparent"
             : "bg-panel border-strong",

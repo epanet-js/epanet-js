@@ -314,17 +314,17 @@ details summary::-webkit-details-marker {
 }
 
 .react-colorful__saturation {
-  border-radius: 4px 4px 0 0 !important;
+  border-radius: var(--radius-base) var(--radius-base) 0 0 !important;
 }
 
 .react-colorful__last-control {
-  border-radius: 0 0 4px 4px !important;
+  border-radius: 0 0 var(--radius-base) var(--radius-base) !important;
 }
 
 .react-colorful__pointer {
   width: 22px !important;
   height: 22px !important;
-  border-radius: 2px !important;
+  border-radius: var(--radius-micro) !important;
 }
 
 body.dark .mapboxgl-ctrl-group {

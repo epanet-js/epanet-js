@@ -41,7 +41,7 @@ export const DropZone: React.FC<DropZoneProps> = ({
       {...dropZoneProps}
       onClick={handleDropZoneClick}
       className={`
-        relative min-h-[200px] border-2 border-dashed rounded-lg
+        relative min-h-[200px] border-2 border-dashed rounded-card
         flex flex-col items-center justify-center p-8 cursor-pointer
         transition-all duration-200 ease-in-out
         ${dragState === "idle" ? "border-strong bg-panel hover:border-gray-400 hover:bg-base-hover" : ""}
@@ -88,7 +88,7 @@ export const DropZone: React.FC<DropZoneProps> = ({
 
       {selectedFile && (
         <div className="absolute bottom-4 left-4 right-4">
-          <div className="bg-base rounded-md px-3 py-2 border shadow-xs">
+          <div className="bg-base rounded-base px-3 py-2 border shadow-xs">
             <p className="text-size-base text-subtle truncate">
               {translate("dropZone.selectedFile", selectedFile.name)}
             </p>

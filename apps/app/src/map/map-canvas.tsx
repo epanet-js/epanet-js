@@ -485,7 +485,7 @@ const SatelliteResolutionMessage = ({ zoom }: { zoom: number | undefined }) => {
           "top-[60px] sm:top-1/2",
         )}
       >
-        <div className="bg-gray-800 text-white rounded-sm shadow-md py-1 px-2 m-2">
+        <div className="bg-gray-800 text-white rounded-base shadow-md py-1 px-2 m-2">
           {translate("signUpToUnlockResolution")}
         </div>
       </div>

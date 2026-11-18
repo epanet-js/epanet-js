@@ -344,7 +344,7 @@ const SymbologyEditor = ({
           labelSize="sm"
           layout="fixed-label"
         >
-          <div className="h-7 w-12 rounded-sm overflow-hidden">
+          <div className="h-7 w-12 rounded-base overflow-hidden">
             <ColorPopover
               color={defaultColor}
               onChange={handleDefaultColorChange}
@@ -528,7 +528,7 @@ const ZoneSymbologySection = () => {
           labelSize="sm"
           layout="fixed-label"
         >
-          <div className="h-7 w-12 rounded-sm overflow-hidden">
+          <div className="h-7 w-12 rounded-base overflow-hidden">
             <ColorPopover
               color={zoneSymbology.defaults.color}
               onChange={handleDefaultColorChange}

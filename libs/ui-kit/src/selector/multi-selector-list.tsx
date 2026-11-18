@@ -323,7 +323,7 @@ export function BaseMultiSelectorList<T extends string | number>({
               if (virtualized) virtualizer.scrollToOffset(0);
             }}
             placeholder={searchPlaceholder ?? ui.searchPlaceholder}
-            className="w-full h-8 px-2 text-size-base border rounded-sm outline-hidden border-strong focus:border-accent focus:ring-1 focus:ring-accent"
+            className="w-full h-8 px-2 text-size-base border rounded-base outline-hidden border-strong focus:border-accent focus:ring-1 focus:ring-accent"
           />
         </div>
       )}

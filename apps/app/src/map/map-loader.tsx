@@ -18,7 +18,7 @@ export const MapLoading = () => {
         aria-hidden={isHidden}
         className={`flex items-center gap-x-2 bg-black/30 text-white
             px-3 py-1
-            rounded
+            rounded-base
             font-semibold
             text-sm
             select-none

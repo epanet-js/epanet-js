@@ -112,7 +112,7 @@ const LegendContainer = ({
     <div
       className={clsx(
         "space-y-1 text-size-small bg-base",
-        "rounded-sm border shadow-md",
+        "rounded-base border shadow-md",
       )}
       onClick={onClick}
     >
@@ -125,7 +125,7 @@ export const LegendRamp = ({ colorRule }: { colorRule: RangeColorRule }) => {
   const { colors, breaks, interpolate } = colorRule;
   return (
     <div
-      className="relative w-4 h-32 rounded-sm dark:border dark:border-white "
+      className="relative w-4 h-32 rounded-base dark:border dark:border-white "
       style={{
         background: linearGradient({
           colors: colors,

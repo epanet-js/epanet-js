@@ -50,7 +50,7 @@ export const Callout = ({
   return (
     <div
       className={clsx(
-        "flex items-start p-3 border text-default",
+        "flex items-start p-3 border text-default rounded-base",
         {
           "bg-success-subtle border-success-line": variant === "success",
           "bg-warning-subtle border-warning-line": variant === "warning",
@@ -97,7 +97,7 @@ export const Callout = ({
               {onDismiss && (
                 <button
                   onClick={onDismiss}
-                  className="shrink-0 p-1 rounded-md inline-flex items-center justify-center text-default hover:text-subtle hover:cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-inset focus:ring-accent"
+                  className="shrink-0 p-1 rounded-base inline-flex items-center justify-center text-default hover:text-subtle hover:cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-inset focus:ring-accent"
                 >
                   <span className="sr-only">{dismissLabel}</span>
                   <X size={16} />
@@ -120,7 +120,7 @@ export const Callout = ({
             <summary className="cursor-pointer text-subtle hover:text-default">
               {detailsLabel}
             </summary>
-            <pre className="mt-1 whitespace-pre-wrap wrap-break-word font-mono text-default bg-white/60 rounded-sm p-2 max-h-40 overflow-auto">
+            <pre className="mt-1 whitespace-pre-wrap wrap-break-word font-mono text-default bg-white/60 rounded-base p-2 max-h-40 overflow-auto">
               {details}
             </pre>
           </details>

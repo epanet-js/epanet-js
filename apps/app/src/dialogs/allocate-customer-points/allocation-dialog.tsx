@@ -514,13 +514,12 @@ const ExcludedPipesWarning = ({
         count,
         localizeDecimal(count),
       )}
-      className="rounded-md"
     />
   );
 };
 
 const ErrorMessage = ({ error }: { error: string }) => (
-  <div className="bg-error-subtle border border-red-200 rounded-md p-3">
+  <div className="bg-error-subtle border border-red-200 rounded-base p-3">
     <p className="text-error text-size-base">{error}</p>
   </div>
 );
@@ -623,7 +622,7 @@ const AllocationSummaryPanel: React.FC<AllocationSummaryPanelProps> = ({
   if (isAllocating) {
     return (
       <div
-        className="bg-panel border rounded-lg p-4 flex items-center justify-center"
+        className="bg-panel border rounded-base p-4 flex items-center justify-center"
         style={{ height: summaryHeight }}
       >
         <div className="flex items-center">
@@ -642,7 +641,7 @@ const AllocationSummaryPanel: React.FC<AllocationSummaryPanelProps> = ({
   if (nothingToAllocate) {
     return (
       <div
-        className="bg-panel border rounded-lg p-4"
+        className="bg-panel border rounded-base p-4"
         style={{ height: summaryHeight }}
       >
         <div className="flex items-center">
@@ -660,7 +659,7 @@ const AllocationSummaryPanel: React.FC<AllocationSummaryPanelProps> = ({
 
     return (
       <div
-        className="bg-panel border rounded-lg p-4 space-y-4"
+        className="bg-panel border rounded-base p-4 space-y-4"
         style={{ height: summaryHeight }}
       >
         <div>
@@ -724,7 +723,7 @@ const AllocationSummaryPanel: React.FC<AllocationSummaryPanelProps> = ({
 
   return (
     <div
-      className="bg-panel border rounded-lg p-4"
+      className="bg-panel border rounded-base p-4"
       style={{ height: summaryHeight }}
     >
       <div className="space-y-2">

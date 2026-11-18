@@ -35,7 +35,7 @@ export const PrivacyBanner = () => {
     <div className="fixed bottom-10 left-0 w-full z-50 pointer-events-none">
       <div className="max-w-4xl mx-auto px-4 pointer-events-auto">
         <div
-          className="bg-popover border border-strong rounded-md shadow-lg p-6"
+          className="bg-popover border border-strong rounded-base shadow-lg p-6"
           data-privacy-banner
           onPointerDownCapture={(e) => {
             e.stopPropagation();
@@ -132,7 +132,7 @@ const PreferencesView = ({
       <h2 className="text-size-heading-3 font-bold text-default">
         {translate("privacyBanner.preferencesTitle")}
       </h2>
-      <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md">
+      <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-base">
         <p className="text-size-base text-default">
           {translate("privacyBanner.essentialDataNotice")}
         </p>

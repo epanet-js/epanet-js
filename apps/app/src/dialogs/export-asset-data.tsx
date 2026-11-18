@@ -134,7 +134,7 @@ export const ExportAssetDataDialog = ({ onClose }: { onClose: () => void }) => {
           <select
             value={format}
             onChange={(e) => setFormat(e.target.value as ExportFormat)}
-            className="w-full px-3 py-2 border border-strong rounded-sm text-size-base focus:outline-hidden focus:ring-1 focus:ring-accent"
+            className="w-full px-3 py-2 border border-strong rounded-base text-size-base focus:outline-hidden focus:ring-1 focus:ring-accent"
           >
             {exportFormats.map(({ value, labelKey }) => (
               <option key={value} value={value}>
@@ -153,7 +153,7 @@ export const ExportAssetDataDialog = ({ onClose }: { onClose: () => void }) => {
               checked={includeSimulationResults}
               disabled={!hasSimulationResults}
               onChange={(e) => setIncludeSimulationResults(e.target.checked)}
-              className="rounded-sm text-accent-hover focus:ring-accent"
+              className="rounded-base text-accent-hover focus:ring-accent"
             />
             <span className="text-size-base text-default">
               {includeSimulationResultsLabelText}
@@ -167,7 +167,7 @@ export const ExportAssetDataDialog = ({ onClose }: { onClose: () => void }) => {
               checked={selectedAssetsOnly}
               disabled={!hasSelection}
               onChange={(e) => setSelectedAssetsOnly(e.target.checked)}
-              className="rounded-sm text-accent-hover focus:ring-accent"
+              className="rounded-base text-accent-hover focus:ring-accent"
             />
             <span className="text-size-base text-default">
               {translate("exportSelectedAssetsOnly")}

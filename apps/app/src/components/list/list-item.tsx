@@ -57,7 +57,7 @@ export const ListItem = <T extends LabelledItem>({
       style={{ paddingLeft: rowIndent(depth) }}
       onPointerEnter={onHover && (() => onHover(true))}
       onPointerLeave={onHover && (() => onHover(false))}
-      className={`group relative flex items-center justify-between text-sm cursor-pointer h-8 min-w-0 rounded-sm ${
+      className={`group relative flex items-center justify-between text-sm cursor-pointer h-8 min-w-0 rounded-base ${
         isSelected
           ? "bg-accent-tint"
           : isFocused || isMenuOpen

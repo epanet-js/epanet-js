@@ -55,7 +55,7 @@ export const CollapsibleListSection = ({
     <C.Root open={isOpen} onOpenChange={onToggle}>
       <div
         data-section-type={sectionType}
-        className={`group group/section flex items-center justify-between h-8 px-1 rounded-sm ${
+        className={`group group/section flex items-center justify-between h-8 px-1 rounded-base ${
           isFocused || isMenuOpen ? "bg-base-hover" : "hover:bg-base-hover"
         }`}
       >

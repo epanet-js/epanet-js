@@ -440,7 +440,7 @@ const ArchivedSectionHeader = ({
       onClick={onToggle}
       onMouseDown={(e) => e.preventDefault()}
       className={clsx(
-        "w-full flex items-center gap-1 h-8 px-1 rounded-sm",
+        "w-full flex items-center gap-1 h-8 px-1 rounded-base",
         "text-size-base font-semibold text-default",
         isFocused ? "bg-accent-tint" : "hover:bg-base-hover",
       )}
@@ -837,7 +837,7 @@ export const VirtualizedIssuesList = <T, I>({
                 >
                   <div
                     className={clsx(
-                      "group/item flex items-center w-full rounded-sm",
+                      "group/item flex items-center w-full rounded-base",
                       isItemSelected ? "bg-accent-tint" : "hover:bg-base-hover",
                     )}
                   >

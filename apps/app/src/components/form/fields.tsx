@@ -360,7 +360,7 @@ export const CollapsibleSection = ({
             <div
               className={clsx(
                 "flex gap-1 items-center h-8 cursor-pointer",
-                "px-1 -mx-1 rounded-sm hover:bg-base-hover",
+                "px-1 -mx-1 rounded-base hover:bg-base-hover",
                 "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-accent",
                 {
                   "text-size-base font-semibold": variant === "primary",
@@ -433,7 +433,7 @@ export const NestedSection = ({
         overflow={false}
         gap={1}
         className={clsx(
-          "bg-panel -mr-1 pr-1 border-l-2 border-gray-400 rounded-xs",
+          "bg-panel -mr-1 pr-1 border-l-2 border-gray-400 rounded-micro",
           className,
         )}
       >

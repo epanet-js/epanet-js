@@ -326,7 +326,7 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
         </div>
 
         {!isLoading && !noDataAvailable && assetsTruncated && (
-          <div className="mx-4 mb-3 mt-3 p-3 rounded-md bg-yellow-50 border border-yellow-200">
+          <div className="mx-4 mb-3 mt-3 p-3 rounded-base bg-yellow-50 border border-yellow-200">
             <p className="text-size-base text-yellow-800">
               {translate(
                 "customGraph.assetsTruncated",

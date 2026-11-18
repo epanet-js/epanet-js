@@ -229,7 +229,7 @@ export const Resizer = memo(function ResizerInner({
         hover-hover:hidden
         h-16
         w-1
-        rounded
+        rounded-full
         bg-white"
       />
     </button>
@@ -273,7 +273,7 @@ function PanelToggle({
           `
           absolute px-0.5 py-2 top-1/2 border-t border-b
           bg-base text-default hover:bg-purple-100 border-strong dark:hover:bg-purple-700 dark:border-white
-          rounded
+          rounded-base
         `,
         )}
       >
@@ -313,7 +313,7 @@ const RowResizer = ({
       hover-hover:hidden
       w-16
       h-1
-      rounded
+      rounded-full
       bg-white"
     />
   </button>

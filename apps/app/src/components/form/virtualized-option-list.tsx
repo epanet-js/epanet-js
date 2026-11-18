@@ -122,7 +122,7 @@ export const VirtualizedOptionList = <T extends string | number | boolean>({
           }}
           onKeyDown={handleKeyDown}
           placeholder={ui.searchPlaceholder}
-          className="w-full h-8 px-2 text-size-base border rounded-sm outline-hidden border-strong focus:border-accent focus:ring-1 focus:ring-accent"
+          className="w-full h-8 px-2 text-size-base border rounded-base outline-hidden border-strong focus:border-accent focus:ring-1 focus:ring-accent"
         />
       </div>
       <div
@@ -148,7 +148,7 @@ export const VirtualizedOptionList = <T extends string | number | boolean>({
                   role="option"
                   aria-selected={isSelected}
                   className={clsx(
-                    "absolute left-0 right-0 flex items-center justify-between gap-4 px-2 rounded-sm cursor-pointer text-default",
+                    "absolute left-0 right-0 flex items-center justify-between gap-4 px-2 rounded-micro cursor-pointer text-default",
                     isSelected
                       ? "bg-accent-tint"
                       : virtualRow.index === activeIndex
@@ -174,7 +174,7 @@ export const VirtualizedOptionList = <T extends string | number | boolean>({
         <div className="p-1 border-t">
           <button
             type="button"
-            className="flex items-center w-full h-8 px-2 italic cursor-pointer text-default rounded-sm hover:bg-base-hover"
+            className="flex items-center w-full h-8 px-2 italic cursor-pointer text-default rounded-micro hover:bg-base-hover"
             onMouseDown={(event) => event.preventDefault()}
             onClick={() => onCommit(null)}
           >

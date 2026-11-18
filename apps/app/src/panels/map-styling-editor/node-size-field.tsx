@@ -118,7 +118,7 @@ const CurrentZoomIndicator = ({
       aria-valuenow={zoom}
       aria-disabled={disabled || undefined}
       tabIndex={disabled ? -1 : 0}
-      className="relative h-2 ml-2 mr-8 cursor-ew-resize touch-none rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+      className="relative h-2 ml-2 mr-8 cursor-ew-resize touch-none rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
       onPointerDown={(e) => {
         if (disabled) return;
         e.currentTarget.setPointerCapture(e.pointerId);

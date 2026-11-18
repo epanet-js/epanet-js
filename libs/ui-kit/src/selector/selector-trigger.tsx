@@ -31,8 +31,8 @@ export const triggerStylesFor = (
       : "text-default bg-base cursor-pointer",
     !disabled &&
       !effectiveStyleOptions.disableHoverEffects &&
-      "focus:justify-between hover:border hover:rounded-xs hover:justify-between min-w-[90px]",
-    "border rounded-xs justify-between",
+      "focus:justify-between hover:border hover:rounded-base hover:justify-between min-w-[90px]",
+    "border rounded-base justify-between",
     isWarning
       ? "border-warning"
       : effectiveStyleOptions.border

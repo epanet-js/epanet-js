@@ -145,7 +145,6 @@ const SummaryDialog = ({
           variant={banner.variant}
           Icon={banner.Icon}
           description={banner.description}
-          className="rounded-md"
         />
         <ResultSummary summary={summary} translate={translate} />
         {banner.hint && <p className="text-subtle">{banner.hint}</p>}
@@ -166,7 +165,7 @@ const ResultSummary = ({
   if (summary.total === 0) return null;
 
   return (
-    <dl className="flex flex-col gap-1 rounded-md border p-3">
+    <dl className="flex flex-col gap-1 rounded-base border p-3">
       <ResultRow
         label={translate("elevations.recompute.resultUpdated")}
         value={summary.resolved}

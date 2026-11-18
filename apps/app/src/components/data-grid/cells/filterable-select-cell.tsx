@@ -204,7 +204,7 @@ export function FilterableSelectCell({
           <Popover.Content
             side="bottom"
             align="start"
-            className="bg-popover min-w-(--radix-popover-trigger-width) max-h-(--radix-popover-content-available-height) border text-size-base rounded-md shadow-md z-50 mt-1 overflow-hidden flex flex-col"
+            className="bg-popover min-w-(--radix-popover-trigger-width) max-h-(--radix-popover-content-available-height) border border-strong text-size-base rounded-base shadow-md z-50 mt-1 overflow-hidden flex flex-col"
             onOpenAutoFocus={(e) => e.preventDefault()}
             onPointerDownOutside={(e) => {
               if (buttonRef.current?.contains(e.target as Node)) {

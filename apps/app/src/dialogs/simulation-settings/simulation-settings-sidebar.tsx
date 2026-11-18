@@ -41,7 +41,7 @@ export const SimulationSettingsSidebar = ({
                 type="button"
                 onClick={() => onSelectSection(category.id)}
                 className={clsx(
-                  "w-full flex items-center justify-between gap-2 px-3 py-1.5 rounded-sm text-size-base transition-colors font-medium",
+                  "w-full flex items-center justify-between gap-2 px-3 py-1.5 rounded-base text-size-base transition-colors font-medium",
                   isCategoryActive && !subcategoryIds.includes(activeSection)
                     ? "bg-accent-tint text-default"
                     : "text-default hover:bg-base-hover",
@@ -65,7 +65,7 @@ export const SimulationSettingsSidebar = ({
                         type="button"
                         onClick={() => onSelectSection(sub.id)}
                         className={clsx(
-                          "w-full flex items-center justify-between gap-2 pl-6 pr-3 py-1.5 rounded-sm text-size-base transition-colors font-medium",
+                          "w-full flex items-center justify-between gap-2 pl-6 pr-3 py-1.5 rounded-base text-size-base transition-colors font-medium",
                           activeSection === sub.id
                             ? "bg-accent-tint text-default"
                             : "text-default hover:bg-base-hover",

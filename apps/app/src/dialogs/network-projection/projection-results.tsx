@@ -38,7 +38,7 @@ export const ProjectionResults = ({
         <p className="text-size-small text-subtle mb-2">
           {t("networkProjection.matchingProjections")}
         </p>
-        <p className="text-size-base text-subtle p-3 border rounded-md animate-pulse">
+        <p className="text-size-base text-subtle p-3 border rounded-base animate-pulse">
           {t("networkProjection.searchingProjections")}
         </p>
       </div>
@@ -80,7 +80,7 @@ export const ProjectionResults = ({
                 type="button"
                 onClick={() => onSelect(p)}
                 className={clsx(
-                  "w-full text-left px-2 py-1.5 text-size-base rounded-sm",
+                  "w-full text-left px-2 py-1.5 text-size-base rounded-base",
                   isSelected ? "bg-accent-tint" : "hover:bg-base-hover",
                   "text-default",
                 )}

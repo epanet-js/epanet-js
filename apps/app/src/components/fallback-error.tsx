@@ -8,7 +8,7 @@ export const FallbackError = () => {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-panel p-6">
-      <div className="bg-base text-default rounded-lg p-4 shadow-lg w-full max-w-lg">
+      <div className="bg-base text-default rounded-dialog p-4 shadow-lg w-full max-w-lg">
         <span className="flex items-center gap-x-2 text-size-heading-2 mb-4">
           <ErrorIcon />
           Oops! Something went wrong
