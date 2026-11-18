@@ -12,6 +12,7 @@ import {
 } from "src/state/derived-branch-state";
 import { simulationStepAtom } from "src/state/simulation";
 import { worktreeAtom } from "src/state/scenarios";
+import { sensorsAtom } from "src/state/sensor-data";
 import {
   assetPanelFooterAtom,
   quickGraphPropertyAtom,
@@ -148,6 +149,7 @@ const QuickGraphSection = ({
   const worktree = useAtomValue(worktreeAtom);
   const { units, formatting } = useAtomValue(projectSettingsAtom);
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
+  const sensors = useAtomValue(sensorsAtom);
   const { changeTimestep } = useChangeTimestep();
 
   const isInScenario = worktree.activeBranchId !== worktree.mainId;
@@ -165,6 +167,15 @@ const QuickGraphSection = ({
         opt.value === selectedProperty,
     );
   const isStatusProperty = selectedProperty === "status";
+
+  const sensor = useMemo(
+    () =>
+      sensors.find(
+        (candidate) =>
+          candidate.assetId === assetId && candidate.type === selectedProperty,
+      ) ?? null,
+    [sensors, assetId, selectedProperty],
+  );
 
   const valueLabels = useMemo(() => {
     if (!isStatusProperty) return null;
@@ -362,7 +373,13 @@ const QuickGraphSection = ({
               decimals={decimals}
               valueLabels={valueLabels}
               onIntevalClick={handleIntervalClick}
-              scenarioName={scenarioName}
+              scenarioName={
+                scenarioName ?? (sensor ? translate("simulation") : null)
+              }
+              discreteValues={sensor?.readings ?? null}
+              discreteLabel={
+                sensor ? translate("sensorData.panel.sensor") : null
+              }
             />
           </div>
         ) : (
