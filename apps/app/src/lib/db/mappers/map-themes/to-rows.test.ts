@@ -27,7 +27,6 @@ const aSymbology = (): MapThemeSymbology => ({
     },
   }),
   link: aLinkSymbology({ labelRule: "label" }),
-  basemap: { style: "satellite", visible: false, labels: false, opacity: 0.4 },
 });
 
 describe("map theme spec", () => {
@@ -46,7 +45,6 @@ describe("map theme spec", () => {
       colors: ["#000001", "#000002", "#000003"],
     });
     expect(read.link.labelRule).toEqual("label");
-    expect(read.basemap).toEqual(symbology.basemap);
     expect(read.zone).toEqual(symbology.zone);
   });
 

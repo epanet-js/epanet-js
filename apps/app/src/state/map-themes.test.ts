@@ -3,7 +3,7 @@ import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { aNodeSymbology, setInitialState } from "src/__helpers__/state";
 import { nullSymbologySpec } from "src/map/symbology/symbology-types";
 import { linkSymbologyAtom, nodeSymbologyAtom } from "src/state/map-symbology";
-import { basemapAtom, layerConfigAtom, selectBasemapAtom } from "src/state/map";
+import { basemapAtom, selectBasemapAtom } from "src/state/map";
 import {
   applyMapThemeSymbologyAtom,
   defaultMapThemeSymbology,
@@ -131,42 +131,23 @@ describe("unsaved theme changes", () => {
   });
 });
 
-describe("the basemap in a map theme", () => {
-  it("is switched when the theme is applied", () => {
-    const satellite = {
-      style: "satellite" as const,
-      visible: true,
-      labels: false,
-      opacity: 0.65,
-    };
+describe("the basemap", () => {
+  it("is left alone when a theme is applied", () => {
     const store = aStore();
-
-    store.set(
-      applyMapThemeSymbologyAtom,
-      anElevationTheme({}, { basemap: satellite }),
-    );
-
-    expect(store.get(basemapAtom)).toEqual(satellite);
-  });
-
-  it("leaves the map layers alone when the theme uses the same basemap", () => {
-    const store = setInitialState({
-      hydraulicModel: aModel(),
-      basemap: defaultMapThemeSymbology.basemap,
-    });
-    const layersBefore = store.get(layerConfigAtom);
+    store.set(selectBasemapAtom, "outdoors");
+    const basemapBefore = store.get(basemapAtom);
 
     store.set(applyMapThemeSymbologyAtom, anElevationTheme());
 
-    expect(store.get(layerConfigAtom)).toBe(layersBefore);
+    expect(store.get(basemapAtom)).toBe(basemapBefore);
   });
 
-  it("counts as an unsaved change when it is changed", () => {
+  it("is not an unsaved change to the theme", () => {
     const store = aStore();
     store.set(applyMapThemeSymbologyAtom, anElevationTheme());
 
     store.set(selectBasemapAtom, "outdoors");
 
-    expect(store.get(isMapThemeModifiedAtom)).toBe(true);
+    expect(store.get(isMapThemeModifiedAtom)).toBe(false);
   });
 });

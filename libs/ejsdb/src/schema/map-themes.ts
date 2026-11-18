@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { mapThemeBasemapStyles, mapThemeRangeModes } from "./enums";
+import { mapThemeRangeModes } from "./enums";
 
 const finite = z.number().finite();
 
@@ -33,11 +33,6 @@ export const mapThemeSpecSchema = z
     zonesPalette: z.string(),
 
     customerPointsVisible: z.boolean(),
-
-    basemapStyle: z.enum(mapThemeBasemapStyles),
-    basemapVisible: z.boolean(),
-    basemapLabels: z.boolean(),
-    basemapOpacity: finite.min(0).max(1),
   })
   .superRefine((spec, ctx) => {
     for (const prefix of ["node", "link"] as const) {

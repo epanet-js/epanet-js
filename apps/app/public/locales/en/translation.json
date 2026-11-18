@@ -2376,8 +2376,6 @@
     "deleteTitle": "Delete theme",
     "deleteDescription": "The “{{1}}” theme will be deleted.",
     "newThemeName": "New theme",
-    "copyName": "{{1}} copy",
-    "basemapStyle": "Style",
-    "basemapOpacity": "Opacity"
+    "copyName": "{{1}} copy"
   }
 }

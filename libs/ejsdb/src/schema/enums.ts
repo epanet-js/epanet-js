@@ -31,11 +31,3 @@ export const mapThemeRangeModes = [
   "manual",
 ] as const;
 export type MapThemeRangeMode = (typeof mapThemeRangeModes)[number];
-
-export const mapThemeBasemapStyles = [
-  "monochrome",
-  "satellite",
-  "outdoors",
-  "streets",
-] as const;
-export type MapThemeBasemapStyle = (typeof mapThemeBasemapStyles)[number];

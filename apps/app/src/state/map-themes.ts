@@ -1,4 +1,4 @@
-import { atom, type Getter, type Setter } from "jotai";
+import { atom, type Setter } from "jotai";
 import type { MapThemeSpec } from "@epanet-js/ejsdb";
 import isEqual from "lodash/isEqual";
 import type { UnitsSpec } from "@epanet-js/project-settings";
@@ -30,7 +30,6 @@ import {
   stagingModelDerivedAtom,
 } from "src/state/derived-branch-state";
 import { projectSettingsAtom } from "src/state/project-settings";
-import { basemapAtom, defaultBasemapState, type Basemap } from "src/state/map";
 import {
   buildMapThemeSymbology,
   type ThemeColorRule,
@@ -43,7 +42,6 @@ export type MapThemeSymbology = {
   nodeSize: NodeSizeConfig;
   zone: ZoneSymbology;
   customerPoints: CustomerPointsSymbology;
-  basemap: Basemap;
 };
 
 export type MapTheme = {
@@ -58,7 +56,6 @@ export const defaultMapThemeSymbology: MapThemeSymbology = {
   nodeSize: defaultNodeSizeConfig,
   zone: nullSymbologySpec.zone,
   customerPoints: nullSymbologySpec.customerPoints,
-  basemap: defaultBasemapState,
 };
 
 export const mapThemesAtom = atom<MapTheme[]>([]);
@@ -76,7 +73,6 @@ const currentMapThemeSymbologyAtom = atom(
     nodeSize: get(nodeSizeAtom),
     zone: get(zoneSymbologyAtom),
     customerPoints: get(customerPointsSymbologyAtom),
-    basemap: get(basemapAtom),
   }),
 );
 
@@ -117,18 +113,12 @@ export const resolveThemeColorRule = (
   return applyMode(styled, rule.mode, sortedData).colorRule;
 };
 
-const setSymbology = (
-  get: Getter,
-  set: Setter,
-  symbology: MapThemeSymbology,
-) => {
+const setSymbology = (set: Setter, symbology: MapThemeSymbology) => {
   set(nodeSymbologyAtom, symbology.node);
   set(linkSymbologyAtom, symbology.link);
   set(nodeSizeAtom, symbology.nodeSize);
   set(zoneSymbologyAtom, symbology.zone);
   set(customerPointsSymbologyAtom, symbology.customerPoints);
-  if (!isEqual(get(basemapAtom), symbology.basemap))
-    set(basemapAtom, symbology.basemap);
   set(appliedMapThemeSymbologyAtom, symbology);
 };
 
@@ -145,7 +135,7 @@ export const applyMapThemeSymbologyAtom = atom(
         )
       : defaultMapThemeSymbology;
 
-    setSymbology(get, set, symbology);
+    setSymbology(set, symbology);
   },
 );
 
@@ -158,7 +148,7 @@ export const markMapThemeAppliedAtom = atom(null, (get, set) => {
 });
 
 export const resetMapThemeChangesAtom = atom(null, (get, set) => {
-  setSymbology(get, set, get(appliedMapThemeSymbologyAtom));
+  setSymbology(set, get(appliedMapThemeSymbologyAtom));
 });
 
 export const resetActiveMapThemeAtom = atom(null, (get, set) => {

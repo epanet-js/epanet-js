@@ -68,11 +68,6 @@ export const toMapThemeSpec = (symbology: MapThemeSymbology): MapThemeSpec => {
     zonesPalette: symbology.zone.paletteName,
 
     customerPointsVisible: symbology.customerPoints.visible,
-
-    basemapStyle: symbology.basemap.style,
-    basemapVisible: symbology.basemap.visible,
-    basemapLabels: symbology.basemap.labels,
-    basemapOpacity: symbology.basemap.opacity,
   };
 };
 

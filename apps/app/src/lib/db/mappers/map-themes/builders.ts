@@ -132,11 +132,5 @@ export const buildMapThemeSymbology = (
       paletteName: spec.zonesPalette,
     },
     customerPoints: { visible: spec.customerPointsVisible },
-    basemap: {
-      style: spec.basemapStyle,
-      visible: spec.basemapVisible,
-      labels: spec.basemapLabels,
-      opacity: spec.basemapOpacity,
-    },
   };
 };

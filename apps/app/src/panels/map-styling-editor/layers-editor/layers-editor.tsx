@@ -7,7 +7,6 @@ import { isPlayingAtom } from "src/state/simulation-playback";
 import {
   basemapAtom,
   baseLayerConfigAtom,
-  customBasemapAtom,
   customLayersAtom,
   layerConfigAtom,
   selectBasemapAtom,
@@ -465,7 +464,7 @@ function XYZLayer({
   );
 }
 
-export function AddLayer({ showBasemap = true }: { showBasemap?: boolean }) {
+export function AddLayer() {
   const translate = useTranslate();
   const [isOpen, setOpen] = useState<boolean>(false);
   const [mode, setMode] = useAtom(layerModeAtom);
@@ -630,17 +629,15 @@ export function AddLayer({ showBasemap = true }: { showBasemap?: boolean }) {
                       {translate("customLayers.webServices")}
                     </div>
                     <div className="space-y-2 grid grid-cols-1">
-                      {showBasemap && (
-                        <LayerTypeButton
-                          type="BASEMAP"
-                          mode="basemap"
-                          needsUpgrade={false}
-                          onModeChange={handleModeChange}
-                          onUpgrade={handleUpgrade}
-                        >
-                          {translate("basemap")}
-                        </LayerTypeButton>
-                      )}
+                      <LayerTypeButton
+                        type="BASEMAP"
+                        mode="basemap"
+                        needsUpgrade={false}
+                        onModeChange={handleModeChange}
+                        onUpgrade={handleUpgrade}
+                      >
+                        {translate("basemap")}
+                      </LayerTypeButton>
                       <LayerTypeButton
                         type="XYZ"
                         mode="custom-xyz"
@@ -1433,21 +1430,12 @@ function SortableLayerConfig({
   );
 }
 
-function BaseLayerConfig({
-  readonly,
-  showBasemap,
-}: {
-  readonly: boolean;
-  showBasemap: boolean;
-}) {
+function BaseLayerConfig({ readonly }: { readonly: boolean }) {
   const layerConfig = useAtomValue(baseLayerConfigAtom);
-  const customBasemap = useAtomValue(customBasemapAtom);
-
-  if (!showBasemap && !customBasemap) return null;
 
   return (
     <div className="group flex gap-x-2 items-start -ml-1">
-      <div className="invisible flex items-center h-8">
+      <div className="opacity-20 cursor-not-allowed flex items-center h-8">
         <Draggable />
       </div>
       <LayerConfigContent layerConfig={layerConfig} readonly={readonly} />
@@ -1540,11 +1528,7 @@ function SortableGroup({
   );
 }
 
-export function LayersEditor({
-  showBasemap = true,
-}: {
-  showBasemap?: boolean;
-}) {
+export function LayersEditor() {
   const items = useAtomValue(customLayersAtom);
   const { applyChanges } = useLayerConfigState();
   const isPlaying = useAtomValue(isPlayingAtom);
@@ -1575,8 +1559,8 @@ export function LayersEditor({
         allItems={items}
         readonly={isPlaying}
       />
-      <BaseLayerConfig readonly={isPlaying} showBasemap={showBasemap} />
-      {!isPlaying && <AddLayer showBasemap={showBasemap} />}
+      <BaseLayerConfig readonly={isPlaying} />
+      {!isPlaying && <AddLayer />}
     </>
   );
 }
