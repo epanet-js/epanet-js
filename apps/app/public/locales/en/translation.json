@@ -1694,6 +1694,11 @@
       "valveFeedingItself": "Valve {{1}} feeds itself",
       "junctionsWithoutSupply_one": "1 junction without supply",
       "junctionsWithoutSupply_other": "{{count}} junctions without supply",
+      "junctionsWithoutSupplyUpstreamOf_one": "1 junction without supply upstream of {{1}}",
+      "junctionsWithoutSupplyUpstreamOf_other": "{{count}} junctions without supply upstream of {{1}}",
+      "junctionsWithoutSupplyBehindClosed_one": "1 junction without supply behind closed {{1}}",
+      "junctionsWithoutSupplyBehindClosed_other": "{{count}} junctions without supply behind closed {{1}}",
+      "linkAndMore": "{{1}} and {{2}} more",
       "rule": {
         "pumpFeedingItself": "Pumps feeding themselves",
         "valveFeedingItself": "Valves feeding themselves",

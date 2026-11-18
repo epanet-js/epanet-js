@@ -6,7 +6,9 @@ import { useZoomTo } from "src/hooks/use-zoom-to";
 import {
   ActiveAssetIndex,
   ActiveTopology,
+  AllowedFlowDirection,
   AssetId,
+  getAllowedFlowDirectionFromAssetConfig,
   configuredAllowedFlowDirections,
 } from "@epanet-js/hydraulic-model";
 import {
@@ -159,9 +161,7 @@ const TopologyIssueItem = ({
 };
 
 const issueId = (issue: TopologyIssue): string =>
-  issue.ruleId === JUNCTION_WITHOUT_SUPPLY_RULE_ID
-    ? issue.ruleId
-    : `${issue.ruleId}:${issue.assetIds[0]}`;
+  `${issue.ruleId}:${issue.assetIds[0]}`;
 
 const issueLabel = (
   issue: TopologyIssue,
@@ -183,11 +183,50 @@ const issueLabel = (
         assetLabel,
       );
     case JUNCTION_WITHOUT_SUPPLY_RULE_ID:
-      return translate(
-        "networkReview.topologyChecks.junctionsWithoutSupply",
+      return junctionsWithoutSupplyLabel(
         issue.assetIds.length,
+        issue.blockingLinkIds,
+        hydraulicModel,
+        translate,
       );
   }
+};
+
+const junctionsWithoutSupplyLabel = (
+  junctionsCount: number,
+  blockingLinkIds: AssetId[],
+  hydraulicModel: HydraulicModel,
+  translate: ReturnType<typeof useTranslate>,
+): string => {
+  const [blockingLink, ...otherBlockingLinks] = blockingLinkIds
+    .map((linkId) => hydraulicModel.assets.get(linkId))
+    .filter((link) => link !== undefined);
+
+  if (!blockingLink)
+    return translate(
+      "networkReview.topologyChecks.junctionsWithoutSupply",
+      junctionsCount,
+    );
+
+  const blockedBy =
+    otherBlockingLinks.length > 0
+      ? translate(
+          "networkReview.topologyChecks.linkAndMore",
+          blockingLink.label,
+          String(otherBlockingLinks.length),
+        )
+      : blockingLink.label;
+  const isClosed =
+    getAllowedFlowDirectionFromAssetConfig(blockingLink) ===
+    AllowedFlowDirection.NONE;
+
+  return translate(
+    isClosed
+      ? "networkReview.topologyChecks.junctionsWithoutSupplyBehindClosed"
+      : "networkReview.topologyChecks.junctionsWithoutSupplyUpstreamOf",
+    junctionsCount,
+    blockedBy,
+  );
 };
 
 const assetsToSelect = (

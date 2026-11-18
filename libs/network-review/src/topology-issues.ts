@@ -19,7 +19,12 @@ import {
 export type TopologyIssues = {
   selfFeedingPumps: AssetId[];
   selfFeedingValves: AssetId[];
-  junctionsWithoutSupply: AssetId[];
+  junctionsWithoutSupply: JunctionsWithoutSupply[];
+};
+
+export type JunctionsWithoutSupply = {
+  junctionIds: AssetId[];
+  blockingLinkIds: AssetId[];
 };
 
 export const PUMP_FEEDING_ITSELF_RULE_ID = "pump.notFeedingItself" as const;
@@ -31,10 +36,18 @@ export type TopologyRuleId =
   | typeof VALVE_FEEDING_ITSELF_RULE_ID
   | typeof JUNCTION_WITHOUT_SUPPLY_RULE_ID;
 
-export type TopologyIssue = {
-  ruleId: TopologyRuleId;
-  assetIds: AssetId[];
-};
+export type TopologyIssue =
+  | {
+      ruleId:
+        | typeof PUMP_FEEDING_ITSELF_RULE_ID
+        | typeof VALVE_FEEDING_ITSELF_RULE_ID;
+      assetIds: AssetId[];
+    }
+  | {
+      ruleId: typeof JUNCTION_WITHOUT_SUPPLY_RULE_ID;
+      assetIds: AssetId[];
+      blockingLinkIds: AssetId[];
+    };
 
 export interface JunctionDemandQueries {
   carriesDemand(junctionId: AssetId): boolean;
@@ -75,14 +88,11 @@ export const listTopologyIssues = (issues: TopologyIssues): TopologyIssue[] => [
     ruleId: VALVE_FEEDING_ITSELF_RULE_ID,
     assetIds: [valveId],
   })),
-  ...(issues.junctionsWithoutSupply.length > 0
-    ? [
-        {
-          ruleId: JUNCTION_WITHOUT_SUPPLY_RULE_ID,
-          assetIds: issues.junctionsWithoutSupply,
-        },
-      ]
-    : []),
+  ...issues.junctionsWithoutSupply.map(({ junctionIds, blockingLinkIds }) => ({
+    ruleId: JUNCTION_WITHOUT_SUPPLY_RULE_ID,
+    assetIds: junctionIds,
+    blockingLinkIds,
+  })),
 ];
 
 export function findReturnPath(
@@ -180,7 +190,7 @@ function findJunctionsWithoutSupply(
   assetIndex: AssetIndexQueries,
   directions: AllowedFlowDirectionQueries,
   demands: JunctionDemandQueries,
-): AssetId[] {
+): JunctionsWithoutSupply[] {
   const sourceIds: AssetId[] = [];
   for (const [nodeId] of assetIndex.iterateNodes()) {
     if (isSource(assetIndex, nodeId)) sourceIds.push(nodeId);
@@ -196,14 +206,57 @@ function findJunctionsWithoutSupply(
       respectingFlowDirection(anyBarrier(), topology, directions),
     ).nodeIds,
   );
+  const stoppingAtSupplied: TraceBarriers = {
+    nodeStopReason: (nodeId) => (supplied.has(nodeId) ? "barrier" : null),
+    linkStopReason: () => null,
+  };
 
-  return connected.nodeIds.filter(
-    (nodeId) =>
-      assetIndex.getNodeType(nodeId) === "junction" &&
-      !supplied.has(nodeId) &&
-      demands.carriesDemand(nodeId),
-  );
+  const grouped = new Set<AssetId>();
+  const groups: JunctionsWithoutSupply[] = [];
+
+  for (const nodeId of connected.nodeIds) {
+    if (supplied.has(nodeId) || grouped.has(nodeId)) continue;
+
+    const { nodeIds } = trace(
+      { nodeIds: [nodeId], linkIds: [] },
+      topology,
+      stoppingAtSupplied,
+    );
+    for (const groupedNodeId of nodeIds) grouped.add(groupedNodeId);
+
+    const junctionIds = nodeIds.filter(
+      (groupedNodeId) =>
+        assetIndex.getNodeType(groupedNodeId) === "junction" &&
+        demands.carriesDemand(groupedNodeId),
+    );
+    if (junctionIds.length === 0) continue;
+
+    groups.push({
+      junctionIds,
+      blockingLinkIds: linksFromSupplied(nodeIds, topology, supplied),
+    });
+  }
+
+  return groups.sort((a, b) => b.junctionIds.length - a.junctionIds.length);
 }
+
+const linksFromSupplied = (
+  nodeIds: AssetId[],
+  topology: TopologyQueries,
+  supplied: Set<AssetId>,
+): AssetId[] => {
+  const linkIds = new Set<AssetId>();
+
+  for (const nodeId of nodeIds) {
+    for (const linkId of topology.getLinks(nodeId)) {
+      const [startNodeId, endNodeId] = topology.getNodes(linkId);
+      const otherNodeId = startNodeId === nodeId ? endNodeId : startNodeId;
+      if (supplied.has(otherNodeId)) linkIds.add(linkId);
+    }
+  }
+
+  return [...linkIds];
+};
 
 const previousStep = (
   nodeId: AssetId,

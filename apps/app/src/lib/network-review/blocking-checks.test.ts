@@ -177,11 +177,14 @@ describe("failingRuleIds", () => {
     const results: BlockingCheckResult[] = [
       {
         check: CheckType.topologyChecks,
-        issueCount: 3,
+        issueCount: 4,
         items: {
           selfFeedingPumps: [IDS.P1, IDS.P2],
           selfFeedingValves: [],
-          junctionsWithoutSupply: [IDS.J1, IDS.J2],
+          junctionsWithoutSupply: [
+            { junctionIds: [IDS.J1], blockingLinkIds: [IDS.P1] },
+            { junctionIds: [IDS.J2], blockingLinkIds: [IDS.P2] },
+          ],
         },
       },
     ];

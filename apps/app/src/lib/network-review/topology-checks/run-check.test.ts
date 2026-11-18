@@ -73,6 +73,6 @@ describe.each(bothPaths)("runCheck (%s)", (_name, runInWorker) => {
     expect(
       (await runCheck(model, undefined, "array", runInWorker))
         .junctionsWithoutSupply,
-    ).toEqual([IDS.J3]);
+    ).toEqual([{ junctionIds: [IDS.J3], blockingLinkIds: [IDS.PU1] }]);
   });
 });

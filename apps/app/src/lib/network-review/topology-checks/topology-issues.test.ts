@@ -35,6 +35,16 @@ const topologyIssuesOf = (model: HydraulicModel) =>
     configuredJunctionDemands(model),
   );
 
+const byId = (a: number, b: number) => a - b;
+
+const junctionsWithoutSupplyOf = (model: HydraulicModel) =>
+  topologyIssuesOf(model).junctionsWithoutSupply.map(
+    ({ junctionIds, blockingLinkIds }) => ({
+      junctionIds: [...junctionIds].sort(byId),
+      blockingLinkIds: [...blockingLinkIds].sort(byId),
+    }),
+  );
+
 describe("findTopologyIssues", () => {
   describe("self-feeding pumps and valves", () => {
     const aPumpedNetwork = () =>
@@ -201,9 +211,8 @@ describe("findTopologyIssues", () => {
         .aJunctionDemand(IDS.J3, [{ baseDemand: 1 }])
         .build();
 
-      expect(topologyIssuesOf(model).junctionsWithoutSupply).toEqual([
-        IDS.J2,
-        IDS.J3,
+      expect(junctionsWithoutSupplyOf(model)).toEqual([
+        { junctionIds: [IDS.J2, IDS.J3], blockingLinkIds: [IDS.PU1] },
       ]);
     });
 
@@ -223,7 +232,9 @@ describe("findTopologyIssues", () => {
         .aCustomerPointDemand(IDS.CP1, [{ baseDemand: 1 }])
         .build();
 
-      expect(topologyIssuesOf(model).junctionsWithoutSupply).toEqual([IDS.J3]);
+      expect(junctionsWithoutSupplyOf(model)).toEqual([
+        { junctionIds: [IDS.J3], blockingLinkIds: [IDS.PU1] },
+      ]);
     });
 
     it("flags demand junctions behind a closed pipe", () => {
@@ -240,7 +251,28 @@ describe("findTopologyIssues", () => {
         .aJunctionDemand(IDS.J2, [{ baseDemand: 1 }])
         .build();
 
-      expect(topologyIssuesOf(model).junctionsWithoutSupply).toEqual([IDS.J2]);
+      expect(junctionsWithoutSupplyOf(model)).toEqual([
+        { junctionIds: [IDS.J2], blockingLinkIds: [IDS.P2] },
+      ]);
+    });
+
+    it("groups junctions by the link that cuts them off", () => {
+      const model = aNetworkPumpingTowardsItsSource()
+        .aJunction(IDS.T1)
+        .aValve(IDS.V1, {
+          startNodeId: IDS.T1,
+          endNodeId: IDS.J1,
+          kind: "prv",
+        })
+        .aJunctionDemand(IDS.J2, [{ baseDemand: 1 }])
+        .aJunctionDemand(IDS.J3, [{ baseDemand: 1 }])
+        .aJunctionDemand(IDS.T1, [{ baseDemand: 1 }])
+        .build();
+
+      expect(junctionsWithoutSupplyOf(model)).toEqual([
+        { junctionIds: [IDS.J2, IDS.J3], blockingLinkIds: [IDS.PU1] },
+        { junctionIds: [IDS.T1], blockingLinkIds: [IDS.V1] },
+      ]);
     });
 
     it("leaves sub-networks without any source to the connectivity trace", () => {

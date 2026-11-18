@@ -48,6 +48,7 @@ export {
   VALVE_FEEDING_ITSELF_RULE_ID,
   JUNCTION_WITHOUT_SUPPLY_RULE_ID,
   type TopologyIssue,
+  type JunctionsWithoutSupply,
   type TopologyRuleId,
   type JunctionDemandQueries,
   type TopologyIssues,
