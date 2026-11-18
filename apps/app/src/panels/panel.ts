@@ -29,7 +29,11 @@ export type Panel =
   | (Common & { type: "asset" })
   | (Common & { type: "map-styling" })
   | (Common & { type: "scripts" })
-  | (Common & { type: "script-output" });
+  | (Common & { type: "script-output" })
+  | (Common & {
+      type: "sensors";
+      assetIds?: readonly AssetId[];
+    });
 
 export type PanelType = Panel["type"];
 
@@ -51,6 +55,8 @@ export const panelTrackingName = (panel: Panel): string => {
       );
     case "zone-table":
       return [panel.type, panel.zoneIds ? "selection" : "all"].join(":");
+    case "sensors":
+      return [panel.type, panel.assetIds ? "selection" : "all"].join(":");
     default:
       return panel.type;
   }

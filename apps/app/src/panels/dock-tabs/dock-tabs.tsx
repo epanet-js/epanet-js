@@ -16,6 +16,7 @@ import {
 import { TabList } from "src/components/tab";
 import { useTranslate } from "src/hooks/use-translate";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
+import { sensorsAtom } from "src/state/sensor-data";
 import type { PlacedPanel } from "src/state/panels";
 import { useActivatePanel } from "src/commands/activate-panel";
 import { useClosePanel } from "src/commands/close-panel";
@@ -76,6 +77,7 @@ export const useDockTabChange = (
 export const DockTabStrip = ({ panels }: { panels: PlacedPanel[] }) => {
   const translate = useTranslate();
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
+  const importedSensors = useAtomValue(sensorsAtom);
   const closePanel = useClosePanel();
   const { sensors, onDragEnd } = useTabReorder();
 
@@ -99,6 +101,7 @@ export const DockTabStrip = ({ panels }: { panels: PlacedPanel[] }) => {
               description={panelDescription(entry.panel, {
                 translate,
                 hydraulicModel,
+                sensors: importedSensors,
               })}
               closable={entry.closable}
               onClose={closePanel}

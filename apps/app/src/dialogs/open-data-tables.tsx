@@ -10,6 +10,7 @@ import { Checkbox } from "src/components/form/Checkbox";
 import { useTranslate } from "src/hooks/use-translate";
 import {
   CUSTOMER_POINTS_TABLE,
+  SENSORS_TABLE,
   ZONES_TABLE,
   type DataTableType,
   useOpenDataTables,
@@ -18,6 +19,8 @@ import { OPENABLE_ASSET_TYPES } from "src/panels/data-tables/create-panel";
 import { selectionAtom } from "src/state/selection";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { USelection } from "src/selection";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { sensorsAtom } from "src/state/sensor-data";
 
 type Choice = { tableType: DataTableType; label: string };
 
@@ -33,6 +36,8 @@ const assetTypeLabelKeys: Record<AssetType, string> = {
 export const OpenDataTablesDialog = ({ onClose }: { onClose: () => void }) => {
   const translate = useTranslate();
   const openDataTables = useOpenDataTables();
+  const isSensorDataOn = useFeatureFlag("FLAG_SENSOR_DATA");
+  const sensors = useAtomValue(sensorsAtom);
   const selection = useAtomValue(selectionAtom);
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const totalCounts = useMemo(() => {
@@ -42,8 +47,9 @@ export const OpenDataTablesDialog = ({ onClose }: { onClose: () => void }) => {
     }
     counts.set(CUSTOMER_POINTS_TABLE, hydraulicModel.customerPoints.size);
     counts.set(ZONES_TABLE, hydraulicModel.zones.size);
+    counts.set(SENSORS_TABLE, sensors.length);
     return counts;
-  }, [hydraulicModel]);
+  }, [hydraulicModel, sensors]);
 
   const [checked, setChecked] = useState<ReadonlySet<DataTableType>>(new Set());
   const [selectedOnly, setSelectedOnly] = useState(false);
@@ -56,23 +62,36 @@ export const OpenDataTablesDialog = ({ onClose }: { onClose: () => void }) => {
       })),
       { tableType: CUSTOMER_POINTS_TABLE, label: translate("customerPoints") },
       { tableType: ZONES_TABLE, label: translate("zones") },
+      ...(isSensorDataOn
+        ? [
+            {
+              tableType: SENSORS_TABLE,
+              label: translate("sensorData.panel.title"),
+            } satisfies Choice,
+          ]
+        : []),
     ],
-    [translate],
+    [translate, isSensorDataOn],
   );
 
   const selectedCounts = useMemo(() => {
     const counts = new Map<DataTableType, number>();
-    for (const assetId of USelection.getAssetIds(selection)) {
+    const selectedAssetIds = new Set(USelection.getAssetIds(selection));
+    for (const assetId of selectedAssetIds) {
       const assetType = hydraulicModel.assets.get(assetId)?.type;
       if (!assetType) continue;
       counts.set(assetType, (counts.get(assetType) ?? 0) + 1);
     }
+    const selectedSensors = sensors.filter(({ assetId }) =>
+      selectedAssetIds.has(assetId),
+    ).length;
+    if (selectedSensors > 0) counts.set(SENSORS_TABLE, selectedSensors);
     const customerPoints = USelection.getCustomerPointIds(selection).length;
     if (customerPoints > 0) counts.set(CUSTOMER_POINTS_TABLE, customerPoints);
     const zones = USelection.getZoneIds(selection).length;
     if (zones > 0) counts.set(ZONES_TABLE, zones);
     return counts;
-  }, [selection, hydraulicModel]);
+  }, [selection, hydraulicModel, sensors]);
 
   const hasSelection = selectedCounts.size > 0;
   const scopedToSelection = selectedOnly && hasSelection;

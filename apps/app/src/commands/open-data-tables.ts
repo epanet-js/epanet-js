@@ -7,6 +7,7 @@ import {
   createCustomerPointTablePanel,
   createZoneTablePanel,
 } from "src/panels/data-tables/create-panel";
+import { createSensorsPanel } from "src/panels/sensors/create-panel";
 import { splitsAtom } from "src/state/layout";
 import { panelsAtom } from "src/state/panels";
 import { selectionAtom } from "src/state/selection";
@@ -15,13 +16,14 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { useActivatePanel } from "./activate-panel";
 
 export const CUSTOMER_POINTS_TABLE = "customerPoints";
-
 export const ZONES_TABLE = "zones";
+export const SENSORS_TABLE = "sensors";
 
 export type DataTableType =
   | AssetType
   | typeof CUSTOMER_POINTS_TABLE
-  | typeof ZONES_TABLE;
+  | typeof ZONES_TABLE
+  | typeof SENSORS_TABLE;
 
 export type DataTableScope = "all" | "selection";
 
@@ -57,6 +59,8 @@ export const useOpenDataTables = () => {
           return createCustomerPointTablePanel({ customerPointIds: ids });
         if (tableType === ZONES_TABLE)
           return createZoneTablePanel({ zoneIds: ids });
+        if (tableType === SENSORS_TABLE)
+          return createSensorsPanel({ assetIds: ids });
         return createAssetTablePanel(tableType, { assetIds: ids });
       };
 

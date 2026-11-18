@@ -28,7 +28,7 @@ import { QuickGraphChart } from "./quick-graph-chart";
 import { useChangeTimestep } from "src/commands/change-timestep";
 import { RingSpinner } from "src/components/ring-spinner";
 
-const QUICK_GRAPH_PROPERTIES: {
+export const QUICK_GRAPH_PROPERTIES: {
   [K in QuickGraphAssetType]: {
     value: QuickGraphPropertyByAssetType[K];
     labelKey: string;

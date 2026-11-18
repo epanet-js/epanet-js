@@ -2,6 +2,7 @@ import type { ComponentType } from "react";
 import type { Getter, Setter } from "jotai";
 import type { TranslateFn } from "src/hooks/use-translate";
 import type { HydraulicModel } from "src/hydraulic-model";
+import type { ImportedSensor } from "src/lib/sensor-data/parse-sensor-data-file";
 import type { useUserTracking } from "src/infra/user-tracking";
 import type { Dock, HorizontalDock } from "./docks";
 import { PanelDockContext } from "./panel-dock-context";
@@ -19,6 +20,7 @@ import { assetPanel } from "./asset-panel/panel";
 import { mapStylingPanel } from "./map-styling-editor/panel";
 import { scriptsPanel } from "./scripts/panel";
 import { scriptOutputPanel } from "./script-output/panel";
+import { sensorsPanel } from "./sensors/panel";
 
 export type PanelLifecycleContext = {
   get: Getter;
@@ -34,6 +36,7 @@ export type PanelLabelContext = {
 // need the model; labels never do.
 export type PanelDescriptionContext = PanelLabelContext & {
   hydraulicModel: HydraulicModel;
+  sensors: readonly ImportedSensor[];
 };
 
 export type PanelTemplate<T extends PanelType> = {
@@ -67,6 +70,7 @@ export type PanelContentStateByType = {
   "map-styling": undefined;
   scripts: undefined;
   "script-output": { sidebarWidth: number };
+  sensors: DataGridState;
 };
 
 export type PanelContentState =
@@ -83,6 +87,7 @@ const panelTemplates = {
   "map-styling": mapStylingPanel,
   scripts: scriptsPanel,
   "script-output": scriptOutputPanel,
+  sensors: sensorsPanel,
 } satisfies { [K in PanelType]: PanelTemplate<K> };
 
 export const panelFor = (panel: Panel): PanelTemplate<PanelType> =>

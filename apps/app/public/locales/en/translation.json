@@ -2204,6 +2204,15 @@
   },
   "sensorData": {
     "menuEntry": "Sensor data",
+    "panel": {
+      "title": "Sensors",
+      "sensor": "Sensor",
+      "asset": "Asset",
+      "type": "Type",
+      "emptyTitle": "No sensor data",
+      "emptyDescription": "Import sensor readings from {{1}} to compare them with the simulation.",
+      "notInScenario": "Not in current scenario"
+    },
     "paywall": {
       "title": "Upgrade to import sensor data",
       "description1": "Import the readings from your field sensors and see them next to your simulation results.",

@@ -2054,7 +2054,7 @@ export type UserEvent =
     }
   | {
       name: "dataTables.selectedInMap";
-      type: Asset["type"] | "customerPoint" | "zone";
+      type: Asset["type"] | "customerPoint" | "zone" | "sensor";
       source: "cell-context" | "gutter-context";
       count: number;
     }

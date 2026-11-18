@@ -32,7 +32,7 @@ const hydraulicModel = HydraulicModelBuilder.with()
   .aCustomerPoint(7, {})
   .build();
 
-const context = { translate, hydraulicModel };
+const context = { translate, hydraulicModel, sensors: [] };
 
 const labelOf = (panel: Panel) => panelFor(panel).buildLabel(panel, context);
 const descriptionOf = (panel: Panel) => panelDescription(panel, context);
