@@ -39,6 +39,12 @@ export {
   type CrossingPipe,
   type EncodedCrossingPipes,
 } from "./crossing-pipes";
+export {
+  findTopologyIssues,
+  configuredJunctionDemands,
+  type JunctionDemandQueries,
+  type TopologyIssues,
+} from "./topology-issues";
 export * from "./model-attributes-validation";
 export {
   ORPHAN_ASSETS_RULE_ID,
