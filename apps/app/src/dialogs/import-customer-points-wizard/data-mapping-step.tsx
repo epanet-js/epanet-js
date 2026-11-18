@@ -6,7 +6,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { numericChecks } from "src/lib/model-attributes-validation";
+import { numericChecks } from "@epanet-js/hydraulic-model";
 import { Feature } from "geojson";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";

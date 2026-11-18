@@ -1,4 +1,4 @@
-import { FlowModulatingValvePoint } from "@epanet-js/hydraulic-model";
+import type { FlowModulatingValvePoint } from "./types";
 
 export const FLOW_MODULATING_VALVE_MIN_POINTS = 2;
 

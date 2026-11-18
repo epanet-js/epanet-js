@@ -14,11 +14,11 @@ import {
   type GridColumn,
   floatColumn,
 } from "src/components/data-grid";
+import { type ValveReferenceField } from "src/lib/model-attributes-validation";
 import {
   FLOW_MODULATING_VALVE_MIN_POINTS,
   getFlowModulatingValvePointErrors,
-  type ValveReferenceField,
-} from "src/lib/model-attributes-validation";
+} from "@epanet-js/hydraulic-model";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { useShowControls } from "src/commands/show-controls";

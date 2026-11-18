@@ -1,5 +1,5 @@
 import debounce from "lodash/debounce";
-import { numericChecks } from "src/lib/model-attributes-validation";
+import { numericChecks } from "@epanet-js/hydraulic-model";
 import { Tooltip } from "@epanet-js/ui-kit";
 import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";

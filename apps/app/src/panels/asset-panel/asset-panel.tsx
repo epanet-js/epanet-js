@@ -73,10 +73,10 @@ import { activateAssets } from "@epanet-js/hydraulic-model-operations";
 import { deactivateAssets } from "@epanet-js/hydraulic-model-operations";
 import {
   fieldValidator,
-  numericChecks,
   type ValveReferenceField,
   type PumpReferenceField,
 } from "src/lib/model-attributes-validation";
+import { numericChecks } from "@epanet-js/hydraulic-model";
 import {
   getLinkNodes,
   getPumpControl,

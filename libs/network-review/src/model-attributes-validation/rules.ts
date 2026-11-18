@@ -12,19 +12,13 @@ import {
   Pump,
   HydraulicModel,
   remoteFlowDirectionOf,
-} from "@epanet-js/hydraulic-model";
-import { EntityType, Rule, Severity, ValidatableEntity } from "./types";
-import {
   NumericCheckName,
-  checkMessage,
-  isFiniteNumber,
-  isNumber,
   numericChecks,
-} from "./checks";
-import {
   FLOW_MODULATING_VALVE_MIN_POINTS,
   flowModulatingValvePointChecks,
-} from "./flow-modulating-valve-points";
+} from "@epanet-js/hydraulic-model";
+import { EntityType, Rule, Severity, ValidatableEntity } from "./types";
+import { checkMessage, isFiniteNumber, isNumber } from "./checks";
 import { pumpBackfeedsItself } from "./pump-backfeed";
 
 const field =

@@ -23,10 +23,8 @@ import { UnitsSpec } from "@epanet-js/project-settings";
 import { getDecimals } from "@epanet-js/project-settings";
 import { localizeDecimal } from "@epanet-js/i18n";
 import { SelectRow, LibrarySelectRow, QuantityRow } from "./ui-components";
-import {
-  fieldValidator,
-  numericChecks,
-} from "src/lib/model-attributes-validation";
+import { fieldValidator } from "src/lib/model-attributes-validation";
+import { numericChecks } from "@epanet-js/hydraulic-model";
 import type {
   PropertyComparison,
   PumpCurveComparison,

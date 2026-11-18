@@ -44,3 +44,9 @@ export {
   remapControlLinkReference,
   remapControlNodeReference,
 } from "./references";
+export {
+  FLOW_MODULATING_VALVE_MIN_POINTS,
+  flowModulatingValvePointChecks,
+  getFlowModulatingValvePointErrors,
+} from "./flow-modulating-valve-points";
+export type { FlowModulatingValvePointErrors } from "./flow-modulating-valve-points";

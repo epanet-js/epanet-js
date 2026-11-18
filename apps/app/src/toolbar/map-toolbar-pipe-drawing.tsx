@@ -1,5 +1,5 @@
 import { useAtom, useAtomValue } from "jotai";
-import { numericChecks } from "src/lib/model-attributes-validation";
+import { numericChecks } from "@epanet-js/hydraulic-model";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { pipeDrawingDefaultsAtom } from "src/state/drawing";
 import { Mode, modeAtom } from "src/state/mode";

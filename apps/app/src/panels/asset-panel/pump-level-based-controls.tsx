@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo } from "react";
-import { numericChecks } from "src/lib/model-attributes-validation";
+import { numericChecks } from "@epanet-js/hydraulic-model";
 import { useSetAtom } from "jotai";
 import { Selector } from "@epanet-js/ui-kit";
 import {

@@ -13,10 +13,8 @@ import {
 } from "@epanet-js/hydraulic-model";
 import type { UnitsSpec } from "@epanet-js/project-settings";
 import { localizeDecimal } from "@epanet-js/i18n";
-import {
-  numericChecks,
-  type PumpReferenceField,
-} from "src/lib/model-attributes-validation";
+import { type PumpReferenceField } from "src/lib/model-attributes-validation";
+import { numericChecks } from "@epanet-js/hydraulic-model";
 import {
   DataGrid,
   type GridColumn,

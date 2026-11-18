@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from "react";
-import { numericChecks } from "src/lib/model-attributes-validation";
+import { numericChecks } from "@epanet-js/hydraulic-model";
 import {
   PumpStatus,
   pumpStatuses,
