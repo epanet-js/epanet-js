@@ -16,7 +16,7 @@ export const MapThemeSelector = ({
   themes,
   activeTheme,
   defaultName,
-  isModified,
+  label,
   disabled,
   onChange,
 }: {
@@ -24,7 +24,7 @@ export const MapThemeSelector = ({
   themes: MapTheme[];
   activeTheme: MapTheme | undefined;
   defaultName: string;
-  isModified: boolean;
+  label: string;
   disabled: boolean;
   onChange: (id: string | null) => void;
 }) => {
@@ -56,17 +56,9 @@ export const MapThemeSelector = ({
           }}
           className={triggerStylesFor({}, { disabled })}
         >
-          <div className="flex items-center gap-1 min-w-0">
-            <span className="text-nowrap overflow-hidden text-ellipsis">
-              {activeTheme ? activeTheme.name : defaultName}
-            </span>
-            {isModified && (
-              <span
-                aria-hidden
-                className="h-1.5 w-1.5 shrink-0 rounded-full bg-accent"
-              />
-            )}
-          </div>
+          <span className="text-nowrap overflow-hidden text-ellipsis">
+            {label}
+          </span>
           <div className="px-1">
             <ChevronDownIcon />
           </div>

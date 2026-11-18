@@ -8,7 +8,11 @@ import {
 import clsx from "clsx";
 import { BaseDialog, SimpleDialogActions } from "src/components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
-import { activeMapThemeIdAtom, mapThemesAtom } from "src/state/map-themes";
+import {
+  activeMapThemeIdAtom,
+  isMapThemeModifiedAtom,
+  mapThemesAtom,
+} from "src/state/map-themes";
 
 export const SaveMapThemeAsNewDialog = ({
   onClose,
@@ -18,12 +22,17 @@ export const SaveMapThemeAsNewDialog = ({
   const translate = useTranslate();
   const themes = useAtomValue(mapThemesAtom);
   const activeId = useAtomValue(activeMapThemeIdAtom);
+  const isModified = useAtomValue(isMapThemeModifiedAtom);
   const saveAsNew = useSaveMapThemeAsNew();
   const activeTheme = themes.find((t) => t.id === activeId);
 
   return (
     <MapThemeNameDialog
-      title={translate("mapThemes.saveAsNewTitle")}
+      title={translate(
+        activeTheme && !isModified
+          ? "mapThemes.duplicateTitle"
+          : "mapThemes.saveAsNewTitle",
+      )}
       initialName={
         activeTheme
           ? translate("mapThemes.copyName", activeTheme.name)
