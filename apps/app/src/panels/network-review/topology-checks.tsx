@@ -21,7 +21,6 @@ import {
   type TopologyIssues,
 } from "@epanet-js/network-review";
 import { HydraulicModel } from "src/hydraulic-model";
-import { WarningIcon } from "src/icons";
 import { useUserTracking } from "src/infra/user-tracking";
 import { CheckType } from "src/lib/network-review";
 import { useCachedCheck, useReviewChecks } from "src/hooks/use-review-checks";
@@ -104,6 +103,7 @@ export const TopologyChecks = ({ onGoBack }: { onGoBack: () => void }) => {
                   />
                 )}
                 checkType={CheckType.topologyChecks}
+                estimateSize={36}
                 onGoBack={onGoBack}
               />
             ) : (
@@ -150,11 +150,8 @@ const TopologyIssueItem = ({
       tabIndex={-1}
       className="group w-full hover:bg-transparent dark:hover:bg-transparent aria-selected:bg-transparent! aria-selected:hover:bg-transparent!"
     >
-      <div className="grid grid-cols-[auto_1fr] gap-x-2 items-center h-8 px-2 pr-0 text-size-base w-full">
-        <div className="flex items-center text-warning">
-          <WarningIcon />
-        </div>
-        <div className="text-size-base text-left truncate">{label}</div>
+      <div className="p-2 pr-0 text-size-base text-left truncate w-full">
+        {label}
       </div>
     </Button>
   );
