@@ -109,7 +109,7 @@ class ActiveTopologyEncoder {
   }
 }
 
-class AllowedFlowDirectionEncoder {
+export class AllowedFlowDirectionEncoder {
   constructor(
     private assetIndex: AssetIndexQueries,
     private status: AllowedFlowDirectionQueries,

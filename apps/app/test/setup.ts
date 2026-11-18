@@ -17,6 +17,7 @@ import { nullDbWorker } from "src/lib/db/__test-helpers__/null-db-worker";
 import { resetTraceWorkerForTest } from "src/lib/trace/get-worker";
 import { resetConnectivityTraceWorkerForTest } from "src/lib/network-review/connectivity-trace/get-worker";
 import { resetOrphanAssetsWorkerForTest } from "src/lib/network-review/orphan-assets/get-worker";
+import { resetTopologyChecksWorkerForTest } from "src/lib/network-review/topology-checks/get-worker";
 import { resetCustomerPointsWorkerForTest } from "src/lib/customer-points/get-worker";
 import { resetCrossingPipesWorkerForTest } from "src/lib/network-review/crossing-pipes/get-worker";
 import { resetProximityAnomaliesWorkerForTest } from "src/lib/network-review/proximity-anomalies/get-worker";
@@ -58,6 +59,7 @@ beforeEach(async () => {
   resetTraceWorkerForTest();
   resetConnectivityTraceWorkerForTest();
   resetOrphanAssetsWorkerForTest();
+  resetTopologyChecksWorkerForTest();
   resetCustomerPointsWorkerForTest();
   resetCrossingPipesWorkerForTest();
   resetProximityAnomaliesWorkerForTest();
