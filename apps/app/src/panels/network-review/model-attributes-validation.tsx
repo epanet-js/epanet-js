@@ -1,12 +1,11 @@
 import { useAtom, useAtomValue } from "jotai";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ChevronRight, Lock } from "lucide-react";
 import { Button } from "src/components/elements";
 import { Action } from "src/components/action-button";
 import { useTranslate } from "src/hooks/use-translate";
 import { useZoomTo } from "src/hooks/use-zoom-to";
 import { useShowAssetPanel } from "src/commands/show-asset-panel";
-import { ErrorIcon, PointerClickIcon, WarningIcon } from "src/icons";
+import { PointerClickIcon } from "src/icons";
 import { usePermissions } from "src/hooks/use-permissions";
 import { PaywallFade, PaywallUpgradeBox } from "src/components/form/paywall";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -26,6 +25,8 @@ import { useCachedCheck } from "src/hooks/use-review-checks";
 import { CheckType } from "src/lib/network-review";
 import {
   EmptyState,
+  IssueGroupRow,
+  IssueGroupsList,
   LoadingState,
   ToolDescription,
   ToolHeader,
@@ -34,12 +35,6 @@ import {
   VirtualizedIssuesList,
 } from "./common";
 import { ruleLabelKey } from "./rule-labels";
-
-const SeverityIcon = ({ severity }: { severity: "error" | "warning" }) => (
-  <span className={severity === "error" ? "text-error" : "text-warning"}>
-    {severity === "error" ? <ErrorIcon /> : <WarningIcon />}
-  </span>
-);
 
 export const ModelAttributesValidation = ({
   onGoBack,
@@ -203,10 +198,19 @@ export const ModelAttributesValidation = ({
           <>
             {groups.length > 0 ? (
               canValidateModelAttributes ? (
-                <ModelAttributesValidationGroupList
+                <IssueGroupsList
                   groups={groups}
+                  getGroupId={getGroupRuleId}
+                  renderGroup={(group, isSelected, onClick) => (
+                    <ModelAttributesValidationGroupRow
+                      group={group}
+                      isSelected={isSelected}
+                      onClick={onClick}
+                    />
+                  )}
                   onOpen={openGroup}
                   onGoBack={onGoBack}
+                  checkType={CheckType.modelAttributesValidation}
                 />
               ) : (
                 <ModelAttributesValidationLockedList groups={groups} />
@@ -232,77 +236,6 @@ export const ModelAttributesValidation = ({
   );
 };
 
-const ModelAttributesValidationGroupList = ({
-  groups,
-  onOpen,
-  onGoBack,
-}: {
-  groups: ValidationGroup[];
-  onOpen: (group: ValidationGroup) => void;
-  onGoBack: () => void;
-}) => {
-  const [selectedRuleId, setSelectedRuleId] = useState<string | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(function autoFocusOnMount() {
-    const timer = setTimeout(() => {
-      containerRef.current?.focus();
-    }, 100);
-    return () => clearTimeout(timer);
-  }, []);
-
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      const currentIndex = groups.findIndex(
-        (group) => group.ruleId === selectedRuleId,
-      );
-      switch (e.key) {
-        case "ArrowDown":
-          e.preventDefault();
-          setSelectedRuleId(
-            groups[Math.min(currentIndex + 1, groups.length - 1)].ruleId,
-          );
-          break;
-        case "ArrowUp":
-          e.preventDefault();
-          setSelectedRuleId(groups[Math.max(currentIndex - 1, 0)].ruleId);
-          break;
-        case "Enter":
-          e.preventDefault();
-          if (currentIndex !== -1) onOpen(groups[currentIndex]);
-          break;
-        case "Escape":
-          e.preventDefault();
-          onGoBack();
-          break;
-      }
-    },
-    [groups, selectedRuleId, onOpen, onGoBack],
-  );
-
-  return (
-    <div className="flex-auto flex flex-col min-h-0">
-      <ToolDescription checkType={CheckType.modelAttributesValidation} />
-      <div
-        ref={containerRef}
-        className="flex-auto overflow-y-auto placemark-scrollbar px-1"
-        style={{ contain: "strict" }}
-        tabIndex={0}
-        onKeyDown={handleKeyDown}
-      >
-        {groups.map((group) => (
-          <ModelAttributesValidationGroupRow
-            key={group.ruleId}
-            group={group}
-            isSelected={selectedRuleId === group.ruleId}
-            onClick={() => onOpen(group)}
-          />
-        ))}
-      </div>
-    </div>
-  );
-};
-
 const ModelAttributesValidationGroupRow = ({
   group,
   isSelected,
@@ -316,42 +249,28 @@ const ModelAttributesValidationGroupRow = ({
 }) => {
   const translate = useTranslate();
   const label = translate(ruleLabelKey(group.ruleId));
-  const affectedText = translate(
-    "networkReview.modelAttributesValidation.affectedCount",
-    group.entityIds.length,
-  );
 
   return (
-    <Button
-      onClick={onClick}
-      variant={"quiet/list"}
-      aria-label={translate(
+    <IssueGroupRow
+      label={label}
+      affectedText={translate(
+        "networkReview.modelAttributesValidation.affectedCount",
+        group.entityIds.length,
+      )}
+      ariaLabel={translate(
         "networkReview.modelAttributesValidation.issueLabel",
         label,
         String(group.entityIds.length),
       )}
-      aria-selected={isSelected}
-      className="group w-full"
-    >
-      <div className="grid grid-cols-[auto_1fr_auto] gap-x-2 items-start p-2 pr-0 text-size-base w-full text-left">
-        <div className="pt-[.125rem]">
-          <SeverityIcon severity={group.severity} />
-        </div>
-        <div className="flex flex-col items-start">
-          <span className="font-bold">{label}</span>
-          <span className="text-subtle">{affectedText}</span>
-        </div>
-        <div
-          className={`pt-[.125rem] transition-opacity ${
-            isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-          }`}
-        >
-          {locked ? <Lock size={16} /> : <ChevronRight size={16} />}
-        </div>
-      </div>
-    </Button>
+      severity={group.severity}
+      isSelected={isSelected}
+      onClick={onClick}
+      locked={locked}
+    />
   );
 };
+
+const getGroupRuleId = (group: ValidationGroup) => group.ruleId;
 
 const ModelAttributesValidationLockedList = ({
   groups,

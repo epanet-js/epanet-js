@@ -6,19 +6,16 @@ import { useZoomTo } from "src/hooks/use-zoom-to";
 import {
   ActiveAssetIndex,
   ActiveTopology,
-  AllowedFlowDirection,
   AssetId,
-  getAllowedFlowDirectionFromAssetConfig,
   configuredAllowedFlowDirections,
 } from "@epanet-js/hydraulic-model";
 import {
   findReturnPath,
   JUNCTION_WITHOUT_SUPPLY_RULE_ID,
   listTopologyIssues,
-  PUMP_FEEDING_ITSELF_RULE_ID,
-  VALVE_FEEDING_ITSELF_RULE_ID,
   type TopologyIssue,
   type TopologyIssues,
+  type TopologyRuleId,
 } from "@epanet-js/network-review";
 import { HydraulicModel } from "src/hydraulic-model";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -30,6 +27,8 @@ import { selectionAtom } from "src/state/selection";
 import { reviewResultsAtom } from "src/state/network-review";
 import {
   EmptyState,
+  IssueGroupRow,
+  IssueGroupsList,
   LoadingState,
   ToolDescription,
   ToolHeader,
@@ -37,14 +36,12 @@ import {
   useLoadingStatus,
   VirtualizedIssuesList,
 } from "./common";
+import { ruleLabelKey } from "./rule-labels";
 
 export const TopologyChecks = ({ onGoBack }: { onGoBack: () => void }) => {
   const { issues, checkTopology, isLoading, isReady } = useCheckTopology();
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
-  const selection = useAtomValue(selectionAtom);
-  const { selectAssets, clearSelection } = useSelection(selection);
-  const zoomTo = useZoomTo();
-  const [selectedIssueId, setSelectedIssueId] = useState<string | null>(null);
+  const [openRuleId, setOpenRuleId] = useState<TopologyRuleId | null>(null);
 
   useEffect(
     function recomputeTopologyChecks() {
@@ -56,6 +53,139 @@ export const TopologyChecks = ({ onGoBack }: { onGoBack: () => void }) => {
     },
     [checkTopology, hydraulicModel.version],
   );
+
+  const groups = useMemo(() => groupByRule(issues), [issues]);
+  const openGroup = groups.find((group) => group.ruleId === openRuleId);
+
+  const headerProps = useCheckHeader(
+    CheckType.topologyChecks,
+    issues.length,
+    onGoBack,
+  );
+
+  if (openGroup) {
+    return (
+      <TopologyIssuesGroupDetail
+        group={openGroup}
+        hydraulicModel={hydraulicModel}
+        onGoBack={() => setOpenRuleId(null)}
+      />
+    );
+  }
+
+  return (
+    <div className="absolute inset-0 flex flex-col">
+      <ToolHeader
+        {...headerProps}
+        autoFocus={issues.length === 0 && !isLoading}
+      />
+      <div className="relative grow flex flex-col">
+        {isReady ? (
+          <>
+            {groups.length > 0 ? (
+              <IssueGroupsList
+                groups={groups}
+                getGroupId={getGroupRuleId}
+                renderGroup={(group, isSelected, onClick) => (
+                  <TopologyIssuesGroupRow
+                    group={group}
+                    isSelected={isSelected}
+                    onClick={onClick}
+                  />
+                )}
+                onOpen={(group) => setOpenRuleId(group.ruleId)}
+                onGoBack={onGoBack}
+                checkType={CheckType.topologyChecks}
+              />
+            ) : (
+              <>
+                <ToolDescription checkType={CheckType.topologyChecks} />
+                <EmptyState checkType={CheckType.topologyChecks} />
+              </>
+            )}
+            {isLoading && <LoadingState overlay />}
+          </>
+        ) : (
+          <>
+            <ToolDescription checkType={CheckType.topologyChecks} />
+            <LoadingState />
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
+
+type TopologyIssuesGroup = {
+  ruleId: TopologyRuleId;
+  issues: TopologyIssue[];
+  affectedCount: number;
+};
+
+const groupByRule = (issues: TopologyIssue[]): TopologyIssuesGroup[] => {
+  const groups = new Map<TopologyRuleId, TopologyIssuesGroup>();
+
+  for (const issue of issues) {
+    const group = groups.get(issue.ruleId) ?? {
+      ruleId: issue.ruleId,
+      issues: [],
+      affectedCount: 0,
+    };
+    group.issues.push(issue);
+    group.affectedCount += issue.assetIds.length;
+    groups.set(issue.ruleId, group);
+  }
+
+  return [...groups.values()];
+};
+
+const getGroupRuleId = (group: TopologyIssuesGroup) => group.ruleId;
+
+const TopologyIssuesGroupRow = ({
+  group,
+  isSelected,
+  onClick,
+}: {
+  group: TopologyIssuesGroup;
+  isSelected: boolean;
+  onClick: () => void;
+}) => {
+  const translate = useTranslate();
+  const label = translate(ruleLabelKey(group.ruleId));
+
+  return (
+    <IssueGroupRow
+      label={label}
+      affectedText={translate(
+        "networkReview.topologyChecks.affectedCount",
+        group.affectedCount,
+      )}
+      ariaLabel={translate(
+        "networkReview.topologyChecks.groupLabel",
+        label,
+        String(group.affectedCount),
+      )}
+      severity="warning"
+      isSelected={isSelected}
+      onClick={onClick}
+    />
+  );
+};
+
+const TopologyIssuesGroupDetail = ({
+  group,
+  hydraulicModel,
+  onGoBack,
+}: {
+  group: TopologyIssuesGroup;
+  hydraulicModel: HydraulicModel;
+  onGoBack: () => void;
+}) => {
+  const translate = useTranslate();
+  const selection = useAtomValue(selectionAtom);
+  const { selectAssets, clearSelection } = useSelection(selection);
+  const zoomTo = useZoomTo();
+  const [selectedIssueId, setSelectedIssueId] = useState<string | null>(null);
 
   const selectIssue = useCallback(
     (issue: TopologyIssue | null) => {
@@ -73,53 +203,40 @@ export const TopologyChecks = ({ onGoBack }: { onGoBack: () => void }) => {
     [hydraulicModel, selectAssets, clearSelection, zoomTo],
   );
 
-  const headerProps = useCheckHeader(
-    CheckType.topologyChecks,
-    issues.length,
-    onGoBack,
-  );
-
   return (
     <div className="absolute inset-0 flex flex-col">
       <ToolHeader
-        {...headerProps}
-        autoFocus={issues.length === 0 && !isLoading}
+        onGoBack={onGoBack}
+        title={translate(ruleLabelKey(group.ruleId))}
+        summary={translate(
+          "networkReview.topologyChecks.affectedCount",
+          group.affectedCount,
+        )}
       />
       <div className="relative grow flex flex-col">
-        {isReady ? (
-          <>
-            {issues.length > 0 ? (
-              <VirtualizedIssuesList
-                items={issues}
-                selectedItemId={selectedIssueId}
-                onSelect={selectIssue}
-                getItemId={issueId}
-                renderItem={(_index, issue, selectedId, onClick) => (
-                  <TopologyIssueItem
-                    issue={issue}
-                    hydraulicModel={hydraulicModel}
-                    isSelected={selectedId === issueId(issue)}
-                    onClick={onClick}
-                  />
-                )}
-                checkType={CheckType.topologyChecks}
-                estimateSize={36}
-                onGoBack={onGoBack}
-              />
-            ) : (
-              <>
-                <ToolDescription checkType={CheckType.topologyChecks} />
-                <EmptyState checkType={CheckType.topologyChecks} />
-              </>
-            )}
-            {isLoading && <LoadingState overlay />}
-          </>
-        ) : (
-          <>
-            <ToolDescription checkType={CheckType.topologyChecks} />
-            <LoadingState />
-          </>
+        {group.ruleId === JUNCTION_WITHOUT_SUPPLY_RULE_ID && (
+          <p className="text-size-base w-full p-3">
+            {translate("networkReview.topologyChecks.interruptionCausedBy")}
+          </p>
         )}
+        <VirtualizedIssuesList
+          items={group.issues}
+          selectedItemId={selectedIssueId}
+          onSelect={selectIssue}
+          getItemId={issueId}
+          renderItem={(_index, issue, selectedId, onClick) => (
+            <TopologyIssueItem
+              issue={issue}
+              hydraulicModel={hydraulicModel}
+              isSelected={selectedId === issueId(issue)}
+              onClick={onClick}
+            />
+          )}
+          checkType={CheckType.topologyChecks}
+          estimateSize={36}
+          showDescription={false}
+          onGoBack={onGoBack}
+        />
       </div>
     </div>
   );
@@ -165,65 +282,26 @@ const issueLabel = (
   hydraulicModel: HydraulicModel,
   translate: ReturnType<typeof useTranslate>,
 ): string => {
-  const [assetId] = issue.assetIds;
-  const assetLabel = hydraulicModel.assets.get(assetId)?.label ?? "";
+  if (issue.ruleId !== JUNCTION_WITHOUT_SUPPLY_RULE_ID)
+    return hydraulicModel.assets.get(issue.assetIds[0])?.label ?? "";
 
-  switch (issue.ruleId) {
-    case PUMP_FEEDING_ITSELF_RULE_ID:
-      return translate(
-        "networkReview.topologyChecks.pumpFeedingItself",
-        assetLabel,
-      );
-    case VALVE_FEEDING_ITSELF_RULE_ID:
-      return translate(
-        "networkReview.topologyChecks.valveFeedingItself",
-        assetLabel,
-      );
-    case JUNCTION_WITHOUT_SUPPLY_RULE_ID:
-      return junctionsWithoutSupplyLabel(
-        issue.assetIds.length,
-        issue.blockingLinkIds,
-        hydraulicModel,
-        translate,
-      );
-  }
-};
-
-const junctionsWithoutSupplyLabel = (
-  junctionsCount: number,
-  blockingLinkIds: AssetId[],
-  hydraulicModel: HydraulicModel,
-  translate: ReturnType<typeof useTranslate>,
-): string => {
-  const [blockingLink, ...otherBlockingLinks] = blockingLinkIds
+  const [blockingLink, ...otherBlockingLinks] = issue.blockingLinkIds
     .map((linkId) => hydraulicModel.assets.get(linkId))
     .filter((link) => link !== undefined);
 
   if (!blockingLink)
     return translate(
       "networkReview.topologyChecks.junctionsWithoutSupply",
-      junctionsCount,
+      issue.assetIds.length,
     );
 
-  const blockedBy =
-    otherBlockingLinks.length > 0
-      ? translate(
-          "networkReview.topologyChecks.linkAndMore",
-          blockingLink.label,
-          String(otherBlockingLinks.length),
-        )
-      : blockingLink.label;
-  const isClosed =
-    getAllowedFlowDirectionFromAssetConfig(blockingLink) ===
-    AllowedFlowDirection.NONE;
-
-  return translate(
-    isClosed
-      ? "networkReview.topologyChecks.junctionsWithoutSupplyBehindClosed"
-      : "networkReview.topologyChecks.junctionsWithoutSupplyUpstreamOf",
-    junctionsCount,
-    blockedBy,
-  );
+  return otherBlockingLinks.length > 0
+    ? translate(
+        "networkReview.topologyChecks.linkAndMore",
+        blockingLink.label,
+        String(otherBlockingLinks.length),
+      )
+    : blockingLink.label;
 };
 
 const assetsToSelect = (

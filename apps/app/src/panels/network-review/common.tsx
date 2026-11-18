@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { ChevronLeftIcon } from "lucide-react";
+import { ChevronLeftIcon, ChevronRight, Lock } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Button } from "src/components/elements";
@@ -12,8 +12,10 @@ import {
   ChevronDownIcon,
   ChevronRightIcon,
   ArchiveIcon,
+  ErrorIcon,
   NoIssuesIcon,
   UndoIcon,
+  WarningIcon,
 } from "src/icons";
 import { CheckType } from "src/lib/network-review";
 import { FixButton } from "./fixes/fix-button";
@@ -165,6 +167,140 @@ export const LoadingState = ({ overlay = false }: { overlay?: boolean }) => {
   return (
     <div className="grow flex flex-col items-center justify-center px-4 pb-4">
       <RingSpinner size="lg" />
+    </div>
+  );
+};
+
+export type IssueSeverity = "error" | "warning";
+
+const SeverityIcon = ({ severity }: { severity: IssueSeverity }) => (
+  <span className={severity === "error" ? "text-error" : "text-warning"}>
+    {severity === "error" ? <ErrorIcon /> : <WarningIcon />}
+  </span>
+);
+
+export const IssueGroupRow = ({
+  label,
+  affectedText,
+  ariaLabel,
+  severity,
+  isSelected,
+  onClick,
+  locked = false,
+}: {
+  label: string;
+  affectedText: string;
+  ariaLabel: string;
+  severity: IssueSeverity;
+  isSelected: boolean;
+  onClick?: () => void;
+  locked?: boolean;
+}) => (
+  <Button
+    onClick={onClick}
+    variant={"quiet/list"}
+    aria-label={ariaLabel}
+    aria-selected={isSelected}
+    className="group w-full"
+  >
+    <div className="grid grid-cols-[auto_1fr_auto] gap-x-2 items-start p-2 pr-0 text-size-base w-full text-left">
+      <div className="pt-[.125rem]">
+        <SeverityIcon severity={severity} />
+      </div>
+      <div className="flex flex-col items-start">
+        <span className="font-bold">{label}</span>
+        <span className="text-subtle">{affectedText}</span>
+      </div>
+      <div
+        className={`pt-[.125rem] transition-opacity ${
+          isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+        }`}
+      >
+        {locked ? <Lock size={16} /> : <ChevronRight size={16} />}
+      </div>
+    </div>
+  </Button>
+);
+
+export const IssueGroupsList = <G,>({
+  groups,
+  getGroupId,
+  renderGroup,
+  onOpen,
+  onGoBack,
+  checkType,
+}: {
+  groups: G[];
+  getGroupId: (group: G) => string;
+  renderGroup: (
+    group: G,
+    isSelected: boolean,
+    onClick: () => void,
+  ) => React.ReactNode;
+  onOpen: (group: G) => void;
+  onGoBack: () => void;
+  checkType: CheckType;
+}) => {
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(function autoFocusOnMount() {
+    const timer = setTimeout(() => {
+      containerRef.current?.focus();
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      const currentIndex = groups.findIndex(
+        (group) => getGroupId(group) === selectedGroupId,
+      );
+      switch (e.key) {
+        case "ArrowDown":
+          e.preventDefault();
+          setSelectedGroupId(
+            getGroupId(groups[Math.min(currentIndex + 1, groups.length - 1)]),
+          );
+          break;
+        case "ArrowUp":
+          e.preventDefault();
+          setSelectedGroupId(getGroupId(groups[Math.max(currentIndex - 1, 0)]));
+          break;
+        case "Enter":
+          e.preventDefault();
+          if (currentIndex !== -1) onOpen(groups[currentIndex]);
+          break;
+        case "Escape":
+          e.preventDefault();
+          onGoBack();
+          break;
+      }
+    },
+    [groups, getGroupId, selectedGroupId, onOpen, onGoBack],
+  );
+
+  return (
+    <div className="flex-auto flex flex-col min-h-0">
+      <ToolDescription checkType={checkType} />
+      <div
+        ref={containerRef}
+        className="flex-auto overflow-y-auto placemark-scrollbar px-1"
+        style={{ contain: "strict" }}
+        tabIndex={0}
+        onKeyDown={handleKeyDown}
+      >
+        {groups.map((group) => {
+          const groupId = getGroupId(group);
+          return (
+            <div key={groupId}>
+              {renderGroup(group, selectedGroupId === groupId, () =>
+                onOpen(group),
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 };
