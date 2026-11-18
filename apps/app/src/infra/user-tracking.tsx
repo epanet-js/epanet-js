@@ -781,6 +781,12 @@ type ScriptComposerOpened = {
   name: "script.composerOpened";
 };
 
+type ScriptComposerLeft = {
+  name: "script.composerLeft";
+  action: "writeMyself" | "back";
+  attemptsCount: number;
+};
+
 type ScriptAssistantUpgradeSeen = {
   name: "script.assistantUpgradeSeen";
   source: "composer" | "editor";
@@ -1674,6 +1680,7 @@ export type UserEvent =
   | ScriptLogCopied
   | ScriptErrorLineOpened
   | ScriptComposerOpened
+  | ScriptComposerLeft
   | ScriptAssistantUpgradeSeen
   | ScriptAssistantUpgradeClicked
   | ScriptGenerationRequested

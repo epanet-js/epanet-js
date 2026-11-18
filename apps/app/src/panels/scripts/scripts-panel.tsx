@@ -92,6 +92,7 @@ export const ScriptsPanel = () => {
   const userTracking = useUserTracking();
   const { generation, failure, generate, stop } = useScriptGeneration();
   const [sourceVersion, setSourceVersion] = useState(0);
+  const composerAttemptsRef = useRef(0);
   const [isWrittenByAssistant, setIsWrittenByAssistant] = useState(false);
   const [syntaxError, setSyntaxError] = useState<ScriptSyntaxError | null>(
     null,
@@ -106,6 +107,7 @@ export const ScriptsPanel = () => {
   };
 
   const handleWrite = async (prompt: string, scope: ScriptAssistantScope) => {
+    composerAttemptsRef.current += 1;
     const generated = await generate({
       prompt,
       source: "",
@@ -183,6 +185,11 @@ export const ScriptsPanel = () => {
       <ScriptAssistant
         isLocked={!canUseScriptAssistant}
         onBack={() => {
+          userTracking.capture({
+            name: "script.composerLeft",
+            action: "back",
+            attemptsCount: composerAttemptsRef.current,
+          });
           stop();
           setIsComposing(false);
         }}
@@ -190,7 +197,14 @@ export const ScriptsPanel = () => {
         generation={generation}
         failure={failure}
         onStop={stop}
-        onWriteMyself={() => openDraft(newScriptDraft(translate, llmsPath))}
+        onWriteMyself={() => {
+          userTracking.capture({
+            name: "script.composerLeft",
+            action: "writeMyself",
+            attemptsCount: composerAttemptsRef.current,
+          });
+          openDraft(newScriptDraft(translate, llmsPath));
+        }}
       />
     );
   }
@@ -201,6 +215,7 @@ export const ScriptsPanel = () => {
         isAssistantOn
           ? () => {
               userTracking.capture({ name: "script.composerOpened" });
+              composerAttemptsRef.current = 0;
               setIsComposing(true);
             }
           : null
