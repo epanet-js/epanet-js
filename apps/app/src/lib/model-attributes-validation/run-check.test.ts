@@ -916,6 +916,105 @@ describe("validateModelAttributes", () => {
     });
   });
 
+  describe("level-setting control", () => {
+    const IDS = { J1: 1, J2: 2, PU1: 3, T1: 4 } as const;
+
+    const aLevelControlledPump = ({
+      on = { level: 2, setting: 1 },
+      off = { level: 8 },
+      tankLevels = { minLevel: 1, maxLevel: 10 },
+    }: {
+      on?: { level: number; setting: number };
+      off?: { level: number };
+      tankLevels?: { minLevel: number | null; maxLevel: number | null };
+    } = {}) =>
+      HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, { elevation: 50 })
+        .aJunction(IDS.J2, { elevation: 50 })
+        .aPump(IDS.PU1, {
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
+          definitionType: "power",
+          power: 10,
+        })
+        .aTank(IDS.T1, {
+          elevation: 50,
+          initialLevel: 5,
+          diameter: 100,
+          ...tankLevels,
+        })
+        .aLevelSettingControl({ linkId: IDS.PU1, tankId: IDS.T1, on, off })
+        .build();
+
+    const levelIssues = async (
+      model: ReturnType<typeof aLevelControlledPump>,
+    ) =>
+      (await validateModelAttributes(model)).filter(([id]) =>
+        id.startsWith("pump.levelSettingControl"),
+      );
+
+    it("passes levels within the tank's range, on below off, and a speed of zero", async () => {
+      const model = aLevelControlledPump({ on: { level: 2, setting: 0 } });
+
+      expect(await levelIssues(model)).toEqual([]);
+    });
+
+    it("warns when a level is outside the tank's range", async () => {
+      const model = aLevelControlledPump({ off: { level: 12 } });
+
+      expect(await levelIssues(model)).toEqual([
+        ["pump.levelSettingControl.withinTankLevels", [IDS.PU1]],
+      ]);
+      expect(severityOf("pump.levelSettingControl.withinTankLevels")).toBe(
+        "warning",
+      );
+    });
+
+    it("treats a missing tank bound as no limit", async () => {
+      const model = aLevelControlledPump({
+        on: { level: -5, setting: 1 },
+        off: { level: 50 },
+        tankLevels: { minLevel: null, maxLevel: null },
+      });
+
+      expect(await levelIssues(model)).toEqual([]);
+    });
+
+    it("flags an on level that is not below the off level", async () => {
+      const model = aLevelControlledPump({
+        on: { level: 5, setting: 1 },
+        off: { level: 5 },
+      });
+
+      expect(await levelIssues(model)).toEqual([
+        ["pump.levelSettingControl.onBelowOff", [IDS.PU1]],
+      ]);
+      expect(severityOf("pump.levelSettingControl.onBelowOff")).toBe("error");
+    });
+
+    it("flags a negative on speed", async () => {
+      const model = aLevelControlledPump({ on: { level: 2, setting: -1 } });
+
+      expect(await levelIssues(model)).toEqual([
+        ["pump.levelSettingControl.onSpeedNonNegative", [IDS.PU1]],
+      ]);
+      expect(severityOf("pump.levelSettingControl.onSpeedNonNegative")).toBe(
+        "error",
+      );
+    });
+
+    it("reports an error before a warning on the same control", async () => {
+      const model = aLevelControlledPump({
+        on: { level: 12, setting: 1 },
+        off: { level: 11 },
+      });
+
+      expect(await levelIssues(model)).toEqual([
+        ["pump.levelSettingControl.onBelowOff", [IDS.PU1]],
+      ]);
+    });
+  });
+
   describe("variable speed pump control", () => {
     const IDS = { J1: 1, J2: 2, J3: 3, PU1: 4, PU2: 5, P1: 6, T1: 7 } as const;
 

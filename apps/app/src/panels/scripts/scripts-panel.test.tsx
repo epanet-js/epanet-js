@@ -884,6 +884,20 @@ describe("ScriptsPanel", () => {
     const diameterOf = (store: Store) =>
       (store.get(stagingModelDerivedAtom).assets.get(IDS.P1) as Pipe).diameter;
 
+    it("passes whether model validations are on to the run", async () => {
+      stubFeaturesOn(["FLAG_MODEL_VALIDATIONS"]);
+      const user = userEvent.setup();
+      const startScriptRun = aRunThatSetsTheDiameter();
+      registerScripting({ startScriptRun, exampleScripts: [] });
+      renderPanel(aStoreWithAPipe());
+
+      await user.click(screen.getByRole("button", { name: "Run Resize" }));
+
+      expect(startScriptRun).toHaveBeenCalledWith(
+        expect.objectContaining({ isModelValidationsOn: true }),
+      );
+    });
+
     it("passes whether zones can be deleted to the run", async () => {
       stubFeaturesOn(["FLAG_DELETE_ZONE"]);
       const user = userEvent.setup();

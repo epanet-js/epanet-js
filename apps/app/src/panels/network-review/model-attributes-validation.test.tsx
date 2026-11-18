@@ -21,6 +21,7 @@ import { dialogAtom } from "src/state/dialog";
 import { USelection } from "src/selection";
 import { CheckType } from "src/lib/network-review";
 import { ModelAttributesValidation } from "./model-attributes-validation";
+import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
 
 vi.mock("src/hooks/use-zoom-to", () => ({ useZoomTo: () => vi.fn() }));
 vi.mock("src/infra/user-tracking", () => ({
@@ -88,6 +89,65 @@ describe("ModelAttributesValidation panel", () => {
       expect(
         screen.getByText(/your model attributes are valid/i),
       ).toBeInTheDocument();
+    });
+  });
+
+  describe("level-based control checks", () => {
+    const aPumpWithMisorderedLevels = () =>
+      HydraulicModelBuilder.with()
+        .aJunction(1, { elevation: 50 })
+        .aJunction(2, { elevation: 50 })
+        .aPump(3, {
+          startNodeId: 1,
+          endNodeId: 2,
+          definitionType: "power",
+          power: 10,
+        })
+        .aTank(4, {
+          elevation: 50,
+          initialLevel: 5,
+          diameter: 100,
+          minLevel: 1,
+          maxLevel: 10,
+        })
+        .aLevelSettingControl({
+          linkId: 3,
+          tankId: 4,
+          on: { level: 6, setting: 1 },
+          off: { level: 4 },
+        })
+        .build();
+
+    it("reports them with FLAG_MODEL_VALIDATIONS on", async () => {
+      stubFeatureOn("FLAG_MODEL_VALIDATIONS");
+      const store = setInitialState({
+        hydraulicModel: aPumpWithMisorderedLevels(),
+      });
+
+      renderPanel(store);
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(
+            "Level-based control on level must be below the off level",
+          ),
+        ).toBeInTheDocument();
+      });
+    });
+
+    it("does not report them with FLAG_MODEL_VALIDATIONS off", async () => {
+      stubFeatureOff("FLAG_MODEL_VALIDATIONS");
+      const store = setInitialState({
+        hydraulicModel: aPumpWithMisorderedLevels(),
+      });
+
+      renderPanel(store);
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(/your model attributes are valid/i),
+        ).toBeInTheDocument();
+      });
     });
   });
 

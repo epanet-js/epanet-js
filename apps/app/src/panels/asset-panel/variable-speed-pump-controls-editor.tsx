@@ -10,11 +10,12 @@ import {
   VariableSpeedPumpControl,
   VariableSpeedPumpSchedulePoint,
   VariableSpeedPumpTankLevels,
+  validateLevelSetting,
+  numericChecks,
 } from "@epanet-js/hydraulic-model";
 import type { UnitsSpec } from "@epanet-js/project-settings";
 import { localizeDecimal } from "@epanet-js/i18n";
 import { type PumpReferenceField } from "src/lib/model-attributes-validation";
-import { numericChecks } from "@epanet-js/hydraulic-model";
 import {
   DataGrid,
   type GridColumn,
@@ -35,7 +36,6 @@ import { TextField } from "src/components/form/text-field";
 import { Checkbox } from "src/components/form/Checkbox";
 import { highlightsAtom } from "src/state/highlights";
 import { useUserTracking } from "src/infra/user-tracking";
-import { validateLevelSetting } from "./pump-level-based-controls";
 
 export type VariableSpeedPumpTargets = {
   isValid: (field: PumpReferenceField, value: unknown) => boolean;

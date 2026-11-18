@@ -22,6 +22,7 @@ import {
 } from "src/lib/model-attributes-validation";
 import { groupIssues, ValidationGroup } from "./validation-groups";
 import { useCachedCheck } from "src/hooks/use-review-checks";
+import { useModelAttributeRules } from "src/hooks/use-model-attribute-rules";
 import { CheckType } from "src/lib/network-review";
 import {
   EmptyState,
@@ -439,6 +440,7 @@ const useCheckModelAttributesValidation = () => {
   const { read, write } = useCachedCheck(CheckType.modelAttributesValidation);
   const { startLoading, finishLoading, isLoading } = useLoadingStatus();
   const isReady = useRef(false);
+  const rules = useModelAttributeRules();
 
   const checkModelAttributesValidation = useCallback(
     async (signal?: AbortSignal) => {
@@ -459,6 +461,7 @@ const useCheckModelAttributesValidation = () => {
       try {
         const issues = await validateModelAttributes(hydraulicModel, {
           signal,
+          rules,
         });
 
         if (!signal?.aborted) {
@@ -475,7 +478,7 @@ const useCheckModelAttributesValidation = () => {
         throw error;
       }
     },
-    [hydraulicModel, startLoading, finishLoading, read, write],
+    [hydraulicModel, startLoading, finishLoading, read, write, rules],
   );
 
   return {

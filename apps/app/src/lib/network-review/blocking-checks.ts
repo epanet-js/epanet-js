@@ -9,6 +9,7 @@ import {
 import { HydraulicModel } from "src/hydraulic-model";
 import {
   countValidationIssues,
+  Rule,
   validateModelAttributes,
   ValidationIssues,
 } from "src/lib/model-attributes-validation";
@@ -50,19 +51,19 @@ export type BlockingCheckResult =
 
 type Runner = (
   model: HydraulicModel,
-  signal?: AbortSignal,
+  options: { signal?: AbortSignal; rules?: Rule[] },
 ) => Promise<BlockingCheckResult>;
 
 const runners: Record<BlockingCheckType, Runner> = {
-  [CheckType.modelAttributesValidation]: async (model, signal) => {
-    const items = await validateModelAttributes(model, { signal });
+  [CheckType.modelAttributesValidation]: async (model, { signal, rules }) => {
+    const items = await validateModelAttributes(model, { signal, rules });
     return {
       check: CheckType.modelAttributesValidation,
       issueCount: countValidationIssues(items),
       items,
     };
   },
-  [CheckType.orphanAssets]: async (model, signal) => {
+  [CheckType.orphanAssets]: async (model, { signal }) => {
     const items = await findOrphanAssets(model, signal);
     return {
       check: CheckType.orphanAssets,
@@ -70,7 +71,7 @@ const runners: Record<BlockingCheckType, Runner> = {
       items,
     };
   },
-  [CheckType.connectivityTrace]: async (model, signal) => {
+  [CheckType.connectivityTrace]: async (model, { signal }) => {
     const items = await findConnectivityTrace(model, "array", signal);
     return {
       check: CheckType.connectivityTrace,
@@ -78,7 +79,7 @@ const runners: Record<BlockingCheckType, Runner> = {
       items,
     };
   },
-  [CheckType.topologyChecks]: async (model, signal) => {
+  [CheckType.topologyChecks]: async (model, { signal }) => {
     const items = await findTopologyIssues(model, signal);
     return {
       check: CheckType.topologyChecks,
@@ -95,14 +96,15 @@ export const runBlockingChecks = async (
   options: {
     only?: readonly BlockingCheckType[];
     signal?: AbortSignal;
+    rules?: Rule[];
     onCheckDone?: (result: BlockingCheckResult) => void;
   } = {},
 ): Promise<BlockingCheckResult[]> => {
-  const { only = blockingChecks, signal, onCheckDone } = options;
+  const { only = blockingChecks, signal, rules, onCheckDone } = options;
 
   return Promise.all(
     only.map(async (check) => {
-      const result = await runners[check](model, signal);
+      const result = await runners[check](model, { signal, rules });
       onCheckDone?.(result);
       return result;
     }),

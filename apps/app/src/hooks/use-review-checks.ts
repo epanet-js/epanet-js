@@ -13,6 +13,7 @@ import {
 import { listTopologyIssues } from "@epanet-js/network-review";
 import { countValidationIssues } from "src/lib/model-attributes-validation";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { useModelAttributeRules } from "src/hooks/use-model-attribute-rules";
 
 export type CachedCheckType = keyof ReviewResults;
 type ItemsOf<K extends CachedCheckType> = NonNullable<
@@ -65,6 +66,7 @@ export const useCachedCheck = <K extends CachedCheckType>(check: K) => {
 // useCachedCheck returns a fresh object each render; callers key effects off
 // ensureFresh, which would then change identity on every render.
 export const useReviewChecks = () => {
+  const rules = useModelAttributeRules();
   const { read: readAttributes, write: writeAttributes } = useCachedCheck(
     CheckType.modelAttributesValidation,
   );
@@ -124,13 +126,14 @@ export const useReviewChecks = () => {
         return runBlockingChecks(model, {
           only,
           signal: options.signal,
+          rules,
           onCheckDone: (result) => {
             cache(result, modelVersion);
             options.onCheckDone?.(result);
           },
         });
       },
-      [cache],
+      [cache, rules],
     ),
   );
 

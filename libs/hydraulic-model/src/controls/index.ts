@@ -50,3 +50,5 @@ export {
   getFlowModulatingValvePointErrors,
 } from "./flow-modulating-valve-points";
 export type { FlowModulatingValvePointErrors } from "./flow-modulating-valve-points";
+export { validateLevelSetting } from "./level-setting-checks";
+export type { LevelSettingError } from "./level-setting-checks";

@@ -80,6 +80,7 @@ export const useRunScript = () => {
   const { openPaywall } = useFeatureLock("runScripts");
   const userTracking = useUserTracking();
   const isDeleteZoneOn = useFeatureFlag("FLAG_DELETE_ZONE");
+  const isModelValidationsOn = useFeatureFlag("FLAG_MODEL_VALIDATIONS");
   const { transact } = useModelTransaction();
   const editionBlock = useEditionBlock();
   const editionBlockRef = useRef(editionBlock);
@@ -261,6 +262,7 @@ export const useRunScript = () => {
         lastResults: lastResultsOf(store.get),
         hasScenarios: store.get(hasScenariosAtom),
         isDeleteZoneOn,
+        isModelValidationsOn,
         editsBlockedReason:
           editionBlockRef.current && EDITS_BLOCKED[editionBlockRef.current],
         onEvent,
@@ -320,6 +322,7 @@ export const useRunScript = () => {
       canRunScripts,
       openPaywall,
       isDeleteZoneOn,
+      isModelValidationsOn,
       showScriptOutput,
     ],
   );

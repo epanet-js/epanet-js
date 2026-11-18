@@ -5,6 +5,7 @@ export {
 } from "./run-check";
 export {
   RULES,
+  RULES_DEPRECATED,
   rulesFor,
   fieldGroupsFor,
   firstFailure,

@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo } from "react";
-import { numericChecks } from "@epanet-js/hydraulic-model";
 import { useSetAtom } from "jotai";
 import { Selector } from "@epanet-js/ui-kit";
 import {
   buildDefaultLevelSetting,
   LevelSettingControl,
+  numericChecks,
   Tank,
+  validateLevelSetting,
 } from "@epanet-js/hydraulic-model";
 import { Unit } from "@epanet-js/quantity";
 import { useTranslate } from "src/hooks/use-translate";
@@ -23,23 +24,6 @@ const selectorStyleOptions = {
 } as const;
 
 type LevelField = "onLevel" | "offLevel";
-
-type LevelSettingError = "onOutOfRange" | "offOutOfRange" | "order";
-
-export const validateLevelSetting = (params: {
-  onLevel: number;
-  offLevel: number;
-  minLevel: number;
-  maxLevel: number;
-}): LevelSettingError[] => {
-  const { onLevel, offLevel, minLevel, maxLevel } = params;
-  const errors: LevelSettingError[] = [];
-  const inRange = (value: number) => value >= minLevel && value <= maxLevel;
-  if (!inRange(onLevel)) errors.push("onOutOfRange");
-  if (!inRange(offLevel)) errors.push("offOutOfRange");
-  if (onLevel >= offLevel) errors.push("order");
-  return errors;
-};
 
 export const PumpLevelBasedControls = ({
   control,

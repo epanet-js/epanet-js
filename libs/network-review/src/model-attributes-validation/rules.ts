@@ -4,7 +4,10 @@ import {
   effectiveRoughness,
   FlowModulatingValveControl,
   getLinkFlowModulatingValve,
+  getLinkLevelSetting,
   getLinkVariableSpeedPump,
+  LevelSettingControl,
+  validateLevelSetting,
   VariableSpeedPumpControl,
   getPumpCurveErrors,
   inferredRoughness,
@@ -252,6 +255,53 @@ const variableSpeedControlOf = (
       )
     : null;
 
+const levelSettingControlOf = (
+  entity: ValidatableEntity,
+  model?: HydraulicModel,
+): LevelSettingControl | null =>
+  model
+    ? getLinkLevelSetting(
+        model.controls,
+        readEntityProp(entity, "id") as AssetId,
+      )
+    : null;
+
+const hasLevelSettingControl: When = (entity, model) =>
+  isActiveEntity(entity) && levelSettingControlOf(entity, model) !== null;
+
+const levelSettingErrorsOf = (
+  control: LevelSettingControl,
+  model?: HydraulicModel,
+) => {
+  const tank = model?.assets.get(control.tankId);
+  const minLevel = tank ? readEntityProp(tank, "minLevel") : null;
+  const maxLevel = tank ? readEntityProp(tank, "maxLevel") : null;
+  return validateLevelSetting({
+    onLevel: control.on.level,
+    offLevel: control.off.level,
+    minLevel: isFiniteNumber(minLevel) ? minLevel : -Infinity,
+    maxLevel: isFiniteNumber(maxLevel) ? maxLevel : Infinity,
+  });
+};
+
+const levelSettingRule = (
+  checkName: string,
+  severity: Severity,
+  message: string,
+  isValid: (control: LevelSettingControl, model?: HydraulicModel) => boolean,
+): Rule => ({
+  id: `pump.levelSettingControl.${checkName}`,
+  type: "model",
+  entityType: "pump",
+  field: "levelSettingControl",
+  accessor: levelSettingControlOf,
+  appliesWhen: hasLevelSettingControl,
+  check: (value, _entity, model) =>
+    value === null || isValid(value as LevelSettingControl, model),
+  severity,
+  message,
+});
+
 const isActiveAsset = (
   model: HydraulicModel | undefined,
   assetId: AssetId,
@@ -311,6 +361,30 @@ const variableSpeedFlowTargetSameDirection: Rule = {
   severity: "warning",
   message: "mustFollowPumpDirection",
 };
+
+const levelSettingControlRules: Rule[] = [
+  levelSettingRule(
+    "onBelowOff",
+    "error",
+    "mustBeBelowOffLevel",
+    (control, model) => !levelSettingErrorsOf(control, model).includes("order"),
+  ),
+  levelSettingRule(
+    "onSpeedNonNegative",
+    "error",
+    "mustBeNonNegative",
+    (control) => numericChecks.nonNegative(control.on.setting),
+  ),
+  levelSettingRule(
+    "withinTankLevels",
+    "warning",
+    "mustBeWithinLevelRange",
+    (control, model) =>
+      !levelSettingErrorsOf(control, model).some(
+        (error) => error === "onOutOfRange" || error === "offOutOfRange",
+      ),
+  ),
+];
 
 export const valveReferenceFields = [
   "targetNode",
@@ -522,6 +596,7 @@ export const RULES: Rule[] = [
       id: "node.chemicalSourceStrength.nonNegative",
     }),
   ),
+  ...levelSettingControlRules,
   variableSpeedTargetRule("pressure", "Pressure"),
   variableSpeedTargetRule("flow", "Flow"),
   variableSpeedTargetRule("level", "Level"),
@@ -568,3 +643,7 @@ export const RULES: Rule[] = [
     message: "disconnected",
   },
 ];
+
+export const RULES_DEPRECATED: Rule[] = RULES.filter(
+  (rule) => !levelSettingControlRules.includes(rule),
+);

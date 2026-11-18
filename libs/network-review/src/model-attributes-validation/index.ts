@@ -4,7 +4,12 @@ export {
   validateAsset,
   countValidationIssues,
 } from "./run-check";
-export { RULES, valveReferenceFields, pumpReferenceFields } from "./rules";
+export {
+  RULES,
+  RULES_DEPRECATED,
+  valveReferenceFields,
+  pumpReferenceFields,
+} from "./rules";
 export type { ValveReferenceField, PumpReferenceField } from "./rules";
 export {
   rulesFor,

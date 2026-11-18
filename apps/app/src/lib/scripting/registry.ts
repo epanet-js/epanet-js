@@ -165,6 +165,7 @@ export type Scripting = {
     lastResults: ScriptLastResults | null;
     hasScenarios: boolean;
     isDeleteZoneOn: boolean;
+    isModelValidationsOn: boolean;
     editsBlockedReason: string | null;
     onEvent: (event: ScriptEvent) => void;
   }) => ScriptRunHandle;
