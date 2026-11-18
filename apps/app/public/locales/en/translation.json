@@ -2366,7 +2366,6 @@
     "theme": "Theme",
     "defaultTheme": "Default",
     "actions": "Theme actions",
-    "actionsUnsaved": "Theme actions, unsaved changes",
     "saveAsNew": "Save as new theme…",
     "saveChangesTo": "Save changes to “{{1}}”",
     "resetChanges": "Reset changes",

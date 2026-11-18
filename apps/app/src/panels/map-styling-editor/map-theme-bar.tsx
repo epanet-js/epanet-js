@@ -6,15 +6,15 @@ import {
   useSaveMapThemeChanges,
 } from "src/commands/map-themes";
 import * as DD from "@radix-ui/react-dropdown-menu";
-import { Selector } from "@epanet-js/ui-kit";
 import {
   Button,
   DDContent,
   DDSeparator,
   StyledItem,
 } from "src/components/elements";
-import { MoreActionsIcon } from "src/icons";
+import { MoreActionsIcon, SaveIcon } from "src/icons";
 import { useTranslate } from "src/hooks/use-translate";
+import { MapThemeSelector } from "./map-theme-selector";
 import { dialogAtom } from "src/state/dialog";
 import { isPlayingAtom } from "src/state/simulation-playback";
 import {
@@ -22,8 +22,6 @@ import {
   isMapThemeModifiedAtom,
   mapThemesAtom,
 } from "src/state/map-themes";
-
-const DEFAULT_THEME_OPTION = "default";
 
 export const MapThemeBar = () => {
   const translate = useTranslate();
@@ -42,55 +40,49 @@ export const MapThemeBar = () => {
   const defaultName = translate("mapThemes.defaultTheme");
   const activeName = activeTheme ? activeTheme.name : defaultName;
 
-  const options = themes.map((t) => ({ value: t.id, label: t.name }));
-
   return (
-    <div className="flex items-center gap-2 pb-2">
+    <div className="flex items-center pb-2">
       <label
         htmlFor={selectorId}
-        className="shrink-0 mr-2 text-size-base text-subtle"
+        className="shrink-0 mr-4 text-size-base text-subtle"
       >
         {translate("mapThemes.theme")}
       </label>
       <div className="flex-1 min-w-0">
-        {themes.length === 0 ? (
-          <Selector
-            id={selectorId}
-            options={[{ value: DEFAULT_THEME_OPTION, label: defaultName }]}
-            selected={DEFAULT_THEME_OPTION}
-            disabled={isPlaying}
-            onChange={() => applyMapTheme(null)}
-          />
-        ) : (
-          <Selector
-            id={selectorId}
-            options={options}
-            selected={activeTheme ? activeTheme.id : null}
-            nullable
-            placeholder={defaultName}
-            clearLabel={defaultName}
-            disabled={isPlaying}
-            onChange={(id) => applyMapTheme(id)}
-          />
-        )}
+        <MapThemeSelector
+          id={selectorId}
+          themes={themes}
+          activeTheme={activeTheme}
+          defaultName={defaultName}
+          isModified={isModified}
+          disabled={isPlaying}
+          onChange={applyMapTheme}
+        />
       </div>
+      <Button
+        variant="quiet"
+        disabled={isPlaying || !isModified}
+        aria-label={
+          isDefault
+            ? translate("mapThemes.saveAsNew")
+            : translate("mapThemes.saveChangesTo", activeName)
+        }
+        className="h-8 w-8 shrink-0 justify-center hover:bg-base-hover"
+        onClick={() =>
+          isDefault ? setDialog({ type: "saveMapThemeAsNew" }) : saveChanges()
+        }
+      >
+        <SaveIcon />
+      </Button>
       <DD.Root modal={false}>
         <DD.Trigger asChild>
           <Button
             variant="quiet"
             disabled={isPlaying}
-            aria-label={translate(
-              isModified ? "mapThemes.actionsUnsaved" : "mapThemes.actions",
-            )}
-            className="relative -ml-1 h-8 w-8 shrink-0 justify-center hover:bg-base-hover aria-expanded:bg-base-hover"
+            aria-label={translate("mapThemes.actions")}
+            className="h-8 w-8 shrink-0 justify-center hover:bg-base-hover aria-expanded:bg-base-hover"
           >
             <MoreActionsIcon />
-            {isModified && (
-              <span
-                aria-hidden
-                className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-accent"
-              />
-            )}
           </Button>
         </DD.Trigger>
         <DD.Portal>
@@ -100,12 +92,6 @@ export const MapThemeBar = () => {
             >
               {translate("mapThemes.saveAsNew")}
             </StyledItem>
-            <MenuItem
-              disabled={isDefault || !isModified}
-              onSelect={() => saveChanges()}
-            >
-              {translate("mapThemes.saveChangesTo", activeName)}
-            </MenuItem>
             <MenuItem disabled={!isModified} onSelect={() => resetChanges()}>
               {translate("mapThemes.resetChanges")}
             </MenuItem>
