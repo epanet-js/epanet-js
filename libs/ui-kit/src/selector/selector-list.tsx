@@ -17,6 +17,7 @@ export type SelectorListOption<T extends string | number | boolean> = {
   value: T;
   disabled?: boolean;
   icon?: React.ReactNode;
+  group?: string;
 };
 
 export type SelectorAction = {
@@ -113,7 +114,12 @@ export function BaseSelectorList<T extends string | number | boolean>({
 }: SelectorListProps<T>) {
   const ui = useUIConfig();
   const isStacked = descriptionPlacement === "below";
-  const virtualized = !isStacked && options.length > VIRTUALIZATION_THRESHOLD;
+  const isGrouped = useMemo(
+    () => options.some((o) => o.group !== undefined),
+    [options],
+  );
+  const virtualized =
+    !isStacked && !isGrouped && options.length > VIRTUALIZATION_THRESHOLD;
   const [query, setQuery] = useState(initialQuery);
   const [activeIndex, setActiveIndex] = useState<number>(() => {
     if (selected === null) return NO_INDEX;
@@ -568,6 +574,21 @@ export function BaseSelectorList<T extends string | number | boolean>({
     );
   }
 
+  function renderGroupHeading(group: string, isFirstRow: boolean) {
+    return (
+      <li
+        key={`group-${group}`}
+        role="presentation"
+        className={clsx(
+          "-mx-1 px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wide text-subtle cursor-default",
+          !isFirstRow && "mt-1 border-t",
+        )}
+      >
+        {group}
+      </li>
+    );
+  }
+
   function renderCreateRow(virtualStyle?: React.CSSProperties) {
     return (
       <li
@@ -653,7 +674,15 @@ export function BaseSelectorList<T extends string | number | boolean>({
             </ul>
           ) : (
             <ul role="listbox" tabIndex={-1} className="p-1">
-              {filtered.map((option, i) => renderOptionRow(option, i))}
+              {filtered.map((option, i) => {
+                const row = renderOptionRow(option, i);
+                const startsGroup =
+                  option.group !== undefined &&
+                  option.group !== filtered[i - 1]?.group;
+                return startsGroup
+                  ? [renderGroupHeading(option.group!, i === 0), row]
+                  : row;
+              })}
               {showCreateOption && renderCreateRow()}
             </ul>
           )}

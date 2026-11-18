@@ -42,6 +42,8 @@ const selectorStyleOptions = {
   paddingY: 2,
 } as const;
 
+const TYPE_LIST_ROWS = 8;
+
 const controlTypeFor = (control: PumpControl | null): ControlType => {
   if (control?.type === "level-setting") return "levelBased";
   if (control?.type === "timed-setting") return "timeBased";
@@ -103,20 +105,28 @@ export const PumpControlsEditor = ({
       ? "patternBased"
       : controlTypeFor(control);
 
-  const typeOptions = useMemo(
-    () => [
+  const typeOptions = useMemo(() => {
+    const fixedSpeed = translate("controls.fixedSpeed");
+    const variableSpeed = translate("controls.variableSpeed.title");
+    return [
       { value: "none" as const, label: translate("none") },
       {
         value: "levelBased" as const,
         label: translate("controls.levelBased"),
         disabled: tanks.length === 0,
+        group: fixedSpeed,
       },
-      { value: "timeBased" as const, label: translate("controls.timeBased") },
+      {
+        value: "timeBased" as const,
+        label: translate("controls.timeBased"),
+        group: fixedSpeed,
+      },
       ...(speedPattern
         ? [
             {
               value: "patternBased" as const,
               label: translate("controls.patternBased"),
+              group: fixedSpeed,
             },
           ]
         : []),
@@ -126,16 +136,17 @@ export const PumpControlsEditor = ({
               value: "pressureTarget" as const,
               label: translate("controls.variableSpeed.pressureTarget"),
               disabled: variableSpeedPumpTargets.nodes.length === 0,
+              group: variableSpeed,
             },
             {
               value: "flowTarget" as const,
               label: translate("controls.variableSpeed.flowTarget"),
+              group: variableSpeed,
             },
           ]
         : []),
-    ],
-    [translate, tanks.length, speedPattern, variableSpeedPumpTargets],
-  );
+    ];
+  }, [translate, tanks.length, speedPattern, variableSpeedPumpTargets]);
 
   const selectedTypeOption = typeOptions.find((o) => o.value === controlType);
 
@@ -212,6 +223,7 @@ export const PumpControlsEditor = ({
               selected={controlType}
               onChange={handleTypeChange}
               styleOptions={selectorStyleOptions}
+              maxVisibleOptions={TYPE_LIST_ROWS}
             />
           </div>
         )}

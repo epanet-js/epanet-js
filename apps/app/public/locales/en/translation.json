@@ -1319,6 +1319,7 @@
     "timeBased": "Time-based",
     "patternBased": "Pattern-based",
     "levelBased": "Level-based",
+    "fixedSpeed": "Fixed speed",
     "levelValidation": {
       "outOfRange": "Level must be between {{1}} and {{2}}.",
       "onBelowOff": "On level must be below the off level."
@@ -1326,6 +1327,7 @@
     "time": "Time",
     "addTimeStep": "Add time step",
     "variableSpeed": {
+      "title": "Variable speed",
       "pressureTarget": "Pressure target",
       "flowTarget": "Flow target",
       "atNode": "At node",
