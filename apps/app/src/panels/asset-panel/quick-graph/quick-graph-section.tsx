@@ -25,7 +25,8 @@ import { getDecimals } from "@epanet-js/project-settings";
 import type { TimeSeries } from "src/simulation/epanet/eps-results-reader";
 import { type AssetId, type Valve } from "@epanet-js/hydraulic-model";
 import { useTimeSeries } from "./use-time-series";
-import { QuickGraphChart } from "./quick-graph-chart";
+import { QuickGraphChart, type QuickGraphSeries } from "./quick-graph-chart";
+import { colors } from "src/lib/constants";
 import { useChangeTimestep } from "src/commands/change-timestep";
 import { RingSpinner } from "src/components/ring-spinner";
 
@@ -227,6 +228,35 @@ const QuickGraphSection = ({
   }, [baseData, isStatusProperty]);
   const timeStepIndex = simulationStep ?? 0;
 
+  const series = useMemo<QuickGraphSeries[]>(
+    () => [
+      ...(baseValues
+        ? [
+            {
+              label: baseLabel,
+              values: baseValues,
+              style: { type: "line", color: colors.gray400, width: 1.5 },
+            } satisfies QuickGraphSeries,
+          ]
+        : []),
+      {
+        label: scenarioName ?? (sensor ? translate("simulation") : null),
+        values,
+        style: { type: "line", color: colors.purple500 },
+      },
+      ...(sensor
+        ? [
+            {
+              label: translate("sensorData.panel.sensor"),
+              values: sensor.readings,
+              style: { type: "points", color: colors.gray600 },
+            } satisfies QuickGraphSeries,
+          ]
+        : []),
+    ],
+    [baseValues, baseLabel, scenarioName, values, sensor, translate],
+  );
+
   const propertyOptions = useMemo(() => {
     const hasCompletedSimulation =
       "epsResultsReader" in simulation && !!simulation.epsResultsReader;
@@ -364,22 +394,13 @@ const QuickGraphSection = ({
         {data !== null ? (
           <div className="absolute inset-0">
             <QuickGraphChart
-              values={values}
-              baseValues={baseValues}
-              baseLabel={baseLabel}
+              series={series}
               intervalSeconds={data.intervalSeconds}
               intervalsCount={data.intervalsCount}
               currentIntervalIndex={timeStepIndex}
               decimals={decimals}
               valueLabels={valueLabels}
               onIntevalClick={handleIntervalClick}
-              scenarioName={
-                scenarioName ?? (sensor ? translate("simulation") : null)
-              }
-              discreteValues={sensor?.readings ?? null}
-              discreteLabel={
-                sensor ? translate("sensorData.panel.sensor") : null
-              }
             />
           </div>
         ) : (

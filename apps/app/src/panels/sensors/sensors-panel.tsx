@@ -41,7 +41,11 @@ import {
   toStatusStep,
 } from "src/panels/asset-panel/quick-graph/quick-graph-section";
 import { useTimeSeries } from "src/panels/asset-panel/quick-graph/use-time-series";
-import { QuickGraphChart } from "src/panels/asset-panel/quick-graph/quick-graph-chart";
+import {
+  QuickGraphChart,
+  type QuickGraphSeries,
+} from "src/panels/asset-panel/quick-graph/quick-graph-chart";
+import { colors } from "src/lib/constants";
 import {
   contentStateFor,
   withContentState,
@@ -68,7 +72,6 @@ const FIRST_ROW_SELECTED: DataGridState = {
   activeCell: { row: 0, col: 0 },
 };
 
-const TYPE_LABEL_SPACING = 8;
 const TABLE_MIN_WIDTH = 256;
 const TABLE_DEFAULT_SHARE = 0.5;
 const CHART_MIN_WIDTH = 240;
@@ -441,6 +444,22 @@ const SelectedSensorChart = ({
     return isStatus ? raw.map(toStatusStep) : raw;
   }, [simulated, isStatus]);
 
+  const series = useMemo<QuickGraphSeries[]>(
+    () => [
+      {
+        label: translate("simulation"),
+        values,
+        style: { type: "line", color: colors.gray400 },
+      },
+      {
+        label: translate("sensorData.panel.sensor"),
+        values: sensor.readings,
+        style: { type: "points", color: colors.purple500 },
+      },
+    ],
+    [translate, values, sensor.readings],
+  );
+
   const intervalSeconds = simulated
     ? simulated.intervalSeconds
     : readingsStepSeconds(timing);
@@ -451,18 +470,11 @@ const SelectedSensorChart = ({
 
   return (
     <QuickGraphChart
-      values={values}
-      baseValues={null}
-      baseLabel={null}
+      series={series}
       intervalsCount={intervalsCount}
       intervalSeconds={intervalSeconds}
       decimals={decimals}
       valueLabels={valueLabels}
-      scenarioName={translate("simulation")}
-      discreteValues={sensor.readings}
-      discreteLabel={translate("sensorData.panel.sensor")}
-      highlightedSeries="discrete"
-      extraTopMargin={TYPE_LABEL_SPACING}
     />
   );
 };

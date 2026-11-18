@@ -5,21 +5,24 @@ import { useTranslate } from "src/hooks/use-translate";
 import { localizeDecimal } from "@epanet-js/i18n";
 import { colors } from "src/lib/constants";
 
+export type QuickGraphSeriesStyle =
+  | { type: "line"; color: string; width?: number }
+  | { type: "points"; color: string };
+
+export type QuickGraphSeries = {
+  label: string | null;
+  values: readonly number[];
+  style: QuickGraphSeriesStyle;
+};
+
 interface QuickGraphChartProps {
-  values: number[];
-  baseValues: number[] | null;
-  baseLabel: string | null;
+  series: readonly QuickGraphSeries[];
   intervalsCount: number;
   intervalSeconds: number;
   decimals: number;
   currentIntervalIndex?: number;
   onIntevalClick?: (intervalIndex: number) => void;
-  scenarioName: string | null;
   valueLabels?: Map<number, string> | null;
-  discreteValues?: readonly number[] | null;
-  discreteLabel?: string | null;
-  extraTopMargin?: number;
-  highlightedSeries?: "simulation" | "discrete";
 }
 
 export const QuickGraphChart = memo(function QuickGraphChart(
@@ -29,20 +32,13 @@ export const QuickGraphChart = memo(function QuickGraphChart(
 });
 
 function QuickGraphChartECharts({
-  values,
-  baseValues,
-  baseLabel,
+  series,
   intervalsCount,
   intervalSeconds,
   currentIntervalIndex,
   decimals,
   onIntevalClick,
-  scenarioName,
   valueLabels = null,
-  discreteValues = null,
-  discreteLabel = null,
-  extraTopMargin = 0,
-  highlightedSeries = "simulation",
 }: QuickGraphChartProps) {
   const translate = useTranslate();
 
@@ -54,22 +50,21 @@ function QuickGraphChartECharts({
     [valueLabels, decimals],
   );
 
-  const visibleDiscreteValues = useMemo(
-    () => (discreteValues ? discreteValues.slice(0, intervalsCount) : null),
-    [discreteValues, intervalsCount],
+  const visibleSeries = useMemo(
+    () =>
+      series
+        .map((entry) => ({
+          ...entry,
+          values: entry.values.slice(0, intervalsCount),
+        }))
+        .filter((entry) => entry.values.length > 0),
+    [series, intervalsCount],
   );
-  const hasDiscrete =
-    visibleDiscreteValues !== null && visibleDiscreteValues.length > 0;
-  const hasBase = baseValues !== null && baseValues.length > 0;
-  const showLegend = hasBase || hasDiscrete;
+  const showLegend = visibleSeries.some((entry) => entry.label !== null);
 
   const allValues = useMemo(
-    () => [
-      ...values,
-      ...(hasBase ? baseValues : []),
-      ...(hasDiscrete ? visibleDiscreteValues : []),
-    ],
-    [values, baseValues, hasBase, visibleDiscreteValues, hasDiscrete],
+    () => visibleSeries.flatMap((entry) => entry.values),
+    [visibleSeries],
   );
 
   const xAxis: EChartsOption["xAxis"] = useMemo(
@@ -84,87 +79,15 @@ function QuickGraphChartECharts({
     [valueLabels, allValues, decimals],
   );
 
-  const series: EChartsOption["series"] = useMemo(() => {
-    const isDiscreteHighlighted = highlightedSeries === "discrete";
-    const simulationColor = isDiscreteHighlighted
-      ? colors.gray400
-      : colors.purple500;
-    const scenarioSeries = {
-      type: "line" as const,
-      name: scenarioName ?? undefined,
-      data: values,
-      lineStyle: {
-        color: simulationColor,
-        width: 2,
-      },
-      itemStyle: {
-        color: simulationColor,
-      },
-      symbol: "none",
-      smooth: false,
-      triggerLineEvent: true,
-      markLine: {
-        silent: true,
-        symbol: "none",
-        data: [] as { xAxis: number }[],
-        lineStyle: {
-          type: "solid" as const,
-          color: colors.purple300,
-          width: 1.5,
-        },
-        label: { show: false },
-      },
-    };
-
-    const discreteSeries = hasDiscrete
-      ? [
-          {
-            type: "scatter" as const,
-            name: discreteLabel ?? undefined,
-            data: [...visibleDiscreteValues],
-            symbolSize: 5,
-            itemStyle: {
-              color: isDiscreteHighlighted ? colors.purple500 : colors.gray600,
-            },
-            z: 2,
-          },
-        ]
-      : [];
-
-    if (!hasBase) {
-      return [scenarioSeries, ...discreteSeries];
-    }
-
-    const baseSeries = {
-      type: "line" as const,
-      name: baseLabel ?? undefined,
-      data: baseValues,
-      lineStyle: {
-        color: colors.gray400,
-        width: 1.5,
-      },
-      itemStyle: {
-        color: colors.gray400,
-      },
-      symbol: "none",
-      smooth: false,
-      z: 0,
-    };
-
-    return [baseSeries, scenarioSeries, ...discreteSeries];
-  }, [
-    scenarioName,
-    values,
-    baseValues,
-    baseLabel,
-    hasBase,
-    discreteLabel,
-    visibleDiscreteValues,
-    hasDiscrete,
-    highlightedSeries,
-  ]);
-
-  const scenarioSeriesIndex = hasBase ? 1 : 0;
+  const chartSeries: EChartsOption["series"] = useMemo(
+    () =>
+      visibleSeries.map((entry, index) => ({
+        ...toEChartsSeries(entry),
+        z: index,
+        ...(index === 0 ? { markLine: MARK_LINE } : {}),
+      })),
+    [visibleSeries],
+  );
 
   const legend: EChartsOption["legend"] = useMemo(() => {
     if (!showLegend) return undefined;
@@ -185,7 +108,7 @@ function QuickGraphChartECharts({
     () => ({
       animation: false,
       grid: {
-        top: (showLegend ? 20 : 8) + extraTopMargin,
+        top: showLegend ? 28 : 8,
         right: 8,
         bottom: 4,
         left: 36,
@@ -194,7 +117,7 @@ function QuickGraphChartECharts({
       legend,
       xAxis,
       yAxis,
-      series,
+      series: chartSeries,
       tooltip: {
         trigger: "axis",
         appendToBody: true,
@@ -217,7 +140,7 @@ function QuickGraphChartECharts({
         },
       },
     }),
-    [showLegend, extraTopMargin, legend, xAxis, yAxis, series, formatValue],
+    [showLegend, legend, xAxis, yAxis, chartSeries, formatValue],
   );
 
   const chartRef = useRef<ReactECharts>(null);
@@ -239,22 +162,23 @@ function QuickGraphChartECharts({
 
   const applyMarkLine = useCallback(
     (chart: EChartsInstance) => {
-      const seriesUpdate: any[] = [];
-      for (let i = 0; i < scenarioSeriesIndex; i++) seriesUpdate.push({});
-      seriesUpdate.push({
-        markLine: {
-          silent: true,
-          symbol: "none",
-          label: { show: false },
-          data:
-            currentIntervalIndex === undefined
-              ? []
-              : [{ xAxis: currentIntervalIndex }],
-        },
+      chart.setOption({
+        series: [
+          {
+            markLine: {
+              silent: true,
+              symbol: "none",
+              label: { show: false },
+              data:
+                currentIntervalIndex === undefined
+                  ? []
+                  : [{ xAxis: currentIntervalIndex }],
+            },
+          },
+        ],
       });
-      chart.setOption({ series: seriesUpdate });
     },
-    [currentIntervalIndex, scenarioSeriesIndex],
+    [currentIntervalIndex],
   );
 
   useEffect(
@@ -264,7 +188,7 @@ function QuickGraphChartECharts({
       if (!chart) return;
       applyMarkLine(chart);
     },
-    [applyMarkLine],
+    [applyMarkLine, option],
   );
 
   const onChartReady = useCallback(
@@ -282,7 +206,7 @@ function QuickGraphChartECharts({
 
         const pointInGrid = chart.convertFromPixel("grid", pointInPixel);
         const dataIndex = Math.round(pointInGrid[0]);
-        if (dataIndex >= 0 && dataIndex < values.length) {
+        if (dataIndex >= 0 && dataIndex < intervalsCount) {
           onIntevalClick(dataIndex);
         }
       });
@@ -293,10 +217,10 @@ function QuickGraphChartECharts({
         zr.setCursorStyle(isInGrid ? "pointer" : "default");
       });
     },
-    [onIntevalClick, values.length, applyMarkLine],
+    [onIntevalClick, intervalsCount, applyMarkLine],
   );
 
-  if (intervalsCount === 0 || (values.length === 0 && !hasDiscrete)) {
+  if (intervalsCount === 0 || visibleSeries.length === 0) {
     return (
       <div className="h-full flex items-center justify-center text-subtle text-size-small">
         {translate("noDataAvailable")}
@@ -310,6 +234,7 @@ function QuickGraphChartECharts({
         ref={chartRef}
         key={`${intervalSeconds}-${intervalsCount}`}
         option={option}
+        replaceMerge={["series"]}
         style={{ height: "100%", width: "100%" }}
         opts={{ renderer: "svg" }}
         onChartReady={onChartReady}
@@ -317,6 +242,42 @@ function QuickGraphChartECharts({
     </div>
   );
 }
+
+const MARK_LINE = {
+  silent: true,
+  symbol: "none",
+  data: [] as { xAxis: number }[],
+  lineStyle: {
+    type: "solid" as const,
+    color: colors.purple300,
+    width: 1.5,
+  },
+  label: { show: false },
+};
+
+const toEChartsSeries = ({ label, values, style }: QuickGraphSeries) => {
+  const name = label ?? undefined;
+  const data = [...values];
+  if (style.type === "points") {
+    return {
+      type: "scatter" as const,
+      name,
+      data,
+      symbolSize: 5,
+      itemStyle: { color: style.color },
+    };
+  }
+  return {
+    type: "line" as const,
+    name,
+    data,
+    lineStyle: { color: style.color, width: style.width ?? 2 },
+    itemStyle: { color: style.color },
+    symbol: "none",
+    smooth: false,
+    triggerLineEvent: true,
+  };
+};
 
 const buildXAxis = (
   intervalsCount: number,
