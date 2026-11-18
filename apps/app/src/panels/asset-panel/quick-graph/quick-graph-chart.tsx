@@ -12,10 +12,14 @@ interface QuickGraphChartProps {
   intervalsCount: number;
   intervalSeconds: number;
   decimals: number;
-  currentIntervalIndex: number;
-  onIntevalClick: (intervalIndex: number) => void;
+  currentIntervalIndex?: number;
+  onIntevalClick?: (intervalIndex: number) => void;
   scenarioName: string | null;
   valueLabels?: Map<number, string> | null;
+  discreteValues?: readonly number[] | null;
+  discreteLabel?: string | null;
+  extraTopMargin?: number;
+  highlightedSeries?: "simulation" | "discrete";
 }
 
 export const QuickGraphChart = memo(function QuickGraphChart(
@@ -35,6 +39,10 @@ function QuickGraphChartECharts({
   onIntevalClick,
   scenarioName,
   valueLabels = null,
+  discreteValues = null,
+  discreteLabel = null,
+  extraTopMargin = 0,
+  highlightedSeries = "simulation",
 }: QuickGraphChartProps) {
   const translate = useTranslate();
 
@@ -46,12 +54,23 @@ function QuickGraphChartECharts({
     [valueLabels, decimals],
   );
 
-  const showLegend = baseValues && baseValues.length > 0;
+  const visibleDiscreteValues = useMemo(
+    () => (discreteValues ? discreteValues.slice(0, intervalsCount) : null),
+    [discreteValues, intervalsCount],
+  );
+  const hasDiscrete =
+    visibleDiscreteValues !== null && visibleDiscreteValues.length > 0;
+  const hasBase = baseValues !== null && baseValues.length > 0;
+  const showLegend = hasBase || hasDiscrete;
 
-  const allValues = useMemo(() => {
-    if (!baseValues || baseValues.length === 0) return values;
-    return [...values, ...baseValues];
-  }, [values, baseValues]);
+  const allValues = useMemo(
+    () => [
+      ...values,
+      ...(hasBase ? baseValues : []),
+      ...(hasDiscrete ? visibleDiscreteValues : []),
+    ],
+    [values, baseValues, hasBase, visibleDiscreteValues, hasDiscrete],
+  );
 
   const xAxis: EChartsOption["xAxis"] = useMemo(
     () => buildXAxis(intervalsCount, intervalSeconds),
@@ -66,16 +85,20 @@ function QuickGraphChartECharts({
   );
 
   const series: EChartsOption["series"] = useMemo(() => {
+    const isDiscreteHighlighted = highlightedSeries === "discrete";
+    const simulationColor = isDiscreteHighlighted
+      ? colors.gray400
+      : colors.purple500;
     const scenarioSeries = {
       type: "line" as const,
       name: scenarioName ?? undefined,
       data: values,
       lineStyle: {
-        color: colors.purple500,
+        color: simulationColor,
         width: 2,
       },
       itemStyle: {
-        color: colors.purple500,
+        color: simulationColor,
       },
       symbol: "none",
       smooth: false,
@@ -93,8 +116,23 @@ function QuickGraphChartECharts({
       },
     };
 
-    if (!baseValues || baseValues.length === 0) {
-      return [scenarioSeries];
+    const discreteSeries = hasDiscrete
+      ? [
+          {
+            type: "scatter" as const,
+            name: discreteLabel ?? undefined,
+            data: [...visibleDiscreteValues],
+            symbolSize: 5,
+            itemStyle: {
+              color: isDiscreteHighlighted ? colors.purple500 : colors.gray600,
+            },
+            z: 2,
+          },
+        ]
+      : [];
+
+    if (!hasBase) {
+      return [scenarioSeries, ...discreteSeries];
     }
 
     const baseSeries = {
@@ -113,10 +151,20 @@ function QuickGraphChartECharts({
       z: 0,
     };
 
-    return [baseSeries, scenarioSeries];
-  }, [scenarioName, values, baseValues, baseLabel]);
+    return [baseSeries, scenarioSeries, ...discreteSeries];
+  }, [
+    scenarioName,
+    values,
+    baseValues,
+    baseLabel,
+    hasBase,
+    discreteLabel,
+    visibleDiscreteValues,
+    hasDiscrete,
+    highlightedSeries,
+  ]);
 
-  const scenarioSeriesIndex = baseValues && baseValues.length > 0 ? 1 : 0;
+  const scenarioSeriesIndex = hasBase ? 1 : 0;
 
   const legend: EChartsOption["legend"] = useMemo(() => {
     if (!showLegend) return undefined;
@@ -133,12 +181,11 @@ function QuickGraphChartECharts({
     };
   }, [showLegend]);
 
-  const isComparingScenarios = baseValues !== null;
   const option: EChartsOption = useMemo(
     () => ({
       animation: false,
       grid: {
-        top: showLegend ? 20 : 8,
+        top: (showLegend ? 20 : 8) + extraTopMargin,
         right: 8,
         bottom: 4,
         left: 36,
@@ -162,7 +209,7 @@ function QuickGraphChartECharts({
           const timeLabel = params[0]?.name ?? "";
           const lines = params.map((p: any) => {
             const value = formatValue(p.value);
-            if (!isComparingScenarios) return value;
+            if (!showLegend) return value;
             const colorDot = `<span style="display:inline-block;width:8px;height:8px;background:${p.color};margin-right:4px;border-radius:50%;"></span>`;
             return `${colorDot}${p.seriesName ?? ""}: ${value}`;
           });
@@ -170,15 +217,7 @@ function QuickGraphChartECharts({
         },
       },
     }),
-    [
-      showLegend,
-      legend,
-      xAxis,
-      yAxis,
-      series,
-      formatValue,
-      isComparingScenarios,
-    ],
+    [showLegend, extraTopMargin, legend, xAxis, yAxis, series, formatValue],
   );
 
   const chartRef = useRef<ReactECharts>(null);
@@ -207,7 +246,10 @@ function QuickGraphChartECharts({
           silent: true,
           symbol: "none",
           label: { show: false },
-          data: [{ xAxis: currentIntervalIndex }],
+          data:
+            currentIntervalIndex === undefined
+              ? []
+              : [{ xAxis: currentIntervalIndex }],
         },
       });
       chart.setOption({ series: seriesUpdate });
@@ -229,6 +271,8 @@ function QuickGraphChartECharts({
     (chart: EChartsInstance) => {
       isChartReadyRef.current = true;
       applyMarkLine(chart);
+
+      if (!onIntevalClick) return;
 
       const zr = chart.getZr();
 
@@ -252,7 +296,7 @@ function QuickGraphChartECharts({
     [onIntevalClick, values.length, applyMarkLine],
   );
 
-  if (intervalsCount === 0 || values.length === 0) {
+  if (intervalsCount === 0 || (values.length === 0 && !hasDiscrete)) {
     return (
       <div className="h-full flex items-center justify-center text-subtle text-size-small">
         {translate("noDataAvailable")}

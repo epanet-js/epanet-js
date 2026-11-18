@@ -1,11 +1,22 @@
-import { useCallback, useEffect, useMemo, useRef } from "react";
-import { useAtomValue, useSetAtom } from "jotai";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import clsx from "clsx";
 import type { Asset, AssetId } from "@epanet-js/hydraulic-model";
+import { getDecimals } from "@epanet-js/project-settings";
 import {
   DataGrid,
   textColumn,
   type CellContextAction,
   type DataGridRef,
+  type DataGridState,
+  type GridSelection,
   type GutterContextAction,
 } from "src/components/data-grid";
 import { useTranslate } from "src/hooks/use-translate";
@@ -17,14 +28,31 @@ import { USelection } from "src/selection";
 import { PointerClickIcon, SensorsIcon } from "src/icons";
 import { sensorsAtom } from "src/state/sensor-data";
 import { projectSettingsAtom } from "src/state/project-settings";
-import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
+import {
+  simulationSettingsDerivedAtom,
+  stagingModelDerivedAtom,
+} from "src/state/derived-branch-state";
+import type { QuickGraphPropertyByAssetType } from "src/state/quick-graph";
 import type { ImportedSensor } from "src/lib/sensor-data/parse-sensor-data-file";
-import { QUICK_GRAPH_PROPERTIES } from "src/panels/asset-panel/quick-graph/quick-graph-section";
-import { usePanelGridState } from "src/panels/data-tables/use-panel-grid-state";
+import {
+  QUICK_GRAPH_PROPERTIES,
+  STATUS_CLOSED,
+  STATUS_OPEN,
+  toStatusStep,
+} from "src/panels/asset-panel/quick-graph/quick-graph-section";
+import { useTimeSeries } from "src/panels/asset-panel/quick-graph/use-time-series";
+import { QuickGraphChart } from "src/panels/asset-panel/quick-graph/quick-graph-chart";
+import {
+  contentStateFor,
+  withContentState,
+} from "src/panels/panel-content-state";
+import { panelContentStateAtom } from "src/state/panels";
 import {
   registerTableHandleAtom,
   unregisterTableHandleAtom,
 } from "src/panels/data-tables/table-handles";
+import { VerticalResizer } from "src/dialogs/vertical-resizer";
+import { readingsStepSeconds } from "./time-points";
 
 type SensorRow = {
   name: string;
@@ -34,6 +62,16 @@ type SensorRow = {
 };
 
 const ASSET_COLUMN = "asset";
+
+const FIRST_ROW_SELECTED: DataGridState = {
+  selection: { min: { row: 0, col: 0 }, max: { row: 0, col: 0 } },
+  activeCell: { row: 0, col: 0 },
+};
+
+const TYPE_LABEL_SPACING = 8;
+const TABLE_MIN_WIDTH = 256;
+const TABLE_DEFAULT_SHARE = 0.5;
+const CHART_MIN_WIDTH = 240;
 
 const noop = () => {};
 
@@ -52,7 +90,7 @@ export const SensorsPanel = ({
   }, [allSensors, assetIds]);
 
   if (allSensors.length === 0) return <SensorsEmptyState />;
-  return <SensorsTable panelId={panelId} sensors={sensors} />;
+  return <SensorsTableAndChart panelId={panelId} sensors={sensors} />;
 };
 
 const SensorsEmptyState = () => {
@@ -99,7 +137,7 @@ const useSensorTypeLabel = () => {
   );
 };
 
-const SensorsTable = ({
+const SensorsTableAndChart = ({
   panelId,
   sensors,
 }: {
@@ -113,16 +151,58 @@ const SensorsTable = ({
   const selectAssetsInApp = useSelectAssetsInApp();
   const zoomTo = useZoomTo();
   const dataGridRef = useRef<DataGridRef>(null);
-  const [savedState, saveState] = usePanelGridState(panelId, "sensors");
+  const [contentStates, setContentStates] = useAtom(panelContentStateAtom);
+  const savedState = contentStateFor(contentStates, panelId, "sensors");
+  const savedGrid = savedState?.grid;
   const registerHandle = useSetAtom(registerTableHandleAtom);
   const unregisterHandle = useSetAtom(unregisterTableHandleAtom);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [containerWidth, setContainerWidth] = useState(0);
+  const tableWidth =
+    savedState?.tableWidth ??
+    Math.max(TABLE_MIN_WIDTH, Math.round(containerWidth * TABLE_DEFAULT_SHARE));
+
+  useLayoutEffect(function trackContainerWidth() {
+    const container = containerRef.current;
+    if (!container) return;
+    setContainerWidth(container.clientWidth);
+    const observer = new ResizeObserver(() =>
+      setContainerWidth(container.clientWidth),
+    );
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, []);
+  const [selectedIndex, setSelectedIndex] = useState(
+    savedGrid?.selection?.min.row ?? 0,
+  );
+  const [isMultiRowSelection, setIsMultiRowSelection] = useState(
+    savedGrid?.selection
+      ? savedGrid.selection.min.row !== savedGrid.selection.max.row
+      : false,
+  );
+
+  const saveState = useCallback(
+    (patch: { grid?: DataGridState; tableWidth?: number }) =>
+      setContentStates((prev) =>
+        withContentState(prev, panelId, "sensors", {
+          ...contentStateFor(prev, panelId, "sensors"),
+          ...patch,
+        }),
+      ),
+    [setContentStates, panelId],
+  );
+
+  const setTableWidth = useCallback(
+    (width: number) => saveState({ tableWidth: width }),
+    [saveState],
+  );
 
   useEffect(
     function publishCaptureHandle() {
       const handle = {
         captureState: () => {
-          const state = dataGridRef.current?.captureState();
-          if (state) saveState(state);
+          const grid = dataGridRef.current?.captureState();
+          if (grid) saveState({ grid });
         },
       };
       registerHandle(panelId, handle);
@@ -225,24 +305,164 @@ const SensorsTable = ({
     };
   }, [translate, selectAssetsInApp, zoomTo, userTracking]);
 
+  const handleSelectionChange = useCallback(
+    (selection: GridSelection | null) => {
+      if (!selection) return;
+      setSelectedIndex(selection.min.row);
+      setIsMultiRowSelection(selection.min.row !== selection.max.row);
+    },
+    [],
+  );
+
+  const selected =
+    sensors.length > 0
+      ? sensors[Math.min(selectedIndex, sensors.length - 1)]
+      : null;
+  const selectedAsset = selected ? assets.get(selected.assetId) : undefined;
+  const showChart =
+    selected !== null &&
+    !isMultiRowSelection &&
+    containerWidth >= TABLE_MIN_WIDTH + CHART_MIN_WIDTH;
+
   return (
-    <div className="h-full flex flex-col min-h-0">
-      <DataGrid<SensorRow>
-        ref={dataGridRef}
-        initialGridState={savedState}
-        data={rows}
-        columns={columns}
-        onChange={noop}
-        createRow={() => ({ name: "", type: "", asset: "", assetId: null })}
-        getRowId={(row) => row.name}
-        readOnly
-        resizable
-        minColumnSizePx={20}
-        gutterColumn="selection"
-        cellHasWarning={cellHasWarning}
-        cellContextActions={selectInMapActions.cell}
-        gutterContextActions={selectInMapActions.gutter}
-      />
+    <div ref={containerRef} className="h-full flex flex-row min-h-0">
+      <div
+        className={clsx(
+          "flex flex-col min-h-0",
+          showChart ? "shrink-0 border-r" : "flex-1 min-w-0",
+        )}
+        style={
+          showChart
+            ? {
+                width: tableWidth,
+                maxWidth: `calc(100% - ${CHART_MIN_WIDTH}px)`,
+              }
+            : undefined
+        }
+      >
+        <DataGrid<SensorRow>
+          ref={dataGridRef}
+          initialGridState={
+            savedGrid ?? (rows.length > 0 ? FIRST_ROW_SELECTED : undefined)
+          }
+          data={rows}
+          columns={columns}
+          onChange={noop}
+          createRow={() => ({ name: "", type: "", asset: "", assetId: null })}
+          getRowId={(row) => row.name}
+          readOnly
+          resizable
+          minColumnSizePx={20}
+          gutterColumn="selection"
+          cellHasWarning={cellHasWarning}
+          cellContextActions={selectInMapActions.cell}
+          gutterContextActions={selectInMapActions.gutter}
+          onSelectionChange={handleSelectionChange}
+        />
+      </div>
+      {showChart && (
+        <VerticalResizer
+          width={tableWidth}
+          onWidthChange={setTableWidth}
+          minWidth={TABLE_MIN_WIDTH}
+          maxWidth={Math.max(TABLE_MIN_WIDTH, containerWidth - CHART_MIN_WIDTH)}
+        />
+      )}
+      {showChart && (
+        <div className="flex-1 min-w-0 flex flex-col min-h-0 p-3">
+          <div className="relative flex-1 min-h-0">
+            {selectedAsset && (
+              <span className="absolute top-0 left-0 z-10 max-w-[50%] truncate text-size-small text-subtle leading-5">
+                {typeLabel(selected, selectedAsset)}
+              </span>
+            )}
+            {selectedAsset ? (
+              <SelectedSensorChart
+                key={`${selected.name}:${selected.assetId}`}
+                sensor={selected}
+                asset={selectedAsset}
+              />
+            ) : (
+              <div className="h-full flex items-center justify-center text-size-base text-subtle">
+                {translate("sensorData.panel.notInScenario")}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
+  );
+};
+
+const SelectedSensorChart = ({
+  sensor,
+  asset,
+}: {
+  sensor: ImportedSensor;
+  asset: Asset;
+}) => {
+  const translate = useTranslate();
+  const { formatting } = useAtomValue(projectSettingsAtom);
+  const { timing } = useAtomValue(simulationSettingsDerivedAtom);
+  const { data } = useTimeSeries({
+    assetId: asset.id,
+    assetType: asset.type,
+    property: sensor.type as QuickGraphPropertyByAssetType[typeof asset.type],
+  });
+
+  const isStatus = sensor.type === "status";
+
+  const decimals = useMemo(() => {
+    if (isStatus) return 0;
+    const option = QUICK_GRAPH_PROPERTIES[asset.type].find(
+      ({ value }) => value === sensor.type,
+    );
+    return option ? getDecimals(formatting, option.quantityKey) : 0;
+  }, [isStatus, asset.type, sensor.type, formatting]);
+
+  const valueLabels = useMemo(() => {
+    if (!isStatus) return null;
+    return asset.type === "pump"
+      ? new Map([
+          [STATUS_CLOSED, translate("pump.off")],
+          [STATUS_OPEN, translate("pump.on")],
+        ])
+      : new Map([
+          [STATUS_CLOSED, translate("statusClosed")],
+          [STATUS_OPEN, translate("statusOpen")],
+        ]);
+  }, [isStatus, asset.type, translate]);
+
+  const simulated = data && data.intervalsCount > 1 ? data : null;
+
+  const values = useMemo(() => {
+    if (!simulated) return [];
+    const raw = Array.from(simulated.values);
+    return isStatus ? raw.map(toStatusStep) : raw;
+  }, [simulated, isStatus]);
+
+  const intervalSeconds = simulated
+    ? simulated.intervalSeconds
+    : readingsStepSeconds(timing);
+  const intervalsCount = Math.max(
+    simulated?.intervalsCount ?? 0,
+    sensor.readings.length,
+  );
+
+  return (
+    <QuickGraphChart
+      values={values}
+      baseValues={null}
+      baseLabel={null}
+      intervalsCount={intervalsCount}
+      intervalSeconds={intervalSeconds}
+      decimals={decimals}
+      valueLabels={valueLabels}
+      scenarioName={translate("simulation")}
+      discreteValues={sensor.readings}
+      discreteLabel={translate("sensorData.panel.sensor")}
+      highlightedSeries="discrete"
+      extraTopMargin={TYPE_LABEL_SPACING}
+    />
   );
 };

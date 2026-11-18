@@ -7,9 +7,13 @@ const MAX_WIDTH = 400;
 export const VerticalResizer = ({
   width,
   onWidthChange,
+  minWidth = MIN_WIDTH,
+  maxWidth = MAX_WIDTH,
 }: {
   width: number;
   onWidthChange: (width: number) => void;
+  minWidth?: number;
+  maxWidth?: number;
 }) => {
   const rawWidth = useRef<number | null>(null);
   const widthRef = useRef(width);
@@ -22,10 +26,7 @@ export const VerticalResizer = ({
     onMove(e) {
       if (rawWidth.current === null) return;
       rawWidth.current += Math.round(e.deltaX);
-      const newWidth = Math.max(
-        MIN_WIDTH,
-        Math.min(MAX_WIDTH, rawWidth.current),
-      );
+      const newWidth = Math.max(minWidth, Math.min(maxWidth, rawWidth.current));
       onWidthChange(newWidth);
     },
     onMoveEnd() {

@@ -70,7 +70,7 @@ export type PanelContentStateByType = {
   "map-styling": undefined;
   scripts: undefined;
   "script-output": { sidebarWidth: number };
-  sensors: DataGridState;
+  sensors: { grid?: DataGridState; tableWidth?: number };
 };
 
 export type PanelContentState =
