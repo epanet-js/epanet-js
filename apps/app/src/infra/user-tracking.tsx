@@ -2018,9 +2018,14 @@ export type UserEvent =
   | { name: "bookmark.renamed"; source: "panel" }
   | { name: "bookmark.deleted"; source: "panel" }
   | { name: "mapTheme.applied"; isDefault: boolean; source: "panel" }
-  | { name: "mapTheme.created"; totalThemes: number; source: "panel" }
+  | {
+      name: "mapTheme.created";
+      origin: "default" | "modifiedTheme" | "duplicate";
+      totalThemes: number;
+      source: "panel";
+    }
   | { name: "mapTheme.saved"; source: "panel" }
-  | { name: "mapTheme.changesReset"; source: "panel" }
+  | { name: "mapTheme.changesDiscarded"; isDefault: boolean; source: "panel" }
   | { name: "mapTheme.renamed"; source: "panel" }
   | { name: "mapTheme.deleted"; wasActive: boolean; source: "panel" }
   | {

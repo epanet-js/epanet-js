@@ -7,6 +7,7 @@ import {
   activeMapThemeIdAtom,
   applyMapThemeSymbologyAtom,
   currentMapThemeSpecAtom,
+  isMapThemeModifiedAtom,
   mapThemesAtom,
   markMapThemeAppliedAtom,
   resetMapThemeChangesAtom,
@@ -51,6 +52,13 @@ export const useSaveMapThemeAsNew = () => {
   return useAtomCallback(
     useCallback(
       (get, set, name: string): boolean => {
+        const activeId = get(activeMapThemeIdAtom);
+        const isFromTheme = get(mapThemesAtom).some((t) => t.id === activeId);
+        const origin = !isFromTheme
+          ? "default"
+          : get(isMapThemeModifiedAtom)
+            ? "modifiedTheme"
+            : "duplicate";
         const theme = {
           id: nanoid(),
           name,
@@ -62,6 +70,7 @@ export const useSaveMapThemeAsNew = () => {
         set(markMapThemeAppliedAtom);
         userTracking.capture({
           name: "mapTheme.created",
+          origin,
           totalThemes: get(mapThemesAtom).length,
           source: "panel",
         });
@@ -99,10 +108,13 @@ export const useResetMapThemeChanges = () => {
 
   return useAtomCallback(
     useCallback(
-      (_get, set) => {
+      (get, set) => {
+        const activeId = get(activeMapThemeIdAtom);
+        const isDefault = !get(mapThemesAtom).some((t) => t.id === activeId);
         set(resetMapThemeChangesAtom);
         userTracking.capture({
-          name: "mapTheme.changesReset",
+          name: "mapTheme.changesDiscarded",
+          isDefault,
           source: "panel",
         });
       },
