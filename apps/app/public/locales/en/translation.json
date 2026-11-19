@@ -1698,6 +1698,7 @@
       "junctionsCount_one": "1 junction",
       "junctionsCount_other": "{{count}} junctions",
       "linkAndMore": "{{1}} and {{2}} more",
+      "recirculationCausedBy": "Click an asset to select it and the flow loop causing the recirculation",
       "interruptionCausedBy": "Grouped by the link interrupting supply. Click to select it with affected junctions",
       "rule": {
         "pumpFeedingItself": "Recirculating pumps",

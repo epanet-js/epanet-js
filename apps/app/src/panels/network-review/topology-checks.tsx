@@ -216,13 +216,13 @@ const TopologyIssuesGroupDetail = ({
         )}
       />
       <div className="relative grow flex flex-col">
-        {group.ruleId === JUNCTION_WITHOUT_SUPPLY_RULE_ID ? (
-          <p className="text-size-base w-full p-3">
-            {translate("networkReview.topologyChecks.interruptionCausedBy")}
-          </p>
-        ) : (
-          <div className="pt-1" />
-        )}
+        <p className="text-size-base w-full p-3">
+          {translate(
+            group.ruleId === JUNCTION_WITHOUT_SUPPLY_RULE_ID
+              ? "networkReview.topologyChecks.interruptionCausedBy"
+              : "networkReview.topologyChecks.recirculationCausedBy",
+          )}
+        </p>
         <VirtualizedIssuesList
           items={group.issues}
           selectedItemId={selectedIssueId}
