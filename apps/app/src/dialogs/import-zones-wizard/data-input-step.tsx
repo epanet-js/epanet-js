@@ -38,7 +38,7 @@ export const DataInputStep = (props: DataInputStepProps) => {
           variant="error"
           description={translate(`importZones.errors.${error}`)}
           Icon={ErrorIcon}
-          className="mt-3 mx-3 border rounded-md"
+          className="mt-3 mx-3 rounded-md"
         />
       )}
       {skippedRecordCount > 0 && (
@@ -49,7 +49,7 @@ export const DataInputStep = (props: DataInputStepProps) => {
             localizeDecimal(skippedRecordCount),
           )}
           Icon={TriangleAlert}
-          className="mt-3 mx-3 border rounded-md"
+          className="mt-3 mx-3 rounded-md"
         />
       )}
       {showNoProjectionWarning && (
@@ -59,7 +59,7 @@ export const DataInputStep = (props: DataInputStepProps) => {
             "importZones.dataInputStep.noProjectionWarning",
           )}
           Icon={Info}
-          className="mt-3 mx-3 border rounded-md"
+          className="mt-3 mx-3 rounded-md"
         />
       )}
     </>

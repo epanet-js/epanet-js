@@ -102,7 +102,7 @@ export const ControlsDialog = () => {
               <Callout
                 variant="info"
                 title={translate("controls.nativeControlsInfoTitle")}
-                className="border rounded-lg"
+                className="rounded-lg"
               >
                 <div className="space-y-2">
                   <p>{translate("controls.nativeControlsInfoDescription")}</p>

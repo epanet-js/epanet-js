@@ -35,7 +35,7 @@ const FailedBody = () => {
         variant="error"
         Icon={ErrorIcon}
         description={translate("preSimulationChecks.failed.warning")}
-        className="border rounded-md"
+        className="rounded-md"
       />
       <p>{translate("preSimulationChecks.failed.body")}</p>
     </div>
@@ -53,7 +53,7 @@ const SummaryBody = ({ failingRules }: { failingRules: string[] }) => {
         variant="warning"
         Icon={WarningIcon}
         description={translate("preSimulationChecks.warning")}
-        className="border rounded-md"
+        className="rounded-md"
       />
       <div className="flex flex-col gap-2">
         <p>{translate("preSimulationChecks.body")}</p>

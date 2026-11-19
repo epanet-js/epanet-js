@@ -104,7 +104,7 @@ export const notify = ({
           action={action}
           onActionClick={() => toast.remove(t.id)}
           onDismiss={dismissable ? () => toast.remove(t.id) : undefined}
-          className="shadow-md border rounded-lg"
+          className="shadow-md rounded-lg"
         />
       </div>
     ),

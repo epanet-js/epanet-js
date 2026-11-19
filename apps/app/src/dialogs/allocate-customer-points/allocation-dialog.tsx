@@ -514,7 +514,7 @@ const ExcludedPipesWarning = ({
         count,
         localizeDecimal(count),
       )}
-      className="border rounded-md"
+      className="rounded-md"
     />
   );
 };

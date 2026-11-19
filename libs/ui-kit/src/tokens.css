@@ -54,13 +54,17 @@
   --color-subtle: var(--color-gray-500);
   --color-warning: var(--color-orange-600);
   --color-warning-subtle: var(--color-orange-50);
+  --color-warning-line: var(--color-orange-200);
   --color-error: var(--color-red-600);
   --color-error-subtle: var(--color-red-50);
+  --color-error-line: var(--color-red-200);
   --color-success: var(--color-green-600);
   --color-success-hover: var(--color-green-700);
   --color-success-subtle: var(--color-green-50);
+  --color-success-line: var(--color-green-200);
   --color-info: var(--color-blue-600);
   --color-info-subtle: var(--color-blue-50);
+  --color-info-line: var(--color-blue-200);
 
   --color-panel: var(--color-gray-50);
   --color-base-disabled: var(--color-gray-100);
@@ -135,13 +139,17 @@
   --color-disabled: var(--color-gray-600);
   --color-warning: var(--color-orange-400);
   --color-warning-subtle: var(--color-orange-950);
+  --color-warning-line: var(--color-orange-800);
   --color-error: var(--color-red-300);
   --color-error-subtle: var(--color-red-950);
+  --color-error-line: var(--color-red-800);
   --color-success: var(--color-green-400);
   --color-success-hover: var(--color-green-300);
   --color-success-subtle: var(--color-green-950);
+  --color-success-line: var(--color-green-800);
   --color-info: var(--color-blue-400);
   --color-info-subtle: var(--color-blue-950);
+  --color-info-line: var(--color-blue-800);
 
   --color-background-base: var(--color-gray-900);
   --color-border: var(--color-gray-700);

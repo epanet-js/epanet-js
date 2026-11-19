@@ -135,7 +135,7 @@ export const ImportSensorDataDialog = ({
           variant="info"
           description={translate("sensorData.import.sessionNote")}
           Icon={InfoIcon}
-          className="shrink-0 border rounded-md"
+          className="shrink-0 rounded-md"
         />
 
         {result && file ? (
@@ -169,7 +169,7 @@ export const ImportSensorDataDialog = ({
                 variant="error"
                 description={translate(`sensorData.import.${refusal}`)}
                 Icon={ErrorIcon}
-                className="border rounded-md"
+                className="rounded-md"
               />
             )}
           </>

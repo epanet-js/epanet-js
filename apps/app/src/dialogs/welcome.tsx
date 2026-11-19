@@ -173,7 +173,7 @@ export const WelcomeDialog = () => {
                 <Callout
                   variant="info"
                   title={translate("startNotificationLanguageTitle")}
-                  className="border rounded-lg"
+                  className="rounded-lg"
                 >
                   {translate("startNotificationLanguageDescription")}
                 </Callout>
@@ -278,7 +278,7 @@ const SmallDeviceWarning = () => {
     <Callout
       variant="warning"
       title={translate("headsUpSmallScreen")}
-      className="border rounded-lg"
+      className="rounded-lg"
     >
       <p>{translate("smallScreenExplain")}</p>
       <hr className="my-4" />

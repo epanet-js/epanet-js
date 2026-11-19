@@ -727,7 +727,7 @@ export const DataMappingStep: React.FC<{
             variant="error"
             description={error}
             Icon={ErrorIcon}
-            className="border rounded-md mt-4"
+            className="rounded-md mt-4"
           />
         )}
 

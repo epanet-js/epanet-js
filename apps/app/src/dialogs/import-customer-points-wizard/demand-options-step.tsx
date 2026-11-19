@@ -28,7 +28,7 @@ export const DemandOptionsStep: React.FC<{
             variant="error"
             description={error}
             Icon={ErrorIcon}
-            className="border rounded-md"
+            className="rounded-md"
           />
         )}
 

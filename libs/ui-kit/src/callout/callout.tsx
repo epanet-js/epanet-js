@@ -50,13 +50,13 @@ export const Callout = ({
   return (
     <div
       className={clsx(
-        "flex items-start p-3 text-default",
+        "flex items-start p-3 border text-default",
         {
-          "bg-success-subtle border-success": variant === "success",
-          "bg-warning-subtle border-warning": variant === "warning",
-          "bg-error-subtle border-error": variant === "error",
-          "bg-info-subtle border-info": variant === "info",
-          "bg-popover border-strong": variant === "default",
+          "bg-success-subtle border-success-line": variant === "success",
+          "bg-warning-subtle border-warning-line": variant === "warning",
+          "bg-error-subtle border-error-line": variant === "error",
+          "bg-info-subtle border-info-line": variant === "info",
+          "bg-popover border-base": variant === "default",
         },
         className,
       )}

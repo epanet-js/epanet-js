@@ -330,7 +330,7 @@ export const ImportCustomerPointsWizard: React.FC<
               "importCustomerPoints.wizard.somethingWentWrong",
             )}
             Icon={ErrorIcon}
-            className="mb-6 border rounded-md"
+            className="mb-6 rounded-md"
           />
         )}
 

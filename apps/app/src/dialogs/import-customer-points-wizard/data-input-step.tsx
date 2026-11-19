@@ -171,7 +171,7 @@ export const DataInputStep: React.FC<{
               variant="error"
               description={error}
               Icon={ErrorIcon}
-              className="mx-3 border rounded-md"
+              className="mx-3 rounded-md"
             />
           )}
 

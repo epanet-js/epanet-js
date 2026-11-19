@@ -145,7 +145,7 @@ const SummaryDialog = ({
           variant={banner.variant}
           Icon={banner.Icon}
           description={banner.description}
-          className="border rounded-md"
+          className="rounded-md"
         />
         <ResultSummary summary={summary} translate={translate} />
         {banner.hint && <p className="text-subtle">{banner.hint}</p>}
