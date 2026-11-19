@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from "react";
-import { numericChecks } from "@epanet-js/hydraulic-model";
+import { isTimeInSequenceAt, numericChecks } from "@epanet-js/hydraulic-model";
 import {
   PumpStatus,
   pumpStatuses,
@@ -12,6 +12,7 @@ import {
   filterableSelectColumn,
   floatColumn,
 } from "src/components/data-grid";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useTranslate } from "src/hooks/use-translate";
 import { DeleteIcon, AddIcon } from "src/icons";
 import { NestedSection } from "src/components/form/fields";
@@ -37,6 +38,7 @@ export const PumpTimeBasedControls = ({
   readOnly?: boolean;
 }) => {
   const translate = useTranslate();
+  const isModelValidationsOn = useFeatureFlag("FLAG_MODEL_VALIDATIONS");
 
   const data = useMemo<ControlStep[]>(
     () => [{ time: 0, status: initialStatus, setting: initialSpeed }, ...steps],
@@ -67,12 +69,22 @@ export const PumpTimeBasedControls = ({
 
   const isTimeInSequence = useCallback(
     (value: number, rowIndex: number) => {
+      if (isModelValidationsOn) {
+        return (
+          rowIndex === 0 ||
+          isTimeInSequenceAt(
+            steps.map((step) => step.time),
+            rowIndex - 1,
+            value,
+          )
+        );
+      }
       const prev = rowIndex > 0 ? data[rowIndex - 1].time : -Infinity;
       const next =
         rowIndex < data.length - 1 ? data[rowIndex + 1].time : Infinity;
       return value >= prev && value <= next;
     },
-    [data],
+    [data, steps, isModelValidationsOn],
   );
 
   const columns: GridColumn<ControlStep>[] = useMemo(
@@ -83,6 +95,7 @@ export const PumpTimeBasedControls = ({
         emptyValue: 0,
         isReadOnly: (rowIndex) => rowIndex === 0,
         validate: isTimeInSequence,
+        commitInvalidValues: isModelValidationsOn,
       }),
       filterableSelectColumn<PumpStatus, ControlStep>("status", {
         header: translate("status"),
@@ -95,13 +108,26 @@ export const PumpTimeBasedControls = ({
       floatColumn("setting", {
         header: translate("speed"),
         size: 80,
-        validate: numericChecks.positive,
+        ...(isModelValidationsOn
+          ? {
+              validate: numericChecks.nonNegative,
+              commitInvalidValues: true,
+              required: false,
+            }
+          : { validate: numericChecks.positive }),
         emptyValue: initialSpeed,
         isReadOnly: (rowIndex) =>
           rowIndex === 0 || data[rowIndex]?.status === "off",
       }),
     ],
-    [translate, statusOptions, isTimeInSequence, initialSpeed, data],
+    [
+      translate,
+      statusOptions,
+      isTimeInSequence,
+      initialSpeed,
+      data,
+      isModelValidationsOn,
+    ],
   );
 
   const settingForStatus = useCallback(

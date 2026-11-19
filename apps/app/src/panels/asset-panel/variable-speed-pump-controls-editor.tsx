@@ -10,6 +10,7 @@ import {
   VariableSpeedPumpControl,
   VariableSpeedPumpSchedulePoint,
   VariableSpeedPumpTankLevels,
+  isTimeInSequenceAt,
   validateLevelSetting,
   numericChecks,
 } from "@epanet-js/hydraulic-model";
@@ -229,6 +230,7 @@ export const VariableSpeedPumpControlsEditor = ({
           schedule={control.schedule}
           valueHeader={quantityLabel}
           validate={targetCheck}
+          commitInvalidValues={isModelValidationsOn}
           onChange={(schedule) => {
             update({ schedule });
             if (schedule.length > 0) track({ hasSchedule: true });
@@ -713,12 +715,14 @@ const ScheduleGrid = ({
   schedule,
   valueHeader,
   validate,
+  commitInvalidValues,
   onChange,
   readOnly,
 }: {
   schedule: VariableSpeedPumpSchedulePoint[];
   valueHeader: string;
   validate?: (value: number) => boolean;
+  commitInvalidValues: boolean;
   onChange: (schedule: VariableSpeedPumpSchedulePoint[]) => void;
   readOnly: boolean;
 }) => {
@@ -732,12 +736,19 @@ const ScheduleGrid = ({
 
   const isTimeInSequence = useCallback(
     (value: number, rowIndex: number) => {
+      if (commitInvalidValues) {
+        return isTimeInSequenceAt(
+          schedule.map((point) => point.time),
+          rowIndex,
+          value,
+        );
+      }
       const prev = rowIndex > 0 ? schedule[rowIndex - 1].time : -Infinity;
       const next =
         rowIndex < schedule.length - 1 ? schedule[rowIndex + 1].time : Infinity;
       return value >= prev && value <= next;
     },
-    [schedule],
+    [schedule, commitInvalidValues],
   );
 
   const columns: GridColumn<ScheduleRow>[] = useMemo(
@@ -748,16 +759,21 @@ const ScheduleGrid = ({
         emptyValue: 0,
         isReadOnly: (rowIndex) => rowIndex === 0,
         validate: isTimeInSequence,
+        commitInvalidValues,
       }),
       floatColumn("target", {
         header: valueHeader,
         size: 80,
         ...(validate
-          ? { validate: (value: number) => validate(value), required: true }
+          ? {
+              validate: (value: number) => validate(value),
+              required: true,
+              commitInvalidValues,
+            }
           : { emptyValue: 0 }),
       }),
     ],
-    [translate, isTimeInSequence, valueHeader, validate],
+    [translate, isTimeInSequence, valueHeader, validate, commitInvalidValues],
   );
 
   const nextRowAfter = (row: ScheduleRow): ScheduleRow => ({

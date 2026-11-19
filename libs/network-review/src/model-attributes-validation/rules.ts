@@ -5,10 +5,13 @@ import {
   FlowModulatingValveControl,
   getLinkFlowModulatingValve,
   getLinkLevelSetting,
+  getLinkTimedSetting,
   getLinkVariableSpeedPump,
   LevelSettingControl,
   LevelSettingError,
+  TimedSettingControl,
   validateLevelSetting,
+  validateTimeSequence,
   VariableSpeedPumpControl,
   getPumpCurveErrors,
   inferredRoughness,
@@ -473,6 +476,114 @@ const variableSpeedPressureTargetValuePositive: Rule = {
   message: checkMessage.positive,
 };
 
+const timedSettingControlOf = (
+  entity: ValidatableEntity,
+  model?: HydraulicModel,
+): TimedSettingControl | null =>
+  model
+    ? getLinkTimedSetting(
+        model.controls,
+        readEntityProp(entity, "id") as AssetId,
+      )
+    : null;
+
+const timedSettingStepsRule = (
+  checkName: string,
+  severity: Severity,
+  message: string,
+  isValid: (control: TimedSettingControl) => boolean,
+): Rule => ({
+  id: `pump.timedSettingSteps.${checkName}`,
+  type: "model",
+  entityType: "pump",
+  field: "timedSettingSteps",
+  accessor: timedSettingControlOf,
+  appliesWhen: (entity, model) =>
+    isActiveEntity(entity) && timedSettingControlOf(entity, model) !== null,
+  check: (value) => value === null || isValid(value as TimedSettingControl),
+  severity,
+  message,
+});
+
+const timesOf = (entries: readonly { time: number }[]) =>
+  entries.map(({ time }) => time);
+
+const timedSettingControlRules: Rule[] = [
+  timedSettingStepsRule(
+    "timesInSequence",
+    "error",
+    "mustBeInTimeOrder",
+    (control) =>
+      !validateTimeSequence(timesOf(control.steps)).includes("outOfOrder"),
+  ),
+  timedSettingStepsRule(
+    "speedsNonNegative",
+    "error",
+    "mustBeNonNegative",
+    (control) =>
+      control.steps.every((step) => numericChecks.nonNegative(step.setting)),
+  ),
+  timedSettingStepsRule(
+    "timesDistinct",
+    "warning",
+    "mustNotRepeatTimes",
+    (control) =>
+      !validateTimeSequence(timesOf(control.steps)).includes("repeated"),
+  ),
+];
+
+const variableSpeedScheduleRule = (
+  checkName: string,
+  severity: Severity,
+  message: string,
+  isValid: (control: VariableSpeedPumpControl) => boolean,
+  appliesTo: (control: VariableSpeedPumpControl) => boolean = () => true,
+): Rule => ({
+  id: `pump.variableSpeedSchedule.${checkName}`,
+  type: "model",
+  entityType: "pump",
+  field: "variableSpeedSchedule",
+  accessor: variableSpeedControlOf,
+  appliesWhen: (entity, model) => {
+    const control = variableSpeedControlOf(entity, model);
+    return (
+      isActiveEntity(entity) &&
+      control !== null &&
+      control.schedule.length > 0 &&
+      appliesTo(control)
+    );
+  },
+  check: (value) =>
+    value === null || isValid(value as VariableSpeedPumpControl),
+  severity,
+  message,
+});
+
+const variableSpeedScheduleRules: Rule[] = [
+  variableSpeedScheduleRule(
+    "timesInSequence",
+    "error",
+    "mustBeInTimeOrder",
+    (control) =>
+      !validateTimeSequence(timesOf(control.schedule)).includes("outOfOrder"),
+  ),
+  variableSpeedScheduleRule(
+    "pressureTargetsPositive",
+    "error",
+    "mustBePositive",
+    (control) =>
+      control.schedule.every((point) => numericChecks.positive(point.target)),
+    (control) => control.quantity === "pressure",
+  ),
+  variableSpeedScheduleRule(
+    "timesDistinct",
+    "warning",
+    "mustNotRepeatTimes",
+    (control) =>
+      !validateTimeSequence(timesOf(control.schedule)).includes("repeated"),
+  ),
+];
+
 const variableSpeedControlRules: Rule[] = [
   variableSpeedPressureTargetValuePositive,
   variableSpeedSpeedRule("minSpeed", "nonNegative"),
@@ -736,6 +847,8 @@ export const RULES: Rule[] = [
     message: "mustBeActive",
   },
   ...variableSpeedControlRules,
+  ...variableSpeedScheduleRules,
+  ...timedSettingControlRules,
   variableSpeedDischargeNotBackfeeding,
   variableSpeedFlowTargetSameDirection,
   // Customer points
@@ -753,5 +866,7 @@ export const RULES: Rule[] = [
 export const RULES_DEPRECATED: Rule[] = RULES.filter(
   (rule) =>
     !levelSettingControlRules.includes(rule) &&
-    !variableSpeedControlRules.includes(rule),
+    !variableSpeedControlRules.includes(rule) &&
+    !variableSpeedScheduleRules.includes(rule) &&
+    !timedSettingControlRules.includes(rule),
 );

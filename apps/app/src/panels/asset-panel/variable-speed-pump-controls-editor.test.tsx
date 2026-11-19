@@ -1,4 +1,5 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import { getDefaultStore } from "jotai";
 import {
@@ -145,6 +146,31 @@ const pickLaggedPump = (currentLabel: string, pump: string) => {
 };
 
 const highlights = () => getDefaultStore().get(highlightsAtom);
+
+const scheduleCell = (rowIndex: number, colIndex: number) =>
+  within(screen.getAllByRole("row").slice(1)[rowIndex]).getAllByRole(
+    "gridcell",
+  )[colIndex];
+
+const enterScheduleValue = async (
+  user: ReturnType<typeof userEvent.setup>,
+  rowIndex: number,
+  colIndex: number,
+  value: string,
+) => {
+  const cell = scheduleCell(rowIndex, colIndex);
+  await user.click(cell);
+  await user.dblClick(cell);
+  const input = within(cell).getByRole<HTMLInputElement>("textbox");
+  await user.clear(input);
+  await user.keyboard(`${value}{Enter}`);
+};
+
+const HOURLY_SCHEDULE = [
+  { time: 0, target: 30 },
+  { time: 3600, target: 30 },
+  { time: 7200, target: 30 },
+];
 
 describe("VariableSpeedPumpControlsEditor", () => {
   beforeEach(() => {
@@ -324,6 +350,17 @@ describe("VariableSpeedPumpControlsEditor", () => {
       ).toBeInTheDocument();
     });
 
+    it("keeps an out-of-order schedule time out of the control", async () => {
+      const user = userEvent.setup();
+      const onChange = renderEditor(
+        aPressureTarget({ schedule: HOURLY_SCHEDULE }),
+      );
+
+      await enterScheduleValue(user, 1, 0, "3:00");
+
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
     it("keeps a pressure target of zero out of the control", () => {
       const onChange = renderEditor(aPressureTarget({ target: 30 }));
 
@@ -369,6 +406,35 @@ describe("VariableSpeedPumpControlsEditor", () => {
         "aria-invalid",
         "true",
       );
+    });
+
+    it("keeps an out-of-order schedule time in the control and marks the cells", async () => {
+      const user = userEvent.setup();
+      const onChange = renderEditor(
+        aPressureTarget({ schedule: HOURLY_SCHEDULE }),
+      );
+
+      await enterScheduleValue(user, 1, 0, "3:00");
+
+      expect(lastControl(onChange).schedule.map(({ time }) => time)).toEqual([
+        0, 10800, 7200,
+      ]);
+      expect(scheduleCell(1, 0)).toHaveClass("bg-warning-subtle");
+    });
+
+    it("keeps a pressure schedule target of zero in the control and marks the cell", async () => {
+      const user = userEvent.setup();
+      const onChange = renderEditor(
+        aPressureTarget({ schedule: HOURLY_SCHEDULE }),
+      );
+
+      await enterScheduleValue(user, 1, 1, "0");
+
+      expect(lastControl(onChange).schedule[1]).toEqual({
+        time: 3600,
+        target: 0,
+      });
+      expect(scheduleCell(1, 1)).toHaveClass("bg-warning-subtle");
     });
 
     it("keeps a zero max speed in the control", () => {

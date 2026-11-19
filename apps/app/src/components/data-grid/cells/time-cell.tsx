@@ -18,6 +18,7 @@ type TimeCellProps = CellProps<number | null> & {
   readonly?: boolean;
   placeholder?: string;
   validate?: (value: number, rowIndex: number) => boolean;
+  commitInvalidValues?: boolean;
 };
 
 export function TimeCell({
@@ -30,16 +31,18 @@ export function TimeCell({
   readonly,
   placeholder,
   validate,
+  commitInvalidValues = false,
 }: TimeCellProps) {
   const parse = useCallback(
     (raw: string): number | null | undefined => {
       if (raw.trim() === "") return emptyValue;
       const seconds = parseValueToSeconds(raw);
       if (seconds === undefined) return undefined;
-      if (validate && !validate(seconds, rowIndex)) return undefined;
+      if (!commitInvalidValues && validate && !validate(seconds, rowIndex))
+        return undefined;
       return seconds;
     },
-    [emptyValue, validate, rowIndex],
+    [emptyValue, validate, commitInvalidValues, rowIndex],
   );
 
   const format = useCallback(
@@ -133,9 +136,16 @@ export function timeColumn<TData extends RowData = RowData>(
     isReadOnly?: boolean | ((rowIndex: number) => boolean);
     placeholder?: string;
     validate?: (value: number, rowIndex: number) => boolean;
+    commitInvalidValues?: boolean;
   },
 ): GridColumn<TData> {
-  const { emptyValue = null, isReadOnly, placeholder, validate } = options;
+  const {
+    emptyValue = null,
+    isReadOnly,
+    placeholder,
+    validate,
+    commitInvalidValues,
+  } = options;
   const resolveReadOnly = (rowIndex: number) =>
     typeof isReadOnly === "function"
       ? isReadOnly(rowIndex)
@@ -148,6 +158,7 @@ export function timeColumn<TData extends RowData = RowData>(
       readonly={resolveReadOnly(props.rowIndex)}
       placeholder={placeholder}
       validate={validate}
+      commitInvalidValues={commitInvalidValues}
     />
   );
 
@@ -166,6 +177,12 @@ export function timeColumn<TData extends RowData = RowData>(
       deleteValue: emptyValue,
       placeholder,
       isReadOnly,
+      ...(commitInvalidValues && validate
+        ? {
+            hasWarning: (value: number | null, rowIndex = -1): boolean =>
+              value !== null && !validate(value, rowIndex),
+          }
+        : {}),
     },
   };
   return column as GridColumn<TData>;

@@ -6,11 +6,13 @@ import {
   Patterns,
   PumpStatus,
   Tank,
+  TimedSettingControl,
 } from "@epanet-js/hydraulic-model";
 import {
   resolvePermissions,
   type Permissions,
 } from "src/hooks/use-permissions";
+import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
 import { PumpControlsEditor } from "./pump-controls-editor";
 
 const entitledPermissions = resolvePermissions("pro", false, false, false);
@@ -32,6 +34,7 @@ vi.mock("src/hooks/use-permissions", async () => {
 beforeEach(() => {
   permissionsRef.current = entitledPermissions;
   showPriorityAccessMock.mockClear();
+  stubFeatureOff("FLAG_MODEL_VALIDATIONS");
 });
 
 const INITIAL_SPEED = 1.5;
@@ -518,6 +521,81 @@ describe("PumpControlsEditor", () => {
 
       expect(getRows()).toHaveLength(3);
       expect(getTimeInputValue(1)).toBe("2:00");
+    });
+  });
+
+  describe("with FLAG_MODEL_VALIDATIONS on", () => {
+    beforeEach(() => {
+      stubFeatureOn("FLAG_MODEL_VALIDATIONS");
+    });
+
+    it("keeps an out-of-order time in the control and marks the cell", async () => {
+      const user = userEvent.setup();
+      const onChange = vi.fn();
+      renderEditor("on", onChange);
+      await selectTimeBased(user);
+      await user.click(getAddTimeStepButton());
+      await user.click(getAddTimeStepButton());
+
+      await startEditingTime(user, 1);
+      await user.keyboard("3:00{Enter}");
+
+      const { steps } = onChange.mock.lastCall?.[0] as TimedSettingControl;
+      expect(steps.map(({ time }) => time)).toEqual([10800, 7200]);
+      expect(getCell(1, 0)).toHaveClass("bg-warning-subtle");
+      expect(getCell(2, 0)).toHaveClass("bg-warning-subtle");
+    });
+
+    it("keeps a repeated time and marks the cells", async () => {
+      const user = userEvent.setup();
+      renderEditor("on");
+      await selectTimeBased(user);
+      await user.click(getAddTimeStepButton());
+      await user.click(getAddTimeStepButton());
+
+      await startEditingTime(user, 1);
+      await user.keyboard("2:00{Enter}");
+
+      expect(getTimeInputValue(1)).toBe("2:00");
+      expect(getCell(1, 0)).toHaveClass("bg-warning-subtle");
+    });
+
+    it("accepts a speed of zero on an on step", async () => {
+      const user = userEvent.setup();
+      const onChange = vi.fn();
+      renderEditor("off", onChange);
+      await selectTimeBased(user);
+      await user.click(getAddTimeStepButton());
+
+      const cell = getSpeedCell(1);
+      await user.dblClick(cell);
+      const input = within(cell).getByRole<HTMLInputElement>("textbox");
+      await user.clear(input);
+      await user.keyboard("0{Enter}");
+
+      expect(onChange.mock.lastCall?.[0].steps).toEqual([
+        { time: 3600, status: "on", setting: 0 },
+      ]);
+      expect(getSpeedCell(1)).not.toHaveClass("bg-warning-subtle");
+    });
+
+    it("keeps a negative speed in the control and marks the cell", async () => {
+      const user = userEvent.setup();
+      const onChange = vi.fn();
+      renderEditor("off", onChange);
+      await selectTimeBased(user);
+      await user.click(getAddTimeStepButton());
+
+      const cell = getSpeedCell(1);
+      await user.dblClick(cell);
+      const input = within(cell).getByRole<HTMLInputElement>("textbox");
+      await user.clear(input);
+      await user.keyboard("-1{Enter}");
+
+      expect(onChange.mock.lastCall?.[0].steps).toEqual([
+        { time: 3600, status: "on", setting: -1 },
+      ]);
+      expect(getSpeedCell(1)).toHaveClass("bg-warning-subtle");
     });
   });
 });

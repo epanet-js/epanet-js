@@ -1015,6 +1015,90 @@ describe("validateModelAttributes", () => {
     });
   });
 
+  describe("time-based control", () => {
+    const IDS = { J1: 1, J2: 2, PU1: 3 } as const;
+
+    const aTimedPump = (
+      steps: { time: number; status: "on" | "off"; setting: number }[],
+    ) =>
+      HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, { elevation: 50 })
+        .aJunction(IDS.J2, { elevation: 50 })
+        .aPump(IDS.PU1, {
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
+          definitionType: "power",
+          power: 10,
+        })
+        .aTimedSettingControl({ linkId: IDS.PU1, steps })
+        .build();
+
+    const timedIssues = async (model: ReturnType<typeof aTimedPump>) =>
+      ruleIdsOf(await validateModelAttributes(model)).filter((id) =>
+        id.startsWith("pump.timedSettingSteps"),
+      );
+
+    it("passes increasing times and a speed of zero on an on step", async () => {
+      const model = aTimedPump([
+        { time: 0, status: "on", setting: 0 },
+        { time: 3600, status: "off", setting: 0 },
+      ]);
+
+      expect(await timedIssues(model)).toEqual([]);
+    });
+
+    it("flags times out of order", async () => {
+      const model = aTimedPump([
+        { time: 7200, status: "on", setting: 1 },
+        { time: 3600, status: "off", setting: 0 },
+      ]);
+
+      expect(await timedIssues(model)).toEqual([
+        "pump.timedSettingSteps.timesInSequence",
+      ]);
+      expect(severityOf("pump.timedSettingSteps.timesInSequence")).toBe(
+        "error",
+      );
+    });
+
+    it("flags a negative speed", async () => {
+      const model = aTimedPump([{ time: 3600, status: "on", setting: -1 }]);
+
+      expect(await timedIssues(model)).toEqual([
+        "pump.timedSettingSteps.speedsNonNegative",
+      ]);
+      expect(severityOf("pump.timedSettingSteps.speedsNonNegative")).toBe(
+        "error",
+      );
+    });
+
+    it("warns about repeated times", async () => {
+      const model = aTimedPump([
+        { time: 3600, status: "on", setting: 1 },
+        { time: 3600, status: "off", setting: 0 },
+      ]);
+
+      expect(await timedIssues(model)).toEqual([
+        "pump.timedSettingSteps.timesDistinct",
+      ]);
+      expect(severityOf("pump.timedSettingSteps.timesDistinct")).toBe(
+        "warning",
+      );
+    });
+
+    it("reports times out of order ahead of repeated times", async () => {
+      const model = aTimedPump([
+        { time: 7200, status: "on", setting: 1 },
+        { time: 3600, status: "off", setting: 0 },
+        { time: 3600, status: "on", setting: 1 },
+      ]);
+
+      expect(await timedIssues(model)).toEqual([
+        "pump.timedSettingSteps.timesInSequence",
+      ]);
+    });
+  });
+
   describe("variable speed pump control", () => {
     const IDS = { J1: 1, J2: 2, J3: 3, PU1: 4, PU2: 5, P1: 6, T1: 7 } as const;
 
@@ -1176,6 +1260,65 @@ describe("validateModelAttributes", () => {
       const model = aVspPump({
         target: 0,
         schedule: [{ time: 0, target: 30 }],
+      });
+
+      expect(await vspIssues(model)).toEqual([]);
+    });
+
+    it("flags schedule times out of order", async () => {
+      const model = aVspPump({
+        schedule: [
+          { time: 0, target: 30 },
+          { time: 7200, target: 30 },
+          { time: 3600, target: 30 },
+        ],
+      });
+
+      expect(await vspIssues(model)).toEqual([
+        "pump.variableSpeedSchedule.timesInSequence",
+      ]);
+      expect(severityOf("pump.variableSpeedSchedule.timesInSequence")).toBe(
+        "error",
+      );
+    });
+
+    it("warns about repeated schedule times", async () => {
+      const model = aVspPump({
+        schedule: [
+          { time: 0, target: 30 },
+          { time: 0, target: 40 },
+        ],
+      });
+
+      expect(await vspIssues(model)).toEqual([
+        "pump.variableSpeedSchedule.timesDistinct",
+      ]);
+      expect(severityOf("pump.variableSpeedSchedule.timesDistinct")).toBe(
+        "warning",
+      );
+    });
+
+    it("flags a pressure schedule target that is not above zero", async () => {
+      const model = aVspPump({
+        schedule: [
+          { time: 0, target: 30 },
+          { time: 3600, target: 0 },
+        ],
+      });
+
+      expect(await vspIssues(model)).toEqual([
+        "pump.variableSpeedSchedule.pressureTargetsPositive",
+      ]);
+    });
+
+    it("accepts a flow schedule target of zero", async () => {
+      const model = aVspPump({
+        quantity: "flow",
+        targetId: IDS.P1,
+        schedule: [
+          { time: 0, target: 30 },
+          { time: 3600, target: 0 },
+        ],
       });
 
       expect(await vspIssues(model)).toEqual([]);
