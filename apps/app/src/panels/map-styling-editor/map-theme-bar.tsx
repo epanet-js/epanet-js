@@ -1,4 +1,4 @@
-import { useId } from "react";
+import { useContext, useId } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import clsx from "clsx";
 import {
@@ -23,6 +23,7 @@ import {
 import { useTranslate } from "src/hooks/use-translate";
 import { MapThemeSelector } from "./map-theme-selector";
 import { ActionButton } from "src/components/action-button";
+import { IndentationContext } from "src/components/form/fields";
 import { dialogAtom } from "src/state/dialog";
 import { isPlayingAtom } from "src/state/simulation-playback";
 import {
@@ -42,6 +43,7 @@ export const MapThemeBar = () => {
   const isPlaying = useAtomValue(isPlayingAtom);
   const setDialog = useSetAtom(dialogAtom);
   const selectorId = useId();
+  const panelPadding = (useContext(IndentationContext) ?? 0) * 4;
 
   const activeTheme = themes.find((t) => t.id === activeId);
   const defaultName = translate("mapThemes.defaultTheme");
@@ -54,10 +56,19 @@ export const MapThemeBar = () => {
   return (
     <div
       className={clsx(
-        "flex items-center -mx-1 mb-1 p-1 rounded-base",
+        "relative flex items-center mb-1 py-1",
         isModified && "bg-accent-tint",
       )}
+      style={{
+        marginLeft: -panelPadding,
+        marginRight: -panelPadding,
+        paddingLeft: panelPadding,
+        paddingRight: panelPadding,
+      }}
     >
+      {isModified && (
+        <div className="absolute left-0 top-0 bottom-0 w-1 bg-accent rounded-full" />
+      )}
       <label
         htmlFor={selectorId}
         className="shrink-0 mr-4 text-size-base text-subtle"
