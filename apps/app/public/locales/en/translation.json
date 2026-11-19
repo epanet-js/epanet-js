@@ -1695,10 +1695,10 @@
       "affectedCount_one": "1 asset affected",
       "affectedCount_other": "{{count}} assets affected",
       "groupLabel": "{{1}} ({{2}})",
-      "junctionsWithoutSupply_one": "1 junction without supply",
-      "junctionsWithoutSupply_other": "{{count}} junctions without supply",
+      "junctionsCount_one": "1 junction",
+      "junctionsCount_other": "{{count}} junctions",
       "linkAndMore": "{{1}} and {{2}} more",
-      "interruptionCausedBy": "Click an asset to select junctions with interrupted supply",
+      "interruptionCausedBy": "Grouped by the link interrupting supply. Click to select it with affected junctions",
       "rule": {
         "pumpFeedingItself": "Recirculating pumps",
         "valveFeedingItself": "Recirculating valves",

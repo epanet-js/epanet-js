@@ -6,6 +6,7 @@ import { useZoomTo } from "src/hooks/use-zoom-to";
 import {
   ActiveAssetIndex,
   ActiveTopology,
+  Asset,
   AssetId,
   configuredAllowedFlowDirections,
 } from "@epanet-js/hydraulic-model";
@@ -17,7 +18,8 @@ import {
   type TopologyIssues,
   type TopologyRuleId,
 } from "@epanet-js/network-review";
-import { HydraulicModel } from "src/hydraulic-model";
+import { AssetType, HydraulicModel } from "src/hydraulic-model";
+import { PipeIcon, PumpIcon, ValveIcon } from "src/icons";
 import { useUserTracking } from "src/infra/user-tracking";
 import { CheckType } from "src/lib/network-review";
 import { useCachedCheck, useReviewChecks } from "src/hooks/use-review-checks";
@@ -214,10 +216,12 @@ const TopologyIssuesGroupDetail = ({
         )}
       />
       <div className="relative grow flex flex-col">
-        {group.ruleId === JUNCTION_WITHOUT_SUPPLY_RULE_ID && (
+        {group.ruleId === JUNCTION_WITHOUT_SUPPLY_RULE_ID ? (
           <p className="text-size-base w-full p-3">
             {translate("networkReview.topologyChecks.interruptionCausedBy")}
           </p>
+        ) : (
+          <div className="pt-1" />
         )}
         <VirtualizedIssuesList
           items={group.issues}
@@ -233,7 +237,9 @@ const TopologyIssuesGroupDetail = ({
             />
           )}
           checkType={CheckType.topologyChecks}
-          estimateSize={36}
+          estimateSize={
+            group.ruleId === JUNCTION_WITHOUT_SUPPLY_RULE_ID ? 56 : 36
+          }
           showDescription={false}
           onGoBack={onGoBack}
         />
@@ -254,7 +260,20 @@ const TopologyIssueItem = ({
   onClick: (issue: TopologyIssue) => void;
 }) => {
   const translate = useTranslate();
-  const label = issueLabel(issue, hydraulicModel, translate);
+  const isJunctionsIssue = issue.ruleId === JUNCTION_WITHOUT_SUPPLY_RULE_ID;
+  const blockingLinks = isJunctionsIssue
+    ? issue.blockingLinkIds
+        .map((linkId) => hydraulicModel.assets.get(linkId))
+        .filter((link) => link !== undefined)
+    : [];
+  const [blockingLink, ...otherBlockingLinks] = blockingLinks;
+  const label = isJunctionsIssue
+    ? blockingLinksLabel(blockingLink, otherBlockingLinks.length, translate)
+    : (hydraulicModel.assets.get(issue.assetIds[0])?.label ?? "");
+  const junctionsCount = translate(
+    "networkReview.topologyChecks.junctionsCount",
+    issue.assetIds.length,
+  );
 
   return (
     <Button
@@ -262,44 +281,51 @@ const TopologyIssueItem = ({
       onMouseDown={(e) => e.preventDefault()}
       variant={"quiet/list"}
       size="xxs"
-      aria-label={label}
+      aria-label={isJunctionsIssue ? `${label} (${junctionsCount})` : label}
       aria-selected={isSelected}
       tabIndex={-1}
       className="group w-full hover:bg-transparent dark:hover:bg-transparent aria-selected:bg-transparent! aria-selected:hover:bg-transparent!"
     >
-      <div className="p-2 pr-0 text-size-base text-left truncate w-full">
-        {label}
-      </div>
+      {isJunctionsIssue ? (
+        <div className="grid grid-cols-[auto_1fr] gap-x-2 items-start p-2 pr-0 text-size-base w-full text-left">
+          <div className="pt-[.125rem]">
+            {blockingLink && iconByLinkType[blockingLink.type]}
+          </div>
+          <div className="flex flex-col items-start min-w-0">
+            <span className="truncate max-w-full">{label}</span>
+            <span className="text-subtle">{junctionsCount}</span>
+          </div>
+        </div>
+      ) : (
+        <div className="p-2 pr-0 text-size-base text-left truncate w-full">
+          {label}
+        </div>
+      )}
     </Button>
   );
+};
+
+const iconByLinkType: { [key in AssetType]?: React.ReactNode } = {
+  valve: <ValveIcon />,
+  pump: <PumpIcon />,
+  pipe: <PipeIcon />,
 };
 
 const issueId = (issue: TopologyIssue): string =>
   `${issue.ruleId}:${issue.assetIds[0]}`;
 
-const issueLabel = (
-  issue: TopologyIssue,
-  hydraulicModel: HydraulicModel,
+const blockingLinksLabel = (
+  blockingLink: Asset | undefined,
+  otherBlockingLinksCount: number,
   translate: ReturnType<typeof useTranslate>,
 ): string => {
-  if (issue.ruleId !== JUNCTION_WITHOUT_SUPPLY_RULE_ID)
-    return hydraulicModel.assets.get(issue.assetIds[0])?.label ?? "";
+  if (!blockingLink) return "";
 
-  const [blockingLink, ...otherBlockingLinks] = issue.blockingLinkIds
-    .map((linkId) => hydraulicModel.assets.get(linkId))
-    .filter((link) => link !== undefined);
-
-  if (!blockingLink)
-    return translate(
-      "networkReview.topologyChecks.junctionsWithoutSupply",
-      issue.assetIds.length,
-    );
-
-  return otherBlockingLinks.length > 0
+  return otherBlockingLinksCount > 0
     ? translate(
         "networkReview.topologyChecks.linkAndMore",
         blockingLink.label,
-        String(otherBlockingLinks.length),
+        String(otherBlockingLinksCount),
       )
     : blockingLink.label;
 };
@@ -308,7 +334,8 @@ const assetsToSelect = (
   issue: TopologyIssue,
   hydraulicModel: HydraulicModel,
 ): AssetId[] => {
-  if (issue.ruleId === JUNCTION_WITHOUT_SUPPLY_RULE_ID) return issue.assetIds;
+  if (issue.ruleId === JUNCTION_WITHOUT_SUPPLY_RULE_ID)
+    return [...issue.blockingLinkIds, ...issue.assetIds];
 
   const [linkId] = issue.assetIds;
   const returnPath = findReturnPath(
