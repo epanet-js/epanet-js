@@ -391,135 +391,80 @@ export class ZonesGeoView {
       : Flatbush.from(buffers.chunksSpatialIndex);
   }
 
-  searchIntersecting(searchOptions: SearchOptions): ZoneId[] {
+  searchContained(searchOptions: SearchOptions): ZoneId[] {
     if (!this.zonesIndex || !this.chunksIndex) return [];
     const search = toSearchPolygon(searchOptions);
     const [minX, minY, maxX, maxY] = search.bounds;
-    const ring = search.isBounds
-      ? null
-      : toClosedRing(search.polygon.geometry.coordinates[0]);
-    const isBox = ring === null;
 
-    const matched = new Uint8Array(this.zoneCount);
-    const pending = new Uint8Array(this.zoneCount);
-    let pendingCount = 0;
+    const candidates = new Uint8Array(this.zoneCount);
+    let candidateCount = 0;
     this.zonesIndex.search(minX, minY, maxX, maxY, (zone: number) => {
-      const b = zone * 4;
+      const index = zone * 4;
       if (
-        isBox &&
-        this.zoneBounds[b] >= minX &&
-        this.zoneBounds[b + 1] >= minY &&
-        this.zoneBounds[b + 2] <= maxX &&
-        this.zoneBounds[b + 3] <= maxY
+        this.zoneBounds[index] >= minX &&
+        this.zoneBounds[index + 1] >= minY &&
+        this.zoneBounds[index + 2] <= maxX &&
+        this.zoneBounds[index + 3] <= maxY
       ) {
-        matched[zone] = 1;
-      } else {
-        pending[zone] = 1;
-        pendingCount++;
+        candidates[zone] = 1;
+        candidateCount++;
       }
       return false;
     });
 
-    const resolve = (zone: number) => {
-      pending[zone] = 0;
-      matched[zone] = 1;
-      pendingCount--;
-    };
+    if (!search.isBounds && candidateCount > 0) {
+      const ring = toClosedRing(search.polygon.geometry.coordinates[0]);
+      const reject = (zone: number) => {
+        candidates[zone] = 0;
+        candidateCount--;
+      };
 
-    if (pendingCount > 0) {
       for (let zone = 0; zone < this.zoneCount; zone++) {
-        if (!pending[zone]) continue;
-        const v = this.ringVertices[this.zoneRings[zone]];
-        const x = this.coordinates[v * 2];
-        const y = this.coordinates[v * 2 + 1];
-        const isInside = ring
-          ? isPointInRing(x, y, ring)
-          : isPointInBox(x, y, minX, minY, maxX, maxY);
-        if (isInside) resolve(zone);
+        if (candidates[zone] && !this.areRingStartsInside(zone, ring))
+          reject(zone);
       }
-    }
 
-    if (pendingCount > 0) {
-      if (!ring) {
-        this.chunksIndex.search(minX, minY, maxX, maxY, (chunk: number) => {
-          const zone = this.chunkZone[chunk];
-          if (!pending[zone]) return false;
-          if (this.chunkCrossesBox(chunk, minX, minY, maxX, maxY))
-            resolve(zone);
-          return false;
-        });
-      } else {
-        const edgeCount = ring.length / 2 - 1;
-        for (let i = 0; i < edgeCount && pendingCount > 0; i++) {
-          const ax = ring[i * 2];
-          const ay = ring[i * 2 + 1];
-          const bx = ring[i * 2 + 2];
-          const by = ring[i * 2 + 3];
-          this.chunksIndex.search(
-            Math.min(ax, bx),
-            Math.min(ay, by),
-            Math.max(ax, bx),
-            Math.max(ay, by),
-            (chunk: number) => {
-              const zone = this.chunkZone[chunk];
-              if (!pending[zone]) return false;
-              if (this.chunkCrossesSegment(chunk, ax, ay, bx, by))
-                resolve(zone);
-              return false;
-            },
-          );
-        }
-      }
-    }
-
-    if (pendingCount > 0) {
-      const px = ring ? ring[0] : minX;
-      const py = ring ? ring[1] : minY;
-      const parity = new Uint8Array(this.zoneCount);
-      this.chunksIndex.search(px, py, Infinity, py, (chunk: number) => {
-        const zone = this.chunkZone[chunk];
-        if (pending[zone])
-          parity[zone] ^= this.chunkRayCrossings(chunk, px, py);
-        return false;
-      });
-      for (let zone = 0; zone < this.zoneCount; zone++) {
-        if (pending[zone] && parity[zone]) resolve(zone);
+      const edgeCount = ring.length / 2 - 1;
+      for (let i = 0; i < edgeCount && candidateCount > 0; i++) {
+        const ax = ring[i * 2];
+        const ay = ring[i * 2 + 1];
+        const bx = ring[i * 2 + 2];
+        const by = ring[i * 2 + 3];
+        this.chunksIndex.search(
+          Math.min(ax, bx),
+          Math.min(ay, by),
+          Math.max(ax, bx),
+          Math.max(ay, by),
+          (chunk: number) => {
+            const zone = this.chunkZone[chunk];
+            if (!candidates[zone]) return false;
+            if (this.chunkCrossesSegment(chunk, ax, ay, bx, by)) reject(zone);
+            return false;
+          },
+        );
       }
     }
 
     const ids: ZoneId[] = [];
     for (let zone = 0; zone < this.zoneCount; zone++) {
-      if (matched[zone]) ids.push(this.zoneIds[zone]);
+      if (candidates[zone]) ids.push(this.zoneIds[zone]);
     }
     return ids;
   }
 
-  private chunkCrossesBox(
-    chunk: number,
-    minX: number,
-    minY: number,
-    maxX: number,
-    maxY: number,
-  ): boolean {
-    const c = this.coordinates;
-    const first = this.chunkFirstVertex[chunk];
-    const last = first + this.chunkEdgeCount[chunk];
-    for (let v = first; v < last; v++) {
+  private areRingStartsInside(zone: number, ring: Float64Array): boolean {
+    for (let r = this.zoneRings[zone]; r < this.zoneRings[zone + 1]; r++) {
+      const v = this.ringVertices[r];
       if (
-        segmentIntersectsBox(
-          c[v * 2],
-          c[v * 2 + 1],
-          c[v * 2 + 2],
-          c[v * 2 + 3],
-          minX,
-          minY,
-          maxX,
-          maxY,
+        !isPointInRing(
+          this.coordinates[v * 2],
+          this.coordinates[v * 2 + 1],
+          ring,
         )
       )
-        return true;
+        return false;
     }
-    return false;
+    return true;
   }
 
   private chunkCrossesSegment(
@@ -562,22 +507,6 @@ export class ZonesGeoView {
         return true;
     }
     return false;
-  }
-
-  private chunkRayCrossings(chunk: number, px: number, py: number): number {
-    const c = this.coordinates;
-    const first = this.chunkFirstVertex[chunk];
-    const last = first + this.chunkEdgeCount[chunk];
-    let crossings = 0;
-    for (let v = first; v < last; v++) {
-      const ax = c[v * 2];
-      const ay = c[v * 2 + 1];
-      const bx = c[v * 2 + 2];
-      const by = c[v * 2 + 3];
-      if (ay > py !== by > py && px < ax + ((py - ay) * (bx - ax)) / (by - ay))
-        crossings ^= 1;
-    }
-    return crossings;
   }
 
   private zoneIndexById?: Map<ZoneId, number>;
@@ -821,11 +750,11 @@ export class ZonesGeoView {
   }
 }
 
-export function queryIntersectingZones(
+export function queryContainedZones(
   geo: ZonesGeoView,
   searchOptions: SearchOptions,
 ): ZoneId[] {
-  return geo.searchIntersecting(searchOptions);
+  return geo.searchContained(searchOptions);
 }
 
 export type ZoneContents = {

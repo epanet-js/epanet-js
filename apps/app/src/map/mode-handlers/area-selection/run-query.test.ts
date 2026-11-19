@@ -13,6 +13,7 @@ const IDS = {
   CP_OUTSIDE: 101,
   ZONE_CROSSED: 200,
   ZONE_OUTSIDE: 201,
+  ZONE_CONTAINED: 202,
 } as const;
 
 const aZone = (id: number, ring: Position[]) => ({
@@ -37,6 +38,15 @@ const buildModel = () =>
         [15, 5],
         [5, 5],
         [5, -5],
+      ]),
+    )
+    .aZone(
+      aZone(IDS.ZONE_CONTAINED, [
+        [2, -0.5],
+        [4, -0.5],
+        [4, 0.5],
+        [2, 0.5],
+        [2, -0.5],
       ]),
     )
     .aZone(
@@ -90,7 +100,7 @@ describe("runQuery", () => {
       expect(assetIds).not.toContain(IDS.J3);
       expect(customerPointIds).toContain(IDS.CP_INSIDE);
       expect(customerPointIds).not.toContain(IDS.CP_OUTSIDE);
-      expect(zoneIds).toEqual([IDS.ZONE_CROSSED]);
+      expect(zoneIds).toEqual([IDS.ZONE_CONTAINED]);
     },
   );
 

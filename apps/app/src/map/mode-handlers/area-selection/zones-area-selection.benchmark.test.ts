@@ -2,7 +2,7 @@
 import type { Position } from "geojson";
 import {
   encodeZonesGeo,
-  queryIntersectingZones,
+  queryContainedZones,
   ZonesGeoView,
   type Zones,
   type ZonesGeoBuffers,
@@ -72,7 +72,7 @@ const width = COLUMNS * CELL;
 const height = rows * CELL;
 
 const areas: { name: string; points: Position[] }[] = [
-  { name: "small box, one zone", points: box(0.1, 0.1, 0.102, 0.102) },
+  { name: "small box inside a zone", points: box(0.1, 0.1, 0.102, 0.102) },
   { name: "box between zones", points: box(0.0047, 0.0047, 0.0053, 0.0053) },
   { name: "medium box, ~50 zones", points: box(0.05, 0.05, 0.12, 0.12) },
   {
@@ -135,10 +135,11 @@ const bruteForce = (zones: Zones, area: Position[]): number[] => {
   const ids: number[] = [];
   for (const zone of zones.values()) {
     const rings = zone.geometry.coordinates.flat();
-    const hit =
-      isPointInRings(area[0][0], area[0][1], rings) ||
-      isPointInRings(rings[0][0][0], rings[0][0][1], [area]) ||
-      rings.some((ring) => {
+    const isContained =
+      rings.every((ring) =>
+        ring.every(([x, y]) => isPointInRings(x, y, [area])),
+      ) &&
+      !rings.some((ring) => {
         for (let i = 0; i < ring.length - 1; i++) {
           for (let j = 0; j < area.length - 1; j++) {
             if (crosses(ring[i], ring[i + 1], area[j], area[j + 1]))
@@ -147,7 +148,7 @@ const bruteForce = (zones: Zones, area: Position[]): number[] => {
         }
         return false;
       });
-    if (hit) ids.push(zone.id);
+    if (isContained) ids.push(zone.id);
   }
   return ids;
 };
@@ -182,7 +183,7 @@ describe("zones area selection benchmark", () => {
       let ids: number[] = [];
       for (let run = 0; run < RUNS; run++) {
         const start = performance.now();
-        ids = queryIntersectingZones(view, points);
+        ids = queryContainedZones(view, points);
         timings.push(performance.now() - start);
       }
 
