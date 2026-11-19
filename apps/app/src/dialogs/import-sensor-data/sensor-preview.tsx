@@ -89,7 +89,7 @@ export const SensorPreview = ({
                   {translate("sensorData.import.preview.sensor")}
                 </th>
                 <th className={HEADER_CELL}>
-                  {translate("sensorData.import.preview.type")}
+                  {translate("sensorData.import.preview.parameter")}
                 </th>
                 <th className={HEADER_CELL}>
                   {translate("sensorData.import.preview.asset")}
@@ -108,8 +108,8 @@ export const SensorPreview = ({
                     <td className={BODY_CELL} title={sensor.name}>
                       {sensor.name}
                     </td>
-                    <td className={BODY_CELL} title={sensor.type}>
-                      {sensor.type}
+                    <td className={BODY_CELL} title={sensor.parameter}>
+                      {sensor.parameter}
                     </td>
                     <td
                       className={BODY_CELL}

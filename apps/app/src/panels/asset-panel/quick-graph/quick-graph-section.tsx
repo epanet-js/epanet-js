@@ -173,7 +173,8 @@ const QuickGraphSection = ({
     () =>
       sensors.find(
         (candidate) =>
-          candidate.assetId === assetId && candidate.type === selectedProperty,
+          candidate.assetId === assetId &&
+          candidate.parameter === selectedProperty,
       ) ?? null,
     [sensors, assetId, selectedProperty],
   );

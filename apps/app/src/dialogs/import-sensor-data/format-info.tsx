@@ -32,6 +32,7 @@ export const FormatInfo = () => {
           <div className="flex flex-col gap-2 text-size-base text-default">
             <h3 className="font-semibold">{label}</h3>
             <p>{translate("sensorData.import.format.columns")}</p>
+            <p>{translate("sensorData.import.format.headers")}</p>
             <p>{translate("sensorData.import.format.readings")}</p>
           </div>
         </E.StyledPopoverContent>

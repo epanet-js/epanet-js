@@ -26,7 +26,7 @@ export const useImportSensorData = () => {
         name: "sensorData.imported",
         sensorsCount: sensors.length,
         skippedCount,
-        typeCounts: countByType(sensors),
+        parameterCounts: countByParameter(sensors),
         hasTimingWarning,
       });
 
@@ -49,8 +49,10 @@ export const useImportSensorData = () => {
   );
 };
 
-const countByType = (sensors: ImportedSensor[]) => {
+const countByParameter = (sensors: ImportedSensor[]) => {
   const counts: Record<string, number> = {};
-  for (const { type } of sensors) counts[type] = (counts[type] ?? 0) + 1;
+  for (const { parameter } of sensors) {
+    counts[parameter] = (counts[parameter] ?? 0) + 1;
+  }
   return counts;
 };

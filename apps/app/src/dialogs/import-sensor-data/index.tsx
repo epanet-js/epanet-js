@@ -19,6 +19,7 @@ import {
 } from "src/lib/sensor-data/parse-sensor-data-file";
 import { checkSensorTiming } from "src/lib/sensor-data/check-sensor-timing";
 import { FormatInfo } from "./format-info";
+import { useSensorVocabulary } from "./sensor-vocabulary";
 import { SensorPreview } from "./sensor-preview";
 
 const ACCEPTED_EXTENSIONS = ".csv,.xlsx";
@@ -64,6 +65,8 @@ export const ImportSensorDataDialog = ({
     [userTracking],
   );
 
+  const vocabulary = useSensorVocabulary();
+
   const handleFileDrop = useCallback(
     async (dropped: File) => {
       setFile(dropped);
@@ -72,10 +75,11 @@ export const ImportSensorDataDialog = ({
       setIsParsing(true);
 
       try {
-        const parsed = await parseSensorDataFile(dropped, {
-          labelManager,
-          assets: hydraulicModel.assets,
-        });
+        const parsed = await parseSensorDataFile(
+          dropped,
+          { labelManager, assets: hydraulicModel.assets },
+          vocabulary,
+        );
         const reason = refusalOf(parsed);
         if (reason) {
           refuse(reason);
@@ -89,7 +93,7 @@ export const ImportSensorDataDialog = ({
         setIsParsing(false);
       }
     },
-    [labelManager, hydraulicModel, refuse],
+    [labelManager, hydraulicModel, vocabulary, refuse],
   );
 
   const handleFileRejected = useCallback(() => {

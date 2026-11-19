@@ -893,7 +893,7 @@ type SensorDataImported = {
   name: "sensorData.imported";
   sensorsCount: number;
   skippedCount: number;
-  typeCounts: Record<string, number>;
+  parameterCounts: Record<string, number>;
   hasTimingWarning: boolean;
 };
 

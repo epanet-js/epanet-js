@@ -60,7 +60,7 @@ import { readingsStepSeconds } from "./time-points";
 
 type SensorRow = {
   name: string;
-  type: string;
+  parameter: string;
   asset: string;
   assetId: AssetId | null;
 };
@@ -121,7 +121,7 @@ const SensorsEmptyState = () => {
   );
 };
 
-const useSensorTypeLabel = () => {
+const useParameterLabel = () => {
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
   const { units } = useAtomValue(projectSettingsAtom);
@@ -129,11 +129,12 @@ const useSensorTypeLabel = () => {
   return useCallback(
     (sensor: ImportedSensor, asset: Asset) => {
       const option = QUICK_GRAPH_PROPERTIES[asset.type].find(
-        ({ value }) => value === sensor.type,
+        ({ value }) => value === sensor.parameter,
       );
       if (!option) return "";
       const label = translate(option.labelKey);
-      const unit = sensor.type === "status" ? null : units[option.quantityKey];
+      const unit =
+        sensor.parameter === "status" ? null : units[option.quantityKey];
       return unit ? `${label} (${translateUnit(unit)})` : label;
     },
     [translate, translateUnit, units],
@@ -150,7 +151,7 @@ const SensorsTableAndChart = ({
   const translate = useTranslate();
   const userTracking = useUserTracking();
   const { assets } = useAtomValue(stagingModelDerivedAtom);
-  const typeLabel = useSensorTypeLabel();
+  const parameterLabel = useParameterLabel();
   const selectAssetsInApp = useSelectAssetsInApp();
   const zoomTo = useZoomTo();
   const dataGridRef = useRef<DataGridRef>(null);
@@ -221,19 +222,19 @@ const SensorsTableAndChart = ({
         if (!asset) {
           return {
             name: sensor.name,
-            type: "",
+            parameter: "",
             asset: translate("sensorData.panel.notInScenario"),
             assetId: null,
           };
         }
         return {
           name: sensor.name,
-          type: typeLabel(sensor, asset),
+          parameter: parameterLabel(sensor, asset),
           asset: `${asset.label} (${translate(asset.type)})`,
           assetId: asset.id,
         };
       }),
-    [sensors, assets, typeLabel, translate],
+    [sensors, assets, parameterLabel, translate],
   );
 
   const cellHasWarning = useCallback(
@@ -252,8 +253,8 @@ const SensorsTableAndChart = ({
         header: translate("sensorData.panel.asset"),
         isReadOnly: true,
       }),
-      textColumn<SensorRow>("type", {
-        header: translate("sensorData.panel.type"),
+      textColumn<SensorRow>("parameter", {
+        header: translate("sensorData.panel.parameter"),
         isReadOnly: true,
       }),
     ],
@@ -351,7 +352,12 @@ const SensorsTableAndChart = ({
           data={rows}
           columns={columns}
           onChange={noop}
-          createRow={() => ({ name: "", type: "", asset: "", assetId: null })}
+          createRow={() => ({
+            name: "",
+            parameter: "",
+            asset: "",
+            assetId: null,
+          })}
           getRowId={(row) => row.name}
           readOnly
           resizable
@@ -376,7 +382,7 @@ const SensorsTableAndChart = ({
           <div className="relative flex-1 min-h-0">
             {selectedAsset && (
               <span className="absolute top-0 left-0 z-10 max-w-[50%] truncate text-size-small text-subtle leading-5">
-                {typeLabel(selected, selectedAsset)}
+                {parameterLabel(selected, selectedAsset)}
               </span>
             )}
             {selectedAsset ? (
@@ -410,18 +416,19 @@ const SelectedSensorChart = ({
   const { data } = useTimeSeries({
     assetId: asset.id,
     assetType: asset.type,
-    property: sensor.type as QuickGraphPropertyByAssetType[typeof asset.type],
+    property:
+      sensor.parameter as QuickGraphPropertyByAssetType[typeof asset.type],
   });
 
-  const isStatus = sensor.type === "status";
+  const isStatus = sensor.parameter === "status";
 
   const decimals = useMemo(() => {
     if (isStatus) return 0;
     const option = QUICK_GRAPH_PROPERTIES[asset.type].find(
-      ({ value }) => value === sensor.type,
+      ({ value }) => value === sensor.parameter,
     );
     return option ? getDecimals(formatting, option.quantityKey) : 0;
-  }, [isStatus, asset.type, sensor.type, formatting]);
+  }, [isStatus, asset.type, sensor.parameter, formatting]);
 
   const valueLabels = useMemo(() => {
     if (!isStatus) return null;
