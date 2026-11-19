@@ -1,15 +1,12 @@
 import * as Comlink from "comlink";
 
 import { BufferType } from "@epanet-js/buffers";
-import {
-  ActiveAssetIndex,
-  ActiveTopology,
-  configuredAllowedFlowDirections,
-} from "@epanet-js/hydraulic-model";
+import { ActiveAssetIndex, ActiveTopology } from "@epanet-js/hydraulic-model";
 import {
   configuredJunctionDemands,
   findTopologyIssues,
   type TopologyIssues,
+  topologyFlowDirections,
 } from "@epanet-js/network-review";
 import { HydraulicModel } from "src/hydraulic-model";
 import { canUseWorker, enrichWorkerError } from "src/infra/worker";
@@ -31,7 +28,7 @@ export const runCheck = async (
     : findTopologyIssues(
         new ActiveTopology(hydraulicModel.topology, hydraulicModel.assets),
         new ActiveAssetIndex(hydraulicModel.assetIndex, hydraulicModel.assets),
-        configuredAllowedFlowDirections(hydraulicModel.assets),
+        topologyFlowDirections(hydraulicModel.assets),
         configuredJunctionDemands(hydraulicModel),
       );
 };

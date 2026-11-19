@@ -3,12 +3,12 @@ import {
   ActiveAssetIndex,
   ActiveTopology,
   AssetId,
-  configuredAllowedFlowDirections,
   type AssetIndexQueries,
 } from "@epanet-js/hydraulic-model";
 import {
   configuredJunctionDemands,
   type JunctionDemandQueries,
+  topologyFlowDirections,
 } from "@epanet-js/network-review";
 import { HydraulicModel } from "src/hydraulic-model";
 import {
@@ -55,7 +55,7 @@ export function encodeData(
     assetIndexBuffers: new AssetIndexEncoder(assetIndex, bufferType).encode(),
     allowedFlowDirectionBuffers: new AllowedFlowDirectionEncoder(
       assetIndex,
-      configuredAllowedFlowDirections(model.assets),
+      topologyFlowDirections(model.assets),
       bufferType,
     ).encode(),
     junctionDemandBuffers: encodeJunctionDemands(

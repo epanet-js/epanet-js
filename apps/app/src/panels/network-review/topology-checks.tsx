@@ -8,7 +8,6 @@ import {
   ActiveTopology,
   Asset,
   AssetId,
-  configuredAllowedFlowDirections,
 } from "@epanet-js/hydraulic-model";
 import {
   findReturnPath,
@@ -17,6 +16,7 @@ import {
   type TopologyIssue,
   type TopologyIssues,
   type TopologyRuleId,
+  topologyFlowDirections,
 } from "@epanet-js/network-review";
 import { AssetType, HydraulicModel } from "src/hydraulic-model";
 import { PipeIcon, PumpIcon, ValveIcon } from "src/icons";
@@ -342,7 +342,7 @@ const assetsToSelect = (
     linkId,
     new ActiveTopology(hydraulicModel.topology, hydraulicModel.assets),
     new ActiveAssetIndex(hydraulicModel.assetIndex, hydraulicModel.assets),
-    configuredAllowedFlowDirections(hydraulicModel.assets),
+    topologyFlowDirections(hydraulicModel.assets),
   );
   if (returnPath === null) return [linkId];
 

@@ -1,13 +1,10 @@
 import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
-import {
-  ActiveAssetIndex,
-  ActiveTopology,
-  configuredAllowedFlowDirections,
-} from "@epanet-js/hydraulic-model";
+import { ActiveAssetIndex, ActiveTopology } from "@epanet-js/hydraulic-model";
 import {
   configuredJunctionDemands,
   findReturnPath,
   findTopologyIssues,
+  topologyFlowDirections,
 } from "@epanet-js/network-review";
 import { HydraulicModel } from "src/hydraulic-model";
 
@@ -31,7 +28,7 @@ const topologyIssuesOf = (model: HydraulicModel) =>
   findTopologyIssues(
     new ActiveTopology(model.topology, model.assets),
     new ActiveAssetIndex(model.assetIndex, model.assets),
-    configuredAllowedFlowDirections(model.assets),
+    topologyFlowDirections(model.assets),
     configuredJunctionDemands(model),
   );
 
@@ -73,40 +70,44 @@ describe("findTopologyIssues", () => {
       expect(topologyIssuesOf(model).selfFeedingPumps).toEqual([IDS.PU1]);
     });
 
-    it("flags a directional valve whose outlet returns to its inlet", () => {
-      const model = HydraulicModelBuilder.with()
+    const aValveWithParallelPipe = (
+      valve: Parameters<HydraulicModelBuilder["aValve"]>[1],
+    ) =>
+      HydraulicModelBuilder.with()
         .aReservoir(IDS.R1)
         .aJunction(IDS.J1)
         .aJunction(IDS.J2)
         .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
-        .aValve(IDS.V1, {
-          startNodeId: IDS.J1,
-          endNodeId: IDS.J2,
-          kind: "prv",
-        })
+        .aValve(IDS.V1, { startNodeId: IDS.J1, endNodeId: IDS.J2, ...valve })
         .aPipe(IDS.P2, { startNodeId: IDS.J2, endNodeId: IDS.J1 })
         .build();
 
-      expect(topologyIssuesOf(model)).toMatchObject({
-        selfFeedingPumps: [],
-        selfFeedingValves: [IDS.V1],
-      });
-    });
+    it.each(["prv", "psv"] as const)(
+      "flags an active %s with a parallel pipe",
+      (kind) => {
+        const model = aValveWithParallelPipe({ kind, initialStatus: "active" });
 
-    it("ignores a throttle valve with a parallel pipe", () => {
-      const model = HydraulicModelBuilder.with()
-        .aJunction(IDS.J1)
-        .aJunction(IDS.J2)
-        .aValve(IDS.V1, {
-          startNodeId: IDS.J1,
-          endNodeId: IDS.J2,
-          kind: "tcv",
-        })
-        .aPipe(IDS.P1, { startNodeId: IDS.J2, endNodeId: IDS.J1 })
-        .build();
+        expect(topologyIssuesOf(model).selfFeedingValves).toEqual([IDS.V1]);
+      },
+    );
 
-      expect(topologyIssuesOf(model).selfFeedingValves).toEqual([]);
-    });
+    it.each(["fcv", "pbv", "gpv", "pcv", "tcv"] as const)(
+      "ignores an active %s because it lets flow through both ways",
+      (kind) => {
+        const model = aValveWithParallelPipe({ kind, initialStatus: "active" });
+
+        expect(topologyIssuesOf(model).selfFeedingValves).toEqual([]);
+      },
+    );
+
+    it.each(["prv", "psv"] as const)(
+      "ignores a %s fixed open because it lets flow through both ways",
+      (kind) => {
+        const model = aValveWithParallelPipe({ kind, initialStatus: "open" });
+
+        expect(topologyIssuesOf(model).selfFeedingValves).toEqual([]);
+      },
+    );
 
     it("ignores a bypass that only flows in the pump direction", () => {
       const model = aPumpedNetwork()
@@ -182,7 +183,7 @@ describe("findTopologyIssues", () => {
         .aValve(IDS.V1, {
           startNodeId: IDS.J3,
           endNodeId: IDS.J1,
-          kind: "fcv",
+          kind: "psv",
         })
         .build();
 
@@ -297,7 +298,7 @@ describe("findReturnPath", () => {
       linkId,
       new ActiveTopology(model.topology, model.assets),
       new ActiveAssetIndex(model.assetIndex, model.assets),
-      configuredAllowedFlowDirections(model.assets),
+      topologyFlowDirections(model.assets),
     );
 
   const aPumpBetweenJunctions = () =>

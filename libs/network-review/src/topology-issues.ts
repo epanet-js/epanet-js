@@ -2,11 +2,13 @@ import {
   AllowedFlowDirection,
   anyBarrier,
   getCustomerPointDemands,
+  getAllowedFlowDirectionFromAssetConfig,
   getJunctionDemands,
   respectingFlowDirection,
   trace,
   weightedTrace,
   type AllowedFlowDirectionQueries,
+  type AssetsMap,
   type AssetId,
   type AssetIndexQueries,
   type Demand,
@@ -14,6 +16,7 @@ import {
   type TopologyQueries,
   type TraceBarriers,
   type TraceResult,
+  type Valve,
 } from "@epanet-js/hydraulic-model";
 
 export type TopologyIssues = {
@@ -149,6 +152,28 @@ export const configuredJunctionDemands = (
     return false;
   },
 });
+
+export const topologyFlowDirections = (
+  assets: AssetsMap,
+): AllowedFlowDirectionQueries => ({
+  getAllowedFlowDirection: (linkId) => {
+    const asset = assets.get(linkId);
+    if (!asset) return AllowedFlowDirection.NONE;
+    if (asset.type !== "valve")
+      return getAllowedFlowDirectionFromAssetConfig(asset);
+
+    const valve = asset as unknown as Valve;
+    if (valve.initialStatus === "closed") return AllowedFlowDirection.NONE;
+
+    return closesOnReverseFlow(valve)
+      ? AllowedFlowDirection.DOWNSTREAM
+      : AllowedFlowDirection.BOTH;
+  },
+});
+
+const closesOnReverseFlow = (valve: Valve): boolean =>
+  (valve.kind === "prv" || valve.kind === "psv") &&
+  valve.initialStatus === "active";
 
 function findSelfFeedingLinks(
   topology: TopologyQueries,
