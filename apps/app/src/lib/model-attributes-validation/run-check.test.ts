@@ -1025,12 +1025,20 @@ describe("validateModelAttributes", () => {
       laggedPumpIds = [],
       tankLevels,
       inactive = [],
+      minSpeed = 0.3,
+      maxSpeed = 1,
+      target = 30,
+      schedule = [],
     }: {
       quantity?: "pressure" | "flow" | "level";
       targetId?: number;
       laggedPumpIds?: number[];
       tankLevels?: { tankId: number; offLevel: number; onLevel: number };
       inactive?: number[];
+      minSpeed?: number;
+      maxSpeed?: number;
+      target?: number;
+      schedule?: { time: number; target: number }[];
     } = {}) => {
       const active = (id: number) => ({ isActive: !inactive.includes(id) });
       return HydraulicModelBuilder.with()
@@ -1070,11 +1078,11 @@ describe("validateModelAttributes", () => {
           linkId: IDS.PU1,
           quantity,
           targetId,
-          target: 30,
-          minSpeed: 0.3,
-          maxSpeed: 1,
+          target,
+          minSpeed,
+          maxSpeed,
           laggedPumpIds,
-          schedule: [],
+          schedule,
           tankLevels,
         })
         .build();
@@ -1142,6 +1150,81 @@ describe("validateModelAttributes", () => {
       expect(await vspIssues(model)).toEqual([
         "pump.variableSpeedTankLevels.active",
       ]);
+    });
+
+    it("passes a minimum speed of zero and start/stop levels within the tank's range", async () => {
+      const model = aVspPump({
+        minSpeed: 0,
+        tankLevels: { tankId: IDS.T1, offLevel: 8, onLevel: 2 },
+      });
+
+      expect(await vspIssues(model)).toEqual([]);
+    });
+
+    it("flags a pressure target that is not above zero", async () => {
+      const model = aVspPump({ target: 0 });
+
+      expect(await vspIssues(model)).toEqual([
+        "pump.variableSpeedPressureTargetValue.positive",
+      ]);
+      expect(severityOf("pump.variableSpeedPressureTargetValue.positive")).toBe(
+        "error",
+      );
+    });
+
+    it("ignores the fixed pressure target while a schedule sets it", async () => {
+      const model = aVspPump({
+        target: 0,
+        schedule: [{ time: 0, target: 30 }],
+      });
+
+      expect(await vspIssues(model)).toEqual([]);
+    });
+
+    it("flags a negative minimum speed", async () => {
+      const model = aVspPump({ minSpeed: -0.1 });
+
+      expect(await vspIssues(model)).toEqual([
+        "pump.variableSpeedMinSpeed.nonNegative",
+      ]);
+      expect(severityOf("pump.variableSpeedMinSpeed.nonNegative")).toBe(
+        "error",
+      );
+    });
+
+    it("flags a maximum speed of zero", async () => {
+      const model = aVspPump({ maxSpeed: 0 });
+
+      expect(await vspIssues(model)).toEqual([
+        "pump.variableSpeedMaxSpeed.positive",
+      ]);
+      expect(severityOf("pump.variableSpeedMaxSpeed.positive")).toBe("error");
+    });
+
+    it("warns when a start/stop level is outside the tank's range", async () => {
+      const model = aVspPump({
+        tankLevels: { tankId: IDS.T1, offLevel: 12, onLevel: 2 },
+      });
+
+      expect(await vspIssues(model)).toEqual([
+        "pump.variableSpeedTankLevelSetting.withinTankLevels",
+      ]);
+      expect(
+        severityOf("pump.variableSpeedTankLevelSetting.withinTankLevels"),
+      ).toBe("warning");
+    });
+
+    it("flags a start/stop on level that is not below the off level, ahead of the range warning", async () => {
+      const model = aVspPump({
+        tankLevels: { tankId: IDS.T1, offLevel: 11, onLevel: 12 },
+      });
+
+      expect(await vspIssues(model)).toEqual([
+        "pump.variableSpeedTankLevelSetting.onBelowOff",
+      ]);
+      expect(severityOf("pump.variableSpeedTankLevelSetting.onBelowOff")).toBe(
+        "error",
+      );
     });
   });
 

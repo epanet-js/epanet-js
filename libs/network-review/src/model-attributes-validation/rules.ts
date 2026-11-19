@@ -7,6 +7,7 @@ import {
   getLinkLevelSetting,
   getLinkVariableSpeedPump,
   LevelSettingControl,
+  LevelSettingError,
   validateLevelSetting,
   VariableSpeedPumpControl,
   getPumpCurveErrors,
@@ -269,20 +270,31 @@ const levelSettingControlOf = (
 const hasLevelSettingControl: When = (entity, model) =>
   isActiveEntity(entity) && levelSettingControlOf(entity, model) !== null;
 
-const levelSettingErrorsOf = (
-  control: LevelSettingControl,
+const tankLevelErrorsOf = (
+  tankId: AssetId,
+  onLevel: number,
+  offLevel: number,
   model?: HydraulicModel,
 ) => {
-  const tank = model?.assets.get(control.tankId);
+  const tank = model?.assets.get(tankId);
   const minLevel = tank ? readEntityProp(tank, "minLevel") : null;
   const maxLevel = tank ? readEntityProp(tank, "maxLevel") : null;
   return validateLevelSetting({
-    onLevel: control.on.level,
-    offLevel: control.off.level,
+    onLevel,
+    offLevel,
     minLevel: isFiniteNumber(minLevel) ? minLevel : -Infinity,
     maxLevel: isFiniteNumber(maxLevel) ? maxLevel : Infinity,
   });
 };
+
+const levelSettingErrorsOf = (
+  control: LevelSettingControl,
+  model?: HydraulicModel,
+) =>
+  tankLevelErrorsOf(control.tankId, control.on.level, control.off.level, model);
+
+const isOutOfRange = (error: LevelSettingError) =>
+  error === "onOutOfRange" || error === "offOutOfRange";
 
 const levelSettingRule = (
   checkName: string,
@@ -380,9 +392,102 @@ const levelSettingControlRules: Rule[] = [
     "warning",
     "mustBeWithinLevelRange",
     (control, model) =>
-      !levelSettingErrorsOf(control, model).some(
-        (error) => error === "onOutOfRange" || error === "offOutOfRange",
-      ),
+      !levelSettingErrorsOf(control, model).some(isOutOfRange),
+  ),
+];
+
+const hasVariableSpeedControl: When = (entity, model) =>
+  isActiveEntity(entity) && variableSpeedControlOf(entity, model) !== null;
+
+const variableSpeedSpeedRule = (
+  speed: "minSpeed" | "maxSpeed",
+  checkName: NumericCheckName,
+): Rule => {
+  const fieldName =
+    speed === "minSpeed" ? "variableSpeedMinSpeed" : "variableSpeedMaxSpeed";
+  return {
+    id: `pump.${fieldName}.${checkName}`,
+    type: "model",
+    entityType: "pump",
+    field: fieldName,
+    accessor: (entity, model) =>
+      variableSpeedControlOf(entity, model)?.[speed] ?? null,
+    appliesWhen: hasVariableSpeedControl,
+    check: (value) => value === null || numericChecks[checkName](value),
+    severity: "error",
+    message: checkMessage[checkName],
+  };
+};
+
+const variableSpeedTankLevelsErrorsOf = (
+  entity: ValidatableEntity,
+  model?: HydraulicModel,
+): LevelSettingError[] => {
+  const tankLevels = variableSpeedControlOf(entity, model)?.tankLevels;
+  return tankLevels
+    ? tankLevelErrorsOf(
+        tankLevels.tankId,
+        tankLevels.onLevel,
+        tankLevels.offLevel,
+        model,
+      )
+    : [];
+};
+
+const variableSpeedTankLevelSettingRule = (
+  checkName: string,
+  severity: Severity,
+  message: string,
+  isValid: (errors: LevelSettingError[]) => boolean,
+): Rule => ({
+  id: `pump.variableSpeedTankLevelSetting.${checkName}`,
+  type: "model",
+  entityType: "pump",
+  field: "variableSpeedTankLevelSetting",
+  accessor: variableSpeedTankLevelsErrorsOf,
+  appliesWhen: (entity, model) =>
+    isActiveEntity(entity) &&
+    variableSpeedControlOf(entity, model)?.tankLevels != null,
+  check: (value) => isValid(value as LevelSettingError[]),
+  severity,
+  message,
+});
+
+const variableSpeedPressureTargetValuePositive: Rule = {
+  id: "pump.variableSpeedPressureTargetValue.positive",
+  type: "model",
+  entityType: "pump",
+  field: "variableSpeedPressureTargetValue",
+  accessor: (entity, model) =>
+    variableSpeedControlOf(entity, model)?.target ?? null,
+  appliesWhen: (entity, model) => {
+    const control = variableSpeedControlOf(entity, model);
+    return (
+      isActiveEntity(entity) &&
+      control?.quantity === "pressure" &&
+      control.schedule.length === 0
+    );
+  },
+  check: (value) => value === null || numericChecks.positive(value),
+  severity: "error",
+  message: checkMessage.positive,
+};
+
+const variableSpeedControlRules: Rule[] = [
+  variableSpeedPressureTargetValuePositive,
+  variableSpeedSpeedRule("minSpeed", "nonNegative"),
+  variableSpeedSpeedRule("maxSpeed", "positive"),
+  variableSpeedTankLevelSettingRule(
+    "onBelowOff",
+    "error",
+    "mustBeBelowOffLevel",
+    (errors) => !errors.includes("order"),
+  ),
+  variableSpeedTankLevelSettingRule(
+    "withinTankLevels",
+    "warning",
+    "mustBeWithinLevelRange",
+    (errors) => !errors.some(isOutOfRange),
   ),
 ];
 
@@ -630,6 +735,7 @@ export const RULES: Rule[] = [
     severity: "error",
     message: "mustBeActive",
   },
+  ...variableSpeedControlRules,
   variableSpeedDischargeNotBackfeeding,
   variableSpeedFlowTargetSameDirection,
   // Customer points
@@ -645,5 +751,7 @@ export const RULES: Rule[] = [
 ];
 
 export const RULES_DEPRECATED: Rule[] = RULES.filter(
-  (rule) => !levelSettingControlRules.includes(rule),
+  (rule) =>
+    !levelSettingControlRules.includes(rule) &&
+    !variableSpeedControlRules.includes(rule),
 );

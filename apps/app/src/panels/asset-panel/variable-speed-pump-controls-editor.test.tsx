@@ -10,6 +10,7 @@ import {
 } from "@epanet-js/hydraulic-model";
 import type { UnitsSpec } from "@epanet-js/project-settings";
 import { highlightsAtom } from "src/state/highlights";
+import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
 import {
   VariableSpeedPumpControlsEditor,
   VariableSpeedPumpTargets,
@@ -146,6 +147,10 @@ const pickLaggedPump = (currentLabel: string, pump: string) => {
 const highlights = () => getDefaultStore().get(highlightsAtom);
 
 describe("VariableSpeedPumpControlsEditor", () => {
+  beforeEach(() => {
+    stubFeatureOff("FLAG_MODEL_VALIDATIONS");
+  });
+
   describe("pressure target", () => {
     it("becomes a level target when a tank is chosen", () => {
       const onChange = renderEditor(aPressureTarget());
@@ -316,6 +321,75 @@ describe("VariableSpeedPumpControlsEditor", () => {
       expect(lastControl(onChange).minSpeed).toBe(1.2);
       expect(
         screen.getByText("Min speed must not be above max speed."),
+      ).toBeInTheDocument();
+    });
+
+    it("keeps a pressure target of zero out of the control", () => {
+      const onChange = renderEditor(aPressureTarget({ target: 30 }));
+
+      enterValue("Pressure (m)", "0");
+
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
+    it("keeps a negative min speed and a zero max speed out of the control", () => {
+      const onChange = renderEditor(aPressureTarget());
+
+      enterValue("Min speed", "-1");
+      enterValue("Max speed", "0");
+
+      expect(onChange).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("with FLAG_MODEL_VALIDATIONS on", () => {
+    beforeEach(() => {
+      stubFeatureOn("FLAG_MODEL_VALIDATIONS");
+    });
+
+    it("keeps a negative min speed in the control and marks the field", () => {
+      const onChange = renderEditor(aPressureTarget());
+
+      enterValue("Min speed", "-1");
+
+      expect(lastControl(onChange).minSpeed).toBe(-1);
+      expect(screen.getByLabelText("Value for: Min speed")).toHaveAttribute(
+        "aria-invalid",
+        "true",
+      );
+    });
+
+    it("keeps a pressure target of zero in the control and marks the field", () => {
+      const onChange = renderEditor(aPressureTarget({ target: 30 }));
+
+      enterValue("Pressure (m)", "0");
+
+      expect(lastControl(onChange).target).toBe(0);
+      expect(screen.getByLabelText("Value for: Pressure (m)")).toHaveAttribute(
+        "aria-invalid",
+        "true",
+      );
+    });
+
+    it("keeps a zero max speed in the control", () => {
+      const onChange = renderEditor(aPressureTarget());
+
+      enterValue("Max speed", "0");
+
+      expect(lastControl(onChange).maxSpeed).toBe(0);
+    });
+
+    it("keeps an on level above the off level in the control and warns", () => {
+      const onChange = renderEditor(aLevelTarget({ tankLevels: T1_LEVELS }));
+
+      enterValue("On below (m)", "6");
+
+      expect(lastControl(onChange).tankLevels).toEqual({
+        ...T1_LEVELS,
+        onLevel: 6,
+      });
+      expect(
+        screen.getByText(/On level must be below the off level/),
       ).toBeInTheDocument();
     });
   });

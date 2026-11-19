@@ -36,6 +36,7 @@ import { TextField } from "src/components/form/text-field";
 import { Checkbox } from "src/components/form/Checkbox";
 import { highlightsAtom } from "src/state/highlights";
 import { useUserTracking } from "src/infra/user-tracking";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export type VariableSpeedPumpTargets = {
   isValid: (field: PumpReferenceField, value: unknown) => boolean;
@@ -71,6 +72,7 @@ export const VariableSpeedPumpControlsEditor = ({
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
   const userTracking = useUserTracking();
+  const isModelValidationsOn = useFeatureFlag("FLAG_MODEL_VALIDATIONS");
 
   const quantityName =
     control.quantity === "level"
@@ -93,6 +95,10 @@ export const VariableSpeedPumpControlsEditor = ({
   const targetCheck =
     control.quantity === "pressure" ? numericChecks.positive : undefined;
   const hasSpeedRangeError = control.minSpeed > control.maxSpeed;
+  const hasMinSpeedWarning =
+    hasSpeedRangeError || !numericChecks.nonNegative(control.minSpeed);
+  const hasMaxSpeedWarning =
+    hasSpeedRangeError || !numericChecks.positive(control.maxSpeed);
   const minSpeedLabel = translate("controls.variableSpeed.minSpeed");
   const maxSpeedLabel = translate("controls.variableSpeed.maxSpeed");
 
@@ -193,13 +199,21 @@ export const VariableSpeedPumpControlsEditor = ({
           }
           disabled={isScheduled}
           validate={targetCheck}
+          commitInvalidValues={isModelValidationsOn}
           onChangeValue={(value, isEmpty) => {
             if (isEmpty) return;
             update({ target: value });
             track({ quantity: control.quantity });
           }}
           readOnly={readOnly}
-          styleOptions={{ padding: "md", ghostBorder: readOnly }}
+          styleOptions={{
+            padding: "md",
+            ghostBorder: readOnly,
+            variant:
+              !isScheduled && targetCheck && !targetCheck(control.target)
+                ? "warning"
+                : "default",
+          }}
         />
       </InlineField>
 
@@ -231,6 +245,7 @@ export const VariableSpeedPumpControlsEditor = ({
               label={minSpeedLabel}
               displayValue={localizeDecimal(control.minSpeed)}
               validate={numericChecks.nonNegative}
+              commitInvalidValues={isModelValidationsOn}
               onChangeValue={(value, isEmpty) => {
                 if (isEmpty) return;
                 update({ minSpeed: value });
@@ -240,7 +255,7 @@ export const VariableSpeedPumpControlsEditor = ({
               styleOptions={{
                 padding: "md",
                 ghostBorder: readOnly,
-                variant: hasSpeedRangeError ? "warning" : "default",
+                variant: hasMinSpeedWarning ? "warning" : "default",
               }}
             />
           </VerticalField>
@@ -249,6 +264,7 @@ export const VariableSpeedPumpControlsEditor = ({
               label={maxSpeedLabel}
               displayValue={localizeDecimal(control.maxSpeed)}
               validate={numericChecks.positive}
+              commitInvalidValues={isModelValidationsOn}
               onChangeValue={(value, isEmpty) => {
                 if (isEmpty) return;
                 update({ maxSpeed: value });
@@ -258,7 +274,7 @@ export const VariableSpeedPumpControlsEditor = ({
               styleOptions={{
                 padding: "md",
                 ghostBorder: readOnly,
-                variant: hasSpeedRangeError ? "warning" : "default",
+                variant: hasMaxSpeedWarning ? "warning" : "default",
               }}
             />
           </VerticalField>
@@ -299,6 +315,7 @@ export const VariableSpeedPumpControlsEditor = ({
               if (tankLevels?.tankId) track({ hasTankLevels: true });
             }}
             onHighlightChange={highlightAsset}
+            commitInvalidLevels={isModelValidationsOn}
             readOnly={readOnly}
           />
         </>
@@ -327,6 +344,7 @@ const TankLevelsSection = ({
   levelUnit,
   onChange,
   onHighlightChange,
+  commitInvalidLevels,
   readOnly,
 }: {
   validate: (value: AssetId) => boolean;
@@ -336,6 +354,7 @@ const TankLevelsSection = ({
   levelUnit: string;
   onChange: (tankLevels: VariableSpeedPumpTankLevels | undefined) => void;
   onHighlightChange: (assetId: AssetId | null) => void;
+  commitInvalidLevels: boolean;
   readOnly: boolean;
 }) => {
   const translate = useTranslate();
@@ -376,7 +395,7 @@ const TankLevelsSection = ({
       minLevel: nextTank.minLevel ?? 0,
       maxLevel: nextTank.maxLevel ?? 0,
     });
-    if (nextErrors.length === 0) onChange(next);
+    if (commitInvalidLevels || nextErrors.length === 0) onChange(next);
   };
 
   const defaultTank =
