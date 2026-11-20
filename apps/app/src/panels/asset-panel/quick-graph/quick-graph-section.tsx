@@ -17,69 +17,24 @@ import {
   assetPanelFooterAtom,
   quickGraphPropertyAtom,
   DEFAULT_FOOTER_HEIGHT,
+} from "src/state/quick-graph";
+import {
   type QuickGraphAssetType,
   type QuickGraphPropertyByAssetType,
-} from "src/state/quick-graph";
+  QUICK_GRAPH_PROPERTIES,
+  toStatusStep,
+  sensorReadingsStyle,
+} from "src/lib/asset-graph";
 import type { QuantityProperty } from "@epanet-js/project-settings";
 import { getDecimals } from "@epanet-js/project-settings";
 import type { TimeSeries } from "src/simulation/epanet/eps-results-reader";
 import { type AssetId, type Valve } from "@epanet-js/hydraulic-model";
-import { useTimeSeries } from "./use-time-series";
-import { QuickGraphChart, type QuickGraphSeries } from "./quick-graph-chart";
+import { useTimeSeries } from "src/hooks/use-time-series";
+import { useStatusValueLabels } from "src/hooks/use-status-value-labels";
+import { QuickGraphChart, type QuickGraphSeries } from "src/components/graphs";
 import { colors } from "src/lib/constants";
 import { useChangeTimestep } from "src/commands/change-timestep";
 import { RingSpinner } from "src/components/ring-spinner";
-
-export const QUICK_GRAPH_PROPERTIES: {
-  [K in QuickGraphAssetType]: {
-    value: QuickGraphPropertyByAssetType[K];
-    labelKey: string;
-    quantityKey: QuantityProperty;
-  }[];
-} = {
-  junction: [
-    { value: "pressure", labelKey: "pressure", quantityKey: "pressure" },
-    { value: "head", labelKey: "head", quantityKey: "head" },
-    { value: "demand", labelKey: "actualDemand", quantityKey: "actualDemand" },
-  ],
-  pipe: [
-    { value: "flow", labelKey: "flow", quantityKey: "flow" },
-    { value: "velocity", labelKey: "velocity", quantityKey: "velocity" },
-    {
-      value: "headloss",
-      labelKey: "unitHeadloss",
-      quantityKey: "unitHeadloss",
-    },
-  ],
-  pump: [
-    { value: "flow", labelKey: "flow", quantityKey: "flow" },
-    { value: "head", labelKey: "pumpHead", quantityKey: "head" },
-    {
-      value: "setting",
-      labelKey: "pump.relativeSpeedSetting",
-      quantityKey: "speed",
-    },
-    { value: "status", labelKey: "status", quantityKey: "status" },
-  ],
-  valve: [
-    { value: "flow", labelKey: "flow", quantityKey: "flow" },
-    { value: "velocity", labelKey: "velocity", quantityKey: "velocity" },
-    { value: "headloss", labelKey: "headlossShort", quantityKey: "headloss" },
-    { value: "setting", labelKey: "setting", quantityKey: "tcvSetting" },
-  ],
-  tank: [
-    { value: "level", labelKey: "level", quantityKey: "level" },
-    { value: "volume", labelKey: "volume", quantityKey: "volume" },
-    { value: "netFlow", labelKey: "netFlow", quantityKey: "netFlow" },
-    { value: "pressure", labelKey: "pressure", quantityKey: "pressure" },
-    { value: "head", labelKey: "head", quantityKey: "head" },
-  ],
-  reservoir: [
-    { value: "pressure", labelKey: "pressure", quantityKey: "pressure" },
-    { value: "head", labelKey: "head", quantityKey: "head" },
-    { value: "netFlow", labelKey: "netFlow", quantityKey: "netFlow" },
-  ],
-};
 
 const QUALITY_OPTIONS: {
   value: string;
@@ -128,12 +83,6 @@ const getValveSettingQuantityKey = (valve: Valve): QuantityProperty | null => {
   return null;
 };
 
-export const STATUS_OPEN = 1;
-export const STATUS_CLOSED = 0;
-
-export const toStatusStep = (code: number) =>
-  code > 2 ? STATUS_OPEN : STATUS_CLOSED;
-
 const QuickGraphSection = ({
   assetType,
   assetId,
@@ -179,21 +128,7 @@ const QuickGraphSection = ({
     [sensors, assetId, selectedProperty],
   );
 
-  const valueLabels = useMemo(() => {
-    if (!isStatusProperty) return null;
-
-    if (assetType == "pump") {
-      return new Map([
-        [STATUS_OPEN, translate("pump.on")],
-        [STATUS_CLOSED, translate("pump.off")],
-      ]);
-    }
-
-    return new Map([
-      [STATUS_OPEN, translate("statusOpen")],
-      [STATUS_CLOSED, translate("statusClosed")],
-    ]);
-  }, [isStatusProperty, translate, assetType]);
+  const valueLabels = useStatusValueLabels(assetType, isStatusProperty);
 
   const decimals = useMemo(() => {
     if (!selectedOption) return 0;
@@ -231,6 +166,11 @@ const QuickGraphSection = ({
 
   const series = useMemo<QuickGraphSeries[]>(
     () => [
+      {
+        label: scenarioName ?? (sensor ? translate("simulation") : null),
+        values,
+        style: { type: "line", color: colors.purple500 },
+      },
       ...(baseValues
         ? [
             {
@@ -240,17 +180,14 @@ const QuickGraphSection = ({
             } satisfies QuickGraphSeries,
           ]
         : []),
-      {
-        label: scenarioName ?? (sensor ? translate("simulation") : null),
-        values,
-        style: { type: "line", color: colors.purple500 },
-      },
       ...(sensor
         ? [
             {
               label: translate("sensorData.panel.sensor"),
               values: sensor.readings,
-              style: { type: "points", color: colors.gray600 },
+              style: sensorReadingsStyle(
+                Math.min(sensor.readings.length, values.length),
+              ),
             } satisfies QuickGraphSeries,
           ]
         : []),

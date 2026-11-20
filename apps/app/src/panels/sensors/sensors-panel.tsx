@@ -1,4 +1,5 @@
 import {
+  type ComponentProps,
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -32,19 +33,16 @@ import {
   simulationSettingsDerivedAtom,
   stagingModelDerivedAtom,
 } from "src/state/derived-branch-state";
-import type { QuickGraphPropertyByAssetType } from "src/state/quick-graph";
-import type { ImportedSensor } from "src/lib/sensor-data/parse-sensor-data-file";
 import {
+  type QuickGraphPropertyByAssetType,
   QUICK_GRAPH_PROPERTIES,
-  STATUS_CLOSED,
-  STATUS_OPEN,
   toStatusStep,
-} from "src/panels/asset-panel/quick-graph/quick-graph-section";
-import { useTimeSeries } from "src/panels/asset-panel/quick-graph/use-time-series";
-import {
-  QuickGraphChart,
-  type QuickGraphSeries,
-} from "src/panels/asset-panel/quick-graph/quick-graph-chart";
+  sensorReadingsStyle,
+} from "src/lib/asset-graph";
+import type { ImportedSensor } from "src/lib/sensor-data/parse-sensor-data-file";
+import { useTimeSeries } from "src/hooks/use-time-series";
+import { useStatusValueLabels } from "src/hooks/use-status-value-labels";
+import { QuickGraphChart, type QuickGraphSeries } from "src/components/graphs";
 import { colors } from "src/lib/constants";
 import {
   contentStateFor,
@@ -77,6 +75,11 @@ const TABLE_DEFAULT_SHARE = 0.5;
 const CHART_MIN_WIDTH = 240;
 
 const noop = () => {};
+
+type ShownChart = {
+  label: string;
+  chart: ComponentProps<typeof QuickGraphChart>;
+};
 
 export const SensorsPanel = ({
   panelId,
@@ -380,16 +383,11 @@ const SensorsTableAndChart = ({
       {showChart && (
         <div className="flex-1 min-w-0 flex flex-col min-h-0 p-3">
           <div className="relative flex-1 min-h-0">
-            {selectedAsset && (
-              <span className="absolute top-0 left-0 z-10 max-w-[50%] truncate text-size-small text-subtle leading-5">
-                {parameterLabel(selected, selectedAsset)}
-              </span>
-            )}
             {selectedAsset ? (
               <SelectedSensorChart
-                key={`${selected.name}:${selected.assetId}`}
                 sensor={selected}
                 asset={selectedAsset}
+                label={parameterLabel(selected, selectedAsset)}
               />
             ) : (
               <div className="h-full flex items-center justify-center text-size-base text-subtle">
@@ -406,14 +404,16 @@ const SensorsTableAndChart = ({
 const SelectedSensorChart = ({
   sensor,
   asset,
+  label,
 }: {
   sensor: ImportedSensor;
   asset: Asset;
+  label: string;
 }) => {
   const translate = useTranslate();
   const { formatting } = useAtomValue(projectSettingsAtom);
   const { timing } = useAtomValue(simulationSettingsDerivedAtom);
-  const { data } = useTimeSeries({
+  const { data, isLoading, isStale } = useTimeSeries({
     assetId: asset.id,
     assetType: asset.type,
     property:
@@ -430,20 +430,9 @@ const SelectedSensorChart = ({
     return option ? getDecimals(formatting, option.quantityKey) : 0;
   }, [isStatus, asset.type, sensor.parameter, formatting]);
 
-  const valueLabels = useMemo(() => {
-    if (!isStatus) return null;
-    return asset.type === "pump"
-      ? new Map([
-          [STATUS_CLOSED, translate("pump.off")],
-          [STATUS_OPEN, translate("pump.on")],
-        ])
-      : new Map([
-          [STATUS_CLOSED, translate("statusClosed")],
-          [STATUS_OPEN, translate("statusOpen")],
-        ]);
-  }, [isStatus, asset.type, translate]);
+  const valueLabels = useStatusValueLabels(asset.type, isStatus);
 
-  const simulated = data && data.intervalsCount > 1 ? data : null;
+  const simulated = !isStale && data && data.intervalsCount > 1 ? data : null;
 
   const values = useMemo(() => {
     if (!simulated) return [];
@@ -454,14 +443,14 @@ const SelectedSensorChart = ({
   const series = useMemo<QuickGraphSeries[]>(
     () => [
       {
-        label: translate("simulation"),
-        values,
-        style: { type: "line", color: colors.gray400 },
-      },
-      {
         label: translate("sensorData.panel.sensor"),
         values: sensor.readings,
-        style: { type: "points", color: colors.purple500 },
+        style: sensorReadingsStyle(sensor.readings.length),
+      },
+      {
+        label: translate("simulation"),
+        values,
+        style: { type: "line", color: colors.purple500 },
       },
     ],
     [translate, values, sensor.readings],
@@ -475,13 +464,44 @@ const SelectedSensorChart = ({
     sensor.readings.length,
   );
 
+  const showTimeLabels = timing.duration > 0;
+
+  const current = useMemo<ShownChart>(
+    () => ({
+      label,
+      chart: {
+        series,
+        intervalsCount,
+        intervalSeconds,
+        decimals,
+        valueLabels,
+        showTimeLabels,
+      },
+    }),
+    [
+      label,
+      series,
+      intervalsCount,
+      intervalSeconds,
+      decimals,
+      valueLabels,
+      showTimeLabels,
+    ],
+  );
+
+  const [shown, setShown] = useState<ShownChart | null>(
+    isLoading ? null : current,
+  );
+  if (!isLoading && shown !== current) setShown(current);
+
+  if (!shown) return null;
+
   return (
-    <QuickGraphChart
-      series={series}
-      intervalsCount={intervalsCount}
-      intervalSeconds={intervalSeconds}
-      decimals={decimals}
-      valueLabels={valueLabels}
-    />
+    <>
+      <span className="absolute top-0 left-0 z-10 max-w-[50%] truncate text-size-small text-subtle leading-5">
+        {shown.label}
+      </span>
+      <QuickGraphChart {...shown.chart} />
+    </>
   );
 };

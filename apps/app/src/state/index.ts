@@ -103,10 +103,6 @@ export { offlineAtom } from "src/state/offline";
 export { selectedMaterialLabelAtom } from "src/state/pipe-library";
 
 // Quick graph
-export type {
-  QuickGraphPropertyByAssetType,
-  QuickGraphAssetType,
-} from "src/state/quick-graph";
 export {
   DEFAULT_FOOTER_HEIGHT,
   assetPanelFooterAtom,

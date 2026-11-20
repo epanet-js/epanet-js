@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useTranslate } from "src/hooks/use-translate";
-import { QUICK_GRAPH_PROPERTIES } from "src/panels/asset-panel/quick-graph/quick-graph-section";
+import { QUICK_GRAPH_PROPERTIES } from "src/lib/asset-graph";
 import {
   ASSET_TYPES,
   type SensorVocabulary,

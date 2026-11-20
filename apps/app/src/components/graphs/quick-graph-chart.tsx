@@ -23,6 +23,7 @@ interface QuickGraphChartProps {
   currentIntervalIndex?: number;
   onIntevalClick?: (intervalIndex: number) => void;
   valueLabels?: Map<number, string> | null;
+  showTimeLabels?: boolean;
 }
 
 export const QuickGraphChart = memo(function QuickGraphChart(
@@ -39,6 +40,7 @@ function QuickGraphChartECharts({
   decimals,
   onIntevalClick,
   valueLabels = null,
+  showTimeLabels = true,
 }: QuickGraphChartProps) {
   const translate = useTranslate();
 
@@ -68,8 +70,8 @@ function QuickGraphChartECharts({
   );
 
   const xAxis: EChartsOption["xAxis"] = useMemo(
-    () => buildXAxis(intervalsCount, intervalSeconds),
-    [intervalsCount, intervalSeconds],
+    () => buildXAxis(intervalsCount, intervalSeconds, showTimeLabels),
+    [intervalsCount, intervalSeconds, showTimeLabels],
   );
   const yAxis: EChartsOption["yAxis"] = useMemo(
     () =>
@@ -83,7 +85,7 @@ function QuickGraphChartECharts({
     () =>
       visibleSeries.map((entry, index) => ({
         ...toEChartsSeries(entry),
-        z: index,
+        z: visibleSeries.length - index,
         ...(index === 0 ? { markLine: MARK_LINE } : {}),
       })),
     [visibleSeries],
@@ -129,18 +131,26 @@ function QuickGraphChartECharts({
         },
         formatter: (params: any) => {
           if (!Array.isArray(params) || params.length === 0) return "";
-          const timeLabel = params[0]?.name ?? "";
+          const timeLabel = showTimeLabels ? (params[0]?.name ?? "") : "";
           const lines = params.map((p: any) => {
             const value = formatValue(p.value);
             if (!showLegend) return value;
             const colorDot = `<span style="display:inline-block;width:8px;height:8px;background:${p.color};margin-right:4px;border-radius:50%;"></span>`;
             return `${colorDot}${p.seriesName ?? ""}: ${value}`;
           });
-          return `${timeLabel}<br/>${lines.join("<br/>")}`;
+          return [timeLabel, ...lines].filter(Boolean).join("<br/>");
         },
       },
     }),
-    [showLegend, legend, xAxis, yAxis, chartSeries, formatValue],
+    [
+      showLegend,
+      legend,
+      xAxis,
+      yAxis,
+      chartSeries,
+      formatValue,
+      showTimeLabels,
+    ],
   );
 
   const chartRef = useRef<ReactECharts>(null);
@@ -264,7 +274,7 @@ const toEChartsSeries = ({ label, values, style }: QuickGraphSeries) => {
       name,
       data,
       symbolSize: 5,
-      itemStyle: { color: style.color },
+      itemStyle: { color: style.color, opacity: 1 },
     };
   }
   return {
@@ -282,6 +292,7 @@ const toEChartsSeries = ({ label, values, style }: QuickGraphSeries) => {
 const buildXAxis = (
   intervalsCount: number,
   intervalSeconds: number,
+  showTimeLabels: boolean,
 ): EChartsOption["xAxis"] => {
   const xAxisInterval = calculateXAxisInterval(intervalsCount, intervalSeconds);
   const xAxisStep = calculateXAxisStep(intervalsCount, intervalSeconds);
@@ -305,7 +316,7 @@ const buildXAxis = (
       interval: (index: number) => index % xAxisStep === 0,
     },
     axisLabel: {
-      show: true,
+      show: showTimeLabels,
       interval: xAxisInterval,
       color: colors.gray500,
       fontSize: 12,
