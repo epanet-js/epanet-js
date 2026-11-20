@@ -13,6 +13,7 @@ import { SuccessIcon } from "src/icons";
 import type { ImportedSensor } from "src/lib/sensor-data/parse-sensor-data-file";
 
 export const useImportSensorData = () => {
+  const previousSensors = useAtomValue(sensorsAtom);
   const setSensors = useSetAtom(sensorsAtom);
   const userTracking = useUserTracking();
   const translate = useTranslate();
@@ -31,14 +32,23 @@ export const useImportSensorData = () => {
     ) => {
       setSensors(sensors);
 
-      const panel = panels.find(isAllSensorsPanel) ?? createSensorsPanel();
-      if (!panels.includes(panel)) setPanels((prev) => [...prev, panel]);
+      const existing = panels.find(isAllSensorsPanel);
+      const panel = existing ?? createSensorsPanel();
+      if (!existing) {
+        setPanels((prev) => [...prev, panel]);
+        userTracking.capture({
+          name: "dataTables.opened",
+          source: "auto",
+          tables: ["sensors"],
+        });
+      }
       setSplits((splits) => ({ ...splits, bottomOpen: true }));
       activatePanel(panel.id);
 
       userTracking.capture({
         name: "sensorData.imported",
         sensorsCount: sensors.length,
+        replacedCount: previousSensors.length,
         skippedCount,
         parameterCounts: countByParameter(sensors),
         hasTimingWarning,
@@ -60,6 +70,7 @@ export const useImportSensorData = () => {
       });
     },
     [
+      previousSensors,
       setSensors,
       userTracking,
       translate,
