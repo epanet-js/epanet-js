@@ -3,6 +3,7 @@
 import remoteSetpointPrvScript from "./remote-setpoint-prv.lua?raw";
 import variableSpeedPumpsScript from "./variable-speed-pumps.lua?raw";
 import flowModulatingValvesScript from "./flow-modulating-valves.lua?raw";
+import levelOpeningValvesScript from "./level-opening-valves.lua?raw";
 
 type RemoteSetpointPrv = {
   valveId: string;
@@ -43,6 +44,13 @@ type FlowModulatingValve = {
   outletNodeId: string;
 };
 
+type LevelOpeningValve = {
+  valveId: string;
+  tankId: string;
+  openLevel: number;
+  closeLevel: number;
+};
+
 const REMOTE_SETPOINT_PRV_FUNCTION = remoteSetpointPrvScript
   .trimEnd()
   .split("\n");
@@ -52,6 +60,10 @@ const VARIABLE_SPEED_PUMPS_FUNCTION = variableSpeedPumpsScript
   .split("\n");
 
 const FLOW_MODULATING_VALVES_FUNCTION = flowModulatingValvesScript
+  .trimEnd()
+  .split("\n");
+
+const LEVEL_OPENING_VALVES_FUNCTION = levelOpeningValvesScript
   .trimEnd()
   .split("\n");
 
@@ -118,10 +130,26 @@ const flowModulatingValveStruct = ({
   ].join(",") +
   "}";
 
+const levelOpeningValveStruct = ({
+  valveId,
+  tankId,
+  openLevel,
+  closeLevel,
+}: LevelOpeningValve) =>
+  "{" +
+  [
+    `valve_id="${valveId}"`,
+    `tank_id="${tankId}"`,
+    `open_level=${openLevel}`,
+    `close_level=${closeLevel}`,
+  ].join(",") +
+  "}";
+
 export const LuaScriptBuilder = () => {
   const remoteSetpointPrvs: RemoteSetpointPrv[] = [];
   const variableSpeedPumps: VariableSpeedPump[] = [];
   const flowModulatingValves: FlowModulatingValve[] = [];
+  const levelOpeningValves: LevelOpeningValve[] = [];
 
   const generateRemoteSetpointPrvLines = () =>
     remoteSetpointPrvs.map((prv) => `    ${remoteSetpointPrvInvocation(prv)}`);
@@ -155,6 +183,14 @@ export const LuaScriptBuilder = () => {
     "}",
   ];
 
+  const generateLevelOpeningValvesTable = () => [
+    "LOVALVE_VALVES = {",
+    ...levelOpeningValves.map(
+      (valve) => `    ${levelOpeningValveStruct(valve)},`,
+    ),
+    "}",
+  ];
+
   const build = () => {
     const script = [];
     const onHydraulicStepInner = [];
@@ -178,6 +214,12 @@ export const LuaScriptBuilder = () => {
       script.push(...FLOW_MODULATING_VALVES_FUNCTION);
       script.push(...generateFlowModulatingValvesTable());
       onHydraulicStepInner.push("    fmvalve_step(FMVALVE_VALVES)");
+    }
+
+    if (levelOpeningValves.length > 0) {
+      script.push(...LEVEL_OPENING_VALVES_FUNCTION);
+      script.push(...generateLevelOpeningValvesTable());
+      onHydraulicStepInner.push("    lovalve_step(LOVALVE_VALVES)");
     }
 
     if (onHydraulicStepInner.length > 0) {
@@ -222,10 +264,14 @@ export const LuaScriptBuilder = () => {
   const withFlowModulatingValve = (valve: FlowModulatingValve) =>
     flowModulatingValves.push(valve);
 
+  const withLevelOpeningValve = (valve: LevelOpeningValve) =>
+    levelOpeningValves.push(valve);
+
   return {
     withRemoteSetpointPrv,
     withVariableSpeedPump,
     withFlowModulatingValve,
+    withLevelOpeningValve,
     build,
   };
 };

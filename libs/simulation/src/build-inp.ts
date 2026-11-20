@@ -32,6 +32,7 @@ import {
   DEFAULT_INITIAL_QUALITY,
   type VariableSpeedPumpControl,
   type FlowModulatingValveControl,
+  type LevelOpeningControl,
   getLinkFlowModulatingValve,
 } from "@epanet-js/hydraulic-model";
 import {
@@ -415,6 +416,7 @@ export type LsxRequirements = {
   remoteSetpointPrvs: string[];
   variableSpeedPumps: string[];
   flowModulatingValves: string[];
+  levelOpeningValves: string[];
 };
 
 export const getLsxRequirements = (
@@ -425,6 +427,7 @@ export const getLsxRequirements = (
     remoteSetpointPrvs: [],
     variableSpeedPumps: [],
     flowModulatingValves: [],
+    levelOpeningValves: [],
   };
 
   for (const asset of hydraulicModel.assets.values()) {
@@ -445,6 +448,14 @@ export const getLsxRequirements = (
   for (const control of scriptedFlowModulatingValves(hydraulicModel)) {
     requirements.isRequired = true;
     requirements.flowModulatingValves.push(
+      hydraulicModel.assets.get(control.linkId)!.label,
+    );
+  }
+
+  for (const control of simulatedLevelOpenings(hydraulicModel)) {
+    if (!control.continuous) continue;
+    requirements.isRequired = true;
+    requirements.levelOpeningValves.push(
       hydraulicModel.assets.get(control.linkId)!.label,
     );
   }
@@ -1095,10 +1106,33 @@ const valveSetting = (
   hydraulicModel: HydraulicModel,
   valve: Valve,
 ): number | null | undefined => {
+  if (valve.kind === "pcv") return pcvSetting(hydraulicModel, valve);
   if (valve.kind !== "prv") return valve.setting;
   const control = getLinkFlowModulatingValve(hydraulicModel.controls, valve.id);
   if (!control || control.points.length === 0) return valve.setting;
   return control.points[0].pressure;
+};
+
+const pcvSetting = (
+  hydraulicModel: HydraulicModel,
+  valve: Valve,
+): number | null => {
+  const control = simulatedLevelOpenings(hydraulicModel).find(
+    (candidate) => candidate.linkId === valve.id,
+  );
+  if (!control || !control.continuous) return valve.setting;
+  const tank = hydraulicModel.assets.get(control.tankId) as Tank;
+  if (tank.initialLevel === null) return valve.setting;
+  return levelOpeningAt(control, tank.initialLevel);
+};
+
+const levelOpeningAt = (
+  { level: { open, close } }: LevelOpeningControl,
+  level: number,
+): number => {
+  if (level >= close) return 0;
+  if (level <= open) return 100;
+  return (100 * (close - level)) / (close - open);
 };
 
 function* demandRows(
@@ -1438,6 +1472,7 @@ function* controlRows(
   yield* timedSettingControlRows(hydraulicModel, idMap);
   yield* levelSettingControlRows(hydraulicModel, idMap);
   yield* variableSpeedPumpTankLevelRows(hydraulicModel, idMap);
+  yield* levelOpeningControlRows(hydraulicModel, idMap);
 }
 
 function* timedSettingControlRows(
@@ -1499,6 +1534,21 @@ function* variableSpeedPumpTankLevelRows(
 
     yield `LINK ${linkId} OPEN IF NODE ${tankId} BELOW ${tankLevels.onLevel}`;
     yield `LINK ${linkId} CLOSED IF NODE ${tankId} ABOVE ${tankLevels.offLevel}`;
+  }
+}
+
+function* levelOpeningControlRows(
+  hydraulicModel: HydraulicModel,
+  idMap: EpanetIds,
+): Generator<string> {
+  for (const control of simulatedLevelOpenings(hydraulicModel)) {
+    if (control.continuous) continue;
+
+    const linkId = resolveLinkId(hydraulicModel, idMap, control.linkId);
+    const tankId = resolveNodeId(hydraulicModel, idMap, control.tankId);
+
+    yield `LINK ${linkId} 100 IF NODE ${tankId} BELOW ${control.level.open}`;
+    yield `LINK ${linkId} CLOSED IF NODE ${tankId} ABOVE ${control.level.close}`;
   }
 }
 
@@ -1565,6 +1615,17 @@ function* scriptRows(
       isLocal: control.controlNodeId === valve.connections[1],
       inletNodeId,
       outletNodeId,
+    });
+  }
+
+  for (const control of simulatedLevelOpenings(hydraulicModel)) {
+    if (!control.continuous) continue;
+
+    builder.withLevelOpeningValve({
+      valveId: resolveLinkId(hydraulicModel, idMap, control.linkId),
+      tankId: resolveNodeId(hydraulicModel, idMap, control.tankId),
+      openLevel: control.level.open,
+      closeLevel: control.level.close,
     });
   }
 
@@ -1741,6 +1802,38 @@ const scriptedFlowModulatingValves = (
       isAssetInSimulation(hydraulicModel, control.sensorLinkId) &&
       isAssetInSimulation(hydraulicModel, control.controlNodeId),
   );
+
+const simulatedLevelOpenings = (
+  hydraulicModel: HydraulicModel,
+): LevelOpeningControl[] =>
+  hydraulicModel.controls.filter(
+    (control): control is LevelOpeningControl =>
+      control.type === "level-opening" &&
+      control.level.open < control.level.close &&
+      isActivePcv(hydraulicModel, control.linkId) &&
+      isActiveTank(hydraulicModel, control.tankId),
+  );
+
+const isActivePcv = (
+  hydraulicModel: HydraulicModel,
+  assetId: AssetId,
+): boolean => {
+  const asset = hydraulicModel.assets.get(assetId);
+  return (
+    !!asset &&
+    asset.isActive &&
+    asset.type === "valve" &&
+    (asset as Valve).kind === "pcv"
+  );
+};
+
+const isActiveTank = (
+  hydraulicModel: HydraulicModel,
+  assetId: AssetId,
+): boolean => {
+  const asset = hydraulicModel.assets.get(assetId);
+  return !!asset && asset.isActive && asset.type === "tank";
+};
 
 const isAssetInSimulation = (
   hydraulicModel: HydraulicModel,

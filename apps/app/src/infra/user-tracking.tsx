@@ -491,6 +491,7 @@ type InpExported = {
   includesRemoteSetpointPrvs?: boolean;
   includesVariableSpeedPumps?: boolean;
   includesFlowModulatingValves?: boolean;
+  includesLevelOpeningValves?: boolean;
   scenariosCount: number;
 };
 

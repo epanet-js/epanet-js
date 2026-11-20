@@ -74,6 +74,8 @@ export const useSaveInp = () => {
               lsxRequirements.variableSpeedPumps.length > 0,
             includesFlowModulatingValves:
               lsxRequirements.flowModulatingValves.length > 0,
+            includesLevelOpeningValves:
+              lsxRequirements.levelOpeningValves.length > 0,
             scenariosCount: worktree.scenarios.length,
           });
 

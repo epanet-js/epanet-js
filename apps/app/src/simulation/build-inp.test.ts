@@ -552,6 +552,7 @@ describe("build inp", () => {
         remoteSetpointPrvs: [],
         variableSpeedPumps: [],
         flowModulatingValves: [hydraulicModel.assets.get(IDS.V1)!.label],
+        levelOpeningValves: [],
       });
     });
   });

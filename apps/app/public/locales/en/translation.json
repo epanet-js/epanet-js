@@ -904,6 +904,7 @@
   "alertExportInpLsxRemoteSetpointPrvs": "Remote set-point PRVs",
   "alertExportInpLsxVariableSpeedPumps": "Variable speed pumps",
   "alertExportInpLsxFlowModulatingValves": "Flow-modulating valves",
+  "alertExportInpLsxLevelOpeningValves": "Level-based valves with continuous regulation",
   "saveAsProject": "Save as Project",
   "exportToInp": "Export to INP",
   "newBadge": "new",

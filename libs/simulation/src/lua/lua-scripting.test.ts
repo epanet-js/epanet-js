@@ -70,6 +70,28 @@ describe("LuaScriptBuilder", () => {
     });
   });
 
+  describe("level-opening valves", () => {
+    it("emits the fragment, the valves table and the step handler call", () => {
+      const builder = LuaScriptBuilder();
+      builder.withLevelOpeningValve({
+        valveId: "V1",
+        tankId: "T1",
+        openLevel: 1.5,
+        closeLevel: 4,
+      });
+
+      const script = builder.build().join("\n");
+
+      expect(script).toContain("function lovalveOpening(v)");
+      expect(script).toContain(
+        'LOVALVE_VALVES = {\n    {valve_id="V1",tank_id="T1",open_level=1.5,close_level=4},\n}',
+      );
+      expect(script).toContain(
+        "function on_hydraulic_step()\n    lovalve_step(LOVALVE_VALVES)\nend",
+      );
+    });
+  });
+
   describe("flow-modulating valves", () => {
     const linearValve = {
       valveId: "V1",
