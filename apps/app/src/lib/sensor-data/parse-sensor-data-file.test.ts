@@ -22,6 +22,8 @@ const buildModel = () => {
 
 const parse = (file: File) => parseSensorDataFile(file, buildModel());
 
+const JUNCTION_PARAMETERS = "junction: pressure, head, demand";
+
 describe("parseSensorDataFile", () => {
   it("reads one sensor per column with the readings down the column", async () => {
     const result = await parse(
@@ -116,7 +118,12 @@ describe("parseSensorDataFile", () => {
 
     expect(result.status).toEqual("partial");
     expect(result.sensors.map((s) => s.name)).toEqual(["SENSOR-A"]);
-    expect(result.errors).toEqual([{ code: "unknownHeaderRow" }]);
+    expect(result.errors).toEqual([
+      {
+        code: "unknownHeaderRow",
+        params: ["description", "sensor, parameter, asset, type"],
+      },
+    ]);
   });
 
   it("uses the first of a repeated header row", async () => {
@@ -131,7 +138,9 @@ describe("parseSensorDataFile", () => {
     );
 
     expect(result.sensors[0].parameter).toEqual("pressure");
-    expect(result.errors).toEqual([{ code: "repeatedHeaderRow" }]);
+    expect(result.errors).toEqual([
+      { code: "repeatedHeaderRow", params: ["parameter"] },
+    ]);
   });
 
   describe("vocabulary", () => {
@@ -141,7 +150,56 @@ describe("parseSensorDataFile", () => {
         tank: { level: ["Nivel"] },
       },
       assetTypes: { junction: ["Nudo"], pump: ["Bomba"] },
+      headers: {
+        sensor: ["Sensor"],
+        parameter: ["Parámetro"],
+        asset: ["Elemento"],
+        type: ["Tipo"],
+      },
     };
+
+    it("accepts the given words for the header rows, regardless of case", async () => {
+      const result = await parseSensorDataFile(
+        csvFile(
+          "SENSOR,A",
+          "parámetro,Presión",
+          "Elemento,J2",
+          "tipo,Nudo",
+          "t,1",
+        ),
+        buildModel(),
+        vocabulary,
+      );
+
+      expect(result.errors).toEqual([]);
+      expect(
+        result.sensors.map(({ name, parameter }) => ({ name, parameter })),
+      ).toEqual([{ name: "A", parameter: "pressure" }]);
+    });
+
+    it("lists the given words for the header rows when a row is unknown", async () => {
+      const result = await parseSensorDataFile(
+        csvFile(
+          "sensor,A",
+          "parameter,pressure",
+          "asset,J2",
+          "unidad,m",
+          "t,1",
+        ),
+        buildModel(),
+        vocabulary,
+      );
+
+      expect(result.errors).toEqual([
+        {
+          code: "unknownHeaderRow",
+          params: [
+            "unidad",
+            "sensor, parameter, Parámetro, asset, Elemento, type, Tipo",
+          ],
+        },
+      ]);
+    });
 
     it("accepts the given words for a parameter and an asset type, regardless of case", async () => {
       const result = await parseSensorDataFile(
@@ -192,7 +250,13 @@ describe("parseSensorDataFile", () => {
       );
 
       expect(result.errors).toEqual([
-        { label: "A", code: "unsupportedParameter", value: "Nivel", row: 2 },
+        {
+          label: "A",
+          code: "unsupportedParameter",
+          params: ["junction: pressure, Presión, head, demand"],
+          value: "Nivel",
+          row: 2,
+        },
       ]);
     });
   });
@@ -242,7 +306,13 @@ describe("parseSensorDataFile", () => {
 
       expect(result.sensors.map((s) => s.assetId)).toEqual([IDS.J1]);
       expect(result.errors).toEqual([
-        { label: "A", code: "invalidAssetType", value: "hydrant", row: 2 },
+        {
+          label: "A",
+          code: "invalidAssetType",
+          params: ["junction, tank, reservoir, pipe, pump, valve"],
+          value: "hydrant",
+          row: 2,
+        },
       ]);
     });
   });
@@ -386,10 +456,17 @@ describe("parseSensorDataFile", () => {
 
       expect(result.errors).toEqual([
         { label: "A", code: "missingParameter", row: 2 },
-        { label: "B", code: "unsupportedParameter", value: "flow", row: 3 },
+        {
+          label: "B",
+          code: "unsupportedParameter",
+          params: [JUNCTION_PARAMETERS],
+          value: "flow",
+          row: 3,
+        },
         {
           label: "C",
           code: "unsupportedParameter",
+          params: [JUNCTION_PARAMETERS],
           value: "Pressure (psi)",
           row: 4,
         },
@@ -444,10 +521,28 @@ describe("parseSensorDataFile", () => {
       expect(result.errors).toEqual([{ code: "unsupportedFormat" }]);
     });
 
-    it("refuses a file without a sensor row", async () => {
+    it("refuses a file without a sensor row, naming the labels it found", async () => {
       const result = await parse(
-        csvFile("Sensor name,Type,Asset label,Readings", "A,pressure,J1,1"),
+        csvFile(
+          "Sensor Id,A",
+          "Type,junction",
+          "Sensor Type,pressure",
+          "AssetID,J1",
+          "t,1",
+        ),
       );
+
+      expect(result.status).toEqual("error");
+      expect(result.errors).toEqual([
+        {
+          code: "missingSensorRow",
+          params: ["Sensor Id, Type, Sensor Type, AssetID"],
+        },
+      ]);
+    });
+
+    it("refuses a file with no header rows at all", async () => {
+      const result = await parse(csvFile("1,2,3", "4,5,6"));
 
       expect(result.status).toEqual("error");
       expect(result.errors).toEqual([{ code: "notAValidSensorFile" }]);

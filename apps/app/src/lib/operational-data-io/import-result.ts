@@ -3,6 +3,7 @@ export type ImportError = {
   // What went wrong, as a bare code the UI resolves against its own
   // translation namespace.
   code: string;
+  params?: string[];
   value?: string;
   // 1-based position in the file as the user sees it in a spreadsheet.
   row?: number;

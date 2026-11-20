@@ -28,13 +28,19 @@ import {
 
 const ACCEPTED_EXTENSIONS = ".csv,.xlsx";
 
-const REFUSAL_CODES = new Set(["unsupportedFormat", "notAValidSensorFile"]);
+const REFUSAL_CODES = new Set([
+  "unsupportedFormat",
+  "notAValidSensorFile",
+  "missingSensorRow",
+]);
 
-const refusalOf = (result: ParseSensorDataResult): string | null => {
+type Refusal = { code: string; params?: string[] };
+
+const refusalOf = (result: ParseSensorDataResult): Refusal | null => {
   const refusal = result.errors.find(({ code }) => REFUSAL_CODES.has(code));
-  if (refusal) return refusal.code;
+  if (refusal) return { code: refusal.code, params: refusal.params };
   if (result.status === "error" && result.errors.length === 0) {
-    return "unreadableFile";
+    return { code: "unreadableFile" };
   }
   return null;
 };
@@ -53,7 +59,7 @@ export const ImportSensorDataDialog = ({
 
   const [file, setFile] = useState<File | null>(null);
   const [isParsing, setIsParsing] = useState(false);
-  const [refusal, setRefusal] = useState<string | null>(null);
+  const [refusal, setRefusal] = useState<Refusal | null>(null);
   const [result, setResult] = useState<ParseSensorDataResult | null>(null);
 
   const timingWarnings = useMemo(
@@ -62,9 +68,12 @@ export const ImportSensorDataDialog = ({
   );
 
   const refuse = useCallback(
-    (reason: string) => {
-      userTracking.capture({ name: "sensorData.importRefused", reason });
-      setRefusal(reason);
+    (refusal: Refusal) => {
+      userTracking.capture({
+        name: "sensorData.importRefused",
+        reason: refusal.code,
+      });
+      setRefusal(refusal);
     },
     [userTracking],
   );
@@ -92,7 +101,7 @@ export const ImportSensorDataDialog = ({
         setResult(parsed);
       } catch (error) {
         captureError(error as Error);
-        refuse("unreadableFile");
+        refuse({ code: "unreadableFile" });
       } finally {
         setIsParsing(false);
       }
@@ -104,7 +113,7 @@ export const ImportSensorDataDialog = ({
     (rejected: File) => {
       setFile(rejected);
       setResult(null);
-      refuse("unsupportedFormat");
+      refuse({ code: "unsupportedFormat" });
     },
     [refuse],
   );
@@ -119,7 +128,10 @@ export const ImportSensorDataDialog = ({
   const outcome: ImportOutcome | null = refusal
     ? {
         status: "failed",
-        message: translate(`${SENSOR_DATA_IMPORT_KEYS}.${refusal}`),
+        message: translate(
+          `${SENSOR_DATA_IMPORT_KEYS}.${refusal.code}`,
+          ...(refusal.params ?? []),
+        ),
       }
     : resultOutcome;
 
@@ -135,7 +147,6 @@ export const ImportSensorDataDialog = ({
   return (
     <BaseDialog
       title={translate("sensorData.import.title")}
-      badge={<FormatInfo />}
       size="lg"
       height="xl"
       isOpen={true}
@@ -163,6 +174,7 @@ export const ImportSensorDataDialog = ({
                 translationKeys={SENSOR_DATA_IMPORT_KEYS}
                 onRemove={handleRemoveFile}
                 removeLabel={translate("sensorData.import.removeFile")}
+                help={refusal ? <FormatInfo variant="link" /> : undefined}
               />
             </div>
             {result && <SensorPreview result={result} />}
@@ -176,6 +188,7 @@ export const ImportSensorDataDialog = ({
             supportedFormats="CSV, XLSX"
             selectedFile={file}
             testId="sensor-data-drop-zone"
+            formatHelp={<FormatInfo />}
           />
         )}
       </div>

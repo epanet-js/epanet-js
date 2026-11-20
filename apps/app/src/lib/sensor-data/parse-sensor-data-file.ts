@@ -22,8 +22,13 @@ import {
 } from "src/lib/operational-data-io/table-file";
 import {
   EMPTY_VOCABULARY,
+  acceptedAssetTypes,
+  acceptedHeaders,
+  acceptedParameters,
+  headerFor,
   assetTypeFor,
   parameterFor,
+  type SensorHeader,
   type SensorParameter,
   type SensorVocabulary,
 } from "./parameters";
@@ -48,15 +53,6 @@ type ModelLookup = {
   assets: AssetsMap;
 };
 
-type HeaderKey = "sensor" | "parameter" | "asset" | "type";
-
-const HEADER_KEYS: readonly HeaderKey[] = [
-  "sensor",
-  "parameter",
-  "asset",
-  "type",
-];
-
 const FIRST_SENSOR_COLUMN = 1;
 
 const ANY_NODE: LabelType = "junction";
@@ -72,38 +68,45 @@ type ColumnOutcome = {
 };
 
 type Layout = {
-  headers: Map<HeaderKey, Cell[]>;
+  headers: Map<SensorHeader, Cell[]>;
   readingRows: NumberedRow[];
   columnCount: number;
   headerIssues: ImportError[];
+  headerLabels: string[];
 };
 
-const headerKeyOf = (cell: Cell): HeaderKey | undefined => {
-  const key = text(cell).toLowerCase();
-  return HEADER_KEYS.find((candidate) => candidate === key);
-};
+const headerKeyOf = (
+  cell: Cell,
+  vocabulary: SensorVocabulary,
+): SensorHeader | undefined => headerFor(text(cell), vocabulary);
 
 const isReadingRow = (cells: Cell[]) =>
   cells.slice(FIRST_SENSOR_COLUMN).some(isNumeric);
 
-const readLayout = (rows: Cell[][]): Layout => {
+const readLayout = (rows: Cell[][], vocabulary: SensorVocabulary): Layout => {
   const body = untilDoubleBlank(rows);
   const firstReading = body.findIndex(
-    ({ cells }) => !headerKeyOf(cells[0]) && isReadingRow(cells),
+    ({ cells }) => !headerKeyOf(cells[0], vocabulary) && isReadingRow(cells),
   );
   const headerRows = firstReading < 0 ? body : body.slice(0, firstReading);
   const readingRows = firstReading < 0 ? [] : body.slice(firstReading);
 
-  const headers = new Map<HeaderKey, Cell[]>();
+  const headers = new Map<SensorHeader, Cell[]>();
   const headerIssues: ImportError[] = [];
   for (const { cells } of headerRows) {
-    const key = headerKeyOf(cells[0]);
+    const key = headerKeyOf(cells[0], vocabulary);
     if (!key) {
-      headerIssues.push({ code: "unknownHeaderRow" });
+      headerIssues.push({
+        code: "unknownHeaderRow",
+        params: [text(cells[0]), acceptedHeaders(vocabulary).join(", ")],
+      });
       continue;
     }
     if (headers.has(key)) {
-      headerIssues.push({ code: "repeatedHeaderRow" });
+      headerIssues.push({
+        code: "repeatedHeaderRow",
+        params: [text(cells[0])],
+      });
       continue;
     }
     headers.set(key, cells);
@@ -115,7 +118,11 @@ const readLayout = (rows: Cell[][]): Layout => {
     ...readingRows.map(({ cells }) => cells.length),
   );
 
-  return { headers, readingRows, columnCount, headerIssues };
+  const headerLabels = headerRows
+    .map(({ cells }) => text(cells[0]))
+    .filter((label) => label !== "");
+
+  return { headers, readingRows, columnCount, headerIssues, headerLabels };
 };
 
 const readingOf = (cell: Cell): number | null => {
@@ -142,6 +149,16 @@ const parseReadings = (
   return { readings };
 };
 
+const acceptedParametersFor = (
+  assets: Asset[],
+  vocabulary: SensorVocabulary,
+): string =>
+  [...new Set(assets.map(({ type }) => type))]
+    .map(
+      (type) => `${type}: ${acceptedParameters(type, vocabulary).join(", ")}`,
+    )
+    .join("; ");
+
 const assetsLabelled = (label: string, model: ModelLookup): Asset[] =>
   [
     model.labelManager.getIdByLabel(label, ANY_NODE),
@@ -157,7 +174,7 @@ const parseColumn = (
   model: ModelLookup,
   vocabulary: SensorVocabulary,
 ): ColumnOutcome => {
-  const cellOf = (key: HeaderKey) => text(layout.headers.get(key)?.[column]);
+  const cellOf = (key: SensorHeader) => text(layout.headers.get(key)?.[column]);
 
   const parsedReadings = parseReadings(
     layout.readingRows.map(({ cells }) => cells[column]),
@@ -169,7 +186,11 @@ const parseColumn = (
   const assetType =
     rawAssetType === "" ? undefined : assetTypeFor(rawAssetType, vocabulary);
   if (rawAssetType !== "" && !assetType) {
-    warnings.push({ code: "invalidAssetType", value: rawAssetType });
+    warnings.push({
+      code: "invalidAssetType",
+      params: [acceptedAssetTypes(vocabulary).join(", ")],
+      value: rawAssetType,
+    });
   }
 
   const assetLabel = cellOf("asset") || name;
@@ -202,7 +223,11 @@ const parseColumn = (
     return {
       errors: [
         ...warnings,
-        { code: "unsupportedParameter", value: rawParameter },
+        {
+          code: "unsupportedParameter",
+          params: [acceptedParametersFor(candidates, vocabulary)],
+          value: rawParameter,
+        },
       ],
     };
   }
@@ -293,16 +318,25 @@ const buildSensors = (
   return { sensors, errors, columnsRead, shapeRejects };
 };
 
+const MAX_LISTED_LABELS = 5;
+
 const refused = (
   format: TableFormat,
   ignored: number,
+  error: ImportError = { code: "notAValidSensorFile" },
 ): ParseSensorDataResult => ({
   status: "error",
   format,
   sensors: [],
   ignored,
-  errors: [{ code: "notAValidSensorFile" }],
+  errors: [error],
 });
+
+const missingSensorRow = (layout: Layout): ImportError | undefined => {
+  if (layout.headerLabels.length === 0) return undefined;
+  const listed = layout.headerLabels.slice(0, MAX_LISTED_LABELS).join(", ");
+  return { code: "missingSensorRow", params: [listed] };
+};
 
 export const parseSensorDataFile = async (
   file: File,
@@ -326,8 +360,10 @@ export const parseSensorDataFile = async (
     return { status: "error", format, sensors: [], ignored: 0, errors: [] };
   }
 
-  const layout = readLayout(rows);
-  if (!layout.headers.has("sensor")) return refused(format, 0);
+  const layout = readLayout(rows, vocabulary);
+  if (!layout.headers.has("sensor")) {
+    return refused(format, 0, missingSensorRow(layout));
+  }
 
   const { sensors, errors, columnsRead, shapeRejects } = buildSensors(
     layout,

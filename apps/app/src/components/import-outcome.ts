@@ -7,6 +7,7 @@ export type ImportStats = ImportCounts & { ignored: number };
 
 export type ImportIssue = {
   code: string;
+  params?: string[];
   rows: number[];
 };
 
@@ -24,23 +25,28 @@ const MAX_LISTED_ROWS = 5;
 // One issue per kind of problem, carrying the rows it happened on — a file
 // with fifty bad rows reads as two lines, not fifty.
 export const groupErrors = (errors: ImportError[]): ImportIssue[] => {
-  const rowsByCode = new Map<string, number[]>();
+  const issuesByKey = new Map<string, ImportIssue>();
 
   for (const error of errors) {
-    const rows = rowsByCode.get(error.code) ?? [];
-    if (error.row !== undefined) rows.push(error.row);
-    rowsByCode.set(error.code, rows);
+    const key = [error.code, ...(error.params ?? [])].join("\u0000");
+    const issue = issuesByKey.get(key) ?? {
+      code: error.code,
+      ...(error.params ? { params: error.params } : {}),
+      rows: [],
+    };
+    if (error.row !== undefined) issue.rows.push(error.row);
+    issuesByKey.set(key, issue);
   }
 
-  return [...rowsByCode.entries()].map(([code, rows]) => ({ code, rows }));
+  return [...issuesByKey.values()];
 };
 
 export const describeIssue = (
-  { code, rows }: ImportIssue,
+  { code, params = [], rows }: ImportIssue,
   translate: Translate,
   keysNamespace: string,
 ): string => {
-  const text = translate(`${keysNamespace}.${code}`);
+  const text = translate(`${keysNamespace}.${code}`, ...params);
   if (rows.length === 0) return text;
 
   if (rows.length === 1) {

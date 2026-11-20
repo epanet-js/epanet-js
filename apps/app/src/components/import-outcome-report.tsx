@@ -1,4 +1,4 @@
-import { Fragment } from "react";
+import { Fragment, type ReactNode } from "react";
 import clsx from "clsx";
 import { useTranslate } from "src/hooks/use-translate";
 import {
@@ -90,12 +90,14 @@ export const ImportFileReport = ({
   translationKeys,
   onRemove,
   removeLabel,
+  help,
 }: {
   fileName: string;
   outcome: ImportOutcome;
   translationKeys: string;
   onRemove: () => void;
   removeLabel: string;
+  help?: ReactNode;
 }) => {
   const { tint, Icon } = report[outcome.status];
   const isError = outcome.status === "failed";
@@ -118,6 +120,7 @@ export const ImportFileReport = ({
           translationKeys={translationKeys}
           listClassName="max-h-40 overflow-auto"
         />
+        {help}
       </div>
       <button
         className="p-1 -m-1 rounded-base text-subtle hover:text-default hover:bg-base-hover focus:outline-hidden focus:ring-2 focus:ring-inset focus:ring-accent"
@@ -195,8 +198,8 @@ const OutcomeIssues = ({
           listClassName,
         )}
       >
-        {outcome.issues.map((issue) => (
-          <li key={issue.code}>
+        {outcome.issues.map((issue, index) => (
+          <li key={`${issue.code}-${index}`}>
             {describeIssue(issue, translate, translationKeys)}
           </li>
         ))}

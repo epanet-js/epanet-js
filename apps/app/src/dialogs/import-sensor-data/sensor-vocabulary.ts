@@ -25,6 +25,12 @@ export const buildSensorVocabulary = (
   assetTypes: Object.fromEntries(
     ASSET_TYPES.map((assetType) => [assetType, [translate(assetType)]]),
   ),
+  headers: {
+    sensor: [translate("sensorData.panel.sensor")],
+    parameter: [translate("sensorData.panel.parameter")],
+    asset: [translate("sensorData.panel.asset")],
+    type: [translate("type")],
+  },
 });
 
 export const useSensorVocabulary = (): SensorVocabulary => {

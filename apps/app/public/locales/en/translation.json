@@ -2265,9 +2265,9 @@
       "sessionNote": "Sensor data is kept for this session only. It is not saved in the project file.",
       "format": {
         "title": "File format",
-        "columns": "One column per sensor, after a column with the times.",
-        "headers": "Header rows: sensor (name), parameter (what it measures), asset (defaults to the sensor name) and type (optional asset type).",
-        "readings": "Then one reading per report time step, with no gaps, in project units."
+        "show": "See the expected format",
+        "optional": "The type row is optional. The asset defaults to the sensor name.",
+        "readings": "One reading per report time step, in project units."
       },
       "preview": {
         "sensor": "Sensor",
@@ -2298,21 +2298,22 @@
       "atRow": "{{1}} (column {{2}})",
       "atRows": "{{1}} (columns {{2}})",
       "andMoreRows": "{{1}} and {{2}} more",
-      "unknownHeaderRow": "Unknown header row. Row ignored",
-      "repeatedHeaderRow": "Repeated header row. Only the first is used",
+      "unknownHeaderRow": "Unrecognized label \"{{1}}\" in the first column. Use one of: {{2}}. Row ignored",
+      "repeatedHeaderRow": "\"{{1}}\" appears more than once in the first column. Only the first row is used",
       "missingName": "Missing sensor name. Sensor skipped",
       "duplicateName": "Duplicate sensor name. Later columns skipped",
       "noReadings": "No readings. Sensor skipped",
       "invalidReading": "Missing or invalid reading. Sensor skipped",
       "assetNotFound": "Asset not found in the model. Sensor skipped",
-      "invalidAssetType": "Unknown asset type. Type ignored",
+      "invalidAssetType": "Unknown asset type. Accepted: {{1}}. Type ignored",
       "assetTypeMismatch": "No asset of that type has this label. Sensor skipped",
       "missingParameter": "Missing parameter. Sensor skipped",
-      "unsupportedParameter": "Parameter not supported by the asset. Sensor skipped",
-      "ambiguousAsset": "Label shared by a node and a link. Add a type row. Sensor skipped",
+      "unsupportedParameter": "Parameter not supported by the asset. Accepted for {{1}}. Sensor skipped",
+      "ambiguousAsset": "A node and a link share this label. Add a \"type\" row to say which. Sensor skipped",
       "duplicateSensorOnAsset": "Asset already has a sensor for this parameter. Sensor skipped",
       "readingsDontCoverDuration": "Readings don't match the simulation duration. Sensors imported anyway",
-      "notAValidSensorFile": "Not a sensor data file. Expected a sensor row and one column per sensor.",
+      "notAValidSensorFile": "Not a sensor data file.",
+      "missingSensorRow": "Couldn't find the sensor names. Put them in a row labeled \"sensor\" in the first column. Labels found: {{1}}.",
       "unsupportedFormat": "Only .csv and .xlsx files can be imported",
       "unreadableFile": "The selected file could not be read."
     }

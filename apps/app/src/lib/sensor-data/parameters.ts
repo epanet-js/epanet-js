@@ -31,16 +31,22 @@ export type SensorParameter =
 
 export const ASSET_TYPES = Object.keys(PARAMETERS_BY_ASSET_TYPE) as AssetType[];
 
+export const SENSOR_HEADERS = ["sensor", "parameter", "asset", "type"] as const;
+
+export type SensorHeader = (typeof SENSOR_HEADERS)[number];
+
 export type SensorVocabulary = {
   parameters: Partial<
     Record<AssetType, Partial<Record<SensorParameter, readonly string[]>>>
   >;
   assetTypes: Partial<Record<AssetType, readonly string[]>>;
+  headers: Partial<Record<SensorHeader, readonly string[]>>;
 };
 
 export const EMPTY_VOCABULARY: SensorVocabulary = {
   parameters: {},
   assetTypes: {},
+  headers: {},
 };
 
 const normalize = (value: string) => value.trim().toLowerCase();
@@ -76,3 +82,56 @@ export const assetTypeFor = (
   ASSET_TYPES.find((assetType) =>
     isNamed(value, assetType, vocabulary.assetTypes[assetType]),
   );
+
+export const headerFor = (
+  value: string,
+  vocabulary: SensorVocabulary = EMPTY_VOCABULARY,
+): SensorHeader | undefined =>
+  SENSOR_HEADERS.find((header) =>
+    isNamed(value, header, vocabulary.headers[header]),
+  );
+
+const withAliases = (
+  entries: readonly (readonly [string, readonly string[] | undefined])[],
+): string[] => {
+  const seen = new Set<string>();
+  const words: string[] = [];
+  for (const [key, aliases] of entries) {
+    for (const word of [key, ...(aliases ?? [])]) {
+      const normalized = normalize(word);
+      if (seen.has(normalized)) continue;
+      seen.add(normalized);
+      words.push(word);
+    }
+  }
+  return words;
+};
+
+export const acceptedHeaders = (
+  vocabulary: SensorVocabulary = EMPTY_VOCABULARY,
+): string[] =>
+  withAliases(
+    SENSOR_HEADERS.map((header) => [header, vocabulary.headers[header]]),
+  );
+
+export const acceptedAssetTypes = (
+  vocabulary: SensorVocabulary = EMPTY_VOCABULARY,
+): string[] =>
+  withAliases(
+    ASSET_TYPES.map((assetType) => [
+      assetType,
+      vocabulary.assetTypes[assetType],
+    ]),
+  );
+
+export const acceptedParameters = (
+  assetType: AssetType,
+  vocabulary: SensorVocabulary = EMPTY_VOCABULARY,
+): string[] => {
+  const supported: readonly SensorParameter[] =
+    PARAMETERS_BY_ASSET_TYPE[assetType];
+  const aliases = vocabulary.parameters[assetType] ?? {};
+  return withAliases(
+    supported.map((parameter) => [parameter, aliases[parameter]]),
+  );
+};
