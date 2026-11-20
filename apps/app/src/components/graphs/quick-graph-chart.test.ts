@@ -1,4 +1,5 @@
 import { calculateInterval } from "./quick-graph-chart";
+import { legendItemsThatFit } from "./quick-graph-legend";
 
 describe("calculateInterval", () => {
   describe("edge cases", () => {
@@ -180,5 +181,19 @@ describe("calculateInterval", () => {
       expect(result.max).toBeCloseTo(40);
       expect(result.interval).toBeCloseTo(10);
     });
+  });
+});
+
+describe("legendItemsThatFit", () => {
+  it("shows every item when they all fit", () => {
+    expect(legendItemsThatFit([50, 50], 112, 60, 12)).toEqual(2);
+  });
+
+  it("keeps room for the trigger when some items do not fit", () => {
+    expect(legendItemsThatFit([50, 50, 50], 140, 60, 12)).toEqual(1);
+  });
+
+  it("collapses every item when not even one fits beside the trigger", () => {
+    expect(legendItemsThatFit([100, 50], 120, 60, 12)).toEqual(0);
   });
 });

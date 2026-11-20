@@ -9,6 +9,7 @@ import {
 } from "react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import clsx from "clsx";
+import { Selector } from "@epanet-js/ui-kit";
 import type { Asset, AssetId } from "@epanet-js/hydraulic-model";
 import { getDecimals } from "@epanet-js/project-settings";
 import {
@@ -36,6 +37,7 @@ import {
 import {
   type QuickGraphPropertyByAssetType,
   QUICK_GRAPH_PROPERTIES,
+  SERIES_COLORS,
   toStatusStep,
   sensorReadingsStyle,
 } from "src/lib/asset-graph";
@@ -75,6 +77,8 @@ const TABLE_DEFAULT_SHARE = 0.5;
 const CHART_MIN_WIDTH = 240;
 
 const noop = () => {};
+
+type RowRange = { first: number; last: number };
 
 type ShownChart = {
   label: string;
@@ -179,14 +183,10 @@ const SensorsTableAndChart = ({
     observer.observe(container);
     return () => observer.disconnect();
   }, []);
-  const [selectedIndex, setSelectedIndex] = useState(
-    savedGrid?.selection?.min.row ?? 0,
-  );
-  const [isMultiRowSelection, setIsMultiRowSelection] = useState(
-    savedGrid?.selection
-      ? savedGrid.selection.min.row !== savedGrid.selection.max.row
-      : false,
-  );
+  const [selectedRows, setSelectedRows] = useState<RowRange>({
+    first: savedGrid?.selection?.min.row ?? 0,
+    last: savedGrid?.selection?.max.row ?? 0,
+  });
 
   const saveState = useCallback(
     (patch: { grid?: DataGridState; tableWidth?: number }) =>
@@ -315,20 +315,21 @@ const SensorsTableAndChart = ({
   const handleSelectionChange = useCallback(
     (selection: GridSelection | null) => {
       if (!selection) return;
-      setSelectedIndex(selection.min.row);
-      setIsMultiRowSelection(selection.min.row !== selection.max.row);
+      setSelectedRows({ first: selection.min.row, last: selection.max.row });
     },
     [],
   );
 
-  const selected =
-    sensors.length > 0
-      ? sensors[Math.min(selectedIndex, sensors.length - 1)]
-      : null;
+  const selectedSensors = useMemo(() => {
+    if (sensors.length === 0) return [];
+    const first = Math.min(selectedRows.first, sensors.length - 1);
+    const last = Math.min(selectedRows.last, sensors.length - 1);
+    return sensors.slice(first, last + 1);
+  }, [sensors, selectedRows]);
+  const selected = selectedSensors.length === 1 ? selectedSensors[0] : null;
   const selectedAsset = selected ? assets.get(selected.assetId) : undefined;
   const showChart =
-    selected !== null &&
-    !isMultiRowSelection &&
+    selectedSensors.length > 0 &&
     containerWidth >= TABLE_MIN_WIDTH + CHART_MIN_WIDTH;
 
   return (
@@ -383,7 +384,12 @@ const SensorsTableAndChart = ({
       {showChart && (
         <div className="flex-1 min-w-0 flex flex-col min-h-0 p-3">
           <div className="relative flex-1 min-h-0">
-            {selectedAsset ? (
+            {selectedSensors.length > 1 ? (
+              <MultiSensorChart
+                sensors={selectedSensors}
+                parameterLabel={parameterLabel}
+              />
+            ) : selected && selectedAsset ? (
               <SelectedSensorChart
                 sensor={selected}
                 asset={selectedAsset}
@@ -496,12 +502,120 @@ const SelectedSensorChart = ({
 
   if (!shown) return null;
 
+  return <QuickGraphChart {...shown.chart} title={shown.label} />;
+};
+
+const MultiSensorChart = ({
+  sensors,
+  parameterLabel,
+}: {
+  sensors: ImportedSensor[];
+  parameterLabel: (sensor: ImportedSensor, asset: Asset) => string;
+}) => {
+  const translate = useTranslate();
+  const { formatting } = useAtomValue(projectSettingsAtom);
+  const { timing } = useAtomValue(simulationSettingsDerivedAtom);
+  const { assets } = useAtomValue(stagingModelDerivedAtom);
+  const [chosenLabel, setChosenLabel] = useState<string | null>(null);
+
+  const entries = useMemo(
+    () =>
+      sensors.flatMap((sensor) => {
+        const asset = assets.get(sensor.assetId);
+        if (!asset) return [];
+        return [{ sensor, asset, label: parameterLabel(sensor, asset) }];
+      }),
+    [sensors, assets, parameterLabel],
+  );
+
+  const labels = useMemo(
+    () => [...new Set(entries.map(({ label }) => label))],
+    [entries],
+  );
+  const activeLabel =
+    chosenLabel !== null && labels.includes(chosenLabel)
+      ? chosenLabel
+      : (labels[0] ?? null);
+
+  const plotted = useMemo(
+    () => entries.filter(({ label }) => label === activeLabel),
+    [entries, activeLabel],
+  );
+
+  const first = plotted[0];
+  const isStatus = first?.sensor.parameter === "status";
+  const valueLabels = useStatusValueLabels(
+    first?.asset.type ?? "junction",
+    isStatus,
+  );
+
+  const decimals = useMemo(() => {
+    if (!first || isStatus) return 0;
+    const option = QUICK_GRAPH_PROPERTIES[first.asset.type].find(
+      ({ value }) => value === first.sensor.parameter,
+    );
+    return option ? getDecimals(formatting, option.quantityKey) : 0;
+  }, [first, isStatus, formatting]);
+
+  const series = useMemo<QuickGraphSeries[]>(
+    () =>
+      plotted.map(({ sensor }, index) => ({
+        label: sensor.name,
+        values: sensor.readings,
+        style: sensorReadingsStyle(
+          sensor.readings.length,
+          SERIES_COLORS[index % SERIES_COLORS.length],
+        ),
+      })),
+    [plotted],
+  );
+
+  const labelOptions = useMemo(
+    () => labels.map((label) => ({ label, value: label })),
+    [labels],
+  );
+
+  if (activeLabel === null) {
+    return (
+      <div className="h-full flex items-center justify-center text-size-base text-subtle">
+        {translate("sensorData.panel.notInScenario")}
+      </div>
+    );
+  }
+
+  const chart = (
+    <QuickGraphChart
+      series={series}
+      intervalsCount={Math.max(
+        0,
+        ...plotted.map(({ sensor }) => sensor.readings.length),
+      )}
+      intervalSeconds={readingsStepSeconds(timing)}
+      decimals={decimals}
+      valueLabels={valueLabels}
+      showTimeLabels={timing.duration > 0}
+      title={labels.length > 1 ? undefined : activeLabel}
+    />
+  );
+
+  if (labels.length === 1) return chart;
+
   return (
-    <>
-      <span className="absolute top-0 left-0 z-10 max-w-[50%] truncate text-size-small text-subtle leading-5">
-        {shown.label}
-      </span>
-      <QuickGraphChart {...shown.chart} />
-    </>
+    <div className="absolute inset-0 flex flex-col gap-2">
+      <div className="w-max shrink-0">
+        <Selector
+          options={labelOptions}
+          selected={activeLabel}
+          onChange={setChosenLabel}
+          triggerClassName="h-8"
+          styleOptions={{
+            border: true,
+            textSize: "text-size-base",
+            paddingY: 1,
+          }}
+        />
+      </div>
+      <div className="flex-1 min-h-0">{chart}</div>
+    </div>
   );
 };

@@ -1,9 +1,10 @@
-import { memo, useMemo, useCallback, useRef, useEffect } from "react";
+import { memo, useMemo, useCallback, useRef, useEffect, useState } from "react";
 import ReactECharts, { EChartsInstance } from "echarts-for-react";
 import type { EChartsOption } from "echarts";
 import { useTranslate } from "src/hooks/use-translate";
 import { localizeDecimal } from "@epanet-js/i18n";
 import { colors } from "src/lib/constants";
+import { QuickGraphLegend, type LegendItem } from "./quick-graph-legend";
 
 export type QuickGraphSeriesStyle =
   | { type: "line"; color: string; width?: number }
@@ -24,6 +25,7 @@ interface QuickGraphChartProps {
   onIntevalClick?: (intervalIndex: number) => void;
   valueLabels?: Map<number, string> | null;
   showTimeLabels?: boolean;
+  title?: string;
 }
 
 export const QuickGraphChart = memo(function QuickGraphChart(
@@ -41,6 +43,7 @@ function QuickGraphChartECharts({
   onIntevalClick,
   valueLabels = null,
   showTimeLabels = true,
+  title,
 }: QuickGraphChartProps) {
   const translate = useTranslate();
 
@@ -62,11 +65,48 @@ function QuickGraphChartECharts({
         .filter((entry) => entry.values.length > 0),
     [series, intervalsCount],
   );
-  const showLegend = visibleSeries.some((entry) => entry.label !== null);
+  const [hiddenLabels, setHiddenLabels] = useState<ReadonlySet<string>>(
+    () => new Set(),
+  );
+  const toggleSeries = useCallback(
+    (label: string) =>
+      setHiddenLabels((prev) => {
+        const next = new Set(prev);
+        if (next.has(label)) next.delete(label);
+        else next.add(label);
+        return next;
+      }),
+    [],
+  );
+  const isShown = useCallback(
+    ({ label }: QuickGraphSeries) => label === null || !hiddenLabels.has(label),
+    [hiddenLabels],
+  );
+
+  const hasSeriesNames = visibleSeries.some((entry) => entry.label !== null);
+  const showLegend = hasSeriesNames;
+  const showTopBand = showLegend || title !== undefined;
+
+  const legendItems = useMemo<LegendItem[]>(
+    () =>
+      visibleSeries.flatMap(({ label, style }) =>
+        label === null
+          ? []
+          : [
+              {
+                label,
+                color: style.color,
+                mark: style.type === "line" ? "line" : "points",
+                hidden: hiddenLabels.has(label),
+              },
+            ],
+      ),
+    [visibleSeries, hiddenLabels],
+  );
 
   const allValues = useMemo(
-    () => visibleSeries.flatMap((entry) => entry.values),
-    [visibleSeries],
+    () => visibleSeries.filter(isShown).flatMap((entry) => entry.values),
+    [visibleSeries, isShown],
   );
 
   const xAxis: EChartsOption["xAxis"] = useMemo(
@@ -83,40 +123,27 @@ function QuickGraphChartECharts({
 
   const chartSeries: EChartsOption["series"] = useMemo(
     () =>
-      visibleSeries.map((entry, index) => ({
-        ...toEChartsSeries(entry),
-        z: visibleSeries.length - index,
-        ...(index === 0 ? { markLine: MARK_LINE } : {}),
-      })),
-    [visibleSeries],
+      visibleSeries
+        .map((entry, index) => ({ entry, z: visibleSeries.length - index }))
+        .filter(({ entry }) => isShown(entry))
+        .map(({ entry, z }, index) => ({
+          ...toEChartsSeries(entry),
+          z,
+          ...(index === 0 ? { markLine: MARK_LINE } : {}),
+        })),
+    [visibleSeries, isShown],
   );
-
-  const legend: EChartsOption["legend"] = useMemo(() => {
-    if (!showLegend) return undefined;
-    return {
-      show: true,
-      top: 0,
-      right: 0,
-      itemWidth: 16,
-      itemHeight: 8,
-      textStyle: {
-        fontSize: 12,
-        color: colors.gray600,
-      },
-    };
-  }, [showLegend]);
 
   const option: EChartsOption = useMemo(
     () => ({
       animation: false,
       grid: {
-        top: showLegend ? 28 : 8,
+        top: showTopBand ? 28 : 8,
         right: 8,
         bottom: 4,
         left: 36,
         containLabel: false,
       },
-      legend,
       xAxis,
       yAxis,
       series: chartSeries,
@@ -134,7 +161,7 @@ function QuickGraphChartECharts({
           const timeLabel = showTimeLabels ? (params[0]?.name ?? "") : "";
           const lines = params.map((p: any) => {
             const value = formatValue(p.value);
-            if (!showLegend) return value;
+            if (!hasSeriesNames) return value;
             const colorDot = `<span style="display:inline-block;width:8px;height:8px;background:${p.color};margin-right:4px;border-radius:50%;"></span>`;
             return `${colorDot}${p.seriesName ?? ""}: ${value}`;
           });
@@ -143,8 +170,8 @@ function QuickGraphChartECharts({
       },
     }),
     [
-      showLegend,
-      legend,
+      showTopBand,
+      hasSeriesNames,
       xAxis,
       yAxis,
       chartSeries,
@@ -239,7 +266,19 @@ function QuickGraphChartECharts({
   }
 
   return (
-    <div ref={containerRef} className="h-full w-full">
+    <div ref={containerRef} className="relative h-full w-full">
+      {showTopBand && (
+        <div className="absolute top-0 left-0 right-0 z-10 flex items-center gap-3 h-5">
+          {title !== undefined && (
+            <span className="min-w-0 max-w-[50%] truncate text-size-small text-subtle">
+              {title}
+            </span>
+          )}
+          {showLegend ? (
+            <QuickGraphLegend items={legendItems} onToggle={toggleSeries} />
+          ) : null}
+        </div>
+      )}
       <ReactECharts
         ref={chartRef}
         key={`${intervalSeconds}-${intervalsCount}`}

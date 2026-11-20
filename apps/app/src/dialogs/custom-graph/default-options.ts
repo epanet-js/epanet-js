@@ -1,4 +1,4 @@
-import { colors } from "src/lib/constants";
+import { SERIES_COLORS } from "src/lib/asset-graph";
 import {
   LinkProperty,
   NodeProperty,
@@ -9,19 +9,6 @@ import {
 const MAX_ASSETS = 100;
 const MAX_VISIBLE_LEGENDS = 12;
 const TOOLTIP_DECIMALS = 3;
-
-const SERIES_COLORS = [
-  colors.purple500,
-  colors.blue500,
-  colors.orange500,
-  colors.cyan700,
-  colors.fuchsia500,
-  colors.green800,
-  colors.red600,
-  colors.indigo500,
-  colors.amber500,
-  colors.cyan900,
-];
 
 const NODE_PROPERTIES: PropertyOption<NodeProperty>[] = [
   { value: "pressure", labelKey: "pressure", quantityKey: "pressure" },
