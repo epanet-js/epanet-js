@@ -26,6 +26,7 @@ import {
   DEFAULT_MIXING_FRACTION,
   DEFAULT_SPEED,
   DEFAULT_INITIAL_QUALITY,
+  isValveSettingSetByControl,
 } from "@epanet-js/hydraulic-model";
 import {
   Patterns,
@@ -131,7 +132,7 @@ export const computeAssetsStats = (
   };
 
   const valveHasControl = (valveId: AssetId) =>
-    hydraulicModel.controlsLookup.hasControls(valveId);
+    isValveSettingSetByControl(hydraulicModel.controlsLookup, valveId);
 
   for (const asset of assets) {
     switch (asset.type) {

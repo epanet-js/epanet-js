@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { type ReactNode, useCallback, useMemo } from "react";
 import { Selector } from "@epanet-js/ui-kit";
 import {
   AssetId,
@@ -70,7 +70,6 @@ export const ValveControlsEditor = ({
   readOnly?: boolean;
 }) => {
   const translate = useTranslate();
-  const showControls = useShowControls();
   const controlType: ControlType = control ? "flowModulated" : "none";
   const canBeFlowModulated = targets.outletNodeId !== null;
 
@@ -85,7 +84,6 @@ export const ValveControlsEditor = ({
     ],
     [translate, canBeFlowModulated],
   );
-  const selectedTypeOption = typeOptions.find((o) => o.value === controlType);
 
   const handleTypeChange = (newValue: ControlType) => {
     if (newValue === controlType) return;
@@ -99,22 +97,13 @@ export const ValveControlsEditor = ({
   };
 
   return (
-    <>
-      <InlineField name={translate("type")} labelSize="md">
-        {readOnly ? (
-          <TextField padding="md">{selectedTypeOption?.label ?? ""}</TextField>
-        ) : (
-          <div className="w-full">
-            <Selector
-              ariaLabel={translate("type")}
-              options={typeOptions}
-              selected={controlType}
-              onChange={handleTypeChange}
-              styleOptions={selectorStyleOptions}
-            />
-          </div>
-        )}
-      </InlineField>
+    <ValveControlTypeField
+      options={typeOptions}
+      selected={controlType}
+      onChange={handleTypeChange}
+      hasRawControls={hasRawControls}
+      readOnly={readOnly}
+    >
       {control && (
         <FlowModulatingValveControlsEditor
           control={control}
@@ -123,6 +112,47 @@ export const ValveControlsEditor = ({
           readOnly={readOnly}
         />
       )}
+    </ValveControlTypeField>
+  );
+};
+
+export const ValveControlTypeField = <T extends string>({
+  options,
+  selected,
+  onChange,
+  hasRawControls,
+  readOnly,
+  children,
+}: {
+  options: { value: T; label: string; disabled?: boolean }[];
+  selected: T;
+  onChange: (value: T) => void;
+  hasRawControls: boolean;
+  readOnly: boolean;
+  children: ReactNode;
+}) => {
+  const translate = useTranslate();
+  const showControls = useShowControls();
+  const selectedOption = options.find((o) => o.value === selected);
+
+  return (
+    <>
+      <InlineField name={translate("type")} labelSize="md">
+        {readOnly ? (
+          <TextField padding="md">{selectedOption?.label ?? ""}</TextField>
+        ) : (
+          <div className="w-full">
+            <Selector
+              ariaLabel={translate("type")}
+              options={options}
+              selected={selected}
+              onChange={onChange}
+              styleOptions={selectorStyleOptions}
+            />
+          </div>
+        )}
+      </InlineField>
+      {children}
       {hasRawControls && (
         <button
           type="button"

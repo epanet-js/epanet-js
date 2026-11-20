@@ -98,6 +98,15 @@ export const getValveControl = (
   return null;
 };
 
+export const isValveSettingSetByControl = (
+  lookup: ControlsLookup,
+  valveId: AssetId,
+): boolean => {
+  const control = getValveControl(lookup, valveId);
+  if (control === null) return false;
+  return control.type !== "level-opening" || control.continuous;
+};
+
 const referencedIds = (control: Control): AssetId[] => {
   switch (control.type) {
     case "timed-setting":

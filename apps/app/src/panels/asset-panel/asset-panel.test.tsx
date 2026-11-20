@@ -31,6 +31,7 @@ import FeatureEditor from "../feature-editor";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@epanet-js/ui-kit";
 import { USelection } from "src/selection";
+import { stubFeatureOn } from "src/__helpers__/feature-flags";
 
 describe("AssetPanel", () => {
   describe("with a pipe", () => {
@@ -744,6 +745,59 @@ describe("AssetPanel", () => {
       const updated = store.get(stagingModelDerivedAtom);
       const valve = getLink(updated.assets, IDS.V1) as Valve;
       expect(valve.targetNodeId).toBe(IDS.other);
+    });
+
+    describe("level-based pcv controls", () => {
+      const IDS = { V1: 1, up: 2, T1: 3 };
+      const aPcvModel = () =>
+        HydraulicModelBuilder.with()
+          .aJunction(IDS.up, { label: "UP" })
+          .aTank(IDS.T1, { label: "T1", minLevel: 1, maxLevel: 6 })
+          .aValve(IDS.V1, {
+            kind: "pcv",
+            setting: 40,
+            startNodeId: IDS.up,
+            endNodeId: IDS.T1,
+          })
+          .build();
+
+      it("locks the setting to a continuous control and frees it when regulation is not continuous", async () => {
+        stubFeatureOn("FLAG_PCV_LEVEL_CONTROLS");
+        const store = setInitialState({
+          hydraulicModel: aPcvModel(),
+          selectedAssetId: IDS.V1,
+        });
+        const user = userEvent.setup();
+
+        renderComponent(store);
+        await user.click(screen.getByRole("combobox", { name: "Type" }));
+        await user.click(
+          await screen.findByRole("option", { name: "Level-based" }),
+        );
+
+        expect(store.get(stagingModelDerivedAtom).controls).toEqual([
+          {
+            id: expect.any(String),
+            type: "level-opening",
+            linkId: IDS.V1,
+            tankId: IDS.T1,
+            level: { open: 1, close: 6 },
+            continuous: true,
+          },
+        ]);
+        const setting = screen.getByRole("textbox", { name: /setting/i });
+        expect(setting).toBeDisabled();
+        expect(setting).toHaveAttribute("placeholder", "Set by control");
+
+        await user.click(
+          screen.getByRole("checkbox", { name: "Continuous regulation" }),
+        );
+
+        expect(screen.getByRole("textbox", { name: /setting/i })).toBeEnabled();
+        expect(screen.getByRole("textbox", { name: /setting/i })).toHaveValue(
+          "40",
+        );
+      });
     });
 
     describe("flow-modulating valve controls", () => {

@@ -129,6 +129,11 @@ import {
   ValveControlsEditor,
   type FlowModulatingValveTargets,
 } from "./flow-modulating-valve-controls-editor";
+import {
+  PcvControlsEditor,
+  type ValveLevelBasedTargets,
+} from "./valve-level-based-controls";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { PumpDefinitionDetails } from "./pump-definition-details";
 import {
   getAttribute,
@@ -157,6 +162,7 @@ type OnStatusChange<T> = (newStatus: T, oldStatus: T) => void;
 type TargetNodeOption = { value: AssetId; label: string };
 const EMPTY_TARGET_NODE_OPTIONS: TargetNodeOption[] = [];
 const EMPTY_NODES: NodeAsset[] = [];
+const EMPTY_TANKS: Tank[] = [];
 
 const controlTrackingData = (
   control: Control | null,
@@ -2165,14 +2171,34 @@ const ValveEditor = ({
     return null;
   };
 
+  const isPcvLevelControlsOn = useFeatureFlag("FLAG_PCV_LEVEL_CONTROLS");
   const isPrv = valve.kind === "prv";
-  const showControls = isPrv;
+  const isPcv = valve.kind === "pcv";
+  const showLevelControls = isPcv && isPcvLevelControlsOn;
+  const showControls = isPrv || showLevelControls;
   const valveControl = showControls
     ? getValveControl(hydraulicModel.controlsLookup, valve.id)
     : null;
   const flowModulatingControl =
-    valveControl?.type === "flow-modulating-valve" ? valveControl : null;
+    isPrv && valveControl?.type === "flow-modulating-valve"
+      ? valveControl
+      : null;
+  const levelOpeningControl =
+    showLevelControls && valveControl?.type === "level-opening"
+      ? valveControl
+      : null;
   const isSetByControl = flowModulatingControl !== null;
+  const isSettingSetByControl =
+    isSetByControl || levelOpeningControl?.continuous === true;
+  const tanks = useMemo(
+    () =>
+      showLevelControls
+        ? [...hydraulicModel.assets.values()].filter(
+            (asset): asset is Tank => asset.type === "tank",
+          )
+        : EMPTY_TANKS,
+    [hydraulicModel.assets, showLevelControls],
+  );
   const showTargetNode = isPrv;
   const outletNodeId = valve.connections[1] ?? null;
   const { data: tracedDownstreamNodes } = useAsyncCompute<
@@ -2187,7 +2213,7 @@ const ValveEditor = ({
   > => {
     const nodes: NodeAsset[] = [];
     const links: LinkAsset[] = [];
-    if (showControls) {
+    if (isPrv) {
       const outlet =
         outletNodeId === null
           ? undefined
@@ -2214,7 +2240,7 @@ const ValveEditor = ({
     };
   }, [
     hydraulicModel.assets,
-    showControls,
+    isPrv,
     downstreamNodes,
     flowModulatingControl,
     outletNodeId,
@@ -2229,6 +2255,15 @@ const ValveEditor = ({
   const flowModulatingTargets = useMemo(
     () => ({ ...flowModulatingTargetLists, isValid: isValveFieldValid }),
     [flowModulatingTargetLists, isValveFieldValid],
+  );
+  const levelBasedTargets = useMemo(
+    (): ValveLevelBasedTargets => ({
+      tanks,
+      outletNodeId,
+      levelUnit: units.minLevel,
+      isTankValid: (tankId) => isValveFieldValid("levelOpeningTank", tankId),
+    }),
+    [tanks, outletNodeId, units.minLevel, isValveFieldValid],
   );
 
   const targetNode =
@@ -2356,21 +2391,21 @@ const ValveEditor = ({
         {valve.kind !== "gpv" && (
           <QuantityRow
             name="setting"
-            value={isSetByControl ? null : valve.setting}
+            value={isSettingSetByControl ? null : valve.setting}
             unit={getSettingUnit()}
             placeholder={
-              isSetByControl
+              isSettingSetByControl
                 ? translate("controls.flowModulating.setByControl")
                 : undefined
             }
             comparison={
-              isSetByControl
+              isSettingSetByControl
                 ? undefined
                 : getComparison("setting", valve.setting)
             }
-            onChange={isSetByControl ? undefined : onPropertyChange}
+            onChange={isSettingSetByControl ? undefined : onPropertyChange}
             readOnly={readonly}
-            disabled={isSetByControl}
+            disabled={isSettingSetByControl}
             commitInvalidValues
           />
         )}
@@ -2383,7 +2418,7 @@ const ValveEditor = ({
             readOnly={readonly}
           />
         )}
-        {valve.kind === "pcv" && (
+        {isPcv && (
           <ValveCurveField
             valve={valve}
             curves={hydraulicModel.curves}
@@ -2445,7 +2480,25 @@ const ValveEditor = ({
         readonly={readonly}
         onPropertyChange={onPropertyChange}
       />
-      {showControls && (
+      {showLevelControls && (
+        <SectionWrapper title={translate("controls.title")} section="controls">
+          <PcvControlsEditor
+            key={valve.id}
+            valveId={valve.id}
+            control={levelOpeningControl}
+            targets={levelBasedTargets}
+            onControlChange={(control) =>
+              onControlChange(valve.id, control, levelOpeningControl)
+            }
+            hasRawControls={isReferencedByRawControls(
+              hydraulicModel.rawControls,
+              valve.id,
+            )}
+            readOnly={readonly}
+          />
+        </SectionWrapper>
+      )}
+      {isPrv && (
         <SectionWrapper title={translate("controls.title")} section="controls">
           <ValveControlsEditor
             key={valve.id}

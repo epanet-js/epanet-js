@@ -42,6 +42,7 @@ export {
   buildControlsLookup,
   getPumpControl,
   getValveControl,
+  isValveSettingSetByControl,
 } from "./lookup";
 export {
   detachControlReferences,

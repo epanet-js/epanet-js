@@ -4,6 +4,7 @@ import {
   buildControlsLookup,
   getPumpControl,
   getValveControl,
+  isValveSettingSetByControl,
 } from "./lookup";
 import {
   LevelSettingControl,
@@ -245,6 +246,25 @@ describe("ControlsLookup", () => {
     expect(lookup.getControls(IDS.T1)).toEqual(new Set([control]));
     expect(getValveControl(lookup, IDS.V1)).toBe(control);
     expect(getValveControl(lookup, IDS.T1)).toBeNull();
+  });
+
+  it("says a valve setting is set by its control unless the level control is not continuous", () => {
+    const IDS = { V1: 1, V2: 2, V3: 3, T1: 4 } as const;
+    const lookup = new ControlsLookup();
+    const levelOpening = (linkId: number, continuous: boolean) =>
+      buildLevelOpening({
+        linkId,
+        tankId: IDS.T1,
+        level: { open: 1, close: 4 },
+        continuous,
+      });
+    lookup.addControl(levelOpening(IDS.V1, true));
+    lookup.addControl(levelOpening(IDS.V2, false));
+
+    expect(isValveSettingSetByControl(lookup, IDS.V1)).toBe(true);
+    expect(isValveSettingSetByControl(lookup, IDS.V2)).toBe(false);
+    expect(isValveSettingSetByControl(lookup, IDS.V3)).toBe(false);
+    expect(isValveSettingSetByControl(lookup, IDS.T1)).toBe(false);
   });
 
   it("finds a flow-modulating valve control by its valve, its sensor and its control node", () => {

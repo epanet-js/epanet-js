@@ -1349,6 +1349,11 @@
       "onBelow": "On below",
       "controlledByPump": "Controlled by pump {{1}}"
     },
+    "levelOpening": {
+      "open": "Open",
+      "closed": "Closed",
+      "continuous": "Continuous regulation"
+    },
     "flowModulating": {
       "type": "Flow modulated",
       "linearInterpolation": "Linear interpolation",
