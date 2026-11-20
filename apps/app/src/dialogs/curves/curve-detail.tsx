@@ -5,7 +5,7 @@ import {
   CurveType,
   stripTrailingEmptyPoints,
 } from "@epanet-js/hydraulic-model";
-import { type GridSelection } from "src/components/data-grid";
+import { type SelectedCells } from "src/components/data-grid";
 import { CurveTable, type CurveTableRef } from "./curve-table";
 import { CurveErrorBanner } from "./curve-error-banner";
 import type { UnitsSpec } from "@epanet-js/project-settings";
@@ -26,9 +26,7 @@ export function CurveDetail({
   curveType,
   units,
 }: CurveDetailProps) {
-  const [selectedCells, setSelectedCells] = useState<GridSelection | null>(
-    null,
-  );
+  const [selectedRows, setSelectedRows] = useState<number[]>([]);
   const tableRef = useRef<CurveTableRef>(null);
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const graphContainerRef = useRef<HTMLDivElement>(null);
@@ -41,15 +39,11 @@ export function CurveDetail({
   const handleGraphClick = useCallback(
     (pointIndex: number | null) => {
       if (pointIndex === null) {
-        setSelectedCells(null);
+        setSelectedRows([]);
         return;
       }
       const rowIndex = pointIndex % meaningfulPoints.length;
-      const newSelection = {
-        min: { col: 0, row: rowIndex },
-        max: { col: 1, row: rowIndex },
-      };
-      setSelectedCells(newSelection);
+      setSelectedRows([rowIndex]);
       tableRef.current?.selectCells({ rowIndex });
     },
     [meaningfulPoints.length],
@@ -61,7 +55,7 @@ export function CurveDetail({
       const isInsideTable = tableContainerRef.current?.contains(target);
       const isInsideGraph = graphContainerRef.current?.contains(target);
       if (!isInsideTable && !isInsideGraph) {
-        setSelectedCells(null);
+        setSelectedRows([]);
         tableRef.current?.clearSelection();
       }
     };
@@ -71,14 +65,13 @@ export function CurveDetail({
   }, []);
 
   const graphSelectedIndex = useMemo(() => {
-    if (!selectedCells) return null;
-    const row = selectedCells.min.row;
-    return row < meaningfulPoints.length ? row : null;
-  }, [selectedCells, meaningfulPoints.length]);
+    const row = selectedRows[0];
+    return row !== undefined && row < meaningfulPoints.length ? row : null;
+  }, [selectedRows, meaningfulPoints.length]);
 
   const handleTableSelectionChange = useCallback(
-    (selection: GridSelection | null) => {
-      setSelectedCells(selection);
+    (selection: SelectedCells | null) => {
+      setSelectedRows(selection?.rowIndexes ?? []);
     },
     [],
   );

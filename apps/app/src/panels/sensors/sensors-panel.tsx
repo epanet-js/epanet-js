@@ -18,8 +18,8 @@ import {
   type CellContextAction,
   type DataGridRef,
   type DataGridState,
-  type GridSelection,
   type GutterContextAction,
+  type SelectedCells,
 } from "src/components/data-grid";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
@@ -77,8 +77,6 @@ const TABLE_DEFAULT_SHARE = 0.5;
 const CHART_MIN_WIDTH = 240;
 
 const noop = () => {};
-
-type RowRange = { first: number; last: number };
 
 type ShownChart = {
   label: string;
@@ -183,9 +181,10 @@ const SensorsTableAndChart = ({
     observer.observe(container);
     return () => observer.disconnect();
   }, []);
-  const [selectedRows, setSelectedRows] = useState<RowRange>({
-    first: savedGrid?.selection?.min.row ?? 0,
-    last: savedGrid?.selection?.max.row ?? 0,
+  const [selectedNames, setSelectedNames] = useState<readonly string[]>(() => {
+    const first = savedGrid?.selection?.min.row ?? 0;
+    const last = savedGrid?.selection?.max.row ?? 0;
+    return sensors.slice(first, last + 1).map(({ name }) => name);
   });
 
   const saveState = useCallback(
@@ -313,19 +312,38 @@ const SensorsTableAndChart = ({
   }, [translate, selectAssetsInApp, zoomTo, userTracking]);
 
   const handleSelectionChange = useCallback(
-    (selection: GridSelection | null) => {
-      if (!selection) return;
-      setSelectedRows({ first: selection.min.row, last: selection.max.row });
+    (selection: SelectedCells | null) => {
+      if (!selection || selection.rowIndexes.length === 0) return;
+      setSelectedNames(
+        selection.rowIndexes.flatMap((index) => {
+          const name = sensors[index]?.name;
+          return name === undefined ? [] : [name];
+        }),
+      );
     },
-    [],
+    [sensors],
+  );
+
+  const handleSort = useCallback(
+    (columnId: string, direction: "asc" | "desc") => {
+      userTracking.capture({
+        name: "dataTables.sorted",
+        type: "sensor",
+        property: columnId,
+        direction,
+      });
+    },
+    [userTracking],
   );
 
   const selectedSensors = useMemo(() => {
-    if (sensors.length === 0) return [];
-    const first = Math.min(selectedRows.first, sensors.length - 1);
-    const last = Math.min(selectedRows.last, sensors.length - 1);
-    return sensors.slice(first, last + 1);
-  }, [sensors, selectedRows]);
+    const byName = new Map(sensors.map((sensor) => [sensor.name, sensor]));
+    const found = selectedNames.flatMap((name) => {
+      const sensor = byName.get(name);
+      return sensor ? [sensor] : [];
+    });
+    return found.length > 0 ? found : sensors.slice(0, 1);
+  }, [sensors, selectedNames]);
   const selected = selectedSensors.length === 1 ? selectedSensors[0] : null;
   const selectedAsset = selected ? assets.get(selected.assetId) : undefined;
   const showChart =
@@ -370,6 +388,8 @@ const SensorsTableAndChart = ({
           cellHasWarning={cellHasWarning}
           cellContextActions={selectInMapActions.cell}
           gutterContextActions={selectInMapActions.gutter}
+          sortable
+          onColumnSort={handleSort}
           onSelectionChange={handleSelectionChange}
         />
       </div>

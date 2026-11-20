@@ -9,7 +9,7 @@ import {
   DataGrid,
   type DataGridRef,
   type GridColumn,
-  type GridSelection,
+  type SelectedCells,
   type RowAction,
   floatColumn,
   textColumn,
@@ -27,7 +27,7 @@ type PatternTableProps = {
   pattern: PatternMultipliers;
   patternTimestepSeconds: number;
   onChange: (pattern: PatternMultipliers) => void;
-  onSelectionChange?: (selection: GridSelection | null) => void;
+  onSelectionChange?: (selection: SelectedCells | null) => void;
   readOnly?: boolean;
 };
 

@@ -9,6 +9,7 @@ export type {
 export type {
   DataGridState,
   GridSelection,
+  SelectedCells,
   GridColumn,
   RowAction,
   CellContextAction,

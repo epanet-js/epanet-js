@@ -9,7 +9,7 @@ import {
   DataGrid,
   type DataGridRef,
   type GridColumn,
-  type GridSelection,
+  type SelectedCells,
   type RowAction,
   floatColumn,
 } from "src/components/data-grid";
@@ -33,7 +33,7 @@ type CurveRow = {
 type CurveTableProps = {
   points: CurvePoint[];
   onChange: (points: CurvePoint[]) => void;
-  onSelectionChange?: (selection: GridSelection | null) => void;
+  onSelectionChange?: (selection: SelectedCells | null) => void;
   readOnly?: boolean;
   curveType?: CurveType;
   units: UnitsSpec;

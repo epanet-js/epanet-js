@@ -6,7 +6,7 @@ import { booleanColumn } from "./cells/boolean-cell";
 import { floatColumn } from "./cells/float-cell";
 import { filterableSelectColumn } from "./cells/filterable-select-cell";
 import { textColumn } from "./cells/text-cell";
-import type { GridColumn, GridSelection } from "./types";
+import type { GridColumn, SelectedCells } from "./types";
 
 const setupUser = () => userEvent.setup({ pointerEventsCheck: 0 });
 
@@ -194,8 +194,8 @@ describe("DataGrid", () => {
       // Should select the new row (index 3), not the first row (index 0)
       await waitFor(() => {
         expect(onSelectionChange).toHaveBeenLastCalledWith({
-          min: { col: 1, row: 3 },
-          max: { col: 1, row: 3 },
+          rowIndexes: [3],
+          columnIndexes: [1],
         });
       });
     });
@@ -220,8 +220,8 @@ describe("DataGrid", () => {
       await user.click(cell);
 
       expect(onSelectionChange).toHaveBeenCalledWith({
-        min: { col: 0, row: 0 },
-        max: { col: 0, row: 0 },
+        rowIndexes: [0],
+        columnIndexes: [0],
       });
     });
   });
@@ -246,8 +246,8 @@ describe("DataGrid", () => {
 
       await waitFor(() => {
         expect(onSelectionChange).toHaveBeenCalledWith({
-          min: { col: 0, row: 0 },
-          max: { col: 0, row: 2 },
+          rowIndexes: [0, 1, 2],
+          columnIndexes: [0],
         });
       });
     });
@@ -304,6 +304,34 @@ describe("DataGrid", () => {
     });
   });
 
+  describe("selection in a sorted grid", () => {
+    it("reports the selected rows as indices into the data, in table order", async () => {
+      const onSelectionChange = vi.fn();
+
+      render(
+        <DataGrid
+          data={defaultData}
+          columns={columns}
+          onChange={vi.fn()}
+          createRow={createRow}
+          sortable
+          initialGridState={{
+            sorting: [{ id: "value", desc: true }],
+            selection: { min: { col: 0, row: 0 }, max: { col: 0, row: 1 } },
+          }}
+          onSelectionChange={onSelectionChange}
+        />,
+      );
+
+      await waitFor(() => {
+        expect(onSelectionChange).toHaveBeenLastCalledWith({
+          rowIndexes: [2, 1],
+          columnIndexes: [0],
+        });
+      });
+    });
+  });
+
   describe("keyboard navigation", () => {
     it("navigates down with arrow key", async () => {
       const user = setupUser();
@@ -327,8 +355,8 @@ describe("DataGrid", () => {
 
       await waitFor(() => {
         expect(onSelectionChange).toHaveBeenLastCalledWith({
-          min: { col: 0, row: 1 },
-          max: { col: 0, row: 1 },
+          rowIndexes: [1],
+          columnIndexes: [0],
         });
       });
     });
@@ -353,8 +381,8 @@ describe("DataGrid", () => {
 
       await waitFor(() => {
         expect(onSelectionChange).toHaveBeenLastCalledWith({
-          min: { col: 1, row: 0 },
-          max: { col: 1, row: 0 },
+          rowIndexes: [0],
+          columnIndexes: [1],
         });
       });
     });
@@ -379,8 +407,8 @@ describe("DataGrid", () => {
 
       await waitFor(() => {
         expect(onSelectionChange).toHaveBeenLastCalledWith({
-          min: { col: 1, row: 0 },
-          max: { col: 1, row: 0 },
+          rowIndexes: [0],
+          columnIndexes: [1],
         });
       });
     });
@@ -565,8 +593,8 @@ describe("DataGrid", () => {
 
       await waitFor(() => {
         expect(onSelectionChange).toHaveBeenCalledWith({
-          min: { col: 0, row: 0 },
-          max: { col: 3, row: 0 },
+          rowIndexes: [0],
+          columnIndexes: [0, 1, 2, 3],
         });
       });
     });
@@ -592,8 +620,8 @@ describe("DataGrid", () => {
 
       await waitFor(() => {
         expect(onSelectionChange).toHaveBeenCalledWith({
-          min: { col: 0, row: 0 },
-          max: { col: 0, row: 2 },
+          rowIndexes: [0, 1, 2],
+          columnIndexes: [0],
         });
       });
     });
@@ -625,13 +653,13 @@ describe("DataGrid", () => {
 
       await waitFor(() => {
         expect(onSelectionChange).toHaveBeenLastCalledWith({
-          min: { col: 3, row: 0 },
-          max: { col: 3, row: 2 },
+          rowIndexes: [0, 1, 2],
+          columnIndexes: [3],
         });
       });
 
       const selectedColumns = onSelectionChange.mock.calls.map(
-        (call) => (call[0] as GridSelection | null)?.min.col,
+        (call) => (call[0] as SelectedCells | null)?.columnIndexes[0],
       );
       expect(selectedColumns).toEqual([3]);
     });
@@ -656,8 +684,8 @@ describe("DataGrid", () => {
       await user.click(screen.getByText("Row 3"));
       await waitFor(() => {
         expect(onSelectionChange).toHaveBeenCalledWith({
-          min: { col: 0, row: 2 },
-          max: { col: 0, row: 2 },
+          rowIndexes: [2],
+          columnIndexes: [0],
         });
       });
 
@@ -667,8 +695,8 @@ describe("DataGrid", () => {
 
       await waitFor(() => {
         expect(onSelectionChange).toHaveBeenLastCalledWith({
-          min: { col: 0, row: 0 },
-          max: { col: 0, row: 2 },
+          rowIndexes: [0, 1, 2],
+          columnIndexes: [0],
         });
       });
 
@@ -679,8 +707,8 @@ describe("DataGrid", () => {
 
       await waitFor(() => {
         expect(onSelectionChange).toHaveBeenLastCalledWith({
-          min: { col: 0, row: 0 },
-          max: { col: 0, row: 0 },
+          rowIndexes: [0],
+          columnIndexes: [0],
         });
       });
     });
@@ -703,8 +731,8 @@ describe("DataGrid", () => {
       await user.click(screen.getByRole("columnheader", { name: "Label" }));
       await waitFor(() => {
         expect(onSelectionChange).toHaveBeenCalledWith({
-          min: { col: 0, row: 0 },
-          max: { col: 0, row: 2 },
+          rowIndexes: [0, 1, 2],
+          columnIndexes: [0],
         });
       });
 
@@ -715,8 +743,8 @@ describe("DataGrid", () => {
 
       await waitFor(() => {
         expect(onSelectionChange).toHaveBeenLastCalledWith({
-          min: { col: 0, row: 0 },
-          max: { col: 1, row: 2 },
+          rowIndexes: [0, 1, 2],
+          columnIndexes: [0, 1],
         });
       });
     });
@@ -744,8 +772,8 @@ describe("DataGrid", () => {
       await user.click(gutterCells[0]);
       await waitFor(() => {
         expect(onSelectionChange).toHaveBeenCalledWith({
-          min: { col: 0, row: 0 },
-          max: { col: 3, row: 0 },
+          rowIndexes: [0],
+          columnIndexes: [0, 1, 2, 3],
         });
       });
 
@@ -756,8 +784,8 @@ describe("DataGrid", () => {
 
       await waitFor(() => {
         expect(onSelectionChange).toHaveBeenLastCalledWith({
-          min: { col: 0, row: 0 },
-          max: { col: 3, row: 2 },
+          rowIndexes: [0, 1, 2],
+          columnIndexes: [0, 1, 2, 3],
         });
       });
     });
@@ -787,8 +815,8 @@ describe("DataGrid", () => {
 
       await waitFor(() => {
         expect(onSelectionChange).toHaveBeenLastCalledWith({
-          min: { col: 0, row: 0 },
-          max: { col: 3, row: 2 },
+          rowIndexes: [0, 1, 2],
+          columnIndexes: [0, 1, 2, 3],
         });
       });
 
@@ -799,8 +827,8 @@ describe("DataGrid", () => {
 
       await waitFor(() => {
         expect(onSelectionChange).toHaveBeenLastCalledWith({
-          min: { col: 0, row: 2 },
-          max: { col: 0, row: 2 },
+          rowIndexes: [2],
+          columnIndexes: [0],
         });
       });
     });
@@ -842,8 +870,8 @@ describe("DataGrid", () => {
       // Should reduce to single cell (the active cell at min position)
       await waitFor(() => {
         expect(onSelectionChange).toHaveBeenLastCalledWith({
-          min: { col: 0, row: 0 },
-          max: { col: 0, row: 0 },
+          rowIndexes: [0],
+          columnIndexes: [0],
         });
       });
 
@@ -874,8 +902,8 @@ describe("DataGrid", () => {
 
       await waitFor(() => {
         expect(onSelectionChange).toHaveBeenCalledWith({
-          min: { col: 0, row: 0 },
-          max: { col: 0, row: 0 },
+          rowIndexes: [0],
+          columnIndexes: [0],
         });
       });
 
@@ -917,8 +945,8 @@ describe("DataGrid", () => {
       await user.click(screen.getByText("Row 1"));
       await waitFor(() => {
         expect(onSelectionChange).toHaveBeenCalledWith({
-          min: { col: 0, row: 0 },
-          max: { col: 0, row: 0 },
+          rowIndexes: [0],
+          columnIndexes: [0],
         });
       });
 
@@ -942,8 +970,8 @@ describe("DataGrid", () => {
           .length,
       ).toBe(1);
       expect(onSelectionChange).toHaveBeenLastCalledWith({
-        min: { col: 0, row: 0 },
-        max: { col: 0, row: 0 },
+        rowIndexes: [0],
+        columnIndexes: [0],
       });
     });
 
@@ -964,8 +992,8 @@ describe("DataGrid", () => {
       await user.click(screen.getByText("Row 1"));
       await waitFor(() => {
         expect(onSelectionChange).toHaveBeenCalledWith({
-          min: { col: 0, row: 0 },
-          max: { col: 0, row: 0 },
+          rowIndexes: [0],
+          columnIndexes: [0],
         });
       });
 
@@ -1099,8 +1127,8 @@ describe("DataGrid", () => {
 
       await waitFor(() => {
         expect(onSelectionChange).toHaveBeenCalledWith({
-          min: { col: 0, row: 0 },
-          max: { col: 0, row: 0 },
+          rowIndexes: [0],
+          columnIndexes: [0],
         });
       });
 
@@ -1132,8 +1160,8 @@ describe("DataGrid", () => {
 
       await waitFor(() => {
         expect(onSelectionChange).toHaveBeenCalledWith({
-          min: { col: 0, row: 0 },
-          max: { col: 0, row: 0 },
+          rowIndexes: [0],
+          columnIndexes: [0],
         });
       });
 
@@ -1142,8 +1170,8 @@ describe("DataGrid", () => {
 
       await waitFor(() => {
         expect(onSelectionChange).toHaveBeenLastCalledWith({
-          min: { col: 1, row: 0 },
-          max: { col: 1, row: 0 },
+          rowIndexes: [0],
+          columnIndexes: [1],
         });
       });
     });
@@ -1331,8 +1359,8 @@ describe("DataGrid", () => {
       // Should navigate to cell below
       await waitFor(() => {
         expect(onSelectionChange).toHaveBeenLastCalledWith({
-          min: { col: 1, row: 1 },
-          max: { col: 1, row: 1 },
+          rowIndexes: [1],
+          columnIndexes: [1],
         });
       });
 
@@ -1370,8 +1398,8 @@ describe("DataGrid", () => {
       // Should navigate to cell on right (active column)
       await waitFor(() => {
         expect(onSelectionChange).toHaveBeenLastCalledWith({
-          min: { col: 2, row: 0 },
-          max: { col: 2, row: 0 },
+          rowIndexes: [0],
+          columnIndexes: [2],
         });
       });
     });
@@ -1402,8 +1430,8 @@ describe("DataGrid", () => {
       await waitFor(() => {
         expect(onChange).toHaveBeenCalled();
         expect(onSelectionChange).toHaveBeenLastCalledWith({
-          min: { col: 2, row: 0 },
-          max: { col: 2, row: 0 },
+          rowIndexes: [0],
+          columnIndexes: [2],
         });
       });
     });
@@ -1573,8 +1601,8 @@ describe("DataGrid", () => {
       // Should move down
       await waitFor(() => {
         expect(onSelectionChange).toHaveBeenLastCalledWith({
-          min: { col: 1, row: 1 },
-          max: { col: 1, row: 1 },
+          rowIndexes: [1],
+          columnIndexes: [1],
         });
       });
     });
@@ -1987,8 +2015,8 @@ describe("DataGrid", () => {
 
       await waitFor(() => {
         expect(onSelectionChange).toHaveBeenCalledWith({
-          min: { col: 3, row: 1 },
-          max: { col: 3, row: 1 },
+          rowIndexes: [1],
+          columnIndexes: [3],
         });
       });
     });

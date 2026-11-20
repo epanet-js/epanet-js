@@ -14,6 +14,11 @@ export type GridSelection = {
   max: CellPosition;
 };
 
+export type SelectedCells = {
+  rowIndexes: number[];
+  columnIndexes: number[];
+};
+
 export type EditMode = false | "quick" | "full";
 
 export type RowAction = {

@@ -18,6 +18,7 @@ import {
   DataGridVariant,
   RowAction,
   GridSelection,
+  SelectedCells,
   CellContextAction,
   GutterContextAction,
   GridColumn,
@@ -73,7 +74,7 @@ type DataGridProps<TData extends Record<string, unknown>> = {
   gutterContextActions?: GutterContextAction<TData>[];
   addRowLabel?: string;
   gutterColumn?: "hidden" | "selection" | "numbered";
-  onSelectionChange?: (selection: GridSelection | null) => void;
+  onSelectionChange?: (selection: SelectedCells | null) => void;
   variant?: DataGridVariant;
   cellHasWarning?: (rowIndex: number, columnId: string) => boolean;
   autoAddNewRows?: boolean;
@@ -259,16 +260,19 @@ export const DataGrid = forwardRef(function DataGrid<
     table.stopEditing();
   }, [table]);
 
-  const lastNotifiedRef = useRef<GridSelection | null>(null);
+  const rowOrder = table.getLazyRowOrder();
+  const lastNotifiedRef = useRef<SelectedCells | null>(null);
   useEffect(
     function notifySelectionChange() {
-      const prev = lastNotifiedRef.current;
-      if (!isSameSelection(prev, selection)) {
-        lastNotifiedRef.current = selection;
-        onSelectionChange?.(selection);
-      }
+      if (!onSelectionChange) return;
+      const next = selection
+        ? toSelectedCells(selection, rowOrder.orderByDataIndex, data.length)
+        : null;
+      if (isSameSelectedCells(lastNotifiedRef.current, next)) return;
+      lastNotifiedRef.current = next;
+      onSelectionChange(next);
     },
-    [selection, onSelectionChange],
+    [selection, rowOrder, data.length, onSelectionChange],
   );
 
   const { handleCellMouseDown, handleCellMouseEnter } = useMouseSelection({
@@ -579,16 +583,34 @@ export const DataGrid = forwardRef(function DataGrid<
   },
 ) => React.ReactElement;
 
-function isSameSelection(
-  a: GridSelection | null,
-  b: GridSelection | null,
+function toSelectedCells(
+  selection: GridSelection,
+  orderByDataIndex: Int32Array | null,
+  rowCount: number,
+): SelectedCells {
+  const rowIndexes: number[] = [];
+  const last = Math.min(selection.max.row, rowCount - 1);
+  for (let visual = selection.min.row; visual <= last; visual++) {
+    rowIndexes.push(orderByDataIndex ? orderByDataIndex[visual] : visual);
+  }
+  const columnIndexes: number[] = [];
+  for (let col = selection.min.col; col <= selection.max.col; col++) {
+    columnIndexes.push(col);
+  }
+  return { rowIndexes, columnIndexes };
+}
+
+const sameNumbers = (a: number[], b: number[]) =>
+  a.length === b.length && a.every((value, index) => value === b[index]);
+
+function isSameSelectedCells(
+  a: SelectedCells | null,
+  b: SelectedCells | null,
 ): boolean {
   if (a === b) return true;
   if (!a || !b) return false;
   return (
-    a.min.col === b.min.col &&
-    a.min.row === b.min.row &&
-    a.max.col === b.max.col &&
-    a.max.row === b.max.row
+    sameNumbers(a.rowIndexes, b.rowIndexes) &&
+    sameNumbers(a.columnIndexes, b.columnIndexes)
   );
 }

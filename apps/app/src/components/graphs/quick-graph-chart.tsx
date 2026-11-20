@@ -134,6 +134,8 @@ function QuickGraphChartECharts({
     [visibleSeries, isShown],
   );
 
+  const hasShownSeries = Array.isArray(chartSeries) && chartSeries.length > 0;
+
   const option: EChartsOption = useMemo(
     () => ({
       animation: false,
@@ -199,6 +201,7 @@ function QuickGraphChartECharts({
 
   const applyMarkLine = useCallback(
     (chart: EChartsInstance) => {
+      if (!hasShownSeries) return;
       chart.setOption({
         series: [
           {
@@ -215,7 +218,7 @@ function QuickGraphChartECharts({
         ],
       });
     },
-    [currentIntervalIndex],
+    [currentIntervalIndex, hasShownSeries],
   );
 
   useEffect(

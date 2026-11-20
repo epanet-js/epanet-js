@@ -2056,7 +2056,7 @@ export type UserEvent =
     }
   | {
       name: "dataTables.sorted";
-      type: Asset["type"] | "customerPoint" | "zone";
+      type: Asset["type"] | "customerPoint" | "zone" | "sensor";
       property: string;
       direction: "asc" | "desc";
     }

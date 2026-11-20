@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { PatternGraph } from "./pattern-graph";
 import { PatternMultipliers, PatternType } from "src/hydraulic-model";
-import { type GridSelection } from "src/components/data-grid";
+import { type SelectedCells } from "src/components/data-grid";
 import { PatternTable, type PatternTableRef } from "./pattern-table";
 
 interface PatternDetailProps {
@@ -21,24 +21,18 @@ export function PatternDetail({
   onChange,
   readOnly = false,
 }: PatternDetailProps) {
-  const [selectedCells, setSelectedCells] = useState<GridSelection | null>(
-    null,
-  );
+  const [selectedRows, setSelectedRows] = useState<number[]>([]);
   const tableRef = useRef<PatternTableRef>(null);
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const graphContainerRef = useRef<HTMLDivElement>(null);
   const handleGraphClick = useCallback(
     (barIndex: number | null) => {
       if (barIndex === null) {
-        setSelectedCells(null);
+        setSelectedRows([]);
         return;
       }
       const rowIndex = barIndex % pattern.length;
-      const newSelection = {
-        min: { col: 0, row: rowIndex },
-        max: { col: 1, row: rowIndex },
-      };
-      setSelectedCells(newSelection);
+      setSelectedRows([rowIndex]);
       tableRef.current?.selectCells({ rowIndex });
     },
     [pattern.length],
@@ -50,7 +44,7 @@ export function PatternDetail({
       const isInsideTable = tableContainerRef.current?.contains(target);
       const isInsideGraph = graphContainerRef.current?.contains(target);
       if (!isInsideTable && !isInsideGraph) {
-        setSelectedCells(null);
+        setSelectedRows([]);
         tableRef.current?.clearSelection();
       }
     };
@@ -59,16 +53,9 @@ export function PatternDetail({
     return () => document.removeEventListener("click", handleDocumentClick);
   }, []);
 
-  const graphSelectedIndexes = selectedCells
-    ? Array.from(
-        { length: selectedCells.max.row - selectedCells.min.row + 1 },
-        (_, i) => selectedCells.min.row + i,
-      )
-    : [];
-
   const handleTableSelectionChange = useCallback(
-    (selection: GridSelection | null) => {
-      setSelectedCells(selection);
+    (selection: SelectedCells | null) => {
+      setSelectedRows(selection?.rowIndexes ?? []);
     },
     [],
   );
@@ -95,7 +82,7 @@ export function PatternDetail({
             patternType={patternType}
             intervalSeconds={patternTimestepSeconds}
             totalDurationSeconds={totalDurationSeconds}
-            highlightedBarIndices={graphSelectedIndexes}
+            highlightedBarIndices={selectedRows}
             onBarClick={handleGraphClick}
           />
         </div>
