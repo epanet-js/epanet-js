@@ -57,8 +57,6 @@ export const ImportOutcomeReport = ({
 }) => {
   const translate = useTranslate();
   const { background, tint, Icon } = report[outcome.status];
-  const stats = outcome.stats;
-  const shown = stats ? STATS.filter((stat) => stats[stat] > 0) : [];
 
   return (
     // The dismiss sits over the whole of it: the status is carried by the
@@ -71,47 +69,8 @@ export const ImportOutcomeReport = ({
     >
       <Icon className={clsx("h-4 w-4 mt-0.5 shrink-0", tint)} aria-hidden />
       <div className="flex flex-col gap-2 grow min-w-0 text-size-base">
-        {(outcome.message || shown.length > 0) && (
-          <span>
-            {outcome.message}
-            {outcome.message && shown.length > 0 ? ": " : null}
-            {stats &&
-              shown.map((stat, index) => {
-                const text = translate(
-                  `${translationKeys}.${stat}`,
-                  String(stats[stat]),
-                );
-                return (
-                  <Fragment key={stat}>
-                    {index > 0 ? ", " : null}
-                    {stat === "ignored" ? (
-                      <span className="font-semibold text-warning">{text}</span>
-                    ) : (
-                      text
-                    )}
-                  </Fragment>
-                );
-              })}
-          </span>
-        )}
-        {outcome.issues && outcome.issues.length > 0 && (
-          <details className="group">
-            <summary className="flex items-center gap-1 cursor-pointer font-semibold list-none [&::-webkit-details-marker]:hidden">
-              <ChevronRightIcon
-                className="shrink-0 transition-transform group-open:rotate-90"
-                size="sm"
-              />
-              {translate(`${translationKeys}.issues`)}
-            </summary>
-            <ul className="mt-2 list-disc rounded-base border bg-popover p-3 pl-8 space-y-1">
-              {outcome.issues.map((issue) => (
-                <li key={issue.code}>
-                  {describeIssue(issue, translate, translationKeys)}
-                </li>
-              ))}
-            </ul>
-          </details>
-        )}
+        <OutcomeSummary outcome={outcome} translationKeys={translationKeys} />
+        <OutcomeIssues outcome={outcome} translationKeys={translationKeys} />
       </div>
       <button
         className="absolute top-2.5 right-2.5 p-1 rounded-base text-subtle hover:text-default focus:outline-hidden focus:ring-2 focus:ring-inset focus:ring-accent"
@@ -122,5 +81,126 @@ export const ImportOutcomeReport = ({
         <CloseIcon />
       </button>
     </div>
+  );
+};
+
+export const ImportFileReport = ({
+  fileName,
+  outcome,
+  translationKeys,
+  onRemove,
+  removeLabel,
+}: {
+  fileName: string;
+  outcome: ImportOutcome;
+  translationKeys: string;
+  onRemove: () => void;
+  removeLabel: string;
+}) => {
+  const { tint, Icon } = report[outcome.status];
+  const isError = outcome.status === "failed";
+
+  return (
+    <div
+      className={clsx(
+        "flex items-start gap-3 p-4 border rounded-base",
+        isError && "bg-error-subtle border-error-line",
+      )}
+    >
+      <Icon className={clsx("h-4 w-4 mt-0.5 shrink-0", tint)} aria-hidden />
+      <div className="flex flex-col gap-2 grow min-w-0 text-size-base">
+        <span className="font-semibold truncate" title={fileName}>
+          {fileName}
+        </span>
+        <OutcomeSummary outcome={outcome} translationKeys={translationKeys} />
+        <OutcomeIssues
+          outcome={outcome}
+          translationKeys={translationKeys}
+          listClassName="max-h-40 overflow-auto"
+        />
+      </div>
+      <button
+        className="p-1 -m-1 rounded-base text-subtle hover:text-default hover:bg-base-hover focus:outline-hidden focus:ring-2 focus:ring-inset focus:ring-accent"
+        onClick={onRemove}
+        aria-label={removeLabel}
+        type="button"
+      >
+        <CloseIcon />
+      </button>
+    </div>
+  );
+};
+
+const OutcomeSummary = ({
+  outcome,
+  translationKeys,
+}: {
+  outcome: ImportOutcome;
+  translationKeys: string;
+}) => {
+  const translate = useTranslate();
+  const stats = outcome.stats;
+  const shown = stats ? STATS.filter((stat) => stats[stat] > 0) : [];
+  if (!outcome.message && shown.length === 0) return null;
+
+  return (
+    <span>
+      {outcome.message}
+      {outcome.message && shown.length > 0 ? ": " : null}
+      {stats &&
+        shown.map((stat, index) => {
+          const text = translate(
+            `${translationKeys}.${stat}`,
+            String(stats[stat]),
+          );
+          return (
+            <Fragment key={stat}>
+              {index > 0 ? ", " : null}
+              {stat === "ignored" ? (
+                <span className="font-semibold text-warning">{text}</span>
+              ) : (
+                text
+              )}
+            </Fragment>
+          );
+        })}
+    </span>
+  );
+};
+
+const OutcomeIssues = ({
+  outcome,
+  translationKeys,
+  listClassName,
+}: {
+  outcome: ImportOutcome;
+  translationKeys: string;
+  listClassName?: string;
+}) => {
+  const translate = useTranslate();
+  if (!outcome.issues || outcome.issues.length === 0) return null;
+
+  return (
+    <details className="group">
+      <summary className="flex items-center gap-1 cursor-pointer font-semibold list-none [&::-webkit-details-marker]:hidden">
+        <ChevronRightIcon
+          className="shrink-0 transition-transform group-open:rotate-90"
+          size="sm"
+        />
+        {translate(`${translationKeys}.issues`)}
+      </summary>
+      <ul
+        className={clsx(
+          "mt-2 list-disc rounded-base border bg-popover p-3 pl-8 space-y-1",
+          listClassName,
+        )}
+      >
+        {outcome.issues.map((issue) => (
+          <li key={issue.code}>
+            {describeIssue(issue, translate, translationKeys)}
+          </li>
+        ))}
+      </ul>
+    </details>
   );
 };

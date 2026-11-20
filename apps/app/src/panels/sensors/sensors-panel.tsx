@@ -22,7 +22,7 @@ import {
   type SelectedCells,
 } from "src/components/data-grid";
 import { useTranslate } from "src/hooks/use-translate";
-import { useTranslateUnit } from "src/hooks/use-translate-unit";
+import { useSensorParameterLabel } from "src/hooks/use-sensor-parameter-label";
 import { useZoomTo } from "src/hooks/use-zoom-to";
 import { useSelectAssetsInApp } from "src/commands/select-assets-in-app";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -127,22 +127,11 @@ const SensorsEmptyState = () => {
 };
 
 const useParameterLabel = () => {
-  const translate = useTranslate();
-  const translateUnit = useTranslateUnit();
-  const { units } = useAtomValue(projectSettingsAtom);
-
+  const labelFor = useSensorParameterLabel();
   return useCallback(
-    (sensor: ImportedSensor, asset: Asset) => {
-      const option = QUICK_GRAPH_PROPERTIES[asset.type].find(
-        ({ value }) => value === sensor.parameter,
-      );
-      if (!option) return "";
-      const label = translate(option.labelKey);
-      const unit =
-        sensor.parameter === "status" ? null : units[option.quantityKey];
-      return unit ? `${label} (${translateUnit(unit)})` : label;
-    },
-    [translate, translateUnit, units],
+    (sensor: ImportedSensor, asset: Asset) =>
+      labelFor(sensor.parameter, asset.type),
+    [labelFor],
   );
 };
 

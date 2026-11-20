@@ -1,9 +1,9 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import clsx from "clsx";
 import { useAtomValue } from "jotai";
 import { localizeDecimal } from "@epanet-js/i18n";
 import { useTranslate } from "src/hooks/use-translate";
-import { ImportOutcomeReport } from "src/components/import-outcome-report";
+import { useSensorParameterLabel } from "src/hooks/use-sensor-parameter-label";
 import { groupErrors, type ImportOutcome } from "src/components/import-outcome";
 import { assetsDerivedAtom } from "src/state/derived-branch-state";
 import type { ImportError } from "src/lib/operational-data-io/import-result";
@@ -18,18 +18,13 @@ const HEADER_CELL =
 
 const BODY_CELL = "px-3 py-1.5 text-default truncate";
 
-export const SensorPreview = ({
-  result,
-  timingWarnings,
-}: {
-  result: ParseSensorDataResult;
-  timingWarnings: ImportError[];
-}) => {
+export const useSensorImportOutcome = (
+  result: ParseSensorDataResult | null,
+  timingWarnings: ImportError[],
+): ImportOutcome | null => {
   const translate = useTranslate();
-  const assets = useAtomValue(assetsDerivedAtom);
-  const [isReportDismissed, setReportDismissed] = useState(false);
-
-  const outcome = useMemo((): ImportOutcome => {
+  return useMemo((): ImportOutcome | null => {
+    if (!result) return null;
     const issues = [
       ...groupErrors(result.errors),
       ...groupErrors(timingWarnings),
@@ -68,12 +63,22 @@ export const SensorPreview = ({
       stats,
     };
   }, [result, timingWarnings, translate]);
+};
+
+export const SensorPreview = ({
+  result,
+}: {
+  result: ParseSensorDataResult;
+}) => {
+  const translate = useTranslate();
+  const assets = useAtomValue(assetsDerivedAtom);
+  const parameterLabel = useSensorParameterLabel();
 
   const preview = result.sensors.slice(0, MAX_PREVIEW_ROWS);
   const remaining = result.sensors.length - preview.length;
 
   return (
-    <div className="flex flex-col gap-3 flex-1 min-h-0">
+    <div className="flex flex-col flex-1 min-h-0">
       {preview.length > 0 && (
         <div className="min-h-0 border rounded-base overflow-auto overscroll-none scroll-shadows [--scroll-shadow-top:calc(var(--spacing)*9)]">
           <table className="w-full table-fixed text-size-base">
@@ -103,13 +108,16 @@ export const SensorPreview = ({
               {preview.map((sensor) => {
                 const asset = assets.get(sensor.assetId);
                 const assetType = asset ? translate(asset.type) : "";
+                const parameter = asset
+                  ? parameterLabel(sensor.parameter, asset.type)
+                  : sensor.parameter;
                 return (
                   <tr key={sensor.name} className="border-t border">
                     <td className={BODY_CELL} title={sensor.name}>
                       {sensor.name}
                     </td>
-                    <td className={BODY_CELL} title={sensor.parameter}>
-                      {sensor.parameter}
+                    <td className={BODY_CELL} title={parameter}>
+                      {parameter}
                     </td>
                     <td
                       className={BODY_CELL}
@@ -143,16 +151,6 @@ export const SensorPreview = ({
               )}
             </tbody>
           </table>
-        </div>
-      )}
-
-      {!isReportDismissed && (
-        <div className="shrink-0 mt-auto">
-          <ImportOutcomeReport
-            outcome={outcome}
-            translationKeys={SENSOR_DATA_IMPORT_KEYS}
-            onDismiss={() => setReportDismissed(true)}
-          />
         </div>
       )}
     </div>

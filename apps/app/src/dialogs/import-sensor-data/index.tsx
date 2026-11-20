@@ -1,10 +1,10 @@
 import { useCallback, useMemo, useState } from "react";
 import { useAtomValue } from "jotai";
-import { Callout } from "@epanet-js/ui-kit";
 import { useTranslate } from "src/hooks/use-translate";
 import { BaseDialog, SimpleDialogActions } from "src/components/dialog";
 import { DropZone } from "src/components/drop-zone";
-import { CloseIcon, ErrorIcon, InfoIcon } from "src/icons";
+import { ImportFileReport } from "src/components/import-outcome-report";
+import type { ImportOutcome } from "src/components/import-outcome";
 import { useUserTracking } from "src/infra/user-tracking";
 import { captureError } from "src/infra/error-tracking";
 import { modelFactoriesAtom } from "src/state/model-factories";
@@ -20,7 +20,11 @@ import {
 import { checkSensorTiming } from "src/lib/sensor-data/check-sensor-timing";
 import { FormatInfo } from "./format-info";
 import { useSensorVocabulary } from "./sensor-vocabulary";
-import { SensorPreview } from "./sensor-preview";
+import {
+  SENSOR_DATA_IMPORT_KEYS,
+  SensorPreview,
+  useSensorImportOutcome,
+} from "./sensor-preview";
 
 const ACCEPTED_EXTENSIONS = ".csv,.xlsx";
 
@@ -96,17 +100,28 @@ export const ImportSensorDataDialog = ({
     [labelManager, hydraulicModel, vocabulary, refuse],
   );
 
-  const handleFileRejected = useCallback(() => {
-    setFile(null);
-    setResult(null);
-    refuse("unsupportedFormat");
-  }, [refuse]);
+  const handleFileRejected = useCallback(
+    (rejected: File) => {
+      setFile(rejected);
+      setResult(null);
+      refuse("unsupportedFormat");
+    },
+    [refuse],
+  );
 
   const handleRemoveFile = useCallback(() => {
     setFile(null);
     setResult(null);
     setRefusal(null);
   }, []);
+
+  const resultOutcome = useSensorImportOutcome(result, timingWarnings);
+  const outcome: ImportOutcome | null = refusal
+    ? {
+        status: "failed",
+        message: translate(`${SENSOR_DATA_IMPORT_KEYS}.${refusal}`),
+      }
+    : resultOutcome;
 
   const handleImport = useCallback(() => {
     if (!result || result.sensors.length === 0) return;
@@ -135,47 +150,33 @@ export const ImportSensorDataDialog = ({
       }
     >
       <div className="flex flex-col gap-3 flex-1 min-h-0 p-4 overflow-hidden">
-        <Callout
-          variant="info"
-          description={translate("sensorData.import.sessionNote")}
-          Icon={InfoIcon}
-          className="shrink-0"
-        />
+        <p className="shrink-0 text-size-base text-subtle">
+          {translate("sensorData.import.sessionNote")}
+        </p>
 
-        {result && file ? (
+        {file && outcome ? (
           <>
-            <div className="flex shrink-0 items-center gap-2 px-3 py-2 border rounded-base text-size-base">
-              <span className="grow truncate">{file.name}</span>
-              <button
-                type="button"
-                className="p-1 rounded-base text-subtle hover:text-default hover:bg-base-hover"
-                onClick={handleRemoveFile}
-                aria-label={translate("sensorData.import.removeFile")}
-              >
-                <CloseIcon />
-              </button>
+            <div className="shrink-0">
+              <ImportFileReport
+                fileName={file.name}
+                outcome={outcome}
+                translationKeys={SENSOR_DATA_IMPORT_KEYS}
+                onRemove={handleRemoveFile}
+                removeLabel={translate("sensorData.import.removeFile")}
+              />
             </div>
-            <SensorPreview result={result} timingWarnings={timingWarnings} />
+            {result && <SensorPreview result={result} />}
           </>
         ) : (
-          <>
-            <DropZone
-              onFileDrop={(dropped) => void handleFileDrop(dropped)}
-              onFileRejected={handleFileRejected}
-              accept={ACCEPTED_EXTENSIONS}
-              disabled={isParsing}
-              supportedFormats="CSV, XLSX"
-              selectedFile={file}
-              testId="sensor-data-drop-zone"
-            />
-            {refusal && (
-              <Callout
-                variant="error"
-                description={translate(`sensorData.import.${refusal}`)}
-                Icon={ErrorIcon}
-              />
-            )}
-          </>
+          <DropZone
+            onFileDrop={(dropped) => void handleFileDrop(dropped)}
+            onFileRejected={handleFileRejected}
+            accept={ACCEPTED_EXTENSIONS}
+            disabled={isParsing}
+            supportedFormats="CSV, XLSX"
+            selectedFile={file}
+            testId="sensor-data-drop-zone"
+          />
         )}
       </div>
     </BaseDialog>
