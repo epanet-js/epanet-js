@@ -4,9 +4,11 @@ import {
   effectiveRoughness,
   FlowModulatingValveControl,
   getLinkFlowModulatingValve,
+  getLinkLevelOpening,
   getLinkLevelSetting,
   getLinkTimedSetting,
   getLinkVariableSpeedPump,
+  LevelOpeningControl,
   LevelSettingControl,
   LevelSettingError,
   TimedSettingControl,
@@ -399,6 +401,80 @@ const levelSettingControlRules: Rule[] = [
   ),
 ];
 
+const levelOpeningControlOf = (
+  entity: ValidatableEntity,
+  model?: HydraulicModel,
+): LevelOpeningControl | null =>
+  model
+    ? getLinkLevelOpening(
+        model.controls,
+        readEntityProp(entity, "id") as AssetId,
+      )
+    : null;
+
+const hasLevelOpeningControl: When = (entity, model) =>
+  isActiveEntity(entity) &&
+  readEntityProp(entity, "kind") === "pcv" &&
+  levelOpeningControlOf(entity, model) !== null;
+
+const levelOpeningErrorsOf = (
+  control: LevelOpeningControl,
+  model?: HydraulicModel,
+) =>
+  tankLevelErrorsOf(
+    control.tankId,
+    control.level.open,
+    control.level.close,
+    model,
+  );
+
+const levelOpeningRule = (
+  checkName: string,
+  severity: Severity,
+  message: string,
+  isValid: (control: LevelOpeningControl, model?: HydraulicModel) => boolean,
+): Rule => ({
+  id: `valve.levelOpeningControl.${checkName}`,
+  type: "model",
+  entityType: "valve",
+  field: "levelOpeningControl",
+  accessor: levelOpeningControlOf,
+  appliesWhen: hasLevelOpeningControl,
+  check: (value, _entity, model) =>
+    value === null || isValid(value as LevelOpeningControl, model),
+  severity,
+  message,
+});
+
+const levelOpeningControlRules: Rule[] = [
+  levelOpeningRule(
+    "openBelowClose",
+    "error",
+    "mustBeBelowCloseLevel",
+    (control, model) => !levelOpeningErrorsOf(control, model).includes("order"),
+  ),
+  levelOpeningRule(
+    "withinTankLevels",
+    "warning",
+    "mustBeWithinLevelRange",
+    (control, model) =>
+      !levelOpeningErrorsOf(control, model).some(isOutOfRange),
+  ),
+  {
+    id: "valve.levelOpeningTank.active",
+    type: "model",
+    entityType: "valve",
+    field: "levelOpeningTank",
+    accessor: (entity, model) =>
+      levelOpeningControlOf(entity, model)?.tankId ?? null,
+    appliesWhen: hasLevelOpeningControl,
+    check: (value, _entity, model) =>
+      value === null || isActiveAsset(model, value as AssetId),
+    severity: "error",
+    message: "mustBeActive",
+  },
+];
+
 const hasVariableSpeedControl: When = (entity, model) =>
   isActiveEntity(entity) && variableSpeedControlOf(entity, model) !== null;
 
@@ -606,6 +682,7 @@ export const valveReferenceFields = [
   "targetNode",
   "flowModulatingSensorLink",
   "flowModulatingControlNode",
+  "levelOpeningTank",
 ] as const;
 
 export type ValveReferenceField = (typeof valveReferenceFields)[number];
@@ -681,6 +758,7 @@ export const RULES: Rule[] = [
   flowModulatingControlRule("flowsIncreasing", "mustBeIncreasing"),
   flowModulatingReferenceRule("sensorLink", "sensorLinkId"),
   flowModulatingReferenceRule("controlNode", "controlNodeId"),
+  ...levelOpeningControlRules,
   {
     id: "valve.targetNode.active",
     type: "model",

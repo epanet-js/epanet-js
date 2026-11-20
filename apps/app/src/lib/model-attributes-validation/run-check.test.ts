@@ -916,6 +916,88 @@ describe("validateModelAttributes", () => {
     });
   });
 
+  describe("level-opening control", () => {
+    const IDS = { J1: 1, T1: 2, V1: 3 } as const;
+
+    const aLevelControlledValve = ({
+      openLevel = 2,
+      closeLevel = 8,
+      kind = "pcv",
+      tankIsActive = true,
+    }: {
+      openLevel?: number;
+      closeLevel?: number;
+      kind?: "pcv" | "tcv";
+      tankIsActive?: boolean;
+    } = {}) =>
+      HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, { elevation: 50 })
+        .aTank(IDS.T1, {
+          elevation: 50,
+          initialLevel: 5,
+          diameter: 100,
+          minLevel: 1,
+          maxLevel: 10,
+          isActive: tankIsActive,
+        })
+        .aValve(IDS.V1, {
+          kind,
+          startNodeId: IDS.J1,
+          endNodeId: IDS.T1,
+          diameter: 100,
+          setting: 50,
+        })
+        .aLevelOpeningControl({
+          linkId: IDS.V1,
+          tankId: IDS.T1,
+          level: { open: openLevel, close: closeLevel },
+          continuous: true,
+        })
+        .build();
+
+    const levelIssues = async (
+      model: ReturnType<typeof aLevelControlledValve>,
+    ) =>
+      (await validateModelAttributes(model)).filter(([id]) =>
+        id.startsWith("valve.levelOpening"),
+      );
+
+    it("passes an open level below the close level, both within the tank's range", async () => {
+      expect(await levelIssues(aLevelControlledValve())).toEqual([]);
+    });
+
+    it("flags an open level that is not below the close level as an error", async () => {
+      const model = aLevelControlledValve({ openLevel: 8, closeLevel: 8 });
+
+      expect(await levelIssues(model)).toEqual([
+        ["valve.levelOpeningControl.openBelowClose", [IDS.V1]],
+      ]);
+      expect(severityOf("valve.levelOpeningControl.openBelowClose")).toBe(
+        "error",
+      );
+    });
+
+    it("flags a level outside the tank's range as a warning", async () => {
+      const model = aLevelControlledValve({ openLevel: 0.5 });
+
+      expect(await levelIssues(model)).toEqual([
+        ["valve.levelOpeningControl.withinTankLevels", [IDS.V1]],
+      ]);
+      expect(severityOf("valve.levelOpeningControl.withinTankLevels")).toBe(
+        "warning",
+      );
+    });
+
+    it("flags an inactive tank as an error", async () => {
+      const model = aLevelControlledValve({ tankIsActive: false });
+
+      expect(await levelIssues(model)).toEqual([
+        ["valve.levelOpeningTank.active", [IDS.V1]],
+      ]);
+      expect(severityOf("valve.levelOpeningTank.active")).toBe("error");
+    });
+  });
+
   describe("level-setting control", () => {
     const IDS = { J1: 1, J2: 2, PU1: 3, T1: 4 } as const;
 
