@@ -15,6 +15,7 @@ import {
   validateLevelSetting,
   validateTimeSequence,
   VariableSpeedPumpControl,
+  getCurveErrors,
   getPumpCurveErrors,
   inferredRoughness,
   Pipe,
@@ -25,6 +26,8 @@ import {
   numericChecks,
   FLOW_MODULATING_VALVE_MIN_POINTS,
   flowModulatingValvePointChecks,
+  valveCurveTypeFrom,
+  ValveKind,
 } from "@epanet-js/hydraulic-model";
 import { EntityType, Rule, Severity, ValidatableEntity } from "./types";
 import { checkMessage, isFiniteNumber, isNumber } from "./checks";
@@ -678,6 +681,41 @@ const variableSpeedControlRules: Rule[] = [
   ),
 ];
 
+const curvePointsValid = (
+  entityType: EntityType,
+  fieldName: string,
+  appliesWhen?: When,
+): Rule => ({
+  id: `${entityType}.${fieldName}.valid`,
+  type: "model",
+  entityType,
+  field: fieldName,
+  accessor: field(fieldName),
+  appliesWhen,
+  check: (value, _entity, model) => {
+    if (!model || !isFiniteNumber(value)) return true;
+    const curve = model.curves.get(value);
+    return (
+      curve === undefined ||
+      getCurveErrors(curve.type, curve.points).length === 0
+    );
+  },
+  severity: "error",
+  message: "invalidCurve",
+});
+
+const curvePointsRules: Rule[] = [
+  curvePointsValid("tank", "volumeCurveId"),
+  curvePointsValid("pump", "efficiencyCurveId"),
+  curvePointsValid(
+    "valve",
+    "curveId",
+    (entity) =>
+      valveCurveTypeFrom(readEntityProp(entity, "kind") as ValveKind) !==
+      undefined,
+  ),
+];
+
 export const valveReferenceFields = [
   "targetNode",
   "flowModulatingSensorLink",
@@ -927,6 +965,7 @@ export const RULES: Rule[] = [
   ...variableSpeedControlRules,
   ...variableSpeedScheduleRules,
   ...timedSettingControlRules,
+  ...curvePointsRules,
   variableSpeedDischargeNotBackfeeding,
   variableSpeedFlowTargetSameDirection,
   // Customer points
@@ -946,5 +985,6 @@ export const RULES_DEPRECATED: Rule[] = RULES.filter(
     !levelSettingControlRules.includes(rule) &&
     !variableSpeedControlRules.includes(rule) &&
     !variableSpeedScheduleRules.includes(rule) &&
-    !timedSettingControlRules.includes(rule),
+    !timedSettingControlRules.includes(rule) &&
+    !curvePointsRules.includes(rule),
 );

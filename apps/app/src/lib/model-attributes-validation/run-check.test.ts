@@ -1097,6 +1097,121 @@ describe("validateModelAttributes", () => {
     });
   });
 
+  describe("curve points", () => {
+    const IDS = { J1: 1, J2: 2, LINK: 3, CURVE: 9 } as const;
+
+    const curveIssues = async (model: ReturnType<typeof aTankModel>) =>
+      ruleIdsOf(await validateModelAttributes(model)).filter((id) =>
+        /[cC]urveId\.valid$/.test(id),
+      );
+
+    const aTankModel = (points: { x: number; y: number }[]) =>
+      HydraulicModelBuilder.with()
+        .aCurve({ id: IDS.CURVE, type: "volume", points })
+        .aTank(IDS.J1, { volumeCurveId: IDS.CURVE })
+        .build();
+
+    it("passes a volume curve with both axes rising", async () => {
+      const model = aTankModel([
+        { x: 0, y: 0 },
+        { x: 5, y: 20 },
+      ]);
+
+      expect(await curveIssues(model)).toEqual([]);
+    });
+
+    it("flags the tank whose volume curve breaks its rule", async () => {
+      const model = aTankModel([
+        { x: 0, y: 20 },
+        { x: 5, y: 10 },
+      ]);
+      const issues = await validateModelAttributes(model);
+
+      expect(entityIdsOf(issues, "tank.volumeCurveId.valid")).toEqual([IDS.J1]);
+      expect(severityOf("tank.volumeCurveId.valid")).toBe("error");
+    });
+
+    it("flags the pump whose efficiency curve breaks its rule", async () => {
+      const model = HydraulicModelBuilder.with()
+        .aCurve({
+          id: IDS.CURVE,
+          type: "efficiency",
+          points: [
+            { x: 5, y: 60 },
+            { x: 0, y: 80 },
+          ],
+        })
+        .aJunction(IDS.J1, { elevation: 50 })
+        .aJunction(IDS.J2, { elevation: 50 })
+        .aPump(IDS.LINK, {
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
+          definitionType: "power",
+          power: 10,
+          efficiencyCurveId: IDS.CURVE,
+        })
+        .build();
+      const issues = await validateModelAttributes(model);
+
+      expect(entityIdsOf(issues, "pump.efficiencyCurveId.valid")).toEqual([
+        IDS.LINK,
+      ]);
+    });
+
+    it.each([
+      ["pcv", "valve"],
+      ["gpv", "headloss"],
+    ] as const)(
+      "flags a %s whose %s curve breaks its rule",
+      async (kind, type) => {
+        const model = HydraulicModelBuilder.with()
+          .aCurve({
+            id: IDS.CURVE,
+            type,
+            points: [
+              { x: 50, y: 50 },
+              { x: 0, y: 0 },
+            ],
+          })
+          .aJunction(IDS.J1, { elevation: 50 })
+          .aJunction(IDS.J2, { elevation: 50 })
+          .aValve(IDS.LINK, {
+            startNodeId: IDS.J1,
+            endNodeId: IDS.J2,
+            kind,
+            curveId: IDS.CURVE,
+          })
+          .build();
+        const issues = await validateModelAttributes(model);
+
+        expect(entityIdsOf(issues, "valve.curveId.valid")).toEqual([IDS.LINK]);
+      },
+    );
+
+    it("ignores the curve a valve keeps from a kind that takes none", async () => {
+      const model = HydraulicModelBuilder.with()
+        .aCurve({
+          id: IDS.CURVE,
+          type: "valve",
+          points: [
+            { x: 50, y: 50 },
+            { x: 0, y: 0 },
+          ],
+        })
+        .aJunction(IDS.J1, { elevation: 50 })
+        .aJunction(IDS.J2, { elevation: 50 })
+        .aValve(IDS.LINK, {
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
+          kind: "prv",
+          curveId: IDS.CURVE,
+        })
+        .build();
+
+      expect(await curveIssues(model)).toEqual([]);
+    });
+  });
+
   describe("time-based control", () => {
     const IDS = { J1: 1, J2: 2, PU1: 3 } as const;
 
