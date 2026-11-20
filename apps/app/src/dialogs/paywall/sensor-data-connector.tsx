@@ -1,4 +1,3 @@
-import { SensorsIcon } from "src/icons";
 import { FeaturePaywall, type FeaturePaywallConfig } from "./feature-paywall";
 
 export const SensorDataPaywallConnector = ({
@@ -8,11 +7,7 @@ export const SensorDataPaywallConnector = ({
 }) => {
   const config: FeaturePaywallConfig = {
     feature: "sensorData",
-    media: (
-      <div className="w-full h-full flex items-center justify-center text-subtle">
-        <SensorsIcon size="2xl" />
-      </div>
-    ),
+    imageSrc: "/images/sensor-data-paywall.webp",
     titleKey: "sensorData.paywall.title",
     descriptionKeys: [
       "sensorData.paywall.description1",
