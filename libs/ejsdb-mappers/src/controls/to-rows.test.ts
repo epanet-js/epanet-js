@@ -82,6 +82,24 @@ describe("serializeControls", () => {
     expect(JSON.parse(data)).toEqual(controls);
   });
 
+  it("round-trips a level-opening control", () => {
+    const IDS = { V1: 7, T2: 12 } as const;
+    const controls: Controls = [
+      {
+        id: "ctrl-1",
+        type: "level-opening",
+        linkId: IDS.V1,
+        tankId: IDS.T2,
+        level: { open: 2, close: 4.5 },
+        continuous: false,
+      },
+    ];
+
+    const data = serializeControls(controls);
+
+    expect(JSON.parse(data)).toEqual(controls);
+  });
+
   it("serializes empty controls as an empty array", () => {
     const data = serializeControls(createEmptyControls());
     expect(JSON.parse(data)).toEqual([]);

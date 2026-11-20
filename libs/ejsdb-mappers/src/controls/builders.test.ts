@@ -118,6 +118,22 @@ describe("buildControlsData", () => {
     expect(controls).toEqual([control]);
   });
 
+  it("reconstructs a level-opening control from the serialized blob", () => {
+    const IDS = { V1: 7, T2: 12 } as const;
+    const control = {
+      id: "ctrl-1",
+      type: "level-opening",
+      linkId: IDS.V1,
+      tankId: IDS.T2,
+      level: { open: 2, close: 4.5 },
+      continuous: true,
+    };
+
+    const controls = buildControlsData(JSON.stringify([control]));
+
+    expect(controls).toEqual([control]);
+  });
+
   it("returns empty controls for null input (fresh project)", () => {
     expect(buildControlsData(null)).toEqual([]);
   });

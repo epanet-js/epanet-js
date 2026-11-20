@@ -2167,9 +2167,11 @@ const ValveEditor = ({
 
   const isPrv = valve.kind === "prv";
   const showControls = isPrv;
-  const flowModulatingControl = showControls
+  const valveControl = showControls
     ? getValveControl(hydraulicModel.controlsLookup, valve.id)
     : null;
+  const flowModulatingControl =
+    valveControl?.type === "flow-modulating-valve" ? valveControl : null;
   const isSetByControl = flowModulatingControl !== null;
   const showTargetNode = isPrv;
   const outletNodeId = valve.connections[1] ?? null;

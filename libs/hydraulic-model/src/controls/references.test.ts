@@ -18,6 +18,7 @@ import {
   VariableSpeedPumpControl,
   buildDefaultLevelSetting,
   buildFlowModulatingValve,
+  buildLevelOpening,
   buildTimedSetting,
   buildVariableSpeedPump,
 } from "./types";
@@ -462,5 +463,61 @@ describe("flow-modulating valve references", () => {
     )!;
 
     expect(control).toEqual(aFlowModulatingValve({ controlNodeId: J4 }));
+  });
+});
+
+describe("level-opening references", () => {
+  const V1 = 40;
+
+  const assets = () =>
+    new AssetsMap(
+      [
+        buildJunction({ id: IDS.J1 }),
+        buildTank({ id: IDS.T1 }),
+        buildValve({ id: V1, connections: [IDS.J1, IDS.T1] }),
+      ].map((asset) => [asset.id, asset]),
+    );
+
+  const aLevelOpening = (tankId: number = IDS.T1) =>
+    buildLevelOpening(
+      {
+        linkId: V1,
+        tankId,
+        level: { open: 1, close: 4 },
+        continuous: true,
+      },
+      "lo-1",
+    );
+
+  it("drops the control when its valve is removed", () => {
+    expect(
+      detachControlReferences([aLevelOpening()], new Set([V1]), assets()),
+    ).toEqual([]);
+  });
+
+  it("drops the control when its tank is removed", () => {
+    expect(
+      detachControlReferences([aLevelOpening()], new Set([IDS.T1]), assets()),
+    ).toEqual([]);
+  });
+
+  it("re-points the control to a replacing tank", () => {
+    const [control] = remapControlNodeReference(
+      [aLevelOpening()],
+      IDS.T1,
+      buildTank({ id: IDS.T2 }),
+    )!;
+
+    expect(control).toEqual(aLevelOpening(IDS.T2));
+  });
+
+  it("drops the control when its tank becomes a junction", () => {
+    expect(
+      remapControlNodeReference(
+        [aLevelOpening()],
+        IDS.T1,
+        buildJunction({ id: IDS.J3 }),
+      ),
+    ).toEqual([]);
   });
 });

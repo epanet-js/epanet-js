@@ -10,6 +10,7 @@ import {
   TimedSettingControl,
   Controls,
   buildFlowModulatingValve,
+  buildLevelOpening,
   buildVariableSpeedPump,
 } from "./types";
 
@@ -226,6 +227,24 @@ describe("ControlsLookup", () => {
 
     lookup.removeControl(control);
     expect(lookup.hasControls(IDS.PU1)).toBe(false);
+  });
+
+  it("finds a level-opening control by both its valve and its tank", () => {
+    const IDS = { V1: 1, T1: 2 } as const;
+    const lookup = new ControlsLookup();
+    const control = buildLevelOpening({
+      linkId: IDS.V1,
+      tankId: IDS.T1,
+      level: { open: 1, close: 4 },
+      continuous: false,
+    });
+
+    lookup.addControl(control);
+
+    expect(lookup.getControls(IDS.V1)).toEqual(new Set([control]));
+    expect(lookup.getControls(IDS.T1)).toEqual(new Set([control]));
+    expect(getValveControl(lookup, IDS.V1)).toBe(control);
+    expect(getValveControl(lookup, IDS.T1)).toBeNull();
   });
 
   it("finds a flow-modulating valve control by its valve, its sensor and its control node", () => {

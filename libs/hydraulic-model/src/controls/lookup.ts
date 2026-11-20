@@ -113,5 +113,7 @@ const referencedIds = (control: Control): AssetId[] => {
       ];
     case "flow-modulating-valve":
       return [control.linkId, control.sensorLinkId, control.controlNodeId];
+    case "level-opening":
+      return [control.linkId, control.tankId];
   }
 };

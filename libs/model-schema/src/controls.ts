@@ -63,11 +63,21 @@ const flowModulatingValveControlSchema = z.object({
   controlNodeId: z.number(),
 });
 
+const levelOpeningControlSchema = z.object({
+  id: z.string(),
+  type: z.literal("level-opening"),
+  linkId: z.number(),
+  tankId: z.number(),
+  level: z.object({ open: z.number(), close: z.number() }),
+  continuous: z.boolean(),
+});
+
 export const controlSchema = z.discriminatedUnion("type", [
   timedSettingControlSchema,
   levelSettingControlSchema,
   variableSpeedPumpControlSchema,
   flowModulatingValveControlSchema,
+  levelOpeningControlSchema,
 ]);
 
 export const controlsSchema = z.array(controlSchema);

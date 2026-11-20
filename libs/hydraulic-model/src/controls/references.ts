@@ -68,6 +68,8 @@ const detachControl = (
       return detachVariableSpeedPump(control, removedIds, assets);
     case "flow-modulating-valve":
       return detachFlowModulatingValve(control, removedIds, assets);
+    case "level-opening":
+      return removedIds.has(control.tankId) ? null : control;
   }
 };
 
@@ -167,6 +169,9 @@ const remapNodeReference = (
     case "flow-modulating-valve":
       if (control.controlNodeId !== from) return control;
       return { ...control, controlNodeId: to.id };
+    case "level-opening":
+      if (control.tankId !== from) return control;
+      return isTank ? { ...control, tankId: to.id } : null;
   }
 };
 

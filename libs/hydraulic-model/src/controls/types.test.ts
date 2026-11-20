@@ -4,6 +4,8 @@ import {
   buildDefaultLevelSetting,
   buildDefaultVspPressureControl,
   buildDefaultFlowModulatingValve,
+  buildDefaultLevelOpening,
+  getLinkLevelOpening,
   buildVariableSpeedPump,
   buildTimedSetting,
   createEmptyControls,
@@ -269,6 +271,34 @@ describe("controls helpers", () => {
     it("takes flow-modulating-valve as a valve control", () => {
       expect(isValveControl(valveControl)).toBe(true);
       expect(isPumpControl(valveControl)).toBe(false);
+    });
+
+    it("takes level-opening as a valve control", () => {
+      const control = buildDefaultLevelOpening(IDS.P2, tank.id, 0, 5);
+
+      expect(isValveControl(control)).toBe(true);
+      expect(isPumpControl(control)).toBe(false);
+    });
+  });
+
+  describe("level-opening controls", () => {
+    it("builds a continuous control spanning the tank's levels", () => {
+      expect(buildDefaultLevelOpening(IDS.P1, 12, 2, 9, "ctrl-1")).toEqual({
+        id: "ctrl-1",
+        type: "level-opening",
+        linkId: IDS.P1,
+        tankId: 12,
+        level: { open: 2, close: 9 },
+        continuous: true,
+      });
+    });
+
+    it("returns the level-opening control of a link", () => {
+      const control = buildDefaultLevelOpening(IDS.P1, 12, 2, 9);
+      const controls = setAssetControl(createEmptyControls(), IDS.P1, control);
+
+      expect(getLinkLevelOpening(controls, IDS.P1)).toBe(control);
+      expect(getLinkLevelOpening(controls, IDS.P2)).toBeNull();
     });
   });
 });

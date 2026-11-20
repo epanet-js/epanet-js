@@ -8,6 +8,7 @@ export type {
   VariableSpeedPumpTankLevels,
   FlowModulatingValveControl,
   FlowModulatingValvePoint,
+  LevelOpeningControl,
   PumpControl,
   ValveControl,
   Control,
@@ -23,6 +24,7 @@ export {
   getLinkLevelSetting,
   getLinkVariableSpeedPump,
   getLinkFlowModulatingValve,
+  getLinkLevelOpening,
   buildTimedSetting,
   buildDefaultLevelSetting,
   buildVariableSpeedPump,
@@ -30,6 +32,8 @@ export {
   buildDefaultVspFlowControl,
   buildFlowModulatingValve,
   buildDefaultFlowModulatingValve,
+  buildLevelOpening,
+  buildDefaultLevelOpening,
   setAssetControl,
 } from "./types";
 

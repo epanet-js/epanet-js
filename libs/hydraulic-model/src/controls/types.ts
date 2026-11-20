@@ -69,12 +69,21 @@ export type FlowModulatingValveControl = {
   controlNodeId: AssetId;
 };
 
+export type LevelOpeningControl = {
+  id: ControlId;
+  type: "level-opening";
+  linkId: AssetId;
+  tankId: AssetId;
+  level: { open: number; close: number };
+  continuous: boolean;
+};
+
 export type PumpControl =
   | TimedSettingControl
   | LevelSettingControl
   | VariableSpeedPumpControl;
 
-export type ValveControl = FlowModulatingValveControl;
+export type ValveControl = FlowModulatingValveControl | LevelOpeningControl;
 
 export type Control = PumpControl | ValveControl;
 
@@ -85,6 +94,7 @@ export const isPumpControl = (control: Control): control is PumpControl => {
     case "variable-speed-pump":
       return true;
     case "flow-modulating-valve":
+    case "level-opening":
       return false;
   }
 };
@@ -130,6 +140,15 @@ export const getLinkFlowModulatingValve = (
   controls.find(
     (control): control is FlowModulatingValveControl =>
       control.type === "flow-modulating-valve" && control.linkId === linkId,
+  ) ?? null;
+
+export const getLinkLevelOpening = (
+  controls: Controls,
+  linkId: AssetId,
+): LevelOpeningControl | null =>
+  controls.find(
+    (control): control is LevelOpeningControl =>
+      control.type === "level-opening" && control.linkId === linkId,
   ) ?? null;
 
 export const buildTimedSetting = (
@@ -234,6 +253,30 @@ export const buildDefaultFlowModulatingValve = (
   interpolate: true,
   sensorLinkId: linkId,
   controlNodeId: outletNodeId,
+});
+
+export const buildLevelOpening = (
+  data: Omit<LevelOpeningControl, "id" | "type">,
+  id: ControlId = createControlId(),
+): LevelOpeningControl => ({
+  id,
+  type: "level-opening",
+  ...data,
+});
+
+export const buildDefaultLevelOpening = (
+  linkId: AssetId,
+  tankId: AssetId,
+  minLevel: number,
+  maxLevel: number,
+  id: ControlId = createControlId(),
+): LevelOpeningControl => ({
+  id,
+  type: "level-opening",
+  linkId,
+  tankId,
+  level: { open: minLevel, close: maxLevel },
+  continuous: true,
 });
 
 export const setAssetControl = (
