@@ -1,6 +1,11 @@
 import { useCallback } from "react";
-import { useSetAtom } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { sensorsAtom } from "src/state/sensor-data";
+import { panelsAtom } from "src/state/panels";
+import { splitsAtom } from "src/state/layout";
+import type { Panel } from "src/panels/panel";
+import { createSensorsPanel } from "src/panels/sensors/create-panel";
+import { useActivatePanel } from "./activate-panel";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";
 import { notify } from "src/components/notifications";
@@ -11,6 +16,10 @@ export const useImportSensorData = () => {
   const setSensors = useSetAtom(sensorsAtom);
   const userTracking = useUserTracking();
   const translate = useTranslate();
+  const panels = useAtomValue(panelsAtom);
+  const setPanels = useSetAtom(panelsAtom);
+  const setSplits = useSetAtom(splitsAtom);
+  const activatePanel = useActivatePanel();
 
   return useCallback(
     (
@@ -21,6 +30,11 @@ export const useImportSensorData = () => {
       }: { skippedCount: number; hasTimingWarning: boolean },
     ) => {
       setSensors(sensors);
+
+      const panel = panels.find(isAllSensorsPanel) ?? createSensorsPanel();
+      if (!panels.includes(panel)) setPanels((prev) => [...prev, panel]);
+      setSplits((splits) => ({ ...splits, bottomOpen: true }));
+      activatePanel(panel.id);
 
       userTracking.capture({
         name: "sensorData.imported",
@@ -45,7 +59,15 @@ export const useImportSensorData = () => {
         duration: 3000,
       });
     },
-    [setSensors, userTracking, translate],
+    [
+      setSensors,
+      userTracking,
+      translate,
+      panels,
+      setPanels,
+      setSplits,
+      activatePanel,
+    ],
   );
 };
 
@@ -56,3 +78,6 @@ const countByParameter = (sensors: ImportedSensor[]) => {
   }
   return counts;
 };
+
+const isAllSensorsPanel = (panel: Panel) =>
+  panel.type === "sensors" && !panel.assetIds;
