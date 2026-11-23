@@ -14,15 +14,27 @@ describe("checkSensorTiming", () => {
     expect(checkSensorTiming([aSensor("A", 25)], timing)).toEqual([]);
   });
 
-  it("warns when the readings stop short of the duration or run past it", () => {
+  it("accepts readings that stop short of the duration", () => {
+    expect(checkSensorTiming([aSensor("A", 13)], timing)).toEqual([]);
+  });
+
+  it("warns when the readings run past the duration or cover less than half of it", () => {
     const warnings = checkSensorTiming(
-      [aSensor("SHORT", 13), aSensor("LONG", 49)],
+      [aSensor("SHORT", 12), aSensor("LONG", 26)],
       timing,
     );
 
     expect(warnings).toEqual([
-      { label: "SHORT", code: "readingsDontCoverDuration" },
-      { label: "LONG", code: "readingsDontCoverDuration" },
+      {
+        label: "SHORT",
+        code: "readingsDontCoverDuration",
+        params: ["25", "12"],
+      },
+      {
+        label: "LONG",
+        code: "readingsDontCoverDuration",
+        params: ["25", "26"],
+      },
     ]);
   });
 
@@ -31,7 +43,11 @@ describe("checkSensorTiming", () => {
 
     expect(checkSensorTiming([aSensor("A", 97)], quarterHourly)).toEqual([]);
     expect(checkSensorTiming([aSensor("B", 25)], quarterHourly)).toEqual([
-      { label: "B", code: "readingsDontCoverDuration" },
+      {
+        label: "B",
+        code: "readingsDontCoverDuration",
+        params: ["97", "25"],
+      },
     ]);
   });
 

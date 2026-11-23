@@ -2280,7 +2280,7 @@
         "title": "File format",
         "show": "See the expected format",
         "optional": "The type row is optional. The asset defaults to the sensor name.",
-        "readings": "One reading per report time step, in project units.",
+        "readings": "One reading per report time step, in project units. The time column is for your reference only: readings are matched to report time steps in row order, starting at 0:00.",
         "downloadTemplate": "Download template"
       },
       "preview": {
@@ -2325,7 +2325,7 @@
       "unsupportedParameter": "Parameter not supported by the asset. Accepted for {{1}}. Sensor skipped",
       "ambiguousAsset": "A node and a link share this label. Add a \"type\" row to say which. Sensor skipped",
       "duplicateSensorOnAsset": "Asset already has a sensor for this parameter. Sensor skipped",
-      "readingsDontCoverDuration": "Readings don't match the simulation duration. Sensors imported anyway",
+      "readingsDontCoverDuration": "Expected {{1}} readings, one per report time step, but found {{2}}. Sensors imported anyway",
       "notAValidSensorFile": "Not a sensor data file.",
       "missingSensorRow": "Couldn't find the sensor names. Put them in a row labeled \"sensor\" in the first column. Labels found: {{1}}.",
       "unsupportedFormat": "Only .csv and .xlsx files can be imported",

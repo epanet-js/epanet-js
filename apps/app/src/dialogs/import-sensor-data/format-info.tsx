@@ -103,7 +103,9 @@ export const FormatInfo = ({
                           "px-2 py-1 border-l first:border-l-0",
                           cellIndex === 0 && rowIndex < HEADER_ROWS
                             ? "font-semibold"
-                            : "text-subtle",
+                            : cellIndex === 0
+                              ? "text-subtle italic"
+                              : "text-subtle",
                         )}
                       >
                         {cell}

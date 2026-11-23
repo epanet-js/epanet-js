@@ -10,14 +10,16 @@ export const checkSensorTiming = (
 ): ImportError[] => {
   if (timing.duration <= 0) return [];
 
+  const expected = Math.floor(timing.duration / timing.reportTimestep) + 1;
+
   return sensors
     .filter(
-      (sensor) =>
-        (sensor.readings.length - 1) * timing.reportTimestep !==
-        timing.duration,
+      ({ readings }) =>
+        readings.length > expected || readings.length < expected / 2,
     )
     .map((sensor) => ({
       label: sensor.name,
       code: "readingsDontCoverDuration",
+      params: [String(expected), String(sensor.readings.length)],
     }));
 };
