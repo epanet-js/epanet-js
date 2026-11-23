@@ -100,3 +100,11 @@ export const validateMaterial = (
 
   return null;
 };
+
+const isMissing = (value: number | null) => value === null || isNaN(value);
+
+export const hasIncompleteEntries = (material: PipeMaterial): boolean =>
+  material.entries.length === 0 ||
+  material.entries.some(
+    (entry) => isMissing(entry.age) || isMissing(entry.roughness),
+  );

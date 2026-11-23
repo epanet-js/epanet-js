@@ -1767,6 +1767,7 @@
         "pipeRoughnessPositive": "Pipe roughness must be positive",
         "pipeYearValid": "Pipe installation year invalid",
         "pipeMaterialInLibrary": "Pipe material not in the pipe library",
+        "pipeMaterialValidEntries": "Pipe material roughness entries in the pipe library are invalid",
         "pipeMaterialProvidesRoughness": "No roughness in the pipe library for this material and year",
         "nodeElevationPresent": "Elevation missing",
         "reservoirHeadPresent": "Reservoir head missing",

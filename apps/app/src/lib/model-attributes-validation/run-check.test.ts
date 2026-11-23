@@ -1845,6 +1845,64 @@ describe("validateModelAttributes with inferred roughness", () => {
       expect(await materialIssues(modelWith({}))).toEqual([]);
     });
 
+    describe("a known material with invalid entries", () => {
+      const withEntries = (
+        entries: { age: number; roughness: number }[],
+        pipe: { roughness?: number | null; year?: number } = {},
+      ) =>
+        HydraulicModelBuilder.with()
+          .aPipeMaterial({ label: "Cast Iron", entries })
+          .aPipe(1, {
+            label: "P1",
+            material: "Cast Iron",
+            roughness: null,
+            diameter: 100,
+            length: 100,
+            ...pipe,
+          })
+          .build();
+
+      it.each([
+        ["no entry at age 0", [{ age: 10, roughness: 120 }]],
+        [
+          "a repeated age",
+          [
+            { age: 0, roughness: 120 },
+            { age: 0, roughness: 90 },
+          ],
+        ],
+        [
+          "a negative age",
+          [
+            { age: 0, roughness: 120 },
+            { age: -5, roughness: 90 },
+          ],
+        ],
+        [
+          "a roughness of zero",
+          [
+            { age: 0, roughness: 120 },
+            { age: 20, roughness: 0 },
+          ],
+        ],
+      ])("flags a pipe using a material with %s", async (_case, entries) => {
+        const model = withEntries(entries, { year: new Date().getFullYear() });
+
+        expect(await materialIssues(model)).toEqual([
+          "pipe.material.validEntries",
+        ]);
+        expect(severityOf("pipe.material.validEntries")).toBe("error");
+      });
+
+      it("ignores a pipe whose own roughness overrides the material", async () => {
+        const model = withEntries([{ age: 10, roughness: 120 }], {
+          roughness: 130,
+        });
+
+        expect(await materialIssues(model)).toEqual([]);
+      });
+    });
+
     describe("a known material that yields no roughness", () => {
       const aged = (label: string) =>
         HydraulicModelBuilder.with().aPipeMaterial({

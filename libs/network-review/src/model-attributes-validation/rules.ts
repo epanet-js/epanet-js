@@ -19,6 +19,8 @@ import {
   getPumpCurveErrors,
   inferredRoughness,
   Pipe,
+  PipeMaterial,
+  validateMaterial,
   Pump,
   HydraulicModel,
   remoteFlowDirectionOf,
@@ -154,18 +156,20 @@ const needsInferredRoughness: When = (entity, model) =>
   !!model &&
   model.pipeMaterials.length > 0;
 
+const libraryMaterialOf = (
+  entity: ValidatableEntity,
+  model?: HydraulicModel,
+): PipeMaterial | undefined => {
+  const label = String(readEntityProp(entity, "material")).toLowerCase();
+  return model?.pipeMaterials.find(
+    (material) => material.label.toLowerCase() === label,
+  );
+};
+
 const isMaterialInLibrary = (
   entity: ValidatableEntity,
   model?: HydraulicModel,
-): boolean => {
-  const label = String(readEntityProp(entity, "material")).toLowerCase();
-  return (
-    !!model &&
-    model.pipeMaterials.some(
-      (material) => material.label.toLowerCase() === label,
-    )
-  );
-};
+): boolean => libraryMaterialOf(entity, model) !== undefined;
 
 const materialInLibrary: Rule = {
   id: "pipe.material.inLibrary",
@@ -178,6 +182,25 @@ const materialInLibrary: Rule = {
     !entity || isMaterialInLibrary(entity, model),
   severity: "warning",
   message: "notInLibrary",
+};
+
+const materialEntriesValid: Rule = {
+  id: "pipe.material.validEntries",
+  type: "model",
+  entityType: "pipe",
+  field: "material",
+  accessor: field("material"),
+  appliesWhen: (entity, model) =>
+    needsInferredRoughness(entity, model) && isMaterialInLibrary(entity, model),
+  check: (_value, entity, model) => {
+    const material = entity && libraryMaterialOf(entity, model);
+    if (!material) return true;
+    const roughness = effectiveRoughnessOf(entity, model);
+    if (isFiniteNumber(roughness) && roughness <= 0) return true;
+    return validateMaterial(material) === null;
+  },
+  severity: "error",
+  message: "invalidEntries",
 };
 
 const materialProvidesRoughness: Rule = {
@@ -882,6 +905,7 @@ export const RULES: Rule[] = [
   ),
   materialInLibrary,
   materialProvidesRoughness,
+  materialEntriesValid,
   {
     id: "pipe.year.valid",
     type: "field",
@@ -986,5 +1010,6 @@ export const RULES_DEPRECATED: Rule[] = RULES.filter(
     !variableSpeedControlRules.includes(rule) &&
     !variableSpeedScheduleRules.includes(rule) &&
     !timedSettingControlRules.includes(rule) &&
-    !curvePointsRules.includes(rule),
+    !curvePointsRules.includes(rule) &&
+    rule !== materialEntriesValid,
 );

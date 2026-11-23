@@ -11,7 +11,11 @@ import { WarningActionBanner } from "../warning-action-banner";
 import { ImportOutcomeReport } from "src/components/import-outcome-report";
 import { ChevronDownIcon, PipeLibraryIcon } from "src/icons";
 import { Button, DDContent, StyledItem } from "src/components/elements";
-import { validateMaterial } from "@epanet-js/hydraulic-model";
+import {
+  hasIncompleteEntries,
+  validateMaterial,
+} from "@epanet-js/hydraulic-model";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { usePipeLibraryHandlers } from "./use-pipe-library-handlers";
 
 const IMPORT_KEYS = "pipeLibrary";
@@ -47,6 +51,7 @@ export const PipeLibraryDialog = () => {
     handleDismissImportOutcome,
   } = usePipeLibraryHandlers();
 
+  const isModelValidationsOn = useFeatureFlag("FLAG_MODEL_VALIDATIONS");
   const showMenuBar = pendingImport === null;
 
   return (
@@ -63,7 +68,12 @@ export const PipeLibraryDialog = () => {
           hasChanges={hasChanges}
           onSave={handleSave}
           onClose={handleClose}
-          saveDisabled={invalidMaterialLabels.size > 0}
+          saveDisabled={
+            isModelValidationsOn
+              ? draftMaterials.some(hasIncompleteEntries)
+              : invalidMaterialLabels.size > 0
+          }
+          hasWarnings={isModelValidationsOn && invalidMaterialLabels.size > 0}
         />
       }
     >
@@ -123,6 +133,7 @@ export const PipeLibraryDialog = () => {
                   key={selectedMaterial.label}
                   entries={selectedMaterial.entries}
                   onChange={handleEntriesChange}
+                  commitInvalidValues={isModelValidationsOn}
                 />
                 <PipeErrorBanner
                   materialLabel={selectedMaterial.label}

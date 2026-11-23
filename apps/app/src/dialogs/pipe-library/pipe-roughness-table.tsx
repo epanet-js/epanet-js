@@ -16,6 +16,7 @@ import type { RoughnessEntry } from "@epanet-js/hydraulic-model";
 type PipeRoughnessTableProps = {
   entries: RoughnessEntry[];
   onChange: (entries: RoughnessEntry[]) => void;
+  commitInvalidValues?: boolean;
 };
 
 const DEFAULT_ROW: RoughnessEntry = { age: null, roughness: null };
@@ -24,6 +25,7 @@ const YEARS_BETWEEN_NEW_ROWS = 10;
 export const PipeRoughnessTable = ({
   entries,
   onChange,
+  commitInvalidValues = false,
 }: PipeRoughnessTableProps) => {
   const translate = useTranslate();
   const userTracking = useUserTracking();
@@ -179,9 +181,10 @@ export const PipeRoughnessTable = ({
         size: 82,
         emptyValue: 0,
         validate: (value: number) => value > 0,
+        commitInvalidValues,
       }),
     ],
-    [translate],
+    [translate, commitInvalidValues],
   );
 
   const createRow = useCallback(
