@@ -179,7 +179,7 @@ const parseCsv = async (file: File): Promise<ParsedFile> => {
     const [name, ageStr, roughnessStr] = row;
     dataRows += 1;
 
-    const label = name || previousLabel;
+    const label = name?.trim() || previousLabel;
     if (!label) {
       rowErrors.push({ code: "import.missingLabel", row: i + 1 });
       continue;
@@ -236,7 +236,7 @@ const parseXlsx = async (file: File): Promise<ParsedFile> => {
     const name = row[0];
     dataRows += 1;
 
-    const label = name != null && name !== "" ? String(name) : previousLabel;
+    const label = (name != null && String(name).trim()) || previousLabel;
     if (!label) {
       rowErrors.push({ code: "import.missingLabel", row: index + 2 });
       return;

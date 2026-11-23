@@ -214,6 +214,76 @@ describe("parsePipeLibraryFile", () => {
     ]);
   });
 
+  it("trims spaces around a material name, and treats a name of only spaces as blank", async () => {
+    const csv = [
+      "Material Name,Age,Roughness",
+      " Cast Iron ,0,130",
+      "   ,20,110",
+      "PVC  ,0,150",
+    ].join("\n");
+
+    const result = await parsePipeLibraryFile(
+      createFile(csv, "library.csv", "text/csv"),
+    );
+
+    expect(result?.status).toBe("success");
+    expect(result?.pipeLibrary).toEqual([
+      {
+        label: "Cast Iron",
+        entries: [
+          { age: 0, roughness: 130 },
+          { age: 20, roughness: 110 },
+        ],
+      },
+      { label: "PVC", entries: [{ age: 0, roughness: 150 }] },
+    ]);
+  });
+
+  it("trims spaces around a material name in an XLSX file, and treats a name of only spaces as blank", async () => {
+    const workbook = XLSX.utils.book_new();
+    const sheet = XLSX.utils.aoa_to_sheet([
+      ["Material Name", "Age", "Roughness"],
+      [" Cast Iron ", 0, 130],
+      ["   ", 20, 110],
+      ["PVC  ", 0, 150],
+    ]);
+    XLSX.utils.book_append_sheet(workbook, sheet, "Materials");
+    const buffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+
+    const result = await parsePipeLibraryFile(
+      createFile(
+        buffer,
+        "library.xlsx",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      ),
+    );
+
+    expect(result?.status).toBe("success");
+    expect(result?.pipeLibrary).toEqual([
+      {
+        label: "Cast Iron",
+        entries: [
+          { age: 0, roughness: 130 },
+          { age: 20, roughness: 110 },
+        ],
+      },
+      { label: "PVC", entries: [{ age: 0, roughness: 150 }] },
+    ]);
+  });
+
+  it("refuses a row whose name is only spaces with nothing above it", async () => {
+    const csv = ["Material Name,Age,Roughness", "   ,0,130", "PVC,0,150"].join(
+      "\n",
+    );
+
+    const result = await parsePipeLibraryFile(
+      createFile(csv, "library.csv", "text/csv"),
+    );
+
+    expect(result?.status).toBe("partial");
+    expect(result?.errors).toEqual([{ code: "import.missingLabel", row: 2 }]);
+  });
+
   it("ignores a row that leaves the name blank with nothing above it", async () => {
     const csv = ["Material Name,Age,Roughness", ",0,130", "PVC,0,150"].join(
       "\n",
