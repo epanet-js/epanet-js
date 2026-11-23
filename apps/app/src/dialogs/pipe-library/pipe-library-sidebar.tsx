@@ -18,7 +18,10 @@ import type {
   NavItem,
   NavigableListHandle,
 } from "src/components/list";
-import type { PipeMaterial } from "@epanet-js/hydraulic-model";
+import {
+  findPipeMaterial,
+  type PipeMaterial,
+} from "@epanet-js/hydraulic-model";
 
 type ActionState =
   | { action: "creating" }
@@ -95,10 +98,11 @@ export const PipeLibrarySidebar = ({
   );
 
   const isLabelAvailable = (label: string, excludeLabel?: string): boolean => {
-    const lower = label.toLowerCase();
-    return !materials.some(
-      (m) => m.label !== excludeLabel && m.label.toLowerCase() === lower,
+    const holder = findPipeMaterial(
+      materials.filter((m) => m.label !== excludeLabel),
+      label,
     );
+    return holder === undefined;
   };
 
   const handleLabelChange = (name: string): boolean => {
