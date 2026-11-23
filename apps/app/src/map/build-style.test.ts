@@ -1,6 +1,7 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import { validate } from "@mapbox/mapbox-gl-style-spec";
-import { makeLayers } from "./build-style";
+import { buildBaseStyle, makeLayers } from "./build-style";
+import type { LayerConfigMap } from "src/types";
 import { SYMBOLIZATION_NONE } from "src/types";
 import { nullSymbologySpec } from "src/map/symbology";
 
@@ -64,5 +65,55 @@ describe("makeLayers", () => {
     const opacity = arrows.paint["icon-opacity"] as unknown[];
     expect(opacity[0]).toBe("interpolate");
     expect(opacity[2]).toEqual(["zoom"]);
+  });
+});
+
+describe("buildBaseStyle", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  // Mapbox's v12 basemaps declare a globe projection. Under globe, deck.gl back-face
+  // culls its interleaved layers and the customer connection lines disappear.
+  it("renders in mercator even when the basemap declares a globe", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            version: 8,
+            name: "Mapbox Satellite Streets",
+            projection: { name: "globe" },
+            sources: {},
+            layers: [],
+          }),
+      }),
+    );
+    const layerConfigs: LayerConfigMap = new Map([
+      [
+        "basemap",
+        {
+          id: "basemap",
+          at: "a0",
+          name: "Satellite",
+          type: "MAPBOX",
+          url: "mapbox://styles/mapbox/satellite-streets-v12",
+          token: "pk.test",
+          opacity: 0.65,
+          tms: false,
+          visibility: true,
+          labelVisibility: true,
+          isBasemap: true,
+        },
+      ],
+    ]);
+
+    const style = await buildBaseStyle({
+      layerConfigs,
+      translate: (key) => key,
+    });
+
+    expect(style.projection).toEqual({ name: "mercator" });
   });
 });

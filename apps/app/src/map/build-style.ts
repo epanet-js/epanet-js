@@ -1,4 +1,4 @@
-import type { Style } from "mapbox-gl";
+import type { Projection, Style } from "mapbox-gl";
 import { LayerConfigMap } from "src/types";
 import {
   addMapboxStyle,
@@ -35,14 +35,17 @@ const emptyGeoJSONSource = {
   maxzoom: 22,
 } as const;
 
+// mapbox-gl reads `projection` from the style, but its typings leave it off `Style`.
+type StyleWithProjection = Style & { projection?: Projection };
+
 export async function buildBaseStyle({
   layerConfigs,
   translate,
 }: {
   layerConfigs: LayerConfigMap;
   translate: (key: string) => string;
-}): Promise<Style> {
-  let style = getEmptyStyle();
+}): Promise<StyleWithProjection> {
+  let style: StyleWithProjection = getEmptyStyle();
   let id = 0;
   const layers = [...layerConfigs.values()].reverse();
   for (const layer of layers) {
@@ -67,6 +70,11 @@ export async function buildBaseStyle({
       }
     }
   }
+
+  // Mapbox's v12 basemaps (satellite, outdoors) declare a globe projection. Under globe,
+  // deck.gl's interleaved overlay back-face culls its layers, which drops the customer
+  // connection lines. The app is Mercator throughout, so pin it whatever the basemap says.
+  style.projection = { name: "mercator" };
 
   return style;
 }
