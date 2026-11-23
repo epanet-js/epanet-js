@@ -121,6 +121,9 @@ export const normalizeLabel = (label: string): string =>
 export const isLabelTooLong = (label: string): boolean =>
   label.trim().length > MAX_LABEL_LENGTH;
 
+export const isValidCustomAttributeName = (label: string): boolean =>
+  label !== "" && label.trim() === label && !isLabelTooLong(label);
+
 export const hasTooLongLabel = (attributes: CustomAttribute[]): boolean =>
   attributes.some((attribute) => isLabelTooLong(attribute.label));
 

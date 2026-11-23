@@ -56,6 +56,23 @@ const serialize = (definition: CustomAttributesDefinition): string =>
 const hasEmptyLabel = (attributes: CustomAttribute[]): boolean =>
   attributes.some((attribute) => !attribute.label.trim());
 
+const withTrimmedLabels = (
+  definition: CustomAttributesDefinition,
+): CustomAttributesDefinition => {
+  let trimmed = definition;
+  for (const assetType of definition.keys()) {
+    trimmed = setAttributes(
+      trimmed,
+      assetType,
+      getAttributes(definition, assetType).map((attribute) => ({
+        ...attribute,
+        label: attribute.label.trim(),
+      })),
+    );
+  }
+  return trimmed;
+};
+
 const collectNewAttributes = (
   saved: CustomAttributesDefinition,
   edited: CustomAttributesDefinition,
@@ -163,15 +180,16 @@ export const CustomAttributesDialog = ({
   );
 
   const handleSave = useCallback(() => {
+    const next = withTrimmedLabels(edited);
     const applied = transact(() =>
-      changeCustomAttributesDefinition(hydraulicModel, edited),
+      changeCustomAttributesDefinition(hydraulicModel, next),
     );
     if (!applied) return;
 
-    const newAttributes = collectNewAttributes(savedDefinition, edited);
+    const newAttributes = collectNewAttributes(savedDefinition, next);
     userTracking.capture({
       name: "customAttributes.updated",
-      count: totalAttributesCount(edited),
+      count: totalAttributesCount(next),
       newLabels: newAttributes.map((attribute) => attribute.label),
       newAttributeTypes: newAttributes.map((attribute) => attribute.type),
     });
