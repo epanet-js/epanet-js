@@ -2280,7 +2280,8 @@
         "title": "File format",
         "show": "See the expected format",
         "optional": "The type row is optional. The asset defaults to the sensor name.",
-        "readings": "One reading per report time step, in project units."
+        "readings": "One reading per report time step, in project units.",
+        "downloadTemplate": "Download template"
       },
       "preview": {
         "sensor": "Sensor",

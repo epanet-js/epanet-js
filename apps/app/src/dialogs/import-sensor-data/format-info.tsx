@@ -5,9 +5,15 @@ import * as E from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
 import { InfoIcon } from "src/icons";
 import type { SensorVocabulary } from "src/lib/sensor-data/parameters";
+import { serializeToCsv } from "src/lib/operational-data-io/table-file";
+import { FileSystemHelpers } from "src/infra/storage/file-system-helpers";
 import { useSensorVocabulary } from "./sensor-vocabulary";
 
-const exampleRows = ({ headers, assetTypes, parameters }: SensorVocabulary) => {
+const templateRows = ({
+  headers,
+  assetTypes,
+  parameters,
+}: SensorVocabulary) => {
   const word = (words: readonly string[] | undefined, fallback: string) =>
     words?.[0] ?? fallback;
   return [
@@ -25,9 +31,15 @@ const exampleRows = ({ headers, assetTypes, parameters }: SensorVocabulary) => {
     [word(headers.asset, "asset"), "J-1", "T-1"],
     ["00:00", "52.1", "3.4"],
     ["00:15", "51.8", "3.5"],
-    ["…", "…", "…"],
   ];
 };
+
+const exampleRows = (vocabulary: SensorVocabulary) => [
+  ...templateRows(vocabulary),
+  ["…", "…", "…"],
+];
+
+const TEMPLATE_FILE_NAME = "sensor-data-template.csv";
 
 const HEADER_ROWS = 4;
 
@@ -40,6 +52,13 @@ export const FormatInfo = ({
   const portalContainer = useSelectorPortalContainer();
   const vocabulary = useSensorVocabulary();
   const label = translate("sensorData.import.format.title");
+
+  const downloadTemplate = () => {
+    void FileSystemHelpers.downloadFile(
+      TEMPLATE_FILE_NAME,
+      serializeToCsv(templateRows(vocabulary)),
+    );
+  };
 
   return (
     <Popover.Root>
@@ -100,6 +119,13 @@ export const FormatInfo = ({
             <p className="text-size-small text-subtle">
               {translate("sensorData.import.format.readings")}
             </p>
+            <E.Button
+              type="button"
+              className="self-start"
+              onClick={downloadTemplate}
+            >
+              {translate("sensorData.import.format.downloadTemplate")}
+            </E.Button>
           </div>
         </E.StyledPopoverContent>
       </Popover.Portal>
