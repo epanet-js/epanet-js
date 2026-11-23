@@ -1,9 +1,11 @@
 import { nanoid } from "nanoid";
 import { IKeyValueStore, IndexedDB } from "src/infra/storage";
 import { catchErrors } from "src/infra/errors";
+import { captureWarning } from "src/infra/error-tracking";
 
 const STORE_NAME = "recent-files";
 const MAX_ENTRIES = 10;
+const COMPARE_TIMEOUT_MS = 3000;
 
 export type RecentFileEntry = {
   id: string;
@@ -12,6 +14,31 @@ export type RecentFileEntry = {
   openedAt: number;
   thumbnail?: string;
 };
+
+export class HandleUnresponsiveError extends Error {
+  name = "HandleUnresponsiveError";
+}
+
+export const withHandleTimeout = <T>(
+  promise: Promise<T>,
+  timeoutMs: number,
+): Promise<T> =>
+  new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(
+      () => reject(new HandleUnresponsiveError("File handle did not respond")),
+      timeoutMs,
+    );
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error: unknown) => {
+        clearTimeout(timer);
+        reject(error);
+      },
+    );
+  });
 
 function isSupported(): boolean {
   return typeof FileSystemFileHandle !== "undefined";
@@ -61,17 +88,9 @@ export class RecentFilesStore {
     thumbnail?: string,
   ): Promise<void> {
     const all = await this.db.getAll<RecentFileEntry>(STORE_NAME);
+    const existing = await findSameEntry(handle, all);
 
-    let existingId: string | null = null;
-    for (const entry of all) {
-      if (await handle.isSameEntry(entry.handle)) {
-        existingId = entry.id;
-        break;
-      }
-    }
-
-    if (existingId) {
-      const existing = all.find((e) => e.id === existingId)!;
+    if (existing) {
       await this.db.put(STORE_NAME, {
         ...existing,
         name,
@@ -110,4 +129,49 @@ export class RecentFilesStore {
     if (!isSupported()) return;
     await this.db.delete(STORE_NAME, id);
   }
+}
+
+async function findSameEntry(
+  handle: FileSystemFileHandle,
+  entries: RecentFileEntry[],
+): Promise<RecentFileEntry | undefined> {
+  const failures: unknown[] = [];
+  const matches = await Promise.all(
+    entries.map((entry) =>
+      withHandleTimeout(
+        handle.isSameEntry(entry.handle),
+        COMPARE_TIMEOUT_MS,
+      ).catch((error: unknown) => {
+        failures.push(error);
+        return false;
+      }),
+    ),
+  );
+  if (failures.length > 0) {
+    const errors: Record<string, number> = {};
+    for (const failure of failures) {
+      const name = errorName(failure);
+      errors[name] = (errors[name] ?? 0) + 1;
+    }
+    const representative =
+      failures.find((f) => !(f instanceof HandleUnresponsiveError)) ??
+      failures[0];
+    captureWarning(
+      "RecentFilesStore: stored handle comparison failed",
+      representative,
+      {
+        recentFiles: {
+          failed: failures.length,
+          total: entries.length,
+          errors,
+        },
+      },
+    );
+  }
+  return entries.find((_, i) => matches[i]);
+}
+
+function errorName(error: unknown): string {
+  const name = (error as { name?: unknown } | null)?.name;
+  return typeof name === "string" ? name : "unknown";
 }

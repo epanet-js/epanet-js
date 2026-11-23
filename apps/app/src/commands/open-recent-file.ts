@@ -8,8 +8,14 @@ import { notify } from "src/components/notifications";
 import { captureWarning } from "src/infra/error-tracking";
 import { RecentFileOpened, useUserTracking } from "src/infra/user-tracking";
 import type { FileWithHandle } from "browser-fs-access";
-import type { RecentFileEntry } from "src/lib/recent-files";
+import {
+  HandleUnresponsiveError,
+  withHandleTimeout,
+  type RecentFileEntry,
+} from "src/lib/recent-files";
 import { useTranslate } from "src/hooks/use-translate";
+
+const PERMISSION_CHECK_TIMEOUT_MS = 1000;
 
 export const useOpenRecentFile = () => {
   const translate = useTranslate();
@@ -28,6 +34,10 @@ export const useOpenRecentFile = () => {
         if (isOpenInFlightRef.current) return;
         isOpenInFlightRef.current = true;
         try {
+          await withHandleTimeout(
+            entry.handle.queryPermission({ mode: "read" }),
+            PERMISSION_CHECK_TIMEOUT_MS,
+          );
           const permission = await entry.handle.requestPermission({
             mode: "read",
           });
@@ -57,6 +67,14 @@ export const useOpenRecentFile = () => {
           });
         } catch (error) {
           const err = error as Error;
+          if (err instanceof HandleUnresponsiveError) {
+            notify({
+              variant: "error",
+              title: translate("couldNotOpenRecentFile"),
+            });
+            captureWarning("Recent file: handle unresponsive", err);
+            return;
+          }
           if (err.name === "NotAllowedError") {
             notify({
               variant: "warning",

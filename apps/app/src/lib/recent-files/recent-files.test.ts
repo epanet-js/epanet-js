@@ -6,13 +6,18 @@ const STORE_NAME = "recent-files";
 
 type HandleWithPath = FileSystemFileHandle & { _path: string };
 
-const buildHandle = (path: string, fileName: string): FileSystemFileHandle => {
+const buildHandle = (
+  path: string,
+  fileName: string,
+  isSameEntry?: () => Promise<boolean>,
+): FileSystemFileHandle => {
   const handle = {
     _path: path,
     name: fileName,
     kind: "file" as const,
-    isSameEntry: vi.fn((other: HandleWithPath) =>
-      Promise.resolve(other._path === path),
+    isSameEntry: vi.fn(
+      isSameEntry ??
+        ((other: HandleWithPath) => Promise.resolve(other._path === path)),
     ),
   };
   return handle as unknown as FileSystemFileHandle;
@@ -102,6 +107,38 @@ describe("RecentFilesStore", () => {
 
       const entries = await store.getAll();
       expect(entries).toHaveLength(2);
+    });
+
+    it("adds a new entry when comparing with a stored handle fails", async () => {
+      const { store } = createStore();
+      await store.add("old.inp", buildHandle("/old.inp", "old.inp"));
+
+      await store.add(
+        "new.inp",
+        buildHandle("/new.inp", "new.inp", () =>
+          Promise.reject(new DOMException("aborted", "AbortError")),
+        ),
+      );
+
+      const entries = await store.getAll();
+      expect(entries.map((e) => e.name).sort()).toEqual(["new.inp", "old.inp"]);
+    });
+
+    it("adds a new entry when comparing with a stored handle never answers", async () => {
+      vi.useFakeTimers();
+      const { store } = createStore();
+      await store.add("old.inp", buildHandle("/old.inp", "old.inp"));
+
+      const adding = store.add(
+        "new.inp",
+        buildHandle("/new.inp", "new.inp", () => new Promise(() => {})),
+      );
+      await vi.advanceTimersByTimeAsync(3000);
+      await adding;
+
+      const entries = await store.getAll();
+      expect(entries.map((e) => e.name).sort()).toEqual(["new.inp", "old.inp"]);
+      vi.useRealTimers();
     });
 
     it("caps at 10 entries, evicting the oldest", async () => {

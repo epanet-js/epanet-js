@@ -10,9 +10,15 @@ import { presets } from "@epanet-js/project-settings";
 import { WGS84 } from "@epanet-js/projections";
 import { Store } from "src/state";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
-import { inpFileInfoAtom } from "src/state/file-system";
+import { inpFileInfoAtom, recentFilesStoreAtom } from "src/state/file-system";
 import type { RecentFileEntry } from "src/lib/recent-files";
+import { notify } from "src/components/notifications";
 import { useOpenRecentFile } from "./open-recent-file";
+
+vi.mock("src/components/notifications", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("src/components/notifications")>()),
+  notify: vi.fn(),
+}));
 
 describe("open recent file", () => {
   useInProcessDb();
@@ -88,6 +94,41 @@ describe("open recent file", () => {
     });
   });
 
+  it("tells the user and keeps the entry when the file never answers", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    vi.stubGlobal("FileSystemFileHandle", class {});
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    const store = setInitialState({
+      hydraulicModel: HydraulicModelBuilder.empty(),
+    });
+    const recentFiles = store.get(recentFilesStoreAtom);
+    const { handle } = buildInpEntry({
+      queryPermission: () => new Promise(() => {}),
+    });
+    await recentFiles.add("network.inp", handle);
+    const [entry] = await recentFiles.getAll();
+    renderComponent({ store, entry });
+
+    await user.click(screen.getByRole("button", { name: "openRecentFile" }));
+    await vi.advanceTimersByTimeAsync(1000);
+
+    await waitFor(() => {
+      expect(notify).toHaveBeenCalledWith(
+        expect.objectContaining({ variant: "error" }),
+      );
+    });
+    expect(handle.requestPermission).not.toHaveBeenCalled();
+    expect(await recentFiles.getAll()).toHaveLength(1);
+
+    await user.click(screen.getByRole("button", { name: "openRecentFile" }));
+    await waitFor(() => {
+      expect(handle.queryPermission).toHaveBeenCalledTimes(2);
+    });
+
+    vi.unstubAllGlobals();
+    vi.useRealTimers();
+  });
+
   const IDS = { J1: 1, J2: 2, P1: 3 } as const;
 
   const buildInpContent = () => {
@@ -107,11 +148,16 @@ describe("open recent file", () => {
 
   const buildInpEntry = ({
     requestPermission,
+    queryPermission,
   }: {
     requestPermission?: () => Promise<PermissionState>;
+    queryPermission?: () => Promise<PermissionState>;
   } = {}) => {
     const file = new File([buildInpContent()], "network.inp");
     const handle = {
+      queryPermission: vi.fn(
+        queryPermission ?? (() => Promise.resolve("granted")),
+      ),
       requestPermission: vi.fn(
         requestPermission ?? (() => Promise.resolve("granted")),
       ),
