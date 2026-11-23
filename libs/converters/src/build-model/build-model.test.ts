@@ -2228,6 +2228,89 @@ describe("labels across node kinds", () => {
       "LINK {{0}} 1 AT TIME 1:00",
     );
   });
+
+  describe("tank float", () => {
+    const aFloatNetwork = (
+      float: { continuousRegulation?: boolean } = {},
+      valve: Partial<ValveData> = {},
+    ) =>
+      aNetwork({
+        junctions: [aJunction({ ref: "1", label: "J1", coordinates: [0, 0] })],
+        tanks: [
+          aTank({
+            ref: "2",
+            label: "T1",
+            coordinates: [1, 0],
+            minLevel: 0,
+            maxLevel: 3,
+          }),
+        ],
+        valves: [
+          aValve({
+            ref: "10",
+            label: "V1",
+            kind: "pcv",
+            setting: 100,
+            curveRef: "position",
+            ...valve,
+          }),
+        ],
+        curves: [
+          {
+            ref: "position",
+            points: [
+              { x: 0, y: 0 },
+              { x: 50, y: 20 },
+              { x: 100, y: 100 },
+            ],
+          },
+        ],
+        controls: [
+          {
+            type: "tankFloat",
+            link: { kind: "valve", ref: "10" },
+            tankRef: "2",
+            minLevel: 0.5,
+            ...float,
+          },
+        ],
+      });
+
+    it("opens the valve across the drop below the tank's top when the float modulates", () => {
+      const { hydraulicModel, issues } = buildModel(
+        aFloatNetwork({ continuousRegulation: true }),
+        { projections: aCatalogue() },
+      );
+
+      const valve = getByLabel(hydraulicModel.assets, "V1") as Valve;
+      const tank = getByLabel(hydraulicModel.assets, "T1");
+      expect(hydraulicModel.controls).toEqual([
+        expect.objectContaining({
+          type: "level-opening",
+          linkId: valve.id,
+          tankId: tank?.id,
+          level: { open: 2.5, close: 3 },
+          continuous: true,
+        }),
+      ]);
+      expect(issues).toEqual([]);
+    });
+
+    it("reports a float on a valve the source left shut, which the control would reopen", () => {
+      const { hydraulicModel, issues } = buildModel(
+        aFloatNetwork({}, { initialStatus: "closed" }),
+        { projections: aCatalogue() },
+      );
+
+      expect(hydraulicModel.controls).toEqual([]);
+      expect(issues).toContainEqual({
+        code: "tankFloatControlUnsupported",
+        severity: "warning",
+        ref: "10",
+        label: "V1",
+      });
+    });
+  });
 });
 
 const aJunction = (

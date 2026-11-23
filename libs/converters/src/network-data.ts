@@ -98,6 +98,7 @@ export type ValveData = LinkData & {
   minorLoss?: number;
   initialStatus?: ValveStatus;
   targetNodeRef?: string;
+  curveRef?: string;
 };
 
 export type PumpData = LinkData & {
@@ -178,7 +179,8 @@ export type TankFloatControlData = {
   type: "tankFloat";
   link: ControlLinkRef;
   tankRef: string;
-  reopenDrop: number;
+  minLevel: number;
+  continuousRegulation?: boolean;
 };
 
 export type VariableSpeedPumpQuantity = "pressure" | "level" | "flow";

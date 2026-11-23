@@ -1,10 +1,11 @@
-import type { IssueCode, Issue } from "../issues";
+import type { Issue } from "../issues";
 import type {
   ControlData,
   ControlLinkRef,
   ControlNodeRef,
   CustomAttributeValues,
   FlowModulatedSetpointControlData,
+  TankFloatControlData,
   TankLevelControlData,
   TimedSettingControlData,
   VariableSpeedPumpControlData,
@@ -64,9 +65,12 @@ import {
   CustomerPointFactory,
   CustomAttributesDefinition,
   FlowModulatingValveControl,
+  LevelOpeningControl,
   LevelSettingControl,
   SimpleControl,
+  Tank,
   Valve,
+  buildLevelOpening,
   VariableSpeedPumpControl,
   buildControlsLookup,
   buildCustomAttributeId,
@@ -692,11 +696,11 @@ type CurveContext = {
 
 const addCurves = (
   hydraulicModel: HydraulicModel,
-  { curves, pumps, tanks }: NetworkData,
+  { curves, pumps, tanks, valves }: NetworkData,
   context: CurveContext,
 ): Map<string, CurveId> => {
   const { idGenerator, labelManager, labelMaxLength } = context;
-  const typeByRef = curveTypesByRef(pumps, tanks);
+  const typeByRef = curveTypesByRef(pumps, tanks, valves);
   const curveIdByRef = new Map<string, CurveId>();
 
   for (const curveData of curves) {
@@ -728,6 +732,8 @@ const curvePoints = (
   type: CurveType | undefined,
   { toVolume, toLevel, toFlow, toHead }: CurveContext,
 ): CurvePoint[] => {
+  if (type === "valve") return points.map(({ x, y }) => ({ x, y }));
+
   const [toX, toY] = type === "volume" ? [toLevel, toVolume] : [toFlow, toHead];
 
   return points.map(({ x, y }) => ({ x: toX(x), y: toY(y) }));
@@ -736,6 +742,7 @@ const curvePoints = (
 const curveTypesByRef = (
   pumps: PumpData[],
   tanks: TankData[],
+  valves: ValveData[],
 ): Map<string, CurveType> => {
   const types = new Map<string, CurveType>();
 
@@ -744,6 +751,9 @@ const curveTypesByRef = (
   }
   for (const { volumeCurveRef } of tanks) {
     if (volumeCurveRef !== undefined) types.set(volumeCurveRef, "volume");
+  }
+  for (const { curveRef } of valves) {
+    if (curveRef !== undefined) types.set(curveRef, "valve");
   }
 
   return types;
@@ -761,6 +771,10 @@ const addValve = (
 
   const kind = valveKindOf(valveData);
   const targetNodeId = remoteTargetOf(valveData, kind, context);
+  const curveId =
+    kind === "pcv" && valveData.curveRef !== undefined
+      ? context.curveIdByRef.get(valveData.curveRef)
+      : undefined;
   const valve = assetFactory.createValve({
     ...linkProperties(valveData, "valve", geometry, context),
     kind,
@@ -769,6 +783,7 @@ const addValve = (
     minorLoss: valveData.minorLoss,
     initialStatus: valveData.initialStatus,
     ...(targetNodeId === undefined ? {} : { targetNodeId }),
+    ...(curveId === undefined ? {} : { curveId }),
   });
 
   registerLink(
@@ -924,10 +939,13 @@ const controlOf = (
   | LevelSettingControl
   | VariableSpeedPumpControl
   | FlowModulatingValveControl
+  | LevelOpeningControl
   | undefined => {
   switch (controlData.type) {
     case "tankLevel":
       return tankLevelControlOf(controlData, context);
+    case "tankFloat":
+      return tankFloatControlOf(controlData, hydraulicModel, context, issues);
     case "variableSpeedPump":
       return variableSpeedPumpControlOf(controlData, context, issues);
     case "flowModulatedSetpoint":
@@ -942,29 +960,12 @@ const controlOf = (
   }
 };
 
-// A float modulates as the tank fills; EPANET can only shut a link or open it,
-// and a two-state stand-in reads as support for something we do not model.
-const unsupported: Record<string, IssueCode> = {
-  tankFloat: "tankFloatControlUnsupported",
-};
-
 const rawControlsFor = (
   controlData: ControlData,
   hydraulicModel: HydraulicModel,
   context: LinkContext,
   issues: IssueCollector,
 ): SimpleControl[] | undefined => {
-  const code = unsupported[controlData.type];
-  if (code !== undefined) {
-    issues.add({
-      code,
-      severity: "warning",
-      ref: controlData.link.ref,
-      label: context.linkLabelByRef.get(controlData.link.ref),
-    });
-    return [];
-  }
-
   const linkId = context.linkIdByRef.get(controlData.link.ref);
   if (linkId === undefined) return [];
 
@@ -984,6 +985,7 @@ const rawControlsFor = (
         : levelRows(controlData, linkId, hydraulicModel, context);
     case "variableSpeedPump":
     case "flowModulatedSetpoint":
+    case "tankFloat":
       return undefined;
     default:
       return [];
@@ -1248,6 +1250,48 @@ const tankLevelControlOf = (
     on: { level: toLevel(on.level), setting: "status" in on ? 1 : on.setting },
     off: { level: toLevel(off.level) },
   };
+};
+
+const tankFloatControlOf = (
+  { link, tankRef, minLevel, continuousRegulation }: TankFloatControlData,
+  hydraulicModel: HydraulicModel,
+  { linkIdByRef, linkLabelByRef, nodeIdByRef, toLevel }: LinkContext,
+  issues: IssueCollector,
+): LevelOpeningControl | undefined => {
+  const linkId = linkIdByRef.get(link.ref);
+  const tankId = nodeIdByRef.get(tankRef)?.id;
+  const valve =
+    linkId === undefined ? undefined : hydraulicModel.assets.get(linkId);
+  const tank =
+    tankId === undefined ? undefined : hydraulicModel.assets.get(tankId);
+  const close =
+    tank?.type === "tank" ? ((tank as Tank).maxLevel ?? undefined) : undefined;
+  const drop = toLevel(minLevel);
+
+  if (
+    linkId === undefined ||
+    tankId === undefined ||
+    close === undefined ||
+    !(drop > 0) ||
+    valve?.type !== "valve" ||
+    (valve as Valve).kind !== "pcv" ||
+    (valve as Valve).initialStatus === "closed"
+  ) {
+    issues.add({
+      code: "tankFloatControlUnsupported",
+      severity: "warning",
+      ref: link.ref,
+      label: linkLabelByRef.get(link.ref),
+    });
+    return undefined;
+  }
+
+  return buildLevelOpening({
+    linkId,
+    tankId,
+    level: { open: close - drop, close },
+    continuous: continuousRegulation === true,
+  });
 };
 
 const nodeProperties = (

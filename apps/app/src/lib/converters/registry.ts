@@ -9,7 +9,7 @@ export type RegisteredConverter = {
 
 export type ConverterSettings = {
   parseSelectionSets: boolean;
-  freeDischargeInlet: boolean;
+  floatValves: boolean;
   remoteSetpointPrv: boolean;
   variableSpeedPumps: boolean;
   flowModulatingValves: boolean;

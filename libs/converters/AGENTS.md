@@ -277,7 +277,7 @@ series travels beside it.
 
 ### `tankFloat`
 
-`reopenDrop` is how far the tank must fall below full before the float lets the link open again, in
+`minLevel` is how far the tank must fall below full before the float lets the link open again, in
 `units.level`. Only the drop, because only the drop is stated — the level it closes at is the tank's
 own full level, which the consumer holds. Computing it here would ship an inference dressed as
 source data.
