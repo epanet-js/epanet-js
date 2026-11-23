@@ -9,7 +9,7 @@ import { projectSettingsAtom } from "src/state/project-settings";
 import { showGridAtom } from "src/state/map-projection";
 import { simulationDerivedAtom } from "src/state/derived-branch-state";
 import { Selector, SelectorLikeButton } from "@epanet-js/ui-kit";
-import { useUserTracking } from "src/infra/user-tracking";
+import { useMapThemeEditTracking } from "src/hooks/use-map-theme-edit-tracking";
 import {
   SupportedProperty,
   supportedLinkProperties,
@@ -215,22 +215,13 @@ const SymbologyEditor = ({
     return [labelOption, ...colorByOptions];
   }, [colorByOptions, translate]);
 
-  const userTracking = useUserTracking();
+  const mapThemeTracking = useMapThemeEditTracking();
 
   const handleLabelRuleChange = (label: string | null) => {
-    if (label !== null) {
-      userTracking.capture({
-        name: "map.labels.shown",
-        type: geometryType,
-        subtype: label,
-      });
-    }
-    if (label === null) {
-      userTracking.capture({
-        name: "map.labels.hidden",
-        type: geometryType,
-      });
-    }
+    mapThemeTracking.captureChange({
+      change: `${geometryType}Label`,
+      value: label ?? "none",
+    });
     if (geometryType === "node") {
       updateNodeSymbology({ ...symbology, labelRule: label });
     } else {
@@ -252,10 +243,7 @@ const SymbologyEditor = ({
   const updateDefaultColor =
     geometryType === "node" ? updateNodeDefaultColor : updateLinkDefaultColor;
   const handleDefaultColorChange = (color: string) => {
-    userTracking.capture({
-      name: "map.defaultColor.changed",
-      type: geometryType,
-    });
+    mapThemeTracking.captureChange({ change: `${geometryType}DefaultColor` });
     updateDefaultColor(color);
   };
 
@@ -392,7 +380,7 @@ const SymbologyEditor = ({
 
 const CustomerPointsSection = ({ readonly }: { readonly?: boolean }) => {
   const translate = useTranslate();
-  const userTracking = useUserTracking();
+  const mapThemeTracking = useMapThemeEditTracking();
   const { customerPointsSymbology, updateCustomerPointsSymbology } =
     useSymbologyState();
   const selection = useAtomValue(selectionAtom);
@@ -401,10 +389,9 @@ const CustomerPointsSection = ({ readonly }: { readonly?: boolean }) => {
   const handleVisibilityChange = () => {
     const newVisibility = !customerPointsSymbology.visible;
 
-    userTracking.capture({
-      name: newVisibility
-        ? "map.customerPoints.shown"
-        : "map.customerPoints.hidden",
+    mapThemeTracking.captureChange({
+      change: "customerPointsVisibility",
+      value: newVisibility,
     });
 
     updateCustomerPointsSymbology({ visible: newVisibility });
@@ -445,37 +432,37 @@ const zoneRuleOptions = [{ label: "Label", value: "label" }];
 
 const ZoneSymbologySection = () => {
   const translate = useTranslate();
-  const userTracking = useUserTracking();
+  const mapThemeTracking = useMapThemeEditTracking();
   const { zoneSymbology, updateZoneSymbology } = useSymbologyState();
 
   const handleLabelRuleChange = (value: string | null) => {
     const mapped = value === "none" ? null : value;
-    userTracking.capture({
-      name: "map.zonesLabelRule.changed",
-      labelRule: mapped,
+    mapThemeTracking.captureChange({
+      change: "zoneLabel",
+      value: mapped ?? "none",
     });
     updateZoneSymbology({ labelRule: mapped as ZoneLabelRule });
   };
   const handleColorRuleChange = (value: string | null) => {
     const mapped = value === "none" ? null : value;
-    userTracking.capture({
-      name: "map.zonesColorRule.changed",
-      colorRule: mapped,
+    mapThemeTracking.captureChange({
+      change: "zoneColorBy",
+      value: mapped ?? "none",
     });
     updateZoneSymbology({ colorRule: mapped as ZoneColorRule });
   };
 
   const handleVisibilityChange = () => {
     const newVisible = !zoneSymbology.visible;
-    userTracking.capture({
-      name: "map.zonesVisibility.changed",
-      visible: newVisible,
+    mapThemeTracking.captureChange({
+      change: "zoneVisibility",
+      value: newVisible,
     });
     updateZoneSymbology({ visible: newVisible });
   };
 
   const handleDefaultColorChange = (color: string) => {
-    userTracking.capture({ name: "map.zonesDefaultColor.changed", color });
+    mapThemeTracking.captureChange({ change: "zoneDefaultColor" });
     updateZoneSymbology({
       defaults: { ...zoneSymbology.defaults, color },
     });

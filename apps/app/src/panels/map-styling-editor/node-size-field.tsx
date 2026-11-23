@@ -4,7 +4,8 @@ import * as Popover from "@radix-ui/react-popover";
 import * as Slider from "@radix-ui/react-slider";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
-import { useUserTracking } from "src/infra/user-tracking";
+import { useMapThemeEditTracking } from "src/hooks/use-map-theme-edit-tracking";
+import type { MapThemeEditContext } from "src/infra/user-tracking";
 import { MapContext } from "src/map";
 import { LAYER_MAX_ZOOM, MAP_MIN_ZOOM, MAP_MAX_ZOOM } from "@epanet-js/map";
 import type { NodeSizeConfig } from "src/map/symbology";
@@ -261,7 +262,7 @@ function NodeSizeEditor({
 }) {
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
-  const userTracking = useUserTracking();
+  const mapThemeTracking = useMapThemeEditTracking();
   const placement = useOutsidePanelPlacement();
   const nodeColor = useAtomValue(nodeSymbologyAtom).defaults.color;
   const strokeColor = strokeColorFor(nodeColor);
@@ -272,24 +273,32 @@ function NodeSizeEditor({
 
   const { minVisibleZoom, minSize, maxSize } = value;
 
-  const initialRef = useRef<NodeSizeConfig | null>(null);
+  const initialRef = useRef<{
+    value: NodeSizeConfig;
+    context: MapThemeEditContext;
+  } | null>(null);
 
   const trackChanges = (open: boolean) => {
     if (open) {
-      initialRef.current = value;
+      initialRef.current = { value, context: mapThemeTracking.readContext() };
       return;
     }
     const initial = initialRef.current;
     initialRef.current = null;
     if (!initial) return;
+    let { context } = initial;
+    const changes = {
+      minSize: "nodeMinSize",
+      maxSize: "nodeMaxSize",
+      minVisibleZoom: "nodeMinVisibleZoom",
+    } as const;
     for (const property of ["minSize", "maxSize", "minVisibleZoom"] as const) {
-      if (initial[property] !== value[property]) {
-        userTracking.capture({
-          name: "map.nodeSize.changed",
-          property,
-          oldValue: initial[property],
-          newValue: value[property],
-        });
+      if (initial.value[property] !== value[property]) {
+        mapThemeTracking.captureChange(
+          { change: changes[property], value: value[property] },
+          context,
+        );
+        context = { ...context, hadUnsavedChanges: true };
       }
     }
   };

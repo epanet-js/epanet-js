@@ -1,6 +1,6 @@
 import { useAtomValue } from "jotai";
 import { useCallback, useState } from "react";
-import { useUserTracking } from "src/infra/user-tracking";
+import { useMapThemeEditTracking } from "src/hooks/use-map-theme-edit-tracking";
 import { symbologyBuilders } from "src/map/symbology/symbology-builders";
 import {
   getSortedDataForProperty,
@@ -27,7 +27,7 @@ const absValuesFor = (property: SupportedProperty): boolean =>
   property === "flow";
 
 export const useChangeColorBy = (geometryType: "node" | "link") => {
-  const userTracking = useUserTracking();
+  const mapThemeTracking = useMapThemeEditTracking();
   const simulation = useAtomValue(simulationDerivedAtom);
   const simulationResults = useAtomValue(simulationResultsDerivedAtom);
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
@@ -70,11 +70,9 @@ export const useChangeColorBy = (geometryType: "node" | "link") => {
 
   const changeColorBy = useCallback(
     async (property: ColorBySelection) => {
-      userTracking.capture({
-        name: "map.colorBy.changed",
-        type: geometryType,
-        subtype: property ?? "none",
-        property: property ?? "none",
+      mapThemeTracking.captureChange({
+        change: `${geometryType}ColorBy`,
+        value: property ?? "none",
       });
 
       if (property === null) {
@@ -113,7 +111,7 @@ export const useChangeColorBy = (geometryType: "node" | "link") => {
       }
     },
     [
-      userTracking,
+      mapThemeTracking,
       geometryType,
       simulationResults,
       units,

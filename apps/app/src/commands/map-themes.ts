@@ -32,16 +32,20 @@ export const useApplyMapTheme = () => {
   const userTracking = useUserTracking();
   const switchMapTheme = useSwitchMapTheme();
 
-  return useCallback(
-    (id: string | null) => {
-      switchMapTheme(id);
-      userTracking.capture({
-        name: "mapTheme.applied",
-        isDefault: id === null,
-        source: "panel",
-      });
-    },
-    [switchMapTheme, userTracking],
+  return useAtomCallback(
+    useCallback(
+      (get, _set, id: string | null) => {
+        const hadUnsavedChanges = get(isMapThemeModifiedAtom);
+        switchMapTheme(id);
+        userTracking.capture({
+          name: "mapTheme.applied",
+          isDefault: id === null,
+          hadUnsavedChanges,
+          source: "panel",
+        });
+      },
+      [switchMapTheme, userTracking],
+    ),
   );
 };
 
@@ -147,11 +151,13 @@ export const useDeleteMapTheme = () => {
     useCallback(
       (get, _set, id: string) => {
         const wasActive = get(activeMapThemeIdAtom) === id;
+        const hadUnsavedChanges = wasActive && get(isMapThemeModifiedAtom);
         remove(id);
         if (wasActive) switchMapTheme(null);
         userTracking.capture({
           name: "mapTheme.deleted",
           wasActive,
+          hadUnsavedChanges,
           source: "panel",
         });
       },

@@ -25,7 +25,7 @@ import {
   LinkSymbology,
   NodeSymbology,
 } from "src/map/symbology/symbology-types";
-import { useUserTracking } from "src/infra/user-tracking";
+import { useMapThemeEditTracking } from "src/hooks/use-map-theme-edit-tracking";
 import { ChevronDownIcon, RefreshIcon } from "src/icons";
 import { getQualitativePaletteColors } from "src/map/layers/zones";
 
@@ -45,7 +45,7 @@ const useColorRule = (geometryType: "node" | "link"): ColorRampSettingsHook => {
     updateNodeSymbology,
     updateLinkSymbology,
   } = useSymbologyState();
-  const userTracking = useUserTracking();
+  const mapThemeTracking = useMapThemeEditTracking();
 
   const assetSymbology =
     geometryType === "node" ? nodeSymbology : linkSymbology;
@@ -78,26 +78,25 @@ const useColorRule = (geometryType: "node" | "link"): ColorRampSettingsHook => {
 
   const setRampName = useCallback(
     (newRampName: string, isReversed: boolean) => {
-      userTracking.capture({
-        name: "map.colorRamp.changed",
-        rampName: newRampName,
+      mapThemeTracking.captureChange({
+        change: `${geometryType}ColorRamp`,
+        value: newRampName,
         property: colorRule.property,
       });
       const newColorRule = changeRampName(colorRule, newRampName, isReversed);
       updateSettings(newColorRule);
     },
-    [colorRule, updateSettings, userTracking],
+    [colorRule, geometryType, updateSettings, mapThemeTracking],
   );
 
   const reverseRampColors = useCallback(() => {
-    userTracking.capture({
-      name: "map.colorRamp.reversed",
-      rampName: colorRule.rampName,
+    mapThemeTracking.captureChange({
+      change: `${geometryType}ColorRampReversed`,
       property: colorRule.property,
     });
     const newColorRule = reverseColors(colorRule);
     updateSettings(newColorRule);
-  }, [colorRule, updateSettings, userTracking]);
+  }, [colorRule, geometryType, updateSettings, mapThemeTracking]);
 
   return {
     rampName: colorRule.rampName,
@@ -111,18 +110,15 @@ const useColorRule = (geometryType: "node" | "link"): ColorRampSettingsHook => {
 
 const useZoneColorRule = () => {
   const { zoneSymbology, updateZoneSymbology } = useSymbologyState();
-  const userTracking = useUserTracking();
+  const mapThemeTracking = useMapThemeEditTracking();
   const paletteColors = getQualitativePaletteColors(zoneSymbology.paletteName);
 
   const setRampName = useCallback(
     (name: string) => {
-      userTracking.capture({
-        name: "map.zonePalette.changed",
-        paletteName: name,
-      });
+      mapThemeTracking.captureChange({ change: "zonePalette", value: name });
       updateZoneSymbology({ paletteName: name });
     },
-    [updateZoneSymbology, userTracking],
+    [updateZoneSymbology, mapThemeTracking],
   );
 
   return {

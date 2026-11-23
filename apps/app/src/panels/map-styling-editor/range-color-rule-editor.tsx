@@ -23,7 +23,11 @@ import {
 import { useTranslate } from "src/hooks/use-translate";
 import { useCallback, useMemo, useState } from "react";
 import { useAtomValue } from "jotai";
-import { useRegenerateBreaks } from "src/hooks/use-regenerate-breaks";
+import {
+  useRegenerateBreaks,
+  type RegenerateResult,
+} from "src/hooks/use-regenerate-breaks";
+import isEqual from "lodash/isEqual";
 import { getSortedDataForProperty } from "src/map/symbology/symbology-data-source";
 import {
   stagingModelDerivedAtom,
@@ -32,7 +36,11 @@ import {
 
 import { Selector } from "@epanet-js/ui-kit";
 import * as d3 from "d3-array";
-import { useUserTracking } from "src/infra/user-tracking";
+import { useMapThemeEditTracking } from "src/hooks/use-map-theme-edit-tracking";
+import {
+  useUserTracking,
+  type RegenerateBreaksFrom,
+} from "src/infra/user-tracking";
 import { useSymbologyState } from "src/hooks/use-symbology-state";
 import { LinkSymbology, NodeSymbology } from "src/map/symbology";
 import { notify } from "src/components/notifications";
@@ -59,6 +67,7 @@ export const RangeColorRuleEditor = ({
     updateLinkSymbology,
   } = useSymbologyState();
 
+  const mapThemeTracking = useMapThemeEditTracking();
   const userTracking = useUserTracking();
   const {
     regenerate,
@@ -101,11 +110,11 @@ export const RangeColorRuleEditor = ({
 
   const showError = (error: ErrorType, newColorRule: RangeColorRule) => {
     userTracking.capture({
-      name: "colorRange.rangeError.seen",
+      name: "mapTheme.rangeError.seen",
       errorKey: error,
       property: newColorRule.property,
       mode: newColorRule.mode,
-      classesCount: newColorRule.colors.length,
+      intervalCount: newColorRule.colors.length,
     });
     setError(error);
     notify({
@@ -123,48 +132,46 @@ export const RangeColorRuleEditor = ({
   };
 
   const handleModeChange = async (newMode: RangeMode) => {
-    userTracking.capture({
-      name: "colorRange.rangeMode.changed",
-      mode: newMode,
-      property: colorRule.property,
-    });
     const result = await regenerate({ ...colorRule, mode: newMode });
-    if (result) applyRegenerateResult(result);
+    if (!result) return;
+    if (!result.error) {
+      mapThemeTracking.captureChange({
+        change: `${geometryType}ColorRangeMode`,
+        value: newMode,
+        property: colorRule.property,
+      });
+    }
+    applyRegenerateResult(result);
   };
 
   const handleRangeSizeChange = async (numIntervals: number) => {
-    userTracking.capture({
-      name: "colorRange.classes.changed",
-      classesCount: numIntervals,
-      property: colorRule.property,
-    });
-
     const sized = changeRangeSize(colorRule, [], numIntervals);
     const result = await regenerate(sized.colorRule);
-    if (result) applyRegenerateResult(result);
+    if (!result) return;
+    if (!result.error) {
+      mapThemeTracking.captureChange({
+        change: `${geometryType}ColorRangeIntervalCount`,
+        value: numIntervals,
+        property: colorRule.property,
+      });
+    }
+    applyRegenerateResult(result);
   };
 
   const handleIntervalColorChange = (index: number, color: string) => {
-    userTracking.capture({
-      name: "colorRange.intervalColor.changed",
-      property: colorRule.property,
-    });
-
     const newColorRule = changeIntervalColor(colorRule, index, color);
     setColorRule(newColorRule);
 
     if (!error) {
+      mapThemeTracking.captureChange({
+        change: `${geometryType}ColorRangeIntervalColor`,
+        property: colorRule.property,
+      });
       submitChange(newColorRule);
     }
   };
 
   const handleBreakUpdate = (index: number, value: number) => {
-    userTracking.capture({
-      name: "colorRange.break.updated",
-      breakValue: value,
-      property: colorRule.property,
-    });
-
     const newColorRule = updateBreakValue(colorRule, index, value);
     setColorRule(newColorRule);
 
@@ -173,16 +180,16 @@ export const RangeColorRuleEditor = ({
       showError("rampShouldBeAscending", newColorRule);
     } else {
       clearError();
+      mapThemeTracking.captureChange({
+        change: `${geometryType}ColorRangeBreakValue`,
+        value,
+        property: colorRule.property,
+      });
       submitChange(newColorRule);
     }
   };
 
   const handleDeleteBreak = (index: number) => {
-    userTracking.capture({
-      name: "colorRange.break.deleted",
-      property: colorRule.property,
-    });
-
     const newColorRule = deleteBreak(colorRule, index);
     setColorRule(newColorRule);
 
@@ -191,32 +198,36 @@ export const RangeColorRuleEditor = ({
       showError("rampShouldBeAscending", newColorRule);
     } else {
       clearError();
+      mapThemeTracking.captureChange({
+        change: `${geometryType}ColorRangeBreakRemoved`,
+        property: colorRule.property,
+      });
       submitChange(newColorRule);
     }
   };
 
   const handlePrependBreak = () => {
-    userTracking.capture({
-      name: "colorRange.break.prepended",
-      property: colorRule.property,
-    });
-
     const newColorRule = prependBreak(colorRule);
     setColorRule(newColorRule);
     if (!error) {
+      mapThemeTracking.captureChange({
+        change: `${geometryType}ColorRangeBreakAdded`,
+        value: "start",
+        property: colorRule.property,
+      });
       submitChange(newColorRule);
     }
   };
 
   const handleAppendBreak = () => {
-    userTracking.capture({
-      name: "colorRange.break.appended",
-      property: colorRule.property,
-    });
-
     const newColorRule = appendBreak(colorRule);
     setColorRule(newColorRule);
     if (!error) {
+      mapThemeTracking.captureChange({
+        change: `${geometryType}ColorRangeBreakAdded`,
+        value: "end",
+        property: colorRule.property,
+      });
       submitChange(newColorRule);
     }
   };
@@ -237,19 +248,38 @@ export const RangeColorRuleEditor = ({
     }
   };
 
+  const applyRegeneratedBreaks = (
+    result: RegenerateResult | null,
+    from: RegenerateBreaksFrom,
+  ) => {
+    if (!result) return;
+    const changed =
+      !result.error &&
+      (!isEqual(result.colorRule.breaks, colorRule.breaks) ||
+        !isEqual(result.colorRule.colors, colorRule.colors));
+    if (changed) {
+      mapThemeTracking.captureChange({
+        change: `${geometryType}ColorRangeBreaksRegenerated`,
+        value: from,
+        property: colorRule.property,
+      });
+    }
+    applyRegenerateResult(result);
+  };
+
   const handleRegenerate = async () => {
-    const result = await regenerate(colorRule);
-    if (result) applyRegenerateResult(result);
+    applyRegeneratedBreaks(await regenerate(colorRule), "default");
   };
 
   const handleRegenerateFromCurrentStep = async () => {
-    const result = await regenerateFromCurrentStep(colorRule);
-    if (result) applyRegenerateResult(result);
+    applyRegeneratedBreaks(
+      await regenerateFromCurrentStep(colorRule),
+      "currentStep",
+    );
   };
 
   const handleRegenerateFromAllData = async () => {
-    const result = await regenerateFromAllData(colorRule);
-    if (result) applyRegenerateResult(result);
+    applyRegeneratedBreaks(await regenerateFromAllData(colorRule), "allSteps");
   };
 
   const numIntervals = colorRule.breaks.length + 1;

@@ -1,6 +1,5 @@
 import { useAtomValue } from "jotai";
 import { useCallback, useState } from "react";
-import { useUserTracking } from "src/infra/user-tracking";
 import {
   applyMode,
   type RangeColorRule,
@@ -23,7 +22,6 @@ export type RegenerateResult = {
 };
 
 export const useRegenerateBreaks = (geometryType: "node" | "link") => {
-  const userTracking = useUserTracking();
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const simulationResults = useAtomValue(simulationResultsDerivedAtom);
   const simulation = useAtomValue(simulationDerivedAtom);
@@ -46,12 +44,6 @@ export const useRegenerateBreaks = (geometryType: "node" | "link") => {
   // For static properties, falls back to hydraulic model data.
   const regenerate = useCallback(
     async (currentRule: RangeColorRule): Promise<RegenerateResult | null> => {
-      userTracking.capture({
-        name: "colorRange.breaks.regenerated",
-        property: currentRule.property,
-        mode: "default",
-      });
-
       const epsReader =
         "epsResultsReader" in simulation
           ? simulation.epsResultsReader
@@ -79,7 +71,7 @@ export const useRegenerateBreaks = (geometryType: "node" | "link") => {
       );
       return applyMode(currentRule, currentRule.mode, data);
     },
-    [userTracking, simulation, simulationResults, hydraulicModel],
+    [simulation, simulationResults, hydraulicModel],
   );
 
   const regenerateFromCurrentStep = useCallback(
@@ -87,11 +79,6 @@ export const useRegenerateBreaks = (geometryType: "node" | "link") => {
       if (!isSimulationProperty(currentRule.property) || !simulationResults)
         return null;
 
-      userTracking.capture({
-        name: "colorRange.breaks.regenerated",
-        property: currentRule.property,
-        mode: "step",
-      });
       setIsWorking(true);
       try {
         const data = await getSortedSimulationDataForBreaks(
@@ -105,7 +92,7 @@ export const useRegenerateBreaks = (geometryType: "node" | "link") => {
         setIsWorking(false);
       }
     },
-    [userTracking, simulationResults],
+    [simulationResults],
   );
 
   const regenerateFromAllData = useCallback(
@@ -120,12 +107,6 @@ export const useRegenerateBreaks = (geometryType: "node" | "link") => {
             : undefined;
         if (!epsReader) return null;
 
-        userTracking.capture({
-          name: "colorRange.breaks.regenerated",
-          property: currentRule.property,
-          mode: "all",
-        });
-
         const data = await getSortedSimulationDataForBreaks(
           currentRule.property,
           { mode: "allSteps", epsReader, resultsReader: simulationResults },
@@ -136,7 +117,7 @@ export const useRegenerateBreaks = (geometryType: "node" | "link") => {
         setIsWorking(false);
       }
     },
-    [simulation, simulationResults, userTracking],
+    [simulation, simulationResults],
   );
 
   return {

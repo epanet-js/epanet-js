@@ -1130,26 +1130,6 @@ type ImportZonesCompleted = {
   mergedCount: number;
 };
 
-type ZoneVisibilityChanged = {
-  name: "map.zonesVisibility.changed";
-  visible: boolean;
-};
-
-type ZoneColorRuleChanged = {
-  name: "map.zonesColorRule.changed";
-  colorRule: string | null;
-};
-
-type ZoneDefaultColorChanged = {
-  name: "map.zonesDefaultColor.changed";
-  color: string;
-};
-
-type ZoneLabelRuleChanged = {
-  name: "map.zonesLabelRule.changed";
-  labelRule: string | null;
-};
-
 type EarlyAccessClickedGet = {
   name: "earlyAccess.clickedGet";
   source: "earlyAccessDialog";
@@ -1580,7 +1560,74 @@ type CustomGraphPropertySelected = {
   numAssets: number;
 };
 
+export type MapThemeEditContext = {
+  isDefault: boolean;
+  hadUnsavedChanges: boolean;
+};
+
+type ColorGeometry = "node" | "link";
+
+export type RegenerateBreaksFrom = "default" | "currentStep" | "allSteps";
+
+export type MapThemeChange =
+  | { change: `${ColorGeometry}ColorBy`; value: string }
+  | { change: `${ColorGeometry}ColorRamp`; value: string; property: string }
+  | { change: `${ColorGeometry}ColorRampReversed`; property: string }
+  | {
+      change: `${ColorGeometry}ColorRangeMode`;
+      value: string;
+      property: string;
+    }
+  | {
+      change: `${ColorGeometry}ColorRangeIntervalCount`;
+      value: number;
+      property: string;
+    }
+  | {
+      change: `${ColorGeometry}ColorRangeIntervalColor`;
+      property: string;
+    }
+  | {
+      change: `${ColorGeometry}ColorRangeBreaksRegenerated`;
+      value: RegenerateBreaksFrom;
+      property: string;
+    }
+  | {
+      change: `${ColorGeometry}ColorRangeBreakValue`;
+      value: number;
+      property: string;
+    }
+  | {
+      change: `${ColorGeometry}ColorRangeBreakAdded`;
+      value: "start" | "end";
+      property: string;
+    }
+  | { change: `${ColorGeometry}ColorRangeBreakRemoved`; property: string }
+  | { change: `${ColorGeometry}DefaultColor` }
+  | { change: `${ColorGeometry}Label`; value: string }
+  | {
+      change: "nodeMinSize" | "nodeMaxSize" | "nodeMinVisibleZoom";
+      value: number;
+    }
+  | { change: "zoneVisibility" | "customerPointsVisibility"; value: boolean }
+  | { change: "zoneColorBy" | "zoneLabel"; value: string }
+  | { change: "zonePalette"; value: string }
+  | { change: "zoneDefaultColor" };
+
+type MapThemeChanged = { name: "mapTheme.changed" } & MapThemeChange &
+  MapThemeEditContext;
+
+type MapThemeRangeErrorSeen = {
+  name: "mapTheme.rangeError.seen";
+  property: string;
+  errorKey: string;
+  mode: string;
+  intervalCount: number;
+};
+
 export type UserEvent =
+  | MapThemeChanged
+  | MapThemeRangeErrorSeen
   | AssetCreated
   | AssetRedrawed
   | AssetRedrawStarted
@@ -1740,10 +1787,6 @@ export type UserEvent =
   | ImportZonesParseError
   | ImportZonesSelectLabel
   | ImportZonesCompleted
-  | ZoneVisibilityChanged
-  | ZoneColorRuleChanged
-  | ZoneDefaultColorChanged
-  | ZoneLabelRuleChanged
   | EarlyAccessClickedGet
   | CustomerPointsConnectStarted
   | CustomerPointsReconnectStarted
@@ -1820,49 +1863,6 @@ export type UserEvent =
       name: "elevationSource.elevationUnitChanged";
       oldValue: string;
       newValue: string;
-    }
-  | { name: "map.labels.shown"; type: string; subtype: string }
-  | { name: "map.labels.hidden"; type: string }
-  | { name: "map.customerPoints.shown" }
-  | { name: "map.customerPoints.hidden" }
-  | { name: "map.defaultColor.changed"; type: string }
-  | {
-      name: "map.nodeSize.changed";
-      property: "minSize" | "maxSize" | "minVisibleZoom";
-      oldValue: number;
-      newValue: number;
-    }
-  | {
-      name: "map.colorBy.changed";
-      type: string;
-      subtype: string;
-      property: string;
-    }
-  | { name: "map.colorRamp.changed"; rampName: string; property: string }
-  | { name: "map.colorRamp.reversed"; rampName: string; property: string }
-  | { name: "map.zonePalette.changed"; paletteName: string }
-  | { name: "colorRange.rangeMode.changed"; mode: string; property: string }
-  | {
-      name: "colorRange.classes.changed";
-      classesCount: number;
-      property: string;
-    }
-  | { name: "colorRange.break.updated"; breakValue: number; property: string }
-  | { name: "colorRange.break.prepended"; property: string }
-  | { name: "colorRange.break.appended"; property: string }
-  | { name: "colorRange.break.deleted"; property: string }
-  | { name: "colorRange.intervalColor.changed"; property: string }
-  | {
-      name: "colorRange.breaks.regenerated";
-      property: string;
-      mode: "default" | "step" | "all";
-    }
-  | {
-      name: "colorRange.rangeError.seen";
-      property: string;
-      errorKey: string;
-      mode: string;
-      classesCount: number;
     }
   | { name: "legend.clicked"; property: string }
   | { name: "layerLabelVisibility.changed"; visible: boolean; type: string }
@@ -2018,7 +2018,12 @@ export type UserEvent =
   | { name: "bookmark.visited"; source: "panel" }
   | { name: "bookmark.renamed"; source: "panel" }
   | { name: "bookmark.deleted"; source: "panel" }
-  | { name: "mapTheme.applied"; isDefault: boolean; source: "panel" }
+  | {
+      name: "mapTheme.applied";
+      isDefault: boolean;
+      hadUnsavedChanges: boolean;
+      source: "panel";
+    }
   | {
       name: "mapTheme.created";
       origin: "default" | "modifiedTheme" | "duplicate";
@@ -2028,7 +2033,12 @@ export type UserEvent =
   | { name: "mapTheme.saved"; source: "panel" }
   | { name: "mapTheme.changesDiscarded"; isDefault: boolean; source: "panel" }
   | { name: "mapTheme.renamed"; source: "panel" }
-  | { name: "mapTheme.deleted"; wasActive: boolean; source: "panel" }
+  | {
+      name: "mapTheme.deleted";
+      wasActive: boolean;
+      hadUnsavedChanges: boolean;
+      source: "panel";
+    }
   | {
       name: "dataTables.cellEdited";
       type: Asset["type"];
