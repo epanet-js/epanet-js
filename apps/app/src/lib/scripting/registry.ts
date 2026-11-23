@@ -107,9 +107,16 @@ export type ScriptSimulationStatus =
   | "failure"
   | "stopped";
 
+export type ScriptResultsLocation = {
+  appId: string;
+  scenarioKey: string;
+  runId: string;
+};
+
 export type ScriptSimulationRun = {
   status: ScriptSimulationStatus;
   report: string;
+  location: ScriptResultsLocation | null;
 };
 
 export type ScriptLastResults = {
@@ -117,7 +124,7 @@ export type ScriptLastResults = {
   report: string;
   isStale: boolean;
   currentStep: number;
-  location: { appId: string; scenarioKey: string; runId: string } | null;
+  location: ScriptResultsLocation | null;
 };
 
 export type ScriptRunOutcome =

@@ -38,7 +38,6 @@ import { dialogAtom } from "src/state/dialog";
 import { hasScenariosAtom, worktreeAtom } from "src/state/scenarios";
 import { runSimulation } from "src/simulation";
 import { getAppId } from "src/infra/app-instance";
-import { OPFSStorage } from "src/infra/storage";
 import { nanoid } from "src/lib/id";
 import {
   currentFileNameAtom,
@@ -353,10 +352,12 @@ const simulateForScript =
       scenarioKey,
       runId,
     );
-    if (status === "success" || status === "warning") {
-      await new OPFSStorage(appId, scenarioKey, runId).clearRun();
-    }
-    return { status, report };
+    const hasResults = status === "success" || status === "warning";
+    return {
+      status,
+      report,
+      location: hasResults ? { appId, scenarioKey, runId } : null,
+    };
   };
 
 const EDITS_BLOCKED: Record<EditionBlock, string> = {
