@@ -8,6 +8,7 @@ import {
   type DecodedColumn,
   type DecodedRecords,
 } from "./codec";
+import { RecordsBuilder } from "./records-builder";
 
 export type RecordGeometry =
   | { type: "point"; position: Position }
@@ -120,6 +121,13 @@ export class GisRecords {
 
   static fromData({ bytes, indices }: GisRecordsData): GisRecords {
     return new GisRecords(tableOf(bytes), indices);
+  }
+
+  /** One record per single part, as a read encodes a decoded source. */
+  static fromFeatures(features: Feature[]): GisRecords {
+    const builder = new RecordsBuilder();
+    for (const feature of features) builder.addFeature(feature);
+    return GisRecords.fromData({ bytes: builder.encode(), indices: null });
   }
 
   get data(): GisRecordsData {

@@ -109,21 +109,16 @@ const decode = async (input: GisInput): Promise<DecodedRecords> => {
   return decodeGeoJson(bytes, input);
 };
 
-const fromFeatures = (decoded: DecodedSource): DecodedRecords => {
-  const builder = new RecordsBuilder();
-  for (const feature of decoded.features) builder.addFeature(feature);
-
-  return {
-    records: GisRecords.fromData({ bytes: builder.encode(), indices: null }),
-    ...(decoded.sourceProjection === undefined
-      ? {}
-      : { sourceProjection: decoded.sourceProjection }),
-    issues: decoded.issues,
-    ...(decoded.statedOrder === undefined
-      ? {}
-      : { statedOrder: decoded.statedOrder }),
-  };
-};
+const fromFeatures = (decoded: DecodedSource): DecodedRecords => ({
+  records: GisRecords.fromFeatures(decoded.features),
+  ...(decoded.sourceProjection === undefined
+    ? {}
+    : { sourceProjection: decoded.sourceProjection }),
+  issues: decoded.issues,
+  ...(decoded.statedOrder === undefined
+    ? {}
+    : { statedOrder: decoded.statedOrder }),
+});
 
 type Collected = {
   builder: RecordsBuilder;
