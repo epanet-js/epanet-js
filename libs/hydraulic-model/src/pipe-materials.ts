@@ -11,6 +11,9 @@ export type PipeMaterial = {
 export const DEFAULT_ROUGHNESS_HW = 140;
 export const DEFAULT_ROUGHNESS_DW_CM = 0.01;
 
+export const isValidPipeMaterialName = (label: string): boolean =>
+  label !== "" && label.trim() === label;
+
 export const pipeMaterialKey = (label: string): string => label.toLowerCase();
 
 export const findPipeMaterial = (

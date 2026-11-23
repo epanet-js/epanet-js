@@ -20,6 +20,7 @@ import type {
 } from "src/components/list";
 import {
   findPipeMaterial,
+  isValidPipeMaterialName,
   type PipeMaterial,
 } from "@epanet-js/hydraulic-model";
 
@@ -109,7 +110,7 @@ export const PipeLibrarySidebar = ({
     if (!actionState) return true;
 
     const trimmedName = name.trim();
-    if (!trimmedName) return true;
+    if (!isValidPipeMaterialName(trimmedName)) return true;
 
     if (actionState.action === "renaming") {
       if (!isLabelAvailable(trimmedName, actionState.materialLabel))
