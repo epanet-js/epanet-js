@@ -1,6 +1,9 @@
 import { screen, render, waitFor } from "@testing-library/react";
 import { CommandContainer } from "./__helpers__/command-container";
-import { SimulationFinished } from "src/state/simulation";
+import {
+  SimulationFinished,
+  isScriptSimulatingAtom,
+} from "src/state/simulation";
 import { simulationDerivedAtom } from "src/state/derived-branch-state";
 import { Store } from "src/state";
 import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
@@ -670,6 +673,41 @@ describe("Run simulation", () => {
         expect(store.get(dialogAtom)).toMatchObject({ status: "running" });
       });
       expect(started).toEqual(1);
+    });
+  });
+
+  describe("while a script is simulating", () => {
+    it("does not run", async () => {
+      passesEveryCheck();
+      const store = setInitialState({ hydraulicModel: aSimulableModel() });
+      store.set(isScriptSimulatingAtom, true);
+      renderComponent({ store });
+
+      await triggerRun();
+
+      expect(store.get(simulationDerivedAtom).status).toEqual("idle");
+      expect(lib.runSimulation).not.toHaveBeenCalled();
+    });
+
+    it("does not run when the script started during the checks", async () => {
+      let finishChecks: () => void = () => {};
+      blockingChecksOverride = () =>
+        new Promise((resolve) => (finishChecks = () => resolve([])));
+      const store = setInitialState({ hydraulicModel: aSimulableModel() });
+      renderComponent({ store });
+
+      await triggerRun();
+      await waitFor(() => {
+        expect(store.get(dialogAtom)).toMatchObject({ status: "running" });
+      });
+      store.set(isScriptSimulatingAtom, true);
+      finishChecks();
+
+      await waitFor(() => {
+        expect(store.get(dialogAtom)).toBeNull();
+      });
+      expect(store.get(simulationDerivedAtom).status).toEqual("idle");
+      expect(lib.runSimulation).not.toHaveBeenCalled();
     });
   });
 

@@ -14,6 +14,7 @@ import { branchStateAtom } from "src/state/branch-state";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { opfsAvailableAtom } from "src/state/opfs";
 import { commitSimulationResultAtom } from "src/state/simulation-step";
+import { isScriptSimulatingAtom } from "src/state/simulation";
 import { clearQuickGraphPropertyAtom } from "src/state/quick-graph";
 import { clearSymbologyForPropertyAtom } from "src/state/map-symbology";
 import {
@@ -63,6 +64,7 @@ export const useRunSimulation = () => {
         },
       ) => {
         if (!get(opfsAvailableAtom)) return;
+        if (get(isScriptSimulatingAtom)) return;
 
         const hydraulicModel = get(stagingModelDerivedAtom);
         const simulationSettings = get(simulationSettingsDerivedAtom);
@@ -70,6 +72,12 @@ export const useRunSimulation = () => {
         const projectSettings = get(projectSettingsAtom);
 
         const run = async () => {
+          if (get(isScriptSimulatingAtom)) {
+            if (get(dialogAtom)?.type === "preSimulationChecks") {
+              setDialogState(null);
+            }
+            return;
+          }
           const currentSimulation = get(simulationDerivedAtom);
           setSimulationState({ ...currentSimulation, status: "running" });
           const inp = buildSimulationInp(hydraulicModel, {

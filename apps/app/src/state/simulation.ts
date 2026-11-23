@@ -3,6 +3,8 @@ import type { EPSResultsReader } from "src/simulation";
 
 export const simulationStepAtom = atom<number | null>(null);
 
+export const isScriptSimulatingAtom = atom(false);
+
 export type SimulationIdle = { status: "idle" };
 
 export type SimulationRunLocation = {

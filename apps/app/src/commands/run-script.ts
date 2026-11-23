@@ -36,7 +36,12 @@ import {
 } from "src/simulation/simulation-settings";
 import { dialogAtom } from "src/state/dialog";
 import { hasScenariosAtom, worktreeAtom } from "src/state/scenarios";
-import { runSimulation } from "src/simulation";
+import {
+  cancelSimulation,
+  runSimulation,
+  type SimulationProgress,
+} from "src/simulation";
+import { OPFSStorage } from "src/infra/storage";
 import { getAppId } from "src/infra/app-instance";
 import { nanoid } from "src/lib/id";
 import {
@@ -61,7 +66,10 @@ import {
   type ScriptRunState,
 } from "src/state/scripts";
 import { selectionAtom } from "src/state/selection";
-import { simulationStepAtom } from "src/state/simulation";
+import {
+  isScriptSimulatingAtom,
+  simulationStepAtom,
+} from "src/state/simulation";
 import {
   bookmarksAtom,
   selectionSetGroupsAtom,
@@ -271,7 +279,9 @@ export const useRunScript = () => {
         isScriptingSimulationsOn,
         editsBlockedReason:
           editionBlockRef.current && EDITS_BLOCKED[editionBlockRef.current],
-        simulate: simulateForScript(store.get),
+        simulate: simulateForScript(store, (simulation) =>
+          updateRun((run) => ({ ...run, simulation })),
+        ),
         onEvent,
       });
       const startedAt = performance.now();
@@ -282,10 +292,14 @@ export const useRunScript = () => {
         lines: [],
         progress: null,
         progressMessage: null,
+        simulation: null,
         outcome: null,
         startedAt,
         finishedAt: null,
-        cancel: handle.cancel,
+        cancel: () => {
+          if (store.get(isScriptSimulatingAtom)) cancelSimulation();
+          handle.cancel();
+        },
       });
       setDialog({ type: "scriptRun" });
       showScriptOutput();
@@ -337,27 +351,52 @@ export const useRunScript = () => {
 };
 
 const simulateForScript =
-  (get: Getter) =>
+  (
+    store: ReturnType<typeof useStore>,
+    onProgress: (progress: SimulationProgress | null) => void,
+  ) =>
   async (inp: string): Promise<ScriptSimulationRun> => {
-    const appId = getAppId();
-    const scenarioKey = get(worktreeAtom).activeBranchId;
-    const runId = nanoid();
-    const runQuality =
-      get(simulationSettingsDerivedAtom).qualitySimulationType !== "none";
-    const { status, report } = await runSimulation(
-      inp,
-      appId,
-      undefined,
-      { runQuality },
-      scenarioKey,
-      runId,
-    );
-    const hasResults = status === "success" || status === "warning";
-    return {
-      status,
-      report,
-      location: hasResults ? { appId, scenarioKey, runId } : null,
-    };
+    if (
+      store.get(isScriptSimulatingAtom) ||
+      store.get(simulationDerivedAtom).status === "running"
+    ) {
+      throw new Error("A simulation is already running");
+    }
+    store.set(isScriptSimulatingAtom, true);
+    let isDone = false;
+    try {
+      const appId = getAppId();
+      const scenarioKey = store.get(worktreeAtom).activeBranchId;
+      const runId = nanoid();
+      const runQuality =
+        store.get(simulationSettingsDerivedAtom).qualitySimulationType !==
+        "none";
+      const { status, report } = await runSimulation(
+        inp,
+        appId,
+        (progress) => {
+          if (!isDone) onProgress(progress);
+        },
+        { runQuality },
+        scenarioKey,
+        runId,
+      );
+      const hasResults = status === "success" || status === "warning";
+      if (!hasResults) {
+        void new OPFSStorage(appId, scenarioKey, runId)
+          .clearRun()
+          .catch(() => {});
+      }
+      return {
+        status,
+        report,
+        location: hasResults ? { appId, scenarioKey, runId } : null,
+      };
+    } finally {
+      isDone = true;
+      onProgress(null);
+      store.set(isScriptSimulatingAtom, false);
+    }
   };
 
 const EDITS_BLOCKED: Record<EditionBlock, string> = {

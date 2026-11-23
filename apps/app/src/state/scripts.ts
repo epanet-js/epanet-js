@@ -1,5 +1,6 @@
 import { atom } from "jotai";
 import type { ScriptConsoleLevel, ScriptRunOutcome } from "src/lib/scripting";
+import type { SimulationProgress } from "src/simulation";
 
 export type ScriptConsoleLine =
   | { type: "text"; level: ScriptConsoleLevel; text: string }
@@ -12,6 +13,7 @@ export type ScriptRunState = {
   lines: ScriptConsoleLine[];
   progress: number | null;
   progressMessage: string | null;
+  simulation: SimulationProgress | null;
   outcome: ScriptRunOutcome | null;
   startedAt: number;
   finishedAt: number | null;

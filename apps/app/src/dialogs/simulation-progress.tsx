@@ -6,7 +6,7 @@ import { cancelSimulation } from "src/simulation/epanet/main";
 import { Button } from "src/components/elements";
 import { BaseDialog } from "../components/dialog";
 
-const formatTime = (seconds: number): string => {
+export const formatSimulationTime = (seconds: number): string => {
   const hours = Math.floor(seconds / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
   return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
@@ -32,7 +32,7 @@ const ProgressBar = ({
         <p className="text-size-base text-subtle">{label}</p>
         {!isIndeterminate && (
           <p className="text-size-base font-bold text-default tabular-nums">
-            {formatTime(currentTime)}
+            {formatSimulationTime(currentTime)}
           </p>
         )}
       </div>
@@ -56,6 +56,16 @@ const ProgressBar = ({
   );
 };
 
+export const simulationPhaseLabel = (
+  translate: ReturnType<typeof useTranslate>,
+  phase: SimulationProgressDialogState["phase"],
+): string =>
+  phase === "finalizing"
+    ? translate("savingResults")
+    : phase === "quality"
+      ? translate("runningQualityAnalysis")
+      : translate("runningHydraulicAnalysis");
+
 export const SimulationProgressDialog = ({
   modal,
 }: {
@@ -65,12 +75,7 @@ export const SimulationProgressDialog = ({
   const [stopping, setStopping] = useState(false);
   const { currentTime, totalDuration, phase } = modal;
 
-  const label =
-    phase === "finalizing"
-      ? translate("savingResults")
-      : phase === "quality"
-        ? translate("runningQualityAnalysis")
-        : translate("runningHydraulicAnalysis");
+  const label = simulationPhaseLabel(translate, phase);
 
   const handleStop = () => {
     setStopping(true);

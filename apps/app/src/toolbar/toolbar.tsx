@@ -21,6 +21,7 @@ import { useAtomValue, useSetAtom } from "jotai";
 import { splitsAtom } from "src/state/layout";
 import { commandBarOpenAtom } from "src/state/command-bar";
 import { opfsAvailableAtom } from "src/state/opfs";
+import { isScriptSimulatingAtom } from "src/state/simulation";
 import {
   canRedoDerivedAtom,
   canUndoDerivedAtom,
@@ -78,6 +79,7 @@ export const Toolbar = ({
   const saveProject = useSaveProject();
   const userTracking = useUserTracking();
   const runSimulation = useRunSimulation();
+  const isScriptSimulating = useAtomValue(isScriptSimulatingAtom);
   const showSimulationSettings = useShowSimulationSettings();
   const showReport = useShowReport();
   const allocateCustomerPoints = useAllocateCustomerPoints();
@@ -178,6 +180,7 @@ export const Toolbar = ({
             });
             void runSimulation();
           }}
+          disabled={isScriptSimulating}
           expanded={true}
           readOnlyHotkey={runSimulationShortcut}
         >

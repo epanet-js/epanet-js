@@ -37,6 +37,7 @@ import {
   useToggleSatellite,
 } from "src/commands/toggle-satellite";
 import { useAtomValue } from "jotai";
+import { isScriptSimulatingAtom } from "src/state/simulation";
 import {
   simulationDerivedAtom,
   simulationSettingsDerivedAtom,
@@ -132,6 +133,7 @@ export const CommandShortcuts = () => {
   const reverseLinkAction = useReverseLink();
   const simulation = useAtomValue(simulationDerivedAtom);
   const simulationSettings = useAtomValue(simulationSettingsDerivedAtom);
+  const isScriptSimulating = useAtomValue(isScriptSimulatingAtom);
   const toggleLeftPanel = useToggleLeftPanel();
   const toggleSidePanel = useToggleSidePanel();
   const toggleBottomPanel = useToggleBottomPanel();
@@ -176,6 +178,7 @@ export const CommandShortcuts = () => {
     runSimulationShortcut,
     (e) => {
       if (e.preventDefault) e.preventDefault();
+      if (isScriptSimulating) return;
 
       userTracking.capture({
         name: "simulation.executed",
@@ -184,7 +187,7 @@ export const CommandShortcuts = () => {
       });
       void runSimulation();
     },
-    [runSimulationShortcut, runSimulation],
+    [runSimulationShortcut, runSimulation, isScriptSimulating],
     "Run simulation",
   );
 

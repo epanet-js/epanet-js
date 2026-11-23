@@ -5,6 +5,10 @@ import { BaseDialog, SimpleDialogActions } from "src/components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
 import { scriptRunAtom, type ScriptRunState } from "src/state/scripts";
 import { formatElapsed, useElapsed } from "src/panels/script-output/run-output";
+import {
+  formatSimulationTime,
+  simulationPhaseLabel,
+} from "./simulation-progress";
 
 export const ScriptRunDialog = ({ onClose }: { onClose: () => void }) => {
   const [run, setRun] = useAtom(scriptRunAtom);
@@ -77,7 +81,18 @@ const RunProgress = ({
   elapsedMs: number;
 }) => {
   const translate = useTranslate();
-  const percent = run.progress === null ? null : run.progress * 100;
+  const { simulation } = run;
+  const fraction = simulation
+    ? simulation.phase !== "finalizing" && simulation.totalDuration > 0
+      ? simulation.currentTime / simulation.totalDuration
+      : null
+    : run.progress;
+  const percent = fraction === null ? null : fraction * 100;
+  const message = simulation
+    ? simulation.phase === "finalizing"
+      ? simulationPhaseLabel(translate, simulation.phase)
+      : `${simulationPhaseLabel(translate, simulation.phase)} ${formatSimulationTime(simulation.currentTime)}`
+    : run.progressMessage;
   return (
     <div>
       <div className="flex flex-row items-baseline gap-1 mb-2">
@@ -102,10 +117,8 @@ const RunProgress = ({
           />
         )}
       </Progress.Root>
-      {run.progressMessage && (
-        <p className="mt-2 text-size-base text-subtle truncate">
-          {run.progressMessage}
-        </p>
+      {message && (
+        <p className="mt-2 text-size-base text-subtle truncate">{message}</p>
       )}
     </div>
   );
