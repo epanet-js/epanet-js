@@ -9,11 +9,7 @@ import {
 } from "@epanet-js/hydraulic-model-operations";
 import type { HydraulicModel, Pipe } from "@epanet-js/hydraulic-model";
 import { AuthMockProvider } from "src/__helpers__/auth-mock";
-import {
-  stubFeatureOff,
-  stubFeatureOn,
-  stubFeaturesOn,
-} from "src/__helpers__/feature-flags";
+import { stubFeaturesOn } from "src/__helpers__/feature-flags";
 import { setInitialState } from "src/__helpers__/state";
 import { CommandContainer } from "src/commands/__helpers__/command-container";
 import {
@@ -31,12 +27,12 @@ import { modelFactoriesAtom } from "src/state/model-factories";
 import { userScriptsAtom, type UserScript } from "src/state/scripts";
 import { ScriptsPanel } from "./scripts-panel";
 import { captureError, captureWarning } from "src/infra/error-tracking";
-import {
-  registerScriptAssistant,
-  type ScriptAssistantFailure,
-  type ScriptAssistantRequest,
-  type ScriptSyntaxError,
-  type WrittenScript,
+import type {
+  ScriptAssistant,
+  ScriptAssistantFailure,
+  ScriptAssistantRequest,
+  ScriptSyntaxError,
+  WrittenScript,
 } from "src/lib/script-assistant";
 
 vi.mock("src/hooks/use-auth", async () => {
@@ -45,6 +41,15 @@ vi.mock("src/hooks/use-auth", async () => {
   >("src/__helpers__/auth-mock");
   return { useAuth: useAuthMock };
 });
+
+const assistantRef: { current: ScriptAssistant | null } = { current: null };
+
+vi.mock("src/lib/script-assistant", async () => ({
+  ...(await vi.importActual<typeof import("src/lib/script-assistant")>(
+    "src/lib/script-assistant",
+  )),
+  getScriptAssistant: () => assistantRef.current,
+}));
 
 const writes: {
   request: ScriptAssistantRequest;
@@ -172,11 +177,10 @@ describe("ScriptsPanel", () => {
 
   describe("with the scripting assistant", () => {
     beforeEach(() => {
-      stubFeatureOn("FLAG_SCRIPTING_ASSISTANT");
       writes.length = 0;
       vi.mocked(captureError).mockClear();
       vi.mocked(captureWarning).mockClear();
-      registerScriptAssistant({
+      assistantRef.current = {
         writeScript: (request, { signal, token }) =>
           new Promise((resolve, reject) => {
             writes.push({
@@ -196,11 +200,11 @@ describe("ScriptsPanel", () => {
             });
             signal.addEventListener("abort", () => reject(signal.reason));
           }),
-      });
+      };
     });
 
     afterEach(() => {
-      stubFeatureOff("FLAG_SCRIPTING_ASSISTANT");
+      assistantRef.current = null;
     });
 
     it("asks for a description before opening the editor", async () => {

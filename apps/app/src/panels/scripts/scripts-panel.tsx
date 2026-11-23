@@ -23,7 +23,6 @@ import { useFeatureLock } from "src/components/form/paywall";
 import { useTranslate } from "src/hooks/use-translate";
 import { useLocale } from "src/hooks/use-locale";
 import { useScriptingDocs } from "src/hooks/use-scripting-docs";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   getScriptAssistant,
   type ScriptAssistantFailure,
@@ -82,8 +81,7 @@ console.log("Junctions:", network.stats.junctions, "· Pipes:", network.stats.pi
 export const ScriptsPanel = () => {
   const [draft, setDraft] = useAtom(scriptDraftAtom);
   const [isComposing, setIsComposing] = useState(false);
-  const isScriptingAssistantOn = useFeatureFlag("FLAG_SCRIPTING_ASSISTANT");
-  const isAssistantOn = isScriptingAssistantOn && getScriptAssistant() !== null;
+  const isAssistantOn = getScriptAssistant() !== null;
   const { canUseScriptAssistant } = usePermissions();
   const { llmsPath, variant: docsVariant } = useScriptingDocs();
   const translate = useTranslate();
