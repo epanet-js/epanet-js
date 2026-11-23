@@ -4,10 +4,8 @@ import type { PipeMaterial } from "@epanet-js/hydraulic-model";
 import { currentFileNameAtom } from "src/state/file-system";
 import { useUserTracking } from "src/infra/user-tracking";
 import { FileSystemHelpers } from "src/infra/storage";
-import {
-  serializeMaterialsToCsv,
-  serializeMaterialsToXlsx,
-} from "src/hydraulic-model/pipe-materials";
+import { serializeMaterialsToCsv } from "src/lib/operational-data-io/pipe-library/export-csv";
+import { serializeMaterialsToXlsx } from "src/lib/operational-data-io/pipe-library/export-xlsx";
 
 export const useExportPipeLibrary = () => {
   const { capture } = useUserTracking();

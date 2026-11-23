@@ -7,10 +7,8 @@ import { projectSettingsAtom } from "src/state/project-settings";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import { selectedMaterialLabelAtom } from "src/state/pipe-library";
 import { changePipeMaterials } from "@epanet-js/hydraulic-model-operations";
-import {
-  detectModelMaterials,
-  type ImportPipeLibraryResult,
-} from "src/hydraulic-model/pipe-materials";
+import { detectModelMaterials } from "src/hydraulic-model/pipe-materials";
+import type { ImportPipeLibraryResult } from "src/lib/operational-data-io/pipe-library/import-result";
 import { groupErrors, type ImportOutcome } from "src/components/import-outcome";
 import { useExportPipeLibrary } from "src/commands/export-pipe-library";
 import { useImportPipeLibrary } from "src/commands/import-pipe-library";

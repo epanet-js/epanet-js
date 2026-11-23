@@ -1,10 +1,8 @@
 import { useCallback } from "react";
 import { fileOpen } from "browser-fs-access";
 import { useUserTracking } from "src/infra/user-tracking";
-import {
-  parsePipeLibraryFile,
-  type ImportPipeLibraryResult,
-} from "src/hydraulic-model/pipe-materials";
+import { parsePipeLibraryFile } from "src/lib/operational-data-io/pipe-library/parse-pipe-library-file";
+import type { ImportPipeLibraryResult } from "src/lib/operational-data-io/pipe-library/import-result";
 
 const openFilePicker = async (): Promise<File | null> => {
   try {
