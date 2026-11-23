@@ -107,6 +107,11 @@ export type ScriptSimulationStatus =
   | "failure"
   | "stopped";
 
+export type ScriptSimulationRun = {
+  status: ScriptSimulationStatus;
+  report: string;
+};
+
 export type ScriptLastResults = {
   status: ScriptSimulationStatus;
   report: string;
@@ -166,7 +171,9 @@ export type Scripting = {
     hasScenarios: boolean;
     isDeleteZoneOn: boolean;
     isModelValidationsOn: boolean;
+    isScriptingSimulationsOn: boolean;
     editsBlockedReason: string | null;
+    simulate: (inp: string) => Promise<ScriptSimulationRun>;
     onEvent: (event: ScriptEvent) => void;
   }) => ScriptRunHandle;
   exampleScripts: ExampleScript[];

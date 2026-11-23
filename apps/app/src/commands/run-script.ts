@@ -8,6 +8,7 @@ import {
   type ScriptLastResults,
   type ScriptProject,
   type ScriptRunOutcome,
+  type ScriptSimulationRun,
   type ScriptSimulationSettings,
   type ScriptTargets,
   type ScriptViewport,
@@ -34,7 +35,11 @@ import {
   type SimulationSettings,
 } from "src/simulation/simulation-settings";
 import { dialogAtom } from "src/state/dialog";
-import { hasScenariosAtom } from "src/state/scenarios";
+import { hasScenariosAtom, worktreeAtom } from "src/state/scenarios";
+import { runSimulation } from "src/simulation";
+import { getAppId } from "src/infra/app-instance";
+import { OPFSStorage } from "src/infra/storage";
+import { nanoid } from "src/lib/id";
 import {
   currentFileNameAtom,
   inpFileInfoAtom,
@@ -80,6 +85,7 @@ export const useRunScript = () => {
   const { openPaywall } = useFeatureLock("runScripts");
   const userTracking = useUserTracking();
   const isDeleteZoneOn = useFeatureFlag("FLAG_DELETE_ZONE");
+  const isScriptingSimulationsOn = useFeatureFlag("FLAG_SCRIPTING_SIMULATIONS");
   const isModelValidationsOn = useFeatureFlag("FLAG_MODEL_VALIDATIONS");
   const { transact } = useModelTransaction();
   const editionBlock = useEditionBlock();
@@ -263,8 +269,10 @@ export const useRunScript = () => {
         hasScenarios: store.get(hasScenariosAtom),
         isDeleteZoneOn,
         isModelValidationsOn,
+        isScriptingSimulationsOn,
         editsBlockedReason:
           editionBlockRef.current && EDITS_BLOCKED[editionBlockRef.current],
+        simulate: simulateForScript(store.get),
         onEvent,
       });
       const startedAt = performance.now();
@@ -323,10 +331,33 @@ export const useRunScript = () => {
       openPaywall,
       isDeleteZoneOn,
       isModelValidationsOn,
+      isScriptingSimulationsOn,
       showScriptOutput,
     ],
   );
 };
+
+const simulateForScript =
+  (get: Getter) =>
+  async (inp: string): Promise<ScriptSimulationRun> => {
+    const appId = getAppId();
+    const scenarioKey = get(worktreeAtom).activeBranchId;
+    const runId = nanoid();
+    const runQuality =
+      get(simulationSettingsDerivedAtom).qualitySimulationType !== "none";
+    const { status, report } = await runSimulation(
+      inp,
+      appId,
+      undefined,
+      { runQuality },
+      scenarioKey,
+      runId,
+    );
+    if (status === "success" || status === "warning") {
+      await new OPFSStorage(appId, scenarioKey, runId).clearRun();
+    }
+    return { status, report };
+  };
 
 const EDITS_BLOCKED: Record<EditionBlock, string> = {
   branchLocked:

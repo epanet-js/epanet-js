@@ -14,6 +14,7 @@ export type {
   ScriptOutputSelectionSet,
   ScriptRunOutcome,
   ScriptSelectionSet,
+  ScriptSimulationRun,
   ScriptSimulationSettings,
   ScriptTargets,
   ScriptViewport,
