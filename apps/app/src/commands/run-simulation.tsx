@@ -2,7 +2,7 @@ import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useSetAtom } from "jotai";
 import { useAtomCallback } from "jotai/utils";
 import { useCallback, useRef } from "react";
-import { buildInp } from "src/simulation/build-inp";
+import { buildSimulationInp } from "src/simulation/build-inp";
 import { dialogAtom } from "src/state/dialog";
 import {
   stagingModelDerivedAtom,
@@ -72,13 +72,7 @@ export const useRunSimulation = () => {
         const run = async () => {
           const currentSimulation = get(simulationDerivedAtom);
           setSimulationState({ ...currentSimulation, status: "running" });
-          const inp = buildInp(hydraulicModel, {
-            customerDemands: true,
-            usedPatterns: true,
-            usedCurves: true,
-            includeQuality:
-              simulationSettings.qualitySimulationType === "age" ||
-              simulationSettings.qualitySimulationType === "chemical",
+          const inp = buildSimulationInp(hydraulicModel, {
             simulationSettings,
             units: projectSettings.units,
             headlossFormula: projectSettings.headlossFormula,

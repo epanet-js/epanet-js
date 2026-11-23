@@ -1,6 +1,7 @@
 import {
   buildInp as buildInpUninstrumented,
   buildInpToFile as buildInpToFileUninstrumented,
+  buildSimulationInp as buildSimulationInpUninstrumented,
 } from "@epanet-js/simulation";
 import { withDebugInstrumentation } from "src/infra/with-instrumentation";
 
@@ -20,6 +21,11 @@ export const buildInp = withDebugInstrumentation(buildInpUninstrumented, {
   name: "BUILD_INP",
   maxDurationMs: 1000,
 });
+
+export const buildSimulationInp = withDebugInstrumentation(
+  buildSimulationInpUninstrumented,
+  { name: "BUILD_INP", maxDurationMs: 1000 },
+);
 
 export const buildInpToFile = withDebugInstrumentation(
   buildInpToFileUninstrumented,

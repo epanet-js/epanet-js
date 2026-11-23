@@ -3,6 +3,7 @@ export * from "./simulation-settings";
 export {
   buildInp,
   buildInpToFile,
+  buildSimulationInp,
   chooseUnitSystem,
   isUsUnitSystem,
   getLsxRequirements,
@@ -12,6 +13,7 @@ export {
   type BuildOptions,
   type EpanetUnitSystem,
   type LsxRequirements,
+  type SimulationInpOptions,
 } from "./build-inp";
 export * from "./results-store";
 export { InMemoryKeyBufferStore } from "./in-memory-key-buffer-store";

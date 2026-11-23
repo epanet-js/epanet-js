@@ -391,6 +391,28 @@ export const buildInp = (
   return contents;
 };
 
+export type SimulationInpOptions = {
+  simulationSettings: SimulationSettings;
+  units: UnitsSpec;
+  headlossFormula: HeadlossFormula;
+};
+
+export const buildSimulationInp = (
+  hydraulicModel: HydraulicModel,
+  { simulationSettings, units, headlossFormula }: SimulationInpOptions,
+): string =>
+  buildInp(hydraulicModel, {
+    customerDemands: true,
+    usedPatterns: true,
+    usedCurves: true,
+    includeQuality:
+      simulationSettings.qualitySimulationType === "age" ||
+      simulationSettings.qualitySimulationType === "chemical",
+    simulationSettings,
+    units,
+    headlossFormula,
+  });
+
 const FILE_WRITE_BUFFER_SIZE = 64 * 1024;
 
 export const buildInpToFile = async (
