@@ -19,6 +19,10 @@ export type QuickGraphSeries = {
 
 type Point = [seconds: number, value: number];
 
+type ChartPoint = [seconds: number, value: number | null];
+
+const GAP_FACTOR = 1.5;
+
 export type TimeRange = { start: number; end: number };
 
 interface QuickGraphChartProps {
@@ -135,11 +139,11 @@ function QuickGraphChartECharts({
         .map((entry, index) => ({ entry, z: visibleSeries.length - index }))
         .filter(({ entry }) => isShown(entry))
         .map(({ entry, z }, index) => ({
-          ...toEChartsSeries(entry),
+          ...toEChartsSeries(entry, { breaksAtGaps: !valueLabels }),
           z,
           ...(index === 0 ? { markLine: MARK_LINE } : {}),
         })),
-    [visibleSeries, isShown],
+    [visibleSeries, isShown, valueLabels],
   );
 
   const hasShownSeries = Array.isArray(chartSeries) && chartSeries.length > 0;
@@ -166,8 +170,12 @@ function QuickGraphChartECharts({
           color: colors.gray700,
           fontSize: 14,
         },
-        formatter: (params: any) => {
-          if (!Array.isArray(params) || params.length === 0) return "";
+        formatter: (allParams: any) => {
+          if (!Array.isArray(allParams)) return "";
+          const params = allParams.filter(
+            (p: any) => p.value?.[1] !== null && p.value?.[1] !== undefined,
+          );
+          if (params.length === 0) return "";
           const axisSeconds = params[0]?.value?.[0];
           const timeLabel =
             showTimeLabels && typeof axisSeconds === "number"
@@ -328,25 +336,46 @@ const MARK_LINE = {
   label: { show: false },
 };
 
+const typicalStep = (points: Point[]): number | null => {
+  const steps = points
+    .slice(1)
+    .map(([seconds], index) => seconds - points[index][0])
+    .sort((a, b) => a - b);
+  return steps.length < 2 ? null : steps[Math.floor(steps.length / 2)];
+};
+
+const breakAtGaps = (points: Point[]): ChartPoint[] => {
+  const step = typicalStep(points);
+  if (step === null) return points;
+  return points.flatMap((point, index): ChartPoint[] => {
+    const previous = points[index - 1];
+    return previous && point[0] - previous[0] > step * GAP_FACTOR
+      ? [[(previous[0] + point[0]) / 2, null], point]
+      : [point];
+  });
+};
+
 const pointsOf = ({ values, times }: QuickGraphSeries): Point[] =>
   values.map((value, index) => [times[index], value]);
 
-const toEChartsSeries = ({
-  label,
-  points,
-  style,
-}: {
-  label: string | null;
-  points: Point[];
-  style: QuickGraphSeriesStyle;
-}) => {
+const toEChartsSeries = (
+  {
+    label,
+    points,
+    style,
+  }: {
+    label: string | null;
+    points: Point[];
+    style: QuickGraphSeriesStyle;
+  },
+  { breaksAtGaps }: { breaksAtGaps: boolean },
+) => {
   const name = label ?? undefined;
-  const data = points;
   if (style.type === "points") {
     return {
       type: "scatter" as const,
       name,
-      data,
+      data: points,
       symbolSize: 5,
       itemStyle: { color: style.color, opacity: 1 },
     };
@@ -354,7 +383,7 @@ const toEChartsSeries = ({
   return {
     type: "line" as const,
     name,
-    data,
+    data: breaksAtGaps ? breakAtGaps(points) : points,
     lineStyle: { color: style.color, width: style.width ?? 2 },
     itemStyle: { color: style.color },
     symbol: "none",

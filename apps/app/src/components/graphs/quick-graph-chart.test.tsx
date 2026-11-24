@@ -82,6 +82,72 @@ describe("QuickGraphChart", () => {
     ]);
   });
 
+  describe("gaps", () => {
+    const withGap = aSeries([1, 2, 3, 4, 5], [0, 900, 1800, 5400, 6300]);
+
+    it("leaves a line out where readings are further apart than usual", () => {
+      render(
+        <QuickGraphChart
+          series={[withGap]}
+          timeRange={{ start: 0, end: 6300 }}
+          decimals={0}
+        />,
+      );
+
+      expect(echarts.props!.option.series[0].data).toEqual([
+        [0, 1],
+        [900, 2],
+        [1800, 3],
+        [3600, null],
+        [5400, 4],
+        [6300, 5],
+      ]);
+    });
+
+    it("keeps a line with evenly spaced readings in one piece", () => {
+      render(
+        <QuickGraphChart
+          series={[aSeries([1, 2, 3, 4], [0, 900, 1800, 2700])]}
+          timeRange={{ start: 0, end: 2700 }}
+          decimals={0}
+        />,
+      );
+
+      expect(echarts.props!.option.series[0].data).not.toContainEqual([
+        expect.any(Number),
+        null,
+      ]);
+    });
+
+    it("keeps a status line in one piece, since status is only logged when it changes", () => {
+      render(
+        <QuickGraphChart
+          series={[withGap]}
+          timeRange={{ start: 0, end: 6300 }}
+          decimals={0}
+          valueLabels={new Map([[1, "open"]])}
+        />,
+      );
+
+      expect(echarts.props!.option.series[0].data).toHaveLength(5);
+    });
+
+    it("leaves the gaps out of the tooltip", () => {
+      render(
+        <QuickGraphChart
+          series={[withGap]}
+          timeRange={{ start: 0, end: 6300 }}
+          decimals={0}
+        />,
+      );
+      const formatter = echarts.props!.option.tooltip.formatter as (
+        params: unknown[],
+      ) => string;
+
+      expect(formatter([{ value: [3600, null] }])).toEqual("");
+    });
+  });
+
   it("leaves out points outside the time range", () => {
     render(
       <QuickGraphChart
