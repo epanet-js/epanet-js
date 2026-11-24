@@ -338,8 +338,11 @@ export const useRunScript = () => {
         isScriptingSimulationsOn,
         editsBlockedReason:
           editionBlockRef.current && EDITS_BLOCKED[editionBlockRef.current],
-        simulate: simulateForScript(store, scriptRuns, (simulation) =>
-          updateRun((run) => ({ ...run, simulation })),
+        simulate: simulateForScript(
+          store,
+          simulationSettings,
+          scriptRuns,
+          (simulation) => updateRun((run) => ({ ...run, simulation })),
         ),
         onEvent,
       });
@@ -446,6 +449,7 @@ type ScriptSimulationRecord = {
 const simulateForScript =
   (
     store: ReturnType<typeof useStore>,
+    simulationSettings: SimulationSettings,
     runs: Map<string, ScriptSimulationRecord>,
     onProgress: (progress: SimulationProgress | null) => void,
   ) =>
@@ -462,9 +466,7 @@ const simulateForScript =
       const appId = getAppId();
       const scenarioKey = store.get(worktreeAtom).activeBranchId;
       const runId = nanoid();
-      const runQuality =
-        store.get(simulationSettingsDerivedAtom).qualitySimulationType !==
-        "none";
+      const runQuality = simulationSettings.qualitySimulationType !== "none";
       const { status, report, metadata } = await runSimulation(
         inp,
         appId,
