@@ -1,4 +1,3 @@
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useSetAtom } from "jotai";
 import { useAtomCallback } from "jotai/utils";
 import { useCallback, useRef } from "react";
@@ -10,20 +9,15 @@ import {
   simulationSettingsDerivedAtom,
   simulationSourceIdDerivedAtom,
 } from "src/state/derived-branch-state";
-import { branchStateAtom } from "src/state/branch-state";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { opfsAvailableAtom } from "src/state/opfs";
-import { commitSimulationResultAtom } from "src/state/simulation-step";
 import { isScriptSimulatingAtom } from "src/state/simulation";
-import { clearQuickGraphPropertyAtom } from "src/state/quick-graph";
-import { clearSymbologyForPropertyAtom } from "src/state/map-symbology";
 import {
   ProgressCallback,
   runSimulation as runSimulationWorker,
-  EPSResultsReader,
 } from "src/simulation";
+import { useRecordSimulationRun } from "src/hooks/use-record-simulation-run";
 import { getAppId } from "src/infra/app-instance";
-import { OPFSStorage } from "src/infra/storage";
 import { worktreeAtom } from "src/state/scenarios";
 import { nanoid } from "src/lib/id";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -50,7 +44,7 @@ export const useRunSimulation = () => {
   const showNetworkReview = useShowNetworkReview();
   const { ensureFresh } = useReviewChecks();
   const isCheckingRef = useRef(false);
-  const isMapThemesOn = useFeatureFlag("FLAG_MAP_THEMES");
+  const recordSimulationRun = useRecordSimulationRun();
 
   const runSimulation = useAtomCallback(
     useCallback(
@@ -126,57 +120,16 @@ export const useRunSimulation = () => {
 
           isCompleted = true;
 
-          let epsReader: EPSResultsReader | undefined = undefined;
-
-          if (status === "success" || status === "warning") {
-            const storage = new OPFSStorage(appId, scenarioKey, runId);
-            epsReader = new EPSResultsReader(storage);
-            await epsReader.initialize(metadata);
-          }
-
-          if (status === "success" || status === "warning") {
-            if (simulationSettings.qualitySimulationType !== "age") {
-              set(clearQuickGraphPropertyAtom, "waterAge");
-              if (!isMapThemesOn)
-                set(clearSymbologyForPropertyAtom, "waterAge");
-            }
-            if (simulationSettings.qualitySimulationType !== "trace") {
-              set(clearQuickGraphPropertyAtom, "waterTrace");
-              if (!isMapThemesOn)
-                set(clearSymbologyForPropertyAtom, "waterTrace");
-            }
-            if (simulationSettings.qualitySimulationType !== "chemical") {
-              set(clearQuickGraphPropertyAtom, "chemicalConcentration");
-              if (!isMapThemesOn)
-                set(clearSymbologyForPropertyAtom, "chemicalConcentration");
-            }
-          }
-
-          const simulationState = {
+          const epsReader = await recordSimulationRun({
             status,
             report,
+            metadata,
+            location: { appId, scenarioKey, runId },
             modelVersion: hydraulicModel.version,
-            settingsVersion: simulationSettings.version,
-            epsResultsReader: epsReader,
-            runLocation: epsReader ? { appId, scenarioKey, runId } : undefined,
-          };
-          set(commitSimulationResultAtom, simulationState);
-          set(simulationSourceIdDerivedAtom, scenarioKey);
-
-          if (
-            previousReader &&
-            previousReader !== epsReader &&
-            previousSourceId === scenarioKey
-          ) {
-            const branchStates = get(branchStateAtom);
-            const stillDependedOn = Array.from(branchStates.entries()).some(
-              ([id, state]) =>
-                id !== scenarioKey && state.simulationSourceId === scenarioKey,
-            );
-            if (!stillDependedOn) {
-              void previousReader.dispose().catch(() => {});
-            }
-          }
+            simulationSettings,
+            previousReader,
+            previousSourceId,
+          });
 
           const end = performance.now();
           const duration = end - start;
@@ -341,7 +294,7 @@ export const useRunSimulation = () => {
         userTracking,
         showNetworkReview,
         ensureFresh,
-        isMapThemesOn,
+        recordSimulationRun,
       ],
     ),
   );
