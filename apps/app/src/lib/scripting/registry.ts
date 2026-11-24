@@ -114,6 +114,7 @@ export type ScriptResultsLocation = {
 };
 
 export type ScriptSimulationRun = {
+  runId: string;
   status: ScriptSimulationStatus;
   report: string;
   location: ScriptResultsLocation | null;

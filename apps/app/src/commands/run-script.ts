@@ -475,23 +475,19 @@ const simulateForScript =
         scenarioKey,
         runId,
       );
+      const location = { appId, scenarioKey, runId };
+      runs.set(runId, { status, report, metadata, location });
       const hasResults = status === "success" || status === "warning";
-      if (hasResults) {
-        runs.set(runId, {
-          status,
-          report,
-          metadata,
-          location: { appId, scenarioKey, runId },
-        });
-      } else {
+      if (!hasResults) {
         void new OPFSStorage(appId, scenarioKey, runId)
           .clearRun()
           .catch(() => {});
       }
       return {
+        runId,
         status,
         report,
-        location: hasResults ? { appId, scenarioKey, runId } : null,
+        location: hasResults ? location : null,
       };
     } finally {
       isDone = true;
