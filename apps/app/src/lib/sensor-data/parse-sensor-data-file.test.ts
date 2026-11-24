@@ -63,6 +63,24 @@ describe("parseSensorTimeSeriesFile", () => {
     ]);
   });
 
+  it("records the column of each sensor it imports", async () => {
+    const result = await parse(
+      csvFile(
+        "sensor,A,,B,C",
+        "parameter,pressure,,flow,pressure",
+        "asset,J1,,P1,J9",
+        "00:00,50,,10,1",
+      ),
+    );
+
+    expect(result.columns).toEqual(
+      new Map([
+        ["A", 2],
+        ["B", 4],
+      ]),
+    );
+  });
+
   it("reads the header rows in any order and regardless of case", async () => {
     const result = await parse(
       csvFile("Asset,t1", "SENSOR,SENSOR-A", "Parameter,NETFLOW", "0:00,5"),

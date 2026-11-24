@@ -71,7 +71,7 @@ export const ImportSensorDataDialog = ({
   const timingWarnings = useMemo(() => {
     if (!result) return [];
     return isSensorTimeSeriesOn
-      ? checkSensorTimes(result.sensors, timing)
+      ? checkSensorTimes(result, timing)
       : checkSensorTiming(result.sensors, timing);
   }, [result, timing, isSensorTimeSeriesOn]);
 

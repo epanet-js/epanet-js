@@ -45,6 +45,7 @@ export type ParseSensorDataResult = {
   status: ImportStatus;
   format?: TableFormat;
   sensors: ImportedSensor[];
+  columns: ReadonlyMap<string, number>;
   errors: ImportError[];
   ignored: number;
 };
@@ -579,6 +580,7 @@ const buildSensors = (
   vocabulary: SensorVocabulary,
 ) => {
   const sensors: ImportedSensor[] = [];
+  const columns = new Map<string, number>();
   const errors: ImportError[] = [];
   const seenNames = new Set<string>();
   const reportedDuplicates = new Set<string>();
@@ -639,9 +641,10 @@ const buildSensors = (
     }
     sensorsOnAssets.add(assetKey);
     sensors.push(sensor);
+    columns.set(name, position);
   }
 
-  return { sensors, errors, columnsRead, shapeRejects };
+  return { sensors, columns, errors, columnsRead, shapeRejects };
 };
 
 const MAX_LISTED_LABELS = 5;
@@ -654,6 +657,7 @@ const refused = (
   status: "error",
   format,
   sensors: [],
+  columns: new Map(),
   ignored,
   errors: [error],
 });
@@ -689,6 +693,7 @@ const parseWith = async (
     return {
       status: "error",
       sensors: [],
+      columns: new Map(),
       ignored: 0,
       errors: [{ code: "unsupportedFormat" }],
     };
@@ -698,7 +703,14 @@ const parseWith = async (
   try {
     rows = await readTableFile(file, format);
   } catch {
-    return { status: "error", format, sensors: [], ignored: 0, errors: [] };
+    return {
+      status: "error",
+      format,
+      sensors: [],
+      columns: new Map(),
+      ignored: 0,
+      errors: [],
+    };
   }
 
   const layout = readLayout(rows, vocabulary, readings.startsReadings);
@@ -707,7 +719,7 @@ const parseWith = async (
   }
 
   const reader = readings.read(layout.readingRows);
-  const { sensors, errors, columnsRead, shapeRejects } = buildSensors(
+  const { sensors, columns, errors, columnsRead, shapeRejects } = buildSensors(
     layout,
     reader,
     model,
@@ -730,5 +742,5 @@ const parseWith = async (
         ? "partial"
         : "success";
 
-  return { status, format, sensors, ignored, errors: allErrors };
+  return { status, format, sensors, columns, ignored, errors: allErrors };
 };

@@ -1,6 +1,9 @@
 import type { Timing } from "@epanet-js/simulation";
 import type { ImportError } from "src/lib/operational-data-io/import-result";
-import type { ImportedSensor } from "./parse-sensor-data-file";
+import type {
+  ImportedSensor,
+  ParseSensorDataResult,
+} from "./parse-sensor-data-file";
 
 export const checkSensorTiming = (
   sensors: Pick<ImportedSensor, "name" | "readings">[],
@@ -23,7 +26,13 @@ export const checkSensorTiming = (
 };
 
 export const checkSensorTimes = (
-  sensors: Pick<ImportedSensor, "name" | "times">[],
+  {
+    sensors,
+    columns,
+  }: {
+    sensors: Pick<ImportedSensor, "name" | "times">[];
+    columns: ParseSensorDataResult["columns"];
+  },
   timing: Pick<Timing, "duration" | "reportTimestep">,
 ): ImportError[] => {
   if (timing.duration <= 0) return [];
@@ -31,8 +40,12 @@ export const checkSensorTimes = (
 
   return sensors
     .filter(({ times = [] }) => (times[times.length - 1] ?? 0) < earliestEnd)
-    .map((sensor) => ({
-      label: sensor.name,
-      code: "readingsEndEarly",
-    }));
+    .map(({ name }) => {
+      const column = columns.get(name);
+      return {
+        label: name,
+        code: "readingsEndEarly",
+        ...(column === undefined ? {} : { column }),
+      };
+    });
 };
