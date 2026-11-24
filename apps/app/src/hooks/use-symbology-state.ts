@@ -1,5 +1,4 @@
 import { useAtom } from "jotai";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import type {
   CustomerPointsSymbology,
   LinkSymbology,
@@ -14,13 +13,10 @@ import {
   customerPointsSymbologyAtom,
   linkSymbologyAtom,
   nodeSymbologyAtom,
-  savedSymbologiesAtom,
   zoneSymbologyAtom,
 } from "src/state/map-symbology";
 
 export const useSymbologyState = () => {
-  const isMapThemesOn = useFeatureFlag("FLAG_MAP_THEMES");
-  const [savedSymbologies, setSavedAnalyises] = useAtom(savedSymbologiesAtom);
   const [nodeSymbology, setNodesActive] = useAtom(nodeSymbologyAtom);
   const [linkSymbology, setLinksActive] = useAtom(linkSymbologyAtom);
   const [customerPointsSymbology, setCustomerPointsSymbology] = useAtom(
@@ -40,15 +36,8 @@ export const useSymbologyState = () => {
       return;
     }
 
-    let newNodeSymbology: NodeSymbology;
-    if (!isMapThemesOn && savedSymbologies.has(property)) {
-      newNodeSymbology = savedSymbologies.get(property) as NodeSymbology;
-    } else {
-      newNodeSymbology = initializeFn();
-      updateNodeSymbology(newNodeSymbology);
-    }
     setNodesActive({
-      ...newNodeSymbology,
+      ...initializeFn(),
       defaults: nodeSymbology.defaults,
       labelRule: nodeSymbology.labelRule,
     });
@@ -67,15 +56,8 @@ export const useSymbologyState = () => {
       return;
     }
 
-    let newLinkSymbology: LinkSymbology;
-    if (!isMapThemesOn && savedSymbologies.has(property)) {
-      newLinkSymbology = savedSymbologies.get(property) as LinkSymbology;
-    } else {
-      newLinkSymbology = initializeFn();
-      updateLinkSymbology(newLinkSymbology);
-    }
     setLinksActive({
-      ...newLinkSymbology,
+      ...initializeFn(),
       defaults: linkSymbology.defaults,
       labelRule: linkSymbology.labelRule,
     });
@@ -83,26 +65,10 @@ export const useSymbologyState = () => {
 
   const updateNodeSymbology = (newNodeSymbology: NodeSymbology) => {
     setNodesActive(newNodeSymbology);
-    if (!newNodeSymbology.colorRule) return;
-
-    const symbologiesMap = new Map([...savedSymbologies.entries()]);
-    symbologiesMap.set(
-      newNodeSymbology.colorRule.property as SupportedProperty,
-      newNodeSymbology,
-    );
-    setSavedAnalyises(symbologiesMap);
   };
 
   const updateLinkSymbology = (newLinkSymbology: LinkSymbology) => {
     setLinksActive(newLinkSymbology);
-    if (!newLinkSymbology.colorRule) return;
-
-    const symbologiesMap = new Map([...savedSymbologies.entries()]);
-    symbologiesMap.set(
-      newLinkSymbology.colorRule.property as SupportedProperty,
-      newLinkSymbology,
-    );
-    setSavedAnalyises(symbologiesMap);
   };
 
   const updateCustomerPointsSymbology = (

@@ -121,9 +121,6 @@ export const propertyColorConfigAtom = atom<PropertyColorConfigMap>(
   defaultPropertyColorConfigs,
 );
 
-type SymbologiesMap = Map<SupportedProperty, NodeSymbology | LinkSymbology>;
-export const savedSymbologiesAtom = atom<SymbologiesMap>(new Map());
-
 export const nodeSymbologyAtom = atom<NodeSymbology>(nullSymbologySpec.node);
 export const linkSymbologyAtom = atom<LinkSymbology>(nullSymbologySpec.link);
 export const nodeSizeAtom = atom<NodeSizeConfig>(defaultNodeSizeConfig);
@@ -151,44 +148,6 @@ export const nodeColorRuleAvailableAtom = atom((get) =>
 
 export const linkColorRuleAvailableAtom = atom((get) =>
   isRuleAvailable(get(linkSymbologyAtom).colorRule, get(simulationDerivedAtom)),
-);
-
-/**
- * Write-only atom: clears the active node/link symbology when its color rule
- * references the given property, and removes the entry from the saved
- * symbologies map. Useful when a property becomes unavailable (e.g. running a
- * simulation without water age after the user had styled by "waterAge").
- */
-export const clearSymbologyForPropertyAtom = atom(
-  null,
-  (_get, set, property: SupportedProperty) => {
-    set(nodeSymbologyAtom, (prev) => {
-      if (prev.colorRule?.property !== property && prev.labelRule !== property)
-        return prev;
-      return {
-        ...prev,
-        colorRule:
-          prev.colorRule?.property === property ? null : prev.colorRule,
-        labelRule: prev.labelRule === property ? null : prev.labelRule,
-      };
-    });
-    set(linkSymbologyAtom, (prev) => {
-      if (prev.colorRule?.property !== property && prev.labelRule !== property)
-        return prev;
-      return {
-        ...prev,
-        colorRule:
-          prev.colorRule?.property === property ? null : prev.colorRule,
-        labelRule: prev.labelRule === property ? null : prev.labelRule,
-      };
-    });
-    set(savedSymbologiesAtom, (prev) => {
-      if (!prev.has(property)) return prev;
-      const next = new Map(prev);
-      next.delete(property);
-      return next;
-    });
-  },
 );
 
 export const symbologyAtom = atom((get) => {

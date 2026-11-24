@@ -11,7 +11,6 @@ import {
   nodeColorRuleAvailableAtom,
   nodeSymbologyAtom,
 } from "src/state/map-symbology";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useState } from "react";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import clsx from "clsx";
@@ -22,7 +21,6 @@ export const Legends = () => {
   const linkSymbology = useAtomValue(linkSymbologyAtom);
   const isNodeRuleAvailable = useAtomValue(nodeColorRuleAvailableAtom);
   const isLinkRuleAvailable = useAtomValue(linkColorRuleAvailableAtom);
-  const isMapThemesOn = useFeatureFlag("FLAG_MAP_THEMES");
 
   const isSmOrLarger = useBreakpoint("sm");
   if (!isSmOrLarger) return null;
@@ -32,13 +30,13 @@ export const Legends = () => {
       {!!nodeSymbology.colorRule && (
         <Legend
           symbology={nodeSymbology.colorRule}
-          isUnavailable={isMapThemesOn && !isNodeRuleAvailable}
+          isUnavailable={!isNodeRuleAvailable}
         />
       )}
       {!!linkSymbology.colorRule && (
         <Legend
           symbology={linkSymbology.colorRule}
-          isUnavailable={isMapThemesOn && !isLinkRuleAvailable}
+          isUnavailable={!isLinkRuleAvailable}
         />
       )}
     </div>

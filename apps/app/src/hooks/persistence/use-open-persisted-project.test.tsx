@@ -1,6 +1,5 @@
 import { renderHook, act } from "@testing-library/react";
 import { Provider as JotaiProvider } from "jotai";
-import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
 import { aNodeSymbology, setInitialState } from "src/__helpers__/state";
 import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
 import { defaultProjectSettings } from "@epanet-js/project-settings";
@@ -65,7 +64,6 @@ describe("opening a project with map themes", () => {
   useInProcessDb();
 
   it("applies the theme that was active when it was saved", async () => {
-    stubFeatureOn("FLAG_MAP_THEMES");
     const file = await aSavedFileWithActiveTheme();
     const store = setInitialState({});
 
@@ -79,17 +77,5 @@ describe("opening a project with map themes", () => {
       colors: ["#000001", "#000002", "#000003"],
     });
     expect(store.get(isMapThemeModifiedAtom)).toBe(false);
-  });
-
-  it("loads no themes without map themes", async () => {
-    stubFeatureOff("FLAG_MAP_THEMES");
-    const file = await aSavedFileWithActiveTheme();
-    const store = setInitialState({});
-
-    await open(store, file);
-
-    expect(store.get(mapThemesAtom)).toEqual([]);
-    expect(store.get(activeMapThemeIdAtom)).toBeNull();
-    expect(store.get(nodeSymbologyAtom).colorRule).toBeNull();
   });
 });

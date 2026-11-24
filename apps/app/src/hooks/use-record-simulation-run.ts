@@ -1,6 +1,5 @@
 import { useAtomCallback } from "jotai/utils";
 import { useCallback } from "react";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { EPSResultsReader } from "src/simulation";
 import type { EPSSimulationResult } from "src/simulation/epanet/worker";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
@@ -8,7 +7,6 @@ import { OPFSStorage } from "src/infra/storage";
 import { branchStateAtom } from "src/state/branch-state";
 import { simulationSourceIdDerivedAtom } from "src/state/derived-branch-state";
 import { clearQuickGraphPropertyAtom } from "src/state/quick-graph";
-import { clearSymbologyForPropertyAtom } from "src/state/map-symbology";
 import type { SimulationRunLocation } from "src/state/simulation";
 import { commitSimulationResultAtom } from "src/state/simulation-step";
 
@@ -24,8 +22,6 @@ export type SimulationRunToRecord = {
 };
 
 export const useRecordSimulationRun = () => {
-  const isMapThemesOn = useFeatureFlag("FLAG_MAP_THEMES");
-
   return useAtomCallback(
     useCallback(
       async (
@@ -54,17 +50,12 @@ export const useRecordSimulationRun = () => {
         if (status === "success" || status === "warning") {
           if (simulationSettings.qualitySimulationType !== "age") {
             set(clearQuickGraphPropertyAtom, "waterAge");
-            if (!isMapThemesOn) set(clearSymbologyForPropertyAtom, "waterAge");
           }
           if (simulationSettings.qualitySimulationType !== "trace") {
             set(clearQuickGraphPropertyAtom, "waterTrace");
-            if (!isMapThemesOn)
-              set(clearSymbologyForPropertyAtom, "waterTrace");
           }
           if (simulationSettings.qualitySimulationType !== "chemical") {
             set(clearQuickGraphPropertyAtom, "chemicalConcentration");
-            if (!isMapThemesOn)
-              set(clearSymbologyForPropertyAtom, "chemicalConcentration");
           }
         }
 
@@ -95,7 +86,7 @@ export const useRecordSimulationRun = () => {
 
         return epsReader;
       },
-      [isMapThemesOn],
+      [],
     ),
   );
 };

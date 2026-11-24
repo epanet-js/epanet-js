@@ -52,7 +52,6 @@ import { ElevationsEditor } from "./elevations-editor";
 import { ProjectionSection } from "./projection-section";
 import { TextField } from "src/components/form/text-field";
 import { zoneFeaturesAtom } from "src/state/zone-features";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { MapThemeBar } from "./map-theme-bar";
 import { isColorPropertyAvailable } from "src/map/symbology/property-availability";
 
@@ -115,15 +114,12 @@ export const MapStylingEditor = () => {
   const isPlaying = useAtomValue(isPlayingAtom);
   const zoneFeatures = useAtomValue(zoneFeaturesAtom);
   const showZoneSymbology = zoneFeatures.length > 0;
-  const isMapThemesOn = useFeatureFlag("FLAG_MAP_THEMES");
 
   return (
     <div className="flex-auto overflow-y-auto placemark-scrollbar ">
       <SectionList gap={1} padding={3}>
-        {isMapThemesOn && (
-          <PanelHeading title={translate("mapThemes.symbology")} />
-        )}
-        {isMapThemesOn && <MapThemeBar />}
+        <PanelHeading title={translate("mapThemes.symbology")} />
+        <MapThemeBar />
         <SymbologyEditor
           geometryType="node"
           properties={supportedNodeProperties}
@@ -134,9 +130,7 @@ export const MapStylingEditor = () => {
         />
         {showZoneSymbology && <ZoneSymbologySection />}
         <CustomerPointsSection readonly={isPlaying} />
-        {isMapThemesOn && (
-          <PanelHeading title={translate("mapThemes.mapData")} separated />
-        )}
+        <PanelHeading title={translate("mapThemes.mapData")} separated />
         {!isGridOn && <ElevationsEditor />}
         {!isGridOn && (
           <MapStylingSectionWrapper
@@ -174,13 +168,12 @@ const SymbologyEditor = ({
     updateLinkDefaultColor,
   } = useSymbologyState();
   const symbology = geometryType === "node" ? nodeSymbology : linkSymbology;
-  const isMapThemesOn = useFeatureFlag("FLAG_MAP_THEMES");
   const isColorRuleAvailable = useAtomValue(
     geometryType === "node"
       ? nodeColorRuleAvailableAtom
       : linkColorRuleAvailableAtom,
   );
-  const isSelectedUnavailable = isMapThemesOn && !isColorRuleAvailable;
+  const isSelectedUnavailable = !isColorRuleAvailable;
   const { units } = useAtomValue(projectSettingsAtom);
 
   const { changeColorBy } = useChangeColorBy(geometryType);
@@ -197,20 +190,17 @@ const SymbologyEditor = ({
         return {
           value: type,
           label,
-          disabled:
-            !isMapThemesOn && !isColorPropertyAvailable(type, simulation),
           isAvailable: isColorPropertyAvailable(type, simulation),
         };
       })
       .sort((a, b) => Number(!a.isAvailable) - Number(!b.isAvailable))
       .map(({ isAvailable: _isAvailable, ...option }) => option);
-  }, [properties, units, translate, translateUnit, simulation, isMapThemesOn]);
+  }, [properties, units, translate, translateUnit, simulation]);
 
   const labelByOptions = useMemo(() => {
     const labelOption = {
       value: "label" as LabelSelectOption,
       label: translate("label"),
-      disabled: false,
     };
     return [labelOption, ...colorByOptions];
   }, [colorByOptions, translate]);
@@ -269,7 +259,6 @@ const SymbologyEditor = ({
               colorByOptions as {
                 value: SupportedProperty;
                 label: string;
-                disabled: boolean;
               }[]
             }
             selected={symbology.colorRule?.property ?? null}
@@ -363,7 +352,6 @@ const SymbologyEditor = ({
               labelByOptions as {
                 value: string;
                 label: string;
-                disabled: boolean;
               }[]
             }
             selected={symbology.labelRule ?? null}

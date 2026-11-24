@@ -56,7 +56,6 @@ import { mapEditionsTrackerAtom } from "src/state/map";
 import {
   nodeSymbologyAtom,
   linkSymbologyAtom,
-  savedSymbologiesAtom,
   propertyColorConfigAtom,
   defaultPropertyColorConfigs,
   nodeSizeAtom,
@@ -130,7 +129,6 @@ export const resetAppState = (set: Setter, panels: Panel[]) => {
   set(mapEditionsTrackerAtom, new MapEditionsTracker());
   set(nodeSymbologyAtom, nullSymbologySpec.node);
   set(linkSymbologyAtom, nullSymbologySpec.link);
-  set(savedSymbologiesAtom, new Map());
   set(propertyColorConfigAtom, defaultPropertyColorConfigs);
   set(nodeSizeAtom, defaultNodeSizeConfig);
   set(mapThemesAtom, []);

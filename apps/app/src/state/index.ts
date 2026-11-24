@@ -76,11 +76,7 @@ export {
 
 // Map symbology
 export type { SymbologySpec, PreviewProperty } from "src/state/map-symbology";
-export {
-  memoryMetaAtom,
-  savedSymbologiesAtom,
-  symbologyAtom,
-} from "src/state/map-symbology";
+export { memoryMetaAtom, symbologyAtom } from "src/state/map-symbology";
 
 // Mode
 export type { ModeWithOptions } from "src/state/mode";

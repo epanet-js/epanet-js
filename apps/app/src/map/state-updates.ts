@@ -1,4 +1,3 @@
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { withUnavailableColorRulesDropped } from "src/map/symbology/property-availability";
 import { useAtomValue, useSetAtom } from "jotai";
 import { type MutableRefObject, useMemo, useRef } from "react";
@@ -211,9 +210,7 @@ const isHeavyUpdate = (
 export const useMapStateUpdates = (map: MapEngine | null) => {
   const setEditionsTracker = useSetAtom(mapEditionsTrackerAtom);
   const storedMapState = useAtomValue(mapStateDerivedAtom);
-  const isMapThemesOn = useFeatureFlag("FLAG_MAP_THEMES");
   const mapState = useMemo(() => {
-    if (!isMapThemesOn) return storedMapState;
     const symbology = withUnavailableColorRulesDropped(
       storedMapState.symbology,
       storedMapState.simulation,
@@ -221,7 +218,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     return symbology === storedMapState.symbology
       ? storedMapState
       : { ...storedMapState, symbology };
-  }, [storedMapState, isMapThemesOn]);
+  }, [storedMapState]);
   const setMapLoading = useSetAtom(mapLoadingAtom);
   const appendSourceRebuildDuration = useSetAtom(
     appendSourceRebuildDurationAtom,
