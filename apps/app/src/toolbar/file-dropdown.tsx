@@ -280,11 +280,8 @@ const ImportSubmenu = () => {
 };
 
 const SensorDataItem = () => {
-  const isSensorDataOn = useFeatureFlag("FLAG_SENSOR_DATA");
   const openSensorDataImport = useOpenSensorDataImport();
   const translate = useTranslate();
-
-  if (!isSensorDataOn) return null;
 
   return (
     <StyledItem

@@ -15,12 +15,12 @@ describe("checkSensorTiming", () => {
   });
 
   it("accepts readings that stop short of the duration", () => {
-    expect(checkSensorTiming([aSensor("A", 13)], timing)).toEqual([]);
+    expect(checkSensorTiming([aSensor("A", 19)], timing)).toEqual([]);
   });
 
-  it("warns when the readings run past the duration or cover less than half of it", () => {
+  it("warns when the readings run past the duration or cover less than three quarters of it", () => {
     const warnings = checkSensorTiming(
-      [aSensor("SHORT", 12), aSensor("LONG", 26)],
+      [aSensor("SHORT", 18), aSensor("LONG", 26)],
       timing,
     );
 
@@ -28,7 +28,7 @@ describe("checkSensorTiming", () => {
       {
         label: "SHORT",
         code: "readingsDontCoverDuration",
-        params: ["25", "12"],
+        params: ["25", "18"],
       },
       {
         label: "LONG",
@@ -99,18 +99,24 @@ describe("checkSensorTimes", () => {
     ).toEqual([]);
   });
 
-  it("accepts readings that end one report step before the simulation does", () => {
+  it("accepts readings that end at or after three quarters of the simulation", () => {
     expect(
-      checkSensorTimes(parsed(aTimedSensor("A", 2, [0, 23.75 * HOUR])), timing),
+      checkSensorTimes(
+        parsed(
+          aTimedSensor("THREE_QUARTERS", 2, [0, 18 * HOUR]),
+          aTimedSensor("MOST", 3, [0, 20 * HOUR]),
+        ),
+        timing,
+      ),
     ).toEqual([]);
   });
 
-  it("warns at the column of each sensor whose readings end before the simulation does", () => {
+  it("warns at the column of each sensor whose readings end before three quarters of the simulation", () => {
     const warnings = checkSensorTimes(
       parsed(
-        aTimedSensor("SHORT", 2, [0, 12 * HOUR]),
+        aTimedSensor("SHORT", 2, [0, 17 * HOUR]),
         aTimedSensor("FULL", 3, [0, 24 * HOUR]),
-        aTimedSensor("STOPPED", 5, [0, 18 * HOUR]),
+        aTimedSensor("STOPPED", 5, [0, 2 * HOUR]),
       ),
       timing,
     );
@@ -123,10 +129,7 @@ describe("checkSensorTimes", () => {
 
   it("gives no warnings in steady state", () => {
     expect(
-      checkSensorTimes(parsed(aTimedSensor("A", 2, [HOUR])), {
-        duration: 0,
-        reportTimestep: HOUR,
-      }),
+      checkSensorTimes(parsed(aTimedSensor("A", 2, [HOUR])), { duration: 0 }),
     ).toEqual([]);
   });
 });

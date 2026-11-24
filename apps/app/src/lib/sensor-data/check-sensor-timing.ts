@@ -16,7 +16,7 @@ export const checkSensorTiming = (
   return sensors
     .filter(
       ({ readings }) =>
-        readings.length > expected || readings.length < expected / 2,
+        readings.length > expected || readings.length < expected * 0.75,
     )
     .map((sensor) => ({
       label: sensor.name,
@@ -33,10 +33,10 @@ export const checkSensorTimes = (
     sensors: Pick<ImportedSensor, "name" | "times">[];
     columns: ParseSensorDataResult["columns"];
   },
-  timing: Pick<Timing, "duration" | "reportTimestep">,
+  timing: Pick<Timing, "duration">,
 ): ImportError[] => {
   if (timing.duration <= 0) return [];
-  const earliestEnd = timing.duration - Math.max(0, timing.reportTimestep);
+  const earliestEnd = timing.duration * 0.75;
 
   return sensors
     .filter(({ times = [] }) => (times[times.length - 1] ?? 0) < earliestEnd)

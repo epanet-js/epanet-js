@@ -19,7 +19,6 @@ import { OPENABLE_ASSET_TYPES } from "src/panels/data-tables/create-panel";
 import { selectionAtom } from "src/state/selection";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { USelection } from "src/selection";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { sensorsAtom } from "src/state/sensor-data";
 
 type Choice = { tableType: DataTableType; label: string };
@@ -36,7 +35,6 @@ const assetTypeLabelKeys: Record<AssetType, string> = {
 export const OpenDataTablesDialog = ({ onClose }: { onClose: () => void }) => {
   const translate = useTranslate();
   const openDataTables = useOpenDataTables();
-  const isSensorDataOn = useFeatureFlag("FLAG_SENSOR_DATA");
   const sensors = useAtomValue(sensorsAtom);
   const selection = useAtomValue(selectionAtom);
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
@@ -62,16 +60,9 @@ export const OpenDataTablesDialog = ({ onClose }: { onClose: () => void }) => {
       })),
       { tableType: CUSTOMER_POINTS_TABLE, label: translate("customerPoints") },
       { tableType: ZONES_TABLE, label: translate("zones") },
-      ...(isSensorDataOn
-        ? [
-            {
-              tableType: SENSORS_TABLE,
-              label: translate("sensorData.panel.title"),
-            } satisfies Choice,
-          ]
-        : []),
+      { tableType: SENSORS_TABLE, label: translate("sensorData.panel.title") },
     ],
-    [translate, isSensorDataOn],
+    [translate],
   );
 
   const selectedCounts = useMemo(() => {
