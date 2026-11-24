@@ -21,7 +21,6 @@ import {
   Pipe,
   PipeMaterial,
   validateMaterial,
-  Pump,
   HydraulicModel,
   remoteFlowDirectionOf,
   NumericCheckName,
@@ -33,7 +32,6 @@ import {
 } from "@epanet-js/hydraulic-model";
 import { EntityType, Rule, Severity, ValidatableEntity } from "./types";
 import { checkMessage, isFiniteNumber, isNumber } from "./checks";
-import { pumpBackfeedsItself } from "./pump-backfeed";
 
 const field =
   (name: string) =>
@@ -371,19 +369,6 @@ const variableSpeedTargetRule = (
   severity: "error",
   message: "mustBeActive",
 });
-
-const variableSpeedDischargeNotBackfeeding: Rule = {
-  id: "pump.variableSpeedDischarge.notBackfeeding",
-  type: "model",
-  entityType: "pump",
-  accessor: (entity) => entity,
-  appliesWhen: (entity, model) =>
-    isActiveEntity(entity) && variableSpeedControlOf(entity, model) !== null,
-  check: (_value, entity, model) =>
-    !entity || !model || !pumpBackfeedsItself(entity as Pump, model),
-  severity: "warning",
-  message: "backfeedsItself",
-};
 
 const variableSpeedFlowTargetSameDirection: Rule = {
   id: "pump.variableSpeedFlowTarget.sameDirection",
@@ -990,7 +975,6 @@ export const RULES: Rule[] = [
   ...variableSpeedScheduleRules,
   ...timedSettingControlRules,
   ...curvePointsRules,
-  variableSpeedDischargeNotBackfeeding,
   variableSpeedFlowTargetSameDirection,
   // Customer points
   {

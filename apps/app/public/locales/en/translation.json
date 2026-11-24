@@ -1800,7 +1800,6 @@
         "pumpVariableSpeedLevelTargetActive": "Variable speed pump level target tank must be active",
         "pumpVariableSpeedLaggedPumpsActive": "Variable speed pump lag pumps must be active",
         "pumpVariableSpeedTankLevelsActive": "Variable speed pump start/stop tank must be active",
-        "pumpVariableSpeedDischargeNotBackfeeding": "Variable speed pump must not feed back into itself",
         "pumpVariableSpeedFlowTargetSameDirection": "Variable speed pump flow target must follow the pump's direction",
         "pumpLevelSettingControlOnBelowOff": "Level-based control on level must be below the off level",
         "pumpLevelSettingControlOnSpeedNonNegative": "Level-based control on speed must be zero or greater",
