@@ -1,5 +1,5 @@
 import {
-  type ComponentProps,
+  type ReactElement,
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -40,11 +40,17 @@ import {
   SERIES_COLORS,
   toStatusStep,
   sensorReadingsStyle,
+  stepTimes,
 } from "src/lib/asset-graph";
 import type { ImportedSensor } from "src/lib/sensor-data/parse-sensor-data-file";
 import { useTimeSeries } from "src/hooks/use-time-series";
 import { useStatusValueLabels } from "src/hooks/use-status-value-labels";
-import { QuickGraphChart, type QuickGraphSeries } from "src/components/graphs";
+import {
+  QuickGraphChart,
+  QuickGraphChartByIndex,
+  type QuickGraphSeries,
+} from "src/components/graphs";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { colors } from "src/lib/constants";
 import {
   contentStateFor,
@@ -77,11 +83,6 @@ const TABLE_DEFAULT_SHARE = 0.5;
 const CHART_MIN_WIDTH = 240;
 
 const noop = () => {};
-
-type ShownChart = {
-  label: string;
-  chart: ComponentProps<typeof QuickGraphChart>;
-};
 
 export const SensorsPanel = ({
   panelId,
@@ -426,6 +427,7 @@ const SelectedSensorChart = ({
   label: string;
 }) => {
   const translate = useTranslate();
+  const isSensorTimeSeriesOn = useFeatureFlag("FLAG_SENSOR_TIME_SERIES");
   const { formatting } = useAtomValue(projectSettingsAtom);
   const { timing } = useAtomValue(simulationSettingsDerivedAtom);
   const { data, isLoading, isStale } = useTimeSeries({
@@ -455,25 +457,31 @@ const SelectedSensorChart = ({
     return isStatus ? raw.map(toStatusStep) : raw;
   }, [simulated, isStatus]);
 
+  const readingsStep = readingsStepSeconds(timing);
+  const sensorTimes = useMemo(
+    () => stepTimes(sensor.readings.length, readingsStep),
+    [sensor.readings.length, readingsStep],
+  );
+
   const series = useMemo<QuickGraphSeries[]>(
     () => [
       {
         label: translate("sensorData.panel.sensor"),
         values: sensor.readings,
+        times: sensorTimes,
         style: sensorReadingsStyle(sensor.readings.length),
       },
       {
         label: translate("simulation"),
         values,
+        times: stepTimes(values.length, simulated?.intervalSeconds ?? 0),
         style: { type: "line", color: colors.purple500 },
       },
     ],
-    [translate, values, sensor.readings],
+    [translate, values, simulated, sensor.readings, sensorTimes],
   );
 
-  const intervalSeconds = simulated
-    ? simulated.intervalSeconds
-    : readingsStepSeconds(timing);
+  const intervalSeconds = simulated ? simulated.intervalSeconds : readingsStep;
   const intervalsCount = Math.max(
     simulated?.intervalsCount ?? 0,
     sensor.readings.length,
@@ -481,19 +489,33 @@ const SelectedSensorChart = ({
 
   const showTimeLabels = timing.duration > 0;
 
-  const current = useMemo<ShownChart>(
-    () => ({
-      label,
-      chart: {
-        series,
-        intervalsCount,
-        intervalSeconds,
-        decimals,
-        valueLabels,
-        showTimeLabels,
-      },
-    }),
+  const current = useMemo(
+    () =>
+      isSensorTimeSeriesOn ? (
+        <QuickGraphChart
+          series={series}
+          timeRange={{
+            start: 0,
+            end: Math.max(0, intervalsCount - 1) * intervalSeconds,
+          }}
+          decimals={decimals}
+          valueLabels={valueLabels}
+          showTimeLabels={showTimeLabels}
+          title={label}
+        />
+      ) : (
+        <QuickGraphChartByIndex
+          series={series}
+          intervalsCount={intervalsCount}
+          intervalSeconds={intervalSeconds}
+          decimals={decimals}
+          valueLabels={valueLabels}
+          showTimeLabels={showTimeLabels}
+          title={label}
+        />
+      ),
     [
+      isSensorTimeSeriesOn,
       label,
       series,
       intervalsCount,
@@ -504,14 +526,12 @@ const SelectedSensorChart = ({
     ],
   );
 
-  const [shown, setShown] = useState<ShownChart | null>(
+  const [shown, setShown] = useState<ReactElement | null>(
     isLoading ? null : current,
   );
   if (!isLoading && shown !== current) setShown(current);
 
-  if (!shown) return null;
-
-  return <QuickGraphChart {...shown.chart} title={shown.label} />;
+  return shown;
 };
 
 const MultiSensorChart = ({
@@ -522,6 +542,7 @@ const MultiSensorChart = ({
   parameterLabel: (sensor: ImportedSensor, asset: Asset) => string;
 }) => {
   const translate = useTranslate();
+  const isSensorTimeSeriesOn = useFeatureFlag("FLAG_SENSOR_TIME_SERIES");
   const { formatting } = useAtomValue(projectSettingsAtom);
   const { timing } = useAtomValue(simulationSettingsDerivedAtom);
   const { assets } = useAtomValue(stagingModelDerivedAtom);
@@ -566,17 +587,28 @@ const MultiSensorChart = ({
     return option ? getDecimals(formatting, option.quantityKey) : 0;
   }, [first, isStatus, formatting]);
 
+  const stepSeconds = readingsStepSeconds(timing);
   const series = useMemo<QuickGraphSeries[]>(
     () =>
       plotted.map(({ sensor }, index) => ({
         label: sensor.name,
         values: sensor.readings,
+        times: stepTimes(sensor.readings.length, stepSeconds),
         style: sensorReadingsStyle(
           sensor.readings.length,
           SERIES_COLORS[index % SERIES_COLORS.length],
         ),
       })),
-    [plotted],
+    [plotted, stepSeconds],
+  );
+
+  const intervalsCount = Math.max(
+    0,
+    ...plotted.map(({ sensor }) => sensor.readings.length),
+  );
+  const timeRange = useMemo(
+    () => ({ start: 0, end: Math.max(0, intervalsCount - 1) * stepSeconds }),
+    [intervalsCount, stepSeconds],
   );
 
   const labelOptions = useMemo(
@@ -592,18 +624,25 @@ const MultiSensorChart = ({
     );
   }
 
-  const chart = (
+  const title = labels.length > 1 ? undefined : activeLabel;
+  const chart = isSensorTimeSeriesOn ? (
     <QuickGraphChart
       series={series}
-      intervalsCount={Math.max(
-        0,
-        ...plotted.map(({ sensor }) => sensor.readings.length),
-      )}
-      intervalSeconds={readingsStepSeconds(timing)}
+      timeRange={timeRange}
       decimals={decimals}
       valueLabels={valueLabels}
       showTimeLabels={timing.duration > 0}
-      title={labels.length > 1 ? undefined : activeLabel}
+      title={title}
+    />
+  ) : (
+    <QuickGraphChartByIndex
+      series={series}
+      intervalsCount={intervalsCount}
+      intervalSeconds={stepSeconds}
+      decimals={decimals}
+      valueLabels={valueLabels}
+      showTimeLabels={timing.duration > 0}
+      title={title}
     />
   );
 

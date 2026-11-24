@@ -1,5 +1,196 @@
-import { calculateInterval } from "./quick-graph-chart";
+import { forwardRef } from "react";
+import { render, screen } from "@testing-library/react";
+import {
+  QuickGraphChart,
+  type QuickGraphSeries,
+  calculateInterval,
+} from "./quick-graph-chart";
 import { legendItemsThatFit } from "./quick-graph-legend";
+
+const echarts = vi.hoisted(() => ({
+  props: null as null | {
+    option: any;
+    onChartReady: (chart: unknown) => void;
+  },
+}));
+
+vi.mock("echarts-for-react", () => ({
+  default: forwardRef(function ReactEChartsMock(props: any, _ref) {
+    echarts.props = props;
+    return <div data-testid="chart" />;
+  }),
+}));
+
+const aChart = () => {
+  const handlers: Record<string, (params: unknown) => void> = {};
+  let secondsUnderPointer = 0;
+  const chart = {
+    isDisposed: () => false,
+    setOption: vi.fn(),
+    getZr: () => ({
+      on: (event: string, handler: (params: unknown) => void) => {
+        handlers[event] = handler;
+      },
+      setCursorStyle: vi.fn(),
+    }),
+    containPixel: () => true,
+    convertFromPixel: () => [secondsUnderPointer, 0],
+  };
+  echarts.props!.onChartReady(chart);
+  return {
+    chart,
+    clickAt: (seconds: number) => {
+      secondsUnderPointer = seconds;
+      handlers.click({ offsetX: 0, offsetY: 0 });
+    },
+  };
+};
+
+const aSeries = (
+  values: number[],
+  times: number[],
+  label: string | null = null,
+): QuickGraphSeries => ({
+  label,
+  values,
+  times,
+  style: { type: "line", color: "purple" },
+});
+
+describe("QuickGraphChart", () => {
+  it("plots each series at its own times", () => {
+    render(
+      <QuickGraphChart
+        series={[
+          aSeries([1, 2, 3], [0, 3600, 7200], "simulation"),
+          aSeries([4, 5], [900, 4500], "sensor"),
+        ]}
+        timeRange={{ start: 0, end: 7200 }}
+        decimals={0}
+      />,
+    );
+
+    const [simulation, sensor] = echarts.props!.option.series;
+    expect(simulation.data).toEqual([
+      [0, 1],
+      [3600, 2],
+      [7200, 3],
+    ]);
+    expect(sensor.data).toEqual([
+      [900, 4],
+      [4500, 5],
+    ]);
+  });
+
+  it("leaves out points outside the time range", () => {
+    render(
+      <QuickGraphChart
+        series={[aSeries([1, 2, 3, 4], [0, 3600, 7200, 10800])]}
+        timeRange={{ start: 3600, end: 7200 }}
+        decimals={0}
+      />,
+    );
+
+    expect(echarts.props!.option.series[0].data).toEqual([
+      [3600, 2],
+      [7200, 3],
+    ]);
+  });
+
+  it("shows no data when no series has a point in the range", () => {
+    render(
+      <QuickGraphChart
+        series={[aSeries([1], [10800])]}
+        timeRange={{ start: 0, end: 7200 }}
+        decimals={0}
+      />,
+    );
+
+    expect(screen.getByText("No data available")).toBeInTheDocument();
+    expect(screen.queryByTestId("chart")).not.toBeInTheDocument();
+  });
+
+  it("keeps the time axis open when the range is a single instant", () => {
+    render(
+      <QuickGraphChart
+        series={[aSeries([1], [0])]}
+        timeRange={{ start: 0, end: 0 }}
+        decimals={0}
+      />,
+    );
+
+    const { min, max } = echarts.props!.option.xAxis;
+    expect(max).toBeGreaterThan(min);
+  });
+
+  it("draws the current time line at the current time", () => {
+    render(
+      <QuickGraphChart
+        series={[aSeries([1, 2, 3], [0, 3600, 7200])]}
+        timeRange={{ start: 0, end: 7200 }}
+        currentSeconds={3600}
+        decimals={0}
+      />,
+    );
+
+    const { chart } = aChart();
+
+    expect(chart.setOption).toHaveBeenLastCalledWith({
+      series: [
+        expect.objectContaining({
+          markLine: expect.objectContaining({ data: [{ xAxis: 3600 }] }),
+        }),
+      ],
+    });
+  });
+
+  it("ignores a chart that was disposed before it was ready", () => {
+    render(
+      <QuickGraphChart
+        series={[aSeries([1, 2], [0, 3600])]}
+        timeRange={{ start: 0, end: 3600 }}
+        decimals={0}
+        onTimeClick={vi.fn()}
+      />,
+    );
+    const disposed = {
+      isDisposed: () => true,
+      setOption: vi.fn(),
+      getZr: () => null,
+    };
+
+    expect(() => echarts.props!.onChartReady(disposed)).not.toThrow();
+    expect(disposed.setOption).not.toHaveBeenCalled();
+  });
+
+  it("reports clicks to the latest click handler", () => {
+    const series = [aSeries([1, 2, 3], [0, 3600, 7200])];
+    const first = vi.fn();
+    const latest = vi.fn();
+    const { rerender } = render(
+      <QuickGraphChart
+        series={series}
+        timeRange={{ start: 0, end: 7200 }}
+        decimals={0}
+        onTimeClick={first}
+      />,
+    );
+    const { clickAt } = aChart();
+
+    rerender(
+      <QuickGraphChart
+        series={series}
+        timeRange={{ start: 0, end: 7200 }}
+        decimals={0}
+        onTimeClick={latest}
+      />,
+    );
+    clickAt(5400);
+
+    expect(latest).toHaveBeenCalledWith(5400);
+    expect(first).not.toHaveBeenCalled();
+  });
+});
 
 describe("calculateInterval", () => {
   describe("edge cases", () => {

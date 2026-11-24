@@ -9,3 +9,6 @@ export const sensorReadingsStyle = (
   displayedReadings > MAX_READINGS_AS_POINTS
     ? ({ type: "line", color } as const)
     : ({ type: "points", color } as const);
+
+export const readingsUpTo = (times: readonly number[], endSeconds: number) =>
+  times.filter((seconds) => seconds <= endSeconds).length;

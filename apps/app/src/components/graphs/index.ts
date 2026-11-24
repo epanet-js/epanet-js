@@ -4,4 +4,6 @@ export {
   QuickGraphChart,
   type QuickGraphSeries,
   type QuickGraphSeriesStyle,
+  type TimeRange,
 } from "./quick-graph-chart";
+export { QuickGraphChartByIndex } from "./quick-graph-chart-by-index";

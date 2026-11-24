@@ -13,16 +13,20 @@ export type QuickGraphSeriesStyle =
 export type QuickGraphSeries = {
   label: string | null;
   values: readonly number[];
+  times: readonly number[];
   style: QuickGraphSeriesStyle;
 };
 
+type Point = [seconds: number, value: number];
+
+export type TimeRange = { start: number; end: number };
+
 interface QuickGraphChartProps {
   series: readonly QuickGraphSeries[];
-  intervalsCount: number;
-  intervalSeconds: number;
+  timeRange: TimeRange;
   decimals: number;
-  currentIntervalIndex?: number;
-  onIntevalClick?: (intervalIndex: number) => void;
+  currentSeconds?: number;
+  onTimeClick?: (seconds: number) => void;
   valueLabels?: Map<number, string> | null;
   showTimeLabels?: boolean;
   title?: string;
@@ -36,11 +40,10 @@ export const QuickGraphChart = memo(function QuickGraphChart(
 
 function QuickGraphChartECharts({
   series,
-  intervalsCount,
-  intervalSeconds,
-  currentIntervalIndex,
+  timeRange: { start, end },
+  currentSeconds,
   decimals,
-  onIntevalClick,
+  onTimeClick,
   valueLabels = null,
   showTimeLabels = true,
   title,
@@ -60,10 +63,12 @@ function QuickGraphChartECharts({
       series
         .map((entry) => ({
           ...entry,
-          values: entry.values.slice(0, intervalsCount),
+          points: pointsOf(entry).filter(
+            ([seconds]) => seconds >= start && seconds <= end,
+          ),
         }))
-        .filter((entry) => entry.values.length > 0),
-    [series, intervalsCount],
+        .filter((entry) => entry.points.length > 0),
+    [series, start, end],
   );
   const [hiddenLabels, setHiddenLabels] = useState<ReadonlySet<string>>(
     () => new Set(),
@@ -105,13 +110,16 @@ function QuickGraphChartECharts({
   );
 
   const allValues = useMemo(
-    () => visibleSeries.filter(isShown).flatMap((entry) => entry.values),
+    () =>
+      visibleSeries
+        .filter(isShown)
+        .flatMap((entry) => entry.points.map(([, value]) => value)),
     [visibleSeries, isShown],
   );
 
   const xAxis: EChartsOption["xAxis"] = useMemo(
-    () => buildXAxis(intervalsCount, intervalSeconds, showTimeLabels),
-    [intervalsCount, intervalSeconds, showTimeLabels],
+    () => buildXAxis(start, end, showTimeLabels),
+    [start, end, showTimeLabels],
   );
   const yAxis: EChartsOption["yAxis"] = useMemo(
     () =>
@@ -160,12 +168,21 @@ function QuickGraphChartECharts({
         },
         formatter: (params: any) => {
           if (!Array.isArray(params) || params.length === 0) return "";
-          const timeLabel = showTimeLabels ? (params[0]?.name ?? "") : "";
+          const axisSeconds = params[0]?.value?.[0];
+          const timeLabel =
+            showTimeLabels && typeof axisSeconds === "number"
+              ? formatTime(axisSeconds)
+              : "";
           const lines = params.map((p: any) => {
-            const value = formatValue(p.value);
-            if (!hasSeriesNames) return value;
+            const [seconds, raw] = p.value as Point;
+            const value = formatValue(raw);
+            const at =
+              showTimeLabels && seconds !== axisSeconds
+                ? ` (${formatTime(seconds)})`
+                : "";
+            if (!hasSeriesNames) return `${value}${at}`;
             const colorDot = `<span style="display:inline-block;width:8px;height:8px;background:${p.color};margin-right:4px;border-radius:50%;"></span>`;
-            return `${colorDot}${p.seriesName ?? ""}: ${value}`;
+            return `${colorDot}${p.seriesName ?? ""}: ${value}${at}`;
           });
           return [timeLabel, ...lines].filter(Boolean).join("<br/>");
         },
@@ -185,6 +202,14 @@ function QuickGraphChartECharts({
   const chartRef = useRef<ReactECharts>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const isChartReadyRef = useRef(false);
+  const onTimeClickRef = useRef(onTimeClick);
+
+  useEffect(
+    function keepLatestTimeClick() {
+      onTimeClickRef.current = onTimeClick;
+    },
+    [onTimeClick],
+  );
 
   useEffect(function resizeChart() {
     const container = containerRef.current;
@@ -210,15 +235,13 @@ function QuickGraphChartECharts({
               symbol: "none",
               label: { show: false },
               data:
-                currentIntervalIndex === undefined
-                  ? []
-                  : [{ xAxis: currentIntervalIndex }],
+                currentSeconds === undefined ? [] : [{ xAxis: currentSeconds }],
             },
           },
         ],
       });
     },
-    [currentIntervalIndex, hasShownSeries],
+    [currentSeconds, hasShownSeries],
   );
 
   useEffect(
@@ -233,10 +256,11 @@ function QuickGraphChartECharts({
 
   const onChartReady = useCallback(
     (chart: EChartsInstance) => {
+      if (chart.isDisposed()) return;
       isChartReadyRef.current = true;
       applyMarkLine(chart);
 
-      if (!onIntevalClick) return;
+      if (!onTimeClickRef.current) return;
 
       const zr = chart.getZr();
 
@@ -244,11 +268,8 @@ function QuickGraphChartECharts({
         const pointInPixel = [params.offsetX, params.offsetY];
         if (!chart.containPixel("grid", pointInPixel)) return;
 
-        const pointInGrid = chart.convertFromPixel("grid", pointInPixel);
-        const dataIndex = Math.round(pointInGrid[0]);
-        if (dataIndex >= 0 && dataIndex < intervalsCount) {
-          onIntevalClick(dataIndex);
-        }
+        const [seconds] = chart.convertFromPixel("grid", pointInPixel);
+        onTimeClickRef.current?.(seconds);
       });
 
       zr.on("mousemove", (params: any) => {
@@ -257,10 +278,10 @@ function QuickGraphChartECharts({
         zr.setCursorStyle(isInGrid ? "pointer" : "default");
       });
     },
-    [onIntevalClick, intervalsCount, applyMarkLine],
+    [applyMarkLine],
   );
 
-  if (intervalsCount === 0 || visibleSeries.length === 0) {
+  if (visibleSeries.length === 0) {
     return (
       <div className="h-full flex items-center justify-center text-subtle text-size-small">
         {translate("noDataAvailable")}
@@ -284,7 +305,7 @@ function QuickGraphChartECharts({
       )}
       <ReactECharts
         ref={chartRef}
-        key={`${intervalSeconds}-${intervalsCount}`}
+        key={`${start}-${end}`}
         option={option}
         replaceMerge={["series"]}
         style={{ height: "100%", width: "100%" }}
@@ -307,9 +328,20 @@ const MARK_LINE = {
   label: { show: false },
 };
 
-const toEChartsSeries = ({ label, values, style }: QuickGraphSeries) => {
+const pointsOf = ({ values, times }: QuickGraphSeries): Point[] =>
+  values.map((value, index) => [times[index], value]);
+
+const toEChartsSeries = ({
+  label,
+  points,
+  style,
+}: {
+  label: string | null;
+  points: Point[];
+  style: QuickGraphSeriesStyle;
+}) => {
   const name = label ?? undefined;
-  const data = [...values];
+  const data = points;
   if (style.type === "points") {
     return {
       type: "scatter" as const,
@@ -331,93 +363,61 @@ const toEChartsSeries = ({ label, values, style }: QuickGraphSeries) => {
   };
 };
 
+const LOGICAL_STEPS_SECONDS = [
+  3600, 7200, 10800, 14400, 21600, 28800, 43200, 86400,
+];
+
 const buildXAxis = (
-  intervalsCount: number,
-  intervalSeconds: number,
+  start: number,
+  end: number,
   showTimeLabels: boolean,
 ): EChartsOption["xAxis"] => {
-  const xAxisInterval = calculateXAxisInterval(intervalsCount, intervalSeconds);
-  const xAxisStep = calculateXAxisStep(intervalsCount, intervalSeconds);
+  const axisEnd = end > start ? end : start + LOGICAL_STEPS_SECONDS[0];
+  const stepSeconds = calculateXAxisStepSeconds(axisEnd - start);
   return {
-    type: "category",
-    data: buildTimeLabels(intervalsCount, intervalSeconds),
+    type: "value",
+    min: start,
+    max: axisEnd,
+    interval: stepSeconds,
     show: true,
-    boundaryGap: false,
     splitLine: {
       show: true,
+      showMinLine: true,
+      showMaxLine: false,
       lineStyle: { color: colors.gray300, type: "dashed" },
-      interval: (index: number) => {
-        if (index === intervalsCount - 1) return false;
-        return index % xAxisStep === 0;
-      },
     },
     axisTick: {
       show: true,
-      alignWithLabel: true,
       lineStyle: { color: colors.gray300 },
-      interval: (index: number) => index % xAxisStep === 0,
     },
     axisLabel: {
       show: showTimeLabels,
-      interval: xAxisInterval,
+      showMaxLabel: (axisEnd - start) % stepSeconds === 0,
       color: colors.gray500,
       fontSize: 12,
       hideOverlap: true,
+      formatter: (seconds: number) => formatTime(seconds),
     },
     axisLine: { show: true, lineStyle: { color: colors.gray300 } },
+    axisPointer: { snap: true },
   };
 };
 
-const buildTimeLabels = (intervalsCount: number, intervalSeconds: number) => {
-  const labels: string[] = [];
-  for (let i = 0; i < intervalsCount; i++) {
-    const totalSeconds = i * intervalSeconds;
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    labels.push(`${hours}:${minutes.toString().padStart(2, "0")}`);
-  }
-  return labels;
+const formatTime = (totalSeconds: number) => {
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  return `${hours}:${minutes.toString().padStart(2, "0")}`;
 };
 
-const calculateXAxisInterval = (
-  intervalCount: number,
-  intervalSeconds: number,
-  targetTickCount = 5,
-) => {
-  const totalSeconds = intervalCount * intervalSeconds;
-
-  const logicalSteps = [3600, 7200, 10800, 14400, 21600, 28800, 43200, 86400];
-
-  const idealStep = totalSeconds / (targetTickCount - 1 || 1);
-
-  const bestStepSeconds = logicalSteps.reduce((prev, curr) => {
-    return Math.abs(curr - idealStep) < Math.abs(prev - idealStep)
-      ? curr
-      : prev;
-  });
-
-  const indexInterval = Math.round(bestStepSeconds / intervalSeconds);
-
-  return (index: number) => {
-    return index % indexInterval === 0;
-  };
-};
-
-const calculateXAxisStep = (
-  intervalCount: number,
-  intervalSeconds: number,
+const calculateXAxisStepSeconds = (
+  durationSeconds: number,
   targetTickCount = 5,
 ): number => {
-  const totalSeconds = intervalCount * intervalSeconds;
-  const rawStep = totalSeconds / Math.max(targetTickCount - 1, 1);
+  const idealStep = durationSeconds / Math.max(targetTickCount - 1, 1);
 
-  const step = [3600, 7200, 10800, 14400, 21600, 28800, 43200, 86400].reduce(
-    (prev, curr) => {
-      return Math.abs(curr - rawStep) < Math.abs(prev - rawStep) ? curr : prev;
-    },
+  return LOGICAL_STEPS_SECONDS.reduce((prev, curr) =>
+    Math.abs(curr - idealStep) < Math.abs(prev - idealStep) ? curr : prev,
   );
-
-  return Math.max(1, Math.round(step / intervalSeconds));
 };
 
 const buildDiscreteYAxis = (

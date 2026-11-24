@@ -23,7 +23,10 @@ import {
   type QuickGraphPropertyByAssetType,
   QUICK_GRAPH_PROPERTIES,
   toStatusStep,
+  readingsUpTo,
   sensorReadingsStyle,
+  stepTimes,
+  timeStepAt,
 } from "src/lib/asset-graph";
 import type { QuantityProperty } from "@epanet-js/project-settings";
 import { getDecimals } from "@epanet-js/project-settings";
@@ -31,7 +34,12 @@ import type { TimeSeries } from "src/simulation/epanet/eps-results-reader";
 import { type AssetId, type Valve } from "@epanet-js/hydraulic-model";
 import { useTimeSeries } from "src/hooks/use-time-series";
 import { useStatusValueLabels } from "src/hooks/use-status-value-labels";
-import { QuickGraphChart, type QuickGraphSeries } from "src/components/graphs";
+import {
+  QuickGraphChart,
+  QuickGraphChartByIndex,
+  type QuickGraphSeries,
+} from "src/components/graphs";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { colors } from "src/lib/constants";
 import { useChangeTimestep } from "src/commands/change-timestep";
 import { RingSpinner } from "src/components/ring-spinner";
@@ -91,6 +99,7 @@ const QuickGraphSection = ({
   isLoading,
 }: QuickGraphSectionProps) => {
   const translate = useTranslate();
+  const isSensorTimeSeriesOn = useFeatureFlag("FLAG_SENSOR_TIME_SERIES");
   const translateUnit = useTranslateUnit();
   const [footerState, setFooterState] = useAtom(assetPanelFooterAtom);
   const [propertyByType, setPropertyByType] = useAtom(quickGraphPropertyAtom);
@@ -164,18 +173,24 @@ const QuickGraphSection = ({
   }, [baseData, isStatusProperty]);
   const timeStepIndex = simulationStep ?? 0;
 
-  const series = useMemo<QuickGraphSeries[]>(
-    () => [
+  const series = useMemo<QuickGraphSeries[]>(() => {
+    const intervalSeconds = data?.intervalSeconds ?? 0;
+    const sensorTimes = sensor
+      ? stepTimes(sensor.readings.length, intervalSeconds)
+      : [];
+    return [
       {
         label: scenarioName ?? (sensor ? translate("simulation") : null),
         values,
+        times: stepTimes(values.length, intervalSeconds),
         style: { type: "line", color: colors.purple500 },
       },
-      ...(baseValues
+      ...(baseValues && baseData
         ? [
             {
               label: baseLabel,
               values: baseValues,
+              times: stepTimes(baseValues.length, baseData.intervalSeconds),
               style: { type: "line", color: colors.gray400, width: 1.5 },
             } satisfies QuickGraphSeries,
           ]
@@ -185,15 +200,27 @@ const QuickGraphSection = ({
             {
               label: translate("sensorData.panel.sensor"),
               values: sensor.readings,
+              times: sensorTimes,
               style: sensorReadingsStyle(
-                Math.min(sensor.readings.length, values.length),
+                readingsUpTo(
+                  sensorTimes,
+                  Math.max(0, values.length - 1) * intervalSeconds,
+                ),
               ),
             } satisfies QuickGraphSeries,
           ]
         : []),
-    ],
-    [baseValues, baseLabel, scenarioName, values, sensor, translate],
-  );
+    ];
+  }, [
+    baseValues,
+    baseData,
+    baseLabel,
+    scenarioName,
+    values,
+    sensor,
+    translate,
+    data,
+  ]);
 
   const propertyOptions = useMemo(() => {
     const hasCompletedSimulation =
@@ -282,6 +309,31 @@ const QuickGraphSection = ({
     [changeTimestep],
   );
 
+  const handleTimeClick = useCallback(
+    (seconds: number) => {
+      if (!data) return;
+      const intervalIndex = timeStepAt(
+        seconds,
+        data.intervalSeconds,
+        data.intervalsCount,
+      );
+      if (intervalIndex !== null) {
+        void changeTimestep(intervalIndex, "quick-graph");
+      }
+    },
+    [data, changeTimestep],
+  );
+
+  const timeRange = useMemo(
+    () => ({
+      start: 0,
+      end: data
+        ? Math.max(0, data.intervalsCount - 1) * data.intervalSeconds
+        : 0,
+    }),
+    [data],
+  );
+
   const { isPinned } = footerState;
 
   const pinButton = (
@@ -331,15 +383,26 @@ const QuickGraphSection = ({
         )}
         {data !== null ? (
           <div className="absolute inset-0">
-            <QuickGraphChart
-              series={series}
-              intervalSeconds={data.intervalSeconds}
-              intervalsCount={data.intervalsCount}
-              currentIntervalIndex={timeStepIndex}
-              decimals={decimals}
-              valueLabels={valueLabels}
-              onIntevalClick={handleIntervalClick}
-            />
+            {isSensorTimeSeriesOn ? (
+              <QuickGraphChart
+                series={series}
+                timeRange={timeRange}
+                currentSeconds={timeStepIndex * data.intervalSeconds}
+                decimals={decimals}
+                valueLabels={valueLabels}
+                onTimeClick={handleTimeClick}
+              />
+            ) : (
+              <QuickGraphChartByIndex
+                series={series}
+                intervalSeconds={data.intervalSeconds}
+                intervalsCount={data.intervalsCount}
+                currentIntervalIndex={timeStepIndex}
+                decimals={decimals}
+                valueLabels={valueLabels}
+                onIntevalClick={handleIntervalClick}
+              />
+            )}
           </div>
         ) : (
           <div className="h-full flex items-center justify-center text-subtle text-size-small">
