@@ -116,6 +116,19 @@ export const simulationBlockers = (
   model: HydraulicModel,
 ): BlockingCheckResult[] =>
   results.map((result) => {
+    if (result.check === CheckType.topologyChecks) {
+      const items: TopologyIssues = {
+        ...result.items,
+        selfFeedingPumps: [],
+        selfFeedingValves: [],
+      };
+      return {
+        ...result,
+        items,
+        issueCount: listTopologyIssues(items).length,
+      };
+    }
+
     if (result.check !== CheckType.orphanAssets) return result;
 
     const items = result.items.filter((assetId) =>

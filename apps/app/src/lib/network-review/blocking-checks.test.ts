@@ -160,6 +160,27 @@ describe("simulationBlockers", () => {
     expect(orphans.items).toEqual([IDS.ORPHAN]);
     expect(orphans.issueCount).toEqual(1);
   });
+
+  it("remove flow loop checks from blocking results", () => {
+    const results: BlockingCheckResult[] = [
+      {
+        check: CheckType.topologyChecks,
+        issueCount: 3,
+        items: {
+          selfFeedingPumps: [IDS.P1],
+          selfFeedingValves: [IDS.P2],
+          junctionsWithoutSupply: [
+            { junctionIds: [IDS.J1], blockingLinkIds: [IDS.P1] },
+          ],
+        },
+      },
+    ];
+
+    const blockers = simulationBlockers(results, aValidModel());
+
+    expect(blockers[0].issueCount).toEqual(1);
+    expect(failingRuleIds(blockers)).toEqual(["junction.supplied"]);
+  });
 });
 
 describe("failingRuleIds", () => {
