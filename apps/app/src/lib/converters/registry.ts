@@ -8,7 +8,6 @@ export type RegisteredConverter = {
 };
 
 export type ConverterSettings = {
-  parseSelectionSets: boolean;
   floatValves: boolean;
   remoteSetpointPrv: boolean;
   variableSpeedPumps: boolean;

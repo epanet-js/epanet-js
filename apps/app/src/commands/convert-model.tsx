@@ -54,7 +54,6 @@ export const useConvertFile = () => {
   const { startNewProject } = useStartNewProject();
   const startBlankProject = useStartBlankProject();
   const { canImportSynergi } = usePermissions();
-  const parseSelectionSets = useFeatureFlag("FLAG_SYNERGI_SELECTION_SETS");
   const floatValves = useFeatureFlag("FLAG_SYNERGI_FLOAT_VALVE");
   const remoteSetpointPrv = useFeatureFlag("FLAG_SYNERGI_REMOTE_SETPOINT_PRV");
   const variableSpeedPumps = useFeatureFlag(
@@ -97,7 +96,6 @@ export const useConvertFile = () => {
         }
 
         applyConverterSettings({
-          parseSelectionSets,
           floatValves,
           remoteSetpointPrv,
           variableSpeedPumps,
@@ -203,7 +201,6 @@ export const useConvertFile = () => {
     },
     [
       canImportSynergi,
-      parseSelectionSets,
       floatValves,
       remoteSetpointPrv,
       variableSpeedPumps,
