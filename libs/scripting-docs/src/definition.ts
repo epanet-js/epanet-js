@@ -19,19 +19,22 @@ import {
 } from "./sections/output";
 import { SECTION as OVERVIEW } from "./sections/overview";
 import {
-  INTERFACES as RESULTS_INTERFACES,
-  SECTION as RESULTS,
+  interfacesFor as resultsInterfacesFor,
+  sectionFor as resultsFor,
 } from "./sections/results";
 import { SECTION as REVIEW } from "./sections/review";
-import { SECTION as SCRIPT_RUNS } from "./sections/script-runs";
+import { sectionFor as scriptRunsFor } from "./sections/script-runs";
 import { SECTION as SPATIAL } from "./sections/spatial";
 import { SECTION as TOPOLOGY } from "./sections/topology";
 import { SECTION as ZONES } from "./sections/zones";
 import { numberSections } from "./outline";
-import type { ScriptingDocs } from "./types";
+import type { DocsCandidates, ScriptingDocs } from "./types";
 
 const EDITS_RULE =
   "Change assets only with `asset.set(...)` for the label and the attributes its `Changes` type lists, a customer point's label with `customerPoint.set(...)`, a zone's label with `zone.set(...)` and delete one with `zones.delete(...)`, custom attributes with `setCustom(...)`, the demands of a junction or customer point with `setDemands(...)`, a node's quality source with `setQualitySource(...)`, a tank's volume curve with `setVolumeCurve(...)`, a pump's definition with `setDefinition(...)` and its control with `setControl(...)`, and a valve's kind with `setKind(...)` and its control with `setControl(...)`. Add patterns with `network.addPattern(...)`, change one with `pattern.set(...)` and delete one with `network.deletePattern(...)`, and add curves with `network.addCurve(...)`, change one with `curve.set(...)` and delete one with `network.deleteCurve(...)`. Add pipe library materials with `network.addPipeMaterial(...)`, change one with `material.set(...)` and delete one with `network.deletePipeMaterial(...)`. Replace the `[CONTROLS]` lines with `network.setRawControls(...)` and the `[RULES]` blocks with `network.setRawRules(...)`. Define custom attributes with `network.addCustomAttribute(...)`, rename one with `attribute.set(...)` and delete one with `network.deleteCustomAttribute(...)`; all three are refused while the project has scenarios. Everything else is read-only. If the user asks for another change, say so — never assign to asset fields.";
+
+const SIMULATE_RULE =
+  "Run a simulation with `await network.simulate()` only when the task needs results for the model as the script changes it. Await each call before the next, never start two at once, and check the run's `status` before reading values.";
 
 const AGENT_RULES = [
   "Orient once: start the first script on an unfamiliar model with `console.log(network.stats)` and `console.log(network.units)`.",
@@ -51,16 +54,16 @@ const AGENT_RULES = [
   'When the user names a DMA or a zone, look in `zones` (the drawn polygons); `network.trace` is a different, connectivity-based "zone".',
 ];
 
-export const scriptingDocs: ScriptingDocs = {
+const buildDocs = (candidates: DocsCandidates): ScriptingDocs => ({
   title: "epanet-js scripting API",
   apiVersion: SCRIPT_API_VERSION,
-  summary: `Sandboxed JavaScript scripting for epanet-js, a browser-based water network modelling app built on the EPANET engine. A script reads the open network — assets, patterns, curves, controls, the pipe library, settings — queries it spatially and topologically, reads the project's zones, runs the app's own review checks, reads the last simulation's results, exports it as INP, and hands results back as the map selection, a zoom, console output and attached files. Scripts can change asset attributes, asset, customer point and zone labels and pump controls, delete zones, add, change and delete patterns, add, change and delete curves, add, change and delete pipe library materials, replace the \`[CONTROLS]\` lines and \`[RULES]\` blocks, and add, rename and delete custom attributes; they cannot otherwise edit the model or run a simulation.`,
+  summary: `Sandboxed JavaScript scripting for epanet-js, a browser-based water network modelling app built on the EPANET engine. A script reads the open network — assets, patterns, curves, controls, the pipe library, settings — queries it spatially and topologically, reads the project's zones, runs the app's own review checks, reads the last simulation's results, exports it as INP, and hands results back as the map selection, a zoom, console output and attached files. Scripts can change asset attributes, asset, customer point and zone labels and pump controls, delete zones, add, change and delete patterns, add, change and delete curves, add, change and delete pipe library materials, replace the \`[CONTROLS]\` lines and \`[RULES]\` blocks, and add, rename and delete custom attributes; they cannot otherwise edit the model${candidates.simulations ? ". Scripts can also run a simulation of the network as they have changed it and read its results." : " or run a simulation."}`,
   intro:
     "This is the complete surface a script sees. Everything below is injected into the sandbox; nothing else exists.",
   globals: GLOBALS,
-  interfaces: [...INTERFACES, ...RESULTS_INTERFACES],
+  interfaces: [...INTERFACES, ...resultsInterfacesFor(candidates)],
   sections: numberSections({
-    preface: [SCRIPT_RUNS],
+    preface: [scriptRunsFor(candidates)],
     chapters: [
       {
         id: "network",
@@ -78,7 +81,7 @@ export const scriptingDocs: ScriptingDocs = {
           TOPOLOGY,
           REVIEW,
           EXPORT,
-          RESULTS,
+          resultsFor(candidates),
         ],
       },
       ZONES,
@@ -90,8 +93,12 @@ export const scriptingDocs: ScriptingDocs = {
       ERRORS_SECTION,
     ],
   }),
-  agentRules: AGENT_RULES,
+  agentRules: candidates.simulations
+    ? [...AGENT_RULES, SIMULATE_RULE]
+    : AGENT_RULES,
   exampleScripts,
-};
+});
 
-export const simulationsCandidateDocs = scriptingDocs;
+export const scriptingDocs = buildDocs({ simulations: false });
+
+export const simulationsCandidateDocs = buildDocs({ simulations: true });

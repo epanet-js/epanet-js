@@ -1,23 +1,28 @@
 import { memberOf, propertyOf } from "../members";
-import type { InterfaceDef, SectionDef } from "../types";
+import type { DocsCandidates, InterfaceDef, SectionDef } from "../types";
 
-export const INTERFACES: InterfaceDef[] = [
+export const interfacesFor = ({
+  simulations,
+}: DocsCandidates): InterfaceDef[] => [
   {
     name: "SimulationResult",
     path: "results",
-    summary:
-      "The simulation the user last ran, as it was when the script started.",
+    summary: simulations
+      ? "A simulation run: the one the user last ran, as it was when the script started, or one the script ran with `network.simulate()`."
+      : "The simulation the user last ran, as it was when the script started.",
   },
 ];
+
+const introOf = (whoRuns: string) =>
+  `Results come from the simulation the user last ran from the toolbar, read as it was when the script started. ${whoRuns}\n\nRead them from the asset: \`junction.results.pressure\`, \`pipe.results.flow\`, documented with each asset type in Assets. That covers most scripts, and looping over every asset reads the timestep once. \`results\` is the timestep the user had selected in the app; \`results.at(i)\` and \`results.series(property)\` reach the asset's other timesteps, and a node's \`stats\` and a pump's \`energy\` cover the whole run.\n\nUse \`network.results\` for the run as a whole: whether it succeeded and is still current (\`status\`, \`isStale\`), its \`timesteps\` and the one the app shows (\`currentStep\`), and the lowest and highest values across the network (\`minValues\`, \`maxValues\`), which read the stored results directly instead of looping over assets.`;
 
 const results = memberOf("SimulationResult");
 const resultsProperty = propertyOf("SimulationResult");
 
-export const SECTION: SectionDef = {
+const SECTION: SectionDef = {
   id: "results",
   title: "Simulation results",
-  intro:
-    "Results come from the simulation the user last ran from the toolbar, read as it was when the script started. Scripts cannot run a simulation themselves.\n\nRead them from the asset: `junction.results.pressure`, `pipe.results.flow`, documented with each asset type in Assets. That covers most scripts, and looping over every asset reads the timestep once. `results` is the timestep the user had selected in the app; `results.at(i)` and `results.series(property)` reach the asset's other timesteps, and a node's `stats` and a pump's `energy` cover the whole run.\n\nUse `network.results` for the run as a whole: whether it succeeded and is still current (`status`, `isStale`), its `timesteps` and the one the app shows (`currentStep`), and the lowest and highest values across the network (`minValues`, `maxValues`), which read the stored results directly instead of looping over assets.",
+  intro: introOf("Scripts cannot run a simulation themselves."),
   types: [
     {
       name: "SimulationStatus",
@@ -123,3 +128,55 @@ console.table(high.map(([node, pressure]) => ({ node, pressure })));`,
     }),
   ],
 };
+
+const SIMULATE = memberOf("Network")({
+  name: "simulate",
+  signature: "simulate(): Promise<SimulationResult>",
+  summary:
+    "Runs a simulation of the network as the script has changed it so far, and returns its results.",
+  description:
+    "The same run as pressing Run in the app after the script's changes, with the project's simulation settings. Its results replace `network.results` and every `asset.results` for the rest of the script. A result kept from an earlier run stays readable, so two runs can be compared. The results are stale (`isStale`) after the script's next change. A run that fails does not throw: check `status`, and `report` says why. Every run is kept until the script ends, so a loop of many runs uses storage. The app's own results do not change.",
+  throws: [
+    "`A simulation is already running` while the app or another `network.simulate()` call is running one: await each call before starting the next",
+  ],
+  examples: [
+    {
+      code: `const pipe = network.getLink("P1");
+const before = await network.simulate();
+pipe.set({ diameter: pipe.diameter / 2 });
+const after = await network.simulate();
+if (after.status === "failure") throw new Error(after.report);
+
+const lowestBefore = before.minValues("pressure");
+console.table(
+  [...after.minValues("pressure")].map(([node, pressure]) => ({
+    node,
+    before: lowestBefore.get(node),
+    after: pressure,
+  })),
+);`,
+    },
+  ],
+});
+
+export const sectionFor = ({ simulations }: DocsCandidates): SectionDef =>
+  simulations
+    ? {
+        ...SECTION,
+        intro: introOf(
+          "A script runs its own with `network.simulate()`, which replaces them for the rest of the script.",
+        ),
+        members: (SECTION.members ?? []).flatMap((member) =>
+          member.name === "results" && member.owner === "Network"
+            ? [
+                {
+                  ...member,
+                  summary:
+                    "The simulation the user last ran from the toolbar, or the script's last `network.simulate()`. `null` when there is none.",
+                },
+                SIMULATE,
+              ]
+            : [member],
+        ),
+      }
+    : SECTION;
