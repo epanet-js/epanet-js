@@ -29,7 +29,6 @@ type ListItemProps<T extends LabelledItem> = {
   showFullLabelOnHover?: boolean;
   depth?: number;
   activeIndentGuide?: number;
-  onHover?: (isHovering: boolean) => void;
 };
 
 export const ListItem = <T extends LabelledItem>({
@@ -46,7 +45,6 @@ export const ListItem = <T extends LabelledItem>({
   showFullLabelOnHover = false,
   depth = 0,
   activeIndentGuide,
-  onHover,
 }: ListItemProps<T>) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -55,8 +53,6 @@ export const ListItem = <T extends LabelledItem>({
       data-item-id={item.id}
       aria-selected={isSelected}
       style={{ paddingLeft: rowIndent(depth) }}
-      onPointerEnter={onHover && (() => onHover(true))}
-      onPointerLeave={onHover && (() => onHover(false))}
       className={`group relative flex items-center justify-between text-sm cursor-pointer h-8 min-w-0 rounded-base ${
         isSelected
           ? "bg-accent-tint"

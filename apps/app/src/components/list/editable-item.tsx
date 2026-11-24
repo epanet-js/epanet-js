@@ -25,7 +25,6 @@ type EditableListItemProps<T extends LabelledItem> = {
   readOnly?: boolean;
   depth?: number;
   activeIndentGuide?: number;
-  onHover?: (isHovering: boolean) => void;
 };
 
 export const EditableListItem = <T extends LabelledItem>({
@@ -46,7 +45,6 @@ export const EditableListItem = <T extends LabelledItem>({
   readOnly = false,
   depth,
   activeIndentGuide,
-  onHover,
 }: EditableListItemProps<T>) => {
   if (editLabelMode === "inline") {
     return (
@@ -77,7 +75,6 @@ export const EditableListItem = <T extends LabelledItem>({
         readOnly={readOnly}
         depth={depth}
         activeIndentGuide={activeIndentGuide}
-        onHover={onHover}
       />
       {editLabelMode === "below" && (
         <ItemInput

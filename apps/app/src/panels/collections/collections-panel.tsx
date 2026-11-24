@@ -44,7 +44,6 @@ import type {
   NavItem,
   NavigableListHandle,
 } from "src/components/list";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useTranslate } from "src/hooks/use-translate";
 import {
   AddIcon,
@@ -57,9 +56,6 @@ import {
   RenameIcon,
 } from "src/icons";
 import { PaywallUpgradeBox, useFeatureLock } from "src/components/form/paywall";
-import { isNodeAsset } from "@epanet-js/hydraulic-model";
-import { USelection } from "src/selection";
-import { type Highlight, highlightsAtom } from "src/state/highlights";
 import { selectionAtom } from "src/state/selection";
 import {
   bookmarksAtom,
@@ -126,7 +122,6 @@ export const CollectionsPanel = () => {
   const moreActionsLabel = translate("moreActions");
   const selectOnlyLabel = translate("collections.selectionSets.selectOnly");
   const { isLocked, openPaywall } = useFeatureLock("selectionSets");
-  const isHighlightOn = useFeatureFlag("FLAG_HIGHLIGHT_SELECTION_SETS");
   const selectionSets = useAtomValue(selectionSetsAtom);
   const selectionSetGroups = useAtomValue(selectionSetGroupsAtom);
   const bookmarks = useAtomValue(bookmarksAtom);
@@ -543,32 +538,6 @@ export const CollectionsPanel = () => {
     runRow(row);
   };
 
-  const setHighlights = useSetAtom(highlightsAtom);
-  useEffect(() => () => setHighlights([]), [setHighlights]);
-
-  const handleHoverSet = (setId: SelectionSetId, isHovering: boolean) => {
-    if (!isHovering) return setHighlights([]);
-    const selectionSet = selectionSets.find((set) => set.id === setId);
-    if (!selectionSet) return;
-
-    const highlights: Highlight[] = [];
-    for (const assetId of USelection.getAssetIds(selectionSet.selection)) {
-      const asset = hydraulicModel.assets.get(assetId);
-      if (!asset) continue;
-      if (isNodeAsset(asset)) {
-        const [lng, lat] = asset.coordinates;
-        highlights.push({
-          type: "marker",
-          coordinates: [lng, lat],
-          nodeType: asset.feature.properties.type,
-        });
-      } else {
-        highlights.push({ type: "asset", assetId });
-      }
-    }
-    setHighlights(highlights);
-  };
-
   const handleSelectOnly = (row: Row) => {
     clearKeyboardFocus();
     setAppliedSetId(row.id);
@@ -924,11 +893,6 @@ export const CollectionsPanel = () => {
       onAction={handleAction}
       depth={row.depth}
       activeIndentGuide={activeGuideOf(row.ancestors)}
-      onHover={
-        isHighlightOn && row.kind === "set"
-          ? (isHovering) => handleHoverSet(row.id, isHovering)
-          : undefined
-      }
       actionsLabel={moreActionsLabel}
       secondaryAction={
         row.section === "selectionSets"
