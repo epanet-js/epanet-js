@@ -43,6 +43,7 @@ import {
 } from "src/simulation";
 import { OPFSStorage } from "src/infra/storage";
 import { getAppId } from "src/infra/app-instance";
+import { captureError } from "src/infra/error-tracking";
 import { nanoid } from "src/lib/id";
 import {
   currentFileNameAtom,
@@ -53,6 +54,7 @@ import {
 import {
   simulationDerivedAtom,
   simulationSettingsDerivedAtom,
+  simulationSourceIdDerivedAtom,
   stagingModelDerivedAtom,
 } from "src/state/derived-branch-state";
 import { modelFactoriesAtom } from "src/state/model-factories";
@@ -69,6 +71,7 @@ import { selectionAtom } from "src/state/selection";
 import {
   isScriptSimulatingAtom,
   simulationStepAtom,
+  type SimulationRunLocation,
 } from "src/state/simulation";
 import {
   bookmarksAtom,
@@ -76,6 +79,7 @@ import {
   selectionSetsAtom,
 } from "src/state/collections";
 import { useShowScriptOutput } from "./show-script-output";
+import { useRecordSimulationRun } from "src/hooks/use-record-simulation-run";
 
 const MAX_CONSOLE_LINES = 1000;
 const EPANET_DEFAULT_TRIALS = 200;
@@ -101,6 +105,7 @@ export const useRunScript = () => {
   const createSelectionSet = useCreateSelectionSet();
   const { transact: saveBookmarks } = useBookmarksTransaction();
   const showScriptOutput = useShowScriptOutput();
+  const recordSimulationRun = useRecordSimulationRun();
 
   const currentViewport = useCallback((): ScriptViewport | null => {
     const bounds = map?.map.getBounds();
@@ -115,31 +120,36 @@ export const useRunScript = () => {
   }, [map]);
 
   const applyEdits = useCallback(
-    (edits: Uint8Array, modelVersion: string): boolean => {
+    (
+      edits: Uint8Array,
+      modelVersion: string,
+    ): "refused" | "rejected" | "applied" => {
       const isModelUnchanged =
         store.get(stagingModelDerivedAtom).version === modelVersion;
       if (editionBlockRef.current !== null || !isModelUnchanged) {
         setDialog({ type: "changeNotApplied" });
-        return false;
+        return "refused";
       }
       const changeSet = ChangeSet.fromBytes(edits);
       observeIdentifiers(store.get(modelFactoriesAtom), changeSet);
-      transact(() => changeSet);
+      const isApplied = transact(() => changeSet) !== null;
       setSelection(
         withoutDeletedZones(
           store.get(selectionAtom),
           store.get(stagingModelDerivedAtom).zones,
         ),
       );
-      return true;
+      return isApplied ? "applied" : "rejected";
     },
     [store, setDialog, setSelection, transact],
   );
 
   const applyOutcome = useCallback(
-    (outcome: ScriptRunOutcome, modelVersion: string) => {
-      if (outcome.status !== "success") return;
-      if (outcome.edits && !applyEdits(outcome.edits, modelVersion)) return;
+    (outcome: ScriptRunOutcome, modelVersion: string): boolean => {
+      if (outcome.status !== "success") return false;
+      const editsApplied =
+        outcome.edits && applyEdits(outcome.edits, modelVersion);
+      if (editsApplied === "refused") return false;
       const { assets, customerPoints } = store.get(stagingModelDerivedAtom);
       const existing = ({ assetIds, customerPointIds }: ScriptTargets) =>
         USelection.fromIds(
@@ -173,6 +183,7 @@ export const useRunScript = () => {
           ]);
         }
       }
+      return editsApplied !== "rejected";
     },
     [
       store,
@@ -183,6 +194,51 @@ export const useRunScript = () => {
       createSelectionSet,
       saveBookmarks,
     ],
+  );
+
+  const keepScriptRun = useCallback(
+    async (
+      run: ScriptSimulationRecord,
+      script: {
+        areEditsInModel: boolean;
+        hasEdits: boolean;
+        modelVersion: string;
+        simulationSettings: SimulationSettings;
+      },
+    ): Promise<boolean> => {
+      const isCurrent =
+        script.areEditsInModel &&
+        (script.hasEdits ||
+          store.get(stagingModelDerivedAtom).version === script.modelVersion) &&
+        store.get(simulationSettingsDerivedAtom).version ===
+          script.simulationSettings.version &&
+        store.get(worktreeAtom).activeBranchId === run.location.scenarioKey &&
+        store.get(simulationDerivedAtom).status !== "running";
+      if (isCurrent) {
+        const previous = store.get(simulationDerivedAtom);
+        try {
+          await recordSimulationRun({
+            ...run,
+            modelVersion: store.get(stagingModelDerivedAtom).version,
+            simulationSettings: script.simulationSettings,
+            previousReader:
+              "epsResultsReader" in previous
+                ? previous.epsResultsReader
+                : undefined,
+            previousSourceId: store.get(simulationSourceIdDerivedAtom),
+          });
+          return true;
+        } catch (error) {
+          captureError(error as Error);
+        }
+      }
+      const { appId, scenarioKey, runId } = run.location;
+      void new OPFSStorage(appId, scenarioKey, runId)
+        .clearRun()
+        .catch(() => {});
+      return false;
+    },
+    [store, recordSimulationRun],
   );
 
   return useCallback(
@@ -222,6 +278,15 @@ export const useRunScript = () => {
       const updateRun = (update: (run: ScriptRunState) => ScriptRunState) =>
         setRun((run) => run && update(run));
 
+      const addLine = (line: ScriptConsoleLine) =>
+        updateRun((run) => ({
+          ...run,
+          lines:
+            run.lines.length >= MAX_CONSOLE_LINES
+              ? [...run.lines.slice(1), line]
+              : [...run.lines, line],
+        }));
+
       let consoleLinesCount = 0;
       const onEvent = (event: ScriptEvent) => {
         if (event.type === "progress") {
@@ -233,20 +298,16 @@ export const useRunScript = () => {
           return;
         }
         consoleLinesCount++;
-        const line: ScriptConsoleLine =
+        addLine(
           event.type === "console"
             ? { type: "text", level: event.level, text: event.text }
-            : { type: "table", columns: event.columns, rows: event.rows };
-        updateRun((run) => ({
-          ...run,
-          lines:
-            run.lines.length >= MAX_CONSOLE_LINES
-              ? [...run.lines.slice(1), line]
-              : [...run.lines, line],
-        }));
+            : { type: "table", columns: event.columns, rows: event.rows },
+        );
       };
 
       const model = store.get(stagingModelDerivedAtom);
+      const simulationSettings = store.get(simulationSettingsDerivedAtom);
+      const scriptRuns = new Map<string, ScriptSimulationRecord>();
       const handle = scripting.startScriptRun({
         source,
         model,
@@ -265,11 +326,9 @@ export const useRunScript = () => {
           })),
         viewport: currentViewport(),
         project: scriptProjectOf(store.get),
-        simulation: scriptSimulationOf(
-          store.get(simulationSettingsDerivedAtom),
-        ),
+        simulation: scriptSimulationOf(simulationSettings),
         inp: {
-          simulationSettings: store.get(simulationSettingsDerivedAtom),
+          simulationSettings,
           projection: store.get(projectSettingsAtom).projection,
         },
         lastResults: lastResultsOf(store.get),
@@ -279,7 +338,7 @@ export const useRunScript = () => {
         isScriptingSimulationsOn,
         editsBlockedReason:
           editionBlockRef.current && EDITS_BLOCKED[editionBlockRef.current],
-        simulate: simulateForScript(store, (simulation) =>
+        simulate: simulateForScript(store, scriptRuns, (simulation) =>
           updateRun((run) => ({ ...run, simulation })),
         ),
         onEvent,
@@ -312,7 +371,33 @@ export const useRunScript = () => {
           outcome,
           finishedAt,
         }));
-        applyOutcome(outcome, model.version);
+        const areEditsInModel = applyOutcome(outcome, model.version);
+        const currentRun =
+          outcome.status === "success" && outcome.currentRunId
+            ? scriptRuns.get(outcome.currentRunId)
+            : undefined;
+        if (currentRun) {
+          void keepScriptRun(currentRun, {
+            areEditsInModel,
+            hasEdits: outcome.status === "success" && outcome.edits !== null,
+            modelVersion: model.version,
+            simulationSettings,
+          }).then((isKept) =>
+            addLine(
+              isKept
+                ? {
+                    type: "text",
+                    level: "log",
+                    text: "The app's simulation results now show this script's last run.",
+                  }
+                : {
+                    type: "text",
+                    level: "warn",
+                    text: "This script's last run was not kept as the app's simulation results: the network, the simulation settings or the scenario changed while the script ran.",
+                  },
+            ),
+          );
+        }
         if (store.get(dialogAtom)?.type === "scriptRun") setDialog(null);
         showScriptOutput();
         const success = outcome.status === "success" ? outcome : null;
@@ -346,13 +431,22 @@ export const useRunScript = () => {
       isModelValidationsOn,
       isScriptingSimulationsOn,
       showScriptOutput,
+      keepScriptRun,
     ],
   );
+};
+
+type ScriptSimulationRecord = {
+  status: ScriptSimulationRun["status"];
+  report: string;
+  metadata: ArrayBuffer;
+  location: SimulationRunLocation;
 };
 
 const simulateForScript =
   (
     store: ReturnType<typeof useStore>,
+    runs: Map<string, ScriptSimulationRecord>,
     onProgress: (progress: SimulationProgress | null) => void,
   ) =>
   async (inp: string): Promise<ScriptSimulationRun> => {
@@ -371,7 +465,7 @@ const simulateForScript =
       const runQuality =
         store.get(simulationSettingsDerivedAtom).qualitySimulationType !==
         "none";
-      const { status, report } = await runSimulation(
+      const { status, report, metadata } = await runSimulation(
         inp,
         appId,
         (progress) => {
@@ -382,7 +476,14 @@ const simulateForScript =
         runId,
       );
       const hasResults = status === "success" || status === "warning";
-      if (!hasResults) {
+      if (hasResults) {
+        runs.set(runId, {
+          status,
+          report,
+          metadata,
+          location: { appId, scenarioKey, runId },
+        });
+      } else {
         void new OPFSStorage(appId, scenarioKey, runId)
           .clearRun()
           .catch(() => {});

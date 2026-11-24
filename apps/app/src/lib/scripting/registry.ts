@@ -131,6 +131,7 @@ export type ScriptRunOutcome =
   | {
       status: "success";
       edits: Uint8Array | null;
+      currentRunId: string | null;
       selection: ScriptTargets | null;
       zoomTo:
         | ((

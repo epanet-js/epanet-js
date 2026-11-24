@@ -846,6 +846,7 @@ describe("ScriptsPanel", () => {
       vi.fn(({ model }: { model: HydraulicModel }) => ({
         finished: Promise.resolve<ScriptRunOutcome>({
           status: "success",
+          currentRunId: null,
           edits: changeProperty(model, {
             assetIds: [IDS.P1],
             property: "diameter",
@@ -1032,6 +1033,7 @@ describe("ScriptsPanel", () => {
         startScriptRun: vi.fn(({ model }: { model: HydraulicModel }) => ({
           finished: Promise.resolve<ScriptRunOutcome>({
             status: "success",
+            currentRunId: null,
             edits: removeZones(model, { zoneIds: [ZONES.DELETED] }).bytes,
             selection: null,
             zoomTo: null,
@@ -1074,6 +1076,7 @@ describe("ScriptsPanel", () => {
       const startScriptRun = vi.fn(({ model }: { model: HydraulicModel }) => ({
         finished: Promise.resolve<ScriptRunOutcome>({
           status: "success",
+          currentRunId: null,
           edits: changePatterns(
             model,
             new Map([[9, { id: 9, label: "NIGHT", multipliers: [1] }]]),
