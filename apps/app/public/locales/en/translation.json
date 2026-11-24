@@ -1694,7 +1694,7 @@
     },
     "topologyChecks": {
       "title": "Topology checks",
-      "description": "Find pumps and valves in flow loops, and junctions without supply",
+      "description": "Find pumps and valves in potential flow loops, and junctions without supply",
       "summary_zero": "No issues found",
       "summary_one": "1 issue found",
       "summary_other": "{{count}} issues found",
