@@ -1227,9 +1227,15 @@ type NetworkReviewChanged =
       name:
         | "networkReview.orphanAssets.changed"
         | "networkReview.connectivityTrace.changed"
-        | "networkReview.topologyChecks.changed"
         | "networkReview.crossingPipes.changed";
       count: number;
+    }
+  | {
+      name: "networkReview.topologyChecks.changed";
+      count: number;
+      recirculatingPumps: number;
+      recirculatingValves: number;
+      junctionGroupsWithoutSupply: number;
     }
   | {
       name: "networkReview.proximityAnomalies.changed";

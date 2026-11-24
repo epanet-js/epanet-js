@@ -363,7 +363,7 @@ const useCheckTopology = () => {
   const { read } = useCachedCheck(CheckType.topologyChecks);
   const { startLoading, finishLoading, isLoading } = useLoadingStatus();
   const userTracking = useUserTracking();
-  const lastIssuesCount = useRef(0);
+  const lastCounts = useRef([0, 0, 0]);
 
   const checkTopology = useCallback(
     async (signal: AbortSignal) => {
@@ -375,13 +375,23 @@ const useCheckTopology = () => {
       }
       if (signal.aborted) return;
 
-      const issuesCount = listTopologyIssues(read() ?? noTopologyIssues).length;
-      if (lastIssuesCount.current === issuesCount) return;
+      const { selfFeedingPumps, selfFeedingValves, junctionsWithoutSupply } =
+        read() ?? noTopologyIssues;
+      const counts = [
+        selfFeedingPumps.length,
+        selfFeedingValves.length,
+        junctionsWithoutSupply.length,
+      ];
+      if (counts.every((count, i) => count === lastCounts.current[i])) return;
 
-      lastIssuesCount.current = issuesCount;
+      lastCounts.current = counts;
+      const [recirculatingPumps, recirculatingValves, junctionGroups] = counts;
       userTracking.capture({
         name: "networkReview.topologyChecks.changed",
-        count: issuesCount,
+        count: recirculatingPumps + recirculatingValves + junctionGroups,
+        recirculatingPumps,
+        recirculatingValves,
+        junctionGroupsWithoutSupply: junctionGroups,
       });
     },
     [startLoading, finishLoading, ensureFresh, read, userTracking],
