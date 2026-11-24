@@ -1,5 +1,5 @@
 export { SCRIPT_API_VERSION } from "./api-version";
-export { editsCandidateDocs, scriptingDocs } from "./definition";
+export { scriptingDocs, simulationsCandidateDocs } from "./definition";
 export { exampleScripts } from "./example-scripts";
 export { renderLlmsTxt } from "./render/markdown";
 export { renderDeclarations } from "./render/declarations";

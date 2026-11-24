@@ -1,11 +1,11 @@
 import ts from "typescript";
-import { editsCandidateDocs, scriptingDocs } from "../definition";
+import { simulationsCandidateDocs, scriptingDocs } from "../definition";
 import type { ScriptingDocs } from "../types";
 import { renderDeclarations } from "./declarations";
 
 describe.each<[string, ScriptingDocs]>([
   ["scriptingDocs", scriptingDocs],
-  ["editsCandidateDocs", editsCandidateDocs],
+  ["simulationsCandidateDocs", simulationsCandidateDocs],
 ])("renderDeclarations(%s)", (_name, docs) => {
   it("compiles against the ES2020 library with no errors", () => {
     const fileName = "/scripting.d.ts";

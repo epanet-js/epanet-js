@@ -1,8 +1,8 @@
 import ts from "typescript";
 import {
   renderDeclarations,
-  editsCandidateDocs,
   scriptingDocs,
+  simulationsCandidateDocs,
   type ScriptingDocs,
 } from "@epanet-js/scripting-docs";
 import { DEFAULT_LIB, typescriptLibs } from "./typescript-libs";
@@ -32,11 +32,11 @@ export type ScriptCompletionDetails = {
   documentation: string;
 };
 
-export type ScriptingDocsVariant = "official" | "editsCandidate";
+export type ScriptingDocsVariant = "official" | "simulationsCandidate";
 
 export const docsOf: Record<ScriptingDocsVariant, ScriptingDocs> = {
   official: scriptingDocs,
-  editsCandidate: editsCandidateDocs,
+  simulationsCandidate: simulationsCandidateDocs,
 };
 
 export type ScriptLanguageService = {

@@ -1,36 +1,8 @@
 import { memberOf, propertyOf } from "../members";
-import type { DocsCandidates, Member, SectionDef } from "../types";
+import type { Member, SectionDef } from "../types";
 
 const network = memberOf("Network");
 const property = propertyOf("Network");
-
-const SECTION: SectionDef = {
-  id: "controls-and-attributes",
-  title: "Controls and allocation rules",
-  types: [
-    {
-      name: "AllocationRule",
-      definition:
-        "interface AllocationRule { maxDistance: number; maxDiameter: number }",
-      summary: "A customer point allocation rule.",
-    },
-  ],
-  members: [
-    property(
-      "rawControls",
-      "string[]",
-      'The `[CONTROLS]` lines as INP text, e.g. `"LINK PU1 CLOSED IF NODE T1 ABOVE 5"`. Filter them as strings.',
-    ),
-    property("rawRules", "string[]", "The `[RULES]` blocks as INP text."),
-    property(
-      "defaultAllocationRules",
-      "AllocationRule[]",
-      "The default customer point allocation rules for the project's units.",
-    ),
-  ],
-  notes:
-    "The pumps' structured controls are on `pump.control`, not in `rawControls`. Read both before judging why a pump is off or a valve is closed.",
-};
 
 const SET_RAW_CONTROLS: Member = network({
   name: "setRawControls",
@@ -72,10 +44,32 @@ const SET_RAW_RULES: Member = network({
   ],
 });
 
-export const sectionFor = ({ edits }: DocsCandidates): SectionDef =>
-  edits
-    ? {
-        ...SECTION,
-        members: [...(SECTION.members ?? []), SET_RAW_CONTROLS, SET_RAW_RULES],
-      }
-    : SECTION;
+export const SECTION: SectionDef = {
+  id: "controls-and-attributes",
+  title: "Controls and allocation rules",
+  types: [
+    {
+      name: "AllocationRule",
+      definition:
+        "interface AllocationRule { maxDistance: number; maxDiameter: number }",
+      summary: "A customer point allocation rule.",
+    },
+  ],
+  members: [
+    property(
+      "rawControls",
+      "string[]",
+      'The `[CONTROLS]` lines as INP text, e.g. `"LINK PU1 CLOSED IF NODE T1 ABOVE 5"`. Filter them as strings.',
+    ),
+    property("rawRules", "string[]", "The `[RULES]` blocks as INP text."),
+    property(
+      "defaultAllocationRules",
+      "AllocationRule[]",
+      "The default customer point allocation rules for the project's units.",
+    ),
+    SET_RAW_CONTROLS,
+    SET_RAW_RULES,
+  ],
+  notes:
+    "The pumps' structured controls are on `pump.control`, not in `rawControls`. Read both before judging why a pump is off or a valve is closed.",
+};

@@ -1,14 +1,14 @@
 import { SCRIPT_API_VERSION } from "./api-version";
 import { exampleScripts } from "./example-scripts";
 import { GLOBALS, INTERFACES } from "./interfaces";
-import { sectionFor as assetsFor } from "./sections/assets";
+import { SECTION as ASSETS } from "./sections/assets";
 import { SECTION as COLLECTIONS } from "./sections/collections";
 import { SECTION as EXPORT } from "./sections/export";
-import { sectionFor as controlsAndAttributesFor } from "./sections/controls-and-attributes";
-import { sectionFor as pipeLibraryFor } from "./sections/pipe-library";
-import { sectionFor as customAttributesFor } from "./sections/custom-attributes";
-import { sectionFor as curvesFor } from "./sections/curves";
-import { sectionFor as patternsFor } from "./sections/patterns";
+import { SECTION as CONTROLS_AND_ATTRIBUTES } from "./sections/controls-and-attributes";
+import { SECTION as PIPE_LIBRARY } from "./sections/pipe-library";
+import { SECTION as CUSTOM_ATTRIBUTES } from "./sections/custom-attributes";
+import { SECTION as CURVES } from "./sections/curves";
+import { SECTION as PATTERNS } from "./sections/patterns";
 import {
   COLLECTIONS_SECTION,
   CONSOLE_SECTION,
@@ -23,15 +23,12 @@ import {
   SECTION as RESULTS,
 } from "./sections/results";
 import { SECTION as REVIEW } from "./sections/review";
-import { sectionFor as scriptRunsFor } from "./sections/script-runs";
+import { SECTION as SCRIPT_RUNS } from "./sections/script-runs";
 import { SECTION as SPATIAL } from "./sections/spatial";
 import { SECTION as TOPOLOGY } from "./sections/topology";
-import { sectionFor as zonesFor } from "./sections/zones";
+import { SECTION as ZONES } from "./sections/zones";
 import { numberSections } from "./outline";
-import type { DocsCandidates, ScriptingDocs } from "./types";
-
-const READ_ONLY_RULE =
-  "Everything is read-only. If the user asks to change the model, say so — do not write a script that assigns to asset fields.";
+import type { ScriptingDocs } from "./types";
 
 const EDITS_RULE =
   "Change assets only with `asset.set(...)` for the label and the attributes its `Changes` type lists, a customer point's label with `customerPoint.set(...)`, a zone's label with `zone.set(...)` and delete one with `zones.delete(...)`, custom attributes with `setCustom(...)`, the demands of a junction or customer point with `setDemands(...)`, a node's quality source with `setQualitySource(...)`, a tank's volume curve with `setVolumeCurve(...)`, a pump's definition with `setDefinition(...)` and its control with `setControl(...)`, and a valve's kind with `setKind(...)` and its control with `setControl(...)`. Add patterns with `network.addPattern(...)`, change one with `pattern.set(...)` and delete one with `network.deletePattern(...)`, and add curves with `network.addCurve(...)`, change one with `curve.set(...)` and delete one with `network.deleteCurve(...)`. Add pipe library materials with `network.addPipeMaterial(...)`, change one with `material.set(...)` and delete one with `network.deletePipeMaterial(...)`. Replace the `[CONTROLS]` lines with `network.setRawControls(...)` and the `[RULES]` blocks with `network.setRawRules(...)`. Define custom attributes with `network.addCustomAttribute(...)`, rename one with `attribute.set(...)` and delete one with `network.deleteCustomAttribute(...)`; all three are refused while the project has scenarios. Everything else is read-only. If the user asks for another change, say so — never assign to asset fields.";
@@ -40,7 +37,7 @@ const AGENT_RULES = [
   "Orient once: start the first script on an unfamiliar model with `console.log(network.stats)` and `console.log(network.units)`.",
   "Check `network.units` before hard-coding a threshold. A pipe diameter of 100 is 100 mm in one project and 100 in in another.",
   "Prefer `getNode`/`getLink` over `get`; never persist `uid`s; address assets by label.",
-  READ_ONLY_RULE,
+  EDITS_RULE,
   "No `Date.now()`, `new Date()` or `Math.random()`: they throw in this sandbox.",
   "`JSON.stringify(asset)` is `{}`. Map assets to plain objects of the fields you need before serialising.",
   "Use the app's own checks instead of re-implementing them: `network.validate()`, `findOrphanAssets()`, `findSubnetworks()`, `findProximityAnomalies({ distance })`, `findCrossingPipes()`, `trace`, `boundaryLinks`, `shortestPath`.",
@@ -54,16 +51,16 @@ const AGENT_RULES = [
   'When the user names a DMA or a zone, look in `zones` (the drawn polygons); `network.trace` is a different, connectivity-based "zone".',
 ];
 
-const buildDocs = (candidates: DocsCandidates): ScriptingDocs => ({
+export const scriptingDocs: ScriptingDocs = {
   title: "epanet-js scripting API",
   apiVersion: SCRIPT_API_VERSION,
-  summary: `Sandboxed JavaScript scripting for epanet-js, a browser-based water network modelling app built on the EPANET engine. A script reads the open network — assets, patterns, curves, controls, the pipe library, settings — queries it spatially and topologically, reads the project's zones, runs the app's own review checks, reads the last simulation's results, exports it as INP, and hands results back as the map selection, a zoom, console output and attached files. ${candidates.edits ? "Scripts can change asset attributes, asset, customer point and zone labels and pump controls, delete zones, add, change and delete patterns, add, change and delete curves, add, change and delete pipe library materials, replace the `[CONTROLS]` lines and `[RULES]` blocks, and add, rename and delete custom attributes; they cannot otherwise edit the model or run a simulation." : "This version is read-only: scripts cannot edit the model or run a simulation."}`,
+  summary: `Sandboxed JavaScript scripting for epanet-js, a browser-based water network modelling app built on the EPANET engine. A script reads the open network — assets, patterns, curves, controls, the pipe library, settings — queries it spatially and topologically, reads the project's zones, runs the app's own review checks, reads the last simulation's results, exports it as INP, and hands results back as the map selection, a zoom, console output and attached files. Scripts can change asset attributes, asset, customer point and zone labels and pump controls, delete zones, add, change and delete patterns, add, change and delete curves, add, change and delete pipe library materials, replace the \`[CONTROLS]\` lines and \`[RULES]\` blocks, and add, rename and delete custom attributes; they cannot otherwise edit the model or run a simulation.`,
   intro:
     "This is the complete surface a script sees. Everything below is injected into the sandbox; nothing else exists.",
   globals: GLOBALS,
   interfaces: [...INTERFACES, ...RESULTS_INTERFACES],
   sections: numberSections({
-    preface: [scriptRunsFor(candidates)],
+    preface: [SCRIPT_RUNS],
     chapters: [
       {
         id: "network",
@@ -71,12 +68,12 @@ const buildDocs = (candidates: DocsCandidates): ScriptingDocs => ({
         subsections: [
           OVERVIEW,
           COLLECTIONS,
-          assetsFor(candidates),
-          patternsFor(candidates),
-          curvesFor(candidates),
-          pipeLibraryFor(candidates),
-          controlsAndAttributesFor(candidates),
-          customAttributesFor(candidates),
+          ASSETS,
+          PATTERNS,
+          CURVES,
+          PIPE_LIBRARY,
+          CONTROLS_AND_ATTRIBUTES,
+          CUSTOM_ATTRIBUTES,
           SPATIAL,
           TOPOLOGY,
           REVIEW,
@@ -84,7 +81,7 @@ const buildDocs = (candidates: DocsCandidates): ScriptingDocs => ({
           RESULTS,
         ],
       },
-      zonesFor(candidates),
+      ZONES,
       SELECTION_SECTION,
       MAP_SECTION,
       CONSOLE_SECTION,
@@ -93,14 +90,8 @@ const buildDocs = (candidates: DocsCandidates): ScriptingDocs => ({
       ERRORS_SECTION,
     ],
   }),
-  agentRules: AGENT_RULES.map((rule) =>
-    rule === READ_ONLY_RULE && candidates.edits ? EDITS_RULE : rule,
-  ),
-  exampleScripts: exampleScripts.filter(
-    (example) => candidates.edits || !example.needsEdits,
-  ),
-});
+  agentRules: AGENT_RULES,
+  exampleScripts,
+};
 
-export const scriptingDocs = buildDocs({ edits: true });
-
-export const editsCandidateDocs = scriptingDocs;
+export const simulationsCandidateDocs = scriptingDocs;

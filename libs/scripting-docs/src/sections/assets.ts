@@ -1,11 +1,5 @@
 import { memberOf, propertyOf } from "../members";
-import type {
-  DocsCandidates,
-  Markdown,
-  Member,
-  SectionDef,
-  TypeDef,
-} from "../types";
+import type { Markdown, Member, SectionDef, TypeDef } from "../types";
 
 const asset = propertyOf("Asset");
 const node = propertyOf("NodeAsset");
@@ -197,11 +191,11 @@ const valveResults = resultsOf(
 console.log(struggling.map((valve) => \`\${valve.label}: \${valve.results.statusWarning}\`));`,
 );
 
-const SECTION: SectionDef = {
+const READS: SectionDef = {
   id: "assets",
   title: "Assets",
   intro:
-    "Every asset is a read-only object of getters. A value the model has not set reads as `null`.",
+    "Every asset is an object of getters. A value the model has not set reads as `null`. Every asset also changes through `set`.",
   types: [
     {
       name: "AssetType",
@@ -983,16 +977,11 @@ console.log(pipe.diameter, network.units.diameter, pipe.status);`,
   ],
 ]);
 
-export const sectionFor = ({ edits }: DocsCandidates): SectionDef =>
-  edits
-    ? {
-        ...SECTION,
-        intro:
-          "Every asset is an object of getters. A value the model has not set reads as `null`. Every asset also changes through `set`.",
-        members: (SECTION.members ?? []).flatMap((member) => [
-          ...(EDITS_BEFORE.get(member) ?? []),
-          member,
-          ...editsAfter(member),
-        ]),
-      }
-    : SECTION;
+export const SECTION: SectionDef = {
+  ...READS,
+  members: (READS.members ?? []).flatMap((member) => [
+    ...(EDITS_BEFORE.get(member) ?? []),
+    member,
+    ...editsAfter(member),
+  ]),
+};

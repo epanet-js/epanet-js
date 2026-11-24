@@ -54,7 +54,6 @@ export type ExampleScript = {
   name: string;
   source: string;
   paid: boolean;
-  needsEdits: boolean;
 };
 
 export type ScriptingDocs = {
@@ -68,5 +67,3 @@ export type ScriptingDocs = {
   agentRules: Markdown[];
   exampleScripts: ExampleScript[];
 };
-
-export type DocsCandidates = { edits: boolean };

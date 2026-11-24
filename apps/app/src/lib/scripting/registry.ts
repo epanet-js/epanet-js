@@ -158,7 +158,6 @@ export type ExampleScript = {
   name: string;
   source: string;
   paid: boolean;
-  needsEdits: boolean;
 };
 
 export type Scripting = {

@@ -1,33 +1,9 @@
 import { memberOf, propertyOf } from "../members";
-import type { DocsCandidates, Member, SectionDef } from "../types";
+import type { Member, SectionDef } from "../types";
 
 const network = memberOf("Network");
 const property = propertyOf("Network");
 const patternProperty = propertyOf("Pattern");
-
-const SECTION: SectionDef = {
-  id: "patterns",
-  title: "Patterns",
-  members: [
-    property("patterns", "Pattern[]", "Every pattern."),
-    network({
-      name: "getPattern",
-      signature: "getPattern(label: string): Pattern | null",
-      summary: "One pattern by label, or `null`.",
-    }),
-    patternProperty("label", "string", "The pattern's label."),
-    patternProperty(
-      "type",
-      '"demand" | "reservoirHead" | "pumpSpeed" | "qualitySourceStrength" | "energyPrice"',
-      "What the pattern is for.",
-    ),
-    patternProperty(
-      "multipliers",
-      "number[]",
-      "One multiplier per pattern timestep.",
-    ),
-  ],
-};
 
 const ADD_PATTERN: Member = network({
   name: "addPattern",
@@ -102,15 +78,29 @@ const DELETE_PATTERN: Member = network({
   ],
 });
 
-export const sectionFor = ({ edits }: DocsCandidates): SectionDef =>
-  edits
-    ? {
-        ...SECTION,
-        members: [
-          ...(SECTION.members ?? []),
-          ADD_PATTERN,
-          SET_PATTERN,
-          DELETE_PATTERN,
-        ],
-      }
-    : SECTION;
+export const SECTION: SectionDef = {
+  id: "patterns",
+  title: "Patterns",
+  members: [
+    property("patterns", "Pattern[]", "Every pattern."),
+    network({
+      name: "getPattern",
+      signature: "getPattern(label: string): Pattern | null",
+      summary: "One pattern by label, or `null`.",
+    }),
+    patternProperty("label", "string", "The pattern's label."),
+    patternProperty(
+      "type",
+      '"demand" | "reservoirHead" | "pumpSpeed" | "qualitySourceStrength" | "energyPrice"',
+      "What the pattern is for.",
+    ),
+    patternProperty(
+      "multipliers",
+      "number[]",
+      "One multiplier per pattern timestep.",
+    ),
+    ADD_PATTERN,
+    SET_PATTERN,
+    DELETE_PATTERN,
+  ],
+};

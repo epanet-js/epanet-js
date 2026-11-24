@@ -1,28 +1,9 @@
 import { memberOf, propertyOf } from "../members";
-import type { DocsCandidates, Member, SectionDef } from "../types";
+import type { Member, SectionDef } from "../types";
 
 const network = memberOf("Network");
 const property = propertyOf("Network");
 const materialProperty = propertyOf("PipeMaterial");
-
-const SECTION: SectionDef = {
-  id: "pipe-library",
-  title: "Pipe library",
-  members: [
-    property("pipeMaterials", "PipeMaterial[]", "The pipe library."),
-    network({
-      name: "getPipeMaterial",
-      signature: "getPipeMaterial(label: string): PipeMaterial | null",
-      summary: "One pipe library material by label, ignoring case, or `null`.",
-    }),
-    materialProperty("label", "string", "The material's label."),
-    materialProperty(
-      "entries",
-      "{ age: number; roughness: number }[]",
-      "The roughness the material has from each age, in years, on.",
-    ),
-  ],
-};
 
 const ADD_PIPE_MATERIAL: Member = network({
   name: "addPipeMaterial",
@@ -84,15 +65,24 @@ network.deletePipeMaterial("DUCTILE");`,
   ],
 });
 
-export const sectionFor = ({ edits }: DocsCandidates): SectionDef =>
-  edits
-    ? {
-        ...SECTION,
-        members: [
-          ...(SECTION.members ?? []),
-          ADD_PIPE_MATERIAL,
-          SET_PIPE_MATERIAL,
-          DELETE_PIPE_MATERIAL,
-        ],
-      }
-    : SECTION;
+export const SECTION: SectionDef = {
+  id: "pipe-library",
+  title: "Pipe library",
+  members: [
+    property("pipeMaterials", "PipeMaterial[]", "The pipe library."),
+    network({
+      name: "getPipeMaterial",
+      signature: "getPipeMaterial(label: string): PipeMaterial | null",
+      summary: "One pipe library material by label, ignoring case, or `null`.",
+    }),
+    materialProperty("label", "string", "The material's label."),
+    materialProperty(
+      "entries",
+      "{ age: number; roughness: number }[]",
+      "The roughness the material has from each age, in years, on.",
+    ),
+    ADD_PIPE_MATERIAL,
+    SET_PIPE_MATERIAL,
+    DELETE_PIPE_MATERIAL,
+  ],
+};

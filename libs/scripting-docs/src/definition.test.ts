@@ -1,5 +1,5 @@
 import { SCRIPT_API_VERSION } from "./api-version";
-import { editsCandidateDocs, scriptingDocs } from "./definition";
+import { simulationsCandidateDocs, scriptingDocs } from "./definition";
 import { objectIndexOf } from "./outline";
 import { renderLlmsTxt } from "./render/markdown";
 import { callForm, parseSignature } from "./signature";
@@ -7,7 +7,7 @@ import type { ScriptingDocs } from "./types";
 
 describe.each<[string, ScriptingDocs]>([
   ["scriptingDocs", scriptingDocs],
-  ["editsCandidateDocs", editsCandidateDocs],
+  ["simulationsCandidateDocs", simulationsCandidateDocs],
 ])("%s", (_name, docs) => {
   const members = docs.sections.flatMap((section) => section.members ?? []);
   const pathOf = (owner: string) =>
@@ -139,14 +139,5 @@ describe.each<[string, ScriptingDocs]>([
         null,
       ]);
     });
-  });
-});
-
-describe("edits", () => {
-  it("documents edits and the examples that edit the model", () => {
-    expect(renderLlmsTxt(scriptingDocs)).toContain("set(changes: {");
-    expect(
-      scriptingDocs.exampleScripts.some((example) => example.needsEdits),
-    ).toBe(true);
   });
 });

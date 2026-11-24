@@ -1,33 +1,9 @@
 import { memberOf, propertyOf } from "../members";
-import type { DocsCandidates, Member, SectionDef } from "../types";
+import type { Member, SectionDef } from "../types";
 
 const network = memberOf("Network");
 const property = propertyOf("Network");
 const curveProperty = propertyOf("Curve");
-
-const SECTION: SectionDef = {
-  id: "curves",
-  title: "Curves",
-  members: [
-    property("curves", "Curve[]", "Every curve."),
-    network({
-      name: "getCurve",
-      signature: "getCurve(label: string): Curve | null",
-      summary: "One curve by label, or `null`.",
-    }),
-    curveProperty("label", "string", "The curve's label."),
-    curveProperty(
-      "type",
-      '"pump" | "efficiency" | "volume" | "valve" | "headloss"',
-      "What the curve is for.",
-    ),
-    curveProperty(
-      "points",
-      "{ x: number; y: number }[]",
-      "The curve's points.",
-    ),
-  ],
-};
 
 const ADD_CURVE: Member = network({
   name: "addCurve",
@@ -100,15 +76,29 @@ const DELETE_CURVE: Member = network({
   ],
 });
 
-export const sectionFor = ({ edits }: DocsCandidates): SectionDef =>
-  edits
-    ? {
-        ...SECTION,
-        members: [
-          ...(SECTION.members ?? []),
-          ADD_CURVE,
-          SET_CURVE,
-          DELETE_CURVE,
-        ],
-      }
-    : SECTION;
+export const SECTION: SectionDef = {
+  id: "curves",
+  title: "Curves",
+  members: [
+    property("curves", "Curve[]", "Every curve."),
+    network({
+      name: "getCurve",
+      signature: "getCurve(label: string): Curve | null",
+      summary: "One curve by label, or `null`.",
+    }),
+    curveProperty("label", "string", "The curve's label."),
+    curveProperty(
+      "type",
+      '"pump" | "efficiency" | "volume" | "valve" | "headloss"',
+      "What the curve is for.",
+    ),
+    curveProperty(
+      "points",
+      "{ x: number; y: number }[]",
+      "The curve's points.",
+    ),
+    ADD_CURVE,
+    SET_CURVE,
+    DELETE_CURVE,
+  ],
+};

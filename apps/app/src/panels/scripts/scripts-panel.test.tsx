@@ -131,7 +131,6 @@ describe("ScriptsPanel", () => {
           name: "Select small pipes",
           source: "console.log(1);",
           paid: false,
-          needsEdits: false,
         },
       ],
     });
@@ -1253,7 +1252,6 @@ describe("ScriptsPanel", () => {
             name: "Select small pipes",
             source: "console.log(1);",
             paid: false,
-            needsEdits: false,
           },
         ],
       });
@@ -1279,14 +1277,12 @@ describe("ScriptsPanel", () => {
             name: "Select small pipes",
             source: "",
             paid: false,
-            needsEdits: false,
           },
           {
             id: "network-review",
             name: "Network review report",
             source: "",
             paid: true,
-            needsEdits: false,
           },
         ],
       });

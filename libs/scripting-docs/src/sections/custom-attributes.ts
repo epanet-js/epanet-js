@@ -1,35 +1,8 @@
 import { memberOf, propertyOf } from "../members";
-import type { DocsCandidates, Member, SectionDef } from "../types";
+import type { Member, SectionDef } from "../types";
 
 const network = memberOf("Network");
 const attributeProperty = propertyOf("CustomAttribute");
-
-const SECTION: SectionDef = {
-  id: "custom-attributes",
-  title: "Custom attributes",
-  members: [
-    network({
-      name: "customAttributes",
-      signature:
-        'customAttributes(type: AssetType | "customerPoint"): CustomAttribute[]',
-      summary: "The custom attributes defined for a type.",
-      description: "Read a value with `asset.getCustom(name)`.",
-      throws: [
-        "`network.customAttributes expects one of junction, reservoir, tank, pipe, pump, valve, customerPoint`",
-      ],
-    }),
-    attributeProperty(
-      "name",
-      "string",
-      "The attribute's name, unique within its type, ignoring case.",
-    ),
-    attributeProperty(
-      "type",
-      '"text" | "number"',
-      "What values of the attribute hold.",
-    ),
-  ],
-};
 
 const ADD_CUSTOM_ATTRIBUTE: Member = network({
   name: "addCustomAttribute",
@@ -95,7 +68,7 @@ const DELETE_CUSTOM_ATTRIBUTE: Member = network({
   ],
 });
 
-const CUSTOM_ATTRIBUTES_WITH_ZONES: Member = network({
+const CUSTOM_ATTRIBUTES: Member = network({
   name: "customAttributes",
   signature:
     'customAttributes(type: AssetType | "customerPoint" | "zone"): CustomAttribute[]',
@@ -106,16 +79,23 @@ const CUSTOM_ATTRIBUTES_WITH_ZONES: Member = network({
   ],
 });
 
-export const sectionFor = ({ edits }: DocsCandidates): SectionDef =>
-  edits
-    ? {
-        ...SECTION,
-        members: [
-          CUSTOM_ATTRIBUTES_WITH_ZONES,
-          ...(SECTION.members ?? []).slice(1),
-          ADD_CUSTOM_ATTRIBUTE,
-          SET_CUSTOM_ATTRIBUTE,
-          DELETE_CUSTOM_ATTRIBUTE,
-        ],
-      }
-    : SECTION;
+export const SECTION: SectionDef = {
+  id: "custom-attributes",
+  title: "Custom attributes",
+  members: [
+    CUSTOM_ATTRIBUTES,
+    attributeProperty(
+      "name",
+      "string",
+      "The attribute's name, unique within its type, ignoring case.",
+    ),
+    attributeProperty(
+      "type",
+      '"text" | "number"',
+      "What values of the attribute hold.",
+    ),
+    ADD_CUSTOM_ATTRIBUTE,
+    SET_CUSTOM_ATTRIBUTE,
+    DELETE_CUSTOM_ATTRIBUTE,
+  ],
+};

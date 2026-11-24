@@ -1,11 +1,49 @@
 import { memberOf, propertyOf } from "../members";
-import type { DocsCandidates, Member, SectionDef } from "../types";
+import type { Member, SectionDef } from "../types";
 import { setCustomOf } from "./assets";
 
 const zones = memberOf("Zones");
 const zone = propertyOf("Zone");
 
-const SECTION: SectionDef = {
+const ZONE_EDITS: Member[] = [
+  memberOf("Zone")({
+    name: "getCustom",
+    signature: "getCustom(name: string): string | number | null",
+    summary: "A custom attribute's value by its name, or `null`.",
+  }),
+  setCustomOf(
+    "Zone",
+    `network.addCustomAttribute("zone", { name: "Owner", type: "text" });
+zones.get("NORTH").setCustom("Owner", "OPERATIONS");`,
+  ),
+  memberOf("Zone")({
+    name: "set",
+    signature: `set(changes: {
+  label?: string;
+}): void`,
+    summary: "Changes the zone's label.",
+    description:
+      "A label is unique among the zones, ignoring case. The zone reads the new label straight away and `zones.get` stops finding the old one; the change reaches the network with the other changes.",
+    throws: [
+      "`TypeError` when `changes` names anything else, `label` is empty or not a string, or another zone has it.",
+    ],
+    examples: [{ code: `zones.get("NORTH").set({ label: "NORTH-EAST" });` }],
+  }),
+];
+
+const DELETE_ZONE: Member = zones({
+  name: "delete",
+  signature: "delete(label: string): void",
+  summary: "Deletes a zone by its label, ignoring case.",
+  description:
+    "The zone leaves `zones` straight away and its label is free again. A zone the script still holds stops reading. The deletion reaches the network with the other changes.",
+  throws: [
+    "`TypeError` when no zone has that label, or deleting zones is not available yet.",
+  ],
+  examples: [{ code: `zones.delete("NORTH");` }],
+});
+
+export const SECTION: SectionDef = {
   id: "zones",
   title: "`zones` — the project's polygons",
   intro: `The polygons imported with **File › Import › Zones** — DMAs, pressure zones, supply areas. They are drawn boundaries, unrelated to connectivity: \`network.trace\` walks the pipes and knows nothing about them.
@@ -63,55 +101,9 @@ A node, a customer point or a \`[lng, lat]\` position is inside a zone when its 
         },
       ],
     }),
+    ...ZONE_EDITS,
+    DELETE_ZONE,
   ],
   notes:
-    "`console` and `ui.attachFile` print a zone as its label. Zones are the same in every scenario.",
+    "`console` and `ui.attachFile` print a zone as its label. A change made in a scenario stays in that scenario.",
 };
-
-const ZONE_EDITS: Member[] = [
-  memberOf("Zone")({
-    name: "getCustom",
-    signature: "getCustom(name: string): string | number | null",
-    summary: "A custom attribute's value by its name, or `null`.",
-  }),
-  setCustomOf(
-    "Zone",
-    `network.addCustomAttribute("zone", { name: "Owner", type: "text" });
-zones.get("NORTH").setCustom("Owner", "OPERATIONS");`,
-  ),
-  memberOf("Zone")({
-    name: "set",
-    signature: `set(changes: {
-  label?: string;
-}): void`,
-    summary: "Changes the zone's label.",
-    description:
-      "A label is unique among the zones, ignoring case. The zone reads the new label straight away and `zones.get` stops finding the old one; the change reaches the network with the other changes.",
-    throws: [
-      "`TypeError` when `changes` names anything else, `label` is empty or not a string, or another zone has it.",
-    ],
-    examples: [{ code: `zones.get("NORTH").set({ label: "NORTH-EAST" });` }],
-  }),
-];
-
-const DELETE_ZONE: Member = zones({
-  name: "delete",
-  signature: "delete(label: string): void",
-  summary: "Deletes a zone by its label, ignoring case.",
-  description:
-    "The zone leaves `zones` straight away and its label is free again. A zone the script still holds stops reading. The deletion reaches the network with the other changes.",
-  throws: [
-    "`TypeError` when no zone has that label, or deleting zones is not available yet.",
-  ],
-  examples: [{ code: `zones.delete("NORTH");` }],
-});
-
-export const sectionFor = ({ edits }: DocsCandidates): SectionDef =>
-  edits
-    ? {
-        ...SECTION,
-        members: [...(SECTION.members ?? []), ...ZONE_EDITS, DELETE_ZONE],
-        notes:
-          "`console` and `ui.attachFile` print a zone as its label. A change made in a scenario stays in that scenario.",
-      }
-    : SECTION;

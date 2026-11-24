@@ -5,7 +5,6 @@ export const exampleScripts: ExampleScript[] = [
     id: "select-small-pipes",
     name: "Select small pipes",
     paid: false,
-    needsEdits: false,
     source: `const MAX_DIAMETER = 100; // select pipes at or below this (project units)
 
 const small = network.pipes.filter((p) => p.diameter <= MAX_DIAMETER);
@@ -22,7 +21,6 @@ map.zoomTo(small);
     id: "pipe-length-by-diameter",
     name: "Pipe length by diameter",
     paid: false,
-    needsEdits: false,
     source: `// Uses the selected pipes, or every pipe when nothing is selected.
 const pipes = selection.isEmpty
   ? network.pipes
@@ -49,7 +47,6 @@ console.table(
     id: "scale-demands",
     name: "Scale demands by a percentage",
     paid: false,
-    needsEdits: true,
     source: `const PERCENT = 10; // 10 raises every demand by 10%, -10 lowers it by 10%
 
 // Uses the selected junctions and customer points, or all of them when nothing is selected.
@@ -82,7 +79,6 @@ console.table([
     id: "export-pipes-csv",
     name: "Export pipes to CSV",
     paid: false,
-    needsEdits: false,
     source: `const pipes = network.pipes;
 const rows = ["label,diameter,length,start,end"];
 for (const [i, p] of pipes.entries()) {
@@ -99,7 +95,6 @@ ui.attachFile("pipes.csv", rows.join("\\n"));
     id: "count-by-custom-attribute",
     name: "Count by custom attribute",
     paid: false,
-    needsEdits: false,
     source: `const ATTRIBUTE = "Class"; // the custom attribute's name, as in the asset panel
 const TYPE = "pipe"; // the asset type it is defined for
 
@@ -127,7 +122,6 @@ if (missing.length > 0) selection.set(missing);
     id: "expand-selection",
     name: "Expand selection by one hop",
     paid: false,
-    needsEdits: false,
     source: `if (selection.isEmpty) throw new Error("Select some assets first");
 const start = selection.assets;
 
@@ -156,7 +150,6 @@ map.zoomTo([...expanded]);
     id: "trace-zone",
     name: "Trace the zone around the selection",
     paid: false,
-    needsEdits: false,
     source: `const MAIN_DIAMETER = 300; // stop at pipes at or above this (project units)
 
 // The Trace tool's boundary mode stops at tanks, reservoirs, pumps, closed
@@ -194,7 +187,6 @@ map.zoomTo(assets);
     id: "zone-summary",
     name: "Summarise each zone",
     paid: false,
-    needsEdits: false,
     source: `// Counts the junctions, pipe length and customer demand inside each zone
 // imported with File > Import > Zones. A pipe counts only when all of it is
 // inside, so one crossing a boundary is in no zone.
@@ -231,7 +223,6 @@ if (outside.length > 0) {
     id: "tag-assets-by-zone",
     name: "Tag assets with their zone",
     paid: false,
-    needsEdits: true,
     source: `const ATTRIBUTE = "Zone";
 const ZONE_DEMAND = "Base demand";
 
@@ -269,7 +260,6 @@ selection.set(outside);
     id: "network-review",
     name: "Network review report",
     paid: true,
-    needsEdits: false,
     source: `const PROXIMITY = network.units.length === "ft" ? 1.5 : 0.5; // the review panel's default (project units)
 
 // The Network Review panel's checks in one pass: the checks behind Run
@@ -329,7 +319,6 @@ if (findings.length === 0) {
     id: "upsize-fastest-pipes",
     name: "Upsize the fastest pipes",
     paid: false,
-    needsEdits: true,
     source: `const COUNT = 5; // how many of the fastest pipes to upsize, when no pipe is selected
 const SIZES = network.units.diameter === "mm"
   ? [50, 80, 100, 150, 200, 250, 300, 350, 400, 500, 600, 700, 800, 900, 1000, 1200]
@@ -384,7 +373,6 @@ map.zoomTo(upsized);
     id: "water-source",
     name: "Where does this node get its water?",
     paid: false,
-    needsEdits: false,
     source: `// The path from each reservoir and tank to the selected node. weightBy
 // makes a pipe cost length / diameter⁵, roughly how its headloss grows, so
 // the path follows the large pipes the water would take rather than the
@@ -431,7 +419,6 @@ map.zoomTo(assets);
     id: "renew-oldest-pipes",
     name: "Renew the oldest pipes",
     paid: false,
-    needsEdits: true,
     source: `const COUNT = 20; // how many of the oldest pipes to renew, when no pipe is selected
 const NEW_MATERIAL = "uPVC"; // must be in the pipe library
 const RENEWAL_YEAR = 2026;
@@ -482,7 +469,6 @@ map.zoomTo(pipes);
     id: "infer-pipe-attributes",
     name: "Infer missing pipe attributes",
     paid: false,
-    needsEdits: true,
     source: `// Infer missing pipe attributes from the nearest pipe that has a value.
 //
 // For each attribute, every pipe with a value is a donor. A pipe without one
@@ -667,7 +653,6 @@ if (changed.size === 0) {
     id: "pattern-and-curve-usage",
     name: "Pattern and curve usage",
     paid: false,
-    needsEdits: false,
     source: `// Finds what uses each pattern and curve, and which ones nothing uses.
 const patternUses = new Map(network.patterns.map((p) => [p.label, []]));
 const curveUses = new Map(network.curves.map((c) => [c.label, []]));

@@ -1,4 +1,4 @@
-import type { DocsCandidates, SectionDef } from "../types";
+import type { SectionDef } from "../types";
 
 const OUTPUT =
   "`selection.set`, `map.zoomTo`, `ui.attachFile`, `collections.saveSelectionSet`, `collections.saveBookmark`";
@@ -9,17 +9,12 @@ const FAILED_RUN =
 const ASSIGNING =
   "Every value a script receives is frozen. Assigning to an asset field throws (`Cannot set property diameter … which has only a getter`).";
 
-const READ_ONLY = {
-  running: `The script's output — ${OUTPUT} — is applied when the script ends successfully. ${FAILED_RUN} output is applied`,
-  values: `**Read-only.** ${ASSIGNING}`,
-};
-
-const WITH_EDITS = {
+const INTRO = {
   running: `A change to the model reads back straight away, within the run. The changes and the script's output — ${OUTPUT} — are applied together when the script ends successfully. ${FAILED_RUN} is applied`,
   values: `**Frozen values, changed through methods.** ${ASSIGNING} Change the model with the methods this reference lists, such as \`asset.set(...)\`. A method that changes the model throws when the project cannot be edited right now, for example on Main once the project has scenarios; the message says why.`,
 };
 
-const introOf = ({ running, values }: typeof READ_ONLY): string =>
+const introOf = ({ running, values }: typeof INTRO): string =>
   `- **Globals:** \`network\`, \`zones\`, \`selection\`, \`map\`, \`console\`, \`ui\`, \`collections\`. There is no \`fetch\`, DOM, \`require\`/\`import\`, timers (\`setTimeout\`), \`structuredClone\` or network access.
 - **Standard JavaScript works:** \`Array\`, \`Map\`, \`Set\`, \`JSON\`, \`Math\`, \`Number\`, \`String\`, template strings, destructuring, \`async\`/\`await\` (top-level \`await\` is allowed).
 - **The sandbox is SES (hardened JavaScript).** \`Date.now()\`, \`new Date()\` with no arguments and \`Math.random()\` throw. \`new Date(milliseconds)\` and date arithmetic on given values work. Do not reach for the current time or randomness.
@@ -30,10 +25,10 @@ const introOf = ({ running, values }: typeof READ_ONLY): string =>
 - **Coordinates** are \`[lng, lat]\` positions; a bounding box is \`[minLng, minLat, maxLng, maxLat]\`.
 - **Inactive assets** (\`asset.isActive === false\`) are in the lists and lookups but are left out of the simulation, the INP and the review checks.`;
 
-const SECTION: SectionDef = {
+export const SECTION: SectionDef = {
   id: "how-a-script-runs",
   title: "How a script runs",
-  intro: introOf(READ_ONLY),
+  intro: introOf(INTRO),
   types: [
     {
       name: "Position",
@@ -48,6 +43,3 @@ const SECTION: SectionDef = {
     },
   ],
 };
-
-export const sectionFor = ({ edits }: DocsCandidates): SectionDef =>
-  edits ? { ...SECTION, intro: introOf(WITH_EDITS) } : SECTION;
