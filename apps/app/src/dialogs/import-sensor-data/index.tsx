@@ -15,9 +15,14 @@ import {
 import { useImportSensorData } from "src/commands/import-sensor-data";
 import {
   parseSensorDataFile,
+  parseSensorTimeSeriesFile,
   type ParseSensorDataResult,
 } from "src/lib/sensor-data/parse-sensor-data-file";
-import { checkSensorTiming } from "src/lib/sensor-data/check-sensor-timing";
+import {
+  checkSensorTimes,
+  checkSensorTiming,
+} from "src/lib/sensor-data/check-sensor-timing";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { FormatInfo } from "./format-info";
 import { useSensorVocabulary } from "./sensor-vocabulary";
 import {
@@ -56,16 +61,19 @@ export const ImportSensorDataDialog = ({
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const { timing } = useAtomValue(simulationSettingsDerivedAtom);
   const importSensorData = useImportSensorData();
+  const isSensorTimeSeriesOn = useFeatureFlag("FLAG_SENSOR_TIME_SERIES");
 
   const [file, setFile] = useState<File | null>(null);
   const [isParsing, setIsParsing] = useState(false);
   const [refusal, setRefusal] = useState<Refusal | null>(null);
   const [result, setResult] = useState<ParseSensorDataResult | null>(null);
 
-  const timingWarnings = useMemo(
-    () => (result ? checkSensorTiming(result.sensors, timing) : []),
-    [result, timing],
-  );
+  const timingWarnings = useMemo(() => {
+    if (!result) return [];
+    return isSensorTimeSeriesOn
+      ? checkSensorTimes(result.sensors, timing)
+      : checkSensorTiming(result.sensors, timing);
+  }, [result, timing, isSensorTimeSeriesOn]);
 
   const refuse = useCallback(
     (refusal: Refusal) => {
@@ -88,7 +96,10 @@ export const ImportSensorDataDialog = ({
       setIsParsing(true);
 
       try {
-        const parsed = await parseSensorDataFile(
+        const parse = isSensorTimeSeriesOn
+          ? parseSensorTimeSeriesFile
+          : parseSensorDataFile;
+        const parsed = await parse(
           dropped,
           { labelManager, assets: hydraulicModel.assets },
           vocabulary,
@@ -106,7 +117,7 @@ export const ImportSensorDataDialog = ({
         setIsParsing(false);
       }
     },
-    [labelManager, hydraulicModel, vocabulary, refuse],
+    [labelManager, hydraulicModel, vocabulary, refuse, isSensorTimeSeriesOn],
   );
 
   const handleFileRejected = useCallback(

@@ -7,6 +7,7 @@ export type ImportError = {
   value?: string;
   // 1-based position in the file as the user sees it in a spreadsheet.
   row?: number;
+  column?: number;
 };
 
 export type ImportCounts = {

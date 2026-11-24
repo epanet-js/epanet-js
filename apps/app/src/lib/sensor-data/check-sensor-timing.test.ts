@@ -1,4 +1,4 @@
-import { checkSensorTiming } from "./check-sensor-timing";
+import { checkSensorTimes, checkSensorTiming } from "./check-sensor-timing";
 
 const HOUR = 3600;
 
@@ -58,5 +58,53 @@ describe("checkSensorTiming", () => {
     });
 
     expect(warnings).toEqual([]);
+  });
+});
+
+const aTimedSensor = (name: string, times: number[]) => ({ name, times });
+
+describe("checkSensorTimes", () => {
+  const timing = { duration: 24 * HOUR, reportTimestep: HOUR / 4 };
+
+  it("accepts readings from the start to the end of the duration", () => {
+    expect(
+      checkSensorTimes([aTimedSensor("A", [0, 7 * HOUR, 24 * HOUR])], timing),
+    ).toEqual([]);
+  });
+
+  it("accepts readings that run past the duration", () => {
+    expect(
+      checkSensorTimes([aTimedSensor("A", [0, 48 * HOUR])], timing),
+    ).toEqual([]);
+  });
+
+  it("accepts readings that start after the start of the simulation", () => {
+    expect(
+      checkSensorTimes([aTimedSensor("A", [4 * HOUR, 24 * HOUR])], timing),
+    ).toEqual([]);
+  });
+
+  it("accepts readings that end one report step before the simulation does", () => {
+    expect(
+      checkSensorTimes([aTimedSensor("A", [0, 23.75 * HOUR])], timing),
+    ).toEqual([]);
+  });
+
+  it("warns when the readings end before the simulation does", () => {
+    const warnings = checkSensorTimes(
+      [aTimedSensor("SHORT", [0, 12 * HOUR])],
+      timing,
+    );
+
+    expect(warnings).toEqual([{ label: "SHORT", code: "readingsEndEarly" }]);
+  });
+
+  it("gives no warnings in steady state", () => {
+    expect(
+      checkSensorTimes([aTimedSensor("A", [HOUR])], {
+        duration: 0,
+        reportTimestep: HOUR,
+      }),
+    ).toEqual([]);
   });
 });

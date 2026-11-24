@@ -176,7 +176,7 @@ const QuickGraphSection = ({
   const series = useMemo<QuickGraphSeries[]>(() => {
     const intervalSeconds = data?.intervalSeconds ?? 0;
     const sensorTimes = sensor
-      ? stepTimes(sensor.readings.length, intervalSeconds)
+      ? (sensor.times ?? stepTimes(sensor.readings.length, intervalSeconds))
       : [];
     return [
       {

@@ -40,6 +40,8 @@ import {
   SERIES_COLORS,
   toStatusStep,
   sensorReadingsStyle,
+  reportStepSeconds,
+  seriesTimeRange,
   stepTimes,
 } from "src/lib/asset-graph";
 import type { ImportedSensor } from "src/lib/sensor-data/parse-sensor-data-file";
@@ -62,7 +64,6 @@ import {
   unregisterTableHandleAtom,
 } from "src/panels/data-tables/table-handles";
 import { VerticalResizer } from "src/dialogs/vertical-resizer";
-import { readingsStepSeconds } from "./time-points";
 
 type SensorRow = {
   name: string;
@@ -457,10 +458,10 @@ const SelectedSensorChart = ({
     return isStatus ? raw.map(toStatusStep) : raw;
   }, [simulated, isStatus]);
 
-  const readingsStep = readingsStepSeconds(timing);
+  const reportStep = reportStepSeconds(timing);
   const sensorTimes = useMemo(
-    () => stepTimes(sensor.readings.length, readingsStep),
-    [sensor.readings.length, readingsStep],
+    () => sensor.times ?? stepTimes(sensor.readings.length, reportStep),
+    [sensor.times, sensor.readings.length, reportStep],
   );
 
   const series = useMemo<QuickGraphSeries[]>(
@@ -481,23 +482,20 @@ const SelectedSensorChart = ({
     [translate, values, simulated, sensor.readings, sensorTimes],
   );
 
-  const intervalSeconds = simulated ? simulated.intervalSeconds : readingsStep;
+  const intervalSeconds = simulated ? simulated.intervalSeconds : reportStep;
   const intervalsCount = Math.max(
     simulated?.intervalsCount ?? 0,
     sensor.readings.length,
   );
 
-  const showTimeLabels = timing.duration > 0;
+  const showTimeLabels = isSensorTimeSeriesOn || timing.duration > 0;
 
   const current = useMemo(
     () =>
       isSensorTimeSeriesOn ? (
         <QuickGraphChart
           series={series}
-          timeRange={{
-            start: 0,
-            end: Math.max(0, intervalsCount - 1) * intervalSeconds,
-          }}
+          timeRange={seriesTimeRange(series)}
           decimals={decimals}
           valueLabels={valueLabels}
           showTimeLabels={showTimeLabels}
@@ -587,13 +585,13 @@ const MultiSensorChart = ({
     return option ? getDecimals(formatting, option.quantityKey) : 0;
   }, [first, isStatus, formatting]);
 
-  const stepSeconds = readingsStepSeconds(timing);
+  const stepSeconds = reportStepSeconds(timing);
   const series = useMemo<QuickGraphSeries[]>(
     () =>
       plotted.map(({ sensor }, index) => ({
         label: sensor.name,
         values: sensor.readings,
-        times: stepTimes(sensor.readings.length, stepSeconds),
+        times: sensor.times ?? stepTimes(sensor.readings.length, stepSeconds),
         style: sensorReadingsStyle(
           sensor.readings.length,
           SERIES_COLORS[index % SERIES_COLORS.length],
@@ -606,10 +604,7 @@ const MultiSensorChart = ({
     0,
     ...plotted.map(({ sensor }) => sensor.readings.length),
   );
-  const timeRange = useMemo(
-    () => ({ start: 0, end: Math.max(0, intervalsCount - 1) * stepSeconds }),
-    [intervalsCount, stepSeconds],
-  );
+  const timeRange = useMemo(() => seriesTimeRange(series), [series]);
 
   const labelOptions = useMemo(
     () => labels.map((label) => ({ label, value: label })),
@@ -631,7 +626,7 @@ const MultiSensorChart = ({
       timeRange={timeRange}
       decimals={decimals}
       valueLabels={valueLabels}
-      showTimeLabels={timing.duration > 0}
+      showTimeLabels={isSensorTimeSeriesOn || timing.duration > 0}
       title={title}
     />
   ) : (

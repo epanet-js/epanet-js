@@ -3,6 +3,7 @@ import clsx from "clsx";
 import { useSelectorPortalContainer } from "@epanet-js/ui-kit";
 import * as E from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { InfoIcon } from "src/icons";
 import type { SensorVocabulary } from "src/lib/sensor-data/parameters";
 import { serializeToCsv } from "src/lib/operational-data-io/table-file";
@@ -51,6 +52,7 @@ export const FormatInfo = ({
   const translate = useTranslate();
   const portalContainer = useSelectorPortalContainer();
   const vocabulary = useSensorVocabulary();
+  const isSensorTimeSeriesOn = useFeatureFlag("FLAG_SENSOR_TIME_SERIES");
   const label = translate("sensorData.import.format.title");
 
   const downloadTemplate = () => {
@@ -103,7 +105,7 @@ export const FormatInfo = ({
                           "px-2 py-1 border-l first:border-l-0",
                           cellIndex === 0 && rowIndex < HEADER_ROWS
                             ? "font-semibold"
-                            : cellIndex === 0
+                            : cellIndex === 0 && !isSensorTimeSeriesOn
                               ? "text-subtle italic"
                               : "text-subtle",
                         )}
@@ -119,7 +121,11 @@ export const FormatInfo = ({
               {translate("sensorData.import.format.optional")}
             </p>
             <p className="text-size-small text-subtle">
-              {translate("sensorData.import.format.readings")}
+              {translate(
+                isSensorTimeSeriesOn
+                  ? "sensorData.import.format.readingTimes"
+                  : "sensorData.import.format.readings",
+              )}
             </p>
             <E.Button
               type="button"

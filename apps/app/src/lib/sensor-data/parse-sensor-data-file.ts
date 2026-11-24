@@ -37,6 +37,7 @@ export type ImportedSensor = {
   name: string;
   parameter: SensorParameter;
   assetId: AssetId;
+  times?: number[];
   readings: number[];
 };
 
@@ -53,18 +54,40 @@ type ModelLookup = {
   assets: AssetsMap;
 };
 
+const TIME_COLUMN = 0;
 const FIRST_SENSOR_COLUMN = 1;
+const SECONDS_PER_DAY = 86400;
 
 const ANY_NODE: LabelType = "junction";
 const ANY_LINK: LabelType = "pipe";
 
 const SHAPE_ERRORS = new Set(["missingName", "noReadings", "invalidReading"]);
 
-type ColumnError = Omit<ImportError, "row" | "label">;
+type ColumnError = Omit<ImportError, "column" | "label">;
+
+type ParsedColumn =
+  | { times?: number[]; readings: number[]; warnings?: ColumnError[] }
+  | { error: ColumnError };
+
+type ColumnReader = {
+  issues: ImportError[];
+  readColumn: (column: number) => ParsedColumn;
+};
+
+type ReadingsLayout = {
+  startsReadings: (cells: Cell[], isAfterHeader: boolean) => boolean;
+  read: (readingRows: NumberedRow[]) => ColumnReader;
+};
 
 type ColumnOutcome = {
   sensor?: ImportedSensor;
   errors: ColumnError[];
+};
+
+type TimedRow = {
+  seconds: number;
+  cells: Cell[];
+  number: number;
 };
 
 type Layout = {
@@ -83,11 +106,261 @@ const headerKeyOf = (
 const isReadingRow = (cells: Cell[]) =>
   cells.slice(FIRST_SENSOR_COLUMN).some(isNumeric);
 
-const readLayout = (rows: Cell[][], vocabulary: SensorVocabulary): Layout => {
-  const body = untilDoubleBlank(rows);
-  const firstReading = body.findIndex(
-    ({ cells }) => !headerKeyOf(cells[0], vocabulary) && isReadingRow(cells),
+const HALF_DAY_SECONDS = SECONDS_PER_DAY / 2;
+
+const CLOCK_TIME = /^(\d+):([0-5]\d)(?::([0-5]\d))?$/;
+const ISO_DATE_TIME =
+  /^(\d{4})-(\d{2})-(\d{2})[T ](\d{1,2}):([0-5]\d)(?::([0-5]\d)(?:\.\d+)?)?\s*(?:Z|[+-]\d{2}(?::?\d{2})?)?$/i;
+const SLASH_DATE_TIME =
+  /^(\d{1,2})\/(\d{1,2})\/(\d{4}),?\s+(\d{1,2}):([0-5]\d)(?::([0-5]\d))?$/;
+const UNIX_EPOCH_AS_DATE_SERIAL = 25569;
+const EARLIEST_DATE_SERIAL = 10000;
+
+type TimeOfRow = { seconds: number; day?: number };
+
+type SlashDate = {
+  first: number;
+  second: number;
+  year: number;
+  hours: number;
+  minutes: number;
+  seconds: number;
+};
+
+type TimeProblem =
+  | "missingTime"
+  | "unrecognizedTime"
+  | "impossibleTime"
+  | "mixedDateOrder";
+
+type CellTime = TimeOfRow | { slash: SlashDate } | { problem: TimeProblem };
+
+const TIME_PROBLEMS: TimeProblem[] = [
+  "missingTime",
+  "unrecognizedTime",
+  "impossibleTime",
+  "mixedDateOrder",
+];
+
+type SlashOrder = "dayFirst" | "monthFirst";
+
+const dayOf = (year: number, month: number, day: number): number | null => {
+  const date = new Date(Date.UTC(year, month - 1, day));
+  const isReal =
+    date.getUTCFullYear() === year &&
+    date.getUTCMonth() === month - 1 &&
+    date.getUTCDate() === day;
+  return isReal ? date.getTime() / (SECONDS_PER_DAY * 1000) : null;
+};
+
+const datedTimeOf = (
+  year: number,
+  month: number,
+  day: number,
+  hours: number,
+  minutes: number,
+  seconds: number,
+): TimeOfRow | null => {
+  const dayNumber = dayOf(year, month, day);
+  if (dayNumber === null || hours > 23) return null;
+  return { day: dayNumber, seconds: hours * 3600 + minutes * 60 + seconds };
+};
+
+const timeOfText = (raw: string): CellTime => {
+  if (raw === "") return { problem: "missingTime" };
+
+  const clock = CLOCK_TIME.exec(raw);
+  if (clock) {
+    const [, hours, minutes, seconds] = clock;
+    return {
+      seconds:
+        Number(hours) * 3600 + Number(minutes) * 60 + Number(seconds ?? 0),
+    };
+  }
+
+  const iso = ISO_DATE_TIME.exec(raw);
+  if (iso) {
+    const [, year, month, day, hours, minutes, seconds] = iso;
+    return (
+      datedTimeOf(
+        Number(year),
+        Number(month),
+        Number(day),
+        Number(hours),
+        Number(minutes),
+        Number(seconds ?? 0),
+      ) ?? { problem: "impossibleTime" }
+    );
+  }
+
+  const slash = SLASH_DATE_TIME.exec(raw);
+  if (slash) {
+    const [, first, second, year, hours, minutes, seconds] = slash;
+    return {
+      slash: {
+        first: Number(first),
+        second: Number(second),
+        year: Number(year),
+        hours: Number(hours),
+        minutes: Number(minutes),
+        seconds: Number(seconds ?? 0),
+      },
+    };
+  }
+  return { problem: "unrecognizedTime" };
+};
+
+const slashTimeOf = (date: SlashDate, order: SlashOrder): TimeOfRow | null => {
+  const [day, month] =
+    order === "dayFirst"
+      ? [date.first, date.second]
+      : [date.second, date.first];
+  return datedTimeOf(
+    date.year,
+    month,
+    day,
+    date.hours,
+    date.minutes,
+    date.seconds,
   );
+};
+
+const largestDayStep = (dates: SlashDate[], order: SlashOrder): number => {
+  const days = dates
+    .map((date) => slashTimeOf(date, order)?.day)
+    .filter((day): day is number => day !== undefined);
+  return days.reduce(
+    (largest, day, index) =>
+      index === 0
+        ? largest
+        : Math.max(largest, Math.abs(day - days[index - 1])),
+    0,
+  );
+};
+
+const slashOrderOf = (dates: SlashDate[]): SlashOrder | null => {
+  const isDayFirst = dates.some(
+    (date) => date.first > 12 && slashTimeOf(date, "dayFirst") !== null,
+  );
+  const isMonthFirst = dates.some(
+    (date) => date.second > 12 && slashTimeOf(date, "monthFirst") !== null,
+  );
+  if (isDayFirst && isMonthFirst) return null;
+  if (isDayFirst) return "dayFirst";
+  if (isMonthFirst) return "monthFirst";
+  return largestDayStep(dates, "monthFirst") < largestDayStep(dates, "dayFirst")
+    ? "monthFirst"
+    : "dayFirst";
+};
+
+const timeOfNumber = (value: number): CellTime => {
+  if (!Number.isFinite(value) || value < 0) {
+    return { problem: "unrecognizedTime" };
+  }
+  const total = Math.round(value * SECONDS_PER_DAY);
+  if (value < EARLIEST_DATE_SERIAL) return { seconds: total };
+  return {
+    day: Math.floor(total / SECONDS_PER_DAY) - UNIX_EPOCH_AS_DATE_SERIAL,
+    seconds: total % SECONDS_PER_DAY,
+  };
+};
+
+const timeOfCell = (cell: Cell): CellTime =>
+  typeof cell === "number" ? timeOfNumber(cell) : timeOfText(text(cell));
+
+const looksLikeTime = (cell: Cell): boolean => {
+  const time = timeOfCell(cell);
+  return (
+    !("problem" in time) ||
+    (time.problem !== "missingTime" && time.problem !== "unrecognizedTime")
+  );
+};
+
+const rowsIssue = (code: string, rows: number[]): ColumnError[] =>
+  rows.map((row) => ({ code, row }));
+
+const resolvedTime = (
+  time: CellTime,
+  slashOrder: SlashOrder | null,
+): TimeOfRow | { problem: TimeProblem } => {
+  if (!("slash" in time)) return time;
+  if (!slashOrder) return { problem: "mixedDateOrder" };
+  return slashTimeOf(time.slash, slashOrder) ?? { problem: "impossibleTime" };
+};
+
+const readTimes = (
+  rows: NumberedRow[],
+): { timedRows: TimedRow[]; timeIssues: ImportError[] } => {
+  const cellTimes = rows.map(({ cells }) => timeOfCell(cells[TIME_COLUMN]));
+  const slashDates = cellTimes.flatMap((time) =>
+    "slash" in time ? [time.slash] : [],
+  );
+  const slashOrder = slashDates.length > 0 ? slashOrderOf(slashDates) : null;
+
+  const timedRows: TimedRow[] = [];
+  const skipped: Record<TimeProblem, number[]> = {
+    missingTime: [],
+    unrecognizedTime: [],
+    impossibleTime: [],
+    mixedDateOrder: [],
+  };
+  const unordered: number[] = [];
+  let firstDay: number | undefined;
+  let clockDays = 0;
+  let previous = -1;
+
+  for (const [index, { cells, number }] of rows.entries()) {
+    const time = resolvedTime(cellTimes[index], slashOrder);
+    if ("problem" in time) {
+      skipped[time.problem].push(number);
+      continue;
+    }
+
+    let seconds: number;
+    if (time.day !== undefined) {
+      firstDay ??= time.day;
+      seconds = time.seconds + (time.day - firstDay) * SECONDS_PER_DAY;
+    } else {
+      seconds = time.seconds + clockDays * SECONDS_PER_DAY;
+      if (previous - seconds > HALF_DAY_SECONDS) {
+        clockDays += 1;
+        seconds += SECONDS_PER_DAY;
+      }
+    }
+
+    if (seconds <= previous) {
+      unordered.push(number);
+      continue;
+    }
+    previous = seconds;
+    timedRows.push({ seconds, cells, number });
+  }
+
+  return {
+    timedRows,
+    timeIssues: [
+      ...TIME_PROBLEMS.flatMap((problem) =>
+        rowsIssue(problem, skipped[problem]),
+      ),
+      ...rowsIssue("timeNotIncreasing", unordered),
+    ],
+  };
+};
+
+const readLayout = (
+  rows: Cell[][],
+  vocabulary: SensorVocabulary,
+  startsReadings: ReadingsLayout["startsReadings"],
+): Layout => {
+  const body = untilDoubleBlank(rows);
+  let isAfterHeader = false;
+  const firstReading = body.findIndex(({ cells }) => {
+    if (headerKeyOf(cells[0], vocabulary)) {
+      isAfterHeader = true;
+      return false;
+    }
+    return startsReadings(cells, isAfterHeader);
+  });
   const headerRows = firstReading < 0 ? body : body.slice(0, firstReading);
   const readingRows = firstReading < 0 ? [] : body.slice(firstReading);
 
@@ -130,7 +403,7 @@ const readingOf = (cell: Cell): number | null => {
   return parseDecimal(text(cell));
 };
 
-const parseReadings = (
+const parseReadingsByIndex = (
   cells: Cell[],
 ): { readings: number[] } | { error: ColumnError } => {
   let last = cells.length - 1;
@@ -147,6 +420,51 @@ const parseReadings = (
     readings.push(value);
   }
   return { readings };
+};
+
+const parseReadings = (rows: TimedRow[], column: number): ParsedColumn => {
+  const times: number[] = [];
+  const readings: number[] = [];
+  const notNumbers: number[] = [];
+  for (const { seconds, cells, number } of rows) {
+    const cell = cells[column];
+    if (text(cell) === "") continue;
+    const value = readingOf(cell);
+    if (value === null) {
+      notNumbers.push(number);
+      continue;
+    }
+    times.push(seconds);
+    readings.push(value);
+  }
+
+  if (readings.length === 0) return { error: { code: "noReadings" } };
+  return {
+    times,
+    readings,
+    warnings: rowsIssue("readingNotANumber", notNumbers),
+  };
+};
+
+const BY_INDEX: ReadingsLayout = {
+  startsReadings: isReadingRow,
+  read: (readingRows) => ({
+    issues: [],
+    readColumn: (column) =>
+      parseReadingsByIndex(readingRows.map(({ cells }) => cells[column])),
+  }),
+};
+
+const BY_TIME: ReadingsLayout = {
+  startsReadings: (cells, isAfterHeader) =>
+    isReadingRow(cells) || (isAfterHeader && looksLikeTime(cells[TIME_COLUMN])),
+  read: (readingRows) => {
+    const { timedRows, timeIssues } = readTimes(readingRows);
+    return {
+      issues: timeIssues,
+      readColumn: (column) => parseReadings(timedRows, column),
+    };
+  },
 };
 
 const acceptedParametersFor = (
@@ -169,6 +487,7 @@ const assetsLabelled = (label: string, model: ModelLookup): Asset[] =>
 
 const parseColumn = (
   layout: Layout,
+  reader: ColumnReader,
   column: number,
   name: string,
   model: ModelLookup,
@@ -176,12 +495,10 @@ const parseColumn = (
 ): ColumnOutcome => {
   const cellOf = (key: SensorHeader) => text(layout.headers.get(key)?.[column]);
 
-  const parsedReadings = parseReadings(
-    layout.readingRows.map(({ cells }) => cells[column]),
-  );
+  const parsedReadings = reader.readColumn(column);
   if ("error" in parsedReadings) return { errors: [parsedReadings.error] };
 
-  const warnings: ColumnError[] = [];
+  const warnings: ColumnError[] = [...(parsedReadings.warnings ?? [])];
   const rawAssetType = cellOf("type");
   const assetType =
     rawAssetType === "" ? undefined : assetTypeFor(rawAssetType, vocabulary);
@@ -243,6 +560,7 @@ const parseColumn = (
       name,
       parameter,
       assetId: asset.id,
+      ...(parsedReadings.times ? { times: parsedReadings.times } : {}),
       readings: parsedReadings.readings,
     },
     errors: warnings,
@@ -256,6 +574,7 @@ const isEmptyColumn = (layout: Layout, column: number) =>
 
 const buildSensors = (
   layout: Layout,
+  reader: ColumnReader,
   model: ModelLookup,
   vocabulary: SensorVocabulary,
 ) => {
@@ -279,7 +598,7 @@ const buildSensors = (
 
     const name = text(sensorRow[column]);
     if (name === "") {
-      errors.push({ code: "missingName", row: position });
+      errors.push({ code: "missingName", column: position });
       shapeRejects += 1;
       continue;
     }
@@ -288,15 +607,22 @@ const buildSensors = (
     if (seenNames.has(nameKey)) {
       if (!reportedDuplicates.has(nameKey)) {
         reportedDuplicates.add(nameKey);
-        errors.push({ label: name, code: "duplicateName", row: position });
+        errors.push({ label: name, code: "duplicateName", column: position });
       }
       continue;
     }
     seenNames.add(nameKey);
 
-    const outcome = parseColumn(layout, column, name, model, vocabulary);
+    const outcome = parseColumn(
+      layout,
+      reader,
+      column,
+      name,
+      model,
+      vocabulary,
+    );
     for (const error of outcome.errors) {
-      errors.push({ ...error, label: name, row: position });
+      errors.push({ ...error, label: name, column: position });
       if (SHAPE_ERRORS.has(error.code)) shapeRejects += 1;
     }
     if (!outcome.sensor) continue;
@@ -307,7 +633,7 @@ const buildSensors = (
       errors.push({
         label: name,
         code: "duplicateSensorOnAsset",
-        row: position,
+        column: position,
       });
       continue;
     }
@@ -338,10 +664,25 @@ const missingSensorRow = (layout: Layout): ImportError | undefined => {
   return { code: "missingSensorRow", params: [listed] };
 };
 
-export const parseSensorDataFile = async (
+export const parseSensorDataFile = (
   file: File,
   model: ModelLookup,
   vocabulary: SensorVocabulary = EMPTY_VOCABULARY,
+): Promise<ParseSensorDataResult> =>
+  parseWith(file, model, vocabulary, BY_INDEX);
+
+export const parseSensorTimeSeriesFile = (
+  file: File,
+  model: ModelLookup,
+  vocabulary: SensorVocabulary = EMPTY_VOCABULARY,
+): Promise<ParseSensorDataResult> =>
+  parseWith(file, model, vocabulary, BY_TIME);
+
+const parseWith = async (
+  file: File,
+  model: ModelLookup,
+  vocabulary: SensorVocabulary,
+  readings: ReadingsLayout,
 ): Promise<ParseSensorDataResult> => {
   const format = formatOf(file);
   if (!format) {
@@ -360,13 +701,15 @@ export const parseSensorDataFile = async (
     return { status: "error", format, sensors: [], ignored: 0, errors: [] };
   }
 
-  const layout = readLayout(rows, vocabulary);
+  const layout = readLayout(rows, vocabulary, readings.startsReadings);
   if (!layout.headers.has("sensor")) {
     return refused(format, 0, missingSensorRow(layout));
   }
 
+  const reader = readings.read(layout.readingRows);
   const { sensors, errors, columnsRead, shapeRejects } = buildSensors(
     layout,
+    reader,
     model,
     vocabulary,
   );
@@ -379,7 +722,7 @@ export const parseSensorDataFile = async (
     return refused(format, ignored);
   }
 
-  const allErrors = [...layout.headerIssues, ...errors];
+  const allErrors = [...layout.headerIssues, ...reader.issues, ...errors];
   const status: ImportStatus =
     sensors.length === 0
       ? "error"

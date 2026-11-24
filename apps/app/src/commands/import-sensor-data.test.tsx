@@ -14,6 +14,7 @@ const SENSOR: ImportedSensor = {
   name: "NORTH",
   parameter: "pressure",
   assetId: 1,
+  times: [0, 3600],
   readings: [10, 11],
 };
 
