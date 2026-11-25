@@ -193,6 +193,7 @@ export function SimpleDialogActions({
   isDisabled = false,
   isSubmitting = false,
   actionVariant = "primary",
+  note,
 }: {
   action?: string;
   onAction?: () => void;
@@ -211,6 +212,7 @@ export function SimpleDialogActions({
   isDisabled?: boolean;
   isSubmitting?: boolean;
   actionVariant?: "primary" | "danger";
+  note?: React.ReactNode;
 }) {
   const translate = useTranslate();
   return (
@@ -259,6 +261,9 @@ export function SimpleDialogActions({
         <Button type="button" onClick={onClose}>
           {translate(action || secondary ? "dialog.cancel" : "dialog.close")}
         </Button>
+      ) : null}
+      {note ? (
+        <p className="text-size-base text-subtle sm:text-right">{note}</p>
       ) : null}
       <RefreshIcon
         className={clsx(

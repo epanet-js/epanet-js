@@ -25,6 +25,8 @@ import {
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { FormatInfo } from "./format-info";
 import { useSensorVocabulary } from "./sensor-vocabulary";
+import { refusalOf, type Refusal } from "./refusal";
+import { ImportSensorFilesDialog } from "./import-sensor-files";
 import {
   SENSOR_DATA_IMPORT_KEYS,
   SensorPreview,
@@ -33,28 +35,21 @@ import {
 
 const ACCEPTED_EXTENSIONS = ".csv,.xlsx";
 
-const REFUSAL_CODES = new Set([
-  "unsupportedFormat",
-  "notAValidSensorFile",
-  "missingSensorRow",
-]);
-
-type Refusal = { code: string; params?: string[] };
-
-const refusalOf = (result: ParseSensorDataResult): Refusal | null => {
-  const refusal = result.errors.find(({ code }) => REFUSAL_CODES.has(code));
-  if (refusal) return { code: refusal.code, params: refusal.params };
-  if (result.status === "error" && result.errors.length === 0) {
-    return { code: "unreadableFile" };
-  }
-  return null;
-};
-
 export const ImportSensorDataDialog = ({
   onClose,
 }: {
   onClose: () => void;
 }) => {
+  const isSensorMultiFileOn = useFeatureFlag("FLAG_SENSOR_MULTI_FILE");
+  const isSensorTimeSeriesOn = useFeatureFlag("FLAG_SENSOR_TIME_SERIES");
+  return isSensorMultiFileOn && isSensorTimeSeriesOn ? (
+    <ImportSensorFilesDialog onClose={onClose} />
+  ) : (
+    <ImportSensorFileDialog onClose={onClose} />
+  );
+};
+
+const ImportSensorFileDialog = ({ onClose }: { onClose: () => void }) => {
   const translate = useTranslate();
   const userTracking = useUserTracking();
   const { labelManager } = useAtomValue(modelFactoriesAtom);
@@ -188,7 +183,7 @@ export const ImportSensorDataDialog = ({
                 help={refusal ? <FormatInfo variant="link" /> : undefined}
               />
             </div>
-            {result && <SensorPreview result={result} />}
+            {result && <SensorPreview sensors={result.sensors} />}
           </>
         ) : (
           <DropZone

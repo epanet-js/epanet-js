@@ -901,11 +901,20 @@ type SensorDataImported = {
   skippedCount: number;
   parameterCounts: Record<string, number>;
   hasTimingWarning: boolean;
+  filesCount?: number;
+  zipCount?: number;
+  issueCodes?: string[];
 };
 
 type SensorDataImportRefused = {
   name: "sensorData.importRefused";
   reason: string;
+};
+
+type SensorDataFilesRefused = {
+  name: "sensorData.filesRefused";
+  count: number;
+  reasons: string[];
 };
 
 type ImportZonesStarted = {
@@ -1791,6 +1800,7 @@ export type UserEvent =
   | SensorDataImportStarted
   | SensorDataImported
   | SensorDataImportRefused
+  | SensorDataFilesRefused
   | ImportZonesWizardNext
   | ImportZonesWizardBack
   | ImportZonesWizardCancel

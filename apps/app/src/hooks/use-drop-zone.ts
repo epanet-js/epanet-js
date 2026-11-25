@@ -5,6 +5,7 @@ type DragState = "idle" | "dragging" | "over";
 
 interface UseDropZoneOptions {
   onFileDrop: (file: File) => void;
+  onFilesDrop?: (files: File[]) => void;
   onFileRejected?: (file: File, reason: string) => void;
   accept?: string;
   disabled?: boolean;
@@ -19,6 +20,7 @@ interface UseDropZoneReturn {
 
 export const useDropZone = ({
   onFileDrop,
+  onFilesDrop,
   onFileRejected,
   accept,
   disabled = false,
@@ -59,6 +61,19 @@ export const useDropZone = ({
     [disabled],
   );
 
+  const deliverAll = useCallback(
+    (files: File[]) => {
+      const accepted = files.filter(
+        (file) => !accept || isFileAccepted(file, accept),
+      );
+      for (const file of files) {
+        if (!accepted.includes(file)) onFileRejected?.(file, "format");
+      }
+      if (accepted.length > 0) onFilesDrop?.(accepted);
+    },
+    [accept, onFilesDrop, onFileRejected],
+  );
+
   const handleDrop = useCallback(
     async (e: React.DragEvent) => {
       if (disabled) return;
@@ -70,6 +85,11 @@ export const useDropZone = ({
         const files = e.dataTransfer?.items
           ? await getFilesFromDataTransferItems(e.dataTransfer.items)
           : [];
+
+        if (onFilesDrop) {
+          deliverAll(files as File[]);
+          return;
+        }
 
         if (files.length > 0) {
           const file = files[0] as File;
@@ -83,12 +103,17 @@ export const useDropZone = ({
         }
       } catch (error) {}
     },
-    [disabled, accept, onFileDrop, onFileRejected],
+    [disabled, accept, onFileDrop, onFilesDrop, onFileRejected, deliverAll],
   );
 
   const handleFileInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       if (disabled) return;
+      if (onFilesDrop) {
+        deliverAll(Array.from(e.target.files ?? []));
+        e.target.value = "";
+        return;
+      }
       const file = e.target.files?.[0];
       if (file) {
         if (accept && !isFileAccepted(file, accept)) {
@@ -98,7 +123,7 @@ export const useDropZone = ({
         onFileDrop(file);
       }
     },
-    [disabled, onFileDrop, accept, onFileRejected],
+    [disabled, onFileDrop, onFilesDrop, accept, onFileRejected, deliverAll],
   );
 
   const handleClick = useCallback(

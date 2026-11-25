@@ -11,6 +11,7 @@ import {
 } from "src/icons";
 import {
   describeIssue,
+  type ImportIssue,
   type ImportOutcome,
   type ImportStats,
 } from "./import-outcome";
@@ -130,6 +131,80 @@ export const ImportFileReport = ({
       >
         <CloseIcon />
       </button>
+    </div>
+  );
+};
+
+export type IssueGroup = {
+  id: number;
+  title?: string;
+  onSelect?: () => void;
+  issues: ImportIssue[];
+};
+
+export const ImportIssuesReport = ({
+  groups,
+  translationKeys,
+}: {
+  groups: IssueGroup[];
+  translationKeys: string;
+}) => {
+  const translate = useTranslate();
+  const { background, tint, Icon } = report.warning;
+  const count = groups.reduce((total, { issues }) => total + issues.length, 0);
+  if (count === 0) return null;
+
+  return (
+    <div
+      className={clsx(
+        "flex items-start gap-2 px-3 py-2 rounded-base text-size-base",
+        background,
+      )}
+    >
+      <Icon className={clsx("h-4 w-4 mt-0.5 shrink-0", tint)} aria-hidden />
+      <details className="group grow min-w-0">
+        <summary className="flex items-center gap-1 cursor-pointer font-semibold list-none [&::-webkit-details-marker]:hidden">
+          <ChevronRightIcon
+            className="shrink-0 transition-transform group-open:rotate-90"
+            size="sm"
+          />
+          {translate(`${translationKeys}.issues`)}
+          <span className="font-normal text-subtle">({count})</span>
+        </summary>
+        <div className="mt-2 flex flex-col gap-3 max-h-40 overflow-auto rounded-base border bg-popover p-3">
+          {groups
+            .filter(({ issues }) => issues.length > 0)
+            .map((group) => (
+              <section key={group.id} className="flex flex-col gap-1 min-w-0">
+                {group.title !== undefined &&
+                  (group.onSelect ? (
+                    <button
+                      type="button"
+                      className="self-start max-w-full font-semibold truncate text-left hover:underline focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent rounded-base"
+                      onClick={group.onSelect}
+                      title={group.title}
+                    >
+                      {group.title}
+                    </button>
+                  ) : (
+                    <span
+                      className="font-semibold truncate"
+                      title={group.title}
+                    >
+                      {group.title}
+                    </span>
+                  ))}
+                <ul className="list-disc pl-5 space-y-1">
+                  {group.issues.map((issue, index) => (
+                    <li key={`${issue.code}-${index}`}>
+                      {describeIssue(issue, translate, translationKeys)}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ))}
+        </div>
+      </details>
     </div>
   );
 };

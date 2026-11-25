@@ -1,8 +1,57 @@
-import { useRef } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { useMove } from "@react-aria/interactions";
 
 const MIN_WIDTH = 150;
 const MAX_WIDTH = 400;
+const RESIZER_WIDTH = 12;
+
+export const useSidebarWidth = ({
+  initial,
+  min = MIN_WIDTH,
+  max = MAX_WIDTH,
+  reserve,
+}: {
+  initial: number;
+  min?: number;
+  max?: number;
+  reserve?: number;
+}) => {
+  const [width, setWidth] = useState(initial);
+  const [container, setContainer] = useState<HTMLElement | null>(null);
+  const [containerWidth, setContainerWidth] = useState<number | null>(null);
+
+  useLayoutEffect(
+    function trackContainerWidth() {
+      if (!container || reserve === undefined) return;
+      setContainerWidth(container.clientWidth);
+      const observer = new ResizeObserver(() =>
+        setContainerWidth(container.clientWidth),
+      );
+      observer.observe(container);
+      return () => observer.disconnect();
+    },
+    [container, reserve],
+  );
+
+  const maxWidth =
+    reserve === undefined
+      ? max
+      : containerWidth === null
+        ? width
+        : Math.max(min, containerWidth - RESIZER_WIDTH - reserve);
+  const shownWidth = Math.min(width, maxWidth);
+
+  return {
+    width: shownWidth,
+    containerRef: setContainer,
+    resizerProps: {
+      width: shownWidth,
+      onWidthChange: setWidth,
+      minWidth: min,
+      maxWidth,
+    },
+  };
+};
 
 export const VerticalResizer = ({
   width,
@@ -42,8 +91,8 @@ export const VerticalResizer = ({
       aria-orientation="vertical"
       aria-label="Resize sidebar"
       tabIndex={-1}
-      style={{ cursor: "col-resize" }}
-      className="shrink-0 w-3 z-10
+      style={{ cursor: "col-resize", width: RESIZER_WIDTH }}
+      className="shrink-0 z-10
         touch-none
         flex items-center justify-start
         group"

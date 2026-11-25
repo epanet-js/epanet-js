@@ -7,7 +7,10 @@ import { useSensorParameterLabel } from "src/hooks/use-sensor-parameter-label";
 import { groupErrors, type ImportOutcome } from "src/components/import-outcome";
 import { assetsDerivedAtom } from "src/state/derived-branch-state";
 import type { ImportError } from "src/lib/operational-data-io/import-result";
-import type { ParseSensorDataResult } from "src/lib/sensor-data/parse-sensor-data-file";
+import type {
+  ImportedSensor,
+  ParseSensorDataResult,
+} from "src/lib/sensor-data/parse-sensor-data-file";
 
 export const MAX_PREVIEW_ROWS = 15;
 
@@ -18,64 +21,81 @@ const HEADER_CELL =
 
 const BODY_CELL = "px-3 py-1.5 text-default truncate";
 
+type Translate = (key: string, ...args: string[]) => string;
+
+export const sensorImportOutcome = (
+  result: ParseSensorDataResult,
+  timingWarnings: ImportError[],
+  translate: Translate,
+): ImportOutcome => {
+  const issues = [
+    ...groupErrors(result.errors),
+    ...groupErrors(timingWarnings),
+  ];
+  const stats = {
+    added: result.sensors.length,
+    updated: 0,
+    identical: 0,
+    notModified: 0,
+    ignored: result.ignored,
+  };
+
+  if (result.sensors.length === 0) {
+    return {
+      status: "failed",
+      message: translate(`${SENSOR_DATA_IMPORT_KEYS}.nothingToImport`),
+      stats,
+      issues,
+    };
+  }
+  if (issues.length > 0) {
+    return {
+      status: "warning",
+      message: translate(
+        result.errors.length > 0
+          ? `${SENSOR_DATA_IMPORT_KEYS}.issuesFound`
+          : `${SENSOR_DATA_IMPORT_KEYS}.readyWithWarnings`,
+      ),
+      stats,
+      issues,
+    };
+  }
+  return {
+    status: "success",
+    message: translate(`${SENSOR_DATA_IMPORT_KEYS}.readyToImport`),
+    stats,
+  };
+};
+
 export const useSensorImportOutcome = (
   result: ParseSensorDataResult | null,
   timingWarnings: ImportError[],
 ): ImportOutcome | null => {
   const translate = useTranslate();
-  return useMemo((): ImportOutcome | null => {
-    if (!result) return null;
-    const issues = [
-      ...groupErrors(result.errors),
-      ...groupErrors(timingWarnings),
-    ];
-    const stats = {
-      added: result.sensors.length,
-      updated: 0,
-      identical: 0,
-      notModified: 0,
-      ignored: result.ignored,
-    };
-
-    if (result.sensors.length === 0) {
-      return {
-        status: "failed",
-        message: translate(`${SENSOR_DATA_IMPORT_KEYS}.nothingToImport`),
-        stats,
-        issues,
-      };
-    }
-    if (issues.length > 0) {
-      return {
-        status: "warning",
-        message: translate(
-          result.errors.length > 0
-            ? `${SENSOR_DATA_IMPORT_KEYS}.issuesFound`
-            : `${SENSOR_DATA_IMPORT_KEYS}.readyWithWarnings`,
-        ),
-        stats,
-        issues,
-      };
-    }
-    return {
-      status: "success",
-      message: translate(`${SENSOR_DATA_IMPORT_KEYS}.readyToImport`),
-      stats,
-    };
-  }, [result, timingWarnings, translate]);
+  return useMemo(
+    () =>
+      result ? sensorImportOutcome(result, timingWarnings, translate) : null,
+    [result, timingWarnings, translate],
+  );
 };
 
 export const SensorPreview = ({
-  result,
+  sensors,
+  selectedName,
+  onSelect,
+  showReadings = true,
 }: {
-  result: ParseSensorDataResult;
+  sensors: ImportedSensor[];
+  selectedName?: string;
+  onSelect?: (name: string) => void;
+  showReadings?: boolean;
 }) => {
   const translate = useTranslate();
   const assets = useAtomValue(assetsDerivedAtom);
   const parameterLabel = useSensorParameterLabel();
 
-  const preview = result.sensors.slice(0, MAX_PREVIEW_ROWS);
-  const remaining = result.sensors.length - preview.length;
+  const preview = sensors.slice(0, MAX_PREVIEW_ROWS);
+  const remaining = sensors.length - preview.length;
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
@@ -86,7 +106,7 @@ export const SensorPreview = ({
               <col />
               <col className="w-32" />
               <col />
-              <col className="w-24" />
+              {showReadings && <col className="w-24" />}
             </colgroup>
             <thead>
               <tr>
@@ -99,9 +119,11 @@ export const SensorPreview = ({
                 <th className={HEADER_CELL}>
                   {translate("sensorData.import.preview.asset")}
                 </th>
-                <th className={clsx(HEADER_CELL, "text-right")}>
-                  {translate("sensorData.import.preview.readings")}
-                </th>
+                {showReadings && (
+                  <th className={clsx(HEADER_CELL, "text-right")}>
+                    {translate("sensorData.import.preview.readings")}
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody>
@@ -111,8 +133,29 @@ export const SensorPreview = ({
                 const parameter = asset
                   ? parameterLabel(sensor.parameter, asset.type)
                   : sensor.parameter;
+                const isSelected = sensor.name === selectedName;
                 return (
-                  <tr key={sensor.name} className="border-t border">
+                  <tr
+                    key={sensor.name}
+                    className={clsx(
+                      "border-t border",
+                      onSelect && "cursor-pointer hover:bg-base-hover",
+                      isSelected && "bg-accent-tint",
+                    )}
+                    {...(onSelect
+                      ? {
+                          onClick: () => onSelect(sensor.name),
+                          onKeyDown: (event: React.KeyboardEvent) => {
+                            if (event.key === "Enter" || event.key === " ") {
+                              event.preventDefault();
+                              onSelect(sensor.name);
+                            }
+                          },
+                          tabIndex: 0,
+                          "aria-selected": isSelected,
+                        }
+                      : {})}
+                  >
                     <td className={BODY_CELL} title={sensor.name}>
                       {sensor.name}
                     </td>
@@ -130,16 +173,20 @@ export const SensorPreview = ({
                         <span className="text-subtle"> ({assetType})</span>
                       )}
                     </td>
-                    <td className={clsx(BODY_CELL, "text-right tabular-nums")}>
-                      {localizeDecimal(sensor.readings.length)}
-                    </td>
+                    {showReadings && (
+                      <td
+                        className={clsx(BODY_CELL, "text-right tabular-nums")}
+                      >
+                        {localizeDecimal(sensor.readings.length)}
+                      </td>
+                    )}
                   </tr>
                 );
               })}
               {remaining > 0 && (
                 <tr className="border-t border">
                   <td
-                    colSpan={4}
+                    colSpan={showReadings ? 4 : 3}
                     className={clsx(BODY_CELL, "text-subtle italic")}
                   >
                     {translate(

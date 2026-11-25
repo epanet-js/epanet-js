@@ -4,6 +4,7 @@ import type {
   ImportedSensor,
   ParseSensorDataResult,
 } from "./parse-sensor-data-file";
+import type { MergedSensors } from "./merge-sensor-files";
 
 export const checkSensorTiming = (
   sensors: Pick<ImportedSensor, "name" | "readings">[],
@@ -49,3 +50,24 @@ export const checkSensorTimes = (
       };
     });
 };
+
+export const checkMergedSensorTimes = (
+  {
+    sensors,
+    errorsByFile,
+    lastReadingIn,
+  }: Pick<MergedSensors, "sensors" | "errorsByFile" | "lastReadingIn">,
+  timing: Pick<Timing, "duration" | "reportTimestep">,
+): ImportError[][] =>
+  errorsByFile.map((_, file) => {
+    const endingHere = sensors.filter(
+      ({ name }) => lastReadingIn.get(name)?.file === file,
+    );
+    const columns = new Map(
+      endingHere.flatMap(({ name }): [string, number][] => {
+        const column = lastReadingIn.get(name)?.column;
+        return column === undefined ? [] : [[name, column]];
+      }),
+    );
+    return checkSensorTimes({ sensors: endingHere, columns }, timing);
+  });

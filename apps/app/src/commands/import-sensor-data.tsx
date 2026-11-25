@@ -28,7 +28,16 @@ export const useImportSensorData = () => {
       {
         skippedCount,
         hasTimingWarning,
-      }: { skippedCount: number; hasTimingWarning: boolean },
+        files,
+      }: {
+        skippedCount: number;
+        hasTimingWarning: boolean;
+        files?: {
+          filesCount: number;
+          zipCount: number;
+          issueCodes: string[];
+        };
+      },
     ) => {
       setSensors(sensors);
 
@@ -52,6 +61,7 @@ export const useImportSensorData = () => {
         skippedCount,
         parameterCounts: countByParameter(sensors),
         hasTimingWarning,
+        ...files,
       });
 
       notify({

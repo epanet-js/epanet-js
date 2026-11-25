@@ -2274,6 +2274,16 @@
       "title": "Import sensor data",
       "importAction": "Import",
       "removeFile": "Remove file",
+      "files": {
+        "title": "Files",
+        "add": "Add",
+        "select": "Select files",
+        "empty": "Add files to check their sensors before importing",
+        "reading": "Reading…",
+        "sensors_one": "{{count}} sensor",
+        "sensors_other": "{{count}} sensors",
+        "sensorsHeading": "Sensors"
+      },
       "sessionNote": "Sensor data is kept for this session only. It is not saved in the project file.",
       "format": {
         "title": "File format",
@@ -2334,12 +2344,14 @@
       "unsupportedParameter": "Parameter not supported by the asset. Accepted for {{1}}. Sensor skipped",
       "ambiguousAsset": "A node and a link share this label. Add a \"type\" row to say which. Sensor skipped",
       "duplicateSensorOnAsset": "Asset already has a sensor for this parameter. Sensor skipped",
+      "repeatedSensor": "A sensor with this name was already read from {{1}}. Sensor skipped",
       "readingsDontCoverDuration": "Expected {{1}} readings, one per report time step, but found {{2}}. Sensors imported anyway",
       "readingsEndEarly": "Readings end before the simulation does. Sensors imported anyway",
       "notAValidSensorFile": "Not a sensor data file.",
       "missingSensorRow": "Couldn't find the sensor names. Put them in a row labeled \"sensor\" in the first column. Labels found: {{1}}.",
       "unsupportedFormat": "Only .csv and .xlsx files can be imported",
-      "unreadableFile": "The selected file could not be read."
+      "unreadableFile": "The selected file could not be read.",
+      "zipTooDeep": "Zip files more than one level inside another zip are not opened"
     }
   },
   "pipeLibrary": {

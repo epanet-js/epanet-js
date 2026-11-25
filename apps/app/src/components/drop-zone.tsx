@@ -4,7 +4,8 @@ import { useTranslate } from "src/hooks/use-translate";
 import { UploadIcon } from "src/icons";
 
 interface DropZoneProps {
-  onFileDrop: (file: File) => void;
+  onFileDrop?: (file: File) => void;
+  onFilesDrop?: (files: File[]) => void;
   onFileRejected?: (file: File, reason: string) => void;
   accept?: string;
   disabled?: boolean;
@@ -15,7 +16,8 @@ interface DropZoneProps {
 }
 
 export const DropZone: React.FC<DropZoneProps> = ({
-  onFileDrop,
+  onFileDrop = () => {},
+  onFilesDrop,
   onFileRejected,
   accept,
   disabled = false,
@@ -29,9 +31,11 @@ export const DropZone: React.FC<DropZoneProps> = ({
 
   const { dragState, dropZoneProps, inputProps } = useDropZone({
     onFileDrop,
+    onFilesDrop,
     onFileRejected,
     accept,
     disabled,
+    multiple: onFilesDrop !== undefined,
   });
 
   const handleDropZoneClick = useCallback(() => {
