@@ -76,22 +76,4 @@ describe("mergeSensorFiles", () => {
       { label: "NORTH-2", code: "duplicateSensorOnAsset", column: 2 },
     ]);
   });
-
-  it("remembers the file and column each sensor came from", () => {
-    const { lastReadingIn } = mergeSensorFiles([
-      aFile("day-1.csv", aSensor("NORTH", [0])),
-      aFile(
-        "day-2.csv",
-        aSensor("SOUTH", [0], { assetId: 2 }),
-        aSensor("NORTH", [HOUR]),
-      ),
-    ]);
-
-    expect(lastReadingIn).toEqual(
-      new Map([
-        ["NORTH", { file: 0, column: 2 }],
-        ["SOUTH", { file: 1, column: 2 }],
-      ]),
-    );
-  });
 });

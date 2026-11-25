@@ -8,7 +8,7 @@ export type ExpandedFiles = { files: File[]; skipped: SkippedZip[] };
 
 export const isZipFile = (file: File): boolean => isZipName(file.name);
 
-export const isHiddenFile = (name: string): boolean => name.startsWith(".");
+const isHiddenFile = (name: string): boolean => name.startsWith(".");
 
 export const expandZipFiles = async (files: File[]): Promise<ExpandedFiles> => {
   const expanded: File[] = [];

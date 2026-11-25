@@ -1,8 +1,4 @@
-import {
-  checkMergedSensorTimes,
-  checkSensorTimes,
-  checkSensorTiming,
-} from "./check-sensor-timing";
+import { checkSensorTimes, checkSensorTiming } from "./check-sensor-timing";
 
 const HOUR = 3600;
 
@@ -135,37 +131,5 @@ describe("checkSensorTimes", () => {
     expect(
       checkSensorTimes(parsed(aTimedSensor("A", 2, [HOUR])), { duration: 0 }),
     ).toEqual([]);
-  });
-});
-
-describe("checkMergedSensorTimes", () => {
-  it("reports a sensor that ends early in the file and column with its last reading", () => {
-    const sensor = (name: string, times: number[]) => ({
-      name,
-      parameter: "pressure" as const,
-      assetId: 1,
-      times,
-      readings: times,
-    });
-
-    const warnings = checkMergedSensorTimes(
-      {
-        sensors: [
-          sensor("SHORT", [0, 12 * HOUR]),
-          sensor("FULL", [0, 24 * HOUR]),
-        ],
-        errorsByFile: [[], []],
-        lastReadingIn: new Map([
-          ["SHORT", { file: 1, column: 3 }],
-          ["FULL", { file: 0, column: 2 }],
-        ]),
-      },
-      { duration: 24 * HOUR, reportTimestep: HOUR },
-    );
-
-    expect(warnings).toEqual([
-      [],
-      [{ label: "SHORT", code: "readingsEndEarly", column: 3 }],
-    ]);
   });
 });

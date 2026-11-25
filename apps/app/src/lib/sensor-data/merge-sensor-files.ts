@@ -9,21 +9,17 @@ export type SensorFile = {
   result: Pick<ParseSensorDataResult, "sensors" | "columns">;
 };
 
-export type SensorOrigin = { file: number; column?: number };
-
 export type MergedSensors = {
   sensors: ImportedSensor[];
   sensorsByFile: ImportedSensor[][];
   errorsByFile: ImportError[][];
   skippedByFile: ReadonlySet<string>[];
-  lastReadingIn: ReadonlyMap<string, SensorOrigin>;
 };
 
 export const mergeSensorFiles = (files: SensorFile[]): MergedSensors => {
   const sensors: ImportedSensor[] = [];
   const fileOfName = new Map<string, string>();
   const assetsInUse = new Set<string>();
-  const lastReadingIn = new Map<string, SensorOrigin>();
   const sensorsByFile = files.map((): ImportedSensor[] => []);
   const errorsByFile = files.map((): ImportError[] => []);
   const skippedByFile = files.map(() => new Set<string>());
@@ -57,9 +53,8 @@ export const mergeSensorFiles = (files: SensorFile[]): MergedSensors => {
       assetsInUse.add(assetKey);
       sensors.push(sensor);
       sensorsByFile[file].push(sensor);
-      lastReadingIn.set(sensor.name, { file, column });
     }
   });
 
-  return { sensors, sensorsByFile, errorsByFile, skippedByFile, lastReadingIn };
+  return { sensors, sensorsByFile, errorsByFile, skippedByFile };
 };

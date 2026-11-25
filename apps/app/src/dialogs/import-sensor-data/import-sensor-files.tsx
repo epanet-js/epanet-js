@@ -28,7 +28,7 @@ import {
   isZipFile,
 } from "src/lib/sensor-data/expand-zip-files";
 import { mergeSensorFiles } from "src/lib/sensor-data/merge-sensor-files";
-import { checkMergedSensorTimes } from "src/lib/sensor-data/check-sensor-timing";
+import { checkSensorTimes } from "src/lib/sensor-data/check-sensor-timing";
 import { useSensorVocabulary } from "./sensor-vocabulary";
 import { refusalOf, type Refusal } from "./refusal";
 import {
@@ -213,8 +213,14 @@ export const ImportSensorFilesDialog = ({
     [readEntries],
   );
   const timingByFile = useMemo(
-    () => checkMergedSensorTimes(merged, timing),
-    [merged, timing],
+    () =>
+      readEntries.map(({ result }, file) =>
+        checkSensorTimes(
+          { sensors: merged.sensorsByFile[file], columns: result.columns },
+          timing,
+        ),
+      ),
+    [readEntries, merged, timing],
   );
 
   const { outcomes, sensorsByFile } = useMemo(() => {
