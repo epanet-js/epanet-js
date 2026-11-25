@@ -125,7 +125,7 @@ describe("ScriptsPanel", () => {
     permissionsRef.current = resolvePermissions("pro", false, false, false);
     registerScripting({
       startScriptRun: vi.fn(),
-      exampleScripts: [
+      exampleScriptsFor: () => [
         {
           id: "select-small-pipes",
           name: "Select small pipes",
@@ -816,7 +816,7 @@ describe("ScriptsPanel", () => {
       finished: new Promise(() => {}),
       cancel: vi.fn(),
     });
-    registerScripting({ startScriptRun, exampleScripts: [] });
+    registerScripting({ startScriptRun, exampleScriptsFor: () => [] });
     const store = setInitialState({
       hydraulicModel: HydraulicModelBuilder.with().build(),
     });
@@ -892,7 +892,7 @@ describe("ScriptsPanel", () => {
       stubFeaturesOn(["FLAG_MODEL_VALIDATIONS"]);
       const user = userEvent.setup();
       const startScriptRun = aRunThatSetsTheDiameter();
-      registerScripting({ startScriptRun, exampleScripts: [] });
+      registerScripting({ startScriptRun, exampleScriptsFor: () => [] });
       renderPanel(aStoreWithAPipe());
 
       await user.click(screen.getByRole("button", { name: "Run Resize" }));
@@ -906,7 +906,7 @@ describe("ScriptsPanel", () => {
       stubFeaturesOn(["FLAG_DELETE_ZONE"]);
       const user = userEvent.setup();
       const startScriptRun = aRunThatSetsTheDiameter();
-      registerScripting({ startScriptRun, exampleScripts: [] });
+      registerScripting({ startScriptRun, exampleScriptsFor: () => [] });
       renderPanel(aStoreWithAPipe());
 
       await user.click(screen.getByRole("button", { name: "Run Resize" }));
@@ -932,7 +932,7 @@ describe("ScriptsPanel", () => {
     it("tells the run why it cannot edit on a locked Main", async () => {
       const user = userEvent.setup();
       const startScriptRun = aRunThatSetsTheDiameter();
-      registerScripting({ startScriptRun, exampleScripts: [] });
+      registerScripting({ startScriptRun, exampleScriptsFor: () => [] });
       renderPanel(lockMain(aStoreWithAPipe()));
 
       await user.click(screen.getByRole("button", { name: "Run Resize" }));
@@ -961,7 +961,7 @@ describe("ScriptsPanel", () => {
           ),
         };
       });
-      registerScripting({ startScriptRun, exampleScripts: [] });
+      registerScripting({ startScriptRun, exampleScriptsFor: () => [] });
       const store = lockMain(aStoreWithAPipe());
       renderPanel(store);
       const selectionBefore = store.get(selectionAtom);
@@ -980,7 +980,7 @@ describe("ScriptsPanel", () => {
     it("runs with no reason when the model can be edited", async () => {
       const user = userEvent.setup();
       const startScriptRun = aRunThatSetsTheDiameter();
-      registerScripting({ startScriptRun, exampleScripts: [] });
+      registerScripting({ startScriptRun, exampleScriptsFor: () => [] });
       renderPanel(aStoreWithAPipe());
 
       await user.click(screen.getByRole("button", { name: "Run Resize" }));
@@ -1043,7 +1043,7 @@ describe("ScriptsPanel", () => {
           }),
           cancel: vi.fn(),
         })),
-        exampleScripts: [],
+        exampleScriptsFor: () => [],
       });
       renderPanel(store);
 
@@ -1062,7 +1062,7 @@ describe("ScriptsPanel", () => {
     it("applies the edits a script hands back to the network", async () => {
       const user = userEvent.setup();
       const startScriptRun = aRunThatSetsTheDiameter();
-      registerScripting({ startScriptRun, exampleScripts: [] });
+      registerScripting({ startScriptRun, exampleScriptsFor: () => [] });
       const store = aStoreWithAPipe();
       renderPanel(store);
 
@@ -1089,7 +1089,7 @@ describe("ScriptsPanel", () => {
         }),
         cancel: vi.fn(),
       }));
-      registerScripting({ startScriptRun, exampleScripts: [] });
+      registerScripting({ startScriptRun, exampleScriptsFor: () => [] });
       const store = aStoreWithAPipe();
       renderPanel(store);
 
@@ -1193,7 +1193,7 @@ describe("ScriptsPanel", () => {
     it("opens a script read-only and offers the paywall instead of running it", async () => {
       const user = userEvent.setup();
       const startScriptRun = vi.fn();
-      registerScripting({ startScriptRun, exampleScripts: [] });
+      registerScripting({ startScriptRun, exampleScriptsFor: () => [] });
       const store = aStoreWith([
         {
           id: "1",
@@ -1223,7 +1223,7 @@ describe("ScriptsPanel", () => {
     it("offers the paywall instead of running a script from its row", async () => {
       const user = userEvent.setup();
       const startScriptRun = vi.fn();
-      registerScripting({ startScriptRun, exampleScripts: [] });
+      registerScripting({ startScriptRun, exampleScriptsFor: () => [] });
       const store = aStoreWith([
         {
           id: "1",
@@ -1249,7 +1249,7 @@ describe("ScriptsPanel", () => {
       });
       registerScripting({
         startScriptRun,
-        exampleScripts: [
+        exampleScriptsFor: () => [
           {
             id: "select-small-pipes",
             name: "Select small pipes",
@@ -1274,7 +1274,7 @@ describe("ScriptsPanel", () => {
     it("hides paid examples", () => {
       registerScripting({
         startScriptRun: vi.fn(),
-        exampleScripts: [
+        exampleScriptsFor: () => [
           {
             id: "select-small-pipes",
             name: "Select small pipes",
@@ -1375,7 +1375,7 @@ describe("ScriptsPanel", () => {
         finished: new Promise(() => {}),
         cancel: vi.fn(),
       });
-      registerScripting({ startScriptRun, exampleScripts: [] });
+      registerScripting({ startScriptRun, exampleScriptsFor: () => [] });
       const store = aStoreWith([]);
       renderPanel(store);
 

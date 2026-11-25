@@ -1,5 +1,5 @@
 import { SCRIPT_API_VERSION } from "./api-version";
-import { exampleScripts } from "./example-scripts";
+import { exampleScriptsFor } from "./example-scripts";
 import { GLOBALS, INTERFACES } from "./interfaces";
 import { SECTION as ASSETS } from "./sections/assets";
 import { SECTION as COLLECTIONS } from "./sections/collections";
@@ -97,7 +97,7 @@ const buildDocs = (candidates: DocsCandidates): ScriptingDocs => ({
   agentRules: candidates.simulations
     ? [...AGENT_RULES, SIMULATE_RULE]
     : AGENT_RULES,
-  exampleScripts,
+  exampleScripts: exampleScriptsFor(candidates),
 });
 
 export const scriptingDocs = buildDocs({ simulations: false });

@@ -1,4 +1,4 @@
-import type { ExampleScript } from "./types";
+import type { DocsCandidates, ExampleScript } from "./types";
 
 export const exampleScripts: ExampleScript[] = [
   {
@@ -735,3 +735,128 @@ ui.attachFile("pattern-and-curve-usage.csv", rows.join("\\n"));
 `,
   },
 ];
+
+const CURRENT_OR_NEW_RESULTS = `// Uses the app's results when they are current, or else runs a simulation first.
+const hasCurrentResults = (results) =>
+  results !== null && !results.isStale && results.stepCount > 0;
+const before = hasCurrentResults(network.results) ? network.results : await network.simulate();
+if (before.stepCount === 0) throw new Error(before.report);`;
+
+const upsizeFastestPipesSimulating: ExampleScript = {
+  id: "upsize-fastest-pipes",
+  name: "Upsize the fastest pipes",
+  paid: false,
+  source: `const COUNT = 5; // how many of the fastest pipes to upsize, when no pipe is selected
+const SIZES = network.units.diameter === "mm"
+  ? [50, 80, 100, 150, 200, 250, 300, 350, 400, 500, 600, 700, 800, 900, 1000, 1200]
+  : [2, 3, 4, 6, 8, 10, 12, 14, 16, 18, 20, 24, 30, 36, 42, 48];
+
+${CURRENT_OR_NEW_RESULTS}
+
+const peakVelocity = (pipe) =>
+  (pipe.results?.series("velocity") ?? []).reduce((peak, v) => Math.max(peak, Math.abs(v)), 0);
+
+const byVelocity = (pipes) =>
+  pipes
+    .map((pipe) => ({ pipe, velocity: peakVelocity(pipe) }))
+    .filter(({ velocity }) => velocity > 0)
+    .sort((a, b) => b.velocity - a.velocity);
+
+// The selected pipes that carry water, or else the fastest in the network.
+const selected = byVelocity(selection.pipes);
+if (selection.pipes.length > 0 && selected.length === 0) {
+  console.warn("The selected pipes carry no flow, so this uses the fastest pipes in the network");
+}
+const fastest = selected.length > 0 ? selected : byVelocity(network.pipes).slice(0, COUNT);
+if (fastest.length === 0) throw new Error("No pipe has flow in the results");
+
+const upsized = [];
+for (const { pipe, velocity } of fastest) {
+  const size = SIZES.find((s) => s > pipe.diameter);
+  if (size === undefined) continue;
+  upsized.push({ pipe, from: pipe.diameter, velocity });
+  pipe.set({ diameter: size });
+}
+
+// Runs the simulation again on the upsized network: the table shows the real
+// change, and the app shows these results when the script ends.
+const after = upsized.length > 0 ? await network.simulate() : before;
+const hasAfter = after.stepCount > 0;
+if (!hasAfter) console.warn(\`The simulation after upsizing did not run: \${after.report}\`);
+
+const round = (value) => Math.round(value * 100) / 100;
+console.log(\`\${upsized.length} pipes upsized · diameter in \${network.units.diameter}, velocity in \${network.units.velocity}\`);
+console.table(
+  upsized.map(({ pipe, from, velocity }) => ({
+    pipe,
+    from,
+    to: pipe.diameter,
+    "peak velocity before": round(velocity),
+    after: hasAfter ? round(peakVelocity(pipe)) : null,
+  })),
+);
+selection.set(upsized.map(({ pipe }) => pipe));
+map.zoomTo(upsized.map(({ pipe }) => pipe));
+`,
+};
+
+const closePipesImpact: ExampleScript = {
+  id: "close-pipes-impact",
+  name: "Impact of closing the selected pipes",
+  paid: false,
+  source: `const COUNT = 10; // how many of the most affected nodes to list and select
+
+if (selection.pipes.length === 0) throw new Error("Select the pipes to close");
+const pipes = selection.pipes.filter((pipe) => pipe.status !== "closed");
+if (pipes.length === 0) throw new Error("The selected pipes are already closed");
+
+${CURRENT_OR_NEW_RESULTS}
+const lowestBefore = before.minValues("pressure");
+
+// Closes the pipes for one run, then puts their status back: the network is
+// left as it was, and the app keeps its own results.
+const statuses = pipes.map((pipe) => [pipe, pipe.status]);
+for (const pipe of pipes) pipe.set({ status: "closed" });
+const after = await network.simulate();
+if (after.stepCount === 0) throw new Error(after.report);
+const lowestAfter = after.minValues("pressure");
+for (const [pipe, status] of statuses) pipe.set({ status });
+
+const round = (value) => Math.round(value * 100) / 100;
+const affected = [...lowestAfter]
+  .filter(([node]) => lowestBefore.has(node))
+  .map(([node, pressure]) => ({ node, before: lowestBefore.get(node), after: pressure }))
+  .filter(({ before, after }) => after < before)
+  .sort((a, b) => b.before - b.after - (a.before - a.after))
+  .slice(0, COUNT);
+
+console.log(\`Closing \${pipes.length} pipes · lowest pressure over the run, in \${network.units.pressure}\`);
+if (affected.length === 0) {
+  console.log("No node loses pressure");
+} else {
+  console.table(
+    affected.map(({ node, before, after }) => ({
+      node,
+      before: round(before),
+      after: round(after),
+      drop: round(before - after),
+    })),
+  );
+}
+const assets = [...pipes, ...affected.map(({ node }) => network.getNode(node))];
+selection.set(assets);
+map.zoomTo(assets);
+`,
+};
+
+const simulationExampleScripts: ExampleScript[] = exampleScripts.flatMap(
+  (example) =>
+    example.id === upsizeFastestPipesSimulating.id
+      ? [upsizeFastestPipesSimulating, closePipesImpact]
+      : [example],
+);
+
+export const exampleScriptsFor = ({
+  simulations,
+}: DocsCandidates): ExampleScript[] =>
+  simulations ? simulationExampleScripts : exampleScripts;

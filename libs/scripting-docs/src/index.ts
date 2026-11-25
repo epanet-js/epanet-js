@@ -1,6 +1,6 @@
 export { SCRIPT_API_VERSION } from "./api-version";
 export { scriptingDocs, simulationsCandidateDocs } from "./definition";
-export { exampleScripts } from "./example-scripts";
+export { exampleScripts, exampleScriptsFor } from "./example-scripts";
 export { renderLlmsTxt } from "./render/markdown";
 export { renderDeclarations } from "./render/declarations";
 export { parseSignature, callForm } from "./signature";

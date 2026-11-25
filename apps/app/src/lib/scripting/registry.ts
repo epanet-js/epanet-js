@@ -184,7 +184,7 @@ export type Scripting = {
     simulate: (inp: string) => Promise<ScriptSimulationRun>;
     onEvent: (event: ScriptEvent) => void;
   }) => ScriptRunHandle;
-  exampleScripts: ExampleScript[];
+  exampleScriptsFor: (candidates: { simulations: boolean }) => ExampleScript[];
 };
 
 let scripting: Scripting | null = null;

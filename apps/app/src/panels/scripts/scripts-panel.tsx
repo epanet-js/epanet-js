@@ -256,7 +256,7 @@ const ScriptList = ({
   onOpen: (draft: ScriptDraft) => void;
   onCreate: (() => void) | null;
 }) => {
-  const { llmsPath } = useScriptingDocs();
+  const { llmsPath, variant: docsVariant } = useScriptingDocs();
   const runScript = useRunScript();
   const scripts = useAtomValue(userScriptsAtom);
   const { save: saveScript } = useScriptsTransaction();
@@ -293,7 +293,11 @@ const ScriptList = ({
       },
     }));
     const newRowNavId = scripts.length + 1;
-    const exampleRows: Row[] = (getScripting()?.exampleScripts ?? [])
+    const examples =
+      getScripting()?.exampleScriptsFor({
+        simulations: docsVariant === "simulationsCandidate",
+      }) ?? [];
+    const exampleRows: Row[] = examples
       .filter((example) => !example.paid || canRunScripts)
       .map((example, index) => {
         const name = translate(exampleNameKey(example.id));
@@ -321,7 +325,7 @@ const ScriptList = ({
       [...myRows, ...exampleRows].map((row) => [row.navId, row]),
     );
     return { myRows, exampleRows, newRowNavId, byNavId };
-  }, [scripts, canRunScripts, translate]);
+  }, [scripts, canRunScripts, translate, docsVariant]);
 
   const navItems = useMemo(
     (): NavItem<Section>[] => [
