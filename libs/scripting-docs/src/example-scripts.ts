@@ -736,10 +736,8 @@ ui.attachFile("pattern-and-curve-usage.csv", rows.join("\\n"));
   },
 ];
 
-const CURRENT_OR_NEW_RESULTS = `// Uses the app's results when they are current, or else runs a simulation first.
-const hasCurrentResults = (results) =>
-  results !== null && !results.isStale && results.stepCount > 0;
-const before = hasCurrentResults(network.results) ? network.results : await network.simulate();
+const CURRENT_OR_NEW_RESULTS = `// Runs a simulation, or returns the app's results when they are current.
+const before = await network.simulate();
 if (before.stepCount === 0) throw new Error(before.report);`;
 
 const upsizeFastestPipesSimulating: ExampleScript = {
