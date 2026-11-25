@@ -48,6 +48,10 @@ const getApiHost = (): string => {
 const apiKey = process.env.NEXT_PUBLIC_POSTHOG_KEY as string;
 const options = {
   api_host: getApiHost(),
+  rewriteRequestPath: (url: URL) => {
+    url.pathname = url.pathname.replace("/i/i/v0/e/", "/i/q7");
+    return url;
+  },
 };
 
 export const isPosthogConfigured = !!apiKey;

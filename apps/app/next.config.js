@@ -149,6 +149,10 @@ const nextConfig = {
     return process.env.NEXT_PUBLIC_POSTHOG_HOST !== undefined
       ? [
           {
+            source: "/i/q7",
+            destination: `${process.env.NEXT_PUBLIC_POSTHOG_HOST}/i/v0/e/`,
+          },
+          {
             source: "/i/:path*",
             destination: `${process.env.NEXT_PUBLIC_POSTHOG_HOST}/:path*`,
           },
