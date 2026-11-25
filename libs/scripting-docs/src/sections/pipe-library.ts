@@ -10,14 +10,14 @@ const ADD_PIPE_MATERIAL: Member = network({
   signature: `addPipeMaterial(material: {
   /** non-empty, with no spaces at either end; unique among materials, ignoring case */
   label: string;
-  /** roughness above 0, ages of at least 0 with none repeated, and one entry at age 0 */
+  /** should have roughness above 0, ages of at least 0 with none repeated, and one entry at age 0; entries that break this are kept and reported by network review */
   entries: { age: number; roughness: number }[];
 }): PipeMaterial`,
   summary: "Adds a material to the pipe library and returns it.",
   description:
-    "The material reads straight away through `pipeMaterials` and `getPipeMaterial`, and pipes whose `material` names it, ignoring case, take their `appliedRoughness` from it unless they have a roughness of their own. It reaches the network with the other changes.",
+    "The material reads straight away through `pipeMaterials` and `getPipeMaterial`, and pipes whose `material` names it, ignoring case, take their `appliedRoughness` from it unless they have a roughness of their own. Entries that break the rule in `entries` are kept, and network review reports the pipes that take their roughness from the material. It reaches the network with the other changes.",
   throws: [
-    "`TypeError` when `label` is not valid or another material has it, `entries` is empty, holds something other than `{ age, roughness }` numbers or breaks the rule, or `material` has another field.",
+    "`TypeError` when `label` is not valid or another material has it, `entries` is empty, holds something other than `{ age, roughness }` numbers, or `material` has another field.",
   ],
   examples: [
     {
@@ -32,14 +32,14 @@ const SET_PIPE_MATERIAL: Member = memberOf("PipeMaterial")({
   signature: `set(changes: {
   /** non-empty, with no spaces at either end; unique among materials, ignoring case */
   label?: string;
-  /** roughness above 0, ages of at least 0 with none repeated, and one entry at age 0 */
+  /** should have roughness above 0, ages of at least 0 with none repeated, and one entry at age 0; entries that break this are kept and reported by network review */
   entries?: { age: number; roughness: number }[];
 }): void`,
   summary: "Changes the material. What `changes` leaves out keeps its value.",
   description:
-    "Takes the shape the material reads as, so a script can spread a material, change it and write it back. The material reads its new values straight away, and keeps working after a change of label. Pipes whose `material` names it, ignoring case, take the new label, and their `appliedRoughness` follows new entries. A change of label alone does not check the entries. The change reaches the network with the other changes.",
+    "Takes the shape the material reads as, so a script can spread a material, change it and write it back. The material reads its new values straight away, and keeps working after a change of label. Pipes whose `material` names it, ignoring case, take the new label, and their `appliedRoughness` follows new entries. Entries that break the rule are kept and reported by network review, as `addPipeMaterial` describes. The change reaches the network with the other changes.",
   throws: [
-    "`TypeError` when the new label is not valid or another material has it, `entries` is empty, holds something other than `{ age, roughness }` numbers or breaks the rule, or `changes` has another field.",
+    "`TypeError` when the new label is not valid or another material has it, `entries` is empty, holds something other than `{ age, roughness }` numbers, or `changes` has another field.",
   ],
   examples: [
     {

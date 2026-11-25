@@ -46,6 +46,7 @@ const AGENT_RULES = [
   "Use the app's own checks instead of re-implementing them: `network.validate()`, `findOrphanAssets()`, `findSubnetworks()`, `findProximityAnomalies({ distance })`, `findCrossingPipes()`, `trace`, `boundaryLinks`, `shortestPath`.",
   "Walk the pipes with `network.trace`, never with your own search over `junction.links`: `stopAt`, `maxDistance` and `maxHops` set where it stops, `stoppedAt` says where and why it stopped, `distance(node)` how far along the pipes a node is.",
   "`network.validate()`'s `findings[0]` is the worst problem; `code` is stable; `assets` names what to fix.",
+  "Edits keep values that break the model's rules, such as curve points, pipe library entries and control levels, times and speeds; network review reports them. When it matters that the changed model is valid, call `network.validate()` once after the edits, not after each one, and fix what it reports.",
   "Read `pipe.appliedRoughness`, not `pipe.roughness`, for the value EPANET receives.",
   "Junction demand is `junction.demands` (categories with patterns) plus the demand of `junction.customerPoints`; `junction.baseDemand` is the categories only.",
   "Hand results back visually: `selection.set(...)` and `map.zoomTo(...)` for what to look at, `ui.attachFile` for data, `collections.saveSelectionSet` and `collections.saveBookmark` for a set or a view the user will want again, `console.table` for a summary.",

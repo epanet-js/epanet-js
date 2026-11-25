@@ -677,9 +677,9 @@ const SET_CONTROL: Member = memberOf("Pump")({
   summary:
     "Replaces the pump's control as a whole, or removes it with `null`, as the controls section in the app does.",
   description:
-    "Takes the shape `control` reads, so a script can read the control, change it and write it back. Assets are passed as the objects the network hands out. Like the app, setting a control clears `speedPattern`; removing one leaves it. Levels must lie between the tank's `minLevel` and `maxLevel` when it has them. The new control reads straight away and reaches the network with the other changes.",
+    "Takes the shape `control` reads, so a script can read the control, change it and write it back. Assets are passed as the objects the network hands out. Like the app, setting a control clears `speedPattern`; removing one leaves it. Levels should lie between the tank's `minLevel` and `maxLevel` when it has them. Times out of order, a negative setting, levels out of range, an on level not below the off level, and speeds out of range are kept and reported by network review. The new control reads straight away and reaches the network with the other changes.",
   throws: [
-    "`TypeError` when `type` is not one of the three, a field belongs to another type, an asset is not of the kind the field takes, `quantity` does not match `targetAsset`, times are out of order, or levels are out of range or the on level is not below the off level.",
+    "`TypeError` when `type` is not one of the three, a field belongs to another type, an asset is not of the kind the field takes, or `quantity` does not match `targetAsset`.",
   ],
   examples: [
     {
@@ -813,9 +813,9 @@ const SET_VALVE_CONTROL: Member = memberOf("Valve")({
   summary:
     "Replaces a PRV's control as a whole, or removes it with `null`, as the controls section in the app does.",
   description:
-    "Takes the shape `control` reads, so a script can read the control, change it and write it back. Assets are passed as the objects the network hands out. `setting` and `targetNode` keep their values. The new control reads straight away and reaches the network with the other changes.",
+    "Takes the shape `control` reads, so a script can read the control, change it and write it back. Assets are passed as the objects the network hands out. `setting` and `targetNode` keep their values. Points that break the rule in `points` are kept and reported by network review. The new control reads straight away and reaches the network with the other changes.",
   throws: [
-    '`TypeError` when the valve is not a prv, `type` is not `"flow-modulating-valve"`, a field is not one it sets, `sensorLink` is not a link or `controlNode` is not a node, there are fewer than two points, or the flows or pressures are out of range or out of order.',
+    '`TypeError` when the valve is not a prv, `type` is not `"flow-modulating-valve"`, a field is not one it sets, `sensorLink` is not a link, or `controlNode` is not a node.',
   ],
   examples: [
     {

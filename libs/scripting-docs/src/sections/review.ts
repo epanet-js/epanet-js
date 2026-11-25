@@ -70,7 +70,7 @@ export const SECTION: SectionDef = {
       signature: "validate(): ValidationReport",
       summary: "The checks behind the dialog that opens when you press Run.",
       description:
-        "The findings are orphan assets first, then one finding per area with no reservoir or tank, then the attribute rules, errors before warnings. Orphan tanks and reservoirs are not findings: EPANET solves with them. `findOrphanAssets()` still lists them.",
+        "The findings are orphan assets first, then one finding per area with no reservoir or tank, then the attribute rules, errors before warnings. Orphan tanks and reservoirs are not findings: EPANET solves with them. `findOrphanAssets()` still lists them. Edits are not held to these rules: values that break one, such as curve points out of order, pipe library entries without an age 0, or a control's on level above its off level, are kept. Call `validate()` once after a batch of edits to find what they broke; it checks the whole network, so avoid calling it after every edit.",
     }),
     network({
       name: "findOrphanAssets",

@@ -11,14 +11,14 @@ const ADD_CURVE: Member = network({
   /** up to 64 bytes of Latin-1 characters, with no spaces or semicolons; unique among curves, ignoring case */
   label: string;
   type: "pump" | "efficiency" | "volume" | "valve" | "headloss";
-  /** must fit the rule of the type */
+  /** should fit the rule of the type; points that break it are kept and reported by network review */
   points: { x: number; y: number }[];
 }): Curve`,
   summary: "Adds a curve to the library and returns it.",
   description:
-    "The points must fit the rule of the curve's type: a pump curve takes one point with x and y other than 0, or several with x rising and y falling; a volume curve at least two points with x and y both rising; a headloss or efficiency curve at least two points with x rising; a valve curve points with x and y both rising. The curve reads straight away through `curves` and `getCurve`, and its label can be given at once to anything that takes a curve of its type, such as `setVolumeCurve`. It reaches the network with the other changes.",
+    "The points should fit the rule of the curve's type: a pump curve takes one point with x and y other than 0, or several with x rising and y falling; a volume curve at least two points with x and y both rising; a headloss or efficiency curve at least two points with x rising; a valve curve points with x and y both rising. Points that break the rule are kept, and network review reports the curve on what uses it. The curve reads straight away through `curves` and `getCurve`, and its label can be given at once to anything that takes a curve of its type, such as `setVolumeCurve`. It reaches the network with the other changes.",
   throws: [
-    "`TypeError` when `label` is not a valid name or another curve has it, `type` is not a curve type, `points` is empty, holds something other than `{ x, y }` numbers or breaks the rule of the type, or `curve` has another field.",
+    "`TypeError` when `label` is not a valid name or another curve has it, `type` is not a curve type, `points` is empty, holds something other than `{ x, y }` numbers, or `curve` has another field.",
   ],
   examples: [
     {
@@ -35,14 +35,14 @@ const SET_CURVE: Member = memberOf("Curve")({
   label?: string;
   /** only while the curve has no type; a curve keeps its type once it has one */
   type?: "pump" | "efficiency" | "volume" | "valve" | "headloss";
-  /** must fit the rule of the type */
+  /** should fit the rule of the type; points that break it are kept and reported by network review */
   points?: { x: number; y: number }[];
 }): void`,
   summary: "Changes the curve. What `changes` leaves out keeps its value.",
   description:
-    "Takes the shape the curve reads as, so a script can spread a curve, change it and write it back. The curve reads its new values straight away, and keeps working after a change of label. When `points` or `type` change, the points are checked against the rule of the curve's type, as `addCurve` describes; a curve without a type takes at least two points with x rising. A change of label alone is not checked, so a curve whose points already break its rule can still be renamed. Everything that uses the curve follows a new label. The change reaches the network with the other changes.",
+    "Takes the shape the curve reads as, so a script can spread a curve, change it and write it back. The curve reads its new values straight away, and keeps working after a change of label. The points should fit the rule of the curve's type, as `addCurve` describes; a curve without a type should have at least two points with x rising. Points that break the rule are kept, and network review reports the curve on what uses it. Everything that uses the curve follows a new label. The change reaches the network with the other changes.",
   throws: [
-    "`TypeError` when the new label is not a valid name or another curve has it, `type` would change a curve's type, `points` is empty, holds something other than `{ x, y }` numbers or breaks the rule of the type, or `changes` has another field.",
+    "`TypeError` when the new label is not a valid name or another curve has it, `type` would change a curve's type, `points` is empty, holds something other than `{ x, y }` numbers, or `changes` has another field.",
   ],
   examples: [
     {
