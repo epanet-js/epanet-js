@@ -259,7 +259,6 @@
     "defaultText": "Drop files here or click to browse",
     "activeText": "Drop your file here",
     "supportedFormats": "Supported formats: {{1}}",
-    "selectedFile": "Selected: {{1}}",
     "fileDescriptions": {
       "geojson": "GeoJSON file",
       "geojsonl": "GeoJSONL file",
@@ -2291,7 +2290,6 @@
         "title": "File format",
         "show": "See the expected format",
         "optional": "The type row is optional. The asset defaults to the sensor name.",
-        "readings": "One reading per report time step, in project units. The time column is for your reference only: readings are matched to report time steps in row order, starting at 0:00.",
         "readingTimes": "Times count from the start of the simulation, as hh:mm or hh:mm:ss. A time more than 12 hours earlier than the row above, such as 00:00 after 23:45, starts the next day. A date and time also works, day or month first: only the time is kept, plus 24 hours for each day after the first. Leave a cell blank when there is no reading. Readings in project units.",
         "downloadTemplate": "Download template"
       },
@@ -2299,7 +2297,6 @@
         "sensor": "Sensor",
         "parameter": "Parameter",
         "asset": "Asset",
-        "readings": "Readings",
         "previewMore": "... and {{1}} more"
       },
       "warningDialog": {
@@ -2332,7 +2329,6 @@
       "missingName": "Missing sensor name. Sensor skipped",
       "duplicateName": "Duplicate sensor name. Later columns skipped",
       "noReadings": "No readings. Sensor skipped",
-      "invalidReading": "Missing or invalid reading. Sensor skipped",
       "readingNotANumber": "Reading is not a number. Read as no reading",
       "missingTime": "No time. Rows skipped",
       "unrecognizedTime": "Time not recognized. Use hh:mm, hh:mm:ss or a date and time. Rows skipped",
@@ -2347,7 +2343,6 @@
       "ambiguousAsset": "A node and a link share this label. Add a \"type\" row to say which. Sensor skipped",
       "duplicateSensorOnAsset": "Asset already has a sensor for this parameter. Sensor skipped",
       "repeatedSensor": "A sensor with this name was already read from {{1}}. Sensor skipped",
-      "readingsDontCoverDuration": "Expected {{1}} readings, one per report time step, but found {{2}}. Sensors imported anyway",
       "readingsEndEarly": "Readings end before the simulation does. Sensors imported anyway",
       "notAValidSensorFile": "Not a sensor data file.",
       "missingSensorRow": "Couldn't find the sensor names. Put them in a row labeled \"sensor\" in the first column. Labels found: {{1}}.",

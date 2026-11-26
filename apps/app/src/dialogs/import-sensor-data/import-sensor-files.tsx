@@ -19,7 +19,7 @@ import {
 } from "src/state/derived-branch-state";
 import { useImportSensorData } from "src/commands/import-sensor-data";
 import {
-  parseSensorTimeSeriesFile,
+  parseSensorDataFile,
   type ImportedSensor,
   type ParseSensorDataResult,
 } from "src/lib/sensor-data/parse-sensor-data-file";
@@ -108,7 +108,7 @@ export const ImportSensorFilesDialog = ({
         return { ...base, ...refused({ code: "unsupportedFormat" }) };
       }
       try {
-        const result = await parseSensorTimeSeriesFile(
+        const result = await parseSensorDataFile(
           file,
           { labelManager, assets: hydraulicModel.assets },
           vocabulary,
@@ -465,7 +465,6 @@ export const ImportSensorFilesDialog = ({
                     sensors={previewSensors}
                     selectedName={sensorName}
                     onSelect={setChosenSensor}
-                    showReadings={false}
                   />
                 </section>
               )}

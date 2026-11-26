@@ -34,12 +34,7 @@ import type { TimeSeries } from "src/simulation/epanet/eps-results-reader";
 import { type AssetId, type Valve } from "@epanet-js/hydraulic-model";
 import { useTimeSeries } from "src/hooks/use-time-series";
 import { useStatusValueLabels } from "src/hooks/use-status-value-labels";
-import {
-  QuickGraphChart,
-  QuickGraphChartByIndex,
-  type QuickGraphSeries,
-} from "src/components/graphs";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { QuickGraphChart, type QuickGraphSeries } from "src/components/graphs";
 import { colors } from "src/lib/constants";
 import { useChangeTimestep } from "src/commands/change-timestep";
 import { RingSpinner } from "src/components/ring-spinner";
@@ -100,7 +95,6 @@ const QuickGraphSection = ({
   isLoading,
 }: QuickGraphSectionProps) => {
   const translate = useTranslate();
-  const isSensorTimeSeriesOn = useFeatureFlag("FLAG_SENSOR_TIME_SERIES");
   const translateUnit = useTranslateUnit();
   const [footerState, setFooterState] = useAtom(assetPanelFooterAtom);
   const [propertyByType, setPropertyByType] = useAtom(quickGraphPropertyAtom);
@@ -310,13 +304,6 @@ const QuickGraphSection = ({
     }));
   }, [setFooterState]);
 
-  const handleIntervalClick = useCallback(
-    (intervalIndex: number) => {
-      void changeTimestep(intervalIndex, "quick-graph");
-    },
-    [changeTimestep],
-  );
-
   const handleTimeClick = useCallback(
     (seconds: number) => {
       if (!data) return;
@@ -391,26 +378,14 @@ const QuickGraphSection = ({
         )}
         {data !== null ? (
           <div className="absolute inset-0">
-            {isSensorTimeSeriesOn ? (
-              <QuickGraphChart
-                series={series}
-                timeRange={timeRange}
-                currentSeconds={timeStepIndex * data.intervalSeconds}
-                decimals={decimals}
-                valueLabels={valueLabels}
-                onTimeClick={handleTimeClick}
-              />
-            ) : (
-              <QuickGraphChartByIndex
-                series={series}
-                intervalSeconds={data.intervalSeconds}
-                intervalsCount={data.intervalsCount}
-                currentIntervalIndex={timeStepIndex}
-                decimals={decimals}
-                valueLabels={valueLabels}
-                onIntevalClick={handleIntervalClick}
-              />
-            )}
+            <QuickGraphChart
+              series={series}
+              timeRange={timeRange}
+              currentSeconds={timeStepIndex * data.intervalSeconds}
+              decimals={decimals}
+              valueLabels={valueLabels}
+              onTimeClick={handleTimeClick}
+            />
           </div>
         ) : (
           <div className="h-full flex items-center justify-center text-subtle text-size-small">

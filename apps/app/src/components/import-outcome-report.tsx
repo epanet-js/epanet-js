@@ -1,4 +1,4 @@
-import { Fragment, type ReactNode } from "react";
+import { Fragment } from "react";
 import clsx from "clsx";
 import { useTranslate } from "src/hooks/use-translate";
 import {
@@ -77,56 +77,6 @@ export const ImportOutcomeReport = ({
         className="absolute top-2.5 right-2.5 p-1 rounded-base text-subtle hover:text-default focus:outline-hidden focus:ring-2 focus:ring-inset focus:ring-accent"
         onClick={onDismiss}
         aria-label={translate("dismiss")}
-        type="button"
-      >
-        <CloseIcon />
-      </button>
-    </div>
-  );
-};
-
-export const ImportFileReport = ({
-  fileName,
-  outcome,
-  translationKeys,
-  onRemove,
-  removeLabel,
-  help,
-}: {
-  fileName: string;
-  outcome: ImportOutcome;
-  translationKeys: string;
-  onRemove: () => void;
-  removeLabel: string;
-  help?: ReactNode;
-}) => {
-  const { tint, Icon } = report[outcome.status];
-  const isError = outcome.status === "failed";
-
-  return (
-    <div
-      className={clsx(
-        "flex items-start gap-3 p-4 border rounded-base",
-        isError && "bg-error-subtle border-error-line",
-      )}
-    >
-      <Icon className={clsx("h-4 w-4 mt-0.5 shrink-0", tint)} aria-hidden />
-      <div className="flex flex-col gap-2 grow min-w-0 text-size-base">
-        <span className="font-semibold truncate" title={fileName}>
-          {fileName}
-        </span>
-        <OutcomeSummary outcome={outcome} translationKeys={translationKeys} />
-        <OutcomeIssues
-          outcome={outcome}
-          translationKeys={translationKeys}
-          listClassName="max-h-40 overflow-auto"
-        />
-        {help}
-      </div>
-      <button
-        className="p-1 -m-1 rounded-base text-subtle hover:text-default hover:bg-base-hover focus:outline-hidden focus:ring-2 focus:ring-inset focus:ring-accent"
-        onClick={onRemove}
-        aria-label={removeLabel}
         type="button"
       >
         <CloseIcon />
@@ -252,11 +202,9 @@ const OutcomeSummary = ({
 const OutcomeIssues = ({
   outcome,
   translationKeys,
-  listClassName,
 }: {
   outcome: ImportOutcome;
   translationKeys: string;
-  listClassName?: string;
 }) => {
   const translate = useTranslate();
   if (!outcome.issues || outcome.issues.length === 0) return null;
@@ -270,12 +218,7 @@ const OutcomeIssues = ({
         />
         {translate(`${translationKeys}.issues`)}
       </summary>
-      <ul
-        className={clsx(
-          "mt-2 list-disc rounded-base border bg-popover p-3 pl-8 space-y-1",
-          listClassName,
-        )}
-      >
+      <ul className="mt-2 list-disc rounded-base border bg-popover p-3 pl-8 space-y-1">
         {outcome.issues.map((issue, index) => (
           <li key={`${issue.code}-${index}`}>
             {describeIssue(issue, translate, translationKeys)}

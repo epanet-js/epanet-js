@@ -1,9 +1,6 @@
 import { LabelManager } from "@epanet-js/hydraulic-model";
 import { HydraulicModelBuilder } from "@epanet-js/hydraulic-model-testing";
-import {
-  parseSensorDataFile,
-  parseSensorTimeSeriesFile,
-} from "./parse-sensor-data-file";
+import { parseSensorDataFile } from "./parse-sensor-data-file";
 import type { SensorVocabulary } from "./parameters";
 
 const csvFile = (...lines: string[]) =>
@@ -23,14 +20,14 @@ const buildModel = () => {
   return { labelManager, assets: hydraulicModel.assets };
 };
 
-const parse = (file: File) => parseSensorTimeSeriesFile(file, buildModel());
+const parse = (file: File) => parseSensorDataFile(file, buildModel());
 
 const onRows = (code: string, ...rows: number[]) =>
   rows.map((row) => ({ code, row }));
 
 const JUNCTION_PARAMETERS = "junction: pressure, head, demand";
 
-describe("parseSensorTimeSeriesFile", () => {
+describe("parseSensorDataFile", () => {
   it("reads one sensor per column with the readings down the column", async () => {
     const result = await parse(
       csvFile(
@@ -238,7 +235,7 @@ describe("parseSensorTimeSeriesFile", () => {
       .aJunction(IDS.J1, { label: "10" })
       .build();
 
-    const result = await parseSensorTimeSeriesFile(
+    const result = await parseSensorDataFile(
       csvFile("sensor,20", "parameter,pressure", "asset,10", "0:00,1"),
       { labelManager, assets: hydraulicModel.assets },
     );
@@ -352,7 +349,7 @@ describe("parseSensorTimeSeriesFile", () => {
     };
 
     it("accepts the given words for the header rows, regardless of case", async () => {
-      const result = await parseSensorTimeSeriesFile(
+      const result = await parseSensorDataFile(
         csvFile(
           "SENSOR,A",
           "parámetro,Presión",
@@ -371,7 +368,7 @@ describe("parseSensorTimeSeriesFile", () => {
     });
 
     it("lists the given words for the header rows when a row is unknown", async () => {
-      const result = await parseSensorTimeSeriesFile(
+      const result = await parseSensorDataFile(
         csvFile(
           "sensor,A",
           "parameter,pressure",
@@ -395,7 +392,7 @@ describe("parseSensorTimeSeriesFile", () => {
     });
 
     it("accepts the given words for a parameter and an asset type, regardless of case", async () => {
-      const result = await parseSensorTimeSeriesFile(
+      const result = await parseSensorDataFile(
         csvFile(
           "sensor,A,B",
           "parameter,PRESIÓN,nivel",
@@ -420,7 +417,7 @@ describe("parseSensorTimeSeriesFile", () => {
     });
 
     it("keeps accepting the keys alongside the given words", async () => {
-      const result = await parseSensorTimeSeriesFile(
+      const result = await parseSensorDataFile(
         csvFile(
           "sensor,A",
           "parameter,pressure",
@@ -436,7 +433,7 @@ describe("parseSensorTimeSeriesFile", () => {
     });
 
     it("does not accept a word given for another asset type", async () => {
-      const result = await parseSensorTimeSeriesFile(
+      const result = await parseSensorDataFile(
         csvFile("sensor,A", "parameter,Nivel", "asset,J1", "0:00,1"),
         buildModel(),
         vocabulary,
@@ -833,59 +830,6 @@ describe("parseSensorTimeSeriesFile", () => {
         times: [0, 900, 25 * 3600],
         readings: [50, 51, 52],
       },
-    ]);
-  });
-});
-
-describe("parseSensorDataFile", () => {
-  const parseByIndex = (...lines: string[]) =>
-    parseSensorDataFile(csvFile(...lines), buildModel());
-
-  it("does not read the time column", async () => {
-    const result = await parseByIndex(
-      "sensor,SENSOR-A",
-      "parameter,pressure",
-      "asset,J1",
-      "not a time,1",
-      ",2",
-    );
-
-    expect(result.errors).toEqual([]);
-    expect(result.sensors).toEqual([
-      {
-        name: "SENSOR-A",
-        parameter: "pressure",
-        assetId: IDS.J1,
-        readings: [1, 2],
-      },
-    ]);
-  });
-
-  it("ignores trailing blank cells at the end of a column", async () => {
-    const result = await parseByIndex(
-      "sensor,A,B",
-      "parameter,pressure,flow",
-      "asset,J1,P1",
-      "t,1,1",
-      "t,2,",
-    );
-
-    expect(result.sensors.map((s) => s.readings)).toEqual([[1, 2], [1]]);
-  });
-
-  it("skips a sensor with a blank between readings", async () => {
-    const result = await parseByIndex(
-      "sensor,A,B",
-      "parameter,pressure,flow",
-      "asset,J1,P1",
-      "t,1,1",
-      "t,,2",
-      "t,3,3",
-    );
-
-    expect(result.sensors.map((s) => s.name)).toEqual(["B"]);
-    expect(result.errors).toEqual([
-      { label: "A", code: "invalidReading", value: "", column: 2 },
     ]);
   });
 });

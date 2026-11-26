@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import clsx from "clsx";
 import { useAtomValue } from "jotai";
 import { localizeDecimal } from "@epanet-js/i18n";
@@ -67,28 +66,14 @@ export const sensorImportOutcome = (
   };
 };
 
-export const useSensorImportOutcome = (
-  result: ParseSensorDataResult | null,
-  timingWarnings: ImportError[],
-): ImportOutcome | null => {
-  const translate = useTranslate();
-  return useMemo(
-    () =>
-      result ? sensorImportOutcome(result, timingWarnings, translate) : null,
-    [result, timingWarnings, translate],
-  );
-};
-
 export const SensorPreview = ({
   sensors,
   selectedName,
   onSelect,
-  showReadings = true,
 }: {
   sensors: ImportedSensor[];
   selectedName?: string;
   onSelect?: (name: string) => void;
-  showReadings?: boolean;
 }) => {
   const translate = useTranslate();
   const assets = useAtomValue(assetsDerivedAtom);
@@ -106,7 +91,6 @@ export const SensorPreview = ({
               <col />
               <col className="w-32" />
               <col />
-              {showReadings && <col className="w-24" />}
             </colgroup>
             <thead>
               <tr>
@@ -119,11 +103,6 @@ export const SensorPreview = ({
                 <th className={HEADER_CELL}>
                   {translate("sensorData.import.preview.asset")}
                 </th>
-                {showReadings && (
-                  <th className={clsx(HEADER_CELL, "text-right")}>
-                    {translate("sensorData.import.preview.readings")}
-                  </th>
-                )}
               </tr>
             </thead>
             <tbody>
@@ -173,20 +152,13 @@ export const SensorPreview = ({
                         <span className="text-subtle"> ({assetType})</span>
                       )}
                     </td>
-                    {showReadings && (
-                      <td
-                        className={clsx(BODY_CELL, "text-right tabular-nums")}
-                      >
-                        {localizeDecimal(sensor.readings.length)}
-                      </td>
-                    )}
                   </tr>
                 );
               })}
               {remaining > 0 && (
                 <tr className="border-t border">
                   <td
-                    colSpan={showReadings ? 4 : 3}
+                    colSpan={3}
                     className={clsx(BODY_CELL, "text-subtle italic")}
                   >
                     {translate(

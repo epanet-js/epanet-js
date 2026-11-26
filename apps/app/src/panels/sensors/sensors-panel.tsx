@@ -48,12 +48,7 @@ import type { ImportedSensor } from "src/lib/sensor-data/parse-sensor-data-file"
 import { useTimeSeries } from "src/hooks/use-time-series";
 import { useTrackSensorComparison } from "src/hooks/use-track-sensor-comparison";
 import { useStatusValueLabels } from "src/hooks/use-status-value-labels";
-import {
-  QuickGraphChart,
-  QuickGraphChartByIndex,
-  type QuickGraphSeries,
-} from "src/components/graphs";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { QuickGraphChart, type QuickGraphSeries } from "src/components/graphs";
 import { colors } from "src/lib/constants";
 import {
   contentStateFor,
@@ -429,7 +424,6 @@ const SelectedSensorChart = ({
   label: string;
 }) => {
   const translate = useTranslate();
-  const isSensorTimeSeriesOn = useFeatureFlag("FLAG_SENSOR_TIME_SERIES");
   const { formatting } = useAtomValue(projectSettingsAtom);
   const { timing } = useAtomValue(simulationSettingsDerivedAtom);
   const { data, isLoading, isStale } = useTimeSeries({
@@ -489,46 +483,17 @@ const SelectedSensorChart = ({
     [translate, values, simulated, sensor.readings, sensorTimes],
   );
 
-  const intervalSeconds = simulated ? simulated.intervalSeconds : reportStep;
-  const intervalsCount = Math.max(
-    simulated?.intervalsCount ?? 0,
-    sensor.readings.length,
-  );
-
-  const showTimeLabels = isSensorTimeSeriesOn || timing.duration > 0;
-
   const current = useMemo(
-    () =>
-      isSensorTimeSeriesOn ? (
-        <QuickGraphChart
-          series={series}
-          timeRange={seriesTimeRange(series)}
-          decimals={decimals}
-          valueLabels={valueLabels}
-          showTimeLabels={showTimeLabels}
-          title={label}
-        />
-      ) : (
-        <QuickGraphChartByIndex
-          series={series}
-          intervalsCount={intervalsCount}
-          intervalSeconds={intervalSeconds}
-          decimals={decimals}
-          valueLabels={valueLabels}
-          showTimeLabels={showTimeLabels}
-          title={label}
-        />
-      ),
-    [
-      isSensorTimeSeriesOn,
-      label,
-      series,
-      intervalsCount,
-      intervalSeconds,
-      decimals,
-      valueLabels,
-      showTimeLabels,
-    ],
+    () => (
+      <QuickGraphChart
+        series={series}
+        timeRange={seriesTimeRange(series)}
+        decimals={decimals}
+        valueLabels={valueLabels}
+        title={label}
+      />
+    ),
+    [label, series, decimals, valueLabels],
   );
 
   const [shown, setShown] = useState<ReactElement | null>(
@@ -547,7 +512,6 @@ const MultiSensorChart = ({
   parameterLabel: (sensor: ImportedSensor, asset: Asset) => string;
 }) => {
   const translate = useTranslate();
-  const isSensorTimeSeriesOn = useFeatureFlag("FLAG_SENSOR_TIME_SERIES");
   const { formatting } = useAtomValue(projectSettingsAtom);
   const { timing } = useAtomValue(simulationSettingsDerivedAtom);
   const { assets } = useAtomValue(stagingModelDerivedAtom);
@@ -607,10 +571,6 @@ const MultiSensorChart = ({
     [plotted, stepSeconds],
   );
 
-  const intervalsCount = Math.max(
-    0,
-    ...plotted.map(({ sensor }) => sensor.readings.length),
-  );
   const timeRange = useMemo(() => seriesTimeRange(series), [series]);
 
   const labelOptions = useMemo(
@@ -627,23 +587,12 @@ const MultiSensorChart = ({
   }
 
   const title = labels.length > 1 ? undefined : activeLabel;
-  const chart = isSensorTimeSeriesOn ? (
+  const chart = (
     <QuickGraphChart
       series={series}
       timeRange={timeRange}
       decimals={decimals}
       valueLabels={valueLabels}
-      showTimeLabels={isSensorTimeSeriesOn || timing.duration > 0}
-      title={title}
-    />
-  ) : (
-    <QuickGraphChartByIndex
-      series={series}
-      intervalsCount={intervalsCount}
-      intervalSeconds={stepSeconds}
-      decimals={decimals}
-      valueLabels={valueLabels}
-      showTimeLabels={timing.duration > 0}
       title={title}
     />
   );

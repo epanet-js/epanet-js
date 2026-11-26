@@ -62,7 +62,7 @@ const SECONDS_PER_DAY = 86400;
 const ANY_NODE: LabelType = "junction";
 const ANY_LINK: LabelType = "pipe";
 
-const SHAPE_ERRORS = new Set(["missingName", "noReadings", "invalidReading"]);
+const SHAPE_ERRORS = new Set(["missingName", "noReadings"]);
 
 type ColumnError = Omit<ImportError, "column" | "label">;
 
@@ -404,25 +404,6 @@ const readingOf = (cell: Cell): number | null => {
   return parseDecimal(text(cell));
 };
 
-const parseReadingsByIndex = (
-  cells: Cell[],
-): { readings: number[] } | { error: ColumnError } => {
-  let last = cells.length - 1;
-  while (last >= 0 && text(cells[last]) === "") last -= 1;
-
-  if (last < 0) return { error: { code: "noReadings" } };
-
-  const readings: number[] = [];
-  for (let i = 0; i <= last; i++) {
-    const value = readingOf(cells[i]);
-    if (value === null) {
-      return { error: { code: "invalidReading", value: text(cells[i]) } };
-    }
-    readings.push(value);
-  }
-  return { readings };
-};
-
 const parseReadings = (rows: TimedRow[], column: number): ParsedColumn => {
   const times: number[] = [];
   const readings: number[] = [];
@@ -445,15 +426,6 @@ const parseReadings = (rows: TimedRow[], column: number): ParsedColumn => {
     readings,
     warnings: rowsIssue("readingNotANumber", notNumbers),
   };
-};
-
-const BY_INDEX: ReadingsLayout = {
-  startsReadings: isReadingRow,
-  read: (readingRows) => ({
-    issues: [],
-    readColumn: (column) =>
-      parseReadingsByIndex(readingRows.map(({ cells }) => cells[column])),
-  }),
 };
 
 const BY_TIME: ReadingsLayout = {
@@ -669,13 +641,6 @@ const missingSensorRow = (layout: Layout): ImportError | undefined => {
 };
 
 export const parseSensorDataFile = (
-  file: File,
-  model: ModelLookup,
-  vocabulary: SensorVocabulary = EMPTY_VOCABULARY,
-): Promise<ParseSensorDataResult> =>
-  parseWith(file, model, vocabulary, BY_INDEX);
-
-export const parseSensorTimeSeriesFile = (
   file: File,
   model: ModelLookup,
   vocabulary: SensorVocabulary = EMPTY_VOCABULARY,
