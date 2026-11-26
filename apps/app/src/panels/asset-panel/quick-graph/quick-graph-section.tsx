@@ -43,6 +43,7 @@ import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { colors } from "src/lib/constants";
 import { useChangeTimestep } from "src/commands/change-timestep";
 import { RingSpinner } from "src/components/ring-spinner";
+import { useTrackSensorComparison } from "src/hooks/use-track-sensor-comparison";
 
 const QUALITY_OPTIONS: {
   value: string;
@@ -172,6 +173,13 @@ const QuickGraphSection = ({
     return isStatusProperty ? raw.map(toStatusStep) : raw;
   }, [baseData, isStatusProperty]);
   const timeStepIndex = simulationStep ?? 0;
+
+  useTrackSensorComparison(
+    "assetPanel",
+    sensor,
+    assetType,
+    data && values.length > 0 ? data.intervalSeconds : null,
+  );
 
   const series = useMemo<QuickGraphSeries[]>(() => {
     const intervalSeconds = data?.intervalSeconds ?? 0;

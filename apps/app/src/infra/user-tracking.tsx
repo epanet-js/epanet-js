@@ -911,6 +911,14 @@ type SensorDataImportRefused = {
   reason: string;
 };
 
+type SensorDataComparedWithSimulation = {
+  name: "sensorData.comparedWithSimulation";
+  source: "assetPanel" | "sensorsPanel";
+  assetType: string;
+  parameter: string;
+  alignment: string;
+};
+
 type SensorDataFilesRefused = {
   name: "sensorData.filesRefused";
   count: number;
@@ -1801,6 +1809,7 @@ export type UserEvent =
   | SensorDataImported
   | SensorDataImportRefused
   | SensorDataFilesRefused
+  | SensorDataComparedWithSimulation
   | ImportZonesWizardNext
   | ImportZonesWizardBack
   | ImportZonesWizardCancel

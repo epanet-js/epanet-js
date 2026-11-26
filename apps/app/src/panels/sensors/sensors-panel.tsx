@@ -46,6 +46,7 @@ import {
 } from "src/lib/asset-graph";
 import type { ImportedSensor } from "src/lib/sensor-data/parse-sensor-data-file";
 import { useTimeSeries } from "src/hooks/use-time-series";
+import { useTrackSensorComparison } from "src/hooks/use-track-sensor-comparison";
 import { useStatusValueLabels } from "src/hooks/use-status-value-labels";
 import {
   QuickGraphChart,
@@ -451,6 +452,12 @@ const SelectedSensorChart = ({
   const valueLabels = useStatusValueLabels(asset.type, isStatus);
 
   const simulated = !isStale && data && data.intervalsCount > 1 ? data : null;
+  useTrackSensorComparison(
+    "sensorsPanel",
+    sensor,
+    asset.type,
+    simulated ? simulated.intervalSeconds : null,
+  );
 
   const values = useMemo(() => {
     if (!simulated) return [];
