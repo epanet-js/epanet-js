@@ -2283,7 +2283,8 @@
         "reading": "Reading…",
         "sensors_one": "{{count}} sensor",
         "sensors_other": "{{count}} sensors",
-        "sensorsHeading": "Sensors"
+        "sensorsHeading": "Sensors",
+        "all": "All files"
       },
       "sessionNote": "Sensor data is kept for this session only. It is not saved in the project file.",
       "format": {

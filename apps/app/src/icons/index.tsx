@@ -33,6 +33,7 @@ import {
   Eye,
   EyeOff,
   File,
+  Files,
   FileBox,
   FileCode,
   Braces,
@@ -222,6 +223,7 @@ export const LabelsIcon = icon(Type);
 export const CheckIcon = icon(Check);
 export const KeyboardIcon = icon(Keyboard);
 export const FileIcon = icon(File);
+export const FilesIcon = icon(Files);
 export const FileAddIcon = icon(FilePlus);
 export const FilePlusCornerIcon = icon(FilePlus2);
 export const FileTextIcon = icon(FileText);

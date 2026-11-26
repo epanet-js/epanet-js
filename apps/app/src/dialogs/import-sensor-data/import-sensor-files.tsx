@@ -185,10 +185,6 @@ export const ImportSensorFilesDialog = ({
     setPickedId((current) => (current === id ? null : current));
   }, []);
 
-  const handleToggle = useCallback((id: number) => {
-    setPickedId((current) => (current === id ? null : id));
-  }, []);
-
   const fileInputRef = useRef<HTMLInputElement>(null);
   const openFileBrowser = useCallback(() => fileInputRef.current?.click(), []);
   const { dragState, dropZoneProps, inputProps } = useDropZone({
@@ -279,9 +275,15 @@ export const ImportSensorFilesDialog = ({
     [entries, outcomes],
   );
 
+  const importableIds = cards
+    .filter(({ outcome }) => outcome !== null && outcome.status !== "failed")
+    .map(({ id }) => id);
+  const showAllFiles = importableIds.length > 1;
   const selectedId = entries.some(({ id }) => id === pickedId)
     ? pickedId
-    : null;
+    : showAllFiles
+      ? null
+      : (importableIds[0] ?? null);
   const previewedId =
     selectedId !== null && outcomes.get(selectedId)?.status !== "failed"
       ? selectedId
@@ -299,6 +301,45 @@ export const ImportSensorFilesDialog = ({
       issues: outcome?.issues ?? [],
     }));
   }, [previewedId, outcomes, cards]);
+  const skippedCount = useMemo(
+    () =>
+      [...outcomes.values()].reduce(
+        (total, outcome) => total + (outcome?.stats?.ignored ?? 0),
+        0,
+      ),
+    [outcomes],
+  );
+  const allFilesOutcome = useMemo<ImportOutcome>(() => {
+    const stats = {
+      added: merged.sensors.length,
+      updated: 0,
+      identical: 0,
+      notModified: 0,
+      ignored: skippedCount,
+    };
+    if (merged.sensors.length === 0) {
+      return {
+        status: "failed",
+        message: translate(`${SENSOR_DATA_IMPORT_KEYS}.nothingToImport`),
+        stats,
+      };
+    }
+    const hasIssues = [...outcomes.values()].some(
+      (outcome) => (outcome?.issues?.length ?? 0) > 0,
+    );
+    return {
+      status: hasIssues ? "warning" : "success",
+      message: translate(
+        hasIssues
+          ? `${SENSOR_DATA_IMPORT_KEYS}.readyWithWarnings`
+          : `${SENSOR_DATA_IMPORT_KEYS}.readyToImport`,
+      ),
+      stats,
+    };
+  }, [merged, outcomes, skippedCount, translate]);
+  const issuesSummary =
+    (previewedId !== null ? outcomes.get(previewedId) : null) ??
+    allFilesOutcome;
   const previewSensors =
     previewedId !== null
       ? (sensorsByFile.get(previewedId) ?? [])
@@ -316,10 +357,6 @@ export const ImportSensorFilesDialog = ({
 
   const handleImport = useCallback(() => {
     if (!canImport) return;
-    const skippedCount = [...outcomes.values()].reduce(
-      (total, outcome) => total + (outcome?.stats?.ignored ?? 0),
-      0,
-    );
     importSensorData(merged.sensors, {
       skippedCount,
       hasTimingWarning: timingByFile.some((warnings) => warnings.length > 0),
@@ -339,6 +376,7 @@ export const ImportSensorFilesDialog = ({
   }, [
     canImport,
     outcomes,
+    skippedCount,
     merged,
     readEntries,
     timingByFile,
@@ -395,9 +433,11 @@ export const ImportSensorFilesDialog = ({
             <SensorFilesPanel
               width={sidebar.width}
               files={cards}
+              allFiles={allFilesOutcome}
+              showAllFiles={showAllFiles}
+              isReading={isStillReading}
               selectedId={selectedId}
-              onToggle={handleToggle}
-              onNavigate={setPickedId}
+              onSelect={setPickedId}
               onRemove={handleRemove}
               onAdd={openFileBrowser}
             />
@@ -407,6 +447,7 @@ export const ImportSensorFilesDialog = ({
                 <div className="shrink-0">
                   <ImportIssuesReport
                     key={previewedId ?? "all"}
+                    summary={issuesSummary}
                     groups={issueGroups}
                     translationKeys={SENSOR_DATA_IMPORT_KEYS}
                   />

@@ -1,13 +1,18 @@
 import { useCallback, useMemo, useRef } from "react";
 import clsx from "clsx";
 import { Button } from "src/components/elements";
-import { NavigableList, type NavItem } from "src/components/list";
+import {
+  NavigableList,
+  type NavigableListHandle,
+  type NavItem,
+} from "src/components/list";
 import { useTranslate } from "src/hooks/use-translate";
 import {
   AddIcon,
   CloseIcon,
   ErrorIcon,
   FileIcon,
+  FilesIcon,
   UploadIcon,
   WarningIcon,
 } from "src/icons";
@@ -25,23 +30,28 @@ const SECTION = "files";
 
 export const SensorFilesPanel = ({
   files,
+  allFiles,
+  showAllFiles,
+  isReading,
   selectedId,
-  onToggle,
-  onNavigate,
+  onSelect,
   onRemove,
   onAdd,
   width,
 }: {
   width: number;
   files: SensorFileCard[];
+  allFiles: ImportOutcome;
+  showAllFiles: boolean;
+  isReading: boolean;
   selectedId: number | null;
-  onToggle: (id: number) => void;
-  onNavigate: (id: number | null) => void;
+  onSelect: (id: number | null) => void;
   onRemove: (id: number) => void;
   onAdd: () => void;
 }) => {
   const translate = useTranslate();
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<NavigableListHandle>(null);
 
   const navItems = useMemo(
     (): NavItem[] => files.map(({ id }) => ({ id, section: SECTION })),
@@ -53,8 +63,8 @@ export const SensorFilesPanel = ({
       : { section: SECTION };
 
   const handleSelectItem = useCallback(
-    (item: NavItem) => onNavigate(item.id ?? null),
-    [onNavigate],
+    (item: NavItem) => onSelect(item.id ?? null),
+    [onSelect],
   );
 
   const blockSectionToggle = (event: React.KeyboardEvent) => {
@@ -68,22 +78,38 @@ export const SensorFilesPanel = ({
 
   return (
     <div className="flex flex-col shrink-0 min-h-0" style={{ width }}>
-      <div className="flex items-center gap-2 h-14 shrink-0 px-4 border-r">
-        <h3 className="flex-1 text-size-base font-semibold">
-          {translate("sensorData.import.files.title")}
-        </h3>
-        <FormatInfo />
+      <div className="flex items-center gap-2 h-12 shrink-0 px-4 border-r">
+        <div className="flex flex-1 items-center gap-1 min-w-0">
+          <h3 className="text-size-base font-semibold">
+            {translate("sensorData.import.files.title")}
+          </h3>
+          <FormatInfo />
+        </div>
         <Button type="button" size="sm" onClick={onAdd}>
           <AddIcon />
           {translate("sensorData.import.files.add")}
         </Button>
       </div>
+      {showAllFiles && (
+        <div className="shrink-0 px-2 pb-2 border-r shadow-[inset_0_-1px_0_var(--color-border)]">
+          <AllFilesRow
+            outcome={allFiles}
+            isReading={isReading}
+            isSelected={selectedId === null}
+            onSelect={() => {
+              onSelect(null);
+              listRef.current?.focus();
+            }}
+          />
+        </div>
+      )}
       <div
         ref={wrapperRef}
         className="flex flex-col flex-1 min-h-0"
         onKeyDownCapture={blockSectionToggle}
       >
         <NavigableList
+          ref={listRef}
           navItems={navItems}
           focusedItem={focusedItem}
           onSelectItem={handleSelectItem}
@@ -94,7 +120,7 @@ export const SensorFilesPanel = ({
                 key={file.id}
                 file={file}
                 isSelected={file.id === selectedId}
-                onToggle={() => onToggle(file.id)}
+                onSelect={() => onSelect(file.id)}
                 onRemove={() => onRemove(file.id)}
               />
             ))}
@@ -105,15 +131,58 @@ export const SensorFilesPanel = ({
   );
 };
 
+const AllFilesRow = ({
+  outcome,
+  isReading,
+  isSelected,
+  onSelect,
+}: {
+  outcome: ImportOutcome;
+  isReading: boolean;
+  isSelected: boolean;
+  onSelect: () => void;
+}) => {
+  const translate = useTranslate();
+
+  return (
+    <button
+      type="button"
+      className={clsx(
+        "flex w-full items-start gap-2 min-w-0 px-2 py-1.5 rounded-base text-left focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent",
+        isSelected ? "bg-accent-tint" : "hover:bg-base-hover",
+      )}
+      onClick={onSelect}
+      aria-pressed={isSelected}
+    >
+      {isReading ? (
+        <RingSpinner size="sm" />
+      ) : (
+        <FilesIcon
+          className="h-4 w-4 mt-0.5 shrink-0 text-subtle"
+          aria-hidden
+        />
+      )}
+      <span className="flex flex-col min-w-0">
+        <span className="text-size-base text-default truncate">
+          {translate("sensorData.import.files.all")}
+        </span>
+        <span className="text-xs text-subtle wrap-break-word">
+          <FileSummary outcome={outcome} />
+        </span>
+      </span>
+    </button>
+  );
+};
+
 const FileRow = ({
   file,
   isSelected,
-  onToggle,
+  onSelect,
   onRemove,
 }: {
   file: SensorFileCard;
   isSelected: boolean;
-  onToggle: () => void;
+  onSelect: () => void;
   onRemove: () => void;
 }) => {
   const translate = useTranslate();
@@ -134,8 +203,7 @@ const FileRow = ({
       <button
         type="button"
         className="flex flex-1 items-start gap-2 min-w-0 px-2 py-1.5 rounded-base text-left focus:outline-hidden"
-        onClick={onToggle}
-        aria-pressed={isSelected}
+        onClick={onSelect}
       >
         <FileStatusIcon outcome={outcome} />
         <span className="flex flex-col min-w-0">
