@@ -8,7 +8,10 @@ export const cdnLoadPath =
   (lngs: string[]): string =>
     `${localesUrl}/${lngs[0]}/${namespace}.json`;
 
-export type ServerTranslateFn = (key: string) => string;
+export type ServerTranslateFn = (
+  key: string,
+  values?: Record<string, string | number>,
+) => string;
 
 export type CreateServerI18nOptions = {
   enTranslations: Record<string, unknown>;

@@ -4,6 +4,7 @@ import { cdnLoadPath, createServerI18n } from "./server";
 const enTranslations = {
   greeting: { title: "Hello", detail: "Welcome back" },
   shared: "Back to the app",
+  link: "Open <{{url}}> for {{days}} days",
 };
 
 const serving = (byLocale: Record<string, unknown>) => {
@@ -89,6 +90,21 @@ describe("createServerI18n", () => {
     const t = await translator("es");
 
     expect(t("greeting.title")).toBe("Hello");
+  });
+
+  it("interpolates values without escaping them", async () => {
+    serving({ es: { link: "Abre <{{url}}> durante {{days}} días" } });
+    const translator = build();
+
+    const [en, es] = await Promise.all([translator("en"), translator("es")]);
+    const values = { url: "https://app.test/?a=1&b=2", days: 14 };
+
+    expect(en("link", values)).toBe(
+      "Open <https://app.test/?a=1&b=2> for 14 days",
+    );
+    expect(es("link", values)).toBe(
+      "Abre <https://app.test/?a=1&b=2> durante 14 días",
+    );
   });
 
   it("does not leak a language between concurrent callers", async () => {
