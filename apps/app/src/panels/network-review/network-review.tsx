@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useAtom, useAtomValue } from "jotai";
 import { Button } from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
@@ -34,7 +34,6 @@ import {
 } from "src/state/network-review";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { useReviewChecks } from "src/hooks/use-review-checks";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const LOADING_OVERLAY_DELAY_MS = 300;
 const MIN_OVERLAY_VISIBLE_MS = 400;
@@ -123,7 +122,7 @@ export function NetworkReview() {
   }
 }
 
-const allChecks = [
+const checks = [
   CheckType.orphanAssets,
   CheckType.proximityAnomalies,
   CheckType.crossingPipes,
@@ -139,14 +138,6 @@ function NetworkReviewSummary({
 }) {
   const translate = useTranslate();
   const { ensureFresh } = useReviewChecks();
-  const isTopologyChecksOn = useFeatureFlag("FLAG_TOPOLOGY_CHECKS");
-  const checks = useMemo(
-    () =>
-      isTopologyChecksOn
-        ? allChecks
-        : allChecks.filter((check) => check !== CheckType.topologyChecks),
-    [isTopologyChecksOn],
-  );
   const reviewResults = useAtomValue(reviewResultsAtom);
   const [isRunning, setIsRunning] = useState(false);
   const { isSignedIn, isLoaded } = useAuth();
@@ -259,7 +250,7 @@ function NetworkReviewSummary({
           break;
       }
     },
-    [checks, selectedCheckType, onClick],
+    [selectedCheckType, onClick],
   );
 
   return (

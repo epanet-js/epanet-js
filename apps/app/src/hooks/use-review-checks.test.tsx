@@ -124,7 +124,7 @@ describe("useReviewChecks", () => {
 
     const results = await renderChecks(store).ensureFresh();
 
-    expect(results).toHaveLength(3);
+    expect(results).toHaveLength(4);
     const orphans = results.find(
       (result) => result.check === CheckType.orphanAssets,
     );

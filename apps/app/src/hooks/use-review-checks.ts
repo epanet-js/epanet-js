@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useCallback } from "react";
 import { useAtomCallback } from "jotai/utils";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { ReviewResults, reviewResultsAtom } from "src/state/network-review";
@@ -12,7 +12,6 @@ import {
 } from "src/lib/network-review";
 import { listTopologyIssues } from "@epanet-js/network-review";
 import { countValidationIssues } from "src/lib/model-attributes-validation";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useModelAttributeRules } from "src/hooks/use-model-attribute-rules";
 
 export type CachedCheckType = keyof ReviewResults;
@@ -79,14 +78,6 @@ export const useReviewChecks = () => {
 
   const { read: readTopology, write: writeTopology } = useCachedCheck(
     CheckType.topologyChecks,
-  );
-  const isTopologyChecksOn = useFeatureFlag("FLAG_TOPOLOGY_CHECKS");
-  const enabledChecks = useMemo(
-    () =>
-      isTopologyChecksOn
-        ? blockingChecks
-        : blockingChecks.filter((check) => check !== CheckType.topologyChecks),
-    [isTopologyChecksOn],
   );
 
   const cache = useCallback(
@@ -188,11 +179,11 @@ export const useReviewChecks = () => {
       signal?: AbortSignal;
       onCheckDone?: (result: BlockingCheckResult) => void;
     }): Promise<BlockingCheckResult[]> => {
-      const cached = enabledChecks
+      const cached = blockingChecks
         .map(cachedResult)
         .filter((result): result is BlockingCheckResult => result !== null);
 
-      const stale = enabledChecks.filter(
+      const stale = blockingChecks.filter(
         (check) => !cached.some((result) => result.check === check),
       );
 
@@ -202,7 +193,7 @@ export const useReviewChecks = () => {
       const computed = await run(stale, options);
       return [...cached, ...computed];
     },
-    [enabledChecks, cachedResult, run],
+    [cachedResult, run],
   );
 
   return { ensureFresh };
