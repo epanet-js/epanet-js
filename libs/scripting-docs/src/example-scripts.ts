@@ -847,11 +847,90 @@ map.zoomTo(assets);
 `,
 };
 
+const renewOldestPipesSimulating: ExampleScript = {
+  id: "renew-oldest-pipes",
+  name: "Renew the oldest pipes",
+  paid: false,
+  source: `const COUNT = 20; // how many of the oldest pipes to renew, when no pipe is selected
+const NEW_MATERIAL = "uPVC"; // must be in the pipe library
+const RENEWAL_YEAR = 2026;
+
+if (!network.getPipeMaterial(NEW_MATERIAL)) {
+  throw new Error(\`\${NEW_MATERIAL} is not in the pipe library — change NEW_MATERIAL\`);
+}
+
+// The selected pipes, or the oldest ones that have an install year.
+const pipes = selection.pipes.length > 0
+  ? selection.pipes
+  : network.pipes
+      .filter((pipe) => pipe.year !== null)
+      .sort((a, b) => a.year - b.year)
+      .slice(0, COUNT);
+if (pipes.length === 0) throw new Error("No pipe has an install year — select the pipes to renew");
+
+// The lowest pressure at any junction over the run, to compare before and after.
+const lowestPressure = (results) => {
+  if (results.stepCount === 0) return null;
+  let lowest = Infinity;
+  for (const [label, pressure] of results.minValues("pressure")) {
+    if (network.getNode(label).type === "junction") lowest = Math.min(lowest, pressure);
+  }
+  return lowest === Infinity ? null : lowest;
+};
+
+// Runs a simulation, or returns the app's results when they are current.
+const before = await network.simulate();
+const lowestBefore = lowestPressure(before);
+
+const rows = new Map();
+for (const pipe of pipes) {
+  const material = pipe.material ?? "(none)";
+  const before = pipe.appliedRoughness;
+  // A new material and year, and no roughness of its own: the library sets the rest.
+  pipe.set({ material: NEW_MATERIAL, year: RENEWAL_YEAR, roughness: null });
+  const row = rows.get(material) ?? { material, pipes: 0, length: 0, before: 0, after: 0 };
+  row.pipes += 1;
+  row.length += pipe.length;
+  row.before += before ?? pipe.appliedRoughness;
+  row.after += pipe.appliedRoughness;
+  rows.set(material, row);
+}
+
+// Runs the simulation on the renewed network: the app shows these results when the script ends.
+const after = await network.simulate();
+const lowestAfter = lowestPressure(after);
+
+console.log(\`\${pipes.length} pipes renewed as \${NEW_MATERIAL} · length in \${network.units.length}\`);
+console.table(
+  [...rows.values()].map(({ material, pipes, length, before, after }) => ({
+    material,
+    pipes,
+    length: Math.round(length),
+    "mean roughness before": Math.round(before / pipes),
+    "mean roughness after": Math.round(after / pipes),
+  })),
+);
+if (lowestBefore === null || lowestAfter === null) {
+  console.warn(\`The simulation did not run, so there is no pressure to compare: \${(lowestBefore === null ? before : after).report}\`);
+} else {
+  const round = (value) => Math.round(value * 100) / 100;
+  console.log(\`Lowest junction pressure: \${round(lowestBefore)} → \${round(lowestAfter)} \${network.units.pressure}\`);
+}
+selection.set(pipes);
+map.zoomTo(pipes);
+`,
+};
+
 const simulationExampleScripts: ExampleScript[] = exampleScripts.flatMap(
-  (example) =>
-    example.id === upsizeFastestPipesSimulating.id
-      ? [upsizeFastestPipesSimulating, closePipesImpact]
-      : [example],
+  (example) => {
+    if (example.id === upsizeFastestPipesSimulating.id) {
+      return [upsizeFastestPipesSimulating, closePipesImpact];
+    }
+    if (example.id === renewOldestPipesSimulating.id) {
+      return [renewOldestPipesSimulating];
+    }
+    return [example];
+  },
 );
 
 export const exampleScriptsFor = ({
