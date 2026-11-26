@@ -1,4 +1,4 @@
-import type { ImportedSensor } from "./parse-sensor-data-file";
+import type { SensorReadings } from "./sensor";
 
 export type StepAlignment =
   | "matching"
@@ -8,10 +8,10 @@ export type StepAlignment =
   | "sparse";
 
 export const stepAlignmentOf = (
-  { times }: Pick<ImportedSensor, "times">,
+  { times }: Pick<SensorReadings, "times">,
   reportTimestep: number,
 ): StepAlignment => {
-  if (!times || reportTimestep <= 0) return "matching";
+  if (reportTimestep <= 0) return "matching";
   const isOn = (step: number) => times.every((time) => time % step === 0);
   const interval = commonInterval(times);
   if (interval === null) return "sparse";

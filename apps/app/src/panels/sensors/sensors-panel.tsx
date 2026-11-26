@@ -30,21 +30,18 @@ import { USelection } from "src/selection";
 import { PointerClickIcon, SensorsIcon } from "src/icons";
 import { sensorsAtom } from "src/state/sensor-data";
 import { projectSettingsAtom } from "src/state/project-settings";
-import {
-  simulationSettingsDerivedAtom,
-  stagingModelDerivedAtom,
-} from "src/state/derived-branch-state";
+import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import {
   type QuickGraphPropertyByAssetType,
   QUICK_GRAPH_PROPERTIES,
   SERIES_COLORS,
   toStatusStep,
   sensorReadingsStyle,
-  reportStepSeconds,
   seriesTimeRange,
   stepTimes,
 } from "src/lib/asset-graph";
-import type { ImportedSensor } from "src/lib/sensor-data/parse-sensor-data-file";
+import type { Sensor, SensorId } from "src/lib/sensor-data/sensor";
+import { useSensorReadings } from "src/hooks/use-sensor-readings";
 import { useTimeSeries } from "src/hooks/use-time-series";
 import { useTrackSensorComparison } from "src/hooks/use-track-sensor-comparison";
 import { useStatusValueLabels } from "src/hooks/use-status-value-labels";
@@ -62,6 +59,7 @@ import {
 import { VerticalResizer } from "src/dialogs/vertical-resizer";
 
 type SensorRow = {
+  id: SensorId;
   name: string;
   parameter: string;
   asset: string;
@@ -127,8 +125,7 @@ const SensorsEmptyState = () => {
 const useParameterLabel = () => {
   const labelFor = useSensorParameterLabel();
   return useCallback(
-    (sensor: ImportedSensor, asset: Asset) =>
-      labelFor(sensor.parameter, asset.type),
+    (sensor: Sensor, asset: Asset) => labelFor(sensor.parameter, asset.type),
     [labelFor],
   );
 };
@@ -138,7 +135,7 @@ const SensorsTableAndChart = ({
   sensors,
 }: {
   panelId: string;
-  sensors: ImportedSensor[];
+  sensors: Sensor[];
 }) => {
   const translate = useTranslate();
   const userTracking = useUserTracking();
@@ -168,10 +165,10 @@ const SensorsTableAndChart = ({
     observer.observe(container);
     return () => observer.disconnect();
   }, []);
-  const [selectedNames, setSelectedNames] = useState<readonly string[]>(() => {
+  const [selectedIds, setSelectedIds] = useState<readonly SensorId[]>(() => {
     const first = savedGrid?.selection?.min.row ?? 0;
     const last = savedGrid?.selection?.max.row ?? 0;
-    return sensors.slice(first, last + 1).map(({ name }) => name);
+    return sensors.slice(first, last + 1).map(({ id }) => id);
   });
 
   const saveState = useCallback(
@@ -210,6 +207,7 @@ const SensorsTableAndChart = ({
         const asset = assets.get(sensor.assetId);
         if (!asset) {
           return {
+            id: sensor.id,
             name: sensor.name,
             parameter: "",
             asset: translate("sensorData.panel.notInScenario"),
@@ -217,6 +215,7 @@ const SensorsTableAndChart = ({
           };
         }
         return {
+          id: sensor.id,
           name: sensor.name,
           parameter: parameterLabel(sensor, asset),
           asset: `${asset.label} (${translate(asset.type)})`,
@@ -301,10 +300,10 @@ const SensorsTableAndChart = ({
   const handleSelectionChange = useCallback(
     (selection: SelectedCells | null) => {
       if (!selection || selection.rowIndexes.length === 0) return;
-      setSelectedNames(
+      setSelectedIds(
         selection.rowIndexes.flatMap((index) => {
-          const name = sensors[index]?.name;
-          return name === undefined ? [] : [name];
+          const id = sensors[index]?.id;
+          return id === undefined ? [] : [id];
         }),
       );
     },
@@ -324,13 +323,13 @@ const SensorsTableAndChart = ({
   );
 
   const selectedSensors = useMemo(() => {
-    const byName = new Map(sensors.map((sensor) => [sensor.name, sensor]));
-    const found = selectedNames.flatMap((name) => {
-      const sensor = byName.get(name);
+    const byId = new Map(sensors.map((sensor) => [sensor.id, sensor]));
+    const found = selectedIds.flatMap((id) => {
+      const sensor = byId.get(id);
       return sensor ? [sensor] : [];
     });
     return found.length > 0 ? found : sensors.slice(0, 1);
-  }, [sensors, selectedNames]);
+  }, [sensors, selectedIds]);
   const selected = selectedSensors.length === 1 ? selectedSensors[0] : null;
   const selectedAsset = selected ? assets.get(selected.assetId) : undefined;
   const showChart =
@@ -362,12 +361,13 @@ const SensorsTableAndChart = ({
           columns={columns}
           onChange={noop}
           createRow={() => ({
+            id: "",
             name: "",
             parameter: "",
             asset: "",
             assetId: null,
           })}
-          getRowId={(row) => row.name}
+          getRowId={(row) => row.id}
           readOnly
           resizable
           minColumnSizePx={20}
@@ -419,13 +419,13 @@ const SelectedSensorChart = ({
   asset,
   label,
 }: {
-  sensor: ImportedSensor;
+  sensor: Sensor;
   asset: Asset;
   label: string;
 }) => {
   const translate = useTranslate();
   const { formatting } = useAtomValue(projectSettingsAtom);
-  const { timing } = useAtomValue(simulationSettingsDerivedAtom);
+  const readings = useSensorReadings().get(sensor.id);
   const { data, isLoading, isStale } = useTimeSeries({
     assetId: asset.id,
     assetType: asset.type,
@@ -449,6 +449,7 @@ const SelectedSensorChart = ({
   useTrackSensorComparison(
     "sensorsPanel",
     sensor,
+    readings,
     asset.type,
     simulated ? simulated.intervalSeconds : null,
   );
@@ -459,19 +460,13 @@ const SelectedSensorChart = ({
     return isStatus ? raw.map(toStatusStep) : raw;
   }, [simulated, isStatus]);
 
-  const reportStep = reportStepSeconds(timing);
-  const sensorTimes = useMemo(
-    () => sensor.times ?? stepTimes(sensor.readings.length, reportStep),
-    [sensor.times, sensor.readings.length, reportStep],
-  );
-
   const series = useMemo<QuickGraphSeries[]>(
     () => [
       {
         label: translate("sensorData.panel.sensor"),
-        values: sensor.readings,
-        times: sensorTimes,
-        style: sensorReadingsStyle(sensor.readings.length),
+        values: readings?.values ?? [],
+        times: readings?.times ?? [],
+        style: sensorReadingsStyle(readings?.values.length ?? 0),
       },
       {
         label: translate("simulation"),
@@ -480,7 +475,7 @@ const SelectedSensorChart = ({
         style: { type: "line", color: colors.purple500 },
       },
     ],
-    [translate, values, simulated, sensor.readings, sensorTimes],
+    [translate, values, simulated, readings],
   );
 
   const current = useMemo(
@@ -508,12 +503,12 @@ const MultiSensorChart = ({
   sensors,
   parameterLabel,
 }: {
-  sensors: ImportedSensor[];
-  parameterLabel: (sensor: ImportedSensor, asset: Asset) => string;
+  sensors: Sensor[];
+  parameterLabel: (sensor: Sensor, asset: Asset) => string;
 }) => {
   const translate = useTranslate();
   const { formatting } = useAtomValue(projectSettingsAtom);
-  const { timing } = useAtomValue(simulationSettingsDerivedAtom);
+  const sensorReadings = useSensorReadings();
   const { assets } = useAtomValue(stagingModelDerivedAtom);
   const [chosenLabel, setChosenLabel] = useState<string | null>(null);
 
@@ -556,19 +551,24 @@ const MultiSensorChart = ({
     return option ? getDecimals(formatting, option.quantityKey) : 0;
   }, [first, isStatus, formatting]);
 
-  const stepSeconds = reportStepSeconds(timing);
   const series = useMemo<QuickGraphSeries[]>(
     () =>
-      plotted.map(({ sensor }, index) => ({
-        label: sensor.name,
-        values: sensor.readings,
-        times: sensor.times ?? stepTimes(sensor.readings.length, stepSeconds),
-        style: sensorReadingsStyle(
-          sensor.readings.length,
-          SERIES_COLORS[index % SERIES_COLORS.length],
-        ),
-      })),
-    [plotted, stepSeconds],
+      plotted.flatMap(({ sensor }, index) => {
+        const readings = sensorReadings.get(sensor.id);
+        if (!readings) return [];
+        return [
+          {
+            label: sensor.name,
+            values: readings.values,
+            times: readings.times,
+            style: sensorReadingsStyle(
+              readings.values.length,
+              SERIES_COLORS[index % SERIES_COLORS.length],
+            ),
+          },
+        ];
+      }),
+    [plotted, sensorReadings],
   );
 
   const timeRange = useMemo(() => seriesTimeRange(series), [series]);

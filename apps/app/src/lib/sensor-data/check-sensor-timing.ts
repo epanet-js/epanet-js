@@ -19,7 +19,7 @@ export const checkSensorTimes = (
   const earliestEnd = timing.duration * 0.75;
 
   return sensors
-    .filter(({ times = [] }) => (times[times.length - 1] ?? 0) < earliestEnd)
+    .filter(({ times }) => (times[times.length - 1] ?? 0) < earliestEnd)
     .map(({ name }) => {
       const column = columns.get(name);
       return {

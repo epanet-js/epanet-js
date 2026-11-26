@@ -13,6 +13,7 @@ import {
 import { simulationStepAtom } from "src/state/simulation";
 import { worktreeAtom } from "src/state/scenarios";
 import { sensorsAtom } from "src/state/sensor-data";
+import { useSensorReadings } from "src/hooks/use-sensor-readings";
 import {
   assetPanelFooterAtom,
   quickGraphPropertyAtom,
@@ -104,6 +105,7 @@ const QuickGraphSection = ({
   const { units, formatting } = useAtomValue(projectSettingsAtom);
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const sensors = useAtomValue(sensorsAtom);
+  const sensorReadings = useSensorReadings();
   const { changeTimestep } = useChangeTimestep();
 
   const isInScenario = worktree.activeBranchId !== worktree.mainId;
@@ -131,6 +133,7 @@ const QuickGraphSection = ({
       ) ?? null,
     [sensors, assetId, selectedProperty],
   );
+  const readings = sensor ? sensorReadings.get(sensor.id) : undefined;
 
   const valueLabels = useStatusValueLabels(assetType, isStatusProperty);
 
@@ -171,15 +174,13 @@ const QuickGraphSection = ({
   useTrackSensorComparison(
     "assetPanel",
     sensor,
+    readings,
     assetType,
     data && values.length > 0 ? data.intervalSeconds : null,
   );
 
   const series = useMemo<QuickGraphSeries[]>(() => {
     const intervalSeconds = data?.intervalSeconds ?? 0;
-    const sensorTimes = sensor
-      ? (sensor.times ?? stepTimes(sensor.readings.length, intervalSeconds))
-      : [];
     return [
       {
         label: scenarioName ?? (sensor ? translate("simulation") : null),
@@ -197,15 +198,15 @@ const QuickGraphSection = ({
             } satisfies QuickGraphSeries,
           ]
         : []),
-      ...(sensor
+      ...(readings
         ? [
             {
               label: translate("sensorData.panel.sensor"),
-              values: sensor.readings,
-              times: sensorTimes,
+              values: readings.values,
+              times: readings.times,
               style: sensorReadingsStyle(
                 readingsUpTo(
-                  sensorTimes,
+                  readings.times,
                   Math.max(0, values.length - 1) * intervalSeconds,
                 ),
               ),
@@ -220,6 +221,7 @@ const QuickGraphSection = ({
     scenarioName,
     values,
     sensor,
+    readings,
     translate,
     data,
   ]);

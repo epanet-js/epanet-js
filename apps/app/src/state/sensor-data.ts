@@ -1,4 +1,12 @@
 import { atom } from "jotai";
-import type { ImportedSensor } from "src/lib/sensor-data/parse-sensor-data-file";
+import type {
+  Sensor,
+  SensorId,
+  SensorReadings,
+} from "src/lib/sensor-data/sensor";
 
-export const sensorsAtom = atom<ImportedSensor[]>([]);
+export const sensorsAtom = atom<Sensor[]>([]);
+
+export const sensorReadingsAtom = atom<ReadonlyMap<SensorId, SensorReadings>>(
+  new Map(),
+);

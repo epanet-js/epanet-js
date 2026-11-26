@@ -37,7 +37,7 @@ export type ImportedSensor = {
   name: string;
   parameter: SensorParameter;
   assetId: AssetId;
-  times?: number[];
+  times: number[];
   readings: number[];
 };
 
@@ -67,7 +67,7 @@ const SHAPE_ERRORS = new Set(["missingName", "noReadings"]);
 type ColumnError = Omit<ImportError, "column" | "label">;
 
 type ParsedColumn =
-  | { times?: number[]; readings: number[]; warnings?: ColumnError[] }
+  | { times: number[]; readings: number[]; warnings?: ColumnError[] }
   | { error: ColumnError };
 
 type ColumnReader = {
@@ -533,7 +533,7 @@ const parseColumn = (
       name,
       parameter,
       assetId: asset.id,
-      ...(parsedReadings.times ? { times: parsedReadings.times } : {}),
+      times: parsedReadings.times,
       readings: parsedReadings.readings,
     },
     errors: warnings,

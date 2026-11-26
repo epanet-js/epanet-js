@@ -2,7 +2,7 @@ import type { ComponentType } from "react";
 import type { Getter, Setter } from "jotai";
 import type { TranslateFn } from "src/hooks/use-translate";
 import type { HydraulicModel } from "src/hydraulic-model";
-import type { ImportedSensor } from "src/lib/sensor-data/parse-sensor-data-file";
+import type { Sensor } from "src/lib/sensor-data/sensor";
 import type { useUserTracking } from "src/infra/user-tracking";
 import type { Dock, HorizontalDock } from "./docks";
 import { PanelDockContext } from "./panel-dock-context";
@@ -36,7 +36,7 @@ export type PanelLabelContext = {
 // need the model; labels never do.
 export type PanelDescriptionContext = PanelLabelContext & {
   hydraulicModel: HydraulicModel;
-  sensors: readonly ImportedSensor[];
+  sensors: readonly Sensor[];
 };
 
 export type PanelTemplate<T extends PanelType> = {

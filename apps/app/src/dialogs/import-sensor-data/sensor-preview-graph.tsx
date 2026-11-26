@@ -34,7 +34,7 @@ export const SensorPreviewGraph = ({ sensor }: { sensor: ImportedSensor }) => {
       {
         label: null,
         values: sensor.readings,
-        times: sensor.times ?? [],
+        times: sensor.times,
         style: sensorReadingsStyle(sensor.readings.length),
       },
     ],

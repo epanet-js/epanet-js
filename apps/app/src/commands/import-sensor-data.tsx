@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { sensorsAtom } from "src/state/sensor-data";
+import { sensorReadingsAtom, sensorsAtom } from "src/state/sensor-data";
 import { panelsAtom } from "src/state/panels";
 import { splitsAtom } from "src/state/layout";
 import type { Panel } from "src/panels/panel";
@@ -11,10 +11,12 @@ import { useTranslate } from "src/hooks/use-translate";
 import { notify } from "src/components/notifications";
 import { SuccessIcon } from "src/icons";
 import type { ImportedSensor } from "src/lib/sensor-data/parse-sensor-data-file";
+import { toStoredSensors } from "src/lib/sensor-data/sensor";
 
 export const useImportSensorData = () => {
   const previousSensors = useAtomValue(sensorsAtom);
   const setSensors = useSetAtom(sensorsAtom);
+  const setReadings = useSetAtom(sensorReadingsAtom);
   const userTracking = useUserTracking();
   const translate = useTranslate();
   const panels = useAtomValue(panelsAtom);
@@ -39,7 +41,9 @@ export const useImportSensorData = () => {
         };
       },
     ) => {
-      setSensors(sensors);
+      const stored = toStoredSensors(sensors, previousSensors);
+      setSensors(stored.sensors);
+      setReadings(stored.readings);
 
       const existing = panels.find(isAllSensorsPanel);
       const panel = existing ?? createSensorsPanel();
@@ -82,6 +86,7 @@ export const useImportSensorData = () => {
     [
       previousSensors,
       setSensors,
+      setReadings,
       userTracking,
       translate,
       panels,

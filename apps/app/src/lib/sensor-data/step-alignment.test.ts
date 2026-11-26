@@ -13,10 +13,6 @@ describe("stepAlignmentOf", () => {
     );
   });
 
-  it("matches readings without times, which follow the report steps", () => {
-    expect(stepAlignmentOf({}, HOUR)).toEqual("matching");
-  });
-
   it("matches readings with gaps when the rest fall on every report step", () => {
     const times = [0, HOUR, 2 * HOUR, 5 * HOUR, 6 * HOUR];
 

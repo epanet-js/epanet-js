@@ -1,22 +1,29 @@
 import { useEffect } from "react";
 import { useUserTracking } from "src/infra/user-tracking";
-import type { ImportedSensor } from "src/lib/sensor-data/parse-sensor-data-file";
+import type { Sensor, SensorReadings } from "src/lib/sensor-data/sensor";
 import { stepAlignmentOf } from "src/lib/sensor-data/step-alignment";
 
 export type SensorComparisonSource = "assetPanel" | "sensorsPanel";
 
-const tracked = new WeakMap<ImportedSensor, Set<string>>();
+const tracked = new WeakMap<Sensor, Set<string>>();
 
 export const useTrackSensorComparison = (
   source: SensorComparisonSource,
-  sensor: ImportedSensor | null,
+  sensor: Sensor | null,
+  readings: SensorReadings | undefined,
   assetType: string,
   intervalSeconds: number | null,
 ) => {
   const userTracking = useUserTracking();
 
   useEffect(() => {
-    if (!sensor || intervalSeconds === null || intervalSeconds <= 0) return;
+    if (
+      !sensor ||
+      !readings ||
+      intervalSeconds === null ||
+      intervalSeconds <= 0
+    )
+      return;
     const key = `${source}:${intervalSeconds}`;
     const keys = tracked.get(sensor) ?? new Set<string>();
     if (keys.has(key)) return;
@@ -28,7 +35,7 @@ export const useTrackSensorComparison = (
       source,
       assetType,
       parameter: sensor.parameter,
-      alignment: stepAlignmentOf(sensor, intervalSeconds),
+      alignment: stepAlignmentOf(readings, intervalSeconds),
     });
-  }, [source, sensor, assetType, intervalSeconds, userTracking]);
+  }, [source, sensor, readings, assetType, intervalSeconds, userTracking]);
 };
