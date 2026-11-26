@@ -418,6 +418,7 @@ export const useRunScript = () => {
           bookmarksCount: success?.bookmarks.length ?? 0,
           appliedSelection: success?.selection != null,
           zoomed: success?.zoomTo != null,
+          simulationsCount: scriptRuns.size,
         });
       });
     },

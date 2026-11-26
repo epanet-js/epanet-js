@@ -745,6 +745,7 @@ type ScriptRunFinished = {
   bookmarksCount: number;
   appliedSelection: boolean;
   zoomed: boolean;
+  simulationsCount: number;
 };
 
 type ScriptSaved = {
