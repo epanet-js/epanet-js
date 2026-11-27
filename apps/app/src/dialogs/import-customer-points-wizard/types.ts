@@ -8,7 +8,6 @@ import {
 import { Demand } from "@epanet-js/hydraulic-model";
 import { CustomerPointsParserIssues } from "./issues";
 import { Unit } from "@epanet-js/quantity";
-import { IdGenerator } from "@epanet-js/id-generator";
 import type { CoordinateAttributes } from "@epanet-js/gis-importers";
 import type { BuiltCustomerPoints } from "./build-customer-points";
 
@@ -25,8 +24,7 @@ export type BuildAllCustomerPoints = (
 export type ParsedDataSummary = {
   validCustomerPoints: CustomerPoint[];
   validCount: number;
-  buildAll?: BuildAllCustomerPoints;
-  idGenerator?: IdGenerator;
+  buildAll: BuildAllCustomerPoints;
   customerPointDemands: Map<CustomerPointId, Demand[]>;
   issues: CustomerPointsParserIssues | null;
   totalCount: number;

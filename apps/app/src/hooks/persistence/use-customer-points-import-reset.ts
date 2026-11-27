@@ -24,7 +24,10 @@ import { MapEditionsTracker } from "src/map/map-editions-tracker";
 import { initializeWorktree } from "@epanet-js/worktree";
 import { worktreeAtom } from "src/state/scenarios";
 import { modelFactoriesAtom } from "src/state/model-factories";
-import { initializeModelFactories } from "@epanet-js/hydraulic-model";
+import {
+  initializeModelFactories,
+  type LabelManager,
+} from "@epanet-js/hydraulic-model";
 import { withPool, type IdGenerator } from "@epanet-js/id-generator";
 
 type CustomerPointsImportResetInput = {
@@ -45,6 +48,19 @@ const clearSimulationStorage = async () => {
   await storage.clear();
 };
 
+const relabelCustomerPoints = (
+  labelManager: LabelManager,
+  previous: HydraulicModel,
+  next: HydraulicModel,
+) => {
+  for (const { id, label } of previous.customerPoints.values()) {
+    labelManager.remove(label, "customerPoint", id);
+  }
+  for (const { id, label } of next.customerPoints.values()) {
+    labelManager.register(label, "customerPoint", id);
+  }
+};
+
 const loadModel = (
   get: Getter,
   set: Setter,
@@ -52,6 +68,12 @@ const loadModel = (
 ) => {
   const importedModel = { ...hydraulicModel, version: nanoid() };
   const sessionHistory = new SessionHistory(importedModel.version);
+
+  relabelCustomerPoints(
+    get(modelFactoriesAtom).labelManager,
+    get(stagingModelDerivedAtom),
+    importedModel,
+  );
 
   if (idGenerator) {
     const factories = get(modelFactoriesAtom);

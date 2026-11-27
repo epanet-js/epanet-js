@@ -10,7 +10,6 @@ import { defaultProjectSettings } from "@epanet-js/project-settings";
 import { setInitialState } from "src/__helpers__/state";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { stubProjectionsReady } from "src/__helpers__/projections";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import { buildIdPools } from "src/lib/id-pools";
 import { useInProcessDb } from "src/lib/db/__test-helpers__/in-process-db";
 import * as db from "src/lib/db";
@@ -83,13 +82,12 @@ const importThroughWizard = async (store: Store) => {
   await user.click(screen.getByRole("button", { name: /apply changes/i }));
 };
 
-describe("finishing the customer points import with a change set", () => {
+describe("finishing the customer points import", () => {
   useInProcessDb();
 
   beforeEach(() => {
     stubUserTracking();
     stubProjectionsReady();
-    stubFeatureOn("FLAG_CP_IMPORT_CHANGESET");
   });
 
   it("imports every point, not only the previewed ones", async () => {

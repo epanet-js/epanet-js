@@ -22,8 +22,6 @@ import { useProjections } from "src/hooks/use-projections";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { addCustomerPoints } from "src/hydraulic-model/mutations/add-customer-points";
 import { useCustomerPointsImportReset } from "src/hooks/persistence/use-customer-points-import-reset";
-import { useImportCustomerPoints } from "src/commands/import-customer-points";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { notify } from "src/components/notifications";
 import { SuccessIcon } from "src/icons";
 import type { ParsedDataSummary } from "./types";
@@ -59,8 +57,6 @@ export const ImportCustomerPointsWizard: React.FC<
 
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const { customerPointsImportReset } = useCustomerPointsImportReset();
-  const importCustomerPoints = useImportCustomerPoints();
-  const isCpImportChangesetOn = useFeatureFlag("FLAG_CP_IMPORT_CHANGESET");
   const { idPools } = useAtomValue(modelFactoriesAtom);
   const [importProgress, setImportProgress] = useState<ImportProgress | null>(
     null,
@@ -103,35 +99,11 @@ export const ImportCustomerPointsWizard: React.FC<
     handleClose();
   }, [userTracking, handleClose, wizardState.currentStep]);
 
-  const applyWithReset = useCallback(
-    (summary: ParsedDataSummary, keepDemands: boolean): number => {
-      const updatedHydraulicModel = addCustomerPoints(
-        hydraulicModel,
-        summary.validCustomerPoints,
-        {
-          preserveJunctionDemands: keepDemands,
-          customerPointDemands: summary.customerPointDemands,
-          customAttributes: summary.attributes?.definition,
-        },
-      );
-
-      void customerPointsImportReset({
-        hydraulicModel: updatedHydraulicModel,
-        idGenerator: summary.idGenerator,
-      });
-
-      return updatedHydraulicModel.customerPoints.size;
-    },
-    [hydraulicModel, customerPointsImportReset],
-  );
-
-  const applyWithChangeSet = useCallback(
+  const applyImport = useCallback(
     async (
       summary: ParsedDataSummary,
       keepDemands: boolean,
-    ): Promise<number | null> => {
-      if (!summary.buildAll) return null;
-
+    ): Promise<number> => {
       const controller = new AbortController();
       buildAbort.current = controller;
       const showProgress = (progress: ImportProgress) =>
@@ -161,16 +133,21 @@ export const ImportCustomerPointsWizard: React.FC<
       showProgress({ phase: "applying" });
       await waitForPaint();
 
-      const applied = importCustomerPoints({
+      const updatedHydraulicModel = addCustomerPoints(
+        hydraulicModel,
         customerPoints,
-        customerPointDemands: demands,
-        preserveJunctionDemands: keepDemands,
-        customAttributes: summary.attributes?.definition,
-      });
+        {
+          preserveJunctionDemands: keepDemands,
+          customerPointDemands: demands,
+          customAttributes: summary.attributes?.definition,
+        },
+      );
 
-      return applied ? customerPoints.length : null;
+      void customerPointsImportReset({ hydraulicModel: updatedHydraulicModel });
+
+      return updatedHydraulicModel.customerPoints.size;
     },
-    [importCustomerPoints, idPools],
+    [hydraulicModel, customerPointsImportReset, idPools],
   );
 
   const handleFinish = useCallback(async () => {
@@ -182,10 +159,7 @@ export const ImportCustomerPointsWizard: React.FC<
     await new Promise((resolve) => setTimeout(resolve, 10));
 
     try {
-      const importedCount = isCpImportChangesetOn
-        ? await applyWithChangeSet(parsedDataSummary, keepDemands)
-        : applyWithReset(parsedDataSummary, keepDemands);
-      if (importedCount === null) return;
+      const importedCount = await applyImport(parsedDataSummary, keepDemands);
 
       userTracking.capture({
         name: "importCustomerPoints.completed",
@@ -209,15 +183,7 @@ export const ImportCustomerPointsWizard: React.FC<
       setProcessing(false);
       setImportProgress(null);
     }
-  }, [
-    wizardState,
-    isCpImportChangesetOn,
-    applyWithChangeSet,
-    applyWithReset,
-    userTracking,
-    translate,
-    handleClose,
-  ]);
+  }, [wizardState, applyImport, userTracking, translate, handleClose]);
 
   const handleModalDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();

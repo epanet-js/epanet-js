@@ -76,7 +76,6 @@ export type OperationCode =
   | "moveNode"
   | "removeCustomerPoints"
   | "removeZones"
-  | "replaceCustomerPoints"
   | "replaceLink"
   | "replaceNode"
   | "reverseLink";

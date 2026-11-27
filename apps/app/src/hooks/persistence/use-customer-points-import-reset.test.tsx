@@ -126,3 +126,53 @@ describe("useCustomerPointsImportReset custom attributes", () => {
     });
   });
 });
+
+describe("useCustomerPointsImportReset labels", () => {
+  useInProcessDb();
+
+  const IDS = { OLD: 1, NEW: 2 } as const;
+
+  const resetOverOldPoint = async () => {
+    const labelManager = new LabelManager();
+    labelManager.register("OLD", "customerPoint", IDS.OLD);
+    const store = setInitialState({
+      hydraulicModel: HydraulicModelBuilder.with({ labelManager })
+        .aCustomerPoint(IDS.OLD, { coordinates: [1, 1], label: "OLD" })
+        .build(),
+    });
+    store.set(
+      modelFactoriesAtom,
+      initializeModelFactories({
+        idPools: buildIdPools({ ...SEEDS }),
+        labelManager,
+      }),
+    );
+    const { result } = renderHook(() => useCustomerPointsImportReset(), {
+      wrapper: ({ children }) => (
+        <JotaiProvider store={store}>{children}</JotaiProvider>
+      ),
+    });
+
+    await act(async () => {
+      await result.current.customerPointsImportReset({
+        hydraulicModel: HydraulicModelBuilder.with()
+          .aCustomerPoint(IDS.NEW, { coordinates: [2, 2], label: "CP1" })
+          .build(),
+      });
+    });
+
+    return labelManager;
+  };
+
+  it("releases the labels of the replaced customer points", async () => {
+    const labelManager = await resetOverOldPoint();
+
+    expect(labelManager.isLabelAvailable("OLD", "customerPoint")).toBe(true);
+  });
+
+  it("registers the labels of the imported customer points", async () => {
+    const labelManager = await resetOverOldPoint();
+
+    expect(labelManager.getIdByLabel("CP1", "customerPoint")).toBe(IDS.NEW);
+  });
+});

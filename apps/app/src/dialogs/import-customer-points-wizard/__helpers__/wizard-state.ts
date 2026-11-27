@@ -1,10 +1,26 @@
 import { act } from "@testing-library/react";
 import { Store } from "src/state";
 import { wizardStateAtom } from "../use-wizard-state";
-import { WizardState, ParsedDataSummary } from "../types";
+import {
+  WizardState,
+  ParsedDataSummary,
+  type BuildAllCustomerPoints,
+} from "../types";
 import { buildCustomerPoint } from "@epanet-js/hydraulic-model-testing";
-import { Demand } from "@epanet-js/hydraulic-model";
+import { CustomerPoint, Demand } from "@epanet-js/hydraulic-model";
 import { CustomerPointId } from "@epanet-js/hydraulic-model";
+
+const buildingThe =
+  (
+    customerPoints: CustomerPoint[],
+    demands: Map<CustomerPointId, Demand[]>,
+  ): BuildAllCustomerPoints =>
+  () =>
+    Promise.resolve({
+      customerPoints,
+      demands,
+      validCount: customerPoints.length,
+    });
 
 export const setWizardState = (
   store: Store,
@@ -39,16 +55,18 @@ export const createValidParsedDataSummary = (): ParsedDataSummary => {
     [IDS.CP1, [{ baseDemand: 25.5 }]],
     [IDS.CP2, [{ baseDemand: 50.0 }]],
   ]);
+  const validCustomerPoints = [
+    buildCustomerPoint(IDS.CP1, {
+      coordinates: [0.001, 0.001],
+    }),
+    buildCustomerPoint(IDS.CP2, {
+      coordinates: [0.002, 0.002],
+    }),
+  ];
   return {
-    validCustomerPoints: [
-      buildCustomerPoint(IDS.CP1, {
-        coordinates: [0.001, 0.001],
-      }),
-      buildCustomerPoint(IDS.CP2, {
-        coordinates: [0.002, 0.002],
-      }),
-    ],
+    validCustomerPoints,
     validCount: 2,
+    buildAll: buildingThe(validCustomerPoints, customerPointDemands),
     customerPointDemands,
     issues: null,
     totalCount: 2,
@@ -62,16 +80,18 @@ export const createParsedDataSummaryWithIssues = (): ParsedDataSummary => {
     [IDS.CP1, [{ baseDemand: 25.5 }]],
     [IDS.CP2, [{ baseDemand: 50.0 }]],
   ]);
+  const validCustomerPoints = [
+    buildCustomerPoint(IDS.CP1, {
+      coordinates: [0.001, 0.001],
+    }),
+    buildCustomerPoint(IDS.CP2, {
+      coordinates: [0.002, 0.002],
+    }),
+  ];
   return {
-    validCustomerPoints: [
-      buildCustomerPoint(IDS.CP1, {
-        coordinates: [0.001, 0.001],
-      }),
-      buildCustomerPoint(IDS.CP2, {
-        coordinates: [0.002, 0.002],
-      }),
-    ],
+    validCustomerPoints,
     validCount: 2,
+    buildAll: buildingThe(validCustomerPoints, customerPointDemands),
     customerPointDemands,
     issues: {
       skippedNonPointFeatures: [
@@ -115,13 +135,15 @@ export const createParsedDataSummaryWithInvalidDemands =
     const customerPointDemands = new Map<CustomerPointId, Demand[]>([
       [IDS.CP1, [{ baseDemand: 25.5 }]],
     ]);
+    const validCustomerPoints = [
+      buildCustomerPoint(IDS.CP1, {
+        coordinates: [0.001, 0.001],
+      }),
+    ];
     return {
-      validCustomerPoints: [
-        buildCustomerPoint(IDS.CP1, {
-          coordinates: [0.001, 0.001],
-        }),
-      ],
+      validCustomerPoints,
       validCount: 1,
+      buildAll: buildingThe(validCustomerPoints, customerPointDemands),
       customerPointDemands,
       issues: {
         skippedInvalidDemands: [

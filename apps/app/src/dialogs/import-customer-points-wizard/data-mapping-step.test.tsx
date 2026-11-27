@@ -10,7 +10,6 @@ import {
 import { buildIdPools } from "src/lib/id-pools";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { stubProjectionsReady } from "src/__helpers__/projections";
-import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { setWizardState } from "./__helpers__/wizard-state";
 import { renderWizard } from "./__helpers__/render-wizard";
@@ -74,20 +73,10 @@ describe("DataMappingStep", () => {
       renderWizard(store);
     };
 
-    it("restarts the numbering when the import commits a change set", async () => {
-      stubFeatureOn("FLAG_CP_IMPORT_CHANGESET");
-
+    it("restarts the numbering, since the import replaces them", async () => {
       renderOverExistingLabel();
 
       expect(await screen.findByTitle("CP1")).toBeInTheDocument();
-    });
-
-    it("avoids the existing labels on the reset path", async () => {
-      stubFeatureOff("FLAG_CP_IMPORT_CHANGESET");
-
-      renderOverExistingLabel();
-
-      expect(await screen.findByTitle("CP2")).toBeInTheDocument();
     });
   });
 

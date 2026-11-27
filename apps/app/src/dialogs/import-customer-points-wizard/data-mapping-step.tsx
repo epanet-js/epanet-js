@@ -14,7 +14,6 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { useAtomValue } from "jotai";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
-import { modelFactoriesAtom } from "src/state/model-factories";
 import {
   buildCustomerPointPreviewFactory,
   CustomerPoint,
@@ -56,7 +55,6 @@ import { sourceErrorKey } from "./source-error-key";
 import { awaitsCoordinates } from "./use-wizard-state";
 import { useFeatureLock } from "src/components/form/paywall";
 import { planImportAttributes } from "src/lib/custom-attributes/plan-import-attributes";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 const CONSTANT_PATTERN_ID = 0;
 const MAX_PREVIEW_ROWS = 15;
 
@@ -80,8 +78,6 @@ export const DataMappingStep: React.FC<{
   const userTracking = useUserTracking();
   const projectSettings = useAtomValue(projectSettingsAtom);
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
-  const { labelManager, idPools } = useAtomValue(modelFactoriesAtom);
-  const isCpImportChangesetOn = useFeatureFlag("FLAG_CP_IMPORT_CHANGESET");
   const labelMaxLength = useLabelMaxLength();
   const { isLocked: customAttributesLocked } =
     useFeatureLock("customAttributes");
@@ -200,7 +196,6 @@ export const DataMappingStep: React.FC<{
               )
             : undefined;
 
-        const previewIdGenerator = idPools.forPool("customerPoint").copy();
         const records = network.customerPoints ?? [];
         const buildOptions = {
           toDemand: (value: number) =>
@@ -213,11 +208,8 @@ export const DataMappingStep: React.FC<{
 
         const built = await buildCustomerPoints(records, features, {
           ...buildOptions,
-          factory: buildCustomerPointPreviewFactory(
-            isCpImportChangesetOn ? new LabelManager() : labelManager,
-            previewIdGenerator,
-          ),
-          createLimit: isCpImportChangesetOn ? MAX_PREVIEW_ROWS : undefined,
+          factory: buildCustomerPointPreviewFactory(new LabelManager()),
+          createLimit: MAX_PREVIEW_ROWS,
           issues,
           signal,
         });
@@ -228,7 +220,7 @@ export const DataMappingStep: React.FC<{
           factory,
           { onProgress, signal: buildSignal },
         ) =>
-          buildCustomerPoints(records, features, {
+          buildCustomerPoints(records, [], {
             ...buildOptions,
             factory,
             issues: new CustomerPointsIssuesAccumulator(),
@@ -239,9 +231,7 @@ export const DataMappingStep: React.FC<{
         setParsedDataSummary({
           validCustomerPoints: customerPoints,
           validCount,
-          ...(isCpImportChangesetOn
-            ? { buildAll }
-            : { idGenerator: previewIdGenerator }),
+          buildAll,
           customerPointDemands: demands,
           issues: issues.buildResult(),
           totalCount: features.length,
@@ -291,9 +281,6 @@ export const DataMappingStep: React.FC<{
       projectSettings.units,
       customAttributesLocked,
       hydraulicModel.customAttributes,
-      labelManager,
-      isCpImportChangesetOn,
-      idPools,
       labelMaxLength,
       setParsedDataSummary,
       setLoading,
